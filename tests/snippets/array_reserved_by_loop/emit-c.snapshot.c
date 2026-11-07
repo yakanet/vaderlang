@@ -12,6 +12,9 @@ typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_std_async$Sleep_t vader_struct_std_async$Sleep_t;
 typedef struct vader_struct_std_runtime$Scheduler_t vader_struct_std_runtime$Scheduler_t;
 typedef struct vader_struct_std_collections$PriorityQueue__i64_t vader_struct_std_collections$PriorityQueue__i64_t;
+typedef struct vader_struct_std_runtime_scheduler$InitGate_t vader_struct_std_runtime_scheduler$InitGate_t;
+typedef struct vader_struct___defer_env_std_runtime_scheduler_1_t vader_struct___defer_env_std_runtime_scheduler_1_t;
+typedef struct vader_struct___defer_env_std_runtime_scheduler_3_t vader_struct___defer_env_std_runtime_scheduler_3_t;
 
 struct vader_struct_snippet$Bag_t {
     vader_obj_header_t header;
@@ -59,6 +62,21 @@ struct vader_struct_std_runtime$Scheduler_t {
 struct vader_struct_std_collections$PriorityQueue__i64_t {
     vader_obj_header_t header;
     void* f_items;
+};
+struct vader_struct_std_runtime_scheduler$InitGate_t {
+    vader_obj_header_t header;
+    bool f_held;
+    int64_t f_owner;
+    void* f_waiters;
+};
+struct vader_struct___defer_env_std_runtime_scheduler_1_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___defer_env_std_runtime_scheduler_3_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    int64_t f_cap_1;
 };
 
 /* Compile-time atom table. */
@@ -112,11 +130,14 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * relocates them), so `data.const` boxes a zero-copy view. */
 static int32_t vader_global_0 = 0u;
 static void* vader_global_1 = 0u;
-static int32_t vader_global_2 = 0u;
-static bool vader_global_3 = 0u;
+static vader_box_t vader_global_2 = { 0u };
+static int32_t vader_global_3 = 0u;
+static bool vader_global_4 = 0u;
+static vader_box_t vader_global_5 = { 0u };
+static vader_box_t* vader_global_box_roots[] = { &vader_global_2, &vader_global_5 };
 static void** vader_global_raw_roots[] = { &vader_global_1 };
 static vader_gc_frame_t vader_global_frame = {
-    NULL, 0u, 1u, NULL, vader_global_raw_roots, 0u, NULL,
+    NULL, 2u, 1u, vader_global_box_roots, vader_global_raw_roots, 0u, NULL,
 };
 
 static int64_t snippet$square(int32_t l0);
@@ -138,6 +159,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
+static bool std_core$remove_value__i64(void* l0, int64_t l1);
 static vader_box_t std_async$sleep(int64_t l0);
 static int32_t std_async$run_async_main(vader_box_t l0);
 static vader_box_t std_async$Sleep$std_core$Async$resume(void* l0);
@@ -151,9 +173,11 @@ static void std_runtime$sched_arm(int64_t l0);
 static bool std_runtime$sched_park(void);
 static void* std_runtime$scheduler(void);
 static void* std_runtime$scheduler$singleton(void);
+static void std_runtime$scheduler$keep(void);
 static void std_runtime$drop_due_timers(void* l0);
 static bool std_runtime$clock_is_virtual(void);
 static bool std_runtime$clock_is_virtual$singleton(void);
+static void std_runtime$clock_is_virtual$keep(void);
 static vader_box_t std_collections$PriorityQueue$std_core$Peek$peek__i64(void* l0);
 static void std_collections$push__i64(void* l0, int64_t l1);
 static vader_box_t std_collections$pop__i64(void* l0);
@@ -161,12 +185,49 @@ static void std_collections$swap_items__i64(void* l0, int64_t l1, int64_t l2);
 static bool std_collections$is_empty__i64(void* l0);
 static void std_time$sleep(int64_t l0);
 static int64_t std_time$millis(int64_t l0);
+static void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
+static bool std_runtime_scheduler$run_gated(void* l0, void* l1);
+static void __defer_std_runtime_scheduler_0(void* l0);
+static void std_runtime_scheduler$await_gate(void* l0, int64_t l1);
+static void __defer_std_runtime_scheduler_2(void* l0);
+static void std_runtime_scheduler$let_go(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
+static vader_box_t vader_fn_tramp_std_runtime$scheduler$keep(void* env) {
+    (void) env;
+    std_runtime$scheduler$keep();
+    return vader_box_null();
+}
+
+static vader_fn_t vader_fn_static_std_runtime$scheduler$keep = {
+    { 30u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_runtime$scheduler$keep, NULL,
+};
+
+static vader_box_t vader_fn_tramp_std_runtime$clock_is_virtual$keep(void* env) {
+    (void) env;
+    std_runtime$clock_is_virtual$keep();
+    return vader_box_null();
+}
+
+static vader_fn_t vader_fn_static_std_runtime$clock_is_virtual$keep = {
+    { 30u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_runtime$clock_is_virtual$keep, NULL,
+};
+
+static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_0(void* env) {
+    __defer_std_runtime_scheduler_0(env);
+    return vader_box_null();
+}
+
+static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_2(void* env) {
+    __defer_std_runtime_scheduler_2(env);
+    return vader_box_null();
+}
+
+static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[29] = {
+const vader_type_info_t vader_type_info_table[34] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 8 },
     [3] = { .slot_size = 1 },
@@ -239,12 +300,35 @@ const vader_type_info_t vader_type_info_table[29] = {
     },
     [26] = { .slot_size = 16 },
     [27] = { .slot_size = 16 },
-    [28] = {
+    [28] = { .slot_size = 16 },
+    [29] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_runtime_scheduler$InitGate_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_runtime_scheduler$InitGate_t, f_waiters) },
+        .ref_count = 1,
+    },
+    [30] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
+    },
+    [31] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct___defer_env_std_runtime_scheduler_1_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_runtime_scheduler_1_t, f_cap_0) },
+        .ref_count = 1,
+    },
+    [32] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct___defer_env_std_runtime_scheduler_3_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_runtime_scheduler_3_t, f_cap_0) },
+        .ref_count = 1,
+    },
+    [33] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
 };
-const size_t vader_type_info_count = 29;
+const size_t vader_type_info_count = 34;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <stdlib.h>
@@ -280,8 +364,20 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
     return r;
 }
 
+static void vader_host_std_runtime_scheduler$park(void) {
+    vader_sched_park();
+}
+
+static void vader_host_std_runtime_scheduler$wake(int64_t a0) {
+    vader_sched_wake(a0);
+}
+
 static void vader_host_std_runtime_scheduler$sleep_for(int64_t a0) {
     vader_sched_sleep_for(a0);
+}
+
+static int64_t vader_host_std_runtime_scheduler$current_thread(void) {
+    return vader_sched_current();
 }
 
 /* vtable forwards */
@@ -508,7 +604,7 @@ static int64_t snippet$span_count(int8_t l0, int8_t l1) {
     } else {
         l2 = INT64_C(0);
     }
-    vader_array_t* _a0_arr = vader_array_reserve(28u, (int64_t) l2, 5u, 8u);
+    vader_array_t* _a0_arr = vader_array_reserve(33u, (int64_t) l2, 5u, 8u);
     l4 = (void*) _a0_arr;
     l5 = l0;
     vader_array_t* _pc23_hdr = (vader_array_t*) l4;
@@ -1159,6 +1255,31 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
     return t0;
 }
 
+static bool std_core$remove_value__i64(void* l0, int64_t l1) {
+    int64_t l2, l3, l4, l5;
+    int64_t t0, t1;
+    vader_box_t t2;
+    l2 = INT64_C(0);
+    l3 = ((vader_array_t*) l0)->length;
+    while ((l2 < l3)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
+        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2];
+        if (t0 == l1) {
+            l4 = vader_chk_add(i64, l2, INT64_C(1));
+            t0 = ((vader_array_t*) l0)->length;
+            t1 = vader_chk_sub(i64, t0, l2);
+            l5 = vader_chk_sub(i64, t1, INT64_C(1));
+            vader_array_copy((vader_array_t*) l0, (int64_t) l4, (vader_array_t*) l0, (int64_t) l2, (int64_t) l5);
+            t2 = vader_array_remove_last((vader_array_t*) l0);
+            return true;
+        }
+        l2 = (l2 + INT64_C(1));
+    }
+    return false;
+}
+
 static vader_box_t std_async$sleep(int64_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -1349,27 +1470,31 @@ static bool std_runtime$sched_park(void) {
 }
 
 static void* std_runtime$scheduler(void) {
+    void* l0 = NULL;
+    void* l1 = NULL;
     int32_t t0;
     void* t1 = NULL;
-    void** gc_raw_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_box_t t2 = vader_box_null();
+    bool t3;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_global_0;
     if (t0 == INT32_C(2)) {
         t1 = vader_global_1;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_0;
-    if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
-        t1 = std_runtime$scheduler$singleton();
-        vader_global_1 = t1;
-        vader_global_0 = INT32_C(2);
-        t1 = vader_global_1;
-        { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_global_2;
+    l0 = std_runtime_scheduler$gate_or_new(t2);
+    vader_global_2 = vader_ref_box(l0);
+    l1 = (void*) &vader_fn_static_std_runtime$scheduler$keep;
+    t3 = std_runtime_scheduler$run_gated(l0, l1);
+    if (!(t3)) {
+        vader_unreachable("singleton `scheduler` called while it initialises");
     }
-    vader_unreachable("singleton `scheduler` called while it initialises");
-    vader_gc_top = gc_frame.prev;
+    t1 = vader_global_1;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* std_runtime$scheduler$singleton(void) {
@@ -1392,6 +1517,22 @@ static void* std_runtime$scheduler$singleton(void) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void std_runtime$scheduler$keep(void) {
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_0;
+    if (!(t0 == INT32_C(2))) {
+        t1 = std_runtime$scheduler$singleton();
+        vader_global_1 = t1;
+        vader_global_0 = INT32_C(2);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
 static void std_runtime$drop_due_timers(void* l0) {
     int64_t l1, l3;
     vader_box_t l2;
@@ -1412,26 +1553,30 @@ static void std_runtime$drop_due_timers(void* l0) {
 }
 
 static bool std_runtime$clock_is_virtual(void) {
+    void* l0 = NULL;
+    void* l1 = NULL;
     int32_t t0;
     bool t1;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_box_t t2 = vader_box_null();
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_2;
+    t0 = vader_global_3;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_3;
+        t1 = vader_global_4;
         { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_2;
-    if (!(t0 == INT32_C(1))) {
-        vader_global_2 = INT32_C(1);
-        t1 = std_runtime$clock_is_virtual$singleton();
-        vader_global_3 = t1;
-        vader_global_2 = INT32_C(2);
-        t1 = vader_global_3;
-        { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_global_5;
+    l0 = std_runtime_scheduler$gate_or_new(t2);
+    vader_global_5 = vader_ref_box(l0);
+    l1 = (void*) &vader_fn_static_std_runtime$clock_is_virtual$keep;
+    t1 = std_runtime_scheduler$run_gated(l0, l1);
+    if (!(t1)) {
+        vader_unreachable("singleton `clock_is_virtual` called while it initialises");
     }
-    vader_unreachable("singleton `clock_is_virtual` called while it initialises");
-    vader_gc_top = gc_frame.prev;
+    t1 = vader_global_4;
+    { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static bool std_runtime$clock_is_virtual$singleton(void) {
@@ -1441,6 +1586,21 @@ static bool std_runtime$clock_is_virtual$singleton(void) {
     vader_gc_top = &gc_frame;
     t0 = vader_host_std_env$get_env(19u);
     { bool __vret = !(t0.tag == 0u); vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static void std_runtime$clock_is_virtual$keep(void) {
+    int32_t t0;
+    bool t1;
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_3;
+    if (!(t0 == INT32_C(2))) {
+        t1 = std_runtime$clock_is_virtual$singleton();
+        vader_global_4 = t1;
+        vader_global_3 = INT32_C(2);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    { vader_gc_top = gc_frame.prev; return; }
 }
 
 static vader_box_t std_collections$PriorityQueue$std_core$Peek$peek__i64(void* l0) {
@@ -1577,6 +1737,131 @@ static int64_t std_time$millis(int64_t l0) {
     int64_t t0;
     t0 = vader_chk_mul(i64, l0, INT64_C(1000000));
     return t0;
+}
+
+static void* std_runtime_scheduler$gate_or_new(vader_box_t l0) {
+    vader_box_t l1 = vader_box_null();
+    void* l2 = NULL;
+    void* t0 = NULL;
+    vader_box_t* gc_roots[2] = { &l0, &l1 };
+    void** gc_raw_roots[2] = { &l2, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l1 = l0;
+    if (l1.tag == 0u) {
+        vader_array_t* _a0_arr = vader_array_new(5u, 0u, 8u, 2u);
+        l2 = (void*) _a0_arr;
+        vader_struct_std_runtime_scheduler$InitGate_t* _a1_obj = (vader_struct_std_runtime_scheduler$InitGate_t*) vader_gc_alloc(sizeof(vader_struct_std_runtime_scheduler$InitGate_t));
+        vader_obj_header_init(_a1_obj, 29u);
+        _a1_obj->f_held = false;
+        _a1_obj->f_owner = INT64_C(0);
+        _a1_obj->f_waiters = l2;
+        t0 = (void*) _a1_obj;
+        { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    t0 = l1.payload.obj;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
+    int64_t l2;
+    bool t0;
+    int64_t t1;
+    void* t2 = NULL;
+    void** gc_raw_roots[3] = { &l0, &l1, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l2 = vader_host_std_runtime_scheduler$current_thread();
+    t0 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
+    if (t0) {
+        t1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_owner;
+        if (t1 == l2) {
+            { vader_gc_top = gc_frame.prev; return false; }
+        }
+    }
+    t0 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
+    if (t0) {
+        std_runtime_scheduler$await_gate(l0, l2);
+    }
+    ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held = true;
+    ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_owner = l2;
+    vader_struct___defer_env_std_runtime_scheduler_1_t* _a0_obj = (vader_struct___defer_env_std_runtime_scheduler_1_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_runtime_scheduler_1_t));
+    vader_obj_header_init(_a0_obj, 31u);
+    _a0_obj->f_cap_0 = l0;
+    t2 = (void*) _a0_obj;
+    vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+    vader_obj_header_init(_a1_closure, 30u);
+    _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_0;
+    _a1_closure->env = t2;
+    t2 = (void*) _a1_closure;
+    vader_defer_push(vader_ref_box(t2));
+    vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
+    ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
+    vader_defer_pop_exec(1u);
+    { vader_gc_top = gc_frame.prev; return true; }
+}
+
+static void __defer_std_runtime_scheduler_0(void* l0) {
+    std_runtime_scheduler$let_go(((vader_struct___defer_env_std_runtime_scheduler_1_t*) l0)->f_cap_0);
+    return;
+}
+
+static void std_runtime_scheduler$await_gate(void* l0, int64_t l1) {
+    void* t0 = NULL;
+    bool t1;
+    void** gc_raw_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    vader_array_push_i64((vader_array_t*) ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_waiters, l1);
+    vader_struct___defer_env_std_runtime_scheduler_3_t* _a0_obj = (vader_struct___defer_env_std_runtime_scheduler_3_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_runtime_scheduler_3_t));
+    vader_obj_header_init(_a0_obj, 32u);
+    _a0_obj->f_cap_0 = l0;
+    _a0_obj->f_cap_1 = l1;
+    t0 = (void*) _a0_obj;
+    vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+    vader_obj_header_init(_a1_closure, 30u);
+    _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_2;
+    _a1_closure->env = t0;
+    t0 = (void*) _a1_closure;
+    vader_defer_push(vader_ref_box(t0));
+    for (;;) {
+        t1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
+        if (t1) {
+            vader_host_std_runtime_scheduler$park();
+            continue;
+        }
+        break;
+    }
+    vader_defer_pop_exec(1u);
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
+static void __defer_std_runtime_scheduler_2(void* l0) {
+    void* l1;
+    int64_t l2;
+    l1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) ((vader_struct___defer_env_std_runtime_scheduler_3_t*) l0)->f_cap_0)->f_waiters;
+    l2 = ((vader_struct___defer_env_std_runtime_scheduler_3_t*) l0)->f_cap_1;
+    std_core$remove_value__i64(l1, l2);
+    return;
+}
+
+static void std_runtime_scheduler$let_go(void* l0) {
+    void* l1;
+    int64_t l2, l3;
+    int64_t t0;
+    ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held = false;
+    l1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_waiters;
+    l2 = ((vader_array_t*) l1)->length;
+    l3 = INT64_C(0);
+    while ((l3 < l2)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
+        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
+        vader_host_std_runtime_scheduler$wake(t0);
+        l3 = (l3 + INT64_C(1));
+    }
+    return;
 }
 
 /* vtable dispatchers */

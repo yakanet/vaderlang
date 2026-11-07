@@ -7,6 +7,9 @@
 typedef struct vader_struct_snippet$Spec_t vader_struct_snippet$Spec_t;
 typedef struct vader_struct_snippet$Rule_t vader_struct_snippet$Rule_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
+typedef struct vader_struct_std_runtime_scheduler$InitGate_t vader_struct_std_runtime_scheduler$InitGate_t;
+typedef struct vader_struct___defer_env_std_runtime_scheduler_1_t vader_struct___defer_env_std_runtime_scheduler_1_t;
+typedef struct vader_struct___defer_env_std_runtime_scheduler_3_t vader_struct___defer_env_std_runtime_scheduler_3_t;
 
 struct vader_struct_snippet$Spec_t {
     vader_obj_header_t header;
@@ -21,6 +24,21 @@ struct vader_struct_snippet$Rule_t {
 };
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
+};
+struct vader_struct_std_runtime_scheduler$InitGate_t {
+    vader_obj_header_t header;
+    bool f_held;
+    int64_t f_owner;
+    void* f_waiters;
+};
+struct vader_struct___defer_env_std_runtime_scheduler_1_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___defer_env_std_runtime_scheduler_3_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    int64_t f_cap_1;
 };
 
 /* Compile-time atom table. */
@@ -129,18 +147,18 @@ static const vader_array_t vader_data_1 = {
     { 1u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(double, 3) vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 15u, 10u,
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 16u, 10u,
     .slots = { (double) 1.5, (double) 2.5, (double) 3.5 },
 };
 static const vader_array_t vader_data_2 = {
-    { 16u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
+    { 22u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(float, 2) vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 18u, 9u,
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 24u, 9u,
     .slots = { (float) 0.25, (float) 0.5 },
 };
 static const vader_array_t vader_data_3 = {
-    { 17u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
+    { 23u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_4_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 4u, 0u,
@@ -205,21 +223,28 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_7_buf = {
     },
 };
 static const vader_array_t vader_data_7 = {
-    { 19u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_7_buf,
+    { 25u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_7_buf,
 };
 static int32_t vader_global_0 = 0u;
 static void* vader_global_1 = 0u;
-static int32_t vader_global_2 = 0u;
-static void* vader_global_3 = 0u;
-static int32_t vader_global_4 = 0u;
-static void* vader_global_5 = 0u;
+static vader_box_t vader_global_2 = { 0u };
+static int32_t vader_global_3 = 0u;
+static void* vader_global_4 = 0u;
+static vader_box_t vader_global_5 = { 0u };
 static int32_t vader_global_6 = 0u;
 static void* vader_global_7 = 0u;
+static vader_box_t vader_global_8 = { 0u };
+static int32_t vader_global_9 = 0u;
+static void* vader_global_10 = 0u;
+static vader_box_t vader_global_11 = { 0u };
+static vader_box_t* vader_global_box_roots[] = {
+    &vader_global_2, &vader_global_5, &vader_global_8, &vader_global_11,
+};
 static void** vader_global_raw_roots[] = {
-    &vader_global_1, &vader_global_3, &vader_global_5, &vader_global_7,
+    &vader_global_1, &vader_global_4, &vader_global_7, &vader_global_10,
 };
 static vader_gc_frame_t vader_global_frame = {
-    NULL, 0u, 4u, NULL, vader_global_raw_roots, 0u, NULL,
+    NULL, 4u, 4u, vader_global_box_roots, vader_global_raw_roots, 0u, NULL,
 };
 
 static void* snippet$counts(void);
@@ -229,24 +254,86 @@ static void* snippet$queue(void);
 static void snippet$bump(int64_t l0);
 static int32_t snippet$main(void);
 static void* snippet$counts$singleton(void);
+static void snippet$counts$keep(void);
 static void* snippet$slots$singleton(void);
+static void snippet$slots$keep(void);
 static void* snippet$flags$singleton(void);
+static void snippet$flags$keep(void);
 static void* snippet$queue$singleton(void);
+static void snippet$queue$keep(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static bool std_core$remove_value__i64(void* l0, int64_t l1);
 static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
+static void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
+static bool std_runtime_scheduler$run_gated(void* l0, void* l1);
+static void __defer_std_runtime_scheduler_0(void* l0);
+static void std_runtime_scheduler$await_gate(void* l0, int64_t l1);
+static void __defer_std_runtime_scheduler_2(void* l0);
+static void std_runtime_scheduler$let_go(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
+static vader_box_t vader_fn_tramp_snippet$counts$keep(void* env) {
+    (void) env;
+    snippet$counts$keep();
+    return vader_box_null();
+}
+
+static vader_fn_t vader_fn_static_snippet$counts$keep = {
+    { 19u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$counts$keep, NULL,
+};
+
+static vader_box_t vader_fn_tramp_snippet$slots$keep(void* env) {
+    (void) env;
+    snippet$slots$keep();
+    return vader_box_null();
+}
+
+static vader_fn_t vader_fn_static_snippet$slots$keep = {
+    { 19u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$slots$keep, NULL,
+};
+
+static vader_box_t vader_fn_tramp_snippet$flags$keep(void* env) {
+    (void) env;
+    snippet$flags$keep();
+    return vader_box_null();
+}
+
+static vader_fn_t vader_fn_static_snippet$flags$keep = {
+    { 19u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$flags$keep, NULL,
+};
+
+static vader_box_t vader_fn_tramp_snippet$queue$keep(void* env) {
+    (void) env;
+    snippet$queue$keep();
+    return vader_box_null();
+}
+
+static vader_fn_t vader_fn_static_snippet$queue$keep = {
+    { 19u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$queue$keep, NULL,
+};
+
+static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_0(void* env) {
+    __defer_std_runtime_scheduler_0(env);
+    return vader_box_null();
+}
+
+static vader_box_t vader_fn_lift___defer_std_runtime_scheduler_2(void* env) {
+    __defer_std_runtime_scheduler_2(env);
+    return vader_box_null();
+}
+
+static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[20] = {
+const vader_type_info_t vader_type_info_table[26] = {
     [1] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
@@ -288,22 +375,49 @@ const vader_type_info_t vader_type_info_table[20] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
-    [15] = { .slot_size = 8 },
-    [16] = {
+    [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [17] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+    [16] = { .slot_size = 8 },
+    [17] = { .slot_size = 16 },
+    [18] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct_std_runtime_scheduler$InitGate_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_runtime_scheduler$InitGate_t, f_waiters) },
+        .ref_count = 1,
     },
-    [18] = { .slot_size = 4 },
     [19] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
+    },
+    [20] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct___defer_env_std_runtime_scheduler_1_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_runtime_scheduler_1_t, f_cap_0) },
+        .ref_count = 1,
+    },
+    [21] = {
+        .kind = VADER_TYPE_KIND_STRUCT,
+        .size = sizeof(vader_struct___defer_env_std_runtime_scheduler_3_t), .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_std_runtime_scheduler_3_t, f_cap_0) },
+        .ref_count = 1,
+    },
+    [22] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+    },
+    [23] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+    },
+    [24] = { .slot_size = 4 },
+    [25] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
 };
-const size_t vader_type_info_count = 20;
+const size_t vader_type_info_count = 26;
 
 /* Headers named by `@c_header`: they own the prototypes below. */
 #include <unistd.h>
@@ -332,100 +446,128 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
     return r;
 }
 
+static void vader_host_std_runtime_scheduler$park(void) {
+    vader_sched_park();
+}
+
+static void vader_host_std_runtime_scheduler$wake(int64_t a0) {
+    vader_sched_wake(a0);
+}
+
+static int64_t vader_host_std_runtime_scheduler$current_thread(void) {
+    return vader_sched_current();
+}
+
 static void* snippet$counts(void) {
+    void* l0 = NULL;
+    void* l1 = NULL;
     int32_t t0;
     void* t1 = NULL;
-    void** gc_raw_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_box_t t2 = vader_box_null();
+    bool t3;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = vader_global_0;
     if (t0 == INT32_C(2)) {
         t1 = vader_global_1;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_0;
-    if (!(t0 == INT32_C(1))) {
-        vader_global_0 = INT32_C(1);
-        t1 = snippet$counts$singleton();
-        vader_global_1 = t1;
-        vader_global_0 = INT32_C(2);
-        t1 = vader_global_1;
-        { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_global_2;
+    l0 = std_runtime_scheduler$gate_or_new(t2);
+    vader_global_2 = vader_ref_box(l0);
+    l1 = (void*) &vader_fn_static_snippet$counts$keep;
+    t3 = std_runtime_scheduler$run_gated(l0, l1);
+    if (!(t3)) {
+        vader_unreachable("singleton `counts` called while it initialises");
     }
-    vader_unreachable("singleton `counts` called while it initialises");
-    vader_gc_top = gc_frame.prev;
+    t1 = vader_global_1;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* snippet$slots(void) {
+    void* l0 = NULL;
+    void* l1 = NULL;
     int32_t t0;
     void* t1 = NULL;
-    void** gc_raw_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_box_t t2 = vader_box_null();
+    bool t3;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_2;
+    t0 = vader_global_3;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_3;
+        t1 = vader_global_4;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_2;
-    if (!(t0 == INT32_C(1))) {
-        vader_global_2 = INT32_C(1);
-        t1 = snippet$slots$singleton();
-        vader_global_3 = t1;
-        vader_global_2 = INT32_C(2);
-        t1 = vader_global_3;
-        { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_global_5;
+    l0 = std_runtime_scheduler$gate_or_new(t2);
+    vader_global_5 = vader_ref_box(l0);
+    l1 = (void*) &vader_fn_static_snippet$slots$keep;
+    t3 = std_runtime_scheduler$run_gated(l0, l1);
+    if (!(t3)) {
+        vader_unreachable("singleton `slots` called while it initialises");
     }
-    vader_unreachable("singleton `slots` called while it initialises");
-    vader_gc_top = gc_frame.prev;
+    t1 = vader_global_4;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* snippet$flags(void) {
+    void* l0 = NULL;
+    void* l1 = NULL;
     int32_t t0;
     void* t1 = NULL;
-    void** gc_raw_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_box_t t2 = vader_box_null();
+    bool t3;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_4;
+    t0 = vader_global_6;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_5;
+        t1 = vader_global_7;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_4;
-    if (!(t0 == INT32_C(1))) {
-        vader_global_4 = INT32_C(1);
-        t1 = snippet$flags$singleton();
-        vader_global_5 = t1;
-        vader_global_4 = INT32_C(2);
-        t1 = vader_global_5;
-        { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_global_8;
+    l0 = std_runtime_scheduler$gate_or_new(t2);
+    vader_global_8 = vader_ref_box(l0);
+    l1 = (void*) &vader_fn_static_snippet$flags$keep;
+    t3 = std_runtime_scheduler$run_gated(l0, l1);
+    if (!(t3)) {
+        vader_unreachable("singleton `flags` called while it initialises");
     }
-    vader_unreachable("singleton `flags` called while it initialises");
-    vader_gc_top = gc_frame.prev;
+    t1 = vader_global_7;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* snippet$queue(void) {
+    void* l0 = NULL;
+    void* l1 = NULL;
     int32_t t0;
     void* t1 = NULL;
-    void** gc_raw_roots[1] = { &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_box_t t2 = vader_box_null();
+    bool t3;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[3] = { &l0, &l1, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_global_6;
+    t0 = vader_global_9;
     if (t0 == INT32_C(2)) {
-        t1 = vader_global_7;
+        t1 = vader_global_10;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = vader_global_6;
-    if (!(t0 == INT32_C(1))) {
-        vader_global_6 = INT32_C(1);
-        t1 = snippet$queue$singleton();
-        vader_global_7 = t1;
-        vader_global_6 = INT32_C(2);
-        t1 = vader_global_7;
-        { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = vader_global_11;
+    l0 = std_runtime_scheduler$gate_or_new(t2);
+    vader_global_11 = vader_ref_box(l0);
+    l1 = (void*) &vader_fn_static_snippet$queue$keep;
+    t3 = std_runtime_scheduler$run_gated(l0, l1);
+    if (!(t3)) {
+        vader_unreachable("singleton `queue` called while it initialises");
     }
-    vader_unreachable("singleton `queue` called while it initialises");
-    vader_gc_top = gc_frame.prev;
+    t1 = vader_global_10;
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void snippet$bump(int64_t l0) {
@@ -912,6 +1054,22 @@ static void* snippet$counts$singleton(void) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void snippet$counts$keep(void) {
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_0;
+    if (!(t0 == INT32_C(2))) {
+        t1 = snippet$counts$singleton();
+        vader_global_1 = t1;
+        vader_global_0 = INT32_C(2);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
 static void* snippet$slots$singleton(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -923,6 +1081,22 @@ static void* snippet$slots$singleton(void) {
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(24));
     t0 = (void*) _a1_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static void snippet$slots$keep(void) {
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_3;
+    if (!(t0 == INT32_C(2))) {
+        t1 = snippet$slots$singleton();
+        vader_global_4 = t1;
+        vader_global_3 = INT32_C(2);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    { vader_gc_top = gc_frame.prev; return; }
 }
 
 static void* snippet$flags$singleton(void) {
@@ -938,6 +1112,22 @@ static void* snippet$flags$singleton(void) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void snippet$flags$keep(void) {
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_6;
+    if (!(t0 == INT32_C(2))) {
+        t1 = snippet$flags$singleton();
+        vader_global_7 = t1;
+        vader_global_6 = INT32_C(2);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
 static void* snippet$queue$singleton(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -946,6 +1136,22 @@ static void* snippet$queue$singleton(void) {
     vader_array_t* _a0_arr = vader_array_new(7u, 0u, 13u, 8u);
     t0 = (void*) _a0_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static void snippet$queue$keep(void) {
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_global_9;
+    if (!(t0 == INT32_C(2))) {
+        t1 = snippet$queue$singleton();
+        vader_global_10 = t1;
+        vader_global_9 = INT32_C(2);
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    { vader_gc_top = gc_frame.prev; return; }
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -1046,6 +1252,31 @@ static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
     return t0;
 }
 
+static bool std_core$remove_value__i64(void* l0, int64_t l1) {
+    int64_t l2, l3, l4, l5;
+    int64_t t0, t1;
+    vader_box_t t2;
+    l2 = INT64_C(0);
+    l3 = ((vader_array_t*) l0)->length;
+    while ((l2 < l3)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
+        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l2];
+        if (t0 == l1) {
+            l4 = vader_chk_add(i64, l2, INT64_C(1));
+            t0 = ((vader_array_t*) l0)->length;
+            t1 = vader_chk_sub(i64, t0, l2);
+            l5 = vader_chk_sub(i64, t1, INT64_C(1));
+            vader_array_copy((vader_array_t*) l0, (int64_t) l4, (vader_array_t*) l0, (int64_t) l2, (int64_t) l5);
+            t2 = vader_array_remove_last((vader_array_t*) l0);
+            return true;
+        }
+        l2 = (l2 + INT64_C(1));
+    }
+    return false;
+}
+
 static void std_io$write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
@@ -1109,6 +1340,131 @@ static void std_io$println__string(vader_string_t l0) {
     l1 = concat_2(l0, 28u);
     std_io$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
+}
+
+static void* std_runtime_scheduler$gate_or_new(vader_box_t l0) {
+    vader_box_t l1 = vader_box_null();
+    void* l2 = NULL;
+    void* t0 = NULL;
+    vader_box_t* gc_roots[2] = { &l0, &l1 };
+    void** gc_raw_roots[2] = { &l2, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l1 = l0;
+    if (l1.tag == 0u) {
+        vader_array_t* _a0_arr = vader_array_new(15u, 0u, 8u, 9u);
+        l2 = (void*) _a0_arr;
+        vader_struct_std_runtime_scheduler$InitGate_t* _a1_obj = (vader_struct_std_runtime_scheduler$InitGate_t*) vader_gc_alloc(sizeof(vader_struct_std_runtime_scheduler$InitGate_t));
+        vader_obj_header_init(_a1_obj, 18u);
+        _a1_obj->f_held = false;
+        _a1_obj->f_owner = INT64_C(0);
+        _a1_obj->f_waiters = l2;
+        t0 = (void*) _a1_obj;
+        { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    t0 = l1.payload.obj;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool std_runtime_scheduler$run_gated(void* l0, void* l1) {
+    int64_t l2;
+    bool t0;
+    int64_t t1;
+    void* t2 = NULL;
+    void** gc_raw_roots[3] = { &l0, &l1, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l2 = vader_host_std_runtime_scheduler$current_thread();
+    t0 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
+    if (t0) {
+        t1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_owner;
+        if (t1 == l2) {
+            { vader_gc_top = gc_frame.prev; return false; }
+        }
+    }
+    t0 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
+    if (t0) {
+        std_runtime_scheduler$await_gate(l0, l2);
+    }
+    ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held = true;
+    ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_owner = l2;
+    vader_struct___defer_env_std_runtime_scheduler_1_t* _a0_obj = (vader_struct___defer_env_std_runtime_scheduler_1_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_runtime_scheduler_1_t));
+    vader_obj_header_init(_a0_obj, 20u);
+    _a0_obj->f_cap_0 = l0;
+    t2 = (void*) _a0_obj;
+    vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+    vader_obj_header_init(_a1_closure, 19u);
+    _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_0;
+    _a1_closure->env = t2;
+    t2 = (void*) _a1_closure;
+    vader_defer_push(vader_ref_box(t2));
+    vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
+    ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
+    vader_defer_pop_exec(1u);
+    { vader_gc_top = gc_frame.prev; return true; }
+}
+
+static void __defer_std_runtime_scheduler_0(void* l0) {
+    std_runtime_scheduler$let_go(((vader_struct___defer_env_std_runtime_scheduler_1_t*) l0)->f_cap_0);
+    return;
+}
+
+static void std_runtime_scheduler$await_gate(void* l0, int64_t l1) {
+    void* t0 = NULL;
+    bool t1;
+    void** gc_raw_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    vader_array_push_i64((vader_array_t*) ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_waiters, l1);
+    vader_struct___defer_env_std_runtime_scheduler_3_t* _a0_obj = (vader_struct___defer_env_std_runtime_scheduler_3_t*) vader_gc_alloc(sizeof(vader_struct___defer_env_std_runtime_scheduler_3_t));
+    vader_obj_header_init(_a0_obj, 21u);
+    _a0_obj->f_cap_0 = l0;
+    _a0_obj->f_cap_1 = l1;
+    t0 = (void*) _a0_obj;
+    vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
+    vader_obj_header_init(_a1_closure, 19u);
+    _a1_closure->code = (void*) &vader_fn_lift___defer_std_runtime_scheduler_2;
+    _a1_closure->env = t0;
+    t0 = (void*) _a1_closure;
+    vader_defer_push(vader_ref_box(t0));
+    for (;;) {
+        t1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held;
+        if (t1) {
+            vader_host_std_runtime_scheduler$park();
+            continue;
+        }
+        break;
+    }
+    vader_defer_pop_exec(1u);
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
+static void __defer_std_runtime_scheduler_2(void* l0) {
+    void* l1;
+    int64_t l2;
+    l1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) ((vader_struct___defer_env_std_runtime_scheduler_3_t*) l0)->f_cap_0)->f_waiters;
+    l2 = ((vader_struct___defer_env_std_runtime_scheduler_3_t*) l0)->f_cap_1;
+    std_core$remove_value__i64(l1, l2);
+    return;
+}
+
+static void std_runtime_scheduler$let_go(void* l0) {
+    void* l1;
+    int64_t l2, l3;
+    int64_t t0;
+    ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held = false;
+    l1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_waiters;
+    l2 = ((vader_array_t*) l1)->length;
+    l3 = INT64_C(0);
+    while ((l3 < l2)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
+        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
+        vader_host_std_runtime_scheduler$wake(t0);
+        l3 = (l3 + INT64_C(1));
+    }
+    return;
 }
 
 int main(int argc, char** argv) {

@@ -4,17 +4,17 @@
   storage
     global #0 i32  joiner.state
     global #1 Joiner  joiner.instance
+    global #2 InitGate | null  joiner.gate
   snippet.Joiner :: struct { running: i64, main_thread: i64 }  // snippet$Joiner
   snippet.joiner :: fn() -> Joiner {  // snippet$joiner
       if @global(0) == 2 {
           return @global(1)
       }
-      if @global(0) == 1 {
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(2))
+      @global(2) = gate
+      if !std.runtime.scheduler.run_gated(gate, snippet$joiner$keep) {
           @unreachable("singleton `joiner` called while it initialises")
       }
-      @global(0) = 1
-      @global(1) = snippet$joiner$singleton()
-      @global(0) = 2
       return @global(1)
   }
   snippet.spawn :: fn(entry: fn() -> void) -> void {  // snippet$spawn
@@ -67,6 +67,13 @@
   snippet$joiner$singleton :: fn() -> Joiner {
       Joiner { .running = i64(0), .main_thread = i64(0) }
   }
+  snippet$joiner$keep :: fn() -> void {
+      if @global(0) == 2 {
+          return
+      }
+      @global(1) = snippet$joiner$singleton()
+      @global(0) = 2
+  }
   __lambda_env_snippet_1 :: struct { cap_0: fn() -> void, cap_1: Joiner }
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> void {
       __env_0.cap_0()
@@ -106,6 +113,7 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -116,6 +124,16 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
     fn std.io.write_text  // std_io$write_text
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

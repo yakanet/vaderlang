@@ -127,7 +127,7 @@ await_room :: fn<T>(channel: Channel<T>) -> void {
     for channel.messages.len() >= channel.capacity && !channel.closed {
         park()
     }
-    remove_thread(channel.senders, me)
+    channel.senders.remove_value(me)
 }
 
 // Park until `channel` holds a message or is closed.
@@ -138,13 +138,13 @@ await_message :: fn<T>(channel: Channel<T>) -> void {
     for channel.messages.is_empty() && !channel.closed {
         park()
     }
-    remove_thread(channel.receivers, me)
+    channel.receivers.remove_value(me)
 }
 
 // `me` stopped waiting for room without taking it, cancelled: room a `receive`
 // woke it for goes to the next sender.
 gave_up_sending :: fn<T>(channel: Channel<T>, me: i64) -> void {
-    if remove_thread(channel.senders, me) && channel.messages.len() < channel.capacity {
+    if channel.senders.remove_value(me) && channel.messages.len() < channel.capacity {
         wake_first(channel.senders)
     }
 }
@@ -152,7 +152,7 @@ gave_up_sending :: fn<T>(channel: Channel<T>, me: i64) -> void {
 // `me` stopped waiting for a message without taking it, cancelled: a message a
 // `send` woke it for goes to the next receiver.
 gave_up_receiving :: fn<T>(channel: Channel<T>, me: i64) -> void {
-    if remove_thread(channel.receivers, me) && !channel.messages.is_empty() {
+    if channel.receivers.remove_value(me) && !channel.messages.is_empty() {
         wake_first(channel.receivers)
     }
 }
@@ -162,21 +162,6 @@ wake_first :: fn(threads: i64[]) -> void {
     if threads.len() > 0 {
         wake(threads[0])
     }
-}
-
-// Take `thread` out of `threads`, keeping the others in order ; whether it was
-// there.
-remove_thread :: fn(threads: i64[], thread: i64) -> bool {
-    for i in 0..<threads.len() {
-        if threads[i] == thread {
-            for j in i + 1..<threads.len() {
-                threads[j - 1] = threads[j]
-            }
-            threads.remove_last()
-            return true
-        }
-    }
-    return false
 }
 
 // ---- tests ----------------------------------------------------------------

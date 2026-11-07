@@ -207,6 +207,16 @@ async_export :: fn(project: LoadedProject, name: string) -> Symbol | null {
     return loaded.collected.symbols[name]
 }
 
+// The gate functions of `std/runtime/scheduler`, or null when the program does not
+// load it.
+scheduler_gate_runtime :: fn(project: LoadedProject) -> GateRuntime | null {
+    id :: find_scheduler_module_id(project) ?? return null
+    loaded :: project.modules[id] ?? return null
+    gate_or_new :: loaded.collected.symbols["gate_or_new"] ?? return null
+    run_gated :: loaded.collected.symbols["run_gated"] ?? return null
+    return GateRuntime { .gate_or_new = gate_or_new, .run_gated = run_gated }
+}
+
 populate_core_symbols :: fn(
     entry_typed: TypedProgram,
     project: LoadedProject,

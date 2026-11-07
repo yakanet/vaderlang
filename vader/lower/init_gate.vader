@@ -1,0 +1,105 @@
+// vader/lower/init_gate: the gate a value built on first use waits on, in a program
+// whose threads may share it.
+//
+// A `@singleton` (`singleton.vader`) and a constant whose value runs code
+// (`inline_consts.vader`) build their value in a function of their own, `build`,
+// which `run_gated` of `std/runtime/scheduler` runs under a gate kept in a global
+// slot of the program:
+//
+//     gate :: gate_or_new(gate_slot)
+//     gate_slot = gate
+//     if !run_gated(gate, build) { stop: read again while it is built }
+//
+// A thread that finds another building the value parks until that one is done, or
+// cancelled. A program that never loads the scheduler has one thread: the value
+// keeps a state slot alone (`global_slot.vader`), and needs no gate.
+
+module "vader/lower"
+
+import "std/abort"
+import "toolchain/span"
+import "vader/core/mono"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/typecheck"
+import "vader/lower/ir"
+
+// The gate functions of the program the module `module` belongs to, or null when
+// it never loads the scheduler, and so runs on one thread.
+gate_runtime_of :: fn(project_ctx: LowerProjectCtx, module: string) -> GateRuntime | null {
+    program :: project_ctx.evaluated.modules[module] ?? return null
+    return program.typed.gate_runtime
+}
+
+// Have the bodies of the gate functions lowered, when the program loads the
+// scheduler. A constant gets its gate after the fixpoint of the lowering, too late
+// to harvest them then: the constant harvests them as its value is lowered.
+register_gate_fns :: fn(ctx: FnLowerCtx) -> void {
+    fns :: ctx.typed.gate_runtime ?? return
+    register_nongeneric_imported_fn(ctx, fns.gate_or_new)
+    register_nongeneric_imported_fn(ctx, fns.run_gated)
+}
+
+// The statements that run the function `build` under a new gate of the value
+// `name` of `module`, and `reentered` when the running thread builds it already.
+gated_build :: fn(
+    project_ctx: LowerProjectCtx,
+    fns: GateRuntime,
+    module: string,
+    name: string,
+    build: Symbol,
+    reentered: LoweredStmt,
+    span: Span,
+) -> LoweredStmt[] {
+    make :: gate_fn_type(project_ctx, fns.gate_or_new)
+    gate_type :: make.return_type
+    slot :: new_global(project_ctx, module, "${name}.gate", make.params[0], span)
+    gate :: synthetic_symbol(next_project_synthetic_id(project_ctx), .Local, "gate")
+    run_args: LoweredExpr[]: [
+        LoweredIdent { .span = span, .type = gate_type, .symbol = gate },
+        LoweredIdent { .span = span, .type = mk_fn([], TY_VOID), .symbol = build },
+    ]
+    ran :: mk_lowered_call(fns.run_gated, run_args, TY_BOOL, span)
+    refused :: LoweredIf {
+        .span       = span,
+        .type       = TY_VOID,
+        .cond       = maybe_negate(ran, true, span),
+        .then_block = mk_void_block([reentered], span),
+        .else_block = null,
+    }
+    return [
+        LoweredLet {
+            .span   = span,
+            .name   = gate.name,
+            .symbol = gate,
+            .type   = gate_type,
+            .value  = mk_lowered_call(fns.gate_or_new, [slot], gate_type, span),
+        },
+        set_global(slot, LoweredIdent { .span = span, .type = gate_type, .symbol = gate }),
+        LoweredExprStmt { .span = span, .expr = refused },
+    ]
+}
+
+// The function `build`, mangled `mangled`, that runs `stmts` under the gate of the
+// value `origin` is the entry of.
+gate_build_fn :: fn(
+    origin: MonoEntry, mangled: string, build: Symbol, stmts: LoweredStmt[], span: Span,
+) -> LoweredFnDecl = LoweredFnDecl {
+    .mangled     = mangled,
+    .params      = [],
+    .return_type = TY_VOID,
+    .body        = mk_void_block(stmts, span),
+    .origin      = MonoEntry {
+        ...origin,
+        .mangled = mangled,
+        .symbol  = build,
+        .is_main = false,
+    },
+}
+
+// The signature of the gate function `sym`.
+gate_fn_type :: fn(project_ctx: LowerProjectCtx, sym: Symbol) -> FnType {
+    program :: project_ctx.evaluated.modules[sym.module]
+        ?? panic("lower: no module `${sym.module}` for `${sym.name}`")
+    return fn_signature(program.typed, sym) ?? panic("lower: `${sym.name}` has no signature")
+}

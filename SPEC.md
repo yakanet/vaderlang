@@ -2332,7 +2332,7 @@ At module level, only the immutable forms declare; module state lives in a `@sin
 
 The top level is not ordered. A constant or a function may read a module constant declared below it: `INNERS :: [ONE]` above `ONE :: Inner { .n = 7 }` is an `Inner[]`.
 
-- A constant whose value reads itself, directly or through others (`A :: B + 1`, `B :: A + 1`), is an error. When the read sits in a function its value calls, a `@comptime` constant reports it when evaluated, and reading any other one stops the program.
+- A constant whose value reads itself, directly or through others (`A :: B + 1`, `B :: A + 1`), is an error. When the read sits in a function its value calls, a `@comptime` constant reports it when evaluated, and reading any other one stops the program. A task of `std/task` that reads a constant while another task computes its value waits for that computation, then computes the value in turn.
 - A read inside a lambda waits until the lambda runs, so an annotated constant may name itself there; an unannotated one may not.
 
 ```vader
@@ -3367,7 +3367,8 @@ log().push("x")            // every later `log()` sees "x"
 - A module constant cannot call a singleton: the constant would change with the instance. A lambda the constant holds may call one, since it runs only when called.
 - A singleton takes no parameters, has no type parameters, and cannot use `yield`.
 - An `async` singleton hands every call one task, the `share` (§16) of its body: concurrent and later awaits all get the same result, and the body runs once. A cancelled await leaves the task to the others, and a body that awaits its own task stops the program. The program must import `std/async`.
-- A call that reaches the singleton again while its body is still running stops the program.
+- A call that reaches the singleton again from its own body, directly or through the functions the body calls, stops the program.
+- A task of `std/task` that calls the singleton while another task runs its body waits for the body to end. When that task is cancelled first, the next call runs the body again.
 - A singleton cannot run at compile time: only the running program builds it.
 - Only a free function can be a singleton.
 

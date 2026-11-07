@@ -112,8 +112,10 @@ check_project_modules :: fn(
         .run_async_main = async_export(project, "run_async_main"),
         .share = async_export(project, "share"),
     }
+    gate_runtime :: scheduler_gate_runtime(project)
     for [_, typed] in per_module {
         typed.async_runtime = async_runtime
+        typed.gate_runtime = gate_runtime
     }
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land

@@ -3,24 +3,29 @@ type 0 scalar null
 type 1 scalar i32
 type 2 struct __asyncstate_snippet_0 { s0:0,s1:0,awaited:6,state:1 }
 type 3 union 1,4
-type 4 struct std_core$Suspended { wake_at:7 }
+type 4 struct std_core$Suspended { wake_at:8 }
 type 5 scalar string
 type 6 ref std_core$Async
-type 7 scalar i64
-type 8 struct std_core$Buffer {  }
-type 9 scalar u8
-type 10 scalar bool
-type 11 array 9
-type 12 scalar void
-type 13 ref std_core$Async
+type 7 array 8
+type 8 scalar i64
+type 9 scalar bool
+type 10 struct std_core$Buffer {  }
+type 11 scalar u8
+type 12 array 11
+type 13 scalar void
 type 14 ref std_core$Async
-type 15 struct std_async$Sleep { ms:7,deadline:7,armed:10 }
-type 16 union 0,4
-type 17 union 0,5
-type 18 array 7
-type 19 struct std_runtime$Scheduler { now:7,deadlines:20 }
-type 20 struct std_collections$PriorityQueue__i64 { items:18 }
-type 21 union 7,0
+type 15 ref std_core$Async
+type 16 struct std_async$Sleep { ms:8,deadline:8,armed:9 }
+type 17 union 0,4
+type 18 union 0,5
+type 19 struct std_runtime$Scheduler { now:8,deadlines:20 }
+type 20 struct std_collections$PriorityQueue__i64 { items:7 }
+type 21 union 8,0
+type 22 union 23,0
+type 23 struct std_runtime_scheduler$InitGate { held:9,owner:8,waiters:7 }
+type 24 fn () -> 13
+type 25 struct __defer_env_std_runtime_scheduler_1 { cap_0:23 }
+type 26 struct __defer_env_std_runtime_scheduler_3 { cap_0:23,cap_1:8 }
 string 0 "woke at 5"
 string 1 "woke at 2"
 string 2 "start"
@@ -29,20 +34,25 @@ string 4 "async deadlock: a task is suspended with nothing left to wake it"
 string 5 "VADER_ASYNC_VIRTUAL_CLOCK"
 global 0 1 scheduler.state
 global 1 19 scheduler.instance
-global 2 1 clock_is_virtual.state
-global 3 10 clock_is_virtual.instance
-import 0 byte_len std_core$byte_len result_type=7 param_types=5 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=11 param_types=5 param_c_out= param_by_address= (string) -> ref
-import 2 extern getenv std_env$get_env header=<stdlib.h> result_type=17 param_types=5 param_c_out= param_by_address= (string) -> any
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=1,11,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 panic std_abort$panic result_type=12 param_types=5 param_c_out= param_by_address= (string) -> void
-import 5 sleep_for std_runtime_scheduler$sleep_for result_type=12 param_types=7 param_c_out= param_by_address= (i64) -> void
+global 2 22 scheduler.gate
+global 3 1 clock_is_virtual.state
+global 4 9 clock_is_virtual.instance
+global 5 22 clock_is_virtual.gate
+import 0 byte_len std_core$byte_len result_type=8 param_types=5 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=12 param_types=5 param_c_out= param_by_address= (string) -> ref
+import 2 extern getenv std_env$get_env header=<stdlib.h> result_type=18 param_types=5 param_c_out= param_by_address= (string) -> any
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,12,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 panic std_abort$panic result_type=13 param_types=5 param_c_out= param_by_address= (string) -> void
+import 5 park std_runtime_scheduler$park result_type=13 () -> void
+import 6 wake std_runtime_scheduler$wake result_type=13 param_types=8 param_c_out= param_by_address= (i64) -> void
+import 7 sleep_for std_runtime_scheduler$sleep_for result_type=13 param_types=8 param_c_out= param_by_address= (i64) -> void
+import 8 current_thread std_runtime_scheduler$current_thread result_type=8 () -> i64
 impl 2 std_core$Async
-impl 8 std_core$ByteAccess
-impl 15 std_core$Async
+impl 10 std_core$ByteAccess
+impl 16 std_core$Async
 impl 20 std_core$Peek
 vtable std_core$Async.resume 2 1
-vtable std_core$Async.resume 15 9
+vtable std_core$Async.resume 16 10
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -54,8 +64,8 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $k_2
   i32.const 8
   struct.new 2   ; __asyncstate_snippet_0
-  ref.cast 14   ; ref std_core$Async
-  call 8   ; std_async$run_async_main
+  ref.cast 15   ; ref std_core$Async
+  call 9   ; std_async$run_async_main
   return
 end
 
@@ -95,7 +105,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       string.const 0   ; "woke at 5"
-      call 6   ; std_io$println__string
+      call 7   ; std_io$println__string
       local.get 0   ; arg 0
       i32.const 1
       struct.set 2 3   ; __asyncstate_snippet_0.state
@@ -130,7 +140,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         i32.eq
         if $L6 void
           i64.const 3
-          call 7   ; std_async$sleep
+          call 8   ; std_async$sleep
           local.set 3   ; $cast_31
           local.get 0   ; arg 0
           local.get 3   ; $cast_31
@@ -145,7 +155,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             string.const 1   ; "woke at 2"
-            call 6   ; std_io$println__string
+            call 7   ; std_io$println__string
             local.get 0   ; arg 0
             i32.const 4
             struct.set 2 3   ; __asyncstate_snippet_0.state
@@ -180,7 +190,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
               i32.eq
               if $L10 void
                 i64.const 2
-                call 7   ; std_async$sleep
+                call 8   ; std_async$sleep
                 local.set 6   ; $cast_54
                 local.get 0   ; arg 0
                 local.get 6   ; $cast_54
@@ -200,7 +210,7 @@ fn 1 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                   return
                 end $L11
                 string.const 2   ; "start"
-                call 6   ; std_io$println__string
+                call 7   ; std_io$println__string
                 local.get 0   ; arg 0
                 i32.const 7
                 struct.set 2 3   ; __asyncstate_snippet_0.state
@@ -243,7 +253,60 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_io$write (u8,string) -> void
+fn 3 std_core$remove_value__i64 (ref,i64) -> bool
+  local i i64
+  local __for_hi_0 i64
+  local $add_checked_10 i64
+  local $sub_checked_14 i64
+  i64.const 0
+  local.set 2   ; i
+  local.get 0   ; arg 0
+  array.len
+  local.set 3   ; __for_hi_0
+  loop $L0 void
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
+    i64.lt
+    if $L1 void
+      local.get 0   ; arg 0
+      local.get 2   ; i
+      load_slot_i64
+      local.get 1   ; arg 1
+      i64.eq
+      if $L2 void
+        local.get 2   ; i
+        i64.const 1
+        i64.checked_add
+        local.set 4   ; $add_checked_10
+        local.get 0   ; arg 0
+        array.len
+        local.get 2   ; i
+        i64.checked_sub
+        i64.const 1
+        i64.checked_sub
+        local.set 5   ; $sub_checked_14
+        local.get 0   ; arg 0
+        local.get 4   ; $add_checked_10
+        local.get 0   ; arg 0
+        local.get 2   ; i
+        local.get 5   ; $sub_checked_14
+        array.copy
+        local.get 0   ; arg 0
+        array.remove_last
+        drop
+        return.lit bool.const true
+      end $L2
+      local.get 2   ; i
+      i64.const 1
+      i64.add
+      local.set 2   ; i
+      br $L0
+    end $L1
+  end $L0
+  return.lit bool.const false
+end
+
+fn 4 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -254,7 +317,7 @@ fn 3 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 4   ; std_io$write_text
+  call 5   ; std_io$write_text
   if $L0 void
     return
   end $L0
@@ -278,14 +341,14 @@ fn 3 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 11   ; u8[]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 5   ; std_io$write_bytes
+      call 6   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -305,11 +368,11 @@ fn 3 std_io$write (u8,string) -> void
   return
 end
 
-fn 4 std_io$write_text (u8,string) -> bool
+fn 5 std_io$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 5 std_io$write_bytes (u8,ref,i64) -> i32
+fn 6 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -329,7 +392,7 @@ fn 5 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 6 std_io$println__string (string) -> void
+fn 7 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 3   ; "\n"
@@ -337,38 +400,38 @@ fn 6 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 3   ; std_io$write
+  call 4   ; std_io$write
   return
 end
 
-fn 7 std_async$sleep (i64) -> any
+fn 8 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 15   ; std_async$Sleep
+  struct.new 16   ; std_async$Sleep
   return
 end
 
-fn 8 std_async$run_async_main (any) -> i32
+fn 9 std_async$run_async_main (any) -> i32
   local.get 0   ; arg 0
-  call 10   ; std_async$block_on__i32
+  call 11   ; std_async$block_on__i32
   return
 end
 
-fn 9 std_async$Sleep$std_core$Async$resume (ref) -> any
+fn 10 std_async$Sleep$std_core$Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
-  local.field 0 15 2   ; arg 0 std_async$Sleep.armed
-  ref.cast 10   ; bool
+  local.field 0 16 2   ; arg 0 std_async$Sleep.armed
+  ref.cast 9   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 15 2   ; std_async$Sleep.armed
-    call 11   ; std_runtime$sched_now
+    struct.set 16 2   ; std_async$Sleep.armed
+    call 12   ; std_runtime$sched_now
     local.set 1   ; $call_3
-    local.field 0 15 0   ; arg 0 std_async$Sleep.ms
-    ref.cast 7   ; i64
+    local.field 0 16 0   ; arg 0 std_async$Sleep.ms
+    ref.cast 8   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
     local.get 2   ; $field_4
@@ -376,30 +439,30 @@ fn 9 std_async$Sleep$std_core$Async$resume (ref) -> any
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
-    struct.set 15 1   ; std_async$Sleep.deadline
-    local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 7   ; i64
-    call 12   ; std_runtime$sched_arm
+    struct.set 16 1   ; std_async$Sleep.deadline
+    local.field 0 16 1   ; arg 0 std_async$Sleep.deadline
+    ref.cast 8   ; i64
+    call 13   ; std_runtime$sched_arm
   end $L0
-  call 11   ; std_runtime$sched_now
+  call 12   ; std_runtime$sched_now
   local.set 1   ; $call_3
-  local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
-  ref.cast 7   ; i64
+  local.field 0 16 1   ; arg 0 std_async$Sleep.deadline
+  ref.cast 8   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
   local.get 2   ; $field_4
   i64.ge
   if $L1 void
   else
-    local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 7   ; i64
+    local.field 0 16 1   ; arg 0 std_async$Sleep.deadline
+    ref.cast 8   ; i64
     struct.new 4   ; std_core$Suspended
     return
   end $L1
   return.lit null.const
 end
 
-fn 10 std_async$block_on__i32 (any) -> i32
+fn 11 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0
@@ -407,7 +470,7 @@ fn 10 std_async$block_on__i32 (any) -> i32
     local.tee 1   ; r
     type_check 4   ; std_core$Suspended
     if $L1 void
-      call 13   ; std_runtime$sched_park
+      call 14   ; std_runtime$sched_park
       if $L2 void
       else
         string.const 4   ; "async deadlock: a task is suspended with nothing left to wake it"
@@ -422,60 +485,62 @@ fn 10 std_async$block_on__i32 (any) -> i32
   return
 end
 
-fn 11 std_runtime$sched_now () -> i64
-  call 14   ; std_runtime$scheduler
+fn 12 std_runtime$sched_now () -> i64
+  call 15   ; std_runtime$scheduler
   struct.get 19 0   ; std_runtime$Scheduler.now
-  ref.cast 7   ; i64
+  ref.cast 8   ; i64
   return
 end
 
-fn 12 std_runtime$sched_arm (i64) -> void
-  call 14   ; std_runtime$scheduler
+fn 13 std_runtime$sched_arm (i64) -> void
+  call 15   ; std_runtime$scheduler
   struct.get 19 1   ; std_runtime$Scheduler.deadlines
   local.get 0   ; arg 0
-  call 20   ; std_collections$push__i64
+  call 23   ; std_collections$push__i64
   return
 end
 
-fn 13 std_runtime$sched_park () -> bool
+fn 14 std_runtime$sched_park () -> bool
   local s ref
   local next i64
   local __coalesce_0 any
   local $field_10 i64
-  call 14   ; std_runtime$scheduler
+  call 15   ; std_runtime$scheduler
   local.tee 0   ; s
-  call 16   ; std_runtime$drop_due_timers
+  call 18   ; std_runtime$drop_due_timers
   local.field 0 19 1   ; s std_runtime$Scheduler.deadlines
-  call 19   ; std_collections$PriorityQueue$std_core$Peek$peek__i64
+  call 22   ; std_collections$PriorityQueue$std_core$Peek$peek__i64
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     return.lit bool.const false
   end $L0
   local.get 2   ; __coalesce_0
-  ref.cast 7   ; i64
+  ref.cast 8   ; i64
   local.set 1   ; next
-  call 17   ; std_runtime$clock_is_virtual
+  call 19   ; std_runtime$clock_is_virtual
   if $L1 void
   else
     local.field 0 19 0   ; s std_runtime$Scheduler.now
-    ref.cast 7   ; i64
+    ref.cast 8   ; i64
     local.set 3   ; $field_10
     local.get 1   ; next
     local.get 3   ; $field_10
     i64.checked_sub
-    call 25   ; std_time$millis
-    call 24   ; std_time$sleep
+    call 28   ; std_time$millis
+    call 27   ; std_time$sleep
   end $L1
   local.get 0   ; s
   local.get 1   ; next
   struct.set 19 0   ; std_runtime$Scheduler.now
   local.get 0   ; s
-  call 16   ; std_runtime$drop_due_timers
+  call 18   ; std_runtime$drop_due_timers
   return.lit bool.const true
 end
 
-fn 14 std_runtime$scheduler () -> ref
+fn 15 std_runtime$scheduler () -> ref
+  local gate ref
+  local $fn_ref_7 ref
   global.get 0   ; scheduler.state
   i32.const 2
   i32.eq
@@ -483,26 +548,26 @@ fn 14 std_runtime$scheduler () -> ref
     global.get 1   ; scheduler.instance
     return
   end $L0
-  global.get 0   ; scheduler.state
-  i32.const 1
-  i32.eq
+  global.get 2   ; scheduler.gate
+  call 29   ; std_runtime_scheduler$gate_or_new
+  local.tee 0   ; gate
+  global.set 2   ; scheduler.gate
+  fn.ref 17 24   ; std_runtime$scheduler$keep fn
+  local.set 1   ; $fn_ref_7
+  local.get 0   ; gate
+  local.get 1   ; $fn_ref_7
+  call 30   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    i32.const 1
-    global.set 0   ; scheduler.state
-    call 15   ; std_runtime$scheduler$singleton
-    global.set 1   ; scheduler.instance
-    i32.const 2
-    global.set 0   ; scheduler.state
-    global.get 1   ; scheduler.instance
-    return
+    unreachable
   end $L1
-  unreachable
+  global.get 1   ; scheduler.instance
+  return
 end
 
-fn 15 std_runtime$scheduler$singleton () -> ref
+fn 16 std_runtime$scheduler$singleton () -> ref
   local $struct_2 ref
-  array.new 18 0   ; i64[]
+  array.new 7 0   ; i64[]
   struct.new 20   ; std_collections$PriorityQueue__i64
   local.set 0   ; $struct_2
   i64.const 0
@@ -511,22 +576,37 @@ fn 15 std_runtime$scheduler$singleton () -> ref
   return
 end
 
-fn 16 std_runtime$drop_due_timers (ref) -> void
+fn 17 std_runtime$scheduler$keep () -> void
+  global.get 0   ; scheduler.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+  else
+    call 16   ; std_runtime$scheduler$singleton
+    global.set 1   ; scheduler.instance
+    i32.const 2
+    global.set 0   ; scheduler.state
+    return
+  end $L0
+  return
+end
+
+fn 18 std_runtime$drop_due_timers (ref) -> void
   local next i64
   local __coalesce_0 any
   local $field_7 i64
   loop $L0 void
     local.field 0 19 1   ; arg 0 std_runtime$Scheduler.deadlines
-    call 19   ; std_collections$PriorityQueue$std_core$Peek$peek__i64
+    call 22   ; std_collections$PriorityQueue$std_core$Peek$peek__i64
     local.tee 2   ; __coalesce_0
     type_check 0   ; null
     if $L1 void
     else
       local.get 2   ; __coalesce_0
-      ref.cast 7   ; i64
+      ref.cast 8   ; i64
       local.set 1   ; next
       local.field 0 19 0   ; arg 0 std_runtime$Scheduler.now
-      ref.cast 7   ; i64
+      ref.cast 8   ; i64
       local.set 3   ; $field_7
       local.get 1   ; next
       local.get 3   ; $field_7
@@ -535,7 +615,7 @@ fn 16 std_runtime$drop_due_timers (ref) -> void
         return
       end $L2
       local.field 0 19 1   ; arg 0 std_runtime$Scheduler.deadlines
-      call 21   ; std_collections$pop__i64
+      call 24   ; std_collections$pop__i64
       drop
       br $L0
     end $L1
@@ -543,32 +623,34 @@ fn 16 std_runtime$drop_due_timers (ref) -> void
   return
 end
 
-fn 17 std_runtime$clock_is_virtual () -> bool
-  global.get 2   ; clock_is_virtual.state
+fn 19 std_runtime$clock_is_virtual () -> bool
+  local gate ref
+  local $fn_ref_7 ref
+  global.get 3   ; clock_is_virtual.state
   i32.const 2
   i32.eq
   if $L0 void
-    global.get 3   ; clock_is_virtual.instance
+    global.get 4   ; clock_is_virtual.instance
     return
   end $L0
-  global.get 2   ; clock_is_virtual.state
-  i32.const 1
-  i32.eq
+  global.get 5   ; clock_is_virtual.gate
+  call 29   ; std_runtime_scheduler$gate_or_new
+  local.tee 0   ; gate
+  global.set 5   ; clock_is_virtual.gate
+  fn.ref 21 24   ; std_runtime$clock_is_virtual$keep fn
+  local.set 1   ; $fn_ref_7
+  local.get 0   ; gate
+  local.get 1   ; $fn_ref_7
+  call 30   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    i32.const 1
-    global.set 2   ; clock_is_virtual.state
-    call 18   ; std_runtime$clock_is_virtual$singleton
-    global.set 3   ; clock_is_virtual.instance
-    i32.const 2
-    global.set 2   ; clock_is_virtual.state
-    global.get 3   ; clock_is_virtual.instance
-    return
+    unreachable
   end $L1
-  unreachable
+  global.get 4   ; clock_is_virtual.instance
+  return
 end
 
-fn 18 std_runtime$clock_is_virtual$singleton () -> bool
+fn 20 std_runtime$clock_is_virtual$singleton () -> bool
   string.const 5   ; "VADER_ASYNC_VIRTUAL_CLOCK"
   call.import 2   ; std_env$get_env
   type_check 0   ; null
@@ -576,28 +658,43 @@ fn 18 std_runtime$clock_is_virtual$singleton () -> bool
   return
 end
 
-fn 19 std_collections$PriorityQueue$std_core$Peek$peek__i64 (ref) -> any
+fn 21 std_runtime$clock_is_virtual$keep () -> void
+  global.get 3   ; clock_is_virtual.state
+  i32.const 2
+  i32.eq
+  if $L0 void
+  else
+    call 20   ; std_runtime$clock_is_virtual$singleton
+    global.set 4   ; clock_is_virtual.instance
+    i32.const 2
+    global.set 3   ; clock_is_virtual.state
+    return
+  end $L0
+  return
+end
+
+fn 22 std_collections$PriorityQueue$std_core$Peek$peek__i64 (ref) -> any
   local.get 0   ; arg 0
-  call 23   ; std_collections$is_empty__i64
+  call 26   ; std_collections$is_empty__i64
   if $L0 void
   else
     local.field 0 20 0   ; arg 0 std_collections$PriorityQueue__i64.items
     i32.const 0
     load_slot_i64
-    retag 7   ; i64
+    retag 8   ; i64
     return
   end $L0
   return.lit null.const
 end
 
-fn 20 std_collections$push__i64 (ref,i64) -> void
+fn 23 std_collections$push__i64 (ref,i64) -> void
   local i i64
   local parent i64
   local $idx_16 i64
   local $idx_18 i64
   local.field 0 20 0   ; arg 0 std_collections$PriorityQueue__i64.items
   local.get 1   ; arg 1
-  array.push 7   ; i64
+  array.push 8   ; i64
   local.field 0 20 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.len
   i64.const 1
@@ -631,7 +728,7 @@ fn 20 std_collections$push__i64 (ref,i64) -> void
       local.field 0 20 0   ; arg 0 std_collections$PriorityQueue__i64.items
       local.get 3   ; parent
       local.get 2   ; i
-      call 22   ; std_collections$swap_items__i64
+      call 25   ; std_collections$swap_items__i64
       local.get 3   ; parent
       local.set 2   ; i
       br $L0
@@ -640,7 +737,7 @@ fn 20 std_collections$push__i64 (ref,i64) -> void
   return
 end
 
-fn 21 std_collections$pop__i64 (ref) -> any
+fn 24 std_collections$pop__i64 (ref) -> any
   local $field_3 ref
   local $sub_checked_8 i64
   local root any
@@ -658,7 +755,7 @@ fn 21 std_collections$pop__i64 (ref) -> any
   local $cast_43 i64
   local $cast_44 i64
   local.get 0   ; arg 0
-  call 23   ; std_collections$is_empty__i64
+  call 26   ; std_collections$is_empty__i64
   if $L0 void
     return.lit null.const
   end $L0
@@ -672,7 +769,7 @@ fn 21 std_collections$pop__i64 (ref) -> any
   local.get 1   ; $field_3
   i64.const 0
   local.get 2   ; $sub_checked_8
-  call 22   ; std_collections$swap_items__i64
+  call 25   ; std_collections$swap_items__i64
   local.field 0 20 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.remove_last
   local.set 3   ; root
@@ -760,14 +857,14 @@ fn 21 std_collections$pop__i64 (ref) -> any
     local.get 1   ; $field_3
     local.get 15   ; $cast_43
     local.get 16   ; $cast_44
-    call 22   ; std_collections$swap_items__i64
+    call 25   ; std_collections$swap_items__i64
     local.get 5   ; smallest
     local.set 4   ; i
     br $L1
   end $L1
 end
 
-fn 22 std_collections$swap_items__i64 (ref,i64,i64) -> void
+fn 25 std_collections$swap_items__i64 (ref,i64,i64) -> void
   local held i64
   local $idx_5 i64
   local.get 0   ; arg 0
@@ -789,7 +886,7 @@ fn 22 std_collections$swap_items__i64 (ref,i64,i64) -> void
   return
 end
 
-fn 23 std_collections$is_empty__i64 (ref) -> bool
+fn 26 std_collections$is_empty__i64 (ref) -> bool
   local.field 0 20 0   ; arg 0 std_collections$PriorityQueue__i64.items
   array.len
   i64.const 0
@@ -797,15 +894,148 @@ fn 23 std_collections$is_empty__i64 (ref) -> bool
   return
 end
 
-fn 24 std_time$sleep (i64) -> void
+fn 27 std_time$sleep (i64) -> void
   local.get 0   ; arg 0
-  call.import 5   ; std_runtime_scheduler$sleep_for
+  call.import 7   ; std_runtime_scheduler$sleep_for
   return
 end
 
-fn 25 std_time$millis (i64) -> i64
+fn 28 std_time$millis (i64) -> i64
   local.get 0   ; arg 0
   i64.const 1000000
   i64.checked_mul
+  return
+end
+
+fn 29 std_runtime_scheduler$gate_or_new (any) -> ref
+  local __coalesce_0 any
+  local $arr_6 ref
+  local.get 0   ; arg 0
+  local.tee 1   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    array.new 7 0   ; i64[]
+    local.set 2   ; $arr_6
+    bool.const false
+    i64.const 0
+    local.get 2   ; $arr_6
+    struct.new 23   ; std_runtime_scheduler$InitGate
+    return
+  end $L0
+  local.get 1   ; __coalesce_0
+  ref.cast 23   ; std_runtime_scheduler$InitGate
+  return
+end
+
+fn 30 std_runtime_scheduler$run_gated (ref,ref) -> bool
+  local me i64
+  call.import 8   ; std_runtime_scheduler$current_thread
+  local.set 2   ; me
+  local.field 0 23 0   ; arg 0 std_runtime_scheduler$InitGate.held
+  ref.cast 9   ; bool
+  if $L0 void
+    local.field 0 23 1   ; arg 0 std_runtime_scheduler$InitGate.owner
+    ref.cast 8   ; i64
+    local.get 2   ; me
+    i64.eq
+    if $L1 void
+      return.lit bool.const false
+    end $L1
+  end $L0
+  local.field 0 23 0   ; arg 0 std_runtime_scheduler$InitGate.held
+  ref.cast 9   ; bool
+  if $L2 void
+    local.get 0   ; arg 0
+    local.get 2   ; me
+    call 32   ; std_runtime_scheduler$await_gate
+  end $L2
+  local.get 0   ; arg 0
+  bool.const true
+  struct.set 23 0   ; std_runtime_scheduler$InitGate.held
+  local.get 0   ; arg 0
+  local.get 2   ; me
+  struct.set 23 1   ; std_runtime_scheduler$InitGate.owner
+  local.get 0   ; arg 0
+  struct.new 25   ; __defer_env_std_runtime_scheduler_1
+  make_closure 31 24   ; __defer_std_runtime_scheduler_0 fn
+  defer.push
+  local.get 1   ; arg 1
+  call.indirect 24   ; fn
+  defer.pop_exec 1
+  return.lit bool.const true
+end
+
+fn 31 __defer_std_runtime_scheduler_0 (ref) -> void
+  local.field 0 25 0   ; arg 0 __defer_env_std_runtime_scheduler_1.cap_0
+  call 34   ; std_runtime_scheduler$let_go
+  return
+end
+
+fn 32 std_runtime_scheduler$await_gate (ref,i64) -> void
+  local.field 0 23 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
+  local.get 1   ; arg 1
+  array.push 8   ; i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  struct.new 26   ; __defer_env_std_runtime_scheduler_3
+  make_closure 33 24   ; __defer_std_runtime_scheduler_2 fn
+  defer.push
+  loop $L0 void
+    local.field 0 23 0   ; arg 0 std_runtime_scheduler$InitGate.held
+    ref.cast 9   ; bool
+    if $L1 void
+      call.import 5   ; std_runtime_scheduler$park
+      br $L0
+    end $L1
+  end $L0
+  defer.pop_exec 1
+  return
+end
+
+fn 33 __defer_std_runtime_scheduler_2 (ref) -> void
+  local $field_2 ref
+  local $field_3 i64
+  local.field 0 26 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
+  struct.get 23 2   ; std_runtime_scheduler$InitGate.waiters
+  local.set 1   ; $field_2
+  local.field 0 26 1   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_1
+  ref.cast 8   ; i64
+  local.set 2   ; $field_3
+  local.get 1   ; $field_2
+  local.get 2   ; $field_3
+  call 3   ; std_core$remove_value__i64
+  drop
+  return
+end
+
+fn 34 std_runtime_scheduler$let_go (ref) -> void
+  local __for_arr_0 ref
+  local __for_len_1 i64
+  local __for_i_2 i64
+  local.get 0   ; arg 0
+  bool.const false
+  struct.set 23 0   ; std_runtime_scheduler$InitGate.held
+  local.field 0 23 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
+  local.tee 1   ; __for_arr_0
+  array.len
+  local.set 2   ; __for_len_1
+  i64.const 0
+  local.set 3   ; __for_i_2
+  loop $L0 void
+    local.get 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    i64.lt
+    if $L1 void
+      local.get 1   ; __for_arr_0
+      local.get 3   ; __for_i_2
+      load_slot_i64
+      call.import 6   ; std_runtime_scheduler$wake
+      local.get 3   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 3   ; __for_i_2
+      br $L0
+    end $L1
+  end $L0
   return
 end

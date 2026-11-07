@@ -2,8 +2,11 @@
 //
 // `@singleton f :: fn() -> T { body }` runs `body` once per program and hands every
 // call the instance it built. The body is lowered as a function of its own, the
-// init, and `f` becomes an accessor over two global slots of the program
-// (`LoweredProject.globals`): its state, and the instance.
+// init, and `f` becomes an accessor over global slots of the program
+// (`LoweredProject.globals`): its state, the instance, and in a program whose
+// threads may share it, its gate (`init_gate.vader`).
+//
+// A program that never loads `std/runtime/scheduler` has one thread:
 //
 //     if state == READY { return instance }
 //     if state == STARTED { trap: called while it initialises }
@@ -11,6 +14,16 @@
 //     instance = init()
 //     state = READY
 //     return instance
+//
+// Otherwise a thread that finds another running the init waits for it, and the
+// state goes from IDLE to READY alone: `keep`, a function of its own, builds the
+// instance unless a thread it waited for did.
+//
+//     if state == READY { return instance }
+//     <run keep under the gate, trap: called while it initialises>
+//     return instance
+//
+//     keep: if state == READY { return } ; instance = init() ; state = READY
 //
 // A `void` singleton runs its body once and keeps no instance, as does one that
 // never returns. An `async` one keeps the task `std/async`'s `share` makes of the
@@ -67,19 +80,34 @@ lower_singleton :: fn(
     span :: fn_decl.span
     state :: new_global(ctx.project, ctx.typed.resolved.path, "${fn_decl.name}.state", TY_I32, span)
     instance :: instance_slot(ctx, fn_decl.name, instance_type, span)
-    reentered :: LoweredUnreachable {
-        .span   = span,
-        .type   = TY_VOID,
-        .reason = "singleton `${fn_decl.name}` called while it initialises",
+    built :: built_instance(ctx, fn_decl, init, instance_type, span)
+    reentered :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredUnreachable {
+            .span   = span,
+            .type   = TY_VOID,
+            .reason = "singleton `${fn_decl.name}` called while it initialises",
+        },
     }
     stmts: LoweredStmt[]: [
         when_state(state, READY, LoweredReturn { .span = span, .value = instance }),
-        when_state(state, STARTED, LoweredExprStmt { .span = span, .expr = reentered }),
-        set_global(state, state_value(span, STARTED)),
-        keep_instance(instance, built_instance(ctx, fn_decl, init, instance_type, span), span),
-        set_global(state, state_value(span, READY)),
-        LoweredReturn { .span = span, .value = instance },
     ]
+    fns :: ctx.typed.gate_runtime
+    if fns == null {
+        stmts.push_all([
+            when_state(state, STARTED, reentered),
+            set_global(state, state_value(span, STARTED)),
+            keep_instance(instance, built, span),
+            set_global(state, state_value(span, READY)),
+        ])
+    } else {
+        register_gate_fns(ctx)
+        keep :: keep_fn(ctx, entry, state, keep_instance(instance, built, span), span)
+        stmts.push_all(gated_build(
+            ctx.project, fns, ctx.typed.resolved.path, fn_decl.name, keep, reentered, span,
+        ))
+    }
+    stmts.push(LoweredReturn { .span = span, .value = instance })
     return LoweredFnDecl {
         .mangled     = entry.mangled,
         .params      = [],
@@ -87,6 +115,21 @@ lower_singleton :: fn(
         .body        = mk_void_block(stmts, span),
         .origin      = entry,
     }
+}
+
+// The function that builds the instance with `kept` and makes `state` READY, unless
+// it is READY already: a thread the gate made wait finds the instance built.
+keep_fn :: fn(
+    ctx: FnLowerCtx, entry: MonoEntry, state: LoweredGlobalGet, kept: LoweredStmt, span: Span,
+) -> Symbol {
+    keep :: synthetic_symbol(next_synthetic_id(ctx), .Fn, "${entry.mangled}\$keep")
+    stmts: LoweredStmt[]: [
+        when_state(state, READY, LoweredReturn { .span = span, .value = null }),
+        kept,
+        set_global(state, state_value(span, READY)),
+    ]
+    ctx.project.synth_decls.push(gate_build_fn(entry, keep.name, keep, stmts, span))
+    return keep
 }
 
 // What the accessor keeps: the init's result, or for an `async` singleton the task

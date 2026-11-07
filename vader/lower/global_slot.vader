@@ -1,10 +1,12 @@
 // vader/lower/global_slot: the global slots the lowering adds to a program.
 //
 // A program has no global variable of its own: a module keeps its state in a
-// `@singleton`. The lowering adds slots for two mechanisms that must remember
-// something across calls: a singleton's state and instance (`singleton.vader`),
-// and whether the value of a guarded constant is being computed
-// (`inline_consts.vader`). Both read the state slot through the helpers below.
+// `@singleton`. The lowering adds slots for the values built on first use, which
+// must remember something across calls: a singleton's state and instance
+// (`singleton.vader`), whether the value of a guarded constant is being computed
+// or that value itself (`inline_consts.vader`), and the gate a thread waits on
+// while another builds either (`init_gate.vader`). The state slots are read
+// through the helpers below.
 
 module "vader/lower"
 

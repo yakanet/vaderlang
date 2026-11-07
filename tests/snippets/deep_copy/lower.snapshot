@@ -227,6 +227,7 @@
     fn std.core.pow5_factor  // std_core$pow5_factor
     fn std.core.pow5_factor_32  // std_core$pow5_factor_32
     fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
     fn std.core.render  // std_core$render
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.string.to_string  // std_core$string$Display$to_string
@@ -252,9 +253,20 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
     fn std.io.write_text  // std_io$write_text
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
   std/task
     global #0 i32  started.state
     global #1 Started  started.instance
+    global #2 InitGate | null  started.gate
     fn __defer_std_task_2
     fn __defer_std_task_4
     fn __lambda_std_task_0
@@ -269,6 +281,7 @@
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i32>  // std_task$stop_waiting__i32
     fn std_task$Task$std_core$Equals$equals__i32$guard
+    fn std_task$started$keep
     fn std_task$started$singleton
     struct __defer_env_std_task_3
     struct __defer_env_std_task_5

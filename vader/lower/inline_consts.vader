@@ -43,6 +43,7 @@ AST :: import "toolchain/ast"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/front/typecheck"
 import "vader/lower/ir"
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
@@ -121,7 +122,7 @@ store_const :: fn(
         return pooled
     }
     if guards && expr_runs_code(d.value) {
-        body :: guarded_value(project_ctx, d, sym)
+        body :: guarded_value(project_ctx, d, sym, decls)
         accessor :: add_accessor(project_ctx, d, sym, body, decls, project.const_fn_wrap)
         return AccessorConst { .accessor = accessor }
     }
@@ -150,25 +151,36 @@ add_accessor :: fn(
     return accessor.mangled
 }
 
-// The accessor body of a constant whose value runs code: the value, computed while a
-// global slot says so, and a stop when the constant is read again meanwhile.
+// The accessor body of a constant whose value runs code: the value, and a stop when
+// the constant is read again while the thread computing it does. In a program
+// whose threads may share it, `gated_value` ; otherwise a global slot says whether
+// the value is being computed:
 //
 //     if state == STARTED { trap: read while its value is computed }
 //     state = STARTED
 //     value :: <the value>
 //     state = IDLE
 //     value
-guarded_value :: fn(project_ctx: LowerProjectCtx, d: LoweredConstDecl, sym: Symbol) -> LoweredBlock {
+guarded_value :: fn(
+    project_ctx: LowerProjectCtx, d: LoweredConstDecl, sym: Symbol, decls: LoweredDecl[],
+) -> LoweredBlock {
     span :: d.value.span
-    state :: new_global(project_ctx, sym.module, "${sym.name}.state", TY_I32, span)
-    reentered :: LoweredUnreachable {
-        .span   = span,
-        .type   = TY_VOID,
-        .reason = "constant `${sym.name}` read while its value is computed",
+    reentered :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredUnreachable {
+            .span   = span,
+            .type   = TY_VOID,
+            .reason = "constant `${sym.name}` read while its value is computed",
+        },
     }
+    fns :: gate_runtime_of(project_ctx, sym.module)
+    if fns != null {
+        return gated_value(project_ctx, fns, d, sym, reentered, decls)
+    }
+    state :: new_global(project_ctx, sym.module, "${sym.name}.state", TY_I32, span)
     value :: synthetic_symbol(next_project_synthetic_id(project_ctx), .Local, "value")
     stmts: LoweredStmt[]: [
-        when_state(state, STARTED, LoweredExprStmt { .span = span, .expr = reentered }),
+        when_state(state, STARTED, reentered),
         set_global(state, state_value(span, STARTED)),
         LoweredLet {
             .span   = span,
@@ -184,6 +196,42 @@ guarded_value :: fn(project_ctx: LowerProjectCtx, d: LoweredConstDecl, sym: Symb
         .type     = d.type,
         .stmts    = stmts,
         .trailing = LoweredIdent { .span = span, .type = d.type, .symbol = value },
+    }
+}
+
+// The accessor body of a constant whose value runs code, in a program whose threads
+// may share it: `compute`, a function of its own appended to `decls`, puts the value
+// in a global slot under the constant's gate (`init_gate.vader`), and a thread that
+// finds another computing it waits, then computes its own.
+//
+//     <run compute under the gate, trap: read while its value is computed>
+//     value_slot
+//
+//     compute: value_slot = <the value>
+//
+// Nothing parks between the write and the read of the slot, so each read takes the
+// value it computed ; the slot keeps it until the next read computes another.
+gated_value :: fn(
+    project_ctx: LowerProjectCtx,
+    fns: GateRuntime,
+    d: LoweredConstDecl,
+    sym: Symbol,
+    reentered: LoweredStmt,
+    decls: LoweredDecl[],
+) -> LoweredBlock {
+    span :: d.value.span
+    slot :: new_global(project_ctx, sym.module, "${sym.name}.value", d.type, span)
+    compute :: Symbol {
+        ...const_accessor_symbol(sym, next_project_synthetic_id(project_ctx)),
+        .name = "__compute_${sym.name}",
+    }
+    stmts: LoweredStmt[]: [set_global(slot, d.value)]
+    decls.push(gate_build_fn(d.origin, "__compute_${d.mangled}", compute, stmts, span))
+    return LoweredBlock {
+        .span     = span,
+        .type     = d.type,
+        .stmts    = gated_build(project_ctx, fns, sym.module, sym.name, compute, reentered, span),
+        .trailing = slot,
     }
 }
 

@@ -14,6 +14,11 @@
 // The runtime serves these, and under the VM the host serves them with its
 // own: a program and the VM that runs it share one scheduler. This module
 // imports nothing, so it can sit under `std/io` and `std/time`.
+//
+// Over them, the gates of the values built on first use: in a program that
+// loads this module, every `@singleton`, and every constant whose value runs
+// code, waits on its own `InitGate` while another thread builds it. A program
+// that does not load it has one thread, and needs none.
 
 module "std/runtime/scheduler"
 
@@ -71,3 +76,139 @@ export cancel_thread :: fn(thread: i64) -> void
 /// The handle of the running thread. The main thread has one from the start.
 @intrinsic
 export current_thread :: fn() -> i64
+
+// ---- gates ----------------------------------------------------------------
+
+/// What a value built on first use waits on while a thread builds it: the
+/// instance of a `@singleton`, or the value of a constant computed at each read.
+/// The compiler gives each such value a gate of its own.
+export InitGate :: struct {
+    /// Whether a thread is building the value.
+    @internal
+    held: bool = false
+    /// The thread building it, while `held`.
+    @internal
+    owner: i64 = 0
+    /// The threads waiting for it to be built, in the order they came.
+    @internal
+    waiters: i64[] = []
+}
+
+/// `gate`, or a new gate when there is none yet.
+///
+/// @param gate  the gate of a value, null until its first build.
+export gate_or_new :: fn(gate: InitGate | null) -> InitGate = gate ?? InitGate {}
+
+/// Run `build` holding `gate`, once no other thread holds it ; false, without
+/// running it, when the running thread holds it already.
+///
+/// A thread that finds `gate` held by another parks until it is let go, then
+/// takes it: `build` checks whether the value was built meanwhile. A thread
+/// cancelled while it holds `gate` lets it go, and the next one builds.
+///
+/// @param gate   the gate of the value.
+/// @param build  builds the value, unless it is built already.
+/// @return       false when the running thread reads the value again while it
+///               builds it.
+export run_gated :: fn(gate: InitGate, build: fn() -> void) -> bool {
+    me :: current_thread()
+    if gate.held && gate.owner == me {
+        return false
+    }
+    if gate.held {
+        await_gate(gate, me)
+    }
+    gate.held = true
+    gate.owner = me
+    defer let_go(gate)
+    build()
+    return true
+}
+
+// Park until no thread holds `gate`.
+await_gate :: fn(gate: InitGate, me: i64) -> void {
+    gate.waiters.push(me)
+    defer gate.waiters.remove_value(me)
+    for gate.held {
+        park()
+    }
+}
+
+// Let `gate` go, and wake the threads waiting on it: the first to run takes it.
+let_go :: fn(gate: InitGate) -> void {
+    gate.held = false
+    for thread in gate.waiters {
+        wake(thread)
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Let the ready threads run, then go on.
+yield_turn :: fn() -> void {
+    wake(current_thread())
+    park()
+}
+
+// Build under `gate`, parking until a `wake` in the middle of the build.
+build_parked :: fn(gate: InitGate, log: string[]) -> void {
+    gate.run_gated(fn() {
+        log.push("first builds")
+        park()
+        log.push("first done")
+    })
+}
+
+@test
+test_run_gated_runs_the_build :: fn() -> void {
+    gate :: InitGate {}
+    built :: [false]
+    assert(gate.run_gated(fn() {
+        built[0] = true
+    }), "the gate was free")
+    assert(built[0], "the build ran")
+}
+
+@test
+test_run_gated_refuses_the_thread_holding_the_gate :: fn() -> void {
+    gate :: InitGate {}
+    again :: [true]
+    gate.run_gated(fn() {
+        again[0] = gate.run_gated(fn() {})
+    })
+    assert(!again[0], "the holder reads the value again")
+}
+
+@test
+test_gate_makes_another_thread_wait_for_the_build :: fn() -> void {
+    gate :: InitGate {}
+    log: string[]: []
+    main :: current_thread()
+    first :: spawn_thread(() -> build_parked(gate, log))
+    spawn_thread(fn() {
+        gate.run_gated(() -> log.push("second builds"))
+        wake(main)
+    })
+    yield_turn()
+    wake(first)
+    park()
+    assert(log.content_equals(["first builds", "first done", "second builds"]), "in turn")
+}
+
+@test
+test_cancelled_holder_lets_the_gate_go :: fn() -> void {
+    gate :: InitGate {}
+    log: string[]: []
+    main :: current_thread()
+    first :: spawn_thread(() -> build_parked(gate, log))
+    spawn_thread(fn() {
+        gate.run_gated(() -> log.push("second builds"))
+        wake(main)
+    })
+    yield_turn()
+    cancel_thread(first)
+    park()
+    assert(log.content_equals(["first builds", "second builds"]), "the second builds")
+}

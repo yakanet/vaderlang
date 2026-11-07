@@ -1,0 +1,340 @@
+# Lower
+
+## snippet
+  storage
+    const ANSWER: i32  accessor __const_snippet$ANSWER
+    const LOOP: i32  accessor __const_snippet$LOOP
+    global #0 i32  config.state
+    global #1 string  config.instance
+    global #2 InitGate | null  config.gate
+    global #3 i32  pool.state
+    global #4 string  pool.instance
+    global #5 InitGate | null  pool.gate
+    global #6 i32  warmup.state
+    global #7 Task<i32>  warmup.instance
+    global #8 InitGate | null  warmup.gate
+    global #12 i32  ANSWER.value
+    global #13 InitGate | null  ANSWER.gate
+    global #14 i32  LOOP.value
+    global #15 InitGate | null  LOOP.gate
+  snippet.config :: fn() -> string {  // snippet$config
+      if @global(0) == 2 {
+          return @global(1)
+      }
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(2))
+      @global(2) = gate
+      if !std.runtime.scheduler.run_gated(gate, snippet$config$keep) {
+          @unreachable("singleton `config` called while it initialises")
+      }
+      return @global(1)
+  }
+  snippet.pool :: fn() -> string {  // snippet$pool
+      if @global(3) == 2 {
+          return @global(4)
+      }
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(5))
+      @global(5) = gate
+      if !std.runtime.scheduler.run_gated(gate, snippet$pool$keep) {
+          @unreachable("singleton `pool` called while it initialises")
+      }
+      return @global(4)
+  }
+  __compute_snippet$ANSWER :: fn() -> void {
+      @global(12) = snippet.compute_answer()
+  }
+  __const_snippet$ANSWER :: fn() -> i32 {
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(13))
+      @global(13) = gate
+      if !std.runtime.scheduler.run_gated(gate, __compute_snippet$ANSWER) {
+          @unreachable("constant `ANSWER` read while its value is computed")
+      }
+      @global(12)
+  }
+  snippet.compute_answer :: fn() -> i32 {  // snippet$compute_answer
+      std.io.println<string>("answer computed")
+      std.time.sleep(std.time.millis(i64(1)))
+      return 42
+  }
+  snippet.read_answer :: fn() -> i32 {  // snippet$read_answer
+      snippet.ANSWER
+  }
+  snippet.warmup :: fn() -> Task<i32> {  // snippet$warmup
+      if @global(6) == 2 {
+          return @global(7)
+      }
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(8))
+      @global(8) = gate
+      if !std.runtime.scheduler.run_gated(gate, snippet$warmup$keep) {
+          @unreachable("singleton `warmup` called while it initialises")
+      }
+      return @global(7)
+  }
+  snippet.warm :: fn() -> i32 {  // snippet$warm
+      std.io.println<string>("warming")
+      return 7
+  }
+  __compute_snippet$LOOP :: fn() -> void {
+      @global(14) = snippet.next()
+  }
+  __const_snippet$LOOP :: fn() -> i32 {
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(15))
+      @global(15) = gate
+      if !std.runtime.scheduler.run_gated(gate, __compute_snippet$LOOP) {
+          @unreachable("constant `LOOP` read while its value is computed")
+      }
+      @global(14)
+  }
+  snippet.next :: fn() -> i32 {  // snippet$next
+      snippet.LOOP + 1
+  }
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      first: Task<string> = std.task.launch<string>(__lambda_snippet_0)
+      second: Task<string> = std.task.launch<string>(__lambda_snippet_1)
+      std.io.println<string>(concat_5(@vcall(std.core.Display.to_string, std.task.join<string>(first)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(second)), " ", snippet.config()))
+      cancelled: Task<string> = std.task.launch<string>(__lambda_snippet_2)
+      waiting: Task<string> = std.task.launch<string>(__lambda_snippet_3)
+      std.time.sleep(std.time.millis(i64(1)))
+      std.task.cancel<string>(cancelled)
+      std.io.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<string>(cancelled)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(waiting))))
+      reader: Task<i32> = std.task.launch<i32>(snippet.read_answer)
+      other: Task<i32> = std.task.launch<i32>(snippet.read_answer)
+      std.io.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(reader)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(other))))
+      joiner: Task<i32> = std.task.launch<i32>(__lambda_snippet_4)
+      std.io.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<i32>(joiner)), " ", @vcall(std.core.Display.to_string, std.task.join<i32>(snippet.warmup()))))
+      if (@array.len(argv) > i64(1)) && (argv[1] == "again") {
+          std.io.println<string>({
+              __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+              __off_1: i64 = 0
+              __off_1 = std.core.write_int(__buf_0, __off_1, snippet.LOOP)
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string)
+      }
+      return 0
+  }
+  snippet$config$singleton :: fn() -> string {
+      std.io.println<string>("config starts")
+      std.time.sleep(std.time.millis(i64(1)))
+      std.io.println<string>("config done")
+      return "cfg"
+  }
+  snippet$config$keep :: fn() -> void {
+      if @global(0) == 2 {
+          return
+      }
+      @global(1) = snippet$config$singleton()
+      @global(0) = 2
+  }
+  snippet$pool$singleton :: fn() -> string {
+      std.io.println<string>("pool starts")
+      std.time.sleep(std.time.millis(i64(20)))
+      std.io.println<string>("pool done")
+      return "pool"
+  }
+  snippet$pool$keep :: fn() -> void {
+      if @global(3) == 2 {
+          return
+      }
+      @global(4) = snippet$pool$singleton()
+      @global(3) = 2
+  }
+  snippet$warmup$singleton :: fn() -> Task<i32> {
+      std.task.launch<i32>(snippet.warm)
+  }
+  snippet$warmup$keep :: fn() -> void {
+      if @global(6) == 2 {
+          return
+      }
+      @global(7) = snippet$warmup$singleton()
+      @global(6) = 2
+  }
+  __lambda_snippet_0 :: fn() -> string {
+      snippet.config()
+  }
+  __lambda_snippet_1 :: fn() -> string {
+      snippet.config()
+  }
+  __lambda_snippet_2 :: fn() -> string {
+      snippet.pool()
+  }
+  __lambda_snippet_3 :: fn() -> string {
+      snippet.pool()
+  }
+  __lambda_snippet_4 :: fn() -> i32 {
+      std.option.unwrap<i32>(std.task.join<i32>(snippet.warmup()))
+  }
+  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      c4: i64 = c3 +% std.core.byte_len(p4)
+      buf: Buffer = std.core.new_byte_buffer(c4)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.intern_string(buf, c4)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Cancelled.message  // std_core$Cancelled$Error$message
+    fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Cancelled  // std_core$Cancelled
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  std/option
+    fn std.option.unwrap<i32>  // std_option$unwrap__i32
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
+  std/task
+    global #9 i32  started.state
+    global #10 Started  started.instance
+    global #11 InitGate | null  started.gate
+    fn __defer_std_task_10
+    fn __defer_std_task_4
+    fn __defer_std_task_6
+    fn __defer_std_task_8
+    fn __lambda_std_task_0
+    fn __lambda_std_task_2
+    fn std.task.Task<i32>.equals  // std_task$Task$std_core$Equals$equals__i32
+    fn std.task.Task<i32>.to_string  // std_task$Task$std_core$Display$to_string__i32
+    fn std.task.Task<string>.equals  // std_task$Task$std_core$Equals$equals__string
+    fn std.task.Task<string>.to_string  // std_task$Task$std_core$Display$to_string__string
+    fn std.task.cancel<string>  // std_task$cancel__string
+    fn std.task.end<i32>  // std_task$end__i32
+    fn std.task.end<string>  // std_task$end__string
+    fn std.task.join<i32>  // std_task$join__i32
+    fn std.task.join<string>  // std_task$join__string
+    fn std.task.launch<i32>  // std_task$launch__i32
+    fn std.task.launch<string>  // std_task$launch__string
+    fn std.task.outcome<i32>  // std_task$outcome__i32
+    fn std.task.outcome<string>  // std_task$outcome__string
+    fn std.task.run<i32>  // std_task$run__i32
+    fn std.task.run<string>  // std_task$run__string
+    fn std.task.start_thread  // std_task$start_thread
+    fn std.task.started  // std_task$started
+    fn std.task.stop_waiting<i32>  // std_task$stop_waiting__i32
+    fn std.task.stop_waiting<string>  // std_task$stop_waiting__string
+    fn std_task$Task$std_core$Equals$equals__i32$guard
+    fn std_task$Task$std_core$Equals$equals__string$guard
+    fn std_task$started$keep
+    fn std_task$started$singleton
+    struct __defer_env_std_task_11
+    struct __defer_env_std_task_5
+    struct __defer_env_std_task_7
+    struct __defer_env_std_task_9
+    struct __lambda_env_std_task_1
+    struct __lambda_env_std_task_3
+    struct std.task.Group  // std_task$Group
+    struct std.task.Started  // std_task$Started
+    struct std.task.Task<i32>  // std_task$Task__i32
+    struct std.task.Task<string>  // std_task$Task__string
+    struct std.task.Waiter  // std_task$Waiter
+  std/time
+    fn std.time.millis  // std_time$millis
+    fn std.time.sleep  // std_time$sleep
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

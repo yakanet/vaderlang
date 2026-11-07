@@ -134,6 +134,15 @@ export AsyncRuntime :: struct {
     share: Symbol | null = null
 }
 
+/// The `std/runtime/scheduler` functions through which a value built on first use
+/// waits for the thread building it.
+export GateRuntime :: struct {
+    /// The gate of a value, made at its first build.
+    gate_or_new: Symbol
+    /// Runs a build holding the gate, once the thread building it lets it go.
+    run_gated: Symbol
+}
+
 /// The declaration of the fn typecheck chose for the call whose callee is
 /// `callee_id`, see `TypedProgram.chosen_fns`. Null when it chose none, or when
 /// the chosen fn's module produced no declaration.
@@ -494,6 +503,10 @@ export TypedProgram :: struct {
     /// The `std/async` functions the compiler calls : one record for the whole
     /// project, set before any declaration is checked.
     async_runtime: AsyncRuntime = AsyncRuntime {}
+    /// The `std/runtime/scheduler` functions the compiler calls : one record for
+    /// the whole project, null when it never loads the scheduler. It then runs on
+    /// one thread, and a value built on first use needs no gate.
+    gate_runtime: GateRuntime | null = null
 
     /// The module's guards : the predicates whose condition narrows a parameter,
     /// and what each proves (`guard.vader`). A call in a condition narrows its

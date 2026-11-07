@@ -221,6 +221,7 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -235,17 +236,31 @@
   std/runtime
     global #0 i32  scheduler.state
     global #1 Scheduler  scheduler.instance
-    global #2 i32  clock_is_virtual.state
-    global #3 bool  clock_is_virtual.instance
+    global #2 InitGate | null  scheduler.gate
+    global #3 i32  clock_is_virtual.state
+    global #4 bool  clock_is_virtual.instance
+    global #5 InitGate | null  clock_is_virtual.gate
     fn std.runtime.clock_is_virtual  // std_runtime$clock_is_virtual
     fn std.runtime.drop_due_timers  // std_runtime$drop_due_timers
     fn std.runtime.sched_arm  // std_runtime$sched_arm
     fn std.runtime.sched_now  // std_runtime$sched_now
     fn std.runtime.sched_park  // std_runtime$sched_park
     fn std.runtime.scheduler  // std_runtime$scheduler
+    fn std_runtime$clock_is_virtual$keep
     fn std_runtime$clock_is_virtual$singleton
+    fn std_runtime$scheduler$keep
     fn std_runtime$scheduler$singleton
     struct std.runtime.Scheduler  // std_runtime$Scheduler
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
   std/time
     fn std.time.millis  // std_time$millis
     fn std.time.sleep  // std_time$sleep

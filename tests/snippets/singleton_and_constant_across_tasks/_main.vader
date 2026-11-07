@@ -1,0 +1,72 @@
+// A singleton whose body parks, called by a task while another runs that body:
+// the second task waits for the first, and the body runs once. When the task
+// running the body is cancelled, the one waiting runs it again. A constant whose
+// value runs code makes a task wait the same way, then computes its own value. A
+// singleton returning a task hands every caller that task to join. With `again`
+// on the command line the program reads `LOOP`, whose function reads it again
+// while computing it: `tests/const_read_again.test.ts` runs that case on both
+// backends.
+module "snippet"
+
+import "std/io"
+import "std/option"
+import "std/task"
+import "std/time"
+
+@singleton
+config :: fn() -> string {
+    println("config starts")
+    sleep(1.millis())
+    println("config done")
+    return "cfg"
+}
+
+@singleton
+pool :: fn() -> string {
+    println("pool starts")
+    sleep(20.millis())
+    println("pool done")
+    return "pool"
+}
+
+ANSWER :: compute_answer()
+
+compute_answer :: fn() -> i32 {
+    println("answer computed")
+    sleep(1.millis())
+    return 42
+}
+
+read_answer :: fn() -> i32 = ANSWER
+
+@singleton
+warmup :: fn() -> Task<i32> = launch(warm)
+
+warm :: fn() -> i32 {
+    println("warming")
+    return 7
+}
+
+LOOP :: next()
+
+next :: fn() -> i32 = LOOP + 1
+
+main :: fn(argv: string[]) -> i32 {
+    first :: launch(() -> config())
+    second :: launch(() -> config())
+    println("${first.join()} ${second.join()} ${config()}")
+    cancelled :: launch(() -> pool())
+    waiting :: launch(() -> pool())
+    sleep(1.millis())
+    cancelled.cancel()
+    println("${cancelled.join()} ${waiting.join()}")
+    reader :: launch(read_answer)
+    other :: launch(read_answer)
+    println("${reader.join()} ${other.join()}")
+    joiner :: launch(() -> warmup().join().unwrap())
+    println("${joiner.join()} ${warmup().join()}")
+    if argv.len() > 1 && argv[1] == "again" {
+        println("${LOOP}")
+    }
+    return 0
+}

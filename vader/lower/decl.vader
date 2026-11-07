@@ -345,6 +345,10 @@ lower_const_decl :: fn(
     // the const expression, so downstream phases see the materialised
     // literal rather than the source AST.
     value :: lower_const_value(const_decl, typed, project_ctx, fn_ctx, type_val)
+    // `inline_consts` gates such a value once the harvest of functions is over.
+    if expr_runs_code(value) {
+        register_gate_fns(fn_ctx)
+    }
     return LoweredConstDecl {
         .mangled = entry.mangled,
         .type    = type_val,

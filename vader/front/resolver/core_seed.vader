@@ -64,6 +64,11 @@ export find_core_module_id :: fn(project: LoadedProject) -> string | null =
 export find_async_module_id :: fn(project: LoadedProject) -> string | null =
     find_module_id(project, "std/async")
 
+/// The loaded `std/runtime/scheduler` module's id, or null when the program never
+/// loads it, and so runs on one thread.
+export find_scheduler_module_id :: fn(project: LoadedProject) -> string | null =
+    find_module_id(project, "std/runtime/scheduler")
+
 // The id of the loaded module declared as `name`.
 find_module_id :: fn(project: LoadedProject, name: string) -> string | null {
     for [id, loaded] in project.modules {

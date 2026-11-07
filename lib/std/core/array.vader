@@ -176,6 +176,25 @@ export is_disjoint :: fn<T: Equals>(self: T[], other: T[]) -> bool {
     return true
 }
 
+/// Remove the first element of `self` equal to `value`, keeping the others in
+/// order ; whether there was one.
+///
+/// @param value  the element to remove.
+/// @example
+///   xs :: [1, 2, 1]
+///   xs.remove_value(1)   // true: xs is [2, 1]
+///   xs.remove_value(7)   // false
+export remove_value :: fn<T: Equals>(self: T[], value: T) -> bool {
+    for i in 0..<self.len() {
+        if self[i] == value {
+            self.copy_to(i + 1, self, i, self.len() - i - 1)
+            self.remove_last()
+            return true
+        }
+    }
+    return false
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -222,4 +241,18 @@ test_is_permutation_of_counts_each_element :: fn() -> void {
 @test
 test_filled_indexed_of_zero_is_empty :: fn() -> void {
     assert_eq(filled_indexed(0, (i) -> i32(i)).len(), 0)
+}
+
+@test
+test_remove_value_takes_the_first_equal_element_out :: fn() -> void {
+    xs :: [1, 2, 1, 3]
+    assert(xs.remove_value(1), "1 is there")
+    assert(xs.content_equals([2, 1, 3]), "the others keep their order")
+}
+
+@test
+test_remove_value_leaves_an_array_without_it_alone :: fn() -> void {
+    xs :: [1, 2]
+    assert(!xs.remove_value(7), "7 is not there")
+    assert(xs.content_equals([1, 2]), "unchanged")
 }

@@ -4,16 +4,16 @@
   storage
     global #0 i32  selfish.state
     global #1 Async<i32>  selfish.instance
+    global #2 InitGate | null  selfish.gate
   snippet.selfish :: fn() -> Async<i32> {  // snippet$selfish
       if @global(0) == 2 {
           return @global(1)
       }
-      if @global(0) == 1 {
+      gate: InitGate = std.runtime.scheduler.gate_or_new(@global(2))
+      @global(2) = gate
+      if !std.runtime.scheduler.run_gated(gate, snippet$selfish$keep) {
           @unreachable("singleton `selfish` called while it initialises")
       }
-      @global(0) = 1
-      @global(1) = std.async.share<i32>(snippet$selfish$singleton())
-      @global(0) = 2
       return @global(1)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -79,6 +79,13 @@
           .awaited = null,
           .state = 7,
       }
+  }
+  snippet$selfish$keep :: fn() -> void {
+      if @global(0) == 2 {
+          return
+      }
+      @global(1) = std.async.share<i32>(snippet$selfish$singleton())
+      @global(0) = 2
   }
   __asyncstate_snippet_1 :: struct { s0: i32, s1: i32, awaited: Async<Any>, state: i32 }
   snippet$__asyncstate_snippet_1$Async$resume :: fn(self: __asyncstate_snippet_1) -> i32 | Suspended {
@@ -156,6 +163,7 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.remove_value<i64>  // std_core$remove_value__i64
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -168,19 +176,33 @@
     fn std.io.write_bytes  // std_io$write_bytes
     fn std.io.write_text  // std_io$write_text
   std/runtime
-    global #2 i32  scheduler.state
-    global #3 Scheduler  scheduler.instance
-    global #4 i32  clock_is_virtual.state
-    global #5 bool  clock_is_virtual.instance
+    global #3 i32  scheduler.state
+    global #4 Scheduler  scheduler.instance
+    global #5 InitGate | null  scheduler.gate
+    global #6 i32  clock_is_virtual.state
+    global #7 bool  clock_is_virtual.instance
+    global #8 InitGate | null  clock_is_virtual.gate
     fn std.runtime.clock_is_virtual  // std_runtime$clock_is_virtual
     fn std.runtime.drop_due_timers  // std_runtime$drop_due_timers
     fn std.runtime.sched_arm  // std_runtime$sched_arm
     fn std.runtime.sched_now  // std_runtime$sched_now
     fn std.runtime.sched_park  // std_runtime$sched_park
     fn std.runtime.scheduler  // std_runtime$scheduler
+    fn std_runtime$clock_is_virtual$keep
     fn std_runtime$clock_is_virtual$singleton
+    fn std_runtime$scheduler$keep
     fn std_runtime$scheduler$singleton
     struct std.runtime.Scheduler  // std_runtime$Scheduler
+  std/runtime/scheduler
+    fn __defer_std_runtime_scheduler_0
+    fn __defer_std_runtime_scheduler_2
+    fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
+    fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    struct __defer_env_std_runtime_scheduler_1
+    struct __defer_env_std_runtime_scheduler_3
+    struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
   std/time
     fn std.time.millis  // std_time$millis
     fn std.time.sleep  // std_time$sleep

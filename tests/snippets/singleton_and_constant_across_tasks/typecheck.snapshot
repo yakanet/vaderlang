@@ -1,0 +1,150 @@
+# Typecheck
+
+## tests/snippets/singleton_and_constant_across_tasks
+  ConstDecl      ANSWER               :: i32
+  FnDecl         compute_answer       :: fn() -> i32
+  FnDecl         config               :: fn() -> string
+  ConstDecl      LOOP                 :: i32
+  FnDecl         main                 :: fn(string[]) -> i32
+  FnDecl         next                 :: fn() -> i32
+  FnDecl         pool                 :: fn() -> string
+  FnDecl         read_answer          :: fn() -> i32
+  FnDecl         warm                 :: fn() -> i32
+  FnDecl         warmup               :: fn() -> Task<i32>
+  expr 18:13    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:11    CallExpr       :: Duration
+  expr 19:11    FieldExpr      :: fn() -> Duration
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(Duration) -> void
+  expr 20:13    StringLitExpr  :: string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:12    StringLitExpr  :: string
+  expr 26:13    StringLitExpr  :: string
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:11    CallExpr       :: Duration
+  expr 27:11    FieldExpr      :: fn() -> Duration
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(Duration) -> void
+  expr 28:13    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:12    StringLitExpr  :: string
+  expr 32:11    CallExpr       :: i32
+  expr 32:11    IdentExpr      :: fn() -> i32
+  expr 35:13    StringLitExpr  :: string
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:11    CallExpr       :: Duration
+  expr 36:11    FieldExpr      :: fn() -> Duration
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(Duration) -> void
+  expr 40:30    IdentExpr      :: i32
+  expr 43:31    CallExpr       :: Task<i32>
+  expr 43:31    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 43:38    IdentExpr      :: fn() -> i32
+  expr 46:13    StringLitExpr  :: string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 50:9     CallExpr       :: i32
+  expr 50:9     IdentExpr      :: fn() -> i32
+  expr 52:23    BinaryExpr     :: i32
+  expr 52:23    IdentExpr      :: i32
+  expr 55:14    CallExpr       :: Task<string>
+  expr 55:14    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 55:21    LambdaExpr     :: fn() -> string
+  expr 55:27    CallExpr       :: string
+  expr 55:27    IdentExpr      :: fn() -> string
+  expr 56:15    CallExpr       :: Task<string>
+  expr 56:15    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 56:22    LambdaExpr     :: fn() -> string
+  expr 56:28    CallExpr       :: string
+  expr 56:28    IdentExpr      :: fn() -> string
+  expr 57:13    StringLitExpr  :: string
+  expr 57:16    CallExpr       :: Cancelled | string
+  expr 57:16    FieldExpr      :: fn() -> Cancelled | string
+  expr 57:16    IdentExpr      :: Task<string>
+  expr 57:32    CallExpr       :: Cancelled | string
+  expr 57:32    FieldExpr      :: fn() -> Cancelled | string
+  expr 57:32    IdentExpr      :: Task<string>
+  expr 57:49    CallExpr       :: string
+  expr 57:49    IdentExpr      :: fn() -> string
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:18    CallExpr       :: Task<string>
+  expr 58:18    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 58:25    LambdaExpr     :: fn() -> string
+  expr 58:31    CallExpr       :: string
+  expr 58:31    IdentExpr      :: fn() -> string
+  expr 59:16    CallExpr       :: Task<string>
+  expr 59:16    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 59:23    LambdaExpr     :: fn() -> string
+  expr 59:29    CallExpr       :: string
+  expr 59:29    IdentExpr      :: fn() -> string
+  expr 60:11    CallExpr       :: Duration
+  expr 60:11    FieldExpr      :: fn() -> Duration
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(Duration) -> void
+  expr 61:5     CallExpr       :: void
+  expr 61:5     FieldExpr      :: fn() -> void
+  expr 61:5     IdentExpr      :: Task<string>
+  expr 62:13    StringLitExpr  :: string
+  expr 62:16    CallExpr       :: Cancelled | string
+  expr 62:16    FieldExpr      :: fn() -> Cancelled | string
+  expr 62:16    IdentExpr      :: Task<string>
+  expr 62:36    CallExpr       :: Cancelled | string
+  expr 62:36    FieldExpr      :: fn() -> Cancelled | string
+  expr 62:36    IdentExpr      :: Task<string>
+  expr 62:5     CallExpr       :: void
+  expr 62:5     IdentExpr      :: fn(T) -> void
+  expr 63:15    CallExpr       :: Task<i32>
+  expr 63:15    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 63:22    IdentExpr      :: fn() -> i32
+  expr 64:14    CallExpr       :: Task<i32>
+  expr 64:14    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 64:21    IdentExpr      :: fn() -> i32
+  expr 65:13    StringLitExpr  :: string
+  expr 65:16    CallExpr       :: Cancelled | i32
+  expr 65:16    FieldExpr      :: fn() -> Cancelled | i32
+  expr 65:16    IdentExpr      :: Task<i32>
+  expr 65:33    CallExpr       :: Cancelled | i32
+  expr 65:33    FieldExpr      :: fn() -> Cancelled | i32
+  expr 65:33    IdentExpr      :: Task<i32>
+  expr 65:5     CallExpr       :: void
+  expr 65:5     IdentExpr      :: fn(T) -> void
+  expr 66:15    CallExpr       :: Task<i32>
+  expr 66:15    IdentExpr      :: fn(fn() -> T) -> Task<T>
+  expr 66:22    LambdaExpr     :: fn() -> i32
+  expr 66:28    CallExpr       :: Cancelled | i32
+  expr 66:28    CallExpr       :: Task<i32>
+  expr 66:28    CallExpr       :: i32
+  expr 66:28    FieldExpr      :: fn() -> Cancelled | i32
+  expr 66:28    FieldExpr      :: fn() -> i32
+  expr 66:28    IdentExpr      :: fn() -> Task<i32>
+  expr 67:13    StringLitExpr  :: string
+  expr 67:16    CallExpr       :: Cancelled | i32
+  expr 67:16    FieldExpr      :: fn() -> Cancelled | i32
+  expr 67:16    IdentExpr      :: Task<i32>
+  expr 67:33    CallExpr       :: Cancelled | i32
+  expr 67:33    CallExpr       :: Task<i32>
+  expr 67:33    FieldExpr      :: fn() -> Cancelled | i32
+  expr 67:33    IdentExpr      :: fn() -> Task<i32>
+  expr 67:5     CallExpr       :: void
+  expr 67:5     IdentExpr      :: fn(T) -> void
+  expr 68:26    BinaryExpr     :: bool
+  expr 68:26    IdentExpr      :: string[]
+  expr 68:26    IndexExpr      :: string
+  expr 68:37    StringLitExpr  :: string
+  expr 68:5     IfExpr         :: void
+  expr 68:8     BinaryExpr     :: bool
+  expr 68:8     BinaryExpr     :: bool
+  expr 68:8     CallExpr       :: i64
+  expr 68:8     FieldExpr      :: fn() -> i64
+  expr 68:8     IdentExpr      :: string[]
+  expr 69:17    StringLitExpr  :: string
+  expr 69:20    IdentExpr      :: i32
+  expr 69:9     CallExpr       :: void
+  expr 69:9     IdentExpr      :: fn(T) -> void
