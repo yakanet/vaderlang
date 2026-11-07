@@ -54,7 +54,7 @@ is_task_result :: fn(ctx: TaskCtx, body: TaskBody, t: Touch) -> bool {
         return false
     }
     held :: body.root_type(t.root) ?? return false
-    return held is StructType && held.symbol.id in ctx.index.synchronized
+    return held is StructType && is_task_shared(held.symbol)
 }
 
 // The way out of a clash with what a task launched there writes: the code beside

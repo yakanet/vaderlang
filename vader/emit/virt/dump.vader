@@ -233,15 +233,24 @@ data_items_hex :: fn(entry: BcPrimData) -> string {
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcScalar    -> "scalar ${val_type_name(t.val)}"
     is BcStruct    -> {
-        // `as "<c type>"` only when the struct mirrors one: an ordinary struct
-        // writes exactly what it did before, so no committed snapshot moves.
+        // `as "<c type>"` only when the struct mirrors one, `shared` only when tasks
+        // share it: an ordinary struct writes exactly what it did before.
         mirror :: if t.c_name == "" { "" } else { " as \"${t.c_name}\"" }
-        "struct ${quote_ident(t.name)}${mirror} { ${format_fields(t.fields)} }"
+        "struct ${quote_ident(t.name)}${mirror}${shared_marker(t)} { ${format_fields(t.fields)} }"
     }
     is BcArray -> "array ${t.element}"
     is BcUnion -> "union ${format_variants(t.variants)}"
     is BcRef   -> if t.trait_name == "" { "ref _" } else { "ref ${quote_ident(t.trait_name)}" }
     is BcFn    -> "fn (${format_variants(t.params)}) -> ${t.return_type}"
+}
+
+// ` shared` after a struct tasks share, which a deep copy keeps ; nothing after any
+// other.
+shared_marker :: fn(s: BcStruct) -> string {
+    if s.shared {
+        return " shared"
+    }
+    return ""
 }
 
 /// `name:idx` joined by `,` for struct fields.

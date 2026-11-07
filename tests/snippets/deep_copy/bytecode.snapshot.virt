@@ -8,7 +8,7 @@ type 5 struct snippet$Shape { name:3,corners:6,origin:4,alias:4 }
 type 6 array 4
 type 7 union 1,0
 type 8 struct snippet$Holder { task:9,rows:10 }
-type 9 struct std_task$Task__i32 { number:13,thread:13,started:15,ended:15,result:11,waiters:39 }
+type 9 struct std_task$Task__i32 shared { number:13,thread:13,started:15,ended:15,result:11,waiters:39 }
 type 10 array 11
 type 11 array 2
 type 12 struct std_core$Buffer {  }

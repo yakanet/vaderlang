@@ -5,7 +5,7 @@
 // type can hold a function value, through its fields, elements and variants, is a
 // T3135 error. A trait value or a type parameter says nothing of what it holds:
 // those are left to the runtime, which stops the program on the function it
-// reaches. A struct tasks share is kept by the copy, not walked (`synchronized`).
+// reaches. A struct tasks share is kept by the copy, not walked (`is_task_shared`).
 
 module "vader/front/effects"
 
@@ -31,7 +31,7 @@ export deep_copy_diagnostics :: fn(summary: EffectSummary, checked: CheckResult)
                 bindings :: callee.bindings ?? continue
                 span :: typed.call_sites.instantiation_spans[id] ?? continue
                 for [_, copied] in bindings {
-                    walk :: FunctionSearch { .typed = typed, .kept = summary.index.synchronized }
+                    walk :: FunctionSearch { .typed = typed }
                     path :: walk.function_path(copied) ?? continue
                     detail :: function_detail(copied, path)
                     out.push(typecheck_error(.FunctionValueDeepCopied, span, detail))
@@ -45,8 +45,6 @@ export deep_copy_diagnostics :: fn(summary: EffectSummary, checked: CheckResult)
 // The search for a function value below a type.
 FunctionSearch :: struct {
     typed: TypedProgram
-    /// The structs the copy keeps, by symbol id.
-    kept: Set<i32>
     /// The structs on the way down, by canonical key: a recursive struct is walked
     /// once.
     seen: Set<string> = Set<string> {}
@@ -69,7 +67,7 @@ function_path :: fn(walk: FunctionSearch, t: Type) -> string | null = match t {
 }
 
 struct_path :: fn(walk: FunctionSearch, t: StructType) -> string | null {
-    if t.symbol.id in walk.kept {
+    if is_task_shared(t.symbol) {
         return null
     }
     key :: canonical_key(t)

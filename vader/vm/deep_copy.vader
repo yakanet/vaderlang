@@ -6,7 +6,7 @@
 // copied source is marked in place, as a collector forwards an object: its
 // `type_id` becomes the opposite of its copy's rank, minus one, until the walk
 // ends and `restore` puts it back, trap or not. A struct of `std/task` that tasks
-// share is kept, not copied (`is_task_shared_struct`).
+// share is kept, not copied (`BcStruct.shared`).
 
 module "vader/vm"
 
@@ -96,7 +96,7 @@ copy_struct :: fn(walk: CopyWalk, s: StructVal) -> Value {
         return walk.copies[-s.type_id - 1]
     }
     entry :: walk.types[s.type_id]
-    if entry is bc.BcStruct && bc.is_task_shared_struct(entry) {
+    if entry is bc.BcStruct && entry.shared {
         return s
     }
     copy :: StructVal { .type_id = s.type_id, .fields = s.fields.clone() }

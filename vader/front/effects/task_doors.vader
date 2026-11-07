@@ -1,13 +1,11 @@
 // vader/front/effects/task_doors: the functions a task goes through.
 //
 // The primitives of `std/task` launch a task, wait for one, hand a message on, hold
-// a lock. What each is to the task check is a table, keyed as `intrinsic_effects`
-// keys them, and the table stands for the body a primitive may have: that body
-// shares a task's state with the threads of the runtime, which no task may race on.
-// A function that calls a primitive is read from its body. A struct a primitive is
-// lent under synchronization (a task, a channel, a lock's cell, an atomic) is a
-// value tasks may share: the type is the one the primitive declares, so a program
-// cannot declare a type safe to share.
+// a lock. What each is to a task is a row of the compiler's closed table
+// (`vader/core/types/task_runtime.vader`), and the row stands for the body a
+// primitive may have: that body shares a task's state with the threads of the
+// runtime, which no task may race on. What a primitive does to what it is lent is
+// read from its row too. A function that calls a primitive is read from its body.
 //
 // A task is a task of `std/task`: a thread started straight through
 // `std/runtime/scheduler`, as the VM runs the threads of the program it runs, is
@@ -17,101 +15,72 @@
 module "vader/front/effects"
 
 import "std/collections"
+import "std/iter"
 import "vader/core/types"
 import "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
 
-/// What a primitive is to the task check. Each field names a parameter by its
-/// position.
-export IntrinsicDoor :: struct {
-    /// The fn a task runs.
-    runs: i64 | null = null
-    /// A value handed on to other tasks, which may do anything with it.
-    gives: i64 | null = null
-    /// The task whose end the call waits for, or the array of tasks when
-    /// `joins_array`.
-    joins: i64 | null = null
-    /// The call waits for each task of the array `joins` names: a combinator returns
-    /// once all of them ended.
-    joins_array: bool = false
-    /// The fn run holding a lock, handed the value the lock guards.
-    exclusive: i64 | null = null
-    /// A value the primitive reaches under synchronization only.
-    synchronized: i64 | null = null
-    /// The call may park the task that makes it.
-    parks: bool = false
-    /// The call returns a value another task handed on: a function value it returns
-    /// was checked where it was handed.
-    takes: bool = false
-}
-
-// The door of a primitive that only reaches its first parameter, synchronized.
-SYNCHRONIZED_ONLY :: IntrinsicDoor { .synchronized = 0 }
-
-// The door of a primitive that waits for the task it is handed.
-JOINS_ITS_TASK :: IntrinsicDoor {
-    .synchronized = 0,
-    .joins = 0,
-    .parks = true,
-}
-
-// The door of a combinator, which waits for each task of the array it is handed.
-JOINS_EACH_TASK :: IntrinsicDoor {
-    .joins = 0,
-    .joins_array = true,
-    .parks = true,
-}
-
-/// What the primitive of key `key` is to the task check ; null for a function that
-/// is no door.
+/// What the primitive `p`, declaring `params` parameters, does with each of them.
 ///
-/// @param key  the function's key, as `intrinsic_effects` takes it.
-intrinsic_door :: fn(key: string) -> IntrinsicDoor | null = match key {
-    "std/task.launch"                       -> IntrinsicDoor { .runs = 0 }
-    "std/task.join" | "std/task.timeout"    -> JOINS_ITS_TASK
-    "std/task.join_all" | "std/task.race"   -> JOINS_EACH_TASK
-    "std/task.try_join_all"                 -> JOINS_EACH_TASK
-    "std/task.join_any"                     -> JOINS_EACH_TASK
-    "std/task.is_ready" | "std/task.cancel" -> SYNCHRONIZED_ONLY
-    "std/runtime/scheduler.park"            -> IntrinsicDoor { .parks = true }
-    "std/runtime/scheduler.sleep_for"       -> IntrinsicDoor { .parks = true }
-    "std/task.shared"                       -> IntrinsicDoor { .gives = 0 }
-    "std/task.send"                         -> IntrinsicDoor { .synchronized = 0, .gives = 1 }
-    "std/task.receive"                      -> IntrinsicDoor {
-        .synchronized = 0,
-        .parks = true,
-        .takes = true,
+/// @param paths   the summary's paths.
+/// @param p       the primitive's row.
+/// @param params  how many parameters it declares.
+primitive_effects :: fn(paths: PathTable, p: TaskPrimitive, params: i64) -> ParamEffects[] =
+    (0..<params).map((q) -> lent_effects(paths, p, q)).collect()
+
+// What the primitive `p` does with its parameter `q`: what it hands back of the task
+// it joins, the value it hands on, or what it does to the struct it is lent first.
+lent_effects :: fn(paths: PathTable, p: TaskPrimitive, q: i64) -> ParamEffects {
+    if p.joins == q {
+        return joined_effects(paths, p.joins_array)
     }
-    "std/task.locked"                       -> IntrinsicDoor { .synchronized = 0, .exclusive = 1 }
-    "std/task.close"                        -> SYNCHRONIZED_ONLY
-    "std/task.fetch_add" | "std/task.load"  -> SYNCHRONIZED_ONLY
-    "std/task.store"                        -> SYNCHRONIZED_ONLY
-    "std/task.compare_and_set"              -> SYNCHRONIZED_ONLY
-    _                                       -> null
+    if p.gives == q {
+        return effects_of(.Stored, ROOT)
+    }
+    effects :: none()
+    if q != 0 {
+        return effects
+    }
+    if p.writes != "" {
+        effects.insert(Access { .path = paths.path_to(p.writes), .effect = .Assigned })
+    }
+    if p.grows != "" {
+        effects.insert(Access { .path = paths.path_to(p.grows), .effect = .Resized })
+    }
+    if p.takes != "" {
+        effects.insert(Access { .path = element_of(paths, p.takes), .effect = .Returned })
+    }
+    if p.guards != "" {
+        // The fn holding the lock may do anything with the guarded value, keep it
+        // included.
+        guarded :: paths.cut(paths.path_to(p.guards))
+        effects.insert(Access { .path = guarded, .effect = .Stored })
+        effects.insert(Access { .path = guarded, .effect = .Unknown })
+    }
+    return effects
 }
 
-// Note what the primitive `decl` of key `key` is to the task check, and the struct
-// it reaches under synchronization.
-note_door :: fn(index: CalleeIndex, decl_id: i64, key: string, signature: Type | null) -> void {
-    door :: intrinsic_door(key) ?? return
-    index.doors[decl_id] = door
-    q :: door.synchronized ?? return
-    if signature !is FnType || q >= signature.params.len() {
-        return
+// What a join hands back: what the task returned, which its result holds once it
+// ended ; for a combinator, what each task of its array returned.
+joined_effects :: fn(paths: PathTable, each: bool) -> ParamEffects {
+    result :: element_of(paths, TASK_RESULT)
+    if each {
+        return effects_of(.Returned, paths.joined(paths.path_to(ELEMENT), result))
     }
-    shared :: signature.params[q]
-    if shared is StructType {
-        index.synchronized.add(shared.symbol.id)
-    }
+    return effects_of(.Returned, result)
 }
 
-/// What `callee` is to the task check, when it is a door ; null for any other
+// The path to an element of the array field `field`.
+element_of :: fn(paths: PathTable, field: string) -> i32 =
+    paths.child(paths.path_to(field), paths.step_id(ELEMENT))
+
+/// What `callee` is to the task check, when it is a primitive ; null for any other
 /// callee.
 ///
 /// @param index   the project's functions.
 /// @param callee  what a call settles on.
-door_of :: fn(index: CalleeIndex, callee: Callee) -> IntrinsicDoor | null {
+door_of :: fn(index: CalleeIndex, callee: Callee) -> TaskPrimitive | null {
     if callee !is DirectFn {
         return null
     }

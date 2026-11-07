@@ -1341,7 +1341,7 @@ struct_info_row :: fn(
         designated(".size", verbatim("sizeof(${ctx.struct_c_names[type_index]})")),
         designated(".slot_size", number(i64(size_of_bc_type(s)))),
     ]
-    if is_task_shared_struct(s) {
+    if s.shared {
         members.push(designated(".flags", verbatim("VADER_TYPE_FLAG_SHARED")))
     }
     push_offset_list(members, "ptr", offs.ptr_offsets)

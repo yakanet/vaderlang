@@ -432,6 +432,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
             .fields    = parsed.fields,
             .c_name    = parsed.c_name,
             .symbol_id = i32(types.len()),
+            .shared    = parsed.shared,
         })
         return null
     }
@@ -491,7 +492,11 @@ find_mirror_marker :: fn(s: string) -> i64 {
 parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     after_struct :: rest.trim_prefix("struct ")
     open :: after_struct.index_of('{', 0)
-    raw_name :: before_first(after_struct, '{').trim()
+    // `Name shared`: a struct tasks share, which a deep copy keeps. The marker
+    // closes the text before `{`: a name holding a space is quoted.
+    described :: before_first(after_struct, '{').trim()
+    shared :: described.ends_with(" shared")
+    raw_name :: described.trim_suffix(" shared")
     // The dump `emit/virt::quote_ident`-wraps a name carrying chars outside [A-Za-z0-9_$.]
     // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` by
     // `emit/virt::quote_string` ; unquote so `sanitise` derives the same C identifier as the
@@ -539,7 +544,13 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
             }
         }
     }
-    return BcStruct { .name = name, .fields = fields, .c_name = c_name, .symbol_id = -1 }
+    return BcStruct {
+        .name = name,
+        .fields = fields,
+        .c_name = c_name,
+        .symbol_id = -1,
+        .shared = shared,
+    }
 }
 
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type: its slots are type indices,
@@ -1153,6 +1164,21 @@ import "std/testing"
     // body wired (4 ops) + parallel debug nulls
     assert_eq(f.body.len(), 4)
     assert_eq(f.debug.len(), 4)
+}
+
+@test
+test_parse_virt_bc_reads_a_shared_struct :: fn() -> void {
+    src :: "module demo\ntype 0 scalar i32\n"
+        + "type 1 struct Task shared { result:0 }\ntype 2 struct Pair { lhs:0 }\n"
+    m :: parse_virt_bc(src)
+    if m is VirtParseError {
+        assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
+        return
+    }
+    task :: m.types[1]
+    pair :: m.types[2]
+    assert(task is BcStruct && task.shared && task.name == "Task", "a struct tasks share")
+    assert(pair is BcStruct && !pair.shared, "an ordinary struct")
 }
 
 // The two silent-skip paths this reader used to have. Each dropped its line and

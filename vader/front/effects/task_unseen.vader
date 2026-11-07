@@ -138,7 +138,7 @@ taken :: fn(ctx: TaskCtx, s: Skeleton, names: Bindings, e: AST.Expr) -> bool {
     }
     site :: s.sites.find((site) -> same_span(site.at, value.span)) ?? return false
     door :: ctx.index.door_of(site.callee) ?? return false
-    return door.takes
+    return door.takes != ""
 }
 
 // The function value whose body the check cannot see that node `node` runs, as the

@@ -1,0 +1,121 @@
+// vader/core/types/task_runtime: the primitives of `std/task`, and the structs its tasks share.
+//
+// A primitive of `std/task` is a piece of the runtime: its body shares a task's state
+// with the threads of the scheduler, which no task may race on. The compiler does not
+// read that body. It knows each primitive by name, and by what it is to a task, from
+// the table below, which is closed: a library cannot add a primitive. A row also says
+// what the primitive does to the struct it is lent (a task, a channel, a lock's cell,
+// an atomic), by the names of that struct's fields.
+//
+// The structs tasks share by design are a closed list too. A task holding one reaches
+// the same value as every other: the task check does not race them, and a deep copy
+// keeps them instead of copying them.
+
+module "vader/core/types"
+
+import "vader/core/symbol"
+
+/// What a primitive is to a task. Each `i64` field names a parameter by its
+/// position. Each `string` field names a field of the struct the primitive is lent
+/// as its first parameter, `""` for none: a primitive that names none does nothing
+/// to that struct that a task could see.
+export TaskPrimitive :: struct {
+    /// The fn a task runs.
+    runs: i64 | null = null
+    /// A value handed on to other tasks, which may do anything with it.
+    gives: i64 | null = null
+    /// The task whose end the call waits for, or the array of tasks when
+    /// `joins_array`.
+    joins: i64 | null = null
+    /// The call waits for each task of the array `joins` names: a combinator returns
+    /// once all of them ended.
+    joins_array: bool = false
+    /// The fn run holding a lock, handed the value the lock guards.
+    exclusive: i64 | null = null
+    /// The call may park the task that makes it.
+    parks: bool = false
+    /// The field the call assigns.
+    writes: string = ""
+    /// The array field the call grows.
+    grows: string = ""
+    /// The array field whose element the call returns: a value another task handed
+    /// on, so a function value it returns was checked where it was handed.
+    takes: string = ""
+    /// The field the lock guards, which the call hands to the fn `exclusive` names.
+    guards: string = ""
+}
+
+/// The field of `Task` that holds what the task returns, which `join` hands back.
+export TASK_RESULT :: "result"
+
+// A primitive that waits for the task it is handed.
+JOINS_ITS_TASK :: TaskPrimitive { .joins = 0, .parks = true }
+
+// A combinator, which waits for each task of the array it is handed.
+JOINS_EACH_TASK :: TaskPrimitive {
+    .joins = 0,
+    .joins_array = true,
+    .parks = true,
+}
+
+// An atomic primitive that changes the value of the atomic it is lent.
+WRITES_VALUE :: TaskPrimitive { .writes = "value" }
+
+/// What the primitive of key `key` is to a task ; null for a function that is no
+/// primitive.
+///
+/// @param key  the function's key, `module.name`.
+export task_primitive :: fn(key: string) -> TaskPrimitive | null = match key {
+    "std/task.launch"                       -> TaskPrimitive { .runs = 0 }
+    "std/task.join" | "std/task.timeout"    -> JOINS_ITS_TASK
+    "std/task.join_all" | "std/task.race"   -> JOINS_EACH_TASK
+    "std/task.try_join_all"                 -> JOINS_EACH_TASK
+    "std/task.join_any"                     -> JOINS_EACH_TASK
+    "std/task.is_ready" | "std/task.cancel" -> TaskPrimitive {}
+    "std/runtime/scheduler.park"            -> TaskPrimitive { .parks = true }
+    "std/runtime/scheduler.sleep_for"       -> TaskPrimitive { .parks = true }
+    "std/task.shared"                       -> TaskPrimitive { .gives = 0 }
+    "std/task.send"                         -> TaskPrimitive { .gives = 1, .grows = "messages" }
+    "std/task.receive"                      -> TaskPrimitive {
+        .parks = true,
+        .writes = "next",
+        .takes = "messages",
+    }
+    "std/task.locked"                       -> TaskPrimitive { .exclusive = 1, .guards = "value" }
+    "std/task.close"                        -> TaskPrimitive { .writes = "closed" }
+    "std/task.load"                         -> TaskPrimitive {}
+    "std/task.fetch_add" | "std/task.store" -> WRITES_VALUE
+    "std/task.compare_and_set"              -> WRITES_VALUE
+    _                                       -> null
+}
+
+// The module that declares the structs tasks share.
+TASK_MODULE :: "std/task"
+
+// The structs of `TASK_MODULE` tasks share by design.
+TASK_SHARED_STRUCTS :: ["Task"]
+
+/// Whether `sym` declares a struct tasks share by design: every task holding one
+/// reaches the same value, which a deep copy keeps instead of copying.
+///
+/// @param sym  the struct's declaration symbol.
+export is_task_shared :: fn(sym: Symbol) -> bool =
+    sym.module_name == TASK_MODULE && sym.name in TASK_SHARED_STRUCTS
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_task_primitive_of_an_ordinary_function :: fn() -> void {
+    assert(task_primitive("std/task.helper") == null, "an unlisted function")
+}
+
+@test
+test_task_shared_struct_is_told_by_its_module :: fn() -> void {
+    factory :: SymbolFactory {}
+    task :: factory.make(.Struct, "Task", "std/task", "std/task", .Public, null)
+    own :: factory.make(.Struct, "Task", "app", "app", .Public, null)
+    assert(is_task_shared(task), "the Task of std/task")
+    assert(!is_task_shared(own), "a Task of the program")
+}

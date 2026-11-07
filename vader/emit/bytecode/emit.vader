@@ -157,7 +157,11 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
             fields.push(BcField { .name = f.name, .type_index = type_index })
         }
         ctx.types[idx] = BcStruct {
-            .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
+            .name = s.mangled,
+            .fields = fields,
+            .c_name = c_struct_of(s.origin),
+            .symbol_id = sym_id,
+            .shared = is_task_shared(sym),
         }
         return
     }
