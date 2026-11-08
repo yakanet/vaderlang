@@ -29,6 +29,7 @@
 #define VADER_OLD_SMALL_MAX    (1u << VADER_OLD_SMALL_MAX_LOG2)               /* 1024 */
 #define VADER_OLD_NUM_CLASSES  (VADER_OLD_SMALL_MAX / VADER_OLD_CLASS_GRAN)  /* 64 */
 #define VADER_OLD_REGION_BYTES (256u * 1024u)   /* small-class region granularity */
+#define VADER_OLD_COMMIT_STEP  (4u * 1024u * 1024u)  /* how much of the reservation one commit takes */
 #define VADER_OLD_DISCARD_MIN  (64u * 1024u)    /* only discard freed large regions >= this */
 /* Freed large regions are binned by size, VADER_OLD_LARGE_SUBBINS bins per power
  * of two above VADER_OLD_SMALL_MAX, up to the widest `size_t`. */
@@ -48,6 +49,7 @@ static vader_gen_t g_young = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
 
 static char*  g_old_block     = NULL;   /* reservation base */
 static char*  g_old_bump      = NULL;   /* global region-carve cursor (never retreats) */
+static char*  g_old_committed = NULL;   /* end of the committed prefix, >= g_old_bump */
 static char*  g_old_block_end = NULL;   /* g_old_block + reservation capacity */
 static size_t g_old_capacity  = 0;      /* reservation size in bytes (== the cap) */
 static size_t g_old_live_bytes = 0;     /* slot bytes held by live old objects (accumulates promotions; recomputed exact at sweep) */
@@ -256,6 +258,20 @@ static int vader_gc_env_bool(const char* env_name) {
 
 /* ---- slab old-gen: reservation, allocation, sweep ------------------------ */
 
+/* Commit the reservation up to `needed` at least, a whole step at a time: a large
+ * object takes a region of its own, and one system call per region is thousands
+ * of them in a compile. */
+static void vader_old_commit_to(char* needed) {
+    if (needed <= g_old_committed) return;
+    size_t steps = ((size_t)(needed - g_old_block) + VADER_OLD_COMMIT_STEP - 1u) / VADER_OLD_COMMIT_STEP;
+    char* end = g_old_block + steps * VADER_OLD_COMMIT_STEP;
+    if (end > g_old_block_end) end = g_old_block_end;
+    if (!vader_os_commit(g_old_committed, (size_t)(end - g_old_committed))) {
+        vader_trap("vader_old_commit_to: could not commit the old generation (out of commit charge)");
+    }
+    g_old_committed = end;
+}
+
 /* Carve a fresh region of `region_bytes` from the global bump and dedicate it to
  * `slot_size` (class_idx >= 0 for small, -1 for a one-object large region).
  * Returns NULL when the reservation is exhausted (the real OOM ceiling). */
@@ -263,9 +279,7 @@ static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t sl
     if (g_old_bump + region_bytes > g_old_block_end) return NULL;
     vader_old_region_t* r = (vader_old_region_t*) malloc(sizeof(vader_old_region_t));
     if (r == NULL) vader_trap("vader_old_carve_region: region metadata malloc failed");
-    if (!vader_os_commit(g_old_bump, region_bytes)) {
-        vader_trap("vader_old_carve_region: could not commit the region (out of commit charge)");
-    }
+    vader_old_commit_to(g_old_bump + region_bytes);
     r->base      = g_old_bump;
     r->cur       = g_old_bump;
     r->end       = g_old_bump + region_bytes;
@@ -522,6 +536,7 @@ void vader_gc_init(void) {
     g_old_block     = vader_os_reserve(g_old_capacity);
     if (g_old_block == NULL) vader_trap("vader_gc_init: old-gen reservation failed (out of address space)");
     g_old_bump      = g_old_block;
+    g_old_committed = g_old_block;
     g_old_block_end = g_old_block + g_old_capacity;
     for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) {
         g_old_classes[i].free_head = NULL;
@@ -566,7 +581,7 @@ void vader_gc_shutdown(void) {
     g_young.from.base = g_young.from.cur = g_young.from.end = NULL;
     g_young.to.base   = g_young.to.cur   = g_young.to.end   = NULL;
     vader_alloc_limit_refresh();
-    g_old_block = g_old_bump = g_old_block_end = NULL;
+    g_old_block = g_old_bump = g_old_committed = g_old_block_end = NULL;
     g_old_capacity = g_old_live_bytes = g_old_live_after_major = 0;
     g_old_regions = NULL;
     memset(g_old_large_bins, 0, sizeof g_old_large_bins);

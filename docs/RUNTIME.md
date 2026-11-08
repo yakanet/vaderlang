@@ -375,7 +375,8 @@ below are the defaults of `runtime/c/vader.h`.
 - **Old** is one address-space reservation, committed as it fills: half the
   machine's memory by default, less what young may take, kept between 256 MB and
   4 GB. It never moves an object: objects up to 1 KB take a slot of their size
-  class, larger ones a region of their own.
+  class, larger ones a region of their own. On Linux, a core dump holds the part
+  committed, not the whole reservation.
 - **The card table** records the old objects a pointer was written into, one
   byte per 512 bytes of old space. The C emitter writes the barrier after every
   store of a pointer into an object, and a minor visits only the dirty cards, not

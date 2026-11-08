@@ -40,16 +40,26 @@ extern char** environ;
 
 /* ---- memory -------------------------------------------------------------- */
 
+/* The reservation stays out of a core dump until it is committed: Linux dumps a
+ * written mapping whole, and through a pipe (apport, systemd-coredump) every page
+ * never touched is a page of zeros, gigabytes of them. */
 static char* vader_os_reserve(size_t bytes) {
     void* p = mmap(NULL, bytes, PROT_READ | PROT_WRITE,
                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (p == MAP_FAILED) return NULL;
+#if defined(MADV_DONTDUMP)
+    madvise(p, bytes, MADV_DONTDUMP);
+#endif
     return (char*) p;
 }
 
-/* An anonymous mapping is demand-paged: a page is committed at its first write. */
+/* An anonymous mapping is demand-paged: a page is committed at its first write.
+ * `base` starts on a page, as `madvise` requires. */
 static int vader_os_commit(char* base, size_t bytes) {
     (void) base; (void) bytes;
+#if defined(MADV_DODUMP)
+    madvise(base, bytes, MADV_DODUMP);
+#endif
     return 1;
 }
 
