@@ -17,9 +17,10 @@ AST :: import "toolchain/ast"
 
 /// Type-check a `CastExpr`. Returns the cast's target type.
 ///
-/// @error T3010 when the (value → target) pair is not a legal conversion:
-///        scalar↔scalar (numeric / char / enum), a distinct newtype
-///        construct / unwrap, an assignable/subtype pair, or an `Into<T>` impl.
+/// @error T3010 when the (value -> target) pair is not a legal conversion:
+///        scalar to scalar (numeric / char / enum), a distinct to or from what
+///        its backing converts with, an assignable/subtype pair, or an `Into<T>`
+///        impl.
 infer_cast :: fn(e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     target :: type_from_expr(e.target, typed.resolved, diags)
     // Cast target flows as expected to the value so `i64(-250)`'s
@@ -62,21 +63,33 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     }
     // Undecidable operands (an earlier error, an unbound type param, a metatype)
     // opt out, never pile a T3010 on top of a cascade.
-    if not_decidable(src) || not_decidable(target) { return true }
+    if not_decidable(src) || not_decidable(target) {
+        return true
+    }
     // A machine integer converts as any primitive : `i32(x)` is no checked conversion.
     // A distinct over a range converts as the range does.
     refined :: refinement_of(strip_distinct(target))
     if refined != null {
         return range_conversion_allowed(src, refined)
     }
-    if enum_data_of(src, target) != null { return true }
+    if enum_data_of(src, target) != null {
+        return true
+    }
     // The `Convert` op domain: numeric / char / enum conversions (`u64(i32)`,
-    // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap
-    // (`BlockId(-1)`, `i32(blockId)`). These are cheap tag-test gates and cover
+    // `f64(u64)`, `u8(char)`, `i32(enum)`). These are cheap tag-test gates and cover
     // the dominant cast case, so they run before the heavier `is_assignable` walk
     // (which, for a genuine conversion, fails both directions anyway).
-    if scalar_castable(src) && scalar_castable(target) { return true }
-    if src is DistinctType || target is DistinctType { return true }
+    if scalar_castable(src) && scalar_castable(target) {
+        return true
+    }
+    // A distinct newtype wraps and unwraps as its backing converts: `BlockId(-1)`
+    // and `i32(block_id)` do, `Meters("x")` and a `CPointer` made of an integer do not.
+    if target is DistinctType && cast_allowed(src, target.backing, typed) {
+        return true
+    }
+    if src is DistinctType && cast_allowed(src.backing, target, typed) {
+        return true
+    }
     // Reading a foreign pointer as an integer. A Win32 `HANDLE` reports
     // failure as `INVALID_HANDLE_VALUE` (-1) and `mmap` as `MAP_FAILED` (-1),
     // so a sentinel that is not NULL cannot be tested at all while the pointer
@@ -86,10 +99,14 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // nothing needs it. A sentinel is RETURNED and compared, never passed, so
     // the handle keeps travelling as a `CPointer` and no call site has to
     // launder it back.
-    if is_c_pointer(src) && holds_an_address(target) { return true }
+    if is_c_pointer(src) && holds_an_address(target) {
+        return true
+    }
     // Identity / compatible either direction : `i32(x: i32)`, a free literal
     // narrowed to the target, a subtype widen (`Animal(cat)`).
-    if is_assignable(src, target) || is_assignable(target, src) { return true }
+    if is_assignable(src, target) || is_assignable(target, src) {
+        return true
+    }
     // Explicit `Into<Target>` conversion: last resort.
     return into_converting(typed, src, target) != null
 }

@@ -1,0 +1,5 @@
+[14:17] error[T3010] invalid cast: cannot cast string to Meters
+[15:15] error[T3010] invalid cast: cannot cast {integer} to Name
+[16:17] error[T3010] invalid cast: cannot cast i64 to Window
+[17:17] error[T3010] invalid cast: cannot cast Name to Meters
+[18:15] error[T3010] invalid cast: cannot cast Meters to bool

@@ -1,0 +1,21 @@
+// A distinct type converts as its backing does, both ways: a value its backing
+// does not convert from is refused, so is a `CPointer` made of an integer.
+module "snippet"
+
+export Meters :: i64
+
+export Name :: string
+
+export Window :: CPointer
+
+export main :: fn() -> i32 {
+    n: i64: 4096
+    m :: Meters(3)
+    a :: Meters("hello")
+    b :: Name(42)
+    c :: Window(n)
+    d :: Meters(Name("x"))
+    e :: bool(m)
+    f :: Meters(i32(7))
+    return 0
+}
