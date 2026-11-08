@@ -31,8 +31,8 @@
 #include "rt/copy.c"
 #include "rt/host.c"
 #include "rt/ffi.c"
-#include "rt/vthreads.c"
-#include "rt/sched.c"
+#include "rt/virtual_threads.c"
+#include "rt/scheduler.c"
 #if defined(_WIN32)
 #  include "rt/os_windows.c"
 #else
