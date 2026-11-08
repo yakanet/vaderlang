@@ -243,6 +243,7 @@ export ComptimeCode :: enum(CodeInfo) {
     HostRefusedAtComptime { .id = "C4016", .message = "a comptime evaluation cannot call this host" },
     IntegerOverflow       { .id = "C4017", .message = "integer overflow in a constant expression" },
     SingletonAtComptime   { .id = "C4018", .message = "a `@singleton` function cannot run at comptime" },
+    LibrariesDisagree     { .id = "C4019", .message = "two `CLibrary` constants of one name describe different binaries" },
 }
 
 // M-codes belong to the lowering pass (AST -> Lowered IR). The `M` prefix

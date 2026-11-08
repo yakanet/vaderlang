@@ -11,6 +11,8 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "std/ffi"
+import "std/path"
+import "std/string"
 import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/front/resolver"
@@ -21,7 +23,8 @@ import "vader/support/diagnostics"
 /// for (`TypedProgram.extern_libraries`), into `project.libraries`.
 ///
 /// A constant that does not reduce reports why, once, where the evaluation
-/// stopped inside it.
+/// stopped inside it. One that describes another binary under the name of a
+/// constant met before it is reported on its declaration.
 ///
 /// @param typed    the typed project.
 /// @param project  the evaluated project, whose `libraries` this fills.
@@ -35,6 +38,7 @@ evaluate_extern_libraries :: fn(
     // One library per constant, shared by every declaration naming it.
     evaluated :: Map<i32, CLibrary> {}
     failed :: Set<i32> {}
+    first_of_name :: Map<string, NamedLibrary> {}
     for [_, module_typed] in typed.modules {
         for [decl_id, symbol] in module_typed.extern_libraries {
             known :: evaluated[symbol.id]
@@ -52,8 +56,61 @@ evaluate_extern_libraries :: fn(
             }
             evaluated[symbol.id] = library
             project.libraries[decl_id] = library
+            check_one_binary_per_name(symbol, library, first_of_name, diags)
         }
     }
+}
+
+// The first constant met that names a library, with what it holds.
+NamedLibrary :: struct {
+    symbol: Symbol
+    library: CLibrary
+}
+
+// Report `symbol` when a constant met before it names its library but describes
+// another binary: the build and the interpreter know a library by its name alone.
+// `""` names the running process, which constants share whatever they list. The
+// headers may differ: they declare functions, and the library's unit includes
+// every one.
+check_one_binary_per_name :: fn(
+    symbol: Symbol,
+    library: CLibrary,
+    first_of_name: Map<string, NamedLibrary>,
+    diags: Diagnostic[],
+) -> void {
+    if library.name == "" {
+        return
+    }
+    first :: first_of_name[library.name]
+    if first == null {
+        first_of_name[library.name] = NamedLibrary { .symbol = symbol, .library = library }
+        return
+    }
+    fields :: differing_binary_fields(first.library, library)
+    if fields.len() == 0 {
+        return
+    }
+    span :: symbol.defined_at ?? return
+    previous :: "`${first.symbol.name}` in `${first.symbol.module_name}`"
+    differing :: fields.join(", ")
+    detail :: "`${library.name}` is already described by ${previous}, which differs on ${differing}"
+    diags.push(comptime_error(.LibrariesDisagree, span, detail))
+}
+
+// The fields describing the binary on which `a` and `b` differ, each in
+// backticks. `archives` are compared in order, which is the link's.
+differing_binary_fields :: fn(a: CLibrary, b: CLibrary) -> string[] {
+    out: string[]: []
+    if a.include != b.include {
+        out.push("`include`")
+    }
+    if !a.archives.content_equals(b.archives) {
+        out.push("`archives`")
+    }
+    if !a.system.content_equals(b.system) {
+        out.push("`system`")
+    }
+    return out
 }
 
 // The library the constant `symbol` holds, or null after reporting why it does
@@ -87,7 +144,7 @@ evaluate_library :: fn(
 }
 
 /// The `CLibrary` a value describes, its `include` and `archives` resolved in
-/// `folder`, or null when `value` is not one: the evaluation fills every field,
+/// `folder` (`path_beside`), or null when `value` is not one: the evaluation fills every field,
 /// the defaults included, so one that is missing means the struct changed.
 ///
 /// @param value   the evaluated constant.
@@ -103,7 +160,7 @@ resolved_library :: fn(value: ComptimeValue, folder: string) -> CLibrary | null 
     system :: strings_field(value, "system") ?? return null
     resolved: string[]: []
     for archive in archives {
-        resolved.push(join_path(folder, archive))
+        resolved.push(path_beside(folder, archive))
     }
     return CLibrary {
         .name = name,
@@ -119,8 +176,13 @@ folder_beside :: fn(folder: string, relative: string) -> string {
     if relative == "" {
         return ""
     }
-    return join_path(folder, relative)
+    return path_beside(folder, relative)
 }
+
+// `relative` resolved in `folder`, its `.` and `..` collapsed: two constants that
+// name one file by two spellings describe the same binary.
+path_beside :: fn(folder: string, relative: string) -> string =
+    join_path(folder, relative).to_path().normalize().as_string()
 
 // The string field `name` of `value`, or null when it is absent or not a string.
 string_field :: fn(value: StructValue, name: string) -> string | null {
@@ -147,4 +209,3 @@ strings_field :: fn(value: StructValue, name: string) -> string[] | null {
     }
     return out
 }
-

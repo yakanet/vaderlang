@@ -1,0 +1,36 @@
+// C4019: two `CLibrary` constants, in two modules, name `greeter` and search
+// different folders and link different system libraries; their archive is one
+// file spelled two ways. Three pairs pass: the `""` constants list different
+// folders (both are the running process), the `z` constants spell one folder
+// two ways, and the `png` constants differ by their headers alone.
+module "snippet"
+
+import "snippet/other"
+import "std/ffi"
+
+GREETER :: CLibrary {
+    .name = "greeter",
+    .include = "greeter",
+    .archives = ["lib/libgreeter.a"],
+    .system = ["m"],
+}
+
+PROCESS :: CLibrary { .name = "", .include = "include" }
+ZLIB    :: CLibrary { .name = "z", .include = "vendor/include" }
+PNG     :: CLibrary { .name = "png", .headers = ["<png.h>"] }
+
+@extern(GREETER, "greet")
+greet :: fn() -> i32
+
+@extern(PROCESS, "process_id")
+process_id :: fn() -> i32
+
+@extern(ZLIB, "zlib_version")
+zlib_version :: fn() -> i32
+
+@extern(PNG, "png_version")
+png_version :: fn() -> i32
+
+main :: fn() -> i32 {
+    return greet() + process_id() + zlib_version() + png_version() + other_total()
+}

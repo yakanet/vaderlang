@@ -1,0 +1,29 @@
+// The second constant of each name.
+module "snippet/other"
+
+import "std/ffi"
+
+GREETER :: CLibrary {
+    .name = "greeter",
+    .include = "greeter",
+    .archives = ["../lib/libgreeter.a"],
+    .system = ["pthread"],
+}
+
+PROCESS :: CLibrary { .name = "", .include = "other_include" }
+ZLIB    :: CLibrary { .name = "z", .include = "../vendor/include" }
+PNG     :: CLibrary { .name = "png", .headers = ["<png.h>", "<pngconf.h>"] }
+
+@extern(GREETER, "greet_again")
+greet_again :: fn() -> i32
+
+@extern(PROCESS, "parent_id")
+parent_id :: fn() -> i32
+
+@extern(ZLIB, "zlib_flags")
+zlib_flags :: fn() -> i32
+
+@extern(PNG, "png_flags")
+png_flags :: fn() -> i32
+
+export other_total :: fn() -> i32 = greet_again() + parent_id() + zlib_flags() + png_flags()

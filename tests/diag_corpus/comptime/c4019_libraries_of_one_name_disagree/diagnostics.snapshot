@@ -1,0 +1,1 @@
+[6:1] error[C4019] two `CLibrary` constants of one name describe different binaries: `greeter` is already described by `GREETER` in `snippet`, which differs on `include`, `system`

@@ -3446,6 +3446,12 @@ Anything else is an error, reported where the evaluation stopped. The fields:
 
 A native build adds a library's flags only when the program reaches one of its functions, and compiles each library's calls with its own headers alone, so headers declaring the same names (`Rectangle` in `raylib.h` and `<windows.h>`) bind in one program.
 
+A library is its `name`: two constants of one name describe the same binary, and it is an error when they do not.
+
+- `include`, `archives` (in the same order) and `system` must agree. A path counts by what it names: `../vendor/include` from a module in `app/` and `vendor/include` from one at the root agree.
+- `headers` may differ: the library's calls are compiled with the headers of both.
+- The empty name is the running process: constants of that name need not agree.
+
 ### `@c_pointer`: a parameter crossing as an address
 
 A C function often takes a pointer where the value would do (`localtime(const time_t *)`). `@c_pointer` on the parameter passes C the address of a copy of the argument, valid for the call; no pointer type appears in Vader.
