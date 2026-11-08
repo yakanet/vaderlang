@@ -42,6 +42,10 @@ static inline void vader_host_std_io$wait_readable(int64_t a0) {
     vader_sched_wait_readable(a0);
 }
 
+static inline bool vader_host_std_io$wait_readable_for(int64_t a0, int64_t a1) {
+    return vader_sched_wait_readable_for(a0, a1);
+}
+
 static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     vader_foreign_depth += 1;

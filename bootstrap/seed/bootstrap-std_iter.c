@@ -137,7 +137,7 @@ void* std_iter$clone__vader_vm_ArrayVal___bool___char___f64___vader_vm_FnVal___i
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
-    vader_array_t* _a0_arr = vader_array_reserve(414u, (int64_t) t0, 0u, 2456u);
+    vader_array_t* _a0_arr = vader_array_reserve(414u, (int64_t) t0, 0u, 2455u);
     l1 = (void*) _a0_arr;
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }

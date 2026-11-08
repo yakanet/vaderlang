@@ -1499,7 +1499,7 @@ void* std_core$filled__vader_vm_ArrayVal___bool___char___f64___vader_vm_FnVal___
     void** gc_raw_roots[2] = { &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_reserve(414u, (int64_t) l0, 0u, 2456u);
+    vader_array_t* _a0_arr = vader_array_reserve(414u, (int64_t) l0, 0u, 2455u);
     l2 = (void*) _a0_arr;
     l3 = INT64_C(0);
     while ((l3 < l0)) {
@@ -2998,7 +2998,7 @@ int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
         t0 = std_core$write_string_at(l0, l1, 2071u);
         return t0;
     }
-    t0 = std_core$write_string_at(l0, l1, 2914u);
+    t0 = std_core$write_string_at(l0, l1, 2918u);
     return t0;
 }
 

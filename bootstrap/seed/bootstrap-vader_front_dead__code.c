@@ -415,7 +415,7 @@ static bool vader_front_dead__code$is_wired_root(void* l0, vader_string_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2860u) {
+        if (t0 == 2864u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;

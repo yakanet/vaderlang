@@ -399,7 +399,7 @@ static void* vader_midir_optimise$annotate_function(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
         l12 = vader_array_ref_load_obj(_a13_slotarr->buf, _a13_slotarr->offset + (size_t) l4);
         l18 = false;
-        vader_array_t* _a14_arr = vader_array_new(412u, 0u, 13u, 2412u);
+        vader_array_t* _a14_arr = vader_array_new(412u, 0u, 13u, 2411u);
         l19 = (void*) _a14_arr;
         l20 = ((vader_struct_vader_midir$BasicBlock_t*) l12)->f_instructions;
         l6 = ((vader_array_t*) l20)->length;
@@ -842,7 +842,7 @@ static void* vader_midir_optimise$compact_locals(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a21_slotarr)
         l13 = vader_array_ref_load_obj(_a21_slotarr->buf, _a21_slotarr->offset + (size_t) l5);
         t4 = ((vader_array_t*) ((vader_struct_vader_midir$BasicBlock_t*) l13)->f_instructions)->length;
-        vader_array_t* _a22_arr = vader_array_reserve(412u, (int64_t) t4, 13u, 2412u);
+        vader_array_t* _a22_arr = vader_array_reserve(412u, (int64_t) t4, 13u, 2411u);
         l20 = (void*) _a22_arr;
         l21 = ((vader_struct_vader_midir$BasicBlock_t*) l13)->f_instructions;
         l6 = ((vader_array_t*) l21)->length;
@@ -1741,7 +1741,7 @@ static void* vader_midir_optimise$fold_moves_in_block(void* l0, void* l1, void* 
     };
     vader_gc_frame_t gc_frame = { vader_gc_top, 6u, 13u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(412u, 0u, 13u, 2412u);
+    vader_array_t* _a0_arr = vader_array_new(412u, 0u, 13u, 2411u);
     l4 = (void*) _a0_arr;
     l5 = INT64_C(0);
     l6 = ((vader_array_t*) ((vader_struct_vader_midir$BasicBlock_t*) l0)->f_instructions)->length;
@@ -1904,7 +1904,7 @@ static void* vader_midir_optimise$forward_block(void* l0) {
     vader_array_t* _a0_arr = vader_array_new(350u, 0u, 13u, 1649u);
     l1 = (void*) _a0_arr;
     t0 = ((vader_array_t*) l0)->length;
-    vader_array_t* _a1_arr = vader_array_reserve(412u, (int64_t) t0, 13u, 2412u);
+    vader_array_t* _a1_arr = vader_array_reserve(412u, (int64_t) t0, 13u, 2411u);
     l2 = (void*) _a1_arr;
     l3 = l0;
     l4 = ((vader_array_t*) l3)->length;

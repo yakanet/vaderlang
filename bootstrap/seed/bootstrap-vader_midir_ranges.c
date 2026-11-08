@@ -969,7 +969,7 @@ static vader_string_t vader_midir_ranges$counts_line(void* l0) {
     l4 = std_core$finish_buffer(l1, l2);
     l1 = (void*) vader_buffer_new((size_t) INT64_C(100));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 3000u);
+    l2 = std_core$write_string_at(l1, l2, 3004u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) l0)->f_unproven;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
@@ -2109,7 +2109,7 @@ void* vader_midir_ranges$mark_block(void* l0, void* l1) {
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l8, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(412u, 0u, 13u, 2412u);
+    vader_array_t* _a0_arr = vader_array_new(412u, 0u, 13u, 2411u);
     l2 = (void*) _a0_arr;
     l3 = INT64_C(0);
     l4 = ((vader_array_t*) ((vader_struct_vader_midir$BasicBlock_t*) l0)->f_instructions)->length;
@@ -2853,7 +2853,7 @@ static void* vader_midir_ranges$range_context(void* l0, bool l1, void* l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     t0 = ((vader_array_t*) l0)->length;
-    vader_array_t* _a0_arr = vader_array_reserve(413u, (int64_t) t0, 13u, 2446u);
+    vader_array_t* _a0_arr = vader_array_reserve(413u, (int64_t) t0, 13u, 2445u);
     l3 = (void*) _a0_arr;
     l4 = l0;
     l5 = ((vader_array_t*) l4)->length;

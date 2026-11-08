@@ -138,7 +138,7 @@ static vader_string_t vader_midir_select$argument_keys(void* l0) {
         t0 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l5);
         l6 = vader_midir_select$argument_key(t0);
         l1 = concat_3(l1, l2, l6);
-        l2 = 3258u;
+        l2 = 3263u;
         l5 = (l5 + INT64_C(1));
     }
     { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -156,7 +156,7 @@ static vader_box_t vader_midir_select$arith_op(uint8_t l0, vader_string_t l1) {
             t1 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
             return vader_ref_box(t1);
         }
-        if (l1 == 2837u) {
+        if (l1 == 2841u) {
             t1 = (void*) &vader_data_110;
             vader_array_t* _a1_slotarr = ((vader_array_t*) t1);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -185,7 +185,7 @@ static vader_box_t vader_midir_select$arith_op(uint8_t l0, vader_string_t l1) {
             t1 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) INT64_C(0));
             return vader_ref_box(t1);
         }
-        if (l1 == 2837u) {
+        if (l1 == 2841u) {
             t1 = (void*) &vader_data_114;
             vader_array_t* _a5_slotarr = ((vader_array_t*) t1);
             VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
@@ -212,7 +212,7 @@ static vader_box_t vader_midir_select$arith_op(uint8_t l0, vader_string_t l1) {
         t1 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) INT64_C(0));
         return vader_ref_box(t1);
     }
-    if (l1 == 2837u) {
+    if (l1 == 2841u) {
         t1 = (void*) &vader_data_73;
         vader_array_t* _a9_slotarr = ((vader_array_t*) t1);
         VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
@@ -319,7 +319,7 @@ vader_box_t vader_midir_select$binary_op_for(uint8_t l0, uint8_t l1) {
         { vader_box_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l0 == INT32_C(1)) {
-        l2 = vader_midir_select$arith_op(l1, 2837u);
+        l2 = vader_midir_select$arith_op(l1, 2841u);
     } else if (l0 == INT32_C(2)) {
         l2 = vader_midir_select$arith_op(l1, 2479u);
     } else if (l0 == INT32_C(18)) {
@@ -341,7 +341,7 @@ vader_box_t vader_midir_select$binary_op_for(uint8_t l0, uint8_t l1) {
     } else if (l0 == INT32_C(8)) {
         l2 = vader_midir_select$bit_op(l1, 2561u);
     } else if (l0 == INT32_C(9)) {
-        l2 = vader_midir_select$bit_op(l1, 3245u);
+        l2 = vader_midir_select$bit_op(l1, 3250u);
     } else if (l0 == INT32_C(10)) {
         t0 = (void*) &vader_data_120;
         vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
@@ -913,77 +913,77 @@ vader_box_t vader_midir_select$intrinsic_op_for_mangled(vader_string_t l0) {
     if (!(l1.tag == 0u)) {
         { vader_box_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2763u) {
+    if (l0 == 2765u) {
         t0 = (void*) &vader_data_84;
         vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2762u) {
+    if (l0 == 2764u) {
         t0 = (void*) &vader_data_85;
         vader_array_t* _a1_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         t0 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2748u) {
+    if (l0 == 2750u) {
         t0 = (void*) &vader_data_86;
         vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         t0 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2750u) {
+    if (l0 == 2752u) {
         t0 = (void*) &vader_data_87;
         vader_array_t* _a3_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         t0 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2749u) {
+    if (l0 == 2751u) {
         t0 = (void*) &vader_data_88;
         vader_array_t* _a4_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         t0 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2747u) {
+    if (l0 == 2749u) {
         t0 = (void*) &vader_data_89;
         vader_array_t* _a5_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         t0 = vader_array_ref_load_obj(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2751u) {
+    if (l0 == 2753u) {
         t0 = (void*) &vader_data_90;
         vader_array_t* _a6_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
         t0 = vader_array_ref_load_obj(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2760u) {
+    if (l0 == 2762u) {
         t0 = (void*) &vader_data_91;
         vader_array_t* _a7_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
         t0 = vader_array_ref_load_obj(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2766u) {
+    if (l0 == 2768u) {
         t0 = (void*) &vader_data_92;
         vader_array_t* _a8_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
         t0 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (l0 == 2759u) {
+    if (l0 == 2761u) {
         t0 = (void*) &vader_data_93;
         vader_array_t* _a9_slotarr = ((vader_array_t*) t0);
         VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
         t0 = vader_array_ref_load_obj(_a9_slotarr->buf, _a9_slotarr->offset + (size_t) INT64_C(0));
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l0 == 2765u)) {
+    if (!(l0 == 2767u)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
     t0 = (void*) &vader_data_94;
@@ -1991,11 +1991,11 @@ vader_string_t vader_midir_select$type_intern_key(vader_box_t l0) {
         l1 = concat_3(620u, l2, 563u);
     } else if (l0.tag == 1159u) {
         t0 = l0.payload.obj;
-        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$UnionType_t*) t0)->f_variants, 3258u);
+        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$UnionType_t*) t0)->f_variants, 3263u);
         l1 = concat_3(974u, l2, 563u);
     } else if (l0.tag == 1154u) {
         t0 = l0.payload.obj;
-        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$TupleType_t*) t0)->f_elements, 3258u);
+        l2 = vader_midir_select$type_key_join(((vader_struct_vader_core_types$TupleType_t*) t0)->f_elements, 3263u);
         l1 = concat_3(969u, l2, 563u);
     } else if (l0.tag == 1139u) {
         t0 = l0.payload.obj;

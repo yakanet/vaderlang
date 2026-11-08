@@ -58,7 +58,7 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2837u;
+        l1 = 2841u;
     } else if (l0 == INT32_C(2)) {
         l1 = 2479u;
     } else if (l0 == INT32_C(3)) {
@@ -94,7 +94,7 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
     } else if (l0 == INT32_C(18)) {
         l1 = 1597u;
     } else if (l0 == INT32_C(19)) {
-        l1 = 2838u;
+        l1 = 2842u;
     } else {
         if (!(l0 == INT32_C(20))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -142,13 +142,13 @@ vader_string_t vader_lower_ir$binary_op_symbol(uint8_t l0) {
         } else if (l0 == INT32_C(7)) {
             l1 = 305u;
         } else if (l0 == INT32_C(8)) {
-            l1 = 3258u;
+            l1 = 3263u;
         } else if (l0 == INT32_C(9)) {
             l1 = 1031u;
         } else if (l0 == INT32_C(10)) {
             l1 = 306u;
         } else if (l0 == INT32_C(11)) {
-            l1 = 3259u;
+            l1 = 3264u;
         } else if (l0 == INT32_C(12)) {
             l1 = 560u;
         } else if (l0 == INT32_C(13)) {
@@ -1333,7 +1333,7 @@ void* vader_lower_ir$mk_array_repeat(vader_box_t l0, vader_box_t l1, vader_box_t
     void** gc_raw_roots[4] = { &l3, &l4, &l5, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(408u, 2u, 13u, 2349u);
+    vader_array_t* _a0_arr = vader_array_new(408u, 2u, 13u, 2348u);
     ((void**) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = l1.payload.obj;
     ((void**) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = l0.payload.obj;
     l4 = (void*) _a0_arr;
@@ -1364,7 +1364,7 @@ void* vader_lower_ir$mk_array_reserve(vader_box_t l0, vader_box_t l1, void* l2) 
     void** gc_raw_roots[4] = { &l2, &l3, &l4, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(408u, 1u, 13u, 2349u);
+    vader_array_t* _a0_arr = vader_array_new(408u, 1u, 13u, 2348u);
     ((void**) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = l0.payload.obj;
     l3 = (void*) _a0_arr;
     t0 = (void*) &vader_data_24;
@@ -1537,7 +1537,7 @@ void* vader_lower_ir$new_lowered_project(void) {
     l0 = (void*) _a3_obj;
     vader_array_t* _a4_arr = vader_array_new(333u, 0u, 13u, 1564u);
     l1 = (void*) _a4_arr;
-    vader_array_t* _a5_arr = vader_array_new(407u, 0u, 13u, 2346u);
+    vader_array_t* _a5_arr = vader_array_new(407u, 0u, 13u, 2345u);
     l2 = (void*) _a5_arr;
     vader_array_t* _a6_arr = vader_array_new(324u, 0u, 13u, 1510u);
     l3 = (void*) _a6_arr;
@@ -2491,7 +2491,7 @@ void* vader_lower_ir$wrap_as_block(vader_box_t l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = VADER_UNION_FIELD(vader_box_t, vader_struct_vader_lower_ir$LoweredArrayLen_t, f_type, l0.payload.obj);
-    vader_array_t* _a0_arr = vader_array_new(409u, 0u, 13u, 2363u);
+    vader_array_t* _a0_arr = vader_array_new(409u, 0u, 13u, 2362u);
     l3 = (void*) _a0_arr;
     vader_struct_vader_lower_ir$LoweredBlock_t* _a1_obj = (vader_struct_vader_lower_ir$LoweredBlock_t*) vader_gc_alloc(sizeof(vader_struct_vader_lower_ir$LoweredBlock_t));
     vader_obj_header_init(_a1_obj, 1519u);

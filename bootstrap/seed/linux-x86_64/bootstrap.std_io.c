@@ -115,7 +115,7 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
     } else if (l0 == INT32_C(6)) {
         l2 = 2310u;
     } else if (l0 == INT32_C(7)) {
-        l2 = 3225u;
+        l2 = 3230u;
     } else if (l0 == INT32_C(8)) {
         l2 = 1729u;
     } else if (l0 == INT32_C(9)) {
@@ -648,7 +648,7 @@ static vader_box_t std_io$write_file_bytes(vader_string_t l0, void* l1) {
         }
         l2 = (l2 + INT64_C(1));
     }
-    l5 = vader_host_system_posix$sys_fopen(l0, 3212u);
+    l5 = vader_host_system_posix$sys_fopen(l0, 3217u);
     if (l5.tag == 0u) {
         t1 = std_io$last_io_error(2549u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }

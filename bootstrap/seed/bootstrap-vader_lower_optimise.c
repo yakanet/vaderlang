@@ -2244,7 +2244,7 @@ static void vader_lower_optimise$rewrite_expr(vader_box_t l0, void* l1) {
                     _a2_obj->f_symbol = l11;
                     _a2_obj->f_fresh = false;
                     t0 = (void*) _a2_obj;
-                    vader_array_t* _a3_arr = vader_array_new(408u, 1u, 13u, 2349u);
+                    vader_array_t* _a3_arr = vader_array_new(408u, 1u, 13u, 2348u);
                     ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = t0;
                     l3 = (void*) _a3_arr;
                     t0 = l0.payload.obj;

@@ -9854,6 +9854,16 @@ bool __lambda_vader_pipeline_comptime__vm_6(void* l0, vader_string_t l1);
 void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2);
 void* vader_pipeline_check$evaluate_checked(void* l0, void* l1, void* l2);
 void vader_emit_virt$write_op(void* l0, vader_box_t l1);
+void* std_sort$sort___string__vader_midir_ranges_RangeTally_(void* l0, void* l1);
+void* std_sort$sort__i32(void* l0, void* l1);
+void* std_sort$sort__i64(void* l0, void* l1);
+void* std_sort$sort__string(void* l0, void* l1);
+void* std_sort$sort__vader_core_symbol_Symbol(void* l0, void* l1);
+void* std_sort$sort__vader_front_effects_LambdaCalls(void* l0, void* l1);
+void* std_sort$sort__vader_lower_PendingFnInstance(void* l0, void* l1);
+void* std_sort$sort__vader_midir_ranges_RangeSite(void* l0, void* l1);
+void* std_sort$sort__vader_support_diagnostics_Diagnostic(void* l0, void* l1);
+void* std_sort$sort__vader_vm_GuestThread(void* l0, void* l1);
 void std_abort$todo(vader_string_t l0);
 void std_abort$unreachable(vader_string_t l0);
 int64_t std_math$min_3(int64_t l0, int64_t l1);
@@ -9867,16 +9877,6 @@ bool toolchain_span$has_source_position(void* l0);
 uint64_t toolchain_span$Span$std_core$Hash$hash(void* l0);
 bool toolchain_span$Span$std_core$Equals$equals(void* l0, void* l1);
 bool toolchain_span$Span$std_core$Equals$equals$guard(void* l0, vader_box_t l1);
-void* std_sort$sort___string__vader_midir_ranges_RangeTally_(void* l0, void* l1);
-void* std_sort$sort__i32(void* l0, void* l1);
-void* std_sort$sort__i64(void* l0, void* l1);
-void* std_sort$sort__string(void* l0, void* l1);
-void* std_sort$sort__vader_core_symbol_Symbol(void* l0, void* l1);
-void* std_sort$sort__vader_front_effects_LambdaCalls(void* l0, void* l1);
-void* std_sort$sort__vader_lower_PendingFnInstance(void* l0, void* l1);
-void* std_sort$sort__vader_midir_ranges_RangeSite(void* l0, void* l1);
-void* std_sort$sort__vader_support_diagnostics_Diagnostic(void* l0, void* l1);
-void* std_sort$sort__vader_vm_GuestThread(void* l0, void* l1);
 vader_string_t std_tty$yellow(vader_string_t l0);
 vader_string_t std_tty$red(vader_string_t l0);
 void std_tty$no_color_set$keep(void);
@@ -10554,7 +10554,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3267u
+#define VADER_COMPTIME_ATOM_COUNT 3272u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
