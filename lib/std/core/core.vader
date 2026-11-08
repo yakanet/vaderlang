@@ -205,18 +205,6 @@ export Error :: trait {
 
 // ---- 2. Core struct definitions -------------------------------------------
 
-/// A `T` later: a value its producer hands over before it is there. A function
-/// that gives one back says so in its return type, and nothing else marks it.
-export Async :: trait<T> {
-    /// Wait until the value is there, then give it back. Every call gives back
-    /// the same value.
-    join :: fn(self) -> T
-
-    /// Whether the value is there, so that `join` would not wait. It never waits
-    /// itself, so a loop can poll it.
-    is_ready :: fn(self) -> bool
-}
-
 /// What joining a cancelled task gives back: the task ran its pending `defer`s
 /// and ended without a result.
 export Cancelled :: struct {}

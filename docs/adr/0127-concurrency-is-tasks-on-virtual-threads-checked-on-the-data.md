@@ -3,6 +3,8 @@
 ## Status
 
 Accepted (2026-11-07). Replaces 0111. Amends 0060, 0068, 0090 and 0119.
+Amended (2026-11-08): the `Async<T>` trait leaves `std/core` too, since nothing
+implemented it and nothing called it.
 
 ## Context
 
@@ -31,10 +33,10 @@ functions in two kinds, and every caller of an async function had to be one.
   function as one that may park. `t.join()` gives back the result, the same at
   every join. The scheduler is C (`runtime/c/rt/sched.c`); the VM serves its
   primitives through the host's.
-- **`await` leaves the language**, with `-> Async<T>` as a marker, `Suspended`,
-  `block_on`, `share` and `std/async`. `Async<T>` stays in `std/core` as the trait
-  of a `T` later (`join`, `is_ready`). Generators stay stackless: they are
-  iteration, and a stack per generator would cost an allocation per `for`.
+- **`await` leaves the language**, with `-> Async<T>` as a marker and the
+  `Async<T>` trait, `Suspended`, `block_on`, `share` and `std/async`. Generators
+  stay stackless: they are iteration, and a stack per generator would cost an
+  allocation per `for`.
 - **Safety is decided on the data**, at the gates a value crosses between tasks:
   the captures of the lambda passed to `launch`, the result of a `join`, a channel
   message, the value of a `Shared`, a `@singleton`, a function value a task runs.

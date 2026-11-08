@@ -3897,7 +3897,6 @@ It also declares:
 - `ArrayOps<T>`, the built-in methods of arrays: `len`, `push`, `push_all`, `copy_to`, `remove_last` and `clear` (§4 *Mutation methods*).
 - `Stop`, what an iterator returns at its end (*Iteration*, below).
 - `Peek<T>`, the element a source would hand out next, left in place: `peek :: fn(self) -> T | null`.
-- `Async<T>`, a `T` later: `join :: fn(self) -> T` waits for it, `is_ready :: fn(self) -> bool` tells whether it is there (§16 *Tasks*).
 - `Cancelled`, the `Error` that joining a cancelled task gives back (§16 *Cancellation*).
 - `deep_copy`, a copy of a value that shares nothing it can write (§16 *Values shared between tasks*).
 - Functions on arrays: `filled` and `filled_indexed` (§4 *Repeat / preallocate: `[lhs] * n`*), `content_equals`, `is_permutation_of`, `contains_all` and `is_disjoint` (§4 *Equality*).
@@ -4042,8 +4041,6 @@ main :: fn() -> i32 {
 - `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value.
 - When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero.
 - When every task waits and no sleep is pending, nothing will wake one: the program stops on a deadlock and names the tasks.
-
-`Async<T>` (`std/core`) is the trait of a `T` later, a value handed over before it is there: `join` waits for it, and `is_ready` tells whether it is there without waiting.
 
 ### Values shared between tasks
 
