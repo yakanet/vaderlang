@@ -2665,7 +2665,7 @@ These are errors:
 Among the candidates whose first parameter accepts the first argument, the most specific candidate wins. These ranks decide, in order:
 
 1. A parameter naming a concrete member of the argument's union beats a bare `T`: for an `i32 | Boom` argument, `T | Boom` beats `T | null`. A concrete overload beats a type-parameter receiver (`fn<T>(self: T)`) where it applies.
-2. For an integer argument, its own type, then the narrowest integer type that holds it: `min(b, b)` on a `u8` takes the `i32` overload over the `i64` one.
+2. For an integer argument, its own type, then the narrowest integer type that holds it: `abs(s)` on an `i16` takes the `i32` overload over the `i64` one.
 3. On a direct call, the candidate whose number of parameters matches. Through UFCS this rank does not apply, and candidates with different numbers of parameters are never ambiguous with each other.
 4. For a free literal, the candidate whose parameter is the literal's default type (§4 *Default integer*): `abs(-5)` reaches the `i32` overload whatever the declaration order.
 

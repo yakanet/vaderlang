@@ -118,27 +118,25 @@ export is_finite :: fn(x: f32) -> bool = x.to_bits() & F32_MAGNITUDE < F32_INFIN
 
 // ---- Comparison + helpers -------------------------------------------------
 //
-// `min` / `max` / `clamp` ship in `i32` / `i64` / `f32` / `f64` flavours, `abs`
-// in `i32` + `f64` (unsigned types can't be negative). All dispatched via
-// first-param-type overloading (SPEC *Function overloading*).
+// A float is not `Comparable`, a NaN being unordered: `min`, `max` and `clamp`
+// add `f32` and `f64` overloads to their generic form.
 
-/// Smaller of two `f64`s. `min(NaN, x) == NaN` (NaN propagates).
-export min :: fn(a: f64, b: f64) -> f64 = if a < b { a } else { b }
-/// Smaller of two `f32`s. `min(NaN, x) == NaN` (NaN propagates).
-export min :: fn(a: f32, b: f32) -> f32 = if a < b { a } else { b }
-/// Smaller of two `i32`s.
-export min :: fn(a: i32, b: i32) -> i32 = if a < b { a } else { b }
-/// Smaller of two `i64`s.
-export min :: fn(a: i64, b: i64) -> i64 = if a < b { a } else { b }
+/// Smaller of `a` and `b`, `b` on a tie.
+///
+/// Both share one type: a free literal takes the other's (`min(n, 10)`), and a
+/// narrower integer is converted by the caller (`min(i64(small), n)`).
+export min :: fn<T: Comparable>(a: T, b: T) -> T = if a < b { a } else { b }
+/// Smaller of two `f64`s, NaN when either is.
+export min :: fn(a: f64, b: f64) -> f64 = if a < b || is_nan(a) { a } else { b }
+/// Smaller of two `f32`s, NaN when either is.
+export min :: fn(a: f32, b: f32) -> f32 = if a < b || is_nan(a) { a } else { b }
 
-/// Larger of two `f64`s. `max(NaN, x) == NaN`.
-export max :: fn(a: f64, b: f64) -> f64 = if a > b { a } else { b }
-/// Larger of two `f32`s. `max(NaN, x) == NaN`.
-export max :: fn(a: f32, b: f32) -> f32 = if a > b { a } else { b }
-/// Larger of two `i32`s.
-export max :: fn(a: i32, b: i32) -> i32 = if a > b { a } else { b }
-/// Larger of two `i64`s.
-export max :: fn(a: i64, b: i64) -> i64 = if a > b { a } else { b }
+/// Larger of `a` and `b`, `b` on a tie. Both share one type, as for `min`.
+export max :: fn<T: Comparable>(a: T, b: T) -> T = if a > b { a } else { b }
+/// Larger of two `f64`s, NaN when either is.
+export max :: fn(a: f64, b: f64) -> f64 = if a > b || is_nan(a) { a } else { b }
+/// Larger of two `f32`s, NaN when either is.
+export max :: fn(a: f32, b: f32) -> f32 = if a > b || is_nan(a) { a } else { b }
 
 /// Absolute value of an `f64`. Preserves the sign of zero (`abs(-0.0)` →
 /// `-0.0`): caller normalises if needed.
@@ -173,15 +171,12 @@ export sign :: fn(x: i64) -> i64 {
     return 0
 }
 
-/// Clamp `x` to `[lo, hi]`. Equivalent to `min(max(x, lo), hi)`. Behaviour
-/// when `lo > hi` matches the underlying calls: `lo` wins.
+/// Clamp `x` to `[lo, hi]`: `min(max(x, lo), hi)`, so `hi` when `lo > hi`.
+export clamp :: fn<T: Comparable>(x: T, lo: T, hi: T) -> T = min(max(x, lo), hi)
+/// Clamp an `f64` to `[lo, hi]`, NaN when any of the three is.
 export clamp :: fn(x: f64, lo: f64, hi: f64) -> f64 = min(max(x, lo), hi)
-/// Clamp an `f32` to `[lo, hi]`.
+/// Clamp an `f32` to `[lo, hi]`, NaN when any of the three is.
 export clamp :: fn(x: f32, lo: f32, hi: f32) -> f32 = min(max(x, lo), hi)
-/// Clamp an `i32` to `[lo, hi]`.
-export clamp :: fn(x: i32, lo: i32, hi: i32) -> i32 = min(max(x, lo), hi)
-/// Clamp an `i64` to `[lo, hi]`.
-export clamp :: fn(x: i64, lo: i64, hi: i64) -> i64 = min(max(x, lo), hi)
 
 /// Linear interpolation between `a` (`t = 0`) and `b` (`t = 1`). `t` is
 /// clamped to `[0, 1]` so callers don't accidentally extrapolate.
@@ -354,6 +349,34 @@ import "std/testing"
     assert_eq(clamp(high, 0.0, low), low)
 }
 
+@test test_min_max_any_comparable :: fn() -> void {
+    small: u8: 3
+    big: u8: 200
+    assert_eq(min(small, big), small)
+    assert_eq(max('a', 'z'), 'z')
+    assert_eq(min("pear", "fig"), "fig")
+    assert_eq(clamp("m", "a", "f"), "f")
+}
+
+@test test_min_max_literal_takes_the_other_type :: fn() -> void {
+    n: i64: 5_000_000_000
+    assert_eq(min(n, 10), 10)
+    assert_eq(max(10, n), n)
+}
+
+@test test_min_max_clamp_propagate_nan :: fn() -> void {
+    nan :: sqrt(-1.0)
+    assert(is_nan(min(nan, 1.0)), "min, NaN first")
+    assert(is_nan(min(1.0, nan)), "min, NaN second")
+    assert(is_nan(max(nan, 1.0)), "max, NaN first")
+    assert(is_nan(max(1.0, nan)), "max, NaN second")
+    assert(is_nan(clamp(nan, 0.0, 1.0)), "clamp of a NaN")
+    narrow_nan: f32: f32(nan)
+    narrow_one: f32: 1.0
+    assert(is_nan(min(narrow_nan, narrow_one)), "f32 min, NaN first")
+    assert(is_nan(max(narrow_one, narrow_nan)), "f32 max, NaN second")
+}
+
 @test test_abs :: fn() -> void {
     assert_eq(abs(-5), 5)
     assert_eq(abs(5), 5)
@@ -365,6 +388,10 @@ import "std/testing"
     assert_eq(clamp(5, 0, 10), 5)
     assert_eq(clamp(-3, 0, 10), 0)
     assert_eq(clamp(42, 0, 10), 10)
+}
+
+@test test_clamp_with_lo_above_hi :: fn() -> void {
+    assert_eq(clamp(5, 10, 0), 0)
 }
 
 @test test_lerp :: fn() -> void {

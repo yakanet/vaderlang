@@ -87,8 +87,8 @@
   expr 60:5     CallExpr       :: void
   expr 60:5     IdentExpr      :: fn(T) -> void
   expr 61:13    StringLitExpr  :: string
-  expr 61:25    CallExpr       :: i32
-  expr 61:25    IdentExpr      :: fn(i32, i32) -> i32
+  expr 61:25    CallExpr       :: u8
+  expr 61:25    IdentExpr      :: fn(T, T) -> T
   expr 61:29    IdentExpr      :: u8[]
   expr 61:29    IndexExpr      :: u8
   expr 61:42    IdentExpr      :: u8[]

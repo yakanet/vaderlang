@@ -1,9 +1,9 @@
 // Function overloading by first-param type (SPEC *Function overloading*). Two
 // free fns share the name `describe` and dispatch on the receiver, through a
-// direct call and through UFCS. The stdlib `min` / `max` / `abs` / `clamp`
-// overloads (`f64`, `i32`, `i64`) resolve the same way: a free integer literal
-// defaults to `i32`, so `abs(-7)` picks the `i32` overload, and a float
-// literal picks the `f64` one.
+// direct call and through UFCS. The stdlib `abs` overloads (`f64`, `i32`, `i64`)
+// resolve the same way, and `min` / `max` / `clamp` put a generic over
+// `Comparable` beside `f64` / `f32` ones: a free integer literal defaults to
+// `i32`, so `abs(-7)` and `min(3, 5)` take `i32`, and a float literal `f64`.
 
 module "snippet"
 
@@ -26,8 +26,8 @@ main :: fn() -> i32 {
     println(a.describe())
     println(b.describe())
 
-    // Stdlib min / max / abs : i32 vs f64 overloads. Integer literals
-    // default to i32 so the i32 overload wins on `abs(-7)`.
+    // Stdlib min / max / abs / clamp. Integer literals default to i32, so
+    // `abs(-7)` and `min(3, 5)` take i32; float literals take f64.
     println("min(3, 5)     = ${min(3, 5)}")
     println("min(3.5, 5.0) = ${min(3.5, 5.0)}")
     println("max(-2, 8)    = ${max(-2, 8)}")

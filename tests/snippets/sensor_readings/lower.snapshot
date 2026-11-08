@@ -80,7 +80,7 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(29))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "quietest ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, std.math.min(readings[0], readings[2]))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, std.math.min<u8>(readings[0], readings[2]))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.console.println<string>({
@@ -152,7 +152,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
   std/math
-    fn std.math.min  // std_math$min_2
+    fn std.math.min<u8>  // std_math$min__u8
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   expr 11:13    StringLitExpr  :: string
   expr 11:16    CallExpr       :: i32
-  expr 11:16    FieldExpr      :: fn(i32, i32) -> i32
+  expr 11:16    FieldExpr      :: fn(T, T) -> T
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
   expr 12:13    StringLitExpr  :: string

@@ -770,9 +770,10 @@ static void std_console$write(uint8_t l0, vader_string_t l1);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
-static int32_t std_math$max_2(int32_t l0, int32_t l1);
-static double std_math$max(double l0, double l1);
+static double std_math$max_1(double l0, double l1);
 static int32_t std_math$abs_1(int32_t l0);
+static bool std_math$is_nan(double l0);
+static int32_t std_math$max__i32(int32_t l0, int32_t l1);
 static double snippet_shapes$area_1(void* l0, double l1);
 static double snippet_shapes$area(void* l0, double l1);
 
@@ -853,12 +854,12 @@ static int32_t snippet$main(void) {
     vader_gc_top = &gc_frame;
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
-    t0 = std_math$max_2(INT32_C(3), INT32_C(8));
+    t0 = std_math$max__i32(INT32_C(3), INT32_C(8));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core$write_int(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
     std_console$println__string(t1);
-    t2 = std_math$max(3.5, 8.25);
+    t2 = std_math$max_1(3.5, 8.25);
     t1 = std_core$f64$Display$to_string(t2);
     std_console$println__string(t1);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
@@ -1796,15 +1797,14 @@ static void std_console$println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t std_math$max_2(int32_t l0, int32_t l1) {
+static double std_math$max_1(double l0, double l1) {
+    bool l2;
     if ((l0 > l1)) {
-        return l0;
+        l2 = true;
+    } else {
+        l2 = std_math$is_nan(l0);
     }
-    return l1;
-}
-
-static double std_math$max(double l0, double l1) {
-    if ((l0 > l1)) {
+    if (l2) {
         return l0;
     }
     return l1;
@@ -1817,6 +1817,17 @@ static int32_t std_math$abs_1(int32_t l0) {
         return t0;
     }
     return l0;
+}
+
+static bool std_math$is_nan(double l0) {
+    return l0 != l0;
+}
+
+static int32_t std_math$max__i32(int32_t l0, int32_t l1) {
+    if ((l0 > l1)) {
+        return l0;
+    }
+    return l1;
 }
 
 static double snippet_shapes$area_1(void* l0, double l1) {

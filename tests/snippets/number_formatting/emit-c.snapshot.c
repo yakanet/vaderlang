@@ -874,8 +874,8 @@ static uint32_t std_numbers$digit_char(uint64_t l0, bool l1);
 static void* std_numbers$trimmed(vader_string_t l0, int64_t l1);
 static uint32_t std_numbers$hex_digit(uint64_t l0);
 static bool std_math$is_finite(double l0);
-static int64_t std_math$max_3(int64_t l0, int64_t l1);
 static int64_t std_math$abs_2(int64_t l0);
+static int64_t std_math$max__i64(int64_t l0, int64_t l1);
 static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32_t l2);
 static vader_string_t std_string$trim_prefix(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_string$split_first(vader_string_t l0, vader_string_t l1);
@@ -2388,7 +2388,7 @@ static vader_string_t std_numbers$format_1(double l0, void* l1) {
     } else {
         l3 = ((int64_t) l2.payload.i);
     }
-    l3 = std_math$max_3(l3, INT64_C(0));
+    l3 = std_math$max__i64(l3, INT64_C(0));
     t2 = std_numbers$shortest_digits(l0);
     l4 = std_numbers$rounded_for(t2, l1, l3);
     if ((l0 < 0.0)) {
@@ -3143,13 +3143,6 @@ static bool std_math$is_finite(double l0) {
     return ((uint64_t) (int64_t) ((int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = l0 }).__vu) & INT64_C(9223372036854775807)) < INT64_C(9218868437227405312));
 }
 
-static int64_t std_math$max_3(int64_t l0, int64_t l1) {
-    if ((l0 > l1)) {
-        return l0;
-    }
-    return l1;
-}
-
 static int64_t std_math$abs_2(int64_t l0) {
     int64_t t0;
     if ((l0 < INT64_C(0))) {
@@ -3157,6 +3150,13 @@ static int64_t std_math$abs_2(int64_t l0) {
         return t0;
     }
     return l0;
+}
+
+static int64_t std_math$max__i64(int64_t l0, int64_t l1) {
+    if ((l0 > l1)) {
+        return l0;
+    }
+    return l1;
 }
 
 static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32_t l2) {

@@ -157,7 +157,7 @@
   std/math
     fn std.math.abs  // std_math$abs_2
     fn std.math.is_finite  // std_math$is_finite
-    fn std.math.max  // std_math$max_3
+    fn std.math.max<i64>  // std_math$max__i64
   std/numbers
     const ZERO_DIGITS: DecimalDigits  data pool #2, element 0
     fn std.numbers.digit_char  // std_numbers$digit_char

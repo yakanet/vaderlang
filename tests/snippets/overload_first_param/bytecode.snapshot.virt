@@ -115,7 +115,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const 3
   i32.const 5
-  call 32   ; std_math$min_2
+  call 38   ; std_math$min__i32
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -129,7 +129,7 @@ fn 2 snippet$main () -> i32
   call 31   ; std_console$println__string
   f64.const 3.5 4615063718147915776
   f64.const 5.0 4617315517961601024
-  call 33   ; std_math$min
+  call 32   ; std_math$min_1
   call 8   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 4   ; "min(3.5, 5.0) = "
@@ -148,7 +148,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const -2
   i32.const 8
-  call 34   ; std_math$max_2
+  call 39   ; std_math$max__i32
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -171,7 +171,7 @@ fn 2 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const -7
-  call 35   ; std_math$abs_1
+  call 33   ; std_math$abs_1
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -184,7 +184,7 @@ fn 2 snippet$main () -> i32
   call 4   ; std_core$finish_buffer
   call 31   ; std_console$println__string
   f64.const -7.5 13843502304583483392
-  call 36   ; std_math$abs
+  call 34   ; std_math$abs
   call 8   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 7   ; "abs(-7.5)     = "
@@ -204,7 +204,7 @@ fn 2 snippet$main () -> i32
   i32.const 15
   i32.const 0
   i32.const 10
-  call 37   ; std_math$clamp_2
+  call 40   ; std_math$clamp__i32
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -219,7 +219,7 @@ fn 2 snippet$main () -> i32
   f64.const 1.5 4609434218613702656
   f64.const 0.0 0
   f64.const 1.0 4607182418800017408
-  call 38   ; std_math$clamp
+  call 35   ; std_math$clamp_1
   call 8   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 9   ; "clamp(1.5, 0.0, 1.0)  = "
@@ -2093,43 +2093,29 @@ fn 31 std_console$println__string (string) -> void
   return
 end
 
-fn 32 std_math$min_2 (i32,i32) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  if $L0 void
-    local.get 0   ; arg 0
-    return
-  end $L0
-  local.get 1   ; arg 1
-  return
-end
-
-fn 33 std_math$min (f64,f64) -> f64
+fn 32 std_math$min_1 (f64,f64) -> f64
+  local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.lt
   if $L0 void
+    bool.const true
+    local.set 2   ; or_res
+  else
+    local.get 0   ; arg 0
+    call 36   ; std_math$is_nan
+    local.set 2   ; or_res
+  end $L0
+  local.get 2   ; or_res
+  if $L1 void
     local.get 0   ; arg 0
     return
-  end $L0
+  end $L1
   local.get 1   ; arg 1
   return
 end
 
-fn 34 std_math$max_2 (i32,i32) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  if $L0 void
-    local.get 0   ; arg 0
-    return
-  end $L0
-  local.get 1   ; arg 1
-  return
-end
-
-fn 35 std_math$abs_1 (i32) -> i32
+fn 33 std_math$abs_1 (i32) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.lt
@@ -2142,7 +2128,7 @@ fn 35 std_math$abs_1 (i32) -> i32
   return
 end
 
-fn 36 std_math$abs (f64) -> f64
+fn 34 std_math$abs (f64) -> f64
   local.get 0   ; arg 0
   f64.const 0.0 0
   f64.lt
@@ -2155,32 +2141,73 @@ fn 36 std_math$abs (f64) -> f64
   return
 end
 
-fn 37 std_math$clamp_2 (i32,i32,i32) -> i32
+fn 35 std_math$clamp_1 (f64,f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 34   ; std_math$max_2
+  call 37   ; std_math$max_1
   local.get 2   ; arg 2
-  call 32   ; std_math$min_2
+  call 32   ; std_math$min_1
   return
 end
 
-fn 38 std_math$clamp (f64,f64,f64) -> f64
+fn 36 std_math$is_nan (f64) -> bool
   local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 39   ; std_math$max
-  local.get 2   ; arg 2
-  call 33   ; std_math$min
+  local.get 0   ; arg 0
+  f64.ne
   return
 end
 
-fn 39 std_math$max (f64,f64) -> f64
+fn 37 std_math$max_1 (f64,f64) -> f64
+  local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.gt
+  if $L0 void
+    bool.const true
+    local.set 2   ; or_res
+  else
+    local.get 0   ; arg 0
+    call 36   ; std_math$is_nan
+    local.set 2   ; or_res
+  end $L0
+  local.get 2   ; or_res
+  if $L1 void
+    local.get 0   ; arg 0
+    return
+  end $L1
+  local.get 1   ; arg 1
+  return
+end
+
+fn 38 std_math$min__i32 (i32,i32) -> i32
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.lt
   if $L0 void
     local.get 0   ; arg 0
     return
   end $L0
   local.get 1   ; arg 1
+  return
+end
+
+fn 39 std_math$max__i32 (i32,i32) -> i32
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.gt
+  if $L0 void
+    local.get 0   ; arg 0
+    return
+  end $L0
+  local.get 1   ; arg 1
+  return
+end
+
+fn 40 std_math$clamp__i32 (i32,i32,i32) -> i32
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 39   ; std_math$max__i32
+  local.get 2   ; arg 2
+  call 38   ; std_math$min__i32
   return
 end
