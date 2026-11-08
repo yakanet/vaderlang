@@ -7,7 +7,8 @@
 // program that opens with `# ` (or a lone `#`) is compiled but not shown, as in
 // vaderdoc's `@example`: the site's own rule decides (`hidden_lines.js`). The examples
 // of the repository have their own test (`examples_run.test.ts`), whose
-// snapshots the site shows.
+// snapshots the site shows. The programs run on the virtual clock, so what one
+// prints depends on the order of its sleeps, not on how loaded the machine is.
 
 import { expect, test } from "bun:test";
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -89,7 +90,7 @@ for (const program of found) {
     try {
       const file = join(dir, "main.vader");
       writeFileSync(file, compiled_code(program.source) + "\n");
-      const r = await runCli(["run", file]);
+      const r = await runCli(["run", file], { VADER_VIRTUAL_CLOCK: "1" });
       expect(r.stderr).toBe("");
       expect(r.exit).toBe(0);
       if (program.output !== null) expect(r.stdout.trimEnd()).toBe(program.output);
