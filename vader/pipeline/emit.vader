@@ -48,11 +48,17 @@ export runtime_c_root :: fn() -> string = resolve_sidecar("runtime/c", "vader.h"
 /// C operator on a signed type, where C leaves an overflow undefined and a compiler
 /// assumes none happens, gcc even at `-O0`. The emitter computes some `u32` / `u64`
 /// arithmetic on signed C temporaries, so unsigned wrapping depends on the flag too.
+/// Both refuse a call to an undeclared function (`REFUSE_IMPLICIT_DECLARATIONS`).
 export cc_opt_flags :: fn(release: bool) -> string[] = if release {
-    ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64", "-fwrapv"]
+    ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64", "-fwrapv", REFUSE_IMPLICIT_DECLARATIONS]
 } else {
-    ["-std=c11", "-O0", "-g", "-fwrapv"]
+    ["-std=c11", "-O0", "-g", "-fwrapv", REFUSE_IMPLICIT_DECLARATIONS]
 }
+
+/// Makes a call to a function no header declares an error, where an older GCC or
+/// clang only warns. A header missing from a binding then stops the build, instead
+/// of the call going through the `int` prototype C would guess.
+REFUSE_IMPLICIT_DECLARATIONS :: "-Werror=implicit-function-declaration"
 
 /// Which C toolchain `cc` is, since the two that matter spell link-time
 /// optimisation differently.
@@ -576,6 +582,12 @@ test_quote_include_dir_is_the_entry_directory :: fn() -> void {
 test_cc_opt_flags_wrap_signed_arithmetic :: fn() -> void {
     assert("-fwrapv" in cc_opt_flags(true), "a release build wraps the wrapping operators")
     assert("-fwrapv" in cc_opt_flags(false), "a debug build wraps the wrapping operators")
+}
+
+@test
+test_cc_opt_flags_refuse_an_undeclared_function :: fn() -> void {
+    assert(REFUSE_IMPLICIT_DECLARATIONS in cc_opt_flags(true), "a release build refuses one")
+    assert(REFUSE_IMPLICIT_DECLARATIONS in cc_opt_flags(false), "a debug build refuses one")
 }
 
 @test

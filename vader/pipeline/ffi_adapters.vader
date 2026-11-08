@@ -99,7 +99,7 @@ export build_ffi_adapters :: fn(
 
 // The command line of the adapter library, up to its sources.
 adapter_flags :: fn(cc: string, native: NativeFlags, rt: string, quote_dir: string) -> string[] {
-    argv: string[]: [cc, "-shared", "-O1"]
+    argv: string[]: [cc, "-shared", "-O1", REFUSE_IMPLICIT_DECLARATIONS]
     if current_os() != .Windows {
         argv.push("-fPIC")
     }
