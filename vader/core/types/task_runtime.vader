@@ -66,35 +66,35 @@ WRITES_VALUE :: TaskPrimitive { .writes = "value" }
 ///
 /// @param key  the function's key, `module.name`.
 export task_primitive :: fn(key: string) -> TaskPrimitive | null = match key {
-    "std/task.launch"                         -> TaskPrimitive { .runs = 0 }
-    "std/task.join" | "std/task.timeout"      -> JOINS_ITS_TASK
-    "std/task.join_all" | "std/task.race"     -> JOINS_EACH_TASK
-    "std/task.try_join_all"                   -> JOINS_EACH_TASK
-    "std/task.join_any"                       -> JOINS_EACH_TASK
-    "std/task.is_ready" | "std/task.cancel"   -> TaskPrimitive {}
-    "std/runtime/scheduler.park"              -> TaskPrimitive { .parks = true }
-    "std/runtime/scheduler.sleep_for"         -> TaskPrimitive { .parks = true }
-    "std/io.wait_readable"                    -> TaskPrimitive { .parks = true }
-    "std/io.wait_readable_for"                -> TaskPrimitive { .parks = true }
-    "std/runtime/scheduler.wait_readable"     -> TaskPrimitive { .parks = true }
-    "std/runtime/scheduler.wait_readable_for" -> TaskPrimitive { .parks = true }
-    "std/task.shared"                         -> TaskPrimitive { .gives = 0 }
-    "std/task.send"                           -> TaskPrimitive {
+    "std/task.launch"                       -> TaskPrimitive { .runs = 0 }
+    "std/task.join" | "std/task.timeout"    -> JOINS_ITS_TASK
+    "std/task.join_all" | "std/task.race"   -> JOINS_EACH_TASK
+    "std/task.try_join_all"                 -> JOINS_EACH_TASK
+    "std/task.join_any"                     -> JOINS_EACH_TASK
+    "std/task.is_ready" | "std/task.cancel" -> TaskPrimitive {}
+    "std/runtime/scheduler.park"            -> TaskPrimitive { .parks = true }
+    "std/runtime/scheduler.sleep_for"       -> TaskPrimitive { .parks = true }
+    "std/io.wait_readable"                  -> TaskPrimitive { .parks = true }
+    "std/io.wait_readable_for"              -> TaskPrimitive { .parks = true }
+    "std/runtime/wait.wait_readable"        -> TaskPrimitive { .parks = true }
+    "std/runtime/wait.wait_readable_for"    -> TaskPrimitive { .parks = true }
+    "std/task.shared"                       -> TaskPrimitive { .gives = 0 }
+    "std/task.send"                         -> TaskPrimitive {
         .gives = 1,
         .parks = true,
         .grows = "messages",
     }
-    "std/task.receive"                        -> TaskPrimitive {
+    "std/task.receive"                      -> TaskPrimitive {
         .parks = true,
         .writes = "messages",
         .takes = true,
     }
-    "std/task.locked"                         -> TaskPrimitive { .exclusive = 1, .guards = "value" }
-    "std/task.close"                          -> TaskPrimitive { .writes = "closed" }
-    "std/task.load"                           -> TaskPrimitive {}
-    "std/task.fetch_add" | "std/task.store"   -> WRITES_VALUE
-    "std/task.compare_and_set"                -> WRITES_VALUE
-    _                                         -> null
+    "std/task.locked"                       -> TaskPrimitive { .exclusive = 1, .guards = "value" }
+    "std/task.close"                        -> TaskPrimitive { .writes = "closed" }
+    "std/task.load"                         -> TaskPrimitive {}
+    "std/task.fetch_add" | "std/task.store" -> WRITES_VALUE
+    "std/task.compare_and_set"              -> WRITES_VALUE
+    _                                       -> null
 }
 
 // The module that declares the structs tasks share.
@@ -121,8 +121,8 @@ export is_task_shared_type :: fn(t: Type | null) -> bool =
 import "std/testing"
 
 @test
-test_task_primitive_scheduler_waits_park :: fn() -> void {
-    for key in ["std/runtime/scheduler.wait_readable", "std/runtime/scheduler.wait_readable_for"] {
+test_task_primitive_descriptor_waits_park :: fn() -> void {
+    for key in ["std/runtime/wait.wait_readable", "std/runtime/wait.wait_readable_for"] {
         primitive :: task_primitive(key) ?? return assert(false, "${key} is a primitive")
         assert(primitive.parks, "${key} parks")
     }
