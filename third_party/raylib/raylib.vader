@@ -25,7 +25,7 @@ import "std/target"
 /// says what that asks of a build machine.
 export RAYLIB: CLibrary: CLibrary {
     .name = "raylib",
-    .header = "raylib.h",
+    .headers = ["raylib.h"],
     .include = "include",
     .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libraylib.a"],
     .system = match VADER_OS {

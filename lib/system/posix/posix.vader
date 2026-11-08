@@ -7,7 +7,7 @@ import "std/target"
 
 /// The runtime's own accessors (`runtime/c/rt/`): no library to open, the
 /// interpreter finds them in the running process, and `vader.h` declares them.
-VADER_RUNTIME :: CLibrary { .name = "", .header = "vader.h" }
+VADER_RUNTIME :: CLibrary { .name = "", .headers = ["vader.h"] }
 
 /// Standard output's file descriptor.
 export STDOUT :: 1

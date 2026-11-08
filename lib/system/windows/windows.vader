@@ -10,11 +10,11 @@ import "std/ffi"
 
 /// The library the Win32 calls below come from: the interpreter opens
 /// `kernel32.dll` to find them, and `<windows.h>` declares them.
-KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
+KERNEL32 :: CLibrary { .name = "kernel32", .headers = ["<windows.h>"] }
 
 /// The runtime's own accessors (`runtime/c/rt/`): no library to open, the
 /// interpreter finds them in the running process, and `vader.h` declares them.
-VADER_RUNTIME :: CLibrary { .name = "", .header = "vader.h" }
+VADER_RUNTIME :: CLibrary { .name = "", .headers = ["vader.h"] }
 
 /// A Win32 `HANDLE`: an opaque kernel object, never dereferenced.
 export Handle :: CPointer

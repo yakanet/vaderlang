@@ -389,7 +389,7 @@ pipe_watches :: fn() -> void {
     println("an anonymous pipe is polled: ${polled >= 3}")
 }
 
-KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
+KERNEL32 :: CLibrary { .name = "kernel32", .headers = ["<windows.h>"] }
 
 @extern(KERNEL32, "CreatePipe")
 create_anonymous_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],

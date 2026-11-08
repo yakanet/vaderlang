@@ -84,7 +84,7 @@ synthesises_prototype :: fn(imp: BcImport) = imp.is_extern && imp.c_headers.len(
 
 /// The C unit `unit` names: the headers, layout assertions and shims of its
 /// imports, with no header of another unit in sight. A `CLibrary`'s unit has
-/// its library's header, `HEADERLESS_UNIT` none beyond the preamble. It needs
+/// its library's headers, `HEADERLESS_UNIT` none beyond the preamble. It needs
 /// nothing of the program but the runtime and the mirrors' Vader layout.
 ///
 /// @param ctx   the emit context of the program, under `library_units`.

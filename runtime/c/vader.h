@@ -1568,7 +1568,7 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
 
 #include <time.h>
 
-/* A `<windows.h>` the generated C includes later (the header of a `CLibrary`
+/* A `<windows.h>` the generated C includes later (a header of a `CLibrary`
  * such as `system/windows`'s `KERNEL32`) comes in lean: without winsock 1,
  * which would clash with a binding's `<winsock2.h>`, nor OLE or the shell. */
 #if defined(_WIN32) && !defined(WIN32_LEAN_AND_MEAN)

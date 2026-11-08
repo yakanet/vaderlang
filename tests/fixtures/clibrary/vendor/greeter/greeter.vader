@@ -10,7 +10,7 @@ import "std/target"
 /// The greeter library, linked from the archive the test compiles.
 export GREETER: CLibrary: CLibrary {
     .name = "greeter",
-    .header = "greeter.h",
+    .headers = ["greeter.h"],
     .include = "include",
     .archives = [archive_for("greeter")],
     .system = match VADER_OS {

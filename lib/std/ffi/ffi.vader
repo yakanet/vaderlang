@@ -19,8 +19,6 @@ export CLibrary :: struct {
     /// when there are no `archives`. A native build links what `archives` and
     /// `system` list.
     name: string
-    /// A header included before `headers`, written the same way.
-    header: string = ""
     /// The headers declaring the library's functions, each written as
     /// `@c_header` writes it. They serve every `@extern` naming the library
     /// without a `@c_header` of its own.

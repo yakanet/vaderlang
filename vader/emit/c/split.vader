@@ -21,7 +21,7 @@
 //                     the bootstrap fixed point). Unit 0 also carries the
 //                     trampolines, dispatchers, and `main`.
 //   - the foreign units (`foreign_unit_of`): one per `CLibrary`
-//     (`library_unit_name`), holding its shims beside its header alone, plus
+//     (`library_unit_name`), holding its shims beside its headers alone, plus
 //     `HEADERLESS_UNIT`.
 //
 // A symbol keeps external linkage only when another unit refers to it

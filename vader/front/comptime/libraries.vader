@@ -87,9 +87,8 @@ evaluate_library :: fn(
 }
 
 /// The `CLibrary` a value describes, its `include` and `archives` resolved in
-/// `folder` and its `header` put first in `headers`, or null when `value` is not
-/// one: the evaluation fills every field, the defaults included, so one that is
-/// missing means the struct changed.
+/// `folder`, or null when `value` is not one: the evaluation fills every field,
+/// the defaults included, so one that is missing means the struct changed.
 ///
 /// @param value   the evaluated constant.
 /// @param folder  the folder of the module declaring it.
@@ -102,20 +101,13 @@ resolved_library :: fn(value: ComptimeValue, folder: string) -> CLibrary | null 
     include :: string_field(value, "include") ?? return null
     archives :: strings_field(value, "archives") ?? return null
     system :: strings_field(value, "system") ?? return null
-    // Optional, unlike the other fields: a `CLibrary` without `header` evaluates.
-    header :: string_field(value, "header") ?? ""
-    all_headers: string[]: []
-    if header != "" {
-        all_headers.push(header)
-    }
-    all_headers.push_all(headers)
     resolved: string[]: []
     for archive in archives {
         resolved.push(join_path(folder, archive))
     }
     return CLibrary {
         .name = name,
-        .headers = all_headers,
+        .headers = headers,
         .include = folder_beside(folder, include),
         .archives = resolved,
         .system = system,

@@ -70,7 +70,7 @@ for (const split of [true, false]) {
 
 test("a CLibrary's calls compile in a unit of their own", async () => {
   // Two libraries' headers need not agree (`raylib.h` and `<windows.h>` do
-  // not), so a library's header is included by its unit alone; every other
+  // not), so a library's headers are included by its unit alone; every other
   // unit reaches its shims through prototypes.
   const dir = await stage(false);
   const split = join(dir, "split", "main");
