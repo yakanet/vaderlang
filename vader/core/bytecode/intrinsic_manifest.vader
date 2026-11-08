@@ -166,16 +166,18 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime$allocations"             { return .RuntimeAllocations }
     if mangled == r"std_runtime$count_allocations"       { return .RuntimeCountAllocations }
 
-    if mangled == r"std_runtime_scheduler$spawn_thread"   { return .SchedSpawn }
-    if mangled == r"std_runtime_scheduler$park"           { return .SchedPark }
-    if mangled == r"std_runtime_scheduler$wake"           { return .SchedWake }
-    if mangled == r"std_runtime_scheduler$sleep_for"      { return .SchedSleepFor }
-    if mangled == r"std_runtime_scheduler$cancel_thread"  { return .SchedCancel }
-    if mangled == r"std_runtime_scheduler$current_thread" { return .SchedCurrent }
-    if mangled == r"std_runtime_scheduler$watch_readable" { return .SchedWatchReadable }
-    if mangled == r"std_runtime_scheduler$watch_exit"     { return .SchedWatchExit }
-    if mangled == r"std_io$wait_readable"                 { return .IoWaitReadable }
-    if mangled == r"std_io$wait_readable_for"             { return .IoWaitReadableFor }
+    if mangled == r"std_runtime_scheduler$spawn_thread"      { return .SchedSpawn }
+    if mangled == r"std_runtime_scheduler$park"              { return .SchedPark }
+    if mangled == r"std_runtime_scheduler$wake"              { return .SchedWake }
+    if mangled == r"std_runtime_scheduler$sleep_for"         { return .SchedSleepFor }
+    if mangled == r"std_runtime_scheduler$cancel_thread"     { return .SchedCancel }
+    if mangled == r"std_runtime_scheduler$current_thread"    { return .SchedCurrent }
+    if mangled == r"std_runtime_scheduler$watch_readable"    { return .SchedWatchReadable }
+    if mangled == r"std_runtime_scheduler$watch_exit"        { return .SchedWatchExit }
+    if mangled == r"std_runtime_scheduler$wait_readable"     { return .IoWaitReadable }
+    if mangled == r"std_runtime_scheduler$wait_readable_for" { return .IoWaitReadableFor }
+    if mangled == r"std_io$wait_readable"                    { return .IoWaitReadable }
+    if mangled == r"std_io$wait_readable_for"                { return .IoWaitReadableFor }
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
@@ -286,6 +288,14 @@ import "std/testing"
     assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
     assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
     assert_eq(is_unsigned_display(r"std_core$u8$Display$to_string"), true)
+}
+
+@test test_scheduler_waits_are_intrinsics :: fn() -> void {
+    assert(intrinsic_id_for(r"std_runtime_scheduler$wait_readable") == .IoWaitReadable, "wait_readable")
+    assert(
+        intrinsic_id_for(r"std_runtime_scheduler$wait_readable_for") == .IoWaitReadableFor,
+        "wait_readable_for",
+    )
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {
