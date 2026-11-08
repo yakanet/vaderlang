@@ -73,7 +73,7 @@ static vader_box_t vader_pipeline_comptime__vm$array_to_comptime(void* l0, void*
     vader_gc_top = &gc_frame;
     l5 = vader_pipeline_comptime__vm$array_instance_type(l2);
     if (l5.tag == 0u) {
-        t0 = vader_pipeline_comptime__vm$unsupported(l3, 1610u);
+        t0 = vader_pipeline_comptime__vm$unsupported(l3, 1614u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l4 = l5.payload.obj;
@@ -187,7 +187,7 @@ static void* vader_pipeline_comptime__vm$bake_decl(void* l0, vader_string_t l1, 
     l10 = std_collections$Map$std_core$Index$at__string__Any(l11, l7);
     if (l10.tag == 0u) {
         l11 = ((vader_struct_vader_front_comptime$VmRequiredDecl_t*) l2)->f_span;
-        l11 = vader_support_diagnostics$comptime_error((uint8_t) 0, l11, 2883u);
+        l11 = vader_support_diagnostics$comptime_error((uint8_t) 0, l11, 2887u);
         vader_array_push_ref((vader_array_t*) l6, l11);
         vader_array_t* _a4_arr = vader_array_new(26u, 1u, 0u, 494u);
         vader_array_box_slots(_a4_arr->buf)[_a4_arr->offset + 0u] = vader_box_string(494u, l1);
@@ -304,7 +304,7 @@ void vader_pipeline_comptime__vm$copy_baked_values(void* l0, void* l1, void* l2)
             continue;
         }
         l10 = ((vader_struct_vader_front_comptime$VmRequiredDecl_t*) l5)->f_span;
-        l11 = vader_support_diagnostics$comptime_error((uint8_t) 0, l10, 2871u);
+        l11 = vader_support_diagnostics$comptime_error((uint8_t) 0, l10, 2875u);
         vader_array_push_ref((vader_array_t*) l2, l11);
         l7 = (l7 + INT64_C(1));
     }
@@ -321,11 +321,11 @@ static bool vader_pipeline_comptime__vm$enter_source_folder(vader_string_t l0, v
     };
     vader_gc_top = &gc_frame;
     l2 = vader_front_resolver$dir_of(l1);
-    if (l0 == 429u) {
+    if (l0 == 431u) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
     if (!(l2 == 0u)) {
-        t0 = std_io$set_current_working_directory(l2);
+        t0 = std_env$set_current_working_directory(l2);
         { bool __vret = t0.tag == 0u; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return false; }
@@ -362,7 +362,7 @@ static void* vader_pipeline_comptime__vm$evaluate_layer(void* l0, void* l1, void
     l6 = (void*) _a0_arr;
     l6 = vader_pipeline_comptime__vm$stage_to_cfg(l0, l1, l2, l3, l6);
     l7 = vader_emit_bytecode$default_emit_options();
-    l7 = vader_emit_bytecode$emit_bytecode_from_cfg(l6, 1867u, l7);
+    l7 = vader_emit_bytecode$emit_bytecode_from_cfg(l6, 1870u, l7);
     l8 = vader_vm$prepare(l7);
     if (l8.tag == 1722u) {
         l9 = l3;
@@ -585,7 +585,7 @@ static void* vader_pipeline_comptime__vm$field_at(vader_box_t l0, void* l1, int6
     if (!(l4.tag == 0u)) {
         l5 = (void*) vader_buffer_new((size_t) INT64_C(21));
         l6 = INT64_C(0);
-        l6 = std_core$write_string_at(l5, l6, 1032u);
+        l6 = std_core$write_string_at(l5, l6, 1036u);
         l6 = std_core$write_int(l5, l6, l2);
         l7 = std_core$finish_buffer(l5, l6);
         t0 = l4.payload.obj;
@@ -746,13 +746,13 @@ static void vader_pipeline_comptime__vm$leave_source_folder(vader_string_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = std_io$set_current_working_directory(l0);
+    l1 = std_env$set_current_working_directory(l0);
     if (!(l1.tag == 857u)) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     t0 = l1.payload.obj;
     l2 = std_io$IOError$std_core$Error$message(t0);
-    t1 = concat_4(1821u, l0, 1382u, l2);
+    t1 = concat_4(1824u, l0, 1386u, l2);
     vader_host_std_abort$panic(t1);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
@@ -930,7 +930,7 @@ void vader_pipeline_comptime__vm$resolve_vm_required_decls(void* l0, void* l1, v
         vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l4 = std_io$current_working_directory();
+    l4 = std_env$current_working_directory();
     l5 = ((vader_struct_vader_front_comptime$EvaluatedProject_t*) l2)->f_vm_required;
     for (;;) {
         t0 = ((vader_array_t*) l5)->length;
@@ -1089,14 +1089,14 @@ static vader_box_t vader_pipeline_comptime__vm$struct_to_comptime(void* l0, void
     l5 = ((vader_struct_vader_vm$StructVal_t*) l1)->f_type_id;
     l6 = vader_core_bytecode$struct_at(l4, l5);
     if (l6.tag == 0u) {
-        t0 = vader_pipeline_comptime__vm$unsupported(l3, 1564u);
+        t0 = vader_pipeline_comptime__vm$unsupported(l3, 1568u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l4 = l6.payload.obj;
     l7 = ((vader_array_t*) ((vader_struct_vader_vm$StructVal_t*) l1)->f_fields)->length;
     l8 = vader_pipeline_comptime__vm$instance_type(l2, l4, l7);
     if (l8.tag == 0u) {
-        t0 = vader_pipeline_comptime__vm$unsupported(l3, 1564u);
+        t0 = vader_pipeline_comptime__vm$unsupported(l3, 1568u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l6 = l8;
@@ -1152,7 +1152,7 @@ static void* vader_pipeline_comptime__vm$unsupported(void* l0, vader_string_t l1
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = concat_3(1868u, l1, 245u);
+    l2 = concat_3(1871u, l1, 245u);
     t0 = vader_support_diagnostics$comptime_error((uint8_t) 0, l0, l2);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1178,17 +1178,17 @@ static vader_box_t vader_pipeline_comptime__vm$value_to_comptime(void* l0, vader
     if (l1.tag == 497u) {
         t0 = ((int32_t) l1.payload.i);
         l5 = ((int64_t) (int32_t) t0);
-        l6 = vader_pipeline_comptime__vm$prim_name(l2, 2181u);
+        l6 = vader_pipeline_comptime__vm$prim_name(l2, 2185u);
         l4 = vader_pipeline_comptime__vm$int_scalar(l5, l6);
         { vader_box_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1.tag == 498u) {
         l5 = ((int64_t) l1.payload.i);
-        l6 = vader_pipeline_comptime__vm$prim_name(l2, 2203u);
+        l6 = vader_pipeline_comptime__vm$prim_name(l2, 2207u);
         l4 = vader_pipeline_comptime__vm$int_scalar(l5, l6);
     } else if ((l1.tag == 503u || l1.tag == 504u)) {
         l7 = ((double) l1.payload.f);
-        l6 = vader_pipeline_comptime__vm$prim_name(l2, 2055u);
+        l6 = vader_pipeline_comptime__vm$prim_name(l2, 2058u);
         l4 = vader_front_comptime$float_val_typed(l7, l6);
     } else if (l1.tag == 492u) {
         t1 = l1.payload.b;
@@ -1220,16 +1220,16 @@ static vader_box_t vader_pipeline_comptime__vm$value_to_comptime(void* l0, vader
         l8 = l1.payload.obj;
         l4 = vader_pipeline_comptime__vm$struct_to_comptime(l0, l8, l2, l3);
     } else if (l1.tag == 1689u) {
-        t2 = vader_pipeline_comptime__vm$unsupported(l3, 1529u);
+        t2 = vader_pipeline_comptime__vm$unsupported(l3, 1533u);
         l4 = vader_ref_box(t2);
     } else if (l1.tag == 1720u) {
-        t2 = vader_pipeline_comptime__vm$unsupported(l3, 1579u);
+        t2 = vader_pipeline_comptime__vm$unsupported(l3, 1583u);
         l4 = vader_ref_box(t2);
     } else {
         if (!(l1.tag == 1700u)) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        t2 = vader_pipeline_comptime__vm$unsupported(l3, 1538u);
+        t2 = vader_pipeline_comptime__vm$unsupported(l3, 1542u);
         l4 = vader_ref_box(t2);
     }
     { vader_box_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }

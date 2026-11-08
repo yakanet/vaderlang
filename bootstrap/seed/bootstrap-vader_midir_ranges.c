@@ -961,23 +961,23 @@ static vader_string_t vader_midir_ranges$counts_line(void* l0) {
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) l0)->f_proven;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 387u);
+    l2 = std_core$write_string_at(l1, l2, 389u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) l0)->f_already_safe;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 383u);
+    l2 = std_core$write_string_at(l1, l2, 385u);
     l4 = std_core$finish_buffer(l1, l2);
     l1 = (void*) vader_buffer_new((size_t) INT64_C(100));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 3003u);
+    l2 = std_core$write_string_at(l1, l2, 3007u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) l0)->f_unproven;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 396u);
+    l2 = std_core$write_string_at(l1, l2, 398u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) l0)->f_certain_fault;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 406u);
+    l2 = std_core$write_string_at(l1, l2, 408u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) l0)->f_unreachable;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
@@ -3214,7 +3214,7 @@ void vader_midir_ranges$report_ranges(void* l0) {
                     l26 = toolchain_span$source_position(((vader_struct_vader_midir_ranges$RangeSite_t*) l25)->f_span);
                     l27 = ((vader_struct_vader_midir_ranges$RangeSite_t*) l25)->f_what;
                     l28 = ((vader_struct_vader_midir_ranges$FunctionRanges_t*) l19)->f_mangled;
-                    l29 = concat_7(26u, l26, 1026u, l27, 148u, l28, 1u);
+                    l29 = concat_7(26u, l26, 1030u, l27, 148u, l28, 1u);
                     vader_array_push_scalar((vader_array_t*) l6, vader_box_string(494u, l29));
                 }
                 l24 = (l24 + INT64_C(1));
@@ -3278,7 +3278,7 @@ void vader_midir_ranges$report_ranges(void* l0) {
         l3 = vader_array_ref_load_obj(_a18_slotarr->buf, _a18_slotarr->offset + (size_t) l11);
         l26 = ((vader_struct___Tuple_2_471c43984d8ea035_t*) l3)->f__0;
         l27 = vader_midir_ranges$tally_line(((vader_struct___Tuple_2_471c43984d8ea035_t*) l3)->f__1);
-        l28 = concat_5(16u, l26, 498u, l27, 1u);
+        l28 = concat_5(16u, l26, 500u, l27, 1u);
         std_string__builder$append(l2, l28);
         l11 = (l11 + INT64_C(1));
     }
@@ -3298,7 +3298,7 @@ void vader_midir_ranges$report_ranges(void* l0) {
         }
     }
     t1 = std_string__builder$StringBuilder$std_core$Display$to_string(l2);
-    std_io$eprintln__string(t1);
+    std_console$eprintln__string(t1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3687,7 +3687,7 @@ static vader_string_t vader_midir_ranges$site_label(void* l0, vader_box_t l1) {
         t0 = l1.payload.obj;
         l3 = ((vader_struct_vader_midir$InstrArrayGet_t*) t0)->f_index;
         l4 = vader_midir_ranges$local_name(l0, l3);
-        l2 = concat_4(l2, 1019u, l4, 1024u);
+        l2 = concat_4(l2, 1023u, l4, 1028u);
         { vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (l1.tag == 1605u) {
@@ -3697,7 +3697,7 @@ static vader_string_t vader_midir_ranges$site_label(void* l0, vader_box_t l1) {
         t0 = l1.payload.obj;
         l3 = ((vader_struct_vader_midir$InstrArraySet_t*) t0)->f_index;
         l5 = vader_midir_ranges$local_name(l0, l3);
-        l2 = concat_4(l4, 1019u, l5, 1027u);
+        l2 = concat_4(l4, 1023u, l5, 1031u);
     } else if (l1.tag == 1607u) {
         l6 = l1.payload.obj;
         l2 = vader_midir_ranges$binop_label(l0, l6);
@@ -3708,7 +3708,7 @@ static vader_string_t vader_midir_ranges$site_label(void* l0, vader_box_t l1) {
         t0 = l1.payload.obj;
         l3 = ((vader_struct_vader_midir$InstrUnOp_t*) t0)->f_operand;
         l4 = vader_midir_ranges$local_name(l0, l3);
-        l2 = concat_2(415u, l4);
+        l2 = concat_2(417u, l4);
     }
     { vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -3863,7 +3863,7 @@ static vader_string_t vader_midir_ranges$tally_line(void* l0) {
     vader_gc_top = &gc_frame;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(77));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 1594u);
+    l2 = std_core$write_string_at(l1, l2, 1598u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) ((vader_struct_vader_midir_ranges$RangeTally_t*) l0)->f_accesses)->f_proven;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
@@ -3875,11 +3875,11 @@ static vader_string_t vader_midir_ranges$tally_line(void* l0) {
     t0 = vader_midir_ranges$site_count(((vader_struct_vader_midir_ranges$RangeTally_t*) l0)->f_accesses);
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
-    l2 = std_core$write_string_at(l1, l2, 383u);
+    l2 = std_core$write_string_at(l1, l2, 385u);
     l4 = std_core$finish_buffer(l1, l2);
     l1 = (void*) vader_buffer_new((size_t) INT64_C(51));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 1846u);
+    l2 = std_core$write_string_at(l1, l2, 1849u);
     t0 = ((vader_struct_vader_midir_ranges$VerdictCounts_t*) ((vader_struct_vader_midir_ranges$RangeTally_t*) l0)->f_checked)->f_proven;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);

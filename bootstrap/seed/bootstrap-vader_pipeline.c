@@ -119,7 +119,7 @@ static void vader_pipeline$bake_with_own_bodies(void* l0, void* l1, void* l2) {
 
 static bool vader_pipeline$bounds_verification_enabled(void) {
     bool t0;
-    t0 = std_env$is_env_flag_on(994u);
+    t0 = std_env$is_env_flag_on(998u);
     return t0;
 }
 
@@ -256,13 +256,13 @@ static vader_string_t vader_pipeline$entry_main_name(void* l0, vader_string_t l1
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     l2 = l3.payload.obj;
-    t0 = std_collections$Map$std_core$Contains$contains__string__Any(((vader_struct_vader_front_resolver$ResolvedModule_t*) ((vader_struct_vader_front_typecheck$TypedProgram_t*) l2)->f_resolved)->f_fn_overloads, 2417u);
+    t0 = std_collections$Map$std_core$Contains$contains__string__Any(((vader_struct_vader_front_resolver$ResolvedModule_t*) ((vader_struct_vader_front_typecheck$TypedProgram_t*) l2)->f_resolved)->f_fn_overloads, 2421u);
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
     t1 = ((vader_struct_vader_front_resolver$ResolvedModule_t*) ((vader_struct_vader_front_typecheck$TypedProgram_t*) l2)->f_resolved)->f_display_path;
     t2 = vader_core_types$mangle_module_id(t1);
-    t1 = concat_2(t2, 296u);
+    t1 = concat_2(t2, 298u);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -281,7 +281,7 @@ bool vader_pipeline$flush_build_diags(void* l0, void* l1) {
     t0 = ((vader_array_t*) l2)->length;
     if ((t0 > INT64_C(0))) {
         t1 = vader_support_diagnostics$dump_diagnostics_with_file(l2);
-        std_io$eprintln__string(t1);
+        std_console$eprintln__string(t1);
         t2 = vader_support_diagnostics$any_error_diag(l2);
         { bool __vret = !(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -350,7 +350,7 @@ static vader_string_t vader_pipeline$imports_header_path(vader_string_t l0) {
     vader_string_t* gc_atom_roots[3] = { &l0, &t0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = concat_2(l0, 450u);
+    t0 = concat_2(l0, 452u);
     t1 = std_path$to_path(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -445,7 +445,7 @@ static void* vader_pipeline$lower_to_entry_from(void* l0, bool l1) {
     }
     vader_support_profile$prof_end((uint8_t) 3);
     if (l1) {
-        vader_lower_ir$verify_lowered(l5, 2410u, l4);
+        vader_lower_ir$verify_lowered(l5, 2414u, l4);
     }
     l6 = ((vader_struct_vader_pipeline$EvaluatedPipeline_t*) l0)->f_loaded;
     vader_array_t* _a1_arr = vader_array_new(26u, 0u, 0u, 494u);
@@ -489,7 +489,7 @@ static bool vader_pipeline$marks_proven_bounds(void* l0) {
     };
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_vader_pipeline$BuildRequest_t*) l0)->f_emit;
-    if (t0 != 1763u) {
+    if (t0 != 1767u) {
         t1 = ((vader_struct_vader_pipeline$BuildRequest_t*) l0)->f_release;
         t2 = vader_pipeline$proves_bounds(t1);
         { bool __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -551,7 +551,7 @@ static void* vader_pipeline$prepare_cfg_bytecode_from(void* l0, vader_string_t l
     vader_array_t* _a0_arr = vader_array_new(356u, 0u, 13u, 1673u);
     l6 = (void*) _a0_arr;
     if (l3) {
-        vader_lower_ir$verify_lowered(l5, 2601u, l6);
+        vader_lower_ir$verify_lowered(l5, 2605u, l6);
     }
     vader_array_t* _a1_arr = vader_array_new(26u, 0u, 0u, 494u);
     l7 = (void*) _a1_arr;
@@ -745,7 +745,7 @@ static vader_string_t vader_pipeline$split_globals_path(vader_string_t l0) {
     vader_string_t* gc_atom_roots[3] = { &l0, &t0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = concat_2(l0, 470u);
+    t0 = concat_2(l0, 472u);
     t1 = std_path$to_path(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -758,7 +758,7 @@ static vader_string_t vader_pipeline$split_header_name(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     t0 = vader_pipeline$canonicalise(l0);
     t1 = std_path$filename(t0);
-    t0 = concat_2(t1, 471u);
+    t0 = concat_2(t1, 473u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -768,7 +768,7 @@ static vader_string_t vader_pipeline$split_header_path(vader_string_t l0) {
     vader_string_t* gc_atom_roots[3] = { &l0, &t0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = concat_2(l0, 471u);
+    t0 = concat_2(l0, 473u);
     t1 = std_path$to_path(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -802,13 +802,13 @@ static vader_string_t vader_pipeline$unit_path(vader_string_t l0, vader_string_t
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 7u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     if (l1 == 0u) {
-        t0 = concat_4(l0, 415u, l2, 438u);
+        t0 = concat_4(l0, 417u, l2, 440u);
         t1 = std_path$to_path(t0);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l3 = std_path$parent(l0);
     l4 = std_path$filename(l0);
-    t0 = concat_8(l3, 478u, l1, 478u, l4, 429u, l2, 438u);
+    t0 = concat_8(l3, 480u, l1, 480u, l4, 431u, l2, 440u);
     t1 = std_path$to_path(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -817,7 +817,7 @@ static bool vader_pipeline$wants_debug(void* l0) {
     vader_string_t t0;
     bool t1;
     t0 = ((vader_struct_vader_pipeline$BuildRequest_t*) l0)->f_emit;
-    if (t0 != 1763u) {
+    if (t0 != 1767u) {
         t1 = ((vader_struct_vader_pipeline$BuildRequest_t*) l0)->f_release;
         return !(t1);
     }
@@ -838,15 +838,15 @@ static int32_t vader_pipeline$write_out(vader_string_t l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
     t0 = std_path$as_string(l0);
-    l2 = std_io$write_file_string(t0, l1);
+    l2 = std_fs$write_file_string(t0, l1);
     if (!(l2.tag == 857u)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     }
     l3 = std_path$to_native_1(l0);
     t1 = l2.payload.obj;
     l4 = std_io$IOError$std_core$Error$message(t1);
-    t0 = concat_4(3024u, l3, 1382u, l4);
-    std_io$eprintln__string(t0);
+    t0 = concat_4(3028u, l3, 1386u, l4);
+    std_console$eprintln__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
 }
 

@@ -129,15 +129,15 @@ static vader_string_t vader_support_diagnostics$diag_key(void* l0) {
     l7 = INT64_C(0);
     l8 = ((int64_t) (int32_t) l1);
     l7 = std_core$write_int(l9, l7, l8);
-    l7 = std_core$write_string_at(l9, l7, 3264u);
+    l7 = std_core$write_string_at(l9, l7, 3267u);
     l7 = std_core$write_string_at(l9, l7, l2);
-    l7 = std_core$write_string_at(l9, l7, 3264u);
+    l7 = std_core$write_string_at(l9, l7, 3267u);
     l7 = std_core$write_string_at(l9, l7, l3);
-    l7 = std_core$write_string_at(l9, l7, 3264u);
+    l7 = std_core$write_string_at(l9, l7, 3267u);
     l7 = std_core$write_int(l9, l7, l4);
-    l7 = std_core$write_string_at(l9, l7, 3264u);
+    l7 = std_core$write_string_at(l9, l7, 3267u);
     l7 = std_core$write_int(l9, l7, l5);
-    l7 = std_core$write_string_at(l9, l7, 3264u);
+    l7 = std_core$write_string_at(l9, l7, 3267u);
     l7 = std_core$write_string_at(l9, l7, l6);
     t0 = std_core$finish_buffer(l9, l7);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -205,16 +205,16 @@ static void vader_support_diagnostics$format_diagnostic(void* l0, void* l1, bool
     vader_gc_top = &gc_frame;
     l5 = ((vader_struct_vader_support_diagnostics$Diagnostic_t*) l1)->f_severity;
     if (l5 == INT32_C(0)) {
-        l4 = 2002u;
+        l4 = 2005u;
     } else if (l5 == INT32_C(1)) {
-        l4 = 3213u;
+        l4 = 3216u;
     } else if (l5 == INT32_C(2)) {
-        l4 = 2265u;
+        l4 = 2269u;
     } else {
         if (!(l5 == INT32_C(3))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l4 = 2177u;
+        l4 = 2181u;
     }
     if (l2) {
         l5 = ((vader_struct_vader_support_diagnostics$Diagnostic_t*) l1)->f_severity;
@@ -242,7 +242,7 @@ static void vader_support_diagnostics$format_diagnostic(void* l0, void* l1, bool
     t1 = std_string$is_empty(t0);
     if (!(t1)) {
         l9 = ((vader_struct_vader_support_diagnostics$Diagnostic_t*) l1)->f_detail;
-        l4 = concat_2(498u, l9);
+        l4 = concat_2(500u, l9);
     }
     if (l2) {
         t0 = ((vader_struct_toolchain_span$Position_t*) l8)->f_file;
@@ -252,11 +252,11 @@ static void vader_support_diagnostics$format_diagnostic(void* l0, void* l1, bool
         l12 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l11));
         l11 = INT64_C(0);
         l11 = std_core$write_string_at(l12, l11, l10);
-        l11 = std_core$write_string_at(l12, l11, 497u);
+        l11 = std_core$write_string_at(l12, l11, 499u);
         t3 = ((vader_struct_toolchain_span$Position_t*) l8)->f_line;
         l13 = ((int64_t) (int32_t) t3);
         l11 = std_core$write_int(l12, l11, l13);
-        l11 = std_core$write_string_at(l12, l11, 497u);
+        l11 = std_core$write_string_at(l12, l11, 499u);
         t3 = ((vader_struct_toolchain_span$Position_t*) l8)->f_column;
         l13 = ((int64_t) (int32_t) t3);
         l11 = std_core$write_int(l12, l11, l13);
@@ -267,7 +267,7 @@ static void vader_support_diagnostics$format_diagnostic(void* l0, void* l1, bool
         t3 = ((vader_struct_toolchain_span$Position_t*) l8)->f_line;
         l13 = ((int64_t) (int32_t) t3);
         l11 = std_core$write_int(l12, l11, l13);
-        l11 = std_core$write_string_at(l12, l11, 497u);
+        l11 = std_core$write_string_at(l12, l11, 499u);
         t3 = ((vader_struct_toolchain_span$Position_t*) l8)->f_column;
         l13 = ((int64_t) (int32_t) t3);
         l11 = std_core$write_int(l12, l11, l13);
@@ -275,7 +275,7 @@ static void vader_support_diagnostics$format_diagnostic(void* l0, void* l1, bool
     }
     l10 = ((vader_struct_vader_support_diagnostics$CodeInfo_t*) ((vader_struct_vader_support_diagnostics$Diagnostic_t*) l1)->f_code)->f_id;
     l14 = ((vader_struct_vader_support_diagnostics$CodeInfo_t*) ((vader_struct_vader_support_diagnostics$Diagnostic_t*) l1)->f_code)->f_message;
-    l4 = concat_9(1019u, l9, 1026u, l6, 1019u, l10, 1026u, l14, l4);
+    l4 = concat_9(1023u, l9, 1030u, l6, 1023u, l10, 1030u, l14, l4);
     std_string__builder$append(l0, l4);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -394,11 +394,11 @@ static vader_string_t vader_support_diagnostics$relative_to(vader_string_t l0, v
     if (t0) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_string$ends_with(l1, 478u);
+    t0 = std_string$ends_with(l1, 480u);
     if (t0) {
         l2 = l1;
     } else {
-        l2 = concat_2(l1, 478u);
+        l2 = concat_2(l1, 480u);
     }
     t0 = std_string$starts_with(l0, l2);
     if (!(t0)) {
@@ -456,7 +456,7 @@ static vader_string_t vader_support_diagnostics$render_diagnostics(void* l0, boo
     l4 = (void*) _a1_obj;
     std_string__builder$append(l4, 7u);
     if (l1) {
-        l6 = std_io$current_working_directory();
+        l6 = std_env$current_working_directory();
     } else {
         l6 = 0u;
     }
@@ -478,7 +478,7 @@ static vader_string_t vader_support_diagnostics$render_diagnostics(void* l0, boo
         std_string__builder$append_char(l4, 10u);
         l7 = (void*) vader_buffer_new((size_t) INT64_C(47));
         l8 = INT64_C(0);
-        l8 = std_core$write_string_at(l7, l8, 3273u);
+        l8 = std_core$write_string_at(l7, l8, 3276u);
         t0 = ((vader_array_t*) l3)->length;
         l5 = vader_chk_sub(i64, t0, l5);
         l8 = std_core$write_int(l7, l8, l5);
@@ -562,9 +562,9 @@ vader_string_t vader_support_diagnostics$wildcard_clash_detail(vader_string_t l0
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = std_string$join(l1, 383u);
-    l2 = concat_4(1087u, l0, 1215u, l2);
-    l3 = concat_3(2606u, l0, 1339u);
+    l2 = std_string$join(l1, 385u);
+    l2 = concat_4(1091u, l0, 1219u, l2);
+    l3 = concat_3(2610u, l0, 1343u);
     t0 = concat_6(l2, 72u, l3, 201u, l0, 94u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

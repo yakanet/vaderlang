@@ -1,23 +1,23 @@
 #include "bootstrap.split.h"
 
-vader_box_t vader_fn_tramp_std_io$stderr_is_console$keep(void* env) {
+vader_box_t vader_fn_tramp_std_console$stderr_is_console$keep(void* env) {
     (void) env;
-    std_io$stderr_is_console$keep();
+    std_console$stderr_is_console$keep();
     return vader_box_null();
 }
 
-vader_fn_t vader_fn_static_std_io$stderr_is_console$keep = {
-    { 436u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_io$stderr_is_console$keep, NULL,
+vader_fn_t vader_fn_static_std_console$stderr_is_console$keep = {
+    { 436u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_console$stderr_is_console$keep, NULL,
 };
 
-vader_box_t vader_fn_tramp_std_io$stdout_is_console$keep(void* env) {
+vader_box_t vader_fn_tramp_std_console$stdout_is_console$keep(void* env) {
     (void) env;
-    std_io$stdout_is_console$keep();
+    std_console$stdout_is_console$keep();
     return vader_box_null();
 }
 
-vader_fn_t vader_fn_static_std_io$stdout_is_console$keep = {
-    { 436u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_io$stdout_is_console$keep, NULL,
+vader_fn_t vader_fn_static_std_console$stdout_is_console$keep = {
+    { 436u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_console$stdout_is_console$keep, NULL,
 };
 
 vader_box_t vader_fn_tramp___lambda_std_path_0(void* env, vader_box_t a0) {
@@ -937,16 +937,6 @@ vader_fn_t vader_fn_static___lambda_vader_front_effects_147 = {
     { 460u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_vader_front_effects_147, NULL,
 };
 
-vader_box_t vader_fn_lift___defer_std_io_0(void* env) {
-    __defer_std_io_0(env);
-    return vader_box_null();
-}
-
-vader_box_t vader_fn_lift___defer_std_io_2(void* env) {
-    __defer_std_io_2(env);
-    return vader_box_null();
-}
-
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_0(void* env) {
     return vader_ref_box(__lambda_vader_front_typecheck_0(env));
 }
@@ -1071,6 +1061,16 @@ vader_box_t vader_fn_lift___lambda_vader_lower_ir_0(void* env, vader_box_t a0) {
 
 vader_box_t vader_fn_lift___lambda_vader_lower_ir_2(void* env, vader_box_t a0) {
     __lambda_vader_lower_ir_2(env, a0);
+    return vader_box_null();
+}
+
+vader_box_t vader_fn_lift___defer_std_fs_0(void* env) {
+    __defer_std_fs_0(env);
+    return vader_box_null();
+}
+
+vader_box_t vader_fn_lift___defer_std_fs_2(void* env) {
+    __defer_std_fs_2(env);
     return vader_box_null();
 }
 
@@ -1242,9 +1242,9 @@ vader_box_t vader_fn_lift___lambda_vader_front_effects_145(void* env, vader_box_
 }
 
 /* vtable dispatchers */
-uint64_t vader_vt_std_core$Hash$hash(vader_box_t recv) {
+uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 494u: return std_core$string$Hash$hash_vt(recv.payload.s);
+        case 494u: return std_core$string$Hash$hash$$wrapper(recv.payload.s);
         case 490u: return std_core$i8$Hash$hash(((int8_t) recv.payload.i));
         case 491u: return std_core$i16$Hash$hash(((int16_t) recv.payload.i));
         case 497u: return std_core$i32$Hash$hash(((int32_t) recv.payload.i));
@@ -1261,7 +1261,7 @@ uint64_t vader_vt_std_core$Hash$hash(vader_box_t recv) {
     vader_unreachable("vtable miss in std_core$Hash.hash");
 }
 
-bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
+bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 490u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
         case 491u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);

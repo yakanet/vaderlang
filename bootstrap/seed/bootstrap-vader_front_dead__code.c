@@ -224,7 +224,7 @@ void vader_front_dead__code$check_dead_code(void* l0, vader_string_t l1, void* l
         if (!(t0)) {
             l7 = ((vader_struct_vader_front_dead__code$DeadDecl_t*) l6)->f_name_span;
             l18 = ((vader_struct_vader_front_dead__code$DeadDecl_t*) l6)->f_name;
-            l19 = concat_3(1087u, l18, 1222u);
+            l19 = concat_3(1091u, l18, 1226u);
             l8 = vader_support_diagnostics$warning((uint8_t) 3, l7, l19);
             vader_array_push_ref((vader_array_t*) l2, l8);
         }
@@ -391,8 +391,8 @@ static bool vader_front_dead__code$is_root_decl(uint8_t l0, void* l1, vader_stri
     if (l4) {
         return true;
     }
-    if (l3 == 1744u) {
-        l4 = l2 == 1744u;
+    if (l3 == 1748u) {
+        l4 = l2 == 1748u;
     } else {
         l4 = false;
     }
@@ -404,7 +404,7 @@ static bool vader_front_dead__code$is_wired_root(void* l0, vader_string_t l1) {
     void* l5;
     int64_t l3, l4;
     vader_string_t t0;
-    if (l1 == 2417u) {
+    if (l1 == 2421u) {
         return true;
     }
     l2 = l0;
@@ -415,23 +415,23 @@ static bool vader_front_dead__code$is_wired_root(void* l0, vader_string_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2863u) {
+        if (t0 == 2867u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2048u) {
+        if (t0 == 2051u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2292u) {
+        if (t0 == 2296u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 2035u) {
+        if (t0 == 2038u) {
             return true;
         }
         t0 = ((vader_struct_toolchain_ast$Decorator_t*) l5)->f_name;
-        if (t0 == 1602u) {
+        if (t0 == 1606u) {
             return true;
         }
         l4 = (l4 + INT64_C(1));

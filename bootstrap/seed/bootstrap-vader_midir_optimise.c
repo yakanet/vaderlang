@@ -3050,7 +3050,7 @@ void vader_midir_optimise$report_heap_allocations(void* l0) {
     t2 = ((vader_struct_vader_midir_optimise$EscapeStats_t*) l0)->f_stack_promoted;
     l4 = ((int64_t) (int32_t) t2);
     l3 = std_core$write_int(l2, l3, l4);
-    l3 = std_core$write_string_at(l2, l3, 344u);
+    l3 = std_core$write_string_at(l2, l3, 346u);
     l5 = std_core$finish_buffer(l2, l3);
     std_string__builder$append(l1, l5);
     l2 = ((vader_struct_vader_midir_optimise$EscapeStats_t*) l0)->f_heap_sites;
@@ -3062,12 +3062,12 @@ void vader_midir_optimise$report_heap_allocations(void* l0) {
         l6 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l4);
         l5 = toolchain_span$source_position(((vader_struct_vader_midir_optimise$EscapeSite_t*) l6)->f_span);
         l7 = ((vader_struct_vader_midir_optimise$EscapeSite_t*) l6)->f_type_name;
-        l8 = concat_5(26u, l5, 1029u, l7, 123u);
+        l8 = concat_5(26u, l5, 1033u, l7, 123u);
         std_string__builder$append(l1, l8);
         l4 = (l4 + INT64_C(1));
     }
     t3 = std_string__builder$StringBuilder$std_core$Display$to_string(l1);
-    std_io$eprintln__string(t3);
+    std_console$eprintln__string(t3);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

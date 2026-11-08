@@ -771,7 +771,7 @@ static bool std_collections$contains_key__Any__bool(void* l0, vader_box_t l1) {
     if (t0 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    l2 = vader_vt_std_core$Hash$hash(l1);
+    l2 = std_core$Hash$hash$$dispatch(l1);
     l3 = ((vader_struct_std_collections$Map__Any__bool_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -786,7 +786,7 @@ static bool std_collections$contains_key__Any__bool(void* l0, vader_box_t l1) {
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                 l6 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                t1 = vader_vt_std_core$Equals$equals(l6, l1);
+                t1 = std_core$Equals$equals$$dispatch(l6, l1);
                 if (t1) {
                     { vader_gc_top = gc_frame.prev; return true; }
                 }
@@ -1004,7 +1004,7 @@ static bool std_collections$contains_key__string__Any(void* l0, vader_string_t l
     if (t0 == INT64_C(0)) {
         return false;
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1045,7 +1045,7 @@ static bool std_collections$contains_key__string__bool(void* l0, vader_string_t 
     if (t0 == INT64_C(0)) {
         return false;
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1086,7 +1086,7 @@ static bool std_collections$contains_key__string__i64(void* l0, vader_string_t l
     if (t0 == INT64_C(0)) {
         return false;
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__i64_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1435,7 +1435,7 @@ static int64_t std_collections$entry_of__string___vader_core_types_AnyType___vad
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType______t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1476,7 +1476,7 @@ static int64_t std_collections$entry_of__string__i32__(void* l0, vader_string_t 
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__i32___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1517,7 +1517,7 @@ static int64_t std_collections$entry_of__string__std_collections_Map_string___va
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType_______t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1558,7 +1558,7 @@ static int64_t std_collections$entry_of__string__std_collections_Map_string__boo
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__bool__t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1599,7 +1599,7 @@ static int64_t std_collections$entry_of__string__std_collections_Map_string__vad
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType__t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1640,7 +1640,7 @@ static int64_t std_collections$entry_of__string__std_collections_Map_string__vad
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_front_typecheck_FnCandidate____t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1681,7 +1681,7 @@ static int64_t std_collections$entry_of__string__std_collections_Map_string__vad
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_lower_MismatchPair__t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1722,7 +1722,7 @@ static int64_t std_collections$entry_of__string__string__(void* l0, vader_string
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__string___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1763,7 +1763,7 @@ static int64_t std_collections$entry_of__string__toolchain_ast_FnDecl__(void* l0
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__toolchain_ast_FnDecl___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1804,7 +1804,7 @@ static int64_t std_collections$entry_of__string__vader_core_symbol_Symbol__(void
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1845,7 +1845,7 @@ static int64_t std_collections$entry_of__string__vader_front_typecheck_BoundedIm
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_BoundedImpl___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1886,7 +1886,7 @@ static int64_t std_collections$entry_of__string__vader_front_typecheck_FnCandida
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_FnCandidate___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1927,7 +1927,7 @@ static int64_t std_collections$entry_of__string__vader_front_typecheck_ImplEntry
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplEntry___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1968,7 +1968,7 @@ static int64_t std_collections$entry_of__string__vader_front_typecheck_ImplMetho
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplMethod___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2009,7 +2009,7 @@ static int64_t std_collections$entry_of__string__vader_front_typecheck_ImplShape
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplShape___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2050,7 +2050,7 @@ static int64_t std_collections$entry_of__string__vader_lower_ObservedFn(void* l0
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_lower_ObservedFn_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2091,7 +2091,7 @@ static int64_t std_collections$entry_of__string__vader_lower_ir_LoweredVtableEnt
     if (t0 == INT64_C(0)) {
         return INT64_C(-1);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_lower_ir_LoweredVtableEntry___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2180,7 +2180,7 @@ static vader_box_t std_collections$get__Any__i32(void* l0, vader_box_t l1) {
     if (t0 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    l2 = vader_vt_std_core$Hash$hash(l1);
+    l2 = std_core$Hash$hash$$dispatch(l1);
     l3 = ((vader_struct_std_collections$Map__Any__i32_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2195,7 +2195,7 @@ static vader_box_t std_collections$get__Any__i32(void* l0, vader_box_t l1) {
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                 l6 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                t1 = vader_vt_std_core$Equals$equals(l6, l1);
+                t1 = std_core$Equals$equals$$dispatch(l6, l1);
                 if (t1) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__i32_t*) l0)->f_evals);
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
@@ -2229,7 +2229,7 @@ static vader_box_t std_collections$get__Any__i64(void* l0, vader_box_t l1) {
     if (t0 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    l2 = vader_vt_std_core$Hash$hash(l1);
+    l2 = std_core$Hash$hash$$dispatch(l1);
     l3 = ((vader_struct_std_collections$Map__Any__i64_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2244,7 +2244,7 @@ static vader_box_t std_collections$get__Any__i64(void* l0, vader_box_t l1) {
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
                 l6 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-                t1 = vader_vt_std_core$Equals$equals(l6, l1);
+                t1 = std_core$Equals$equals$$dispatch(l6, l1);
                 if (t1) {
                     vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__i64_t*) l0)->f_evals);
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
@@ -2933,7 +2933,7 @@ static vader_box_t std_collections$get__string__Any(void* l0, vader_string_t l1)
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -2979,7 +2979,7 @@ static vader_box_t std_collections$get__string__bool(void* l0, vader_string_t l1
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3026,7 +3026,7 @@ static vader_box_t std_collections$get__string__i32(void* l0, vader_string_t l1)
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3071,7 +3071,7 @@ static vader_box_t std_collections$get__string__i64(void* l0, vader_string_t l1)
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__i64_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3117,7 +3117,7 @@ static vader_box_t std_collections$get__string__std_collections_Map_string___vad
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType_______t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3163,7 +3163,7 @@ static vader_box_t std_collections$get__string__std_collections_Map_string__bool
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__bool__t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3209,7 +3209,7 @@ static vader_box_t std_collections$get__string__std_collections_Map_string__vade
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType__t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3255,7 +3255,7 @@ static vader_box_t std_collections$get__string__std_collections_Map_string__vade
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_front_typecheck_FnCandidate____t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3300,7 +3300,7 @@ static vader_box_t std_collections$get__string__string(void* l0, vader_string_t 
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__string_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -3347,7 +3347,7 @@ static vader_box_t std_collections$get__string__string__(void* l0, vader_string_
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__string___t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -4170,7 +4170,7 @@ int32_t std_collections$get_or_put__string__i32(void* l0, vader_string_t l1, int
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -4273,7 +4273,7 @@ int64_t std_collections$get_or_put__string__i64(void* l0, vader_string_t l1, int
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__i64_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__i64_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -4377,7 +4377,7 @@ void* std_collections$get_or_put__string__toolchain_ast_FnDecl(void* l0, vader_s
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__toolchain_ast_FnDecl_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__toolchain_ast_FnDecl_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -4482,7 +4482,7 @@ void* std_collections$get_or_put__string__vader_core_symbol_Symbol(void* l0, vad
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -7054,7 +7054,7 @@ static bool std_collections$put__Any__i32(void* l0, vader_box_t l1, int32_t l2) 
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__i32_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = vader_vt_std_core$Hash$hash(l1);
+        l5 = std_core$Hash$hash$$dispatch(l1);
         l6 = ((vader_struct_std_collections$Map__Any__i32_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -7073,7 +7073,7 @@ static bool std_collections$put__Any__i32(void* l0, vader_box_t l1, int32_t l2) 
                     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                     l9 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l8);
-                    t1 = vader_vt_std_core$Equals$equals(l9, l1);
+                    t1 = std_core$Equals$equals$$dispatch(l9, l1);
                     if (t1) {
                         vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_std_collections$Map__Any__i32_t*) l0)->f_evals);
                         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
@@ -9021,7 +9021,7 @@ static bool std_collections$put__string__Any(void* l0, vader_string_t l1, vader_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__Any_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9126,7 +9126,7 @@ static bool std_collections$put__string___vader_core_types_AnyType___vader_core_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType______t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType______t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9231,7 +9231,7 @@ static bool std_collections$put__string__bool(void* l0, vader_string_t l1, bool 
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__bool_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9334,7 +9334,7 @@ static bool std_collections$put__string__i32(void* l0, vader_string_t l1, int32_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9437,7 +9437,7 @@ static bool std_collections$put__string__i32__(void* l0, vader_string_t l1, void
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__i32___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__i32___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9542,7 +9542,7 @@ static bool std_collections$put__string__i64(void* l0, vader_string_t l1, int64_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__i64_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__i64_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9645,7 +9645,7 @@ static bool std_collections$put__string__std_collections_Map_string___vader_core
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__std_collections_Map_string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType_______t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__std_collections_Map_string___vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType_______t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9750,7 +9750,7 @@ static bool std_collections$put__string__std_collections_Map_string__bool_(void*
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__std_collections_Map_string__bool__t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__bool__t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9855,7 +9855,7 @@ static bool std_collections$put__string__std_collections_Map_string__vader_core_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType__t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_core_types_AnyType___vader_core_types_ArrayType___vader_core_types_DistinctType___vader_core_types_EnumType___vader_core_types_FnType___vader_core_types_FreeCharType___vader_core_types_FreeFloatType___vader_core_types_FreeIntType___vader_core_types_InferVar___vader_core_types_NeverType___vader_core_types_PrimitiveType___vader_core_types_RangeType___vader_core_types_SelfType___vader_core_types_StructType___vader_core_types_TraitType___vader_core_types_TupleType___vader_core_types_TypeMetaType___vader_core_types_TypeParamType___vader_core_types_UnionType___vader_core_types_UnresolvedType__t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -9960,7 +9960,7 @@ static bool std_collections$put__string__std_collections_Map_string__vader_front
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_front_typecheck_FnCandidate____t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_front_typecheck_FnCandidate____t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10065,7 +10065,7 @@ static bool std_collections$put__string__std_collections_Map_string__vader_lower
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_lower_MismatchPair__t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__std_collections_Map_string__vader_lower_MismatchPair__t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10170,7 +10170,7 @@ static bool std_collections$put__string__string(void* l0, vader_string_t l1, vad
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__string_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__string_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10273,7 +10273,7 @@ static bool std_collections$put__string__string__(void* l0, vader_string_t l1, v
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__string___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__string___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10378,7 +10378,7 @@ static bool std_collections$put__string__toolchain_ast_FnDecl__(void* l0, vader_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__toolchain_ast_FnDecl___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__toolchain_ast_FnDecl___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10483,7 +10483,7 @@ static bool std_collections$put__string__vader_core_symbol_Symbol__(void* l0, va
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10588,7 +10588,7 @@ static bool std_collections$put__string__vader_front_typecheck_BoundedImpl__(voi
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_front_typecheck_BoundedImpl___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_BoundedImpl___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10693,7 +10693,7 @@ static bool std_collections$put__string__vader_front_typecheck_FnCandidate__(voi
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_front_typecheck_FnCandidate___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_FnCandidate___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10798,7 +10798,7 @@ static bool std_collections$put__string__vader_front_typecheck_ImplEntry__(void*
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplEntry___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplEntry___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -10903,7 +10903,7 @@ static bool std_collections$put__string__vader_front_typecheck_ImplMethod__(void
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplMethod___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplMethod___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -11008,7 +11008,7 @@ static bool std_collections$put__string__vader_front_typecheck_ImplShape__(void*
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplShape___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_ImplShape___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -11113,7 +11113,7 @@ static bool std_collections$put__string__vader_lower_ObservedFn(void* l0, vader_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_lower_ObservedFn_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_lower_ObservedFn_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -11218,7 +11218,7 @@ static bool std_collections$put__string__vader_lower_ir_LoweredVtableEntry__(voi
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_lower_ir_LoweredVtableEntry___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_lower_ir_LoweredVtableEntry___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -12397,7 +12397,7 @@ vader_box_t std_collections$put_absent__string__string__(void* l0, vader_string_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__string___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__string___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -12502,7 +12502,7 @@ vader_box_t std_collections$put_absent__string__vader_core_symbol_Symbol(void* l
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -12607,7 +12607,7 @@ vader_box_t std_collections$put_absent__string__vader_core_symbol_Symbol__(void*
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -12849,7 +12849,7 @@ static void std_collections$rehash__Any__i32(void* l0, int64_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l4);
-        l6 = vader_vt_std_core$Hash$hash(t0);
+        l6 = std_core$Hash$hash$$dispatch(t0);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -14770,7 +14770,7 @@ static void std_collections$rehash__string__Any(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -14864,7 +14864,7 @@ static void std_collections$rehash__string___vader_core_types_AnyType___vader_co
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -14958,7 +14958,7 @@ static void std_collections$rehash__string__bool(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15052,7 +15052,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15146,7 +15146,7 @@ static void std_collections$rehash__string__i32__(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15240,7 +15240,7 @@ static void std_collections$rehash__string__i64(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15334,7 +15334,7 @@ static void std_collections$rehash__string__std_collections_Map_string___vader_c
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15428,7 +15428,7 @@ static void std_collections$rehash__string__std_collections_Map_string__bool_(vo
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15522,7 +15522,7 @@ static void std_collections$rehash__string__std_collections_Map_string__vader_co
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15616,7 +15616,7 @@ static void std_collections$rehash__string__std_collections_Map_string__vader_fr
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15710,7 +15710,7 @@ static void std_collections$rehash__string__std_collections_Map_string__vader_lo
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15804,7 +15804,7 @@ static void std_collections$rehash__string__string(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15898,7 +15898,7 @@ static void std_collections$rehash__string__string__(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -15992,7 +15992,7 @@ static void std_collections$rehash__string__toolchain_ast_FnDecl(void* l0, int64
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16086,7 +16086,7 @@ static void std_collections$rehash__string__toolchain_ast_FnDecl__(void* l0, int
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16180,7 +16180,7 @@ static void std_collections$rehash__string__vader_core_symbol_Symbol(void* l0, i
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16274,7 +16274,7 @@ static void std_collections$rehash__string__vader_core_symbol_Symbol__(void* l0,
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16368,7 +16368,7 @@ static void std_collections$rehash__string__vader_front_typecheck_BoundedImpl__(
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16462,7 +16462,7 @@ static void std_collections$rehash__string__vader_front_typecheck_FnCandidate__(
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16556,7 +16556,7 @@ static void std_collections$rehash__string__vader_front_typecheck_ImplEntry__(vo
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16650,7 +16650,7 @@ static void std_collections$rehash__string__vader_front_typecheck_ImplMethod__(v
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16744,7 +16744,7 @@ static void std_collections$rehash__string__vader_front_typecheck_ImplShape__(vo
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16838,7 +16838,7 @@ static void std_collections$rehash__string__vader_lower_ObservedFn(void* l0, int
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -16932,7 +16932,7 @@ static void std_collections$rehash__string__vader_lower_ir_LoweredVtableEntry__(
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -18655,7 +18655,7 @@ bool std_collections$remove__string__vader_front_typecheck_NarrowSlot(void* l0, 
     if (t0 == INT64_C(0)) {
         return false;
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_NarrowSlot_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -18748,7 +18748,7 @@ bool std_collections$remove__string__vader_midir_value__return_ReturnShape(void*
     if (t0 == INT64_C(0)) {
         return false;
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__vader_midir_value__return_ReturnShape_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -19193,7 +19193,7 @@ static vader_box_t std_collections$remove_first__vader_core_symbol_Symbol(void* 
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_std_collections$Queue__Any_t*) l0)->f_size;
     if (t0 == INT64_C(0)) {
-        vader_host_std_abort$panic(2639u);
+        vader_host_std_abort$panic(2643u);
         vader_unreachable("a no-return call returned");
     } else {
         l1 = ((vader_struct_std_collections$Queue__Any_t*) l0)->f_items;
@@ -19444,7 +19444,7 @@ static int64_t std_collections$slot_holding__string__vader_front_typecheck_Narro
     int64_t l4, l5;
     int32_t t0;
     int64_t t1;
-    l3 = std_core$string$Hash$hash_vt(l1);
+    l3 = std_core$string$Hash$hash$$wrapper(l1);
     l4 = ((vader_struct_std_collections$Map__string__vader_front_typecheck_NarrowSlot_t*) l0)->f_mask;
     l4 = std_collections$first_slot(l3, l4);
     for (;;) {
@@ -19474,7 +19474,7 @@ static int64_t std_collections$slot_holding__string__vader_midir_value__return_R
     int64_t l4, l5;
     int32_t t0;
     int64_t t1;
-    l3 = std_core$string$Hash$hash_vt(l1);
+    l3 = std_core$string$Hash$hash$$wrapper(l1);
     l4 = ((vader_struct_std_collections$Map__string__vader_midir_value__return_ReturnShape_t*) l0)->f_mask;
     l4 = std_collections$first_slot(l3, l4);
     for (;;) {

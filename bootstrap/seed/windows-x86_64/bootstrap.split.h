@@ -15,8 +15,8 @@ typedef struct vader_struct___Tuple_i32_i32_3103e027_t vader_struct___Tuple_i32_
 typedef struct vader_struct___Tuple_i64_i64_f049c617_t vader_struct___Tuple_i64_i64_f049c617_t;
 typedef struct vader_struct___Tuple_i64_i64_i64_2cc25dbf_t vader_struct___Tuple_i64_i64_i64_2cc25dbf_t;
 typedef struct vader_struct___Tuple_u64_u64_u64_2d035edd_t vader_struct___Tuple_u64_u64_u64_2d035edd_t;
-typedef struct vader_struct___defer_env_std_io_1_t vader_struct___defer_env_std_io_1_t;
-typedef struct vader_struct___defer_env_std_io_3_t vader_struct___defer_env_std_io_3_t;
+typedef struct vader_struct___defer_env_std_fs_1_t vader_struct___defer_env_std_fs_1_t;
+typedef struct vader_struct___defer_env_std_fs_3_t vader_struct___defer_env_std_fs_3_t;
 typedef struct vader_struct___defer_env_std_runtime_scheduler_1_t vader_struct___defer_env_std_runtime_scheduler_1_t;
 typedef struct vader_struct___defer_env_std_runtime_scheduler_3_t vader_struct___defer_env_std_runtime_scheduler_3_t;
 typedef struct vader_struct___defer_env_vader_vm_22_t vader_struct___defer_env_vader_vm_22_t;
@@ -1277,11 +1277,11 @@ struct vader_struct___Tuple_u64_u64_u64_2d035edd_t {
     uint64_t f__1;
     uint64_t f__2;
 };
-struct vader_struct___defer_env_std_io_1_t {
+struct vader_struct___defer_env_std_fs_1_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___defer_env_std_io_3_t {
+struct vader_struct___defer_env_std_fs_3_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
@@ -3684,6 +3684,7 @@ struct vader_struct_std_ffi$CLibrary_t {
     vader_obj_header_t header;
     vader_string_t f_name;
     vader_string_t f_header;
+    void* f_headers;
     vader_string_t f_include;
     void* f_archives;
     void* f_system;
@@ -4468,7 +4469,7 @@ struct vader_struct_vader_core_bytecode$BcImport_t {
     vader_string_t f_mangled_name;
     void* f_signature;
     bool f_is_extern;
-    vader_string_t f_c_header;
+    void* f_c_headers;
     vader_box_t f_library;
     int32_t f_c_variadic_fixed;
     void* f_param_c_types;
@@ -8081,7 +8082,7 @@ struct vader_struct_vader_midir$CFGExternDecl_t {
     void* f_origin;
     vader_string_t f_extern_name;
     bool f_is_extern;
-    vader_string_t f_c_header;
+    void* f_c_headers;
     int32_t f_c_variadic_fixed;
     vader_box_t f_library;
 };
@@ -9147,36 +9148,26 @@ bool std_core$f64$Equals$equals$guard(double l0, vader_box_t l1);
 bool std_core$bool$Equals$equals$guard(bool l0, vader_box_t l1);
 bool std_core$char$Equals$equals$guard(uint32_t l0, vader_box_t l1);
 bool std_core$string$Equals$equals$guard(vader_string_t l0, vader_box_t l1);
-vader_string_t std_io$current_working_directory(void);
-vader_box_t std_io$write_file_string(vader_string_t l0, vader_string_t l1);
-void std_io$stderr_is_console$keep(void);
-void std_io$stdout_is_console$keep(void);
-bool std_io$exists(vader_string_t l0);
-bool std_io$is_dir(vader_string_t l0);
-vader_box_t std_io$read_dir(vader_string_t l0);
-void __defer_std_io_0(void* l0);
-vader_string_t std_io$current_executable_location(void);
-vader_box_t std_io$read_file_string(vader_string_t l0, int64_t l1);
-vader_box_t std_io$set_current_working_directory(vader_string_t l0);
-void __defer_std_io_2(void* l0);
-vader_string_t std_io$IOError$std_core$Error$message(void* l0);
-void std_io$eprintln__string(vader_string_t l0);
+void std_console$stderr_is_console$keep(void);
+void std_console$stdout_is_console$keep(void);
+void std_console$eprintln__string(vader_string_t l0);
 vader_string_t std_path$to_path(vader_string_t l0);
 vader_string_t std_path$as_string(vader_string_t l0);
 vader_string_t std_path$to_native_1(vader_string_t l0);
 vader_string_t std_path$parent(vader_string_t l0);
 vader_string_t std_path$filename(vader_string_t l0);
 vader_string_t std_path$name(vader_string_t l0);
-vader_string_t std_path$to_native(vader_string_t l0);
-bool __lambda_std_path_0(uint32_t l0);
 vader_string_t std_path$to_posix(vader_string_t l0);
+bool __lambda_std_path_0(uint32_t l0);
+vader_string_t std_path$to_native(vader_string_t l0);
 bool __lambda_std_path_1(uint32_t l0);
 void* vader_pipeline$prepare_program(vader_string_t l0, void* l1);
 bool vader_pipeline$flush_build_diags(void* l0, void* l1);
 int32_t vader_pipeline$write_split_c(void* l0, vader_string_t l1);
-bool std_env$is_env_flag_on(vader_string_t l0);
-vader_string_t std_target$Os$std_core$Display$to_string(uint8_t l0);
-vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0);
+void* std_io$last_io_error(vader_string_t l0);
+vader_string_t std_io$IOError$std_core$Error$message(void* l0);
+vader_string_t system_windows$from_wide(void* l0, int32_t l1);
+void* system_windows$to_wide(vader_string_t l0);
 bool std_string$compare_ascending(vader_string_t l0, vader_string_t l1);
 bool std_string$is_empty(vader_string_t l0);
 int64_t std_string$last_index_of(vader_string_t l0, uint32_t l1, int64_t l2);
@@ -9205,6 +9196,12 @@ void std_string__builder$append(void* l0, vader_string_t l1);
 void std_string__builder$append_char(void* l0, uint32_t l1);
 int64_t std_string__builder$byte_len(void* l0);
 vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
+vader_string_t std_target$Os$std_core$Display$to_string(uint8_t l0);
+vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0);
+vader_string_t std_env$current_working_directory(void);
+bool std_env$is_env_flag_on(vader_string_t l0);
+vader_string_t std_env$current_executable_location(void);
+vader_box_t std_env$set_current_working_directory(vader_string_t l0);
 vader_string_t vader_support_diagnostics$dump_diagnostics_with_file(void* l0);
 bool vader_support_diagnostics$any_error_diag(void* l0);
 bool vader_support_diagnostics$diag_less_with_file(void* l0, void* l1);
@@ -9577,7 +9574,6 @@ bool __lambda_vader_emit_bytecode_11(void* l0, int32_t l1);
 bool __lambda_vader_emit_bytecode_13(void* l0, void* l1);
 bool vader_emit_bytecode$is_boxed_row(void* l0, int32_t l1);
 void* vader_midir_pipeline$build_optimised_cfg(void* l0, void* l1, void* l2);
-vader_string_t vader_core_bytecode$library_name(void* l0);
 void* vader_core_bytecode$data_pool_type_ids(void* l0);
 int32_t vader_core_bytecode$size_of_bc_type(vader_box_t l0);
 uint8_t vader_core_bytecode$bc_single_result(void* l0);
@@ -9587,6 +9583,7 @@ uint8_t vader_core_bytecode$intrinsic_id_for(vader_string_t l0);
 bool vader_core_bytecode$is_float_val(uint8_t l0);
 int64_t vader_core_bytecode$bc_result_arity(void* l0);
 int32_t vader_core_bytecode$bc_single_result_type(void* l0);
+vader_string_t vader_core_bytecode$library_name(void* l0);
 int32_t vader_core_bytecode$size_of_val_type(uint8_t l0);
 uint8_t vader_core_bytecode$array_kind_from_name(vader_string_t l0);
 vader_box_t vader_core_bytecode$const_op_of(vader_box_t l0);
@@ -9644,6 +9641,13 @@ bool vader_support_opt__report$opt_report_enabled(void);
 bool vader_support_text$is_ident_byte(uint8_t l0);
 bool vader_support_text$module_in_scope(vader_string_t l0, void* l1);
 vader_string_t vader_support_text$sanitise_ident(vader_string_t l0);
+vader_box_t std_fs$write_file_string(vader_string_t l0, vader_string_t l1);
+bool std_fs$exists(vader_string_t l0);
+bool std_fs$is_dir(vader_string_t l0);
+vader_box_t std_fs$read_dir(vader_string_t l0);
+void __defer_std_fs_0(void* l0);
+vader_box_t std_fs$read_file_string(vader_string_t l0, int64_t l1);
+void __defer_std_fs_2(void* l0);
 vader_box_t std_collections$Map$std_core$Index$at__i32__Any(void* l0, int32_t l1);
 void std_collections$Map$std_core$IndexSet$set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2);
 bool std_collections$Map$std_core$Contains$contains__i32__Any(void* l0, int32_t l1);
@@ -9814,6 +9818,7 @@ bool __lambda_vader_emit_c_6(void* l0);
 void* vader_emit_c$find_layout_siblings(void* l0, int32_t l1);
 bool __lambda_vader_emit_c_7(void* l0, void* l1);
 bool __lambda_vader_emit_c_9(void* l0, void* l1);
+vader_string_t vader_emit_c$foreign_unit_of(void* l0);
 bool vader_emit_c$fn_has_direct_alloc(void* l0, void* l1);
 bool __lambda_vader_emit_c_11(void* l0, vader_box_t l1);
 vader_box_t __lambda_vader_emit_c_13(vader_string_t l0);
@@ -9902,7 +9907,7 @@ bool toolchain_ast$decorators_have(void* l0, vader_string_t l1);
 vader_string_t toolchain_ast$c_type_of(void* l0);
 vader_string_t toolchain_ast$c_struct_spelling(void* l0, vader_string_t l1);
 vader_string_t toolchain_ast$extern_symbol_of(void* l0);
-vader_string_t toolchain_ast$extern_header(void* l0, vader_box_t l1);
+void* toolchain_ast$extern_headers(void* l0, vader_box_t l1);
 vader_box_t toolchain_ast$find_decorator(void* l0, vader_string_t l1);
 void* toolchain_ast$body_source(void* l0);
 vader_box_t toolchain_ast$string_literal_text(vader_box_t l0);
@@ -10298,12 +10303,12 @@ void* vader_front_lexer$tokenize_opening(vader_string_t l0, vader_string_t l1, i
 void* vader_front_lexer$tokenize_with_docs(vader_string_t l0, vader_string_t l1);
 void* vader_front_lexer$tokenize(vader_string_t l0, vader_string_t l1);
 vader_string_t vader_front_lexer$kind_name(uint8_t l0);
-uint64_t std_core$string$Hash$hash_vt(vader_string_t l0);
+uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
-vader_box_t vader_fn_tramp_std_io$stderr_is_console$keep(void* env);
-extern vader_fn_t vader_fn_static_std_io$stderr_is_console$keep;
-vader_box_t vader_fn_tramp_std_io$stdout_is_console$keep(void* env);
-extern vader_fn_t vader_fn_static_std_io$stdout_is_console$keep;
+vader_box_t vader_fn_tramp_std_console$stderr_is_console$keep(void* env);
+extern vader_fn_t vader_fn_static_std_console$stderr_is_console$keep;
+vader_box_t vader_fn_tramp_std_console$stdout_is_console$keep(void* env);
+extern vader_fn_t vader_fn_static_std_console$stdout_is_console$keep;
 vader_box_t vader_fn_tramp___lambda_std_path_0(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static___lambda_std_path_0;
 vader_box_t vader_fn_tramp___lambda_std_path_1(void* env, vader_box_t a0);
@@ -10504,8 +10509,6 @@ vader_box_t vader_fn_tramp_vader_front_effects$escapes(void* env, vader_box_t a0
 extern vader_fn_t vader_fn_static_vader_front_effects$escapes;
 vader_box_t vader_fn_tramp___lambda_vader_front_effects_147(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static___lambda_vader_front_effects_147;
-vader_box_t vader_fn_lift___defer_std_io_0(void* env);
-vader_box_t vader_fn_lift___defer_std_io_2(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_0(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_2(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_5(void* env);
@@ -10535,6 +10538,8 @@ vader_box_t vader_fn_lift___lambda_vader_lower_dce_5(void* env, vader_box_t a0, 
 vader_box_t vader_fn_lift___lambda_vader_lower_dce_7(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_lower_ir_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_lower_ir_2(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___defer_std_fs_0(void* env);
+vader_box_t vader_fn_lift___defer_std_fs_2(void* env);
 vader_box_t vader_fn_lift___lambda_vader_emit_c_1(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_emit_c_3(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_front_comptime_0(void* env, vader_box_t a0);
@@ -10575,12 +10580,12 @@ vader_box_t vader_fn_lift___lambda_vader_front_effects_143(void* env, vader_box_
 vader_box_t vader_fn_lift___lambda_vader_front_effects_145(void* env, vader_box_t a0);
 
 /* vtable forwards */
-uint64_t vader_vt_std_core$Hash$hash(vader_box_t recv);
-bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
+uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv);
+bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3273u
+#define VADER_COMPTIME_ATOM_COUNT 3276u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

@@ -2,14 +2,14 @@
 #include "vader.h"
 
 /* Headers named by `@c_header`: they own the prototypes below. */
-#include <stdlib.h>
-#include <mach-o/dyld.h>
 #include <unistd.h>
 #include <dirent.h>
 #include "vader.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <sys/resource.h>
+#include <mach-o/dyld.h>
 
 static inline int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
@@ -37,41 +37,6 @@ static inline void* vader_host_std_core$bytes(vader_string_t a0) {
 
 static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
     return vader_string_hash(a0);
-}
-
-static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
-    const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
-    const char* r = getenv(c0);
-    vader_foreign_depth -= 1;
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(494u, (int64_t) vader_atom_intern(r, strlen(r)));
-    vader_cstr_free_for(a0, c0);
-    return out;
-}
-
-static inline void vader_host_std_runtime_wait$wait_readable(int64_t a0) {
-    vader_scheduler_wait_readable(a0);
-}
-
-static inline bool vader_host_std_runtime_wait$wait_readable_for(int64_t a0, int64_t a1) {
-    return vader_scheduler_wait_readable_for(a0, a1);
-}
-
-static inline uint8_t vader_host_std_target$current_os(void) {
-    return vader_current_os();
-}
-
-static inline uint8_t vader_host_std_target$current_arch(void) {
-    return vader_current_arch();
-}
-
-static inline int32_t vader_host_system_darwin$ns_get_executable_path(void* a0, uint32_t a1) {
-    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
-    uint32_t p1 = a1;
-    vader_foreign_depth += 1;
-    int32_t r = _NSGetExecutablePath((void*) s0.ptr, (void*) &p1);
-    vader_foreign_depth -= 1;
-    return r;
 }
 
 static inline int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -236,8 +201,43 @@ static inline int32_t vader_host_system_posix$sys_getrusage(int32_t a0, void* a1
     return r;
 }
 
+static inline uint8_t vader_host_std_target$current_os(void) {
+    return vader_current_os();
+}
+
+static inline uint8_t vader_host_std_target$current_arch(void) {
+    return vader_current_arch();
+}
+
+static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
+    const char* c0 = vader_string_to_cstr(a0);
+    vader_foreign_depth += 1;
+    const char* r = getenv(c0);
+    vader_foreign_depth -= 1;
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(494u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_cstr_free_for(a0, c0);
+    return out;
+}
+
 static inline void vader_host_std_abort$panic(vader_string_t a0) {
     vader_panic(a0);
+}
+
+static inline void vader_host_std_runtime_wait$wait_readable(int64_t a0) {
+    vader_scheduler_wait_readable(a0);
+}
+
+static inline bool vader_host_std_runtime_wait$wait_readable_for(int64_t a0, int64_t a1) {
+    return vader_scheduler_wait_readable_for(a0, a1);
+}
+
+static inline int32_t vader_host_system_darwin$ns_get_executable_path(void* a0, uint32_t a1) {
+    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
+    uint32_t p1 = a1;
+    vader_foreign_depth += 1;
+    int32_t r = _NSGetExecutablePath((void*) s0.ptr, (void*) &p1);
+    vader_foreign_depth -= 1;
+    return r;
 }
 
 static inline int64_t vader_host_std_runtime$collections(void) {
