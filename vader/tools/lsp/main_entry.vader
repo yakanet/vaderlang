@@ -9,7 +9,7 @@
 module "vader/tools/lsp"
 
 import "cli"
-import "std/io"
+import "std/console"
 // `parse` is qualified for the seed compiler that builds stage1 : it resolves
 // unqualified names per MODULE, where the sibling `main.vader` drops `cli`'s
 // `parse` (`{ parse as _ }`) to keep `json`'s.

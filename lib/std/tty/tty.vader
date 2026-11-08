@@ -20,8 +20,8 @@
 
 module "std/tty"
 
+import "std/console"
 import "std/env"
-import "std/io"
 import "std/string_builder"
 import "system/posix"
 import "system/windows"

@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 StructVal :: struct {
     type_id: i32

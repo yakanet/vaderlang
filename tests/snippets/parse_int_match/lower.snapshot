@@ -5,9 +5,9 @@
       {
           __scrut_0: i32 | ParseError = std.string.parse_int("42")
           if __scrut_0 is i32 {
-              std.io.println<string>("int ok")
+              std.console.println<string>("int ok")
           } else if __scrut_0 is ParseError {
-              std.io.println<string>("int err")
+              std.console.println<string>("int err")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
@@ -15,9 +15,9 @@
       {
           __scrut_1: i32 | ParseError = std.string.parse_int("nope")
           if __scrut_1 is i32 {
-              std.io.println<string>("int ok")
+              std.console.println<string>("int ok")
           } else if __scrut_1 is ParseError {
-              std.io.println<string>("int err")
+              std.console.println<string>("int err")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
@@ -25,9 +25,9 @@
       {
           __scrut_2: f64 | ParseError = std.string.parse_float("3.14")
           if __scrut_2 is f64 {
-              std.io.println<string>("float ok")
+              std.console.println<string>("float ok")
           } else if __scrut_2 is ParseError {
-              std.io.println<string>("float err")
+              std.console.println<string>("float err")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
@@ -35,9 +35,9 @@
       {
           __scrut_3: f64 | ParseError = std.string.parse_float("nope")
           if __scrut_3 is f64 {
-              std.io.println<string>("float ok")
+              std.console.println<string>("float ok")
           } else if __scrut_3 is ParseError {
-              std.io.println<string>("float err")
+              std.console.println<string>("float err")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
@@ -64,6 +64,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const POW5_128: u64[]  data pool #0
     fn std.core.BigInt.div  // std_core$BigInt$Div$div
@@ -92,11 +97,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.DecimalParts  // std_core$DecimalParts
     struct std.core.SlowParts  // std_core$SlowParts
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.parse_float  // std_string$parse_float
     fn std.string.parse_int  // std_string$parse_int

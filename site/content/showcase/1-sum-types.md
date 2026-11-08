@@ -5,7 +5,7 @@ A `Shape` is a circle or a rectangle, and the `match` must handle both: forget o
 ```vader
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/math"
 
 // A sum type: `match` must cover every variant.

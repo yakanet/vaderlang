@@ -213,7 +213,7 @@ end
 
 fn 4 snippet$compute_answer () -> i32
   string.const 0   ; "answer computed"
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   i64.const 1
   call 109   ; std_time$millis
   call 108   ; std_time$sleep
@@ -254,7 +254,7 @@ end
 
 fn 7 snippet$warm () -> i32
   string.const 1   ; "warming"
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   return.lit i32.const 7
 end
 
@@ -321,7 +321,7 @@ fn 11 snippet$main (ref) -> i32
   string.const 2   ; " "
   local.get 5   ; $call_13
   call 23   ; concat_5
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   fn.ref 20 31   ; __lambda_snippet_2 fn
   call 91   ; std_task$launch__string
   local.set 1   ; first
@@ -345,7 +345,7 @@ fn 11 snippet$main (ref) -> i32
   string.const 2   ; " "
   local.get 4   ; $vcall_11
   call 24   ; concat_3
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   fn.ref 5 29   ; snippet$read_answer fn
   call 89   ; std_task$launch__i32
   local.set 1   ; first
@@ -364,7 +364,7 @@ fn 11 snippet$main (ref) -> i32
   string.const 2   ; " "
   local.get 4   ; $vcall_11
   call 24   ; concat_3
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   fn.ref 22 29   ; __lambda_snippet_4 fn
   call 89   ; std_task$launch__i32
   call 99   ; std_task$join__i32
@@ -378,7 +378,7 @@ fn 11 snippet$main (ref) -> i32
   string.const 2   ; " "
   local.get 4   ; $vcall_11
   call 24   ; concat_3
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.const 1
@@ -407,7 +407,7 @@ fn 11 snippet$main (ref) -> i32
       local.get 1   ; first
       local.get 6   ; __off_1
       call 26   ; std_core$finish_buffer
-      call 81   ; std_io$println__string
+      call 81   ; std_console$println__string
       return.lit i32.const 0
     end $L1
     return.lit i32.const 0
@@ -417,12 +417,12 @@ end
 
 fn 12 snippet$config$singleton () -> string
   string.const 4   ; "config starts"
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   i64.const 1
   call 109   ; std_time$millis
   call 108   ; std_time$sleep
   string.const 5   ; "config done"
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   return.lit string.const 6   ; "cfg"
 end
 
@@ -443,12 +443,12 @@ end
 
 fn 14 snippet$pool$singleton () -> string
   string.const 7   ; "pool starts"
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   i64.const 20
   call 109   ; std_time$millis
   call 108   ; std_time$sleep
   string.const 8   ; "pool done"
-  call 81   ; std_io$println__string
+  call 81   ; std_console$println__string
   return.lit string.const 9   ; "pool"
 end
 
@@ -3684,7 +3684,7 @@ fn 77 std_core$remove_value__i64 (ref,i64) -> bool
   return.lit bool.const false
 end
 
-fn 78 std_io$write (u8,string) -> void
+fn 78 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3695,7 +3695,7 @@ fn 78 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 79   ; std_io$write_text
+  call 79   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3726,7 +3726,7 @@ fn 78 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 80   ; std_io$write_bytes
+      call 80   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3746,11 +3746,11 @@ fn 78 std_io$write (u8,string) -> void
   return
 end
 
-fn 79 std_io$write_text (u8,string) -> bool
+fn 79 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 80 std_io$write_bytes (u8,ref,i64) -> i32
+fn 80 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3770,7 +3770,7 @@ fn 80 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 81 std_io$println__string (string) -> void
+fn 81 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 20   ; "\n"
@@ -3778,7 +3778,7 @@ fn 81 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 78   ; std_io$write
+  call 78   ; std_console$write
   return
 end
 

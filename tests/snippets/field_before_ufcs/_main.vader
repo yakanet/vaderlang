@@ -3,7 +3,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Handler :: struct { cb: fn(i32) -> i32 }
 cb :: fn(h: Handler, x: i32) -> i32 = x - 1

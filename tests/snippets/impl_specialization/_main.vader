@@ -8,7 +8,7 @@
 // a trait only one instance implements (`Fancy`) is not the other instances'.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Poke :: trait {
     poke :: fn(self) -> string

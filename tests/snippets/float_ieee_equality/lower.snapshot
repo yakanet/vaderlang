@@ -13,7 +13,7 @@
       u: f64 | string = nz
       w: f64 | string = 0.0
       n: f64 | string = nan
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(34))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "union    : ")
@@ -27,7 +27,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       us: (f64 | string)[] = [w] :(f64 | string)[]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(22))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "in       : ")
@@ -36,8 +36,8 @@
           __off_3 = std.core.write_bool(__buf_2, __off_3, std.core.(f64 | string)[].contains([n] :(f64 | string)[], n))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>(concat_4("match    : ", snippet.pick(u), " ", snippet.pick(n)))
-      std.io.println<string>({
+      std.console.println<string>(concat_4("match    : ", snippet.pick(u), " ", snippet.pick(n)))
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(34))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "generic  : ")
@@ -51,7 +51,7 @@
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       e: Equals = nz
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(16))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "trait    : ")
@@ -59,7 +59,7 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       h: Holder = Holder { .v = nz }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(22))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "nullable : ")
@@ -72,7 +72,7 @@
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       t: [f64, i32] = [nz, 1] :[f64, i32]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(16))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "tuple    : ")
@@ -112,6 +112,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.(f64 | string)[].contains  // std_core$$array$Contains$contains__f64___string
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
@@ -136,11 +141,6 @@
     fn std_core$u64$Equals$equals$guard
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

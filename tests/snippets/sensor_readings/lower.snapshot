@@ -40,7 +40,7 @@
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
       readings: u8[] = [u8(12), u8(250), u8(7)] :u8[]
       stamp: u32 = 4000000000
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(55))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "total ")
@@ -49,7 +49,7 @@
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.offset(readings[1], 300))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(48))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "louder ")
@@ -59,7 +59,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       r: Reading = Reading { .level = readings[2], .at = stamp }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(52))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "reading ")
@@ -69,21 +69,21 @@
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       slot: i64 = stamp
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(25))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "slot ")
           __off_7 = std.core.write_int(__buf_6, __off_7, slot + @array.len(readings))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(29))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "quietest ")
           __off_9 = std.core.write_int(__buf_8, __off_9, std.math.min(readings[0], readings[2]))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(54))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "later ")
@@ -101,7 +101,7 @@
           since = __destr_el_13
           level = __destr_el_14
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_15: Buffer = std.core.new_byte_buffer(i64(48))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "window ")
@@ -112,7 +112,7 @@
       } :string)
       seen: i64 | null = snippet.last_seen(readings)
       if seen is i64 {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_17: Buffer = std.core.new_byte_buffer(i64(25))
               __off_18: i64 = 0
               __off_18 = std.core.write_string_at(__buf_17, __off_18, "last ")
@@ -136,6 +136,11 @@
   vtable std.core.Add.add for Tally  snippet.Tally.add  // snippet$Tally$std_core$Add$add
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -146,11 +151,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/math
     fn std.math.min  // std_math$min_2
   system/posix

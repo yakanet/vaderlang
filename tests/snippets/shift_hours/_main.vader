@@ -6,7 +6,7 @@
 // another instance, unchecked. The last shift ends past 23 and stops the run.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 Hour  :: Int in 0..=23

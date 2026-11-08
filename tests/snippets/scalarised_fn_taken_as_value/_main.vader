@@ -13,7 +13,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 pair :: fn(x: i32) -> [i32, i32] = [x, x + 1]
 

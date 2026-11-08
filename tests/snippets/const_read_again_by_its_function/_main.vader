@@ -5,7 +5,7 @@
 // again: `tests/const_read_again.test.ts` runs that case on both backends.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 CACHED :: build(false)
 

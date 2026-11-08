@@ -28,7 +28,7 @@ function stagedDir(): string {
 // Prints `says`, then each argument on a line, a line on stderr, and exits with
 // `code`.
 function program(says: string, code: number): string {
-  return `module "main"\n\nimport "std/io"\n\n`
+  return `module "main"\n\nimport "std/console"\n\n`
     + `main :: fn(argv: string[]) -> i32 {\n    println("${says}")\n`
     + `    for i in 1..<argv.len() {\n        println(argv[i])\n    }\n`
     + `    eprintln("${says} on stderr")\n    return ${code}\n}\n`;

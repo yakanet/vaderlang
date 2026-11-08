@@ -13,7 +13,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 LINE   :: "the quick brown fox jumps over the lazy dog\n"
 REPS   :: 40_000

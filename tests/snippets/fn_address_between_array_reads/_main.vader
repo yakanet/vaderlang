@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 twice :: fn(x: i32) -> i32 = x * 2
 

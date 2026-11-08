@@ -8,7 +8,7 @@
 
 module "app"
 
-import "std/io"
+import "std/console"
 
 Address :: struct {
     city: string

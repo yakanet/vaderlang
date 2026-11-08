@@ -40,13 +40,13 @@ type 37 union 24,26
 type 38 union 24,0
 type 39 union 0,1
 type 40 array 29
-type 41 struct std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString { ekeys:46,evals:49,index:43,mask:7,grow_at:7,size:7,tombs:7 }
-type 42 array 8
-type 43 array 3
+type 41 struct std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString { ekeys:46,evals:49,index:42,mask:7,grow_at:7,size:7,tombs:7 }
+type 42 array 3
+type 43 array 8
 type 44 union 5,45
 type 45 struct std_string$ParseError { msg:1 }
 type 46 array 1
-type 47 struct std_collections$Map__string__Any { ekeys:46,evals:49,index:43,mask:7,grow_at:7,size:7,tombs:7 }
+type 47 struct std_collections$Map__string__Any { ekeys:46,evals:49,index:42,mask:7,grow_at:7,size:7,tombs:7 }
 type 48 ref _
 type 49 array 48
 type 50 array 25
@@ -171,7 +171,7 @@ fn 0 snippet$show (string,string) -> void
     string.const 0   ; ": error: "
     local.get 3   ; $field_7
     call 2   ; concat_3
-    call 55   ; std_io$println__string
+    call 55   ; std_console$println__string
     return
   end $L0
   local.get 2   ; parsed
@@ -182,7 +182,7 @@ fn 0 snippet$show (string,string) -> void
   string.const 1   ; ": "
   local.get 3   ; $field_7
   call 2   ; concat_3
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   return
 end
 
@@ -1746,7 +1746,7 @@ fn 15 std_core$pf_product (i32,u64) -> (u64,u64)
   i32.checked_mul
   i32.to_i64
   local.set 3   ; idx
-  data.const 0 42   ; pool[0] u64[]
+  data.const 0 43   ; pool[0] u64[]
   local.get 3   ; idx
   load_slot_i64
   local.set 4   ; $idx_9
@@ -1761,7 +1761,7 @@ fn 15 std_core$pf_product (i32,u64) -> (u64,u64)
   i64.const 511
   i64.eq
   if $L0 void
-    data.const 0 42   ; pool[0] u64[]
+    data.const 0 43   ; pool[0] u64[]
     local.set 6   ; $data_const_22
     local.get 3   ; idx
     i64.const 1
@@ -3548,11 +3548,11 @@ fn 35 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 42   ; pool[1] u64[]
+    data.const 1 43   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 42   ; pool[1] u64[]
+    data.const 1 43   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -3662,11 +3662,11 @@ fn 35 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 2 42   ; pool[2] u64[]
+    data.const 2 43   ; pool[2] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 2 42   ; pool[2] u64[]
+    data.const 2 43   ; pool[2] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -4770,7 +4770,7 @@ fn 51 std_core$insert_point (ref,i64,i32,i32) -> i64
   return
 end
 
-fn 52 std_io$write (u8,string) -> void
+fn 52 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -4781,7 +4781,7 @@ fn 52 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 53   ; std_io$write_text
+  call 53   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -4812,7 +4812,7 @@ fn 52 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 54   ; std_io$write_bytes
+      call 54   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -4832,11 +4832,11 @@ fn 52 std_io$write (u8,string) -> void
   return
 end
 
-fn 53 std_io$write_text (u8,string) -> bool
+fn 53 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 54 std_io$write_bytes (u8,ref,i64) -> i32
+fn 54 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -4856,7 +4856,7 @@ fn 54 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 55 std_io$println__string (string) -> void
+fn 55 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 35   ; "\n"
@@ -4864,7 +4864,7 @@ fn 55 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 52   ; std_io$write
+  call 52   ; std_console$write
   return
 end
 
@@ -5351,7 +5351,7 @@ fn 65 json$parse_object (ref,i32) -> any
   local.set 3   ; $arr_7
   array.new 49 0   ; ref[]
   local.set 4   ; $arr_8
-  array.new 43 0   ; i32[]
+  array.new 42 0   ; i32[]
   local.set 5   ; $arr_9
   local.get 3   ; $arr_7
   local.get 4   ; $arr_8
@@ -7339,7 +7339,7 @@ fn 101 std_collections$rehash__string__Any (ref,i64) -> void
     local.set 2   ; if_res
   end $L0
   local.get 2   ; if_res
-  array.reserve 43   ; i32[]
+  array.reserve 42   ; i32[]
   local.set 3   ; fresh
   i64.const 0
   local.set 2   ; if_res

@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 countdown :: fn(n: i32) -> Iterator<i32> {
     if n > 0 {

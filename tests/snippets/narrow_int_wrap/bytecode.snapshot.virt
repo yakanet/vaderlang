@@ -140,7 +140,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 35
   buffer.new
   local.set 3   ; __buf_0
@@ -166,7 +166,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 32
   buffer.new
   local.set 3   ; __buf_0
@@ -192,7 +192,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 30
   buffer.new
   local.set 3   ; __buf_0
@@ -218,7 +218,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 35
   buffer.new
   local.set 3   ; __buf_0
@@ -243,7 +243,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 1   ; a
   local.get 2   ; b
   i32.add
@@ -259,7 +259,7 @@ fn 1 snippet$main (ref) -> i32
     local.set 6   ; if_res
   end $L0
   local.get 6   ; if_res
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i32.const 200
   local.tee 7   ; c
   i32.const 100
@@ -288,7 +288,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 30
   buffer.new
   local.set 3   ; __buf_0
@@ -312,7 +312,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.const 126
@@ -354,7 +354,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 33
   buffer.new
   local.set 3   ; __buf_0
@@ -394,7 +394,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 8   ; s
   i32.const 1
   i32.add
@@ -446,7 +446,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.const 65534
@@ -480,7 +480,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 0   ; arg 0
   array.len
   i64.to_i32
@@ -512,7 +512,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 29
   buffer.new
   local.set 3   ; __buf_0
@@ -537,7 +537,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 29
   buffer.new
   local.set 3   ; __buf_0
@@ -566,7 +566,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 30
   buffer.new
   local.set 3   ; __buf_0
@@ -593,7 +593,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 30
   buffer.new
   local.set 3   ; __buf_0
@@ -624,7 +624,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 12   ; n
   i32.to_i64
   i64.const 4294967296
@@ -652,7 +652,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 9   ; $cast_110
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 31
   buffer.new
   local.set 3   ; __buf_0
@@ -677,7 +677,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 9   ; $cast_110
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 30
   buffer.new
   local.set 3   ; __buf_0
@@ -711,7 +711,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   i64.const 31
   buffer.new
   local.set 3   ; __buf_0
@@ -745,7 +745,7 @@ fn 1 snippet$main (ref) -> i32
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   local.get 12   ; n
   i32.to_i32
   i32.const 255
@@ -760,7 +760,7 @@ fn 1 snippet$main (ref) -> i32
     local.set 6   ; if_res
   end $L1
   local.get 6   ; if_res
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   array.new 22 0   ; union[]
   local.set 3   ; __buf_0
   local.get 12   ; n
@@ -780,7 +780,7 @@ fn 1 snippet$main (ref) -> i32
   string.const 24   ; "cast in a union: "
   local.get 6   ; if_res
   call 2   ; concat_2
-  call 55   ; std_io$println__string
+  call 55   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -3786,7 +3786,7 @@ fn 51 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 52 std_io$write (u8,string) -> void
+fn 52 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3797,7 +3797,7 @@ fn 52 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 53   ; std_io$write_text
+  call 53   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3828,7 +3828,7 @@ fn 52 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 54   ; std_io$write_bytes
+      call 54   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3848,11 +3848,11 @@ fn 52 std_io$write (u8,string) -> void
   return
 end
 
-fn 53 std_io$write_text (u8,string) -> bool
+fn 53 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 54 std_io$write_bytes (u8,ref,i64) -> i32
+fn 54 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3872,7 +3872,7 @@ fn 54 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 55 std_io$println__string (string) -> void
+fn 55 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 34   ; "\n"
@@ -3880,6 +3880,6 @@ fn 55 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 52   ; std_io$write
+  call 52   ; std_console$write
   return
 end

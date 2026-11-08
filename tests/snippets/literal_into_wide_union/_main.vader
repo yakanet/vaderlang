@@ -4,7 +4,7 @@
 // an argument.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 describe :: fn(v: i64 | null) -> string {
     if v is i64 {

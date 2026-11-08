@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Cell :: i32 | string
 Mixed :: f64 | bool | char | string

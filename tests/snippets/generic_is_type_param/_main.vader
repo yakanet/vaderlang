@@ -6,7 +6,7 @@
 // parameters appear in.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Circle :: struct {
     r: i32

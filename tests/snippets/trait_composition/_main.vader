@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Pure alias: Numeric requires Add, Sub, Mul (no own methods).
 @allow_unused

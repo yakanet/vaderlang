@@ -106,8 +106,8 @@
               }
           }
       }
-      std.io.println<string>(concat_2("taken ", std.string.join(taken, " ")))
-      std.io.println<string>({
+      std.console.println<string>(concat_2("taken ", std.string.join(taken, " ")))
+      std.console.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(53))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "done ")
@@ -116,8 +116,8 @@
           __off_8 = std.core.write_int(__buf_7, __off_8, total)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
-      std.io.println<string>(std.task.locked<string[], string>(pipes.log, __lambda_snippet_7))
-      std.io.println<string>(concat_2("after close: ", @vcall(std.core.Display.to_string, std.task.receive<i64>(pipes.jobs))))
+      std.console.println<string>(std.task.locked<string[], string>(pipes.log, __lambda_snippet_7))
+      std.console.println<string>(concat_2("after close: ", @vcall(std.core.Display.to_string, std.task.receive<i64>(pipes.jobs))))
       return 0
   }
   __lambda_env_snippet_1 :: struct { cap_0: string, cap_1: i64 }
@@ -164,6 +164,11 @@
     fn std.collections.remove_first<i64>  // std_collections$remove_first__i64
     fn std.collections.ring_index  // std_collections$ring_index
     struct std.collections.Queue<i64>  // std_collections$Queue__i64
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -232,11 +237,6 @@
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

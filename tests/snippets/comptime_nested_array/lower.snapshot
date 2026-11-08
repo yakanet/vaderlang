@@ -86,9 +86,9 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(snippet.show(snippet.CARD.weights))
-      std.io.println<string>(snippet.kind(snippet.CARD.weights))
-      std.io.println<string>({
+      std.console.println<string>(snippet.show(snippet.CARD.weights))
+      std.console.println<string>(snippet.kind(snippet.CARD.weights))
+      std.console.println<string>({
           __p_0: i64 = @array.len(snippet.CARD.rows)
           __p_1: string = snippet.show(snippet.CARD.rows[2])
           __buf_2: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_1))
@@ -99,9 +99,9 @@
           __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>(snippet.kind(snippet.CARD.either))
-      std.io.println<string>(snippet.show(snippet.CARD.either))
-      std.io.println<string>({
+      std.console.println<string>(snippet.kind(snippet.CARD.either))
+      std.console.println<string>(snippet.show(snippet.CARD.either))
+      std.console.println<string>({
           __p_4: i64 = @array.len(snippet.GRID)
           __p_5: string = snippet.show(snippet.GRID[1])
           __buf_6: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_5))
@@ -119,9 +119,9 @@
           for __for_i_10 < __for_len_9 {
               m: i32[] | string = __for_arr_8[__for_i_10]
               if m is string {
-                  std.io.println<string>(string(m))
+                  std.console.println<string>(string(m))
               } else {
-                  std.io.println<string>(snippet.show(i32[](m)))
+                  std.console.println<string>(snippet.show(i32[](m)))
               }
           } @step {
               __for_i_10 = __for_i_10 +% i64(1)
@@ -139,6 +139,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #3
     const DOUBLE_POW5_SPLIT: u64[]  data pool #4
@@ -206,11 +211,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

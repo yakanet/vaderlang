@@ -7,7 +7,7 @@
 // `starts` and `alias` build `START` again, through `STARTS` and `ALIAS`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Counter :: struct {
     n: i32

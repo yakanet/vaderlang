@@ -19,6 +19,7 @@ module "engine"
 
 import "images/ppm"
 import "std/abort"
+import "std/fs"
 import "std/io"
 import "std/iter"
 import "std/math"

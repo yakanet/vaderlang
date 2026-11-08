@@ -234,7 +234,7 @@ fn 0 snippet$indexed_continue () -> void
   string.const 3   ; " |"
   local.get 9   ; $call_33
   call 21   ; concat_4
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -374,7 +374,7 @@ fn 1 snippet$take_continue () -> void
   local.get 1   ; __fuse_arr_0
   local.get 2   ; n
   call 22   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -537,7 +537,7 @@ fn 3 snippet$two_yields_continue () -> void
   string.const 3   ; " |"
   local.get 6   ; $call_18
   call 21   ; concat_4
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -804,7 +804,7 @@ fn 5 snippet$loopless_generator_continue () -> void
   string.const 3   ; " |"
   local.get 7   ; $call_23
   call 21   ; concat_4
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -963,7 +963,7 @@ fn 6 snippet$take_continue_outer () -> void
   local.get 1   ; __fuse_arr_3
   local.get 2   ; n
   call 22   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -1088,7 +1088,7 @@ fn 7 snippet$chars_indexed_continue () -> void
   local.get 1   ; __fuse_iter_1
   local.get 2   ; i
   call 22   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -1285,7 +1285,7 @@ fn 10 snippet$stage_continue_over_take () -> void
   string.const 3   ; " |"
   local.get 11   ; $call_38
   call 21   ; concat_4
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -1483,7 +1483,7 @@ fn 12 snippet$coalesce_continue () -> void
   string.const 3   ; " |"
   local.get 12   ; $call_40
   call 21   ; concat_4
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -1624,7 +1624,7 @@ fn 13 snippet$flat_map_continue () -> void
   local.get 1   ; __fuse_arr_0
   local.get 2   ; __fuse_len_1
   call 22   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -1788,7 +1788,7 @@ fn 14 snippet$chain_continue () -> void
   local.get 1   ; __fuse_arr_0
   local.get 3   ; __fuse_len_2
   call 22   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -2061,7 +2061,7 @@ fn 15 snippet$chain_continue_by_name () -> void
   local.get 1   ; __fuse_arr_3
   local.get 3   ; __fuse_len_5
   call 22   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return
 end
 
@@ -3086,7 +3086,7 @@ fn 28 std_core$is_utf8_continuation (u8) -> bool
   return
 end
 
-fn 29 std_io$write (u8,string) -> void
+fn 29 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3097,7 +3097,7 @@ fn 29 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 30   ; std_io$write_text
+  call 30   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3128,7 +3128,7 @@ fn 29 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 31   ; std_io$write_bytes
+      call 31   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3148,11 +3148,11 @@ fn 29 std_io$write (u8,string) -> void
   return
 end
 
-fn 30 std_io$write_text (u8,string) -> bool
+fn 30 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 31 std_io$write_bytes (u8,ref,i64) -> i32
+fn 31 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3172,7 +3172,7 @@ fn 31 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 32 std_io$println__string (string) -> void
+fn 32 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 17   ; "\n"
@@ -3180,7 +3180,7 @@ fn 32 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 29   ; std_io$write
+  call 29   ; std_console$write
   return
 end
 

@@ -8,7 +8,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 is_odd :: fn(x: i32) -> bool = x % 2 == 1

@@ -6,7 +6,7 @@
 // arguments differ in size (1 and 8), so each copy shows which one it got.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Pair :: struct<K, V> {
     key:   K

@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 Rec :: struct { name: string, value: i32 }

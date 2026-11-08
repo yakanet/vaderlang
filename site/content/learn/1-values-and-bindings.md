@@ -8,7 +8,7 @@ A name is bound with `::` when it never changes and with `:=` when it does. Type
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     name :: "Vader"
     count := 0
@@ -31,7 +31,7 @@ A type goes after the name: `name: T: value` binds for good, `name: T = value` m
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     small: u8: 200
     big: i64 = 3_000_000_000
@@ -54,7 +54,7 @@ Integers are written in decimal, hexadecimal, binary or octal, with `_` between 
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     println("${0xFF} ${0b1010} ${0o17} ${1_000_000}")
     println("${7 / 2} ${7 % 2} ${7.0 / 2.0}")
@@ -77,7 +77,7 @@ A conversion is written as a call to the type, `i64(x)`. The rules: §3 *Literal
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     who :: "world"
     println("Hello, $who!")
@@ -108,7 +108,7 @@ A `char` holds one code point, written between single quotes. Next to an integer
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/string"
 # main :: fn() -> i32 {
     letter :: 'A'
@@ -135,7 +135,7 @@ At the top of a file, `::` declares a constant. The order does not matter: a con
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 GREETING :: "Hello from ${NAME}"
 NAME :: "Vader"
 # main :: fn() -> i32 {

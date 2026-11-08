@@ -20,7 +20,7 @@
           i: for i < 5 {
               rounds = rounds + 1
               if rounds > 20 {
-                  std.io.println<string>("range: runaway")
+                  std.console.println<string>("range: runaway")
                   break
               }
               if i == 1 {
@@ -29,7 +29,7 @@
               if i == 3 {
                   break i
               }
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
                   __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "range ")
@@ -54,7 +54,7 @@
                   x: i32 = snippet.inc(x)
                   rounds = rounds + 1
                   if rounds > 20 {
-                      std.io.println<string>("chain: runaway")
+                      std.console.println<string>("chain: runaway")
                       break
                   }
                   if x == 2 {
@@ -63,7 +63,7 @@
                   if x == 4 {
                       break $leave7
                   }
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_1: i64 = 0
                       __off_1 = std.core.write_string_at(__buf_0, __off_1, "chain ")
@@ -84,7 +84,7 @@
           for i < 6 {
               rounds = rounds + 1
               if rounds > 20 {
-                  std.io.println<string>("argument: runaway")
+                  std.console.println<string>("argument: runaway")
                   break
               }
               total = total + snippet.id({
@@ -100,7 +100,7 @@
               i = i +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(35))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "argument total ")
@@ -118,7 +118,7 @@
               x: i32 = __for_arr_0[__for_i_2]
               rounds = rounds + 1
               if rounds > 20 {
-                  std.io.println<string>("match: runaway")
+                  std.console.println<string>("match: runaway")
                   break
               }
               {
@@ -131,7 +131,7 @@
                       {}
                   }
               }
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_4: Buffer = std.core.new_byte_buffer(i64(26))
                   __off_5: i64 = 0
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, "match ")
@@ -152,13 +152,13 @@
               x: i32 = snippet.inc(x)
               rounds = rounds + 1
               if rounds > 20 {
-                  std.io.println<string>("fused range: runaway")
+                  std.console.println<string>("fused range: runaway")
                   break
               }
               if (x % 2) == 0 {
                   continue
               }
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_0: Buffer = std.core.new_byte_buffer(i64(32))
                   __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "fused range ")
@@ -180,13 +180,13 @@
                   for j < 3 {
                       rounds = rounds + 1
                       if rounds > 20 {
-                          std.io.println<string>("outer: runaway")
+                          std.console.println<string>("outer: runaway")
                           break i
                       }
                       if j == 1 {
                           continue i
                       }
-                      std.io.println<string>({
+                      std.console.println<string>({
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(47))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, "outer ")
@@ -223,7 +223,7 @@
                       if r == 2 {
                           continue outer
                       }
-                      std.io.println<string>({
+                      std.console.println<string>({
                           __buf_6: Buffer = std.core.new_byte_buffer(i64(50))
                           __off_7: i64 = 0
                           __off_7 = std.core.write_string_at(__buf_6, __off_7, "labelled ")
@@ -252,7 +252,7 @@
                       continue
                   }
               }
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(25))
                   __off_2: i64 = 0
                   __off_2 = std.core.write_string_at(__buf_1, __off_2, "body ")
@@ -282,7 +282,7 @@
                   break
               } else {
                   x: i32 = i32(__step_1)
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_2: Buffer = std.core.new_byte_buffer(i64(30))
                       __off_3: i64 = 0
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, "generator ")
@@ -307,7 +307,7 @@
   }
   __defer_env_snippet_1 :: struct { cap_0: i32 }
   __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "defer ")
@@ -364,6 +364,11 @@
   vtable std.core.Iterator.next for $genstate_evens  snippet$$genstate_evens$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -375,11 +380,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

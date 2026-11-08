@@ -17,14 +17,14 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       r: Repeat<i32> = Repeat<i32> { .value = 7, .remaining = 3 }
       o: Once<i32> = Once<i32> { .value = 100, .yielded = false }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "repeat=")
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.walk(r))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(25))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "once=")
@@ -62,6 +62,11 @@
   vtable std.core.Iterator.next for Repeat<i32>  snippet.Repeat<i32>.next  // snippet$Repeat$std_core$Iterator$next__i32
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -73,11 +78,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

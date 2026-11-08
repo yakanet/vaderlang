@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // `x := []` has no element type of its own: the first `x.push(v)` widens the
 // binding retroactively. The `[]` LITERAL has to be widened with it: the

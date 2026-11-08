@@ -2,7 +2,7 @@
 // keeps the one its own body gives it.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Shape :: trait {
     area :: fn(self) -> i32

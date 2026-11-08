@@ -14,7 +14,7 @@
       mid: __lambda_env_snippet_9 = __lambda_env_snippet_9 { .cap_0 = n, .cap_1 = step }
       __lambda_snippet_8(mid)
       __lambda_snippet_8(mid)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(22))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "n=")
@@ -36,22 +36,22 @@
   }
   __lambda_env_snippet_3 :: struct { cap_0: string }
   __lambda_snippet_2 :: fn(__env_0: __lambda_env_snippet_3) -> void {
-      std.io.println<string>(concat_2("inner sees ", __env_0.cap_0))
+      std.console.println<string>(concat_2("inner sees ", __env_0.cap_0))
   }
   __lambda_env_snippet_1 :: struct { cap_0: string }
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> void {
       inner: __lambda_env_snippet_3 = __lambda_env_snippet_3 { .cap_0 = __env_0.cap_0 }
       __lambda_snippet_2(inner)
-      std.io.println<string>("mid ran")
+      std.console.println<string>("mid ran")
   }
   __defer_env_snippet_7 :: struct { cap_0: string }
   __defer_snippet_6 :: fn(__env_0: __defer_env_snippet_7) -> void {
-      std.io.println<string>(concat_2("deferred sees ", __env_0.cap_0))
+      std.console.println<string>(concat_2("deferred sees ", __env_0.cap_0))
   }
   __lambda_env_snippet_5 :: struct { cap_0: string }
   __lambda_snippet_4 :: fn(__env_0: __lambda_env_snippet_5) -> void {
       @defer_push(@closure(__defer_snippet_6, __defer_env_snippet_7 { .cap_0 = __env_0.cap_0 }))
-      std.io.println<string>("body ran")
+      std.console.println<string>("body ran")
       @defer_run(1)
   }
   __lambda_env_snippet_11 :: struct { cap_0: ?, cap_1: i32 }
@@ -66,7 +66,7 @@
   }
   __defer_env_snippet_15 :: struct { cap_0: ? }
   __defer_snippet_14 :: fn(__env_0: __defer_env_snippet_15) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred sees n=")
@@ -90,6 +90,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -100,11 +105,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

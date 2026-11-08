@@ -13,6 +13,7 @@
 
 module "vader/tools/lsp/protocol"
 
+import "std/console"
 import "std/io"
 import "std/string"
 import "std/string_builder"

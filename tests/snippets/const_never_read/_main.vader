@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Consts nothing reads, baked into the data pool : a struct, an array of structs, a
 // nested array, a struct holding a struct. The bytecode prune drops their entries

@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 add_u8 :: fn(a: u8, b: u8) -> u8 = a +% b
 

@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 continue_outer :: fn() -> void {
     for v in 0..<2 {

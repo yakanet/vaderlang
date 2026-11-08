@@ -4,7 +4,7 @@
 // after an operand is a subtraction (`a -5`).
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/math"
 
 LEAST: i8: -128

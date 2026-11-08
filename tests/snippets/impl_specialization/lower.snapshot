@@ -16,14 +16,14 @@
       m: MonType = MonType { .n = 7 }
       o: Other = Other { .s = "o" }
       wm: Wrapper<MonType> = Wrapper<MonType> { .inner = m }
-      std.io.println<string>(concat_7(snippet.Wrapper<MonType>.poke(wm), " ", snippet.Wrapper<Any>.poke(snippet.wrap<Any>(o)), " ", snippet.Wrapper<i32>.poke(snippet.wrap<i32>(3)), " ", snippet.Wrapper<string>.poke(snippet.wrap<string>("s"))))
-      std.io.println<string>(concat_9(snippet.show(wm), " ", snippet.show(snippet.wrap<Any>(o)), " ", snippet.relay<MonType>(m), " ", snippet.relay<Other>(o), " ", snippet.relay<i32>(4)))
-      std.io.println<string>(concat_7(snippet.bounded<Wrapper<MonType>>(wm), " ", snippet.bounded<Wrapper<Other>>(snippet.wrap<Any>(o)), " ", snippet.both<Wrapper<MonType>>(wm), " ", snippet.both<Wrapper<i32>>(snippet.wrap<i32>(5))))
+      std.console.println<string>(concat_7(snippet.Wrapper<MonType>.poke(wm), " ", snippet.Wrapper<Any>.poke(snippet.wrap<Any>(o)), " ", snippet.Wrapper<i32>.poke(snippet.wrap<i32>(3)), " ", snippet.Wrapper<string>.poke(snippet.wrap<string>("s"))))
+      std.console.println<string>(concat_9(snippet.show(wm), " ", snippet.show(snippet.wrap<Any>(o)), " ", snippet.relay<MonType>(m), " ", snippet.relay<Other>(o), " ", snippet.relay<i32>(4)))
+      std.console.println<string>(concat_7(snippet.bounded<Wrapper<MonType>>(wm), " ", snippet.bounded<Wrapper<Other>>(snippet.wrap<Any>(o)), " ", snippet.both<Wrapper<MonType>>(wm), " ", snippet.both<Wrapper<i32>>(snippet.wrap<i32>(5))))
       ms: MonType[] = [m] :MonType[]
       os: Other[] = [o, o] :Other[]
-      std.io.println<string>(concat_7(snippet.MonType[].poke(ms), " ", snippet.Other[].poke(os), " ", snippet.MonType[].poke(snippet.pair<MonType>(m)), " ", snippet.Other[].poke(snippet.pair<Other>(o))))
-      std.io.println<string>(concat_7(snippet.show(ms), " ", snippet.show(os), " ", snippet.bounded<MonType[]>(ms), " ", snippet.bounded<Other[]>(os)))
-      std.io.println<string>(concat_3(snippet.fancy_or_plain(wm), " ", snippet.fancy_or_plain(snippet.wrap<Any>(o))))
+      std.console.println<string>(concat_7(snippet.MonType[].poke(ms), " ", snippet.Other[].poke(os), " ", snippet.MonType[].poke(snippet.pair<MonType>(m)), " ", snippet.Other[].poke(snippet.pair<Other>(o))))
+      std.console.println<string>(concat_7(snippet.show(ms), " ", snippet.show(os), " ", snippet.bounded<MonType[]>(ms), " ", snippet.bounded<Other[]>(os)))
+      std.console.println<string>(concat_3(snippet.fancy_or_plain(wm), " ", snippet.fancy_or_plain(snippet.wrap<Any>(o))))
       return 0
   }
   snippet.Wrapper<MonType> :: struct { inner: MonType }  // snippet$Wrapper__snippet_MonType
@@ -210,6 +210,11 @@
   vtable snippet.Tag.tag for Wrapper<string>  snippet.Wrapper<string>.tag  // snippet$Wrapper$Tag$tag__string
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -220,11 +225,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

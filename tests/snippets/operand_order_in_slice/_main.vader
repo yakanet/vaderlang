@@ -5,7 +5,7 @@
 module "snippet"
 
 import "std/collections"
-import "std/io"
+import "std/console"
 
 say :: fn(label: string, value: i32) -> i32 {
     println(label)

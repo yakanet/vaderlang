@@ -6,7 +6,7 @@
 // at runtime.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Source :: trait<T> {
     pull :: fn(self) -> T

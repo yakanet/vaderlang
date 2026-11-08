@@ -191,7 +191,7 @@ fn 6 snippet$main () -> i32
   local.get 0   ; $fn_ref_1
   local.get 2   ; __off_1
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   i64.const 28
   buffer.new
   local.set 0   ; $fn_ref_1
@@ -216,7 +216,7 @@ fn 6 snippet$main () -> i32
   local.get 0   ; $fn_ref_1
   local.get 2   ; __off_1
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   i64.const 25
   buffer.new
   local.set 0   ; $fn_ref_1
@@ -240,7 +240,7 @@ fn 6 snippet$main () -> i32
   local.get 0   ; $fn_ref_1
   local.get 2   ; __off_1
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   fn.ref 10 20   ; __lambda_snippet_4 fn
   local.set 0   ; $fn_ref_1
   string.const 5   ; "ok"
@@ -251,7 +251,7 @@ fn 6 snippet$main () -> i32
   string.const 4   ; "pressed "
   local.get 4   ; $call_49
   call 16   ; concat_2
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   string.const 6   ; "idle"
   null.const
   struct.new 7   ; snippet$Button
@@ -260,7 +260,7 @@ fn 6 snippet$main () -> i32
   string.const 4   ; "pressed "
   local.get 4   ; $call_49
   call 16   ; concat_2
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   string.const 7   ; "a"
   string.const 8   ; "b"
   array.new 16 2   ; string[]
@@ -273,12 +273,12 @@ fn 6 snippet$main () -> i32
   fn.ref 12 10   ; __lambda_snippet_6 fn
   i64.const 7
   call 4   ; snippet$describe
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   string.const 9   ; "fixed"
   retag 8   ; string
   i64.const 7
   call 4   ; snippet$describe
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   i32.const 1
   struct.new 12   ; snippet$Gauge
   struct.new 15   ; __method_env_snippet_8
@@ -300,7 +300,7 @@ fn 6 snippet$main () -> i32
   string.const 10   ; "raised "
   local.get 4   ; $call_49
   call 16   ; concat_2
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -342,7 +342,7 @@ fn 8 __lambda_snippet_2 (i32) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 17   ; std_core$finish_buffer
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   return
 end
 
@@ -364,7 +364,7 @@ fn 11 __lambda_snippet_5 (string) -> void
   string.const 13   ; "item "
   local.get 0   ; arg 0
   call 16   ; concat_2
-  call 44   ; std_io$println__string
+  call 44   ; std_console$println__string
   return
 end
 
@@ -2214,7 +2214,7 @@ fn 40 std_core$insert_point (ref,i64,i32,i32) -> i64
   return
 end
 
-fn 41 std_io$write (u8,string) -> void
+fn 41 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -2225,7 +2225,7 @@ fn 41 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 42   ; std_io$write_text
+  call 42   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -2256,7 +2256,7 @@ fn 41 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 43   ; std_io$write_bytes
+      call 43   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2276,11 +2276,11 @@ fn 41 std_io$write (u8,string) -> void
   return
 end
 
-fn 42 std_io$write_text (u8,string) -> bool
+fn 42 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 43 std_io$write_bytes (u8,ref,i64) -> i32
+fn 43 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2300,7 +2300,7 @@ fn 43 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 44 std_io$println__string (string) -> void
+fn 44 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 20   ; "\n"
@@ -2308,6 +2308,6 @@ fn 44 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 41   ; std_io$write
+  call 41   ; std_console$write
   return
 end

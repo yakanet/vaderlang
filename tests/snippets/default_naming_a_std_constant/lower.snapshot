@@ -2,16 +2,16 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      path: string = concat_2(std.io.temp_dir(), "/vader_default_naming_a_std_constant")
-      wrote: IOError | null = std.io.write_file_string(path, "0123456789")
+      path: string = concat_2(std.env.temp_dir(), "/vader_default_naming_a_std_constant")
+      wrote: IOError | null = std.fs.write_file_string(path, "0123456789")
       if wrote is IOError {
-          std.io.println<string>(concat_2("setup failed: ", IOError(wrote).msg))
+          std.console.println<string>(concat_2("setup failed: ", IOError(wrote).msg))
           return 1
       }
       @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 { .cap_0 = path }))
-      bare: IOError | string = std.io.read_file_string(path, i64(16777216))
+      bare: IOError | string = std.fs.read_file_string(path, i64(16777216))
       if bare is string {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_1: Buffer = std.core.new_byte_buffer(i64(26))
               __off_2: i64 = 0
               __off_2 = std.core.write_string_at(__buf_1, __off_2, "bare: ")
@@ -19,9 +19,9 @@
               std.core.finish_buffer(__buf_1, __off_2)
           } :string)
       }
-      ufcs: IOError | string = std.io.read_file_string(path, i64(16777216))
+      ufcs: IOError | string = std.fs.read_file_string(path, i64(16777216))
       if ufcs is string {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_3: Buffer = std.core.new_byte_buffer(i64(26))
               __off_4: i64 = 0
               __off_4 = std.core.write_string_at(__buf_3, __off_4, "ufcs: ")
@@ -29,9 +29,9 @@
               std.core.finish_buffer(__buf_3, __off_4)
           } :string)
       }
-      explicit: IOError | string = std.io.read_file_string(path, i64(4))
+      explicit: IOError | string = std.fs.read_file_string(path, i64(4))
       if explicit is IOError {
-          std.io.println<string>(concat_2("explicit 4: ", IOError(explicit).msg))
+          std.console.println<string>(concat_2("explicit 4: ", IOError(explicit).msg))
       }
       {
           @defer_run(1)
@@ -40,7 +40,7 @@
   }
   __defer_env_snippet_1 :: struct { cap_0: string }
   __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
-      std.io.remove_file(__env_0.cap_0)
+      std.fs.remove_file(__env_0.cap_0)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -54,6 +54,11 @@
 ## lowered in dependencies
   std/target/baked
     const VADER_OS: Os  inline
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -68,26 +73,24 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+  std/env
+    fn std.env.temp_dir  // std_env$temp_dir
+    fn std.env.temp_dir_of  // std_env$temp_dir_of
+    fn std.env.without_trailing_sep  // std_env$without_trailing_sep
+  std/fs
+    fn __defer_std_fs_0
+    fn std.fs.read_file_bytes  // std_fs$read_file_bytes
+    fn std.fs.read_file_string  // std_fs$read_file_string
+    fn std.fs.remove_file  // std_fs$remove_file
+    fn std.fs.whole_buffer  // std_fs$whole_buffer
+    fn std.fs.write_file_bytes  // std_fs$write_file_bytes
+    fn std.fs.write_file_string  // std_fs$write_file_string
+    struct __defer_env_std_fs_1
   std/io
-    fn __defer_std_io_0
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.last_io_error  // std_io$last_io_error
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.read_file_bytes  // std_io$read_file_bytes
-    fn std.io.read_file_string  // std_io$read_file_string
-    fn std.io.remove_file  // std_io$remove_file
-    fn std.io.temp_dir  // std_io$temp_dir
-    fn std.io.temp_dir_of  // std_io$temp_dir_of
-    fn std.io.whole_buffer  // std_io$whole_buffer
-    fn std.io.without_trailing_sep  // std_io$without_trailing_sep
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_file_bytes  // std_io$write_file_bytes
-    fn std.io.write_file_string  // std_io$write_file_string
-    fn std.io.write_text  // std_io$write_text
-    struct __defer_env_std_io_1
     struct std.io.IOError  // std_io$IOError
   system/posix
     const EAGAIN: i32  inline

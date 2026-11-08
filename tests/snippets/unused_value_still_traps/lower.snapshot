@@ -12,7 +12,7 @@
       zero: i32 = some >> 4
       xs: i32[] = [1, 2, 3] :i32[]
       case: string = snippet.case_of(argv)
-      std.io.println<string>("before")
+      std.console.println<string>("before")
       if case == "index" {
           xs[some + 4]
       }
@@ -41,7 +41,7 @@
               }
           }
       }
-      std.io.println<string>("after")
+      std.console.println<string>("after")
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -54,15 +54,15 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

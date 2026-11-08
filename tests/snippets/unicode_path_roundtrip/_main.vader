@@ -1,9 +1,11 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
+import "std/env"
+import "std/fs"
 
 // A path whose characters do not fit the system ANSI code page. On Windows the
-// `A` entry points would mangle or reject it, which is why `std/io` goes
+// `A` entry points would mangle or reject it, which is why `std/fs` goes
 // through `CreateFileW` and the other `W` forms there; POSIX passes UTF-8
 // bytes straight down. The directory itself is NOT printed (it differs per
 // machine): only that the round trip survived.

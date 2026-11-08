@@ -2,7 +2,7 @@
 // `0..=23` and stops the program outside, as `Hour(x)` does.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Hour :: Int in 0..=23
 Slot :: Hour

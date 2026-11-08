@@ -10,7 +10,7 @@
   snippet.NOT_A_NUM: f64: nan  // snippet$NOT_A_NUM
   snippet.main :: fn() -> i32 {  // snippet$main
       arr: f64[] = [inf, -inf] :f64[]
-      std.io.println<string>(concat_9(std.core.f64.to_string(inf), " ", std.core.f64.to_string(-inf), " ", std.core.f64.to_string(nan), " ", std.core.f64.to_string(arr[0]), " ", std.core.f64.to_string(arr[1])))
+      std.console.println<string>(concat_9(std.core.f64.to_string(inf), " ", std.core.f64.to_string(-inf), " ", std.core.f64.to_string(nan), " ", std.core.f64.to_string(arr[0]), " ", std.core.f64.to_string(arr[1])))
       return 0
   }
   concat_9 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string, p7: string, p8: string) -> string {
@@ -45,6 +45,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -76,11 +81,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

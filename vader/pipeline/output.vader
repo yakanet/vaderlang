@@ -8,7 +8,7 @@
 
 module "vader/pipeline"
 
-import "std/io"
+import "std/console"
 import "std/path"
 import "vader/emit/c"
 import "vader/emit/virt"

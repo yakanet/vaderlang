@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(std.core.f64.to_string(snippet.square.area(Square { .side = 2.0 }, 1.0)))
-      std.io.println<string>(std.core.f64.to_string(snippet.circle.area(Circle { .radius = 1.0 }, 3.0)))
-      std.io.println<string>(std.core.f64.to_string(snippet.square.area(Square { .side = 2.0 }, 2.0)))
-      std.io.println<string>(std.core.f64.to_string(snippet.circle.area(Circle { .radius = 2.0 }, 3.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet.square.area(Square { .side = 2.0 }, 1.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet.circle.area(Circle { .radius = 1.0 }, 3.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet.square.area(Square { .side = 2.0 }, 2.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet.circle.area(Circle { .radius = 2.0 }, 3.0)))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -30,6 +30,11 @@
   snippet.square.Square :: struct { side: f64 }  // snippet_square$Square
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -61,11 +66,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

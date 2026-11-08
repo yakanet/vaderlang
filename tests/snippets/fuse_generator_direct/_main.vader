@@ -7,7 +7,7 @@
 // escapes; nothing uses it here, and it is gone by the bytecode stage.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // map shape.
 doubled :: fn(xs: i32[]) -> Iterator<i32> {

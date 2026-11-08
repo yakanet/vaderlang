@@ -5,7 +5,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     n: i64: 1024

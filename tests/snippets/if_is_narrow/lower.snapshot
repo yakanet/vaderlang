@@ -72,31 +72,31 @@
       !(p is Dog)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(concat_2("is, cat: ", snippet.direct(Cat { .name = "felix" })))
-      std.io.println<string>(concat_2("is, dog: ", snippet.direct(Dog { .sound = "woof" })))
-      std.io.println<string>(concat_2("!(is), cat: ", snippet.negated(Cat { .name = "garfield" })))
-      std.io.println<string>(concat_2("!(is), dog: ", snippet.negated(Dog { .sound = "bark" })))
-      std.io.println<string>(concat_2("!is, cat: ", snippet.not_is(Cat { .name = "tom" })))
-      std.io.println<string>(concat_2("!is, dog: ", snippet.not_is(Dog { .sound = "grr" })))
-      std.io.println<string>(concat_2("guard cascade, cat: ", snippet.cascade(Cat { .name = "kitty" })))
-      std.io.println<string>(concat_2("guard cascade, dog: ", snippet.cascade(Dog { .sound = "yap" })))
-      std.io.println<string>(concat_2("guard cascade, pig: ", snippet.cascade(Pig { .weight = 200 })))
-      std.io.println<string>(concat_2("primitive is, int: ", snippet.primitive_is(42)))
-      std.io.println<string>(concat_2("primitive is, str: ", snippet.primitive_is("hello")))
-      std.io.println<string>(concat_2("primitive !is, int: ", snippet.primitive_not_is(7)))
-      std.io.println<string>(concat_2("primitive !is, str: ", snippet.primitive_not_is("world")))
-      std.io.println<string>(concat_2("!is null, cat: ", snippet.unwrap_or(Cat { .name = "garfield" }, "nothing")))
-      std.io.println<string>(concat_2("!is null, null: ", snippet.unwrap_or(null, "nothing")))
+      std.console.println<string>(concat_2("is, cat: ", snippet.direct(Cat { .name = "felix" })))
+      std.console.println<string>(concat_2("is, dog: ", snippet.direct(Dog { .sound = "woof" })))
+      std.console.println<string>(concat_2("!(is), cat: ", snippet.negated(Cat { .name = "garfield" })))
+      std.console.println<string>(concat_2("!(is), dog: ", snippet.negated(Dog { .sound = "bark" })))
+      std.console.println<string>(concat_2("!is, cat: ", snippet.not_is(Cat { .name = "tom" })))
+      std.console.println<string>(concat_2("!is, dog: ", snippet.not_is(Dog { .sound = "grr" })))
+      std.console.println<string>(concat_2("guard cascade, cat: ", snippet.cascade(Cat { .name = "kitty" })))
+      std.console.println<string>(concat_2("guard cascade, dog: ", snippet.cascade(Dog { .sound = "yap" })))
+      std.console.println<string>(concat_2("guard cascade, pig: ", snippet.cascade(Pig { .weight = 200 })))
+      std.console.println<string>(concat_2("primitive is, int: ", snippet.primitive_is(42)))
+      std.console.println<string>(concat_2("primitive is, str: ", snippet.primitive_is("hello")))
+      std.console.println<string>(concat_2("primitive !is, int: ", snippet.primitive_not_is(7)))
+      std.console.println<string>(concat_2("primitive !is, str: ", snippet.primitive_not_is("world")))
+      std.console.println<string>(concat_2("!is null, cat: ", snippet.unwrap_or(Cat { .name = "garfield" }, "nothing")))
+      std.console.println<string>(concat_2("!is null, null: ", snippet.unwrap_or(null, "nothing")))
       cat: Cat = Cat { .name = "felix" }
       dog: Dog = Dog { .sound = "woof" }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "!is as bool, cat: ")
           __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.is_not_dog(cat))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(23))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "!is as bool, dog: ")
@@ -115,6 +115,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -125,11 +130,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

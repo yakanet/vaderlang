@@ -3,7 +3,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 tag :: fn<T: Display, U: Display>(x: T, y: U) -> string = "${x}/${y}"
 

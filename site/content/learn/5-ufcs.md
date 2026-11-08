@@ -8,7 +8,7 @@ A function declared next to a struct reads as a method of it, and the call can t
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Point :: struct { x: f64, y: f64 }
 
 moved :: fn(p: Point, dx: f64, dy: f64) -> Point = Point { .x = p.x + dx, .y = p.y + dy }
@@ -35,7 +35,7 @@ Calls read left to right, each on the result of the one before. The functions of
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/iter"
 # import "std/string"
 # main :: fn() -> i32 {
@@ -59,7 +59,7 @@ Since a function needs no class to live in, one written for a type it does not o
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 percent_of :: fn(part: i32, whole: i32) -> i32 = part * 100 / whole
 
 is_even :: fn(n: i32) -> bool = n % 2 == 0

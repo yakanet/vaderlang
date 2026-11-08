@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/collections"
 
 get_or :: fn<K: Hash & Equals>(m: Map<K, i32>, k: K, dflt: i32) -> i32 {

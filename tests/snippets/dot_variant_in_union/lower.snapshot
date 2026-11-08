@@ -36,9 +36,9 @@
           __scrut_0: Direction | ParseError = snippet.parse('N')
           d: Direction | ParseError = __scrut_0
           if __scrut_0 is Direction {
-              std.io.println<string>(snippet.dir_label(Direction(d)))
+              std.console.println<string>(snippet.dir_label(Direction(d)))
           } else if __scrut_0 is ParseError {
-              std.io.println<string>("err")
+              std.console.println<string>("err")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
@@ -47,9 +47,9 @@
           __scrut_1: Direction | ParseError = snippet.parse('?')
           d: Direction | ParseError = __scrut_1
           if __scrut_1 is Direction {
-              std.io.println<string>(snippet.dir_label(Direction(d)))
+              std.console.println<string>(snippet.dir_label(Direction(d)))
           } else if __scrut_1 is ParseError {
-              std.io.println<string>("err")
+              std.console.println<string>("err")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
@@ -66,15 +66,15 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     struct std.string.ParseError  // std_string$ParseError
   system/posix

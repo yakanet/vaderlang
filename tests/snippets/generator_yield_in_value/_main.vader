@@ -2,7 +2,7 @@
 // value of a binding, inside a block passed as an argument.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 keep :: fn(x: i32) -> i32 = x
 

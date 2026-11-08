@@ -47,7 +47,7 @@
       return h + u8(1)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(32))
           __off_2: i64 = 0
           __off_2 = std.core.write_unsigned(__buf_1, __off_2, {
@@ -60,7 +60,7 @@
           __off_2 = std.core.write_bool(__buf_1, __off_2, snippet.parse_hour(i64(-1)) is null)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(41))
           __off_4: i64 = 0
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, snippet.hour_or_midnight(i64(19)))
@@ -68,10 +68,10 @@
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, snippet.hour_or_midnight(i64(99)))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      std.io.println<string>(concat_3(snippet.half_of_day(Hour(9)), " ", snippet.half_of_day(Hour(21))))
+      std.console.println<string>(concat_3(snippet.half_of_day(Hour(9)), " ", snippet.half_of_day(Hour(21))))
       east: Reading = Reading { .offset = Offset(9) }
       west: Reading = Reading { .offset = Offset(-5) }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(41))
           __off_6: i64 = 0
           __off_6 = std.core.write_unsigned(__buf_5, __off_6, snippet.east_of_greenwich(east))
@@ -79,7 +79,7 @@
           __off_6 = std.core.write_unsigned(__buf_5, __off_6, snippet.east_of_greenwich(west))
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(41))
           __off_8: i64 = 0
           __off_8 = std.core.write_unsigned(__buf_7, __off_8, snippet.wrapped(Hour(23)))
@@ -87,7 +87,7 @@
           __off_8 = std.core.write_unsigned(__buf_7, __off_8, snippet.wrapped(Hour(8)))
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(83))
           __off_10: i64 = 0
           __off_10 = std.core.write_int(__buf_9, __off_10, Offset(-12))
@@ -121,6 +121,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -131,11 +136,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

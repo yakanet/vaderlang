@@ -13,7 +13,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 NUM_INTERVALS: i64: 1_000_000
 INTERVAL_START_BITS: u64: 28

@@ -9,7 +9,7 @@
 
 module "default_type_param"
 
-import "std/io"
+import "std/console"
 
 Adder :: trait<Rhs = Self> {
     add_to :: fn(self, other: Rhs) -> i32

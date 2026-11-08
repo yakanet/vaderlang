@@ -5,7 +5,7 @@ A `@comptime` constant runs ordinary Vader during the build: the program starts 
 ```vader
 module "main"
 
-import "std/io"
+import "std/console"
 
 squares :: fn(n: i32) -> i32[] {
     out: i32[]: []

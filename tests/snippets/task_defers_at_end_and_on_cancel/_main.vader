@@ -4,7 +4,7 @@
 // innermost first, and none of the body after the park.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/task"
 import "std/time"
 

@@ -5,7 +5,7 @@ A function with a `yield` produces its values lazily, so an endless sequence can
 ```vader
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 // A function with a `yield` is a generator: it produces its values

@@ -15,7 +15,7 @@
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
       one: i32 = i32(@array.len(argv))
       top: i32 = 2147483647
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(45))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "i32 ")
@@ -25,7 +25,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       byte: u8 = 250
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(44))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "u8 ")
@@ -35,7 +35,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       small: i8 = 120
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(44))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "i8 ")
@@ -45,7 +45,7 @@
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       wide: u16 = 300
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(45))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "u16 ")
@@ -55,7 +55,7 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       zero: u32 = 0
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(45))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "u32 ")
@@ -65,7 +65,7 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       big: u64 = 18446744073709551615
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(45))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "u64 ")
@@ -77,7 +77,7 @@
       acc: i64 = 9223372036854775807
       acc = acc +% i64(one)
       acc = acc -% i64(2)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(24))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "i64 ")
@@ -86,7 +86,7 @@
       } :string)
       h: u32 = 2166136261
       h = h *% u32(16777619)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(29))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "u32 hash ")
@@ -105,6 +105,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -115,11 +120,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

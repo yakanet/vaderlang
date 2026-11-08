@@ -17,7 +17,8 @@
 module "vader/front/resolver"
 
 import "std/collections"
-import "std/io"
+import "std/env"
+import "std/fs"
 import "std/iter"
 import "std/path"
 import "std/string"

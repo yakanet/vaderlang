@@ -9,7 +9,7 @@
       s32: i64 = 4
       s64: i64 = 8
       sstr: i64 = 4
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(120))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "size_of primitive: i8=")
@@ -25,7 +25,7 @@
       narrow: i64 = 1
       wide: i64 = 4
       inferred: i64 = 1
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(92))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "size_of enum: u8=")
@@ -39,7 +39,7 @@
       ref: i64 = 8
       arr: i64 = 8
       erased: i64 = 16
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(101))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "size_of reference: struct=")
@@ -53,7 +53,7 @@
       a32: i64 = 4
       a64: i64 = 8
       abox: i64 = 8
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(87))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "align_of: i32=")
@@ -68,9 +68,9 @@
       ks: string = "struct"
       ka: string = "array"
       kt: string = "tuple"
-      std.io.println<string>(concat_8("type_kind: ", kp, " ", ks, " ", ka, " ", kt))
+      std.console.println<string>(concat_8("type_kind: ", kp, " ", ks, " ", ka, " ", kt))
       matches: bool = (((kp == "primitive") && (ks == "struct")) && (ka == "array")) && (kt == "tuple")
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(25))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "type_kind compared: ")
@@ -78,12 +78,12 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       name: string = "i32"
-      std.io.println<string>(concat_3("type_name: ", name, " string"))
+      std.console.println<string>(concat_3("type_name: ", name, " string"))
       pair: i64 = 2
       triple: i64 = 3
       tuple: i64 = 2
       scalar: i64 = 0
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(118))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "field_count: Pair=")
@@ -98,7 +98,7 @@
       } :string)
       variants_enum: i64 = 2
       variants_union: i64 = 2
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(67))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "variant_count: enum=")
@@ -110,7 +110,7 @@
       index_x: i64 = 0
       index_y: i64 = 1
       index_z: i64 = 2
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(81))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "field_index: x=")
@@ -124,7 +124,7 @@
       concat: bool = true
       hash_text: bool = true
       hash_int: bool = true
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(60))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "satisfies: string Add=")
@@ -136,7 +136,7 @@
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       {
-          std.io.println<string>("satisfies in a condition: i32 Add taken")
+          std.console.println<string>("satisfies in a condition: i32 Add taken")
       }
       return 0
   }
@@ -180,6 +180,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -190,11 +195,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

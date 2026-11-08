@@ -50,7 +50,7 @@
       char(self.code)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(53))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "first ")
@@ -65,12 +65,12 @@
           __for_i_4: i64 = 0
           for __for_i_4 < __for_len_3 {
               n: i32 = __for_arr_2[__for_i_4]
-              std.io.println<string>(snippet.describe(n))
+              std.console.println<string>(snippet.describe(n))
           } @step {
               __for_i_4 = __for_i_4 +% i64(1)
           }
       }
-      std.io.println<string>(concat_3(std.core.char.to_string(snippet.from_byte(u8(72))), std.core.char.to_string(snippet.from_unit(u32(105))), std.core.char.to_string(snippet.from_unit(u32(128512)))))
+      std.console.println<string>(concat_3(std.core.char.to_string(snippet.from_byte(u8(72))), std.core.char.to_string(snippet.from_unit(u32(105))), std.core.char.to_string(snippet.from_unit(u32(128512)))))
       code: Code = Code(u32(10084))
       glyph: Glyph = Glyph({
           __in_range_5: u32 = code + u32(0)
@@ -82,7 +82,7 @@
           char(__in_range_5)
       } :char)
       boxed: Boxed = Boxed { .code = u8(33) }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_6: string = std.core.char.to_string({
               if code > u32(55295) {
                   if (code < u32(57344)) || (code > u32(1114111)) {
@@ -116,7 +116,7 @@
               c = c + char(1)
           }
       }
-      std.io.println<string>(concat_2("in place: ", std.string.join(crossing, " ")))
+      std.console.println<string>(concat_2("in place: ", std.string.join(crossing, " ")))
       stepped: string[] = [] :string[]
       span: Range<char> = Range<char> {
           .start = '\u{d7fe}',
@@ -137,7 +137,7 @@
               }
           }
       }
-      std.io.println<string>(concat_2("stepped: ", std.string.join(stepped, " ")))
+      std.console.println<string>(concat_2("stepped: ", std.string.join(stepped, " ")))
       fused: u32 = {
           f: fn(char) -> u32 = __lambda_snippet_0
           s: u32 = std_core$u32$Zero$zero()
@@ -155,7 +155,7 @@
           }
           s
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(27))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "fused: ")
@@ -190,7 +190,7 @@
               c = c + char(1)
           }
       }
-      std.io.println<string>(concat_2("hopped: ", std.string.join(hopped, " ")))
+      std.console.println<string>(concat_2("hopped: ", std.string.join(hopped, " ")))
       letters: string[] = [] :string[]
       {
           c: char = 'a'
@@ -200,8 +200,8 @@
               c = c + char(1)
           }
       }
-      std.io.println<string>(concat_2("letters: ", std.string.join(letters, "")))
-      std.io.println<string>(concat_2("pair: ", std.core.char.to_string(std.string.combine_surrogates(u32(55357), u32(56832)))))
+      std.console.println<string>(concat_2("letters: ", std.string.join(letters, "")))
+      std.console.println<string>(concat_2("pair: ", std.core.char.to_string(std.string.combine_surrogates(u32(55357), u32(56832)))))
       return 0
   }
   __lambda_snippet_0 :: fn(c: char) -> u32 {
@@ -228,6 +228,11 @@
   vtable std.core.Into.into for Boxed  snippet.Boxed.into  // snippet$Boxed$std_core$Into$into
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -247,11 +252,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<char>  // std_core$Range__char
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.combine_surrogates  // std_string$combine_surrogates
     fn std.string.join  // std_string$join

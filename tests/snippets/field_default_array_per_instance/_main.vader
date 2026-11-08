@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 NO_TAGS: string[]: []
 

@@ -3,7 +3,7 @@
 // lines in one file.
 module "snippet"
 
-import "std/io" { println as p }
+import "std/console" { println as p }
 import "std/string" { split as p }
 
 main :: fn() -> i32 {

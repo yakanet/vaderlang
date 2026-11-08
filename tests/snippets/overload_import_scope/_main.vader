@@ -9,7 +9,7 @@ module "snippet"
 B :: import "snippet/bbb"
 O :: import "snippet/other"
 import "snippet/aaa"
-import "std/io"
+import "std/console"
 
 f :: fn(x: i32) -> void {
     println("local ${x}")

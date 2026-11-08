@@ -5,7 +5,7 @@
 // `0..=u64.max`. A machine integer named alone stays a type of its own.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Octet :: Int in 0..=255
 Level :: Int in 0..=254

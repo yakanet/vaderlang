@@ -31,9 +31,9 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(concat_4("partial, uncovered variants: ", snippet.day_kind(Day(5)), " ", snippet.day_kind(Day(0))))
-      std.io.println<string>(concat_4("partial, wildcard: ", snippet.weekend_or_not(Day(6)), " ", snippet.weekend_or_not(Day(2))))
-      std.io.println<string>(concat_4("unreachable: ", snippet.label(Color(0)), " ", snippet.label(Color(1))))
+      std.console.println<string>(concat_4("partial, uncovered variants: ", snippet.day_kind(Day(5)), " ", snippet.day_kind(Day(0))))
+      std.console.println<string>(concat_4("partial, wildcard: ", snippet.weekend_or_not(Day(6)), " ", snippet.weekend_or_not(Day(2))))
+      std.console.println<string>(concat_4("unreachable: ", snippet.label(Color(0)), " ", snippet.label(Color(1))))
       return 0
   }
   concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
@@ -58,15 +58,15 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Recipe :: struct {
     make: fn() -> i32 = fn() {

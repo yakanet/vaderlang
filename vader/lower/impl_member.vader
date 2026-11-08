@@ -200,7 +200,7 @@ build_ufcs_member :: fn(
     //
     // The module prefix is the IMPL's owning module (`entry.module`), NOT the
     // caller's (`ctx`). For an impl like `string implements Display`
-    // reached from `println` in std/io, the mangle must read `std_core$…`,
+    // reached from `println` in std/console, the mangle must read `std_core$…`,
     // matching where the impl is declared / its surfaced decl is registered,
     // or the callee is unresolved at emit. Same-module user impls are unaffected
     // (entry.module == ctx's).

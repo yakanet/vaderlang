@@ -1,8 +1,8 @@
 module "snippet"
 
-io :: import "std/io"
+console :: import "std/console"
 
 main :: fn() -> i32 {
-    io.println("hi")
+    console.println("hi")
     return 0
 }

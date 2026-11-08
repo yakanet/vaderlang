@@ -8,10 +8,10 @@
     "decls": [
       {
         "kind": "ImportDecl",
-        "path": "std/io",
+        "path": "std/console",
         "binding": {
           "kind": "named-namespace",
-          "name": "io"
+          "name": "console"
         },
         "decorators": []
       },
@@ -36,7 +36,7 @@
                   "kind": "FieldExpr",
                   "target": {
                     "kind": "IdentExpr",
-                    "name": "io"
+                    "name": "console"
                   },
                   "field": "println"
                 },

@@ -3,7 +3,7 @@
 // rounded on the digits its `Display` shows, so 2.675 rounds up.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/numbers"
 
 main :: fn() -> i32 {

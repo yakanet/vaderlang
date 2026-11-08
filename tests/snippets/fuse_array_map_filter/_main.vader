@@ -4,7 +4,7 @@
 // loop with an inline index walk, not an iterator step-loop.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 double :: fn(x: i32) -> i32 = x * 10

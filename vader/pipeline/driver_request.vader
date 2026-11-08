@@ -11,6 +11,8 @@
 
 module "vader/pipeline"
 
+import "std/env"
+import "std/fs"
 import "std/io"
 import "std/string"
 import "vader/front/resolver"

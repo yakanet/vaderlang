@@ -15,7 +15,7 @@
 
 module "build"
 
-import "std/io"
+import "std/console"
 import "std/string_builder"
 import "toolchain/build"
 AST :: import "toolchain/ast"

@@ -4,7 +4,7 @@
 // the order of the tasks it was given.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/task"
 import "std/time"
 

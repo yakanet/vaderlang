@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // `T` appears ONLY in the return type: no argument can carry it, so the result
 // slot is the sole binder. The typechecker unifies the return type against the

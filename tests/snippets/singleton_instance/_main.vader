@@ -4,7 +4,7 @@
 // constant is a copy, which leaves the constant as it was.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Counter :: struct {
     n: i32

@@ -2,7 +2,7 @@
 // them by module, since their bare names would read the same.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "snippet/tr_a"
 
 Point :: struct { x: i32 }

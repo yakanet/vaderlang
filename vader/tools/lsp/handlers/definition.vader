@@ -26,7 +26,6 @@ import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 import "toolchain/span"
 AST :: import "toolchain/ast"
-import "std/io"
 import "std/string"
 import "vader/front/resolver"
 

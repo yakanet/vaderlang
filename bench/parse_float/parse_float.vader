@@ -20,7 +20,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/string"
 
 INPUT_COUNT :: 4096

@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Circle :: struct { radius: i32 }
 Square :: struct { side: i32 }

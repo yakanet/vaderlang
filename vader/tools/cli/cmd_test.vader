@@ -9,6 +9,9 @@
 
 module "vader/tools/cli"
 
+import "std/console"
+import "std/env"
+import "std/fs"
 import "std/io"
 import "std/glob"
 import "std/iter"

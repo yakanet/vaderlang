@@ -87,7 +87,7 @@
                           __for_i_8: i64 = 0
                           for __for_i_8 < __for_len_7 {
                               c: bool = __for_arr_6[__for_i_8]
-                              std.io.println<string>({
+                              std.console.println<string>({
                                   __p_9: string = snippet.shapes(a, b, c)
                                   __buf_10: Buffer = std.core.new_byte_buffer(i64(19) +% std.core.byte_len(__p_9))
                                   __off_11: i64 = 0
@@ -113,7 +113,7 @@
           }
       }
       xs: i32[] = [1, 2, 7, 3, 9] :i32[]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(62))
           __off_13: i64 = 0
           __off_13 = std.core.write_int(__buf_12, __off_13, snippet.first_over(xs, 5, 99))
@@ -123,7 +123,7 @@
           __off_13 = std.core.write_int(__buf_12, __off_13, snippet.first_over(xs, 10, 42))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(104))
           __off_15: i64 = 0
           __off_15 = std.core.write_int(__buf_14, __off_15, snippet.guard(null, 1))
@@ -137,7 +137,7 @@
           __off_15 = std.core.write_int(__buf_14, __off_15, snippet.guard(5, 1))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(83))
           __off_17: i64 = 0
           __off_17 = std.core.write_int(__buf_16, __off_17, snippet.diverge(null, true))
@@ -161,6 +161,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -171,11 +176,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string_builder
     fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
     fn std.string_builder.append  // std_string__builder$append

@@ -90,27 +90,27 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       out: u8[] = [u8(65)] :u8[]
       last: u8 = if @array.len(out) > i64(0) { out[@array.len(out) - i64(1)] } else { u8(40) }
-      std.io.println<string>(if last != u8(40) { "if, byte or char: byte" } else { "if, byte or char: char" } :string)
+      std.console.println<string>(if last != u8(40) { "if, byte or char: byte" } else { "if, byte or char: char" } :string)
       empty: u8[] = [] :u8[]
       first: u8 = if @array.len(empty) > i64(0) { empty[0] } else { u8(40) }
-      std.io.println<string>(if first == u8(40) { "if, empty: char" } else { "if, empty: byte" } :string)
+      std.console.println<string>(if first == u8(40) { "if, empty: char" } else { "if, empty: byte" } :string)
       n: i64 = @array.len(empty)
       picked: u8 = {
           if n == i64(0) { u8(40) } else { empty[n - i64(1)] } :u8
       }
-      std.io.println<string>(if picked == u8(40) { "match, byte or char: char" } else { "match, byte or char: byte" } :string)
+      std.console.println<string>(if picked == u8(40) { "match, byte or char: char" } else { "match, byte or char: byte" } :string)
       big: i64 = 5000000000
       wide: i64 = {
           if n == i64(0) { i64(1) } else { big } :i64
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(39))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "match, i64 or int: ")
           __off_1 = std.core.write_int(__buf_0, __off_1, wide + big)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(70))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "nested: ")
@@ -121,7 +121,7 @@
           __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.nested(null, false, 2))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(49))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "nested: ")
@@ -130,7 +130,7 @@
           __off_5 = std.core.write_unsigned(__buf_4, __off_5, snippet.nested("x", false, 0))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(36))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "if, i64 or int: ")
@@ -145,7 +145,7 @@
           __off_9 = std.core.write_unsigned(__buf_8, __off_9, snippet.arithmetic(Probe { .flag = false }))
           std.core.finish_buffer(__buf_8, __off_9)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_10: string = probes
           __buf_11: Buffer = std.core.new_byte_buffer(i64(33) +% std.core.byte_len(__p_10))
           __off_12: i64 = 0
@@ -155,8 +155,8 @@
           __off_12 = std.core.write_unsigned(__buf_11, __off_12, snippet.arithmetic(Wide { .n = u64(3) }))
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
-      std.io.println<string>(concat_6("optional: ", snippet.optional(true, false), " ", snippet.optional(false, true), " ", snippet.optional(false, false)))
-      std.io.println<string>(concat_4("beside optional: ", snippet.beside_optional(false, null), " ", snippet.beside_optional(true, u8(7))))
+      std.console.println<string>(concat_6("optional: ", snippet.optional(true, false), " ", snippet.optional(false, true), " ", snippet.optional(false, false)))
+      std.console.println<string>(concat_4("beside optional: ", snippet.beside_optional(false, null), " ", snippet.beside_optional(true, u8(7))))
       both: string = {
           __buf_13: Buffer = std.core.new_byte_buffer(i64(41))
           __off_14: i64 = 0
@@ -165,7 +165,7 @@
           __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.coalesced(false, false))
           std.core.finish_buffer(__buf_13, __off_14)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_15: string = both
           __buf_16: Buffer = std.core.new_byte_buffer(i64(32) +% std.core.byte_len(__p_15))
           __off_17: i64 = 0
@@ -215,6 +215,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -225,11 +230,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

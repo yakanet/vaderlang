@@ -20,7 +20,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       five: u64 = 5
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: i32 = snippet.twice<i32>(3)
           __p_1: u64 = snippet.twice<u64>(five)
           __p_2: string = std.core.f64.to_string(snippet.twice<f64>(2.5))
@@ -35,7 +35,7 @@
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       kept: Money = Money { .cents = i64(7) }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(55))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "written impl: ")
@@ -44,35 +44,35 @@
           __off_6 = std.core.write_int(__buf_5, __off_6, snippet.twice<Money>(kept).cents)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(34))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "default impl: ")
           __off_8 = std.core.write_int(__buf_7, __off_8, snippet.twice<Points>(Points { .n = 4 }).n)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(31))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "self impl: ")
           __off_10 = std.core.write_int(__buf_9, __off_10, snippet.twice<Grams>(Grams { .g = 6 }).g)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(35))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "partial bound: ")
           __off_12 = std.core.write_int(__buf_11, __off_12, snippet.relay<Points>(Points { .n = 5 }).n)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_13: Buffer = std.core.new_byte_buffer(i64(27))
           __off_14: i64 = 0
           __off_14 = std.core.write_string_at(__buf_13, __off_14, "array: ")
           __off_14 = std.core.write_int(__buf_13, __off_14, snippet.both<Money[]>([Money { .cents = i64(1) }, Money { .cents = i64(2) }] :Money[]))
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_15: Buffer = std.core.new_byte_buffer(i64(34))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "writing impl: ")
@@ -129,6 +129,11 @@
   vtable std.core.Add.add for Points  snippet.Points.add  // snippet$Points$std_core$Add$add
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -175,11 +180,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

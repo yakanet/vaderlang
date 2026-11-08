@@ -10,6 +10,7 @@
 
 module "std/runtime"
 
+import "std/fs"
 import "std/io"
 import "std/numbers"
 import "std/string"

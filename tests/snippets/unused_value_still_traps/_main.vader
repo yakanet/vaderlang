@@ -4,7 +4,7 @@
 // others, on both backends. The values that must not fold come from `argv`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 case_of :: fn(argv: string[]) -> string {
     if argv.len() > 1 {

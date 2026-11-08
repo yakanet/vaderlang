@@ -15,7 +15,7 @@
           a = __destr_el_1
           b = __destr_el_2
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(54))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "literal: a=")
@@ -31,7 +31,7 @@
           a = __destr_el_6
           b = __destr_el_7
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(54))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "swap:    a=")
@@ -49,7 +49,7 @@
           n = __destr_el_11
           s = __destr_el_12
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_13: string = s
           __buf_14: Buffer = std.core.new_byte_buffer(i64(34) +% std.core.byte_len(__p_13))
           __off_15: i64 = 0
@@ -68,7 +68,7 @@
           box.x = __destr_el_17
           arr[1] = __destr_el_18
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_19: Buffer = std.core.new_byte_buffer(i64(63))
           __off_20: i64 = 0
           __off_20 = std.core.write_string_at(__buf_19, __off_20, "mixed:   box.x=")
@@ -89,7 +89,7 @@
           q = __destr_el_23
           r = __destr_el_24
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_25: Buffer = std.core.new_byte_buffer(i64(77))
           __off_26: i64 = 0
           __off_26 = std.core.write_string_at(__buf_25, __off_26, "rotate:  p=")
@@ -118,7 +118,7 @@
           std.collections.Map<string, i32>.set_at(m, "k", __destr_el_28)
           z = __destr_el_29
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_31: Buffer = std.core.new_byte_buffer(i64(54))
           __off_32: i64 = 0
           __off_32 = std.core.write_string_at(__buf_31, __off_32, "map:     k=")
@@ -146,7 +146,7 @@
           __destr_el_38: string = __destr_src_37._1
           s = __destr_el_38
       }
-      std.io.println<string>(concat_2("skip:    s=", s))
+      std.console.println<string>(concat_2("skip:    s=", s))
       xs: i32[] = [1, 2, 3, 4] :i32[]
       head: i32 = 0
       {
@@ -161,7 +161,7 @@
           head = __destr_el_40
           xs = __destr_rest_41
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_43: Buffer = std.core.new_byte_buffer(i64(103))
           __off_44: i64 = 0
           __off_44 = std.core.write_string_at(__buf_43, __off_44, "rest:    head=")
@@ -201,7 +201,7 @@
           }
           all = __destr_rest_51
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_53: Buffer = std.core.new_byte_buffer(i64(105))
           __off_54: i64 = 0
           __off_54 = std.core.write_string_at(__buf_53, __off_54, "empty:   p=")
@@ -218,7 +218,7 @@
   }
   __lambda_env_snippet_1 :: struct { cap_0: ?, cap_1: ? }
   __lambda_snippet_0 :: fn(__env_33: __lambda_env_snippet_1) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(56))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "capture: c1=")
@@ -253,6 +253,11 @@
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     struct std.collections.Map<string, i32>  // std_collections$Map__string__i32
     struct std_collections$__gen_state_std_collections_0
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -265,11 +270,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

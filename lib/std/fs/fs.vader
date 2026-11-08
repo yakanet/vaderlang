@@ -1,0 +1,719 @@
+// std/fs: files and directories.
+//
+// Synchronous: every call blocks the system thread, and every task with it.
+
+module "std/fs"
+
+import "std/io"
+import "std/path"
+import "std/target"
+import "system/posix"
+import "system/windows"
+
+/// Read a file fully into a fresh owned byte array. Lossless for arbitrary
+/// binary: the bytes are taken verbatim, no UTF-8 reinterpretation. This is
+/// the canonical file-read primitive ; `read_file_string` decodes on top.
+///
+/// A first chunk is the whole of most files. Past it, a regular file is read in
+/// one go into an array of its size. Anything else is read by chunks to its end
+/// or to `max_bytes`: a pipe or a device, a file that grew, and one whose size
+/// passes `max_bytes`, a size being a claim the content may not bear out. On
+/// Windows, a read short of what it asked for ends the file, a pipe's included.
+///
+/// @param path       filesystem path (absolute or cwd-relative).
+/// @param max_bytes  the most bytes accepted, `READ_LIMIT_DEFAULT` by default:
+///                   the read is refused once it passes them, which also stops
+///                   a stream that never ends. Name your own when you know what
+///                   you are reading, a larger file included.
+/// @return           the file's raw bytes.
+/// @error            `IOError` if the file can't be opened or read, or if it
+///                   passes `max_bytes`: `"file too large"`.
+@target
+export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> u8[] | IOError
+
+@target(.Linux, .Darwin)
+read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
+    f :: sys_fopen(path, "rb") ?? return last_io_error("cannot open file")
+    // Runs once a `return` has computed its value: `last_io_error` reads
+    // `errno` before `fclose` overwrites it.
+    defer sys_fclose(f)
+    out: u8[] = []
+    chunk: u8[]: [0] * READ_CHUNK
+    for {
+        n :: sys_fread(chunk, 1, chunk.len(), f)
+        if n > 0 {
+            out.push_all(chunk[0..<n])
+        }
+        // After every read, the one that hits end of file included: a stream
+        // shorter than one chunk is held to `max_bytes` here.
+        if out.len() > max_bytes {
+            return IOError { .msg = "file too large" }
+        }
+        if n < chunk.len() {
+            // A short `fread` is end of file OR an error; the count alone does
+            // not say which. Without this, an openable-but-unreadable path -- a
+            // DIRECTORY, where `fopen` succeeds and `fread` fails EISDIR --
+            // would read as an empty success.
+            if sys_ferror(f) != 0 {
+                return last_io_error("read failed")
+            }
+            return out
+        }
+        if out.len() == READ_CHUNK {
+            whole :: whole_buffer(sys_stream_size(f), max_bytes) ?? continue
+            chunk.copy_to(0, whole, 0, READ_CHUNK)
+            want :: whole.len() - READ_CHUNK
+            got :: sys_fread(whole[READ_CHUNK..<whole.len()], 1, want, f)
+            if got < want {
+                if sys_ferror(f) != 0 {
+                    return last_io_error("read failed")
+                }
+                return whole[0..<READ_CHUNK + got]
+            }
+            // It grew past its size: the chunks read on.
+            out = whole
+        }
+    }
+}
+
+/// Windows reads through `CreateFileW`, not the CRT: only the `W` entry points
+/// take a real UTF-16 path, and `ReadFile` reports a failure the CRT would have
+/// folded into a short read.
+@target(.Windows)
+read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
+    h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, null,
+                       OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
+    // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
+    if i64(h) == INVALID_HANDLE {
+        return last_io_error("file not found")
+    }
+    // Runs once a `return` has computed its value: `last_io_error` reads the
+    // last-error slot before `CloseHandle` overwrites it.
+    defer close_handle(h)
+    out: u8[] = []
+    chunk: u8[]: [0] * READ_CHUNK
+    got: u32[]: [0]
+    for {
+        if !read_file(h, chunk, u32(chunk.len()), got, null) {
+            return last_io_error("read failed")
+        }
+        n :: i64(got[0])
+        if n > 0 {
+            out.push_all(chunk[0..<n])
+        }
+        // After every read, end of file included, as in the POSIX body.
+        if out.len() > max_bytes {
+            return IOError { .msg = "file too large" }
+        }
+        // A synchronous read short of the request has reached end of file --
+        // and unlike the CRT path, a genuine ERROR took the branch above.
+        if n < chunk.len() {
+            return out
+        }
+        if out.len() == READ_CHUNK {
+            // A pipe, a console or a device has no size to go by.
+            size: i64[]: [-1]
+            if get_file_type(h) != FILE_TYPE_DISK || !get_file_size_ex(h, size) {
+                size[0] = -1
+            }
+            whole :: whole_buffer(size[0], max_bytes) ?? continue
+            chunk.copy_to(0, whole, 0, READ_CHUNK)
+            want :: whole.len() - READ_CHUNK
+            if !read_file(h, whole[READ_CHUNK..<whole.len()], u32(want), got, null) {
+                return last_io_error("read failed")
+            }
+            if i64(got[0]) < want {
+                return whole[0..<READ_CHUNK + i64(got[0])]
+            }
+            // It grew past its size: the chunks read on.
+            out = whole
+        }
+    }
+}
+
+// The array a regular file of `size` bytes is read into once its first chunk
+// came back full: its size and one byte more, so that a read short of it shows
+// the end, the first chunk copied in and the rest read in place. Null, for the
+// chunks to go on, when the size is unknown (-1) or does not pass one chunk, when
+// it passes `max_bytes` (a size is a claim: a file can shrink, `/proc/kcore`
+// reports the kernel's address space; the chunks refuse what does pass it), or
+// when one read cannot ask for that much.
+whole_buffer :: fn(size: i64, max_bytes: i64) -> u8[] | null {
+    if size <= READ_CHUNK || size > max_bytes || size >= WHOLE_READ_MAX {
+        return null
+    }
+    whole: u8[]: [0] * (size + 1)
+    return whole
+}
+
+// The largest file read whole: what one `ReadFile` call can ask for.
+WHOLE_READ_MAX: i64: @max(u32)
+
+// 64 KiB per chunk.
+READ_CHUNK: i64 : 64 * 1024
+
+/// A ceiling for a read whose caller has no figure of its own.
+///
+/// It is a policy number, not a fact about files, and it is bounded from BOTH
+/// sides. It has to clear anything the toolchain legitimately reads: the
+/// largest `.vader` source here is 161 KiB and the largest emitted seed unit
+/// 2.3 MiB. And it has to stay under what the smallest backend can hold, or it
+/// never fires: the interpreter carries a `u8` per slot, so 256 MiB of file
+/// costs it about 2 GB and the GC traps before the refusal can be returned.
+/// 16 MiB clears the first by ~100x and refuses cleanly on both backends.
+///
+/// Name your own when you know what you are reading.
+export READ_LIMIT_DEFAULT: i64: 16 * 1024 * 1024
+
+/// Write raw bytes to `path`, replacing any existing file. Lossless for
+/// arbitrary binary. The canonical file-write primitive.
+/// @param path     filesystem path.
+/// @param content  the raw bytes to write.
+/// @error          `IOError` if the file can't be opened or written.
+@target
+export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError
+
+@target(.Linux, .Darwin)
+write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
+    // A NUL byte truncates the path at the C boundary, so the file would land
+    // somewhere the caller never named and every later step would blame the
+    // wrong thing. Refused here, where the truncation would happen.
+    for i in 0..<path.byte_len() {
+        b :: path.byte_at(i)
+        if b == 0 {
+            return IOError { .msg = "path contains a NUL byte" }
+        }
+    }
+    f :: sys_fopen(path, "wb") ?? return last_io_error("open failed")
+    if content.len() > 0 {
+        n :: sys_fwrite(content, 1, content.len(), f)
+        if n != content.len() {
+            // Before `fclose`, which overwrites `errno`.
+            err :: last_io_error("short write")
+            sys_fclose(f)
+            return err
+        }
+    }
+    if sys_fclose(f) != 0 {
+        return last_io_error("close failed")
+    }
+    return null
+}
+
+/// Windows writes through `CreateFileW` for the same reason it reads through
+/// it: the `A` entry points cannot name a path outside the ANSI code page.
+@target(.Windows)
+write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
+    // A NUL byte truncates the path at the C boundary, so the file would land
+    // somewhere the caller never named and every later step would blame the
+    // wrong thing. Refused here, where the truncation would happen.
+    for i in 0..<path.byte_len() {
+        b :: path.byte_at(i)
+        if b == 0 {
+            return IOError { .msg = "path contains a NUL byte" }
+        }
+    }
+    // No share mode: an exclusive write is what replacing a file means.
+    // `FILE_SHARE_READ` for the same reason as the read path: `fopen` lets
+    // others read while we write, and a build that tails its own output should
+    // not fail. Write sharing is NOT granted -- two writers to one file is the
+    // race this refuses.
+    h :: create_file_w(to_wide(path), GENERIC_WRITE, FILE_SHARE_READ, null,
+                       CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null)
+    if i64(h) == INVALID_HANDLE {
+        return last_io_error("open failed")
+    }
+    if content.len() > 0 {
+        // See `write_bytes` on why the count is taken and ignored.
+        written: u32[]: [0]
+        if !write_file(h, content, u32(content.len()), written, null) {
+            // Before `CloseHandle`, which overwrites the last-error slot.
+            err :: last_io_error("short write")
+            close_handle(h)
+            return err
+        }
+    }
+    if !close_handle(h) {
+        return last_io_error("close failed")
+    }
+    return null
+}
+
+// Create one directory. True when it exists afterwards: an existing directory
+// is success. The platforms report "already there" differently (`EEXIST` /
+// `ERROR_ALREADY_EXISTS`) and neither says WHAT is there, so both re-ask rather
+// than read the error code: a regular file in the way must stay a failure.
+@target
+mkdir_one :: fn(path: string) -> bool
+
+@target(.Linux, .Darwin)
+mkdir_one :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0 || is_dir(path)
+
+@target(.Windows)
+mkdir_one :: fn(path: string) -> bool = create_directory(to_wide(path), null) || is_dir(path)
+
+/// Create `path` and every missing parent, the way `mkdir -p` does.
+///
+/// An existing directory is success, not an error: the caller asked for it to
+/// exist, and it does. Permissions follow the process umask.
+///
+/// @param path  directory to create, `/`-separated.
+/// @return      `null` on success.
+/// @error       `IOError` when a component cannot be created: a parent that is
+///              a file, a read-only mount, a path over 4096 bytes.
+export create_dir :: fn(path: string) -> null | IOError {
+    if path.byte_len() == 0 {
+        return IOError { .msg = "empty path" }
+    }
+    if path.byte_len() >= 4096 {
+        return IOError { .msg = "path too long" }
+    }
+    // Each prefix in turn. From 1, so a leading `/` is a root and not a
+    // component, and repeated separators are skipped.
+    for i in 1..<path.byte_len() {
+        if path.byte_at(i) != '/' {
+            continue
+        }
+        if path.byte_at(i - 1) == '/' {
+            continue
+        }
+        // `C:` is a root, not a component. `CreateDirectoryA("C:")` reports
+        // ERROR_ALREADY_EXISTS, and the re-test then asks about "the current
+        // directory ON DRIVE C:": a per-drive notion that need not exist when
+        // the process works from another drive. A CI runner on `D:\a\...` with
+        // a `C:` temp directory is exactly that shape. Not guarded off POSIX,
+        // where a directory may legitimately be named `a:`.
+        if VADER_OS == .Windows && i == 2 && path.byte_at(1) == ':' {
+            continue
+        }
+        if !mkdir_one(path.byte_slice(0, i)) {
+            return IOError { .msg = "cannot create parent" }
+        }
+    }
+    if !mkdir_one(path) {
+        return IOError { .msg = "cannot create directory" }
+    }
+    return null
+}
+
+/// Delete the file at `path`.
+///
+/// Files only. A directory is refused by the platform rather than silently
+/// recursed into: the conservative default for something irreversible. A
+/// missing path is an error too: a caller that does not care checks `exists`
+/// first, and one that does would rather hear about it.
+///
+/// @param path  file to delete.
+/// @return      `null` on success.
+/// @error       `IOError` when the path is missing, is a directory, or is not
+///              removable.
+@target
+export remove_file :: fn(path: string) -> null | IOError
+
+@target(.Linux, .Darwin)
+remove_file :: fn(path: string) -> null | IOError {
+    if sys_unlink(path) != 0 {
+        return last_io_error("cannot remove file")
+    }
+    return null
+}
+
+@target(.Windows)
+remove_file :: fn(path: string) -> null | IOError {
+    if delete_file(to_wide(path)) == 0 {
+        return last_io_error("cannot remove file")
+    }
+    return null
+}
+
+/// Read a file fully into a UTF-8 string: a thin text decode over
+/// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
+/// @param path       filesystem path (absolute or cwd-relative).
+/// @param max_bytes  the most bytes accepted, `READ_LIMIT_DEFAULT` by default;
+///                   see `read_file_bytes`.
+/// @return           file contents as a UTF-8 string.
+/// @error            `IOError` if the file can't be opened or read, or if it
+///                   passes `max_bytes`.
+export read_file_string :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> string | IOError {
+    r :: read_file_bytes(path, max_bytes)
+    if r is IOError { return r }
+    return r.bytes_to_string()
+}
+
+/// Write a UTF-8 string to `path`, replacing any existing file: a thin
+/// encode over `write_file_bytes`. Use `write_file_bytes` directly for binary.
+/// @param path     filesystem path.
+/// @param content  the UTF-8 string to write.
+/// @error          `IOError` if the file can't be opened or written.
+export write_file_string :: fn(path: string, content: string) -> null | IOError =
+    write_file_bytes(path, content.bytes())
+
+/// True iff `path` resolves to an existing filesystem entry (file or
+/// directory). Errors (e.g. permission denied) collapse to `false`.
+/// @param path  filesystem path to probe.
+/// @return      `true` if the entry exists, `false` otherwise (including
+///              on access errors).
+@target
+export exists :: fn(path: string) -> bool
+
+@target(.Linux, .Darwin)
+exists :: fn(path: string) -> bool = sys_access(path, F_OK) == 0
+
+// The attribute query, NOT an open. The Windows CRT refuses to open a directory
+// as a file, so an `fopen`-shaped check reports every directory as missing,
+// which silently empties module discovery: `walk_root`
+// (vader/front/resolver/discover.vader) guards on `exists(dir)` and bails before
+// indexing anything, and every compile on Windows then fails with R2001.
+@target(.Windows)
+exists :: fn(path: string) -> bool = get_file_attributes(to_wide(path)) != INVALID_FILE_ATTRIBUTES
+
+/// True iff `path` exists AND is a directory. Errors collapse to `false`.
+///
+/// Read permission on the directory is NOT required: traverse rights on its
+/// parent are enough, which is what `stat` asks for.
+///
+/// @param path  filesystem path to probe.
+/// @return      `true` iff `path` names a directory.
+@target
+export is_dir :: fn(path: string) -> bool
+
+// Through the runtime rather than a `struct stat` mirror, see
+// `lib/system/posix/posix.vader::sys_path_kind` for why no mirror can express it.
+@target(.Linux, .Darwin)
+is_dir :: fn(path: string) -> bool = sys_path_kind(path) == PATH_DIRECTORY
+
+@target(.Windows)
+is_dir :: fn(path: string) -> bool {
+    attrs :: get_file_attributes(to_wide(path))
+    if attrs == INVALID_FILE_ATTRIBUTES {
+        return false
+    }
+    return (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0
+}
+
+/// When `path` was last modified, in nanoseconds since the Unix epoch : what a
+/// cache compares to learn that a file changed without reading it.
+///
+/// @param path  filesystem path to probe.
+/// @error       `IOError` when `path` cannot be probed : `NotFound` when it does
+///              not exist.
+@target
+export modification_time :: fn(path: string) -> i64 | IOError
+
+@target(.Linux, .Darwin)
+modification_time :: fn(path: string) -> i64 | IOError {
+    nanoseconds :: sys_path_mtime(path)
+    if nanoseconds == -1 {
+        return last_io_error("cannot probe file")
+    }
+    return nanoseconds
+}
+
+@target(.Windows)
+modification_time :: fn(path: string) -> i64 | IOError {
+    data: u32[]: [0] * 9
+    if !get_file_attributes_ex(to_wide(path), GET_FILE_EX_INFO_STANDARD, data) {
+        return last_io_error("cannot probe file")
+    }
+    ticks :: i64(data[5]) | (i64(data[6]) << 32)
+    return (ticks - FILETIME_UNIX_EPOCH_TICKS) * 100
+}
+
+// The 100 ns ticks a `FILETIME` counts from 1601-01-01 to the Unix epoch.
+FILETIME_UNIX_EPOCH_TICKS: i64: 116_444_736_000_000_000
+
+/// `path` as the filesystem resolves it: absolute, `/`-separated, every symbolic
+/// link followed and every `.` and `..` gone. Two spellings of one file give one
+/// answer (`/tmp` and `/private/tmp` under macOS), which a lexical normalization
+/// (`std/path`) cannot promise.
+///
+/// @param path  an existing file or directory.
+/// @error       `IOError` when `path` cannot be resolved: `NotFound` when it
+///              does not exist.
+@target
+export real_path :: fn(path: string) -> string | IOError
+
+@target(.Linux, .Darwin)
+real_path :: fn(path: string) -> string | IOError {
+    // `PATH_MAX` is 1024 on Darwin and 4096 on Linux.
+    resolved: u8[]: [0] * 4096
+    if sys_realpath(path, resolved) == null {
+        return last_io_error("cannot resolve path")
+    }
+    return up_to_nul(resolved)
+}
+
+@target(.Windows)
+real_path :: fn(path: string) -> string | IOError {
+    // A handle that asks for no access, only to name the file.
+    h :: create_file_w(to_wide(path), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                       null, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, null)
+    if i64(h) == INVALID_HANDLE {
+        return last_io_error("cannot resolve path")
+    }
+    // Runs once a `return` has computed its value: `last_io_error` reads the
+    // last-error slot before `CloseHandle` overwrites it.
+    defer close_handle(h)
+    // The longest path Windows names, in UTF-16 units, and its NUL.
+    buf: u16[]: [0] * 32768
+    n :: get_final_path_name_by_handle_w(h, buf, u32(buf.len()), VOLUME_NAME_DOS)
+    if n == 0 {
+        return last_io_error("cannot resolve path")
+    }
+    return without_verbatim_prefix(to_posix(from_wide(buf, i32(n))))
+}
+
+// A path `GetFinalPathNameByHandleW` wrote, `/`-separated, without its verbatim
+// prefix: `//?/C:/x` is `C:/x`, `//?/UNC/host/share/x` is `//host/share/x`.
+// `byte_slice` stops at the end of a shorter path.
+without_verbatim_prefix :: fn(p: string) -> string {
+    if p.byte_slice(0, 8) == "//?/UNC/" {
+        return "//" + p.byte_slice(8, p.byte_len())
+    }
+    if p.byte_slice(0, 4) == "//?/" {
+        return p.byte_slice(4, p.byte_len())
+    }
+    return p
+}
+
+/// List the immediate entries of `path` in OS-provided order. Excludes
+/// `.` and `..`. Names are relative: join against `path` (e.g. via
+/// `std/path`) for full paths.
+/// @param path  the directory to list.
+/// @return      entry names (no path prefix).
+/// @error       `IOError` if `path` isn't a directory or can't be opened.
+@target
+export read_dir :: fn(path: string) -> string[] | IOError
+
+@target(.Linux, .Darwin)
+read_dir :: fn(path: string) -> string[] | IOError {
+    d :: sys_opendir(path) ?? return IOError {
+        .msg = "read_dir: cannot open `${path}`",
+    }
+    defer sys_closedir(d)
+    out: string[]: []
+    for {
+        p :: sys_readdir(d) ?? break
+        name :: dirent_name(p)
+        if name != "." && name != ".." {
+            out.push(name)
+        }
+    }
+    return out
+}
+
+// What `read_dir` puts between `path` and `*`: nothing after a separator, after a
+// drive's colon, or on the empty path.
+glob_separator :: fn(path: string) -> string {
+    n :: path.byte_len()
+    if n == 0 {
+        return ""
+    }
+    tail :: path.byte_at(n - 1)
+    if tail == '\\' || tail == '/' || tail == ':' {
+        return ""
+    }
+    return "\\"
+}
+
+@target(.Windows)
+read_dir :: fn(path: string) -> string[] | IOError {
+    // `FindFirstFileW` wants a GLOB, not a directory: the separator is added
+    // only when the path does not already end in one, so `C:\` stays `C:\*`.
+    // The last byte decides, read directly: a separator is ASCII, so a byte test
+    // is exact.
+    //
+    // An EMPTY path takes no separator either. `\*` is the root of the current
+    // DRIVE, while `*` is the current directory, and the host implementation
+    // this replaces appended nothing to an empty path, so prefixing one would
+    // silently start listing `C:\`. A bare `C:` is left alone for the same
+    // reason: in Win32 it means "the current directory on C", not `C:\`.
+    sep :: glob_separator(path)
+    data: u8[]: [0] * FIND_DATA_BYTES
+    h :: find_first_file(to_wide("${path}${sep}*"), data)
+    if i64(h) == INVALID_HANDLE {
+        return IOError { .msg = "read_dir: cannot open `${path}`" }
+    }
+    defer find_close(h)
+    out: string[]: []
+    for {
+        name :: find_data_name(data)
+        if name != "." && name != ".." {
+            out.push(name)
+        }
+        if !find_next_file(h, data) {
+            break
+        }
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/env"
+import "std/testing"
+
+@test test_is_dir_separates_a_directory_from_a_file :: fn() -> void {
+    file :: "${temp_dir()}/vader_is_dir_probe"
+    wrote :: write_file_string(file, "x")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    assert(is_dir(temp_dir()), "the temp dir is a directory")
+    assert(!is_dir(file), "a regular file is not")
+    assert(exists(file), "and the probe is really there")
+    assert(!is_dir("${temp_dir()}/vader_is_dir_absent"), "a missing path is not")
+}
+
+@test test_modification_time_of_a_file_and_of_a_missing_path :: fn() -> void {
+    file :: "${temp_dir()}/vader_mtime_probe"
+    wrote :: write_file_string(file, "x")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    written :: modification_time(file)
+    assert(written is i64 && written > 0, "a file just written has a time after the epoch")
+    missing :: modification_time("${temp_dir()}/vader_mtime_absent")
+    if missing is IOError {
+        assert_eq(missing.kind, .NotFound)
+    } else {
+        assert(false, "a missing path has no modification time")
+    }
+}
+
+@test test_real_path_gives_two_spellings_of_a_file_one_answer :: fn() -> void {
+    file :: "${temp_dir()}/vader_real_path_probe"
+    wrote :: write_file_string(file, "x")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    direct :: real_path(file)
+    temp_name :: to_path(temp_dir()).filename()
+    detour :: real_path("${temp_dir()}/../${temp_name}/./vader_real_path_probe")
+    if direct is IOError || detour is IOError {
+        assert(false, "both spellings resolve")
+    } else {
+        assert_eq(detour, direct)
+    }
+}
+
+@test test_real_path_resolves_a_directory :: fn() -> void {
+    dir :: real_path(temp_dir())
+    assert(dir is string && is_dir(dir), "the temp dir resolves to a directory")
+}
+
+@test test_real_path_of_a_missing_path :: fn() -> void {
+    missing :: real_path("${temp_dir()}/vader_real_path_absent")
+    if missing is IOError {
+        assert_eq(missing.kind, .NotFound)
+    } else {
+        assert(false, "a missing path does not resolve")
+    }
+}
+
+@test test_a_failed_read_carries_why :: fn() -> void {
+    // Every `fopen` failure used to answer "file not found", whatever the
+    // reason. A missing path is the one classification every platform agrees
+    // on: POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
+    missing :: read_file_bytes("${temp_dir()}/vader_no_such_probe", READ_LIMIT_DEFAULT)
+    if missing is IOError {
+        assert_eq(missing.kind, .NotFound)
+        assert(missing.code != 0, "the raw platform code came through too")
+    } else {
+        assert(false, "reading a missing path must fail")
+    }
+
+    // A ceiling this library imposes is not a system failure, so it carries no
+    // code and stays `.Other`.
+    file :: "${temp_dir()}/vader_kind_probe"
+    wrote :: write_file_string(file, "0123456789")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    too_big :: read_file_bytes(file, 4)
+    if too_big is IOError {
+        assert_eq(too_big.kind, .Other)
+        assert_eq(too_big.code, 0)
+    } else {
+        assert(false, "a read past the ceiling must fail")
+    }
+}
+
+@test test_read_file_bytes_honours_its_ceiling :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_limit_probe"
+    wrote :: write_file_string(file, "0123456789")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    // The ceiling is inclusive.
+    assert(read_file_bytes(file, 10) !is IOError, "exactly at the ceiling is fine")
+    assert(read_file_bytes(file, 9) is IOError, "one byte past it is refused")
+}
+
+@test test_read_file_bytes_reads_a_file_past_one_chunk :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_whole_probe"
+    content: u8[]: [7] * (READ_CHUNK + 10)
+    content[content.len() - 1] = 9
+    wrote :: write_file_bytes(file, content)
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    back :: read_file_bytes(file)
+    if back is IOError {
+        assert(false, "a file past one chunk reads")
+    } else {
+        assert(back.content_equals(content), "every byte read back, the last one included")
+    }
+}
+
+@test test_read_file_bytes_reads_a_file_of_exactly_one_chunk :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_one_chunk_probe"
+    content: u8[]: [3] * READ_CHUNK
+    wrote :: write_file_bytes(file, content)
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    back :: read_file_bytes(file)
+    if back is IOError {
+        assert(false, "a file of one chunk reads")
+    } else {
+        assert_eq(back.len(), READ_CHUNK)
+    }
+}
+
+@test test_read_file_bytes_holds_a_stream_to_its_ceiling :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    // Past its first chunk, a device has no size: the chunks go on to the ceiling.
+    endless :: read_file_bytes("/dev/zero", READ_CHUNK * 2)
+    assert(endless is IOError, "an endless stream stops at its ceiling")
+}
+
+@test test_read_file_bytes_holds_a_file_read_whole_to_its_ceiling :: fn() -> void {
+    file :: "${temp_dir()}/vader_read_whole_ceiling_probe"
+    content: u8[]: [5] * (READ_CHUNK * 3)
+    wrote :: write_file_bytes(file, content)
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    assert(read_file_bytes(file, content.len()) !is IOError, "exactly at the ceiling is fine")
+    assert(read_file_bytes(file, content.len() - 1) is IOError, "one byte past it is refused")
+}
+
+@test test_read_file_bytes_reads_the_null_device_empty :: fn() -> void {
+    read :: read_file_bytes(null_device())
+    if read is IOError {
+        assert(false, "the null device reads")
+    } else {
+        assert_eq(read.len(), 0)
+    }
+}
+
+// The device that reads empty, by platform.
+null_device :: fn() -> string {
+    if VADER_OS == .Windows {
+        return "NUL"
+    }
+    return "/dev/null"
+}

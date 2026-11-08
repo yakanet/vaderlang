@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 not_twenty :: fn(p: [i32, i64]) -> bool {

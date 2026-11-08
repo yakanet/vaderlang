@@ -342,7 +342,7 @@ int64_t vader_stream_size(void* stream) {
 }
 
 /* Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
- * take for itself, and it is all this accessor does: `std/io::read_dir` drives
+ * take for itself, and it is all this accessor does: `std/fs::read_dir` drives
  * `opendir` / `readdir` from Vader and calls it for the name. Only `cc` resolves
  * the offset, and only from the real header: `d_name` sits at 21 on Darwin
  * against 19 on glibc.

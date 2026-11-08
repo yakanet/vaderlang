@@ -145,13 +145,13 @@ fn 2 snippet$main () -> i32
   array.get 27   ; snippet$Card[]
   struct.get 7 0   ; snippet$Card.weights
   call 0   ; snippet$show
-  call 59   ; std_io$println__string
+  call 59   ; std_console$println__string
   data.const 0 27   ; pool[0] snippet$Card[]
   i64.const 0
   array.get 27   ; snippet$Card[]
   struct.get 7 0   ; snippet$Card.weights
   call 1   ; snippet$kind
-  call 59   ; std_io$println__string
+  call 59   ; std_console$println__string
   data.const 0 27   ; pool[0] snippet$Card[]
   i64.const 0
   array.get 27   ; snippet$Card[]
@@ -198,19 +198,19 @@ fn 2 snippet$main () -> i32
   local.get 3   ; __buf_2
   local.get 2   ; $call_25
   call 4   ; std_core$finish_buffer
-  call 59   ; std_io$println__string
+  call 59   ; std_console$println__string
   data.const 0 27   ; pool[0] snippet$Card[]
   i64.const 0
   array.get 27   ; snippet$Card[]
   struct.get 7 2   ; snippet$Card.either
   call 1   ; snippet$kind
-  call 59   ; std_io$println__string
+  call 59   ; std_console$println__string
   data.const 0 27   ; pool[0] snippet$Card[]
   i64.const 0
   array.get 27   ; snippet$Card[]
   struct.get 7 2   ; snippet$Card.either
   call 0   ; snippet$show
-  call 59   ; std_io$println__string
+  call 59   ; std_console$println__string
   data.const 1 28   ; pool[1] string[][]
   array.len
   local.set 0   ; __p_0
@@ -251,7 +251,7 @@ fn 2 snippet$main () -> i32
   local.get 3   ; __buf_2
   local.get 2   ; $call_25
   call 4   ; std_core$finish_buffer
-  call 59   ; std_io$println__string
+  call 59   ; std_console$println__string
   data.const 2 29   ; pool[2] union[]
   local.tee 3   ; __buf_2
   array.len
@@ -271,12 +271,12 @@ fn 2 snippet$main () -> i32
       if $L2 void
         local.get 4   ; m
         ref.cast 2   ; string
-        call 59   ; std_io$println__string
+        call 59   ; std_console$println__string
       else
         local.get 4   ; m
         ref.cast 9   ; i32[]
         call 0   ; snippet$show
-        call 59   ; std_io$println__string
+        call 59   ; std_console$println__string
       end $L2
       local.get 2   ; $call_25
       i64.const 1
@@ -3652,7 +3652,7 @@ fn 55 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 56 std_io$write (u8,string) -> void
+fn 56 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3663,7 +3663,7 @@ fn 56 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 57   ; std_io$write_text
+  call 57   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3694,7 +3694,7 @@ fn 56 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 58   ; std_io$write_bytes
+      call 58   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3714,11 +3714,11 @@ fn 56 std_io$write (u8,string) -> void
   return
 end
 
-fn 57 std_io$write_text (u8,string) -> bool
+fn 57 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 58 std_io$write_bytes (u8,ref,i64) -> i32
+fn 58 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3738,7 +3738,7 @@ fn 58 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 59 std_io$println__string (string) -> void
+fn 59 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 17   ; "\n"
@@ -3746,6 +3746,6 @@ fn 59 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 56   ; std_io$write
+  call 56   ; std_console$write
   return
 end

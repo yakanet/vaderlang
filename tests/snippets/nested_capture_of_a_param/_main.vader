@@ -10,7 +10,7 @@
 // another route, which is why `defer_in_lambda` looked fine.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Lambda inside a lambda.
 nested_lambda :: fn(p: string) -> void {

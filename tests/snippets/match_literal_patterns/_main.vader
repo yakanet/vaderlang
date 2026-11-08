@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Char scrutinee: the BF compiler in `examples/brainfuck.vader` is
 // the first real user of this form.

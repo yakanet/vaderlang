@@ -6,7 +6,7 @@
 module "snippet"
 
 import "snippet/halves"
-import "std/io"
+import "std/console"
 import "std/iter"
 
 upto :: fn(n: i32) -> Iterator<i32> {

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A generic "repeat" iterator: yields the same value `count` times.
 export Repeat :: struct<T> {

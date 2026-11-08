@@ -9,7 +9,7 @@
 // erased buffer shows up as a null read rather than a silently wrong number.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Tag :: struct { n: i32 }
 

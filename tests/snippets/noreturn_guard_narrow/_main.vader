@@ -13,7 +13,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/abort"
 
 Box :: struct { v: i32 }

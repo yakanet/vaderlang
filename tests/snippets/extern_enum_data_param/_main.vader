@@ -1,7 +1,7 @@
 module "snippet"
 
 import "snippet/status"
-import "std/io"
+import "std/console"
 
 // An enum with variant data stores its variant's rank, and crosses `@extern` as
 // the value written after `=`, at the width its header writes: `abs` and `labs`

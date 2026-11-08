@@ -4,7 +4,7 @@
 // is read by position.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Swapped :: struct {
     _1: i32

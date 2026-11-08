@@ -17,11 +17,11 @@
       return @global(1)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_0))))
+      std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_0))))
       return 0
   }
   snippet$selfish$singleton :: fn() -> i32 {
-      std.io.println<string>("selfish starts")
+      std.console.println<string>("selfish starts")
       std.time.sleep(std.time.millis(i64(1)))
       return snippet.selfish() + 1
   }
@@ -45,6 +45,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -112,11 +117,6 @@
     struct std.core.Cancelled  // std_core$Cancelled
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

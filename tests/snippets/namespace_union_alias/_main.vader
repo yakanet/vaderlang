@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 k :: import "snippet/kinds"
 ms :: import "snippet/measures"
 sh :: import "snippet/shapes"

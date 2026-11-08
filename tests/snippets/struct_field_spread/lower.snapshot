@@ -31,13 +31,13 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(snippet.describe(IntFormat {
+      std.console.println<string>(snippet.describe(IntFormat {
           .sign = SignMode(0),
           .separator = ",",
           .width = 8,
           .base = 10,
       }))
-      std.io.println<string>(snippet.describe(IntFormat {
+      std.console.println<string>(snippet.describe(IntFormat {
           .sign = SignMode(1),
           .separator = ",",
           .width = 4,
@@ -55,7 +55,7 @@
           } :string,
       }
       @array.push(p.items, 3)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: i32 = p.first
           __p_1: i64 = @array.len(p.items)
           __p_2: string = p.label
@@ -81,7 +81,7 @@
           .depth = 0,
       }
       @array.push(c.items, ["z"] :string[])
-      std.io.println<string>({
+      std.console.println<string>({
           __p_5: i64 = @array.len(c.first)
           __p_6: i64 = @array.len(c.items)
           __p_7: string = c.items[0][0]
@@ -97,7 +97,7 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       r: Revealed = snippet.formats.make_revealed()
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(62))
           __off_11: i64 = 0
           __off_11 = std.core.write_int(__buf_10, __off_11, r.shown)
@@ -134,6 +134,11 @@
   snippet.formats.Revealed :: struct { shown: i32, hidden: i32, extra: i32 }  // snippet_formats$Revealed
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -144,11 +149,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -4,7 +4,7 @@
 // parenthesised primary, and a struct literal is allowed inside it.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Point :: struct { x: i32 }
 

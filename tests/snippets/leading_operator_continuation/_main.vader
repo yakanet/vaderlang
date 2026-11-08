@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 describe :: fn(n: i32, verbose: bool) -> string {
     label :: if verbose {

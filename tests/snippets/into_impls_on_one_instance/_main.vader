@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Two impls of `Into` on one instance (a struct instance and a concrete array)
 // each run their own `into` : the conversion toward `Label` and the one toward

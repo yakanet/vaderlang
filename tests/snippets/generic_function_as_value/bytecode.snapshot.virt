@@ -47,7 +47,7 @@ fn 1 snippet$main () -> i32
   fn.ref 7 1   ; snippet$name_of__i32 fn
   i32.const 5
   call 0   ; snippet$apply
-  call 21   ; std_io$println__string
+  call 21   ; std_console$println__string
   f64.const 1.5 4609434218613702656
   f64.const 2.5 4612811918334230528
   array.new 12 2   ; f64[]
@@ -65,7 +65,7 @@ fn 1 snippet$main () -> i32
       local.get 2   ; __fuse_i_2
       load_slot_f64
       call 6   ; snippet$name_of__f64
-      call 21   ; std_io$println__string
+      call 21   ; std_console$println__string
       local.get 2   ; __fuse_i_2
       i64.const 1
       i64.add
@@ -76,19 +76,19 @@ fn 1 snippet$main () -> i32
   fn.ref 4 13   ; snippet$id__i32 fn
   i32.const 7
   call 10   ; snippet$twice__i32
-  call 20   ; std_io$println__i32
+  call 20   ; std_console$println__i32
   bool.const true
   f64.const 1.5 4609434218613702656
   call 8   ; snippet$pair__bool__f64
-  call 21   ; std_io$println__string
+  call 21   ; std_console$println__string
   i64.const 1
   string.const 0   ; "s"
   call 9   ; snippet$pair__i64__string
-  call 21   ; std_io$println__string
+  call 21   ; std_console$println__string
   fn.ref 7 1   ; snippet$name_of__i32 fn
   i32.const 3
   call 0   ; snippet$apply
-  call 21   ; std_io$println__string
+  call 21   ; std_console$println__string
   i32.const 3
   call 4   ; snippet$id__i32
   local.set 3   ; __p_3
@@ -125,11 +125,11 @@ fn 1 snippet$main () -> i32
   local.get 0   ; __fuse_arr_0
   local.get 1   ; __fuse_len_1
   call 12   ; std_core$finish_buffer
-  call 21   ; std_io$println__string
+  call 21   ; std_console$println__string
   call 2   ; __lambda_snippet_0
-  call 19   ; std_io$println__bool
+  call 19   ; std_console$println__bool
   string.const 2   ; "through a module"
-  call 21   ; std_io$println__string
+  call 21   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -363,7 +363,7 @@ fn 15 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 16 std_io$write (u8,string) -> void
+fn 16 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -374,7 +374,7 @@ fn 16 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 17   ; std_io$write_text
+  call 17   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -405,7 +405,7 @@ fn 16 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 18   ; std_io$write_bytes
+      call 18   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -425,11 +425,11 @@ fn 16 std_io$write (u8,string) -> void
   return
 end
 
-fn 17 std_io$write_text (u8,string) -> bool
+fn 17 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 18 std_io$write_bytes (u8,ref,i64) -> i32
+fn 18 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -449,7 +449,7 @@ fn 18 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 19 std_io$println__bool (bool) -> void
+fn 19 std_console$println__bool (bool) -> void
   local __buf_0 ref
   local __off_1 i64
   local $call_10 string
@@ -474,11 +474,11 @@ fn 19 std_io$println__bool (bool) -> void
   local.set 3   ; $call_10
   i32.const 0
   local.get 3   ; $call_10
-  call 16   ; std_io$write
+  call 16   ; std_console$write
   return
 end
 
-fn 20 std_io$println__i32 (i32) -> void
+fn 20 std_console$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -507,11 +507,11 @@ fn 20 std_io$println__i32 (i32) -> void
   local.set 4   ; $call_11
   i32.const 0
   local.get 4   ; $call_11
-  call 16   ; std_io$write
+  call 16   ; std_console$write
   return
 end
 
-fn 21 std_io$println__string (string) -> void
+fn 21 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 9   ; "\n"
@@ -519,6 +519,6 @@ fn 21 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 16   ; std_io$write
+  call 16   ; std_console$write
   return
 end

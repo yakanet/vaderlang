@@ -18,6 +18,8 @@ module "vader/tools/lsp/analysis"
 
 import "json"
 import "std/collections"
+import "std/env"
+import "std/fs"
 import "std/io"
 import "std/path"
 import "std/process"

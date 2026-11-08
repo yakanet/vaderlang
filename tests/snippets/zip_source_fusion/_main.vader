@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 product :: fn(p: [i32, i32]) -> i32 = p.0 * p.1

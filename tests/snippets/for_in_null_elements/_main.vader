@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // An ESCAPING generator: consumed through the boxed `Iterator` state machine, so
 // every element really does cross the `next` boundary. A direct

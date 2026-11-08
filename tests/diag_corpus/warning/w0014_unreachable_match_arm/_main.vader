@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 A :: struct { v: i32 }
 B :: struct { v: i32 }

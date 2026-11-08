@@ -12,7 +12,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       b: Box<i32> = Box<i32> { .value = 7, .render = __lambda_snippet_0 }
-      std.io.println<string>(snippet.through_field(b))
+      std.console.println<string>(snippet.through_field(b))
       {
           self: string = "ab"
           i: i64 = 0
@@ -21,7 +21,7 @@
               if b < u8(128) {
                   i = i + i64(1)
                   c: char = char(b)
-                  std.io.println<string>(std.core.char.to_string(c))
+                  std.console.println<string>(std.core.char.to_string(c))
               } else {
                   __tup_0: [u32, i64] = std.core.decode_tail(self, b, i)
                   code: u32 = __tup_0._0
@@ -35,7 +35,7 @@
                       }
                       char(code)
                   }
-                  std.io.println<string>(std.core.char.to_string(c))
+                  std.console.println<string>(std.core.char.to_string(c))
               }
           }
       }
@@ -62,6 +62,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -76,11 +81,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

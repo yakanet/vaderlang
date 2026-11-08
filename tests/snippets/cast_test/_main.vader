@@ -2,7 +2,7 @@
 // becomes 2^64 - 42 (a zero-extension would give 2^32 - 42).
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     n: i32: 42

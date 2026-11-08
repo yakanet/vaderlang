@@ -100,10 +100,10 @@ static uint32_t std_core$char$Step$step(uint32_t l0);
 static uint32_t std_core$u32$Zero$zero(void);
 static void* std_core$utf8_encode(uint32_t l0);
 static uint32_t std_core$next_scalar(uint32_t l0);
-static void std_io$write(uint8_t l0, vader_string_t l1);
-static bool std_io$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_io$println__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static void std_console$println__string(vader_string_t l0);
 static vader_string_t std_string$join(void* l0, vader_string_t l1);
 static uint32_t std_string$combine_surrogates(uint32_t l0, uint32_t l1);
 static void std_string__builder$append(void* l0, vader_string_t l1);
@@ -313,7 +313,7 @@ static int32_t snippet$main(void) {
     l2 = (uint64_t) (int64_t) t0;
     l1 = std_core$write_unsigned(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     vader_array_t* _a0_arr = vader_array_new(17u, 8u, 7u, 7u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 7u] = (int32_t) INT32_C(1114112);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 6u] = (int32_t) INT32_C(1114111);
@@ -332,7 +332,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         t2 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
         t1 = snippet$describe(((int64_t) (int32_t) t2));
-        std_io$println__string(t1);
+        std_console$println__string(t1);
         l3 = (l3 + INT64_C(1));
     }
     t3 = snippet$from_byte((uint8_t) 72);
@@ -342,7 +342,7 @@ static int32_t snippet$main(void) {
     t3 = snippet$from_unit((uint32_t) 128512);
     l6 = std_core$char$Display$to_string(t3);
     t1 = concat_3(l4, l5, l6);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     l7 = (uint32_t) 10084;
     t2 = vader_chk_add(u32, l7, INT32_C(0));
     l8 = (uint32_t) (int32_t) t2;
@@ -391,7 +391,7 @@ static int32_t snippet$main(void) {
     l3 = ((int64_t) (int32_t) (97u - 65u));
     l1 = std_core$write_int(l0, l1, l3);
     t1 = std_core$finish_buffer(l0, l1);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     vader_array_t* _a3_arr = vader_array_new(16u, 0u, 0u, 2u);
     l0 = (void*) _a3_arr;
     l10 = 55294u;
@@ -407,7 +407,7 @@ static int32_t snippet$main(void) {
     }
     l4 = std_string$join(l0, 5u);
     t1 = concat_2(7u, l4);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     vader_array_t* _a4_arr = vader_array_new(16u, 0u, 0u, 2u);
     l0 = (void*) _a4_arr;
     vader_struct_std_core$Range__char_t* _a5_obj = (vader_struct_std_core$Range__char_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Range__char_t));
@@ -430,7 +430,7 @@ static int32_t snippet$main(void) {
     }
     l4 = std_string$join(l0, 5u);
     t1 = concat_2(8u, l4);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     l8 = std_core$u32$Zero$zero();
     l10 = 55294u;
     while ((l10 <= 57345u)) {
@@ -452,7 +452,7 @@ static int32_t snippet$main(void) {
     l2 = (uint64_t) (int64_t) t0;
     l1 = std_core$write_unsigned(l0, l1, l2);
     t1 = std_core$finish_buffer(l0, l1);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     l10 = 57344u;
     vader_array_t* _a6_arr = vader_array_new(16u, 0u, 0u, 2u);
     l0 = (void*) _a6_arr;
@@ -481,7 +481,7 @@ static int32_t snippet$main(void) {
     }
     l4 = std_string$join(l0, 5u);
     t1 = concat_2(10u, l4);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     vader_array_t* _a7_arr = vader_array_new(16u, 0u, 0u, 2u);
     l0 = (void*) _a7_arr;
     l10 = 97u;
@@ -494,11 +494,11 @@ static int32_t snippet$main(void) {
     }
     l4 = std_string$join(l0, 0u);
     t1 = concat_2(11u, l4);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     t3 = std_string$combine_surrogates((uint32_t) 55357, (uint32_t) 56832);
     l4 = std_core$char$Display$to_string(t3);
     t1 = concat_2(12u, l4);
-    std_io$println__string(t1);
+    std_console$println__string(t1);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -807,7 +807,7 @@ static uint32_t std_core$next_scalar(uint32_t l0) {
     }
 }
 
-static void std_io$write(uint8_t l0, vader_string_t l1) {
+static void std_console$write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
@@ -819,7 +819,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_io$write_text(l0, l1);
+    t0 = std_console$write_text(l0, l1);
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
@@ -832,7 +832,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
             l7 = ((vader_array_t*) l6)->length;
-            l8 = std_io$write_bytes(l0, l6, l7);
+            l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
@@ -845,11 +845,11 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_io$write_text(uint8_t l0, vader_string_t l1) {
+static bool std_console$write_text(uint8_t l0, vader_string_t l1) {
     return false;
 }
 
-static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     int64_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -862,13 +862,13 @@ static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_io$println__string(vader_string_t l0) {
+static void std_console$println__string(vader_string_t l0) {
     vader_string_t l1 = 0;
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = concat_2(l0, 13u);
-    std_io$write((uint8_t) 0, l1);
+    std_console$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

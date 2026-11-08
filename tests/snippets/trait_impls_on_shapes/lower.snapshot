@@ -76,19 +76,19 @@
       blocks: [BlockId, i32] = [block, 3] :[BlockId, i32]
       a: [Point, i32] = [Point { .x = 4 }, 1] :[Point, i32]
       b: [Point, i32] = [Point { .label = "p" }, 2] :[Point, i32]
-      std.io.println<string>(snippet.[i32, i32].shout(ints))
-      std.io.println<string>(snippet.[string, i32].shout(strings))
-      std.io.println<string>(snippet.[BlockId, i32].shout(blocks))
-      std.io.println<string>(snippet$_snippet_mod__a_Point__i32_$Shout$shout(a))
-      std.io.println<string>(snippet$_snippet_mod__b_Point__i32_$Shout$shout(b))
+      std.console.println<string>(snippet.[i32, i32].shout(ints))
+      std.console.println<string>(snippet.[string, i32].shout(strings))
+      std.console.println<string>(snippet.[BlockId, i32].shout(blocks))
+      std.console.println<string>(snippet$_snippet_mod__a_Point__i32_$Shout$shout(a))
+      std.console.println<string>(snippet$_snippet_mod__b_Point__i32_$Shout$shout(b))
       int_fn: fn(i32) -> i32 = __lambda_snippet_0
       string_fn: fn(string) -> i32 = __lambda_snippet_1
-      std.io.println<string>(snippet.fn(i32) -> i32.shout(int_fn))
-      std.io.println<string>(snippet.fn(string) -> i32.shout(string_fn))
+      std.console.println<string>(snippet.fn(i32) -> i32.shout(int_fn))
+      std.console.println<string>(snippet.fn(string) -> i32.shout(string_fn))
       int_or_bool: bool | i32 = 3
       string_or_bool: bool | string = true
-      std.io.println<string>(snippet.bool | i32.shout(int_or_bool))
-      std.io.println<string>(snippet.bool | string.shout(string_or_bool))
+      std.console.println<string>(snippet.bool | i32.shout(int_or_bool))
+      std.console.println<string>(snippet.bool | string.shout(string_or_bool))
       return 0
   }
   __lambda_snippet_0 :: fn(x: i32) -> i32 {
@@ -122,6 +122,11 @@
   snippet.mod_b.Point :: struct { label: string }  // snippet_mod__b$Point
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -132,11 +137,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

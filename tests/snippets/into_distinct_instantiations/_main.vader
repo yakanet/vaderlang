@@ -3,7 +3,7 @@
 // `Box<i32>`, not the first impl whose target is a `Box`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Box :: struct<T> { value: T }
 

@@ -23,7 +23,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 COUNT   :: 60_000
 DIVISOR :: 7

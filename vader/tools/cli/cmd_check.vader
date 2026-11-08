@@ -23,7 +23,7 @@
 
 module "vader/tools/cli"
 
-import "std/io"
+import "std/console"
 import "std/path"
 import "std/string"
 import "cli"

@@ -8,7 +8,7 @@
 /// running process instead, so it exercises a different path to the same call.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 @extern add_i32 :: fn(a: i32, b: i32) -> i32
 @c_type("size_t")

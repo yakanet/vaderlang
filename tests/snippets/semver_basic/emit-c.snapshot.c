@@ -223,11 +223,11 @@ static vader_string_t std_string$trim_prefix(vader_string_t l0, vader_string_t l
 static void* std_string$split(vader_string_t l0, vader_string_t l1);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 static vader_string_t std_string$ParseError$std_core$Error$message(void* l0);
-static void std_io$write(uint8_t l0, vader_string_t l1);
-static bool std_io$write_text(uint8_t l0, vader_string_t l1);
-static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
-static void std_io$println__string(vader_string_t l0);
-static void std_io$eprintln__string(vader_string_t l0);
+static void std_console$write(uint8_t l0, vader_string_t l1);
+static bool std_console$write_text(uint8_t l0, vader_string_t l1);
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
+static void std_console$println__string(vader_string_t l0);
+static void std_console$eprintln__string(vader_string_t l0);
 static bool std_char$is_digit(uint32_t l0);
 static bool std_char$is_alnum(uint32_t l0);
 static bool std_char$is_white_char(uint32_t l0);
@@ -371,12 +371,12 @@ static int32_t snippet$main(void) {
     if (l0.tag == 3u) {
         t0 = l1.payload.obj;
         t1 = semver$Version$std_core$Display$to_string(t0);
-        std_io$println__string(t1);
+        std_console$println__string(t1);
         l2 = snippet$parse_one(2u);
         t0 = l1.payload.obj;
         t2 = semver$Version$std_core$Comparable$compare(t0, l2);
         if ((t2 > INT32_C(0))) {
-            std_io$println__string(3u);
+            std_console$println__string(3u);
         }
         l3 = semver$parse_range(4u);
         l4 = l3;
@@ -385,7 +385,7 @@ static int32_t snippet$main(void) {
             t0 = l4.payload.obj;
             t3 = semver$VersionRange$std_core$Contains$contains(t0, l2);
             if (t3) {
-                std_io$println__string(6u);
+                std_console$println__string(6u);
             }
             { vader_gc_top = gc_frame.prev; return INT32_C(0); }
         }
@@ -395,7 +395,7 @@ static int32_t snippet$main(void) {
         t0 = l4.payload.obj;
         l5 = std_string$ParseError$std_core$Error$message(t0);
         t1 = concat_2(7u, l5);
-        std_io$eprintln__string(t1);
+        std_console$eprintln__string(t1);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     if (!(l0.tag == 13u)) {
@@ -404,7 +404,7 @@ static int32_t snippet$main(void) {
     t0 = l1.payload.obj;
     l5 = std_string$ParseError$std_core$Error$message(t0);
     t1 = concat_2(8u, l5);
-    std_io$eprintln__string(t1);
+    std_console$eprintln__string(t1);
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
 }
 
@@ -3128,7 +3128,7 @@ static vader_string_t std_string$ParseError$std_core$Error$message(void* l0) {
     return t0;
 }
 
-static void std_io$write(uint8_t l0, vader_string_t l1) {
+static void std_console$write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
@@ -3140,7 +3140,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_io$write_text(l0, l1);
+    t0 = std_console$write_text(l0, l1);
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
@@ -3153,7 +3153,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
             l7 = ((vader_array_t*) l6)->length;
-            l8 = std_io$write_bytes(l0, l6, l7);
+            l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }
             }
@@ -3166,11 +3166,11 @@ static void std_io$write(uint8_t l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_io$write_text(uint8_t l0, vader_string_t l1) {
+static bool std_console$write_text(uint8_t l0, vader_string_t l1) {
     return false;
 }
 
-static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {
+static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     int64_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -3183,23 +3183,23 @@ static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2) {
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_io$println__string(vader_string_t l0) {
+static void std_console$println__string(vader_string_t l0) {
     vader_string_t l1 = 0;
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = concat_2(l0, 53u);
-    std_io$write((uint8_t) 0, l1);
+    std_console$write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void std_io$eprintln__string(vader_string_t l0) {
+static void std_console$eprintln__string(vader_string_t l0) {
     vader_string_t l1 = 0;
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
     l1 = concat_2(l0, 53u);
-    std_io$write((uint8_t) 1, l1);
+    std_console$write((uint8_t) 1, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

@@ -3,7 +3,7 @@
 // part that follows it. Each `say_*` prints when it runs.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 say_int :: fn(n: i32) -> i32 {
     println("  int ${n}")

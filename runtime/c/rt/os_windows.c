@@ -428,7 +428,7 @@ static int vader_write_console(HANDLE h, const char* text, size_t len) {
 }
 
 /* The report for a `detail` beyond ASCII on a console, whose code page, the OEM
- * one by default, would garble it: the line goes out as UTF-16, as `std/io`
+ * one by default, would garble it: the line goes out as UTF-16, as `std/console`
  * writes `eprint`. 0, with nothing written, when that does not apply or cannot be
  * done. */
 static int vader_report_fatal_console(const char* what, const char* detail, size_t detail_len) {
@@ -457,7 +457,7 @@ static void vader_os_report_fatal(const char* what, const char* detail, size_t d
 /* ---- accessors ----------------------------------------------------------- */
 
 /* Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
- * take for itself, and it is all this accessor does: `std/io::read_dir` drives
+ * take for itself, and it is all this accessor does: `std/fs::read_dir` drives
  * `FindFirstFileW` / `FindNextFileW` from Vader and calls it for the name.
  *
  * It has to be a CALL and not a struct read: the interpreter has no C layout,

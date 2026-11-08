@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A member an array impl inherits from its trait's default body, called on a
 // union that holds an array: the array variant dispatches to the inherited member

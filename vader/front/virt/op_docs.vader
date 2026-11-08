@@ -8,6 +8,7 @@
 module "vader/front/virt"
 
 import "std/abort"
+import "std/fs"
 import "std/io"
 import "std/iter"
 import "std/string"

@@ -69,7 +69,7 @@ async function debugSource(source: string, lines: number[], during: object[]): P
 }
 
 test("dap: proof of life, initialize, launch, run, capture output, terminate", async () => {
-  // io_println prints "hello\n" then "42\n": imports std/io, resolved relative
+  // io_println prints "hello\n" then "42\n": imports std/console, resolved relative
   // to the repo cwd (same as `vader run`).
   const program = join(process.cwd(), "tests/snippets/io_println/_main.vader");
   const frames = await driveDap(program);
@@ -260,7 +260,7 @@ test("dap: the Variables view names function parameters from source", async () =
   const source = [
     `module "snippet"`,
     ``,
-    `import "std/io"`,
+    `import "std/console"`,
     ``,
     `add :: fn(x: i32, y: i32) -> i32 {`,
     `    sum :: x + y`,
@@ -312,7 +312,7 @@ const MAIN_JOIN = 16;
 const TASK_PROGRAM = [
   `module "snippet"`,
   ``,
-  `import "std/io"`,
+  `import "std/console"`,
   `import "std/task"`,
   ``,
   `work :: fn() -> i32 {`,
@@ -431,7 +431,7 @@ test("dap: a trap in a task stops that thread, then closes the session", async (
   const source = [
     `module "snippet"`,
     ``,
-    `import "std/io"`,
+    `import "std/console"`,
     `import "std/task"`,
     ``,
     `divide :: fn(a: i32, b: i32) -> i32 = a / b`,

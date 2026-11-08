@@ -4,7 +4,7 @@
 // return value, a `Display | null`, an element of a `Poke[]` and of a tuple.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Poke :: trait {
     poke :: fn(self) -> string

@@ -118,21 +118,21 @@
           }
           s
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(34))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "slice mid len=")
           __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(nums[3..<7]))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(35))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "slice over len=")
           __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(nums[100..<200]))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(35))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "slice tail len=")
@@ -160,6 +160,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -171,11 +176,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     fn std_core$i32$Zero$zero
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

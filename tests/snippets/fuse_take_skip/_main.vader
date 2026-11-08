@@ -3,7 +3,7 @@
 // The lower snapshot is the regression guard (0 iterator structs).
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 main :: fn() -> i32 {

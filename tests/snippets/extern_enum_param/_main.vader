@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // An enum with a written width crosses `@extern` as the integer its variant
 // stores, at that width: `After` follows `Plus` and stores 6, not its rank.

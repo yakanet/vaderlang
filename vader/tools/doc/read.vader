@@ -9,6 +9,7 @@ module "vader/tools/doc"
 
 import "json"
 import "std/collections"
+import "std/fs"
 import "std/io"
 import "std/iter"
 import "std/string"

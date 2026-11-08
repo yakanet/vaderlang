@@ -22,7 +22,7 @@
 module "vader/midir/optimise"
 
 import "std/collections"
-import "std/io"
+import "std/console"
 import "std/string_builder"
 import "vader/midir"
 import "vader/midir/select"

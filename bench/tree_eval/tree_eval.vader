@@ -18,7 +18,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 TREE_DEPTH  :: 17
 PASS_COUNT  :: 100

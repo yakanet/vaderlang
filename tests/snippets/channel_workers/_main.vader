@@ -3,7 +3,7 @@
 // who took each. The workers reach the channels through a struct they are lent.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 import "std/string"
 import "std/task"

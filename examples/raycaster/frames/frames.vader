@@ -14,6 +14,8 @@ module "frames"
 
 import "engine"
 import "images/ppm"
+import "std/console"
+import "std/fs"
 import "std/io"
 import "std/iter"
 import "std/numbers"

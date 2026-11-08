@@ -5,7 +5,7 @@
 // they must be identical.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 SUM :: 2000000000 +% 2000000000
 GT0 :: (2000000000 +% 2000000000) > 0

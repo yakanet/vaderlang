@@ -10,7 +10,7 @@ module "vader/tools/cli"
 
 import "cli"
 import "std/collections"
-import "std/io"
+import "std/console"
 import "std/path"
 import "std/sort"
 import "std/string"

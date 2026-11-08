@@ -3,7 +3,7 @@
 // parameter names.
 module "snippet"
 
-import "std/io"
+import "std/console"
 M :: import "std/math"
 S :: import "snippet/shapes"
 

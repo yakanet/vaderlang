@@ -7,7 +7,7 @@ module "snippet"
 import "snippet/kit"
 import "snippet/kit/tags" { Tag as SlashTag }
 import "snippet/kit_tags" { Tag as UnderscoreTag }
-import "std/io"
+import "std/console"
 
 Badge :: struct {
     name: string

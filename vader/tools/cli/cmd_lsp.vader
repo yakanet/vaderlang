@@ -7,7 +7,6 @@
 
 module "vader/tools/cli"
 
-import "std/io"
 import "cli"
 import "vader/tools/lsp"
 

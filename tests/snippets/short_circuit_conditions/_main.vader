@@ -7,7 +7,7 @@
 // operand that diverges through `?? return`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/string_builder"
 
 trace :: fn(sb: StringBuilder, tag: string, v: bool) -> bool {

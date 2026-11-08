@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     @comptime for x in [1, 2, 3] {

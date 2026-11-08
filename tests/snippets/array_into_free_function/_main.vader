@@ -3,7 +3,7 @@
 // array. The `into` every array shares still heads a chain of its own.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 Reversed :: struct {

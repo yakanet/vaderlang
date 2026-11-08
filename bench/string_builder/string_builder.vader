@@ -8,7 +8,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/string_builder"
 
 N        :: 80_000

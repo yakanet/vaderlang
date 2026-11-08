@@ -68,7 +68,7 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               c: i32 | string = __for_arr_0[__for_i_2]
-              std.io.println<string>(snippet.cell(c))
+              std.console.println<string>(snippet.cell(c))
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
@@ -79,19 +79,19 @@
           __for_i_5: i64 = 0
           for __for_i_5 < __for_len_4 {
               c: i32 | string = __for_arr_3[__for_i_5]
-              std.io.println<string>(snippet.cell(c))
+              std.console.println<string>(snippet.cell(c))
           } @step {
               __for_i_5 = __for_i_5 +% i64(1)
           }
       }
-      std.io.println<string>(snippet.cell((i32 | string)(8)))
+      std.console.println<string>(snippet.cell((i32 | string)(8)))
       {
           __for_arr_6: (bool | char | f64 | string)[] = snippet.MIXED
           __for_len_7: i64 = @array.len(__for_arr_6)
           __for_i_8: i64 = 0
           for __for_i_8 < __for_len_7 {
               m: bool | char | f64 | string = __for_arr_6[__for_i_8]
-              std.io.println<string>(snippet.mixed(m))
+              std.console.println<string>(snippet.mixed(m))
           } @step {
               __for_i_8 = __for_i_8 +% i64(1)
           }
@@ -102,7 +102,7 @@
           __for_i_11: i64 = 0
           for __for_i_11 < __for_len_10 {
               s: string | u8 = __for_arr_9[__for_i_11]
-              std.io.println<string>(snippet.small(s))
+              std.console.println<string>(snippet.small(s))
           } @step {
               __for_i_11 = __for_i_11 +% i64(1)
           }
@@ -113,7 +113,7 @@
           __for_i_14: i64 = 0
           for __for_i_14 < __for_len_13 {
               w: i64 | string = __for_arr_12[__for_i_14]
-              std.io.println<string>(if w is i64 {
+              std.console.println<string>(if w is i64 {
                   {
                       __buf_15: Buffer = std.core.new_byte_buffer(i64(24))
                       __off_16: i64 = 0
@@ -134,7 +134,7 @@
           __for_i_19: i64 = 0
           for __for_i_19 < __for_len_18 {
               s: Circle | Square = __for_arr_17[__for_i_19]
-              std.io.println<string>(if s is Circle {
+              std.console.println<string>(if s is Circle {
                   {
                       __buf_20: Buffer = std.core.new_byte_buffer(i64(27))
                       __off_21: i64 = 0
@@ -161,7 +161,7 @@
           __for_i_26: i64 = 0
           for __for_i_26 < __for_len_25 {
               h: Holder = __for_arr_24[__for_i_26]
-              std.io.println<string>(concat_3(h.label, ": ", snippet.small(h.cell)))
+              std.console.println<string>(concat_3(h.label, ": ", snippet.small(h.cell)))
           } @step {
               __for_i_26 = __for_i_26 +% i64(1)
           }
@@ -188,6 +188,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #7
     const DOUBLE_POW5_SPLIT: u64[]  data pool #8
@@ -225,11 +230,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

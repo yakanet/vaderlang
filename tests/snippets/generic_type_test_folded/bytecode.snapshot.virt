@@ -27,73 +27,73 @@ export main 0
 fn 0 snippet$main () -> i32
   i32.const 41
   call 4   ; snippet$int_of__i32
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   f64.const 2.5 4612811918334230528
   call 3   ; snippet$int_of__f64
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   string.const 0   ; "s"
   call 6   ; snippet$int_of__string
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 3
   struct.new 6   ; snippet$Square
   call 5   ; snippet$int_of__snippet_Square
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 7
   call 7   ; snippet$side_or_zero__i32
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 5
   struct.new 6   ; snippet$Square
   call 8   ; snippet$side_or_zero__snippet_Square
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   f64.const 1.5 4609434218613702656
   call 9   ; snippet$measure__f64
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 1
   struct.new 6   ; snippet$Square
   call 10   ; snippet$measure__snippet_Circle
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 2
   struct.new 7   ; snippet$Circle
   call 10   ; snippet$measure__snippet_Circle
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 9
   call 11   ; snippet$is_big_square__i32
-  call 27   ; std_io$println__bool
+  call 27   ; std_console$println__bool
   i32.const 3
   struct.new 6   ; snippet$Square
   call 12   ; snippet$is_big_square__snippet_Square
-  call 27   ; std_io$println__bool
+  call 27   ; std_console$println__bool
   string.const 0   ; "s"
   call 14   ; snippet$label__string
-  call 29   ; std_io$println__string
+  call 29   ; std_console$println__string
   i32.const 4
   call 13   ; snippet$label__i32
-  call 29   ; std_io$println__string
+  call 29   ; std_console$println__string
   i32.const 5
   i32.const 1
   call 15   ; snippet$side_if_positive__i32
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 6
   struct.new 6   ; snippet$Square
   i32.const 1
   call 16   ; snippet$side_if_positive__snippet_Square
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 5
   i32.const 1
   call 17   ; snippet$side_unless_negative__i32
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 7
   struct.new 6   ; snippet$Square
   i32.const 1
   call 18   ; snippet$side_unless_negative__snippet_Square
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 5
   call 1   ; snippet$side_in_loop__i32
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   i32.const 8
   struct.new 6   ; snippet$Square
   call 2   ; snippet$side_in_loop__snippet_Square
-  call 28   ; std_io$println__i32
+  call 28   ; std_console$println__i32
   return.lit i32.const 0
 end
 
@@ -504,7 +504,7 @@ fn 23 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 24 std_io$write (u8,string) -> void
+fn 24 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -515,7 +515,7 @@ fn 24 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 25   ; std_io$write_text
+  call 25   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -546,7 +546,7 @@ fn 24 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 26   ; std_io$write_bytes
+      call 26   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -566,11 +566,11 @@ fn 24 std_io$write (u8,string) -> void
   return
 end
 
-fn 25 std_io$write_text (u8,string) -> bool
+fn 25 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 26 std_io$write_bytes (u8,ref,i64) -> i32
+fn 26 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -590,7 +590,7 @@ fn 26 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 27 std_io$println__bool (bool) -> void
+fn 27 std_console$println__bool (bool) -> void
   local __buf_0 ref
   local __off_1 i64
   local $call_10 string
@@ -615,11 +615,11 @@ fn 27 std_io$println__bool (bool) -> void
   local.set 3   ; $call_10
   i32.const 0
   local.get 3   ; $call_10
-  call 24   ; std_io$write
+  call 24   ; std_console$write
   return
 end
 
-fn 28 std_io$println__i32 (i32) -> void
+fn 28 std_console$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -648,11 +648,11 @@ fn 28 std_io$println__i32 (i32) -> void
   local.set 4   ; $call_11
   i32.const 0
   local.get 4   ; $call_11
-  call 24   ; std_io$write
+  call 24   ; std_console$write
   return
 end
 
-fn 29 std_io$println__string (string) -> void
+fn 29 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 5   ; "\n"
@@ -660,6 +660,6 @@ fn 29 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 24   ; std_io$write
+  call 24   ; std_console$write
   return
 end

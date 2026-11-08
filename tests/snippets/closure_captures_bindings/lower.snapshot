@@ -166,64 +166,64 @@
       return total
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "array ")
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.from_array())
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>(concat_2("tuple ", snippet.from_tuple()))
-      std.io.println<string>({
+      std.console.println<string>(concat_2("tuple ", snippet.from_tuple()))
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(26))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "pairs ")
           __off_3 = std.core.write_int(__buf_2, __off_3, snippet.over_pairs())
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(26))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "fused ")
           __off_5 = std.core.write_int(__buf_4, __off_5, snippet.over_fused_indexed())
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(25))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "lazy ")
           __off_7 = std.core.write_int(__buf_6, __off_7, snippet.over_lazy_indexed())
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(25))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "rest ")
           __off_9 = std.core.write_int(__buf_8, __off_9, snippet.with_rest())
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(31))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "reassigned ")
           __off_11 = std.core.write_int(__buf_10, __off_11, snippet.reassigned())
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(29))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "narrowed ")
           __off_13 = std.core.write_int(__buf_12, __off_13, snippet.from_narrowed(Leaf { .v = 6 }))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(30))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "generator ")
           __off_15 = std.core.write_int(__buf_14, __off_15, snippet.over_fused_generator())
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(31))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "combinator ")
@@ -373,6 +373,11 @@
   vtable std.core.Iterator.next for $genstate_scaled  snippet$$genstate_scaled$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -387,11 +392,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.indexed<i32>  // std_iter$indexed__i32
     fn std_iter$__gen_state_std_iter_0$Iterator$next

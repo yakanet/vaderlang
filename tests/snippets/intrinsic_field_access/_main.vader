@@ -7,7 +7,7 @@
 /// field substituted in.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 User :: struct {
     name: string

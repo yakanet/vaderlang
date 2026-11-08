@@ -23,7 +23,7 @@ mkdirSync(join(dir, "src"));
 writeFileSync(join(dir, "src", "data.bin"), Uint8Array.from(DATA));
 writeFileSync(
   join(dir, "src", "main.vader"),
-  `module "main"\n\nimport "std/abort"\nimport "std/io"\n\n`
+  `module "main"\n\nimport "std/abort"\nimport "std/console"\nimport "std/fs"\nimport "std/io"\n\n`
     + `DATA :: @comptime {\n    read :: read_file_bytes("data.bin", 1024)\n`
     + `    if read is IOError {\n        panic("cannot read \`data.bin\`: \${read.message()}")\n    }\n`
     + `    return read\n}\n\n`
@@ -66,7 +66,7 @@ test("a @comptime value reading another one runs after it, which runs once in it
   writeFileSync(join(project, "vader.json"), JSON.stringify({ entries: { app: "app/main.vader" } }));
   writeFileSync(
     join(project, "assets", "assets.vader"),
-    `module "assets"\n\nimport "std/abort"\nimport "std/io"\n\n`
+    `module "assets"\n\nimport "std/abort"\nimport "std/console"\nimport "std/fs"\nimport "std/io"\n\n`
       + `export ICON :: @comptime {\n    println("reading the icon")\n`
       + `    read :: read_file_bytes("icon.bin")\n`
       + `    if read is IOError {\n        panic("cannot read \`icon.bin\`: \${read.message()}")\n    }\n`
@@ -74,7 +74,7 @@ test("a @comptime value reading another one runs after it, which runs once in it
   );
   writeFileSync(
     join(project, "app", "main.vader"),
-    `module "app"\n\nimport "assets"\nimport "std/io"\n\n`
+    `module "app"\n\nimport "assets"\nimport "std/console"\n\n`
       + `ICON_SIZE :: @comptime ICON.len() * 2\n\n`
       + `Sized :: trait {\n    size :: fn(self) -> i64\n}\n\n`
       + `Icon :: struct {}\n\nIcon implements Sized {\n    size :: fn(self) -> i64 = ICON.len()\n}\n\n`

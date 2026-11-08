@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.slot :: fn(i: i64) -> i64 {  // snippet$slot
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "index ")
@@ -15,7 +15,7 @@
   snippet.Holder :: struct { items: i32[] }  // snippet$Holder
   snippet.Row :: struct { cells: i32[] }  // snippet$Row
   snippet.pick :: fn(c: Counter) -> Counter {  // snippet$pick
-      std.io.println<string>("pick")
+      std.console.println<string>("pick")
       return c
   }
   snippet.Cell :: struct { slots: i32[] }  // snippet$Cell
@@ -27,7 +27,7 @@
   }
   snippet.Shelf :: struct { items: Counter[] }  // snippet$Shelf
   snippet.Shelf.at :: fn(self: Shelf, i: i64) -> Counter {  // snippet$Shelf$std_core$Index$at
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "at ")
@@ -52,7 +52,7 @@
           __place_operand_0: i64 = snippet.slot(i64(1))
           a[__place_operand_0] = a[__place_operand_0] + 1
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(66))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "a = ")
@@ -68,7 +68,7 @@
           __place_operand_3: i64 = snippet.slot(i64(0))
           holder.items[__place_operand_3] = holder.items[__place_operand_3] * 7
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(50))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "holder = ")
@@ -83,7 +83,7 @@
           __place_operand_7: i64 = snippet.slot(i64(0))
           rows[__place_operand_6].cells[__place_operand_7] = rows[__place_operand_6].cells[__place_operand_7] + 5
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(27))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "rows = ")
@@ -95,7 +95,7 @@
           __place_operand_10: Counter = snippet.Shelf.at(shelf, snippet.slot(i64(1)))
           __place_operand_10.count = __place_operand_10.count + 10
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(28))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "shelf = ")
@@ -107,7 +107,7 @@
           __place_operand_13: Counter = snippet.pick(shared)
           __place_operand_13.count = __place_operand_13.count + 3
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(29))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "shared = ")
@@ -119,13 +119,13 @@
           __place_operand_16: i64 = snippet.slot(i64(1))
           words[__place_operand_16] = concat_2(words[__place_operand_16], "!")
       }
-      std.io.println<string>(concat_4("words = ", words[0], " ", words[1]))
+      std.console.println<string>(concat_4("words = ", words[0], " ", words[1]))
       cell: Cell = Cell { .slots = [1, 2, 3] :i32[] }
       {
           __place_operand_17: i64 = snippet.slot(i64(2))
           snippet.Cell.set_at(cell, __place_operand_17, snippet.Cell.at(cell, __place_operand_17) - 1)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(27))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "cell = ")
@@ -133,7 +133,7 @@
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       snippet.bump_nth<Cell>(cell, i64(0))
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(30))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "bounded = ")
@@ -146,7 +146,7 @@
           __place_operand_23: i64 = @cell(k)
           a[__place_operand_23] = a[__place_operand_23] + __lambda_snippet_0(move_k)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(74))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "rebound = ")
@@ -159,7 +159,7 @@
       } :string)
       two: Two = Two {}
       snippet.Two.advance(two, a)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(37))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "default method = ")
@@ -167,7 +167,7 @@
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       a[snippet.slot(i64(2))] = a[snippet.slot(i64(2))] + 1
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_28: Buffer = std.core.new_byte_buffer(i64(34))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "written out = ")
@@ -214,6 +214,11 @@
   vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$std_core$IndexSet$set_at
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -224,11 +229,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

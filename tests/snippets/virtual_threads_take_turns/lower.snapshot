@@ -30,7 +30,7 @@
       {
           step: i64 = 0
           for step < steps {
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_0: string = name
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_0))
                   __off_2: i64 = 0
@@ -44,7 +44,7 @@
               step = step +% i64(1)
           }
       }
-      std.io.println<string>(concat_2(name, " done"))
+      std.console.println<string>(concat_2(name, " done"))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       main_thread: i64 = std.runtime.scheduler.current_thread()
@@ -55,7 +55,7 @@
       for snippet.joiner().running > i64(0) {
           std.runtime.scheduler.park()
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(19))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "main is back: ")
@@ -90,7 +90,7 @@
   }
   __lambda_env_snippet_5 :: struct { cap_0: i64 }
   __lambda_snippet_4 :: fn(__env_0: __lambda_env_snippet_5) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "c runs on a thread of its own: ")
@@ -108,6 +108,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -119,11 +124,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

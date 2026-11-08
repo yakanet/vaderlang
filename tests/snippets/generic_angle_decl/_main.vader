@@ -6,7 +6,7 @@
 // generic parse.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // fn declaration (angle form)
 export identity :: fn<T>(x: T) -> T {

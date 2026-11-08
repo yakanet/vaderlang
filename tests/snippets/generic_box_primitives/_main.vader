@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Box :: struct<T> { v: T }
 

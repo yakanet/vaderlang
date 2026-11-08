@@ -24,6 +24,7 @@
 module "toolchain/build"
 
 import "std/collections"
+import "std/console"
 import "std/io"
 import "std/iter"
 import "std/path"

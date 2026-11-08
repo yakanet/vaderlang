@@ -34,7 +34,7 @@ function stage(manifest: string | null): string {
 }
 
 function program(module: string, says: string): string {
-  return `module "${module}"\n\nimport "std/io"\n\nmain :: fn() -> i32 {\n    println("${says}")\n    return 0\n}\n`;
+  return `module "${module}"\n\nimport "std/console"\n\nmain :: fn() -> i32 {\n    println("${says}")\n    return 0\n}\n`;
 }
 
 const TWO_ENTRIES = JSON.stringify({
@@ -114,7 +114,7 @@ test("--project runs one file of a project with the project's search roots", asy
   const file = join(dir, "src/main.vader");
   writeFileSync(
     file,
-    `module "src"\n\nimport "greet"\nimport "std/io"\n\nmain :: fn() -> i32 {\n    println(word())\n    return 0\n}\n`,
+    `module "src"\n\nimport "greet"\nimport "std/console"\n\nmain :: fn() -> i32 {\n    println(word())\n    return 0\n}\n`,
   );
 
   const alone = await vader(["run", file]);

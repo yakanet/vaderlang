@@ -4,6 +4,8 @@
 module "snippet"
 
 import "std/abort"
+import "std/console"
+import "std/fs"
 import "std/io"
 
 FILENAME :: "data"

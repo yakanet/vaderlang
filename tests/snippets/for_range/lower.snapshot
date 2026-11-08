@@ -11,7 +11,7 @@
               i = i +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(31))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "0..<5 sum: ")
@@ -27,7 +27,7 @@
               j = j +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(31))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "1..=4 sum: ")
@@ -43,7 +43,7 @@
               k = k +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "5..<3 iterations: ")
@@ -59,7 +59,7 @@
               __for_discard_6 = __for_discard_6 +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(48))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "shorthand 0..<5 iterations: ")
@@ -75,7 +75,7 @@
               __for_discard_9 = __for_discard_9 +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(48))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "shorthand 1..=4 iterations: ")
@@ -98,7 +98,7 @@
               __for_discard_12 = __for_discard_12 +% 1
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(49))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "nested shorthand iterations: ")
@@ -115,7 +115,7 @@
               i = i +% u64(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(29))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "u64 sum: ")
@@ -132,7 +132,7 @@
               i = i +% i64(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(29))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "i64 sum: ")
@@ -149,7 +149,7 @@
               i = i +% u8(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(28))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "u8 sum: ")
@@ -168,7 +168,7 @@
               i = i +% i16(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_23: Buffer = std.core.new_byte_buffer(i64(39))
           __off_24: i64 = 0
           __off_24 = std.core.write_string_at(__buf_23, __off_24, "i16 inclusive sum: ")
@@ -184,7 +184,7 @@
               c = c + char(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_25: Buffer = std.core.new_byte_buffer(i64(42))
           __off_26: i64 = 0
           __off_26 = std.core.write_string_at(__buf_25, __off_26, "'a'..='e' iterations: ")
@@ -200,7 +200,7 @@
               c = c + char(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_27: Buffer = std.core.new_byte_buffer(i64(42))
           __off_28: i64 = 0
           __off_28 = std.core.write_string_at(__buf_27, __off_28, "'0'..<'5' iterations: ")
@@ -219,6 +219,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -229,11 +234,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

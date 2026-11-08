@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/runtime"
 
 // `bytes()` returns a borrowed `u8[]` view that, on the native target,

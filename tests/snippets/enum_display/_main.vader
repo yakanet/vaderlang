@@ -8,7 +8,7 @@
 // boxed in a union still renders as a number.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 @displayable
 Direction :: enum { North, East, South, West }

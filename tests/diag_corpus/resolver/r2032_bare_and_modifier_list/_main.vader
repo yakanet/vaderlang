@@ -3,8 +3,8 @@
 // module. R2032 flags the second import so the author collapses to one.
 module "snippet"
 
-import "std/io"
-import "std/io" { print as _ }
+import "std/console"
+import "std/console" { print as _ }
 
 main :: fn() -> i32 {
     println("hi")

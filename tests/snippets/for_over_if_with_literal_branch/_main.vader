@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 A :: struct { n: i32 }
 B :: struct { m: i32 }

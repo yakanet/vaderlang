@@ -90,7 +90,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 14   ; std_core$finish_buffer
-  call 22   ; std_io$println__string
+  call 22   ; std_console$println__string
   i64.const 20
   buffer.new
   local.set 1   ; __buf_0
@@ -120,7 +120,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 14   ; std_core$finish_buffer
-  call 22   ; std_io$println__string
+  call 22   ; std_console$println__string
   i64.const 5
   buffer.new
   local.set 1   ; __buf_0
@@ -149,7 +149,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 14   ; std_core$finish_buffer
-  call 22   ; std_io$println__string
+  call 22   ; std_console$println__string
   i64.const 20
   buffer.new
   local.set 1   ; __buf_0
@@ -174,7 +174,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 14   ; std_core$finish_buffer
-  call 22   ; std_io$println__string
+  call 22   ; std_console$println__string
   i64.const 20
   buffer.new
   local.set 1   ; __buf_0
@@ -198,7 +198,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 14   ; std_core$finish_buffer
-  call 22   ; std_io$println__string
+  call 22   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -449,7 +449,7 @@ fn 18 std_core$$array$Into$into__i32 (ref) -> any
   return
 end
 
-fn 19 std_io$write (u8,string) -> void
+fn 19 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -460,7 +460,7 @@ fn 19 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 20   ; std_io$write_text
+  call 20   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -491,7 +491,7 @@ fn 19 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 21   ; std_io$write_bytes
+      call 21   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -511,11 +511,11 @@ fn 19 std_io$write (u8,string) -> void
   return
 end
 
-fn 20 std_io$write_text (u8,string) -> bool
+fn 20 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 21 std_io$write_bytes (u8,ref,i64) -> i32
+fn 21 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -535,7 +535,7 @@ fn 21 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 22 std_io$println__string (string) -> void
+fn 22 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 2   ; "\n"
@@ -543,7 +543,7 @@ fn 22 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 19   ; std_io$write
+  call 19   ; std_console$write
   return
 end
 

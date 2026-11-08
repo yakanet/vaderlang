@@ -9,7 +9,7 @@ The plain form, `import "path"`, makes every export of the module visible as if 
 ```vader
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/math"
 
 export circle_area :: fn(radius: f64) -> f64 = pi * radius * radius
@@ -32,7 +32,7 @@ This plain form is the usual one; the next two show where a name comes from, or 
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 math :: import "std/math"
 
 hypotenuse :: fn(a: f64, b: f64) -> f64 = math.sqrt(a * a + b * b)
@@ -54,7 +54,7 @@ A list after the path adjusts the plain form: `x as y` takes `x` under another n
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 import "std/math" { sqrt as root, floor as round_down }
 # main :: fn() -> i32 {
 #     println("${root(81.0)} ${round_down(2.7)}")
@@ -74,7 +74,7 @@ Only exported names reach other modules, and `@internal` keeps one field of an e
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 export Counter :: struct {
     @internal
     count: i32 = 0

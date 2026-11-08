@@ -49,13 +49,13 @@ test("graph emits DOT on request", async () => {
 });
 
 // `--scope=project` is the default and hides the library; `--scope=all` is what
-// makes `std/io` (which the fixture imports) visible.
+// makes `std/console` (which the fixture imports) visible.
 test("scope=all reaches the library, the default does not", async () => {
   const narrow = await runCli(["graph", CHAIN], undefined, MEDIUM_BUILD);
-  expect(narrow.stdout).not.toContain("std/io");
+  expect(narrow.stdout).not.toContain("std/console");
   const wide = await runCli(["graph", "--scope=all", CHAIN], undefined, MEDIUM_BUILD);
   expect(wide.exit).toBe(0);
-  expect(wide.stdout).toContain('["std/io"]');
+  expect(wide.stdout).toContain('["std/console"]');
 });
 
 // A driven project reaches the compiler's own modules through `--include-paths`,

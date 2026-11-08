@@ -3,7 +3,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     m: u64: 15

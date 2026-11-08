@@ -8,7 +8,7 @@
 module "snippet"
 
 import "snippet/lib" { cube_total as tally }
-import "std/io"
+import "std/console"
 
 root_of_fifty :: fn() -> i32 {
     r := 0

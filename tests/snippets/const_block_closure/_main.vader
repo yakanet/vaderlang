@@ -5,7 +5,7 @@
 // native `unreachable in __lambda_1`).
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 make_adder :: {
     base :: 10

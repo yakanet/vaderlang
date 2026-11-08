@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // The shape the whole thing exists for: three appends, one concat, and the
 // three literals merged into one operand.

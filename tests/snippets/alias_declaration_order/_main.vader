@@ -5,7 +5,7 @@
 module "snippet"
 
 import "snippet/units"
-import "std/io"
+import "std/console"
 
 describe :: fn(r: Reading) -> string = match r {
     is Celsius -> "${f64(r)} C"

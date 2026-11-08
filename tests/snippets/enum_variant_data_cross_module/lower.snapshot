@@ -3,10 +3,10 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       c: Code = 1
-      std.io.println<string>(concat_3(snippet.codes.Code$data[i64(c)].id, ": ", snippet.codes.Code$data[i64(c)].message))
-      std.io.println<string>(snippet.codes.Code$data[i64(c)].id)
+      std.console.println<string>(concat_3(snippet.codes.Code$data[i64(c)].id, ": ", snippet.codes.Code$data[i64(c)].message))
+      std.console.println<string>(snippet.codes.Code$data[i64(c)].id)
       x: Info = Info { .id = "a", .message = "b" }
-      std.io.println<string>(x.message)
+      std.console.println<string>(x.message)
       return 0
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
@@ -34,15 +34,15 @@
   snippet.codes.Info :: struct { id: string, message: string }  // snippet_codes$Info
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

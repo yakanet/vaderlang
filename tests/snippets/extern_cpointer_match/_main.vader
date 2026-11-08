@@ -6,7 +6,7 @@
 // with exit 0 while the native build took the pointer arm and carried on. The
 // two lines after the match are what made the difference visible.
 //
-// `lib/std/io` escaped it only because it asks `if f == null`, which agrees on
+// `lib/std/fs` escaped it only because it asks `if f == null`, which agrees on
 // both backends. Every positive `is CPointer` test was silently dead.
 //
 // `fopen` and `fclose` are libc, so this runs on BOTH backends, which is the
@@ -20,6 +20,9 @@
 
 module "snippet"
 
+import "std/console"
+import "std/env"
+import "std/fs"
 import "std/io"
 
 @c_header("<stdio.h>")

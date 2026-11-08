@@ -68,7 +68,7 @@ test("vader lint scopes by provenance, not by a `std/` name", async () => {
     },
   }, async (dir) => {
     writeFileSync(join(dir, "app.vader"),
-      'module "app"\n\nimport "std/io"\nimport "lintprobe"\n\n'
+      'module "app"\n\nimport "std/console"\nimport "lintprobe"\n\n'
       + '/// Reached by nothing, and the project\'s own, so it IS in scope.\n'
       + 'export never_used_in_app :: fn() -> i32 = 2\n\n'
       + 'main :: fn() -> i32 {\n    println("${never_used_in_probe()}")\n    return 0\n}\n');
@@ -106,7 +106,7 @@ test("vader lint flags a `build` that is not a driver entry", async () => {
   // unreported, and its refs were seeded live, hiding dead exports behind it.
   await withStagedLibraryRoot({}, async (dir) => {
     writeFileSync(join(dir, "app.vader"),
-      'module "app"\n\nimport "std/io"\n\n'
+      'module "app"\n\nimport "std/console"\n\n'
       + '/// Reached by nothing, and NOT a driver entry: `app` is not `build`.\n'
       + 'export build :: fn(args: string[]) -> i32 = 7\n\n'
       + 'main :: fn() -> i32 {\n    println("x")\n    return 0\n}\n');

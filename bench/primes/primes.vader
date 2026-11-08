@@ -13,7 +13,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 N :: 1_000_000
 

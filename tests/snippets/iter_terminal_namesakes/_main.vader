@@ -4,7 +4,7 @@
 // 4, 4).
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter" { find as _, any_match as _, collect as _, count as _ }
 
 find :: fn(it: Iterator<i32>, pred: fn(i32) -> bool) -> i32 = -1

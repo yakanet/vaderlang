@@ -3,7 +3,7 @@
 // elements take `E` (`[1, 2]` into an `Iterator<i64>`), a generic `E` too.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 empty :: fn() -> Iterator<i32> = []
 

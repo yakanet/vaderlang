@@ -25,13 +25,13 @@ export main 0
 fn 0 snippet$main () -> i32
   i32.const 5
   call 4   ; snippet$grow__i32
-  call 13   ; std_io$println__i32
+  call 13   ; std_console$println__i32
   string.const 0   ; "text"
   call 5   ; snippet$grow__string
-  call 13   ; std_io$println__i32
+  call 13   ; std_console$println__i32
   f64.const 2.5 4612811918334230528
   call 6   ; snippet$fill__f64
-  call 13   ; std_io$println__i32
+  call 13   ; std_console$println__i32
   return.lit i32.const 0
 end
 
@@ -231,7 +231,7 @@ fn 9 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 10 std_io$write (u8,string) -> void
+fn 10 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -242,7 +242,7 @@ fn 10 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 11   ; std_io$write_text
+  call 11   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -273,7 +273,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 12   ; std_io$write_bytes
+      call 12   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -293,11 +293,11 @@ fn 10 std_io$write (u8,string) -> void
   return
 end
 
-fn 11 std_io$write_text (u8,string) -> bool
+fn 11 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 12 std_io$write_bytes (u8,ref,i64) -> i32
+fn 12 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -317,7 +317,7 @@ fn 12 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 13 std_io$println__i32 (i32) -> void
+fn 13 std_console$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -346,6 +346,6 @@ fn 13 std_io$println__i32 (i32) -> void
   local.set 4   ; $call_11
   i32.const 0
   local.get 4   ; $call_11
-  call 10   ; std_io$write
+  call 10   ; std_console$write
   return
 end

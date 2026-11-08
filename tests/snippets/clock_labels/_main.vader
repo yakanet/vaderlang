@@ -8,7 +8,7 @@
 // `[n, n]` is an array of bytes, `head` the instance every `Hour` shares.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Hour    :: Int in 0..=23
 Morning :: Int in 0..=11

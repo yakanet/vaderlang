@@ -4,25 +4,25 @@
   snippet.Square :: struct { side: i32 }  // snippet$Square
   snippet.Circle :: struct { radius: i32 }  // snippet$Circle
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<i32>(snippet.int_of<i32>(41))
-      std.io.println<i32>(snippet.int_of<f64>(2.5))
-      std.io.println<i32>(snippet.int_of<string>("s"))
-      std.io.println<i32>(snippet.int_of<Square>(Square { .side = 3 }))
-      std.io.println<i32>(snippet.side_or_zero<i32>(7))
-      std.io.println<i32>(snippet.side_or_zero<Square>(Square { .side = 5 }))
-      std.io.println<i32>(snippet.measure<f64>(1.5))
-      std.io.println<i32>(snippet.measure<Circle>(Square { .side = 1 }))
-      std.io.println<i32>(snippet.measure<Circle>(Circle { .radius = 2 }))
-      std.io.println<bool>(snippet.is_big_square<i32>(9))
-      std.io.println<bool>(snippet.is_big_square<Square>(Square { .side = 3 }))
-      std.io.println<string>(snippet.label<string>("s"))
-      std.io.println<string>(snippet.label<i32>(4))
-      std.io.println<i32>(snippet.side_if_positive<i32>(5, 1))
-      std.io.println<i32>(snippet.side_if_positive<Square>(Square { .side = 6 }, 1))
-      std.io.println<i32>(snippet.side_unless_negative<i32>(5, 1))
-      std.io.println<i32>(snippet.side_unless_negative<Square>(Square { .side = 7 }, 1))
-      std.io.println<i32>(snippet.side_in_loop<i32>(5))
-      std.io.println<i32>(snippet.side_in_loop<Square>(Square { .side = 8 }))
+      std.console.println<i32>(snippet.int_of<i32>(41))
+      std.console.println<i32>(snippet.int_of<f64>(2.5))
+      std.console.println<i32>(snippet.int_of<string>("s"))
+      std.console.println<i32>(snippet.int_of<Square>(Square { .side = 3 }))
+      std.console.println<i32>(snippet.side_or_zero<i32>(7))
+      std.console.println<i32>(snippet.side_or_zero<Square>(Square { .side = 5 }))
+      std.console.println<i32>(snippet.measure<f64>(1.5))
+      std.console.println<i32>(snippet.measure<Circle>(Square { .side = 1 }))
+      std.console.println<i32>(snippet.measure<Circle>(Circle { .radius = 2 }))
+      std.console.println<bool>(snippet.is_big_square<i32>(9))
+      std.console.println<bool>(snippet.is_big_square<Square>(Square { .side = 3 }))
+      std.console.println<string>(snippet.label<string>("s"))
+      std.console.println<string>(snippet.label<i32>(4))
+      std.console.println<i32>(snippet.side_if_positive<i32>(5, 1))
+      std.console.println<i32>(snippet.side_if_positive<Square>(Square { .side = 6 }, 1))
+      std.console.println<i32>(snippet.side_unless_negative<i32>(5, 1))
+      std.console.println<i32>(snippet.side_unless_negative<Square>(Square { .side = 7 }, 1))
+      std.console.println<i32>(snippet.side_in_loop<i32>(5))
+      std.console.println<i32>(snippet.side_in_loop<Square>(Square { .side = 8 }))
       return 0
   }
   snippet.side_in_loop<i32> :: fn(x: i32) -> i32 {  // snippet$side_in_loop__i32
@@ -142,6 +142,13 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<bool>  // std_console$println__bool
+    fn std.console.println<i32>  // std_console$println__i32
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -152,13 +159,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<bool>  // std_io$println__bool
-    fn std.io.println<i32>  // std_io$println__i32
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

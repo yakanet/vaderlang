@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A generic whose type-param appears ONLY in a callback's return type: no
 // argument can bind `T`, so it comes from the call's expected type. The lambda

@@ -12,7 +12,7 @@ const ELEMENTS = 200_000;
 
 const TABLE_SOURCE = `module "main"
 
-import "std/io"
+import "std/console"
 
 multiples :: fn(n: i32) -> i32[] {
     out: i32[]: [] * i64(n)
@@ -36,7 +36,7 @@ const multiples = Array.from({ length: ELEMENTS }, (_, i) => i * 3).join(", ");
 
 const LITERAL_SOURCE = `module "main"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     xs :: [${multiples}]

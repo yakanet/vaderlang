@@ -5,7 +5,7 @@ module "snippet"
 
 import "snippet/circle"
 import "snippet/square"
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     println("${area(Square { .side = 2.0 })}")

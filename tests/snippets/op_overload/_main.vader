@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Vec :: struct { x: i32, y: i32 }
 

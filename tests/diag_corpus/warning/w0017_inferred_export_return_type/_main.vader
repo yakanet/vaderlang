@@ -8,7 +8,7 @@
 module "snippet"
 
 import "std/abort"
-import "std/io"
+import "std/console"
 
 // Exported, expression body, no `->`: warns, naming the type to write.
 export double :: fn(x: i32) = x * 2

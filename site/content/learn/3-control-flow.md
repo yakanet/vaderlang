@@ -8,7 +8,7 @@
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     temperature :: 31
     if temperature > 30 {
@@ -35,7 +35,7 @@ The rules: §7 *`if` / `else`*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 describe :: fn(value: i32 | string) -> string {
     if value is string {
         return "the word ${value}"
@@ -62,7 +62,7 @@ The rules: §3 *Type tests and narrowing*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 season :: fn(month: i32) -> string = match month {
     12 | 1 | 2 -> "winter"
     3..=5      -> "spring"
@@ -91,7 +91,7 @@ On a union, an arm tests a type with `is` and sees the value as that type. An `i
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Circle :: struct { radius: f64 }
 Square :: struct { side: f64 }
 
@@ -131,7 +131,7 @@ The rules: §4 *Type tests* and §4 *Guards*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     for i in 1..=3 {
         println("${i}")
@@ -165,7 +165,7 @@ With a condition instead of a variable, `for` loops while it holds. Without anyt
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     n := 27
     steps := 0
@@ -204,7 +204,7 @@ A bare `break` or `continue` acts on the innermost loop. Followed by the variabl
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     grid :: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     for row in grid {
@@ -236,7 +236,7 @@ A loop without a variable takes a label instead, `scan: for ...`, which `break s
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 work :: fn() -> void {
     println("open")
     defer println("close")

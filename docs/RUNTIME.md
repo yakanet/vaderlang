@@ -426,9 +426,9 @@ another, and it stops the program on a deadlock that names them. Under
 scheduler asks the system without waiting and, when it has nothing either, jumps
 to the end of the nearest sleep, or waits on the system when no sleep is
 pending. Of two sleeps that end together, the one that began first wakes first.
-A read of stdin through `std/io` parks only while another thread exists, and
-so does `poll_stdin`, whose deadline is a timer armed for the park its watch
-ends. On Windows, the reader's read of a stdin pipe outlives a wait given up,
+A read of stdin through `std/console` parks only while another thread exists,
+and so does `poll_stdin`, whose deadline is a timer armed for the park its
+watch ends. On Windows, the reader's read of a stdin pipe outlives a wait given up,
 and every other operation on the pipe would wait behind it: stdin is not ready
 while it is under way, and a poll alone waits for it to end, within its deadline,
 before it peeks. That read ends once the pipe holds data or has lost its writer. A thread that
@@ -560,8 +560,9 @@ build compiles as ops or Vader, and the VM's foreign calls. [`ARCHITECTURE.md`](
 reach `main` through the runtime too.
 
 **Foreign calls.** The platform is reached through `@extern` declarations
-written in Vader, `lib/system/posix/`, `darwin/` and `windows/`, which `std/io`,
-`std/process`, `std/time` and `std/tty` select with `@target`; `std/math` takes
+written in Vader, `lib/system/posix/`, `darwin/` and `windows/`, which
+`std/console`, `std/env`, `std/fs`, `std/io`, `std/process`, `std/time` and
+`std/tty` select with `@target`; `std/math` takes
 `sqrt`, `pow` and the trigonometric functions from libm the same way. How each
 backend calls them is in [`ARCHITECTURE.md`](ARCHITECTURE.md), *Foreign calls*. A
 few accessors stay in the C runtime, for what a foreign call cannot express, such

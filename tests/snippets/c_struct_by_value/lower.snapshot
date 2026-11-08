@@ -16,7 +16,7 @@
   snippet.texture_checksum :: fn(t: Texture) -> i32  // snippet$texture_checksum
   snippet.main :: fn() -> i32 {  // snippet$main
       d: Div = snippet.c_div(-7, 2)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(55))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "div: quot=")
@@ -32,7 +32,7 @@
           .a = u8(255),
       }
       inverted: Rgba = snippet.rgba_invert(color)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(115))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "rgba: ")
@@ -48,9 +48,9 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       v: Vec2 = snippet.vec2_scale(Vec2 { .x = f32(1.5), .y = f32(-2.0) }, f32(2.0))
-      std.io.println<string>(concat_4("vec2: ", std.core.f32.to_string(v.x), " ", std.core.f32.to_string(v.y)))
+      std.console.println<string>(concat_4("vec2: ", std.core.f32.to_string(v.x), " ", std.core.f32.to_string(v.y)))
       texture: Texture = snippet.texture_load(u32(7))
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(131))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "texture: id=")
@@ -65,7 +65,7 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, texture.format)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(38))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "texture checksum: ")
@@ -74,7 +74,7 @@
       } :string)
       box: Box2 = Box2 { .origin = Vec2 { .x = f32(0.0), .y = f32(0.0) }, .extent = Vec2 { .x = f32(2.0), .y = f32(3.0) } }
       grown: Box2 = snippet.box2_grow(box, f32(1.0))
-      std.io.println<string>(concat_8("box2: origin ", std.core.f32.to_string(grown.origin.x), " ", std.core.f32.to_string(grown.origin.y), ", extent ", std.core.f32.to_string(grown.extent.x), " ", std.core.f32.to_string(grown.extent.y)))
+      std.console.println<string>(concat_8("box2: origin ", std.core.f32.to_string(grown.origin.x), " ", std.core.f32.to_string(grown.origin.y), ", extent ", std.core.f32.to_string(grown.extent.x), " ", std.core.f32.to_string(grown.extent.y)))
       kept: Box2[] = [] :Box2[]
       {
           i: i32 = 0
@@ -99,7 +99,7 @@
               __for_i_10 = __for_i_10 +% i64(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_11: i64 = @array.len(kept)
           __p_12: string = std.core.f64.to_string(total)
           __buf_13: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_12))
@@ -154,6 +154,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -203,11 +208,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

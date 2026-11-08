@@ -11,7 +11,7 @@
 //   codepoint count, not the byte count; on ASCII both indexings coincide.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/string"
 
 main :: fn() -> i32 {

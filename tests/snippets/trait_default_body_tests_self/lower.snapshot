@@ -94,7 +94,7 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               p: Probe = __for_arr_0[__for_i_2]
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_3: i32 = @vcall(snippet.Probe.describe, p)
                   __p_4: string = @vcall(snippet.Probe.kind, p)
                   __buf_5: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_4))
@@ -114,8 +114,8 @@
               __for_i_2 = __for_i_2 +% i64(1)
           }
       }
-      std.io.println<bool>(snippet.Square.same_kind(Square { .side = 1 }, Square { .side = 2 }))
-      std.io.println<bool>(snippet.i32.same_kind(4, 5))
+      std.console.println<bool>(snippet.Square.same_kind(Square { .side = 1 }, Square { .side = 2 }))
+      std.console.println<bool>(snippet.i32.same_kind(4, 5))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -149,6 +149,12 @@
   vtable snippet.Probe.tag for i32  snippet.i32.tag  // snippet$i32$Probe$tag
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<bool>  // std_console$println__bool
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -159,12 +165,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<bool>  // std_io$println__bool
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

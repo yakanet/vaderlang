@@ -7,7 +7,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 /// A tag naming the family this build selected.
 @target

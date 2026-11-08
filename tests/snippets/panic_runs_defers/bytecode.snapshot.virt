@@ -55,7 +55,7 @@ fn 0 snippet$charge (i32) -> void
   local.get 1   ; __buf_1
   local.get 2   ; __off_2
   call 6   ; std_core$finish_buffer
-  call 12   ; std_io$println__string
+  call 12   ; std_console$println__string
   string.const 1   ; "card declined"
   call.import 2   ; std_abort$panic
   unreachable
@@ -68,7 +68,7 @@ fn 1 snippet$reserve () -> void
   make_closure 4 11   ; __defer_snippet_2 fn
   defer.push
   string.const 2   ; "reserve inventory"
-  call 12   ; std_io$println__string
+  call 12   ; std_console$println__string
   i32.const 500
   call 0   ; snippet$charge
   defer.pop_exec 1
@@ -106,13 +106,13 @@ fn 3 __defer_snippet_0 (ref) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 6   ; std_core$finish_buffer
-  call 12   ; std_io$println__string
+  call 12   ; std_console$println__string
   return
 end
 
 fn 4 __defer_snippet_2 (ref) -> void
   string.const 4   ; "release hold"
-  call 12   ; std_io$println__string
+  call 12   ; std_console$println__string
   return
 end
 
@@ -281,7 +281,7 @@ fn 8 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 9 std_io$write (u8,string) -> void
+fn 9 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -292,7 +292,7 @@ fn 9 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 10   ; std_io$write_text
+  call 10   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -323,7 +323,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 11   ; std_io$write_bytes
+      call 11   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -343,11 +343,11 @@ fn 9 std_io$write (u8,string) -> void
   return
 end
 
-fn 10 std_io$write_text (u8,string) -> bool
+fn 10 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 11 std_io$write_bytes (u8,ref,i64) -> i32
+fn 11 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -367,7 +367,7 @@ fn 11 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 12 std_io$println__string (string) -> void
+fn 12 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 5   ; "\n"
@@ -375,6 +375,6 @@ fn 12 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 9   ; std_io$write
+  call 9   ; std_console$write
   return
 end

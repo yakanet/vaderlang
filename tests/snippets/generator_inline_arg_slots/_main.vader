@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 with_sentinel :: fn(self: Iterator<i32>, last: i32) -> Iterator<i32> {

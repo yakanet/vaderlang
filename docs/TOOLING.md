@@ -158,7 +158,7 @@ The data is JSON, at `version` 2, a draft that may still change:
 
 `vader doc --search=<query> [path]` shows what a query names, read the way `go doc` reads one. The data of the path, when there is a project or a path argument, and of the toolchain's library, in `build/doc-lib/` beside `build/doc/` with a stamp of its own, are brought up to date first; the path's modules hide the library's of the same name.
 
-- A query is a module by the end of its path (`io` for `std/io`), an export, a member, joined by dots: `read_file_bytes`, `io.read_file_bytes`, `IOError.kind`, `io.IOError.kind`. A lower-case letter matches either case.
+- A query is a module by the end of its path (`fs` for `std/fs`), an export, a member, joined by dots: `read_file_bytes`, `fs.read_file_bytes`, `IOError.kind`, `io.IOError.kind`. A lower-case letter matches either case.
 - A lone name is a module, then an export, then a member. Before a dot, a name is a module, then a type.
 - A module shows its header and the head of each export. An export or a member is shown whole, under the place it is declared at, `<file>:<line>:<column>`, named from the working directory when it lies under it and in full otherwise, which the terminal of an editor opens; an overloaded name shows each overload, and a method of an impl comes inside the impl's head.
 - When nothing is named, the modules and the names that contain the query's last part are listed.

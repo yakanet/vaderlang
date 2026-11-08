@@ -2,22 +2,22 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, std_math$max_2(3, 8))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>(std.core.f64.to_string(std_math$max(3.5, 8.25)))
-      std.io.println<string>({
+      std.console.println<string>(std.core.f64.to_string(std_math$max(3.5, 8.25)))
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
           __off_3: i64 = 0
           __off_3 = std.core.write_int(__buf_2, __off_3, std.math.abs(-5))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>(std.core.f64.to_string(snippet_shapes$area_1(Square { .side = 2.0 }, 1.0)))
-      std.io.println<string>(std.core.f64.to_string(snippet_shapes$area(Circle { .radius = 1.0 }, 3.0)))
-      std.io.println<string>(std.core.f64.to_string(snippet_shapes$area_1(Square { .side = 2.0 }, 2.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet_shapes$area_1(Square { .side = 2.0 }, 1.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet_shapes$area(Circle { .radius = 1.0 }, 3.0)))
+      std.console.println<string>(std.core.f64.to_string(snippet_shapes$area_1(Square { .side = 2.0 }, 2.0)))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -40,6 +40,11 @@
   snippet.shapes.Circle :: struct { radius: f64 }  // snippet_shapes$Circle
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -75,11 +80,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/math
     fn std.math.abs  // std_math$abs_1
     fn std_math$max

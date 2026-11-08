@@ -13,7 +13,7 @@
       bu64: Box<u64> = Box<u64> { .v = u64(42) }
       bi32: Box<i32> = Box<i32> { .v = -7 }
       bs: Box<string> = Box<string> { .v = "hi" }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: u8 = bu8.v
           __p_1: bool = bb.v
           __p_2: string = std.core.char.to_string(bc.v)
@@ -33,7 +33,7 @@
           __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_7: i16 = bi16.v
           __p_8: u16 = bu16.v
           __p_9: i64 = bi64.v
@@ -56,7 +56,7 @@
           __off_14 = std.core.write_string_at(__buf_13, __off_14, __p_12)
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_15: u8 = snippet.unwrap<u8>(bu8)
           __p_16: bool = snippet.unwrap<bool>(bb)
           __p_17: string = std.core.char.to_string(snippet.unwrap<char>(bc))
@@ -126,6 +126,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -177,11 +182,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

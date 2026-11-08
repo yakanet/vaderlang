@@ -11,7 +11,7 @@
 // `lo`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 source :: fn(name: string, xs: i32[]) -> i32[] {

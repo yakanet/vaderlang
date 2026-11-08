@@ -13,7 +13,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       p: [i32, string] = snippet.make_pair()
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: i32 = p._0
           __p_1: string = p._1
           __buf_2: Buffer = std.core.new_byte_buffer(i64(40) +% std.core.byte_len(__p_1))
@@ -27,7 +27,7 @@
       __tup_4: [i32, string] = snippet.make_pair()
       n: i32 = __tup_4._0
       word: string = __tup_4._1
-      std.io.println<string>({
+      std.console.println<string>({
           __p_5: string = word
           __buf_6: Buffer = std.core.new_byte_buffer(i64(41) +% std.core.byte_len(__p_5))
           __off_7: i64 = 0
@@ -40,7 +40,7 @@
       __tup_8: [i32, string, bool] = snippet.triple()
       a: i32 = __tup_8._0
       c: bool = __tup_8._2
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(40))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "wildcard: a=")
@@ -53,7 +53,7 @@
       id: i32 = __tup_11._0._0
       label: string = __tup_11._0._1
       active: bool = __tup_11._1
-      std.io.println<string>({
+      std.console.println<string>({
           __p_12: string = label
           __buf_13: Buffer = std.core.new_byte_buffer(i64(51) +% std.core.byte_len(__p_12))
           __off_14: i64 = 0
@@ -66,7 +66,7 @@
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
       three: [i32, string, bool] = [1, "x", true] :[i32, string, bool]
-      std.io.println<string>({
+      std.console.println<string>({
           __p_15: i32 = three._0
           __p_16: string = three._1
           __buf_17: Buffer = std.core.new_byte_buffer(i64(36) +% std.core.byte_len(__p_16))
@@ -80,7 +80,7 @@
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
       four: [i32, string, bool, f64] = [9, "q", false, 3.14] :[i32, string, bool, f64]
-      std.io.println<string>({
+      std.console.println<string>({
           __p_19: i32 = four._0
           __p_20: string = four._1
           __buf_21: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_20))
@@ -96,7 +96,7 @@
           std.core.finish_buffer(__buf_21, __off_22)
       } :string)
       e: Entry = Entry { .id = 1, .coord = [3.5, 7.25] :[f64, f64] }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_23: Buffer = std.core.new_byte_buffer(i64(46))
           __off_24: i64 = 0
           __off_24 = std.core.write_string_at(__buf_23, __off_24, "field: id=")
@@ -114,7 +114,7 @@
           __for_i_27: i64 = 0
           for __for_i_27 < __for_len_26 {
               row: [i32, string] = __for_arr_25[__for_i_27]
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_28: i32 = row._0
                   __p_29: string = row._1
                   __buf_30: Buffer = std.core.new_byte_buffer(i64(29) +% std.core.byte_len(__p_29))
@@ -138,7 +138,7 @@
               __for_elem_39: [string, i32] = __for_arr_33[__for_i_35]
               k: string = __for_elem_39._0
               v: i32 = __for_elem_39._1
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_36: string = k
                   __buf_37: Buffer = std.core.new_byte_buffer(i64(38) +% std.core.byte_len(__p_36))
                   __off_38: i64 = 0
@@ -159,7 +159,7 @@
           __for_i_42: i64 = 0
           for __for_i_42 < __for_len_41 {
               s: i32 = __for_arr_40[__for_i_42]
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_43: Buffer = std.core.new_byte_buffer(i64(36))
                   __off_44: i64 = 0
                   __off_44 = std.core.write_string_at(__buf_43, __off_44, "inferred array: ")
@@ -171,7 +171,7 @@
           }
       }
       entry: [i32, string] = [42, "answer"] :[i32, string]
-      std.io.println<string>({
+      std.console.println<string>({
           __p_45: i32 = entry._0
           __p_46: string = entry._1
           __buf_47: Buffer = std.core.new_byte_buffer(i64(46) +% std.core.byte_len(__p_46))
@@ -194,6 +194,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -204,11 +209,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 spread :: fn(x: i32) -> i32[] = [10 * x, 10 * x + 1]

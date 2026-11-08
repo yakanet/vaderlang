@@ -194,7 +194,7 @@ fn 0 snippet$counting (i64) -> void
   local.get 2   ; counted
   local.get 5   ; n
   call 10   ; std_core$finish_buffer
-  call 18   ; std_io$println__string
+  call 18   ; std_console$println__string
   return
 end
 
@@ -394,7 +394,7 @@ fn 2 snippet$through_flat_map () -> void
   string.const 6   ; " |"
   local.get 13   ; $call_41
   call 9   ; concat_4
-  call 18   ; std_io$println__string
+  call 18   ; std_console$println__string
   return
 end
 
@@ -420,7 +420,7 @@ fn 4 snippet$from_a_generator () -> void
   local __iter_2 any
   local __step_3 any
   string.const 7   ; "generator.take(2), fused:"
-  call 18   ; std_io$println__string
+  call 18   ; std_console$println__string
   i64.const 2
   local.tee 0   ; n
   i64.const 0
@@ -458,7 +458,7 @@ fn 4 snippet$from_a_generator () -> void
           local.get 3   ; __buf_0
           local.get 4   ; __off_1
           call 10   ; std_core$finish_buffer
-          call 18   ; std_io$println__string
+          call 18   ; std_console$println__string
           local.get 2   ; i
           local.set 6   ; v
           i64.const 26
@@ -482,7 +482,7 @@ fn 4 snippet$from_a_generator () -> void
           local.get 7   ; __buf_0
           local.get 8   ; __off_1
           call 10   ; std_core$finish_buffer
-          call 18   ; std_io$println__string
+          call 18   ; std_console$println__string
           local.get 1   ; i
           i64.const 1
           i64.checked_add
@@ -500,7 +500,7 @@ fn 4 snippet$from_a_generator () -> void
     end $L1
   end $L0
   string.const 10   ; "generator.take(2), lazy:"
-  call 18   ; std_io$println__string
+  call 18   ; std_console$println__string
   i32.const 5
   call 3   ; snippet$produced
   i64.const 2
@@ -537,7 +537,7 @@ fn 4 snippet$from_a_generator () -> void
       local.get 3   ; __buf_0
       local.get 0   ; n
       call 10   ; std_core$finish_buffer
-      call 18   ; std_io$println__string
+      call 18   ; std_console$println__string
       br $L4
     end $L5
   end $L4
@@ -679,7 +679,7 @@ fn 7 snippet$$genstate_produced$Iterator$next (ref) -> any
             local.get 4   ; __buf_0
             local.get 5   ; __off_1
             call 10   ; std_core$finish_buffer
-            call 18   ; std_io$println__string
+            call 18   ; std_console$println__string
             local.get 0   ; arg 0
             i32.const 4
             struct.set 7 2   ; snippet$$genstate_produced.state
@@ -1053,7 +1053,7 @@ fn 14 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
   end $L0
 end
 
-fn 15 std_io$write (u8,string) -> void
+fn 15 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -1064,7 +1064,7 @@ fn 15 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 16   ; std_io$write_text
+  call 16   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -1095,7 +1095,7 @@ fn 15 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 17   ; std_io$write_bytes
+      call 17   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -1115,11 +1115,11 @@ fn 15 std_io$write (u8,string) -> void
   return
 end
 
-fn 16 std_io$write_text (u8,string) -> bool
+fn 16 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 17 std_io$write_bytes (u8,ref,i64) -> i32
+fn 17 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1139,7 +1139,7 @@ fn 17 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 18 std_io$println__string (string) -> void
+fn 18 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 11   ; "\n"
@@ -1147,7 +1147,7 @@ fn 18 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 15   ; std_io$write
+  call 15   ; std_console$write
   return
 end
 

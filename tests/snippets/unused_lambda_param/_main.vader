@@ -4,7 +4,7 @@
 // lambda parameter where it is declared, not at its first use.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 apply :: fn(x: i32, f: fn(i32) -> i32) -> i32 = f(x)
 

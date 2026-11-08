@@ -125,7 +125,7 @@ fn 0 snippet$step (string) -> i32
   string.const 0   ; "body "
   local.get 0   ; arg 0
   call 9   ; concat_2
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   defer.pop_exec 2
   return.lit i32.const 0
 end
@@ -140,7 +140,7 @@ fn 1 snippet$inner () -> i32
   call 81   ; std_time$millis
   call 80   ; std_time$sleep
   string.const 1   ; "inner body (unreached)"
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   defer.pop_exec 1
   return.lit i32.const 1
 end
@@ -155,7 +155,7 @@ fn 2 snippet$outer () -> i32
   call 1   ; snippet$inner
   local.set 0   ; x
   string.const 2   ; "outer body (unreached)"
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   defer.pop_exec 1
   local.get 0   ; x
   return
@@ -167,7 +167,7 @@ fn 3 snippet$main () -> i32
   call 70   ; std_task$launch__i32
   call 75   ; std_task$join__i32
   virtual.call 1 std_core$Display.to_string -> string
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   fn.ref 2 29   ; snippet$outer fn
   call 70   ; std_task$launch__i32
   local.set 0   ; parked
@@ -179,7 +179,7 @@ fn 3 snippet$main () -> i32
   local.get 0   ; parked
   call 75   ; std_task$join__i32
   virtual.call 1 std_core$Display.to_string -> string
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -191,7 +191,7 @@ fn 4 __defer_snippet_0 (ref) -> void
   string.const 3   ; "defer 1 "
   local.get 1   ; $field_2
   call 9   ; concat_2
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   return
 end
 
@@ -203,19 +203,19 @@ fn 5 __defer_snippet_2 (ref) -> void
   string.const 4   ; "defer 2 "
   local.get 1   ; $field_2
   call 9   ; concat_2
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   return
 end
 
 fn 6 __defer_snippet_4 (ref) -> void
   string.const 5   ; "inner cleanup"
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   return
 end
 
 fn 7 __defer_snippet_6 (ref) -> void
   string.const 6   ; "outer cleanup"
-  call 64   ; std_io$println__string
+  call 64   ; std_console$println__string
   return
 end
 
@@ -3284,7 +3284,7 @@ fn 60 std_core$remove_value__i64 (ref,i64) -> bool
   return.lit bool.const false
 end
 
-fn 61 std_io$write (u8,string) -> void
+fn 61 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3295,7 +3295,7 @@ fn 61 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 62   ; std_io$write_text
+  call 62   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3326,7 +3326,7 @@ fn 61 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 63   ; std_io$write_bytes
+      call 63   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3346,11 +3346,11 @@ fn 61 std_io$write (u8,string) -> void
   return
 end
 
-fn 62 std_io$write_text (u8,string) -> bool
+fn 62 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 63 std_io$write_bytes (u8,ref,i64) -> i32
+fn 63 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3370,7 +3370,7 @@ fn 63 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 64 std_io$println__string (string) -> void
+fn 64 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 18   ; "\n"
@@ -3378,7 +3378,7 @@ fn 64 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 61   ; std_io$write
+  call 61   ; std_console$write
   return
 end
 

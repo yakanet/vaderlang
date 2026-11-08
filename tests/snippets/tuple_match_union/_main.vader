@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // `[i32, string] | null` carries a tuple variant alongside null. The arm
 // `is [i32, string]` narrows the scrutinee to the tuple variant, and the

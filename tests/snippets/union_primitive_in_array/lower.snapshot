@@ -28,7 +28,7 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               c: i32 | string = __for_arr_0[__for_i_2]
-              std.io.println<string>(concat_2("alias element: ", snippet.show(c)))
+              std.console.println<string>(concat_2("alias element: ", snippet.show(c)))
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
@@ -42,9 +42,9 @@
           for __for_i_5 < __for_len_4 {
               x: i32 | string = __for_arr_3[__for_i_5]
               if x is string {
-                  std.io.println<string>(concat_2("int-only literal: str ", string(x)))
+                  std.console.println<string>(concat_2("int-only literal: str ", string(x)))
               } else {
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(42))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "int-only literal: int ")
@@ -59,7 +59,7 @@
       names: string[] = ["ten", "twenty"] :string[]
       first: null | string = snippet.first_name(names)
       if first is string {
-          std.io.println<string>(concat_2("widened argument: ", string(first)))
+          std.console.println<string>(concat_2("widened argument: ", string(first)))
       }
       return 0
   }
@@ -73,6 +73,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -83,11 +88,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

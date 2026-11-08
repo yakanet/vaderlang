@@ -10,7 +10,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Tagged :: struct { n: i32 }
 

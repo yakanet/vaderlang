@@ -1,0 +1,452 @@
+// std/console: the process's standard streams.
+//
+// Writes to stdout and stderr, reads of stdin. On Linux and macOS, a read of
+// stdin parks its task while the other tasks run. Any other call that waits
+// blocks the system thread, and every task with it.
+
+module "std/console"
+
+import "std/io"
+import "system/posix"
+import "system/windows"
+
+/// A standard output stream. Used by the `print` / `println` / `eprint` /
+/// `eprintln` wrappers below to pick a target, and exported so terminal-aware
+/// code (e.g. `std/tty::is_tty`) can name a stream. `write_bytes` maps each
+/// variant to its file descriptor, or to its standard handle on Windows.
+export Stream :: enum {
+    Stdout,
+    Stderr,
+}
+
+// ---- the write primitive --------------------------------------------------
+//
+// POSIX writes to a descriptor, Win32 to a HANDLE, and the two shapes differ
+// enough that `@target` selects a BODY rather than just a symbol. Descriptors
+// and handles never meet: each body reaches its own platform's module.
+
+/// Write `count` bytes of `buf` to `out`.
+///
+/// @param out    the stream to write to.
+/// @param buf    the bytes to lend, for the duration of the call.
+/// @param count  how many of them.
+/// @return       the count written, or `-1` on failure.
+/// The general body covers the WASM targets, which have no descriptor-based
+/// write: WASI would go through `fd_write` and its iovec array, a browser has no
+/// descriptors at all, and neither has a backend that could run this yet.
+/// Reporting failure is what the caller already handles.
+@target
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
+    return -1
+}
+
+@target(.Linux, .Darwin)
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
+    fd :: if out == .Stdout { STDOUT } else { STDERR }
+    // `ssize_t` down to the `i32` this reports. A single write never approaches
+    // 2 GB, and the -1 failure value survives the narrowing.
+    return i32(sys_write(fd, buf, count))
+}
+
+@target(.Windows)
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
+    // A synchronous `WriteFile` writes everything or fails, so the count it
+    // reports adds nothing; it reads back all the same, for a caller that cares.
+    // Short writes belong to the overlapped path, unused here.
+    written: u32[]: [0]
+    if write_file(std_handle(out), buf, u32(count), written, null) {
+        return i32(count)
+    }
+    return -1
+}
+
+/// Write `msg` to `out` as text, when `out` takes text rather than bytes.
+///
+/// Only a Windows console does, for text beyond ASCII: it decodes bytes with its
+/// code page, which is not UTF-8 by default, and renders UTF-16 whatever the
+/// page.
+///
+/// @return  whether `out` took `msg` as text; false for a stream that takes its
+///          UTF-8 bytes as they are.
+@target
+write_text :: fn(out: Stream, msg: string) -> bool = false
+
+@target(.Windows)
+write_text :: fn(out: Stream, msg: string) -> bool {
+    // ASCII reads the same in every code page: its bytes go out as they are.
+    if msg.is_ascii() || !is_console(out) {
+        return false
+    }
+    size :: msg.byte_len()
+    // No more UTF-16 units than UTF-8 bytes. An empty `msg` converts to nothing,
+    // which Win32 reports as a failure, and writes nothing either way.
+    units: u16[]: [0] * size
+    n :: multi_byte_to_wide_char(CP_UTF8, 0, msg, i32(size), units, i32(size))
+    if n > 0 {
+        written: u32[]: [0]
+        write_console_w(std_handle(out), units, u32(n), written, null)
+    }
+    return true
+}
+
+// The Win32 handle of `out`.
+std_handle :: fn(out: Stream) -> Handle = match out {
+    .Stdout -> get_std_handle(STD_OUTPUT_HANDLE)
+    .Stderr -> get_std_handle(STD_ERROR_HANDLE)
+}
+
+// Whether `out` is a console, probed once per stream as `std/tty` probes its
+// own: `GetConsoleMode` fails on anything else.
+is_console :: fn(out: Stream) -> bool = match out {
+    .Stdout -> stdout_is_console()
+    .Stderr -> stderr_is_console()
+}
+
+@singleton
+stdout_is_console :: fn() -> bool = has_console_mode(std_handle(.Stdout))
+
+@singleton
+stderr_is_console :: fn() -> bool = has_console_mode(std_handle(.Stderr))
+
+@singleton
+stdin_is_console :: fn() -> bool = has_console_mode(get_std_handle(STD_INPUT_HANDLE))
+
+has_console_mode :: fn(h: Handle) -> bool {
+    mode: u32[]: [0]
+    return get_console_mode(h, mode)
+}
+
+// Sole I/O write primitive: appends `msg` to `out`, as text where the stream
+// takes text (`write_text`), else as raw UTF-8 bytes over `write_bytes` above.
+//
+// `msg.bytes()` is a borrowed view over the interned bytes, so the loop lends
+// them straight to the callee: no copy, and nothing to free.
+//
+// A short write is retried; a failure is silent, which is the contract the
+// `fwrite` + `fflush` host it replaces already had.
+write :: fn(out: Stream, msg: string) -> void {
+    if write_text(out, msg) {
+        return
+    }
+    buf :: msg.bytes()
+    sent: i64 = 0
+    for {
+        if sent >= buf.len() {
+            return
+        }
+        chunk :: buf[sent..<buf.len()]
+        n :: write_bytes(out, chunk, chunk.len())
+        if n <= 0 {
+            return
+        }
+        sent += i64(n)
+    }
+}
+
+// The four print wrappers are `Display`-generic. Monomorphisation keeps each
+// concrete instance separate: a `string` / primitive `msg` stays concrete
+// under the mixed-flavor path (`fn_instance_flavor` in
+// `vader/lower/mono_fn.vader`), so `msg.to_string()` resolves to the one
+// impl actually used : no `virtual.call Display.to_string`, no vtable, and the
+// DCE prunes every unused `Display` impl. A trivial `println("hello")` stays at
+// ~42 bytecode lines / 4 fns instead of dragging in every `to_string`.
+
+/// Write `msg` to stdout without a trailing newline. Accepts any type
+/// implementing `Display`: the wrapper renders it via `to_string`
+/// before handing the string to the host.
+export print :: fn<T: Display>(msg: T) -> void = write(.Stdout, msg.to_string())
+
+/// Write `msg` to stdout followed by a `\n`. See `print` for the
+/// Display routing rule.
+export println :: fn<T: Display>(msg: T) -> void = write(.Stdout, "${msg}\n")
+
+/// Write `msg` to stderr without a trailing newline.
+export eprint :: fn<T: Display>(msg: T) -> void = write(.Stderr, msg.to_string())
+
+/// Write `msg` to stderr followed by a `\n`.
+export eprintln :: fn<T: Display>(msg: T) -> void = write(.Stderr, "${msg}\n")
+
+/// Read one line from stdin, blocking until a newline arrives. The
+/// returned string does NOT include the trailing `\n`.
+/// @return      the line text.
+/// @error       `IOError` on EOF or stdin read failure.
+export read_line :: fn() -> string | IOError {
+    out: u8[]: []
+    // One byte at a time: stdin is a stream, and reading ahead of the newline
+    // would consume input the next caller expects to still be there.
+    for _ in 0..<MAX_LINE {
+        b :: read_ready(1)
+        if b is IOError {
+            // EOF with something already read is a final line without its
+            // newline, which is a line; EOF with nothing is the error.
+            if out.len() > 0 {
+                return out.bytes_to_string()
+            }
+            return b
+        }
+        if b[0] == '\n' {
+            // A CRLF peer: drop the CR that TERMINATED the line, not every CR
+            // in it: an interior `\r` is data, and silently eating it corrupts
+            // any line-oriented payload that carries one.
+            if out.len() > 0 && out[out.len() - 1] == '\r' {
+                out.remove_last()
+            }
+            return out.bytes_to_string()
+        }
+        out.push(b[0])
+    }
+    return IOError { .msg = "line too long" }
+}
+
+/// Ceiling on `read_line`, so a peer that never sends a newline cannot make it
+/// spin forever.
+MAX_LINE: i64 : 1024 * 1024
+
+/// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops until `n`
+/// bytes are accumulated; end of input before `n` is an error. The bytes come as
+/// they are, `\r\n` included: required by length-prefixed transports (LSP, MCP,
+/// custom RPC).
+/// @param n     number of bytes to consume.
+/// @return      a string of exactly `n` bytes (interpreted as UTF-8).
+/// @error       `IOError` on end of input, a failed read, or a target with no
+///              stdin.
+export read_stdin :: fn(n: i64) -> string | IOError {
+    out: u8[]: [] * n
+    for out.len() < n {
+        chunk :: read_ready(read_size(n - out.len()))
+        if chunk is IOError {
+            return chunk
+        }
+        out.push_all(chunk)
+    }
+    return out.bytes_to_string()
+}
+
+// What one read asks for of the `missing` bytes: a read buffer is that large,
+// whatever then arrives.
+read_size :: fn(missing: i64) -> i64 {
+    if missing > READ_CHUNK {
+        return READ_CHUNK
+    }
+    return missing
+}
+
+// 64 KiB per read.
+READ_CHUNK: i64 : 64 * 1024
+
+/// Read what stdin has ready: block until at least one byte has arrived, then
+/// return what has, up to `max` bytes. Unlike `read_stdin`, it waits for no
+/// count, which is what reading keys as they are pressed needs.
+///
+/// @param max  ceiling on the bytes returned.
+/// @return     at least one byte.
+/// @error      `IOError` at end of input, on a failed read, on a target with no
+///             stdin, and `.InvalidInput` when `max` is not positive.
+export read_available :: fn(max: i64) -> string | IOError {
+    if max <= 0 {
+        return IOError { .msg = "`max` is not positive: ${max}", .kind = .InvalidInput }
+    }
+    bytes :: read_ready(max)
+    if bytes is IOError {
+        return bytes
+    }
+    return bytes.bytes_to_string()
+}
+
+/// `read_available` with null in place of its error, for a caller that only
+/// tells a read from its absence.
+///
+/// @param max  ceiling on the bytes returned.
+export read_available_or_null :: fn(max: i64) -> string | null {
+    read :: read_available(max)
+    if read is IOError {
+        return null
+    }
+    return read
+}
+
+/// Read stdin up to its end: what a program takes when its input is a file or
+/// the output of another program.
+///
+/// @return  every byte stdin held, as UTF-8; empty when it held none.
+/// @error   `IOError` on a failed read, or on a target with no stdin.
+export read_stdin_to_end :: fn() -> string | IOError {
+    out: u8[]: []
+    for {
+        chunk :: read_ready(READ_CHUNK)
+        if chunk is IOError {
+            if chunk.msg == END_OF_INPUT.msg {
+                return out.bytes_to_string()
+            }
+            return chunk
+        }
+        out.push_all(chunk)
+    }
+}
+
+/// Up to `max` bytes of stdin, at least one: what a single read returns.
+///
+/// On a Windows console they are the UTF-8 of what was typed, read as text
+/// whatever the code page; what a read brings past `max` waits for the next.
+///
+/// @param max  ceiling on the bytes returned, positive.
+/// @error      `IOError` on end of input or a failed read.
+/// The general body covers the targets with no backend that could run this:
+/// `wasi-wasm32` and `browser-wasm32`. Reporting failure is what every caller
+/// already handles, and it is what `write_bytes` does on the same targets.
+@target
+read_ready :: fn(max: i64) -> u8[] | IOError {
+    return IOError { .msg = "stdin is not available on this target" }
+}
+
+/// Attempts before giving up on a read that fails. A signal handler a program
+/// installed can interrupt a blocking read, which is then worth retrying; the
+/// bound keeps a real error from spinning.
+READ_ATTEMPTS :: 3
+
+@target(.Linux, .Darwin)
+read_ready :: fn(max: i64) -> u8[] | IOError {
+    buf: u8[]: [0] * max
+    // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
+    // in bursts, so a short return is normal and only `0` means end of file.
+    for 0..<READ_ATTEMPTS {
+        wait_readable(STDIN)
+        got :: sys_read(0, buf, max)
+        if got > 0 {
+            return buf[0..<got]
+        }
+        if got == 0 {
+            return END_OF_INPUT
+        }
+    }
+    return last_io_error("stdin read failed")
+}
+
+@target(.Windows)
+read_ready :: fn(max: i64) -> u8[] | IOError {
+    wait_readable(STDIN)
+    if stdin_is_console() {
+        return read_console(max)
+    }
+    buf: u8[]: [0] * max
+    got: u32[]: [0]
+    if !read_file(get_std_handle(STD_INPUT_HANDLE), buf, u32(max), got, null) {
+        failed :: last_io_error("stdin read failed")
+        // A pipe whose writer is gone has reached its end: reading it fails with
+        // a broken pipe, where reading a file returns zero bytes.
+        if failed.kind == .BrokenPipe {
+            return END_OF_INPUT
+        }
+        return failed
+    }
+    // A synchronous read returning true with zero bytes has reached end of file.
+    if got[0] == 0 {
+        return END_OF_INPUT
+    }
+    return buf[0..<i64(got[0])]
+}
+
+/// What a read at the end of stdin answers.
+END_OF_INPUT :: IOError { .msg = "end of input" }
+
+// What `console_read` hands out, as a read of stdin answers it.
+read_console :: fn(max: i64) -> u8[] | IOError {
+    buf: u8[]: [0] * max
+    got :: console_read(buf, max)
+    if got < 0 {
+        return last_io_error("stdin read failed")
+    }
+    if got == 0 {
+        return END_OF_INPUT
+    }
+    return buf[0..<got]
+}
+
+/// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
+/// probe). Lets a length-prefixed server detect a quiescent input window,
+/// e.g. drain a burst of notifications, then do expensive work once. The wait
+/// parks the running task while other tasks run, and blocks the process
+/// otherwise.
+///
+/// A pipe is read straight from its descriptor, so no buffer lags behind what
+/// this reports. A console reports ready when no other task runs. A closed peer
+/// (pipe hangup) reports ready so the next read observes EOF rather than
+/// spinning.
+///
+/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking, a
+///                    negative one waits with no deadline.
+/// @return            `true` if a subsequent `read_stdin` won't block on the
+///                    first byte (data ready, or EOF/hangup pending).
+// With another task, the wait returns once stdin reads, and the system then
+// answers at once; alone, it returns at once, and the system waits.
+export poll_stdin :: fn(timeout_ms: i32) -> bool =
+    wait_readable_for(STDIN, i64(timeout_ms) * 1_000_000) && system_poll_stdin(timeout_ms)
+
+// Ask the system whether stdin has data ready within `timeout_ms`, blocking
+// every task meanwhile.
+@target
+system_poll_stdin :: fn(timeout_ms: i32) -> bool {
+    // No descriptor to poll: `wasi-wasm32` and `browser-wasm32`. Reporting ready
+    // lets the read attempt observe the real state, and never spins.
+    return true
+}
+
+@target(.Linux, .Darwin)
+system_poll_stdin :: fn(timeout_ms: i32) -> bool {
+    fds :: Pollfd { .fd = 0, .events = POLLIN, .revents = 0 }
+    // A negative result (`EINTR`, say) reads as "nothing pending": the caller
+    // then proceeds to flush, which is harmless.
+    return sys_poll_one(fds, 1, timeout_ms) > 0
+}
+
+/// How long a Windows poll waits between peeks.
+///
+/// `PeekNamedPipe` answers instantly, so the timeout is emulated in slices. This
+/// loop runs once per input burst, never per byte.
+POLL_SLICE_MS: u32 : 5
+
+@target(.Windows)
+system_poll_stdin :: fn(timeout_ms: i32) -> bool {
+    h :: get_std_handle(STD_INPUT_HANDLE)
+    if i64(h) == INVALID_HANDLE {
+        return true
+    }
+    if !await_stdin_reader(timeout_ms) {
+        return false
+    }
+    waited: i32 = 0
+    for {
+        avail: u32[]: [0]
+        // False means not a pipe (console, redirected file) or the peer closed
+        // it. Ready, so the next read proceeds or observes EOF, never a false
+        // "idle" that could spin.
+        if !peek_named_pipe(h, null, 0, null, avail, null) {
+            return true
+        }
+        if avail[0] > 0 {
+            return true
+        }
+        if timeout_ms >= 0 && waited >= timeout_ms {
+            return false
+        }
+        slice := POLL_SLICE_MS
+        if timeout_ms >= 0 {
+            remaining :: u32(timeout_ms - waited)
+            if remaining < slice {
+                slice = remaining
+            }
+        }
+        sleep_ms(slice)
+        waited += i32(slice)
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_reading_nothing_is_refused_without_touching_stdin :: fn() -> void {
+    refused :: read_available(0)
+    assert(refused is IOError && refused.kind == .InvalidInput, "no room is an invalid input")
+    assert(read_available_or_null(0) == null, "and the twin answers null")
+}

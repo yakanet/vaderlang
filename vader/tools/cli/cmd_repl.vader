@@ -8,7 +8,7 @@
 
 module "vader/tools/cli"
 
-import "std/io"
+import "std/console"
 
 cmd_repl :: fn() -> i32 {
     eprintln("vader REPL: not yet implemented")

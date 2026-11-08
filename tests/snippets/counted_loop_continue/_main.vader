@@ -7,7 +7,7 @@
 // counter ; the guard stops it after a few rounds and says so.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 GUARD :: 20

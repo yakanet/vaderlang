@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A newtype that converts to its own representation. The `into` body has no way
 // to reach the backing other than `string(self)`, so if that cast lifted to

@@ -10,6 +10,9 @@
 
 module "snippet"
 
+import "std/console"
+import "std/env"
+import "std/fs"
 import "std/io"
 
 main :: fn() -> i32 {

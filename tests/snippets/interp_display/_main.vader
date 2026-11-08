@@ -1,7 +1,7 @@
 // Interpolating a value of a user type renders it through its `Display` impl.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 /// A duration in whole years.
 export Age :: struct { years: i32 }

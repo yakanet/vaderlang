@@ -10,8 +10,8 @@
 module "vader/support/profile"
 
 import "std/collections"
+import "std/console"
 import "std/env"
-import "std/io"
 import "std/numbers"
 import "std/runtime"
 import "std/string"

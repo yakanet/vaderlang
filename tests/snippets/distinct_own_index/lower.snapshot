@@ -5,7 +5,7 @@
       (i32(@array.len(self)) * 100) + i32(i)
   }
   snippet.Offset.set_at :: fn(self: Offset, i: i64, v: i32) -> void {  // snippet$Offset$std_core$IndexSet$set_at
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(48))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "set_at ")
@@ -24,7 +24,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       o: Offset = Offset([1, 2, 3] :Offset)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(32))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "offset read ")
@@ -33,7 +33,7 @@
       } :string)
       snippet.Offset.set_at(o, i64(0), 9)
       c: Cells = Cells(Grid { .w = 1 })
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(31))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "cells read ")
@@ -48,7 +48,7 @@
           __destr_el_5: i32 = __destr_src_4._0
           l[2] = __destr_el_5
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(29))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "log read ")
@@ -61,7 +61,7 @@
           __for_i_10: i64 = 0
           for __for_i_10 < __for_len_9 {
               x: i32 = __for_arr_8[__for_i_10]
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_11: Buffer = std.core.new_byte_buffer(i64(32))
                   __off_12: i64 = 0
                   __off_12 = std.core.write_string_at(__buf_11, __off_12, "log backing ")
@@ -72,7 +72,7 @@
               __for_i_10 = __for_i_10 +% i64(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_13: Buffer = std.core.new_byte_buffer(i64(30))
           __off_14: i64 = 0
           __off_14 = std.core.write_string_at(__buf_13, __off_14, "log slice ")
@@ -95,6 +95,11 @@
   vtable std.core.IndexSet.set_at for Offset  snippet.Offset.set_at  // snippet$Offset$std_core$IndexSet$set_at
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -105,11 +110,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

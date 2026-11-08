@@ -7,7 +7,7 @@
 
 module "app"
 
-import "std/io"
+import "std/console"
 import "gen/describe"
 
 Point :: struct {

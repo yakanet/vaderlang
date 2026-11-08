@@ -147,14 +147,14 @@ fn 3 snippet$main () -> i32
   string.const 4   ; "bound as argument, struct: "
   local.get 0   ; $call_3
   call 16   ; concat_2
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i32.const 7
   call 8   ; snippet$passed__i32
   local.set 0   ; $call_3
   string.const 5   ; "bound as argument, i32: "
   local.get 0   ; $call_3
   call 16   ; concat_2
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i32.const 3
   struct.new 1   ; snippet$P
   call 10   ; snippet$returned__snippet_P
@@ -163,7 +163,7 @@ fn 3 snippet$main () -> i32
   string.const 6   ; "bound as return: "
   local.get 0   ; $call_3
   call 16   ; concat_2
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i32.const 2
   struct.new 1   ; snippet$P
   call 12   ; snippet$shown__snippet_P
@@ -171,7 +171,7 @@ fn 3 snippet$main () -> i32
   string.const 7   ; "ufcs on T: "
   local.get 0   ; $call_3
   call 16   ; concat_2
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i32.const 3
   struct.new 1   ; snippet$P
   call 13   ; snippet$shown_later__snippet_P
@@ -179,7 +179,7 @@ fn 3 snippet$main () -> i32
   string.const 8   ; "ufcs on T in a lambda: "
   local.get 0   ; $call_3
   call 16   ; concat_2
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i32.const 4
   struct.new 1   ; snippet$P
   array.new 6 1   ; snippet$P[]
@@ -188,7 +188,7 @@ fn 3 snippet$main () -> i32
   string.const 9   ; "ufcs on a receiver holding T: "
   local.get 0   ; $call_3
   call 16   ; concat_2
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i64.const 45
   buffer.new
   local.set 1   ; __buf_0
@@ -216,7 +216,7 @@ fn 3 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 18   ; std_core$finish_buffer
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i64.const 45
   buffer.new
   local.set 1   ; __buf_0
@@ -243,7 +243,7 @@ fn 3 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 18   ; std_core$finish_buffer
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   i64.const 60
   buffer.new
   local.set 1   ; __buf_0
@@ -271,7 +271,7 @@ fn 3 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 18   ; std_core$finish_buffer
-  call 72   ; std_io$println__string
+  call 72   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -3524,7 +3524,7 @@ fn 68 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 69 std_io$write (u8,string) -> void
+fn 69 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3535,7 +3535,7 @@ fn 69 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 70   ; std_io$write_text
+  call 70   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3566,7 +3566,7 @@ fn 69 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 71   ; std_io$write_bytes
+      call 71   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3586,11 +3586,11 @@ fn 69 std_io$write (u8,string) -> void
   return
 end
 
-fn 70 std_io$write_text (u8,string) -> bool
+fn 70 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 71 std_io$write_bytes (u8,ref,i64) -> i32
+fn 71 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3610,7 +3610,7 @@ fn 71 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 72 std_io$println__string (string) -> void
+fn 72 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 22   ; "\n"
@@ -3618,6 +3618,6 @@ fn 72 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 69   ; std_io$write
+  call 69   ; std_console$write
   return
 end

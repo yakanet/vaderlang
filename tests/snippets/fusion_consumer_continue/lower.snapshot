@@ -55,7 +55,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("indexed + continue, indices:", fused, " |", lazy))
+      std.console.println<string>(concat_4("indexed + continue, indices:", fused, " |", lazy))
   }
   snippet.take_continue :: fn() -> void {  // snippet$take_continue
       fused: i32 = 0
@@ -104,7 +104,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(71))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "take(2) + continue, visits: ")
@@ -177,7 +177,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("two yields + continue:", fused, " |", lazy))
+      std.console.println<string>(concat_4("two yields + continue:", fused, " |", lazy))
   }
   snippet.three :: fn() -> Iterator<i32> {  // snippet$three
       return $genstate_three { .state = 3 }
@@ -270,7 +270,7 @@
               k = k +% 1
           }
       }
-      std.io.println<string>(concat_4("loopless generator + continue:", fused, " |", lazy))
+      std.console.println<string>(concat_4("loopless generator + continue:", fused, " |", lazy))
   }
   snippet.take_continue_outer :: fn() -> void {  // snippet$take_continue_outer
       fused: i32 = 0
@@ -335,7 +335,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(84))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "take(2) + continue y from an inner loop: ")
@@ -388,7 +388,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(80))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "chars.indexed + continue, index sum: ")
@@ -467,7 +467,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("take(3).drop_odd():", fused, " |", lazy))
+      std.console.println<string>(concat_4("take(3).drop_odd():", fused, " |", lazy))
   }
   snippet.maybe_even :: fn(x: i32) -> i32 | null {  // snippet$maybe_even
       if (x % 2) == 0 { x } else { null } :i32 | null
@@ -542,7 +542,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("indexed + ?? continue:", fused, " |", lazy))
+      std.console.println<string>(concat_4("indexed + ?? continue:", fused, " |", lazy))
   }
   snippet.flat_map_continue :: fn() -> void {  // snippet$flat_map_continue
       fused: i32 = 0
@@ -591,7 +591,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(69))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "flat_map + continue, sum: ")
@@ -648,7 +648,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(66))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "chain + continue, sum: ")
@@ -739,7 +739,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(87))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "chain + continue x from an inner loop, sum: ")
@@ -887,6 +887,11 @@
   vtable std.core.Iterator.next for $genstate_twice_per_round  snippet$$genstate_twice_per_round$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -903,11 +908,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.chain<i32>  // std_iter$chain__i32
     fn std.iter.flat_map<i32, i32>  // std_iter$flat_map__i32__i32

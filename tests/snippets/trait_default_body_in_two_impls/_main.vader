@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A trait's default body inherited by two impls. Each impl compiles its own copy,
 // so every name the body binds is a local of that copy: a struct pattern's field,

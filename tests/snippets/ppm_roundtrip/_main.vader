@@ -1,6 +1,8 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
+import "std/env"
+import "std/fs"
 import "images/ppm"
 
 // End-to-end: build a Ppm, encode to P6 bytes, persist via the byte-oriented

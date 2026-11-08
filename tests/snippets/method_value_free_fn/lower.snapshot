@@ -28,11 +28,11 @@
       p: Point = Point { .x = 1, .y = 2 }
       show: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = p }
       p = Point { .x = 7, .y = 8 }
-      std.io.println<string>(concat_2("kept ", __method_snippet_2(show)))
-      std.io.println<string>(concat_2("argument ", snippet.twice(@closure(__method_snippet_4, __method_env_snippet_5 { .receiver = p }))))
-      std.io.println<string>(concat_2("returned ", snippet.label(snippet.scaler(p)(3))))
+      std.console.println<string>(concat_2("kept ", __method_snippet_2(show)))
+      std.console.println<string>(concat_2("argument ", snippet.twice(@closure(__method_snippet_4, __method_env_snippet_5 { .receiver = p }))))
+      std.console.println<string>(concat_2("returned ", snippet.label(snippet.scaler(p)(3))))
       h: Handler = Handler { .render = @closure(__method_snippet_6, __method_env_snippet_7 { .receiver = p }) }
-      std.io.println<string>(concat_2("field ", h.render()))
+      std.console.println<string>(concat_2("field ", h.render()))
       by_x: string[] = {
           __fuse_arr_3: i32[] = [1, 2] :i32[]
           f: __method_env_snippet_9 = __method_env_snippet_9 { .receiver = p }
@@ -52,9 +52,9 @@
           }
           out
       }
-      std.io.println<string>(concat_2("mapped ", std.core.string[].to_string(by_x)))
+      std.console.println<string>(concat_2("mapped ", std.core.string[].to_string(by_x)))
       tagged: __method_env_snippet_11 = __method_env_snippet_11 { .receiver = 5 }
-      std.io.println<string>(concat_2("generic ", __method_snippet_10(tagged, "a")))
+      std.console.println<string>(concat_2("generic ", __method_snippet_10(tagged, "a")))
       return 0
   }
   __method_env_snippet_1 :: struct { receiver: Point }
@@ -112,6 +112,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -124,11 +129,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

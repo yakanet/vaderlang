@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A generic body that tests its `T` keeps a concrete instance per scalar type.
 // There, `x is Square` on an `i32` is settled before the program runs: the code

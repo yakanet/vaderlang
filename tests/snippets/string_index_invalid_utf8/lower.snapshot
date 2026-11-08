@@ -3,12 +3,12 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       s: string = std.core.bytes_to_string([u8(97), u8(169), u8(98), u8(99), u8(100), u8(226), u8(130)] :u8[])
-      std.io.println<i64>(std.core.len(s))
+      std.console.println<i64>(std.core.len(s))
       {
           i: i64 = 0
           __for_hi_0: i64 = std.core.len(s)
           for i < __for_hi_0 {
-              std.io.println<u32>(u32(std_core$string$Index$at(s, i)))
+              std.console.println<u32>(u32(std_core$string$Index$at(s, i)))
           } @step {
               i = i +% i64(1)
           }
@@ -40,22 +40,22 @@
               }
           }
       }
-      std.io.println<i64>(walked)
-      std.io.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
+      std.console.println<i64>(walked)
+      std.console.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
           .start = i64(1),
           .end = i64(3),
           .inclusive = false,
           .done = false,
           .cursor = i64(1),
       })))
-      std.io.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
+      std.console.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
           .start = i64(2),
           .end = i64(10),
           .inclusive = false,
           .done = false,
           .cursor = i64(2),
       })))
-      std.io.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
+      std.console.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
           .start = i64(4),
           .end = i64(2),
           .inclusive = false,
@@ -66,6 +66,12 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<i64>  // std_console$println__i64
+    fn std.console.println<u32>  // std_console$println__u32
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -90,12 +96,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<i64>  // std_io$println__i64
-    fn std.io.println<u32>  // std_io$println__u32
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

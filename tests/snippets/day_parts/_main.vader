@@ -4,7 +4,7 @@
 // `Hour | null` beside a `null` arm. Nothing is left for a stray value to reach.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Hour :: Int in 0..=23
 

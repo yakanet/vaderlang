@@ -3,7 +3,7 @@
 // its own argument, although both copies come from one source pattern.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Box :: struct<T> { v: T }
 

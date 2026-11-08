@@ -4,7 +4,7 @@
 // value through unconverted (2 instead of 42).
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 F :: import "snippet/feet"
 M :: import "snippet/metres"

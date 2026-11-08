@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 pick :: fn(n: i32, x: string = "int") -> string = "${n}:${x}"
 pick :: fn(s: string, y: string = "str") -> string = "${s}:${y}"

@@ -3,7 +3,7 @@
 
 module "elision"
 
-import "std/io"
+import "std/console"
 
 /// An index below the length the loop compares against: proven, so a release
 /// build drops its check.

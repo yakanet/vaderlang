@@ -65,11 +65,11 @@
                   if s == "stop" {
                       return
                   }
-                  std.io.print<string>(concat_2(s, " "))
+                  std.console.print<string>(concat_2(s, " "))
               }
           }
       }
-      std.io.println<string>("")
+      std.console.println<string>("")
   }
   snippet.pair_sum :: fn(it: Iterator<[i32, i32]>) -> [i32, i32] {  // snippet$pair_sum
       a: i32 = 0
@@ -182,7 +182,7 @@
           out
       }
       squares: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(46))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "fold ")
@@ -210,7 +210,7 @@
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       odds: Iterator<i32> = std.iter.filter<i32>(std.core.i32[].into(a), snippet.odd)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(45))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "sum ")
@@ -238,7 +238,7 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       squares_total: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(46))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "user ")
@@ -264,7 +264,7 @@
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       squares_over: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(47))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "early ")
@@ -297,7 +297,7 @@
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       squares_none: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(46))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "none ")
@@ -359,7 +359,7 @@
           }
           if __coalesce_22 is null { Point { .x = 0, .y = 0 } } else { Point(__coalesce_22) } :Point
       } :Point).x
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(53))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "find struct ")
@@ -372,7 +372,7 @@
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       thirds: Iterator<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_5)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_30: Buffer = std.core.new_byte_buffer(i64(56))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "collect struct ")
@@ -413,12 +413,12 @@
                       if s == "stop" {
                           break $exit$i153
                       }
-                      std.io.print<string>(concat_2(s, " "))
+                      std.console.print<string>(concat_2(s, " "))
                   } @step {
                       __fuse_i_1 = __fuse_i_1 +% i64(1)
                   }
               }
-              std.io.println<string>("")
+              std.console.println<string>("")
           }
       }
       snippet.print_until_stop(words)
@@ -435,12 +435,12 @@
                       if s == "stop" {
                           break $exit$i165
                       }
-                      std.io.print<string>(concat_2(s, " "))
+                      std.console.print<string>(concat_2(s, " "))
                   } @step {
                       __fuse_i_1 = __fuse_i_1 +% i64(1)
                   }
               }
-              std.io.println<string>("")
+              std.console.println<string>("")
           }
       }
       pairs: Iterator<[i32, i32]> = std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens)
@@ -474,7 +474,7 @@
           __consumed_37
       }
       lazy_p: [i32, i32] = snippet.pair_sum(pairs)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_38: Buffer = std.core.new_byte_buffer(i64(88))
           __off_39: i64 = 0
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "pair ")
@@ -518,7 +518,7 @@
           __consumed_41
       }
       lazy_q: [i32, i32] = snippet.pair_sum(late)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_42: Buffer = std.core.new_byte_buffer(i64(94))
           __off_43: i64 = 0
           __off_43 = std.core.write_string_at(__buf_42, __off_43, "pair early ")
@@ -566,7 +566,7 @@
           __consumed_45
       }
       lazy_r: [i32, i32] = snippet.pair_sum(tuples)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_46: Buffer = std.core.new_byte_buffer(i64(97))
           __off_47: i64 = 0
           __off_47 = std.core.write_string_at(__buf_46, __off_47, "pair filtered ")
@@ -580,7 +580,7 @@
           std.core.finish_buffer(__buf_46, __off_47)
       } :string)
       scaled: Iterator<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_52: Buffer = std.core.new_byte_buffer(i64(71))
           __off_53: i64 = 0
           __off_53 = std.core.write_string_at(__buf_52, __off_53, "overload ")
@@ -624,14 +624,14 @@
           __off_53 = std.core.write_int(__buf_52, __off_53, snippet$weigh_1(i64(10), scaled))
           std.core.finish_buffer(__buf_52, __off_53)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_54: Buffer = std.core.new_byte_buffer(i64(26))
           __off_55: i64 = 0
           __off_55 = std.core.write_string_at(__buf_54, __off_55, "twice ")
           __off_55 = std.core.write_int(__buf_54, __off_55, snippet.drained_twice(std.iter.map<i32, i32>(std.core.i32[].into(a), __lambda_snippet_10)))
           std.core.finish_buffer(__buf_54, __off_55)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_58: Buffer = std.core.new_byte_buffer(i64(31))
           __off_59: i64 = 0
           __off_59 = std.core.write_string_at(__buf_58, __off_59, "array fold ")
@@ -654,7 +654,7 @@
           } :i64)
           std.core.finish_buffer(__buf_58, __off_59)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_61: Buffer = std.core.new_byte_buffer(i64(30))
           __off_62: i64 = 0
           __off_62 = std.core.write_string_at(__buf_61, __off_62, "range sum ")
@@ -674,7 +674,7 @@
           } :i32)
           std.core.finish_buffer(__buf_61, __off_62)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_66: Buffer = std.core.new_byte_buffer(i64(29))
           __off_67: i64 = 0
           __off_67 = std.core.write_string_at(__buf_66, __off_67, "find_map ")
@@ -760,6 +760,12 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.print<string>  // std_console$print__string
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -782,12 +788,6 @@
     struct std_core$__gen_state_std_core_0
     struct std_core$__gen_state_std_core_1
     struct std_core$__gen_state_std_core_2
-  std/io
-    fn std.io.print<string>  // std_io$print__string
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.collect<Point>  // std_iter$collect__snippet_Point
     fn std.iter.filter<[i32, i32]>  // std_iter$filter___i32__i32_

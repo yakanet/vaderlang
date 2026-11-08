@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A const read under a trait type : its entry in the data pool holds `Circle` and
 // `Square` values, while the read itself names only `Shape[]`. Each baked struct

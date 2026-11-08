@@ -31,6 +31,8 @@
 module "vader/tools/cli"
 
 import "std/env"
+import "std/console"
+import "std/fs"
 import "std/io"
 import "std/path"
 import "std/string"

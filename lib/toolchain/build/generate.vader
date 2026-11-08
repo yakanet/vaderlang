@@ -28,6 +28,8 @@
 
 module "toolchain/build"
 
+import "std/env"
+import "std/fs"
 import "std/io"
 import "std/numbers"
 import "std/path"

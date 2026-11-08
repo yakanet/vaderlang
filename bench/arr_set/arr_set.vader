@@ -4,7 +4,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     a: i32[]: []

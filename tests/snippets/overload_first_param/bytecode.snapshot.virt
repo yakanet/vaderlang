@@ -93,16 +93,16 @@ fn 2 snippet$main () -> i32
   local.set 1   ; b
   local.get 0   ; a
   call 0   ; snippet$describe
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   local.get 1   ; b
   call 1   ; snippet$describe_1
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   local.get 0   ; a
   call 0   ; snippet$describe
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   local.get 1   ; b
   call 1   ; snippet$describe_1
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   i64.const 36
   buffer.new
   local.set 0   ; a
@@ -126,7 +126,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   f64.const 3.5 4615063718147915776
   f64.const 5.0 4617315517961601024
   call 33   ; std_math$min
@@ -135,7 +135,7 @@ fn 2 snippet$main () -> i32
   string.const 4   ; "min(3.5, 5.0) = "
   local.get 4   ; $call_27
   call 3   ; concat_2
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   i64.const 36
   buffer.new
   local.set 0   ; a
@@ -159,7 +159,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   i64.const 36
   buffer.new
   local.set 0   ; a
@@ -182,7 +182,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   f64.const -7.5 13843502304583483392
   call 36   ; std_math$abs
   call 8   ; std_core$f64$Display$to_string
@@ -190,7 +190,7 @@ fn 2 snippet$main () -> i32
   string.const 7   ; "abs(-7.5)     = "
   local.get 4   ; $call_27
   call 3   ; concat_2
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   i64.const 44
   buffer.new
   local.set 0   ; a
@@ -215,7 +215,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; a
   local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   f64.const 1.5 4609434218613702656
   f64.const 0.0 0
   f64.const 1.0 4607182418800017408
@@ -225,7 +225,7 @@ fn 2 snippet$main () -> i32
   string.const 9   ; "clamp(1.5, 0.0, 1.0)  = "
   local.get 4   ; $call_27
   call 3   ; concat_2
-  call 31   ; std_io$println__string
+  call 31   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -1995,7 +1995,7 @@ fn 27 std_core$insert_point (ref,i64,i32,i32) -> i64
   return
 end
 
-fn 28 std_io$write (u8,string) -> void
+fn 28 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -2006,7 +2006,7 @@ fn 28 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 29   ; std_io$write_text
+  call 29   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -2037,7 +2037,7 @@ fn 28 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 30   ; std_io$write_bytes
+      call 30   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2057,11 +2057,11 @@ fn 28 std_io$write (u8,string) -> void
   return
 end
 
-fn 29 std_io$write_text (u8,string) -> bool
+fn 29 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 30 std_io$write_bytes (u8,ref,i64) -> i32
+fn 30 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2081,7 +2081,7 @@ fn 30 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 31 std_io$println__string (string) -> void
+fn 31 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 15   ; "\n"
@@ -2089,7 +2089,7 @@ fn 31 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 28   ; std_io$write
+  call 28   ; std_console$write
   return
 end
 

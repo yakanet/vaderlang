@@ -128,7 +128,7 @@ export get_file_attributes_ex :: fn(path: u16[], level: i32, @c_out data: u32[])
 export get_file_attributes :: fn(path: u16[]) -> u32
 
 /// `DeleteFileW`. Zero on failure. Refuses a directory outright, which is the
-/// behaviour `std/io::remove_file` promises.
+/// behaviour `std/fs::remove_file` promises.
 ///
 /// @param path  the file to delete.
 /// @return      non-zero on success.
@@ -206,6 +206,51 @@ export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u16[], src
                                      @c_out dst: u8[], dst_len: i32,
                                      default_char: CPointer | null,
                                      used_default: CPointer | null) -> i32
+
+/// `s` as a NUL-terminated UTF-16 buffer; empty on failure.
+///
+/// The `W` entry points are the exact ones: the `A` ones speak the system ANSI
+/// code page, which cannot represent a path like `C:\Users\Zoé`. Vader strings
+/// are UTF-8, so every path crosses through this and `from_wide`.
+///
+/// @param s  the text to convert.
+export to_wide :: fn(s: string) -> u16[] {
+    empty: u16[]: []
+    // `-1` measures the NUL-terminated input AND counts the terminator, so the
+    // result is directly usable as an `LPCWSTR`. The count is in UNITS; the
+    // buffer that holds them is twice that in bytes.
+    units :: multi_byte_to_wide_char(CP_UTF8, 0, s, -1, empty, 0)
+    if units <= 0 {
+        return []
+    }
+    out: u16[]: [0] * i64(units)
+    if multi_byte_to_wide_char(CP_UTF8, 0, s, -1, out, units) <= 0 {
+        return []
+    }
+    return out
+}
+
+/// `units` UTF-16 units back to UTF-8; empty when the conversion fails.
+///
+/// @param w      the UTF-16 buffer a Win32 call filled.
+/// @param units  how many units to read, EXCLUDING any NUL, which is what
+///               every Win32 length already reports.
+export from_wide :: fn(w: u16[], units: i32) -> string = wide_to_utf8(w, units).bytes_to_string()
+
+// `units` UTF-16 units as UTF-8 bytes; empty when the conversion fails, and for
+// no units at all.
+wide_to_utf8 :: fn(w: u16[], units: i32) -> u8[] {
+    empty: u8[]: []
+    n :: wide_char_to_multi_byte(CP_UTF8, 0, w, units, empty, 0, null, null)
+    if n <= 0 {
+        return []
+    }
+    out: u8[]: [0] * i64(n)
+    if wide_char_to_multi_byte(CP_UTF8, 0, w, units, out, n, null, null) <= 0 {
+        return []
+    }
+    return out
+}
 
 // ---- files ----------------------------------------------------------------
 

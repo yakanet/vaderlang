@@ -5,7 +5,7 @@
 // call ran: 10 + 20 + 1 + 2 + 100 + 1012 = 1145.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 Tally :: struct {

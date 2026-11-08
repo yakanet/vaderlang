@@ -3,7 +3,7 @@
 // `tests/const_read_again.test.ts` checks the name on both backends.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/task"
 import "std/time"
 

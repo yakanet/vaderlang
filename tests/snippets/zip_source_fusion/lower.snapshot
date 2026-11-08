@@ -29,7 +29,7 @@
               __for_i_2 = __for_i_2 +% i64(1)
           }
       }
-      std.io.println<string>(out)
+      std.console.println<string>(out)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       a: i32[] = [1, 5, 3, 8] :i32[]
@@ -76,7 +76,7 @@
           }
           out
       } :i32[])
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(40))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "filter count fused: ")
@@ -105,7 +105,7 @@
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       lazy_filter: Iterator<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(39))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "filter count lazy: ")
@@ -168,7 +168,7 @@
           }
           out
       } :i32[])
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(16))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "any fused: ")
@@ -225,7 +225,7 @@
           __consumed_12
       }
       if !(found is null) {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_13: Buffer = std.core.new_byte_buffer(i64(53))
               __off_14: i64 = 0
               __off_14 = std.core.write_string_at(__buf_13, __off_14, "find fused: ")
@@ -262,7 +262,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_15: Buffer = std.core.new_byte_buffer(i64(32))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "loop fused: ")
@@ -281,7 +281,7 @@
                   __gen_elem_20: [[i32, i32], i64] = [x, i] :[[i32, i32], i64]
                   pair: [i32, i32] = __gen_elem_20._0
                   i: i64 = __gen_elem_20._1
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_18: Buffer = std.core.new_byte_buffer(i64(77))
                       __off_19: i64 = 0
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "indexed fused: ")
@@ -299,7 +299,7 @@
           }
       }
       empty: i32[] = [] :i32[]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_22: Buffer = std.core.new_byte_buffer(i64(33))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "empty fused: ")
@@ -335,6 +335,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -346,11 +351,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.zip<i32, i32>  // std_iter$zip__i32__i32
     fn std_iter$__gen_state_std_iter_0$Iterator$next

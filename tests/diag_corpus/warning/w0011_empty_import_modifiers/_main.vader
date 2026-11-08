@@ -2,7 +2,7 @@
 // W0011 nudges toward `import "p"`; the formatter drops the `{}` on re-format.
 module "snippet"
 
-import "std/io" {}
+import "std/console" {}
 
 main :: fn() -> i32 {
     println("hi")

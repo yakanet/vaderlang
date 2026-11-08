@@ -54,7 +54,7 @@ fn 0 snippet$main () -> i32
   type_check 1   ; i32
   if $L0 void
     string.const 1   ; "int ok"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
   else
     local.get 0   ; __scrut_0
     type_check 19   ; std_string$ParseError
@@ -63,7 +63,7 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L1
     string.const 2   ; "int err"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
   end $L0
   string.const 3   ; "nope"
   call 27   ; std_string$parse_int
@@ -71,7 +71,7 @@ fn 0 snippet$main () -> i32
   type_check 1   ; i32
   if $L2 void
     string.const 1   ; "int ok"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
   else
     local.get 0   ; __scrut_0
     type_check 19   ; std_string$ParseError
@@ -80,7 +80,7 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L3
     string.const 2   ; "int err"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
   end $L2
   string.const 4   ; "3.14"
   call 28   ; std_string$parse_float
@@ -88,7 +88,7 @@ fn 0 snippet$main () -> i32
   type_check 4   ; f64
   if $L4 void
     string.const 5   ; "float ok"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
   else
     local.get 0   ; __scrut_0
     type_check 19   ; std_string$ParseError
@@ -97,7 +97,7 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L5
     string.const 6   ; "float err"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
   end $L4
   string.const 3   ; "nope"
   call 28   ; std_string$parse_float
@@ -105,7 +105,7 @@ fn 0 snippet$main () -> i32
   type_check 4   ; f64
   if $L6 void
     string.const 5   ; "float ok"
-    call 26   ; std_io$println__string
+    call 26   ; std_console$println__string
     return.lit i32.const 0
   end $L6
   local.get 0   ; __scrut_0
@@ -115,7 +115,7 @@ fn 0 snippet$main () -> i32
     unreachable
   end $L7
   string.const 6   ; "float err"
-  call 26   ; std_io$println__string
+  call 26   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -2360,7 +2360,7 @@ fn 22 std_core$BigInt$Div$div (ref,u32) -> ref
   return
 end
 
-fn 23 std_io$write (u8,string) -> void
+fn 23 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -2371,7 +2371,7 @@ fn 23 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 24   ; std_io$write_text
+  call 24   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -2402,7 +2402,7 @@ fn 23 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 25   ; std_io$write_bytes
+      call 25   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2422,11 +2422,11 @@ fn 23 std_io$write (u8,string) -> void
   return
 end
 
-fn 24 std_io$write_text (u8,string) -> bool
+fn 24 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 25 std_io$write_bytes (u8,ref,i64) -> i32
+fn 25 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2446,7 +2446,7 @@ fn 25 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 26 std_io$println__string (string) -> void
+fn 26 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 7   ; "\n"
@@ -2454,7 +2454,7 @@ fn 26 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 23   ; std_io$write
+  call 23   ; std_console$write
   return
 end
 

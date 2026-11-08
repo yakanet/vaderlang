@@ -10,7 +10,6 @@ module "vader/tools/fmt"
 
 import "std/string"
 import "std/string_builder"
-import "std/io"
 import "std/iter"
 import "vader/support/diagnostics"
 p :: import "toolchain/ast"

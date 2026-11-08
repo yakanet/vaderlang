@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 same :: fn<T: Equals>(a: T, b: T) -> bool = a == b
 

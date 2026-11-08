@@ -288,10 +288,10 @@ test("doc --search shows every overload of a name", async () => {
 }, MEDIUM_BUILD);
 
 test("doc --search reaches the toolchain's library from a project", async () => {
-  const r = await search(stage("shapes"), "io.read_file_bytes");
+  const r = await search(stage("shapes"), "fs.read_file_bytes");
   expect(r.stderr).toBe("");
   expect(r.exit).toBe(0);
-  expect(r.stdout).toStartWith("module std/io  ");
+  expect(r.stdout).toStartWith("module std/fs  ");
   expect(r.stdout).toContain("\nexport read_file_bytes :: fn(");
 }, MEDIUM_BUILD);
 
@@ -319,8 +319,8 @@ test("doc --search lists the names that contain a query that names nothing", asy
   const r = await search(stage("shapes"), "read_fi");
   expect(r.exit).toBe(0);
   expect(r.stdout).toStartWith("nothing is named `read_fi`; names that contain `read_fi`:\n");
-  expect(r.stdout).toContain("\n  std/io.read_file_bytes ");
-  expect(r.stdout).toContain("\n  std/io.read_file_string ");
+  expect(r.stdout).toContain("\n  std/fs.read_file_bytes ");
+  expect(r.stdout).toContain("\n  std/fs.read_file_string ");
 }, MEDIUM_BUILD);
 
 test("doc --search lists the modules that contain a query that names nothing", async () => {

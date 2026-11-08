@@ -11,7 +11,7 @@
   }
   snippet.report :: fn(b: Bag) -> void {  // snippet$report
       if !(b.items is null) {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "not null: count=")
@@ -19,7 +19,7 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       } else {
-          std.io.println<string>("not null: empty")
+          std.console.println<string>("not null: empty")
       }
   }
   snippet.total :: fn(b: Bag) -> i32 {  // snippet$total
@@ -64,7 +64,7 @@
       empty: Bag = Bag { .items = null }
       snippet.report(full)
       snippet.report(empty)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(56))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "guard == null: ")
@@ -77,11 +77,11 @@
           __scrut_2: i32[] | null = full.items
           if __scrut_2 is null {
               {
-                  std.io.println<string>("match: empty")
+                  std.console.println<string>("match: empty")
               }
           } else {
               {
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(33))
                       __off_4: i64 = 0
                       __off_4 = std.core.write_string_at(__buf_3, __off_4, "match: count=")
@@ -95,11 +95,11 @@
           __scrut_5: i32[] | null = empty.items
           if __scrut_5 is null {
               {
-                  std.io.println<string>("match: empty")
+                  std.console.println<string>("match: empty")
               }
           } else {
               {
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(33))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "match: count=")
@@ -111,7 +111,7 @@
       }
       some: Decl = Decl { .body = Block { .span = 42 }, .name = "some" }
       none: Decl = Decl { .body = null, .name = "none" }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(56))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "guard is null: ")
@@ -120,7 +120,7 @@
           __off_9 = std.core.write_int(__buf_8, __off_9, snippet.convert(none))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(47))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "is T: ")
@@ -129,7 +129,7 @@
           __off_11 = std.core.write_int(__buf_10, __off_11, snippet.span_if_block(none))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(54))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "not is null: ")
@@ -140,7 +140,7 @@
       } :string)
       set: Outer = Outer { .inner = Inner { .flag = 42 } }
       unset: Outer = Outer { .inner = Inner { .flag = null } }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(55))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "nested match: ")
@@ -149,7 +149,7 @@
           __off_15 = std.core.write_int(__buf_14, __off_15, snippet.count_match(unset))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(55))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested guard: ")
@@ -170,6 +170,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -180,11 +185,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -21,10 +21,10 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       p: Point = Point { .x = 2 }
       show: __method_env_snippet_1 = __method_env_snippet_1 { .receiver = p }
-      std.io.println<string>(concat_2("member ", __method_snippet_0(show)))
+      std.console.println<string>(concat_2("member ", __method_snippet_0(show)))
       plus_int: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = p }
       plus_float: __method_env_snippet_5 = __method_env_snippet_5 { .receiver = p }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_5: i32 = __method_snippet_2(plus_int, 3)
           __p_6: string = std.core.f64.to_string(__method_snippet_4(plus_float, 1.5))
           __buf_7: Buffer = std.core.new_byte_buffer(i64(29) +% std.core.byte_len(__p_6))
@@ -36,7 +36,7 @@
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       is_green: __method_env_snippet_7 = __method_env_snippet_7 { .receiver = Color(1) }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(16))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "enum ")
@@ -76,6 +76,11 @@
   vtable std.core.Display.to_string for Point  snippet.Point.to_string  // snippet$Point$std_core$Display$to_string
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -111,11 +116,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

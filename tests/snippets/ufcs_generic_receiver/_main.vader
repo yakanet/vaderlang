@@ -5,7 +5,7 @@
 // runs the generic `clear`, not the array's own.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 describe :: fn<T: Display>(self: T) -> string = "generic ${self}"
 

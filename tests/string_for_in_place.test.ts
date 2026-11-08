@@ -9,7 +9,7 @@ import { LONG_BUILD, haveCc, runCli, spawnCapture } from "./cli-bin.ts";
 
 const SOURCE = `module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/string"
 
 main :: fn() -> i32 {

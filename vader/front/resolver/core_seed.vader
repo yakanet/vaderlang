@@ -211,7 +211,7 @@ export module_index_by_name :: fn(project: LoadedProject) -> Map<string, LoadedM
 // ---- tests ----------------------------------------------------------------
 
 import "std/env"
-import "std/io"
+import "std/fs"
 import "std/testing"
 
 @test

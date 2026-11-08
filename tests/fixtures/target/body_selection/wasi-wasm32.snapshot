@@ -1,19 +1,5 @@
 # Diagnostics
-[lib/std/io/io.vader:95:1] error[R2041] no `@target` body covers the target being built: `last_io_error` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:629:8] error[R2041] no `@target` body covers the target being built: `read_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:771:8] error[R2041] no `@target` body covers the target being built: `write_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:844:1] error[R2041] no `@target` body covers the target being built: `mkdir_one` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:908:8] error[R2041] no `@target` body covers the target being built: `remove_file` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:946:28] error[T3071] a view of a string's bytes cannot be kept: `bytes()` returns a view of a string's bytes ; `.clone()` makes a copy to keep
-[lib/std/io/io.vader:954:8] error[R2041] no `@target` body covers the target being built: `exists` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:975:8] error[R2041] no `@target` body covers the target being built: `is_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:998:8] error[R2041] no `@target` body covers the target being built: `modification_time` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:1031:8] error[R2041] no `@target` body covers the target being built: `real_path` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:1083:8] error[R2041] no `@target` body covers the target being built: `read_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:1153:8] error[R2041] no `@target` body covers the target being built: `current_executable_location` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:1200:8] error[R2041] no `@target` body covers the target being built: `current_working_directory` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:1228:8] error[R2041] no `@target` body covers the target being built: `set_current_working_directory` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:1266:8] error[R2041] no `@target` body covers the target being built: `temp_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:91:8] error[R2041] no `@target` body covers the target being built: `last_io_error` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 
 # Baked
 VADER_OS = .Wasi
@@ -21,21 +7,8 @@ VADER_ARCH = .Wasm32
 
 # Selected body
 main$platform_tag <- main.vader:14
-std_io$current_executable_location <- (no body)
-std_io$current_working_directory <- (no body)
-std_io$exists <- (no body)
-std_io$is_dir <- (no body)
+std_console$read_ready <- lib/std/console/console.vader:298
+std_console$system_poll_stdin <- lib/std/console/console.vader:388
+std_console$write_bytes <- lib/std/console/console.vader:39
+std_console$write_text <- lib/std/console/console.vader:72
 std_io$last_io_error <- (no body)
-std_io$mkdir_one <- (no body)
-std_io$modification_time <- (no body)
-std_io$read_dir <- (no body)
-std_io$read_file_bytes <- (no body)
-std_io$read_ready <- lib/std/io/io.vader:432
-std_io$real_path <- (no body)
-std_io$remove_file <- (no body)
-std_io$set_current_working_directory <- (no body)
-std_io$system_poll_stdin <- lib/std/io/io.vader:554
-std_io$temp_dir <- (no body)
-std_io$write_bytes <- lib/std/io/io.vader:176
-std_io$write_file_bytes <- (no body)
-std_io$write_text <- lib/std/io/io.vader:209

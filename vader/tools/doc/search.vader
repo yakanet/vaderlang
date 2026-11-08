@@ -363,7 +363,7 @@ listed_before :: fn(a: Listed, b: Listed) -> bool {
     return a.name < b.name
 }
 
-// The name of `e` as a query writes it: `std/io.read_file_bytes`,
+// The name of `e` as a query writes it: `std/fs.read_file_bytes`,
 // `std/io.IOError.kind`; `std/core.contains` for a member of a type that is no
 // declaration (`T[]`).
 qualified :: fn(catalog: Catalog, e: IndexEntry) -> string {

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A tiny cell over a backing array : `at` reads a slot, `set_at` writes one.
 Cell :: struct {

@@ -4,17 +4,17 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       bs: u8[] = std.core.bytes("a/9")
       if bs[1] == u8(47) {
-          std.io.println<string>("slash")
+          std.console.println<string>("slash")
       }
       if (bs[2] >= u8(48)) && (bs[2] <= u8(57)) {
-          std.io.println<string>("digit")
+          std.console.println<string>("digit")
       }
       top: u32 = u32(1) << u32(31)
       if top == u32(2147483648) {
-          std.io.println<string>("u32 top bit")
+          std.console.println<string>("u32 top bit")
       }
       delta: u8 = bs[2] - u8(48)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(28))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "delta = ")
@@ -23,7 +23,7 @@
       } :string)
       c: char = 'A'
       if u8(c) == u8(65) {
-          std.io.println<string>("A is 65")
+          std.console.println<string>("A is 65")
       }
       return 0
   }
@@ -37,6 +37,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -47,11 +52,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

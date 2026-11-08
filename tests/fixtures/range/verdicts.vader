@@ -3,7 +3,7 @@
 
 module "verdicts"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 /// An index below the length the loop compares against: proven.

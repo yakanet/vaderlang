@@ -3132,7 +3132,7 @@ A program is resolved from its entry outward: its modules are the entry's module
 ```vader
 module "shapes"                                  // first
 
-import "std/io"
+import "std/console"
 
 Circle :: struct { radius: f64 }                 // a struct
 Square :: struct { side: f64 }
@@ -4015,7 +4015,7 @@ Tasks share one system thread: two of them never run at the same instant. The ru
 `launch(entry)` (`std/task`) starts a task that runs `entry` and gives back a `Task<T>`, `T` being what `entry` returns. `t.join()` waits for the end of the task and gives back its result, or `Cancelled` (*Cancellation*, below).
 
 ```vader
-import "std/io"
+import "std/console"
 import "std/task"
 import "std/time"
 
@@ -4091,7 +4091,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (Â
 
 - `sleep(d)` (`std/time`) parks the task for at least `d` while the others run. A task alone waits on the system clock.
 - With `VADER_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. Of two sleeps that end together, the one that began first ends first. It suits tests that do no real I/O.
-- A read of stdin (`std/io`) may park, and so may `poll_stdin(ms)`, which waits at most `ms` milliseconds for stdin to have something to read: a block that holds a lock can make neither. Both park the task while the others run. A write or a file read blocks the program: no other task runs meanwhile.
+- A read of stdin (`std/console`) may park, and so may `poll_stdin(ms)`, which waits at most `ms` milliseconds for stdin to have something to read: a block that holds a lock can make neither. Both park the task while the others run. A write or a file read blocks the program: no other task runs meanwhile.
 - `spawn` (`std/process`) parks the calling task while its child runs, and a task cancelled meanwhile kills its child.
 
 ### Combinators

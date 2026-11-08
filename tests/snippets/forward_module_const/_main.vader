@@ -25,7 +25,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Every use precedes every declaration below.
 kind :: fn(name: string) -> string {

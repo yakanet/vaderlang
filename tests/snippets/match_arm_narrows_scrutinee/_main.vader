@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 P :: struct { x: i32 }
 Q :: struct { y: string }

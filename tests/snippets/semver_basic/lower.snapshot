@@ -7,10 +7,10 @@
           ver: ParseError | Version = __scrut_0
           if __scrut_0 is Version {
               {
-                  std.io.println<string>(semver.Version.to_string(Version(ver)))
+                  std.console.println<string>(semver.Version.to_string(Version(ver)))
                   base: Version = snippet.parse_one("1.0.0")
                   if semver.Version.compare(Version(ver), base) > 0 {
-                      std.io.println<string>("after 1.0.0")
+                      std.console.println<string>("after 1.0.0")
                   }
                   {
                       __scrut_1: ParseError | VersionRange = semver.parse_range("^1.0.0")
@@ -19,12 +19,12 @@
                           {
                               target: Version = snippet.parse_one("1.5.0")
                               if semver.VersionRange.contains(VersionRange(rg), target) {
-                                  std.io.println<string>("1.5.0 in ^1.0.0")
+                                  std.console.println<string>("1.5.0 in ^1.0.0")
                               }
                           }
                       } else if __scrut_1 is ParseError {
                           {
-                              std.io.eprintln<string>(concat_2("range err: ", std.string.ParseError.message(ParseError(rg))))
+                              std.console.eprintln<string>(concat_2("range err: ", std.string.ParseError.message(ParseError(rg))))
                               return 1
                           }
                       } else {
@@ -34,7 +34,7 @@
               }
           } else if __scrut_0 is ParseError {
               {
-                  std.io.eprintln<string>(concat_2("err: ", std.string.ParseError.message(ParseError(ver))))
+                  std.console.eprintln<string>(concat_2("err: ", std.string.ParseError.message(ParseError(ver))))
                   return 1
               }
           } else {
@@ -124,6 +124,12 @@
     fn std.char.is_alpha  // std_char$is_alpha
     fn std.char.is_digit  // std_char$is_digit
     fn std.char.is_white_char  // std_char$is_white_char
+  std/console
+    fn std.console.eprintln<string>  // std_console$eprintln__string
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -137,12 +143,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.eprintln<string>  // std_io$eprintln__string
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.ParseError.message  // std_string$ParseError$std_core$Error$message
     fn std.string.is_empty  // std_string$is_empty

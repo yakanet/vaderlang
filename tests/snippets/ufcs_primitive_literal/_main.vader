@@ -9,7 +9,7 @@
 
 module "ufcs_primitive_literal"
 
-import "std/io"
+import "std/console"
 import "std/time"
 
 main :: fn() -> i32 {

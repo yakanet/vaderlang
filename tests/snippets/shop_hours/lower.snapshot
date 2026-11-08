@@ -14,33 +14,33 @@
       return snippet.Weekday.to_string(Weekday(n))
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
-      std.io.println<string>(concat_4("week ", snippet.Weekday.to_string(Weekday(0)), " to ", snippet.Weekday.to_string(Weekday(6))))
-      std.io.println<string>(concat_4("discounts ", snippet.Discount.to_string(Discount(0)), " to ", snippet.Discount.to_string(Discount(100))))
-      std.io.println<string>(concat_3(snippet.day_of(4), ", ", snippet.day_of(7)))
+      std.console.println<string>(concat_4("week ", snippet.Weekday.to_string(Weekday(0)), " to ", snippet.Weekday.to_string(Weekday(6))))
+      std.console.println<string>(concat_4("discounts ", snippet.Discount.to_string(Discount(0)), " to ", snippet.Discount.to_string(Discount(100))))
+      std.console.println<string>(concat_3(snippet.day_of(4), ", ", snippet.day_of(7)))
       {
           __for_v_0: u8 = 0
           for __for_v_0 <= u8(6) {
               d: Weekday = __for_v_0
-              std.io.print<string>(concat_2(snippet.Weekday.to_string(d), " "))
+              std.console.print<string>(concat_2(snippet.Weekday.to_string(d), " "))
           } @step {
               __for_v_0 = __for_v_0 +% u8(1)
           }
       }
-      std.io.println<string>("")
+      std.console.println<string>("")
       {
           __for_arr_1: Discount[] = [Discount(100), Discount(0), Discount(50)] :Discount[]
           __for_len_2: i64 = @array.len(__for_arr_1)
           __for_i_3: i64 = 0
           for __for_i_3 < __for_len_2 {
               c: Discount = __for_arr_1[__for_i_3]
-              std.io.print<string>(concat_2(snippet.Discount.to_string(c), " "))
+              std.console.print<string>(concat_2(snippet.Discount.to_string(c), " "))
           } @step {
               __for_i_3 = __for_i_3 +% i64(1)
           }
       }
-      std.io.println<string>("")
+      std.console.println<string>("")
       rate: i64 = 50
-      std.io.println<string>({
+      std.console.println<string>({
           __p_4: bool = ((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100))
           __p_5: string = snippet.Discount.to_string({
               if !(((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100))) {
@@ -79,7 +79,7 @@
               __for_v_9 = __for_v_9 +% u8(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(41))
           __off_12: i64 = 0
           __off_12 = std.core.write_int(__buf_11, __off_12, hours)
@@ -157,6 +157,12 @@
   vtable std.core.Display.to_string for Weekday  snippet.Weekday.to_string  // snippet$Weekday$std_core$Display$to_string
 
 ## lowered in dependencies
+  std/console
+    fn std.console.print<string>  // std_console$print__string
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -168,12 +174,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.print<string>  // std_io$print__string
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

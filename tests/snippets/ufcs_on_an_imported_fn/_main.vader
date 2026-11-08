@@ -5,6 +5,9 @@
 // had a default, and the arity check reported T3003 on a call that was fine.
 module "snippet"
 
+import "std/console"
+import "std/env"
+import "std/fs"
 import "std/io"
 
 main :: fn() -> i32 {

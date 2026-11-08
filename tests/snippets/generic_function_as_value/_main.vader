@@ -5,9 +5,9 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
-IO :: import "std/io"
+Console :: import "std/console"
 
 id :: fn<T>(x: T) -> T = x
 
@@ -34,7 +34,7 @@ main :: fn() -> i32 {
     println("${alias(3)} ${alias("s")}")
     later :: () -> alias(false)
     println(later())
-    shown :: IO.println<string>
+    shown :: Console.println<string>
     shown("through a module")
     return 0
 }

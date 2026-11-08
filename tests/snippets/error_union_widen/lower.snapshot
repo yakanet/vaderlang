@@ -38,14 +38,14 @@
           __scrut_0: Error | string = snippet.widen("hello")
           e: Error | string = __scrut_0
           if __scrut_0 is Error {
-              std.io.println<string>(concat_2("err ", @vcall(std.core.Error.message, Error(e))))
+              std.console.println<string>(concat_2("err ", @vcall(std.core.Error.message, Error(e))))
           } else if __scrut_0 is string {
-              std.io.println<string>(concat_2("str ", string(e)))
+              std.console.println<string>(concat_2("str ", string(e)))
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
       }
-      std.io.println<string>(snippet.tail_string("plain"))
+      std.console.println<string>(snippet.tail_string("plain"))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -60,6 +60,11 @@
   vtable std.core.Error.message for B  snippet.B.message  // snippet$B$std_core$Error$message
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -70,11 +75,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

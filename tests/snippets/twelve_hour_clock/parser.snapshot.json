@@ -8,7 +8,7 @@
     "decls": [
       {
         "kind": "ImportDecl",
-        "path": "std/io",
+        "path": "std/console",
         "binding": {
           "kind": "wildcard"
         },

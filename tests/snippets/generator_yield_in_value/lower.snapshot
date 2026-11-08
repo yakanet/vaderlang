@@ -29,7 +29,7 @@
               for i < n {
                   _: i32 = if (i % 2) == 0 {
                       v: i32 = i
-                      std.io.println<string>({
+                      std.console.println<string>({
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_int(__buf_0, __off_1, v)
@@ -52,7 +52,7 @@
               for __more_turns_0 {
                   _: i32 = snippet.keep({
                       v: i32 = i * i
-                      std.io.println<string>({
+                      std.console.println<string>({
                           __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
                           __off_3: i64 = 0
                           __off_3 = std.core.write_int(__buf_2, __off_3, v)
@@ -140,6 +140,11 @@
   vtable std.core.Iterator.next for $genstate_squares  snippet$$genstate_squares$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -151,11 +156,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

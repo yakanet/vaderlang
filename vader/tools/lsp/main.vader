@@ -21,7 +21,7 @@ module "vader/tools/lsp"
 // exclusion until the seed knows overloads across wildcard imports. The argv
 // parse itself happens in `main_entry.vader` and in the CLI, not here.
 import "cli" { parse as _ }
-import "std/io"
+import "std/console"
 import "json"
 P :: import "vader/tools/lsp/protocol"
 A :: import "vader/tools/lsp/analysis"

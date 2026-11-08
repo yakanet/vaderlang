@@ -97,11 +97,11 @@
       b: Vec2 = snippet$Vec2$std_core$Mul$mul$1(v, v)
       c: Vec2 = snippet$Vec2$std_core$Mul$mul(v, 10.0)
       d: Vec2 = snippet.twice<Vec2>(v)
-      std.io.println<string>(concat_7(std.core.f64.to_string(a.x), " ", std.core.f64.to_string(b.y), " ", std.core.f64.to_string(c.x), " ", std.core.f64.to_string(d.x)))
+      std.console.println<string>(concat_7(std.core.f64.to_string(a.x), " ", std.core.f64.to_string(b.y), " ", std.core.f64.to_string(c.x), " ", std.core.f64.to_string(d.x)))
       g: Grid = Grid { .cells = [1, 2, 3] :i32[], .names = ["a"] :string[] }
       snippet$Grid$std_core$IndexSet$set_at(g, 1, 20)
       snippet$Grid$std_core$IndexSet$set_at$1(g, "k", "v")
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: i32 = snippet$Grid$std_core$Index$at(g, 1)
           __p_1: string = snippet$Grid$std_core$Index$at$1(g, "x")
           __buf_2: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_1))
@@ -112,7 +112,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       bag: Bag = Bag { .n = 3 }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(17))
           __off_5: i64 = 0
           __off_5 = std.core.write_bool(__buf_4, __off_5, snippet$Bag$std_core$Contains$contains(bag, 3))
@@ -124,11 +124,11 @@
       } :string)
       m: Vec2 = snippet$Vec2$Make$make(1.5)
       n: Vec2 = snippet$Vec2$Make$make$1("s")
-      std.io.println<string>(concat_7(std.core.f64.to_string(m.x), " ", std.core.f64.to_string(n.x), " ", snippet.say_int<Vec2>(m), " ", snippet.say_str<Vec2>(m)))
+      std.console.println<string>(concat_7(std.core.f64.to_string(m.x), " ", std.core.f64.to_string(n.x), " ", snippet.say_int<Vec2>(m), " ", snippet.say_str<Vec2>(m)))
       mon: Mon = Mon { .v = 7 }
       t: Tag = snippet$Mon$std_core$Into$into$1(mon)
       l: Label = snippet$Mon$std_core$Into$into(mon)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_6: i32 = t.n
           __p_7: string = l.s
           __buf_8: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_7))
@@ -140,7 +140,7 @@
       } :string)
       p: Pile<i32> = Pile<i32> { .top = 1 }
       q: Pile<i32> = Pile<i32> { .top = 9 }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
           __off_11: i64 = 0
           __off_11 = std.core.write_int(__buf_10, __off_11, snippet$Pile$std_core$Add$add__i32(p, q).top)
@@ -150,10 +150,10 @@
       } :string)
       w: Wrap<Vec2> = Wrap<Vec2> { .inner = v }
       built_vec: Vec2 = snippet.built<Vec2>()
-      std.io.println<string>(concat_5(std.core.f64.to_string(snippet.Wrap<Vec2>.scaled(w).x), " ", snippet.Wrap<Vec2>.show(w), " ", std.core.f64.to_string(built_vec.x)))
+      std.console.println<string>(concat_5(std.core.f64.to_string(snippet.Wrap<Vec2>.scaled(w).x), " ", snippet.Wrap<Vec2>.show(w), " ", std.core.f64.to_string(built_vec.x)))
       sheet: Sheet = Sheet { .cells = [1, 2, 3] :i32[] }
       snippet.Sheet.set_at(sheet, 1, 20)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_12: i32 = snippet$Sheet$std_core$Index$at(sheet, 1)
           __p_13: string = snippet$Sheet$std_core$Index$at$1(sheet, "q")
           __buf_14: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_13))
@@ -177,7 +177,7 @@
       __tup_17: Rec = r
       i: i32 = __tup_17.a
       j: i32 = __tup_17.b
-      std.io.println<string>({
+      std.console.println<string>({
           __p_18: string = x
           __p_19: string = y
           __p_20: string = z
@@ -199,7 +199,7 @@
                   break
               } else {
                   k: i32 = i32(__step_24)
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_25: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_26: i64 = 0
                       __off_26 = std.core.write_string_at(__buf_25, __off_26, "count ")
@@ -314,6 +314,11 @@
   vtable std.core.Mul.mul for Vec2  snippet$Vec2$std_core$Mul$mul$1
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -353,11 +358,6 @@
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

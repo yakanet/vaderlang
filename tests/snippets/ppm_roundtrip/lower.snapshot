@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      path: string = concat_2(std.io.temp_dir(), "/vader_ppm_roundtrip.ppm")
+      path: string = concat_2(std.env.temp_dir(), "/vader_ppm_roundtrip.ppm")
       px: u8[] = [u8(0), u8(128), u8(255), u8(16), u8(32), u8(48), u8(195), u8(40), u8(169), u8(127), u8(1), u8(254)] :u8[]
       img: Ppm = Ppm {
           .width = u32(2),
@@ -12,22 +12,22 @@
       }
       enc: PpmError | u8[] = images.ppm.encode(img)
       if enc is PpmError {
-          std.io.println<string>("encode failed")
+          std.console.println<string>("encode failed")
           return 1
       }
-      wr: IOError | null = std.io.write_file_bytes(path, u8[](enc))
+      wr: IOError | null = std.fs.write_file_bytes(path, u8[](enc))
       if wr is Error {
-          std.io.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
+          std.console.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
           return 1
       }
-      raw: IOError | u8[] = std.io.read_file_bytes(path, i64(16777216))
+      raw: IOError | u8[] = std.fs.read_file_bytes(path, i64(16777216))
       if raw is Error {
-          std.io.println<string>(concat_2("read failed: ", @vcall(std.core.Error.message, Error(raw))))
+          std.console.println<string>(concat_2("read failed: ", @vcall(std.core.Error.message, Error(raw))))
           return 1
       }
       dec: Ppm | PpmError = images.ppm.decode(u8[](raw))
       if dec is PpmError {
-          std.io.println<string>("decode failed")
+          std.console.println<string>("decode failed")
           return 1
       }
       ok: bool = (((Ppm(dec).width == u32(2)) && (Ppm(dec).height == u32(2))) && (Ppm(dec).maxval == u32(255))) && (@array.len(Ppm(dec).pixels) == i64(12))
@@ -42,11 +42,11 @@
               i = i +% i64(1)
           }
       }
-      std.io.println<string>(images.ppm.Ppm.to_string(Ppm(dec)))
+      std.console.println<string>(images.ppm.Ppm.to_string(Ppm(dec)))
       if ok {
-          std.io.println<string>("OK")
+          std.console.println<string>("OK")
       } else {
-          std.io.println<string>("MISMATCH")
+          std.console.println<string>("MISMATCH")
       }
       return 0
   }
@@ -89,6 +89,11 @@
     struct images.ppm.Ppm  // images_ppm$Ppm
     struct images.ppm.PpmError  // images_ppm$PpmError
     struct images.ppm.ScanInt  // images_ppm$ScanInt
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -99,24 +104,22 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
+  std/env
+    fn std.env.temp_dir  // std_env$temp_dir
+    fn std.env.temp_dir_of  // std_env$temp_dir_of
+    fn std.env.without_trailing_sep  // std_env$without_trailing_sep
+  std/fs
+    fn __defer_std_fs_0
+    fn std.fs.read_file_bytes  // std_fs$read_file_bytes
+    fn std.fs.whole_buffer  // std_fs$whole_buffer
+    fn std.fs.write_file_bytes  // std_fs$write_file_bytes
+    struct __defer_env_std_fs_1
   std/io
-    fn __defer_std_io_0
     fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.last_io_error  // std_io$last_io_error
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.read_file_bytes  // std_io$read_file_bytes
-    fn std.io.temp_dir  // std_io$temp_dir
-    fn std.io.temp_dir_of  // std_io$temp_dir_of
-    fn std.io.whole_buffer  // std_io$whole_buffer
-    fn std.io.without_trailing_sep  // std_io$without_trailing_sep
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_file_bytes  // std_io$write_file_bytes
-    fn std.io.write_text  // std_io$write_text
-    struct __defer_env_std_io_1
     struct std.io.IOError  // std_io$IOError
   system/posix
     const EAGAIN: i32  inline

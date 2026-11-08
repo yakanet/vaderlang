@@ -4,7 +4,7 @@
 // copy of a negative count copies nothing.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 main :: fn(argv: string[]) -> i32 {
     below: i64: i64(argv.len()) - 2

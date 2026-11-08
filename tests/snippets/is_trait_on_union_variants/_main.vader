@@ -7,7 +7,7 @@
 // a `Display` holding an `i32` is a `Display`, and so is one holding an array.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Color :: enum { Red, Green }
 

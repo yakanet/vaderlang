@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/string"
 
 // Regression: parse_int / parse_float used to box their success with the

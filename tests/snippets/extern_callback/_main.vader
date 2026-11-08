@@ -19,7 +19,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/runtime"
 
 double_it :: fn(x: i32) -> i32 = x * 2

@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A trait's default body is checked once, in the trait, where `Self` is any type
 // implementing it: a type bounded by the trait and by the traits it requires. The

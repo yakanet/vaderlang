@@ -4,7 +4,7 @@
 
 module "build"
 
-import "std/io"
+import "std/console"
 import "toolchain/build"
 
 build :: fn(args: string[]) -> i32 {

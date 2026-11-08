@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Weekday :: Int in 0..=6
 Weekend :: Int in 5..=6

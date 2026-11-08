@@ -8,7 +8,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 square :: fn(x: i32) -> i64 = i64(x) * i64(x)

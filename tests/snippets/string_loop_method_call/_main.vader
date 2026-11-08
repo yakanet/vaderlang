@@ -3,7 +3,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/string"
 
 is_vowel :: fn(c: char) -> bool = c == 'a' || c == 'e' || c == 'é' || c == 'o'

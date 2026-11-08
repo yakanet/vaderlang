@@ -53,7 +53,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("void consumer, then after the loop:", fused, " |", lazy))
+      std.console.println<string>(concat_4("void consumer, then after the loop:", fused, " |", lazy))
   }
   snippet.fused_value :: fn() -> i32 {  // snippet$fused_value
       total: i32 = 0
@@ -147,7 +147,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("stage consumer, then after the loop:", fused, " |", lazy))
+      std.console.println<string>(concat_4("stage consumer, then after the loop:", fused, " |", lazy))
   }
   snippet.grid_until :: fn(stop: i32) -> Iterator<i32> {  // snippet$grid_until
       return $genstate_grid_until {
@@ -227,7 +227,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("return across two loops:", fused, " |", lazy))
+      std.console.println<string>(concat_4("return across two loops:", fused, " |", lazy))
   }
   snippet.relay :: fn() -> Iterator<i32> {  // snippet$relay
       return $genstate_relay {
@@ -293,7 +293,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("relay of a returning generator:", fused, " |", lazy))
+      std.console.println<string>(concat_4("relay of a returning generator:", fused, " |", lazy))
   }
   snippet.counter :: fn(stop: i32, cap: i32) -> Iterator<i32> {  // snippet$counter
       return $genstate_counter {
@@ -365,7 +365,7 @@
                       }
                   }
               }
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_10: string = fused
                   __p_11: string = lazy
                   __buf_12: Buffer = std.core.new_byte_buffer(i64(53) +% (std.core.byte_len(__p_10) +% std.core.byte_len(__p_11)))
@@ -440,11 +440,11 @@
               }
           }
       }
-      std.io.println<string>(concat_4("a loop labelled exit:", fused, " |", lazy))
+      std.console.println<string>(concat_4("a loop labelled exit:", fused, " |", lazy))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       snippet.void_consumer()
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(59))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "value consumer: ")
@@ -778,6 +778,11 @@
   vtable std.core.Iterator.next for $genstate_upto_stop  snippet$$genstate_upto_stop$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -792,11 +797,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

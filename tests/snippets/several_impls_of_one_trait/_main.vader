@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Several impls of one trait on one receiver, told apart by the trait's arguments :
 // each use site runs the impl its own types pick, an operator by its right

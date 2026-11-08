@@ -11,7 +11,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 H :: import "snippet/helper"
 
 Budget :: struct {

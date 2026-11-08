@@ -16,7 +16,7 @@
  *
  * Naming: every public symbol starts with `vader_` so the emitter never
  * collides with user identifiers: emitted user fns use the bytecode mangled
- * names (`std_io$println` etc.) which can't begin with `vader_`.
+ * names (`std_console$println` etc.) which can't begin with `vader_`.
  */
 
 #ifndef VADER_H

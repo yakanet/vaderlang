@@ -10,7 +10,6 @@ module "vader/vm"
 
 bc :: import "vader/core/bytecode"
 
-import "std/io"
 import "std/env"
 import "std/tty"
 import "std/process"
@@ -293,7 +292,7 @@ export dispatch_import :: fn(
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
 
-/// Whether `symbol` is the raw write syscall behind `std/io`: `write(2)` on POSIX,
+/// Whether `symbol` is the raw write syscall behind `std/console`: `write(2)` on POSIX,
 /// which the Windows CRT also exports (as an alias of `_write`).
 ///
 /// Recognised so the DAP routing below can send program output to the debug
@@ -1211,9 +1210,9 @@ BUILD_MACHINE_REASON :: "it answers for the machine the compiler runs on, and ba
 //
 // The question is NOT purity. Reading the clock or the environment at build time
 // bakes a non-reproducible value, and that is the program author's call: a
-// build stamp is an ordinary thing to want. `std/io`, `std/time`, `std/env`,
-// `std/tty` and `std/process` are Vader over `@extern`, and `dispatch_extern`
-// returns before this gate, so none of them is refused.
+// build stamp is an ordinary thing to want. `std/console`, `std/fs`, `std/io`,
+// `std/time`, `std/env`, `std/tty` and `std/process` are Vader over `@extern`,
+// and `dispatch_extern` returns before this gate, so none of them is refused.
 //
 // One kind of host stays refused: what answers for THE MACHINE THE COMPILER IS
 // RUNNING ON. Baking it does not make a program non-reproducible, it makes the

@@ -3,7 +3,7 @@
 // Reusing the read from before the scope instead would return its old value.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 read_around_defer :: fn(xs: i32[], i: i64) -> i32 {
     before :: xs[i]

@@ -82,15 +82,15 @@
   snippet.BAKED_IS_FIVE: bool: true  // snippet$BAKED_IS_FIVE
   snippet.main :: fn() -> i32 {  // snippet$main
       five: i64 = 5
-      std.io.println<string>(concat_5(snippet.describe(five), " ", snippet.describe("a"), " ", snippet.describe(i64(7))))
+      std.console.println<string>(concat_5(snippet.describe(five), " ", snippet.describe("a"), " ", snippet.describe(i64(7))))
       negative_zero: f64 = -0.0
-      std.io.println<string>(concat_3(snippet.describe_float(negative_zero), " ", snippet.describe_float(1.5)))
-      std.io.println<string>(concat_5(snippet.held(Holder { .v = five }), " ", snippet.held(Holder { .v = "a" }), " ", snippet.held(Holder { .v = i64(6) })))
-      std.io.println<string>(concat_3(snippet.measured(Measure { .m = negative_zero }), " ", snippet.measured(Measure { .m = "x" })))
-      std.io.println<string>(concat_3(snippet.boxed(Boxed<i64> { .v = five }), " ", snippet.boxed(Boxed<i64> { .v = "a" })))
-      std.io.println<string>(concat_3(snippet.named(Path("README")), " ", snippet.named(Path("notes"))))
-      std.io.println<string>(concat_7(snippet.shape(null), " ", snippet.shape(Point { .x = 1 }), " ", snippet.shape("a"), " ", snippet.shape("b")))
-      std.io.println<string>({
+      std.console.println<string>(concat_3(snippet.describe_float(negative_zero), " ", snippet.describe_float(1.5)))
+      std.console.println<string>(concat_5(snippet.held(Holder { .v = five }), " ", snippet.held(Holder { .v = "a" }), " ", snippet.held(Holder { .v = i64(6) })))
+      std.console.println<string>(concat_3(snippet.measured(Measure { .m = negative_zero }), " ", snippet.measured(Measure { .m = "x" })))
+      std.console.println<string>(concat_3(snippet.boxed(Boxed<i64> { .v = five }), " ", snippet.boxed(Boxed<i64> { .v = "a" })))
+      std.console.println<string>(concat_3(snippet.named(Path("README")), " ", snippet.named(Path("notes"))))
+      std.console.println<string>(concat_7(snippet.shape(null), " ", snippet.shape(Point { .x = 1 }), " ", snippet.shape("a"), " ", snippet.shape("b")))
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(11))
           __off_1: i64 = 0
           __off_1 = std.core.write_bool(__buf_0, __off_1, (i64 | string)(i64(5)) == "a")
@@ -98,7 +98,7 @@
           __off_1 = std.core.write_bool(__buf_0, __off_1, (i64 | string)(i64(5)) == i64(5))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(11))
           __off_3: i64 = 0
           __off_3 = std.core.write_bool(__buf_2, __off_3, false)
@@ -162,6 +162,11 @@
   vtable std.core.Equals.equals for Path  snippet.Path.equals  // snippet$Path$std_core$Equals$equals
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -175,11 +180,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.to_lower  // std_string$to_lower
     fn std.string.to_lower_cp  // std_string$to_lower_cp

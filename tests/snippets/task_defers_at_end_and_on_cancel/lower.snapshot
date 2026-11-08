@@ -5,7 +5,7 @@
       @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 { .cap_0 = tag }))
       std.time.sleep(std.time.millis(i64(1)))
       @defer_push(@closure(__defer_snippet_2, __defer_env_snippet_3 { .cap_0 = tag }))
-      std.io.println<string>(concat_2("body ", tag))
+      std.console.println<string>(concat_2("body ", tag))
       {
           @defer_run(2)
           return 0
@@ -14,7 +14,7 @@
   snippet.inner :: fn() -> i32 {  // snippet$inner
       @defer_push(@closure(__defer_snippet_4, __defer_env_snippet_5 {}))
       std.time.sleep(std.time.millis(i64(1000)))
-      std.io.println<string>("inner body (unreached)")
+      std.console.println<string>("inner body (unreached)")
       {
           @defer_run(1)
           return 1
@@ -23,35 +23,35 @@
   snippet.outer :: fn() -> i32 {  // snippet$outer
       @defer_push(@closure(__defer_snippet_6, __defer_env_snippet_7 {}))
       x: i32 = snippet.inner()
-      std.io.println<string>("outer body (unreached)")
+      std.console.println<string>("outer body (unreached)")
       {
           @defer_run(1)
           return x
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_8))))
+      std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_8))))
       parked: Task<i32> = std.task.launch<i32>(snippet.outer)
       std.time.sleep(std.time.millis(i64(1)))
       std.task.cancel<i32>(parked)
-      std.io.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(parked)))
+      std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(parked)))
       return 0
   }
   __defer_env_snippet_1 :: struct { cap_0: string }
   __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
-      std.io.println<string>(concat_2("defer 1 ", __env_0.cap_0))
+      std.console.println<string>(concat_2("defer 1 ", __env_0.cap_0))
   }
   __defer_env_snippet_3 :: struct { cap_0: string }
   __defer_snippet_2 :: fn(__env_1: __defer_env_snippet_3) -> void {
-      std.io.println<string>(concat_2("defer 2 ", __env_1.cap_0))
+      std.console.println<string>(concat_2("defer 2 ", __env_1.cap_0))
   }
   __defer_env_snippet_5 :: struct {}
   __defer_snippet_4 :: fn(__env_0: __defer_env_snippet_5) -> void {
-      std.io.println<string>("inner cleanup")
+      std.console.println<string>("inner cleanup")
   }
   __defer_env_snippet_7 :: struct {}
   __defer_snippet_6 :: fn(__env_0: __defer_env_snippet_7) -> void {
-      std.io.println<string>("outer cleanup")
+      std.console.println<string>("outer cleanup")
   }
   __lambda_snippet_8 :: fn() -> i32 {
       snippet.step("x")
@@ -66,6 +66,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -133,11 +138,6 @@
     struct std.core.Cancelled  // std_core$Cancelled
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/collections"
-import "std/io"
+import "std/console"
 
 // A union every variant of which implements a trait dispatches the trait's members
 // through it, by the value's tag, as a value of the trait does : a method call, an

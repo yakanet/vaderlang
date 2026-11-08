@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A local holding a UNION, flow-narrowed, then captured by a lambda. The env holds
 // it at the declared type, so it has to be read back at that type: reading it at

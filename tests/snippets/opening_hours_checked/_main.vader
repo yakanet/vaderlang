@@ -6,7 +6,7 @@ module "snippet"
 
 import "snippet/clock"
 import "std/abort"
-import "std/io"
+import "std/console"
 
 // The number of hours a shop opens from `open` to `close`, the latter excluded.
 @ensures(close in Hour)

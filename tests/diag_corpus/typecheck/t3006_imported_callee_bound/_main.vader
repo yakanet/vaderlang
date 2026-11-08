@@ -1,8 +1,8 @@
 // T3006: a bound is checked wherever the callee is declared, `println` comes
-// from `std/io`, and `Meters` has no `Display` for its `T: Display`.
+// from `std/console`, and `Meters` has no `Display` for its `T: Display`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Meters :: struct {
     v: i32

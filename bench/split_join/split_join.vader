@@ -13,7 +13,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/string"
 
 FIELD_COUNT :: 20_000

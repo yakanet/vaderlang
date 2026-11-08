@@ -5,7 +5,7 @@
 // the receiver and the arguments together.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Cfg :: struct {
     n: i32

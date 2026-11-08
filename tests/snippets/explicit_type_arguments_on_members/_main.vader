@@ -6,8 +6,8 @@
 
 module "snippet"
 
-import "std/io"
-IO :: import "std/io"
+import "std/console"
+Console :: import "std/console"
 
 widen :: fn<T, U>(x: T, y: U) -> string = "${@type_name(T)} ${@type_name(U)}"
 
@@ -35,7 +35,7 @@ main :: fn() -> i32 {
     println(widen<i64, string>(5, "a"))
     println(widen<i64>(5, "a"))
     println(5.widen<u8>(true))
-    IO.println<i64>(9000000000)
+    Console.println<i64>(9000000000)
     b :: Bag<f64>.make<i64>(1)
     b.items.push(2.5)
     inferred: Bag<f64>: Bag.make<i64>(1)

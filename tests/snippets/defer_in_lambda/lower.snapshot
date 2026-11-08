@@ -5,10 +5,10 @@
       x: string = "captured-x"
       f: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = x }
       __lambda_snippet_0(f)
-      std.io.println<string>("--- now panic case ---")
+      std.console.println<string>("--- now panic case ---")
       n: i32 = 5
       do_panic: __lambda_env_snippet_7 = __lambda_env_snippet_7 { .cap_0 = x, .cap_1 = n }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(27))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "result=")
@@ -19,27 +19,27 @@
   }
   __defer_env_snippet_3 :: struct {}
   __defer_snippet_2 :: fn(__env_0: __defer_env_snippet_3) -> void {
-      std.io.println<string>("lambda inner cleanup")
+      std.console.println<string>("lambda inner cleanup")
   }
   __defer_env_snippet_5 :: struct { cap_0: string }
   __defer_snippet_4 :: fn(__env_1: __defer_env_snippet_5) -> void {
-      std.io.println<string>(concat_2("uses outer ", __env_1.cap_0))
+      std.console.println<string>(concat_2("uses outer ", __env_1.cap_0))
   }
   __lambda_env_snippet_1 :: struct { cap_0: string }
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> void {
       @defer_push(@closure(__defer_snippet_2, __defer_env_snippet_3 {}))
       @defer_push(@closure(__defer_snippet_4, __defer_env_snippet_5 { .cap_0 = __env_0.cap_0 }))
-      std.io.println<string>("lambda body")
+      std.console.println<string>("lambda body")
       @defer_run(2)
   }
   __defer_env_snippet_9 :: struct { cap_0: string }
   __defer_snippet_8 :: fn(__env_0: __defer_env_snippet_9) -> void {
-      std.io.println<string>(concat_2("panic defer in lambda saw ", __env_0.cap_0))
+      std.console.println<string>(concat_2("panic defer in lambda saw ", __env_0.cap_0))
   }
   __lambda_env_snippet_7 :: struct { cap_0: string, cap_1: i32 }
   __lambda_snippet_6 :: fn(__env_1: __lambda_env_snippet_7) -> i32 {
       @defer_push(@closure(__defer_snippet_8, __defer_env_snippet_9 { .cap_0 = __env_1.cap_0 }))
-      std.io.println<string>("about to boom")
+      std.console.println<string>("about to boom")
       {
           __result_1: i32 = __env_1.cap_1 / (__env_1.cap_1 - __env_1.cap_1)
           @defer_run(1)
@@ -56,6 +56,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -66,11 +71,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

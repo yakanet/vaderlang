@@ -28,14 +28,14 @@
       std.runtime.collect()
   }
   snippet.print_nodes :: fn(label: string, nodes: Node[]) -> void {  // snippet$print_nodes
-      std.io.print<string>(label)
+      std.console.print<string>(label)
       {
           __for_arr_0: Node[] = nodes
           __for_len_1: i64 = @array.len(__for_arr_0)
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               n: Node = __for_arr_0[__for_i_2]
-              std.io.print<string>({
+              std.console.print<string>({
                   __buf_3: Buffer = std.core.new_byte_buffer(i64(21))
                   __off_4: i64 = 0
                   __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
@@ -46,7 +46,7 @@
               __for_i_2 = __for_i_2 +% i64(1)
           }
       }
-      std.io.println<string>("")
+      std.console.println<string>("")
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       cleared: Node[] = snippet.make_nodes(10)
@@ -67,12 +67,12 @@
       whole_view: i32[] = owner[0..<3]
       @array.clear(whole_view)
       @array.push(whole_view, 9)
-      std.io.println<string>(concat_4("view clear then push: ", std.core.i32[].to_string(owner), " ", std.core.i32[].to_string(whole_view)))
+      std.console.println<string>(concat_4("view clear then push: ", std.core.i32[].to_string(owner), " ", std.core.i32[].to_string(whole_view)))
       other: i32[] = [1, 2, 3] :i32[]
       other_view: i32[] = other[0..<3]
       @array.remove_last(other_view)
       @array.push(other_view, 9)
-      std.io.println<string>(concat_4("view remove_last then push: ", std.core.i32[].to_string(other), " ", std.core.i32[].to_string(other_view)))
+      std.console.println<string>(concat_4("view remove_last then push: ", std.core.i32[].to_string(other), " ", std.core.i32[].to_string(other_view)))
       return 0
   }
   concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
@@ -97,6 +97,12 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.print<string>  // std_console$print__string
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -111,12 +117,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.print<string>  // std_io$print__string
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

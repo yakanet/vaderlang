@@ -50,10 +50,10 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       l: Label = Label { .text = "none" }
       l = snippet$Celsius$std_core$Into$into(Celsius { .v = 3 })
-      std.io.println<string>(concat_3("assign [", l.text, "]"))
+      std.console.println<string>(concat_3("assign [", l.text, "]"))
       h: Holder = Holder { .l = Label { .text = "none" } }
       h.l = snippet$Celsius$std_core$Into$into(Celsius { .v = 6 })
-      std.io.println<string>(concat_3("field [", h.l.text, "]"))
+      std.console.println<string>(concat_3("field [", h.l.text, "]"))
       m: Map<string, Label> = Map<string, Any> {
           .ekeys = [] :string[],
           .evals = [] :Any[],
@@ -68,7 +68,7 @@
           __coalesce_0: Label | null = std.collections.Map<string, Any>.at(m, "k")
           if __coalesce_0 is null { Label { .text = "absent" } } else { Label(__coalesce_0) } :Label
       }
-      std.io.println<string>(concat_3("map [", got.text, "]"))
+      std.console.println<string>(concat_3("map [", got.text, "]"))
       n: i32 = 0
       pair: [Celsius, i32] = [Celsius { .v = 13 }, 1] :[Celsius, i32]
       {
@@ -78,7 +78,7 @@
           l = __destr_el_2
           n = __destr_el_3
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_4: string = l.text
           __buf_5: Buffer = std.core.new_byte_buffer(i64(35) +% std.core.byte_len(__p_4))
           __off_6: i64 = 0
@@ -90,18 +90,18 @@
       } :string)
       xs: Label[] = [] :Label[]
       @array.push(xs, snippet$Celsius$std_core$Into$into(Celsius { .v = 14 }))
-      std.io.println<string>(concat_3("push [", xs[0].text, "]"))
-      std.io.println<string>(concat_3("coalesce [", snippet.fallback(null).text, "]"))
+      std.console.println<string>(concat_3("push [", xs[0].text, "]"))
+      std.console.println<string>(concat_3("coalesce [", snippet.fallback(null).text, "]"))
       {
           g: Label = snippet$Celsius$std_core$Into$into(Celsius { .v = 5 })
-          std.io.println<string>(concat_3("yield [", g.text, "]"))
+          std.console.println<string>(concat_3("yield [", g.text, "]"))
       }
-      std.io.println<string>(concat_3("namespace [", std.string.trim(snippet$Celsius$std_core$Into$into$1(Celsius { .v = 9 })), "]"))
-      std.io.println<string>(concat_3("explicit [", snippet.first<i32>(1, snippet$Celsius$std_core$Into$into(Celsius { .v = 10 })), "]"))
-      std.io.println<string>(concat_3("trait value [", snippet.through_trait(Box { .n = 1 }, Celsius { .v = 15 }), "]"))
-      std.io.println<string>(concat_3("bound [", snippet.through_bound<Box>(Box { .n = 1 }, Celsius { .v = 16 }), "]"))
-      std.io.println<string>(concat_3("return [", snippet.returned(Celsius { .v = 11 }).text, "]"))
-      std.io.println<string>(concat_3("lambda [", snippet.apply(__lambda_snippet_0, Celsius { .v = 12 }).text, "]"))
+      std.console.println<string>(concat_3("namespace [", std.string.trim(snippet$Celsius$std_core$Into$into$1(Celsius { .v = 9 })), "]"))
+      std.console.println<string>(concat_3("explicit [", snippet.first<i32>(1, snippet$Celsius$std_core$Into$into(Celsius { .v = 10 })), "]"))
+      std.console.println<string>(concat_3("trait value [", snippet.through_trait(Box { .n = 1 }, Celsius { .v = 15 }), "]"))
+      std.console.println<string>(concat_3("bound [", snippet.through_bound<Box>(Box { .n = 1 }, Celsius { .v = 16 }), "]"))
+      std.console.println<string>(concat_3("return [", snippet.returned(Celsius { .v = 11 }).text, "]"))
+      std.console.println<string>(concat_3("lambda [", snippet.apply(__lambda_snippet_0, Celsius { .v = 12 }).text, "]"))
       return 0
   }
   snippet$$genstate_labels :: struct { state: i32 }
@@ -166,6 +166,11 @@
     struct std.collections.Map<string, Any>  // std_collections$Map__string__Any
     struct std.collections.Map<string, Label>  // std_collections$Map__string__snippet_Label
     struct std_collections$__gen_state_std_collections_0
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -178,11 +183,6 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.trim  // std_string$trim

@@ -67,18 +67,18 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               s: Shape = __for_arr_0[__for_i_2]
-              std.io.println<string>(snippet.describe(s))
-              std.io.println<i32>(snippet.measure(s))
-              std.io.println<string>(snippet.later(s)())
+              std.console.println<string>(snippet.describe(s))
+              std.console.println<i32>(snippet.measure(s))
+              std.console.println<string>(snippet.later(s)())
               if s is Named {
-                  std.io.println<string>(@vcall(snippet.Named.name, Named(s)))
+                  std.console.println<string>(@vcall(snippet.Named.name, Named(s)))
               }
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
       }
-      std.io.println<i32>(snippet.side_of<Circle>(Square { .side = 3 }))
-      std.io.println<i32>(snippet.side_of<Circle>(Circle { .radius = 3 }))
+      std.console.println<i32>(snippet.side_of<Circle>(Square { .side = 3 }))
+      std.console.println<i32>(snippet.side_of<Circle>(Circle { .radius = 3 }))
       return 0
   }
   __lambda_env_snippet_1 :: struct { cap_0: Shape }
@@ -114,6 +114,12 @@
   vtable snippet.Shape.area for i32  snippet.i32.area  // snippet$i32$Shape$area
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<i32>  // std_console$println__i32
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -149,12 +155,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<i32>  // std_io$println__i32
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

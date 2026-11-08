@@ -149,7 +149,7 @@ fn 3 snippet$main () -> i32
   string.const 1   ; " "
   local.get 3   ; $call_7
   call 12   ; concat_5
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   bool.const true
   call 1   ; snippet$maybe_direction
   local.tee 4   ; v
@@ -163,13 +163,13 @@ fn 3 snippet$main () -> i32
     string.const 2   ; "narrowed "
     local.get 1   ; $call_2
     call 13   ; concat_2
-    call 68   ; std_io$println__string
+    call 68   ; std_console$println__string
   end $L0
   i32.const 0
   i32.const 3
   array.new 7 2   ; u8[]
   call 19   ; std_core$$array$Display$to_string__snippet_Direction
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   i32.const 1
   call 5   ; snippet$Status$std_core$Display$to_string
   local.tee 1   ; $call_2
@@ -204,7 +204,7 @@ fn 3 snippet$main () -> i32
   local.get 6   ; __buf_1
   local.get 5   ; $call_25
   call 15   ; std_core$finish_buffer
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   local.get 0   ; d
   call 7   ; snippet$show__snippet_Direction
   local.set 1   ; $call_2
@@ -221,12 +221,12 @@ fn 3 snippet$main () -> i32
   string.const 1   ; " "
   local.get 3   ; $call_7
   call 12   ; concat_5
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   i32.const 1
   i32.const 2
   array.new 7 2   ; u8[]
   call 11   ; snippet$listed__snippet_Direction
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   i32.const 3
   call 6   ; snippet$show__snippet$Weight
   local.set 1   ; $call_2
@@ -237,7 +237,7 @@ fn 3 snippet$main () -> i32
   string.const 1   ; " "
   local.get 2   ; $call_5
   call 14   ; concat_3
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   bool.const true
   call 2   ; snippet$maybe_byte
   virtual.call 1 std_core$Display.to_string -> string
@@ -245,7 +245,7 @@ fn 3 snippet$main () -> i32
   string.const 3   ; "byte "
   local.get 1   ; $call_2
   call 13   ; concat_2
-  call 68   ; std_io$println__string
+  call 68   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -3624,7 +3624,7 @@ fn 64 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 65 std_io$write (u8,string) -> void
+fn 65 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -3635,7 +3635,7 @@ fn 65 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 66   ; std_io$write_text
+  call 66   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -3666,7 +3666,7 @@ fn 65 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 67   ; std_io$write_bytes
+      call 67   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -3686,11 +3686,11 @@ fn 65 std_io$write (u8,string) -> void
   return
 end
 
-fn 66 std_io$write_text (u8,string) -> bool
+fn 66 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 67 std_io$write_bytes (u8,ref,i64) -> i32
+fn 67 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -3710,7 +3710,7 @@ fn 67 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 68 std_io$println__string (string) -> void
+fn 68 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 25   ; "\n"
@@ -3718,6 +3718,6 @@ fn 68 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 65   ; std_io$write
+  call 65   ; std_console$write
   return
 end

@@ -2,7 +2,7 @@
 // `*` on an array, concrete or generic, repeats it.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Vec :: struct {
     x: i32

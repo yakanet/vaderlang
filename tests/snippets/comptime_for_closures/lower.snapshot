@@ -4,7 +4,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       {
           @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 {}))
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_1: Buffer = std.core.new_byte_buffer(i64(25))
               __off_2: i64 = 0
               __off_2 = std.core.write_string_at(__buf_1, __off_2, "body ")
@@ -13,7 +13,7 @@
           } :string)
           @defer_run(1)
           @defer_push(@closure(__defer_snippet_2, __defer_env_snippet_3 {}))
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_4: Buffer = std.core.new_byte_buffer(i64(25))
               __off_5: i64 = 0
               __off_5 = std.core.write_string_at(__buf_4, __off_5, "body ")
@@ -22,7 +22,7 @@
           } :string)
           @defer_run(1)
           @defer_push(@closure(__defer_snippet_4, __defer_env_snippet_5 {}))
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_7: Buffer = std.core.new_byte_buffer(i64(25))
               __off_8: i64 = 0
               __off_8 = std.core.write_string_at(__buf_7, __off_8, "body ")
@@ -38,7 +38,7 @@
           add: fn(i32) -> i32 = __lambda_snippet_7
           total = add(total)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(26))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "total ")
@@ -48,7 +48,7 @@
       base: i32 = 100
       {
           outer: fn() -> i32 = @closure(__lambda_snippet_8, __lambda_env_snippet_9 { .cap_0 = base })
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_12: Buffer = std.core.new_byte_buffer(i64(27))
               __off_13: i64 = 0
               __off_13 = std.core.write_string_at(__buf_12, __off_13, "nested ")
@@ -56,7 +56,7 @@
               std.core.finish_buffer(__buf_12, __off_13)
           } :string)
           outer: fn() -> i32 = @closure(__lambda_snippet_12, __lambda_env_snippet_13 { .cap_0 = base })
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_15: Buffer = std.core.new_byte_buffer(i64(27))
               __off_16: i64 = 0
               __off_16 = std.core.write_string_at(__buf_15, __off_16, "nested ")
@@ -68,7 +68,7 @@
   }
   __defer_env_snippet_1 :: struct {}
   __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred ")
@@ -78,7 +78,7 @@
   }
   __defer_env_snippet_3 :: struct {}
   __defer_snippet_2 :: fn(__env_3: __defer_env_snippet_3) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred ")
@@ -88,7 +88,7 @@
   }
   __defer_env_snippet_5 :: struct {}
   __defer_snippet_4 :: fn(__env_6: __defer_env_snippet_5) -> void {
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred ")
@@ -130,6 +130,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -140,11 +145,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

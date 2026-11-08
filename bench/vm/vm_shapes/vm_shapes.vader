@@ -4,7 +4,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 SHAPE_COUNT     :: 50_000
 PASS_COUNT      :: 20

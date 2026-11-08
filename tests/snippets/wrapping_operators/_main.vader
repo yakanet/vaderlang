@@ -3,7 +3,7 @@
 // to the value its width holds, as the run time narrows it.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 I32_TOP: i32: 2_147_483_647 +% 1
 U8_SUM: u8: 250 +% 10

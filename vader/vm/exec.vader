@@ -20,7 +20,6 @@ module "vader/vm"
 
 bc :: import "vader/core/bytecode"
 
-import "std/io"
 import "std/math"
 import "std/string"
 import "vader/core/types"

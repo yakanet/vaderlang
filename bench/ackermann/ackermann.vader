@@ -20,7 +20,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 HI :: 9
 

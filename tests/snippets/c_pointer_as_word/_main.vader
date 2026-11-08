@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Reading a foreign pointer as an integer. The point is the FAILURE
 // sentinels that are not NULL: a Win32 `HANDLE` reports failure as

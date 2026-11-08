@@ -4,7 +4,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 Listener :: trait {
     heard :: fn(self, n: i32) -> void {}

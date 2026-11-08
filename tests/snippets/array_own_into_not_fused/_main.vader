@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 // An array whose own instance converts to an iterator is iterated through that

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 apply :: fn(x: i32, after: (fn(i32) -> void) | null = null) -> void {
     if after != null {

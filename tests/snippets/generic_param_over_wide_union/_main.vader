@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 describe :: fn(v: i32 | string) -> string = if v is i32 { "int ${v}" } else { "str ${v}" }

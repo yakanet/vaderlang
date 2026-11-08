@@ -336,7 +336,7 @@ export async function dumpBytecodeViaVader(_source: string, entryPath: string, _
 // see `cli-bin.ts`). A non-zero exit is surfaced inline so snapshot diffs are
 // debuggable rather than mysteriously empty.
 async function runVaderDump(stage: string, entryPath: string, modules?: readonly string[], extra?: readonly string[]): Promise<string> {
-  // PINNED to one target. A `@target` group in the closure (`std/io::write_bytes`
+  // PINNED to one target. A `@target` group in the closure (`std/console::write_bytes`
   // since println went through the FFI) makes every stage after target selection
   // differ per platform: Windows picks the Win32 body and the bytecode carries
   // `kernel32:GetStdHandle` where POSIX carries `write`. A snapshot's identity is

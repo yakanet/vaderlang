@@ -39,7 +39,7 @@ export main 3
 
 fn 0 snippet$compute () -> i32
   string.const 0   ; "value trailing: computed"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   return.lit i32.const 7
 end
 
@@ -50,7 +50,7 @@ fn 1 snippet$void_trailing () -> void
   make_closure 4 14   ; __defer_snippet_0 fn
   defer.push
   string.const 1   ; "void trailing: body"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   defer.pop_exec 1
   return
 end
@@ -79,14 +79,14 @@ fn 3 snippet$main () -> i32
   make_closure 6 14   ; __defer_snippet_4 fn
   defer.push
   string.const 2   ; "hi"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   data.const 3 17   ; pool[3] __defer_env_snippet_7[]
   i64.const 0
   array.get 17   ; __defer_env_snippet_7[]
   make_closure 7 14   ; __defer_snippet_6 fn
   defer.push
   string.const 3   ; "nested"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   defer.pop_exec 1
   call 1   ; snippet$void_trailing
   i64.const 40
@@ -110,32 +110,32 @@ fn 3 snippet$main () -> i32
   local.get 0   ; __buf_2
   local.get 1   ; __off_3
   call 9   ; std_core$finish_buffer
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   defer.pop_exec 1
   return.lit i32.const 0
 end
 
 fn 4 __defer_snippet_0 (ref) -> void
   string.const 5   ; "void trailing: deferred"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   return
 end
 
 fn 5 __defer_snippet_2 (ref) -> void
   string.const 6   ; "value trailing: deferred"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   return
 end
 
 fn 6 __defer_snippet_4 (ref) -> void
   string.const 7   ; "outer cleanup"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   return
 end
 
 fn 7 __defer_snippet_6 (ref) -> void
   string.const 8   ; "inner cleanup"
-  call 15   ; std_io$println__string
+  call 15   ; std_console$println__string
   return
 end
 
@@ -304,7 +304,7 @@ fn 11 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 12 std_io$write (u8,string) -> void
+fn 12 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -315,7 +315,7 @@ fn 12 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 13   ; std_io$write_text
+  call 13   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -346,7 +346,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 14   ; std_io$write_bytes
+      call 14   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -366,11 +366,11 @@ fn 12 std_io$write (u8,string) -> void
   return
 end
 
-fn 13 std_io$write_text (u8,string) -> bool
+fn 13 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 14 std_io$write_bytes (u8,ref,i64) -> i32
+fn 14 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -390,7 +390,7 @@ fn 14 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 15 std_io$println__string (string) -> void
+fn 15 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 9   ; "\n"
@@ -398,6 +398,6 @@ fn 15 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 12   ; std_io$write
+  call 12   ; std_console$write
   return
 end

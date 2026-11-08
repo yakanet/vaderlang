@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 count_to :: fn(n: i64) -> Iterator<i64> {

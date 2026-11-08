@@ -6,7 +6,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 WIDTH    :: 240
 HEIGHT   :: 180

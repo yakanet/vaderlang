@@ -9,7 +9,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 N: i64: 1500
 

@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Conv :: trait {
     conv :: fn<U>(self, x: U) -> string

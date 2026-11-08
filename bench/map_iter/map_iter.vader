@@ -5,7 +5,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/collections"
 
 INNER_KEYS  :: 1_000

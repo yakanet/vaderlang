@@ -10,7 +10,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 N :: 1_000_000

@@ -25,6 +25,8 @@ module "main"
 import "engine"
 import "raylib"
 import "std/abort"
+import "std/console"
+import "std/fs"
 import "std/io"
 import "std/math"
 

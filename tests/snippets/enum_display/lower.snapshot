@@ -19,13 +19,13 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       d: Direction = 2
-      std.io.println<string>(concat_5(snippet.Direction.to_string(d), " ", snippet.Direction.to_string(Direction(3)), " ", snippet.Direction.to_string(d)))
+      std.console.println<string>(concat_5(snippet.Direction.to_string(d), " ", snippet.Direction.to_string(Direction(3)), " ", snippet.Direction.to_string(d)))
       v: Direction | null = snippet.maybe_direction(true)
       if !(v is null) {
-          std.io.println<string>(concat_2("narrowed ", snippet.Direction.to_string(Direction(v))))
+          std.console.println<string>(concat_2("narrowed ", snippet.Direction.to_string(Direction(v))))
       }
-      std.io.println<string>(std.core.Direction[].to_string([Direction(0), Direction(3)] :Direction[]))
-      std.io.println<string>({
+      std.console.println<string>(std.core.Direction[].to_string([Direction(0), Direction(3)] :Direction[]))
+      std.console.println<string>({
           __p_0: string = snippet.Status.to_string(Status(1))
           __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
@@ -34,10 +34,10 @@
           __off_2 = std.core.write_int(__buf_1, __off_2, i32(i64(404)))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
-      std.io.println<string>(concat_5(snippet.show<Direction>(d), " ", snippet.show<Status>(Status(0)), " ", snippet.pair<Direction>(Direction(0), Direction(1))))
-      std.io.println<string>(snippet.listed<Direction>([Direction(1), Direction(2)] :Direction[]))
-      std.io.println<string>(concat_3(snippet.show<Weight>(Weight(u8(3))), " ", snippet.show<u8>(u8(3))))
-      std.io.println<string>(concat_2("byte ", @vcall(std.core.Display.to_string, snippet.maybe_byte(true))))
+      std.console.println<string>(concat_5(snippet.show<Direction>(d), " ", snippet.show<Status>(Status(0)), " ", snippet.pair<Direction>(Direction(0), Direction(1))))
+      std.console.println<string>(snippet.listed<Direction>([Direction(1), Direction(2)] :Direction[]))
+      std.console.println<string>(concat_3(snippet.show<Weight>(Weight(u8(3))), " ", snippet.show<u8>(u8(3))))
+      std.console.println<string>(concat_2("byte ", @vcall(std.core.Display.to_string, snippet.maybe_byte(true))))
       return 0
   }
   snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core$Display$to_string
@@ -128,6 +128,11 @@
   vtable std.core.Display.to_string for Weight  snippet.Weight.to_string  // snippet$Weight$std_core$Display$to_string
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -193,11 +198,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

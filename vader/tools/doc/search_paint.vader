@@ -102,7 +102,7 @@ painted_paragraph :: fn(ctx: TextCtx, lines: string[]) -> string[] {
 }
 
 // A name as a query writes it, its module in the module's colour and the rest
-// in bold: `std/io.read_file_bytes`.
+// in bold: `std/fs.read_file_bytes`.
 painted_qualified :: fn(ctx: TextCtx, name: string) -> string {
     dot :: name.index_of('.', 0)
     if dot < 0 {

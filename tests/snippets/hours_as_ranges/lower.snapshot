@@ -83,7 +83,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       c: Clock = Clock { .hour = Hour(23), .minute = u8(45) }
       d: Clock = Clock { .hour = snippet.next_hour(c.hour), .minute = u8(5) }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(101))
           __off_1: i64 = 0
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, c.hour)
@@ -97,7 +97,7 @@
           __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.later(c, d))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(79))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "tokyo ")
@@ -108,7 +108,7 @@
           __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.shifted(Hour(2), Offset(-10)))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(62))
           __off_5: i64 = 0
           __off_5 = std.core.write_int(__buf_4, __off_5, snippet.total(Percent(100), Percent(100)))
@@ -118,7 +118,7 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, -c.hour)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_6: string = snippet.part_of_day(Hour(12))
           __p_7: string = snippet.part_of_day(Hour(5))
           __p_8: string = snippet.part_of_day(Hour(20))
@@ -136,7 +136,7 @@
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       taken: Hour[] = [Hour(0), Hour(1), Hour(2)] :Hour[]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(31))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "first free ")
@@ -148,7 +148,7 @@
       } :string)
       count: i32 = c.hour + u8(1)
       count = count * 1000
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(26))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "count ")
@@ -171,6 +171,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -181,11 +186,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

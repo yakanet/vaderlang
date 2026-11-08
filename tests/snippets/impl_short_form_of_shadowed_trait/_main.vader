@@ -4,7 +4,7 @@
 // prints 4 instead of 24.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 S :: import "snippet/shapes"
 Z :: import "snippet/zoo"

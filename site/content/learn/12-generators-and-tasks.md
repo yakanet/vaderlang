@@ -8,7 +8,7 @@ A function whose body holds a `yield` is a generator: it returns an `Iterator<T>
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/iter"
 fibonacci :: fn() -> Iterator<i64> {
     a: i64 = 0
@@ -45,7 +45,7 @@ What a generator returns is an iterator like any other. Here it walks nested dat
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/iter"
 # import "std/string"
 words_of :: fn(lines: string[]) -> Iterator<string> {
@@ -78,7 +78,7 @@ The rules: §15 *Generators* and §15 *Iteration*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/task"
 # import "std/time"
 fetch :: fn(name: string, delay: i64) -> string {
@@ -107,7 +107,7 @@ The two tasks run together: the fast one finishes first, yet the results keep th
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/task"
 # import "std/time"
 answer :: fn(delay: i64) -> i64 {

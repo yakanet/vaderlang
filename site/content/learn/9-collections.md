@@ -8,7 +8,7 @@ An array grows with `push` and shrinks with `remove_last`. `x in array` tests wh
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     primes :: [2, 3, 5]
     primes.push(7)
@@ -36,7 +36,7 @@ A binding made with `::` only fixes the name: the array it names may still chang
 ```vader
 # module "main"
 # import "std/collections"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     counts :: Map<string, i32> {}
     for word in ["to", "be", "or", "not", "to", "be"] {
@@ -69,7 +69,7 @@ Reading a key that is absent gives `null`, hence the `??`. Here the map walks it
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/iter"
 # main :: fn() -> i32 {
     words :: ["vader", "is", "a", "small", "language"]
@@ -95,7 +95,7 @@ The rules: §15 *Iteration*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/sort"
 Person :: struct { name: string, age: i32 }
 

@@ -28,12 +28,12 @@
       concat_2("two:", t)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(concat_4(snippet$pick(7, "int"), " ", snippet$pick_1("a", "str"), " want=7:int a:str"))
-      std.io.println<string>(concat_4(snippet$tag(7, ">"), " ", snippet$tag_1("abc", "!"), " want=>|7 abc|!"))
-      std.io.println<string>(concat_4(snippet$tw(1), " ", snippet$tw_1("a", "d"), " want=one two:d"))
-      std.io.println<string>(concat_4(snippet$pick(7, "X"), " ", snippet$pick_1("a", "Y"), " want=7:X a:Y"))
-      std.io.println<string>(concat_4(snippet$tag(7, "#"), " ", snippet$tag_1("abc", "?"), " want=#|7 abc|?"))
-      std.io.println<string>(concat_4(snippet$pick(7, "P"), " ", snippet$pick_1("a", "Q"), " want=7:P a:Q"))
+      std.console.println<string>(concat_4(snippet$pick(7, "int"), " ", snippet$pick_1("a", "str"), " want=7:int a:str"))
+      std.console.println<string>(concat_4(snippet$tag(7, ">"), " ", snippet$tag_1("abc", "!"), " want=>|7 abc|!"))
+      std.console.println<string>(concat_4(snippet$tw(1), " ", snippet$tw_1("a", "d"), " want=one two:d"))
+      std.console.println<string>(concat_4(snippet$pick(7, "X"), " ", snippet$pick_1("a", "Y"), " want=7:X a:Y"))
+      std.console.println<string>(concat_4(snippet$tag(7, "#"), " ", snippet$tag_1("abc", "?"), " want=#|7 abc|?"))
+      std.console.println<string>(concat_4(snippet$pick(7, "P"), " ", snippet$pick_1("a", "Q"), " want=7:P a:Q"))
       return 0
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
@@ -68,6 +68,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -132,11 +137,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

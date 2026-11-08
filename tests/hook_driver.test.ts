@@ -442,7 +442,7 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
   }, async (dir) => {
     writeFileSync(
       `${dir}/app.vader`,
-      'module "app"\n\nimport "std/io"\nimport "r2034probe"\n\n'
+      'module "app"\n\nimport "std/console"\nimport "r2034probe"\n\n'
         + 'main :: fn() -> i32 {\n    println("${peek()}")\n    return 0\n}\n',
     );
     // `cwd: dir` is what makes `<dir>/lib` the library root, and so what puts the
@@ -516,7 +516,7 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
   );
   writeFileSync(
     `${dir}/app.vader`,
-    'module "app"\n\nimport "std/io"\nimport "reserved"\n\n'
+    'module "app"\n\nimport "std/console"\nimport "reserved"\n\n'
       + 'main :: fn() -> i32 {\n    println("who=${who()}")\n    return 0\n}\n',
   );
 
@@ -687,7 +687,7 @@ test.concurrent("the language server reads the search roots a driver declares", 
     mkdirSync(join(dir, "src"));
     mkdirSync(join(dir, "vendor/greet"), { recursive: true });
     writeFileSync(join(dir, "build.vader"), [
-      'module "build"', "", 'import "std/io"', 'import "toolchain/build"', "",
+      'module "build"', "", 'import "std/console"', 'import "toolchain/build"', "",
       "build :: fn(args: string[]) -> i32 {",
       "    ctx :: new_build_context(args)",
       '    ctx.include_paths.push("vendor")',
@@ -699,7 +699,7 @@ test.concurrent("the language server reads the search roots a driver declares", 
       "    return code",
       "}", "",
     ].join("\n"));
-    const main = 'module "src"\n\nimport "greet"\nimport "std/io"\n\nmain :: fn() -> i32 {\n    println(greeting())\n    return 0\n}\n';
+    const main = 'module "src"\n\nimport "greet"\nimport "std/console"\n\nmain :: fn() -> i32 {\n    println(greeting())\n    return 0\n}\n';
     writeFileSync(join(dir, "src/main.vader"), main);
     writeFileSync(join(dir, "vendor/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
 
@@ -825,7 +825,7 @@ test.concurrent("--no-hooks runs no driver, whatever the action", async () => {
     "}", "",
   ].join("\n"));
   writeFileSync(join(dir, "src/main.vader"), [
-    'module "src"', "", 'import "std/io"', "",
+    'module "src"', "", 'import "std/console"', "",
     "main :: fn() -> i32 {",
     '    println("ran on its own")',
     "    return 0",
@@ -878,7 +878,7 @@ test.concurrent("driven build: a project scaffolded by `vader new`, then ejected
     writeFileSync(join(project, "data/note.txt"), "note\n");
     const main = join(project, "src/main.vader");
     writeFileSync(main, readFileSync(main, "utf8")
-      .replace('import "std/io"', 'import "greet"\nimport "std/io"')
+      .replace('import "std/console"', 'import "greet"\nimport "std/console"')
       .replace('println("hello from scaffolded")', 'println("hello from scaffolded, ${greeting()}")'));
 
     const opts = { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: HEAVY_BUILD };

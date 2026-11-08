@@ -3,7 +3,7 @@
 // caller's own array, which it then pushes into.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Cfg :: struct {
     n: i32

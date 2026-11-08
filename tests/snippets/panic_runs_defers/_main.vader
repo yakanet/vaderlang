@@ -4,7 +4,7 @@
 // first, then `reserve`'s (release the hold) as the unwind walks back to main.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/abort"
 
 charge :: fn(amount: i32) -> void {

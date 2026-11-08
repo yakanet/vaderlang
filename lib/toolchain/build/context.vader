@@ -29,7 +29,7 @@
 module "toolchain/build"
 
 import "vader/support/diagnostics"
-import "std/io"
+import "std/console"
 import "std/path"
 import "vader/pipeline"
 import "vader/front/resolver"

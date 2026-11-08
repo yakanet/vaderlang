@@ -13,7 +13,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Leaf :: struct { v: i32 }
 Pair :: struct { l: i32 }

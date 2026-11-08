@@ -8,7 +8,7 @@ module "chain"
 
 import "chain/alpha"
 import "chain/beta"
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     println("${alpha_value() + beta_value()}")

@@ -5,7 +5,7 @@
 // the operator does. The values that must not fold come from `argv`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 main :: fn(argv: string[]) -> i32 {
     one :: i32(argv.len())

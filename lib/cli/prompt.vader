@@ -34,7 +34,7 @@
 
 module "cli"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 import "std/string"
 TTY :: import "std/tty"

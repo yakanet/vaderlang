@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 nested :: fn(s: string | null, deep: bool, n: i32) -> u8 {
     k :: match s {

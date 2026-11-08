@@ -9,6 +9,7 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
+import "std/fs"
 import "std/io"
 import "std/sort"
 import "std/string"

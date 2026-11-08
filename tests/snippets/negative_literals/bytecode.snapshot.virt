@@ -12,8 +12,8 @@ type 9 struct __Tuple_u64_u64_u64_2d035edd { _0:5,_1:5,_2:5 }
 type 10 scalar u8
 type 11 array 10
 type 12 scalar void
-type 13 array 5
-type 14 array 1
+type 13 array 1
+type 14 array 5
 string 0 "minus one"
 string 1 "zero"
 string 2 "other"
@@ -176,7 +176,7 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   call 3   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   i32.const 5
   i32.checked_neg
   local.set 8   ; __p_6
@@ -309,7 +309,7 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   call 3   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   i32.const 0
   local.set 0   ; a
   i32.const -2
@@ -332,7 +332,7 @@ fn 1 snippet$main () -> i32
   end $L0
   i32.const -1
   i32.const -2
-  array.new 14 2   ; i32[]
+  array.new 13 2   ; i32[]
   i32.const 1
   load_slot_i32
   local.set 8   ; __p_6
@@ -423,7 +423,7 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   call 3   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 32   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -999,11 +999,11 @@ fn 11 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 13   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 13   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1113,11 +1113,11 @@ fn 11 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 13   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 13   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2309,7 +2309,7 @@ fn 28 std_core$insert_point (ref,i64,i32,i32) -> i64
   return
 end
 
-fn 29 std_io$write (u8,string) -> void
+fn 29 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -2320,7 +2320,7 @@ fn 29 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 30   ; std_io$write_text
+  call 30   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -2351,7 +2351,7 @@ fn 29 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 31   ; std_io$write_bytes
+      call 31   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2371,11 +2371,11 @@ fn 29 std_io$write (u8,string) -> void
   return
 end
 
-fn 30 std_io$write_text (u8,string) -> bool
+fn 30 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 31 std_io$write_bytes (u8,ref,i64) -> i32
+fn 31 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2395,7 +2395,7 @@ fn 31 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 32 std_io$println__string (string) -> void
+fn 32 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 10   ; "\n"
@@ -2403,7 +2403,7 @@ fn 32 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 29   ; std_io$write
+  call 29   ; std_console$write
   return
 end
 

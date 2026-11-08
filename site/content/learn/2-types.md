@@ -8,7 +8,7 @@ A struct declares named fields; a literal sets them with `.field = value`. A fie
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Settings :: struct {
     name:    string
     retries: i32  = 3
@@ -36,7 +36,7 @@ An enum lists its variants. Where the type is known, `.Name` stands for the vari
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 @displayable
 Direction :: enum { North, East, South, West }
 
@@ -71,7 +71,7 @@ The rules: §4 *Enums*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 find :: fn(names: string[], wanted: string) -> i32 | null {
     for i in 0..<names.len() {
         if names[i] == wanted {
@@ -101,7 +101,7 @@ A tuple holds a fixed number of values of different types. `t.0`, `t.1` read the
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 divide :: fn(a: i32, b: i32) -> [i32, i32] = [a / b, a % b]
 # main :: fn() -> i32 {
 #     result :: divide(17, 5)
@@ -125,7 +125,7 @@ The rules: §4 *Tuples* and §4 *Destructuring*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Celsius :: f64
 Fahrenheit :: f64
 Reading :: Celsius | string

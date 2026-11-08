@@ -20,7 +20,7 @@
       s2: Label | Point = q
       s3: Label | Point = r
       s4: Label | Point = Label { .text = "a" }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
           __off_1 = std.core.write_bool(__buf_0, __off_1, (((s1 is Label) && (s2 is Label)) && snippet.Label.equals(Label(s1), Label(s2))) || (((s1 is Point) && (s2 is Point)) && snippet.Point.equals(Point(s1), Point(s2))))
@@ -32,7 +32,7 @@
           __off_1 = std.core.write_bool(__buf_0, __off_1, !((((s1 is Label) && (s3 is Label)) && snippet.Label.equals(Label(s1), Label(s3))) || (((s1 is Point) && (s3 is Point)) && snippet.Point.equals(Point(s1), Point(s3)))))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(17))
           __off_3: i64 = 0
           __off_3 = std.core.write_bool(__buf_2, __off_3, (s1 is Point) && snippet.Point.equals(Point(s1), q))
@@ -45,7 +45,7 @@
       n1: i64 | string = i64(5)
       n2: i64 | string = i64(5)
       n3: i64 | string = "5"
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(11))
           __off_5: i64 = 0
           __off_5 = std.core.write_bool(__buf_4, __off_5, n1 == n2)
@@ -56,7 +56,7 @@
       o1: null | Point = p
       o2: null | Point = null
       o3: null | Point = null
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(17))
           __off_7: i64 = 0
           __off_7 = std.core.write_bool(__buf_6, __off_7, (o1 is Point) && snippet.Point.equals(Point(o1), q))
@@ -66,7 +66,7 @@
           __off_7 = std.core.write_bool(__buf_6, __off_7, ((o1 is null) && (o2 is null)) || (((o1 is Point) && (o2 is Point)) && snippet.Point.equals(Point(o1), Point(o2))))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(17))
           __off_9: i64 = 0
           __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.same_opt<Point>(p, q))
@@ -76,7 +76,7 @@
           __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.same_opt<Point>(r, q))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(11))
           __off_11: i64 = 0
           __off_11 = std.core.write_bool(__buf_10, __off_11, snippet.same_pair<Point>([p, 1] :[Point, i32], [q, 1] :[Point, i32]))
@@ -86,14 +86,14 @@
       } :string)
       t1: [i32, Label | Point] = [1, s1] :[i32, Label | Point]
       t2: [i32, Label | Point] = [1, s2] :[i32, Label | Point]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(5))
           __off_13: i64 = 0
           __off_13 = std.core.write_bool(__buf_12, __off_13, (t1._0 == t2._0) && ((((t1._1 is Label) && (t2._1 is Label)) && snippet.Label.equals(Label(t1._1), Label(t2._1))) || (((t1._1 is Point) && (t2._1 is Point)) && snippet.Point.equals(Point(t1._1), Point(t2._1)))))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       c: Color | null = Color(0)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(11))
           __off_15: i64 = 0
           __off_15 = std.core.write_bool(__buf_14, __off_15, c == Color(0))
@@ -105,7 +105,7 @@
       f1: f64 | null = nan
       z1: f64 | null = 0.0
       z2: f64 | null = -0.0
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(11))
           __off_17: i64 = 0
           __off_17 = std.core.write_bool(__buf_16, __off_17, (((f1 is f64) && (f1 is f64)) && (f64(f1) == f64(f1))) || ((f1 is null) && (f1 is null)))
@@ -114,7 +114,7 @@
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       boxed: Box<Point> | null = Box<Any> { .value = p }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(11))
           __off_21: i64 = 0
           __off_21 = std.core.write_bool(__buf_20, __off_21, {
@@ -130,7 +130,7 @@
       } :string)
       first: Pair = Pair { ._0 = 1, ._1 = 2 }
       second: Pair = Pair { ._0 = 1, ._1 = 3 }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_22: Buffer = std.core.new_byte_buffer(i64(5))
           __off_23: i64 = 0
           __off_23 = std.core.write_bool(__buf_22, __off_23, snippet.Pair.equals(first, second))
@@ -169,6 +169,11 @@
   vtable std.core.Equals.equals for Point  snippet$Point$std_core$Equals$equals$guard
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -192,11 +197,6 @@
     fn std_core$u64$Equals$equals$guard
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

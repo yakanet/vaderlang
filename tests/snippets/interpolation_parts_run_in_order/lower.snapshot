@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.say_int :: fn(n: i32) -> i32 {  // snippet$say_int
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "  int ")
@@ -12,7 +12,7 @@
       return n
   }
   snippet.say_bool :: fn(b: bool) -> bool {  // snippet$say_bool
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(12))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "  bool ")
@@ -22,11 +22,11 @@
       return b
   }
   snippet.say_str :: fn(s: string) -> string {  // snippet$say_str
-      std.io.println<string>(concat_2("  str ", s))
+      std.console.println<string>(concat_2("  str ", s))
       return s
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: i32 = snippet.say_int(1)
           __p_1: string = snippet.say_str("b")
           __p_2: bool = snippet.say_bool(true)
@@ -46,7 +46,7 @@
       } :string)
       n: @cell<i32> = @cell_new(1)
       bump: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = n }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_7: i32 = @cell(n)
           __p_8: string = __lambda_snippet_0(bump)
           __buf_9: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_8))
@@ -75,6 +75,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -85,11 +90,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -8,7 +8,7 @@ A trait lists its members. `Type implements Trait { ... }` defines them, with `s
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Shape :: trait {
     area :: fn(self) -> f64
     name :: fn(self) -> string
@@ -48,7 +48,7 @@ A trait with a single member to define takes a short form: an arrow and the body
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Point :: struct { x: i32, y: i32 }
 
 Point implements Display -> "(${self.x}, ${self.y})"
@@ -70,7 +70,7 @@ A member may come with a body, which a type gets unless it defines its own.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Greeter :: trait {
     name  :: fn(self) -> string
     greet :: fn(self) -> string = "Hello, ${self.name()}!"
@@ -107,7 +107,7 @@ The rules: §4 *Default methods*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Money :: struct { cents: i64 }
 
 Money implements Add -> Money { .cents = self.cents + other.cents }

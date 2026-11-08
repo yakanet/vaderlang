@@ -7,7 +7,7 @@
 // counter's maximum.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 @displayable
 Weekday :: enum { Mon, Tue, Wed, Thu, Fri, Sat, Sun }

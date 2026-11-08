@@ -4,7 +4,7 @@
 // bakes the union's array variant, its elements at that variant's width.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Card :: struct {
     weights: u8[]

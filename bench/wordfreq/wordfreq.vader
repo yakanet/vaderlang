@@ -26,7 +26,7 @@
 module "main"
 
 import "std/collections"
-import "std/io"
+import "std/console"
 
 VOCABULARY_SIZE :: 4096
 TOKEN_COUNT     :: 300_000

@@ -13,7 +13,7 @@
 module "snippet"
 
 import "std/collections"
-import "std/io"
+import "std/console"
 
 Color :: enum { Red, Green, Blue }
 

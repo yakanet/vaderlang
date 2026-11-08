@@ -3,7 +3,7 @@
 // the members of an impl written here for each of them.
 module "snippet"
 
-import "std/io"
+import "std/console"
 A :: import "snippet/shapes_a"
 B :: import "snippet/shapes_b"
 

@@ -8,7 +8,7 @@ An error is a value of a type that implements the `Error` trait: its `message` s
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 NotFound :: struct { name: string }
 
 NotFound implements Error -> "no user named ${self.name}"
@@ -45,7 +45,7 @@ A test with `is` and a `return` hand the error to the caller. Past the test, the
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/string"
 total :: fn(a: string, b: string) -> i32 | ParseError {
     x :: parse_int(a)
@@ -84,7 +84,7 @@ A `match` handles the result and each kind of error in place. `Error` in a union
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # import "std/string"
 describe :: fn(text: string) -> string = match result :: parse_int(text) {
     is i32   -> "the number ${result}"
@@ -110,7 +110,7 @@ The rules: §10 *Explicit match*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 first_long_word :: fn(words: string[]) -> string | null {
     for word in words {
         if word.byte_len() > 5 {

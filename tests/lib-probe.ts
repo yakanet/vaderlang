@@ -43,9 +43,10 @@ export async function withStagedLibraryRoot<T>(
     // `$VADER_HOME` cannot supply it the way it does for a staged project: it
     // would hand over the checkout's `lib/` and lose the fabrications. The real
     // halves are therefore COPIED, not symlinked, which Windows refuses to a plain
-    // user. `std/` is there because every probe needs `std/io` to write a runnable
-    // entry, and `system/` comes with it: `std/io` imports it for the write
-    // syscall, and a root missing it fails to resolve before any probe runs.
+    // user. `std/` is there because every probe needs `std/console` to write a
+    // runnable entry, and `system/` comes with it: `std/console` imports it for
+    // the write syscall, and a root missing it fails to resolve before any probe
+    // runs.
     // Together they are 400 KB, well under what a probe's own compile costs.
     cpSync(join(REPO, "lib", "std"), join(dir, "lib", "std"), { recursive: true });
     cpSync(join(REPO, "lib", "system"), join(dir, "lib", "system"), { recursive: true });

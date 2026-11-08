@@ -113,7 +113,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; ver
     ref.cast 3   ; semver$Version
     call 37   ; semver$Version$std_core$Display$to_string
-    call 58   ; std_io$println__string
+    call 58   ; std_console$println__string
     string.const 1   ; "1.0.0"
     call 1   ; snippet$parse_one
     local.set 2   ; base
@@ -125,7 +125,7 @@ fn 0 snippet$main () -> i32
     i32.gt
     if $L1 void
       string.const 2   ; "after 1.0.0"
-      call 58   ; std_io$println__string
+      call 58   ; std_console$println__string
     end $L1
     string.const 3   ; "^1.0.0"
     call 10   ; semver$parse_range
@@ -143,7 +143,7 @@ fn 0 snippet$main () -> i32
       call 39   ; semver$VersionRange$std_core$Contains$contains
       if $L3 void
         string.const 5   ; "1.5.0 in ^1.0.0"
-        call 58   ; std_io$println__string
+        call 58   ; std_console$println__string
       end $L3
       return.lit i32.const 0
     end $L2
@@ -160,7 +160,7 @@ fn 0 snippet$main () -> i32
     string.const 6   ; "range err: "
     local.get 5   ; $call_29
     call 2   ; concat_2
-    call 59   ; std_io$eprintln__string
+    call 59   ; std_console$eprintln__string
     return.lit i32.const 1
   end $L0
   local.get 0   ; __scrut_0
@@ -176,7 +176,7 @@ fn 0 snippet$main () -> i32
   string.const 7   ; "err: "
   local.get 5   ; $call_29
   call 2   ; concat_2
-  call 59   ; std_io$eprintln__string
+  call 59   ; std_console$eprintln__string
   return.lit i32.const 1
 end
 
@@ -4596,7 +4596,7 @@ fn 54 std_string$ParseError$std_core$Error$message (ref) -> string
   return
 end
 
-fn 55 std_io$write (u8,string) -> void
+fn 55 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -4607,7 +4607,7 @@ fn 55 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 56   ; std_io$write_text
+  call 56   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -4638,7 +4638,7 @@ fn 55 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 57   ; std_io$write_bytes
+      call 57   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -4658,11 +4658,11 @@ fn 55 std_io$write (u8,string) -> void
   return
 end
 
-fn 56 std_io$write_text (u8,string) -> bool
+fn 56 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 57 std_io$write_bytes (u8,ref,i64) -> i32
+fn 57 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -4682,7 +4682,7 @@ fn 57 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 58 std_io$println__string (string) -> void
+fn 58 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 53   ; "\n"
@@ -4690,11 +4690,11 @@ fn 58 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 55   ; std_io$write
+  call 55   ; std_console$write
   return
 end
 
-fn 59 std_io$eprintln__string (string) -> void
+fn 59 std_console$eprintln__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 53   ; "\n"
@@ -4702,7 +4702,7 @@ fn 59 std_io$eprintln__string (string) -> void
   local.set 1   ; $call_3
   i32.const 1
   local.get 1   ; $call_3
-  call 55   ; std_io$write
+  call 55   ; std_console$write
   return
 end
 

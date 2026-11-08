@@ -31,7 +31,7 @@
           }
           out
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(24))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "len=")
@@ -44,7 +44,7 @@
           __for_i_7: i64 = 0
           for __for_i_7 < __for_len_6 {
               r: Rec = __for_arr_5[__for_i_7]
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_8: string = r.name
                   __buf_9: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_8))
                   __off_10: i64 = 0
@@ -80,7 +80,7 @@
           __for_i_15: i64 = 0
           for __for_i_15 < __for_len_14 {
               r: Rec = __for_arr_13[__for_i_15]
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_16: string = r.name
                   __buf_17: Buffer = std.core.new_byte_buffer(i64(24) +% std.core.byte_len(__p_16))
                   __off_18: i64 = 0
@@ -119,7 +119,7 @@
           __for_i_23: i64 = 0
           for __for_i_23 < __for_len_22 {
               r: Rec = __for_arr_21[__for_i_23]
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_24: string = r.name
                   __buf_25: Buffer = std.core.new_byte_buffer(i64(26) +% std.core.byte_len(__p_24))
                   __off_26: i64 = 0
@@ -141,7 +141,7 @@
           for __fuse_i_33 < __fuse_len_32 {
               x: Rec = __fuse_arr_30[__fuse_i_33]
               m: Rec = x
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_27: string = m.name
                   __buf_28: Buffer = std.core.new_byte_buffer(i64(28) +% std.core.byte_len(__p_27))
                   __off_29: i64 = 0
@@ -159,7 +159,7 @@
           for __fuse_i_35 < __fuse_len_34 {
               y: Rec = __fuse_arr_31[__fuse_i_35]
               m: Rec = y
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_27: string = m.name
                   __buf_28: Buffer = std.core.new_byte_buffer(i64(28) +% std.core.byte_len(__p_27))
                   __off_29: i64 = 0
@@ -181,7 +181,7 @@
           for __fuse_i_42 < __fuse_len_41 {
               x: Rec = __fuse_arr_39[__fuse_i_42]
               m: Rec = x
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_36: string = m.name
                   __buf_37: Buffer = std.core.new_byte_buffer(i64(30) +% std.core.byte_len(__p_36))
                   __off_38: i64 = 0
@@ -199,7 +199,7 @@
           for __fuse_i_44 < __fuse_len_43 {
               y: Rec = __fuse_arr_40[__fuse_i_44]
               m: Rec = y
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_36: string = m.name
                   __buf_37: Buffer = std.core.new_byte_buffer(i64(30) +% std.core.byte_len(__p_36))
                   __off_38: i64 = 0
@@ -231,6 +231,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -241,11 +246,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

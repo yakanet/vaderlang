@@ -10,7 +10,7 @@
 
 module "app"
 
-import "std/io"
+import "std/console"
 import "vars" { LIMITS as CAPS, totals as sums }
 
 L :: import "lib"

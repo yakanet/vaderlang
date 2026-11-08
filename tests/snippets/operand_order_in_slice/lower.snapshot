@@ -2,15 +2,15 @@
 
 ## snippet
   snippet.say :: fn(label: string, value: i32) -> i32 {  // snippet$say
-      std.io.println<string>(label)
+      std.console.println<string>(label)
       return value
   }
   snippet.pool :: fn(label: string) -> i32[] {  // snippet$pool
-      std.io.println<string>(label)
+      std.console.println<string>(label)
       return [1, 2, 3] :i32[]
   }
   snippet.window :: fn(label: string) -> Range<i64> {  // snippet$window
-      std.io.println<string>(label)
+      std.console.println<string>(label)
       lo: i64 = 1
       hi: i64 = 3
       return Range<i64> {
@@ -22,11 +22,11 @@
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(if {
+      std.console.println<string>(if {
           __in_x_0: i32 = snippet.say("x", 2)
           std.core.i32[].contains(snippet.pool("coll"), __in_x_0)
       } :bool { "in: yes" } else { "in: no" } :string)
-      std.io.println<string>(if {
+      std.console.println<string>(if {
           __in_x_1: i32 = snippet.say("x", 7)
           !std.core.i32[].contains(snippet.pool("coll"), __in_x_1)
       } :bool { "not in: yes" } else { "not in: no" } :string)
@@ -42,13 +42,13 @@
           },
       }
       std.collections.add<i32>(seen, 2)
-      std.io.println<string>(if std.collections.Set<i32>.contains(seen, snippet.say("x", 2)) { "set: yes" } else { "set: no" } :string)
+      std.console.println<string>(if std.collections.Set<i32>.contains(seen, snippet.say("x", 2)) { "set: yes" } else { "set: no" } :string)
       part: i32[] = {
           __slice_target_2: i32[] = snippet.pool("target")
           __slice_r_3: Range<i64> = snippet.window("range")
           __slice_target_2[__slice_r_3.start..<__slice_r_3.end +% (if __slice_r_3.inclusive { i64(1) } else { i64(0) } :i64)]
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(27))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "slice: ")
@@ -88,6 +88,11 @@
     struct std.collections.Set<i32>  // std_collections$Set__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -105,11 +110,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

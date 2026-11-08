@@ -5,7 +5,7 @@
 // read is `at`'s -1) and a destructuring write alike. A `Range` index slices.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Offset :: i32[]
 

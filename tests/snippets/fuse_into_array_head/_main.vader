@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 triple  :: fn(x: i32) -> i32 = x * 3

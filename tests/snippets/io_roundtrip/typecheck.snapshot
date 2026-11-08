@@ -2,29 +2,29 @@
 
 ## tests/snippets/io_roundtrip
   FnDecl         main                 :: fn() -> i32
-  expr 11:13    StringLitExpr  :: string
-  expr 11:24    CallExpr       :: bool
-  expr 11:24    IdentExpr      :: fn(string) -> bool
-  expr 11:31    IdentExpr      :: string
-  expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(T) -> void
-  expr 13:17    CallExpr       :: IOError | string
-  expr 13:17    IdentExpr      :: fn(string, i64) -> IOError | string
-  expr 13:34    IdentExpr      :: string
-  expr 14:11    IdentExpr      :: IOError | string
-  expr 14:5     MatchExpr      :: void
-  expr 15:22    CallExpr       :: void
-  expr 15:22    IdentExpr      :: fn(T) -> void
-  expr 15:30    StringLitExpr  :: string
-  expr 15:39    IdentExpr      :: string
-  expr 16:22    CallExpr       :: void
-  expr 16:22    IdentExpr      :: fn(T) -> void
-  expr 16:30    StringLitExpr  :: string
-  expr 6:13     StringLitExpr  :: string
-  expr 6:16     CallExpr       :: string
-  expr 6:16     IdentExpr      :: fn() -> string
-  expr 934:62   IdentExpr      :: i64
-  expr 9:23     IdentExpr      :: string
-  expr 9:29     StringLitExpr  :: string
-  expr 9:5      CallExpr       :: IOError | null
-  expr 9:5      IdentExpr      :: fn(string, string) -> IOError | null
+  expr 11:23    IdentExpr      :: string
+  expr 11:29    StringLitExpr  :: string
+  expr 11:5     CallExpr       :: IOError | null
+  expr 11:5     IdentExpr      :: fn(string, string) -> IOError | null
+  expr 13:13    StringLitExpr  :: string
+  expr 13:24    CallExpr       :: bool
+  expr 13:24    IdentExpr      :: fn(string) -> bool
+  expr 13:31    IdentExpr      :: string
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 15:17    CallExpr       :: IOError | string
+  expr 15:17    IdentExpr      :: fn(string, i64) -> IOError | string
+  expr 15:34    IdentExpr      :: string
+  expr 16:11    IdentExpr      :: IOError | string
+  expr 16:5     MatchExpr      :: void
+  expr 17:22    CallExpr       :: void
+  expr 17:22    IdentExpr      :: fn(T) -> void
+  expr 17:30    StringLitExpr  :: string
+  expr 17:39    IdentExpr      :: string
+  expr 18:22    CallExpr       :: void
+  expr 18:22    IdentExpr      :: fn(T) -> void
+  expr 18:30    StringLitExpr  :: string
+  expr 337:62   IdentExpr      :: i64
+  expr 8:13     StringLitExpr  :: string
+  expr 8:16     CallExpr       :: string
+  expr 8:16     IdentExpr      :: fn() -> string

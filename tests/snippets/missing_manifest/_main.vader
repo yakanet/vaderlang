@@ -6,6 +6,8 @@
 
 module "snippet"
 
+import "std/console"
+import "std/fs"
 import "std/io"
 
 describe :: fn(path: string) -> string {

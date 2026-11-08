@@ -8,7 +8,6 @@
 
 module "vader/tools/cli"
 
-import "std/io"
 import "std/path"
 import "cli"
 import "vader/emit/bytecode"

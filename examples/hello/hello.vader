@@ -8,7 +8,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     println("Hello, World!")

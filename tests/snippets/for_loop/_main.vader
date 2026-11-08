@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 export mixed_loops :: fn(start: i32) -> i32 {
     n := 0

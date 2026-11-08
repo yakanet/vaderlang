@@ -13,7 +13,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 tag :: fn(x: i32 | i64 | u8) -> i32 {
     if x is u8  { return 1 }

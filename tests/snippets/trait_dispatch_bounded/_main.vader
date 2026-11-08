@@ -10,7 +10,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 export Tagger :: trait {
     tag :: fn(self) -> i32

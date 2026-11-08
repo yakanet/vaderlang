@@ -136,11 +136,11 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 74   ; std_io$println__string
+  call 74   ; std_console$println__string
   i32.const 1
   i32.const 7
   call 8   ; snippet$pair__snippet_HttpStatus__snippet_Color
-  call 74   ; std_io$println__string
+  call 74   ; std_console$println__string
   i32.const 0
   local.set 3   ; s
   i64.const 26
@@ -173,7 +173,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 74   ; std_io$println__string
+  call 74   ; std_console$println__string
   array.new 17 0   ; u8[]
   local.set 0   ; __buf_0
   array.new 24 0   ; string[]
@@ -270,7 +270,7 @@ fn 0 snippet$main () -> i32
   local.get 5   ; $arr_38
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 74   ; std_io$println__string
+  call 74   ; std_console$println__string
   i32.const 7
   i32.const 9
   array.new 17 2   ; u8[]
@@ -316,7 +316,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 74   ; std_io$println__string
+  call 74   ; std_console$println__string
   i32.const 9
   struct.new 5   ; snippet$Box__snippet_Color
   local.set 0   ; __buf_0
@@ -361,7 +361,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 74   ; std_io$println__string
+  call 74   ; std_console$println__string
   return.lit i32.const 0
 end
 
@@ -4019,7 +4019,7 @@ fn 70 std_collections$len__snippet_HttpStatus__string (ref) -> i64
   return
 end
 
-fn 71 std_io$write (u8,string) -> void
+fn 71 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -4030,7 +4030,7 @@ fn 71 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 72   ; std_io$write_text
+  call 72   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -4061,7 +4061,7 @@ fn 71 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 73   ; std_io$write_bytes
+      call 73   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -4081,11 +4081,11 @@ fn 71 std_io$write (u8,string) -> void
   return
 end
 
-fn 72 std_io$write_text (u8,string) -> bool
+fn 72 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 73 std_io$write_bytes (u8,ref,i64) -> i32
+fn 73 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -4105,7 +4105,7 @@ fn 73 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 74 std_io$println__string (string) -> void
+fn 74 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 19   ; "\n"
@@ -4113,6 +4113,6 @@ fn 74 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 71   ; std_io$write
+  call 71   ; std_console$write
   return
 end

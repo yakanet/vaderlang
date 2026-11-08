@@ -25,7 +25,7 @@
           .indent = 8,
           .wrap = false,
       }
-      std.io.println<string>(snippet.describe({
+      std.console.println<string>(snippet.describe({
           __spread_0: Layout = layout
           Report {
               .width = __spread_0.width,
@@ -34,7 +34,7 @@
               .title = "layout",
           }
       } :Report))
-      std.io.println<string>(snippet.describe({
+      std.console.println<string>(snippet.describe({
           __spread_1: Options = options
           Report {
               .width = __spread_1.width,
@@ -52,7 +52,7 @@
               .title = "first",
           }
       }
-      std.io.println<string>(snippet.describe({
+      std.console.println<string>(snippet.describe({
           __spread_3: Report = first
           __spread_4: Layout = layout
           Report {
@@ -62,7 +62,7 @@
               .title = __spread_3.title,
           }
       } :Report))
-      std.io.println<string>(snippet.describe({
+      std.console.println<string>(snippet.describe({
           __spread_5: Layout = layout
           __spread_6: Report = first
           Report {
@@ -80,7 +80,7 @@
               .depth = 0,
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(62))
           __off_9: i64 = 0
           __off_9 = std.core.write_int(__buf_8, __off_9, @array.len(chain.first))
@@ -91,7 +91,7 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       lifted: Chain<i32> = snippet.lift<i32>(Pair<Any[]> { .first = [1, 2, 3] :i32[], .count = 0 })
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(62))
           __off_11: i64 = 0
           __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(lifted.first))
@@ -131,6 +131,11 @@
   snippet.layout.Layout :: struct { width: i32, indent: i32 }  // snippet_layout$Layout
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -141,11 +146,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

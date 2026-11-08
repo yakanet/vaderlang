@@ -9,7 +9,7 @@
 //   `UserId` candidate still beats the `Into` fallback (`preferred`).
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 UserId :: struct { value: i32 }
 

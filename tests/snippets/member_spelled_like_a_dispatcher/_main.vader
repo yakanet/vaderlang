@@ -5,7 +5,7 @@
 // dispatches through `snippet$_i32__i32_$Marker$$dispatch`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Marker :: trait {
     dispatch :: fn(self) -> i32

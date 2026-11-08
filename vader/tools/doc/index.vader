@@ -11,7 +11,7 @@
 module "vader/tools/doc"
 
 import "std/collections"
-import "std/io"
+import "std/fs"
 import "std/iter"
 import "std/path"
 import "std/sort"

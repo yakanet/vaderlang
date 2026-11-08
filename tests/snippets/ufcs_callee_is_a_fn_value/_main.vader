@@ -4,7 +4,7 @@
 // function" panic on a program that is perfectly legal.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 apply :: fn(s: i32, g: fn(i32) -> i32) -> i32 = g(s)
 

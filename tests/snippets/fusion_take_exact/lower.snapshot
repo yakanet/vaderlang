@@ -42,7 +42,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(82))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "map.take(")
@@ -122,7 +122,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("flat_map.take(4):", fused, " |", lazy))
+      std.console.println<string>(concat_4("flat_map.take(4):", fused, " |", lazy))
   }
   snippet.produced :: fn(n: i32) -> Iterator<i32> {  // snippet$produced
       return $genstate_produced {
@@ -132,7 +132,7 @@
       }
   }
   snippet.from_a_generator :: fn() -> void {  // snippet$from_a_generator
-      std.io.println<string>("generator.take(2), fused:")
+      std.console.println<string>("generator.take(2), fused:")
       {
           n: i32 = 5
           n: i64 = 2
@@ -145,7 +145,7 @@
                   {
                       i: i32 = 0
                       for i < n {
-                          std.io.println<string>({
+                          std.console.println<string>({
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(30))
                               __off_1: i64 = 0
                               __off_1 = std.core.write_string_at(__buf_0, __off_1, "  produce ")
@@ -154,7 +154,7 @@
                           } :string)
                           x: i32 = i
                           v: i32 = x
-                          std.io.println<string>({
+                          std.console.println<string>({
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
                               __off_1: i64 = 0
                               __off_1 = std.core.write_string_at(__buf_0, __off_1, "  got ")
@@ -172,7 +172,7 @@
               }
           }
       }
-      std.io.println<string>("generator.take(2), lazy:")
+      std.console.println<string>("generator.take(2), lazy:")
       it: Iterator<i32> = std.iter.take<i32>(snippet.produced(5), i64(2))
       {
           __iter_2: Iterator<i32> = it
@@ -182,7 +182,7 @@
                   break
               } else {
                   v: i32 = i32(__step_3)
-                  std.io.println<string>({
+                  std.console.println<string>({
                       __buf_4: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_5: i64 = 0
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, "  got ")
@@ -225,7 +225,7 @@
               __self_2.state = 3
               return __self_2.s1
           } else if __self_2.state == 5 {
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_0: Buffer = std.core.new_byte_buffer(i64(30))
                   __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "  produce ")
@@ -264,6 +264,11 @@
   vtable std.core.Iterator.next for $genstate_produced  snippet$$genstate_produced$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -278,11 +283,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.flat_map<i32, i32>  // std_iter$flat_map__i32__i32
     fn std.iter.map<i32, i32>  // std_iter$map__i32__i32

@@ -6,7 +6,8 @@
 
 module "vader/tools/cli"
 
-import "std/io"
+import "std/console"
+import "std/env"
 import "std/path"
 import "std/string"
 import "cli"

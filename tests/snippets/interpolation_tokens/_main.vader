@@ -3,7 +3,7 @@
 // an interpolation.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 name :: "world"
 x :: 41

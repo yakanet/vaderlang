@@ -38,7 +38,7 @@
       }
       snippet.fill(m)
       snippet.pair_into<Map<string, i32>>(m)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(104))
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.peek(m, "a"))
@@ -61,7 +61,7 @@
           snippet.Log.set_at(l, "p", __destr_el_3)
           snippet.Log.set_at(l, "q", __destr_el_4)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_5: i64 = @array.len(l.lines)
           __p_6: string = l.lines[0]
           __p_7: string = l.lines[3]
@@ -86,7 +86,7 @@
       snippet.put_wide(wide)
       snippet.put_wider<Map<i64, i32>>(wide)
       k: i64 = 9000000000
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(62))
           __off_13: i64 = 0
           __off_13 = std.core.write_int(__buf_12, __off_13, {
@@ -155,6 +155,11 @@
     struct std.collections.Map<string, i32>  // std_collections$Map__string__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -176,11 +181,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

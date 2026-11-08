@@ -4,7 +4,7 @@
 // `Wrap<Wrap<Label>>`, called directly, share it.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Box :: struct<T> { value: T }
 

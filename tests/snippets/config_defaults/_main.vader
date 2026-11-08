@@ -7,7 +7,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 setting :: fn(key: string) -> i32 | null {
     if key == "width"  { return 80 }

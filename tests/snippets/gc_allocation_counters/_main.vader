@@ -3,7 +3,7 @@
 // The VM has no collector and keeps every counter at 0, so its run is skipped.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/runtime"
 
 main :: fn() -> i32 {

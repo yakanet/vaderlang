@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/collections"
 
 // Face 3: explicit type argument pins T to i64.

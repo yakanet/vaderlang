@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 fill :: fn(x: i32[] | string[]) -> i64 {
     if x is i32[] {

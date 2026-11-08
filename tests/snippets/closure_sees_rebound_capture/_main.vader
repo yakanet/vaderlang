@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // The closure is made before the parameter is reassigned, and reads it after.
 reads_later :: fn(n: i32) -> i32 {

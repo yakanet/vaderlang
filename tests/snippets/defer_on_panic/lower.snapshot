@@ -5,7 +5,7 @@
       @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 {}))
       @defer_push(@closure(__defer_snippet_2, __defer_env_snippet_3 {}))
       @defer_push(@closure(__defer_snippet_4, __defer_env_snippet_5 {}))
-      std.io.println<string>("starting")
+      std.console.println<string>("starting")
       boom: i32 = 1
       boom = boom / 0
       {
@@ -15,15 +15,15 @@
   }
   __defer_env_snippet_1 :: struct {}
   __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
-      std.io.println<string>("outer cleanup")
+      std.console.println<string>("outer cleanup")
   }
   __defer_env_snippet_3 :: struct {}
   __defer_snippet_2 :: fn(__env_1: __defer_env_snippet_3) -> void {
-      std.io.println<string>("middle cleanup")
+      std.console.println<string>("middle cleanup")
   }
   __defer_env_snippet_5 :: struct {}
   __defer_snippet_4 :: fn(__env_2: __defer_env_snippet_5) -> void {
-      std.io.println<string>("inner cleanup")
+      std.console.println<string>("inner cleanup")
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -35,15 +35,15 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

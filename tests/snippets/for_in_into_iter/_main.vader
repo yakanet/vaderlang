@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/collections"
 // `chars` anchors std/string's blanket `string implements Into<Iterator<char>>`
 // impl into scope ; the `for _c in <string>` leg routes through it at lowering.

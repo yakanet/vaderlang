@@ -10,7 +10,7 @@
 module "snippet"
 
 import "std/collections"
-import "std/io"
+import "std/console"
 B :: import "snippet/bytes"
 
 Byte :: u8 | string

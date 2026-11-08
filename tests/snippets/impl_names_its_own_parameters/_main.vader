@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Getter :: trait<V> {
     get :: fn(self) -> V

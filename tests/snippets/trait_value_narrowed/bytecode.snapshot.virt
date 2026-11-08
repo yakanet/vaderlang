@@ -227,20 +227,20 @@ fn 4 snippet$main () -> i32
       array.get 20   ; ref snippet$Shape[]
       local.tee 4   ; s
       call 1   ; snippet$describe
-      call 37   ; std_io$println__string
+      call 37   ; std_console$println__string
       local.get 4   ; s
       call 2   ; snippet$measure
-      call 36   ; std_io$println__i32
+      call 36   ; std_console$println__i32
       local.get 4   ; s
       call 3   ; snippet$later
       call.indirect 5   ; fn
-      call 37   ; std_io$println__string
+      call 37   ; std_console$println__string
       local.get 4   ; s
       type_check 21   ; ref snippet$Named
       if $L2 void
         local.get 4   ; s
         virtual.call 1 snippet$Named.name -> string
-        call 37   ; std_io$println__string
+        call 37   ; std_console$println__string
       end $L2
       local.get 3   ; __for_i_2
       i64.const 1
@@ -252,11 +252,11 @@ fn 4 snippet$main () -> i32
   i32.const 3
   struct.new 1   ; snippet$Square
   call 7   ; snippet$side_of__snippet_Circle
-  call 36   ; std_io$println__i32
+  call 36   ; std_console$println__i32
   i32.const 3
   struct.new 8   ; snippet$Circle
   call 7   ; snippet$side_of__snippet_Circle
-  call 36   ; std_io$println__i32
+  call 36   ; std_console$println__i32
   return.lit i32.const 0
 end
 
@@ -2077,7 +2077,7 @@ fn 32 std_core$insert_point (ref,i64,i32,i32) -> i64
   return
 end
 
-fn 33 std_io$write (u8,string) -> void
+fn 33 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -2088,7 +2088,7 @@ fn 33 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 34   ; std_io$write_text
+  call 34   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -2119,7 +2119,7 @@ fn 33 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 35   ; std_io$write_bytes
+      call 35   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2139,11 +2139,11 @@ fn 33 std_io$write (u8,string) -> void
   return
 end
 
-fn 34 std_io$write_text (u8,string) -> bool
+fn 34 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 35 std_io$write_bytes (u8,ref,i64) -> i32
+fn 35 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2163,7 +2163,7 @@ fn 35 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 36 std_io$println__i32 (i32) -> void
+fn 36 std_console$println__i32 (i32) -> void
   local __buf_0 ref
   local __off_1 i64
   local $cast_7 i64
@@ -2192,11 +2192,11 @@ fn 36 std_io$println__i32 (i32) -> void
   local.set 4   ; $call_11
   i32.const 0
   local.get 4   ; $call_11
-  call 33   ; std_io$write
+  call 33   ; std_console$write
   return
 end
 
-fn 37 std_io$println__string (string) -> void
+fn 37 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 12   ; "\n"
@@ -2204,6 +2204,6 @@ fn 37 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 33   ; std_io$write
+  call 33   ; std_console$write
   return
 end

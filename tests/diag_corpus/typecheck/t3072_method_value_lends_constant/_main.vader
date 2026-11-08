@@ -3,7 +3,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 WEIGHTS :: [1, 2]
 

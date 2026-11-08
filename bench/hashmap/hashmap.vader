@@ -16,7 +16,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 import "std/collections"
 
 N        :: 100_000

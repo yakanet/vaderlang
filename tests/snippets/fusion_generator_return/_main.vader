@@ -8,7 +8,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 upto_stop :: fn(n: i32) -> Iterator<i32> {

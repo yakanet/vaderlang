@@ -24,7 +24,7 @@
           }
           out
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(114))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "collect array: len ")
@@ -53,7 +53,7 @@
           }
           out
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(89))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "collect range: len ")
@@ -85,7 +85,7 @@
           }
           total
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(35))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "count array:   ")
@@ -108,7 +108,7 @@
           }
           total
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(35))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "count range:   ")
@@ -116,7 +116,7 @@
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       c: i64 = std.iter.count<i32>([10, 20, 30] :i32[])
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(35))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "count bare:    ")
@@ -147,7 +147,7 @@
           }
           __consumed_17
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(20))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "any_match:     ")
@@ -204,7 +204,7 @@
           }
           __consumed_23
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(26))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "all_match:     ")
@@ -238,9 +238,9 @@
           __consumed_27
       }
       if f is null {
-          std.io.println<string>("find hit:      none")
+          std.console.println<string>("find hit:      none")
       } else {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_28: Buffer = std.core.new_byte_buffer(i64(35))
               __off_29: i64 = 0
               __off_29 = std.core.write_string_at(__buf_28, __off_29, "find hit:      ")
@@ -275,9 +275,9 @@
           __consumed_31
       }
       if g is null {
-          std.io.println<string>("find miss:     none")
+          std.console.println<string>("find miss:     none")
       } else {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_32: Buffer = std.core.new_byte_buffer(i64(35))
               __off_33: i64 = 0
               __off_33 = std.core.write_string_at(__buf_32, __off_33, "find miss:     ")
@@ -345,6 +345,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -355,11 +360,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.count<i32>  // std_iter$count__i32
   system/posix

@@ -4,7 +4,7 @@
 // a trait array's element as it is.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Shape :: trait {
     area :: fn(self) -> i32

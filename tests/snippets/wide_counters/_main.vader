@@ -4,7 +4,7 @@
 // on it is the `u64`'s, and a comparison with another such range narrows exactly.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Counter :: Int in 0..=18_446_744_073_709_551_615
 Straddle :: Int in 9_223_372_036_854_775_800..=9_223_372_036_854_775_810

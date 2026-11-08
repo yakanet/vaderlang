@@ -8,7 +8,7 @@
 //   closure value, which survives the field and is called indirectly from it.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Adder :: struct {
     f: fn(i32) -> i32

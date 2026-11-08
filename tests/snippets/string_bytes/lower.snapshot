@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>("-- ascii --")
+      std.console.println<string>("-- ascii --")
       sum: u32 = u32(0)
       {
           __for_arr_0: u8[] = std.core.bytes("vader")
@@ -15,21 +15,21 @@
               __for_i_2 = __for_i_2 +% i64(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(24))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "sum=")
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, sum)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      std.io.println<string>("-- multibyte --")
+      std.console.println<string>("-- multibyte --")
       {
           __for_arr_5: u8[] = std.core.bytes("你")
           __for_len_6: i64 = @array.len(__for_arr_5)
           __for_i_7: i64 = 0
           for __for_i_7 < __for_len_6 {
               b: u8 = __for_arr_5[__for_i_7]
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_8: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_9: i64 = 0
                   __off_9 = std.core.write_unsigned(__buf_8, __off_9, b)
@@ -41,8 +41,8 @@
       }
       bom: string = "﻿data"
       bb: u8[] = std.core.bytes(bom)
-      std.io.println<string>("-- bom --")
-      std.io.println<string>({
+      std.console.println<string>("-- bom --")
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(71))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "b0=")
@@ -53,7 +53,7 @@
           __off_11 = std.core.write_unsigned(__buf_10, __off_11, bb[2])
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(52))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "after bom: ")
@@ -62,28 +62,28 @@
           __off_13 = std.core.write_unsigned(__buf_12, __off_13, std.core.bytes("d")[0])
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      std.io.println<string>("-- empty --")
+      std.console.println<string>("-- empty --")
       {
           __for_arr_14: u8[] = std.core.bytes("")
           __for_len_15: i64 = @array.len(__for_arr_14)
           __for_i_16: i64 = 0
           for __for_i_16 < __for_len_15 {
               b: u8 = __for_arr_14[__for_i_16]
-              std.io.println<string>("never")
+              std.console.println<string>("never")
           } @step {
               __for_i_16 = __for_i_16 +% i64(1)
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_17: Buffer = std.core.new_byte_buffer(i64(31))
           __off_18: i64 = 0
           __off_18 = std.core.write_string_at(__buf_17, __off_18, "done bytes=")
           __off_18 = std.core.write_int(__buf_17, __off_18, @array.len(std.core.bytes("")))
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
-      std.io.println<string>("-- u8[] surface --")
+      std.console.println<string>("-- u8[] surface --")
       bs: u8[] = std.core.bytes("abc")
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_19: Buffer = std.core.new_byte_buffer(i64(105))
           __off_20: i64 = 0
           __off_20 = std.core.write_string_at(__buf_19, __off_20, "len=")
@@ -96,9 +96,9 @@
           __off_20 = std.core.write_unsigned(__buf_19, __off_20, bs[2])
           std.core.finish_buffer(__buf_19, __off_20)
       } :string)
-      std.io.println<string>("-- slice --")
+      std.console.println<string>("-- slice --")
       sl: u8[] = std.core.bytes("abcde")[i64(1)..<i64(4)]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_21: Buffer = std.core.new_byte_buffer(i64(102))
           __off_22: i64 = 0
           __off_22 = std.core.write_string_at(__buf_21, __off_22, "sl.len=")
@@ -123,6 +123,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -133,11 +138,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

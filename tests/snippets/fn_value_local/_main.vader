@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 export Op :: struct {
     op: fn(i32, i32) -> i32

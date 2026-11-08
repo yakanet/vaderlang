@@ -10,7 +10,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 Node :: struct {
     value: i32

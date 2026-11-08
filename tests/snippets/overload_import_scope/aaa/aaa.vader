@@ -1,6 +1,6 @@
 module "snippet/aaa"
 
-import "std/io"
+import "std/console"
 
 export f :: fn(x: string) -> void {
     println("aaa ${x}")

@@ -3,7 +3,7 @@
 // through its bound runs the impl's member, and a generic over `T[]` the array's.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Resettable :: trait {
     clear :: fn(self) -> void

@@ -17,7 +17,7 @@ Save this as `hello.vader`, in a folder of its own:
 ```vader
 module "main"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     println("Hello, World!")

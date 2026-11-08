@@ -37,7 +37,7 @@ export Duration :: i64
 //
 // POSIX reads a `struct timespec`, Win32 a FILETIME and a performance counter,
 // and the two shapes differ enough that `@target` selects a BODY: the split
-// `std/io::write_bytes` already makes between a descriptor and a HANDLE.
+// `std/console::write_bytes` already makes between a descriptor and a HANDLE.
 //
 // The bare `@target` declaration carries no body on purpose: a target with no
 // clock then fails to BUILD (R2041) rather than reading a plausible zero. WASI

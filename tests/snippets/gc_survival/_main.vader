@@ -8,7 +8,7 @@
 // Each scenario walks its data after the collection and checks the sum.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/runtime"
 
 export Node :: struct {

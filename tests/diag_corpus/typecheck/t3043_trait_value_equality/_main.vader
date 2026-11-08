@@ -2,7 +2,7 @@
 // among them, so it has no `==`. Narrow it first (`if d is Point`).
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Point :: struct {
     x: i32

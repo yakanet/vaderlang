@@ -8,7 +8,7 @@
 // whole. A hand-written `a[i()] = a[i()] + 1` keeps its two evaluations.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 slot :: fn(i: i64) -> i64 {
     println("index ${i}")

@@ -40,7 +40,8 @@ module "main"
 
 Cli :: import "cli"
 
-import "std/io"
+import "std/console"
+import "std/fs"
 import "std/iter"
 import "std/string"
 import "std/string_builder"

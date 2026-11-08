@@ -3,7 +3,7 @@
 // module gives it, whether written, converted by `into`, or copied by a spread.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "snippet/util"
 
 main :: fn() -> i32 {

@@ -6,7 +6,7 @@
 // the inner loop, `break i` acts as `continue i`, and `continue i` spins forever.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 break_outer :: fn() -> Iterator<i32> {
     for i in 0..<3 {

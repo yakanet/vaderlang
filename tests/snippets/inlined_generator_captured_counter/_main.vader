@@ -3,7 +3,7 @@
 // a cell too, though no body of `snippet/gens` was lowered before.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "snippet/gens"
 
 main :: fn() -> i32 {

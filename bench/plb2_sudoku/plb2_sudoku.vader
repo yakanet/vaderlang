@@ -11,7 +11,7 @@
 
 module "main"
 
-import "std/io"
+import "std/console"
 
 REPEATS: i64: 200
 CHECKSUM_MODULUS: i64: 1_000_000_007

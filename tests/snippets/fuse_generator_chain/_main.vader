@@ -4,7 +4,7 @@
 // flatten to one loop, with no boxed `next()` left in `main`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 my_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }

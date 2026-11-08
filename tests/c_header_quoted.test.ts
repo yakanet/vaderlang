@@ -11,7 +11,7 @@ import { EXE_SUFFIX, LONG_BUILD, haveCc, runCli, spawnCapture } from "./cli-bin.
 
 const SOURCE = `module "main"
 
-import "std/io"
+import "std/console"
 
 @c_header("\\"my.h\\"")
 @extern("abs")

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 export l_add  :: fn(a: i64, b: i64) -> i64  = a + b
 export l_div  :: fn(a: i64, b: i64) -> i64  = a / b

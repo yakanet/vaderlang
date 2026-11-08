@@ -281,7 +281,7 @@ import "std/testing"
 @test test_is_int_equals :: fn() -> void {
     assert(is_int_equals(r"std_core$i32$Equals$equals"), "i32 equals")
     assert(!is_int_equals(r"std_core$string$Equals$equals"), "string is no int width")
-    assert(!is_int_equals(r"std_io$write"), "non-core bails on prefix")
+    assert(!is_int_equals(r"std_console$write"), "non-core bails on prefix")
     assert(!is_int_equals(r"user_mod$Foo$Bar$baz"), "user mangle")
 }
 
@@ -310,9 +310,9 @@ import "std/testing"
 }
 
 @test test_intrinsic_id_for :: fn() -> void {
-    // `std_io$write` is deliberately absent: it is ordinary Vader now, written
+    // `std_console$write` is deliberately absent: it is ordinary Vader now, written
     // over `sys/io::sys_write`.
-    assert(intrinsic_id_for(r"std_io$write") == .NotIntrinsic, "io write is no longer a host")
+    assert(intrinsic_id_for(r"std_console$write") == .NotIntrinsic, "console write is no longer a host")
     // Same shape: `std/math` became `@extern`, so re-adding a Math variant would
     // silently route it back through `dispatch_import` while the declaration says
     // otherwise: an import neither backend serves.

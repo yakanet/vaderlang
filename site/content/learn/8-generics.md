@@ -8,7 +8,7 @@ A function or a struct may take types as parameters, written `<T>`. A bound, `<T
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 last :: fn<T>(items: T[], fallback: T) -> T {
     if items.len() == 0 {
         return fallback
@@ -37,7 +37,7 @@ Inside a generic body, a value of type `T` can do only what its bound allows: `T
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 largest :: fn<T: Comparable>(items: T[]) -> T | null {
     if items.len() == 0 {
         return null
@@ -70,7 +70,7 @@ A struct may take type parameters too, and its literal names them: `Pair<string,
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Pair :: struct<A, B> {
     first:  A
     second: B

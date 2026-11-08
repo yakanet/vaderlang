@@ -8,7 +8,7 @@
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 squares :: fn(n: i32) -> i32[] {
     out: i32[]: []
     for i in 0..<n {
@@ -51,7 +51,7 @@ A block after `@comptime` runs like a function body: its last expression gives t
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Point :: struct { x: f64, y: f64 }
 Secret :: struct { key: string }
 
@@ -84,7 +84,7 @@ A struct is a reference, so `@size_of` gives the size of the reference: 8 bytes.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Config :: struct {
     name:    string
     retries: i32
@@ -116,7 +116,7 @@ The rules: §14 *`@comptime for` over reflected fields*.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Header :: struct { tag: u8, size: u32 }
 
 @assert(@field_count(Header) == 2, "Header has two fields")

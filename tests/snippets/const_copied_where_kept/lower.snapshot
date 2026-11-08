@@ -36,16 +36,22 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       c: Counter = Counter { .n = 5 }
       snippet.bump(c)
-      std.io.println<i32>(c.n)
-      std.io.println<i32>(snippet.start().n)
-      std.io.println<i32>(snippet.first_prime())
-      std.io.println<i64>(@array.len(snippet.primes()))
-      std.io.println<i64>(@array.len(snippet.starts()))
-      std.io.println<i32>(snippet.alias().n)
+      std.console.println<i32>(c.n)
+      std.console.println<i32>(snippet.start().n)
+      std.console.println<i32>(snippet.first_prime())
+      std.console.println<i64>(@array.len(snippet.primes()))
+      std.console.println<i64>(@array.len(snippet.starts()))
+      std.console.println<i32>(snippet.alias().n)
       return 0
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<i32>  // std_console$println__i32
+    fn std.console.println<i64>  // std_console$println__i64
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -56,12 +62,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<i32>  // std_io$println__i32
-    fn std.io.println<i64>  // std_io$println__i64
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

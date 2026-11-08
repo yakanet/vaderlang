@@ -26,7 +26,7 @@
           .tombs = i64(0),
       }
       std.collections.Map<Any, string>.set_at(seen, Point { .x = 1 }, "point")
-      std.io.println<string>(concat_3({
+      std.console.println<string>(concat_3({
           __coalesce_0: null | string = std.collections.Map<Any, string>.at(seen, Label { .n = 1 })
           if __coalesce_0 is null { "absent" } else { string(__coalesce_0) } :string
       } :string, " ", {
@@ -35,7 +35,7 @@
       } :string))
       shapes: (Label | Point)[] = [Point { .x = 1 }] :(Label | Point)[]
       label: Label | Point = Label { .n = 1 }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(5))
           __off_3: i64 = 0
           __off_3 = std.core.write_bool(__buf_2, __off_3, std.core.(Label | Point)[].contains(shapes, label))
@@ -43,7 +43,7 @@
       } :string)
       numbers: (f64 | string)[] = [1.5, "a"] :(f64 | string)[]
       found: f64 | string = 1.5
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(5))
           __off_5: i64 = 0
           __off_5 = std.core.write_bool(__buf_4, __off_5, std.core.(f64 | string)[].contains(numbers, found))
@@ -51,7 +51,7 @@
       } :string)
       e1: Equals = Point { .x = 1 }
       e2: Equals = Label { .n = 1 }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(11))
           __off_7: i64 = 0
           __off_7 = std.core.write_bool(__buf_6, __off_7, @vcall(std.core.Equals.equals, e1, e2))
@@ -107,6 +107,11 @@
     struct std.collections.Map<Any, string>  // std_collections$Map__Any__string
     struct std.collections.Map<Label | Point, string>  // std_collections$Map__snippet_Label___snippet_Point__string
     struct std_collections$__gen_state_std_collections_0
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.(Label | Point)[].contains  // std_core$$array$Contains$contains__snippet_Label___snippet_Point
     fn std.core.(f64 | string)[].contains  // std_core$$array$Contains$contains__f64___string
@@ -143,11 +148,6 @@
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

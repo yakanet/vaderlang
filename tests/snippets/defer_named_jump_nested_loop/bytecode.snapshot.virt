@@ -103,7 +103,7 @@ fn 0 snippet$continue_outer () -> void
           local.get 2   ; __buf_2
           local.get 3   ; __off_3
           call 8   ; std_core$finish_buffer
-          call 14   ; std_io$println__string
+          call 14   ; std_console$println__string
           defer.pop_exec 1
           local.get 1   ; w
           i32.const 1
@@ -113,7 +113,7 @@ fn 0 snippet$continue_outer () -> void
         end $L3
       end $L2
       string.const 2   ; "  never: the inner loop always leaves by `continue v`"
-      call 14   ; std_io$println__string
+      call 14   ; std_console$println__string
       defer.pop_exec 1
       local.get 0   ; v
       i32.const 1
@@ -197,7 +197,7 @@ fn 1 snippet$break_outer () -> void
             local.get 2   ; __buf_2
             local.get 3   ; __off_3
             call 8   ; std_core$finish_buffer
-            call 14   ; std_io$println__string
+            call 14   ; std_console$println__string
             defer.pop_exec 1
             local.get 1   ; w
             i32.const 1
@@ -216,16 +216,16 @@ fn 1 snippet$break_outer () -> void
     end $L1
   end $L0
   string.const 3   ; "  after the loops"
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   return
 end
 
 fn 2 snippet$main () -> i32
   string.const 4   ; "continue v:"
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   call 0   ; snippet$continue_outer
   string.const 5   ; "break v:"
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   call 1   ; snippet$break_outer
   return.lit i32.const 0
 end
@@ -256,7 +256,7 @@ fn 3 __defer_snippet_0 (ref) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   return
 end
 
@@ -300,7 +300,7 @@ fn 4 __defer_snippet_2 (ref) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   return
 end
 
@@ -330,7 +330,7 @@ fn 5 __defer_snippet_4 (ref) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   return
 end
 
@@ -374,7 +374,7 @@ fn 6 __defer_snippet_6 (ref) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 8   ; std_core$finish_buffer
-  call 14   ; std_io$println__string
+  call 14   ; std_console$println__string
   return
 end
 
@@ -543,7 +543,7 @@ fn 10 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 11 std_io$write (u8,string) -> void
+fn 11 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -554,7 +554,7 @@ fn 11 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 12   ; std_io$write_text
+  call 12   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -585,7 +585,7 @@ fn 11 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 13   ; std_io$write_bytes
+      call 13   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -605,11 +605,11 @@ fn 11 std_io$write (u8,string) -> void
   return
 end
 
-fn 12 std_io$write_text (u8,string) -> bool
+fn 12 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 13 std_io$write_bytes (u8,ref,i64) -> i32
+fn 13 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -629,7 +629,7 @@ fn 13 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 14 std_io$println__string (string) -> void
+fn 14 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 8   ; "\n"
@@ -637,6 +637,6 @@ fn 14 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 11   ; std_io$write
+  call 11   ; std_console$write
   return
 end

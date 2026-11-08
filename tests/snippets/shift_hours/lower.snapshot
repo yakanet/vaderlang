@@ -4,7 +4,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       start: Hour = 20
       short: Hour = 3
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(28))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "ends at ")
@@ -12,14 +12,14 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       lengths: Hour[] = [Hour(2), Hour(3), Hour(4)] :Hour[]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(27))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "worked ")
           __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.total<Hour>(lengths))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(32))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "long shifts ")
@@ -57,7 +57,7 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       march: Month = 3
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(32))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "first month ")
@@ -65,7 +65,7 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       bytes: u8 = 200
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(26))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "bytes ")
@@ -73,7 +73,7 @@
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       long: Hour = 10
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(28))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "ends at ")
@@ -143,6 +143,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -155,11 +160,6 @@
     fn std_core$u8$One$one
     fn std_core$u8$Zero$zero
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

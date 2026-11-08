@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Every leaf is known here : the whole chain becomes one interned literal.
 all_literals :: fn() -> string = "a" + "bcd" + "efgh" + "ijklm"

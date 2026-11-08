@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A PREFIX mirror: `struct timeval` has two members and this names one.
 //

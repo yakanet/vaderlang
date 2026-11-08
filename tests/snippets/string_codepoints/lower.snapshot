@@ -10,7 +10,7 @@
                   break
               } else {
                   c: char = char(__step_1)
-                  std.io.println<string>(concat_2("chars ascii: ", std.core.char.to_string(c)))
+                  std.console.println<string>(concat_2("chars ascii: ", std.core.char.to_string(c)))
               }
           }
       }
@@ -22,7 +22,7 @@
                   break
               } else {
                   c: char = char(__step_3)
-                  std.io.println<string>(concat_2("chars cjk:   ", std.core.char.to_string(c)))
+                  std.console.println<string>(concat_2("chars cjk:   ", std.core.char.to_string(c)))
               }
           }
       }
@@ -39,7 +39,7 @@
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(71))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "chars mixed: codepoints=")
@@ -56,11 +56,11 @@
                   break
               } else {
                   c: char = char(__step_9)
-                  std.io.println<string>("chars empty: never")
+                  std.console.println<string>("chars empty: never")
               }
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(61))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "len ascii  cp=")
@@ -69,7 +69,7 @@
           __off_11 = std.core.write_int(__buf_10, __off_11, @array.len(std.core.bytes("vader")))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(61))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "len mixed  cp=")
@@ -78,7 +78,7 @@
           __off_13 = std.core.write_int(__buf_12, __off_13, @array.len(std.core.bytes("héllo")))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(61))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "len cjk    cp=")
@@ -87,7 +87,7 @@
           __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(std.core.bytes("你好嗎？")))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(61))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "len emoji  cp=")
@@ -96,7 +96,7 @@
           __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(std.core.bytes("a😀b")))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(61))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "len empty  cp=")
@@ -112,7 +112,7 @@
           __tup_20: [char, i64] = std.core.codepoint_at_byte(s, i)
           c: char = __tup_20._0
           w: i64 = __tup_20._1
-          std.io.println<string>({
+          std.console.println<string>({
               __p_21: string = std.core.char.to_string(c)
               __buf_22: Buffer = std.core.new_byte_buffer(i64(61) +% std.core.byte_len(__p_21))
               __off_23: i64 = 0
@@ -127,28 +127,28 @@
           } :string)
           i = i + w
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(34))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "width 'a'   = ")
           __off_25 = std.core.write_int(__buf_24, __off_25, std.string.codepoint_byte_len('a'))
           std.core.finish_buffer(__buf_24, __off_25)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(35))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "width 'é'   = ")
           __off_27 = std.core.write_int(__buf_26, __off_27, std.string.codepoint_byte_len('\u{e9}'))
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_28: Buffer = std.core.new_byte_buffer(i64(35))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "width '你'  = ")
           __off_29 = std.core.write_int(__buf_28, __off_29, std.string.codepoint_byte_len('\u{4f60}'))
           std.core.finish_buffer(__buf_28, __off_29)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_30: Buffer = std.core.new_byte_buffer(i64(34))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "width emoji = ")
@@ -156,42 +156,42 @@
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
       h: string = "héllo"
-      std.io.println<string>(concat_3("slice [0..<2]   = [", std.core.string.at(h, Range<i64> {
+      std.console.println<string>(concat_3("slice [0..<2]   = [", std.core.string.at(h, Range<i64> {
           .start = i64(0),
           .end = i64(2),
           .inclusive = false,
           .done = false,
           .cursor = i64(0),
       }), "]"))
-      std.io.println<string>(concat_3("slice [1..<3]   = [", std.core.string.at(h, Range<i64> {
+      std.console.println<string>(concat_3("slice [1..<3]   = [", std.core.string.at(h, Range<i64> {
           .start = i64(1),
           .end = i64(3),
           .inclusive = false,
           .done = false,
           .cursor = i64(1),
       }), "]"))
-      std.io.println<string>(concat_3("slice [0..<5]   = [", std.core.string.at(h, Range<i64> {
+      std.console.println<string>(concat_3("slice [0..<5]   = [", std.core.string.at(h, Range<i64> {
           .start = i64(0),
           .end = i64(5),
           .inclusive = false,
           .done = false,
           .cursor = i64(0),
       }), "]"))
-      std.io.println<string>(concat_3("slice [2..=4]   = [", std.core.string.at(h, Range<i64> {
+      std.console.println<string>(concat_3("slice [2..=4]   = [", std.core.string.at(h, Range<i64> {
           .start = i64(2),
           .end = i64(4),
           .inclusive = true,
           .done = false,
           .cursor = i64(2),
       }), "]"))
-      std.io.println<string>(concat_3("slice [0..<99]  = [", std.core.string.at(h, Range<i64> {
+      std.console.println<string>(concat_3("slice [0..<99]  = [", std.core.string.at(h, Range<i64> {
           .start = i64(0),
           .end = i64(99),
           .inclusive = false,
           .done = false,
           .cursor = i64(0),
       }), "]"))
-      std.io.println<string>(concat_3("slice [99..<99] = [", std.core.string.at(h, Range<i64> {
+      std.console.println<string>(concat_3("slice [99..<99] = [", std.core.string.at(h, Range<i64> {
           .start = i64(99),
           .end = i64(99),
           .inclusive = false,
@@ -199,7 +199,7 @@
           .cursor = i64(99),
       }), "]"))
       a: string = "hello"
-      std.io.println<string>(concat_3("slice ascii [1..<4] = [", std.core.string.at(a, Range<i64> {
+      std.console.println<string>(concat_3("slice ascii [1..<4] = [", std.core.string.at(a, Range<i64> {
           .start = i64(1),
           .end = i64(4),
           .inclusive = false,
@@ -228,6 +228,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -253,11 +258,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.StringChars.next  // std_string$StringChars$std_core$Iterator$next
     fn std.string.chars  // std_string$chars

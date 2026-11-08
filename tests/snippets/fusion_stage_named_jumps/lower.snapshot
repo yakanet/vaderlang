@@ -89,7 +89,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("until_over(21), break x:", fused, " |", lazy))
+      std.console.println<string>(concat_4("until_over(21), break x:", fused, " |", lazy))
   }
   snippet.break_over_flat_map :: fn() -> void {  // snippet$break_over_flat_map
       fused: string = ""
@@ -156,7 +156,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("flat_map.stop_at(2), break x:", fused, " |", lazy))
+      std.console.println<string>(concat_4("flat_map.stop_at(2), break x:", fused, " |", lazy))
   }
   snippet.continue_over_array :: fn() -> void {  // snippet$continue_over_array
       fused: string = ""
@@ -210,7 +210,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("first_two_of_odd, continue x:", fused, " |", lazy))
+      std.console.println<string>(concat_4("first_two_of_odd, continue x:", fused, " |", lazy))
   }
   snippet.continue_over_take :: fn() -> void {  // snippet$continue_over_take
       fused: string = ""
@@ -276,7 +276,7 @@
               }
           }
       }
-      std.io.println<string>(concat_4("take(3).first_two_of_odd, continue x:", fused, " |", lazy))
+      std.console.println<string>(concat_4("take(3).first_two_of_odd, continue x:", fused, " |", lazy))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       snippet.break_over_array()
@@ -502,6 +502,11 @@
   vtable std.core.Iterator.next for $genstate_until_over  snippet$$genstate_until_over$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -516,11 +521,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.flat_map<i32, i32>  // std_iter$flat_map__i32__i32
     fn std.iter.take<i32>  // std_iter$take__i32

@@ -41,7 +41,7 @@ export CLOCK_MONOTONIC: i32: if VADER_OS == .Darwin { 6 } else { 1 }
 /// cannot be searched.
 ///
 /// It answers "is this a directory" only for a directory the caller can READ:
-/// `sys_path_kind` is what `std/io::is_dir` asks, and says why.
+/// `sys_path_kind` is what `std/fs::is_dir` asks, and says why.
 ///
 /// @param path  the directory to open.
 /// @return      a `DIR*`, or null.
@@ -513,6 +513,21 @@ export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i
 @c_header("<unistd.h>")
 @extern("getcwd")
 export sys_getcwd :: fn(@c_out buf: u8[], size: i64) -> CPointer | null
+
+/// The bytes of `buf` before its first NUL, as a string: how a C call that
+/// fills a buffer reports the length when it does not return one.
+///
+/// @param buf  the buffer the call filled; all of it when it holds no NUL.
+export up_to_nul :: fn(buf: u8[]) -> string {
+    end := buf.len()
+    for i in 0..<buf.len() {
+        if buf[i] == 0 {
+            end = i
+            break
+        }
+    }
+    return buf[0..<end].bytes_to_string()
+}
 
 /// `chdir(2)`. 0 on success, -1 with `errno` set.
 ///

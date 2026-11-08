@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A `||` whose operands include a TRAIT test. The true side is the union of what
 // the operands matched, and a trait has to be resolved to its implementors before

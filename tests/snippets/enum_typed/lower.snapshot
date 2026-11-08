@@ -32,7 +32,7 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: string = snippet.describe(Direction(1))
           __p_1: string = snippet.describe(Direction(8))
           __buf_2: Buffer = std.core.new_byte_buffer(i64(35) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
@@ -48,18 +48,18 @@
       op: Op = 101
       {
           if op == Op(0) {
-              std.io.println<string>("implicit u16: halt")
+              std.console.println<string>("implicit u16: halt")
           } else if op == Op(100) {
-              std.io.println<string>("implicit u16: push")
+              std.console.println<string>("implicit u16: push")
           } else if op == Op(101) {
-              std.io.println<string>("implicit u16: pop")
+              std.console.println<string>("implicit u16: pop")
           } else if op == Op(102) {
-              std.io.println<string>("implicit u16: add")
+              std.console.println<string>("implicit u16: add")
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           }
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(104))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "implicit u16 values: ")
@@ -78,7 +78,7 @@
           __for_i_8: i64 = 0
           for __for_i_8 < __for_len_7 {
               l: Level = __for_arr_6[__for_i_8]
-              std.io.println<string>({
+              std.console.println<string>({
                   __p_9: string = snippet.name(l)
                   __buf_10: Buffer = std.core.new_byte_buffer(i64(32) +% std.core.byte_len(__p_9))
                   __off_11: i64 = 0
@@ -98,7 +98,7 @@
       d: i32 = i32(Color(1))
       e: u64 = u64(Big(4000000000))
       f: i32 = i32(Big(0))
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(138))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "conversions: ")
@@ -127,6 +127,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -137,11 +142,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

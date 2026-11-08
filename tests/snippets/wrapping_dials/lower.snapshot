@@ -5,7 +5,7 @@
       late: Hour = snippet.clamp_to<Hour>(i64(30))
       early: Month = snippet.clamp_to<Month>(i64(-4))
       byte: u8 = snippet.clamp_to<u8>(i64(1000))
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(70))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "clamped ")
@@ -17,7 +17,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       december: Month = 12
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(67))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "next ")
@@ -29,7 +29,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       hours: Hour[] = [Hour(9), Hour(4), Hour(12)] :Hour[]
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(53))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "lowest ")
@@ -38,10 +38,10 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, snippet.span_of<Hour>(late, snippet.lowest<Hour>(hours)))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      std.io.println<string>(snippet.show<Month>(december))
+      std.console.println<string>(snippet.show<Month>(december))
       count: i64 = @array.len(argv) + i64(2)
       may: Month = snippet.exactly<Month>(count + i64(2))
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(26))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "month ")
@@ -49,7 +49,7 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       beyond: Month = snippet.exactly<Month>(count * i64(20))
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(26))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "month ")
@@ -162,6 +162,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -172,11 +177,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

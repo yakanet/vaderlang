@@ -4,7 +4,7 @@
 // union works too.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 byte_count :: fn(x: string | u8[]) -> i64 {
     if x is string { return x.bytes().len() }

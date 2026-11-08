@@ -4,7 +4,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 label :: fn(name: string, idx: i32) -> string = "${name}_${idx}"
 

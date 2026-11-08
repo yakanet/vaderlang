@@ -3,7 +3,7 @@
 // no declared name can.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 __genstate_count :: struct {

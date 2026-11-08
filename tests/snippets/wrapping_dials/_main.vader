@@ -6,7 +6,7 @@
 // own, a primitive too (`u8`).
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Hour  :: Int in 0..=23
 Month :: Int in 1..=12

@@ -9,7 +9,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 is_even :: fn(x: i32) -> bool = x % 2 == 0

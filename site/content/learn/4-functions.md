@@ -8,7 +8,7 @@ A body in braces returns its last expression, or what a `return` gives. A body t
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 largest :: fn(a: i32, b: i32) -> i32 {
     if a > b {
         return a
@@ -41,7 +41,7 @@ A parameter with a default may be left out. An argument may name its parameter, 
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 greet :: fn(name: string, greeting: string = "Hello", mark: string = "!") -> string =
     "${greeting}, ${name}${mark}"
 # main :: fn() -> i32 {
@@ -66,7 +66,7 @@ A lambda is written `parameters -> body`. A function type, `fn(i32) -> i32`, say
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 twice :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(f(x))
 # main :: fn() -> i32 {
 #     println("${twice(x -> x + 3, 10)}")
@@ -88,7 +88,7 @@ A lambda or a nested function sees the locals around it, and changes to them sho
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 # main :: fn() -> i32 {
     count := 0
     bump :: fn() {
@@ -113,7 +113,7 @@ A function named without a call is a value: it goes into a local, a field or an 
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 Operation :: struct {
     name:  string
     apply: fn(i32, i32) -> i32
@@ -145,7 +145,7 @@ Two functions may share a name when their first parameters have different types.
 
 ```vader
 # module "main"
-# import "std/io"
+# import "std/console"
 describe :: fn(n: i32) -> string = "the number ${n}"
 describe :: fn(s: string) -> string = "the text \"${s}\""
 describe :: fn(flags: bool[]) -> string = "${flags.len()} flags"

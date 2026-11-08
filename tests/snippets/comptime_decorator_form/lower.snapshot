@@ -65,7 +65,7 @@
   }
   snippet.ROOT_SIZE: string: "big"  // snippet$ROOT_SIZE
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: string = snippet.ORIGIN.label
           __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
@@ -76,7 +76,7 @@
           __off_2 = std.core.write_int(__buf_1, __off_2, snippet.ORIGIN.y)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(47))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "roots ")
@@ -85,14 +85,14 @@
           __off_4 = std.core.write_int(__buf_3, __off_4, i64(9))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(27))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "answer ")
           __off_6 = std.core.write_int(__buf_5, __off_6, 42)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_7: string = "root 7"
           __p_8: string = "big"
           __buf_9: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_7) +% std.core.byte_len(__p_8)))
@@ -116,6 +116,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -126,11 +131,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

@@ -3,7 +3,7 @@
 
 module "test_cmd_report"
 
-import "std/io"
+import "std/console"
 import "std/testing"
 
 @test

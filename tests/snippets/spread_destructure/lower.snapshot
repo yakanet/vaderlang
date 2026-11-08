@@ -11,7 +11,7 @@
           @array.push_cached(rest, __tup_0[__i_1])
           __i_1 = __i_1 +% i64(1)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(56))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "first=")
@@ -26,7 +26,7 @@
           __for_i_6: i64 = 0
           for __for_i_6 < __for_len_5 {
               x: i32 = __for_arr_4[__for_i_6]
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_7: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_8: i64 = 0
                   __off_8 = std.core.write_string_at(__buf_7, __off_8, "  ")
@@ -46,7 +46,7 @@
           @array.push_cached(tail, __tup_9[__i_10])
           __i_10 = __i_10 +% i64(1)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(75))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "a=")
@@ -64,7 +64,7 @@
           @array.push_cached(short, __tup_13[__i_14])
           __i_14 = __i_14 +% i64(1)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_15: Buffer = std.core.new_byte_buffer(i64(30))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "short.len=")
@@ -77,7 +77,7 @@
           __for_i_19: i64 = 0
           for __for_i_19 < __for_len_18 {
               x: i32 = __for_arr_17[__for_i_19]
-              std.io.println<string>({
+              std.console.println<string>({
                   __buf_20: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_21: i64 = 0
                   __off_21 = std.core.write_string_at(__buf_20, __off_21, "  ")
@@ -96,7 +96,7 @@
           @array.push_cached(c_rest, __tup_22[__i_23])
           __i_23 = __i_23 +% i64(1)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(60))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "c_first=")
@@ -113,7 +113,7 @@
           @array.push_cached(empty, __tup_26[__i_27])
           __i_27 = __i_27 +% i64(1)
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_28: Buffer = std.core.new_byte_buffer(i64(56))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "only=")
@@ -134,6 +134,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -144,11 +149,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

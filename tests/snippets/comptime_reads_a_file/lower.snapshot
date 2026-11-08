@@ -6,7 +6,7 @@
     const GREETING: string  inline
   snippet.FILENAME: string: "data"  // snippet$FILENAME
   snippet.__comptime_GREETING :: fn() -> string {  // snippet$__comptime_GREETING
-      read: IOError | string = std.io.read_file_string("data.txt", i64(16777216))
+      read: IOError | string = std.fs.read_file_string("data.txt", i64(16777216))
       if read is IOError {
           std.abort.panic(concat_2("cannot read `data.txt`: ", std.io.IOError.message(IOError(read))))
       }
@@ -14,7 +14,7 @@
   }
   snippet.GREETING: string: "Hello from file!"  // snippet$GREETING
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>("Hello from file!")
+      std.console.println<string>("Hello from file!")
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -29,25 +29,27 @@
 ## lowered in dependencies
   std/target/baked
     const VADER_OS: Os  inline
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
+  std/fs
+    fn __defer_std_fs_0
+    fn std.fs.read_file_bytes  // std_fs$read_file_bytes
+    fn std.fs.read_file_string  // std_fs$read_file_string
+    fn std.fs.whole_buffer  // std_fs$whole_buffer
+    struct __defer_env_std_fs_1
   std/io
-    fn __defer_std_io_0
     fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.last_io_error  // std_io$last_io_error
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.read_file_bytes  // std_io$read_file_bytes
-    fn std.io.read_file_string  // std_io$read_file_string
-    fn std.io.whole_buffer  // std_io$whole_buffer
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
-    struct __defer_env_std_io_1
     struct std.io.IOError  // std_io$IOError
   system/posix
     const EAGAIN: i32  inline

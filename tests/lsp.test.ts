@@ -526,13 +526,13 @@ test("lsp: goto-def resolves past a multi-byte char on the line (LC1)", async ()
   expect(second.range.end).toEqual({ line: 0, character: 5 });
 }, { timeout: MEDIUM_BUILD });
 
-// A `module`-declared variant so the typed project loads (and `std/io`'s
+// A `module`-declared variant so the typed project loads (and `std/console`'s
 // wildcard exports reach completion). The shared module-less SOURCE has an
 // empty typed project: fine for goto-def (DocIndex-based) but wildcard
 // completion needs the loaded project.
 const COMPLETION_SOURCE = `module "lsp_test"
 
-import "std/io"
+import "std/console"
 
 /// Doubles its argument.
 double :: fn(x: i32) -> i32 {
@@ -1479,7 +1479,7 @@ test("lsp: empty document doesn't crash, returns null on lookups", async () => {
 
 // Bindings : params + locals + for-in. Each runs in its own session so
 // the assertion failures point at a single concept.
-const BINDINGS_SOURCE = `import "std/io"
+const BINDINGS_SOURCE = `import "std/console"
 
 double :: fn(x: i32) -> i32 {
     y :: x * 2
@@ -1614,7 +1614,7 @@ main :: fn() -> i32 {
 // the LSP Location pointing at the origin's name_span. Hover renders the source
 // decl's signature + doc the same way.
 
-const CROSSFILE_SOURCE = `import "std/io"
+const CROSSFILE_SOURCE = `import "std/console"
 import "std/collections"
 
 main :: fn() -> i32 {
@@ -1625,16 +1625,16 @@ main :: fn() -> i32 {
 }
 `;
 
-test("lsp: goto-def follows imports across files (std/io)", async () => {
+test("lsp: goto-def follows imports across files (std/console)", async () => {
   // Click on `println` call inside the body at line 4 char 4.
   const results = await driveLsp(CROSSFILE_SOURCE, [
     { method: "textDocument/definition", position: { line: 4, character: 4 } },
   ]);
   const loc = results[0]!.result as Location;
-  expect(loc.uri).toMatch(/std\/io\/io\.vader$/);
-  // We don't pin the exact line: `std/io/io.vader` evolves and the test
-  // would churn on every stdlib edit. The contract is "lands in
-  // io.vader on a non-zero line".
+  expect(loc.uri).toMatch(/std\/console\/console\.vader$/);
+  // We don't pin the exact line: `std/console/console.vader` evolves and the
+  // test would churn on every stdlib edit. The contract is "lands in
+  // console.vader on a non-zero line".
   expect(loc.range.start.line).toBeGreaterThan(0);
 }, { timeout: MEDIUM_BUILD });
 
@@ -1656,8 +1656,8 @@ test("lsp: hover on imported symbol surfaces its origin signature", async () => 
   expect(hov.contents.kind).toBe("markdown");
   // Signature comes from the source decl, not the importing file.
   expect(hov.contents.value).toContain("println");
-  expect(hov.contents.value).toStartWith("std/io\n\n```\nexport println :: fn<T: Display>(msg: T) -> void\n```");
-  expect(hov.contents.value).toEndWith("*io.vader*");
+  expect(hov.contents.value).toStartWith("std/console\n\n```\nexport println :: fn<T: Display>(msg: T) -> void\n```");
+  expect(hov.contents.value).toEndWith("*console.vader*");
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {
@@ -2059,7 +2059,7 @@ test("lsp: rename stays in the file the cursor is in", async () => {
 // call takes, and each overload and impl member has references of its own.
 const CALL_FORMS_SOURCE = `module "lsptest"
 
-import "std/io"
+import "std/console"
 
 V :: struct { x: i32 }
 
@@ -2669,7 +2669,7 @@ test("lsp: a field never masks a top-level fn of the same name", async () => {
 
 const RANGE_LAST_SOURCE = `module "lsptest"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 main :: fn() -> i32 {
@@ -2707,7 +2707,7 @@ test("lsp: a match header's binding hovers as its scrutinee", async () => {
 
 const NARROWED_LOCAL_SOURCE = `module "lsptest"
 
-import "std/io"
+import "std/console"
 
 value :: fn() -> i32 | string = 3
 

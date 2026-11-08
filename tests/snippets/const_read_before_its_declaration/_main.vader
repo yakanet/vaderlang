@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A const is typed at its first read when that comes before its declaration : a
 // const reading one declared further down, a fn reading a const that calls a fn,

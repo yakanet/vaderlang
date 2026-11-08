@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A trait's default body that tests `Self`. It is compiled once per impl, where
 // `Self` is that impl's type and each test is settled: one that can never match

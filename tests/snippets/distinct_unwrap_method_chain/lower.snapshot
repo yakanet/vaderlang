@@ -24,13 +24,13 @@
       std.core.bool.to_string(bool(f))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(concat_2("inline=", snippet.inline_trim(Name("  hi  "))))
-      std.io.println<string>(concat_2("shout=", string(snippet.shout(Name("banana")))))
-      std.io.println<string>(concat_2("bound=", snippet.bound(Name("  ho  "))))
-      std.io.println<string>(concat_2("freefn=", snippet.freefn(Name("  he  "))))
-      std.io.println<string>(concat_2("identity=", snippet.identity("  hu  ")))
-      std.io.println<string>(concat_2("int=", snippet.backed_int(Count(i64(42)))))
-      std.io.println<string>(concat_2("bool=", snippet.backed_bool(Flag(true))))
+      std.console.println<string>(concat_2("inline=", snippet.inline_trim(Name("  hi  "))))
+      std.console.println<string>(concat_2("shout=", string(snippet.shout(Name("banana")))))
+      std.console.println<string>(concat_2("bound=", snippet.bound(Name("  ho  "))))
+      std.console.println<string>(concat_2("freefn=", snippet.freefn(Name("  he  "))))
+      std.console.println<string>(concat_2("identity=", snippet.identity("  hu  ")))
+      std.console.println<string>(concat_2("int=", snippet.backed_int(Count(i64(42)))))
+      std.console.println<string>(concat_2("bool=", snippet.backed_bool(Flag(true))))
       return 0
   }
   __lambda_snippet_0 :: fn(c: char) -> bool {
@@ -46,6 +46,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -57,11 +62,6 @@
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.utf8_encode  // std_core$utf8_encode
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/string
     fn std.string.is_white_byte  // std_string$is_white_byte
     fn std.string.replace_chars_where  // std_string$replace_chars_where

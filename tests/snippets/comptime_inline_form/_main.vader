@@ -12,7 +12,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // Block form with an imperative `return`.
 SQUARES :: @comptime {

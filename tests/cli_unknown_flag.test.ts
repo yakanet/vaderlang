@@ -21,7 +21,7 @@ const TRIVIAL = `module "scratch"\nmain :: fn() -> i32 {\n    return 0\n}\n`;
 
 const ECHO_ARGV = `module "scratch"
 
-import "std/io"
+import "std/console"
 
 main :: fn(argv: string[]) -> i32 {
     for i in 1..<argv.len() {

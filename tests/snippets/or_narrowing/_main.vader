@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Dog  :: struct { name: string }
 Cat  :: struct { name: string }

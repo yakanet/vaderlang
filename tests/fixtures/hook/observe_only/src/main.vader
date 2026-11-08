@@ -1,6 +1,6 @@
 module "src"
 
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     println("should not be built")

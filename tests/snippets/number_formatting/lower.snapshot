@@ -7,7 +7,7 @@
           .separator = "_",
           .group = i64(3),
       }
-      std.io.println<string>(std_numbers$format(i64(1234567), {
+      std.console.println<string>(std_numbers$format(i64(1234567), {
           __spread_0: NumberFormat = common
           IntFormat {
               .sign = __spread_0.sign,
@@ -19,7 +19,7 @@
               .digits = i64(1),
           }
       } :IntFormat))
-      std.io.println<string>(std_numbers$format(i64(-42), IntFormat {
+      std.console.println<string>(std_numbers$format(i64(-42), IntFormat {
           .sign = SignMode(0),
           .separator = "",
           .group = i64(3),
@@ -28,7 +28,7 @@
           .uppercase = false,
           .digits = i64(4),
       }))
-      std.io.println<string>(std_numbers$format(i64(3735928559), IntFormat {
+      std.console.println<string>(std_numbers$format(i64(3735928559), IntFormat {
           .sign = SignMode(0),
           .separator = "",
           .group = i64(3),
@@ -37,7 +37,7 @@
           .uppercase = true,
           .digits = i64(1),
       }))
-      std.io.println<string>(std_numbers$format(i64(-9223372036854775808), IntFormat {
+      std.console.println<string>(std_numbers$format(i64(-9223372036854775808), IntFormat {
           .sign = SignMode(0),
           .separator = ",",
           .group = i64(3),
@@ -46,7 +46,7 @@
           .uppercase = false,
           .digits = i64(1),
       }))
-      std.io.println<string>(std.numbers.format_unsigned(u64(18446744073709551615), IntFormat {
+      std.console.println<string>(std.numbers.format_unsigned(u64(18446744073709551615), IntFormat {
           .sign = SignMode(0),
           .separator = " ",
           .group = i64(8),
@@ -55,7 +55,7 @@
           .uppercase = false,
           .digits = i64(1),
       }))
-      std.io.println<string>(std_numbers$format_1(1234.5, {
+      std.console.println<string>(std_numbers$format_1(1234.5, {
           __spread_1: NumberFormat = common
           DecimalFormat {
               .sign = __spread_1.sign,
@@ -65,28 +65,28 @@
               .decimals = i64(2),
           }
       } :DecimalFormat))
-      std.io.println<string>(std_numbers$format_1(2.675, DecimalFormat {
+      std.console.println<string>(std_numbers$format_1(2.675, DecimalFormat {
           .sign = SignMode(0),
           .separator = "",
           .group = i64(3),
           .notation = Notation(0),
           .decimals = i64(2),
       }))
-      std.io.println<string>(std_numbers$format_1(123456.0, DecimalFormat {
+      std.console.println<string>(std_numbers$format_1(123456.0, DecimalFormat {
           .sign = SignMode(0),
           .separator = "",
           .group = i64(3),
           .notation = Notation(1),
           .decimals = null,
       }))
-      std.io.println<string>(std_numbers$format_1(-0.04, DecimalFormat {
+      std.console.println<string>(std_numbers$format_1(-0.04, DecimalFormat {
           .sign = SignMode(0),
           .separator = "",
           .group = i64(3),
           .notation = Notation(0),
           .decimals = i64(1),
       }))
-      std.io.println<string>(std.numbers.to_fixed(10000000000000000.0, i64(2)))
+      std.console.println<string>(std.numbers.to_fixed(10000000000000000.0, i64(2)))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -109,6 +109,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
@@ -149,11 +154,6 @@
     fn std.core.write_zeros  // std_core$write_zeros
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Dec64  // std_core$Dec64
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/math
     fn std.math.abs  // std_math$abs_2
     fn std.math.is_finite  // std_math$is_finite

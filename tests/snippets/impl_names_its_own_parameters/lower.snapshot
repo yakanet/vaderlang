@@ -4,7 +4,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       b: Box<i32> = Box<i32> { .v = 42 }
       s: Box<string> = Box<string> { .v = "text" }
-      std.io.println<string>({
+      std.console.println<string>({
           __p_0: i32 = snippet.Box<i32>.get(b)
           __p_1: string = snippet.Box<string>.get(s)
           __buf_2: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_1))
@@ -16,7 +16,7 @@
       } :string)
       p: Pair<i32, string> = Pair<i32, string> { .first = 1, .second = "one" }
       q: Pair<string, i32> = snippet.Pair<i32, string>.swapped(p)
-      std.io.println<string>({
+      std.console.println<string>({
           __p_4: string = q.first
           __buf_5: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_4))
           __off_6: i64 = 0
@@ -25,9 +25,9 @@
           __off_6 = std.core.write_int(__buf_5, __off_6, q.second)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      std.io.println<string>(snippet.Pair<i32, string>.label(p))
-      std.io.println<string>(snippet.Pair<string, i32>.label(q))
-      std.io.println<string>(snippet.Box<i32>.label(b))
+      std.console.println<string>(snippet.Pair<i32, string>.label(p))
+      std.console.println<string>(snippet.Pair<string, i32>.label(q))
+      std.console.println<string>(snippet.Box<i32>.label(b))
       return snippet.Box<i32>.get(b)
   }
   snippet.Box<i32> :: struct { v: i32 }  // snippet$Box__i32
@@ -76,6 +76,11 @@
   vtable snippet.Swap.swapped for Pair<string, i32>  snippet.Pair<string, i32>.swapped  // snippet$Pair$Swap$swapped__string__i32
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -86,11 +91,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

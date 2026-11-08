@@ -3,7 +3,7 @@
 // literal passed as an argument.
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 main :: fn() -> i32 {

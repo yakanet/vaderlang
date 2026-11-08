@@ -1,7 +1,7 @@
 // vader/lower/dump/names: the qualified names the `# Lower` dump prints.
 //
 // A declaration the program wrote is named after its module and its source
-// name, `std.io.println<string>` or `std.core.Range<i32>.next` for an impl
+// name, `std.console.println<string>` or `std.core.Range<i32>.next` for an impl
 // member, built from its `MonoEntry` origin, never by reading the mangled name
 // back. A declaration the lowering made up (a lambda, an accessor, `concat_N`)
 // keeps its mangled name, and so does any pair of declarations that would print

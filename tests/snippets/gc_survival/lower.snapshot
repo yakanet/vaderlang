@@ -39,7 +39,7 @@
       after: i64 = std.runtime.collections()
       diff: i64 = after - before
       if diff != i64(1) {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(54))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "chain: expected 1 collection, got ")
@@ -51,7 +51,7 @@
       sum: i32 = snippet.sum_chain(head)
       expected: i32 = (200 * 199) / 2
       if sum != expected {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_2: Buffer = std.core.new_byte_buffer(i64(76))
               __off_3: i64 = 0
               __off_3 = std.core.write_string_at(__buf_2, __off_3, "chain: sum mismatch: got ")
@@ -62,7 +62,7 @@
           } :string)
           return 2
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(54))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "chain: 200 nodes survived GC; sum=")
@@ -80,7 +80,7 @@
       c2: i64 = std.runtime.collections()
       diff: i64 = c2 - c1
       if diff != i64(3) {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(55))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "multi: expected 3 collections, got ")
@@ -92,7 +92,7 @@
       sum: i32 = snippet.sum_chain(head)
       expected: i32 = (50 * 49) / 2
       if sum != expected {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_2: Buffer = std.core.new_byte_buffer(i64(85))
               __off_3: i64 = 0
               __off_3 = std.core.write_string_at(__buf_2, __off_3, "multi: sum mismatch after 3 collections: ")
@@ -103,7 +103,7 @@
           } :string)
           return 2
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(64))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "multi: 50 nodes survived 3 collections; sum=")
@@ -127,7 +127,7 @@
       after: i64 = std.runtime.collections()
       diff: i64 = after - before
       if diff != i64(1) {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(54))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "array: expected 1 collection, got ")
@@ -150,7 +150,7 @@
       }
       expected: i32 = (200 * 199) / 2
       if sum != expected {
-          std.io.println<string>({
+          std.console.println<string>({
               __buf_5: Buffer = std.core.new_byte_buffer(i64(76))
               __off_6: i64 = 0
               __off_6 = std.core.write_string_at(__buf_5, __off_6, "array: sum mismatch: got ")
@@ -161,7 +161,7 @@
           } :string)
           return 2
       }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(63))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "array: 200 array elements survived GC; sum=")
@@ -186,6 +186,11 @@
   }
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -196,11 +201,6 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

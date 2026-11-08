@@ -57,20 +57,20 @@
       snippet.show_byte(v)
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
-      std.io.println<string>(snippet.show_byte(u8(5)))
+      std.console.println<string>(snippet.show_byte(u8(5)))
       b: u8 = 6
-      std.io.println<string>(snippet.show_byte(b))
+      std.console.println<string>(snippet.show_byte(b))
       n: i32 = i32(@array.len(argv)) + 6
-      std.io.println<string>(snippet.show_byte(u8(n)))
-      std.io.println<string>(snippet.show_word(u32(7)))
-      std.io.println<string>(snippet.show_byte(snippet.nine()))
+      std.console.println<string>(snippet.show_byte(u8(n)))
+      std.console.println<string>(snippet.show_word(u32(7)))
+      std.console.println<string>(snippet.show_byte(snippet.nine()))
       h: Holder = Holder { .b = u8(8) }
-      std.io.println<string>(snippet.show_byte(h.b))
+      std.console.println<string>(snippet.show_byte(h.b))
       h.b = u8(10)
-      std.io.println<string>(snippet.show_byte(h.b))
+      std.console.println<string>(snippet.show_byte(h.b))
       local: string | u8 = "s"
       local = u8(11)
-      std.io.println<string>(snippet.show_byte(local))
+      std.console.println<string>(snippet.show_byte(local))
       seen: Set<string | u8> = Set<string | u8> {
           .inner = Map<string | u8, bool> {
               .ekeys = [] :(string | u8)[],
@@ -84,35 +84,35 @@
       }
       std.collections.add<string | u8>(seen, local)
       std.collections.add<string | u8>(seen, local)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "seen ")
           __off_1 = std.core.write_int(__buf_0, __off_1, std.collections.len<string | u8>(seen))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>(snippet.bytes.describe(u8(12)))
+      std.console.println<string>(snippet.bytes.describe(u8(12)))
       joined: string | u8 = if @array.len(argv) > i64(0) { u8(12) } else { "s" }
-      std.io.println<string>(snippet.show_byte(joined))
-      std.io.println<string>(snippet.show_byte(snippet.pick(i32(@array.len(argv)) - 1)))
+      std.console.println<string>(snippet.show_byte(joined))
+      std.console.println<string>(snippet.show_byte(snippet.pick(i32(@array.len(argv)) - 1)))
       {
           y: string | u8 = u8(13)
-          std.io.println<string>(snippet.show_byte(y))
+          std.console.println<string>(snippet.show_byte(y))
           y: string | u8 = "s"
-          std.io.println<string>(snippet.show_byte(y))
+          std.console.println<string>(snippet.show_byte(y))
       }
       shower: Shower = Plain { .tag = 1 }
-      std.io.println<string>(@vcall(snippet.Shower.shown, shower, u8(14)))
+      std.console.println<string>(@vcall(snippet.Shower.shown, shower, u8(14)))
       captured: @cell<string | u8> = @cell_new("x")
       bump: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = captured }
       __lambda_snippet_0(bump)
-      std.io.println<string>(snippet.show_byte(@cell(captured)))
+      std.console.println<string>(snippet.show_byte(@cell(captured)))
       pair: [string | u8, i32] = [u8(16), 1] :[string | u8, i32]
       __tup_3: [string | u8, i32] = pair
       first: string | u8 = __tup_3._0
-      std.io.println<string>(snippet.show_byte(first))
-      std.io.println<string>(snippet.show_byte(u8(17)))
-      std.io.println<string>(snippet.show_cell(Color(2)))
+      std.console.println<string>(snippet.show_byte(first))
+      std.console.println<string>(snippet.show_byte(u8(17)))
+      std.console.println<string>(snippet.show_cell(Color(2)))
       cells: (Color | string)[] = [Color(0), "x"] :(Color | string)[]
       @array.push(cells, Color(1))
       cells[1] = Color(2)
@@ -122,7 +122,7 @@
           __for_i_6: i64 = 0
           for __for_i_6 < __for_len_5 {
               c: Color | string = __for_arr_4[__for_i_6]
-              std.io.println<string>(snippet.show_cell(c))
+              std.console.println<string>(snippet.show_cell(c))
           } @step {
               __for_i_6 = __for_i_6 +% i64(1)
           }
@@ -198,6 +198,11 @@
     struct std.collections.Set<string | u8>  // std_collections$Set__string___u8
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -232,11 +237,6 @@
     fn std_core$u8$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

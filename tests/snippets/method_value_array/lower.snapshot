@@ -15,7 +15,7 @@
       count: __method_env_snippet_1 = __method_env_snippet_1 { .receiver = xs }
       add: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = xs }
       __method_snippet_2(add, 4)
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(24))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "len ")
@@ -23,7 +23,7 @@
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       total: __method_env_snippet_5 = __method_env_snippet_5 { .receiver = xs }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(45))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "sum ")
@@ -33,7 +33,7 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       counted: __method_env_snippet_7 = __method_env_snippet_7 { .receiver = Countdown { .n = 3 } }
-      std.io.println<string>({
+      std.console.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(30))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "countdown ")
@@ -69,6 +69,11 @@
   vtable std.core.Iterator.next for Countdown  snippet.Countdown.next  // snippet$Countdown$std_core$Iterator$next
 
 ## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
@@ -84,11 +89,6 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
     struct std_core$__gen_state_std_core_0
-  std/io
-    fn std.io.println<string>  // std_io$println__string
-    fn std.io.write  // std_io$write
-    fn std.io.write_bytes  // std_io$write_bytes
-    fn std.io.write_text  // std_io$write_text
   std/iter
     fn std.iter.sum<i32>  // std_iter$sum__i32
   system/posix

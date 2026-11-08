@@ -1,10 +1,13 @@
 module "snippet"
 
+import "std/console"
+import "std/env"
+import "std/fs"
 import "std/io"
 
 // `read_dir` must hand back a name that the path-taking calls can reopen. On
 // Windows the two halves disagreed: `FindFirstFileA` spoke the system ANSI
-// code page while `std/io` had moved to UTF-16, so a name outside that code
+// code page while `std/fs` had moved to UTF-16, so a name outside that code
 // page came back mangled and `CreateFileW` then refused it.
 //
 // Writes into `temp_dir()` directly rather than a sub-directory: the answer

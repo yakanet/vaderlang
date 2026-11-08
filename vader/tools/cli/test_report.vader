@@ -17,7 +17,7 @@ module "vader/tools/cli"
 
 import "json"
 import "std/collections"
-import "std/io"
+import "std/console"
 import "std/path"
 import "std/time"
 import "vader/front/resolver"

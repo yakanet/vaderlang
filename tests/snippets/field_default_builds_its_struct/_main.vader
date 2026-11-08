@@ -1,6 +1,6 @@
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 // A default that builds a literal of its own struct, under a lambda : the lambda
 // runs only when called, so each `Node {}` takes one more level only on demand. The

@@ -4,7 +4,7 @@
 module "main"
 
 import "greeter"
-import "std/io"
+import "std/console"
 
 main :: fn() -> i32 {
     println("${name()}: ${add(40, 2)}")

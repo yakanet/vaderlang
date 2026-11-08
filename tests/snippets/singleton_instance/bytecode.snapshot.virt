@@ -277,7 +277,7 @@ fn 8 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 16   ; std_core$finish_buffer
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   call 7   ; snippet$bump
   call 7   ; snippet$bump
   call 3   ; snippet$start
@@ -342,7 +342,7 @@ fn 8 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 5   ; $call_28
   call 16   ; std_core$finish_buffer
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   i64.const 41
   buffer.new
   local.set 0   ; __buf_0
@@ -378,15 +378,15 @@ fn 8 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 16   ; std_core$finish_buffer
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   call 4   ; snippet$greeting
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   return.lit i32.const 0
 end
 
 fn 9 snippet$counter$singleton () -> ref
   string.const 2   ; "counter built"
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   i32.const 0
   struct.new 1   ; snippet$Counter
   return
@@ -408,13 +408,13 @@ end
 
 fn 13 snippet$probed$singleton () -> bool
   string.const 4   ; "probed"
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   return.lit bool.const true
 end
 
 fn 14 snippet$announce$singleton () -> void
   string.const 5   ; "announced"
-  call 23   ; std_io$println__string
+  call 23   ; std_console$println__string
   return
 end
 
@@ -600,7 +600,7 @@ fn 19 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 20 std_io$write (u8,string) -> void
+fn 20 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -611,7 +611,7 @@ fn 20 std_io$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 21   ; std_io$write_text
+  call 21   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -642,7 +642,7 @@ fn 20 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 22   ; std_io$write_bytes
+      call 22   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -662,11 +662,11 @@ fn 20 std_io$write (u8,string) -> void
   return
 end
 
-fn 21 std_io$write_text (u8,string) -> bool
+fn 21 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 22 std_io$write_bytes (u8,ref,i64) -> i32
+fn 22 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -686,7 +686,7 @@ fn 22 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 23 std_io$println__string (string) -> void
+fn 23 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 8   ; "\n"
@@ -694,6 +694,6 @@ fn 23 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 20   ; std_io$write
+  call 20   ; std_console$write
   return
 end

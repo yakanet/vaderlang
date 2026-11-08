@@ -10,7 +10,7 @@
 
 module "snippet"
 
-import "std/io"
+import "std/console"
 import "std/iter"
 
 tenfold :: fn(v: i32) -> i32 = v * 10

@@ -4,7 +4,7 @@
 // erased instance dispatches. `null` renders as `null`.
 module "snippet"
 
-import "std/io"
+import "std/console"
 
 Point :: struct { x: i32, y: i32 }
 Point implements Display -> "(${self.x}, ${self.y})"
