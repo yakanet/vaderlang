@@ -321,7 +321,7 @@ cc_flavour :: fn(cc: string) -> CcFlavour {
 }
 
 // `cc` linking `objs` into `out`, with the link-time optimisation flags, the
-// native libraries, the user's `ldflags` and the math library of `os`.
+// native libraries, the user's `ldflags` and the link flags of `os`.
 cc_link_argv :: fn(
     cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
     jobs: i32, links: string[], os: Os,
@@ -333,7 +333,7 @@ cc_link_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    push_math_library(argv, os)
+    push_os_link_flags(argv, os)
     return argv
 }
 

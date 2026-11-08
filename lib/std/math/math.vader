@@ -2,34 +2,30 @@
 
 module "std/math"
 
+import "std/ffi"
+
 /// π (3.141592653589793).
 export pi :: 3.141592653589793
 /// Euler's number, e (2.718281828459045).
 export e :: 2.718281828459045
 
 // ---- Float operations -----------------------------------------------------
-//
-// libm, named as what it is. `@c_header` hands `cc` the real prototype from
-// `<math.h>` (synthesising one beside it would be a conflicting declaration)
-// and the same symbol resolves on every platform we target.
-//
-// On Linux libm is a separate object that nothing else references, so the driver
-// links it with `--no-as-needed`: `@comptime` code calling these resolves them
-// through the process, and a dropped library would leave nothing to find.
+
+/// The C math library, declared by `<math.h>`. No library to open: every
+/// binary links libm, so the process has it.
+LIBM :: CLibrary { .name = "", .headers = ["<math.h>"] }
 
 /// Square root.
 /// @param x  non-negative finite input.
 /// @return   `sqrt(x)`. `NaN` when `x < 0`.
-@c_header("<math.h>")
-@extern("sqrt")
+@extern(LIBM, "sqrt")
 export sqrt :: fn(x: f64) -> f64
 
 /// Length of the hypotenuse, `sqrt(x * x + y * y)`, without the overflow or
 /// the underflow of the squares.
 /// @param x  one side.
 /// @param y  the other side.
-@c_header("<math.h>")
-@extern("hypot")
+@extern(LIBM, "hypot")
 export hypot :: fn(x: f64, y: f64) -> f64
 
 /// Power: `x^n`. Both base and exponent are floats ; for integer exponents
@@ -37,78 +33,62 @@ export hypot :: fn(x: f64, y: f64) -> f64
 /// @param x  base.
 /// @param n  exponent.
 /// @return   `x` raised to the `n`-th power.
-@c_header("<math.h>")
-@extern("pow")
+@extern(LIBM, "pow")
 export pow :: fn(x: f64, n: f64) -> f64
 
 /// Largest integer `n` such that `n <= x`. `floor(-1.2)` → `-2.0`.
-@c_header("<math.h>")
-@extern("floor")
+@extern(LIBM, "floor")
 export floor :: fn(x: f64) -> f64
 /// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` → `-1.0`.
-@c_header("<math.h>")
-@extern("ceil")
+@extern(LIBM, "ceil")
 export ceil :: fn(x: f64) -> f64
 /// Round to the nearest integer, ties away from zero. `round(0.5)` → `1.0`.
-@c_header("<math.h>")
-@extern("round")
+@extern(LIBM, "round")
 export round :: fn(x: f64) -> f64
 /// The integer part of `x`, rounded toward zero: `trunc(-1.7)` is `-1.0`.
-@c_header("<math.h>")
-@extern("trunc")
+@extern(LIBM, "trunc")
 export trunc :: fn(x: f64) -> f64
 
 // ---- Exponentials and logarithms ------------------------------------------
 
 /// `e` raised to the power `x`.
-@c_header("<math.h>")
-@extern("exp")
+@extern(LIBM, "exp")
 export exp :: fn(x: f64) -> f64
 /// Natural logarithm of `x`: `NaN` when `x < 0`, `-inf` when `x` is zero.
-@c_header("<math.h>")
-@extern("log")
+@extern(LIBM, "log")
 export log :: fn(x: f64) -> f64
 /// Base-2 logarithm of `x`: `NaN` when `x < 0`, `-inf` when `x` is zero.
-@c_header("<math.h>")
-@extern("log2")
+@extern(LIBM, "log2")
 export log2 :: fn(x: f64) -> f64
 /// Base-10 logarithm of `x`: `NaN` when `x < 0`, `-inf` when `x` is zero.
-@c_header("<math.h>")
-@extern("log10")
+@extern(LIBM, "log10")
 export log10 :: fn(x: f64) -> f64
 
 // ---- Trigonometry ---------------------------------------------------------
 
 /// Sine of `x` in radians.
-@c_header("<math.h>")
-@extern("sin")
+@extern(LIBM, "sin")
 export sin :: fn(x: f64) -> f64
 /// Cosine of `x` in radians.
-@c_header("<math.h>")
-@extern("cos")
+@extern(LIBM, "cos")
 export cos :: fn(x: f64) -> f64
 /// Tangent of `x` in radians.
-@c_header("<math.h>")
-@extern("tan")
+@extern(LIBM, "tan")
 export tan :: fn(x: f64) -> f64
 /// Arc sine of `x`, in radians in `[-pi/2, pi/2]`: `NaN` outside `[-1, 1]`.
-@c_header("<math.h>")
-@extern("asin")
+@extern(LIBM, "asin")
 export asin :: fn(x: f64) -> f64
 /// Arc cosine of `x`, in radians in `[0, pi]`: `NaN` outside `[-1, 1]`.
-@c_header("<math.h>")
-@extern("acos")
+@extern(LIBM, "acos")
 export acos :: fn(x: f64) -> f64
 /// Arc tangent of `x`, in radians in `[-pi/2, pi/2]`.
-@c_header("<math.h>")
-@extern("atan")
+@extern(LIBM, "atan")
 export atan :: fn(x: f64) -> f64
 /// Angle of the point `(x, y)` from the positive x axis, in radians in
 /// `[-pi, pi]`: the arc tangent of `y / x`, in the quadrant of the point.
 /// @param y  the ordinate, the first argument as in C.
 /// @param x  the abscissa.
-@c_header("<math.h>")
-@extern("atan2")
+@extern(LIBM, "atan2")
 export atan2 :: fn(y: f64, x: f64) -> f64
 
 // ---- Float classification -------------------------------------------------

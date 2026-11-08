@@ -3385,7 +3385,7 @@ A program calls a C function by declaring it with `@extern`: a signature without
 ```vader
 import "std/ffi"
 
-LIBM: CLibrary: CLibrary { .name = "m" }
+LIBM: CLibrary: CLibrary { .name = "", .headers = ["<math.h>"] }
 
 @extern add_i32 :: fn(a: i32, b: i32) -> i32                    // C symbol: add_i32
 @extern("puts") c_puts :: fn(s: string) -> i32                  // C symbol: puts
@@ -3681,7 +3681,7 @@ NOPE: CLibrary: CLibrary { .name = "nosuchlib" }
 @extern("no_such_fn") missing :: fn() -> i32
 
 c_puts("hi")       // prints hi: puts, from the running process
-cube_root(27.0)    // 3.0: cbrt, from libm, opened at the call
+cube_root(27.0)    // 3.0: cbrt, from the running process too
 f()                // stops the program, naming `f` and the library
 missing()          // stops the program, naming the symbol
 ```

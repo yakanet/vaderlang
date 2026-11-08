@@ -126,13 +126,8 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
     return []
 }
 
-/// Append the math library, and for a Linux target the flag that keeps it linked.
-///
-/// `--as-needed` (the default there) drops a `-l` nothing references, and
-/// nothing DOES reference libm: the compiler reaches `sqrt` and friends only from
-/// `@comptime`, through the interpreter, which resolves them in the running
-/// process. A library the linker dropped is not in it. Elsewhere `-lm` is inert,
-/// macOS and MinGW carrying the math symbols in their C runtime.
+/// Append what every link for `os` takes, whatever the program: the math
+/// library, and on Linux the export of the executable's own symbols.
 ///
 /// Shared by BOTH link paths: the mono `cc_argv` here and the split
 /// `cc_link_argv` in `split_build.vader`. Only the split one produces a `--release`
@@ -142,22 +137,37 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
 /// @param argv  the command line being built, appended to in place.
 /// @param os    the OS the binary is built for, which a cross build does not
 ///              share with the compiler's own `VADER_OS`.
-export push_math_library :: fn(argv: string[], os: Os) -> void {
+export push_os_link_flags :: fn(argv: string[], os: Os) -> void {
+    push_math_library(argv, os)
+    push_export_dynamic(argv, os)
+}
+
+// The math library, and for a Linux target the flag that keeps it linked.
+//
+// `--as-needed` (the default there) drops a `-l` nothing references, and in a
+// host of the interpreter nothing may: `vader run` and `@comptime` resolve
+// `std/math`'s `LIBM` functions in the running process, where a library the
+// linker dropped is not. So every link takes it, not only a program calling
+// `LIBM`: the compiler and the build drivers are linked by this same path.
+// Elsewhere `-lm` is inert, macOS and MinGW carrying the math symbols in their
+// C runtime.
+push_math_library :: fn(argv: string[], os: Os) -> void {
     if os == .Linux {
         argv.push("-Wl,--no-as-needed")
-        // And EXPORT the executable's own symbols, or the interpreter cannot
-        // reach them. An `@extern` naming a `runtime/c/` accessor
-        // (`vader_path_kind`, `vader_last_errno`, `vader_dirent_name`) is
-        // resolved at the call by `dlsym` on the running process, and on ELF a
-        // symbol only enters `.dynsym` when the link asks for it.
-        //
-        // Nothing else in the tree needed this, which is why it went unnoticed:
-        // Mach-O exports every global by default and mingw has `dllexport` in
-        // `VADER_HOST_EXPORT`, so macOS and Windows both answered. Linux said
-        // `symbol not found` at run time: an FFI error, for a link problem.
-        argv.push("-rdynamic")
     }
     argv.push("-lm")
+}
+
+// For a Linux target, the flag that exports the executable's own symbols. An
+// `@extern` naming a `runtime/c/` accessor (`vader_last_errno`) is resolved at
+// the call by `dlsym` on the running process, and on ELF a symbol only enters
+// `.dynsym` when the link asks for it: without the flag, the call fails with
+// `symbol not found`. Mach-O exports every global by default, and mingw has
+// `dllexport` in `VADER_HOST_EXPORT`.
+push_export_dynamic :: fn(argv: string[], os: Os) -> void {
+    if os == .Linux {
+        argv.push("-rdynamic")
+    }
 }
 
 /// What a native build adds for the C libraries that a program's `@extern`
@@ -337,14 +347,14 @@ export push_include_flags :: fn(argv: string[], rt: string, quote_dir: string) -
 /// Assemble the `cc` command line for a native link.
 ///
 /// Opt flags, includes (`push_include_flags`), the emitted unit, the runtime
-/// unit, user `ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's
-/// `floor` / `fmod` on glibc and is a no-op elsewhere.
+/// unit, user `ldflags`, then `-o <out>` and the flags of `os`
+/// (`push_os_link_flags`).
 /// @param runtime_root  directory holding `vader_runtime.c` + `vader.h`, or ""
 ///                      to probe beside the running executable. A build DRIVER
 ///                      must pass it: the driver binary lives under the
 ///                      project's `build/`, so the probe would look there.
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
-/// @param os            the OS the binary is built for (`push_math_library`).
+/// @param os            the OS the binary is built for (`push_os_link_flags`).
 export cc_argv :: fn(
     cc: string,
     c_files: string[],
@@ -367,7 +377,7 @@ export cc_argv :: fn(
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
-    push_math_library(argv, os)
+    push_os_link_flags(argv, os)
     return argv
 }
 // Write `content` to `path`, surfacing a write failure as exit 1.
@@ -444,7 +454,7 @@ export cc_or_default :: fn(cc: string) -> string {
 /// @param runtime_root  see `cc_argv`.
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
 /// @param native        what the C libraries of the program add.
-/// @param os            the OS the binary is built for (`push_math_library`).
+/// @param os            the OS the binary is built for (`push_os_link_flags`).
 /// @return              0 on success, 1 when the C could not be written or `cc`
 ///                      failed. `cc`'s own stderr is forwarded as-is.
 export link_native :: fn(
