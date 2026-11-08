@@ -345,7 +345,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static void* snippet$pair(void) {
     void* t0 = NULL;
@@ -692,7 +692,7 @@ static int32_t snippet$over_lazy_indexed(void) {
     t1 = std_core$$array$Into$into__i32(t0);
     l1 = std_iter$indexed__i32(t1);
     for (;;) {
-        l2 = vader_vt_std_core$Iterator$next(l1);
+        l2 = std_core$Iterator$next$$dispatch(l1);
         if (!(l2.tag == 22u)) {
             l3 = l2.payload.obj;
             l4 = ((vader_struct___Tuple_i32_i64_30f9f427_t*) l3)->f__0;
@@ -1241,7 +1241,7 @@ static vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
                                     } else {
                                         t0 = ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state;
                                         if (t0 == INT32_C(10)) {
-                                            l5 = vader_vt_std_core$Iterator$next(((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s2);
+                                            l5 = std_core$Iterator$next$$dispatch(((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s2);
                                             ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s3 = l5;
                                             VADER_WRITE_BARRIER((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0);
                                             ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state = INT32_C(9);
@@ -1279,7 +1279,7 @@ static vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 24u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
         case 30u: return std_iter$__gen_state_std_iter_0$Iterator$next(recv.payload.obj);

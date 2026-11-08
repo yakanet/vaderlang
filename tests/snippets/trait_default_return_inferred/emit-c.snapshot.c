@@ -120,7 +120,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static int32_t vader_vt_snippet$Shape$twice(vader_box_t recv);
+static int32_t snippet$Shape$twice$$dispatch(vader_box_t recv);
 
 static int32_t snippet$Square$Shape$area(void* l0) {
     int32_t l1, l2;
@@ -171,7 +171,7 @@ static int32_t snippet$through_value(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Shape$twice(l0);
+    t0 = snippet$Shape$twice$$dispatch(l0);
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -433,7 +433,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static int32_t vader_vt_snippet$Shape$twice(vader_box_t recv) {
+static int32_t snippet$Shape$twice$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Square$Shape$twice(recv.payload.obj);
         case 4u: return snippet$Strip$Shape$twice(recv.payload.obj);

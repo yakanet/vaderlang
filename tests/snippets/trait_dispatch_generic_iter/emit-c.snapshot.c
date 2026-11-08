@@ -123,7 +123,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$walk(vader_box_t l0) {
     int32_t l1, l4;
@@ -135,7 +135,7 @@ static int32_t snippet$walk(vader_box_t l0) {
     l1 = INT32_C(0);
     l2 = true;
     while (l2) {
-        l3 = vader_vt_std_core$Iterator$next(l0);
+        l3 = std_core$Iterator$next$$dispatch(l0);
         if (l3.tag == 5u) {
             l2 = false;
             continue;
@@ -378,7 +378,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: return snippet$Repeat$std_core$Iterator$next__i32(recv.payload.obj);
         case 6u: return snippet$Once$std_core$Iterator$next__i32(recv.payload.obj);

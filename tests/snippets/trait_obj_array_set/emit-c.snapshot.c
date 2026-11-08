@@ -85,7 +85,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static int32_t vader_vt_snippet$Shape$area(vader_box_t recv);
+static int32_t snippet$Shape$area$$dispatch(vader_box_t recv);
 
 static int32_t snippet$Square$Shape$area(int32_t l0) {
     int32_t l1, l2;
@@ -151,7 +151,7 @@ static int32_t snippet$main(void) {
         l4 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l3);
         l1 = (void*) vader_buffer_new((size_t) INT64_C(20));
         l5 = INT64_C(0);
-        t0 = vader_vt_snippet$Shape$area(l4);
+        t0 = snippet$Shape$area$$dispatch(l4);
         l6 = ((int64_t) (int32_t) t0);
         l5 = std_core$write_int(l1, l5, l6);
         t1 = std_core$finish_buffer(l1, l5);
@@ -306,7 +306,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static int32_t vader_vt_snippet$Shape$area(vader_box_t recv) {
+static int32_t snippet$Shape$area$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 2u: return snippet$Circle$Shape$area(recv.payload.obj);
         case 1u: return snippet$Square$Shape$area(((int32_t) recv.payload.i));

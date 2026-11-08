@@ -145,7 +145,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$walk(vader_box_t l0) {
     int32_t l1, l3;
@@ -155,7 +155,7 @@ static int32_t snippet$walk(vader_box_t l0) {
     vader_gc_top = &gc_frame;
     l1 = INT32_C(0);
     for (;;) {
-        l2 = vader_vt_std_core$Iterator$next(l0);
+        l2 = std_core$Iterator$next$$dispatch(l0);
         if (!(l2.tag == 10u)) {
             l3 = ((int32_t) l2.payload.i);
             l1 = vader_chk_add(i32, l1, l3);
@@ -192,7 +192,7 @@ static int32_t snippet$Tally$Adder$add_all(void* l0, vader_box_t l1) {
     l2 = ((vader_struct_snippet$Tally_t*) l0)->f_base;
     l3 = l1;
     for (;;) {
-        l4 = vader_vt_std_core$Iterator$next(l3);
+        l4 = std_core$Iterator$next$$dispatch(l3);
         if (!(l4.tag == 10u)) {
             l5 = ((int32_t) l4.payload.i);
             l2 = vader_chk_add(i32, l2, l5);
@@ -286,7 +286,7 @@ static int32_t snippet$main(void) {
         l11 = (l11 + INT64_C(1));
     }
     for (;;) {
-        l2 = vader_vt_std_core$Iterator$next(l1);
+        l2 = std_core$Iterator$next$$dispatch(l1);
         if (!(l2.tag == 10u)) {
             l3 = ((int32_t) l2.payload.i);
             l0 = vader_chk_add(i32, l0, l3);
@@ -311,7 +311,7 @@ static int32_t snippet$main(void) {
         l11 = (l11 + INT64_C(1));
     }
     for (;;) {
-        l2 = vader_vt_std_core$Iterator$next(l1);
+        l2 = std_core$Iterator$next$$dispatch(l1);
         if (!(l2.tag == 10u)) {
             l3 = ((int32_t) l2.payload.i);
             l0 = vader_chk_add(i32, l0, l3);
@@ -572,7 +572,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 8u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");

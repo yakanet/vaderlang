@@ -182,7 +182,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static vader_box_t snippet$pairs_until(int32_t l0, int32_t l1) {
     void* t0 = NULL;
@@ -327,7 +327,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a1_arr = vader_array_new(4u, 0u, 7u, 1u);
     l0 = (void*) _a1_arr;
     for (;;) {
-        l6 = vader_vt_std_core$Iterator$next(l5);
+        l6 = std_core$Iterator$next$$dispatch(l5);
         if (!(l6.tag == 9u)) {
             t0 = ((int32_t) l6.payload.i);
             l1 = snippet$double(t0);
@@ -362,7 +362,7 @@ static int32_t snippet$main(void) {
     l7 = std_core$write_string_at(l0, l7, 6u);
     l8 = INT64_C(0);
     for (;;) {
-        l6 = vader_vt_std_core$Iterator$next(l5);
+        l6 = std_core$Iterator$next$$dispatch(l5);
         if (!(l6.tag == 9u)) {
             t0 = ((int32_t) l6.payload.i);
             t2 = snippet$odd(t0);
@@ -475,7 +475,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a5_arr = vader_array_new(4u, 0u, 7u, 1u);
     l0 = (void*) _a5_arr;
     for (;;) {
-        l6 = vader_vt_std_core$Iterator$next(l5);
+        l6 = std_core$Iterator$next$$dispatch(l5);
         if (!(l6.tag == 9u)) {
             t5 = l6.payload.obj;
             l1 = snippet$sum_of(t5);
@@ -944,7 +944,7 @@ static vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return snippet$$genstate_pairs_until$Iterator$next(recv.payload.obj);
         case 10u: return snippet$$genstate_squares$Iterator$next(recv.payload.obj);

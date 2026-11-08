@@ -198,15 +198,15 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
-static bool vader_vt_std_core$Contains$contains(vader_box_t recv, vader_box_t a0);
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
+static bool std_core$Contains$contains$$dispatch(vader_box_t recv, vader_box_t a0);
 
 static bool snippet$same_through_trait(vader_box_t l0, vader_box_t l1) {
     bool t0;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_std_core$Equals$equals(l0, l1);
+    t0 = std_core$Equals$equals$$dispatch(l0, l1);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -215,7 +215,7 @@ static bool snippet$has_blue(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_std_core$Contains$contains(l0, vader_box_i32(5u, INT32_C(2)));
+    t0 = std_core$Contains$contains$$dispatch(l0, vader_box_i32(5u, INT32_C(2)));
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1393,7 +1393,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 12u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
         case 14u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
@@ -1413,7 +1413,7 @@ static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
     vader_unreachable("vtable miss in std_core$Equals.equals");
 }
 
-static bool vader_vt_std_core$Contains$contains(vader_box_t recv, vader_box_t a0) {
+static bool std_core$Contains$contains$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 22u: return std_collections$Map$std_core$Contains$contains__snippet_Color__i32(recv.payload.obj, ((uint8_t) a0.payload.i));
         case 24u: return std_collections$Map$std_core$Contains$contains__snippet_HttpStatus__string(recv.payload.obj, ((uint8_t) a0.payload.i));

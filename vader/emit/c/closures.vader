@@ -161,7 +161,7 @@ emit_call_indirect :: fn(s: FnState, op: Bc.CallIndirect) -> void {
 
 /// `virtual.call`: trait-method dispatch. Pop the receiver (top of stack),
 /// then the tail args below it (source order), box everything to the erased
-/// ABI, and call the per-key dispatcher (`vader_vt_<key>`, emitted in
+/// ABI, and call the per-key dispatcher (`<key>$$dispatch`, emitted in
 /// `dispatch.vader`) which switches on `recv.tag`. The op carries its result
 /// classes but no result-type index, so there is no erasure-boundary repack
 /// here: a following `ref.cast` / `convert` handles any per-tag reshape.
@@ -186,7 +186,7 @@ emit_virtual_call :: fn(s: FnState, op: Bc.VirtualCall) -> void {
     all_args: CExpression[]: [coerced_as(s, recv, .Any)]
     all_args.push_all(pop_args_boxed(s, op.parameter_count - 1))
     sig :: vtable_sig_for_row(s.ctx, row)
-    dispatch :: call(vtable_helper_name(op.vtable_key), all_args)
+    dispatch :: call(dispatcher_name(op.vtable_key), all_args)
     if bc_single_result(sig) == .Void {
         evaluate(s, dispatch)
         return

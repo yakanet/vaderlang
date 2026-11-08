@@ -166,7 +166,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static bool vader_vt_std_core$Contains$contains(vader_box_t recv, vader_box_t a0);
+static bool std_core$Contains$contains$$dispatch(vader_box_t recv, vader_box_t a0);
 
 static bool snippet$wide(int64_t l0) {
     if ((INT64_C(5000000000) <= l0)) {
@@ -275,7 +275,7 @@ static bool snippet$has_big_value(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_std_core$Contains$contains(l0, vader_box_i64(1u, INT64_C(4000000000)));
+    t0 = std_core$Contains$contains$$dispatch(l0, vader_box_i64(1u, INT64_C(4000000000)));
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -739,7 +739,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static bool vader_vt_std_core$Contains$contains(vader_box_t recv, vader_box_t a0) {
+static bool std_core$Contains$contains$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 5u: return snippet$Bag$std_core$Contains$contains(recv.payload.obj, ((int64_t) a0.payload.i));
         case 6u: return snippet$DigitSet$std_core$Contains$contains(recv.payload.obj, ((int32_t) a0.payload.i));

@@ -86,8 +86,8 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static int32_t vader_vt_snippet_zoo$Animal$legs(vader_box_t recv);
-static int32_t vader_vt_snippet_zoo$Animal$kind(vader_box_t recv);
+static int32_t snippet_zoo$Animal$legs$$dispatch(vader_box_t recv);
+static int32_t snippet_zoo$Animal$kind$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
@@ -272,9 +272,9 @@ static int32_t snippet_zoo$describe(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet_zoo$Animal$kind(l0);
+    t0 = snippet_zoo$Animal$kind$$dispatch(l0);
     l1 = vader_chk_mul(i32, t0, INT32_C(10));
-    l2 = vader_vt_snippet_zoo$Animal$legs(l0);
+    l2 = snippet_zoo$Animal$legs$$dispatch(l0);
     t0 = vader_chk_add(i32, l1, l2);
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -288,7 +288,7 @@ static int32_t snippet_zoo$Dog$Animal$kind(void* l0) {
 }
 
 /* vtable dispatchers */
-static int32_t vader_vt_snippet_zoo$Animal$legs(vader_box_t recv) {
+static int32_t snippet_zoo$Animal$legs$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 10u: return snippet_zoo$Dog$Animal$legs(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_zoo$Animal.legs");
@@ -296,7 +296,7 @@ static int32_t vader_vt_snippet_zoo$Animal$legs(vader_box_t recv) {
     vader_unreachable("vtable miss in snippet_zoo$Animal.legs");
 }
 
-static int32_t vader_vt_snippet_zoo$Animal$kind(vader_box_t recv) {
+static int32_t snippet_zoo$Animal$kind$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 10u: return snippet_zoo$Dog$Animal$kind(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_zoo$Animal.kind");

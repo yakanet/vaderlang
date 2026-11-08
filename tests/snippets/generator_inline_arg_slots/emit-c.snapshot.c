@@ -160,7 +160,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     vader_box_t l0 = vader_box_null(), l1 = vader_box_null();
@@ -189,7 +189,7 @@ static int32_t snippet$main(void) {
     t0 = (void*) _a0_arr;
     l0 = std_core$$array$Into$into__i32(t0);
     for (;;) {
-        l1 = vader_vt_std_core$Iterator$next(l0);
+        l1 = std_core$Iterator$next$$dispatch(l0);
         if (!(l1.tag == 5u)) {
             l2 = ((int32_t) l1.payload.i);
             l3 = (void*) vader_buffer_new((size_t) INT64_C(29));
@@ -227,7 +227,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l5)
         l2 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l5];
-        l1 = vader_vt_std_core$Iterator$next(l0);
+        l1 = std_core$Iterator$next$$dispatch(l0);
         if (l1.tag == 5u) break;
         l6 = l1.payload.s;
         l7 = l2;
@@ -635,7 +635,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 11u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
         case 12u: return std_core$__gen_state_std_core_1$Iterator$next(recv.payload.obj);

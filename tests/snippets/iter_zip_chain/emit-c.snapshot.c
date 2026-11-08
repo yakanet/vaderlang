@@ -192,7 +192,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
@@ -356,7 +356,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) &vader_fn_static___lambda_snippet_0;
     l13 = std_iter$flat_map__i32__i32(l13, l0);
     for (;;) {
-        l14 = vader_vt_std_core$Iterator$next(l13);
+        l14 = std_core$Iterator$next$$dispatch(l13);
         if (!(l14.tag == 9u)) {
             l6 = ((int32_t) l14.payload.i);
             l0 = (void*) vader_buffer_new((size_t) INT64_C(22));
@@ -771,7 +771,7 @@ static vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
                                                         } else {
                                                             t0 = ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state;
                                                             if (t0 == INT32_C(15)) {
-                                                                l11 = vader_vt_std_core$Iterator$next(((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s2);
+                                                                l11 = std_core$Iterator$next$$dispatch(((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s2);
                                                                 ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s3 = l11;
                                                                 VADER_WRITE_BARRIER((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0);
                                                                 ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state = INT32_C(14);
@@ -808,7 +808,7 @@ static vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
         case 15u: return std_iter$__gen_state_std_iter_0$Iterator$next(recv.payload.obj);

@@ -87,8 +87,8 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet_tr__a$Describe$describe(vader_box_t recv);
-static vader_string_t vader_vt_snippet_tr__b$Describe$describe(vader_box_t recv);
+static vader_string_t snippet_tr__a$Describe$describe$$dispatch(vader_box_t recv);
+static vader_string_t snippet_tr__b$Describe$describe$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$Point$snippet_tr__a$Describe$describe(void* l0) {
     void* l1 = NULL;
@@ -119,7 +119,7 @@ static vader_string_t snippet$show_a(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet_tr__a$Describe$describe(l0);
+    t0 = snippet_tr__a$Describe$describe$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -172,7 +172,7 @@ static vader_string_t snippet$show_b(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet_tr__b$Describe$describe(l0);
+    t0 = snippet_tr__b$Describe$describe$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -330,7 +330,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet_tr__a$Describe$describe(vader_box_t recv) {
+static vader_string_t snippet_tr__a$Describe$describe$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Point$snippet_tr__a$Describe$describe(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_tr__a$Describe.describe");
@@ -338,7 +338,7 @@ static vader_string_t vader_vt_snippet_tr__a$Describe$describe(vader_box_t recv)
     vader_unreachable("vtable miss in snippet_tr__a$Describe.describe");
 }
 
-static vader_string_t vader_vt_snippet_tr__b$Describe$describe(vader_box_t recv) {
+static vader_string_t snippet_tr__b$Describe$describe$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Point$snippet_tr__b$Describe$describe(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet_tr__b$Describe.describe");

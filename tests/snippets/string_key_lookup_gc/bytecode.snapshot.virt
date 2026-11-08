@@ -605,7 +605,7 @@ fn 12 std_collections$rehash__string__bool (ref,i64) -> void
       local.get 4   ; e
       array.get 14   ; string[]
       ref.cast 2   ; string
-      call 26   ; std_core$string$Hash$hash_vt
+      call 26   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 10   ; std_collections$first_slot
@@ -722,7 +722,7 @@ fn 13 std_collections$rehash__string__i32 (ref,i64) -> void
       local.get 4   ; e
       array.get 14   ; string[]
       ref.cast 2   ; string
-      call 26   ; std_core$string$Hash$hash_vt
+      call 26   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 10   ; std_collections$first_slot
@@ -868,7 +868,7 @@ fn 16 std_collections$put__string__bool (ref,string,bool) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 26   ; std_core$string$Hash$hash_vt
+    call 26   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 10 3   ; arg 0 std_collections$Map__string__bool.mask
     ref.cast 4   ; i64
@@ -1044,7 +1044,7 @@ fn 17 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 26   ; std_core$string$Hash$hash_vt
+    call 26   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 4   ; i64
@@ -1215,7 +1215,7 @@ fn 18 std_collections$get__string__i32 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 26   ; std_core$string$Hash$hash_vt
+  call 26   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 4   ; i64
@@ -1288,7 +1288,7 @@ fn 19 std_collections$contains_key__string__bool (ref,string) -> bool
     return.lit bool.const false
   end $L0
   local.get 1   ; arg 1
-  call 26   ; std_core$string$Hash$hash_vt
+  call 26   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 10 3   ; arg 0 std_collections$Map__string__bool.mask
   ref.cast 4   ; i64
@@ -1455,7 +1455,7 @@ fn 25 std_io$println__string (string) -> void
   return
 end
 
-fn 26 std_core$string$Hash$hash_vt (string) -> u64
+fn 26 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
   call.import 3   ; std_core$string$Hash$hash
   return

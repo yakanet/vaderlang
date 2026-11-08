@@ -219,7 +219,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static vader_box_t snippet$scaled(void* l0) {
     void* l1 = NULL;
@@ -295,7 +295,7 @@ static int32_t snippet$drain(vader_box_t l0) {
     l1 = INT32_C(0);
     l2 = l0;
     for (;;) {
-        l3 = vader_vt_std_core$Iterator$next(l2);
+        l3 = std_core$Iterator$next$$dispatch(l2);
         if (!(l3.tag == 12u)) {
             t0 = l3.payload.obj;
             l4 = ((vader_struct_snippet$Mon_t*) t0)->f_v;
@@ -322,7 +322,7 @@ static vader_string_t snippet$join_labels(vader_box_t l0) {
     l1 = 0u;
     l2 = l0;
     for (;;) {
-        l3 = vader_vt_std_core$Iterator$next(l2);
+        l3 = std_core$Iterator$next$$dispatch(l2);
         if (!(l3.tag == 12u)) {
             t0 = l3.payload.obj;
             l4 = ((vader_struct_snippet$Label_t*) t0)->f_s;
@@ -379,7 +379,7 @@ static int32_t snippet$main(void) {
     l4 = INT32_C(0);
     l5 = snippet$$array$std_core$Into$into__snippet_Pt$2(l0);
     for (;;) {
-        l6 = vader_vt_std_core$Iterator$next(l5);
+        l6 = std_core$Iterator$next$$dispatch(l5);
         if (!(l6.tag == 12u)) {
             t0 = l6.payload.obj;
             l7 = __lambda_snippet_0(t0);
@@ -863,7 +863,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 10u: return snippet$$genstate_scaled$Iterator$next(recv.payload.obj);
         case 13u: return snippet$$genstate_labels$Iterator$next(recv.payload.obj);

@@ -1038,7 +1038,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$Point$std_core$Display$to_string(void* l0) {
     void* l1 = NULL;
@@ -1148,7 +1148,7 @@ static vader_string_t __method_snippet_0(void* l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_std_core$Display$to_string(((vader_struct___method_env_snippet_1_t*) l0)->f_receiver);
+    t0 = std_core$Display$to_string$$dispatch(((vader_struct___method_env_snippet_1_t*) l0)->f_receiver);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1160,7 +1160,7 @@ static vader_string_t __method_snippet_2(void* l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_std_core$Display$to_string(((vader_struct___method_env_snippet_3_t*) l0)->f_receiver);
+    t0 = std_core$Display$to_string$$dispatch(((vader_struct___method_env_snippet_3_t*) l0)->f_receiver);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -2832,7 +2832,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Point$std_core$Display$to_string(recv.payload.obj);
         case 3u: return snippet$Label$std_core$Display$to_string(recv.payload.obj);

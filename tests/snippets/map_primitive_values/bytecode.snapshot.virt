@@ -4010,7 +4010,7 @@ fn 75 std_collections$rehash__string__bool (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4127,7 +4127,7 @@ fn 76 std_collections$rehash__string__char (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4244,7 +4244,7 @@ fn 77 std_collections$rehash__string__f32 (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4361,7 +4361,7 @@ fn 78 std_collections$rehash__string__f64 (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4478,7 +4478,7 @@ fn 79 std_collections$rehash__string__i16 (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4595,7 +4595,7 @@ fn 80 std_collections$rehash__string__i64 (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4712,7 +4712,7 @@ fn 81 std_collections$rehash__string__u16 (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -4829,7 +4829,7 @@ fn 82 std_collections$rehash__string__u8 (ref,i64) -> void
       local.get 4   ; e
       array.get 36   ; string[]
       ref.cast 2   ; string
-      call 107   ; std_core$string$Hash$hash_vt
+      call 107   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 73   ; std_collections$first_slot
@@ -5173,7 +5173,7 @@ fn 91 std_collections$put__string__bool (ref,string,bool) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 22 3   ; arg 0 std_collections$Map__string__bool.mask
     ref.cast 4   ; i64
@@ -5349,7 +5349,7 @@ fn 92 std_collections$put__string__char (ref,string,char) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 24 3   ; arg 0 std_collections$Map__string__char.mask
     ref.cast 4   ; i64
@@ -5525,7 +5525,7 @@ fn 93 std_collections$put__string__f32 (ref,string,f32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 26 3   ; arg 0 std_collections$Map__string__f32.mask
     ref.cast 4   ; i64
@@ -5701,7 +5701,7 @@ fn 94 std_collections$put__string__f64 (ref,string,f64) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 28 3   ; arg 0 std_collections$Map__string__f64.mask
     ref.cast 4   ; i64
@@ -5877,7 +5877,7 @@ fn 95 std_collections$put__string__i16 (ref,string,i16) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 30 3   ; arg 0 std_collections$Map__string__i16.mask
     ref.cast 4   ; i64
@@ -6053,7 +6053,7 @@ fn 96 std_collections$put__string__i64 (ref,string,i64) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 34 3   ; arg 0 std_collections$Map__string__i64.mask
     ref.cast 4   ; i64
@@ -6229,7 +6229,7 @@ fn 97 std_collections$put__string__u16 (ref,string,u16) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 32 3   ; arg 0 std_collections$Map__string__u16.mask
     ref.cast 4   ; i64
@@ -6405,7 +6405,7 @@ fn 98 std_collections$put__string__u8 (ref,string,u8) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 107   ; std_core$string$Hash$hash_vt
+    call 107   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 20 3   ; arg 0 std_collections$Map__string__u8.mask
     ref.cast 4   ; i64
@@ -6576,7 +6576,7 @@ fn 99 std_collections$get__string__bool (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 22 3   ; arg 0 std_collections$Map__string__bool.mask
   ref.cast 4   ; i64
@@ -6650,7 +6650,7 @@ fn 100 std_collections$get__string__char (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 24 3   ; arg 0 std_collections$Map__string__char.mask
   ref.cast 4   ; i64
@@ -6723,7 +6723,7 @@ fn 101 std_collections$get__string__f32 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 26 3   ; arg 0 std_collections$Map__string__f32.mask
   ref.cast 4   ; i64
@@ -6797,7 +6797,7 @@ fn 102 std_collections$get__string__f64 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 28 3   ; arg 0 std_collections$Map__string__f64.mask
   ref.cast 4   ; i64
@@ -6870,7 +6870,7 @@ fn 103 std_collections$get__string__i16 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 30 3   ; arg 0 std_collections$Map__string__i16.mask
   ref.cast 4   ; i64
@@ -6944,7 +6944,7 @@ fn 104 std_collections$get__string__i64 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 34 3   ; arg 0 std_collections$Map__string__i64.mask
   ref.cast 4   ; i64
@@ -7017,7 +7017,7 @@ fn 105 std_collections$get__string__u16 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 32 3   ; arg 0 std_collections$Map__string__u16.mask
   ref.cast 4   ; i64
@@ -7091,7 +7091,7 @@ fn 106 std_collections$get__string__u8 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 107   ; std_core$string$Hash$hash_vt
+  call 107   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 20 3   ; arg 0 std_collections$Map__string__u8.mask
   ref.cast 4   ; i64
@@ -7151,7 +7151,7 @@ fn 106 std_collections$get__string__u8 (ref,string) -> any
   return.lit null.const
 end
 
-fn 107 std_core$string$Hash$hash_vt (string) -> u64
+fn 107 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
   call.import 3   ; std_core$string$Hash$hash
   return

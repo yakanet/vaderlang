@@ -112,7 +112,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet$Named$label(vader_box_t recv);
+static vader_string_t snippet$Named$label$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$Cat$Named$label(void* l0) {
     vader_string_t l1 = 0;
@@ -149,7 +149,7 @@ static vader_string_t snippet$show(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Named$label(l0);
+    t0 = snippet$Named$label$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -172,17 +172,17 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_name = 3u;
     l0 = (void*) _a0_obj;
-    t0 = vader_vt_snippet$Named$label(vader_ref_box(l0));
+    t0 = snippet$Named$label$$dispatch(vader_ref_box(l0));
     std_io$println__string(t0);
     t0 = snippet$show(vader_ref_box(l0));
     std_io$println__string(t0);
     t1 = snippet$adopt(l0);
-    t0 = vader_vt_snippet$Named$label(t1);
+    t0 = snippet$Named$label$$dispatch(t1);
     std_io$println__string(t0);
-    t0 = vader_vt_snippet$Named$label(vader_ref_box(l0));
+    t0 = snippet$Named$label$$dispatch(vader_ref_box(l0));
     std_io$println__string(t0);
     t1 = snippet$Cat$std_core$Into$into(l0);
-    t0 = vader_vt_snippet$Named$label(t1);
+    t0 = snippet$Named$label$$dispatch(t1);
     std_io$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
@@ -273,7 +273,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet$Named$label(vader_box_t recv) {
+static vader_string_t snippet$Named$label$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Cat$Named$label(recv.payload.obj);
         case 3u: return snippet$Stray$Named$label(recv.payload.obj);

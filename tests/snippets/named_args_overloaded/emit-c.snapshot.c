@@ -995,7 +995,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$pick(int32_t l0, vader_string_t l1) {
     vader_string_t l2 = 0;
@@ -1035,7 +1035,7 @@ static vader_string_t snippet$tag(vader_box_t l0, vader_string_t l1) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_vt_std_core$Display$to_string(l0);
+    l2 = std_core$Display$to_string$$dispatch(l0);
     t0 = concat_3(l1, 2u, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2704,7 +2704,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
         case 8u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));

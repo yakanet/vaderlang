@@ -1037,7 +1037,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$kind(vader_box_t l0) {
     if ((l0.tag == 2u || l0.tag == 3u || ((l0.tag == 35u) || (l0.tag == 5u) || (l0.tag == 11u)) || l0.tag == 4u || l0.tag == 7u)) {
@@ -1144,7 +1144,7 @@ static vader_string_t snippet$shown(vader_box_t l0) {
     if (!(((l0.tag == 17u) || (l0.tag == 13u) || l0.tag == 13u))) {
         { vader_gc_top = gc_frame.prev; return 2u; }
     }
-    t0 = vader_vt_std_core$Display$to_string(l0);
+    t0 = std_core$Display$to_string$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1186,7 +1186,7 @@ static vader_string_t snippet$displayed(vader_box_t l0) {
         t2 = std_core$finish_buffer(l1, l2);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t2 = vader_vt_std_core$Display$to_string(l0);
+    t2 = std_core$Display$to_string$$dispatch(l0);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -2986,7 +2986,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 13u: return std_core$$array$Display$to_string__i32(recv.payload.obj);
         case 21u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));

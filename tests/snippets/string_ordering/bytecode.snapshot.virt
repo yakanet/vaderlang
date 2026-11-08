@@ -982,7 +982,7 @@ fn 23 std_testing$assert_lt__string (string,string) -> void
   unreachable
 end
 
-fn 24 std_core$string$Comparable$compare_vt (string,string) -> i32
+fn 24 std_core$string$Comparable$compare$$wrapper (string,string) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.compare

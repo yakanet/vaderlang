@@ -334,7 +334,7 @@ static int32_t vader_host_system_posix$sys_unlink(vader_string_t a0) {
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv);
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
@@ -364,7 +364,7 @@ static int32_t snippet$main(void) {
     l2 = (void*) _a0_arr;
     l3 = std_io$write_file_bytes(l1, l2);
     if ((l3.tag == 20u) || (l3.tag == 10u)) {
-        l4 = vader_vt_std_core$Error$message(l3);
+        l4 = std_core$Error$message$$dispatch(l3);
         t0 = concat_2(3u, l4);
         std_io$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
@@ -1037,7 +1037,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv) {
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 10u: return std_io$IOError$std_core$Error$message(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Error.message");

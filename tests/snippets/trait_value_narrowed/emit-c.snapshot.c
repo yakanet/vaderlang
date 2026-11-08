@@ -893,7 +893,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet$Named$name(vader_box_t recv);
+static vader_string_t snippet$Named$name$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$Square$Named$name(void* l0) {
     return 1u;
@@ -1042,7 +1042,7 @@ static int32_t snippet$main(void) {
         t0 = t3.payload.s;
         std_io$println__string(t0);
         if ((l4.tag == 21u) || (l4.tag == 1u)) {
-            t0 = vader_vt_snippet$Named$name(l4);
+            t0 = snippet$Named$name$$dispatch(l4);
             std_io$println__string(t0);
         }
         l3 = (l3 + INT64_C(1));
@@ -2035,7 +2035,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet$Named$name(vader_box_t recv) {
+static vader_string_t snippet$Named$name$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Square$Named$name(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Named.name");

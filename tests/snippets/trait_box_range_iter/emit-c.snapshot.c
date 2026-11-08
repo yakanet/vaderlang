@@ -117,9 +117,9 @@ const vader_type_info_t vader_type_info_table[16] = {
 const size_t vader_type_info_count = 16;
 
 /* vtable forwards */
-static int32_t vader_vt_snippet$Greeter$greet(vader_box_t recv);
-static int32_t vader_vt_snippet$Doubler$doubled(vader_box_t recv);
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static int32_t snippet$Greeter$greet$$dispatch(vader_box_t recv);
+static int32_t snippet$Doubler$doubled$$dispatch(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$Hello$Greeter$greet(void* l0) {
     return INT32_C(100);
@@ -178,7 +178,7 @@ static int32_t snippet$count__i32(vader_box_t l0) {
     l1 = INT32_C(0);
     l2 = true;
     while (l2) {
-        t0 = vader_vt_std_core$Iterator$next(l0);
+        t0 = std_core$Iterator$next$$dispatch(l0);
         if (t0.tag == 8u) {
             l2 = false;
             continue;
@@ -193,7 +193,7 @@ static int32_t snippet$invoke__i32(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Greeter$greet(l0);
+    t0 = snippet$Greeter$greet$$dispatch(l0);
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -202,7 +202,7 @@ static int32_t snippet$twice__i32(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Doubler$doubled(l0);
+    t0 = snippet$Doubler$doubled$$dispatch(l0);
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -329,7 +329,7 @@ static vader_box_t std_core$__gen_state_std_core_0$Iterator$next(void* l0) {
 }
 
 /* vtable dispatchers */
-static int32_t vader_vt_snippet$Greeter$greet(vader_box_t recv) {
+static int32_t snippet$Greeter$greet$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Hello$Greeter$greet(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Greeter.greet");
@@ -337,7 +337,7 @@ static int32_t vader_vt_snippet$Greeter$greet(vader_box_t recv) {
     vader_unreachable("vtable miss in snippet$Greeter.greet");
 }
 
-static int32_t vader_vt_snippet$Doubler$doubled(vader_box_t recv) {
+static int32_t snippet$Doubler$doubled$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 2u: return snippet$i32$Doubler$doubled(((int32_t) recv.payload.i));
         default: vader_unreachable("vtable miss in snippet$Doubler.doubled");
@@ -345,7 +345,7 @@ static int32_t vader_vt_snippet$Doubler$doubled(vader_box_t recv) {
     vader_unreachable("vtable miss in snippet$Doubler.doubled");
 }
 
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 6u: return std_core$Range$Iterator$next__i32(recv.payload.obj);
         case 10u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);

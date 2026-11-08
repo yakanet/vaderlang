@@ -1134,7 +1134,7 @@ fn 16 std_collections$rehash__string__i32 (ref,i64) -> void
       local.get 4   ; e
       array.get 14   ; string[]
       ref.cast 2   ; string
-      call 22   ; std_core$string$Hash$hash_vt
+      call 22   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 13   ; std_collections$first_slot
@@ -1455,7 +1455,7 @@ fn 20 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 22   ; std_core$string$Hash$hash_vt
+    call 22   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 11 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 4   ; i64
@@ -1620,7 +1620,7 @@ fn 21 std_collections$add__i32 (ref,i32) -> bool
   return
 end
 
-fn 22 std_core$string$Hash$hash_vt (string) -> u64
+fn 22 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
   call.import 3   ; std_core$string$Hash$hash
   return

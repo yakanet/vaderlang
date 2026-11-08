@@ -56,7 +56,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
-static uint64_t std_core$string$Hash$hash_vt(vader_string_t l0);
+static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -238,8 +238,8 @@ static int32_t snippet$count_matching__string(void* l0, vader_string_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
         t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
         l6 = t0.payload.s;
-        l7 = std_core$string$Hash$hash_vt(l6);
-        l8 = std_core$string$Hash$hash_vt(l1);
+        l7 = std_core$string$Hash$hash$$wrapper(l6);
+        l8 = std_core$string$Hash$hash$$wrapper(l1);
         if (l7 == l8) {
             if (l6 == l1) {
                 l2 = vader_chk_add(i32, l2, INT32_C(1));
@@ -421,7 +421,7 @@ static void std_io$println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static uint64_t std_core$string$Hash$hash_vt(vader_string_t l0) {
+static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0) {
     uint64_t t0;
     t0 = vader_host_std_core$string$Hash$hash(l0);
     return t0;

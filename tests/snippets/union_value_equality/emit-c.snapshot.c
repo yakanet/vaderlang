@@ -182,7 +182,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
 
 static bool snippet$Point$std_core$Equals$equals(void* l0, void* l1) {
     int32_t l2, l3;
@@ -679,7 +679,7 @@ static bool snippet$Box$std_core$Equals$equals__Any(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_snippet$Box__Any_t*) l0)->f_value;
-    t0 = vader_vt_std_core$Equals$equals(l2, ((vader_struct_snippet$Box__Any_t*) l1)->f_value);
+    t0 = std_core$Equals$equals$$dispatch(l2, ((vader_struct_snippet$Box__Any_t*) l1)->f_value);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -691,7 +691,7 @@ static bool snippet$same_opt__snippet_Point(vader_box_t l0, vader_box_t l1) {
     vader_gc_top = &gc_frame;
     if (!(l0.tag == 0u)) {
         l2 = l0;
-        t0 = vader_vt_std_core$Equals$equals(l2, l1);
+        t0 = std_core$Equals$equals$$dispatch(l2, l1);
         { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return false; }
@@ -706,7 +706,7 @@ static bool snippet$same_pair__snippet_Point(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = (((vader_obj_header_t*) l0)->type_index == 25u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l0)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__0);
-    t0 = vader_vt_std_core$Equals$equals(l2, (((vader_obj_header_t*) l1)->type_index == 25u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__0));
+    t0 = std_core$Equals$equals$$dispatch(l2, (((vader_obj_header_t*) l1)->type_index == 25u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__0));
     if (t0) {
         l3 = (((vader_obj_header_t*) l0)->type_index == 25u ? ((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l0)->f__1 : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__1);
         l4 = (((vader_obj_header_t*) l1)->type_index == 25u ? ((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__1 : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__1);
@@ -971,7 +971,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 6u: return snippet$Box$std_core$Equals$equals__Any(recv.payload.obj, a0.payload.obj);
         case 1u: return snippet$Point$std_core$Equals$equals$guard(recv.payload.obj, a0);

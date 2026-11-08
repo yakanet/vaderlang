@@ -1029,7 +1029,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static int32_t snippet$other(vader_string_t l0) {
     return INT32_C(1);
@@ -1065,7 +1065,7 @@ static vader_string_t snippet$shown_1(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = vader_vt_std_core$Display$to_string(l0);
+    l1 = std_core$Display$to_string$$dispatch(l0);
     t0 = concat_2(2u, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1137,7 +1137,7 @@ static vader_string_t snippet$V$std_core$Add$add$1(void* l0, vader_box_t l1) {
     };
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_snippet$V_t*) l0)->f_x;
-    l3 = vader_vt_std_core$Display$to_string(l1);
+    l3 = std_core$Display$to_string$$dispatch(l1);
     l4 = vader_host_std_core$byte_len(l3);
     l5 = (void*) vader_buffer_new((size_t) (INT64_C(25) + l4));
     l4 = INT64_C(0);
@@ -2900,7 +2900,7 @@ static int64_t std_iter$count__i32(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: return snippet$Meters$std_core$Display$to_string(recv.payload.obj);
         case 5u: return snippet$Feet$std_core$Display$to_string(recv.payload.obj);

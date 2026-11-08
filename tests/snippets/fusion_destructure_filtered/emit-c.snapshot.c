@@ -203,7 +203,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static bool snippet$not_twenty(void* l0) {
     int32_t t0;
@@ -242,7 +242,7 @@ static int32_t snippet$main(void) {
     l2 = (void*) &vader_fn_static_snippet$not_twenty;
     l3 = std_iter$filter___i32__i64_(vader_ref_box(l1), l2);
     for (;;) {
-        l4 = vader_vt_std_core$Iterator$next(l3);
+        l4 = std_core$Iterator$next$$dispatch(l3);
         if (!(l4.tag == 11u)) {
             l1 = l4.payload.obj;
             l5 = ((vader_struct___Tuple_i32_i64_30f9f427_t*) l1)->f__0;
@@ -627,7 +627,7 @@ static vader_box_t std_iter$__gen_state_std_iter_0$Iterator$next(void* l0) {
                                     } else {
                                         t0 = ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state;
                                         if (t0 == INT32_C(10)) {
-                                            l5 = vader_vt_std_core$Iterator$next(((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s2);
+                                            l5 = std_core$Iterator$next$$dispatch(((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s2);
                                             ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_s3 = l5;
                                             VADER_WRITE_BARRIER((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0);
                                             ((vader_struct_std_iter$__gen_state_std_iter_0_t*) l0)->f_state = INT32_C(9);
@@ -765,7 +765,7 @@ static vader_box_t std_iter$$genstate_filter$Iterator$next(void* l0) {
                                             } else {
                                                 t0 = ((vader_struct_std_iter$$genstate_filter_t*) l0)->f_state;
                                                 if (t0 == INT32_C(12)) {
-                                                    l3 = vader_vt_std_core$Iterator$next(((vader_struct_std_iter$$genstate_filter_t*) l0)->f_s2);
+                                                    l3 = std_core$Iterator$next$$dispatch(((vader_struct_std_iter$$genstate_filter_t*) l0)->f_s2);
                                                     ((vader_struct_std_iter$$genstate_filter_t*) l0)->f_s3 = l3;
                                                     VADER_WRITE_BARRIER((vader_struct_std_iter$$genstate_filter_t*) l0);
                                                     ((vader_struct_std_iter$$genstate_filter_t*) l0)->f_state = INT32_C(11);
@@ -799,7 +799,7 @@ static vader_box_t std_iter$$genstate_filter$Iterator$next(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 9u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
         case 16u: return std_iter$__gen_state_std_iter_0$Iterator$next(recv.payload.obj);

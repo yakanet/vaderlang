@@ -209,8 +209,8 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv);
-static vader_string_t vader_vt_snippet$Fancy$fancy(vader_box_t recv);
+static vader_string_t snippet$Poke$poke$$dispatch(vader_box_t recv);
+static vader_string_t snippet$Fancy$fancy$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$show(vader_box_t l0) {
     vader_string_t t0 = 0;
@@ -220,7 +220,7 @@ static vader_string_t snippet$show(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Poke$poke(l0);
+    t0 = snippet$Poke$poke$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -235,7 +235,7 @@ static vader_string_t snippet$fancy_or_plain(vader_box_t l0) {
     if (!((l0.tag == 21u) || (l0.tag == 4u))) {
         { vader_gc_top = gc_frame.prev; return 1u; }
     }
-    t0 = vader_vt_snippet$Fancy$fancy(l0);
+    t0 = snippet$Fancy$fancy$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -869,7 +869,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv) {
+static vader_string_t snippet$Poke$poke$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return snippet$Wrapper$Poke$poke__snippet_MonType$1(recv.payload.obj);
         case 7u: return snippet$Wrapper$Poke$poke__Any(recv.payload.obj);
@@ -882,7 +882,7 @@ static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv) {
     vader_unreachable("vtable miss in snippet$Poke.poke");
 }
 
-static vader_string_t vader_vt_snippet$Fancy$fancy(vader_box_t recv) {
+static vader_string_t snippet$Fancy$fancy$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return snippet$Wrapper$Fancy$fancy__snippet_MonType(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Fancy.fancy");

@@ -196,7 +196,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$reads_later(int32_t l0) {
     vader_box_t l1 = vader_box_null();
@@ -298,7 +298,7 @@ static int32_t snippet$main(void) {
     std_io$println__string(t1);
     l3 = snippet$stepped(INT32_C(1));
     for (;;) {
-        l4 = vader_vt_std_core$Iterator$next(l3);
+        l4 = std_core$Iterator$next$$dispatch(l3);
         if (!(l4.tag == 7u)) {
             l5 = ((int32_t) l4.payload.i);
             l0 = (void*) vader_buffer_new((size_t) INT64_C(30));
@@ -604,7 +604,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 5u: return snippet$$genstate_stepped$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");

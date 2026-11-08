@@ -1347,7 +1347,7 @@ static bool vader_host_std_runtime_scheduler$is_cancelled(void) {
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static int32_t snippet$step(vader_string_t l0) {
     void* t0 = NULL;
@@ -1449,7 +1449,7 @@ static int32_t snippet$main(void) {
     t0 = (void*) &vader_fn_static___lambda_snippet_8;
     t1 = std_task$launch__i32(t0);
     t2 = std_task$join__i32(t1);
-    t3 = vader_vt_std_core$Display$to_string(t2);
+    t3 = std_core$Display$to_string$$dispatch(t2);
     std_io$println__string(t3);
     t0 = (void*) &vader_fn_static_snippet$outer;
     l0 = std_task$launch__i32(t0);
@@ -1457,7 +1457,7 @@ static int32_t snippet$main(void) {
     std_time$sleep(t4);
     std_task$cancel__i32(l0);
     t2 = std_task$join__i32(l0);
-    t3 = vader_vt_std_core$Display$to_string(t2);
+    t3 = std_core$Display$to_string$$dispatch(t2);
     std_io$println__string(t3);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
@@ -3579,7 +3579,7 @@ static void std_runtime_scheduler$let_go(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 11u: return std_core$Cancelled$Display$to_string(recv.payload.obj);
         case 12u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));

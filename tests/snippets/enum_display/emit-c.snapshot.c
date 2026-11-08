@@ -990,7 +990,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$Weight$std_core$Display$to_string(uint8_t l0) {
     void* l1 = NULL;
@@ -1092,7 +1092,7 @@ static int32_t snippet$main(void) {
     t0 = concat_3(l1, 2u, l2);
     std_io$println__string(t0);
     t3 = snippet$maybe_byte(true);
-    l1 = vader_vt_std_core$Display$to_string(t3);
+    l1 = std_core$Display$to_string$$dispatch(t3);
     t0 = concat_2(4u, l1);
     std_io$println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
@@ -2880,7 +2880,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return std_core$$array$Display$to_string__snippet_Direction(recv.payload.obj);
         case 11u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));

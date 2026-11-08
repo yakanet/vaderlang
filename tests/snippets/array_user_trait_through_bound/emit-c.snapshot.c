@@ -958,7 +958,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
@@ -988,7 +988,7 @@ static int32_t snippet$main(void) {
     t0 = std_core$finish_buffer(l1, l2);
     std_io$println__string(t0);
     t1 = snippet$pop__i32__(l0);
-    l4 = vader_vt_std_core$Display$to_string(t1);
+    l4 = std_core$Display$to_string$$dispatch(t1);
     l2 = vader_host_std_core$byte_len(l4);
     l1 = (void*) vader_buffer_new((size_t) (INT64_C(30) + l2));
     l2 = INT64_C(0);
@@ -2600,7 +2600,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 9u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
         case 10u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));

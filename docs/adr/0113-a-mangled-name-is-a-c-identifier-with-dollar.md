@@ -36,6 +36,10 @@ its trait and the member. Three steps lost information on the way:
   hashed. A vtable key's `.` becomes `$` in its C dispatcher. The C backend stops
   on any other byte instead of rewriting it, and an FFI adapter's symbol is the
   mangled name behind a prefix.
+- **A function the compiler adds ends in an empty part, then a word**: a trait
+  method's C dispatcher is `<trait>$<method>$$dispatch`, the bytecode thunk over
+  an intrinsic `<import>$$wrapper`. No declared name holds an empty part, so an
+  impl member named `dispatch` keeps a name of its own.
 
 ## Consequences
 

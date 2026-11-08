@@ -1,7 +1,7 @@
 // vader/emit/c/dispatch: trait-method dispatchers for the generated C.
 //
 // One output feeds virtual dispatch in the generated C: a per-`(trait.method)`
-// dispatcher function (`vader_vt_<key>`) that the `virtual.call` op invokes: a
+// dispatcher function (`<key>$$dispatch`) that the `virtual.call` op invokes: a
 // `switch (recv.tag)` forwarding to the matching impl fn, boxing args and result
 // to the erased ABI so heterogeneous monomorphised impls can share one
 // dispatcher.
@@ -30,9 +30,10 @@ import "vader/emit/c/ast"
 // ---- per-key dispatcher metadata ------------------------------------------
 
 /// C identifier for the dispatcher function of a `${trait}.${method}` key :
-/// `vader_vt_<trait key>$<method>`, the `.` becoming the `$` that separates
-/// every part of a mangled name.
-vtable_helper_name :: fn(key: string) -> string = "vader_vt_${sanitise(key.split(".").join("\$"))}"
+/// `<trait key>$<method>$$dispatch`, the `.` becoming the `$` that separates
+/// every part of a mangled name. The empty part before `dispatch` is what no
+/// declared name spells, an identifier never being empty, as `$array` is.
+dispatcher_name :: fn(key: string) -> string = "${sanitise(key.split(".").join("\$"))}\$\$dispatch"
 
 /// The vtable row whose key is `key`, or `null` when absent.
 find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {
@@ -105,7 +106,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 }
 
 /// Emit one dispatch helper per `(trait.method)` : `static <ret>
-/// vader_vt_<key>(vader_box_t recv, …)` switching on `recv.tag` and
+/// <key>$$dispatch(vader_box_t recv, …)` switching on `recv.tag` and
 /// forwarding to the matching impl. Each arm unboxes args to the impl's
 /// concrete signature ; when the dispatcher returns `any` but the impl
 /// returns a primitive or a raw concrete ref, the result is re-boxed.
@@ -182,7 +183,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 dispatcher_signature :: fn(ctx: EmitCtx, key: string, sig: BcSignature) -> CSignature = CSignature {
     .storage = wrapper_storage(ctx.split),
     .result = c_type_for_val_bare(bc_single_result(sig)),
-    .name = vtable_helper_name(key),
+    .name = dispatcher_name(key),
     .parameters = dispatcher_parameters(sig),
 }
 

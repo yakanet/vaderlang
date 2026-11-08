@@ -183,7 +183,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static vader_box_t snippet$Countdown$std_core$Iterator$next(void* l0) {
     int32_t l1, l2;
@@ -547,7 +547,7 @@ static int32_t std_iter$sum__i32(vader_box_t l0) {
     l1 = std_core$i32$Zero$zero();
     l2 = l0;
     for (;;) {
-        l3 = vader_vt_std_core$Iterator$next(l2);
+        l3 = std_core$Iterator$next$$dispatch(l2);
         if (!(l3.tag == 4u)) {
             l4 = ((int32_t) l3.payload.i);
             l1 = vader_chk_add(i32, l1, l4);
@@ -559,7 +559,7 @@ static int32_t std_iter$sum__i32(vader_box_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Countdown$std_core$Iterator$next(recv.payload.obj);
         case 15u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);

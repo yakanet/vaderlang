@@ -112,7 +112,7 @@ static void std_io$write(uint8_t l0, vader_string_t l1);
 static bool std_io$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_io$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io$println__string(vader_string_t l0);
-static uint64_t std_core$string$Hash$hash_vt(vader_string_t l0);
+static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -211,8 +211,8 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static void vader_vt_std_core$IndexSet$set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1);
-static vader_box_t vader_vt_std_core$Index$at(vader_box_t recv, vader_box_t a0);
+static void std_core$IndexSet$set_at$$dispatch(vader_box_t recv, vader_box_t a0, vader_box_t a1);
+static vader_box_t std_core$Index$at$$dispatch(vader_box_t recv, vader_box_t a0);
 
 static void snippet$Log$std_core$IndexSet$set_at(void* l0, vader_string_t l1, int32_t l2) {
     void* l3 = NULL;
@@ -243,8 +243,8 @@ static void snippet$fill(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_vt_std_core$IndexSet$set_at(l0, vader_box_string(2u, 2u), vader_box_i32(3u, INT32_C(1)));
-    vader_vt_std_core$IndexSet$set_at(l0, vader_box_string(2u, 3u), vader_box_i32(3u, INT32_C(2)));
+    std_core$IndexSet$set_at$$dispatch(l0, vader_box_string(2u, 2u), vader_box_i32(3u, INT32_C(1)));
+    std_core$IndexSet$set_at$$dispatch(l0, vader_box_string(2u, 3u), vader_box_i32(3u, INT32_C(2)));
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -257,7 +257,7 @@ static int32_t snippet$peek(vader_box_t l0, vader_string_t l1) {
         vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_vt_std_core$Index$at(l0, vader_box_string(2u, l1));
+    l2 = std_core$Index$at$$dispatch(l0, vader_box_string(2u, l1));
     if (l2.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
     }
@@ -269,7 +269,7 @@ static void snippet$put_wide(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_vt_std_core$IndexSet$set_at(l0, vader_box_i64(12u, INT64_C(9000000000)), vader_box_i32(3u, INT32_C(7)));
+    std_core$IndexSet$set_at$$dispatch(l0, vader_box_i64(12u, INT64_C(9000000000)), vader_box_i32(3u, INT32_C(7)));
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -933,7 +933,7 @@ static void std_collections$rehash__string__i32(void* l0, int64_t l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-        l6 = std_core$string$Hash$hash_vt(t1);
+        l6 = std_core$string$Hash$hash$$wrapper(t1);
         l7 = std_collections$first_slot(l6, l2);
         for (;;) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
@@ -1122,7 +1122,7 @@ static bool std_collections$put__string__i32(void* l0, vader_string_t l1, int32_
     l4 = INT64_C(-1);
     t0 = ((vader_array_t*) ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_index)->length;
     if ((t0 > INT64_C(0))) {
-        l5 = std_core$string$Hash$hash_vt(l1);
+        l5 = std_core$string$Hash$hash$$wrapper(l1);
         l6 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
         l6 = std_collections$first_slot(l5, l6);
         for (;;) {
@@ -1261,7 +1261,7 @@ static vader_box_t std_collections$get__string__i32(void* l0, vader_string_t l1)
     if (t0 == INT64_C(0)) {
         return vader_box_obj(0u, NULL);
     }
-    l2 = std_core$string$Hash$hash_vt(l1);
+    l2 = std_core$string$Hash$hash$$wrapper(l1);
     l3 = ((vader_struct_std_collections$Map__string__i32_t*) l0)->f_mask;
     l3 = std_collections$first_slot(l2, l3);
     for (;;) {
@@ -1366,14 +1366,14 @@ static void std_io$println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static uint64_t std_core$string$Hash$hash_vt(vader_string_t l0) {
+static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0) {
     uint64_t t0;
     t0 = vader_host_std_core$string$Hash$hash(l0);
     return t0;
 }
 
 /* vtable dispatchers */
-static void vader_vt_std_core$IndexSet$set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1) {
+static void std_core$IndexSet$set_at$$dispatch(vader_box_t recv, vader_box_t a0, vader_box_t a1) {
     switch (recv.tag) {
         case 1u: snippet$Log$std_core$IndexSet$set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
         case 8u: std_collections$Map$std_core$IndexSet$set_at__string__i32(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
@@ -1382,7 +1382,7 @@ static void vader_vt_std_core$IndexSet$set_at(vader_box_t recv, vader_box_t a0, 
     }
 }
 
-static vader_box_t vader_vt_std_core$Index$at(vader_box_t recv, vader_box_t a0) {
+static vader_box_t std_core$Index$at$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 2u: return vader_box_i32(14u, (int32_t) std_core$string$Index$at(recv.payload.s, ((int64_t) a0.payload.i)));
         case 8u: return std_collections$Map$std_core$Index$at__string__i32(recv.payload.obj, a0.payload.s);

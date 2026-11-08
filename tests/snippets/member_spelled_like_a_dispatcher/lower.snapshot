@@ -1,0 +1,46 @@
+# Lower
+
+## snippet
+  snippet.[i32, i32].dispatch :: fn(self: [i32, i32]) -> i32 {  // snippet$_i32__i32_$Marker$dispatch
+      self._0 + self._1
+  }
+  snippet.Word :: struct { n: i32 }  // snippet$Word
+  snippet.Word.Marker :: fn(self: Word) -> i32 {  // snippet$Word$_i32__i32_$Marker
+      self.n
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      pair: [i32, i32] = [1, 2] :[i32, i32]
+      marker: Marker = pair
+      word: _i32__i32_ = Word { .n = 4 }
+      std.io.println<i32>(@vcall(snippet.Marker.dispatch, marker))
+      std.io.println<i32>(@vcall(snippet._i32__i32_.Marker, word))
+      return 0
+  }
+  vtable snippet.Marker.dispatch for [i32, i32]  snippet.[i32, i32].dispatch  // snippet$_i32__i32_$Marker$dispatch
+  vtable snippet._i32__i32_.Marker for Word  snippet.Word.Marker  // snippet$Word$_i32__i32_$Marker
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    fn std.io.println<i32>  // std_io$println__i32
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_text  // std_io$write_text
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

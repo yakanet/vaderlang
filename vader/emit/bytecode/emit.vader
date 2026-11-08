@@ -87,7 +87,8 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         jump_table: i32[]: [-1] * body.len()
         no_locals: BcLocal[]: []
         fn_index :: i32(ctx.functions.len())
-        ctx.functions.push(BcFunction { .name = "${imp.mangled_name}_vt", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
+        // The empty part before `wrapper` is what no declared name spells.
+        ctx.functions.push(BcFunction { .name = "${imp.mangled_name}\$\$wrapper", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
         ctx.function_index_by_mangle[imp.mangled_name] = fn_index
     }
 }
@@ -449,21 +450,21 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // Order matters : functions → imports → data → globals → types so each pass's root
         // set reflects the previous pass's drops. (There is no separate
         // vtable-prune pass : vtable rows are reachability-filtered when
-        // built, see `build_vtables_from_entries`, and the `used_vt_keys`
+        // built, see `build_vtables_from_entries`, and the `used_vtable_keys`
         // set below gates which vtable targets root the fn walk.)
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
         // can both gate on real virtual.call sites.
-        used_vt_keys :: Map<string, bool> {}
+        used_vtable_keys :: Map<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
-                if op is VirtualCall { used_vt_keys[op.vtable_key] = true }
+                if op is VirtualCall { used_vtable_keys[op.vtable_key] = true }
             }
         }
         vtable_roots: i32[]: []
         for ve in cfg.vtable_entries {
             key :: vtable_key(ve.trait_name, ve.method_name)
-            if used_vt_keys[key] !is bool { continue }
+            if used_vtable_keys[key] !is bool { continue }
             // Pin the receiver struct type so structs only kept through an
             // impl row survive when the row's trait is actually dispatched
             // on.

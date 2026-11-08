@@ -1254,7 +1254,7 @@ static bool vader_host_std_runtime_scheduler$is_cancelled(void) {
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static int32_t snippet$worker(int32_t l0, int32_t l1) {
     vader_box_t l2 = vader_box_null();
@@ -1316,7 +1316,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         t1 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l3];
-        t2 = vader_vt_std_core$Display$to_string(t1);
+        t2 = std_core$Display$to_string$$dispatch(t1);
         std_io$println__string(t2);
         l3 = (l3 + INT64_C(1));
     }
@@ -3431,7 +3431,7 @@ static void std_runtime_scheduler$let_go(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 9u: return std_core$Cancelled$Display$to_string(recv.payload.obj);
         case 10u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));

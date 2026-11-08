@@ -151,7 +151,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
 
 static bool snippet$Point$std_core$Equals$equals(void* l0, void* l1) {
     int32_t l2, l3;
@@ -494,7 +494,7 @@ static bool std_core$content_equals__snippet_Point(void* l0, void* l1) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
         t0 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l2);
-        t1 = vader_vt_std_core$Equals$equals(l4, t0);
+        t1 = std_core$Equals$equals$$dispatch(l4, t0);
         if (!(t1)) {
             { vader_gc_top = gc_frame.prev; return false; }
         }
@@ -777,7 +777,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 1u: return snippet$Point$std_core$Equals$equals$guard(recv.payload.obj, a0);
         case 14u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);

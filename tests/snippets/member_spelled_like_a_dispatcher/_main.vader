@@ -1,0 +1,37 @@
+// A member and a dispatcher whose names would meet but for the empty part that
+// ends a dispatcher's name: the member `dispatch` of `[i32, i32] implements
+// Marker` is `snippet$_i32__i32_$Marker$dispatch`, and the method `Marker` of
+// the trait `_i32__i32_` (the spelling of the tuple target in a member's name)
+// dispatches through `snippet$_i32__i32_$Marker$$dispatch`.
+module "snippet"
+
+import "std/io"
+
+Marker :: trait {
+    dispatch :: fn(self) -> i32
+}
+
+[i32, i32] implements Marker {
+    dispatch :: fn(self) -> i32 = self.0 + self.1
+}
+
+_i32__i32_ :: trait {
+    Marker :: fn(self) -> i32
+}
+
+Word :: struct {
+    n: i32
+}
+
+Word implements _i32__i32_ {
+    Marker :: fn(self) -> i32 = self.n
+}
+
+main :: fn() -> i32 {
+    pair: [i32, i32]: [1, 2]
+    marker: Marker: pair
+    word: _i32__i32_: Word { .n = 4 }
+    println(marker.dispatch())
+    println(word.Marker())
+    return 0
+}

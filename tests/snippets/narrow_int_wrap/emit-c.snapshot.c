@@ -998,7 +998,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static uint8_t snippet$add_u8(uint8_t l0, uint8_t l1) {
     return (uint8_t) (int32_t) ((l0 + l1) & INT32_C(255));
@@ -1234,7 +1234,7 @@ static int32_t snippet$main(void* l0) {
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(0))
     t5 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) INT32_C(0)];
-    l6 = vader_vt_std_core$Display$to_string(t5);
+    l6 = std_core$Display$to_string$$dispatch(t5);
     t3 = concat_2(25u, l6);
     std_io$println__string(t3);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
@@ -2805,7 +2805,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 8u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
         case 9u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));

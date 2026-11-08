@@ -1037,8 +1037,8 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv);
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t snippet$Poke$poke$$dispatch(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$Word$Poke$poke(void* l0) {
     vader_string_t l1 = 0;
@@ -1062,7 +1062,7 @@ static vader_string_t snippet$show(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Poke$poke(l0);
+    t0 = snippet$Poke$poke$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1075,7 +1075,7 @@ static vader_string_t snippet$render(vader_box_t l0) {
     };
     vader_gc_top = &gc_frame;
     if (!(l0.tag == 0u)) {
-        t0 = vader_vt_std_core$Display$to_string(l0);
+        t0 = std_core$Display$to_string$$dispatch(l0);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 2u; }
@@ -1120,13 +1120,13 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a3_obj, 1u);
     _a3_obj->f_text = 3u;
     t0 = (void*) _a3_obj;
-    t1 = vader_vt_snippet$Poke$poke(vader_ref_box(t0));
+    t1 = snippet$Poke$poke$$dispatch(vader_ref_box(t0));
     std_io$println__string(t1);
     vader_array_t* _a4_arr = vader_array_new(6u, 2u, 0u, 2u);
     vader_array_box_slots(_a4_arr->buf)[_a4_arr->offset + 1u] = vader_box_string(2u, 5u);
     vader_array_box_slots(_a4_arr->buf)[_a4_arr->offset + 0u] = vader_box_string(2u, 4u);
     t0 = (void*) _a4_arr;
-    t1 = vader_vt_snippet$Poke$poke(vader_ref_box(t0));
+    t1 = snippet$Poke$poke$$dispatch(vader_ref_box(t0));
     std_io$println__string(t1);
     vader_array_t* _a5_arr = vader_array_new(11u, 1u, 12u, 12u);
     ((uint8_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (uint8_t) true;
@@ -1135,13 +1135,13 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a6_obj, 17u);
     _a6_obj->f_item = vader_ref_box(t0);
     t0 = (void*) _a6_obj;
-    t1 = vader_vt_snippet$Poke$poke(((vader_struct_snippet$Holder_t*) t0)->f_item);
+    t1 = snippet$Poke$poke$$dispatch(((vader_struct_snippet$Holder_t*) t0)->f_item);
     std_io$println__string(t1);
     vader_array_t* _a7_arr = vader_array_new(6u, 1u, 0u, 2u);
     vader_array_box_slots(_a7_arr->buf)[_a7_arr->offset + 0u] = vader_box_string(2u, 6u);
     t0 = (void*) _a7_arr;
     t2 = snippet$as_poke(t0);
-    t1 = vader_vt_snippet$Poke$poke(t2);
+    t1 = snippet$Poke$poke$$dispatch(t2);
     std_io$println__string(t1);
     vader_array_t* _a8_arr = vader_array_new(6u, 2u, 0u, 2u);
     vader_array_box_slots(_a8_arr->buf)[_a8_arr->offset + 1u] = vader_box_string(2u, 8u);
@@ -1167,7 +1167,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a12_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a12_slotarr, l3)
         t2 = vader_array_ref_load_box(_a12_slotarr->buf, _a12_slotarr->offset + (size_t) l3);
-        t1 = vader_vt_snippet$Poke$poke(t2);
+        t1 = snippet$Poke$poke$$dispatch(t2);
         std_io$println__string(t1);
         l3 = (l3 + INT64_C(1));
     }
@@ -1176,7 +1176,7 @@ static int32_t snippet$main(void) {
     ((int32_t*) _a13_arr->buf->slots)[_a13_arr->offset + 1u] = (int32_t) (int32_t) (uint32_t) 100u;
     ((int32_t*) _a13_arr->buf->slots)[_a13_arr->offset + 0u] = (int32_t) (int32_t) (uint32_t) 99u;
     t0 = (void*) _a13_arr;
-    l4 = vader_vt_snippet$Poke$poke(vader_ref_box(t0));
+    l4 = snippet$Poke$poke$$dispatch(vader_ref_box(t0));
     l2 = vader_host_std_core$byte_len(l4);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l2));
     l2 = INT64_C(0);
@@ -2930,7 +2930,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv) {
+static vader_string_t snippet$Poke$poke$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Word$Poke$poke(recv.payload.obj);
         case 8u: return snippet$$array$Poke$poke__snippet_Tile(recv.payload.obj);
@@ -2944,7 +2944,7 @@ static vader_string_t vader_vt_snippet$Poke$poke(vader_box_t recv) {
     vader_unreachable("vtable miss in snippet$Poke.poke");
 }
 
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 6u: return std_core$$array$Display$to_string__string(recv.payload.obj);
         case 21u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));

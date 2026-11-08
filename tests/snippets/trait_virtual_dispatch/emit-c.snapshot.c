@@ -102,7 +102,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv);
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$ParseErr$std_core$Error$message(void* l0) {
     vader_string_t l1 = 0;
@@ -140,7 +140,7 @@ static vader_string_t snippet$report(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_std_core$Error$message(l0);
+    t0 = std_core$Error$message$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -254,7 +254,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv) {
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$ParseErr$std_core$Error$message(recv.payload.obj);
         case 3u: return snippet$NetErr$std_core$Error$message(recv.payload.obj);

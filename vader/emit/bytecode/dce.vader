@@ -5,7 +5,7 @@
 // `prune_unused_vtables` peer pass : vtable rows are reachability-filtered when
 // they're built: `vader/emit/bytecode/emit.vader::build_vtables_from_entries` only emits a
 // row whose `(trait, method)` key a surviving `virtual.call` references, and
-// the same `used_vt_keys` set gates which vtable targets root the fn walk.)
+// the same `used_vtable_keys` set gates which vtable targets root the fn walk.)
 // Run after the CFG → bytecode body emit, before the final
 // BytecodeModule assembly. Each pass walks the EmitterCtx and the
 // surviving fn bodies to compute a reachability set, then drops
@@ -16,7 +16,7 @@
 // the CFG build. What is left for here is what only exists AFTER the body emit:
 // the emitter's own import / fn / type tables, their dense renumbering, and
 // reachability facts no earlier pass can see (which `virtual.call` keys actually
-// survived, the `_vt` thunks emit synthesises). The two are not redundant.
+// survived, the `$$wrapper` thunks emit synthesises). The two are not redundant.
 
 module "vader/emit/bytecode"
 

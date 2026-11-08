@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/member_spelled_like_a_dispatcher
+  TraitDecl      _i32__i32_           :: _i32__i32_
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Marker               :: Marker
+  StructDecl     Word                 :: Word
+  expr 15:35    BinaryExpr     :: i32
+  expr 15:35    FieldExpr      :: i32
+  expr 15:35    IdentExpr      :: [i32, i32]
+  expr 15:44    FieldExpr      :: i32
+  expr 15:44    IdentExpr      :: [i32, i32]
+  expr 27:33    FieldExpr      :: i32
+  expr 27:33    IdentExpr      :: Word
+  expr 31:23    SeqLitExpr     :: [i32, i32]
+  expr 32:21    IdentExpr      :: [i32, i32]
+  expr 33:23    StructLitExpr  :: Word
+  expr 34:13    CallExpr       :: i32
+  expr 34:13    FieldExpr      :: fn() -> i32
+  expr 34:13    IdentExpr      :: Marker
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 35:13    CallExpr       :: i32
+  expr 35:13    FieldExpr      :: fn() -> i32
+  expr 35:13    IdentExpr      :: _i32__i32_
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void

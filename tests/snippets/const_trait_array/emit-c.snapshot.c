@@ -116,7 +116,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static int32_t vader_vt_snippet$Shape$area(vader_box_t recv);
+static int32_t snippet$Shape$area$$dispatch(vader_box_t recv);
 
 static int32_t snippet$Circle$Shape$area(void* l0) {
     int32_t l1, l2;
@@ -160,7 +160,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         t0 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l3);
-        l4 = vader_vt_snippet$Shape$area(t0);
+        l4 = snippet$Shape$area$$dispatch(t0);
         l0 = vader_chk_add(i32, l0, l4);
         l3 = (l3 + INT64_C(1));
     }
@@ -331,7 +331,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static int32_t vader_vt_snippet$Shape$area(vader_box_t recv) {
+static int32_t snippet$Shape$area$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Circle$Shape$area(recv.payload.obj);
         case 3u: return snippet$Square$Shape$area(recv.payload.obj);

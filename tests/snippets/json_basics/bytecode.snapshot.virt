@@ -7376,7 +7376,7 @@ fn 101 std_collections$rehash__string__Any (ref,i64) -> void
       local.get 4   ; e
       array.get 46   ; string[]
       ref.cast 1   ; string
-      call 111   ; std_core$string$Hash$hash_vt
+      call 111   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 99   ; std_collections$first_slot
@@ -7489,7 +7489,7 @@ fn 103 std_collections$put__string__Any (ref,string,any) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 111   ; std_core$string$Hash$hash_vt
+    call 111   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 47 3   ; arg 0 std_collections$Map__string__Any.mask
     ref.cast 7   ; i64
@@ -8008,7 +8008,7 @@ fn 110 std_numbers$hex_digit (u64) -> char
   end $L0
 end
 
-fn 111 std_core$string$Hash$hash_vt (string) -> u64
+fn 111 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
   call.import 6   ; std_core$string$Hash$hash
   return

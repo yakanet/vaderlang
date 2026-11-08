@@ -119,7 +119,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     int32_t l0;
@@ -140,7 +140,7 @@ static int32_t snippet$main(void) {
     l1 = vader_ref_box(t0);
     l0 = INT32_C(0);
     for (;;) {
-        t1 = vader_vt_std_core$Iterator$next(l1);
+        t1 = std_core$Iterator$next$$dispatch(l1);
         if (!(t1.tag == 10u)) {
             l0 = vader_chk_add(i32, l0, INT32_C(1));
             continue;
@@ -489,7 +489,7 @@ static vader_box_t std_string$StringChars$std_core$Iterator$next(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 11u: return std_string$StringChars$std_core$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");

@@ -1432,7 +1432,7 @@ fn 46 snippet_bytes$describe (any) -> string
   return.lit string.const 10   ; "alias text"
 end
 
-fn 47 std_core$string$Hash$hash_vt (string) -> u64
+fn 47 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
   call.import 2   ; std_core$string$Hash$hash
   return

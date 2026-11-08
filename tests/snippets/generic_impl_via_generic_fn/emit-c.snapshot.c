@@ -81,7 +81,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static int32_t vader_vt_snippet$Source$pull(vader_box_t recv);
+static int32_t snippet$Source$pull$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     int32_t l0;
@@ -97,7 +97,7 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     t0 = snippet$viagen__i32(INT32_C(5));
-    l0 = vader_vt_snippet$Source$pull(t0);
+    l0 = snippet$Source$pull$$dispatch(t0);
     l1 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l2 = INT64_C(0);
     l3 = ((int64_t) (int32_t) l0);
@@ -270,7 +270,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static int32_t vader_vt_snippet$Source$pull(vader_box_t recv) {
+static int32_t snippet$Source$pull$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 2u: return snippet$Box$Source$pull__i32(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Source.pull");

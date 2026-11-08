@@ -139,7 +139,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
 
 static vader_string_t snippet$pick(vader_box_t l0) {
     bool l1;
@@ -352,7 +352,7 @@ static int32_t snippet$main(void) {
     l5 = (void*) vader_buffer_new((size_t) INT64_C(16));
     l6 = INT64_C(0);
     l6 = std_core$write_string_at(l5, l6, 8u);
-    l7 = vader_vt_std_core$Equals$equals(l2, vader_box_f64(2u, 0.0));
+    l7 = std_core$Equals$equals$$dispatch(l2, vader_box_f64(2u, 0.0));
     l6 = std_core$write_bool(l5, l6, l7);
     t0 = std_core$finish_buffer(l5, l6);
     std_io$println__string(t0);
@@ -725,7 +725,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
+static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 11u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
         case 13u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);

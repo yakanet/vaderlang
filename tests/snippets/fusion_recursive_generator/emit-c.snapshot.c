@@ -122,7 +122,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv);
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv);
 
 static vader_box_t snippet$countdown(int32_t l0) {
     vader_box_t l1 = vader_box_null(), l2 = vader_box_null();
@@ -177,7 +177,7 @@ static int32_t snippet$main(void) {
         t0 = vader_chk_sub(i32, l1, INT32_C(1));
         l7 = snippet$countdown(t0);
         for (;;) {
-            l8 = vader_vt_std_core$Iterator$next(l7);
+            l8 = std_core$Iterator$next$$dispatch(l7);
             if (!(l8.tag == 5u)) {
                 l1 = ((int32_t) l8.payload.i);
                 l3 = (void*) vader_buffer_new((size_t) INT64_C(21));
@@ -195,7 +195,7 @@ static int32_t snippet$main(void) {
     l6 = 0u;
     l7 = snippet$countdown(INT32_C(3));
     for (;;) {
-        l8 = vader_vt_std_core$Iterator$next(l7);
+        l8 = std_core$Iterator$next$$dispatch(l7);
         if (!(l8.tag == 5u)) {
             l1 = ((int32_t) l8.payload.i);
             l3 = (void*) vader_buffer_new((size_t) INT64_C(21));
@@ -291,7 +291,7 @@ static vader_box_t snippet$$genstate_countdown$Iterator$next(void* l0) {
                                                 } else {
                                                     t0 = ((vader_struct_snippet$$genstate_countdown_t*) l0)->f_state;
                                                     if (t0 == INT32_C(13)) {
-                                                        l3 = vader_vt_std_core$Iterator$next(((vader_struct_snippet$$genstate_countdown_t*) l0)->f_s3);
+                                                        l3 = std_core$Iterator$next$$dispatch(((vader_struct_snippet$$genstate_countdown_t*) l0)->f_s3);
                                                         ((vader_struct_snippet$$genstate_countdown_t*) l0)->f_s4 = l3;
                                                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_countdown_t*) l0);
                                                         ((vader_struct_snippet$$genstate_countdown_t*) l0)->f_state = INT32_C(12);
@@ -555,7 +555,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_box_t vader_vt_std_core$Iterator$next(vader_box_t recv) {
+static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: return snippet$$genstate_countdown$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");

@@ -351,7 +351,7 @@ static int64_t vader_host_system_posix$sys_fwrite(void* a0, int64_t a1, int64_t 
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv);
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
@@ -405,14 +405,14 @@ static int32_t snippet$main(void) {
     l3 = l2.payload.obj;
     l2 = std_io$write_file_bytes(l0, l3);
     if ((l2.tag == 24u) || (l2.tag == 11u) || (l2.tag == 19u)) {
-        l4 = vader_vt_std_core$Error$message(l2);
+        l4 = std_core$Error$message$$dispatch(l2);
         t0 = concat_5(3u, l4, 4u, l0, 5u);
         std_io$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     l2 = std_io$read_file_bytes(l0, INT64_C(16777216));
     if ((l2.tag == 24u) || (l2.tag == 11u) || (l2.tag == 19u)) {
-        l0 = vader_vt_std_core$Error$message(l2);
+        l0 = std_core$Error$message$$dispatch(l2);
         t0 = concat_2(6u, l0);
         std_io$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
@@ -1550,7 +1550,7 @@ static vader_string_t images_ppm$Ppm$std_core$Display$to_string(void* l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Error$message(vader_box_t recv) {
+static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 11u: return std_io$IOError$std_core$Error$message(recv.payload.obj);
         case 19u: return images_ppm$PpmError$std_core$Error$message(recv.payload.obj);

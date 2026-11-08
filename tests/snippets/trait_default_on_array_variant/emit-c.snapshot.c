@@ -89,7 +89,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet$Sized$describe(vader_box_t recv);
+static vader_string_t snippet$Sized$describe$$dispatch(vader_box_t recv);
 
 static int32_t snippet$A$Sized$size(void* l0) {
     int32_t t0;
@@ -126,7 +126,7 @@ static vader_string_t snippet$show(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Sized$describe(l0);
+    t0 = snippet$Sized$describe$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -343,7 +343,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet$Sized$describe(vader_box_t recv) {
+static vader_string_t snippet$Sized$describe$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$A$Sized$describe(recv.payload.obj);
         case 5u: return snippet$$array$Sized$describe__i32(recv.payload.obj);

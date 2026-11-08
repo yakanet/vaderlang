@@ -1039,7 +1039,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv);
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     void* l0 = NULL;
@@ -1162,7 +1162,7 @@ static int32_t snippet$main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a9_slotarr, INT32_C(1))
     t1 = vader_array_ref_load_box(_a9_slotarr->buf, _a9_slotarr->offset + (size_t) INT32_C(1));
-    l7 = vader_vt_std_core$Display$to_string(t1);
+    l7 = std_core$Display$to_string$$dispatch(t1);
     l1 = vader_host_std_core$byte_len(l7);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(6) + l1));
     l1 = INT64_C(0);
@@ -3171,7 +3171,7 @@ static void std_io$println__string(vader_string_t l0) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_std_core$Display$to_string(vader_box_t recv) {
+static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 4u: return snippet$Box$std_core$Display$to_string__snippet_Direction(recv.payload.obj);
         case 5u: return snippet$Box$std_core$Display$to_string__snippet_Color(recv.payload.obj);

@@ -148,7 +148,7 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 /* vtable forwards */
-static vader_string_t vader_vt_snippet$Describe$describe(vader_box_t recv);
+static vader_string_t snippet$Describe$describe$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$snippet_shapes__a$Point$Describe$describe(void* l0) {
     void* l1 = NULL;
@@ -193,7 +193,7 @@ static vader_string_t snippet$show(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_vt_snippet$Describe$describe(l0);
+    t0 = snippet$Describe$describe$$dispatch(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -483,7 +483,7 @@ static void* snippet_shapes__b$make(void) {
 }
 
 /* vtable dispatchers */
-static vader_string_t vader_vt_snippet$Describe$describe(vader_box_t recv) {
+static vader_string_t snippet$Describe$describe$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$snippet_shapes__a$Point$Describe$describe(recv.payload.obj);
         case 3u: return snippet$snippet_shapes__b$Point$Describe$describe(recv.payload.obj);
