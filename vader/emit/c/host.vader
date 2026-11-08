@@ -860,6 +860,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedCancel        -> { return [perform("vader_sched_cancel", [a0])] }
     .SchedCurrent       -> { return [returning("vader_sched_current", [])] }
     .SchedIsCancelled   -> { return [returning("vader_sched_is_cancelled", [])] }
+    .SchedIsLeaving     -> { return [returning("vader_sched_is_leaving", [a0])] }
     .SchedWatchReadable -> { return [perform("vader_sched_watch_readable", [a0])] }
     .SchedWatchExit     -> { return [perform("vader_sched_watch_exit", [a0])] }
     // std/runtime/wait: a read that parks (`runtime/c/rt/sched.c`).

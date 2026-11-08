@@ -88,6 +88,14 @@ export current_thread :: fn() -> i64
 @intrinsic
 export is_cancelled :: fn() -> bool
 
+/// Whether `thread` is on its way out, so that `main` returning waits for it
+/// without naming it: it was cancelled, or the thread that launched it is
+/// leaving and a defer of that thread's cancellation did not launch it.
+///
+/// @param thread  the handle of a thread; one that has ended is not leaving.
+@intrinsic
+export is_leaving :: fn(thread: i64) -> bool
+
 /// Make the running thread's next park end once descriptor `fd` has input to
 /// read, or has reached its end. The watch lasts that one park, which a `wake`
 /// can end first; one the system cannot follow ends it after 2 ms instead. A

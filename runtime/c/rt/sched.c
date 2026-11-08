@@ -640,21 +640,19 @@ bool vader_sched_is_cancelled(void) {
     return vader_sched_slot_of(vader_vt_current())->cancelled != 0;
 }
 
-/* Whether `main` returning waits for the live thread `thread` without naming
- * it: it was cancelled, or a thread that launched it was before a defer of its
- * cancellation did. */
-static int vader_sched_leaving(int64_t thread) {
+bool vader_sched_is_leaving(int64_t thread) {
+    if (!g_sched_started) return false;
     while (thread != vader_vt_main() && vader_vt_is_live(thread)) {
         vader_sched_slot_t* s = vader_sched_slot_of(thread);
-        if (s->cancelled) return 1;
-        if (s->outlives) return 0;
+        if (s->cancelled) return true;
+        if (s->outlives) return false;
         thread = s->parent;
     }
-    return 0;
+    return false;
 }
 
 static void vader_sched_name_at_exit(int64_t thread) {
-    if (thread == vader_vt_main() || vader_sched_leaving(thread)) return;
+    if (thread == vader_vt_main() || vader_sched_is_leaving(thread)) return;
     char name[32];
     vader_sched_name(thread, name, sizeof(name));
     const char* what = " still runs when main returns: cancelled";

@@ -112,7 +112,7 @@ export IntrinsicId :: enum(u8) {
     RuntimeAllocatedBytes, RuntimeAllocations, RuntimeCountAllocations,
     // std/runtime/scheduler
     SchedSpawn, SchedPark, SchedWake, SchedSleepFor, SchedCancel, SchedCurrent,
-    SchedIsCancelled, SchedWatchReadable, SchedWatchExit,
+    SchedIsCancelled, SchedIsLeaving, SchedWatchReadable, SchedWatchExit,
     // std/runtime/wait: a read that parks while another thread runs
     WaitReadable, WaitReadableFor,
     // std/abort
@@ -173,6 +173,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime_scheduler$cancel_thread"  { return .SchedCancel }
     if mangled == r"std_runtime_scheduler$current_thread" { return .SchedCurrent }
     if mangled == r"std_runtime_scheduler$is_cancelled"   { return .SchedIsCancelled }
+    if mangled == r"std_runtime_scheduler$is_leaving"     { return .SchedIsLeaving }
     if mangled == r"std_runtime_scheduler$watch_readable" { return .SchedWatchReadable }
     if mangled == r"std_runtime_scheduler$watch_exit"     { return .SchedWatchExit }
     if mangled == r"std_runtime_wait$wait_readable"       { return .WaitReadable }
@@ -204,7 +205,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .ByteSlice -> false
     // Make a stack, queue a thread, read a handle or a flag, or note a watch:
     // `malloc`, `mmap` and the OS, never the collector.
-    .SchedSpawn | .SchedWake | .SchedCurrent | .SchedIsCancelled -> false
+    .SchedSpawn | .SchedWake | .SchedCurrent | .SchedIsCancelled | .SchedIsLeaving -> false
     .SchedWatchReadable | .SchedWatchExit -> false
     // Other threads run, and collect, before these return.
     .SchedPark | .SchedSleepFor | .SchedCancel | .WaitReadable | .WaitReadableFor -> true
@@ -238,7 +239,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
     // Nothing runs before they return.
-    .SchedSpawn | .SchedWake | .SchedCurrent | .SchedIsCancelled -> false
+    .SchedSpawn | .SchedWake | .SchedCurrent | .SchedIsCancelled | .SchedIsLeaving -> false
     .SchedWatchReadable | .SchedWatchExit -> false
     // Other threads run before these return, and may shorten any array they
     // reach.

@@ -1425,6 +1425,10 @@ int64_t vader_sched_current(void);
 /* Whether the running thread was cancelled: one cancelled before it started
  * runs its entry all the same, which asks. */
 bool    vader_sched_is_cancelled(void);
+/* Whether `main` returning waits for the live thread `thread` without naming
+ * it: it was cancelled, or the thread that launched it is leaving and a defer
+ * of that thread's cancellation did not launch it. */
+bool    vader_sched_is_leaving(int64_t thread);
 /* Wake the running thread's next park once `fd` reads without blocking or has
  * reached its end, or once the child process `child` has ended. What the OS
  * will not watch wakes it after a short sleep. */
