@@ -8850,6 +8850,7 @@ struct vader_struct_vader_vm$FusedBranch_t {
 struct vader_struct_vader_vm$GuestThread_t {
     vader_obj_header_t header;
     int64_t f_number;
+    int64_t f_launcher;
     bool f_started;
     bool f_cancelled;
     vader_box_t f_machine;
@@ -10538,7 +10539,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3254u
+#define VADER_COMPTIME_ATOM_COUNT 3260u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

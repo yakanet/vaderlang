@@ -109,13 +109,13 @@ vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0) {
     } else if (l0 == INT32_C(7)) {
         l1 = 305u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 3245u;
+        l1 = 3251u;
     } else if (l0 == INT32_C(9)) {
         l1 = 1031u;
     } else if (l0 == INT32_C(10)) {
         l1 = 306u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 3246u;
+        l1 = 3252u;
     } else if (l0 == INT32_C(12)) {
         l1 = 560u;
     } else if (l0 == INT32_C(13)) {
