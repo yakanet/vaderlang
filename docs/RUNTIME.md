@@ -440,13 +440,16 @@ meanwhile the 256 KiB a thread writes first.
 
 A cancelled thread, at its next run, cancels the threads it launched that have
 not ended and parks until they have, then runs its pending defers on its own
-stack and ends; one cancelled before it ran runs nothing, and a second cancel
-does nothing. Each thread keeps the thread that launched it and how many of its
+stack and ends; one cancelled before it ran runs its function all the same, up
+to its first park, and asks `is_cancelled` to run nothing. A second cancel does
+nothing. Each thread keeps the thread that launched it and how many of its
 own have not ended, and the last of them to end wakes a launcher waiting for
 them. When `main` returns, it waits for the end of every thread. Those still
 running are named on stderr as tasks (`task #1`), in the order they started,
 then cancelled, and naming one makes a zero exit code 1; a thread cancelled
-before, or launched by one, is on its way out and goes unnamed. A switch made
+before, or launched by one before its defers ran, is on its way out and goes
+unnamed. A thread a defer of a cancellation launched outlives the launcher, and
+is named. A switch made
 from a callback that C called stops the program: another thread would run over
 the C frames below it.
 

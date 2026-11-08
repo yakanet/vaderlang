@@ -8,6 +8,9 @@ implemented it and nothing called it.
 Amended (2026-11-08): cancelling a task cancels the tasks it launched, and the
 combinators that cancel cancel their tasks when the task waiting in them is.
 Amended (2026-11-08) by 0128: a read of stdin parks its task on Linux and macOS.
+Amended (2026-11-08): a thread cancelled before it starts runs its entry, which
+`is_cancelled` tells, and the thread a defer of a cancellation launched is named
+when `main` returns.
 
 ## Context
 
@@ -89,9 +92,12 @@ Set aside:
   children to stop by a message, they have stopped already.
 - **No longer counting a `join` as the end of a task**: the check would refuse a
   task that waits for the tasks it launched, the common shape.
-- **The tasks launched by the defers of a cancelled task born cancelled**: one
-  cancelled before it starts never runs the end of `std/task`, so a `join` of it
-  in that defer would wait forever.
+- **The tasks launched by the defers of a cancelled task born cancelled**: a
+  defer that hands its work to a task would see that task run nothing.
+- **A thread cancelled before it starts running nothing**, its entry included:
+  the end of a task is in that entry, which `std/task` runs, and a `join` of the
+  task would wait forever. The entry runs, asks `is_cancelled`, and unwinds at
+  its first park.
 
 ## Consequences
 
@@ -106,7 +112,7 @@ Set aside:
   the others.
 - A defer of a cancelled task's child that waits for what only a defer of the
   cancelled task provides is a deadlock.
-- A task the cascade cancels before it starts, one launched by a task that
-  cancels itself before it parks, is never marked ended: a `join` of it waits
-  forever.
+- A thread of `std/runtime/scheduler` cancelled before it starts runs its entry
+  up to its first park: one that must run nothing asks `is_cancelled` first, as
+  `std/task` does.
 - `M5009` and `T3064` are retired, and the `async` case of `T3103` with them.

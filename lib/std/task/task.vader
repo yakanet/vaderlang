@@ -33,9 +33,6 @@ export Task :: struct<T> {
     number: i64
     @internal
     thread: i64 = -1
-    /// Whether its thread began: one cancelled before runs nothing.
-    @internal
-    started: bool = false
     @internal
     ended: bool = false
     /// What the task returned: empty when it was cancelled.
@@ -84,8 +81,10 @@ export launch :: fn<T>(entry: fn() -> T) -> Task<T> {
 }
 
 run :: fn<T>(task: Task<T>, entry: fn() -> T) -> void {
-    task.started = true
     defer end(task)
+    if is_cancelled() {
+        return
+    }
     task.result.push(entry())
 }
 
@@ -166,9 +165,6 @@ export cancel :: fn<T>(task: Task<T>) -> void {
         return
     }
     cancel_thread(task.thread)
-    if !task.started {
-        end(task)
-    }
 }
 
 // `thread` waits for `task` no longer.
@@ -345,6 +341,9 @@ export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutEr
     me :: current_thread()
     alarm :: Alarm {}
     timer :: start_thread(fn() {
+        if is_cancelled() {
+            return
+        }
         sleep_for(i64(d))
         alarm.rang = true
         wake(me)
@@ -478,6 +477,21 @@ test_cancel_cancels_the_tasks_it_launched :: fn() -> void {
     outer.cancel()
     outer.join()
     assert(unwound.set, "the join of a cancelled task waits for the defers of those it launched")
+}
+
+// Launch a task and cancel the running thread before the task starts; a defer
+// waits for the task.
+cancel_before_it_starts :: fn(cancelled: Flag) -> void {
+    inner :: launch(() -> 7)
+    defer cancelled.set = inner.join() is Cancelled
+    cancel_thread(current_thread())
+}
+
+@test
+test_cancel_ends_a_task_it_launched_that_had_not_started :: fn() -> void {
+    cancelled :: Flag {}
+    launch(() -> cancel_before_it_starts(cancelled)).join()
+    assert(cancelled.set, "the join of a task cancelled before it started gives back `Cancelled`")
 }
 
 @test

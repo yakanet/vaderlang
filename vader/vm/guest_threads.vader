@@ -36,10 +36,12 @@ GuestThread :: struct {
     number: i64
     /// The host thread that launched it.
     launcher: i64
-    /// Whether it has begun: one cancelled before runs nothing.
-    started: bool = false
+    /// Whether a defer of its launcher's cancellation launched it.
+    outlives: bool = false
     /// Whether it was cancelled, and so is on its way out.
     cancelled: bool = false
+    /// Whether it runs the defers its cancellation left pending.
+    unwinding: bool = false
     /// Its register file once it has begun, which a debugger reads its stack from.
     machine: RegMachine | null = null
 }
@@ -82,6 +84,7 @@ serve_thread_primitive :: fn(
     .WaitReadableFor    -> serve_wait_readable_for(args, origin)
     .SchedCancel        -> cancel_guest_thread(args[0], origin)
     .SchedCurrent       -> HostOk { .value = I64Val(current_thread()) }
+    .SchedIsCancelled   -> HostOk { .value = BoolVal(is_cancelled()) }
     _                   -> null
 }
 
@@ -107,8 +110,17 @@ start_guest_thread :: fn(
     session :: debug_session(debug, debugged_thread_id(number))
     launcher :: current_thread()
     thread :: spawn_thread(() -> run_guest_thread(state, entry, is_comptime, session))
-    threads.live[thread] = GuestThread { .number = number, .launcher = launcher }
+    threads.live[thread] = GuestThread {
+        .number = number,
+        .launcher = launcher,
+        .outlives = is_unwinding(threads, launcher),
+    }
     return HostOk { .value = I64Val(thread) }
+}
+
+is_unwinding :: fn(threads: GuestThreads, thread: i64) -> bool {
+    guest :: threads.live[thread] ?? return false
+    return guest.unwinding
 }
 
 // The parameters a function value fills by itself: its environment, when it
@@ -172,15 +184,10 @@ cancel_guest_thread :: fn(thread: Value, origin: i32) -> HostCallResult {
     return void_result()
 }
 
-// Cancel the guest thread `thread` if it has not ended. One that has not begun
-// never runs, so it is forgotten here.
+// Cancel the guest thread `thread` if it has not ended.
 cancel :: fn(thread: i64) -> void {
-    threads :: guest_threads()
-    guest :: threads.live[thread] ?? return
+    guest :: guest_threads().live[thread] ?? return
     guest.cancelled = true
-    if !guest.started {
-        forget(threads, thread)
-    }
     cancel_thread(thread)
 }
 
@@ -198,12 +205,11 @@ run_guest_thread :: fn(
     m :: empty_machine(session)
     guest :: threads.live[thread]
     if guest != null {
-        guest.started = true
         guest.machine = m
     }
     defer forget(threads, thread)
     // A cancellation runs it with the guest's frames still pending.
-    defer unwind(state, state.reg, m, is_comptime)
+    defer unwind_guest(state, guest, m, is_comptime)
     outcome :: run_thunk(state, state.reg, m, entry, 0, 0, 0, is_comptime)
     if outcome is Trap {
         if session != null {
@@ -213,6 +219,19 @@ run_guest_thread :: fn(
         }
         panic("a guest thread trapped: ${outcome.message}")
     }
+}
+
+// Run the defers a cancellation of `guest` left pending on `m`.
+unwind_guest :: fn(
+    state: VmState,
+    guest: GuestThread | null,
+    m: RegMachine,
+    is_comptime: bool,
+) -> void {
+    if guest != null && is_cancelled() {
+        guest.unwinding = true
+    }
+    unwind(state, state.reg, m, is_comptime)
 }
 
 // The id a debugger knows the task of number `number` by.
@@ -287,9 +306,6 @@ finish_guest_threads :: fn(announce: bool, debug: DebugController | null) -> i64
         cancel(thread)
     }
     threads.waiter = current_thread()
-    // Lets the threads cancelled before they began end before this returns.
-    wake(threads.waiter)
-    park()
     for threads.live.len() > 0 {
         park()
     }
@@ -298,10 +314,14 @@ finish_guest_threads :: fn(announce: bool, debug: DebugController | null) -> i64
 }
 
 // Whether the end of an entry waits for `guest` without naming it: it was
-// cancelled, or a thread that launched it was.
+// cancelled, or a thread that launched it was before a defer of its
+// cancellation did.
 is_leaving :: fn(threads: GuestThreads, guest: GuestThread) -> bool {
     if guest.cancelled {
         return true
+    }
+    if guest.outlives {
+        return false
     }
     launcher :: threads.live[guest.launcher] ?? return false
     return is_leaving(threads, launcher)

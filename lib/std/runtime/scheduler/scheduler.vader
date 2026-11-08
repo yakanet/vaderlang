@@ -25,6 +25,10 @@ module "std/runtime/scheduler"
 /// Start a thread that runs `entry`. It is ready at once, and runs once the
 /// running thread parks; when `entry` returns, the thread ends.
 ///
+/// A thread cancelled before it starts runs `entry` all the same, and unwinds at
+/// its first park: an entry that must run nothing then asks `is_cancelled`
+/// first.
+///
 /// @param entry  what the thread runs.
 /// @return       the thread's handle.
 @intrinsic
@@ -64,8 +68,10 @@ export sleep_for :: fn(nanos: i64) -> void
 
 /// Cancel `thread`: at its next run, it cancels the threads it launched that
 /// have not ended and waits for their ends, then runs its pending defers and
-/// ends. The running thread cancels itself at once, and `cancel_thread` does not
-/// return. A defer that parks parks the cancelled thread.
+/// ends. One that has not started runs its entry up to its first park, as
+/// `spawn_thread` says. The running thread cancels itself at once, and
+/// `cancel_thread` does not return. A defer that parks parks the cancelled
+/// thread.
 ///
 /// @param thread  the handle of the thread to cancel.
 /// @error         stops the program on the main thread, which cannot be
@@ -76,6 +82,11 @@ export cancel_thread :: fn(thread: i64) -> void
 /// The handle of the running thread. The main thread has one from the start.
 @intrinsic
 export current_thread :: fn() -> i64
+
+/// Whether the running thread was cancelled: it is unwinding, or it was
+/// cancelled before it started and runs its entry.
+@intrinsic
+export is_cancelled :: fn() -> bool
 
 /// Make the running thread's next park end once descriptor `fd` has input to
 /// read, or has reached its end. The watch lasts that one park, which a `wake`

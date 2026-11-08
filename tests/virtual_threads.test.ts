@@ -7,9 +7,10 @@
 // the shortest sleep ends first and of two that end together the older, a
 // thread runs while another waits for stdin, a wait for a child drains its
 // pipes, a cancelled thread runs its defers after those of the threads it
-// launched, a deadlock stops the program, and `main` returning while threads
-// run cancels them and names them in the order they started, but not those a
-// cancelled thread launched.
+// launched, one cancelled before it starts runs its entry, which knows, a
+// deadlock stops the program, and `main` returning while threads run cancels
+// them and names them in the order they started, but not those a cancelled
+// thread launched before its defers.
 //
 // The fixture (tests/fixtures/virtual_threads/main.vader) is built once per
 // profile, and each case is a run of it with `THREADS_CASE` set; on the VM, each
@@ -78,13 +79,18 @@ const CLEAN_CASES: [string, string, string][] = [
   ["the ready threads run in turn", "take_turns", "a0\nb0\nc0\na1\nb1\nc1\njoined\n"],
   ["a wake does not end a sleep", "real_sleep", "slept at least 20 ms\n"],
   ["a cancelled thread runs its defers", "cancel_parked", "defer of the parked thread\njoined\n"],
-  ["a thread cancelled before it ran runs nothing", "cancel_unstarted", "cancelled before it ran\n"],
+  [
+    "a thread cancelled before it ran runs its entry, which knows",
+    "cancel_unstarted",
+    "cancelled before it ran\nmain returns\n",
+  ],
   ["a thread that cancels itself does not come back", "cancel_self", "defer of the thread\njoined\n"],
   [
     "a cancelled thread cancels the threads it launched, whose defers run first",
     "cancel_cascades",
     "defer of the launched\ndefer of the launcher\njoined\n",
   ],
+  ["a cancelled thread ends the threads it launched before they started", "cascade_unstarted", "joined\n"],
   [
     "the defer of a cancelled thread may park",
     "cancel_defer_parks",
@@ -247,6 +253,16 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
         "vader: task #3 still runs when main returns: cancelled",
         "",
       ].join("\n"),
+      exit: 1,
+    });
+  }, LONG_BUILD);
+
+  test("main returning names a thread a defer of a cancelled thread launched", async () => {
+    const r = await runCase("exit_defer_launches");
+    if (r === null) return;
+    expect(r).toMatchObject({
+      stdout: "main returns\ndefer of the launched\n",
+      stderr: "vader: task #2 still runs when main returns: cancelled\n",
       exit: 1,
     });
   }, LONG_BUILD);

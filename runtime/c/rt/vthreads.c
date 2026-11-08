@@ -501,7 +501,7 @@ static void vader_vt_finish(vader_vt_t* t) {
 VADER_VT_RUN_LINKAGE void vader_vt_run(vader_vt_t* t) {
     vader_vt_release_ended();
     if (t == g_vt_scheduler) vader_sched_loop();
-    if (vader_sched_starting()) ((vader_box_t (*)(void*)) t->entry->code)(t->entry->env);
+    ((vader_box_t (*)(void*)) t->entry->code)(t->entry->env);
     vader_vt_finish(t);
 #  if !VADER_VT_FIBERS
     vader_trap("virtual threads: an ended thread was resumed");

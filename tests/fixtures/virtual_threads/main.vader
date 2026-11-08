@@ -1,7 +1,7 @@
 // tests/fixtures/virtual_threads: virtual threads under the collector, past the
 // end of their stack, through a panic, inside a call to C, asleep, waiting for
-// stdin or a child, cancelled with the threads they launched, deadlocked, and
-// alive when `main` returns.
+// stdin or a child, cancelled with the threads they launched, before they start
+// or not, deadlocked, and alive when `main` returns.
 // `tests/virtual_threads.test.ts` builds it once and runs each case, which
 // `THREADS_CASE` names.
 
@@ -30,11 +30,16 @@ Threads :: struct {
 @singleton
 threads :: fn() -> Threads = Threads {}
 
+// Start `entry` on a thread `join_all` waits for. One cancelled before it starts
+// runs nothing.
 spawn :: fn(entry: fn() -> void) -> i64 {
     t :: threads()
     t.running += 1
     return spawn_thread(fn() {
         defer finished()
+        if is_cancelled() {
+            return
+        }
         entry()
     })
 }
@@ -426,13 +431,17 @@ cancel_parked :: fn() -> void {
     println("joined")
 }
 
-// A thread cancelled before it ran runs nothing, and main returns with no
-// thread left.
+// A thread cancelled before it ran runs its entry, which knows, and main
+// returns with no thread left.
 cancel_unstarted :: fn() -> void {
-    unstarted :: spawn_thread(() -> println("not reached"))
+    unstarted :: spawn_thread(fn() {
+        if is_cancelled() {
+            println("cancelled before it ran")
+        }
+    })
     cancel_thread(unstarted)
     yield_now()
-    println("cancelled before it ran")
+    println("main returns")
 }
 
 // A thread that cancels itself does not come back from it.
@@ -491,6 +500,17 @@ cancel_cascades :: fn() -> void {
     println("joined")
 }
 
+// A thread cancels itself once it launched another, which has not started: both
+// end.
+cascade_unstarted :: fn() -> void {
+    spawn(fn() {
+        spawn(() -> println("not reached"))
+        cancel_thread(current_thread())
+    })
+    join_all()
+    println("joined")
+}
+
 // ---- nothing left to run --------------------------------------------------
 
 // Main waits for a thread that waits for nothing that will come.
@@ -530,6 +550,28 @@ exit_after_cascade :: fn() -> void {
     yield_now()
     yield_now()
     cancel_thread(launcher)
+    println("main returns")
+}
+
+// A defer of a cancelled thread launches a thread, then yields.
+launch_and_yield :: fn() -> void {
+    spawn_thread(fn() {
+        defer println("defer of the launched")
+        park_forever()
+    })
+    yield_now()
+}
+
+// Main returns while a thread it cancelled runs a defer that launched a thread:
+// the launched one outlives its launcher, and is named alone.
+exit_defer_launches :: fn() -> void {
+    parked :: spawn_thread(fn() {
+        defer launch_and_yield()
+        park_forever()
+    })
+    yield_now()
+    cancel_thread(parked)
+    yield_now()
     println("main returns")
 }
 
@@ -579,10 +621,12 @@ main :: fn() -> i32 {
         "cancel_defer_parks"    -> cancel_defer_parks()
         "cancel_main"           -> cancel_main()
         "cancel_cascades"       -> cancel_cascades()
+        "cascade_unstarted"     -> cascade_unstarted()
         "deadlock"              -> deadlock()
         "exit_with_live_thread" -> exit_with_live_thread()
         "exit_after_cancel"     -> exit_after_cancel()
         "exit_after_cascade"    -> exit_after_cascade()
+        "exit_defer_launches"   -> exit_defer_launches()
         "exit_names_in_order"   -> exit_names_in_order()
         "bursts"                -> bursts()
         _                       -> {

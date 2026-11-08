@@ -26,9 +26,6 @@ test_leaves_a_thread :: fn() -> void {
             park()
         }
     })
-    // Lets the thread start: one cancelled before it ran runs no defer.
-    wake(current_thread())
-    park()
 }
 
 @test
