@@ -140,7 +140,7 @@ static bool std_tty$probe_tty(uint8_t l0) {
     if (t0 == INT64_C(-1)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    vader_array_t* _a0_arr = vader_array_new(31u, 1u, 3u, 500u);
+    vader_array_t* _a0_arr = vader_array_new(31u, 1u, 3u, 501u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(0);
     l3 = (void*) _a0_arr;
     t1 = vader_host_system_windows$get_console_mode(l2, l3);
