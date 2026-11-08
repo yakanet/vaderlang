@@ -38,8 +38,8 @@ export BuildRequest :: struct {
     project_root:  string | null = null
     /// The C runtime to compile against, `""` to look for it beside the compiler.
     runtime_root:  string = ""
-    /// How many `cc` a split build runs at once, 0 for no bound: a build that
-    /// does not own the machine bounds it.
+    /// How many `cc` a split build runs at once, 0 for one per processor: a
+    /// build that does not own the machine runs fewer.
     cc_jobs:       i32 = 0
 }
 

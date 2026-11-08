@@ -7,6 +7,7 @@ module "vader/pipeline"
 import "std/io"
 import "std/path"
 import "std/process"
+import "std/sort"
 import "std/string"
 import "std/target"
 import "std/task"
@@ -33,74 +34,78 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     if write_split_files(work, prog) != 0 {
         return 1
     }
-    c_files :: split_c_files(work, prog.unit_names)
+    c_units :: split_c_units(work, prog)
     rt :: runtime_or_probe(request.runtime_root)
 
     // Splitting stops `cc` inlining across the cut; the link-time optimisation
     // `lto_flags` turns on gives it back.
     flavour :: lto_flavour(cc, release)
 
-    // One `cc -c` per TU (+ the runtime), each in a task of its own so the OS
-    // compiles them across cores; `join_all` joins a wave. A bound (`cc_jobs`)
-    // turns one wave into ceil(n / cc_jobs) waves, each as long as its slowest
-    // unit.
-    argvs: string[][]: []
+    // One `cc -c` per TU (+ the runtime). A pool of tasks runs them, each task
+    // taking the next one once its own ends, so the OS compiles them across
+    // cores. The pool takes the largest first: the slowest compile is the
+    // largest, and the last ones started should be short.
+    jobs: CompileJob[]: []
     obj_files: string[]: []
     quote_dir :: quote_include_dir(file)
-    for cf in c_files {
-        obj :: object_of(objects, work, cf)
+    for k in 0..<c_units.len() {
+        unit :: c_units[k]
+        obj :: object_of(objects, work, unit.path)
         obj_files.push(obj)
-        source :: cf.as_string()
-        argvs.push(
-            cc_compile_argv(cc, source, obj, rt, release, flavour, quote_dir, native.includes),
-        )
+        source :: unit.path.as_string()
+        argv :: cc_compile_argv(cc, source, obj, rt, release, flavour, quote_dir, native.includes)
+        jobs.push(CompileJob {
+            .index = k,
+            .argv = argv,
+            .bytes = unit.bytes,
+        })
     }
     rt_obj :: "${objects}.split.runtime.o"
     obj_files.push(rt_obj)
     rt_src :: "${rt}/vader_runtime.c"
-    argvs.push(
-        cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir, native.includes),
-    )
+    rt_argv :: cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir, native.includes)
+    // The runtime's own file only includes the rest of it: its size says
+    // nothing, and it goes last.
+    jobs.push(CompileJob {
+        .index = jobs.len(),
+        .argv = rt_argv,
+        .bytes = 0,
+    })
 
-    wave :: if cc_jobs > 0 { i64(cc_jobs) } else { argvs.len() }
-    results: (ProcessResult | ProcessError | Cancelled)[]: []
-    start: i64 = 0
-    for start < argvs.len() {
-        stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
-        tasks: Task<ProcessResult | ProcessError>[]: []
-        for k in start..<stop {
-            argv :: argvs[k]
-            tasks.push(launch(() -> spawn(argv)))
-        }
-        results.push_all(join_all(tasks))
-        start = stop
+    largest_first :: sort(jobs, (x, y) -> x.bytes > y.bytes)
+    next :: AtomicInt {}
+    tasks: Task<CompileOutcome[]>[]: []
+    for _ in 0..<cc_parallelism(cc_jobs) {
+        tasks.push(launch(() -> compile_from(largest_first, next)))
     }
-    for r in results {
-        match r {
-            is ProcessError -> {
-                eprintln("vader build: ${r.message()}")
-                eprint(r.stderr)
-                eprintln("(generated C kept in ${folder_of(work).to_native()})")
-                return 1
-            }
-            is ProcessResult -> {
-                if r.exit != 0 {
-                    eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
-                    eprintln(r.stderr)
-                    eprintln("(generated C kept in ${folder_of(work).to_native()})")
-                    return 1
-                }
-            }
-            is Cancelled -> {
-                eprintln("vader build: a `${cc} -c` was cancelled")
-                return 1
-            }
+    outcomes: CompileOutcome[]: []
+    for done in join_all(tasks) {
+        if done is Cancelled {
+            eprintln("vader build: a `${cc} -c` was cancelled")
+            return 1
+        }
+        outcomes.push_all(done)
+    }
+    // A failure is reported in the units' order, whichever task ran it.
+    for o in sort(outcomes, (x, y) -> x.index < y.index) {
+        r :: o.result
+        if r is ProcessError {
+            eprintln("vader build: ${r.message()}")
+            eprint(r.stderr)
+            eprintln("(generated C kept in ${folder_of(work).to_native()})")
+            return 1
+        }
+        if r.exit != 0 {
+            eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
+            eprintln(r.stderr)
+            eprintln("(generated C kept in ${folder_of(work).to_native()})")
+            return 1
         }
     }
 
     // Link the objects into the final binary (link is inherently serial).
     // The link runs alone, so it may use what the compiles were bounded to.
-    link_jobs :: if cc_jobs > 0 { cc_jobs } else { processor_count() }
+    link_jobs :: cc_parallelism(cc_jobs)
     lres :: spawn(
         cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links, os),
     )
@@ -119,6 +124,35 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     eprintln("vader build: wrote ${linked.to_native()} "
         + "(split: ${obj_files.len()} objects compiled in parallel)")
     return 0
+}
+
+// One `cc -c` of a split build: `index` is its place among the units, `bytes`
+// the size of its C, which orders the compiles.
+CompileJob :: struct {
+    index: i64
+    argv: string[]
+    bytes: i64
+}
+
+// What one `cc -c` of a split build ended with.
+CompileOutcome :: struct {
+    index: i64
+    result: ProcessResult | ProcessError
+}
+
+// How many `cc` run at once: `cc_jobs`, or one per processor when it is 0.
+cc_parallelism :: fn(cc_jobs: i32) -> i32 = if cc_jobs > 0 { cc_jobs } else { processor_count() }
+
+// Run the compiles of `jobs` one at a time, each time the next one that no
+// other task took, until none is left.
+compile_from :: fn(jobs: CompileJob[], next: AtomicInt) -> CompileOutcome[] {
+    outcomes: CompileOutcome[]: []
+    k := next.fetch_add(1)
+    for k < jobs.len() {
+        outcomes.push(CompileOutcome { .index = jobs[k].index, .result = spawn(jobs[k].argv) })
+        k = next.fetch_add(1)
+    }
+    return outcomes
 }
 
 // The toolchain family the link-time optimisation flags are chosen for, probed
@@ -193,14 +227,22 @@ write_split_files :: fn(out: Path, prog: CProgram) -> i32 {
     return 0
 }
 
-// The `.c` files to compile : the globals TU + each function TU (the header is
-// included, not compiled).
-split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
-    files: Path[]: [split_globals_path(out)]
-    for n in unit_names {
-        files.push(unit_path(out, "", n))
+// One `.c` file to compile, and the size of its C.
+SplitUnit :: struct {
+    path: Path
+    bytes: i64
+}
+
+// The `.c` files to compile, with their size: the globals TU + each function
+// TU (the header is included, not compiled).
+split_c_units :: fn(out: Path, prog: CProgram) -> SplitUnit[] {
+    globals :: SplitUnit { .path = split_globals_path(out), .bytes = prog.globals.byte_len() }
+    units: SplitUnit[]: [globals]
+    for k in 0..<prog.units.len() {
+        path :: unit_path(out, "", prog.unit_names[k])
+        units.push(SplitUnit { .path = path, .bytes = prog.units[k].byte_len() })
     }
-    return files
+    return units
 }
 
 /// Where one split unit is written: `<out>-<unit>.c` when every target agreed on

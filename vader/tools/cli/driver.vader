@@ -577,11 +577,11 @@ rebuild_driver :: fn(
     return 0
 }
 
-// How many `cc` a driver's own build runs at once. Bounded, unlike the user's
-// own build: compiling a driver compiles the whole compiler, one `cc` per Vader
-// module, and several driven builds may run at once, so an unbounded fan-out
-// oversubscribes the machine. Eight is a floor on the runners this project
-// targets (GitHub's are 4-core).
+// How many `cc` a driver's own build runs at once. Fewer than the user's own
+// build, which runs one per processor: compiling a driver compiles the whole
+// compiler, one `cc` per Vader module, and several driven builds may run at
+// once, so one per processor each oversubscribes the machine. Eight is a floor
+// on the runners this project targets (GitHub's are 4-core).
 DRIVER_CC_JOBS: i32: 8
 
 // Compile the driver's entry shim into its binary.
