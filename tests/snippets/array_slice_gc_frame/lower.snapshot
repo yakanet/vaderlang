@@ -65,6 +65,5 @@
     struct system.windows.Coord  // system_windows$Coord
     struct system.windows.ProcessInformation  // system_windows$ProcessInformation
     struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
-    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
     struct system.windows.SmallRect  // system_windows$SmallRect
     struct system.windows.StartupInfo  // system_windows$StartupInfo

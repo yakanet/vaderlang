@@ -433,11 +433,10 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 }
 
 /// Park the running task until descriptor `fd` has input to read, or has
-/// reached its end, while the other tasks run. With no other task, and on
-/// Windows, it returns at once, and the read that follows waits on the system
-/// thread.
+/// reached its end, while the other tasks run. With no other task, it returns
+/// at once, and the read that follows waits on the system thread.
 ///
-/// @param fd  a descriptor of the process.
+/// @param fd  a descriptor of the process; on Windows, 0 for stdin.
 @intrinsic
 export wait_readable :: fn(fd: i64) -> void
 
@@ -466,16 +465,13 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 
 @target(.Windows)
 read_ready :: fn(max: i64) -> u8[] | IOError {
-    // Returns at once here, but makes the read one that parks on every target,
-    // as the task check sees it.
     wait_readable(0)
-    h :: get_std_handle(STD_INPUT_HANDLE)
     if stdin_is_console() {
-        return read_console(h, max)
+        return read_console(max)
     }
     buf: u8[]: [0] * max
     got: u32[]: [0]
-    if !read_file(h, buf, u32(max), got, null) {
+    if !read_file(get_std_handle(STD_INPUT_HANDLE), buf, u32(max), got, null) {
         failed :: last_io_error("stdin read failed")
         // A pipe whose writer is gone has reached its end: reading it fails with
         // a broken pipe, where reading a file returns zero bytes.
@@ -494,89 +490,18 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 /// What a read at the end of stdin answers.
 END_OF_INPUT :: IOError { .msg = "end of input" }
 
-// ---- what a console has typed ---------------------------------------------
-
-/// What console reads brought past what was asked: the UTF-8 left to hand out,
-/// and a high surrogate whose low half the next read brings.
-TypedText :: struct {
-    bytes: u8[] = []
-    at: i64 = 0
-    /// The high surrogate held back, 0 when none.
-    high: u16 = 0
-}
-
-@singleton
-typed_text :: fn() -> TypedText = TypedText {}
-
-// Units a console read asks for at most.
-CONSOLE_READ_UNITS: i64 : 256
-
-// Ctrl-Z, which ends the input when typed at the start of a line.
-CTRL_Z: u16 : 0x1A
-
-// Up to `max` bytes of what was typed at the console `h`, reading when none is
-// left over.
-read_console :: fn(h: Handle, max: i64) -> u8[] | IOError {
-    typed :: typed_text()
-    for typed.at >= typed.bytes.len() {
-        read :: read_console_text(h, typed)
-        if read is IOError {
-            return read
-        }
-    }
-    return typed.hand_out(max)
-}
-
-// Up to `max` of the bytes `typed` holds, which it then no longer holds.
-hand_out :: fn(typed: TypedText, max: i64) -> u8[] {
-    end := typed.at + max
-    if end > typed.bytes.len() {
-        end = typed.bytes.len()
-    }
-    out :: typed.bytes[typed.at..<end]
-    typed.at = end
-    return out
-}
-
-// Read what the console `h` holds into `typed`, as UTF-8. End of input is a
-// read that brings nothing, or a Ctrl-Z at the start of a line, as `ReadFile`
-// reads it from a console.
-read_console_text :: fn(h: Handle, typed: TypedText) -> null | IOError {
-    units: u16[]: [0] * CONSOLE_READ_UNITS
-    got: u32[]: [0]
-    if !read_console_w(h, units, u32(CONSOLE_READ_UNITS), got, null) {
+// What `console_read` hands out, as a read of stdin answers it.
+read_console :: fn(max: i64) -> u8[] | IOError {
+    buf: u8[]: [0] * max
+    got :: console_read(buf, max)
+    if got < 0 {
         return last_io_error("stdin read failed")
     }
-    n :: i64(got[0])
-    if n == 0 || units[0] == CTRL_Z && reads_lines(h) {
+    if got == 0 {
         return END_OF_INPUT
     }
-    text: u16[]: []
-    if typed.high != 0 {
-        text.push(typed.high)
-        typed.high = 0
-    }
-    text.push_all(units[0..<n])
-    // A high surrogate makes a character only with the next read's first unit.
-    last :: text[text.len() - 1]
-    if is_high_surrogate(last) {
-        typed.high = last
-        text.remove_last()
-    }
-    typed.bytes = wide_to_utf8(text, i32(text.len()))
-    typed.at = 0
-    return null
+    return buf[0..<got]
 }
-
-// Whether the console `h` hands over whole lines, Ctrl-Z then meaning the end.
-reads_lines :: fn(h: Handle) -> bool {
-    mode: u32[]: [0]
-    return get_console_mode(h, mode) && (mode[0] & ENABLE_LINE_INPUT) != 0
-}
-
-// Whether `unit` is the first half of a surrogate pair. `std/string` has its
-// own, and stays out of what every program touching `std/io` compiles.
-is_high_surrogate :: fn(unit: u16) -> bool = unit >= 0xD800 && unit <= 0xDBFF
 
 /// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
 /// probe). Lets a length-prefixed server detect a quiescent input window,
@@ -1415,23 +1340,6 @@ import "std/testing"
     refused :: read_available(0)
     assert(refused is IOError && refused.kind == .InvalidInput, "no room is an invalid input")
     assert(read_available_or_null(0) == null, "and the twin answers null")
-}
-
-@test test_typed_text_hands_out_what_was_asked_and_keeps_the_rest :: fn() -> void {
-    // `h\u{e9}!` in UTF-8: the accent takes two bytes, which two reads may split.
-    typed :: TypedText { .bytes = [0x68, 0xC3, 0xA9, 0x21] }
-    first :: typed.hand_out(2)
-    assert_eq(first.len(), 2)
-    assert_eq(first[1], 0xC3)
-    assert_eq(typed.hand_out(8).len(), 2)
-    assert_eq(typed.hand_out(8).len(), 0)
-}
-
-@test test_only_the_first_half_of_a_pair_waits_for_the_next_read :: fn() -> void {
-    // U+1F600 is the pair D83D DE00.
-    assert(is_high_surrogate(0xD83D), "the first half waits")
-    assert(!is_high_surrogate(0xDE00), "the second half completes it")
-    assert(!is_high_surrogate(0x61), "a character on its own does not wait")
 }
 
 @test test_temp_dir_falls_back_when_the_variable_is_empty :: fn() -> void {

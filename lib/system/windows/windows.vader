@@ -296,6 +296,26 @@ export find_close :: fn(handle: Handle) -> bool
 @extern(VADER_RUNTIME, "vader_find_data_name")
 export find_data_name :: fn(data: u8[]) -> string
 
+/// Up to `max` bytes of what was typed at the console, as UTF-8. The runtime
+/// reads the console, ahead of time while a task waits on it, and keeps what a
+/// read has not taken.
+///
+/// @param buf  receives the bytes.
+/// @param max  how many `buf` takes at most.
+/// @return     how many bytes `buf` received: 0 at the end of the input, -1 on
+///             a failure, whose error `get_last_error` then gives.
+@extern(VADER_RUNTIME, "vader_console_read")
+export console_read :: fn(@c_out buf: u8[], max: i64) -> i64
+
+/// A pipe a child writes into, which `watch_readable` can follow: its read end
+/// takes overlapped reads. The read end stays with this process, the write end
+/// is inheritable.
+///
+/// @param read_end   a one-word buffer receiving the read end.
+/// @param write_end  a one-word buffer receiving the write end.
+@extern(VADER_RUNTIME, "vader_overlapped_pipe")
+export create_watched_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[]) -> bool
+
 /// `COORD`: a console cell position or size.
 ///
 /// Field names are the C ones because a mirror copies BY NAME; the snake_case
@@ -361,31 +381,12 @@ export WAIT_OBJECT_0: u32 : 0
 /// `INFINITE`: a wait with no timeout.
 export INFINITE: u32 : 0xFFFF_FFFF
 
-/// `SECURITY_ATTRIBUTES`, mirrored for the two members a pipe needs.
-///
-/// EVERY member, in order, not a prefix of the useful ones. The interpreter
-/// lays a mirror out from its DECLARED fields alone, at natural alignment from
-/// zero, so skipping `lpSecurityDescriptor` put `bInheritHandle` at 4 where C
-/// has it at 16: the callee read a zero, made the pipe non-inheritable, and
-/// reported success. Native was unaffected (the shim copies by name) which is
-/// exactly what kept it invisible. The offset `_Static_assert` catches it now.
-///
-/// `lpSecurityDescriptor` is a `u64` because it is RESERVED, never read: it
-/// only has to occupy its eight bytes and stay zero, which is the NULL the call
-/// wants.
-@c_struct("SECURITY_ATTRIBUTES")
-export SecurityAttributes :: struct {
-    nLength:              u32
-    lpSecurityDescriptor: u64
-    bInheritHandle:       i32
-}
-
 /// `STARTUPINFOA`, mirrored for the members a redirected child needs.
 ///
-/// EVERY member up to `hStdError`, for the reason spelled out on
-/// `SecurityAttributes`: eleven precede `dwFlags` in the real struct, and
-/// naming only the useful ones put every one of them at the wrong offset in the
-/// interpreter's block.
+/// EVERY member up to `hStdError`, in order, not a prefix of the useful ones:
+/// the interpreter lays a mirror out from its declared fields alone, at natural
+/// alignment from zero, so a member left out moves every later one off its C
+/// offset in the interpreter's block, while native, which copies by name, works.
 ///
 /// The reserved ones are machine words that stay zero, which is what
 /// `CreateProcess` expects of a plain console child. `cb` must be
@@ -422,19 +423,6 @@ export ProcessInformation :: struct {
     dwThreadId:  u32
 }
 
-/// `CreatePipe`.
-///
-/// The two ends are separate `HANDLE*` out-parameters, not one struct, so each
-/// is its own one-word buffer. Read the handle back with `ptr_at`.
-///
-/// @param read_end   a one-word buffer receiving the read end.
-/// @param write_end  a one-word buffer receiving the write end.
-/// @param attrs      a `SecurityAttributes` with `bInheritHandle` set.
-/// @param size       suggested buffer size; 0 for the default.
-@extern(KERNEL32, "CreatePipe")
-export create_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],
-                         @c_pointer attrs: SecurityAttributes, size: u32) -> bool
-
 /// The `i`-th pointer-sized word of a lent buffer, as a handle.
 ///
 /// `CPointer` cannot be built from an integer (T3010) and a lent array yields
@@ -444,21 +432,6 @@ export create_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],
 /// @param i     the word index.
 @extern(VADER_RUNTIME, "vader_ptr_at")
 export ptr_at :: fn(base: u64[], i: i64) -> Handle
-
-/// `HANDLE_FLAG_INHERIT`.
-export HANDLE_FLAG_INHERIT: u32 : 1
-
-/// `SetHandleInformation`. Used to CLEAR the inherit flag on a pipe's read end.
-///
-/// The pipe is created inheritable so the child receives its write end; without
-/// this the child (and every sibling launched after it) also receives the READ
-/// ends, which are the parent's alone.
-///
-/// @param h      the handle to adjust.
-/// @param mask   which flags to touch, `HANDLE_FLAG_INHERIT` here.
-/// @param flags  their new value; 0 to clear.
-@extern(KERNEL32, "SetHandleInformation")
-export set_handle_information :: fn(h: Handle, mask: u32, flags: u32) -> bool
 
 /// `CreateProcessA`. Launches `command_line`, inheriting the handles named in
 /// `startup`.
@@ -541,19 +514,6 @@ export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 @extern(KERNEL32, "WriteConsoleW")
 export write_console_w :: fn(h: Handle, text: u16[], count: u32,
                              @c_out written: u32[], reserved: CPointer | null) -> bool
-
-/// `ReadConsoleW`: what was typed at a console, as UTF-16 whatever its code
-/// page. False on failure, and on a handle that is not a console.
-///
-/// @param h        a console input handle.
-/// @param text     receives the UTF-16 units.
-/// @param count    `text`'s capacity in units.
-/// @param read     receives how many units were read.
-/// @param control  always null: no early wake-up on a control character.
-/// @return         whether the read succeeded.
-@extern(KERNEL32, "ReadConsoleW")
-export read_console_w :: fn(h: Handle, @c_out text: u16[], count: u32,
-                            @c_out read: u32[], control: CPointer | null) -> bool
 
 /// `FlushConsoleInputBuffer`: drop what was typed at the console `h` and not
 /// read yet. False on failure.

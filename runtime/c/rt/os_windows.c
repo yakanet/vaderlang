@@ -42,10 +42,16 @@ static int64_t vader_os_monotonic_ns(void) {
     return seconds * 1000000000 + rest * 1000000000 / freq.QuadPart;
 }
 
-static void vader_os_sleep_ns(int64_t ns) {
-    /* `Sleep` counts milliseconds: round up, so the wait is never shorter. */
+/* `ns` in the milliseconds Win32 waits count, rounded up so a wait is never
+ * shorter. */
+static int64_t vader_os_ms_rounded_up(int64_t ns) {
     int64_t ms = ns / 1000000;
     if (ns % 1000000 != 0) ms += 1;
+    return ms;
+}
+
+static void vader_os_sleep_ns(int64_t ns) {
+    int64_t ms = vader_os_ms_rounded_up(ns);
     while (ms > 0) {
         DWORD slice = 0x7FFFFFFFu;
         if (ms < (int64_t) slice) slice = (DWORD) ms;
@@ -63,21 +69,315 @@ static size_t vader_os_physical_ram(void) {
 
 /* ---- what the OS reports ------------------------------------------------- */
 
-/* No watch is taken: each is a short sleep instead, and a read is taken as
- * ready, so that it blocks. */
-static int vader_os_watch(int kind, int64_t id) {
-    (void) kind;
-    (void) id;
+/* The most events one wait takes; the rest wait for the next. */
+#define VADER_OS_EVENTS 64
+
+/* Every report arrives on one completion port: the end of a read of a pipe,
+ * the end of a child, which the thread pool posts, and what stdin's reader
+ * brings. */
+static HANDLE g_os_port = NULL;
+
+static HANDLE vader_os_port(void) {
+    if (g_os_port == NULL) g_os_port = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1);
+    return g_os_port;
+}
+
+/* A watch the OS has not reported yet. A report names it by its `OVERLAPPED`,
+ * which comes first. */
+typedef struct vader_os_wait {
+    OVERLAPPED            overlapped;
+    int                   kind;
+    int64_t               id;
+    HANDLE                process;     /* a child's end: the copy of its handle waited on */
+    HANDLE                registered;  /* a child's end: the thread pool's wait */
+    struct vader_os_wait* next;
+} vader_os_wait_t;
+
+static vader_os_wait_t* g_os_waits = NULL;
+
+/* What a read of no byte reads into. */
+static char g_os_nothing;
+
+/* `NtQueryInformationFile`, which ntdll exports and no import library carries,
+ * and what it fills. */
+typedef struct {
+    PVOID     status;
+    ULONG_PTR information;
+} vader_io_status_t;
+typedef LONG (NTAPI* vader_query_file_t)(HANDLE, vader_io_status_t*, PVOID, ULONG, int);
+#define VADER_FILE_MODE_INFORMATION 16
+/* `FILE_SYNCHRONOUS_IO_ALERT | FILE_SYNCHRONOUS_IO_NONALERT`: the mode of a
+ * handle opened without `FILE_FLAG_OVERLAPPED`. */
+#define VADER_FILE_SYNCHRONOUS_IO 0x30u
+
+/* Whether `h` was opened for overlapped I/O. */
+static int vader_os_is_overlapped(HANDLE h) {
+    static vader_query_file_t query = NULL;
+    if (query == NULL) {
+        query = (vader_query_file_t) (void*) GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryInformationFile");
+    }
+    if (query == NULL) return 0;
+    vader_io_status_t io;
+    ULONG mode = 0;
+    if (query(h, &io, &mode, sizeof mode, VADER_FILE_MODE_INFORMATION) != 0) return 0;
+    return (mode & VADER_FILE_SYNCHRONOUS_IO) == 0;
+}
+
+/* A read of no byte ends once the pipe holds data or has lost its writer, and
+ * takes nothing. On a handle opened without overlapped I/O it would block, so
+ * that one is refused; the port takes the others at their first watch, and
+ * fails on the ones it holds already. One another port holds reports there,
+ * never here. A read that succeeds at once is reported through the port all
+ * the same; one that fails at once is not, so it is posted here. */
+static int vader_os_watch_pipe(vader_os_wait_t* w) {
+    HANDLE h = (HANDLE) (intptr_t) w->id;
+    if (!vader_os_is_overlapped(h)) return 0;
+    CreateIoCompletionPort(h, g_os_port, 0, 0);
+    if (ReadFile(h, &g_os_nothing, 0, NULL, &w->overlapped)) return 1;
+    if (GetLastError() == ERROR_IO_PENDING) return 1;
+    return PostQueuedCompletionStatus(g_os_port, 0, 0, &w->overlapped);
+}
+
+static VOID CALLBACK vader_os_child_ended(PVOID w, BOOLEAN timed_out) {
+    (void) timed_out;
+    PostQueuedCompletionStatus(g_os_port, 0, 0, &((vader_os_wait_t*) w)->overlapped);
+}
+
+/* The thread pool waits on a copy of the handle: the library closes its own
+ * once the child is reaped, and a handle must outlive the wait on it. */
+static int vader_os_watch_child(vader_os_wait_t* w) {
+    HANDLE self = GetCurrentProcess();
+    if (!DuplicateHandle(self, (HANDLE) (intptr_t) w->id, self, &w->process, SYNCHRONIZE, FALSE, 0)) return 0;
+    if (RegisterWaitForSingleObject(&w->registered, w->process, vader_os_child_ended, w,
+                                    INFINITE, WT_EXECUTEONLYONCE)) {
+        return 1;
+    }
+    CloseHandle(w->process);
     return 0;
 }
 
+/* ---- stdin --------------------------------------------------------------- */
+
+/* A console and an anonymous pipe take no overlapped read, so a wait on stdin
+ * runs on a thread of its own, which posts to the port once it is over. On a
+ * pipe it reads no byte. On a console it reads ahead, since a console echoes
+ * what is typed only while a read is under way, and the text waits here for
+ * `vader_console_read`; what it holds is shared with that thread, under the
+ * lock. */
+
+enum { VADER_STDIN_OTHER = 0, VADER_STDIN_PIPE = 1, VADER_STDIN_CONSOLE = 2 };
+
+/* Units one console read asks for at most. */
+#define VADER_CONSOLE_READ_UNITS 256
+/* Ctrl-Z, which ends the input when typed at the start of a line. */
+#define VADER_CTRL_Z 0x1A
+
+static int              g_os_stdin_ready = 0;
+/* What stdin is, asked once: the program does not swap it. */
+static int              g_os_stdin_kind = VADER_STDIN_OTHER;
+static CRITICAL_SECTION g_os_stdin_lock;
+static HANDLE           g_os_stdin_go;      /* the reader has a wait to make */
+static HANDLE           g_os_stdin_done;    /* the reader made one */
+static HANDLE           g_os_stdin_reader = NULL;
+static int              g_os_stdin_busy = 0;
+static OVERLAPPED       g_os_stdin_report;
+
+/* What console reads brought past what was taken, as UTF-8. */
+static char*   g_os_typed = NULL;
+static size_t  g_os_typed_len = 0;
+static size_t  g_os_typed_at = 0;
+/* A high surrogate whose low half the next read brings, 0 when none. */
+static wchar_t g_os_typed_high = 0;
+/* A read reached the end of the input, or failed with `g_os_typed_error`, and
+ * no read has said so yet. */
+static int     g_os_typed_end = 0;
+static int     g_os_typed_failed = 0;
+static DWORD   g_os_typed_error = 0;
+
+static void vader_os_stdin_init(void) {
+    if (g_os_stdin_ready) return;
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD mode;
+    if (GetConsoleMode(h, &mode)) {
+        g_os_stdin_kind = VADER_STDIN_CONSOLE;
+    } else if (GetFileType(h) == FILE_TYPE_PIPE) {
+        g_os_stdin_kind = VADER_STDIN_PIPE;
+    }
+    InitializeCriticalSection(&g_os_stdin_lock);
+    g_os_stdin_go = CreateEventA(NULL, FALSE, FALSE, NULL);
+    g_os_stdin_done = CreateEventA(NULL, FALSE, FALSE, NULL);
+    g_os_stdin_ready = 1;
+}
+
+/* A pipe that fails a peek has lost its writer: a read then reports the end. */
+static int vader_os_pipe_readable(HANDLE h) {
+    DWORD avail = 0;
+    if (!PeekNamedPipe(h, NULL, 0, NULL, &avail, NULL)) return 1;
+    return avail > 0;
+}
+
+/* Hold `n` units as the typed text, which none is left of. Under the lock. */
+static void vader_console_keep(const wchar_t* units, int n) {
+    int bytes = 0;
+    if (n > 0) bytes = WideCharToMultiByte(CP_UTF8, 0, units, n, NULL, 0, NULL, NULL);
+    g_os_typed_len = 0;
+    g_os_typed_at = 0;
+    if (bytes <= 0) return;
+    char* grown = (char*) realloc(g_os_typed, (size_t) bytes);
+    if (grown == NULL) vader_trap("stdin: out of memory");
+    g_os_typed = grown;
+    g_os_typed_len = (size_t) WideCharToMultiByte(CP_UTF8, 0, units, n, g_os_typed, bytes, NULL, NULL);
+}
+
+/* Read what the console holds into the typed text. The end of the input is a
+ * read that brings nothing, or a Ctrl-Z at the start of a line, as `ReadFile`
+ * reads it from a console. */
+static void vader_console_fill(void) {
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    /* One unit in front for a high surrogate held back. */
+    wchar_t units[1 + VADER_CONSOLE_READ_UNITS];
+    DWORD got = 0;
+    BOOL ok = ReadConsoleW(h, units + 1, VADER_CONSOLE_READ_UNITS, &got, NULL);
+    DWORD error = GetLastError();
+    DWORD mode = 0;
+    int lines = GetConsoleMode(h, &mode) && (mode & ENABLE_LINE_INPUT) != 0;
+    EnterCriticalSection(&g_os_stdin_lock);
+    if (!ok) {
+        g_os_typed_failed = 1;
+        g_os_typed_error = error;
+    } else if (got == 0 || (units[1] == VADER_CTRL_Z && lines)) {
+        g_os_typed_end = 1;
+    } else {
+        wchar_t* text = units + 1;
+        int n = (int) got;
+        if (g_os_typed_high != 0) {
+            units[0] = g_os_typed_high;
+            text = units;
+            n++;
+            g_os_typed_high = 0;
+        }
+        /* A high surrogate makes a character only with the next read's first unit. */
+        if (IS_HIGH_SURROGATE(text[n - 1])) {
+            g_os_typed_high = text[n - 1];
+            n--;
+        }
+        vader_console_keep(text, n);
+    }
+    LeaveCriticalSection(&g_os_stdin_lock);
+}
+
+static DWORD WINAPI vader_os_stdin_wait(LPVOID unused) {
+    (void) unused;
+    for (;;) {
+        WaitForSingleObject(g_os_stdin_go, INFINITE);
+        if (g_os_stdin_kind == VADER_STDIN_CONSOLE) {
+            vader_console_fill();
+        } else {
+            DWORD got = 0;
+            ReadFile(GetStdHandle(STD_INPUT_HANDLE), &g_os_nothing, 0, &got, NULL);
+        }
+        EnterCriticalSection(&g_os_stdin_lock);
+        g_os_stdin_busy = 0;
+        LeaveCriticalSection(&g_os_stdin_lock);
+        SetEvent(g_os_stdin_done);
+        PostQueuedCompletionStatus(g_os_port, 0, 0, &g_os_stdin_report);
+    }
+}
+
+static int vader_os_stdin_readable(void) {
+    vader_os_stdin_init();
+    if (g_os_stdin_kind == VADER_STDIN_PIPE) return vader_os_pipe_readable(GetStdHandle(STD_INPUT_HANDLE));
+    if (g_os_stdin_kind != VADER_STDIN_CONSOLE) return 1;
+    EnterCriticalSection(&g_os_stdin_lock);
+    int ready = g_os_typed_at < g_os_typed_len || g_os_typed_end || g_os_typed_failed;
+    LeaveCriticalSection(&g_os_stdin_lock);
+    return ready;
+}
+
+/* Readable already, stdin is reported at once. Otherwise the reader waits,
+ * unless a wait is under way, whose report wakes as well. */
+static int vader_os_watch_stdin(void) {
+    if (vader_os_stdin_readable()) return PostQueuedCompletionStatus(g_os_port, 0, 0, &g_os_stdin_report);
+    if (g_os_stdin_reader == NULL) {
+        g_os_stdin_reader = CreateThread(NULL, 64 * 1024, vader_os_stdin_wait, NULL,
+                                         STACK_SIZE_PARAM_IS_A_RESERVATION, NULL);
+        if (g_os_stdin_reader == NULL) return 0;
+    }
+    EnterCriticalSection(&g_os_stdin_lock);
+    int start = !g_os_stdin_busy;
+    g_os_stdin_busy = 1;
+    LeaveCriticalSection(&g_os_stdin_lock);
+    if (start) SetEvent(g_os_stdin_go);
+    return 1;
+}
+
+/* ---- the reactor --------------------------------------------------------- */
+
+/* A watch of `id` already under way reports for this one too. Stdin is
+ * descriptor 0, any other id a handle. */
+static int vader_os_watch(int kind, int64_t id) {
+    if (vader_os_port() == NULL) return 0;
+    if (kind == VADER_WATCH_READABLE && id == 0) return vader_os_watch_stdin();
+    for (vader_os_wait_t* w = g_os_waits; w != NULL; w = w->next) {
+        if (w->kind == kind && w->id == id) return 1;
+    }
+    vader_os_wait_t* w = (vader_os_wait_t*) calloc(1, sizeof(vader_os_wait_t));
+    if (w == NULL) return 0;
+    w->kind = kind;
+    w->id = id;
+    int armed;
+    if (kind == VADER_WATCH_EXIT) {
+        armed = vader_os_watch_child(w);
+    } else {
+        armed = vader_os_watch_pipe(w);
+    }
+    if (!armed) {
+        free(w);
+        return 0;
+    }
+    w->next = g_os_waits;
+    g_os_waits = w;
+    return 1;
+}
+
+/* A packet whose `OVERLAPPED` is no watch's comes from a read other code
+ * started on a handle the port knows: it reports nothing. */
+static void vader_os_report(OVERLAPPED* overlapped) {
+    if (overlapped == &g_os_stdin_report) {
+        vader_sched_on_event(VADER_WATCH_READABLE, 0);
+        return;
+    }
+    vader_os_wait_t** link = &g_os_waits;
+    while (*link != NULL && &(*link)->overlapped != overlapped) link = &(*link)->next;
+    vader_os_wait_t* w = *link;
+    if (w == NULL) return;
+    *link = w->next;
+    if (w->kind == VADER_WATCH_EXIT) {
+        UnregisterWaitEx(w->registered, INVALID_HANDLE_VALUE);
+        CloseHandle(w->process);
+    }
+    int kind = w->kind;
+    int64_t id = w->id;
+    free(w);
+    vader_sched_on_event(kind, id);
+}
+
 static void vader_os_wait_events(int64_t timeout_ns) {
-    if (timeout_ns > 0) vader_os_sleep_ns(timeout_ns);
+    DWORD timeout_ms = INFINITE;
+    if (timeout_ns >= 0) {
+        int64_t ms = vader_os_ms_rounded_up(timeout_ns);
+        timeout_ms = INFINITE - 1u;
+        if (ms < (int64_t) timeout_ms) timeout_ms = (DWORD) ms;
+    }
+    OVERLAPPED_ENTRY events[VADER_OS_EVENTS];
+    ULONG got = 0;
+    if (!GetQueuedCompletionStatusEx(g_os_port, events, VADER_OS_EVENTS, &got, timeout_ms, FALSE)) return;
+    for (ULONG i = 0; i < got; i++) vader_os_report(events[i].lpOverlapped);
 }
 
 static int vader_os_readable_now(int64_t fd) {
-    (void) fd;
-    return 1;
+    if (fd == 0) return vader_os_stdin_readable();
+    return vader_os_pipe_readable((HANDLE) (intptr_t) fd);
 }
 
 /* ---- stack --------------------------------------------------------------- */
@@ -168,6 +468,74 @@ const char* vader_find_data_name(const void* fd) {
         utf8[0] = '\0';
     }
     return utf8;
+}
+
+/* Up to `max` bytes of what was typed at the console, as UTF-8: what an earlier
+ * read brought first, a read of the console otherwise, which waits for the
+ * reader when it is reading. 0 at the end of the input, -1 on a failure, whose
+ * error `GetLastError` then gives. */
+VADER_HOST_EXPORT
+int64_t vader_console_read(void* buf, int64_t max) {
+    vader_os_stdin_init();
+    EnterCriticalSection(&g_os_stdin_lock);
+    for (;;) {
+        if (g_os_typed_at < g_os_typed_len) {
+            size_t n = g_os_typed_len - g_os_typed_at;
+            if ((size_t) max < n) n = (size_t) max;
+            memcpy(buf, g_os_typed + g_os_typed_at, n);
+            g_os_typed_at += n;
+            LeaveCriticalSection(&g_os_stdin_lock);
+            return (int64_t) n;
+        }
+        if (g_os_typed_end) {
+            g_os_typed_end = 0;
+            LeaveCriticalSection(&g_os_stdin_lock);
+            return 0;
+        }
+        if (g_os_typed_failed) {
+            g_os_typed_failed = 0;
+            LeaveCriticalSection(&g_os_stdin_lock);
+            SetLastError(g_os_typed_error);
+            return -1;
+        }
+        int busy = g_os_stdin_busy;
+        LeaveCriticalSection(&g_os_stdin_lock);
+        if (busy) {
+            WaitForSingleObject(g_os_stdin_done, INFINITE);
+        } else {
+            vader_console_fill();
+        }
+        EnterCriticalSection(&g_os_stdin_lock);
+    }
+}
+
+/* What a child's pipe holds before the child waits for a read. */
+#define VADER_OS_PIPE_BYTES (64u * 1024u)
+
+/* A pipe a child writes into and the scheduler can watch: the read end takes
+ * overlapped reads, and the write end is inheritable. An anonymous pipe takes
+ * no overlapped read, so this one is named, after the process and a count. 0
+ * when it cannot be made. */
+VADER_HOST_EXPORT
+int32_t vader_overlapped_pipe(void* read_end, void* write_end) {
+    static volatile LONG count = 0;
+    char name[64];
+    snprintf(name, sizeof name, "\\\\.\\pipe\\vader-%lu-%ld",
+             (unsigned long) GetCurrentProcessId(), (long) InterlockedIncrement(&count));
+    HANDLE r = CreateNamedPipeA(name, PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | FILE_FLAG_FIRST_PIPE_INSTANCE,
+                                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS,
+                                1, 0, VADER_OS_PIPE_BYTES, 0, NULL);
+    if (r == INVALID_HANDLE_VALUE) return 0;
+    SECURITY_ATTRIBUTES inherited = { sizeof inherited, NULL, TRUE };
+    HANDLE w = CreateFileA(name, GENERIC_WRITE | FILE_READ_ATTRIBUTES, 0, &inherited,
+                           OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (w == INVALID_HANDLE_VALUE) {
+        CloseHandle(r);
+        return 0;
+    }
+    ((HANDLE*) read_end)[0] = r;
+    ((HANDLE*) write_end)[0] = w;
+    return 1;
 }
 
 /* ---- library loader ------------------------------------------------------ */

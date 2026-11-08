@@ -82,14 +82,17 @@ export current_thread :: fn() -> i64
 /// can end first; one the system cannot follow ends it after 2 ms instead. A
 /// thread checks what it waits for in a loop.
 ///
-/// @param fd  a descriptor of the process: a pipe, a terminal, a socket.
+/// @param fd  a descriptor of the process: a pipe, a terminal, a socket. On
+///            Windows, 0 for stdin, else the read end of a pipe
+///            `create_watched_pipe` made, as its handle.
 @intrinsic
 export watch_readable :: fn(fd: i64) -> void
 
 /// Make the running thread's next park end once the child process `child` has
 /// ended, as `watch_readable` does for a descriptor.
 ///
-/// @param child  the pid of a child of this process.
+/// @param child  the pid of a child of this process; on Windows, its process
+///               handle.
 @intrinsic
 export watch_exit :: fn(child: i64) -> void
 

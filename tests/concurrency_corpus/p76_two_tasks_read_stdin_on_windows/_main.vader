@@ -1,0 +1,20 @@
+// P76: two tasks read stdin on Windows, where what a console read brings past
+// what was asked is kept by the runtime: the reads share nothing the check sees,
+// as on the other targets.
+//
+// corpus: probe
+// target: windows-x86_64
+// expect: accepted
+
+module "snippet"
+
+import "std/io"
+import "std/task"
+
+main :: fn() -> i32 {
+    first :: launch(() -> read_line())
+    second :: launch(() -> read_line())
+    join(first)
+    join(second)
+    return 0
+}

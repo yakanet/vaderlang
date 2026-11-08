@@ -3,7 +3,8 @@
 // Each fixture under tests/concurrency_corpus/<name>/ is a program of the corpus
 // the model was designed against (`cNN`), or a probe of its edges (`pNN`). Its
 // header says what the task check answers: `// expect: accepted`, or the codes it
-// reports (`// expect: T3128 T3129`). A probe the check answers wrongly says what
+// reports (`// expect: T3128 T3129`), checked for linux-x86_64 unless a
+// `// target:` line names another. A probe the check answers wrongly says what
 // it should answer on a `// gap:` line, and its `expect` keeps the wrong answer,
 // so that closing the gap shows in the diff. Every diagnostic line is also pinned
 // in `diagnostics.snapshot`, as the diagnostics corpus does.
@@ -23,6 +24,7 @@ const DIAG_RE = /^\[(\d+:\d+)\]\s+(error|warning)\[([A-Z]\d{4})\](.*)$/gm;
 const TASK_CODES = new Set(["T3128", "T3129", "T3130", "T3131", "T3132", "T3133", "T3134"]);
 
 const EXPECT_RE = /^\/\/ expect: (.*)$/m;
+const TARGET_RE = /^\/\/ target: (.*)$/m;
 
 // Sorted diagnostic lines, message included, stable across decl-walk order.
 function diagSet(output: string): string {
@@ -44,9 +46,11 @@ test("concurrency-corpus: at least one fixture discovered", () => {
 
 for (const s of scenarios) {
   test.concurrent(`concurrency-corpus: ${s.name}`, async () => {
-    const expected = EXPECT_RE.exec(readFileSync(s.mainPath, "utf8"))?.[1]?.trim();
+    const source = readFileSync(s.mainPath, "utf8");
+    const expected = EXPECT_RE.exec(source)?.[1]?.trim();
     if (expected === undefined) throw new Error(`${s.name}: no \`// expect:\` line in its header`);
-    const { stdout, stderr } = await runCli(["dump", "--stage=lowered-ast", `--target=${SNAPSHOT_TARGET}`, s.mainPath]);
+    const target = TARGET_RE.exec(source)?.[1]?.trim() ?? SNAPSHOT_TARGET;
+    const { stdout, stderr } = await runCli(["dump", "--stage=lowered-ast", `--target=${target}`, s.mainPath]);
     const output = `${stdout}\n${stderr}`;
     expect(verdict(output)).toBe(expected);
     const actual = diagSet(output);

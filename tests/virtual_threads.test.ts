@@ -151,19 +151,28 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
     }, LONG_BUILD);
   }
 
-  // `sh` runs the child, and a read of stdin on Windows blocks every thread.
-  if (process.platform !== "win32") {
-    test("a thread runs while another waits for stdin", async () => {
-      const r = await run(caseEnv("stdin_parks", ""), { cue: "tick 2\n", line: "hello\n" });
-      if (r === null) return;
-      expect(r).toMatchObject({ stdout: "tick 0\ntick 1\ntick 2\nread hello\n", stderr: "", exit: 0 });
-    }, LONG_BUILD);
+  test("a thread runs while another waits for stdin", async () => {
+    const r = await run(caseEnv("stdin_parks", ""), { cue: "tick 2\n", line: "hello\n" });
+    if (r === null) return;
+    expect(r).toMatchObject({ stdout: "tick 0\ntick 1\ntick 2\nread hello\n", stderr: "", exit: 0 });
+  }, LONG_BUILD);
 
-    test("a wait for a child drains its pipes as they fill", async () => {
-      const r = await runCase("spawn_drains");
+  test("a wait for a child drains its pipes as they fill", async () => {
+    const r = await runCase("spawn_drains");
+    if (r === null) return;
+    expect(r).toMatchObject({
+      stdout: "the child wrote 100000 bytes and exited with 0\n",
+      stderr: "",
+      exit: 0,
+    });
+  }, LONG_BUILD);
+
+  if (process.platform === "win32") {
+    test("a watch follows a pipe the runtime made and polls an anonymous one", async () => {
+      const r = await runCase("pipe_watches");
       if (r === null) return;
       expect(r).toMatchObject({
-        stdout: "the child wrote 100000 bytes and exited with 0\n",
+        stdout: "a watched pipe wakes its reader at once: true\nan anonymous pipe is polled: true\n",
         stderr: "",
         exit: 0,
       });

@@ -412,10 +412,14 @@ The scheduler is C and runs on a thread of its own, which runs no Vader code. It
 runs the ready threads in the order they became ready. A thread can watch a
 descriptor until it reads, or a child until it ends, for the length of its next
 park: kqueue follows them on macOS, epoll on Linux, where the end of a child
-reads on a pidfd the runtime opens. A watch the system refuses, on Windows or
-without pidfd, ends the park after 2 ms instead. While a watch is set, the
-scheduler asks the system without waiting once it has run every thread that was
-ready, at most every millisecond. With none ready, it waits on the system until
+reads on a pidfd the runtime opens, and a completion port on Windows. There, a
+pipe a child writes into is a named pipe the runtime makes, watched by a read
+of no byte; the thread pool posts the end of a child; and stdin is waited on by
+a thread of its own, which reads a console ahead, since a console echoes what is
+typed only while a read is under way. A watch the system refuses, without pidfd
+or on a handle opened without overlapped I/O, ends the park after 2 ms instead.
+While a watch is set, the scheduler asks the system without waiting once it has
+run every thread that was ready, at most every millisecond. With none ready, it waits on the system until
 the nearest sleep ends; with no sleep and no watch, every thread waits on
 another, and it stops the program on a deadlock that names them. Under
 `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with nothing ready, the

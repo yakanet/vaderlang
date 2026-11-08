@@ -1469,6 +1469,8 @@ VADER_HOST_EXPORT int32_t     vader_last_errno(void);
 VADER_HOST_EXPORT void*       vader_ptr_at(const void* base, int64_t i);
 #if defined(_WIN32)
 VADER_HOST_EXPORT const char* vader_find_data_name(const void* fd);
+VADER_HOST_EXPORT int64_t     vader_console_read(void* buf, int64_t max);
+VADER_HOST_EXPORT int32_t     vader_overlapped_pipe(void* read_end, void* write_end);
 #else
 VADER_HOST_EXPORT char**      vader_environ(void);
 VADER_HOST_EXPORT int32_t     vader_path_kind(const char* path);

@@ -8,8 +8,10 @@
 module "main"
 
 Process :: import "std/process"
+Win :: import "system/windows"
 import "std/abort"
 import "std/env"
+import "std/ffi"
 import "std/io"
 import "std/runtime"
 import "std/runtime/scheduler"
@@ -295,12 +297,76 @@ stdin_parks :: fn() -> void {
 // Main, alone, waits for a child that writes more than a pipe holds before it
 // ends: the wait drains the pipe as it fills.
 spawn_drains :: fn() -> void {
-    r :: Process.spawn(["sh", "-c", "yes | head -c 100000"])
+    r :: Process.spawn(chatty_child())
     if r is Process.ProcessError {
         println("spawn: ${r.msg}")
         return
     }
     println("the child wrote ${r.stdout.byte_len()} bytes and exited with ${r.exit}")
+}
+
+// A child that writes 100 000 bytes on its stdout.
+@target
+chatty_child :: fn() -> string[] = ["sh", "-c", "yes | head -c 100000"]
+
+@target(.Windows)
+chatty_child :: fn() -> string[] = [
+    "powershell", "-NoProfile", "-Command", "[Console]::Out.Write('y' * 100000)",
+]
+
+// A pipe `create_watched_pipe` made is watched: the park ends once a thread
+// writes. An anonymous pipe takes no overlapped read, so its watch is refused,
+// and the park ends every few milliseconds instead, without ever blocking.
+@target
+pipe_watches :: fn() -> void = println("a pipe of Windows")
+
+@target(.Windows)
+pipe_watches :: fn() -> void {
+    r: u64[]: [0]
+    w: u64[]: [0]
+    if !Win.create_watched_pipe(r, w) {
+        println("create_watched_pipe failed")
+        return
+    }
+    watched :: parks_until_written(Win.ptr_at(r, 0), Win.ptr_at(w, 0), i64(r[0]))
+    println("a watched pipe wakes its reader at once: ${watched < 3}")
+    ar: u64[]: [0]
+    aw: u64[]: [0]
+    if !create_anonymous_pipe(ar, aw, null, 0) {
+        println("CreatePipe failed")
+        return
+    }
+    polled :: parks_until_written(Win.ptr_at(ar, 0), Win.ptr_at(aw, 0), i64(ar[0]))
+    println("an anonymous pipe is polled: ${polled >= 3}")
+}
+
+KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
+
+@extern(KERNEL32, "CreatePipe")
+create_anonymous_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],
+                            attrs: CPointer | null, size: u32) -> bool
+
+// How many parks main makes, watching `id`, before the pipe `r` holds the byte a
+// thread writes on `w` after 300 ms.
+parks_until_written :: fn(r: Win.Handle, w: Win.Handle, id: i64) -> i64 {
+    spawn(fn() {
+        sleep(300.millis())
+        written: u32[]: [0]
+        Win.write_file(w, [0x79], 1, written, null)
+    })
+    parks := 0
+    for !pipe_holds_data(r) {
+        watch_readable(id)
+        park()
+        parks += 1
+    }
+    join_all()
+    return parks
+}
+
+pipe_holds_data :: fn(h: Win.Handle) -> bool {
+    available: u32[]: [0]
+    return Win.peek_named_pipe(h, null, 0, null, available, null) && available[0] > 0
 }
 
 // ---- cancellation ---------------------------------------------------------
@@ -461,6 +527,7 @@ main :: fn() -> i32 {
         "real_sleep"            -> real_sleep()
         "stdin_parks"           -> stdin_parks()
         "spawn_drains"          -> spawn_drains()
+        "pipe_watches"          -> pipe_watches()
         "cancel_parked"         -> cancel_parked()
         "cancel_unstarted"      -> cancel_unstarted()
         "cancel_self"           -> cancel_self()

@@ -17,14 +17,8 @@ module "std/process"
 
 import "std/numbers"
 import "std/runtime/scheduler"
-import "std/time"
 import "system/posix"
 import "system/windows"
-
-// Poll interval, ms, where the scheduler watches no child (Windows): `spawn`
-// sleeps that long between two polls, which parks its task instead of
-// spinning. A child `cc` runs for 100s of ms, so the latency is negligible.
-POLL_MS: i64: 2
 
 // `poll_exit` returns RUNNING while the child is alive, SIGNALED on abnormal
 // termination, else the exit code (>= 0).
@@ -402,16 +396,14 @@ kill :: fn(child: ChildProcess) -> void {
 
 @target(.Windows)
 start_child :: fn(argv: string[]) -> ChildProcess | null {
-    // Inheritable ends, so the child receives the write halves.
-    sa :: SecurityAttributes { .nLength = 24, .lpSecurityDescriptor = 0, .bInheritHandle = 1 }
     out_r: u64[]: [0]
     out_w: u64[]: [0]
     err_r: u64[]: [0]
     err_w: u64[]: [0]
-    if !create_pipe(out_r, out_w, sa, 0) {
+    if !create_watched_pipe(out_r, out_w) {
         return null
     }
-    if !create_pipe(err_r, err_w, sa, 0) {
+    if !create_watched_pipe(err_r, err_w) {
         close_handle(ptr_at(out_r, 0))
         close_handle(ptr_at(out_w, 0))
         return null
@@ -420,13 +412,6 @@ start_child :: fn(argv: string[]) -> ChildProcess | null {
     out_write :: ptr_at(out_w, 0)
     err_read  :: ptr_at(err_r, 0)
     err_write :: ptr_at(err_w, 0)
-    // The read ends are the parent's. `CreatePipe` made both ends inheritable so
-    // the child gets the write end, and `CreateProcess` inherits everything
-    // marked, so without this the child, and every sibling launched after it,
-    // also receives handles it has no business holding.
-    set_handle_information(out_read, HANDLE_FLAG_INHERIT, 0)
-    set_handle_information(err_read, HANDLE_FLAG_INHERIT, 0)
-
     si :: startup_with(get_std_handle(STD_INPUT_HANDLE), out_write, err_write)
     pi :: ProcessInformation { .hProcess = out_write, .hThread = out_write,
                                .dwProcessId = 0, .dwThreadId = 0 }
@@ -704,7 +689,7 @@ export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
 // or it ended. Anything that wakes the task ends the park too, and the caller
 // polls again.
 @target
-await_child :: fn(child: ChildProcess) -> void = sleep(POLL_MS.millis())
+await_child :: fn(child: ChildProcess) -> void
 
 @target(.Linux, .Darwin)
 await_child :: fn(child: ChildProcess) -> void {
@@ -715,6 +700,18 @@ await_child :: fn(child: ChildProcess) -> void {
         watch_readable(child.err_fd)
     }
     watch_exit(child.pid)
+    park()
+}
+
+@target(.Windows)
+await_child :: fn(child: ChildProcess) -> void {
+    if !child.out_eof {
+        watch_readable(i64(child.handles[1]))
+    }
+    if !child.err_eof {
+        watch_readable(i64(child.handles[2]))
+    }
+    watch_exit(i64(child.handles[0]))
     park()
 }
 
