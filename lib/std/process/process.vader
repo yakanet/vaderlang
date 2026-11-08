@@ -3,9 +3,9 @@
 // A child is a value, `ChildProcess`: `spawn_start` launches it with its stdout
 // and stderr captured, `poll` follows it without waiting, `kill` stops it. No
 // state outlives the value, so each task of `std/task` owns the children it
-// starts. `spawn` is the waiting form: it polls its child and sleeps between
-// two polls, which parks the calling task, so tasks that spawn run their
-// children at once and the OS schedules them across cores.
+// starts. `spawn` is the waiting form: between two polls of its child it parks
+// the calling task until the child writes or ends, so tasks that spawn run
+// their children at once and the OS schedules them across cores.
 //
 // `run_attached` is the other shape: the child shares this process's standard
 // streams instead of having them captured, and the call blocks until it exits.
@@ -16,13 +16,14 @@
 module "std/process"
 
 import "std/numbers"
+import "std/runtime/scheduler"
 import "std/time"
 import "system/posix"
 import "system/windows"
 
-// Poll interval, ms. A child `cc` runs for 100s of ms, so a 2 ms detection
-// latency is negligible; `spawn` sleeps between two polls, which parks its task
-// instead of spinning.
+// Poll interval, ms, where the scheduler watches no child (Windows): `spawn`
+// sleeps that long between two polls, which parks its task instead of
+// spinning. A child `cc` runs for 100s of ms, so the latency is negligible.
 POLL_MS: i64: 2
 
 // `poll_exit` returns RUNNING while the child is alive, SIGNALED on abnormal
@@ -695,8 +696,26 @@ export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
         if finished != null {
             return finished
         }
-        sleep(POLL_MS.millis())
+        await_child(child)
     }
+}
+
+// Park until `child` may have moved on: it wrote on a pipe not yet at its end,
+// or it ended. Anything that wakes the task ends the park too, and the caller
+// polls again.
+@target
+await_child :: fn(child: ChildProcess) -> void = sleep(POLL_MS.millis())
+
+@target(.Linux, .Darwin)
+await_child :: fn(child: ChildProcess) -> void {
+    if !child.out_eof {
+        watch_readable(child.out_fd)
+    }
+    if !child.err_eof {
+        watch_readable(child.err_fd)
+    }
+    watch_exit(child.pid)
+    park()
 }
 
 // ---- attached run ----------------------------------------------------------

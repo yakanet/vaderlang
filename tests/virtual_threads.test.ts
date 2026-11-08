@@ -5,10 +5,11 @@
 // thread that runs past its stack stops; each thread unwinds its own defers; a
 // switch inside a call to C stops the program. The ready threads run in turn,
 // the shortest sleep ends first and of two that end together the older, a
-// cancelled thread runs its defers after those of the threads it launched, a
-// deadlock stops the program, and `main` returning while threads run cancels
-// them and names them in the order they started, but not those a cancelled
-// thread launched.
+// thread runs while another waits for stdin, a wait for a child drains its
+// pipes, a cancelled thread runs its defers after those of the threads it
+// launched, a deadlock stops the program, and `main` returning while threads
+// run cancels them and names them in the order they started, but not those a
+// cancelled thread launched.
 //
 // The fixture (tests/fixtures/virtual_threads/main.vader) is built once per
 // profile, and each case is a run of it with `THREADS_CASE` set; on the VM, each
@@ -17,7 +18,7 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { LONG_BUILD, exePath, haveCc, runCli, spawnCapture } from "./cli-bin.ts";
+import { type Feed, LONG_BUILD, exePath, haveCc, runCli, spawnCapture } from "./cli-bin.ts";
 
 const FIXTURE = "tests/fixtures/virtual_threads/main.vader";
 const TESTS_FIXTURE = "tests/fixtures/test_cmd/threads/threads.vader";
@@ -68,8 +69,9 @@ interface Outcome {
   exit: number;
 }
 
-// Run the fixture under `env`, or report that this backend cannot run here.
-type Runner = (env: Record<string, string>) => Promise<Outcome | null>;
+// Run the fixture under `env`, its stdin fed by `feed` when there is one, or
+// report that this backend cannot run here.
+type Runner = (env: Record<string, string>, feed?: Feed) => Promise<Outcome | null>;
 
 // The cases that end well, and what each prints.
 const CLEAN_CASES: [string, string, string][] = [
@@ -149,6 +151,25 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
     }, LONG_BUILD);
   }
 
+  // `sh` runs the child, and a read of stdin on Windows blocks every thread.
+  if (process.platform !== "win32") {
+    test("a thread runs while another waits for stdin", async () => {
+      const r = await run(caseEnv("stdin_parks", ""), { cue: "tick 2\n", line: "hello\n" });
+      if (r === null) return;
+      expect(r).toMatchObject({ stdout: "tick 0\ntick 1\ntick 2\nread hello\n", stderr: "", exit: 0 });
+    }, LONG_BUILD);
+
+    test("a wait for a child drains its pipes as they fill", async () => {
+      const r = await runCase("spawn_drains");
+      if (r === null) return;
+      expect(r).toMatchObject({
+        stdout: "the child wrote 100000 bytes and exited with 0\n",
+        stderr: "",
+        exit: 0,
+      });
+    }, LONG_BUILD);
+  }
+
   test("under the virtual clock, the shortest sleep ends first", async () => {
     const r = await run({ ...caseEnv("sleep_order", ""), VADER_VIRTUAL_CLOCK: "1" });
     if (r === null) return;
@@ -214,9 +235,9 @@ for (const profile of ["debug", "release"]) {
       expect(build).toMatchObject({ exit: 0 });
     }, LONG_BUILD);
 
-    const run: Runner = async (env) => {
+    const run: Runner = async (env, feed) => {
       if (bin === "") return null;
-      return spawnCapture([], { bin, env });
+      return spawnCapture([], { bin, env, feed });
     };
     threadCases(run, GC_MODES, true);
   });
@@ -229,7 +250,8 @@ const VM_GC_MODES = ["", "VADER_GC_STRESS_SWITCH", "VADER_GC_CHECK_BOX", "VADER_
 // The VM runs a guest thread on a thread of the host (`vader/vm/guest_threads.vader`).
 // It hands no Vader function to C, so `switch_in_callback` is native only.
 describe("virtual threads, VM", () => {
-  threadCases((env) => runCli(["run", FIXTURE], env, LONG_BUILD), VM_GC_MODES, false);
+  const run: Runner = (env, feed) => spawnCapture(["run", FIXTURE], { env, feed, timeoutMs: LONG_BUILD });
+  threadCases(run, VM_GC_MODES, false);
 
   test("a test that leaves a thread fails, and the thread ends before the next test; one it cancelled passes", async () => {
     const r = await runCli(["test", TESTS_FIXTURE], undefined, LONG_BUILD);

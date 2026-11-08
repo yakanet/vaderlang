@@ -6,8 +6,9 @@
  * the nearest sleep to end or for what a thread watches (a descriptor to read,
  * a child to end), and gives the stacks freed meanwhile back to the OS; with
  * neither, every thread waits on another and the program stops. While threads
- * are ready, the OS is asked what it has once they have all run, so that
- * threads that never park do not starve the ones that watch. The scheduler runs
+ * are ready, the OS is asked what it has once they have all run and
+ * VADER_SCHED_ASK_EVERY_NS has passed since it was last asked, so that threads
+ * that never park do not starve the ones that watch. The scheduler runs
  * on a thread of its own (rt/vthreads.c), which runs no Vader code.
  *
  * A cancelled thread unwinds at its next run: it cancels the threads it
@@ -84,8 +85,14 @@ static vader_sched_watch_t* g_sched_watches = NULL;
 static size_t g_sched_watch_len = 0;
 static size_t g_sched_watch_cap = 0;
 #define VADER_SCHED_REFUSED_WATCH_NS 2000000
-/* Switches left before the OS is asked again what it has. */
+/* While threads are ready, how long at least between two questions to the OS:
+ * one costs microseconds, a switch tens of nanoseconds. */
+#define VADER_SCHED_ASK_EVERY_NS 1000000
+/* Switches left before the end of a turn, when the clock says whether the OS is
+ * due. */
 static size_t g_sched_turn_left = 0;
+/* When the OS last answered, on the system clock. */
+static int64_t g_sched_asked_at = 0;
 
 /* ---- the slots ------------------------------------------------------------- */
 
@@ -286,6 +293,17 @@ static int vader_sched_watching(void) {
  * ready, with those already ready, run before it is asked again. */
 static void vader_sched_ask_os(int64_t timeout_ns) {
     vader_os_wait_events(timeout_ns);
+    g_sched_asked_at = vader_os_monotonic_ns();
+    g_sched_turn_left = g_sched_ready_len;
+}
+
+/* Every ready thread has run: ask the OS without waiting when it is due, else
+ * begin another turn. */
+static void vader_sched_end_turn(void) {
+    if (vader_os_monotonic_ns() - g_sched_asked_at >= VADER_SCHED_ASK_EVERY_NS) {
+        vader_sched_ask_os(0);
+        return;
+    }
     g_sched_turn_left = g_sched_ready_len;
 }
 
@@ -391,7 +409,7 @@ static void vader_sched_loop(void) {
     for (;;) {
         vader_sched_fire_due_timers();
         if (g_sched_turn_left == 0u && g_sched_ready_len > 0u && vader_sched_watching()) {
-            vader_sched_ask_os(0);
+            vader_sched_end_turn();
         }
         int64_t next = 0;
         if (vader_sched_pop_ready(&next)) {

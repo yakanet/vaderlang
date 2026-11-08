@@ -1,0 +1,72 @@
+# 0128: The scheduler waits on the system for descriptors and children
+
+## Status
+
+Accepted (2026-11-08). Amends 0127.
+
+## Context
+
+Tasks share one system thread (0127). A read of stdin blocked it, and every task
+with it. `spawn` polled its child and slept 2 ms between two polls: 500 wakes a
+second per child, and up to 2 ms added to the end of each. With no thread ready,
+the scheduler could wait for the nearest sleep and nothing else.
+
+## Decision
+
+- **Watch, then park.** `watch_readable(fd)` and `watch_exit(child)`
+  (`std/runtime/scheduler`) make the running thread's next park end on the
+  event. A watch lasts that one park, which a `wake` can end first; the contract
+  of `park` already allows a wake meant for something else, so the caller loops
+  on what it waits for. A watch is one more source of wakes, not a new kind of
+  wait.
+- **The system follows them**: kqueue on macOS, epoll on Linux, where the end of
+  a child reads on its pidfd, which the runtime opens and closes. Registrations
+  are one-shot, and the scheduler drops a watch whose thread has parked again or
+  ended.
+- **A watch the system refuses ends the park after 2 ms**: no pidfd (Linux
+  before 5.3), a descriptor epoll does not follow, Windows until its own lot.
+- **Once a turn, at most every millisecond.** With a watch set, the scheduler
+  reads the clock each time it has run every thread that was ready, and asks the
+  system without waiting when a millisecond has passed since it last answered.
+  Threads that never park do not starve one that watches, and a turn costs a
+  clock read, not a system call. With none ready, it waits on the system until
+  the nearest deadline. A deadlock is no thread ready, no sleep and no watch.
+- **The virtual clock** counts the sleeps alone: with no thread ready, the
+  scheduler asks the system without waiting, jumps to the nearest deadline when
+  the system has nothing, and waits on the system when no sleep is pending.
+- **stdin**: `std/io` calls `wait_readable(0)` before each read. It parks until
+  the descriptor reads, and returns at once when no other thread exists, so a
+  program without tasks reads as it did. It belongs to `std/io`: loading
+  `std/runtime/scheduler` arms a gate on every `@singleton` and computed
+  constant, and almost every program loads `std/io`. It is exported because the
+  VM serves it by calling the host's. The task check counts it as a call that
+  parks, so a read of stdin while holding a lock is an error.
+- **`spawn`** watches the pipes it has not drained to their end and the end of
+  the child, then parks; each wake drains and reaps as the poll did.
+
+Set aside:
+
+- **`SIGCHLD`** for the end of a child: state of the whole process, a handler a
+  program may install, and `EINTR` in every wait.
+- **pidfd alone**: `spawn` would stop working on Linux before 5.3.
+- **The watch carried by the park** (`park_until_readable(fd)`): one primitive per
+  kind of wait, and `spawn`, which waits for two pipes and a child, could not say
+  so.
+- **Asking the system at every turn of the ready queue**, the first version: a
+  `kevent` without waiting costs 12.4 microseconds on macOS, a clock read 15 ns.
+  Two threads handing control to each other 2 million times took 12.5 s instead
+  of 0.16 s while a third waited on stdin; asked at most every millisecond,
+  0.16 s.
+- **Backing off by turns** (twice as many turns skipped after each question that
+  finds nothing): no clock read, but nothing bounds the wait in time when the
+  threads compute between two switches.
+- **The reactor on a system thread of its own**: the ready queue would need a
+  lock on every switch.
+
+## Consequences
+
+- `spawn` wakes when its child writes or ends.
+- While threads run, a descriptor that becomes ready, or a child that ends,
+  waits up to a millisecond and a turn before its thread is woken.
+- Writes, file reads and `poll_stdin` still block every task, as does Windows
+  for now: it needs overlapped named pipes and the process handle, its own lot.

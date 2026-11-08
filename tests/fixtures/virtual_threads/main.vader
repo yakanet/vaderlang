@@ -1,11 +1,13 @@
 // tests/fixtures/virtual_threads: virtual threads under the collector, past the
-// end of their stack, through a panic, inside a call to C, asleep, cancelled
-// with the threads they launched, deadlocked, and alive when `main` returns.
+// end of their stack, through a panic, inside a call to C, asleep, waiting for
+// stdin or a child, cancelled with the threads they launched, deadlocked, and
+// alive when `main` returns.
 // `tests/virtual_threads.test.ts` builds it once and runs each case, which
 // `THREADS_CASE` names.
 
 module "main"
 
+Process :: import "std/process"
 import "std/abort"
 import "std/env"
 import "std/io"
@@ -270,6 +272,37 @@ real_sleep :: fn() -> void {
     println("slept at least 20 ms")
 }
 
+// ---- descriptors and children ---------------------------------------------
+
+// A thread ticks while main waits for a line of stdin, which the harness writes
+// once it reads the last tick.
+stdin_parks :: fn() -> void {
+    spawn(fn() {
+        for i in 0..<3 {
+            println("tick ${i}")
+            yield_now()
+        }
+    })
+    line :: read_line()
+    if line is IOError {
+        println("stdin: ${line.msg}")
+    } else {
+        println("read ${line}")
+    }
+    join_all()
+}
+
+// Main, alone, waits for a child that writes more than a pipe holds before it
+// ends: the wait drains the pipe as it fills.
+spawn_drains :: fn() -> void {
+    r :: Process.spawn(["sh", "-c", "yes | head -c 100000"])
+    if r is Process.ProcessError {
+        println("spawn: ${r.msg}")
+        return
+    }
+    println("the child wrote ${r.stdout.byte_len()} bytes and exited with ${r.exit}")
+}
+
 // ---- cancellation ---------------------------------------------------------
 
 // A parked thread runs its defers once cancelled.
@@ -426,6 +459,8 @@ main :: fn() -> i32 {
         "sleep_order"           -> sleep_order()
         "sleep_ties"            -> sleep_ties()
         "real_sleep"            -> real_sleep()
+        "stdin_parks"           -> stdin_parks()
+        "spawn_drains"          -> spawn_drains()
         "cancel_parked"         -> cancel_parked()
         "cancel_unstarted"      -> cancel_unstarted()
         "cancel_self"           -> cancel_self()

@@ -1,8 +1,9 @@
 // std/io: synchronous blocking I/O.
 //
 // Scope: standard streams, files, directories and the working directory.
-// A call that waits blocks the system thread, and every task with it. No
-// networking, no streaming primitives.
+// On Linux and macOS, a read of stdin parks its task while the other tasks
+// run. Any other call that waits blocks the system thread, and every task with
+// it. No networking, no streaming primitives.
 
 module "std/io"
 
@@ -431,6 +432,15 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
     return IOError { .msg = "stdin is not available on this target" }
 }
 
+/// Park the running task until descriptor `fd` has input to read, or has
+/// reached its end, while the other tasks run. With no other task, and on
+/// Windows, it returns at once, and the read that follows waits on the system
+/// thread.
+///
+/// @param fd  a descriptor of the process.
+@intrinsic
+export wait_readable :: fn(fd: i64) -> void
+
 /// Attempts before giving up on a read that fails. A signal handler a program
 /// installed can interrupt a blocking read, which is then worth retrying; the
 /// bound keeps a real error from spinning.
@@ -442,6 +452,7 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
     // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
     // in bursts, so a short return is normal and only `0` means end of file.
     for 0..<READ_ATTEMPTS {
+        wait_readable(0)
         got :: sys_read(0, buf, max)
         if got > 0 {
             return buf[0..<got]
@@ -455,6 +466,9 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 
 @target(.Windows)
 read_ready :: fn(max: i64) -> u8[] | IOError {
+    // Returns at once here, but makes the read one that parks on every target,
+    // as the task check sees it.
+    wait_readable(0)
     h :: get_std_handle(STD_INPUT_HANDLE)
     if stdin_is_console() {
         return read_console(h, max)

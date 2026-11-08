@@ -4,6 +4,7 @@
 // The binary is provided by `bun run build:cli`, which builds it from the
 // committed C seed (see bootstrap/README.md).
 
+import type { FileSink } from "bun";
 import { beforeAll } from "bun:test";
 import { rmSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -144,6 +145,42 @@ export interface SpawnOptions {
   readonly timeoutMs?: number;
   /** Bytes for the child's standard input, closed after them. */
   readonly stdin?: Uint8Array;
+  /** A line for the child's standard input, written once its stdout holds the
+   *  cue, then closed: for a child that must be waiting when its input comes.
+   *  Not with `stdin`. */
+  readonly feed?: Feed;
+}
+
+/** A line written to a child's stdin once its stdout holds `cue`. */
+export interface Feed {
+  readonly cue: string;
+  readonly line: string;
+}
+
+// The `stdin` option of a spawn for `opts`: a pipe when the input waits for a cue.
+function stdinOption(opts: SpawnOptions): { stdin?: Uint8Array | "pipe" } {
+  if (opts.feed !== undefined) return { stdin: "pipe" };
+  if (opts.stdin !== undefined) return { stdin: opts.stdin };
+  return {};
+}
+
+// The child's stdout, read to its end; with `feed`, its line goes to `stdin` once
+// the output read so far holds the cue.
+async function readStdout(stdout: ReadableStream<Uint8Array>, stdin: unknown, feed?: Feed): Promise<string> {
+  if (feed === undefined) return new Response(stdout).text();
+  const sink = stdin as FileSink;
+  const decoder = new TextDecoder();
+  let text = "";
+  let fed = false;
+  for await (const chunk of stdout) {
+    text += decoder.decode(chunk, { stream: true });
+    if (!fed && text.includes(feed.cue)) {
+      fed = true;
+      sink.write(feed.line);
+      sink.end();
+    }
+  }
+  return text + decoder.decode();
 }
 
 /// The process environment a spawned `build/vader` should see, plus `extra`.
@@ -183,7 +220,7 @@ export async function spawnCapture(args: string[], opts: SpawnOptions = {}): Pro
   const bin = resolve(opts.bin ?? CLI_BIN);
   const proc = Bun.spawn([bin, ...args], {
     cwd: opts.cwd,
-    ...(opts.stdin === undefined ? {} : { stdin: opts.stdin }),
+    ...stdinOption(opts),
     stdout: "pipe",
     stderr: "pipe",
     env: hermeticEnv(opts.env),
@@ -191,7 +228,7 @@ export async function spawnCapture(args: string[], opts: SpawnOptions = {}): Pro
   const killTimer = setTimeout(() => proc.kill("SIGKILL"), opts.timeoutMs ?? DEFAULT_CLI_TIMEOUT_MS);
   try {
     const [stdout, stderr, exit] = await Promise.all([
-      new Response(proc.stdout).text(),
+      readStdout(proc.stdout, proc.stdin, opts.feed),
       new Response(proc.stderr).text(),
       proc.exited,
     ]);

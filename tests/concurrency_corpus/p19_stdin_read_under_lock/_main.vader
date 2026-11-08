@@ -1,0 +1,20 @@
+// P19: a read of stdin parks, so a block holding the lock cannot make one.
+//
+// corpus: probe
+// expect: T3132
+
+module "snippet"
+
+import "std/io"
+import "std/task"
+
+main :: fn() -> i32 {
+    names :: shared(["nobody"])
+    names.locked(n -> {
+        line :: read_line()
+        if line is string {
+            n.push(line)
+        }
+    })
+    return 0
+}

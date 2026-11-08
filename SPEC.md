@@ -4040,7 +4040,7 @@ main :: fn() -> i32 {
 - A task shows as `task #N`, its number in the order the program launched them. Two tasks are equal when they are the same task.
 - `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value.
 - When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero. A task cancelled before, or launched by one, is waited for without being named.
-- When every task waits and no sleep is pending, nothing will wake one: the program stops on a deadlock and names the tasks.
+- When every task waits, and none on a sleep, a read of stdin or a child, nothing will wake one: the program stops on a deadlock and names the tasks.
 
 ### Values shared between tasks
 
@@ -4091,7 +4091,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (Â
 
 - `sleep(d)` (`std/time`) parks the task for at least `d` while the others run. A task alone waits on the system clock.
 - With `VADER_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. Of two sleeps that end together, the one that began first ends first. It suits tests that do no real I/O.
-- I/O in `std/io` blocks the program: no other task runs while a read or a write waits.
+- A read of stdin (`std/io`) may park, so a block that holds a lock cannot make one. On Linux and macOS it parks the task while the others run. On Windows it blocks the program, as every other wait of `std/io` does, a write or a file read: no other task runs meanwhile.
 - `spawn` (`std/process`) parks the calling task while its child runs, and a task cancelled meanwhile kills its child.
 
 ### Combinators

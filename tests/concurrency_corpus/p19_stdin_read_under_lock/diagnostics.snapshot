@@ -1,0 +1,1 @@
+[14:17] error[T3132] shared block parks: this block holds the lock while it calls `read_line`, which calls `read_ready`, which calls `wait_readable`, which may park ; call `read_line` before the block, and store its result under the lock

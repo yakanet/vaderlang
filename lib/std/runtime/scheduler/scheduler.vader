@@ -3,8 +3,8 @@
 // A virtual thread runs a function on a stack of its own. A thread runs until
 // it parks, sleeps or ends; the scheduler then runs the ready threads in the
 // order they became ready. With none ready, it waits for the nearest sleep to
-// end; with no sleep either, every thread waits on another, and the program
-// stops on a deadlock.
+// end or for what a thread watches: a descriptor to read, a child to end. With
+// neither, every thread waits on another, and the program stops on a deadlock.
 //
 // A thread is named by an `i64` handle. Once its thread has ended, a handle
 // names nothing, and waking or cancelling it does nothing. When `main` returns,
@@ -76,6 +76,22 @@ export cancel_thread :: fn(thread: i64) -> void
 /// The handle of the running thread. The main thread has one from the start.
 @intrinsic
 export current_thread :: fn() -> i64
+
+/// Make the running thread's next park end once descriptor `fd` has input to
+/// read, or has reached its end. The watch lasts that one park, which a `wake`
+/// can end first; one the system cannot follow ends it after 2 ms instead. A
+/// thread checks what it waits for in a loop.
+///
+/// @param fd  a descriptor of the process: a pipe, a terminal, a socket.
+@intrinsic
+export watch_readable :: fn(fd: i64) -> void
+
+/// Make the running thread's next park end once the child process `child` has
+/// ended, as `watch_readable` does for a descriptor.
+///
+/// @param child  the pid of a child of this process.
+@intrinsic
+export watch_exit :: fn(child: i64) -> void
 
 // ---- gates ----------------------------------------------------------------
 

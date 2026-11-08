@@ -74,6 +74,7 @@ export task_primitive :: fn(key: string) -> TaskPrimitive | null = match key {
     "std/task.is_ready" | "std/task.cancel" -> TaskPrimitive {}
     "std/runtime/scheduler.park"            -> TaskPrimitive { .parks = true }
     "std/runtime/scheduler.sleep_for"       -> TaskPrimitive { .parks = true }
+    "std/io.wait_readable"                  -> TaskPrimitive { .parks = true }
     "std/task.shared"                       -> TaskPrimitive { .gives = 0 }
     "std/task.send"                         -> TaskPrimitive {
         .gives = 1,

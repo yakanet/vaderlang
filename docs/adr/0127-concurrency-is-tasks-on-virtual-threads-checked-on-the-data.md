@@ -7,6 +7,7 @@ Amended (2026-11-08): the `Async<T>` trait leaves `std/core` too, since nothing
 implemented it and nothing called it.
 Amended (2026-11-08): cancelling a task cancels the tasks it launched, and the
 combinators that cancel cancel their tasks when the task waiting in them is.
+Amended (2026-11-08) by 0128: a read of stdin parks its task on Linux and macOS.
 
 ## Context
 
@@ -100,8 +101,9 @@ Set aside:
   (580 to 620 ms).
 - Tasks share one system thread for now; the rules are those of tasks spread over
   cores, so a program keeps its meaning when they are.
-- I/O in `std/io` blocks every task. A stop runs the pending defers of the thread
-  that stops, not those of the others.
+- I/O in `std/io` blocks every task, save a read of stdin on Linux and macOS
+  (0128). A stop runs the pending defers of the thread that stops, not those of
+  the others.
 - A defer of a cancelled task's child that waits for what only a defer of the
   cancelled task provides is a deadlock.
 - A task the cascade cancels before it starts, one launched by a task that

@@ -60,9 +60,9 @@ GuestThreads :: struct {
 guest_threads :: fn() -> GuestThreads = GuestThreads {}
 
 // Serve `id` on `args` when it is a primitive of `std/runtime/scheduler`, which
-// the VM serves with its own state; null for any other, which `dispatch_import`
-// serves.
-// @partial: the intrinsics outside `std/runtime/scheduler` are not this one's.
+// the VM serves with its own state, or `wait_readable` of `std/io`, which parks
+// too; null for any other, which `dispatch_import` serves.
+// @partial: the other intrinsics park no thread.
 serve_thread_primitive :: fn(
     state: VmState,
     m: RegMachine,
@@ -71,13 +71,16 @@ serve_thread_primitive :: fn(
     origin: i32,
     is_comptime: bool,
 ) -> HostCallResult | null = @partial match id {
-    .SchedSpawn    -> start_guest_thread(state, args[0], is_comptime, debug_controller(m))
-    .SchedPark     -> parked()
-    .SchedWake     -> wake_guest_thread(args[0], origin)
-    .SchedSleepFor -> sleep_guest_thread(args[0], origin)
-    .SchedCancel   -> cancel_guest_thread(args[0], origin)
-    .SchedCurrent  -> HostOk { .value = I64Val(current_thread()) }
-    _              -> null
+    .SchedSpawn         -> start_guest_thread(state, args[0], is_comptime, debug_controller(m))
+    .SchedPark          -> parked()
+    .SchedWake          -> on_i64(args[0], origin, "wake", (n) -> wake(n))
+    .SchedSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
+    .SchedWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
+    .SchedWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
+    .IoWaitReadable     -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
+    .SchedCancel        -> cancel_guest_thread(args[0], origin)
+    .SchedCurrent       -> HostOk { .value = I64Val(current_thread()) }
+    _                   -> null
 }
 
 // Start the guest function `entry` on a thread of the host.
@@ -122,21 +125,19 @@ parked :: fn() -> HostCallResult {
     return void_result()
 }
 
-wake_guest_thread :: fn(thread: Value, origin: i32) -> HostCallResult {
-    handle :: read_i64(thread, origin, "wake")
-    if handle is Trap {
-        return handle
+// Run the host's own `primitive` on the `i64` the guest handed it, which a trap
+// names as `name`.
+on_i64 :: fn(
+    value: Value,
+    origin: i32,
+    name: string,
+    primitive: fn(i64) -> void,
+) -> HostCallResult {
+    n :: read_i64(value, origin, name)
+    if n is Trap {
+        return n
     }
-    wake(i64(handle))
-    return void_result()
-}
-
-sleep_guest_thread :: fn(nanos: Value, origin: i32) -> HostCallResult {
-    duration :: read_i64(nanos, origin, "sleep_for")
-    if duration is Trap {
-        return duration
-    }
-    sleep_for(i64(duration))
+    primitive(i64(n))
     return void_result()
 }
 

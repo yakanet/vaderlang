@@ -408,16 +408,25 @@ thread; a major scans each parked stack conservatively, its saved registers
 included. Windows switches through fibers, whose stacks the system guards.
 
 The scheduler is C and runs on a thread of its own, which runs no Vader code. It
-runs the ready threads in the order they became ready. With none ready, it waits
-for the nearest sleep to end; with no sleep either, every thread waits on
+runs the ready threads in the order they became ready. A thread can watch a
+descriptor until it reads, or a child until it ends, for the length of its next
+park: kqueue follows them on macOS, epoll on Linux, where the end of a child
+reads on a pidfd the runtime opens. A watch the system refuses, on Windows or
+without pidfd, ends the park after 2 ms instead. While a watch is set, the
+scheduler asks the system without waiting once it has run every thread that was
+ready, at most every millisecond. With none ready, it waits on the system until
+the nearest sleep ends; with no sleep and no watch, every thread waits on
 another, and it stops the program on a deadlock that names them. Under
-`VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone and jumps to the end of
-the nearest one. Of two sleeps that end together, the one that began first wakes
-first. A thread that sleeps with no other thread alive waits on the system clock
-itself, without a switch, which lets a target that cannot switch stacks sleep. A
-thread whose function returns leaves its stack to the next thread: 64 stacks are
-kept as they are, the others keep their reservation, and the scheduler gives it
-back to the OS the next time it waits. Outside Windows, those others release
+`VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with nothing ready, the
+scheduler asks the system without waiting and, when it has nothing either, jumps
+to the end of the nearest sleep, or waits on the system when no sleep is
+pending. Of two sleeps that end together, the one that began first wakes first.
+A read of stdin through `std/io` parks only while another thread exists. A
+thread that sleeps with no other thread alive waits on the system clock itself,
+without a switch, which lets a target that cannot switch stacks sleep. A thread
+whose function returns leaves its stack to the next thread: 64 stacks are kept
+as they are, the others keep their reservation, and the scheduler gives it back
+to the OS the next time it waits. Outside Windows, those others release
 meanwhile the 256 KiB a thread writes first.
 
 A cancelled thread, at its next run, cancels the threads it launched that have
