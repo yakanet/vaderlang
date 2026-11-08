@@ -112,6 +112,9 @@ export IntrinsicId :: enum(u8) {
     RuntimeAllocatedBytes, RuntimeAllocations, RuntimeCountAllocations,
     // std/runtime/scheduler
     SchedSpawn, SchedPark, SchedWake, SchedSleepFor, SchedCancel, SchedCurrent,
+    SchedWatchReadable, SchedWatchExit,
+    // std/io: a read that parks while another thread runs
+    IoWaitReadable,
     // std/abort
     AbortPanic,
     // std/target: the OS the process is RUNNING on, not the one it was built
@@ -169,6 +172,9 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime_scheduler$sleep_for"      { return .SchedSleepFor }
     if mangled == r"std_runtime_scheduler$cancel_thread"  { return .SchedCancel }
     if mangled == r"std_runtime_scheduler$current_thread" { return .SchedCurrent }
+    if mangled == r"std_runtime_scheduler$watch_readable" { return .SchedWatchReadable }
+    if mangled == r"std_runtime_scheduler$watch_exit"     { return .SchedWatchExit }
+    if mangled == r"std_io$wait_readable"                 { return .IoWaitReadable }
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
@@ -194,11 +200,12 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .ByteLen | .ByteAt | .StringHash | .IsAscii -> false
     // A slice of the atom takes an atom-table slot, grown by `realloc`.
     .ByteSlice -> false
-    // Make a stack, queue a thread or read a handle: `malloc` and `mmap`, never
-    // the collector.
+    // Make a stack, queue a thread, read a handle or note a watch: `malloc`,
+    // `mmap` and the OS, never the collector.
     .SchedSpawn | .SchedWake | .SchedCurrent -> false
+    .SchedWatchReadable | .SchedWatchExit -> false
     // Other threads run, and collect, before these return.
-    .SchedPark | .SchedSleepFor | .SchedCancel -> true
+    .SchedPark | .SchedSleepFor | .SchedCancel | .IoWaitReadable -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text, a copy.
@@ -230,9 +237,10 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
     // Nothing runs before they return.
     .SchedSpawn | .SchedWake | .SchedCurrent -> false
+    .SchedWatchReadable | .SchedWatchExit -> false
     // Other threads run before these return, and may shorten any array they
     // reach.
-    .SchedPark | .SchedSleepFor | .SchedCancel -> true
+    .SchedPark | .SchedSleepFor | .SchedCancel | .IoWaitReadable -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.

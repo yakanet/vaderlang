@@ -61,6 +61,25 @@ static size_t vader_os_physical_ram(void) {
     return 0;
 }
 
+/* ---- what the OS reports ------------------------------------------------- */
+
+/* No watch is taken: each is a short sleep instead, and a read is taken as
+ * ready, so that it blocks. */
+static int vader_os_watch(int kind, int64_t id) {
+    (void) kind;
+    (void) id;
+    return 0;
+}
+
+static void vader_os_wait_events(int64_t timeout_ns) {
+    if (timeout_ns > 0) vader_os_sleep_ns(timeout_ns);
+}
+
+static int vader_os_readable_now(int64_t fd) {
+    (void) fd;
+    return 1;
+}
+
 /* ---- stack --------------------------------------------------------------- */
 
 static char* vader_os_stack_base(void) {

@@ -853,12 +853,16 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .RuntimeCountAllocations -> { return [perform("vader_gc_count_allocations", [])] }
 
     // std/runtime/scheduler: virtual threads (`runtime/c/rt/sched.c`).
-    .SchedSpawn    -> { return [returning("vader_sched_spawn", [a0])] }
-    .SchedPark     -> { return [perform("vader_sched_park", [])] }
-    .SchedWake     -> { return [perform("vader_sched_wake", [a0])] }
-    .SchedSleepFor -> { return [perform("vader_sched_sleep_for", [a0])] }
-    .SchedCancel   -> { return [perform("vader_sched_cancel", [a0])] }
-    .SchedCurrent  -> { return [returning("vader_sched_current", [])] }
+    .SchedSpawn         -> { return [returning("vader_sched_spawn", [a0])] }
+    .SchedPark          -> { return [perform("vader_sched_park", [])] }
+    .SchedWake          -> { return [perform("vader_sched_wake", [a0])] }
+    .SchedSleepFor      -> { return [perform("vader_sched_sleep_for", [a0])] }
+    .SchedCancel        -> { return [perform("vader_sched_cancel", [a0])] }
+    .SchedCurrent       -> { return [returning("vader_sched_current", [])] }
+    .SchedWatchReadable -> { return [perform("vader_sched_watch_readable", [a0])] }
+    .SchedWatchExit     -> { return [perform("vader_sched_watch_exit", [a0])] }
+    // std/io: a read of stdin (`runtime/c/rt/sched.c`).
+    .IoWaitReadable     -> { return [perform("vader_sched_wait_readable", [a0])] }
 
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the

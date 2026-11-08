@@ -1422,6 +1422,14 @@ void    vader_sched_wake(int64_t thread);
 void    vader_sched_sleep_for(int64_t nanos);
 void    vader_sched_cancel(int64_t thread);
 int64_t vader_sched_current(void);
+/* Wake the running thread's next park once `fd` reads without blocking or has
+ * reached its end, or once the child process `child` has ended. What the OS
+ * will not watch wakes it after a short sleep. */
+void    vader_sched_watch_readable(int64_t fd);
+void    vader_sched_watch_exit(int64_t child);
+/* Park until `fd` reads without blocking, when another thread could run
+ * meanwhile; otherwise return at once, and the read blocks. */
+void    vader_sched_wait_readable(int64_t fd);
 /* `main` returned `code`: cancel the threads still running and wait for their
  * defers. The process's exit code, not zero when it cancelled any. */
 int     vader_sched_exit(int code);

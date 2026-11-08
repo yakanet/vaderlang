@@ -9,11 +9,23 @@
 
 #include <dirent.h>
 #include <dlfcn.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+
+#if defined(__APPLE__)
+#  include <sys/event.h>
+#elif defined(__linux__)
+#  include <sys/epoll.h>
+#  include <sys/syscall.h>
+#  if !defined(SYS_pidfd_open)
+#    define SYS_pidfd_open 434   /* the same on every architecture */
+#  endif
+#endif
 
 #ifndef MAP_ANONYMOUS
 #  define MAP_ANONYMOUS MAP_ANON
@@ -81,6 +93,161 @@ static size_t vader_os_physical_ram(void) {
     if (pages > 0 && psize > 0) return (size_t) pages * (size_t) psize;
     return 0;
 }
+
+/* ---- what the OS reports ------------------------------------------------- */
+
+/* The most events one wait takes; the rest wait for the next. */
+#define VADER_OS_EVENTS 64
+
+/* A read that fails is ready too: the read then reports the failure. */
+static int vader_os_readable_now(int64_t fd) {
+    struct pollfd probe;
+    probe.fd = (int) fd;
+    probe.events = POLLIN;
+    probe.revents = 0;
+    return poll(&probe, 1, 0) != 0;
+}
+
+#if defined(__APPLE__)
+
+static int g_os_queue = -1;
+
+static int vader_os_watch(int kind, int64_t id) {
+    if (g_os_queue < 0) {
+        g_os_queue = kqueue();
+        if (g_os_queue < 0) return 0;
+        fcntl(g_os_queue, F_SETFD, FD_CLOEXEC);
+    }
+    struct kevent change;
+    if (kind == VADER_WATCH_EXIT) {
+        EV_SET(&change, (uintptr_t) id, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, NULL);
+    } else {
+        EV_SET(&change, (uintptr_t) id, EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+    }
+    return kevent(g_os_queue, &change, 1, NULL, 0, NULL) == 0;
+}
+
+static void vader_os_wait_events(int64_t timeout_ns) {
+    struct timespec limit;
+    struct timespec* until = NULL;
+    if (timeout_ns >= 0) {
+        limit.tv_sec = (time_t) (timeout_ns / 1000000000);
+        limit.tv_nsec = (long) (timeout_ns % 1000000000);
+        until = &limit;
+    }
+    struct kevent events[VADER_OS_EVENTS];
+    int got = kevent(g_os_queue, NULL, 0, events, VADER_OS_EVENTS, until);
+    for (int i = 0; i < got; i++) {
+        int kind = VADER_WATCH_READABLE;
+        if (events[i].filter == EVFILT_PROC) kind = VADER_WATCH_EXIT;
+        vader_sched_on_event(kind, (int64_t) events[i].ident);
+    }
+}
+
+#elif defined(__linux__)
+
+static int g_os_queue = -1;
+
+/* A child's end reads on a descriptor of its own, open until it is reported. */
+typedef struct {
+    int64_t child;
+    int     fd;
+} vader_os_pidfd_t;
+
+static vader_os_pidfd_t* g_os_pidfds = NULL;
+static size_t g_os_pidfd_len = 0;
+static size_t g_os_pidfd_cap = 0;
+
+/* Watch `fd` until it reads once, reported as `id` watched as `kind`. */
+static int vader_os_arm(int fd, int kind, int64_t id) {
+    if (g_os_queue < 0) {
+        g_os_queue = epoll_create1(EPOLL_CLOEXEC);
+        if (g_os_queue < 0) return 0;
+    }
+    struct epoll_event event;
+    memset(&event, 0, sizeof event);
+    event.events = EPOLLIN | EPOLLONESHOT;
+    /* A descriptor and a pid both fit in 32 bits. */
+    event.data.u64 = ((uint64_t) (uint32_t) kind << 32) | (uint64_t) (uint32_t) id;
+    /* Watched before, it is armed again: a one-shot watch stays registered. */
+    if (epoll_ctl(g_os_queue, EPOLL_CTL_MOD, fd, &event) == 0) return 1;
+    return errno == ENOENT && epoll_ctl(g_os_queue, EPOLL_CTL_ADD, fd, &event) == 0;
+}
+
+/* Without a pidfd (a kernel before 5.3, a filter on system calls), the child
+ * is not watched. */
+static int vader_os_watch_child(int64_t child) {
+    for (size_t i = 0; i < g_os_pidfd_len; i++) {
+        if (g_os_pidfds[i].child == child) return vader_os_arm(g_os_pidfds[i].fd, VADER_WATCH_EXIT, child);
+    }
+    int fd = (int) syscall(SYS_pidfd_open, (pid_t) child, 0);
+    if (fd < 0) return 0;
+    if (g_os_pidfd_len == g_os_pidfd_cap) {
+        size_t cap = 16u;
+        if (g_os_pidfd_cap != 0u) cap = g_os_pidfd_cap * 2u;
+        vader_os_pidfd_t* grown = (vader_os_pidfd_t*) realloc(g_os_pidfds, cap * sizeof(vader_os_pidfd_t));
+        if (grown == NULL) {
+            close(fd);
+            return 0;
+        }
+        g_os_pidfds = grown;
+        g_os_pidfd_cap = cap;
+    }
+    if (!vader_os_arm(fd, VADER_WATCH_EXIT, child)) {
+        close(fd);
+        return 0;
+    }
+    g_os_pidfds[g_os_pidfd_len++] = (vader_os_pidfd_t) { child, fd };
+    return 1;
+}
+
+static int vader_os_watch(int kind, int64_t id) {
+    if (kind == VADER_WATCH_EXIT) return vader_os_watch_child(id);
+    return vader_os_arm((int) id, VADER_WATCH_READABLE, id);
+}
+
+static void vader_os_close_pidfd(int64_t child) {
+    for (size_t i = 0; i < g_os_pidfd_len; i++) {
+        if (g_os_pidfds[i].child != child) continue;
+        close(g_os_pidfds[i].fd);
+        g_os_pidfds[i] = g_os_pidfds[--g_os_pidfd_len];
+        return;
+    }
+}
+
+static void vader_os_wait_events(int64_t timeout_ns) {
+    /* In milliseconds, rounded up so the wait is never shorter. */
+    int timeout_ms = -1;
+    if (timeout_ns >= 0) {
+        int64_t ms = timeout_ns / 1000000;
+        if (timeout_ns % 1000000 != 0) ms += 1;
+        timeout_ms = 0x7FFFFFFF;
+        if (ms < (int64_t) timeout_ms) timeout_ms = (int) ms;
+    }
+    struct epoll_event events[VADER_OS_EVENTS];
+    int got = epoll_wait(g_os_queue, events, VADER_OS_EVENTS, timeout_ms);
+    for (int i = 0; i < got; i++) {
+        int kind = (int) (events[i].data.u64 >> 32);
+        int64_t id = (int64_t) (uint32_t) events[i].data.u64;
+        if (kind == VADER_WATCH_EXIT) vader_os_close_pidfd(id);
+        vader_sched_on_event(kind, id);
+    }
+}
+
+#else
+
+/* No watch is taken: each is a short sleep instead. */
+static int vader_os_watch(int kind, int64_t id) {
+    (void) kind;
+    (void) id;
+    return 0;
+}
+
+static void vader_os_wait_events(int64_t timeout_ns) {
+    if (timeout_ns > 0) vader_os_sleep_ns(timeout_ns);
+}
+
+#endif
 
 /* ---- stack --------------------------------------------------------------- */
 

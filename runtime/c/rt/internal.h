@@ -230,6 +230,12 @@ static int vader_sched_starting(void);
 /* On an ending thread's stack, once it has run its last defer. */
 static void vader_sched_ending(void);
 
+/* What a thread waits for the OS to report: a descriptor that reads without
+ * blocking or has reached its end, a child process that has ended. */
+enum { VADER_WATCH_READABLE = 0, VADER_WATCH_EXIT = 1 };
+/* The OS reports `id`, watched as `kind`: wake the threads that wait for it. */
+static void vader_sched_on_event(int kind, int64_t id);
+
 /* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
 /* What the runtime asks of the OS it runs on. Each of the two parts defines all
@@ -253,6 +259,16 @@ static size_t vader_os_physical_ram(void);
 static int64_t vader_os_monotonic_ns(void);
 /* Block the process's thread for at least `ns` nanoseconds. */
 static void vader_os_sleep_ns(int64_t ns);
+/* Have the OS report once, through `vader_sched_on_event`, that `id` is as
+ * `kind` waits for: the descriptor reads without blocking or has reached its
+ * end, the child process has ended. 0 when it will not watch `id`. */
+static int vader_os_watch(int kind, int64_t id);
+/* Wait at most `timeout_ns` for what the OS watches, not at all for 0 and
+ * without bound for a negative one, and report what it has. */
+static void vader_os_wait_events(int64_t timeout_ns);
+/* Whether a read of `fd` would not block: it holds data, has reached its end,
+ * or fails. */
+static int vader_os_readable_now(int64_t fd);
 /* Highest address of the main thread's C stack, NULL when unknown. The stack
  * grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);

@@ -3,10 +3,12 @@
  *
  * A thread runs until it parks, sleeps or ends; the scheduler then runs the
  * ready threads in the order they became ready. With none ready, it waits for
- * the nearest sleep to end, and gives the stacks freed meanwhile back to the
- * OS; with no sleep either, every thread waits on another and the program
- * stops. The scheduler runs on a thread of its own (rt/vthreads.c), which runs
- * no Vader code.
+ * the nearest sleep to end or for what a thread watches (a descriptor to read,
+ * a child to end), and gives the stacks freed meanwhile back to the OS; with
+ * neither, every thread waits on another and the program stops. While threads
+ * are ready, the OS is asked what it has once they have all run, so that
+ * threads that never park do not starve the ones that watch. The scheduler runs
+ * on a thread of its own (rt/vthreads.c), which runs no Vader code.
  *
  * A cancelled thread unwinds at its next run: it cancels the threads it
  * launched that have not ended and waits for their ends, then runs its pending
@@ -16,7 +18,8 @@
  * launch runs on.
  *
  * Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: it
- * jumps to the end of the nearest one instead of waiting for it. */
+ * jumps to the end of the nearest one instead of waiting for it, once the OS
+ * has nothing ready. */
 
 #include "internal.h"
 
@@ -38,6 +41,15 @@ typedef struct {
     int64_t  thread;
     uint32_t sleep;
 } vader_sched_timer_t;
+
+/* A thread waiting for the OS to report `id`, a descriptor or a child. It
+ * wakes the park of `sleep`, the thread's next one when it was set. */
+typedef struct {
+    int64_t  id;
+    int64_t  thread;
+    uint32_t sleep;
+    uint8_t  kind;          /* VADER_WATCH_READABLE or VADER_WATCH_EXIT */
+} vader_sched_watch_t;
 
 static int      g_sched_started = 0;
 static int      g_sched_clock_read = 0;
@@ -65,6 +77,15 @@ static vader_sched_timer_t* g_sched_timers = NULL;
 static size_t g_sched_timer_len = 0;
 static size_t g_sched_timer_cap = 0;
 static uint64_t g_sched_sleeps_begun = 0;
+
+/* The watches, in no order. One the OS will not take is a sleep instead, of
+ * VADER_SCHED_REFUSED_WATCH_NS, after which the thread checks again. */
+static vader_sched_watch_t* g_sched_watches = NULL;
+static size_t g_sched_watch_len = 0;
+static size_t g_sched_watch_cap = 0;
+#define VADER_SCHED_REFUSED_WATCH_NS 2000000
+/* Switches left before the OS is asked again what it has. */
+static size_t g_sched_turn_left = 0;
 
 /* ---- the slots ------------------------------------------------------------- */
 
@@ -209,13 +230,82 @@ static void vader_sched_fire_due_timers(void) {
     }
 }
 
+/* Nanoseconds from now on the OS's clock until `deadline`, 0 once it passed. */
+static int64_t vader_sched_nanos_until(int64_t deadline) {
+    int64_t now = vader_os_monotonic_ns();
+    if (deadline > now) return deadline - now;
+    return 0;
+}
+
 static void vader_sched_wait_until(int64_t deadline) {
     if (g_sched_virtual_clock) {
         if (deadline > g_sched_virtual_now) g_sched_virtual_now = deadline;
         return;
     }
-    int64_t now = vader_os_monotonic_ns();
-    if (deadline > now) vader_os_sleep_ns(deadline - now);
+    int64_t nanos = vader_sched_nanos_until(deadline);
+    if (nanos > 0) vader_os_sleep_ns(nanos);
+}
+
+/* The deadline `nanos` from now, INT64_MAX past the end of the clock. */
+static int64_t vader_sched_deadline_in(int64_t nanos) {
+    int64_t now = vader_sched_now();
+    if (nanos < INT64_MAX - now) return now + nanos;
+    return INT64_MAX;
+}
+
+/* ---- what the OS reports --------------------------------------------------- */
+
+static int vader_sched_watch_wakes(const vader_sched_watch_t* watch) {
+    if (!vader_vt_is_live(watch->thread)) return 0;
+    return vader_sched_slot_of(watch->thread)->sleep == watch->sleep;
+}
+
+static void vader_sched_on_event(int kind, int64_t id) {
+    size_t i = 0;
+    while (i < g_sched_watch_len) {
+        vader_sched_watch_t* w = &g_sched_watches[i];
+        if (w->kind != kind || w->id != id) {
+            i++;
+            continue;
+        }
+        if (vader_sched_watch_wakes(w)) vader_sched_enqueue(w->thread);
+        g_sched_watches[i] = g_sched_watches[--g_sched_watch_len];
+    }
+}
+
+/* Whether a watch still wakes a thread. The ones met that wake none go. */
+static int vader_sched_watching(void) {
+    while (g_sched_watch_len > 0u) {
+        if (vader_sched_watch_wakes(&g_sched_watches[0])) return 1;
+        g_sched_watches[0] = g_sched_watches[--g_sched_watch_len];
+    }
+    return 0;
+}
+
+/* Ask the OS what it has, waiting at most `timeout_ns`. The threads it makes
+ * ready, with those already ready, run before it is asked again. */
+static void vader_sched_ask_os(int64_t timeout_ns) {
+    vader_os_wait_events(timeout_ns);
+    g_sched_turn_left = g_sched_ready_len;
+}
+
+/* With no thread ready: wait for the nearest sleep to end, when `sleeping`, or
+ * for what a thread watches, when `watching`, whichever comes first. */
+static void vader_sched_idle(int sleeping, int64_t deadline, int watching) {
+    if (!watching) {
+        vader_sched_wait_until(deadline);
+        return;
+    }
+    if (!sleeping) {
+        vader_sched_ask_os(-1);
+        return;
+    }
+    if (g_sched_virtual_clock) {
+        vader_sched_ask_os(0);
+        if (g_sched_ready_len == 0u) vader_sched_wait_until(deadline);
+        return;
+    }
+    vader_sched_ask_os(vader_sched_nanos_until(deadline));
 }
 
 /* ---- reports --------------------------------------------------------------- */
@@ -300,8 +390,12 @@ static void vader_sched_deadlock(void) {
 static void vader_sched_loop(void) {
     for (;;) {
         vader_sched_fire_due_timers();
+        if (g_sched_turn_left == 0u && g_sched_ready_len > 0u && vader_sched_watching()) {
+            vader_sched_ask_os(0);
+        }
         int64_t next = 0;
         if (vader_sched_pop_ready(&next)) {
+            if (g_sched_turn_left > 0u) g_sched_turn_left--;
             vader_vt_switch(next);
             continue;
         }
@@ -310,9 +404,11 @@ static void vader_sched_loop(void) {
             continue;
         }
         int64_t deadline = 0;
-        if (!vader_sched_next_deadline(&deadline)) vader_sched_deadlock();
+        int sleeping = vader_sched_next_deadline(&deadline);
+        int watching = vader_sched_watching();
+        if (!sleeping && !watching) vader_sched_deadlock();
         vader_vt_give_back_cold();
-        vader_sched_wait_until(deadline);
+        vader_sched_idle(sleeping, deadline, watching);
     }
 }
 
@@ -411,11 +507,7 @@ static void vader_sched_sleep_alone(int64_t nanos) {
         vader_os_sleep_ns(nanos);
         return;
     }
-    if (nanos < INT64_MAX - g_sched_virtual_now) {
-        g_sched_virtual_now += nanos;
-        return;
-    }
-    g_sched_virtual_now = INT64_MAX;
+    g_sched_virtual_now = vader_sched_deadline_in(nanos);
 }
 
 void vader_sched_sleep_for(int64_t nanos) {
@@ -426,9 +518,7 @@ void vader_sched_sleep_for(int64_t nanos) {
     }
     vader_sched_start();
     int64_t thread = vader_vt_current();
-    int64_t now = vader_sched_now();
-    int64_t deadline = INT64_MAX;
-    if (nanos < INT64_MAX - now) deadline = now + nanos;
+    int64_t deadline = vader_sched_deadline_in(nanos);
     uint64_t began = ++g_sched_sleeps_begun;
     /* A wake ends the park, not the sleep. */
     do {
@@ -437,6 +527,52 @@ void vader_sched_sleep_for(int64_t nanos) {
         vader_sched_arm((vader_sched_timer_t) { deadline, began, thread, s->sleep });
         vader_sched_block();
     } while (vader_sched_now() < deadline);
+}
+
+/* Wake the running thread's next park once the OS reports `id`. */
+static void vader_sched_watch(int kind, int64_t id) {
+    vader_sched_start();
+    int64_t thread = vader_vt_current();
+    uint32_t sleep = vader_sched_slot_of(thread)->sleep + 1u;
+    if (!vader_os_watch(kind, id)) {
+        int64_t deadline = vader_sched_deadline_in(VADER_SCHED_REFUSED_WATCH_NS);
+        vader_sched_arm((vader_sched_timer_t) { deadline, ++g_sched_sleeps_begun, thread, sleep });
+        return;
+    }
+    /* A thread watches the same `id` again at each park of a loop, woken
+     * meanwhile by another watch: its entry moves to the new park. */
+    for (size_t i = 0; i < g_sched_watch_len; i++) {
+        vader_sched_watch_t* w = &g_sched_watches[i];
+        if (w->kind == kind && w->id == id && w->thread == thread) {
+            w->sleep = sleep;
+            return;
+        }
+    }
+    if (g_sched_watch_len == g_sched_watch_cap) {
+        size_t cap = 16u;
+        if (g_sched_watch_cap != 0u) cap = g_sched_watch_cap * 2u;
+        vader_sched_watch_t* grown = (vader_sched_watch_t*) realloc(g_sched_watches, cap * sizeof(vader_sched_watch_t));
+        if (grown == NULL) vader_trap("virtual threads: out of memory");
+        g_sched_watches = grown;
+        g_sched_watch_cap = cap;
+    }
+    g_sched_watches[g_sched_watch_len++] = (vader_sched_watch_t) { id, thread, sleep, (uint8_t) kind };
+}
+
+void vader_sched_watch_readable(int64_t fd) {
+    vader_sched_watch(VADER_WATCH_READABLE, fd);
+}
+
+void vader_sched_watch_exit(int64_t child) {
+    vader_sched_watch(VADER_WATCH_EXIT, child);
+}
+
+void vader_sched_wait_readable(int64_t fd) {
+    if (vader_vt_threads() == 0u) return;
+    while (!vader_os_readable_now(fd)) {
+        vader_sched_watch(VADER_WATCH_READABLE, fd);
+        vader_sched_park();
+    }
 }
 
 void vader_sched_cancel(int64_t thread) {
