@@ -235,9 +235,9 @@ export dispatch_import :: fn(
     .RuntimeAllocatedBytes   -> { return HostOk { .value = I64Val(0) } }
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
-    .SchedSpawn | .SchedPark | .SchedWake | .SchedSleepFor | .SchedCancel | .SchedCurrent
-        | .SchedIsCancelled | .SchedIsLeaving | .SchedWatchReadable | .SchedWatchExit
-        | .WaitReadable | .WaitReadableFor -> {
+    .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
+        | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
+        | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
@@ -1246,8 +1246,9 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
     // A comptime evaluation treats threads as `vader run` does.
-    .SchedSpawn | .SchedPark | .SchedWake | .SchedSleepFor | .SchedCancel | .SchedCurrent -> null
-    .SchedIsCancelled | .SchedIsLeaving | .SchedWatchReadable | .SchedWatchExit -> null
+    .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor -> null
+    .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
+    .SchedulerWatchReadable | .SchedulerWatchExit -> null
     .WaitReadable | .WaitReadableFor -> null
     .AbortPanic -> null
     .NotIntrinsic -> null

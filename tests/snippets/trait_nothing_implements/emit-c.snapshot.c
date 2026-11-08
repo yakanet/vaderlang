@@ -288,5 +288,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return vader_sched_exit((int) main$main());
+    return vader_scheduler_exit((int) main$main());
 }

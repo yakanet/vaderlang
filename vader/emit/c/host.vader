@@ -852,20 +852,20 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .RuntimeAllocations      -> { return [gc_statistic("total_alloc_count")] }
     .RuntimeCountAllocations -> { return [perform("vader_gc_count_allocations", [])] }
 
-    // std/runtime/scheduler: virtual threads (`runtime/c/rt/sched.c`).
-    .SchedSpawn         -> { return [returning("vader_sched_spawn", [a0])] }
-    .SchedPark          -> { return [perform("vader_sched_park", [])] }
-    .SchedWake          -> { return [perform("vader_sched_wake", [a0])] }
-    .SchedSleepFor      -> { return [perform("vader_sched_sleep_for", [a0])] }
-    .SchedCancel        -> { return [perform("vader_sched_cancel", [a0])] }
-    .SchedCurrent       -> { return [returning("vader_sched_current", [])] }
-    .SchedIsCancelled   -> { return [returning("vader_sched_is_cancelled", [])] }
-    .SchedIsLeaving     -> { return [returning("vader_sched_is_leaving", [a0])] }
-    .SchedWatchReadable -> { return [perform("vader_sched_watch_readable", [a0])] }
-    .SchedWatchExit     -> { return [perform("vader_sched_watch_exit", [a0])] }
-    // std/runtime/wait: a read that parks (`runtime/c/rt/sched.c`).
-    .WaitReadable       -> { return [perform("vader_sched_wait_readable", [a0])] }
-    .WaitReadableFor    -> { return [returning("vader_sched_wait_readable_for", [a0, a1])] }
+    // std/runtime/scheduler: virtual threads (`runtime/c/rt/scheduler.c`).
+    .SchedulerSpawn         -> { return [returning("vader_scheduler_spawn", [a0])] }
+    .SchedulerPark          -> { return [perform("vader_scheduler_park", [])] }
+    .SchedulerWake          -> { return [perform("vader_scheduler_wake", [a0])] }
+    .SchedulerSleepFor      -> { return [perform("vader_scheduler_sleep_for", [a0])] }
+    .SchedulerCancel        -> { return [perform("vader_scheduler_cancel", [a0])] }
+    .SchedulerCurrent       -> { return [returning("vader_scheduler_current", [])] }
+    .SchedulerIsCancelled   -> { return [returning("vader_scheduler_is_cancelled", [])] }
+    .SchedulerIsLeaving     -> { return [returning("vader_scheduler_is_leaving", [a0])] }
+    .SchedulerWatchReadable -> { return [perform("vader_scheduler_watch_readable", [a0])] }
+    .SchedulerWatchExit     -> { return [perform("vader_scheduler_watch_exit", [a0])] }
+    // std/runtime/wait: a read that parks (`runtime/c/rt/scheduler.c`).
+    .WaitReadable           -> { return [perform("vader_scheduler_wait_readable", [a0])] }
+    .WaitReadableFor        -> { return [returning("vader_scheduler_wait_readable_for", [a0, a1])] }
 
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the

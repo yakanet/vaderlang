@@ -1,4 +1,4 @@
-// Virtual threads (`runtime/c/rt/vthreads.c`, `runtime/c/rt/sched.c`,
+// Virtual threads (`runtime/c/rt/virtual_threads.c`, `runtime/c/rt/scheduler.c`,
 // `std/runtime/scheduler`) on the native backend and the VM. A parked thread's
 // shadow-stack frames, stack objects, atoms and pending defers stay rooted under
 // every diagnostic mode of the collector, in a debug and a release build; a
@@ -274,7 +274,7 @@ for (const profile of ["debug", "release"]) {
 
     beforeAll(async () => {
       if (!(await haveCc())) return;
-      bin = join(mkdtempSync(join(tmpdir(), "vader-vthreads-")), exePath("threads"));
+      bin = join(mkdtempSync(join(tmpdir(), "vader-virtual-threads-")), exePath("threads"));
       const build = await runCli(["build", ...profileFlags(profile), `--out=${bin}`, FIXTURE], undefined, LONG_BUILD);
       // The whole result, so that a failed build shows its diagnostics.
       expect(build).toMatchObject({ exit: 0 });

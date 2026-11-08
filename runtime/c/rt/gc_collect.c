@@ -123,15 +123,15 @@ static void vader_gc_mark_stack_range(char* lo, char* base) {
 }
 
 /* A thread that is not running: its switch stored its registers at `sp`. */
-static void vader_gc_mark_waiting_stack(const vader_vt_roots_t* r) {
+static void vader_gc_mark_waiting_stack(const vader_virtual_thread_roots_t* r) {
     vader_gc_mark_stack_range(r->sp, r->hi);
 }
 
 static void vader_gc_mark_cstack_conservative(void) {
     jmp_buf regs;
     (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
-    vader_gc_mark_stack_range((char*) &regs, vader_vt_stack_top());
-    vader_vt_each_waiting(vader_gc_mark_waiting_stack);
+    vader_gc_mark_stack_range((char*) &regs, vader_virtual_thread_stack_top());
+    vader_virtual_thread_each_waiting(vader_gc_mark_waiting_stack);
 }
 
 /* ---- generational GC: copying young, mark-sweep old ---------------------- */
@@ -415,7 +415,7 @@ static void vader_gc_scan_thread(vader_gc_frame_t* top, vader_box_t* defers, siz
     }
 }
 
-static void vader_gc_scan_waiting(const vader_vt_roots_t* r) {
+static void vader_gc_scan_waiting(const vader_virtual_thread_roots_t* r) {
     vader_gc_scan_thread(r->top, r->defers, r->ndefers);
 }
 
@@ -423,7 +423,7 @@ static void vader_gc_scan_waiting(const vader_vt_roots_t* r) {
  * both cycles. */
 static void vader_gc_scan_roots(void) {
     vader_gc_scan_thread(vader_gc_top, g_defer_stack, g_defer_len);
-    vader_vt_each_waiting(vader_gc_scan_waiting);
+    vader_virtual_thread_each_waiting(vader_gc_scan_waiting);
 }
 
 /* The first card in [c, hi] marked in `dirty`, or hi + 1. Steps over clean

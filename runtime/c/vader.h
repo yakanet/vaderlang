@@ -1413,36 +1413,53 @@ void vader_defer_pop_exec(uint32_t count);
 
 /* ----------------------------------------------------------------- virtual threads
  *
- * The scheduler of `std/runtime/scheduler` (rt/sched.c), over the stacks and
- * the switch of rt/vthreads.c. A thread is named by a handle; once its thread
- * has ended, a handle names nothing, and waking or cancelling it does nothing. */
-int64_t vader_sched_spawn(vader_fn_t* entry);
-void    vader_sched_park(void);
-void    vader_sched_wake(int64_t thread);
-void    vader_sched_sleep_for(int64_t nanos);
-void    vader_sched_cancel(int64_t thread);
-int64_t vader_sched_current(void);
+ * The scheduler of `std/runtime/scheduler` (rt/scheduler.c), over the stacks
+ * and the switch of rt/virtual_threads.c. A thread is named by a handle; once
+ * its thread has ended, a handle names nothing, and waking or cancelling it
+ * does nothing. */
+int64_t vader_scheduler_spawn(vader_fn_t* entry);
+void    vader_scheduler_park(void);
+void    vader_scheduler_wake(int64_t thread);
+void    vader_scheduler_sleep_for(int64_t nanos);
+void    vader_scheduler_cancel(int64_t thread);
+int64_t vader_scheduler_current(void);
 /* Whether the running thread was cancelled: one cancelled before it started
  * runs its entry all the same, which asks. */
-bool    vader_sched_is_cancelled(void);
+bool    vader_scheduler_is_cancelled(void);
 /* Whether `main` returning waits for the live thread `thread` without naming
  * it: it was cancelled, or the thread that launched it is leaving and a defer
  * of that thread's cancellation did not launch it. */
-bool    vader_sched_is_leaving(int64_t thread);
+bool    vader_scheduler_is_leaving(int64_t thread);
 /* Wake the running thread's next park once `fd` reads without blocking or has
  * reached its end, or once the child process `child` has ended. What the OS
  * will not watch wakes it after a short sleep. */
-void    vader_sched_watch_readable(int64_t fd);
-void    vader_sched_watch_exit(int64_t child);
+void    vader_scheduler_watch_readable(int64_t fd);
+void    vader_scheduler_watch_exit(int64_t child);
 /* Park until `fd` reads without blocking, when another thread could run
  * meanwhile; otherwise return at once, and the read blocks. */
-void    vader_sched_wait_readable(int64_t fd);
+void    vader_scheduler_wait_readable(int64_t fd);
 /* The same wait, given up once `nanos` have passed: false then. A negative
  * `nanos` sets no deadline. */
-bool    vader_sched_wait_readable_for(int64_t fd, int64_t nanos);
+bool    vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos);
 /* `main` returned `code`: cancel the threads still running and wait for their
  * defers. The process's exit code, not zero when it cancelled any. */
-int     vader_sched_exit(int code);
+int     vader_scheduler_exit(int code);
+
+/* The bootstrap seed calls the scheduler by its former names until it is
+ * regenerated from this tree. */
+#define vader_sched_cancel            vader_scheduler_cancel
+#define vader_sched_current           vader_scheduler_current
+#define vader_sched_exit              vader_scheduler_exit
+#define vader_sched_is_cancelled      vader_scheduler_is_cancelled
+#define vader_sched_is_leaving        vader_scheduler_is_leaving
+#define vader_sched_park              vader_scheduler_park
+#define vader_sched_sleep_for         vader_scheduler_sleep_for
+#define vader_sched_spawn             vader_scheduler_spawn
+#define vader_sched_wait_readable     vader_scheduler_wait_readable
+#define vader_sched_wait_readable_for vader_scheduler_wait_readable_for
+#define vader_sched_wake              vader_scheduler_wake
+#define vader_sched_watch_exit        vader_scheduler_watch_exit
+#define vader_sched_watch_readable    vader_scheduler_watch_readable
 
 /* How many calls into C the running code is inside of: the shim of each
  * `@extern` counts its call. A switch traps above zero, since another thread

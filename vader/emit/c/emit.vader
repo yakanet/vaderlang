@@ -1377,9 +1377,9 @@ push_offset_list :: fn(members: CExpression[], prefix: string, offsets: string[]
 /// `int main(...)` shim. No `is_main` fn → the `return 0;` stub. Otherwise
 /// a signature-aware entry : `vader_atom`/`vader_gc` init, optional
 /// `[string]` argv construction, and the call to the user `main`, whose exit
-/// code `vader_sched_exit` returns once the threads still running are
-/// cancelled (`return vader_sched_exit((int) main())` for an `i32` result,
-/// `main(); return vader_sched_exit(0);` for `void`). T3033 guarantees the
+/// code `vader_scheduler_exit` returns once the threads still running are
+/// cancelled (`return vader_scheduler_exit((int) main())` for an `i32` result,
+/// `main(); return vader_scheduler_exit(0);` for `void`). T3033 guarantees the
 /// signature is `()` or `([string])`.
 emit_main :: fn(ctx: EmitCtx, printer: CPrinter, entry_mangled: string) -> void {
     signature :: CSignature {
@@ -1469,9 +1469,9 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
     entry :: call(sanitise(function.name), arguments)
     if bc_single_result(function.signature) == .Void {
         body.push(CExpressionStatement { .expression = entry })
-        body.push(CReturn { .value = call("vader_sched_exit", [number(0)]) })
+        body.push(CReturn { .value = call("vader_scheduler_exit", [number(0)]) })
     } else {
-        body.push(CReturn { .value = call("vader_sched_exit", [cast("int", entry)]) })
+        body.push(CReturn { .value = call("vader_scheduler_exit", [cast("int", entry)]) })
     }
     return body
 }

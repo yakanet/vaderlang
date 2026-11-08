@@ -24,9 +24,9 @@ static int g_gc_stress = 0;
 static int g_gc_stress_major = 0;
 
 /* Switch-stress mode: set via `VADER_GC_STRESS_SWITCH=1`. Every switch between
- * virtual threads (rt/vthreads.c) forces a full major first, so the frames,
- * defers and stack of each thread that is not running are walked while that
- * thread is parked. */
+ * virtual threads (rt/virtual_threads.c) forces a full major first, so the
+ * frames, defers and stack of each thread that is not running are walked while
+ * that thread is parked. */
 static int g_gc_stress_switch = 0;
 
 /* Box-tag corruption check: set via `VADER_GC_CHECK_BOX=1`. When enabled,

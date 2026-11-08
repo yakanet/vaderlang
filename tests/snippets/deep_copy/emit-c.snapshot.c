@@ -1293,23 +1293,23 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
 }
 
 static int64_t vader_host_std_runtime_scheduler$spawn_thread(void* a0) {
-    return vader_sched_spawn(a0);
+    return vader_scheduler_spawn(a0);
 }
 
 static void vader_host_std_runtime_scheduler$park(void) {
-    vader_sched_park();
+    vader_scheduler_park();
 }
 
 static void vader_host_std_runtime_scheduler$wake(int64_t a0) {
-    vader_sched_wake(a0);
+    vader_scheduler_wake(a0);
 }
 
 static int64_t vader_host_std_runtime_scheduler$current_thread(void) {
-    return vader_sched_current();
+    return vader_scheduler_current();
 }
 
 static bool vader_host_std_runtime_scheduler$is_cancelled(void) {
-    return vader_sched_is_cancelled();
+    return vader_scheduler_is_cancelled();
 }
 
 /* vtable forwards */
@@ -3755,5 +3755,5 @@ int main(int argc, char** argv) {
     atexit(vader_gc_shutdown);
     (void) argc;
     (void) argv;
-    return vader_sched_exit((int) snippet$main());
+    return vader_scheduler_exit((int) snippet$main());
 }

@@ -37,7 +37,7 @@ functions in two kinds, and every caller of an async function had to be one.
   thread: a stack of its own, 8 MiB reserved and committed as it is written. A
   task parks wherever it waits, however deep in its calls; nothing marks a
   function as one that may park. `t.join()` gives back the result, the same at
-  every join. The scheduler is C (`runtime/c/rt/sched.c`); the VM serves its
+  every join. The scheduler is C (`runtime/c/rt/scheduler.c`); the VM serves its
   primitives through the host's.
 - **`await` leaves the language**, with `-> Async<T>` as a marker and the
   `Async<T>` trait, `Suspended`, `block_on`, `share` and `std/async`. Generators

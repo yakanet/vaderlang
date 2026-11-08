@@ -150,7 +150,7 @@ static void vader_os_wait_events(int64_t timeout_ns) {
     for (int i = 0; i < got; i++) {
         int kind = VADER_WATCH_READABLE;
         if (events[i].filter == EVFILT_PROC) kind = VADER_WATCH_EXIT;
-        vader_sched_on_event(kind, (int64_t) events[i].ident);
+        vader_scheduler_on_event(kind, (int64_t) events[i].ident);
     }
 }
 
@@ -240,7 +240,7 @@ static void vader_os_wait_events(int64_t timeout_ns) {
         int kind = (int) (events[i].data.u64 >> 32);
         int64_t id = (int64_t) (uint32_t) events[i].data.u64;
         if (kind == VADER_WATCH_EXIT) vader_os_close_pidfd(id);
-        vader_sched_on_event(kind, id);
+        vader_scheduler_on_event(kind, id);
     }
 }
 

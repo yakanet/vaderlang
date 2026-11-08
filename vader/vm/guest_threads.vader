@@ -66,19 +66,19 @@ serve_thread_primitive :: fn(
     origin: i32,
     is_comptime: bool,
 ) -> HostCallResult | null = @partial match id {
-    .SchedSpawn         -> start_guest_thread(state, args[0], is_comptime, debug_controller(m))
-    .SchedPark          -> parked()
-    .SchedWake          -> on_i64(args[0], origin, "wake", (n) -> wake(n))
-    .SchedSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
-    .SchedWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
-    .SchedWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
-    .WaitReadable       -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
-    .WaitReadableFor    -> serve_wait_readable_for(args, origin)
-    .SchedCancel        -> cancel_guest_thread(args[0], origin)
-    .SchedCurrent       -> HostOk { .value = I64Val(current_thread()) }
-    .SchedIsCancelled   -> HostOk { .value = BoolVal(is_cancelled()) }
-    .SchedIsLeaving     -> serve_is_leaving(args[0], origin)
-    _                   -> null
+    .SchedulerSpawn         -> start_guest_thread(state, args[0], is_comptime, debug_controller(m))
+    .SchedulerPark          -> parked()
+    .SchedulerWake          -> on_i64(args[0], origin, "wake", (n) -> wake(n))
+    .SchedulerSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
+    .SchedulerWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
+    .SchedulerWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
+    .WaitReadable           -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
+    .WaitReadableFor        -> serve_wait_readable_for(args, origin)
+    .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
+    .SchedulerCurrent       -> HostOk { .value = I64Val(current_thread()) }
+    .SchedulerIsCancelled   -> HostOk { .value = BoolVal(is_cancelled()) }
+    .SchedulerIsLeaving     -> serve_is_leaving(args[0], origin)
+    _                       -> null
 }
 
 // Start the guest function `entry` on a thread of the host.

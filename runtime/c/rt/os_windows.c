@@ -357,7 +357,7 @@ static int vader_os_watch(int kind, int64_t id) {
  * started on a handle the port knows: it reports nothing. */
 static void vader_os_report(OVERLAPPED* overlapped) {
     if (overlapped == &g_os_stdin_report) {
-        vader_sched_on_event(VADER_WATCH_READABLE, 0);
+        vader_scheduler_on_event(VADER_WATCH_READABLE, 0);
         return;
     }
     vader_os_wait_t** link = &g_os_waits;
@@ -372,7 +372,7 @@ static void vader_os_report(OVERLAPPED* overlapped) {
     int kind = w->kind;
     int64_t id = w->id;
     free(w);
-    vader_sched_on_event(kind, id);
+    vader_scheduler_on_event(kind, id);
 }
 
 static void vader_os_wait_events(int64_t timeout_ns) {

@@ -392,7 +392,7 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 
 ### 3.1 Concurrency: partial
 - [ ] **A stop runs the defers of the task that stops, not those of the others** (noted 2026-11-08). Natively, `vader_trap`, `vader_panic` and `vader_unreachable` (`runtime/c/rt/defer_traps.c`) drain the running thread's defer stack only: the other tasks end with the process, their defers unrun. SPEC §16 *Cancellation* states the behaviour as it is; running every task's defers needs the stop to cancel each one and let it unwind.
-- [ ] **A cancelled sleep keeps its timer.** The timer of a task cancelled while it sleeps stays in the heap until it fires, and wakes nothing (`runtime/c/rt/sched.c`).
+- [ ] **A cancelled sleep keeps its timer.** The timer of a task cancelled while it sleeps stays in the heap until it fires, and wakes nothing (`runtime/c/rt/scheduler.c`).
 
 ### 3.2 Tasks over several cores
 - [ ] Spread the virtual threads of `std/task` over several system threads: the task check already holds a program to the rules of tasks on several cores.

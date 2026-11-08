@@ -173,7 +173,7 @@ static vader_array_t* vader_array_resolve(vader_array_t* a);
 static size_t vader_array_buf_bytes(size_t capacity, uint8_t element_kind);
 static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, uint8_t* out_kind, uint32_t* out_tag, size_t* out_elem_size);
 
-/* ---- vthreads.c ---------------------------------------------------------- */
+/* ---- virtual_threads.c --------------------------------------------------- */
 
 /* What the collector reads of a thread that is not running: its shadow-stack
  * frames, its pending defers, and the stack range [sp, hi) that holds its
@@ -185,53 +185,53 @@ typedef struct {
     size_t            ndefers;
     char*             sp;
     char*             hi;
-} vader_vt_roots_t;
+} vader_virtual_thread_roots_t;
 
 /* The top of the running thread's stack, where its conservative scan stops. */
-static char* vader_vt_stack_top(void);
+static char* vader_virtual_thread_stack_top(void);
 /* Call `fn` with the roots of each thread alive but the running one. */
-static void vader_vt_each_waiting(void (*fn)(const vader_vt_roots_t* roots));
+static void vader_virtual_thread_each_waiting(void (*fn)(const vader_virtual_thread_roots_t*));
 
-/* What rt/sched.c drives. A handle names a thread until it ends; the main
+/* What rt/scheduler.c drives. A handle names a thread until it ends; the main
  * thread has one from the start. One thread is the scheduler's, which runs
- * `vader_sched_loop` and which a thread switches to when it ends. */
+ * `vader_scheduler_loop` and which a thread switches to when it ends. */
 
 /* Make the scheduler's thread, once. */
-static void vader_vt_start_scheduler(void);
+static void vader_virtual_thread_start_scheduler(void);
 /* A thread that runs `entry` from the first switch to it; its handle. */
-static int64_t vader_vt_create(vader_fn_t* entry);
+static int64_t vader_virtual_thread_create(vader_fn_t* entry);
 /* Leave the running thread for the live thread `to`. */
-static void vader_vt_switch(int64_t to);
+static void vader_virtual_thread_switch(int64_t to);
 /* Leave the running thread for the scheduler's. */
-static void vader_vt_switch_to_scheduler(void);
+static void vader_virtual_thread_switch_to_scheduler(void);
 /* End the running thread, from as deep in its stack as it is: never returns. */
-static void vader_vt_end(void);
+static void vader_virtual_thread_end(void);
 /* The running thread's handle, and the main thread's. */
-static int64_t vader_vt_current(void);
-static int64_t vader_vt_main(void);
+static int64_t vader_virtual_thread_current(void);
+static int64_t vader_virtual_thread_main(void);
 /* Whether `handle` names a thread that has not ended. */
-static int vader_vt_is_live(int64_t handle);
+static int vader_virtual_thread_is_live(int64_t handle);
 /* The index of a handle's thread: from 0, dense, reused once it ends. */
-static uint32_t vader_vt_index(int64_t handle);
+static uint32_t vader_virtual_thread_index(int64_t handle);
 /* How many threads have not ended, the main thread and the scheduler's aside. */
-static size_t vader_vt_threads(void);
+static size_t vader_virtual_thread_count(void);
 /* Call `fn` with each thread that has not ended, the scheduler's aside. */
-static void vader_vt_each_live(void (*fn)(int64_t handle));
+static void vader_virtual_thread_each_live(void (*fn)(int64_t handle));
 /* Give back to the OS the stacks kept past the warm ones. */
-static void vader_vt_give_back_cold(void);
+static void vader_virtual_thread_give_back_cold(void);
 
-/* ---- sched.c ------------------------------------------------------------- */
+/* ---- scheduler.c --------------------------------------------------------- */
 
 /* The scheduler's thread: runs the ready threads, never returns. */
-static void vader_sched_loop(void);
+static void vader_scheduler_loop(void);
 /* On an ending thread's stack, once it has run its last defer. */
-static void vader_sched_ending(void);
+static void vader_scheduler_ending(void);
 
 /* What a thread waits for the OS to report: a descriptor that reads without
  * blocking or has reached its end, a child process that has ended. */
 enum { VADER_WATCH_READABLE = 0, VADER_WATCH_EXIT = 1 };
 /* The OS reports `id`, watched as `kind`: wake the threads that wait for it. */
-static void vader_sched_on_event(int kind, int64_t id);
+static void vader_scheduler_on_event(int kind, int64_t id);
 
 /* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
@@ -256,7 +256,7 @@ static size_t vader_os_physical_ram(void);
 static int64_t vader_os_monotonic_ns(void);
 /* Block the process's thread for at least `ns` nanoseconds. */
 static void vader_os_sleep_ns(int64_t ns);
-/* Have the OS report once, through `vader_sched_on_event`, that `id` is as
+/* Have the OS report once, through `vader_scheduler_on_event`, that `id` is as
  * `kind` waits for: the descriptor reads without blocking or has reached its
  * end, the child process has ended. 0 when it will not watch `id`. */
 static int vader_os_watch(int kind, int64_t id);
