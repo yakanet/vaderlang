@@ -1,0 +1,25 @@
+// A `CLibrary` that lists two headers: each `@extern` naming it gets both
+// included, and the compiler writes no prototype of its own. `toupper` is
+// declared by `<ctype.h>` only, `imaxabs` by `<inttypes.h>` only, so a header
+// left out fails the native build on an undeclared function.
+
+module "snippet"
+
+import "std/console"
+import "std/ffi"
+
+CRT :: CLibrary {
+    .name = "",
+    .headers = ["<ctype.h>", "<inttypes.h>"],
+}
+
+@extern(CRT, "toupper")
+upper :: fn(c: i32) -> i32
+
+@extern(CRT, "imaxabs")
+absolute :: fn(x: i64) -> i64
+
+main :: fn() -> i32 {
+    println("${upper('a')} ${absolute(-5)}")
+    return 0
+}

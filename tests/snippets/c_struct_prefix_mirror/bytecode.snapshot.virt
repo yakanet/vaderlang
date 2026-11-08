@@ -16,10 +16,10 @@ string 1 "epoch="
 string 2 "true"
 string 3 "false"
 string 4 "\n"
-import 0 extern gettimeofday snippet$sys_gettimeofday header=<sys/time.h> result_type=1 param_types=3,4 param_c_out=1,0 param_by_address=1,0 (ref,any) -> i32
+import 0 extern gettimeofday snippet$sys_gettimeofday headers=<sys/time.h> result_type=1 param_types=3,4 param_c_out=1,0 param_by_address=1,0 (ref,any) -> i32
 import 1 byte_len std_core$byte_len result_type=6 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 2 bytes std_core$bytes result_type=10 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=1,10,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,10,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 7 std_core$ByteAccess
 export main 0
 

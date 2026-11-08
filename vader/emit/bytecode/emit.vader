@@ -106,7 +106,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .mangled_name = ext.mangled,
         .signature = signature,
         .is_extern = ext.is_extern,
-        .c_header = ext.c_header,
+        .c_headers = ext.c_headers,
         .library = ext.library,
         .c_variadic_fixed = ext.c_variadic_fixed,
         .param_c_types = param_c_types_of(ext.origin),
@@ -188,7 +188,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
 ///
 /// Read from the AST decl rather than a symbol table: `MonoEntry` already
 /// carries the declaration a lowered struct came from, which is the same route
-/// `header_of` takes for `@c_header`.
+/// `headers_of` takes for `@c_header`.
 ///
 /// @param origin  the lowered struct's monomorphisation entry.
 /// @return        the C type spelling, or `""` for an ordinary Vader struct.

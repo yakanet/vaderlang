@@ -184,9 +184,9 @@ export BcImport :: struct {
     mangled_name: string
     signature: BcSignature
     is_extern: bool
-    /// Header to `#include` instead of synthesising a prototype, or `""`.
-    /// See `extern_header` (`toolchain/ast`).
-    c_header: string = ""
+    /// Headers to `#include` instead of synthesising a prototype, empty for
+    /// none. See `extern_headers` (`toolchain/ast`).
+    c_headers: string[] = []
     /// The `CLibrary` the declaration names, as evaluated for the build target
     /// (`include` and `archives` resolved) ; null for none. What a native build
     /// adds to the compilation and the link for it (`native_flags`), and what

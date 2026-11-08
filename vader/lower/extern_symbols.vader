@@ -4,7 +4,7 @@
 // The backend emits one prototype per C symbol (`emit_import_shims`), so two
 // declarations of one symbol share it. When no header owns that prototype, it is
 // synthesised from one declaration's Vader signature, and a call through the
-// other declares the wrong types. A header owns it (`@c_header`, or the `header`
+// other declares the wrong types. A header owns it (`@c_header`, or the `headers`
 // of the `CLibrary` the declaration names), and `cc` checks each call against
 // it: two declarations that both name one may differ, as `stat` does with the
 // mirror each system fills.
@@ -37,8 +37,7 @@ check_extern_symbols :: fn(
             if prior.id == decl.id {
                 continue
             }
-            if extern_header(prior, libraries[prior.id]) != ""
-                && extern_header(decl, libraries[decl.id]) != "" {
+            if owns_prototype(prior, libraries) && owns_prototype(decl, libraries) {
                 continue
             }
             detail :: "`${symbol}` is already declared on `${prior.name}`"
@@ -46,3 +45,7 @@ check_extern_symbols :: fn(
         }
     }
 }
+
+// Whether a header owns the prototype of `decl` (`extern_headers`).
+owns_prototype :: fn(decl: FnDecl, libraries: Map<i64, CLibrary>) =
+    extern_headers(decl, libraries[decl.id]).len() > 0

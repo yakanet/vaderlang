@@ -303,7 +303,7 @@ make_extern_decl :: fn(
         .origin      = d.origin,
         .extern_name = meta.extern_name,
         .is_extern   = meta.is_extern,
-        .c_header    = header_of(d, library),
+        .c_headers   = headers_of(d, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
         .library     = library,
     }
@@ -321,13 +321,13 @@ library_of :: fn(
     return null
 }
 
-// The header that owns the prototype of `d` (`extern_header`), or `""`.
-header_of :: fn(d: LoweredFnDecl, library: CLibrary | null) -> string {
+// The headers that own the prototype of `d` (`extern_headers`).
+headers_of :: fn(d: LoweredFnDecl, library: CLibrary | null) -> string[] {
     decl :: d.origin.decl
     if decl is FnDecl {
-        return extern_header(decl, library)
+        return extern_headers(decl, library)
     }
-    return ""
+    return []
 }
 
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.

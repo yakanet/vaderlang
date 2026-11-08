@@ -35,7 +35,7 @@ import 2 spawn_thread std_runtime_scheduler$spawn_thread result_type=5 param_typ
 import 3 park std_runtime_scheduler$park result_type=3 () -> void
 import 4 wake std_runtime_scheduler$wake result_type=3 param_types=5 param_c_out= param_by_address= (i64) -> void
 import 5 current_thread std_runtime_scheduler$current_thread result_type=5 () -> i64
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=6,13,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 6 extern write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,13,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 9 std_core$ByteAccess
 export main 4
 

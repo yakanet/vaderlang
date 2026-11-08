@@ -228,21 +228,24 @@ export c_header_of :: fn(decl: FnDecl) -> string {
     return sole_string_argument(d)
 }
 
-/// The header that owns the prototype of an `@extern` declaration: its own
-/// `@c_header`, else the `header` of the library it names. `""` when none does.
+/// The headers that own the prototype of an `@extern` declaration: its own
+/// `@c_header`, else the `headers` of the library it names. Empty when none does.
 ///
-/// The backend INCLUDES that header instead of synthesising a prototype: the
-/// header already has the real one, and a synthesised one that differs is a
+/// The backend INCLUDES those headers instead of synthesising a prototype: one
+/// of them already has the real one, and a synthesised one that differs is a
 /// conflicting declaration the C compiler refuses outright.
 ///
 /// @param decl     the bodyless function declaration.
 /// @param library  the `CLibrary` it names, as evaluated ; null for none.
-export extern_header :: fn(decl: FnDecl, library: CLibrary | null) -> string {
+export extern_headers :: fn(decl: FnDecl, library: CLibrary | null) -> string[] {
     own :: c_header_of(decl)
-    if own != "" || library == null {
-        return own
+    if own != "" {
+        return [own]
     }
-    return library.header
+    if library == null {
+        return []
+    }
+    return library.headers
 }
 
 /// The C type a struct declaration mirrors, or `""` when it carries no

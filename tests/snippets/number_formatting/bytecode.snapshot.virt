@@ -54,7 +54,7 @@ import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,3,3 param_c_
 import 3 is_ascii std_core$is_ascii result_type=10 param_types=2 param_c_out= param_by_address= (string) -> bool
 import 4 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_c_out= param_by_address= (ref) -> string
 import 5 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=3 param_types=1,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 6 extern write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$ByteAccess
 impl 23 std_core$Display
 export main 0

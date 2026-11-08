@@ -80,7 +80,7 @@ foreign_unit_of :: fn(imp: BcImport) -> string {
 
 // Whether `imp` is an `@extern` whose C prototype the compiler writes from its
 // Vader signature, no header owning one.
-synthesises_prototype :: fn(imp: BcImport) = imp.is_extern && imp.c_header == ""
+synthesises_prototype :: fn(imp: BcImport) = imp.is_extern && imp.c_headers.len() == 0
 
 /// The C unit `unit` names: the headers, layout assertions and shims of its
 /// imports, with no header of another unit in sight. A `CLibrary`'s unit has
@@ -156,8 +156,10 @@ emit_foreign_declarations :: fn(
                 // it is a CONFLICTING DECLARATION the C compiler refuses, which
                 // is what blocked `WriteFile` against `<windows.h>` and
                 // `clock_gettime` against `<time.h>`.
-                if !(imp.c_header in headers) {
-                    headers.push(imp.c_header)
+                for header in imp.c_headers {
+                    if !(header in headers) {
+                        headers.push(header)
+                    }
                 }
             }
         }
@@ -1340,15 +1342,15 @@ test_foreign_unit_of_an_intrinsic_is_the_imports_header :: fn() -> void {
 
 @test
 test_foreign_unit_of_an_extern_with_a_header_is_the_imports_header :: fn() -> void {
-    assert_eq(foreign_unit_of(BcImport { ...BARE_EXTERN, .c_header = "<spawn.h>" }), "")
+    assert_eq(foreign_unit_of(BcImport { ...BARE_EXTERN, .c_headers = ["<spawn.h>"] }), "")
 }
 
 @test
 test_foreign_unit_of_an_extern_of_the_process_is_the_imports_header :: fn() -> void {
     runtime :: BcImport {
         ...BARE_EXTERN,
-        .c_header = "vader.h",
-        .library = CLibrary { .name = "", .header = "vader.h" },
+        .c_headers = ["vader.h"],
+        .library = CLibrary { .name = "", .headers = ["vader.h"] },
     }
     assert_eq(foreign_unit_of(runtime), "")
 }
@@ -1362,8 +1364,8 @@ test_foreign_unit_of_a_headerless_extern_is_its_own_unit :: fn() -> void {
 test_foreign_unit_of_an_extern_of_a_library_is_the_library_unit :: fn() -> void {
     raylib :: BcImport {
         ...BARE_EXTERN,
-        .c_header = "raylib.h",
-        .library = CLibrary { .name = "raylib", .header = "raylib.h" },
+        .c_headers = ["raylib.h"],
+        .library = CLibrary { .name = "raylib", .headers = ["raylib.h"] },
     }
     assert_eq(foreign_unit_of(raylib), "_ffi_raylib")
 }

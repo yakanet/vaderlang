@@ -309,12 +309,12 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // instead of `kernel32`, so every `.virt` re-read failed on Windows
         // while the direct run worked.
         lib :: library_prefix(imp)
-        // The header, when one owns the prototype. Same reason as the library:
-        // without it a `.virt` re-read SYNTHESISES a prototype, which is the
+        // The headers, when they own the prototype. Same reason as the library:
+        // without them a `.virt` re-read SYNTHESISES a prototype, which is the
         // conflicting declaration `@c_header` exists to avoid. Written BEFORE
-        // the signature: `front/virt::parse_signature_bc` reads the return type to the end
-        // of the line, so a trailing field lands inside it.
-        header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
+        // the signature: `front/virt::parse_signature_bc` reads the return type
+        // to the end of the line, so a trailing field lands inside it.
+        headers :: headers_attribute(imp.c_headers)
         // The fixed-argument count of a VARIADIC callee. Read back without it, a
         // `@c_variadic` import calls through a non-variadic cast again: the
         // exact silent corruption the marker exists to stop.
@@ -364,7 +364,7 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // What a native build adds for the library (`native_flags`): a `.virt`
         // rebuilt into a binary links what the source build would have.
         li :: library_attributes(imp.library)
-        attributes :: "${va}${header}${rt}${pt}${pm}${pa}${ct}${rc}${li}"
+        attributes :: "${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${li}"
         sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")
@@ -407,8 +407,8 @@ library_prefix :: fn(imp: BcImport) -> string {
 }
 
 // The `library_*` attributes of an import whose declaration names a `CLibrary`,
-// `""` for none. Its name is the `<lib>:` prefix already, and its header is
-// `header=` when no `@c_header` of the declaration overrides it.
+// `""` for none. Its name is the `<lib>:` prefix already, and its headers are
+// `headers=` when no `@c_header` of the declaration overrides them.
 library_attributes :: fn(library: CLibrary | null) -> string {
     if library == null {
         return ""
@@ -424,6 +424,15 @@ library_attributes :: fn(library: CLibrary | null) -> string {
         sb.append("library_system=${path_tokens(library.system)} ")
     }
     return sb.to_string()
+}
+
+// The `headers=` attribute of an import whose prototype headers own, `""` for
+// none.
+headers_attribute :: fn(headers: string[]) -> string {
+    if headers.len() == 0 {
+        return ""
+    }
+    return "headers=${path_tokens(headers)} "
 }
 
 /// Render per-parameter flags as a comma-separated run of `0` / `1`.

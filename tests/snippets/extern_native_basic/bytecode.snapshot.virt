@@ -19,7 +19,7 @@ import 1 extern strlen snippet$c_strlen result_type=3 param_types=2 param_c_out=
 import 2 extern strnlen snippet$c_strnlen result_type=3 param_types=2,3 param_c_out= param_by_address= param_c_types=,size_t result_c_type=size_t (string,u64) -> u64
 import 3 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 4 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$ByteAccess
 export main 0
 

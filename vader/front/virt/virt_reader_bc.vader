@@ -614,7 +614,7 @@ parse_import_decl_bc :: fn(
     // Attributes written between the mangled name and the signature, in any
     // order and all optional. Read by scanning rather than by position, so a new
     // one does not shift the others.
-    c_header := ""
+    c_headers: string[] = []
     c_variadic_fixed: i32 = -1
     result_type: i32 = 0
     param_types: i32[]: []
@@ -628,8 +628,8 @@ parse_import_decl_bc :: fn(
         if library != null {
             read_library_attribute(library, attr)
         }
-        if attr.starts_with("header=") {
-            c_header = attr.trim_prefix("header=")
+        if attr.starts_with("headers=") {
+            c_headers = paths_from_tokens(attr.trim_prefix("headers="))
         }
         if attr.starts_with("variadic=") {
             parsed :: parse_int_in_base(attr.trim_prefix("variadic="), 10)
@@ -707,7 +707,7 @@ parse_import_decl_bc :: fn(
         .mangled_name = mangled,
         .signature    = final_sig,
         .is_extern    = is_extern,
-        .c_header     = c_header,
+        .c_headers    = c_headers,
         .c_variadic_fixed = c_variadic_fixed,
         // Positional like the flags : a list that does not cover every
         // parameter is not trusted.
@@ -1126,8 +1126,20 @@ import "std/testing"
 @test test_parse_virt_bc_roundtrips_struct_and_signature :: fn() -> void {
     // A minimal module exercising the metadata the VM reader drops: a struct
     // with typed fields, a fn with a typed signature + a declared local.
-    // Single-line `\n`-joined to dodge triple-quote / `$`-interpolation rules.
-    src :: "module demo\ntype 0 scalar i32\ntype 1 scalar void\ntype 2 struct Pair { lhs:0, rhs:0 }\nfn 0 add (i32,i32) -> i32\n  local acc i32\n  local.get 0\n  local.get 1\n  i32.add\n  return\nend\nexport main 0\n"
+    src :: """
+        module demo
+        type 0 scalar i32
+        type 1 scalar void
+        type 2 struct Pair { lhs:0, rhs:0 }
+        fn 0 add (i32,i32) -> i32
+          local acc i32
+          local.get 0
+          local.get 1
+          i32.add
+          return
+        end
+        export main 0
+        """
     m :: parse_virt_bc(src)
     if m is VirtParseError {
         assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
@@ -1168,8 +1180,12 @@ import "std/testing"
 
 @test
 test_parse_virt_bc_reads_a_shared_struct :: fn() -> void {
-    src :: "module demo\ntype 0 scalar i32\n"
-        + "type 1 struct Task shared { result:0 }\ntype 2 struct Pair { lhs:0 }\n"
+    src :: """
+        module demo
+        type 0 scalar i32
+        type 1 struct Task shared { result:0 }
+        type 2 struct Pair { lhs:0 }
+        """
     m :: parse_virt_bc(src)
     if m is VirtParseError {
         assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
@@ -1179,6 +1195,21 @@ test_parse_virt_bc_reads_a_shared_struct :: fn() -> void {
     pair :: m.types[2]
     assert(task is BcStruct && task.shared && task.name == "Task", "a struct tasks share")
     assert(pair is BcStruct && !pair.shared, "an ordinary struct")
+}
+
+@test
+test_parse_virt_bc_reads_every_header_of_an_import :: fn() -> void {
+    src :: """
+        module demo
+        type 0 scalar i32
+        import 0 extern getpid demo_getpid headers=<unistd.h>,my%20lib.h () -> i32
+        """
+    m :: parse_virt_bc(src)
+    if m is VirtParseError {
+        assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
+        return
+    }
+    assert_eq(m.imports[0].c_headers.join("|"), "<unistd.h>|my lib.h")
 }
 
 // The two silent-skip paths this reader used to have. Each dropped its line and

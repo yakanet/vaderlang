@@ -33,7 +33,7 @@ data 2 agg 1 struct 5 0
 data 3 agg 1 struct 6 0
 import 0 byte_len std_core$byte_len result_type=9 param_types=7 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=1,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 8 std_core$ByteAccess
 export main 3
 

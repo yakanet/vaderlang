@@ -295,7 +295,7 @@ binds its own way.
 `vader_host_<mangled>` (`vader/emit/c/host.vader`), reached by the import's
 `call.import`. It converts the values from the representations of
 [`RUNTIME.md`](RUNTIME.md) to what SPEC §13 *Allowed signature types* says crosses,
-and calls the foreign symbol, declared by the header that `@c_header` or the
+and calls the foreign symbol, declared by the headers that `@c_header` or the
 `CLibrary` names, else by an `extern` synthesised from the Vader signature. A
 `@c_struct` mirror is copied field by field, by name, into a real C struct, so `cc`
 takes every offset from the header.

@@ -58,16 +58,16 @@ import 2 byte_slice std_core$byte_slice result_type=4 param_types=4,5,5 param_c_
 import 3 is_ascii std_core$is_ascii result_type=9 param_types=4 param_c_out= param_by_address= (string) -> bool
 import 4 bytes_to_string std_core$bytes_to_string result_type=4 param_types=10 param_c_out= param_by_address= (ref) -> string
 import 5 bytes std_core$bytes result_type=10 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 6 extern getenv std_env$get_env header=<stdlib.h> result_type=11 param_types=4 param_c_out= param_by_address= (string) -> any
-import 7 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 8 extern :vader_last_errno system_posix$sys_last_errno header=vader.h result_type=1 () -> i32
-import 9 extern :vader_stream_size system_posix$sys_stream_size header=vader.h result_type=5 param_types=18 param_c_out= param_by_address= (pointer) -> i64
-import 10 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
-import 11 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=19 param_types=4,4 param_c_out= param_by_address= (string,string) -> any
-import 12 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
-import 13 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=10,5,5,18 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
-import 14 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=10,5,5,18 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
-import 15 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=4 param_c_out= param_by_address= (string) -> i32
+import 6 extern getenv std_env$get_env headers=<stdlib.h> result_type=11 param_types=4 param_c_out= param_by_address= (string) -> any
+import 7 extern write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,10,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 9 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=5 param_types=18 param_c_out= param_by_address= (pointer) -> i64
+import 10 extern ferror system_posix$sys_ferror headers=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 11 extern fopen system_posix$sys_fopen headers=<stdio.h> result_type=19 param_types=4,4 param_c_out= param_by_address= (string,string) -> any
+import 12 extern fclose system_posix$sys_fclose headers=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 13 extern fread system_posix$sys_fread headers=<stdio.h> result_type=5 param_types=10,5,5,18 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+import 14 extern fwrite system_posix$sys_fwrite headers=<stdio.h> result_type=5 param_types=10,5,5,18 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
+import 15 extern unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=4 param_c_out= param_by_address= (string) -> i32
 impl 6 std_core$ByteAccess
 impl 13 std_core$Error
 export main 0

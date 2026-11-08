@@ -3414,7 +3414,7 @@ import "std/target"
 
 export RAYLIB: CLibrary: CLibrary {
     .name     = "raylib",
-    .header   = "raylib.h",
+    .headers  = ["raylib.h"],
     .include  = "include",
     .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libraylib.a"],
     .system   = match VADER_OS {
@@ -3439,12 +3439,12 @@ A `CLibrary` (`std/ffi`) names a C library once; each `@extern` from it names th
 Anything else is an error, reported where the evaluation stopped. The fields:
 
 - `name`: the library `vader run` opens (`lib<name>.dylib` on macOS, `lib<name>.so` on Linux, `<name>.dll` on Windows, the running process when empty), unless `archives` is set, whose functions go through adapters (*VM behaviour*). A native build links only `archives` and `system`.
-- `header`: the header declaring the library's functions, written as the argument of `@c_header`. It serves each `@extern` of the library without a `@c_header` of its own.
+- `headers`: the headers declaring the library's functions, each written as the argument of `@c_header`. They serve each `@extern` of the library without a `@c_header` of its own.
 - `include`: a header folder searched by every compilation, relative to the declaring module. A quoted header (`"raylib.h"`) is found there.
 - `archives`: static archives shipped with the binding, relative to the declaring module. A missing one stops the build before the C compiler runs, naming the path.
 - `system`: platform libraries by name (`"GL"` links `-lGL`) and Apple frameworks by bundle name (`"Cocoa.framework"` links `-framework Cocoa`).
 
-A native build adds a library's flags only when the program reaches one of its functions, and compiles each library's calls with its own header alone, so headers declaring the same names (`Rectangle` in `raylib.h` and `<windows.h>`) bind in one program.
+A native build adds a library's flags only when the program reaches one of its functions, and compiles each library's calls with its own headers alone, so headers declaring the same names (`Rectangle` in `raylib.h` and `<windows.h>`) bind in one program.
 
 ### `@c_pointer`: a parameter crossing as an address
 
@@ -3498,7 +3498,7 @@ The argument is written as in a C `#include`:
 
 ### `@c_variadic`: a variadic C function
 
-A variadic C function (`fcntl`, `ioctl`) is declared once per argument list the program calls it with, each declaration taking its prototype from a header (`@c_header` or its library's `header`) to share one symbol (*`@extern`*). `@c_variadic(N)` gives the number of fixed parameters, those before the `...` of the C prototype:
+A variadic C function (`fcntl`, `ioctl`) is declared once per argument list the program calls it with, each declaration taking its prototype from a header (`@c_header` or its library's `headers`) to share one symbol (*`@extern`*). `@c_variadic(N)` gives the number of fixed parameters, those before the `...` of the C prototype:
 
 ```vader
 @c_header("<fcntl.h>")

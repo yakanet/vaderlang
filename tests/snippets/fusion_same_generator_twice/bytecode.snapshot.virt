@@ -67,7 +67,7 @@ data 0 structs 7 0 1
 import 0 byte_len std_core$byte_len result_type=13 param_types=11 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=16 param_types=11,13 param_c_out= param_by_address= (string,i64) -> u8
 import 2 bytes std_core$bytes result_type=18 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,18,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=1,18,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 5 std_core$Iterator
 impl 8 std_core$Iterator
 impl 10 std_core$Iterator
