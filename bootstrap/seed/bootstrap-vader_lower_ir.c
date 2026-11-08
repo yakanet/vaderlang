@@ -58,17 +58,17 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2839u;
+        l1 = 2840u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 2479u;
+        l1 = 2480u;
     } else if (l0 == INT32_C(3)) {
         l1 = 1934u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 2470u;
+        l1 = 2471u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 2678u;
+        l1 = 2679u;
     } else if (l0 == INT32_C(6)) {
-        l1 = 2682u;
+        l1 = 2683u;
     } else if (l0 == INT32_C(7)) {
         l1 = 1706u;
     } else if (l0 == INT32_C(8)) {
@@ -78,15 +78,15 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
     } else if (l0 == INT32_C(10)) {
         l1 = 1630u;
     } else if (l0 == INT32_C(11)) {
-        l1 = 2561u;
+        l1 = 2562u;
     } else if (l0 == INT32_C(12)) {
         l1 = 1996u;
     } else if (l0 == INT32_C(13)) {
-        l1 = 2493u;
+        l1 = 2494u;
     } else if (l0 == INT32_C(14)) {
-        l1 = 2413u;
-    } else if (l0 == INT32_C(15)) {
         l1 = 2414u;
+    } else if (l0 == INT32_C(15)) {
+        l1 = 2415u;
     } else if (l0 == INT32_C(16)) {
         l1 = 2169u;
     } else if (l0 == INT32_C(17)) {
@@ -94,12 +94,12 @@ vader_string_t vader_lower_ir$binary_op_name(uint8_t l0) {
     } else if (l0 == INT32_C(18)) {
         l1 = 1597u;
     } else if (l0 == INT32_C(19)) {
-        l1 = 2840u;
+        l1 = 2841u;
     } else {
         if (!(l0 == INT32_C(20))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 2480u;
+        l1 = 2481u;
     }
     return l1;
 }
@@ -142,13 +142,13 @@ vader_string_t vader_lower_ir$binary_op_symbol(uint8_t l0) {
         } else if (l0 == INT32_C(7)) {
             l1 = 305u;
         } else if (l0 == INT32_C(8)) {
-            l1 = 3263u;
+            l1 = 3264u;
         } else if (l0 == INT32_C(9)) {
             l1 = 1031u;
         } else if (l0 == INT32_C(10)) {
             l1 = 306u;
         } else if (l0 == INT32_C(11)) {
-            l1 = 3264u;
+            l1 = 3265u;
         } else if (l0 == INT32_C(12)) {
             l1 = 560u;
         } else if (l0 == INT32_C(13)) {

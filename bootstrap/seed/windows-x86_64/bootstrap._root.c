@@ -47,18 +47,17 @@ void __defer_vader_vm_21(void* l0) {
 
 void __defer_vader_vm_23(void* l0) {
     void* l1 = NULL;
+    void* l2 = NULL;
     void* l3 = NULL;
-    vader_box_t l2 = vader_box_null();
     bool l4;
-    vader_box_t* gc_roots[1] = { &l2 };
-    void** gc_raw_roots[3] = { &l0, &l1, &l3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
+    void** gc_raw_roots[4] = { &l0, &l1, &l2, &l3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_0;
-    l2 = ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_1;
-    l3 = ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_2;
-    l4 = ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_3;
-    vader_vm$unwind_guest(l1, l2, l3, l4);
+    l2 = ((vader_struct_vader_vm$VmState_t*) ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_0)->f_reg;
+    l3 = ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_1;
+    l4 = ((vader_struct___defer_env_vader_vm_24_t*) l0)->f_cap_2;
+    vader_vm$unwind(l1, l2, l3, l4);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1608,13 +1607,13 @@ vader_string_t __lambda_vader_front_parser_2(void* l0, vader_string_t l1) {
 
 vader_string_t __lambda_vader_front_parser_4(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(2484u, l0, 70u);
+    t0 = concat_3(2485u, l0, 70u);
     return t0;
 }
 
 vader_string_t __lambda_vader_front_parser_5(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(2485u, l0, 70u);
+    t0 = concat_3(2486u, l0, 70u);
     return t0;
 }
 
@@ -1972,7 +1971,7 @@ uint8_t __lambda_vader_front_typecheck_40(void* l0, vader_box_t l1) {
         l4 = vader_front_typecheck$recorded_decl(l2, l3);
         if (!(l4.tag == 0u)) {
             t0 = l4.payload.obj;
-            t1 = toolchain_ast$decorators_have(((vader_struct_toolchain_ast$FnDecl_t*) t0)->f_decorators, 2684u);
+            t1 = toolchain_ast$decorators_have(((vader_struct_toolchain_ast$FnDecl_t*) t0)->f_decorators, 2685u);
             if (t1) {
                 l5 = ((vader_struct_toolchain_ast$ConstDecl_t*) ((vader_struct___lambda_env_vader_front_typecheck_41_t*) l0)->f_cap_1)->f_name;
                 t0 = l4.payload.obj;
@@ -2406,7 +2405,7 @@ vader_string_t __lambda_vader_lower_6(void* l0) {
     vader_gc_top = &gc_frame;
     l2 = (void*) vader_buffer_new((size_t) INT64_C(21));
     l3 = INT64_C(0);
-    l3 = std_core$write_string_at(l2, l3, 2660u);
+    l3 = std_core$write_string_at(l2, l3, 2661u);
     l4 = ((vader_array_t*) ((vader_struct_vader_lower$GenBuild_t*) ((vader_struct___lambda_env_vader_lower_7_t*) l0)->f_cap_0)->f_fields)->length;
     l3 = std_core$write_int(l2, l3, l4);
     l1 = std_core$finish_buffer(l2, l3);
@@ -2516,7 +2515,7 @@ void __lambda_vader_lower_dce_5(void* l0, vader_string_t l1, vader_string_t l2) 
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = concat_3(l1, 3263u, l2);
+    l3 = concat_3(l1, 3264u, l2);
     t0 = std_collections$add__string(((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_0, l3);
     if (t0) {
         vader_array_push_scalar((vader_array_t*) ((vader_struct___lambda_env_vader_lower_dce_6_t*) l0)->f_cap_1, vader_box_string(494u, l3));
@@ -3281,7 +3280,7 @@ vader_string_t __lambda_vader_vm_5(int64_t l0) {
     vader_gc_top = &gc_frame;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l2 = INT64_C(0);
-    l2 = std_core$write_string_at(l1, l2, 2859u);
+    l2 = std_core$write_string_at(l1, l2, 2860u);
     l2 = std_core$write_int(l1, l2, l0);
     t0 = std_core$finish_buffer(l1, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }

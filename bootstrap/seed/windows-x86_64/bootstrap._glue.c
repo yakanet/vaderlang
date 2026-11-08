@@ -1290,5 +1290,5 @@ int main(int argc, char** argv) {
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     void* __args = (void*) vader_runtime_argv(argc, argv, 26u, 494u);
-    return vader_sched_exit((int) vader_bootstrap$main(__args));
+    return vader_scheduler_exit((int) vader_bootstrap$main(__args));
 }

@@ -50,11 +50,11 @@ static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
 }
 
 static inline void vader_host_std_runtime_wait$wait_readable(int64_t a0) {
-    vader_sched_wait_readable(a0);
+    vader_scheduler_wait_readable(a0);
 }
 
 static inline bool vader_host_std_runtime_wait$wait_readable_for(int64_t a0, int64_t a1) {
-    return vader_sched_wait_readable_for(a0, a1);
+    return vader_scheduler_wait_readable_for(a0, a1);
 }
 
 static inline uint8_t vader_host_std_target$current_os(void) {
@@ -261,39 +261,43 @@ static inline void vader_host_std_runtime$count_allocations(void) {
 }
 
 static inline int64_t vader_host_std_runtime_scheduler$spawn_thread(void* a0) {
-    return vader_sched_spawn(a0);
+    return vader_scheduler_spawn(a0);
 }
 
 static inline void vader_host_std_runtime_scheduler$park(void) {
-    vader_sched_park();
+    vader_scheduler_park();
 }
 
 static inline void vader_host_std_runtime_scheduler$wake(int64_t a0) {
-    vader_sched_wake(a0);
+    vader_scheduler_wake(a0);
 }
 
 static inline void vader_host_std_runtime_scheduler$sleep_for(int64_t a0) {
-    vader_sched_sleep_for(a0);
+    vader_scheduler_sleep_for(a0);
 }
 
 static inline void vader_host_std_runtime_scheduler$cancel_thread(int64_t a0) {
-    vader_sched_cancel(a0);
+    vader_scheduler_cancel(a0);
 }
 
 static inline int64_t vader_host_std_runtime_scheduler$current_thread(void) {
-    return vader_sched_current();
+    return vader_scheduler_current();
 }
 
 static inline bool vader_host_std_runtime_scheduler$is_cancelled(void) {
-    return vader_sched_is_cancelled();
+    return vader_scheduler_is_cancelled();
+}
+
+static inline bool vader_host_std_runtime_scheduler$is_leaving(int64_t a0) {
+    return vader_scheduler_is_leaving(a0);
 }
 
 static inline void vader_host_std_runtime_scheduler$watch_readable(int64_t a0) {
-    vader_sched_watch_readable(a0);
+    vader_scheduler_watch_readable(a0);
 }
 
 static inline void vader_host_std_runtime_scheduler$watch_exit(int64_t a0) {
-    vader_sched_watch_exit(a0);
+    vader_scheduler_watch_exit(a0);
 }
 
 static inline int64_t vader_host_vader_vm$ffi_open(vader_string_t a0) {

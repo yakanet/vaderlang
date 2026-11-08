@@ -19193,7 +19193,7 @@ static vader_box_t std_collections$remove_first__vader_core_symbol_Symbol(void* 
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_std_collections$Queue__Any_t*) l0)->f_size;
     if (t0 == INT64_C(0)) {
-        vader_host_std_abort$panic(2638u);
+        vader_host_std_abort$panic(2639u);
         vader_unreachable("a no-return call returned");
     } else {
         l1 = ((vader_struct_std_collections$Queue__Any_t*) l0)->f_items;

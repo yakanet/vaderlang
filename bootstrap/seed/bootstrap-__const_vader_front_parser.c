@@ -67,7 +67,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l3 = (void*) _a6_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a7_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a7_obj, 1345u);
-    _a7_obj->f_name = 2862u;
+    _a7_obj->f_name = 2863u;
     _a7_obj->f_usage = 605u;
     _a7_obj->f_places = l3;
     _a7_obj->f_doc = 749u;
@@ -107,7 +107,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l7 = (void*) _a14_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a15_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a15_obj, 1345u);
-    _a15_obj->f_name = 2518u;
+    _a15_obj->f_name = 2519u;
     _a15_obj->f_usage = 598u;
     _a15_obj->f_places = l7;
     _a15_obj->f_doc = 751u;
@@ -127,7 +127,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l9 = (void*) _a18_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a19_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a19_obj, 1345u);
-    _a19_obj->f_name = 2856u;
+    _a19_obj->f_name = 2857u;
     _a19_obj->f_usage = 604u;
     _a19_obj->f_places = l9;
     _a19_obj->f_doc = 832u;
@@ -208,7 +208,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l17 = (void*) _a34_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a35_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a35_obj, 1345u);
-    _a35_obj->f_name = 2684u;
+    _a35_obj->f_name = 2685u;
     _a35_obj->f_usage = 602u;
     _a35_obj->f_places = l17;
     _a35_obj->f_doc = 830u;
@@ -218,7 +218,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l18 = (void*) _a36_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a37_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a37_obj, 1345u);
-    _a37_obj->f_name = 2656u;
+    _a37_obj->f_name = 2657u;
     _a37_obj->f_usage = 600u;
     _a37_obj->f_places = l18;
     _a37_obj->f_doc = 669u;
@@ -238,7 +238,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l20 = (void*) _a40_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a41_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a41_obj, 1345u);
-    _a41_obj->f_name = 2581u;
+    _a41_obj->f_name = 2582u;
     _a41_obj->f_usage = 599u;
     _a41_obj->f_places = l20;
     _a41_obj->f_doc = 763u;
@@ -248,7 +248,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l21 = (void*) _a42_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a43_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a43_obj, 1345u);
-    _a43_obj->f_name = 3003u;
+    _a43_obj->f_name = 3004u;
     _a43_obj->f_usage = 610u;
     _a43_obj->f_places = l21;
     _a43_obj->f_doc = 764u;
@@ -258,7 +258,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     l22 = (void*) _a44_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a45_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
     vader_obj_header_init(_a45_obj, 1345u);
-    _a45_obj->f_name = 2421u;
+    _a45_obj->f_name = 2422u;
     _a45_obj->f_usage = 595u;
     _a45_obj->f_places = l22;
     _a45_obj->f_doc = 762u;
@@ -328,7 +328,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l0 = (void*) _a0_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a1_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a1_obj, 1349u);
-    _a1_obj->f_name = 2686u;
+    _a1_obj->f_name = 2687u;
     _a1_obj->f_args = l0;
     _a1_obj->f_result = 2203u;
     _a1_obj->f_signature = 603u;
@@ -350,9 +350,9 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l2 = (void*) _a4_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a5_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a5_obj, 1349u);
-    _a5_obj->f_name = 2939u;
+    _a5_obj->f_name = 2940u;
     _a5_obj->f_args = l2;
-    _a5_obj->f_result = 2805u;
+    _a5_obj->f_result = 2806u;
     _a5_obj->f_signature = 608u;
     _a5_obj->f_doc = 790u;
     l2 = (void*) _a5_obj;
@@ -361,9 +361,9 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l3 = (void*) _a6_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a7_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a7_obj, 1349u);
-    _a7_obj->f_name = 2937u;
+    _a7_obj->f_name = 2938u;
     _a7_obj->f_args = l3;
-    _a7_obj->f_result = 2805u;
+    _a7_obj->f_result = 2806u;
     _a7_obj->f_signature = 607u;
     _a7_obj->f_doc = 964u;
     l3 = (void*) _a7_obj;
@@ -383,7 +383,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l5 = (void*) _a10_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a11_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a11_obj, 1349u);
-    _a11_obj->f_name = 3194u;
+    _a11_obj->f_name = 3195u;
     _a11_obj->f_args = l5;
     _a11_obj->f_result = 2203u;
     _a11_obj->f_signature = 612u;
@@ -407,7 +407,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l7 = (void*) _a14_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a15_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a15_obj, 1349u);
-    _a15_obj->f_name = 2663u;
+    _a15_obj->f_name = 2664u;
     _a15_obj->f_args = l7;
     _a15_obj->f_result = 1712u;
     _a15_obj->f_signature = 601u;
@@ -418,9 +418,9 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l8 = (void*) _a16_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a17_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a17_obj, 1349u);
-    _a17_obj->f_name = 2460u;
+    _a17_obj->f_name = 2461u;
     _a17_obj->f_args = l8;
-    _a17_obj->f_result = 2669u;
+    _a17_obj->f_result = 2670u;
     _a17_obj->f_signature = 597u;
     _a17_obj->f_doc = 963u;
     l8 = (void*) _a17_obj;
@@ -429,9 +429,9 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l9 = (void*) _a18_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a19_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a19_obj, 1349u);
-    _a19_obj->f_name = 2434u;
+    _a19_obj->f_name = 2435u;
     _a19_obj->f_args = l9;
-    _a19_obj->f_result = 2669u;
+    _a19_obj->f_result = 2670u;
     _a19_obj->f_signature = 596u;
     _a19_obj->f_doc = 962u;
     l9 = (void*) _a19_obj;
@@ -440,9 +440,9 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l10 = (void*) _a20_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a21_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a21_obj, 1349u);
-    _a21_obj->f_name = 2941u;
+    _a21_obj->f_name = 2942u;
     _a21_obj->f_args = l10;
-    _a21_obj->f_result = 2922u;
+    _a21_obj->f_result = 2923u;
     _a21_obj->f_signature = 609u;
     _a21_obj->f_doc = 965u;
     l10 = (void*) _a21_obj;
@@ -462,9 +462,9 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     l12 = (void*) _a24_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a25_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
     vader_obj_header_init(_a25_obj, 1349u);
-    _a25_obj->f_name = 2932u;
+    _a25_obj->f_name = 2933u;
     _a25_obj->f_args = l12;
-    _a25_obj->f_result = 2933u;
+    _a25_obj->f_result = 2934u;
     _a25_obj->f_signature = 606u;
     _a25_obj->f_doc = 966u;
     l12 = (void*) _a25_obj;

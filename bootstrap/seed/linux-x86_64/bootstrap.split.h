@@ -1302,9 +1302,8 @@ struct vader_struct___defer_env_vader_vm_22_t {
 struct vader_struct___defer_env_vader_vm_24_t {
     vader_obj_header_t header;
     void* f_cap_0;
-    vader_box_t f_cap_1;
-    void* f_cap_2;
-    bool f_cap_3;
+    void* f_cap_1;
+    bool f_cap_2;
 };
 struct vader_struct___lambda_env_vader_core_types_1_t {
     vader_obj_header_t header;
@@ -8868,10 +8867,6 @@ struct vader_struct_vader_vm$FusedBranch_t {
 struct vader_struct_vader_vm$GuestThread_t {
     vader_obj_header_t header;
     int64_t f_number;
-    int64_t f_launcher;
-    bool f_outlives;
-    bool f_cancelled;
-    bool f_unwinding;
     vader_box_t f_machine;
 };
 struct vader_struct_vader_vm$GuestThreads_t {
@@ -10128,6 +10123,7 @@ vader_box_t vader_vm$element_at(void* l0, int64_t l1);
 vader_box_t vader_vm$global_zero(uint8_t l0);
 uint8_t vader_vm$field_valtype(void* l0, int32_t l1);
 bool __lambda_vader_vm_6(void* l0, int64_t l1, int64_t l2);
+void vader_vm$unwind(void* l0, void* l1, void* l2, bool l3);
 void vader_vm$guest_threads$keep(void);
 int64_t vader_vm$number_of(void* l0, int64_t l1);
 vader_box_t __lambda_vader_vm_8(void);
@@ -10145,7 +10141,6 @@ void vader_vm$run_guest_thread(void* l0, void* l1, bool l2, vader_box_t l3);
 void __defer_vader_vm_21(void* l0);
 void __defer_vader_vm_23(void* l0);
 void vader_vm$forget(void* l0, int64_t l1);
-void vader_vm$unwind_guest(void* l0, vader_box_t l1, void* l2, bool l3);
 uint64_t vader_vm$Scalar$std_core$Hash$hash(void* l0);
 bool vader_vm$Scalar$std_core$Equals$equals(void* l0, void* l1);
 bool vader_vm$Scalar$std_core$Equals$equals$guard(void* l0, vader_box_t l1);
@@ -10579,7 +10574,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3272u
+#define VADER_COMPTIME_ATOM_COUNT 3273u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

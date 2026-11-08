@@ -48,7 +48,7 @@ void* vader_midir_pipeline$build_optimised_cfg(void* l0, void* l1, void* l2) {
     vader_midir_pipeline$measure_begin(l1, (uint8_t) 11);
     l3 = vader_midir_ranges$mark_proven_accesses(l3);
     vader_midir_pipeline$measure_end(l1, (uint8_t) 11);
-    vader_midir_pipeline$verify_after(l1, l3, 2425u, l2);
+    vader_midir_pipeline$verify_after(l1, l3, 2426u, l2);
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -89,9 +89,9 @@ static void* vader_midir_pipeline$through_value_returns(void* l0, void* l1, void
         vader_midir_pipeline$measure_begin(l0, (uint8_t) 10);
         l3 = vader_midir_value__return$scalarise_value_returns(l1);
         vader_midir_pipeline$measure_end(l0, (uint8_t) 10);
-        vader_midir_pipeline$verify_after(l0, l3, 2665u, l2);
+        vader_midir_pipeline$verify_after(l0, l3, 2666u, l2);
         l3 = vader_midir_value__return$struct_field_forward_project(l3);
-        vader_midir_pipeline$verify_after(l0, l3, 2837u, l2);
+        vader_midir_pipeline$verify_after(l0, l3, 2838u, l2);
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
