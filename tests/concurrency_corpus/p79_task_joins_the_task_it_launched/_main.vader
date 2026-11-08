@@ -1,0 +1,25 @@
+// P79: a task launches a task and joins it, then main joins the first and reads
+// what the second wrote.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Count :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    count :: Count {}
+    outer :: launch(fn() {
+        inner :: launch(fn() {
+            count.n += 1
+        })
+        inner.join()
+    })
+    outer.join()
+    return count.n
+}

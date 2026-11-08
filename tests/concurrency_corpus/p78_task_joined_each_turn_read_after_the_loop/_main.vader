@@ -1,0 +1,24 @@
+// P78: each turn launches a task and joins it, then the code after the loop
+// reads what the tasks wrote.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Count :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    count :: Count {}
+    for _ in 0..<3 {
+        t :: launch(fn() {
+            count.n += 1
+        })
+        t.join()
+    }
+    return count.n
+}

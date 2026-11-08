@@ -53,8 +53,8 @@ shape_of :: fn(decl: AST.FnDecl) -> BodyShape {
 
 /// Where the code that crossed a door runs beside the task it opened.
 Region :: struct {
-    /// The innermost loop or lambda around the door, when no join ends the task
-    /// inside it: each crossing opens another task while this one runs.
+    /// The innermost loop or lambda around the door that no join ends the task
+    /// inside: each crossing opens another task while this one runs.
     repeats: Span | null = null
     /// The outermost one, on the same condition: the part of it before the door
     /// runs again while the task does.
@@ -70,6 +70,20 @@ JoinPoint :: struct {
     /// block runs past it once the task ended.
     at: Span
     by_loop: bool = false
+    /// What may leave the block between the door and the join.
+    leaving: Leaving = .Escape
+}
+
+/// What may leave the block of a join between the door and the join.
+Leaving :: enum {
+    /// Nothing: the task has ended once the block is left, too.
+    Nothing,
+    /// A `break` of the innermost loop around the block: the task outlives the
+    /// loop, but the loop does not cross the door again while the task runs.
+    LoopBreak,
+    /// A `return`, a `continue`, a `break` that names its loop, or a door outside
+    /// the block.
+    Escape,
 }
 
 // Where the code that crossed `door` runs beside its task.
@@ -90,23 +104,52 @@ region_of :: fn(body: TaskBody, door: Door) -> Region {
         }
     }
     region :: Region { .joins = joins }
-    if inner != null && !ended_inside(joins, at, inner) {
-        region.repeats = inner
+    if inner == null || outer == null {
+        return region
     }
-    if outer != null && !ended_inside(joins, at, outer) {
+    // A `break` ends the task inside the innermost loop alone: the loops around
+    // it cross the door again while the task runs.
+    for r in body.shape.repeats {
+        if !contains(r, at) || ended_inside(joins, r, same_span(r, inner)) {
+            continue
+        }
+        fresh :: region.repeats
+        if fresh == null || contains(fresh, r) {
+            region.repeats = r
+        }
+    }
+    if !ended_inside(joins, outer, same_span(outer, inner)) {
         region.wraps = outer
     }
     return region
 }
 
-// Whether a join of `joins` ends the task opened at `door` within `span`: in a
-// block around the door that `span` holds.
-ended_inside :: fn(joins: JoinPoint[], door: Span, span: Span) -> bool =
-    joins.any_match((j) -> contains(j.block, door) && contains(span, j.block))
+// Whether a join of `joins` ends its task before the code of `span` crosses the
+// door again, or leaves `span`: the join's block lies in `span` and nothing leaves
+// it before the join, but a `break` of `span` when it is the innermost loop around
+// the door.
+ended_inside :: fn(joins: JoinPoint[], span: Span, innermost: bool) -> bool =
+    joins.any_match((j) -> contains(span, j.block) && stays_until_joined(j, innermost))
+
+stays_until_joined :: fn(j: JoinPoint, innermost: bool) -> bool {
+    if j.leaving == .Nothing {
+        return true
+    }
+    return innermost && j.leaving == .LoopBreak
+}
+
+// Whether the task `j` joins has ended by offset `p`, past its door: later in the
+// join's block, or past that block when nothing leaves it before the join.
+ended_by :: fn(j: JoinPoint, p: i64) -> bool {
+    if holds_offset(j.block, p) {
+        return p >= j.at.end.offset
+    }
+    return j.leaving == .Nothing && p >= j.block.end.offset
+}
 
 // Whether the task `door` opens may still run when the body returns.
 ends_inside :: fn(body: TaskBody, door: Door, span: Span) -> bool =
-    ended_inside(body.join_points(door), door.site.at, span)
+    ended_inside(body.join_points(door), span, false)
 
 // Whether a touch of root `root` at offset `p` runs beside the task `door` opens.
 in_region :: fn(body: TaskBody, door: Door, region: Region, p: i64, root: i64) -> bool {
@@ -120,7 +163,7 @@ in_region :: fn(body: TaskBody, door: Door, region: Region, p: i64, root: i64) -
         return false
     }
     if p >= door.site.at.end.offset {
-        return !region.joins.any_match((j) -> holds_offset(j.block, p) && p >= j.at.end.offset)
+        return !region.joins.any_match((j) -> ended_by(j, p))
     }
     wraps :: region.wraps ?? return false
     if !holds_offset(wraps, p) {
@@ -283,26 +326,93 @@ join_points :: fn(body: TaskBody, door: Door) -> JoinPoint[] {
         }
         if waits.joins_array {
             if body.holds_door_task(door, site, q, source) {
-                out.push(JoinPoint { .block = block.span, .at = site.at })
+                out.push(join_point(block, door, site.at))
             }
             continue
         }
         if body.is_door_task(door, handle, source) {
-            out.push(JoinPoint { .block = block.span, .at = site.at })
+            out.push(join_point(block, door, site.at))
             continue
         }
         loop :: body.joining_loop(door, site, q, block) ?? continue
         around :: body.block_around(loop.span) ?? continue
         if around.stmts.any_match((s) -> same_span(s.span, loop.span)) {
-            joined :: JoinPoint {
-                .block = around.span,
-                .at = loop.span,
-                .by_loop = true,
-            }
-            out.push(joined)
+            out.push(JoinPoint { ...join_point(around, door, loop.span), .by_loop = true })
         }
     }
     return out
+}
+
+// The join at `at`, in `block`, of the task `door` opens.
+join_point :: fn(block: AST.BlockExpr, door: Door, at: Span) -> JoinPoint = JoinPoint {
+    .block = block.span,
+    .at = at,
+    .leaving = leaving_of(block, door.site.at, at),
+}
+
+// What may leave `block` between the door at `door` and the join at `at`.
+leaving_of :: fn(block: AST.BlockExpr, door: Span, at: Span) -> Leaving {
+    if !contains(block.span, door) {
+        return .Escape
+    }
+    breaks := false
+    loops := 0
+    visit :: fn(m: AST.Node) -> AST.Walk {
+        if m is AST.LambdaExpr {
+            return .Skip
+        }
+        if m is AST.ForStmt {
+            loops += 1
+        }
+        if escapes(m, loops) {
+            return .Stop
+        }
+        if m is AST.BreakStmt {
+            breaks = breaks || loops == 0
+        }
+        return .Descend
+    }
+    leave :: fn(m: AST.Node) -> void {
+        if m is AST.ForStmt {
+            loops -= 1
+        }
+    }
+    for s in block.stmts {
+        if overlaps(s.span, door, at) && AST.inspect(s, visit, leave) {
+            return .Escape
+        }
+    }
+    trailing :: block.trailing
+    if trailing != null && overlaps(trailing.span, door, at) {
+        if AST.inspect(trailing, visit, leave) {
+            return .Escape
+        }
+    }
+    if breaks {
+        return .LoopBreak
+    }
+    return .Nothing
+}
+
+// Whether `span` overlaps the code from the start of `door` to the end of `at`.
+overlaps :: fn(span: Span, door: Span, at: Span) -> bool =
+    span.end.offset > door.start.offset && span.start.offset < at.end.offset
+
+// Whether `m`, under `loops` loops of the code walked, may leave that code for a
+// place the task outlives it in or crosses the door again from: a `return`, a
+// `continue` of a loop around the code, or a `break` or `continue` that names
+// its loop.
+escapes :: fn(m: AST.Node, loops: i32) -> bool {
+    if m is AST.ReturnStmt {
+        return true
+    }
+    if m is AST.BreakStmt {
+        return m.label != null
+    }
+    if m is AST.ContinueStmt {
+        return m.label != null || loops == 0
+    }
+    return false
 }
 
 // The loop whose body is `block`, when it joins each element of what holds the

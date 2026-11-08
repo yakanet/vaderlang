@@ -1,0 +1,32 @@
+// P83: a function returns between a launch and its join, so the task outlives
+// the call, and its caller reads beside it.
+//
+// corpus: probe
+// expect: T3128
+
+module "snippet"
+
+import "std/env"
+import "std/task"
+
+Count :: struct {
+    n: i32 = 0
+}
+
+bump :: fn(count: Count) -> i32 {
+    if count.n == 0 {
+        t :: launch(fn() {
+            count.n += 1
+        })
+        home :: get_env("HOME") ?? return 1
+        t.join()
+        return i32(home.byte_len())
+    }
+    return 0
+}
+
+main :: fn() -> i32 {
+    count :: Count {}
+    bump(count)
+    return count.n
+}

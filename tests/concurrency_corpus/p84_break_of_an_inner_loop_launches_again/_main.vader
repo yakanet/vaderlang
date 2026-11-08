@@ -1,0 +1,29 @@
+// P84: an inner loop breaks before it joins its task, and the next turn of the
+// outer loop launches another beside it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Count :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    count :: Count {}
+    for _ in 0..<2 {
+        for i in 0..<3 {
+            t :: launch(fn() {
+                count.n += 1
+            })
+            if i == 1 {
+                break
+            }
+            t.join()
+        }
+    }
+    return 0
+}

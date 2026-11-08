@@ -1,0 +1,27 @@
+// P82: a turn goes on to the next before it joins its task, whose write the
+// next turn's task makes again beside it.
+//
+// corpus: probe
+// expect: T3129
+
+module "snippet"
+
+import "std/task"
+
+Count :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    count :: Count {}
+    for i in 0..<3 {
+        t :: launch(fn() {
+            count.n += 1
+        })
+        if i == 1 {
+            continue
+        }
+        t.join()
+    }
+    return 0
+}

@@ -1,0 +1,1 @@
+[31:12] error[T3128] value written while a task uses it: a task it was handed to at line 30 writes `count.n` (through `bump`) while this reads it ; hand on a copy, `count.deep_copy()`, or leave `count` alone once handed on

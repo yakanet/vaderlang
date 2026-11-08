@@ -1,0 +1,24 @@
+// P77: a branch launches a task and joins it, then the code after the branch
+// reads what the task wrote.
+//
+// corpus: probe
+// expect: accepted
+
+module "snippet"
+
+import "std/task"
+
+Count :: struct {
+    n: i32 = 0
+}
+
+main :: fn() -> i32 {
+    count :: Count {}
+    if count.n == 0 {
+        t :: launch(fn() {
+            count.n += 1
+        })
+        t.join()
+    }
+    return count.n
+}
