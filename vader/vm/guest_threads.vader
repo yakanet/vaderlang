@@ -8,9 +8,10 @@
 // threads as the host does as long as the host starts none of its own.
 //
 // A guest thread cancelled while it parks unwinds its host stack, whose defers
-// run the guest's pending defers on its register file. When an entry returns,
-// the guest threads still running are cancelled and waited for, so that a
-// `@test` or a comptime evaluation leaves none behind for the next.
+// run the guest's pending defers on its register file. The host cancels the
+// threads it launched first, as it does for any thread of its own. When an
+// entry returns, the guest threads still running are cancelled and waited for,
+// so that a `@test` or a comptime evaluation leaves none behind for the next.
 //
 // Under a debugger each guest thread has a session of its own on the one
 // controller: its own line and step, the same breakpoints and output. The
@@ -32,6 +33,8 @@ import "std/string"
 GuestThread :: struct {
     /// How a report names it: `task #N`.
     number: i64
+    /// The host thread that launched it.
+    launcher: i64
     /// Whether it has begun: one cancelled before runs nothing.
     started: bool = false
     /// Whether it was cancelled, and so is on its way out.
@@ -97,8 +100,9 @@ start_guest_thread :: fn(
     threads.numbered += 1
     number :: threads.numbered
     session :: debug_session(debug, debugged_thread_id(number))
+    launcher :: current_thread()
     thread :: spawn_thread(() -> run_guest_thread(state, entry, is_comptime, session))
-    threads.live[thread] = GuestThread { .number = number }
+    threads.live[thread] = GuestThread { .number = number, .launcher = launcher }
     return HostOk { .value = I64Val(thread) }
 }
 
@@ -250,17 +254,20 @@ finish_guest_threads :: fn(announce: bool, debug: DebugController | null) -> i64
         threads.live.keys().collect(),
         (a, b) -> number_of(threads, a) < number_of(threads, b),
     )
+    // Every name before any cancel, which would make the threads it launched
+    // leave.
     numbers: i64[]: []
     for thread in handles {
         guest :: threads.live[thread] ?? continue
-        // One cancelled before is waited for, not named.
-        if guest.cancelled {
+        if is_leaving(threads, guest) {
             continue
         }
         numbers.push(guest.number)
         if announce {
             announce_cancelled(guest.number, debug)
         }
+    }
+    for thread in handles {
         cancel(thread)
     }
     threads.waiter = current_thread()
@@ -272,6 +279,16 @@ finish_guest_threads :: fn(announce: bool, debug: DebugController | null) -> i64
     }
     threads.waiter = -1
     return numbers
+}
+
+// Whether the end of an entry waits for `guest` without naming it: it was
+// cancelled, or a thread that launched it was.
+is_leaving :: fn(threads: GuestThreads, guest: GuestThread) -> bool {
+    if guest.cancelled {
+        return true
+    }
+    launcher :: threads.live[guest.launcher] ?? return false
+    return is_leaving(threads, launcher)
 }
 
 number_of :: fn(threads: GuestThreads, thread: i64) -> i64 {

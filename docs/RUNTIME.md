@@ -420,17 +420,22 @@ kept as they are, the others keep their reservation, and the scheduler gives it
 back to the OS the next time it waits. Outside Windows, those others release
 meanwhile the 256 KiB a thread writes first.
 
-A cancelled thread runs its pending defers on its own stack at its next run,
-then ends; one cancelled before it ran runs nothing. When `main` returns, it
-waits for the end of every thread. Those not cancelled yet are cancelled and
-named on stderr as tasks (`task #1`), in the order they started, and naming one
-makes a zero exit code 1; those cancelled before are on their way out and go
-unnamed. A switch made from a callback that C called stops the program: another
-thread would run over the C frames below it.
+A cancelled thread, at its next run, cancels the threads it launched that have
+not ended and parks until they have, then runs its pending defers on its own
+stack and ends; one cancelled before it ran runs nothing, and a second cancel
+does nothing. Each thread keeps the thread that launched it and how many of its
+own have not ended, and the last of them to end wakes a launcher waiting for
+them. When `main` returns, it waits for the end of every thread. Those still
+running are named on stderr as tasks (`task #1`), in the order they started,
+then cancelled, and naming one makes a zero exit code 1; a thread cancelled
+before, or launched by one, is on its way out and goes unnamed. A switch made
+from a callback that C called stops the program: another thread would run over
+the C frames below it.
 
 The VM runs each thread of the program on a thread of its own process, with a
 register file of its own, so the interpreter's frames park with it. A cancelled
-thread runs the program's pending defers on that register file. When `main`
+thread runs the program's pending defers on that register file, once the threads
+it launched have ended: its host thread launched theirs. When `main`
 returns, the VM cancels and reports as a native program does; when a `@test`
 returns, it waits until the threads end, cancelling those not cancelled yet,
 and fails the test when it named one.

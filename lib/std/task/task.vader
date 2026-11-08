@@ -12,7 +12,9 @@
 // as the program starts no thread of its own through `std/runtime/scheduler`.
 //
 // A combinator returns once every task it was given has ended: one it cancels
-// has run its `defer`s, so no task outlives the call.
+// has run its `defer`s, so no task outlives the call. Those that cancel (`race`,
+// `join_any`, `try_join_all`, `timeout`) cancel their tasks too when the task
+// that waits in them is cancelled.
 
 module "std/task"
 
@@ -152,6 +154,9 @@ export is_ready :: fn<T>(task: Task<T>) -> bool = task.ended
 /// back `Cancelled`. A task that has ended stays as it was; one that has not
 /// started runs nothing.
 ///
+/// The tasks it launched that still run are cancelled first, and their `defer`s
+/// run before its own; what its `defer`s launch runs on.
+///
 /// The cancel does not wait for the `defer`s: `join` does. A task that cancels
 /// itself does not come back from it.
 ///
@@ -200,12 +205,12 @@ export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
 /// @return       what each returned in the order of `tasks`, or the first
 ///               error in the order they ended.
 export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
+    defer cancel_and_wait(tasks)
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
     for _ in 0..<tasks.len() {
         settled :: outcome(tasks[next_ended(group)])
         if settled is Error {
-            cancel_and_wait(tasks)
             return settled
         }
     }
@@ -226,11 +231,10 @@ export race :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     if tasks.len() == 0 {
         panic("race: no task to wait for")
     }
+    defer cancel_and_wait(tasks)
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
-    winner :: tasks[next_ended(group)]
-    cancel_and_wait(tasks)
-    return outcome(winner)
+    return outcome(tasks[next_ended(group)])
 }
 
 /// Wait for the first task of `tasks` to succeed, then cancel the others and wait
@@ -244,12 +248,12 @@ export join_any :: fn<T>(tasks: Task<T>[]) -> T | Cancelled {
     if tasks.len() == 0 {
         panic("join_any: no task to wait for")
     }
+    defer cancel_and_wait(tasks)
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
     for _ in 0..<tasks.len() - 1 {
         settled :: outcome(tasks[next_ended(group)])
         if settled !is Error {
-            cancel_and_wait(tasks)
             return settled
         }
     }
@@ -337,6 +341,7 @@ export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutEr
     if task.ended {
         return outcome(task)
     }
+    defer cancel_and_wait([task])
     me :: current_thread()
     alarm :: Alarm {}
     timer :: start_thread(fn() {
@@ -353,8 +358,6 @@ export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutEr
     if task.ended {
         return outcome(task)
     }
-    cancel(task)
-    join(task)
     return TimeoutError { .after = d }
 }
 
@@ -461,6 +464,22 @@ test_join_of_a_cancelled_task_waits_for_its_defers :: fn() -> void {
     assert(unwound.set, "the join waits for the defers")
 }
 
+// Launch `unwinds_into` and wait for it.
+join_one_that_unwinds :: fn(unwound: Flag) -> i32 {
+    launch(() -> unwinds_into(unwound)).join()
+    return 0
+}
+
+@test
+test_cancel_cancels_the_tasks_it_launched :: fn() -> void {
+    unwound :: Flag {}
+    outer :: launch(() -> join_one_that_unwinds(unwound))
+    yield_now()
+    outer.cancel()
+    outer.join()
+    assert(unwound.set, "the join of a cancelled task waits for the defers of those it launched")
+}
+
 @test
 test_join_all_keeps_the_order_of_the_tasks :: fn() -> void {
     results :: join_all([launch(() -> after_yields(1, 3)), launch(() -> after_yields(2, 1))])
@@ -563,6 +582,16 @@ test_timeout_waits_for_the_defers_of_the_cancelled :: fn() -> void {
     unwound :: Flag {}
     timeout(launch(() -> unwinds_into(unwound)), 1.millis())
     assert(unwound.set, "the task's defers ran before `timeout` returned")
+}
+
+@test
+test_race_cancels_its_tasks_when_its_caller_is_cancelled :: fn() -> void {
+    tasks :: [launch(() -> unwinds_into(Flag {})), launch(() -> unwinds_into(Flag {}))]
+    racer :: launch(() -> race(tasks))
+    yield_now()
+    racer.cancel()
+    racer.join()
+    assert(tasks[0].is_ready() && tasks[1].is_ready(), "the tasks of a cancelled `race` have ended")
 }
 
 @test

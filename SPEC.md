@@ -4039,7 +4039,7 @@ main :: fn() -> i32 {
 - `t.is_ready()` tells whether the task has ended, so that `join` would not wait. It never parks, so a loop can poll it.
 - A task shows as `task #N`, its number in the order the program launched them. Two tasks are equal when they are the same task.
 - `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value.
-- When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero.
+- When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero. A task cancelled before, or launched by one, is waited for without being named.
 - When every task waits and no sleep is pending, nothing will wake one: the program stops on a deadlock and names the tasks.
 
 ### Values shared between tasks
@@ -4096,7 +4096,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (ย
 
 ### Combinators
 
-`std/task` waits for several tasks at once. A combinator returns once every task it was given has ended: one it cancels has run its defers.
+`std/task` waits for several tasks at once. A combinator returns once every task it was given has ended: one it cancels has run its defers. Those that cancel, `try_join_all`, `race`, `join_any` and `timeout`, also cancel their tasks when the task waiting in them is cancelled.
 
 - `join_all(ts)` gives every result, in the order of `ts`.
 - `try_join_all(ts)` gives every result, unless one fails: the first task to end with an error, `Cancelled` included, cancels the others, and its error is given back.
@@ -4110,6 +4110,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (ย
 
 - The cancel does not wait for the defers; `join` does.
 - A task that has ended stays as it was, one that has not started runs nothing, and a task that cancels itself does not come back from the call.
+- Cancelling a task cancels the tasks it launched that are still running, and its own defers run once theirs have. A task that returns leaves the tasks it launched running, and what the defers of a cancelled task launch runs on.
 - A defer that parks while its task is cancelled parks that task, not the one that cancelled it.
 - A stop (a `panic`, a failed run-time check) runs the pending defers of the task that stops, not those of the other tasks (ยง7 *`defer`*).
 

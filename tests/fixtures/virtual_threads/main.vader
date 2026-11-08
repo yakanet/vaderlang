@@ -1,7 +1,8 @@
 // tests/fixtures/virtual_threads: virtual threads under the collector, past the
-// end of their stack, through a panic, inside a call to C, asleep, cancelled,
-// deadlocked, and alive when `main` returns. `tests/virtual_threads.test.ts`
-// builds it once and runs each case, which `THREADS_CASE` names.
+// end of their stack, through a panic, inside a call to C, asleep, cancelled
+// with the threads they launched, deadlocked, and alive when `main` returns.
+// `tests/virtual_threads.test.ts` builds it once and runs each case, which
+// `THREADS_CASE` names.
 
 module "main"
 
@@ -329,6 +330,25 @@ cancel_main :: fn() -> void {
     println("not reached")
 }
 
+// A thread that launches another, each parked until cancelled.
+spawn_launcher :: fn() -> i64 = spawn(fn() {
+    defer println("defer of the launcher")
+    spawn(fn() {
+        defer println("defer of the launched")
+        park_forever()
+    })
+    park_forever()
+})
+
+// Cancelling a thread cancels the one it launched, whose defers run first.
+cancel_cascades :: fn() -> void {
+    launcher :: spawn_launcher()
+    yield_now()
+    cancel_thread(launcher)
+    join_all()
+    println("joined")
+}
+
 // ---- nothing left to run --------------------------------------------------
 
 // Main waits for a thread that waits for nothing that will come.
@@ -358,6 +378,16 @@ exit_after_cancel :: fn() -> void {
     })
     yield_now()
     cancel_thread(parked)
+    println("main returns")
+}
+
+// Main cancels a thread and returns once both threads have started: the one it
+// launched is cancelled with it, and neither is named.
+exit_after_cascade :: fn() -> void {
+    launcher :: spawn_launcher()
+    yield_now()
+    yield_now()
+    cancel_thread(launcher)
     println("main returns")
 }
 
@@ -401,9 +431,11 @@ main :: fn() -> i32 {
         "cancel_self"           -> cancel_self()
         "cancel_defer_parks"    -> cancel_defer_parks()
         "cancel_main"           -> cancel_main()
+        "cancel_cascades"       -> cancel_cascades()
         "deadlock"              -> deadlock()
         "exit_with_live_thread" -> exit_with_live_thread()
         "exit_after_cancel"     -> exit_after_cancel()
+        "exit_after_cascade"    -> exit_after_cascade()
         "exit_names_in_order"   -> exit_names_in_order()
         "bursts"                -> bursts()
         _                       -> {

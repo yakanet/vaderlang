@@ -489,6 +489,7 @@ static void vader_vt_switch_to(vader_vt_t* next) {
 
 /* End the running thread `t`: the scheduler frees its stack. */
 static void vader_vt_finish(vader_vt_t* t) {
+    vader_sched_ending();
     t->state = VADER_VT_ENDED;
     g_vt_thread_count--;
     g_vt_ended = t;

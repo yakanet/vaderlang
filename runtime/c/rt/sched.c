@@ -8,9 +8,12 @@
  * stops. The scheduler runs on a thread of its own (rt/vthreads.c), which runs
  * no Vader code.
  *
- * A cancelled thread unwinds at its next run: it runs its pending defers on
- * its own stack, then ends. A defer may park meanwhile, and the cancellation
- * goes on where it stood.
+ * A cancelled thread unwinds at its next run: it cancels the threads it
+ * launched that have not ended and waits for their ends, then runs its pending
+ * defers on its own stack, then ends. A defer may park meanwhile, and the
+ * cancellation goes on where it stood. A thread that returns leaves the threads
+ * it launched running, and so does the end of a cancellation: what its defers
+ * launch runs on.
  *
  * Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: it
  * jumps to the end of the nearest one instead of waiting for it. */
@@ -20,10 +23,13 @@
 /* What the scheduler keeps of a thread, at the thread's index. */
 typedef struct {
     uint64_t number;        /* how a report names it; 0 for the main thread */
+    int64_t  parent;        /* the thread that launched it */
+    uint32_t children;      /* the threads it launched that have not ended */
     uint32_t sleep;         /* a timer armed under another value wakes nothing */
     uint8_t  queued;        /* in the ready queue */
     uint8_t  cancelled;
-    uint8_t  unwinding;     /* running the defers of its cancellation */
+    uint8_t  unwinding;     /* cancelling its children, then running its defers */
+    uint8_t  reaping;       /* waits for its children to end */
 } vader_sched_slot_t;
 
 typedef struct {
@@ -326,9 +332,29 @@ static void vader_sched_start(void) {
 
 /* ---- parking and cancelling ------------------------------------------------ */
 
-/* Run the running thread's pending defers, then end it. */
+/* The thread whose children `vader_sched_cancel_child` cancels. */
+static int64_t g_sched_launcher = 0;
+
+static void vader_sched_cancel_child(int64_t thread) {
+    if (vader_sched_slot_of(thread)->parent == g_sched_launcher) vader_sched_cancel(thread);
+}
+
+/* Cancel the threads that `thread`, the running one, launched and that have
+ * not ended, then wait for their ends: their defers run before its own. */
+static void vader_sched_cancel_children(int64_t thread) {
+    if (vader_sched_slot_of(thread)->children == 0u) return;
+    g_sched_launcher = thread;
+    vader_vt_each_live(vader_sched_cancel_child);
+    vader_sched_slot_of(thread)->reaping = 1;
+    while (vader_sched_slot_of(thread)->children > 0u) vader_sched_park();
+    vader_sched_slot_of(thread)->reaping = 0;
+}
+
+/* Cancel the running thread's children, run its pending defers, then end it. */
 static void vader_sched_unwind(void) {
-    vader_sched_slot_of(vader_vt_current())->unwinding = 1;
+    int64_t thread = vader_vt_current();
+    vader_sched_slot_of(thread)->unwinding = 1;
+    vader_sched_cancel_children(thread);
     vader_run_pending_defers();
     vader_vt_end();
 }
@@ -345,12 +371,23 @@ static int vader_sched_starting(void) {
     return !vader_sched_slot_of(vader_vt_current())->cancelled;
 }
 
+static void vader_sched_ending(void) {
+    int64_t parent = vader_sched_slot_of(vader_vt_current())->parent;
+    if (!vader_vt_is_live(parent)) return;
+    vader_sched_slot_t* p = vader_sched_slot_of(parent);
+    p->children--;
+    if (p->children == 0u && p->reaping) vader_sched_enqueue(parent);
+}
+
 /* ---- what Vader calls ------------------------------------------------------ */
 
 int64_t vader_sched_spawn(vader_fn_t* entry) {
     vader_sched_start();
+    int64_t launcher = vader_vt_current();
     int64_t thread = vader_vt_create(entry);
     vader_sched_fresh_slot(thread, ++g_sched_numbered);
+    vader_sched_slot_of(thread)->parent = launcher;
+    vader_sched_slot_of(launcher)->children++;
     vader_sched_enqueue(thread);
     return thread;
 }
@@ -406,12 +443,14 @@ void vader_sched_cancel(int64_t thread) {
     if (thread == vader_vt_main()) vader_trap("virtual threads: the main thread cannot be cancelled");
     if (!vader_vt_is_live(thread)) return;
     vader_sched_slot_t* s = vader_sched_slot_of(thread);
+    /* Already on its way out: queued, or parked in its cancellation, which a
+     * wake would cut short. */
+    if (s->cancelled) return;
     s->cancelled = 1;
     if (thread != vader_vt_current()) {
         vader_sched_enqueue(thread);
         return;
     }
-    if (s->unwinding) return;
     vader_sched_unwind();
 }
 
@@ -419,21 +458,35 @@ int64_t vader_sched_current(void) {
     return vader_vt_current();
 }
 
-/* A thread cancelled before `main` returned is on its way out: `main` waits
-   for it without naming it. */
-static void vader_sched_cancel_at_exit(int64_t thread) {
-    if (thread == vader_vt_main()) return;
-    if (vader_sched_slot_of(thread)->cancelled) return;
+/* Whether `main` returning waits for the live thread `thread` without naming
+ * it: it was cancelled, or a thread that launched it was. */
+static int vader_sched_leaving(int64_t thread) {
+    while (thread != vader_vt_main() && vader_vt_is_live(thread)) {
+        vader_sched_slot_t* s = vader_sched_slot_of(thread);
+        if (s->cancelled) return 1;
+        thread = s->parent;
+    }
+    return 0;
+}
+
+static void vader_sched_name_at_exit(int64_t thread) {
+    if (thread == vader_vt_main() || vader_sched_leaving(thread)) return;
     char name[32];
     vader_sched_name(thread, name, sizeof(name));
     const char* what = " still runs when main returns: cancelled";
     vader_os_report_fatal(name, what, strlen(what));
     g_sched_left_running = 1;
-    vader_sched_cancel(thread);
+}
+
+static void vader_sched_cancel_at_exit(int64_t thread) {
+    if (thread != vader_vt_main()) vader_sched_cancel(thread);
 }
 
 int vader_sched_exit(int code) {
     if (!g_sched_started || vader_vt_threads() == 0u) return code;
+    /* Every name before any cancel, which would make the threads it launched
+     * leave. */
+    vader_sched_each_by_number(vader_sched_name_at_exit);
     vader_sched_each_by_number(vader_sched_cancel_at_exit);
     g_sched_exiting = 1;
     vader_sched_slot_of(vader_vt_main())->sleep++;

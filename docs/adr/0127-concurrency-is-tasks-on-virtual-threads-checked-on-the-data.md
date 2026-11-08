@@ -5,6 +5,8 @@
 Accepted (2026-11-07). Replaces 0111. Amends 0060, 0068, 0090 and 0119.
 Amended (2026-11-08): the `Async<T>` trait leaves `std/core` too, since nothing
 implemented it and nothing called it.
+Amended (2026-11-08): cancelling a task cancels the tasks it launched, and the
+combinators that cancel cancel their tasks when the task waiting in them is.
 
 ## Context
 
@@ -51,6 +53,17 @@ functions in two kinds, and every caller of an async function had to be one.
   `join` gives `Cancelled`. A combinator returns once every task it cancelled has
   run its defers. When `main` returns, the tasks still running are cancelled,
   stderr names them, and the exit code is not zero.
+- **Cancellation cascades by launch.** A cancelled task first cancels the tasks
+  it launched that still run, and waits for them, then runs its own defers. The
+  check counts the `join` that follows a launch as the end of the task; a task
+  cancelled inside that `join` used to leave the joined task running while its
+  caller went on, a race the check accepted. Cancelled first, the children keep
+  under cancellation the order of the normal path: a defer placed before a `join`
+  runs after the end of the joined task. What the defers launch runs on, as what
+  a task launches does when it returns. The runtime keeps the launcher of each
+  thread, so the rule holds for every thread, those of `std/runtime/scheduler`
+  and the VM's guest threads included. `try_join_all`, `race`, `join_any` and
+  `timeout` cancel their tasks in a defer, for the tasks another task launched.
 - **A singleton that returns a `Task<T>`** replaces the async singleton: a task is
   joined as often as needed. A `@singleton` and a constant whose value runs code
   wait on a gate while another thread builds them, in a program that loads
@@ -69,6 +82,15 @@ Set aside:
   side would silently stop being seen by the other.
 - **A `scope` that joins its tasks**: the position of the `join` already bounds a
   task for the check.
+- **Cancelling the children after the defers of their launcher**, from
+  `std/task`: a defer placed before a `join` would run while the joined task still
+  runs. The order kept has a price: a defer of the cancelled task cannot ask its
+  children to stop by a message, they have stopped already.
+- **No longer counting a `join` as the end of a task**: the check would refuse a
+  task that waits for the tasks it launched, the common shape.
+- **The tasks launched by the defers of a cancelled task born cancelled**: one
+  cancelled before it starts never runs the end of `std/task`, so a `join` of it
+  in that defer would wait forever.
 
 ## Consequences
 
@@ -80,4 +102,9 @@ Set aside:
   cores, so a program keeps its meaning when they are.
 - I/O in `std/io` blocks every task. A stop runs the pending defers of the thread
   that stops, not those of the others.
+- A defer of a cancelled task's child that waits for what only a defer of the
+  cancelled task provides is a deadlock.
+- A task the cascade cancels before it starts, one launched by a task that
+  cancels itself before it parks, is never marked ended: a `join` of it waits
+  forever.
 - `M5009` and `T3064` are retired, and the `async` case of `T3103` with them.

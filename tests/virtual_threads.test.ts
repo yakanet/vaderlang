@@ -5,9 +5,10 @@
 // thread that runs past its stack stops; each thread unwinds its own defers; a
 // switch inside a call to C stops the program. The ready threads run in turn,
 // the shortest sleep ends first and of two that end together the older, a
-// cancelled thread runs its defers, a deadlock stops the program, and `main`
-// returning while threads run cancels them and names them in the order they
-// started.
+// cancelled thread runs its defers after those of the threads it launched, a
+// deadlock stops the program, and `main` returning while threads run cancels
+// them and names them in the order they started, but not those a cancelled
+// thread launched.
 //
 // The fixture (tests/fixtures/virtual_threads/main.vader) is built once per
 // profile, and each case is a run of it with `THREADS_CASE` set; on the VM, each
@@ -78,6 +79,11 @@ const CLEAN_CASES: [string, string, string][] = [
   ["a thread cancelled before it ran runs nothing", "cancel_unstarted", "cancelled before it ran\n"],
   ["a thread that cancels itself does not come back", "cancel_self", "defer of the thread\njoined\n"],
   [
+    "a cancelled thread cancels the threads it launched, whose defers run first",
+    "cancel_cascades",
+    "defer of the launched\ndefer of the launcher\njoined\n",
+  ],
+  [
     "the defer of a cancelled thread may park",
     "cancel_defer_parks",
     "defer starts\nmain between\ndefer ends\njoined\n",
@@ -87,6 +93,11 @@ const CLEAN_CASES: [string, string, string][] = [
     "main returning waits for a thread it cancelled, and names nothing",
     "exit_after_cancel",
     "main returns\ndefer of the cancelled thread\n",
+  ],
+  [
+    "main returning names none of the threads a thread it cancelled launched",
+    "exit_after_cascade",
+    "main returns\ndefer of the launched\ndefer of the launcher\n",
   ],
 ];
 

@@ -62,10 +62,10 @@ export wake :: fn(thread: i64) -> void
 @intrinsic
 export sleep_for :: fn(nanos: i64) -> void
 
-/// Cancel `thread`: at its next run, it runs its pending defers and ends. The
-/// running thread cancels itself at once, and `cancel_thread` does not return.
-/// A defer that parks parks the cancelled thread; a thread that has ended is
-/// left as it is.
+/// Cancel `thread`: at its next run, it cancels the threads it launched that
+/// have not ended and waits for their ends, then runs its pending defers and
+/// ends. The running thread cancels itself at once, and `cancel_thread` does not
+/// return. A defer that parks parks the cancelled thread.
 ///
 /// @param thread  the handle of the thread to cancel.
 /// @error         stops the program on the main thread, which cannot be

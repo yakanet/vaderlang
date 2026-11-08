@@ -227,6 +227,8 @@ static void vader_sched_loop(void);
 /* On a new thread's stack, before its entry: false when it was cancelled
  * before it ever ran, and runs nothing. */
 static int vader_sched_starting(void);
+/* On an ending thread's stack, once it has run its last defer. */
+static void vader_sched_ending(void);
 
 /* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
