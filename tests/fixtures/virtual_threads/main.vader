@@ -320,7 +320,9 @@ stdin_polls :: fn() -> void {
 }
 
 // Main gives up a poll of stdin while a thread runs, then polls again once
-// alone: the second poll ends at its deadline too, though nothing came.
+// alone: the second poll ends at its deadline too, though nothing came. It then
+// reads the line the harness writes on that message: exiting first would close
+// the pipe under the write.
 stdin_polls_alone :: fn() -> void {
     spawn(fn() {
         sleep(20.millis())
@@ -332,6 +334,7 @@ stdin_polls_alone :: fn() -> void {
     if !poll_stdin(50) {
         println("a poll alone gives up")
     }
+    print_line_read()
 }
 
 // Main, alone, waits for a child that writes more than a pipe holds before it

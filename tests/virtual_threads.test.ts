@@ -168,10 +168,10 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
   }, LONG_BUILD);
 
   test("a poll of stdin given up beside a thread leaves the next one its deadline", async () => {
-    const r = await run(caseEnv("stdin_polls_alone", ""), { cue: "a poll alone gives up\n", line: "\n" });
+    const r = await run(caseEnv("stdin_polls_alone", ""), { cue: "a poll alone gives up\n", line: "done\n" });
     if (r === null) return;
     expect(r).toMatchObject({
-      stdout: "a poll beside a thread gives up\na poll alone gives up\n",
+      stdout: "a poll beside a thread gives up\na poll alone gives up\nread done\n",
       stderr: "",
       exit: 0,
     });
