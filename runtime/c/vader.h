@@ -1445,22 +1445,6 @@ bool    vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos);
  * defers. The process's exit code, not zero when it cancelled any. */
 int     vader_scheduler_exit(int code);
 
-/* The bootstrap seed calls the scheduler by its former names until it is
- * regenerated from this tree. */
-#define vader_sched_cancel            vader_scheduler_cancel
-#define vader_sched_current           vader_scheduler_current
-#define vader_sched_exit              vader_scheduler_exit
-#define vader_sched_is_cancelled      vader_scheduler_is_cancelled
-#define vader_sched_is_leaving        vader_scheduler_is_leaving
-#define vader_sched_park              vader_scheduler_park
-#define vader_sched_sleep_for         vader_scheduler_sleep_for
-#define vader_sched_spawn             vader_scheduler_spawn
-#define vader_sched_wait_readable     vader_scheduler_wait_readable
-#define vader_sched_wait_readable_for vader_scheduler_wait_readable_for
-#define vader_sched_wake              vader_scheduler_wake
-#define vader_sched_watch_exit        vader_scheduler_watch_exit
-#define vader_sched_watch_readable    vader_scheduler_watch_readable
-
 /* How many calls into C the running code is inside of: the shim of each
  * `@extern` counts its call. A switch traps above zero, since another thread
  * would run over the C frames under it, and what they hold. */
