@@ -157,6 +157,26 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
     expect(r).toMatchObject({ stdout: "tick 0\ntick 1\ntick 2\nread hello\n", stderr: "", exit: 0 });
   }, LONG_BUILD);
 
+  test("a thread runs while another polls stdin", async () => {
+    const r = await run(caseEnv("stdin_polls", ""), { cue: "tick 2\n", line: "hello\n" });
+    if (r === null) return;
+    expect(r).toMatchObject({
+      stdout: "tick 0\na first poll gives up\ntick 1\ntick 2\na second poll finds the line\nread hello\n",
+      stderr: "",
+      exit: 0,
+    });
+  }, LONG_BUILD);
+
+  test("a poll of stdin given up beside a thread leaves the next one its deadline", async () => {
+    const r = await run(caseEnv("stdin_polls_alone", ""), { cue: "a poll alone gives up\n", line: "\n" });
+    if (r === null) return;
+    expect(r).toMatchObject({
+      stdout: "a poll beside a thread gives up\na poll alone gives up\n",
+      stderr: "",
+      exit: 0,
+    });
+  }, LONG_BUILD);
+
   test("a wait for a child drains its pipes as they fill", async () => {
     const r = await runCase("spawn_drains");
     if (r === null) return;

@@ -285,13 +285,53 @@ stdin_parks :: fn() -> void {
             yield_now()
         }
     })
+    print_line_read()
+    join_all()
+}
+
+// Read a line of stdin and say what came.
+print_line_read :: fn() -> void {
     line :: read_line()
     if line is IOError {
         println("stdin: ${line.msg}")
     } else {
         println("read ${line}")
     }
+}
+
+// A thread ticks while main polls stdin: a first poll ends at its deadline,
+// before the next tick, and a second one once the harness writes the line it
+// waits for, on reading the last tick.
+stdin_polls :: fn() -> void {
+    spawn(fn() {
+        for i in 0..<3 {
+            println("tick ${i}")
+            sleep(40.millis())
+        }
+    })
+    if !poll_stdin(10) {
+        println("a first poll gives up")
+    }
+    if poll_stdin(5000) {
+        println("a second poll finds the line")
+    }
+    print_line_read()
     join_all()
+}
+
+// Main gives up a poll of stdin while a thread runs, then polls again once
+// alone: the second poll ends at its deadline too, though nothing came.
+stdin_polls_alone :: fn() -> void {
+    spawn(fn() {
+        sleep(20.millis())
+    })
+    if !poll_stdin(5) {
+        println("a poll beside a thread gives up")
+    }
+    join_all()
+    if !poll_stdin(50) {
+        println("a poll alone gives up")
+    }
 }
 
 // Main, alone, waits for a child that writes more than a pipe holds before it
@@ -526,6 +566,8 @@ main :: fn() -> i32 {
         "sleep_ties"            -> sleep_ties()
         "real_sleep"            -> real_sleep()
         "stdin_parks"           -> stdin_parks()
+        "stdin_polls"           -> stdin_polls()
+        "stdin_polls_alone"     -> stdin_polls_alone()
         "spawn_drains"          -> spawn_drains()
         "pipe_watches"          -> pipe_watches()
         "cancel_parked"         -> cancel_parked()

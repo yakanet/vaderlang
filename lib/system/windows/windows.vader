@@ -307,6 +307,13 @@ export find_data_name :: fn(data: u8[]) -> string
 @extern(VADER_RUNTIME, "vader_console_read")
 export console_read :: fn(@c_out buf: u8[], max: i64) -> i64
 
+/// End the read the runtime keeps under way on a stdin pipe once a wait for
+/// stdin is given up: until data comes, every peek or read of the pipe would
+/// wait behind it. The read takes no byte, so ending it loses nothing; on a
+/// console, this does nothing.
+@extern(VADER_RUNTIME, "vader_stdin_end_wait")
+export end_stdin_wait :: fn() -> void
+
 /// A pipe a child writes into, which `watch_readable` can follow: its read end
 /// takes overlapped reads. The read end stays with this process, the write end
 /// is inheritable.

@@ -60,8 +60,8 @@ GuestThreads :: struct {
 guest_threads :: fn() -> GuestThreads = GuestThreads {}
 
 // Serve `id` on `args` when it is a primitive of `std/runtime/scheduler`, which
-// the VM serves with its own state, or `wait_readable` of `std/io`, which parks
-// too; null for any other, which `dispatch_import` serves.
+// the VM serves with its own state, or a wait of `std/io`, which parks too;
+// null for any other, which `dispatch_import` serves.
 // @partial: the other intrinsics park no thread.
 serve_thread_primitive :: fn(
     state: VmState,
@@ -78,6 +78,7 @@ serve_thread_primitive :: fn(
     .SchedWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
     .SchedWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
     .IoWaitReadable     -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
+    .IoWaitReadableFor  -> serve_wait_readable_for(args, origin)
     .SchedCancel        -> cancel_guest_thread(args[0], origin)
     .SchedCurrent       -> HostOk { .value = I64Val(current_thread()) }
     _                   -> null
@@ -139,6 +140,19 @@ on_i64 :: fn(
     }
     primitive(i64(n))
     return void_result()
+}
+
+// Run the host's own `wait_readable_for` on the two `i64` the guest handed it.
+serve_wait_readable_for :: fn(args: Value[], origin: i32) -> HostCallResult {
+    fd :: read_i64(args[0], origin, "wait_readable_for")
+    if fd is Trap {
+        return fd
+    }
+    nanos :: read_i64(args[1], origin, "wait_readable_for")
+    if nanos is Trap {
+        return nanos
+    }
+    return HostOk { .value = BoolVal(wait_readable_for(i64(fd), i64(nanos))) }
 }
 
 // Cancel a guest thread: the entry's thread cannot be, which fails the run

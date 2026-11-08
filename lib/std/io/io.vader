@@ -440,6 +440,16 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 @intrinsic
 export wait_readable :: fn(fd: i64) -> void
 
+/// Park the running task as `wait_readable` does, but no longer than `nanos`.
+/// With no other task, it returns `true` at once, and the caller asks the
+/// system itself.
+///
+/// @param fd     a descriptor of the process; on Windows, 0 for stdin.
+/// @param nanos  the longest wait; a negative one waits with no deadline.
+/// @return       `false` once `nanos` have passed with nothing to read on `fd`.
+@intrinsic
+export wait_readable_for :: fn(fd: i64, nanos: i64) -> bool
+
 /// Attempts before giving up on a read that fails. A signal handler a program
 /// installed can interrupt a blocking read, which is then worth retrying; the
 /// bound keeps a real error from spinning.
@@ -505,22 +515,35 @@ read_console :: fn(max: i64) -> u8[] | IOError {
 
 /// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
 /// probe). Lets a length-prefixed server detect a quiescent input window,
-/// e.g. drain a burst of notifications, then do expensive work once. A pipe is
-/// read straight from its descriptor, so no buffer lags behind what this
-/// reports; a console reports ready. A closed peer (pipe hangup)
-/// reports ready so the next read observes EOF rather than spinning.
-/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
+/// e.g. drain a burst of notifications, then do expensive work once. The wait
+/// parks the running task while other tasks run, and blocks the process
+/// otherwise.
+///
+/// A pipe is read straight from its descriptor, so no buffer lags behind what
+/// this reports. A console reports ready when no other task runs. A closed peer
+/// (pipe hangup) reports ready so the next read observes EOF rather than
+/// spinning.
+///
+/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking, a
+///                    negative one waits with no deadline.
 /// @return            `true` if a subsequent `read_stdin` won't block on the
 ///                    first byte (data ready, or EOF/hangup pending).
+// With another task, the wait returns once stdin reads, and the system then
+// answers at once; alone, it returns at once, and the system waits.
+export poll_stdin :: fn(timeout_ms: i32) -> bool =
+    wait_readable_for(0, i64(timeout_ms) * 1_000_000) && system_poll_stdin(timeout_ms)
+
+// Ask the system whether stdin has data ready within `timeout_ms`, blocking
+// every task meanwhile.
 @target
-export poll_stdin :: fn(timeout_ms: i32) -> bool {
+system_poll_stdin :: fn(timeout_ms: i32) -> bool {
     // No descriptor to poll: `wasi-wasm32` and `browser-wasm32`. Reporting ready
     // lets the read attempt observe the real state, and never spins.
     return true
 }
 
 @target(.Linux, .Darwin)
-poll_stdin :: fn(timeout_ms: i32) -> bool {
+system_poll_stdin :: fn(timeout_ms: i32) -> bool {
     fds :: Pollfd { .fd = 0, .events = POLLIN, .revents = 0 }
     // A negative result (`EINTR`, say) reads as "nothing pending": the caller
     // then proceeds to flush, which is harmless.
@@ -534,11 +557,12 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
 POLL_SLICE_MS: u32 : 5
 
 @target(.Windows)
-poll_stdin :: fn(timeout_ms: i32) -> bool {
+system_poll_stdin :: fn(timeout_ms: i32) -> bool {
     h :: get_std_handle(STD_INPUT_HANDLE)
     if i64(h) == INVALID_HANDLE {
         return true
     }
+    end_stdin_wait()
     waited: i32 = 0
     for {
         avail: u32[]: [0]

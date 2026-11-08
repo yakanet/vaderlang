@@ -284,9 +284,22 @@ static DWORD WINAPI vader_os_stdin_wait(LPVOID unused) {
     }
 }
 
+static int vader_os_stdin_reading(void) {
+    EnterCriticalSection(&g_os_stdin_lock);
+    int busy = g_os_stdin_busy;
+    LeaveCriticalSection(&g_os_stdin_lock);
+    return busy;
+}
+
+/* On a pipe, a read of the reader outlives a wait given up, and a peek would
+ * wait behind it until the pipe holds data. That read ends once it does, and
+ * only this thread starts one, so none starts before the peek. */
 static int vader_os_stdin_readable(void) {
     vader_os_stdin_init();
-    if (g_os_stdin_kind == VADER_STDIN_PIPE) return vader_os_pipe_readable(GetStdHandle(STD_INPUT_HANDLE));
+    if (g_os_stdin_kind == VADER_STDIN_PIPE) {
+        if (vader_os_stdin_reading()) return 0;
+        return vader_os_pipe_readable(GetStdHandle(STD_INPUT_HANDLE));
+    }
     if (g_os_stdin_kind != VADER_STDIN_CONSOLE) return 1;
     EnterCriticalSection(&g_os_stdin_lock);
     int ready = g_os_typed_at < g_os_typed_len || g_os_typed_end || g_os_typed_failed;
@@ -506,6 +519,20 @@ int64_t vader_console_read(void* buf, int64_t max) {
             vader_console_fill();
         }
         EnterCriticalSection(&g_os_stdin_lock);
+    }
+}
+
+/* End the reader's read of a stdin pipe, a read of no byte that a wait given
+ * up leaves under way, and which every peek or read of the pipe waits behind
+ * until data comes. The reader may not have begun it yet, hence the loop. A
+ * console's read is left alone: it keeps what was typed. */
+VADER_HOST_EXPORT
+void vader_stdin_end_wait(void) {
+    vader_os_stdin_init();
+    if (g_os_stdin_kind != VADER_STDIN_PIPE) return;
+    while (vader_os_stdin_reading()) {
+        CancelSynchronousIo(g_os_stdin_reader);
+        WaitForSingleObject(g_os_stdin_done, 1);
     }
 }
 

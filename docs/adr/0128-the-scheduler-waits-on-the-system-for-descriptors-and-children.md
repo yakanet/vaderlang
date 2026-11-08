@@ -53,6 +53,17 @@ the scheduler could wait for the nearest sleep and nothing else.
   constant, and almost every program loads `std/io`. It is exported because the
   VM serves it by calling the host's. The task check counts it as a call that
   parks, so a read of stdin while holding a lock is an error.
+- **A wait with a deadline**: `wait_readable_for(fd, nanos)` (`std/io`) watches
+  `fd` and arms a timer for the same park, which ends on whichever comes first,
+  and reports whether `fd` reads; `wait_readable` is its case with no deadline.
+  `poll_stdin` parks on it, then asks the system, which answers at once after a
+  wait that saw stdin read, and waits itself when no other thread exists. The
+  deadline sits beside the watch: a combinator such as `timeout` cancels a task
+  when time runs out, and nothing ends a park on a descriptor from outside.
+  On Windows, the reader's read of no byte on a stdin pipe outlives a wait
+  given up, and the system makes every other operation on the pipe wait behind
+  it until data comes: stdin is not ready while it is under way, and
+  `poll_stdin`, alone, ends it (`CancelSynchronousIo`) before it peeks.
 - **`spawn`** watches the pipes it has not drained to their end and the end of
   the child, then parks; each wake drains and reaps as the poll did.
 
@@ -87,7 +98,7 @@ Set aside:
 - `spawn` wakes when its child writes or ends.
 - While threads run, a descriptor that becomes ready, or a child that ends,
   waits up to a millisecond and a turn before its thread is woken.
-- Writes, file reads and `poll_stdin` still block every task.
+- Writes and file reads still block every task.
 - On Windows, a console read ahead for a task that is then cancelled keeps its
   line for the next read of stdin, which a child started by `run_attached`
   would otherwise have read.
