@@ -19,6 +19,16 @@ VADER_RUNTIME :: CLibrary { .name = "", .header = "vader.h" }
 /// A Win32 `HANDLE`: an opaque kernel object, never dereferenced.
 export Handle :: CPointer
 
+// Over `CPointer`, not `Handle`: a name over a distinct type is an alias of it,
+// and the two kinds would then pass for one another and for any `Handle`.
+
+/// The read end of a pipe `create_watched_pipe` made. `std/io` holds one as a
+/// `Descriptor`.
+export PipeHandle :: CPointer
+
+/// A process `CreateProcess` started. `std/process` holds one as a `Process`.
+export ProcessHandle :: CPointer
+
 /// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
 /// written in their two's-complement form.
 export STD_OUTPUT_HANDLE: u32 : 0xFFFF_FFF5

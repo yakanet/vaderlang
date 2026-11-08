@@ -15,6 +15,7 @@
 
 module "std/process"
 
+import "std/io"
 import "std/numbers"
 import "std/runtime/scheduler"
 import "system/posix"
@@ -59,6 +60,10 @@ export ProcessResult :: struct {
 // question asked before each read removes it without a descriptor flag or a
 // thread.
 
+/// A process this one started: a pid on POSIX, a process handle on Windows.
+/// Nothing computes with it: it converts to nothing, and compares with `==`.
+export Process :: Pid | ProcessHandle
+
 /// A child process `spawn_start` launched, with its stdout and stderr captured:
 /// `poll` follows it to its end, `kill` stops it.
 ///
@@ -80,31 +85,52 @@ export ChildProcess :: struct {
     /// What the child wrote on stderr so far.
     @internal
     err:       u8[]  = []
-    /// The pid, on POSIX.
     @internal
-    pid:       i64   = 0
-    /// The read end of the stdout pipe, on POSIX.
+    process:   Process
+    /// The read end of the stdout pipe.
     @internal
-    out_fd:    i64   = -1
-    /// The read end of the stderr pipe, on POSIX.
+    out_pipe:  Descriptor
+    /// The read end of the stderr pipe.
     @internal
-    err_fd:    i64   = -1
-    /// The process handle and the read ends of the stdout and stderr pipes, on
-    /// Windows. Stored as machine words and read back as handles through
-    /// `ptr_at`: a `CPointer` cannot be rebuilt from an integer (T3010).
-    @internal
-    handles:   u64[] = []
+    err_pipe:  Descriptor
     @internal
     out_eof:   bool  = false
     @internal
     err_eof:   bool  = false
 }
 
-/// The `k`-th handle of `child`: 0 process, 1 stdout, 2 stderr.
-///
-/// @param child  a child launched on Windows.
-/// @param k      which of the three.
-win_handle :: fn(child: ChildProcess, k: i64) -> Handle = ptr_at(child.handles, k)
+// On POSIX, every `Descriptor` is an `Fd` and every `Process` a `Pid`; on
+// Windows, a child's pipe is a `PipeHandle` and the child a `ProcessHandle`.
+// The other member is a bug of this module, and stops the program.
+
+fd_of :: fn(d: Descriptor) -> i32 = @unreachable match d {
+    is Fd -> i32(d)
+}
+
+pid_of :: fn(p: Process) -> i32 = @unreachable match p {
+    is Pid -> i32(p)
+}
+
+pipe_handle_of :: fn(d: Descriptor) -> Handle = @unreachable match d {
+    is PipeHandle -> Handle(d)
+}
+
+process_handle_of :: fn(p: Process) -> Handle = @unreachable match p {
+    is ProcessHandle -> Handle(p)
+}
+
+// The machine words the scheduler names a pipe and a child by: the descriptor
+// or the pid, else the address of the handle.
+
+descriptor_word :: fn(d: Descriptor) -> i64 = match d {
+    is Fd         -> i64(d)
+    is PipeHandle -> i64(d)
+}
+
+process_word :: fn(p: Process) -> i64 = match p {
+    is Pid           -> i64(p)
+    is ProcessHandle -> i64(p)
+}
 
 /// How much to ask for per drain. One page: large enough that a chatty child
 /// does not need many rounds, small enough that an idle one costs a syscall
@@ -215,10 +241,10 @@ start_child :: fn(argv: string[]) -> ChildProcess | null {
         return null
     }
     return ChildProcess {
-        .program = argv[0],
-        .pid     = i64(pid[0]),
-        .out_fd  = i64(out_fds[0]),
-        .err_fd  = i64(err_fds[0]),
+        .program  = argv[0],
+        .process  = Pid(pid[0]),
+        .out_pipe = Fd(out_fds[0]),
+        .err_pipe = Fd(err_fds[0]),
     }
 }
 
@@ -262,22 +288,21 @@ close_pair :: fn(fds: i32[]) -> void {
     return
 }
 
-/// Drain whatever is waiting on `fd` into `into`, without ever blocking.
+/// Drain whatever is waiting on `pipe` into `into`, without ever blocking.
 ///
 /// Asks `poll` first and reads only when it says there is something, which is
 /// what lets one thread serve both pipes: a blocking read on an idle one would
 /// stall while the other filled and the child wedged.
 ///
-/// @param child  the child.
-/// @param which  1 for stdout, 2 for stderr: the same indices `win_handle` uses.
-/// @param into   the accumulating buffer.
-/// @return       true once the writer is gone and the pipe is drained.
+/// @param pipe  the read end of one of a child's pipes.
+/// @param into  the accumulating buffer.
+/// @return      true once the writer is gone and the pipe is drained.
 @target
-drain_pipe :: fn(child: ChildProcess, which: i64, into: u8[]) -> bool
+drain_pipe :: fn(pipe: Descriptor, into: u8[]) -> bool
 
 @target(.Linux, .Darwin)
-drain_pipe :: fn(child: ChildProcess, which: i64, into: u8[]) -> bool {
-    fd :: if which == 1 { i32(child.out_fd) } else { i32(child.err_fd) }
+drain_pipe :: fn(pipe: Descriptor, into: u8[]) -> bool {
+    fd :: fd_of(pipe)
     chunk: u8[]: [0] * DRAIN_CHUNK
     pfd :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
     for {
@@ -307,10 +332,10 @@ poll_exit :: fn(child: ChildProcess) -> i32 {
     if child.done {
         return child.exit_code
     }
-    out_eof :: if child.out_eof { true } else { drain_pipe(child, 1, child.out) }
-    err_eof :: if child.err_eof { true } else { drain_pipe(child, 2, child.err) }
+    out_eof :: if child.out_eof { true } else { drain_pipe(child.out_pipe, child.out) }
+    err_eof :: if child.err_eof { true } else { drain_pipe(child.err_pipe, child.err) }
     st: i32[]: [0]
-    rc :: sys_waitpid(i32(child.pid), st, WNOHANG)
+    rc :: sys_waitpid(pid_of(child.process), st, WNOHANG)
     if rc == 0 {
         child.out_eof = out_eof
         child.err_eof = err_eof
@@ -322,21 +347,21 @@ poll_exit :: fn(child: ChildProcess) -> i32 {
         // build launched from a harness that ignores it sees every child
         // auto-reaped. Close here or the descriptors leak for good: a child
         // that answered is never drained again.
-        sys_close(i32(child.out_fd))
-        sys_close(i32(child.err_fd))
+        sys_close(fd_of(child.out_pipe))
+        sys_close(fd_of(child.err_pipe))
         finish(child, SIGNALED)
         return SIGNALED
     }
     // Reaped. Drain once more: the child can write and exit between the drain
     // above and the wait, and those bytes are still sitting in the pipe.
     if !out_eof {
-        drain_pipe(child, 1, child.out)
+        drain_pipe(child.out_pipe, child.out)
     }
     if !err_eof {
-        drain_pipe(child, 2, child.err)
+        drain_pipe(child.err_pipe, child.err)
     }
-    sys_close(i32(child.out_fd))
-    sys_close(i32(child.err_fd))
+    sys_close(fd_of(child.out_pipe))
+    sys_close(fd_of(child.err_pipe))
     code :: reaped_code(st[0])
     finish(child, code)
     return code
@@ -386,11 +411,11 @@ kill :: fn(child: ChildProcess) -> void {
     if child.done {
         return
     }
-    sys_kill(i32(child.pid), SIGKILL)
+    sys_kill(pid_of(child.process), SIGKILL)
     st: i32[]: [0]
-    sys_waitpid(i32(child.pid), st, 0)
-    sys_close(i32(child.out_fd))
-    sys_close(i32(child.err_fd))
+    sys_waitpid(pid_of(child.process), st, 0)
+    sys_close(fd_of(child.out_pipe))
+    sys_close(fd_of(child.err_pipe))
     finish(child, SIGNALED)
 }
 
@@ -430,8 +455,10 @@ start_child :: fn(argv: string[]) -> ChildProcess | null {
     }
     close_handle(pi.hThread)
     return ChildProcess {
-        .program = argv[0],
-        .handles = [u64(pi.hProcess), u64(out_read), u64(err_read)],
+        .program  = argv[0],
+        .process  = ProcessHandle(pi.hProcess),
+        .out_pipe = PipeHandle(out_read),
+        .err_pipe = PipeHandle(err_read),
     }
 }
 
@@ -550,8 +577,8 @@ needs_quoting :: fn(word: u8[]) -> bool {
 }
 
 @target(.Windows)
-drain_pipe :: fn(child: ChildProcess, which: i64, into: u8[]) -> bool {
-    h :: win_handle(child, which)
+drain_pipe :: fn(pipe: Descriptor, into: u8[]) -> bool {
+    h :: pipe_handle_of(pipe)
     chunk: u8[]: [0] * DRAIN_CHUNK
     avail: u32[]: [0]
     got: u32[]: [0]
@@ -581,9 +608,9 @@ poll_exit :: fn(child: ChildProcess) -> i32 {
     if child.done {
         return child.exit_code
     }
-    out_eof :: if child.out_eof { true } else { drain_pipe(child, 1, child.out) }
-    err_eof :: if child.err_eof { true } else { drain_pipe(child, 2, child.err) }
-    proc :: win_handle(child, 0)
+    out_eof :: if child.out_eof { true } else { drain_pipe(child.out_pipe, child.out) }
+    err_eof :: if child.err_eof { true } else { drain_pipe(child.err_pipe, child.err) }
+    proc :: process_handle_of(child.process)
     if wait_for_single_object(proc, 0) != WAIT_OBJECT_0 {
         child.out_eof = out_eof
         child.err_eof = err_eof
@@ -592,15 +619,15 @@ poll_exit :: fn(child: ChildProcess) -> i32 {
     // Exited. Drain once more: the child can write and exit between the drain
     // above and the wait, and those bytes are still sitting in the pipe.
     if !out_eof {
-        drain_pipe(child, 1, child.out)
+        drain_pipe(child.out_pipe, child.out)
     }
     if !err_eof {
-        drain_pipe(child, 2, child.err)
+        drain_pipe(child.err_pipe, child.err)
     }
     code: u32[]: [0]
     got :: get_exit_code_process(proc, code)
-    close_handle(win_handle(child, 1))
-    close_handle(win_handle(child, 2))
+    close_handle(pipe_handle_of(child.out_pipe))
+    close_handle(pipe_handle_of(child.err_pipe))
     close_handle(proc)
     // A crash is `SIGNALED`, never its code: `poll` branches on `SIGNALED`
     // alone, and would read a large positive code as a clean run.
@@ -620,11 +647,11 @@ kill :: fn(child: ChildProcess) -> void {
     if child.done {
         return
     }
-    proc :: win_handle(child, 0)
+    proc :: process_handle_of(child.process)
     terminate_process(proc, 1)
     wait_for_single_object(proc, 2000)
-    close_handle(win_handle(child, 1))
-    close_handle(win_handle(child, 2))
+    close_handle(pipe_handle_of(child.out_pipe))
+    close_handle(pipe_handle_of(child.err_pipe))
     close_handle(proc)
     finish(child, SIGNALED)
 }
@@ -691,27 +718,15 @@ export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
 @target
 await_child :: fn(child: ChildProcess) -> void
 
-@target(.Linux, .Darwin)
+@target(.Linux, .Darwin, .Windows)
 await_child :: fn(child: ChildProcess) -> void {
     if !child.out_eof {
-        watch_readable(child.out_fd)
+        watch_readable(descriptor_word(child.out_pipe))
     }
     if !child.err_eof {
-        watch_readable(child.err_fd)
+        watch_readable(descriptor_word(child.err_pipe))
     }
-    watch_exit(child.pid)
-    park()
-}
-
-@target(.Windows)
-await_child :: fn(child: ChildProcess) -> void {
-    if !child.out_eof {
-        watch_readable(i64(child.handles[1]))
-    }
-    if !child.err_eof {
-        watch_readable(i64(child.handles[2]))
-    }
-    watch_exit(i64(child.handles[0]))
+    watch_exit(process_word(child.process))
     park()
 }
 
@@ -804,7 +819,6 @@ cannot_launch :: fn(program: string) -> ProcessError =
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/io"
 import "std/task"
 import "std/testing"
 

@@ -1,11 +1,11 @@
 // vader/vm/guest_threads: the virtual threads of the program the VM runs are
 // virtual threads of the host.
 //
-// The primitives of `std/runtime/scheduler` reach the host's own: a guest
-// thread runs on a thread of the host, with a register file of its own, and
-// parks with the interpreter's frames on its host stack, where the collector
-// reads them. The host's scheduler is the guest's, which numbers the guest
-// threads as the host does as long as the host starts none of its own.
+// The primitives of `std/runtime/scheduler` and `std/runtime/wait` reach the
+// host's own: a guest thread runs on a thread of the host, with a register file
+// of its own, and parks with the interpreter's frames on its host stack, where
+// the collector reads them. The host's scheduler is the guest's, which numbers
+// the guest threads as the host does as long as the host starts none of its own.
 //
 // A guest thread cancelled while it parks unwinds its host stack, whose defers
 // run the guest's pending defers on its register file. The host cancels the
@@ -26,6 +26,7 @@ import "std/collections"
 import "std/io"
 import "std/iter"
 import "std/runtime/scheduler"
+import "std/runtime/wait"
 import "std/sort"
 import "std/string"
 
@@ -60,8 +61,8 @@ GuestThreads :: struct {
 guest_threads :: fn() -> GuestThreads = GuestThreads {}
 
 // Serve `id` on `args` when it is a primitive of `std/runtime/scheduler`, which
-// the VM serves with its own state, or a wait of `std/io`, which parks too;
-// null for any other, which `dispatch_import` serves.
+// the VM serves with its own state, or a wait of `std/runtime/wait`, which parks
+// too; null for any other, which `dispatch_import` serves.
 // @partial: the other intrinsics park no thread.
 serve_thread_primitive :: fn(
     state: VmState,
@@ -77,8 +78,8 @@ serve_thread_primitive :: fn(
     .SchedSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
     .SchedWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
     .SchedWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
-    .IoWaitReadable     -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
-    .IoWaitReadableFor  -> serve_wait_readable_for(args, origin)
+    .WaitReadable       -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
+    .WaitReadableFor    -> serve_wait_readable_for(args, origin)
     .SchedCancel        -> cancel_guest_thread(args[0], origin)
     .SchedCurrent       -> HostOk { .value = I64Val(current_thread()) }
     _                   -> null

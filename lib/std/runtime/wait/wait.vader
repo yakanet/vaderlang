@@ -1,0 +1,30 @@
+// std/runtime/wait: the waits on a descriptor, in machine words.
+//
+// What `std/io` builds its waits on, and what the VM calls to serve the waits of
+// the program it runs. The runtime serves these, and under the VM the host serves
+// them with its own.
+//
+// Apart from `std/runtime/scheduler`: a program that loads the scheduler puts a
+// gate on every `@singleton` and every constant whose value runs code, and almost
+// every program loads `std/io` (ADR 0129). This module imports nothing.
+
+module "std/runtime/wait"
+
+/// Park the running thread until descriptor `fd` has input to read, or has
+/// reached its end, while the other threads run. With no other thread, it
+/// returns at once, and the read that follows waits on the system thread.
+///
+/// @param fd  a descriptor of the process. On Windows, 0 for stdin, else the
+///            read end of a pipe `create_watched_pipe` made, as its address.
+@intrinsic
+export wait_readable :: fn(fd: i64) -> void
+
+/// Park the running thread as `wait_readable` does, but no longer than `nanos`.
+/// With no other thread, it returns `true` at once, and the caller asks the
+/// system itself.
+///
+/// @param fd     a descriptor of the process, as `wait_readable` takes it.
+/// @param nanos  the longest wait; a negative one waits with no deadline.
+/// @return       `false` once `nanos` have passed with nothing to read on `fd`.
+@intrinsic
+export wait_readable_for :: fn(fd: i64, nanos: i64) -> bool

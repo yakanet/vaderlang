@@ -236,7 +236,7 @@ export dispatch_import :: fn(
     .RuntimeAllocations      -> { return HostOk { .value = I64Val(0) } }
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     .SchedSpawn | .SchedPark | .SchedWake | .SchedSleepFor | .SchedCancel | .SchedCurrent
-        | .SchedWatchReadable | .SchedWatchExit | .IoWaitReadable | .IoWaitReadableFor -> {
+        | .SchedWatchReadable | .SchedWatchExit | .WaitReadable | .WaitReadableFor -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
@@ -1246,7 +1246,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
     // A comptime evaluation treats threads as `vader run` does.
     .SchedSpawn | .SchedPark | .SchedWake | .SchedSleepFor | .SchedCancel | .SchedCurrent -> null
-    .SchedWatchReadable | .SchedWatchExit | .IoWaitReadable | .IoWaitReadableFor -> null
+    .SchedWatchReadable | .SchedWatchExit | .WaitReadable | .WaitReadableFor -> null
     .AbortPanic -> null
     .NotIntrinsic -> null
 }

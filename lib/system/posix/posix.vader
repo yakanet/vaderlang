@@ -15,6 +15,14 @@ export STDOUT :: 1
 /// Standard error's file descriptor.
 export STDERR :: 2
 
+/// A file descriptor: the system hands it out, a call takes it back, nothing
+/// computes with it. `std/io` holds one as a `Descriptor`.
+export Fd :: i32
+
+/// A process id, as `posix_spawn` hands it out and `waitpid` takes it back.
+/// `std/process` holds one as a `Process`.
+export Pid :: i32
+
 /// `write(2)`. Byte count written, or -1 with `errno` set.
 ///
 /// `i64`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here, and

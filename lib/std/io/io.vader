@@ -8,6 +8,7 @@
 module "std/io"
 
 import "std/env"
+Wait :: import "std/runtime/wait"
 import "std/target"
 import "system/darwin"
 import "system/posix"
@@ -432,23 +433,37 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
     return IOError { .msg = "stdin is not available on this target" }
 }
 
-/// Park the running task until descriptor `fd` has input to read, or has
-/// reached its end, while the other tasks run. With no other task, it returns
-/// at once, and the read that follows waits on the system thread.
+/// What a read takes from the system and gives back to it: a file descriptor
+/// on POSIX; on Windows, stdin as descriptor 0, else the read end of a pipe.
+/// Nothing computes with it: it converts to nothing, and compares with `==`.
+export Descriptor :: Fd | PipeHandle
+
+/// Standard input.
+export STDIN: Descriptor: Fd(0)
+
+/// Park the running task until `d` has input to read, or has reached its end,
+/// while the other tasks run. With no other task, it returns at once, and the
+/// read that follows waits on the system thread.
 ///
-/// @param fd  a descriptor of the process; on Windows, 0 for stdin.
-@intrinsic
-export wait_readable :: fn(fd: i64) -> void
+/// @param d  what to wait on; `STDIN` for standard input.
+export wait_readable :: fn(d: Descriptor) -> void = Wait.wait_readable(descriptor_word(d))
 
 /// Park the running task as `wait_readable` does, but no longer than `nanos`.
 /// With no other task, it returns `true` at once, and the caller asks the
 /// system itself.
 ///
-/// @param fd     a descriptor of the process; on Windows, 0 for stdin.
+/// @param d      what to wait on; `STDIN` for standard input.
 /// @param nanos  the longest wait; a negative one waits with no deadline.
-/// @return       `false` once `nanos` have passed with nothing to read on `fd`.
-@intrinsic
-export wait_readable_for :: fn(fd: i64, nanos: i64) -> bool
+/// @return       `false` once `nanos` have passed with nothing to read on `d`.
+export wait_readable_for :: fn(d: Descriptor, nanos: i64) -> bool =
+    Wait.wait_readable_for(descriptor_word(d), nanos)
+
+// The machine word a wait names `d` by: the descriptor, or the address of the
+// handle.
+descriptor_word :: fn(d: Descriptor) -> i64 = match d {
+    is Fd         -> i64(d)
+    is PipeHandle -> i64(d)
+}
 
 /// Attempts before giving up on a read that fails. A signal handler a program
 /// installed can interrupt a blocking read, which is then worth retrying; the
@@ -461,7 +476,7 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
     // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
     // in bursts, so a short return is normal and only `0` means end of file.
     for 0..<READ_ATTEMPTS {
-        wait_readable(0)
+        wait_readable(STDIN)
         got :: sys_read(0, buf, max)
         if got > 0 {
             return buf[0..<got]
@@ -475,7 +490,7 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 
 @target(.Windows)
 read_ready :: fn(max: i64) -> u8[] | IOError {
-    wait_readable(0)
+    wait_readable(STDIN)
     if stdin_is_console() {
         return read_console(max)
     }
@@ -531,7 +546,7 @@ read_console :: fn(max: i64) -> u8[] | IOError {
 // With another task, the wait returns once stdin reads, and the system then
 // answers at once; alone, it returns at once, and the system waits.
 export poll_stdin :: fn(timeout_ms: i32) -> bool =
-    wait_readable_for(0, i64(timeout_ms) * 1_000_000) && system_poll_stdin(timeout_ms)
+    wait_readable_for(STDIN, i64(timeout_ms) * 1_000_000) && system_poll_stdin(timeout_ms)
 
 // Ask the system whether stdin has data ready within `timeout_ms`, blocking
 // every task meanwhile.

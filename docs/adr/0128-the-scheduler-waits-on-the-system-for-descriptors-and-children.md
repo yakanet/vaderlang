@@ -4,6 +4,10 @@
 
 Accepted (2026-11-08). Amends 0127.
 
+**Amended by [0129](0129-a-system-identifier-is-a-union-of-its-members-per-os.md)
+(2026-11-08)**: the waits on a descriptor live in `std/runtime/wait`, in machine
+words, and `std/io` wraps them over a `Descriptor`.
+
 ## Context
 
 Tasks share one system thread (0127). A read of stdin blocked it, and every task
