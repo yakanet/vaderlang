@@ -64,7 +64,7 @@ const vader_type_info_t vader_type_info_table[11] = {
 };
 const size_t vader_type_info_count = 11;
 
-/* Headers named by `@c_header`: they own the prototypes below. */
+/* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
 
 /* User @extern foreign symbols, resolved by the linker. */

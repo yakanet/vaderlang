@@ -63,23 +63,23 @@ import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= par
 import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern getenv std_env$get_env headers=<stdlib.h> result_type=9 param_types=2 param_c_out= param_by_address= (string) -> any
-import 5 extern write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 6 extern opendir system_posix$sys_opendir headers=<dirent.h> result_type=19 param_types=2 param_c_out= param_by_address= (string) -> any
-import 7 extern closedir system_posix$sys_closedir headers=<dirent.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
-import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 9 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=4 param_types=18 param_c_out= param_by_address= (pointer) -> i64
-import 10 extern readdir system_posix$sys_readdir headers=<dirent.h> result_type=19 param_types=18 param_c_out= param_by_address= (pointer) -> any
-import 11 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=2 param_types=18 param_c_out= param_by_address= (pointer) -> string
-import 12 extern ferror system_posix$sys_ferror headers=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
-import 13 extern fopen system_posix$sys_fopen headers=<stdio.h> result_type=19 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
-import 14 extern fclose system_posix$sys_fclose headers=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
-import 15 extern fread system_posix$sys_fread headers=<stdio.h> result_type=4 param_types=7,4,4,18 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
-import 16 extern fwrite system_posix$sys_fwrite headers=<stdio.h> result_type=4 param_types=7,4,4,18 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
-import 17 extern unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<stdlib.h>,<sys/stat.h> result_type=19 param_types=2 param_c_out= param_by_address= (string) -> any
+import 6 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 8 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=4 param_types=18 param_c_out= param_by_address= (pointer) -> i64
+import 9 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<stdlib.h>,<sys/stat.h> result_type=19 param_types=18 param_c_out= param_by_address= (pointer) -> any
+import 10 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=2 param_types=18 param_c_out= param_by_address= (pointer) -> string
+import 11 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
+import 12 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=9 param_types=2 param_c_out= param_by_address= (string) -> any
+import 13 extern :fopen system_libc$sys_fopen headers=<stdio.h>,<stdlib.h> result_type=19 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
+import 14 extern :fclose system_libc$sys_fclose headers=<stdio.h>,<stdlib.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 15 extern :fread system_libc$sys_fread headers=<stdio.h>,<stdlib.h> result_type=4 param_types=7,4,4,18 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+import 16 extern :fwrite system_libc$sys_fwrite headers=<stdio.h>,<stdlib.h> result_type=4 param_types=7,4,4,18 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
+import 17 extern :ferror system_libc$sys_ferror headers=<stdio.h>,<stdlib.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
 impl 3 std_core$ByteAccess
 impl 11 std_core$Error
-vtable std_core$Error.message 11 24
+vtable std_core$Error.message 11 25
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -105,7 +105,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $arr_8
   local.get 1   ; path
   local.get 2   ; $arr_8
-  call 13   ; std_fs$write_file_bytes
+  call 14   ; std_fs$write_file_bytes
   local.tee 3   ; written
   type_check 20   ; ref std_core$Error
   if $L0 void
@@ -119,7 +119,7 @@ fn 0 snippet$main () -> i32
     return.lit i32.const 1
   end $L0
   call 10   ; std_env$temp_dir
-  call 14   ; std_fs$read_dir
+  call 15   ; std_fs$read_dir
   local.tee 3   ; written
   type_check 11   ; std_io$IOError
   if $L1 void
@@ -171,7 +171,7 @@ fn 0 snippet$main () -> i32
       local.get 4   ; $vcall_14
       call 1   ; concat_3
       i64.const 16777216
-      call 16   ; std_fs$read_file_bytes
+      call 17   ; std_fs$read_file_bytes
       type_check 11   ; std_io$IOError
       bool.not
       local.set 6   ; reopened
@@ -221,7 +221,7 @@ fn 0 snippet$main () -> i32
   call 3   ; std_core$finish_buffer
   call 9   ; std_console$println__string
   local.get 1   ; path
-  call 18   ; std_fs$remove_file
+  call 19   ; std_fs$remove_file
   drop
   return.lit i32.const 0
 end
@@ -409,14 +409,14 @@ fn 8 std_console$write_bytes (u8,ref,i64) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 5   ; system_posix$sys_write
+    call.import 4   ; system_posix$sys_write
     i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   i64.to_i32
   return
 end
@@ -435,7 +435,7 @@ end
 
 fn 10 std_env$temp_dir () -> string
   string.const 9   ; "TMPDIR"
-  call.import 4   ; std_env$get_env
+  call 12   ; std_env$get_env
   call 11   ; std_env$temp_dir_of
   return
 end
@@ -460,13 +460,19 @@ fn 11 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 12   ; std_env$without_trailing_sep
+    call 13   ; std_env$without_trailing_sep
     return
   end $L1
   return.lit string.const 11   ; "/tmp"
 end
 
-fn 12 std_env$without_trailing_sep (string) -> string
+fn 12 std_env$get_env (string) -> any
+  local.get 0   ; arg 0
+  call.import 12   ; system_libc$sys_getenv
+  return
+end
+
+fn 13 std_env$without_trailing_sep (string) -> string
   local trailing i64
   local i i64
   local __for_hi_0 i64
@@ -543,7 +549,7 @@ fn 12 std_env$without_trailing_sep (string) -> string
   return
 end
 
-fn 13 std_fs$write_file_bytes (string,ref) -> any
+fn 14 std_fs$write_file_bytes (string,ref) -> any
   local i i64
   local __for_hi_0 i64
   local f pointer
@@ -580,12 +586,12 @@ fn 13 std_fs$write_file_bytes (string,ref) -> any
   end $L0
   local.get 0   ; arg 0
   string.const 13   ; "wb"
-  call.import 13   ; system_posix$sys_fopen
+  call.import 13   ; system_libc$sys_fopen
   local.tee 5   ; __coalesce_1
   type_check 0   ; null
   if $L3 void
     string.const 14   ; "open failed"
-    call 20   ; std_io$last_io_error
+    call 21   ; std_io$last_io_error
     return
   end $L3
   local.get 5   ; __coalesce_1
@@ -603,7 +609,7 @@ fn 13 std_fs$write_file_bytes (string,ref) -> any
     i64.const 1
     local.get 2   ; i
     local.get 4   ; f
-    call.import 16   ; system_posix$sys_fwrite
+    call.import 16   ; system_libc$sys_fwrite
     local.set 2   ; i
     local.get 1   ; arg 1
     array.len
@@ -613,17 +619,17 @@ fn 13 std_fs$write_file_bytes (string,ref) -> any
     i64.ne
     if $L5 void
       string.const 15   ; "short write"
-      call 20   ; std_io$last_io_error
+      call 21   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      call.import 14   ; system_posix$sys_fclose
+      call.import 14   ; system_libc$sys_fclose
       drop
       local.get 6   ; err
       return
     end $L5
   end $L4
   local.get 4   ; f
-  call.import 14   ; system_posix$sys_fclose
+  call.import 14   ; system_libc$sys_fclose
   i32.const 0
   i32.ne
   if $L6 void
@@ -631,17 +637,17 @@ fn 13 std_fs$write_file_bytes (string,ref) -> any
     return.lit null.const
   end $L6
   string.const 16   ; "close failed"
-  call 20   ; std_io$last_io_error
+  call 21   ; std_io$last_io_error
   return
 end
 
-fn 14 std_fs$read_dir (string) -> any
+fn 15 std_fs$read_dir (string) -> any
   local d pointer
   local __coalesce_0 any
   local out ref
   local name string
   local.get 0   ; arg 0
-  call.import 6   ; system_posix$sys_opendir
+  call.import 5   ; system_posix$sys_opendir
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -658,20 +664,20 @@ fn 14 std_fs$read_dir (string) -> any
   ref.cast 18   ; pointer
   local.tee 1   ; d
   struct.new 14   ; __defer_env_std_fs_1
-  make_closure 15 21   ; __defer_std_fs_0 fn
+  make_closure 16 21   ; __defer_std_fs_0 fn
   defer.push
   array.new 13 0   ; string[]
   local.set 3   ; out
   loop $L1 void
     local.get 1   ; d
-    call.import 10   ; system_posix$sys_readdir
+    call.import 9   ; system_posix$sys_readdir
     local.tee 2   ; __coalesce_0
     type_check 0   ; null
     if $L2 void
     else
       local.get 2   ; __coalesce_0
       ref.cast 18   ; pointer
-      call.import 11   ; system_posix$dirent_name
+      call.import 10   ; system_posix$dirent_name
       local.tee 4   ; name
       string.const 19   ; "."
       string.ne
@@ -697,15 +703,15 @@ fn 14 std_fs$read_dir (string) -> any
   return
 end
 
-fn 15 __defer_std_fs_0 (ref) -> void
+fn 16 __defer_std_fs_0 (ref) -> void
   local.field 0 14 0   ; arg 0 __defer_env_std_fs_1.cap_0
   ref.cast 18   ; pointer
-  call.import 7   ; system_posix$sys_closedir
+  call.import 6   ; system_posix$sys_closedir
   drop
   return
 end
 
-fn 16 std_fs$read_file_bytes (string,i64) -> any
+fn 17 std_fs$read_file_bytes (string,i64) -> any
   local f pointer
   local __coalesce_0 any
   local out ref
@@ -725,19 +731,19 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
   local __result_6 ref
   local.get 0   ; arg 0
   string.const 21   ; "rb"
-  call.import 13   ; system_posix$sys_fopen
+  call.import 13   ; system_libc$sys_fopen
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     string.const 22   ; "cannot open file"
-    call 20   ; std_io$last_io_error
+    call 21   ; std_io$last_io_error
     return
   end $L0
   local.get 3   ; __coalesce_0
   ref.cast 18   ; pointer
   local.tee 2   ; f
   struct.new 16   ; __defer_env_std_fs_3
-  make_closure 17 21   ; __defer_std_fs_2 fn
+  make_closure 18 21   ; __defer_std_fs_2 fn
   defer.push
   array.new 7 0   ; u8[]
   local.set 4   ; out
@@ -754,7 +760,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
     i64.const 1
     local.get 6   ; $len_20
     local.get 2   ; f
-    call.import 15   ; system_posix$sys_fread
+    call.import 15   ; system_libc$sys_fread
     local.tee 7   ; n
     i64.const 0
     i64.gt
@@ -790,7 +796,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
     i64.lt
     if $L4 void
       local.get 2   ; f
-      call.import 12   ; system_posix$sys_ferror
+      call.import 17   ; system_libc$sys_ferror
       i32.const 0
       i32.ne
       if $L5 void
@@ -800,7 +806,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
         return
       end $L5
       string.const 24   ; "read failed"
-      call 20   ; std_io$last_io_error
+      call 21   ; std_io$last_io_error
       local.set 11   ; __result_3
       defer.pop_exec 1
       local.get 11   ; __result_3
@@ -815,9 +821,9 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
       br $L1
     end $L6
     local.get 2   ; f
-    call.import 9   ; system_posix$sys_stream_size
+    call.import 8   ; system_posix$sys_stream_size
     local.get 1   ; arg 1
-    call 19   ; std_fs$whole_buffer
+    call 20   ; std_fs$whole_buffer
     local.tee 3   ; __coalesce_0
     type_check 0   ; null
     if $L7 void
@@ -847,13 +853,13 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
     i64.const 1
     local.get 13   ; want
     local.get 2   ; f
-    call.import 15   ; system_posix$sys_fread
+    call.import 15   ; system_libc$sys_fread
     local.tee 15   ; got
     local.get 13   ; want
     i64.lt
     if $L8 void
       local.get 2   ; f
-      call.import 12   ; system_posix$sys_ferror
+      call.import 17   ; system_libc$sys_ferror
       i32.const 0
       i32.ne
       if $L9 void
@@ -872,7 +878,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
         return
       end $L9
       string.const 24   ; "read failed"
-      call 20   ; std_io$last_io_error
+      call 21   ; std_io$last_io_error
       local.set 16   ; __result_5
       defer.pop_exec 1
       local.get 16   ; __result_5
@@ -884,17 +890,17 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
   end $L1
 end
 
-fn 17 __defer_std_fs_2 (ref) -> void
+fn 18 __defer_std_fs_2 (ref) -> void
   local.field 0 16 0   ; arg 0 __defer_env_std_fs_3.cap_0
   ref.cast 18   ; pointer
-  call.import 14   ; system_posix$sys_fclose
+  call.import 14   ; system_libc$sys_fclose
   drop
   return
 end
 
-fn 18 std_fs$remove_file (string) -> any
+fn 19 std_fs$remove_file (string) -> any
   local.get 0   ; arg 0
-  call.import 17   ; system_posix$sys_unlink
+  call.import 11   ; system_posix$sys_unlink
   i32.const 0
   i32.ne
   if $L0 void
@@ -902,11 +908,11 @@ fn 18 std_fs$remove_file (string) -> any
     return.lit null.const
   end $L0
   string.const 25   ; "cannot remove file"
-  call 20   ; std_io$last_io_error
+  call 21   ; std_io$last_io_error
   return
 end
 
-fn 19 std_fs$whole_buffer (i64,i64) -> any
+fn 20 std_fs$whole_buffer (i64,i64) -> any
   local $arr_9 ref
   local $add_checked_11 i64
   local.get 0   ; arg 0
@@ -941,31 +947,31 @@ fn 19 std_fs$whole_buffer (i64,i64) -> any
   return.lit null.const
 end
 
-fn 20 std_io$last_io_error (string) -> ref
+fn 21 std_io$last_io_error (string) -> ref
   local e i32
   local $call_3 u8
-  call.import 8   ; system_posix$sys_last_errno
+  call.import 7   ; system_posix$sys_last_errno
   local.tee 1   ; e
-  call 22   ; std_io$errno_kind
+  call 23   ; std_io$errno_kind
   local.set 2   ; $call_3
   local.get 0   ; arg 0
   local.get 2   ; $call_3
   local.get 1   ; e
-  call 21   ; std_io$classified_error
+  call 22   ; std_io$classified_error
   return
 end
 
-fn 21 std_io$classified_error (string,u8,i32) -> ref
+fn 22 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 23   ; std_io$describe_io_error_kind
+  call 24   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 11   ; std_io$IOError
   return
 end
 
-fn 22 std_io$errno_kind (i32) -> u8
+fn 23 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -1069,7 +1075,7 @@ fn 22 std_io$errno_kind (i32) -> u8
   return.lit i32.const 12
 end
 
-fn 23 std_io$describe_io_error_kind (u8,string) -> string
+fn 24 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -1180,7 +1186,7 @@ fn 23 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 24 std_io$IOError$std_core$Error$message (ref) -> string
+fn 25 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 11 0   ; arg 0 std_io$IOError.msg
   ref.cast 2   ; string
   return

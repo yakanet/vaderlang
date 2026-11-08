@@ -54,7 +54,7 @@ data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f0
 import 0 byte_len std_core$byte_len result_type=13 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=24 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=24 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=6,24,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=6,24,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Display
 impl 3 std_core$Display
 impl 12 std_core$ByteAccess

@@ -55,7 +55,7 @@
   expr 32:31    IdentExpr      :: IOError
   expr 32:9     CallExpr       :: void
   expr 32:9     IdentExpr      :: fn(T) -> void
-  expr 337:62   IdentExpr      :: i64
+  expr 338:62   IdentExpr      :: i64
   expr 34:16    CallExpr       :: IOError | null
   expr 34:16    IdentExpr      :: fn(string) -> IOError | null
   expr 34:28    IdentExpr      :: string

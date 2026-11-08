@@ -38,7 +38,7 @@ import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,12,12 param_
 import 3 is_ascii std_core$is_ascii result_type=18 param_types=2 param_c_out= param_by_address= (string) -> bool
 import 4 bytes std_core$bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 5 hash std_core$string$Hash$hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 6 extern write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,19,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,19,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$IndexSet
 impl 11 std_core$ByteAccess
 impl 8 std_core$Index

@@ -43,7 +43,7 @@ data 2 structs 4 3 3 i32 00000000 strref 19 bool 00 i32 00000000 strref 20 bool 
 data 3 structs 4 3 3 i32 00000000 strref 22 bool 00 i32 00000000 strref 23 bool 00 i32 00000000 strref 24 bool 00
 import 0 byte_len std_core$byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 6 std_core$ByteAccess
 export main 2
 

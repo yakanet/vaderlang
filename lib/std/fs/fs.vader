@@ -7,6 +7,7 @@ module "std/fs"
 import "std/io"
 import "std/path"
 import "std/target"
+import "system/libc"
 import "system/posix"
 import "system/windows"
 

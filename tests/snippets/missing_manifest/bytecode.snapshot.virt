@@ -42,13 +42,13 @@ string 22 "bad file descriptor"
 import 0 byte_len std_core$byte_len result_type=3 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=7 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=7 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=2,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=2,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 5 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=3 param_types=14 param_c_out= param_by_address= (pointer) -> i64
-import 6 extern ferror system_posix$sys_ferror headers=<stdio.h> result_type=2 param_types=14 param_c_out= param_by_address= (pointer) -> i32
-import 7 extern fopen system_posix$sys_fopen headers=<stdio.h> result_type=15 param_types=1,1 param_c_out= param_by_address= (string,string) -> any
-import 8 extern fclose system_posix$sys_fclose headers=<stdio.h> result_type=2 param_types=14 param_c_out= param_by_address= (pointer) -> i32
-import 9 extern fread system_posix$sys_fread headers=<stdio.h> result_type=3 param_types=7,3,3,14 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+import 6 extern :fopen system_libc$sys_fopen headers=<stdio.h>,<stdlib.h> result_type=15 param_types=1,1 param_c_out= param_by_address= (string,string) -> any
+import 7 extern :fclose system_libc$sys_fclose headers=<stdio.h>,<stdlib.h> result_type=2 param_types=14 param_c_out= param_by_address= (pointer) -> i32
+import 8 extern :fread system_libc$sys_fread headers=<stdio.h>,<stdlib.h> result_type=3 param_types=7,3,3,14 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+import 9 extern :ferror system_libc$sys_ferror headers=<stdio.h>,<stdlib.h> result_type=2 param_types=14 param_c_out= param_by_address= (pointer) -> i32
 impl 4 std_core$ByteAccess
 impl 10 std_core$Error
 vtable std_core$Error.message 10 17
@@ -351,7 +351,7 @@ fn 10 std_fs$read_file_bytes (string,i64) -> any
   local __result_6 ref
   local.get 0   ; arg 0
   string.const 7   ; "rb"
-  call.import 7   ; system_posix$sys_fopen
+  call.import 6   ; system_libc$sys_fopen
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -380,7 +380,7 @@ fn 10 std_fs$read_file_bytes (string,i64) -> any
     i64.const 1
     local.get 6   ; $len_20
     local.get 2   ; f
-    call.import 9   ; system_posix$sys_fread
+    call.import 8   ; system_libc$sys_fread
     local.tee 7   ; n
     i64.const 0
     i64.gt
@@ -416,7 +416,7 @@ fn 10 std_fs$read_file_bytes (string,i64) -> any
     i64.lt
     if $L4 void
       local.get 2   ; f
-      call.import 6   ; system_posix$sys_ferror
+      call.import 9   ; system_libc$sys_ferror
       i32.const 0
       i32.ne
       if $L5 void
@@ -473,13 +473,13 @@ fn 10 std_fs$read_file_bytes (string,i64) -> any
     i64.const 1
     local.get 13   ; want
     local.get 2   ; f
-    call.import 9   ; system_posix$sys_fread
+    call.import 8   ; system_libc$sys_fread
     local.tee 15   ; got
     local.get 13   ; want
     i64.lt
     if $L8 void
       local.get 2   ; f
-      call.import 6   ; system_posix$sys_ferror
+      call.import 9   ; system_libc$sys_ferror
       i32.const 0
       i32.ne
       if $L9 void
@@ -513,7 +513,7 @@ end
 fn 11 __defer_std_fs_0 (ref) -> void
   local.field 0 12 0   ; arg 0 __defer_env_std_fs_1.cap_0
   ref.cast 14   ; pointer
-  call.import 8   ; system_posix$sys_fclose
+  call.import 7   ; system_libc$sys_fclose
   drop
   return
 end

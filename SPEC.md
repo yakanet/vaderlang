@@ -3444,6 +3444,8 @@ Anything else is an error, reported where the evaluation stopped. The fields:
 - `archives`: static archives shipped with the binding, relative to the declaring module. A missing one stops the build before the C compiler runs, naming the path.
 - `system`: platform libraries by name (`"GL"` links `-lGL`) and Apple frameworks by bundle name (`"Cocoa.framework"` links `-framework Cocoa`).
 
+`system/libc` declares `LIBC`, the C standard library. Every process already holds it, so its `name` is empty: `@extern(LIBC, "getenv")`.
+
 A native build adds a library's flags only when the program reaches one of its functions, and compiles each library's calls with its own headers alone, so headers declaring the same names (`Rectangle` in `raylib.h` and `<windows.h>`) bind in one program.
 
 A library is its `name`: two constants of one name describe the same binary, and it is an error when they do not.

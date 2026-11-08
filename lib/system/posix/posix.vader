@@ -7,7 +7,50 @@ import "std/target"
 
 /// The runtime's own accessors (`runtime/c/rt/`): no library to open, the
 /// interpreter finds them in the running process, and `vader.h` declares them.
-VADER_RUNTIME :: CLibrary { .name = "", .headers = ["vader.h"] }
+VADER_RUNTIME :: CLibrary {
+    .name = "",
+    .headers = ["vader.h"],
+}
+
+// POSIX, one `CLibrary` per family of headers: a program includes the headers
+// of the families it reaches, so one `write` brings `<unistd.h>` alone. No
+// library to open, the process has them. Only Linux and Darwin bodies reach
+// them, so a Windows build never sees `<spawn.h>` or `<termios.h>`. What ISO C
+// declares is in `system/libc`.
+UNISTD :: CLibrary {
+    .name = "",
+    .headers = ["<unistd.h>"],
+}
+
+FILE_SYSTEM :: CLibrary {
+    .name = "",
+    .headers = ["<dirent.h>", "<stdlib.h>", "<sys/stat.h>"],
+}
+
+SPAWN :: CLibrary {
+    .name = "",
+    .headers = ["<signal.h>", "<spawn.h>", "<string.h>", "<sys/wait.h>"],
+}
+
+TERMINAL :: CLibrary {
+    .name = "",
+    .headers = ["<sys/ioctl.h>", "<termios.h>"],
+}
+
+POLL :: CLibrary {
+    .name = "",
+    .headers = ["<poll.h>"],
+}
+
+CLOCK :: CLibrary {
+    .name = "",
+    .headers = ["<time.h>"],
+}
+
+RESOURCE :: CLibrary {
+    .name = "",
+    .headers = ["<sys/resource.h>"],
+}
 
 /// Standard output's file descriptor.
 export STDOUT :: 1
@@ -27,8 +70,7 @@ export Pid :: i32
 ///
 /// `i64`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here, and
 /// `cc` would narrow it to a smaller Vader result without a word, header or not.
-@c_header("<unistd.h>")
-@extern("write")
+@extern(UNISTD, "write")
 export sys_write :: fn(fd: i32, buf: u8[], count: i64) -> i64
 
 /// `CLOCK_REALTIME`: the wall clock.
@@ -45,15 +87,13 @@ export CLOCK_MONOTONIC: i32: if VADER_OS == .Darwin { 6 } else { 1 }
 ///
 /// @param path  the directory to open.
 /// @return      a `DIR*`, or null.
-@c_header("<dirent.h>")
-@extern("opendir")
+@extern(FILE_SYSTEM, "opendir")
 export sys_opendir :: fn(path: string) -> CPointer | null
 
 /// `closedir(3)`. Pairs with `sys_opendir`.
 ///
 /// @param dir  the handle `sys_opendir` returned.
-@c_header("<dirent.h>")
-@extern("closedir")
+@extern(FILE_SYSTEM, "closedir")
 export sys_closedir :: fn(dir: CPointer) -> i32
 
 /// `errno` values `std/io` classifies.
@@ -148,8 +188,7 @@ export PATH_OTHER: i32: 3
 ///
 /// @param dir  the handle `sys_opendir` returned.
 /// @return     a `struct dirent*`, or null at the end.
-@c_header("<dirent.h>")
-@extern("readdir")
+@extern(FILE_SYSTEM, "readdir")
 export sys_readdir :: fn(dir: CPointer) -> CPointer | null
 
 /// The `d_name` of a `struct dirent`, as a Vader string.
@@ -171,17 +210,6 @@ export sys_readdir :: fn(dir: CPointer) -> CPointer | null
 @extern(VADER_RUNTIME, "vader_dirent_name")
 export dirent_name :: fn(ent: CPointer) -> string
 
-/// `ferror(3)`. Non-zero once the stream's error indicator is set.
-///
-/// A short `fread` means end of file OR an error, and the count cannot tell
-/// them apart -- this is what separates them.
-///
-/// @param stream  the `FILE*`.
-/// @return        non-zero if the stream is in error.
-@c_header("<stdio.h>")
-@extern("ferror")
-export sys_ferror :: fn(stream: CPointer) -> i32
-
 /// `read(2)`. Returns the byte count, `0` at end of file, `-1` on error, and
 /// a SHORT read is not an error: a pipe hands over what has arrived so far, so
 /// a caller wanting `n` bytes loops until it has them.
@@ -190,8 +218,7 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 /// @param buf    receives the bytes.
 /// @param count  how many to ask for, at most `buf.len()`.
 /// @return       bytes read, `0` at EOF, `-1` on error.
-@c_header("<unistd.h>")
-@extern("read")
+@extern(UNISTD, "read")
 export sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 
 /// `struct pollfd`: one descriptor and what to watch it for.
@@ -217,7 +244,7 @@ export Pollfd :: struct {
 /// Darwin (the type is a bare `void*`) and 80 on glibc: the same on x86_64,
 /// aarch64 and musl.
 ///
-/// ⚠️ Do NOT narrow this to what one system reports.
+/// Do NOT narrow this to what one system reports.
 export SPAWN_ACTIONS_BYTES: i64: 128
 
 /// `WNOHANG`: return immediately rather than waiting. 1 on both systems.
@@ -230,37 +257,32 @@ export SIGKILL: i32: 9
 ///
 /// @param fds  a two-element array the call writes into.
 /// @return     0 on success, -1 on failure.
-@c_header("<unistd.h>")
-@extern("pipe")
+@extern(UNISTD, "pipe")
 export sys_pipe :: fn(@c_out fds: i32[]) -> i32
 
 /// `close(2)`.
 ///
 /// @param fd  the descriptor to close.
-@c_header("<unistd.h>")
-@extern("close")
+@extern(UNISTD, "close")
 export sys_close :: fn(fd: i32) -> i32
 
 /// `posix_spawn_file_actions_init(3)`.
 ///
 /// @param actions  `SPAWN_ACTIONS_BYTES` of scratch.
-@c_header("<spawn.h>")
-@extern("posix_spawn_file_actions_init")
+@extern(SPAWN, "posix_spawn_file_actions_init")
 export sys_spawn_actions_init :: fn(@c_out actions: u8[]) -> i32
 
 /// `posix_spawn_file_actions_destroy(3)`. Pairs with the init.
 ///
 /// @param actions  the buffer the init filled.
-@c_header("<spawn.h>")
-@extern("posix_spawn_file_actions_destroy")
+@extern(SPAWN, "posix_spawn_file_actions_destroy")
 export sys_spawn_actions_destroy :: fn(@c_out actions: u8[]) -> i32
 
 /// `posix_spawn_file_actions_addclose(3)`: close `fd` in the child.
 ///
 /// @param actions  the actions buffer.
 /// @param fd       the descriptor to close after the fork.
-@c_header("<spawn.h>")
-@extern("posix_spawn_file_actions_addclose")
+@extern(SPAWN, "posix_spawn_file_actions_addclose")
 export sys_spawn_actions_addclose :: fn(@c_out actions: u8[], fd: i32) -> i32
 
 /// `posix_spawn_file_actions_adddup2(3)`: `dup2(fd, newfd)` in the child.
@@ -268,8 +290,7 @@ export sys_spawn_actions_addclose :: fn(@c_out actions: u8[], fd: i32) -> i32
 /// @param actions  the actions buffer.
 /// @param fd       the source descriptor.
 /// @param newfd    where it lands in the child.
-@c_header("<spawn.h>")
-@extern("posix_spawn_file_actions_adddup2")
+@extern(SPAWN, "posix_spawn_file_actions_adddup2")
 export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32) -> i32
 
 /// `posix_spawnp(3)`: launch `file`, resolved through `PATH`.
@@ -281,8 +302,7 @@ export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32
 /// @param argv     a NULL-terminated vector of `char*`, as `i64` words.
 /// @param envp     `sys_environ()`.
 /// @return         0 on success, an errno value otherwise.
-@c_header("<spawn.h>")
-@extern("posix_spawnp")
+@extern(SPAWN, "posix_spawnp")
 export sys_posix_spawnp :: fn(@c_out pid: i32[], file: string, actions: u8[],
                               attrp: CPointer | null, argv: u64[], envp: CPointer) -> i32
 
@@ -293,16 +313,14 @@ export sys_posix_spawnp :: fn(@c_out pid: i32[], file: string, actions: u8[],
 /// @param options  `WNOHANG` to poll rather than block.
 /// @return         the pid when it changed state, 0 under `WNOHANG` while it
 ///                 still runs, -1 on error.
-@c_header("<sys/wait.h>")
-@extern("waitpid")
+@extern(SPAWN, "waitpid")
 export sys_waitpid :: fn(pid: i32, @c_out status: i32[], options: i32) -> i32
 
 /// `kill(2)`.
 ///
 /// @param pid  the process to signal.
 /// @param sig  the signal number.
-@c_header("<signal.h>")
-@extern("kill")
+@extern(SPAWN, "kill")
 export sys_kill :: fn(pid: i32, sig: i32) -> i32
 
 /// `strdup(3)`: a heap copy of `s`, owned by the caller.
@@ -311,16 +329,8 @@ export sys_kill :: fn(pid: i32, sig: i32) -> i32
 ///
 /// @param s  the string to copy.
 /// @return   a `char*` the caller frees with `sys_free`.
-@c_header("<string.h>")
-@extern("strdup")
+@extern(SPAWN, "strdup")
 export sys_strdup :: fn(s: string) -> CPointer
-
-/// `free(3)`. Releases what `sys_strdup` returned.
-///
-/// @param p  the pointer to release.
-@c_header("<stdlib.h>")
-@extern("free")
-export sys_free :: fn(p: CPointer) -> void
 
 /// The process environment, for `sys_posix_spawnp`.
 ///
@@ -349,8 +359,7 @@ export POLLIN: i16: 1
 ///                    the upper bits.
 /// @param timeout_ms  milliseconds, negative to block.
 /// @return            how many descriptors are ready, 0 on timeout, -1 on error.
-@c_header("<poll.h>")
-@extern("poll")
+@extern(POLL, "poll")
 export sys_poll_one :: fn(@c_pointer @c_out fds: Pollfd, nfds: u64, timeout_ms: i32) -> i32
 
 /// Bytes to reserve for a `struct termios`. The LARGER of the measured sizes,
@@ -381,8 +390,7 @@ export TCSAFLUSH: i32: 2
 /// @param fd   the descriptor: 0 for stdin.
 /// @param buf  receives the state.
 /// @return     0 on success, -1 otherwise.
-@c_header("<termios.h>")
-@extern("tcgetattr")
+@extern(TERMINAL, "tcgetattr")
 export sys_tcgetattr :: fn(fd: i32, @c_out buf: u8[]) -> i32
 
 /// `tcsetattr(3)`. Applies a state read by `sys_tcgetattr`.
@@ -391,8 +399,7 @@ export sys_tcgetattr :: fn(fd: i32, @c_out buf: u8[]) -> i32
 /// @param action  when to apply it: `TCSAFLUSH` here.
 /// @param buf     the state to install.
 /// @return        0 on success, -1 otherwise.
-@c_header("<termios.h>")
-@extern("tcsetattr")
+@extern(TERMINAL, "tcsetattr")
 export sys_tcsetattr :: fn(fd: i32, action: i32, buf: u8[]) -> i32
 
 /// `cfmakeraw(3)`. Turns a state into the raw one, in place.
@@ -401,8 +408,7 @@ export sys_tcsetattr :: fn(fd: i32, action: i32, buf: u8[]) -> i32
 /// happens in C. It is MORE aggressive than a hand-rolled raw mode: it also
 /// clears `OPOST`, so `\n` no longer returns the carriage and a caller must write
 /// `\r\n` itself.
-@c_header("<termios.h>")
-@extern("cfmakeraw")
+@extern(TERMINAL, "cfmakeraw")
 export sys_cfmakeraw :: fn(@c_out buf: u8[]) -> void
 
 /// `struct winsize`: the terminal size `TIOCGWINSZ` fills in.
@@ -423,20 +429,19 @@ export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 
 /// `ioctl(2)` for `TIOCGWINSZ`. 0 on success, -1 otherwise.
 ///
-/// `ioctl` is variadic; `@c_header` brings the real prototype, so the shim's
+/// `ioctl` is variadic; `<sys/ioctl.h>` brings the real prototype, so the shim's
 /// three-argument call is ordinary C rather than a redeclaration.
 ///
 /// @param fd       the descriptor to ask about: 1 for stdout.
 /// @param request  always `TIOCGWINSZ` here.
 /// @param ws       receives the size.
-@c_header("<sys/ioctl.h>")
 // `int ioctl(int, unsigned long, ...)`: the third argument is VARIADIC, and
 // two are fixed. Unmarked, the interpreter casts to a non-variadic prototype;
 // on darwin-arm64 variadic arguments travel on the STACK, so the callee reads
 // an uninitialised word and the kernel writes eight bytes through it while
 // reporting success.
 @c_variadic(2)
-@extern("ioctl")
+@extern(TERMINAL, "ioctl")
 export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_pointer @c_out ws: Winsize) -> i32
 
 /// `_SC_NPROCESSORS_ONLN`: the processors currently online. The value is not
@@ -447,62 +452,26 @@ export SC_NPROCESSORS_ONLN: i32: if VADER_OS == .Darwin { 58 } else { 84 }
 /// `errno` set: an unknown `name` is `EINVAL`.
 ///
 /// @param name  one of the `SC_*` selectors.
-@c_header("<unistd.h>")
-@extern("sysconf")
+@extern(UNISTD, "sysconf")
 export sys_sysconf :: fn(name: i32) -> i64
 
 /// `isatty(3)`. Whether `fd` refers to a terminal.
 ///
 /// @param fd  the descriptor: 1 for stdout, 2 for stderr.
 /// @return    1 when it is a terminal, 0 otherwise.
-@c_header("<unistd.h>")
-@extern("isatty")
+@extern(UNISTD, "isatty")
 export sys_isatty :: fn(fd: i32) -> i32
 
 /// `readlink(2)`. Bytes placed in `buf` (NOT NUL-terminated) or -1.
 ///
 /// Linux reads the running binary's path from `/proc/self/exe`.
-@c_header("<unistd.h>")
-@extern("readlink")
+@extern(UNISTD, "readlink")
 export sys_readlink :: fn(path: string, @c_out buf: u8[], size: i64) -> i64
 
 /// `realpath(3)`. Writes the canonical path into `resolved` and returns it, or
 /// null on failure. `resolved` must hold at least `PATH_MAX` bytes.
-@c_header("<stdlib.h>")
-@extern("realpath")
+@extern(FILE_SYSTEM, "realpath")
 export sys_realpath :: fn(path: string, @c_out resolved: u8[]) -> CPointer | null
-
-/// `fopen(3)`. A stream handle, or null when the file cannot be opened.
-///
-/// `stdio` rather than `open(2)`: the mode is a STRING, so nothing here has to
-/// know the numeric value of `O_CREAT`, which is 512 on Darwin and 64 on Linux.
-/// Reading proceeds until end of file, so `SEEK_END` is not needed either.
-///
-/// @param path  the file to open.
-/// @param mode  `"rb"` or `"wb"`.
-@c_header("<stdio.h>")
-@extern("fopen")
-export sys_fopen :: fn(path: string, mode: string) -> CPointer | null
-
-/// `fclose(3)`. 0 on success.
-@c_header("<stdio.h>")
-@extern("fclose")
-export sys_fclose :: fn(stream: CPointer) -> i32
-
-/// `fread(3)`. The number of ITEMS read: short at end of file.
-///
-/// @param buf     receives the bytes.
-/// @param size    item size in bytes; 1 to read bytes.
-/// @param count   how many items to read.
-/// @param stream  an open stream.
-@c_header("<stdio.h>")
-@extern("fread")
-export sys_fread :: fn(@c_out buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
-
-/// `fwrite(3)`. The number of items written; short means failure.
-@c_header("<stdio.h>")
-@extern("fwrite")
-export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
 
 /// `getcwd(3)`. Fills `buf` with the working directory, NUL-terminated, and
 /// returns it, or null when `buf` is too small or the directory is unreadable.
@@ -510,8 +479,7 @@ export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i
 ///
 /// @param buf   receives the path.
 /// @param size  `buf`'s capacity in bytes.
-@c_header("<unistd.h>")
-@extern("getcwd")
+@extern(UNISTD, "getcwd")
 export sys_getcwd :: fn(@c_out buf: u8[], size: i64) -> CPointer | null
 
 /// The bytes of `buf` before its first NUL, as a string: how a C call that
@@ -532,8 +500,7 @@ export up_to_nul :: fn(buf: u8[]) -> string {
 /// `chdir(2)`. 0 on success, -1 with `errno` set.
 ///
 /// @param path  the new working directory.
-@c_header("<unistd.h>")
-@extern("chdir")
+@extern(UNISTD, "chdir")
 export sys_chdir :: fn(path: string) -> i32
 
 /// `mkdir(2)`. 0 on success, -1 with `errno` set: `EEXIST` included, which is
@@ -541,8 +508,7 @@ export sys_chdir :: fn(path: string) -> i32
 ///
 /// @param path  directory to create.
 /// @param mode  permission bits, masked by the process umask.
-@c_header("<sys/stat.h>")
-@extern("mkdir")
+@extern(FILE_SYSTEM, "mkdir")
 // `mode_t` is 2 bytes on Darwin and 4 on Linux, and neither is spellable per
 // target: same shape as `nfds_t` on `sys_poll_one`. Passing the wider one is
 // ABI-correct here because a permission mask uses the low bits and an argument
@@ -556,29 +522,25 @@ export F_OK :: 0
 ///
 /// `F_OK` answers existence without a `struct stat`, which is why `exists` uses
 /// it: no C struct has to be mirrored to ask the only question being asked.
-@c_header("<unistd.h>")
-@extern("access")
+@extern(UNISTD, "access")
 export sys_access :: fn(path: string, mode: i32) -> i32
 
 /// `unlink(2)`. 0 on success, -1 with `errno` set.
 ///
 /// NOT `remove(3)`: on POSIX that falls back to `rmdir` for a directory, so an
 /// empty one would vanish through a call named remove_FILE.
-@c_header("<unistd.h>")
-@extern("unlink")
+@extern(UNISTD, "unlink")
 export sys_unlink :: fn(path: string) -> i32
 
 /// `clock_gettime(2)`. Fills `ts`: two cells standing in for `struct timespec`,
 /// both members being 64-bit here: with seconds then nanoseconds. -1 on failure.
-@c_header("<time.h>")
-@extern("clock_gettime")
+@extern(CLOCK, "clock_gettime")
 export sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 
 /// `nanosleep(2)`. `req` and `rem` stand in for a `struct timespec` each, as for
 /// `sys_clock_gettime`. 0 once `req` has elapsed; -1 with `errno` set, and `rem`
 /// holding what is left, when a signal cut the wait short (`EINTR`).
-@c_header("<time.h>")
-@extern("nanosleep")
+@extern(CLOCK, "nanosleep")
 export sys_nanosleep :: fn(req: i64[], @c_out rem: i64[]) -> i32
 
 // ---- resource usage -------------------------------------------------------
@@ -602,8 +564,7 @@ export RU_MAXRSS_UNIT: i64: if VADER_OS == .Darwin { 1 } else { 1024 }
 /// `usage` stands in for a `struct rusage`, `RUSAGE_CELLS` long: a mirror would
 /// have to start with the two `struct timeval`, whose `tv_usec` is 4 bytes on
 /// Darwin and 8 on Linux, while the cells line up on both.
-@c_header("<sys/resource.h>")
-@extern("getrusage")
+@extern(RESOURCE, "getrusage")
 export sys_getrusage :: fn(who: i32, @c_out usage: i64[]) -> i32
 
 /// `_SC_PAGESIZE`: the size of a memory page, in bytes. The value is not

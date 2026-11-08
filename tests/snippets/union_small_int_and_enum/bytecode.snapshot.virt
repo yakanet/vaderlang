@@ -46,7 +46,7 @@ string 10 "alias text"
 import 0 byte_len std_core$byte_len result_type=15 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=25 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 hash std_core$string$Hash$hash result_type=16 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write headers=<unistd.h> result_type=15 param_types=7,25,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=15 param_types=7,25,15 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 8 snippet$Shower
 impl 14 std_core$ByteAccess
 impl 26 std_core$Index

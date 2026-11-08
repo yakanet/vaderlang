@@ -39,7 +39,7 @@ data 0 u64 hex"5ad63b92d653f4ee3f3ba10629aa3f11f865651b66b4589507c524a459cac74a7
 import 0 byte_len std_core$byte_len result_type=13 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=9 param_types=2,13 param_c_out= param_by_address= (string,i64) -> u8
 import 2 bytes std_core$bytes result_type=16 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=1,16,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=1,16,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 11 std_core$Mul
 impl 11 std_core$Div
 impl 15 std_core$ByteAccess

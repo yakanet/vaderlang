@@ -85,7 +85,7 @@ const vader_type_info_t vader_type_info_table[13] = {
 };
 const size_t vader_type_info_count = 13;
 
-/* Headers named by `@c_header`: they own the prototypes below. */
+/* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <stdlib.h>
 #include <unistd.h>
 

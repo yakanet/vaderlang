@@ -62,6 +62,7 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     struct std.core.Buffer  // std_core$Buffer
   std/env
+    fn std.env.get_env  // std_env$get_env
     fn std.env.temp_dir  // std_env$temp_dir
     fn std.env.temp_dir_of  // std_env$temp_dir_of
     fn std.env.without_trailing_sep  // std_env$without_trailing_sep

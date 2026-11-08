@@ -43,7 +43,7 @@ string 24 "assert_lt failed: expected "
 string 25 " < "
 import 0 byte_len std_core$byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=14 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=2,14,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=2,14,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 panic std_abort$panic result_type=15 param_types=3 param_c_out= param_by_address= (string) -> void
 impl 5 std_core$ByteAccess
 vtable std_core$Comparable.compare 7 9

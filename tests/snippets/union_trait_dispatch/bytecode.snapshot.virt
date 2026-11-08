@@ -72,7 +72,7 @@ import 3 is_ascii std_core$is_ascii result_type=18 param_types=7 param_c_out= pa
 import 4 bytes_to_string std_core$bytes_to_string result_type=7 param_types=37 param_c_out= param_by_address= (ref) -> string
 import 5 bytes std_core$bytes result_type=37 param_types=7 param_c_out= param_by_address= (string) -> ref
 import 6 hash std_core$string$Hash$hash result_type=28 param_types=7 param_c_out= param_by_address= (string) -> u64
-import 7 extern write system_posix$sys_write headers=<unistd.h> result_type=17 param_types=6,37,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=17 param_types=6,37,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 snippet$Shape
 impl 3 snippet$Shape
 impl 9 std_core$IndexSet

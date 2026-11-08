@@ -19,6 +19,7 @@ import "std/env"
 import "std/io"
 import "std/numbers"
 import "std/runtime/scheduler"
+import "system/libc"
 import "system/posix"
 import "system/windows"
 

@@ -13,7 +13,7 @@ type 10 struct snippet_feet$Length { feet:2 }
 string 0 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=8 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=2,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$ByteAccess
 impl 10 std_core$Into
 export main 1

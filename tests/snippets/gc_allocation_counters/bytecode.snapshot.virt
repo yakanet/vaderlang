@@ -19,7 +19,7 @@ import 1 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_
 import 2 allocated_bytes std_runtime$allocated_bytes result_type=4 () -> i64
 import 3 allocations std_runtime$allocations result_type=4 () -> i64
 import 4 count_allocations std_runtime$count_allocations result_type=8 () -> void
-import 5 extern write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$ByteAccess
 export main 0
 

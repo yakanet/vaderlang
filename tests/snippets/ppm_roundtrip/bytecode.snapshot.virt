@@ -82,21 +82,21 @@ import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= par
 import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern getenv std_env$get_env headers=<stdlib.h> result_type=10 param_types=2 param_c_out= param_by_address= (string) -> any
-import 5 extern write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,8,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 7 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=4 param_types=16 param_c_out= param_by_address= (pointer) -> i64
-import 8 extern ferror system_posix$sys_ferror headers=<stdio.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
-import 9 extern fopen system_posix$sys_fopen headers=<stdio.h> result_type=23 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
-import 10 extern fclose system_posix$sys_fclose headers=<stdio.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
-import 11 extern fread system_posix$sys_fread headers=<stdio.h> result_type=4 param_types=8,4,4,16 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
-import 12 extern fwrite system_posix$sys_fwrite headers=<stdio.h> result_type=4 param_types=8,4,4,16 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,8,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 6 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=4 param_types=16 param_c_out= param_by_address= (pointer) -> i64
+import 7 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=10 param_types=2 param_c_out= param_by_address= (string) -> any
+import 8 extern :fopen system_libc$sys_fopen headers=<stdio.h>,<stdlib.h> result_type=23 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
+import 9 extern :fclose system_libc$sys_fclose headers=<stdio.h>,<stdlib.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
+import 10 extern :fread system_libc$sys_fread headers=<stdio.h>,<stdlib.h> result_type=4 param_types=8,4,4,16 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+import 11 extern :fwrite system_libc$sys_fwrite headers=<stdio.h>,<stdlib.h> result_type=4 param_types=8,4,4,16 param_c_out= param_by_address= (ref,i64,i64,pointer) -> i64
+import 12 extern :ferror system_libc$sys_ferror headers=<stdio.h>,<stdlib.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
 impl 3 std_core$ByteAccess
 impl 19 std_core$Error
 impl 17 std_core$Display
 impl 12 std_core$Error
-vtable std_core$Error.message 19 25
-vtable std_core$Error.message 12 31
+vtable std_core$Error.message 19 26
+vtable std_core$Error.message 12 32
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -134,7 +134,7 @@ fn 0 snippet$main () -> i32
   i32.const 255
   local.get 1   ; px
   struct.new 17   ; images_ppm$Ppm
-  call 18   ; images_ppm$encode
+  call 19   ; images_ppm$encode
   local.tee 2   ; enc
   type_check 19   ; images_ppm$PpmError
   if $L0 void
@@ -147,7 +147,7 @@ fn 0 snippet$main () -> i32
   local.set 3   ; $cast_28
   local.get 0   ; path
   local.get 3   ; $cast_28
-  call 14   ; std_fs$write_file_bytes
+  call 15   ; std_fs$write_file_bytes
   local.tee 2   ; enc
   type_check 24   ; ref std_core$Error
   if $L1 void
@@ -165,7 +165,7 @@ fn 0 snippet$main () -> i32
   end $L1
   local.get 0   ; path
   i64.const 16777216
-  call 15   ; std_fs$read_file_bytes
+  call 16   ; std_fs$read_file_bytes
   local.tee 2   ; enc
   type_check 24   ; ref std_core$Error
   if $L2 void
@@ -180,7 +180,7 @@ fn 0 snippet$main () -> i32
   end $L2
   local.get 2   ; enc
   ref.cast 8   ; u8[]
-  call 19   ; images_ppm$decode
+  call 20   ; images_ppm$decode
   local.tee 2   ; enc
   type_check 19   ; images_ppm$PpmError
   if $L3 void
@@ -272,7 +272,7 @@ fn 0 snippet$main () -> i32
   end $L7
   local.get 2   ; enc
   ref.cast 17   ; images_ppm$Ppm
-  call 26   ; images_ppm$Ppm$std_core$Display$to_string
+  call 27   ; images_ppm$Ppm$std_core$Display$to_string
   call 10   ; std_console$println__string
   local.get 5   ; ok
   if $L10 void
@@ -669,14 +669,14 @@ fn 9 std_console$write_bytes (u8,ref,i64) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 5   ; system_posix$sys_write
+    call.import 4   ; system_posix$sys_write
     i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   i64.to_i32
   return
 end
@@ -695,7 +695,7 @@ end
 
 fn 11 std_env$temp_dir () -> string
   string.const 10   ; "TMPDIR"
-  call.import 4   ; std_env$get_env
+  call 13   ; std_env$get_env
   call 12   ; std_env$temp_dir_of
   return
 end
@@ -720,13 +720,19 @@ fn 12 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 13   ; std_env$without_trailing_sep
+    call 14   ; std_env$without_trailing_sep
     return
   end $L1
   return.lit string.const 12   ; "/tmp"
 end
 
-fn 13 std_env$without_trailing_sep (string) -> string
+fn 13 std_env$get_env (string) -> any
+  local.get 0   ; arg 0
+  call.import 7   ; system_libc$sys_getenv
+  return
+end
+
+fn 14 std_env$without_trailing_sep (string) -> string
   local trailing i64
   local i i64
   local __for_hi_0 i64
@@ -803,7 +809,7 @@ fn 13 std_env$without_trailing_sep (string) -> string
   return
 end
 
-fn 14 std_fs$write_file_bytes (string,ref) -> any
+fn 15 std_fs$write_file_bytes (string,ref) -> any
   local i i64
   local __for_hi_0 i64
   local f pointer
@@ -840,12 +846,12 @@ fn 14 std_fs$write_file_bytes (string,ref) -> any
   end $L0
   local.get 0   ; arg 0
   string.const 14   ; "wb"
-  call.import 9   ; system_posix$sys_fopen
+  call.import 8   ; system_libc$sys_fopen
   local.tee 5   ; __coalesce_1
   type_check 0   ; null
   if $L3 void
     string.const 15   ; "open failed"
-    call 27   ; std_io$last_io_error
+    call 28   ; std_io$last_io_error
     return
   end $L3
   local.get 5   ; __coalesce_1
@@ -863,7 +869,7 @@ fn 14 std_fs$write_file_bytes (string,ref) -> any
     i64.const 1
     local.get 2   ; i
     local.get 4   ; f
-    call.import 12   ; system_posix$sys_fwrite
+    call.import 11   ; system_libc$sys_fwrite
     local.set 2   ; i
     local.get 1   ; arg 1
     array.len
@@ -873,17 +879,17 @@ fn 14 std_fs$write_file_bytes (string,ref) -> any
     i64.ne
     if $L5 void
       string.const 16   ; "short write"
-      call 27   ; std_io$last_io_error
+      call 28   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      call.import 10   ; system_posix$sys_fclose
+      call.import 9   ; system_libc$sys_fclose
       drop
       local.get 6   ; err
       return
     end $L5
   end $L4
   local.get 4   ; f
-  call.import 10   ; system_posix$sys_fclose
+  call.import 9   ; system_libc$sys_fclose
   i32.const 0
   i32.ne
   if $L6 void
@@ -891,11 +897,11 @@ fn 14 std_fs$write_file_bytes (string,ref) -> any
     return.lit null.const
   end $L6
   string.const 17   ; "close failed"
-  call 27   ; std_io$last_io_error
+  call 28   ; std_io$last_io_error
   return
 end
 
-fn 15 std_fs$read_file_bytes (string,i64) -> any
+fn 16 std_fs$read_file_bytes (string,i64) -> any
   local f pointer
   local __coalesce_0 any
   local out ref
@@ -915,19 +921,19 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
   local __result_6 ref
   local.get 0   ; arg 0
   string.const 18   ; "rb"
-  call.import 9   ; system_posix$sys_fopen
+  call.import 8   ; system_libc$sys_fopen
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
     string.const 19   ; "cannot open file"
-    call 27   ; std_io$last_io_error
+    call 28   ; std_io$last_io_error
     return
   end $L0
   local.get 3   ; __coalesce_0
   ref.cast 16   ; pointer
   local.tee 2   ; f
   struct.new 14   ; __defer_env_std_fs_1
-  make_closure 16 25   ; __defer_std_fs_0 fn
+  make_closure 17 25   ; __defer_std_fs_0 fn
   defer.push
   array.new 8 0   ; u8[]
   local.set 4   ; out
@@ -944,7 +950,7 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
     i64.const 1
     local.get 6   ; $len_20
     local.get 2   ; f
-    call.import 11   ; system_posix$sys_fread
+    call.import 10   ; system_libc$sys_fread
     local.tee 7   ; n
     i64.const 0
     i64.gt
@@ -980,7 +986,7 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
     i64.lt
     if $L4 void
       local.get 2   ; f
-      call.import 8   ; system_posix$sys_ferror
+      call.import 12   ; system_libc$sys_ferror
       i32.const 0
       i32.ne
       if $L5 void
@@ -990,7 +996,7 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
         return
       end $L5
       string.const 21   ; "read failed"
-      call 27   ; std_io$last_io_error
+      call 28   ; std_io$last_io_error
       local.set 11   ; __result_3
       defer.pop_exec 1
       local.get 11   ; __result_3
@@ -1005,9 +1011,9 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
       br $L1
     end $L6
     local.get 2   ; f
-    call.import 7   ; system_posix$sys_stream_size
+    call.import 6   ; system_posix$sys_stream_size
     local.get 1   ; arg 1
-    call 17   ; std_fs$whole_buffer
+    call 18   ; std_fs$whole_buffer
     local.tee 3   ; __coalesce_0
     type_check 0   ; null
     if $L7 void
@@ -1037,13 +1043,13 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
     i64.const 1
     local.get 13   ; want
     local.get 2   ; f
-    call.import 11   ; system_posix$sys_fread
+    call.import 10   ; system_libc$sys_fread
     local.tee 15   ; got
     local.get 13   ; want
     i64.lt
     if $L8 void
       local.get 2   ; f
-      call.import 8   ; system_posix$sys_ferror
+      call.import 12   ; system_libc$sys_ferror
       i32.const 0
       i32.ne
       if $L9 void
@@ -1062,7 +1068,7 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
         return
       end $L9
       string.const 21   ; "read failed"
-      call 27   ; std_io$last_io_error
+      call 28   ; std_io$last_io_error
       local.set 16   ; __result_5
       defer.pop_exec 1
       local.get 16   ; __result_5
@@ -1074,15 +1080,15 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
   end $L1
 end
 
-fn 16 __defer_std_fs_0 (ref) -> void
+fn 17 __defer_std_fs_0 (ref) -> void
   local.field 0 14 0   ; arg 0 __defer_env_std_fs_1.cap_0
   ref.cast 16   ; pointer
-  call.import 10   ; system_posix$sys_fclose
+  call.import 9   ; system_libc$sys_fclose
   drop
   return
 end
 
-fn 17 std_fs$whole_buffer (i64,i64) -> any
+fn 18 std_fs$whole_buffer (i64,i64) -> any
   local $arr_9 ref
   local $add_checked_11 i64
   local.get 0   ; arg 0
@@ -1117,7 +1123,7 @@ fn 17 std_fs$whole_buffer (i64,i64) -> any
   return.lit null.const
 end
 
-fn 18 images_ppm$encode (ref) -> any
+fn 19 images_ppm$encode (ref) -> any
   local or_res bool
   local __buf_0 ref
   local __off_1 i64
@@ -1172,7 +1178,7 @@ fn 18 images_ppm$encode (ref) -> any
   end $L1
   local.field 0 17 2   ; arg 0 images_ppm$Ppm.maxval
   ref.cast 21   ; u32
-  call 20   ; images_ppm$bytes_per_sample
+  call 21   ; images_ppm$bytes_per_sample
   local.set 3   ; __off_1
   local.field 0 17 0   ; arg 0 images_ppm$Ppm.width
   ref.cast 21   ; u32
@@ -1311,7 +1317,7 @@ fn 18 images_ppm$encode (ref) -> any
   return
 end
 
-fn 19 images_ppm$decode (ref) -> any
+fn 20 images_ppm$decode (ref) -> any
   local or_res bool
   local p0 i64
   local w ref
@@ -1363,11 +1369,11 @@ fn 19 images_ppm$decode (ref) -> any
   end $L2
   local.get 0   ; arg 0
   i64.const 2
-  call 21   ; images_ppm$skip_ws
+  call 22   ; images_ppm$skip_ws
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 22   ; images_ppm$scan_uint
+  call 23   ; images_ppm$scan_uint
   local.set 3   ; w
   local.field 3 22 2   ; w images_ppm$ScanInt.found
   ref.cast 7   ; bool
@@ -1382,11 +1388,11 @@ fn 19 images_ppm$decode (ref) -> any
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 21   ; images_ppm$skip_ws
+  call 22   ; images_ppm$skip_ws
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 22   ; images_ppm$scan_uint
+  call 23   ; images_ppm$scan_uint
   local.set 4   ; h
   local.field 4 22 2   ; h images_ppm$ScanInt.found
   ref.cast 7   ; bool
@@ -1401,11 +1407,11 @@ fn 19 images_ppm$decode (ref) -> any
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 21   ; images_ppm$skip_ws
+  call 22   ; images_ppm$skip_ws
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
-  call 22   ; images_ppm$scan_uint
+  call 23   ; images_ppm$scan_uint
   local.set 5   ; mv
   local.field 5 22 2   ; mv images_ppm$ScanInt.found
   ref.cast 7   ; bool
@@ -1476,7 +1482,7 @@ fn 19 images_ppm$decode (ref) -> any
     local.get 2   ; p0
     array.get 8   ; u8[]
     ref.cast 6   ; u8
-    call 23   ; images_ppm$is_ws_byte
+    call 24   ; images_ppm$is_ws_byte
     bool.not
     local.set 1   ; or_res
   end $L8
@@ -1493,7 +1499,7 @@ fn 19 images_ppm$decode (ref) -> any
   local.set 2   ; p0
   local.field 5 22 0   ; mv images_ppm$ScanInt.value
   ref.cast 21   ; u32
-  call 20   ; images_ppm$bytes_per_sample
+  call 21   ; images_ppm$bytes_per_sample
   local.set 8   ; $len_64
   local.field 3 22 0   ; w images_ppm$ScanInt.value
   ref.cast 21   ; u32
@@ -1582,7 +1588,7 @@ fn 19 images_ppm$decode (ref) -> any
   return
 end
 
-fn 20 images_ppm$bytes_per_sample (u32) -> i64
+fn 21 images_ppm$bytes_per_sample (u32) -> i64
   local.get 0   ; arg 0
   i32.const 256
   u32.lt
@@ -1592,7 +1598,7 @@ fn 20 images_ppm$bytes_per_sample (u32) -> i64
   return.lit i64.const 2
 end
 
-fn 21 images_ppm$skip_ws (ref,i64) -> i64
+fn 22 images_ppm$skip_ws (ref,i64) -> i64
   local n i64
   local p i64
   local b u8
@@ -1641,7 +1647,7 @@ fn 21 images_ppm$skip_ws (ref,i64) -> i64
         br $L0
       end $L2
       local.get 4   ; b
-      call 23   ; images_ppm$is_ws_byte
+      call 24   ; images_ppm$is_ws_byte
       if $L7 void
       else
         local.get 3   ; p
@@ -1658,7 +1664,7 @@ fn 21 images_ppm$skip_ws (ref,i64) -> i64
   return
 end
 
-fn 22 images_ppm$scan_uint (ref,i64) -> ref
+fn 23 images_ppm$scan_uint (ref,i64) -> ref
   local n i64
   local p i64
   local v u32
@@ -1682,7 +1688,7 @@ fn 22 images_ppm$scan_uint (ref,i64) -> ref
         local.get 3   ; p
         array.get 8   ; u8[]
         ref.cast 6   ; u8
-        call 24   ; images_ppm$is_digit_byte
+        call 25   ; images_ppm$is_digit_byte
         if $L3 void
         else
           br $L0
@@ -1736,7 +1742,7 @@ fn 22 images_ppm$scan_uint (ref,i64) -> ref
   return
 end
 
-fn 23 images_ppm$is_ws_byte (u8) -> bool
+fn 24 images_ppm$is_ws_byte (u8) -> bool
   local or_res bool
   local.get 0   ; arg 0
   i32.const 32
@@ -1790,7 +1796,7 @@ fn 23 images_ppm$is_ws_byte (u8) -> bool
   return
 end
 
-fn 24 images_ppm$is_digit_byte (u8) -> bool
+fn 25 images_ppm$is_digit_byte (u8) -> bool
   local.get 0   ; arg 0
   i32.const 48
   u32.ge
@@ -1803,13 +1809,13 @@ fn 24 images_ppm$is_digit_byte (u8) -> bool
   return.lit bool.const false
 end
 
-fn 25 images_ppm$PpmError$std_core$Error$message (ref) -> string
+fn 26 images_ppm$PpmError$std_core$Error$message (ref) -> string
   local.field 0 19 0   ; arg 0 images_ppm$PpmError.msg
   ref.cast 2   ; string
   return
 end
 
-fn 26 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
+fn 27 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   local depth string
   local __p_0 u32
   local __p_1 u32
@@ -1820,7 +1826,7 @@ fn 26 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   local $cast_27 u64
   local.field 0 17 2   ; arg 0 images_ppm$Ppm.maxval
   ref.cast 21   ; u32
-  call 20   ; images_ppm$bytes_per_sample
+  call 21   ; images_ppm$bytes_per_sample
   i64.const 1
   i64.eq
   if $L0 void
@@ -1922,31 +1928,31 @@ fn 26 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   return
 end
 
-fn 27 std_io$last_io_error (string) -> ref
+fn 28 std_io$last_io_error (string) -> ref
   local e i32
   local $call_3 u8
-  call.import 6   ; system_posix$sys_last_errno
+  call.import 5   ; system_posix$sys_last_errno
   local.tee 1   ; e
-  call 29   ; std_io$errno_kind
+  call 30   ; std_io$errno_kind
   local.set 2   ; $call_3
   local.get 0   ; arg 0
   local.get 2   ; $call_3
   local.get 1   ; e
-  call 28   ; std_io$classified_error
+  call 29   ; std_io$classified_error
   return
 end
 
-fn 28 std_io$classified_error (string,u8,i32) -> ref
+fn 29 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 30   ; std_io$describe_io_error_kind
+  call 31   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 12   ; std_io$IOError
   return
 end
 
-fn 29 std_io$errno_kind (i32) -> u8
+fn 30 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -2050,7 +2056,7 @@ fn 29 std_io$errno_kind (i32) -> u8
   return.lit i32.const 12
 end
 
-fn 30 std_io$describe_io_error_kind (u8,string) -> string
+fn 31 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -2161,7 +2167,7 @@ fn 30 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 31 std_io$IOError$std_core$Error$message (ref) -> string
+fn 32 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 12 0   ; arg 0 std_io$IOError.msg
   ref.cast 2   ; string
   return

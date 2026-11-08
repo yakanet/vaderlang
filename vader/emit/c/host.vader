@@ -169,7 +169,7 @@ emit_foreign_declarations :: fn(
         includes.push(include_of(h))
     }
     printer.print_section(CSection {
-        .comment = ["Headers named by `@c_header`: they own the prototypes below."],
+        .comment = ["Headers named by `@c_header` or a `CLibrary`: they own the prototypes below."],
         .items = includes,
     })
     printer.print_section(CSection {

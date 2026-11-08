@@ -48,7 +48,7 @@ string 27 "\n"
 data 0 structs 12 0 1
 import 0 byte_len std_core$byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=15 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=3,15,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=3,15,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 10 std_core$Iterator
 impl 13 std_core$ByteAccess
 impl 10 std_core$Contains

@@ -1,0 +1,67 @@
+// system/libc: the C standard library, the layer every OS provides.
+//
+// Sibling of `system/posix`, `system/darwin` and `system/windows`, which hold
+// what one OS family adds to it.
+
+module "system/libc"
+
+import "std/ffi"
+
+/// The C standard library: glibc or musl on Linux, `libSystem` on macOS, the
+/// UCRT on Windows. No library to open, the process has it. A POSIX call goes
+/// in `system/posix`, a Win32 one in `system/windows`.
+export LIBC :: CLibrary {
+    .name = "",
+    .headers = ["<stdio.h>", "<stdlib.h>"],
+}
+
+/// `getenv(3)`: the value of environment variable `name`, or null when it is
+/// unset. On Windows the value is in the process's ANSI code page.
+///
+/// @param name  the variable name.
+@extern(LIBC, "getenv")
+export sys_getenv :: fn(name: string) -> string | null
+
+/// `fopen(3)`. A stream handle, or null when the file cannot be opened.
+///
+/// `stdio` rather than `open(2)`: the mode is a STRING, so nothing here has to
+/// know the numeric value of `O_CREAT`, which is 512 on Darwin and 64 on Linux.
+/// Reading proceeds until end of file, so `SEEK_END` is not needed either.
+///
+/// @param path  the file to open.
+/// @param mode  `"rb"` or `"wb"`.
+@extern(LIBC, "fopen")
+export sys_fopen :: fn(path: string, mode: string) -> CPointer | null
+
+/// `fclose(3)`. 0 on success.
+@extern(LIBC, "fclose")
+export sys_fclose :: fn(stream: CPointer) -> i32
+
+/// `fread(3)`. The number of ITEMS read: short at end of file.
+///
+/// @param buf     receives the bytes.
+/// @param size    item size in bytes; 1 to read bytes.
+/// @param count   how many items to read.
+/// @param stream  an open stream.
+@extern(LIBC, "fread")
+export sys_fread :: fn(@c_out buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
+
+/// `fwrite(3)`. The number of items written; short means failure.
+@extern(LIBC, "fwrite")
+export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
+
+/// `ferror(3)`. Non-zero once the stream's error indicator is set.
+///
+/// A short `fread` means end of file OR an error, and the count cannot tell
+/// them apart -- this is what separates them.
+///
+/// @param stream  the `FILE*`.
+/// @return        non-zero if the stream is in error.
+@extern(LIBC, "ferror")
+export sys_ferror :: fn(stream: CPointer) -> i32
+
+/// `free(3)`. Releases a block the C library allocated.
+///
+/// @param p  the pointer to release.
+@extern(LIBC, "free")
+export sys_free :: fn(p: CPointer) -> void

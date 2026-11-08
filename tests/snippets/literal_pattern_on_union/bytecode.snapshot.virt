@@ -49,7 +49,7 @@ import 0 byte_len std_core$byte_len result_type=4 param_types=1 param_c_out= par
 import 1 byte_at std_core$byte_at result_type=14 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=12,17,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=12,17,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 13 std_core$ByteAccess
 impl 19 std_core$Display
 export main 8

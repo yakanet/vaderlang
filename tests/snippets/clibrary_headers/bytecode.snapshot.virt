@@ -17,7 +17,7 @@ import 0 extern :toupper snippet$upper headers=<ctype.h>,<inttypes.h> result_typ
 import 1 extern :imaxabs snippet$absolute headers=<ctype.h>,<inttypes.h> result_type=3 param_types=3 param_c_out= param_by_address= (i64) -> i64
 import 2 byte_len std_core$byte_len result_type=3 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,7,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$ByteAccess
 export main 0
 

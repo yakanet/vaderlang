@@ -41,7 +41,7 @@
   expr 32:5     IfExpr         :: void
   expr 32:8     BinaryExpr     :: bool
   expr 32:8     IdentExpr      :: IOError | string
-  expr 337:62   IdentExpr      :: i64
+  expr 338:62   IdentExpr      :: i64
   expr 33:17    StringLitExpr  :: string
   expr 33:26    CallExpr       :: i64
   expr 33:26    FieldExpr      :: fn() -> i64

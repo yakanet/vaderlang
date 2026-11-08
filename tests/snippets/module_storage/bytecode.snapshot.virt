@@ -80,7 +80,7 @@ import 0 byte_len std_core$byte_len result_type=9 param_types=4 param_c_out= par
 import 1 bytes std_core$bytes result_type=12 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=10 () -> void
 import 3 collections std_runtime$collections result_type=9 () -> i64
-import 4 extern write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 14 std_core$ByteAccess
 export main 5
 

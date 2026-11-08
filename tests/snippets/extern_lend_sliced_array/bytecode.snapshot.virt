@@ -20,7 +20,7 @@ import 1 extern slice_fill snippet$slice_fill result_type=2 param_types=5,6 para
 import 2 byte_len std_core$byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
 import 3 bytes std_core$bytes result_type=10 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 4 collect std_runtime$collect result_type=2 () -> void
-import 5 extern write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,10,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,10,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 7 std_core$ByteAccess
 export main 1
 

@@ -137,7 +137,7 @@ import 3 is_ascii std_core$is_ascii result_type=14 param_types=1 param_c_out= pa
 import 4 bytes_to_string std_core$bytes_to_string result_type=1 param_types=10 param_c_out= param_by_address= (ref) -> string
 import 5 bytes std_core$bytes result_type=10 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 6 hash std_core$string$Hash$hash result_type=8 param_types=1 param_c_out= param_by_address= (string) -> u64
-import 7 extern write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 16 std_core$Mul
 impl 16 std_core$Div
 impl 6 std_core$ByteAccess

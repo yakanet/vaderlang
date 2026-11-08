@@ -1,10 +1,18 @@
 // system/darwin: the Darwin calls and layouts the standard library needs.
 //
-// Split from `system/posix` because POSIX does not define these: `struct stat`'s
-// layout is the system's own, and `_NSGetExecutablePath` is Darwin's answer to
-// `/proc/self/exe`. Sibling of `system/linux` and `system/windows`.
+// Split from `system/posix` because POSIX does not define these:
+// `_NSGetExecutablePath` is Darwin's answer to `/proc/self/exe`, and the Mach
+// calls are Darwin's own. Sibling of `system/windows`.
 
 module "system/darwin"
+
+import "std/ffi"
+
+/// Darwin's own headers: no library to open, the process has them.
+DARWIN :: CLibrary {
+    .name = "",
+    .headers = ["<mach-o/dyld.h>", "<mach/mach.h>"],
+}
 
 /// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success, non-zero when
 /// `buf` was too small.
@@ -17,15 +25,13 @@ module "system/darwin"
 ///
 /// Darwin's answer to `/proc/self/exe`. The path it gives may be relative or
 /// carry symlinks, so callers pass it through `realpath`.
-@c_header("<mach-o/dyld.h>")
-@extern("_NSGetExecutablePath")
+@extern(DARWIN, "_NSGetExecutablePath")
 export ns_get_executable_path :: fn(@c_out buf: u8[], @c_pointer size: u32) -> i32
 
 /// `mach_task_self()` (`<mach/mach.h>`): the port naming the calling task. C
 /// defines it as a macro over a global; the system library also exports it as a
 /// function, which is what `vader run` resolves.
-@c_header("<mach/mach.h>")
-@extern("mach_task_self")
+@extern(DARWIN, "mach_task_self")
 export mach_task_self :: fn() -> u32
 
 /// `MACH_TASK_BASIC_INFO`: the `task_info` flavor that fills a
@@ -45,6 +51,5 @@ export KERN_SUCCESS: i32: 0
 ///
 /// `info` stands in for the flavor's struct: for `MACH_TASK_BASIC_INFO`, six
 /// 64-bit words, `resident_size` the second.
-@c_header("<mach/mach.h>")
-@extern("task_info")
+@extern(DARWIN, "task_info")
 export task_info :: fn(task: u32, flavor: u32, @c_out info: u64[], @c_out count: u32[]) -> i32

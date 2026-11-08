@@ -28,7 +28,7 @@ import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= par
 import 1 byte_at std_core$byte_at result_type=5 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 hash std_core$string$Hash$hash result_type=8 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 4 extern write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,9,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,9,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 3 std_core$ByteAccess
 impl 11 std_core$IndexSet
 impl 11 std_core$Index

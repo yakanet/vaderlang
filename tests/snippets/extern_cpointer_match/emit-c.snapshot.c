@@ -93,6 +93,7 @@ static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
 static vader_string_t std_env$temp_dir(void);
 static vader_string_t std_env$temp_dir_of(vader_box_t l0);
+static vader_box_t std_env$get_env(vader_string_t l0);
 static vader_string_t std_env$without_trailing_sep(vader_string_t l0);
 static vader_box_t std_fs$write_file_string(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_fs$remove_file(vader_string_t l0);
@@ -133,11 +134,11 @@ const vader_type_info_t vader_type_info_table[14] = {
 };
 const size_t vader_type_info_count = 14;
 
-/* Headers named by `@c_header`: they own the prototypes below. */
+/* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include "vader.h"
+#include <stdlib.h>
 
 static vader_box_t vader_host_snippet$c_fopen(vader_string_t a0, vader_string_t a1) {
     const char* c0 = vader_string_to_cstr(a0);
@@ -173,16 +174,6 @@ static void* vader_host_std_core$bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 9u, 7u);
 }
 
-static vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
-    const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
-    const char* r = getenv(c0);
-    vader_foreign_depth -= 1;
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(2u, (int64_t) vader_atom_intern(r, strlen(r)));
-    vader_cstr_free_for(a0, c0);
-    return out;
-}
-
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_foreign_depth += 1;
@@ -198,7 +189,26 @@ static int32_t vader_host_system_posix$sys_last_errno(void) {
     return r;
 }
 
-static vader_box_t vader_host_system_posix$sys_fopen(vader_string_t a0, vader_string_t a1) {
+static int32_t vader_host_system_posix$sys_unlink(vader_string_t a0) {
+    const char* c0 = vader_string_to_cstr(a0);
+    vader_foreign_depth += 1;
+    int32_t r = unlink(c0);
+    vader_foreign_depth -= 1;
+    vader_cstr_free_for(a0, c0);
+    return r;
+}
+
+static vader_box_t vader_host_system_libc$sys_getenv(vader_string_t a0) {
+    const char* c0 = vader_string_to_cstr(a0);
+    vader_foreign_depth += 1;
+    const char* r = getenv(c0);
+    vader_foreign_depth -= 1;
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(2u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_cstr_free_for(a0, c0);
+    return out;
+}
+
+static vader_box_t vader_host_system_libc$sys_fopen(vader_string_t a0, vader_string_t a1) {
     const char* c0 = vader_string_to_cstr(a0);
     const char* c1 = vader_string_to_cstr(a1);
     vader_foreign_depth += 1;
@@ -209,27 +219,18 @@ static vader_box_t vader_host_system_posix$sys_fopen(vader_string_t a0, vader_st
     return r == NULL ? vader_box_null() : vader_box_i64(4u, (int64_t) (intptr_t) r);
 }
 
-static int32_t vader_host_system_posix$sys_fclose(void* a0) {
+static int32_t vader_host_system_libc$sys_fclose(void* a0) {
     vader_foreign_depth += 1;
     int32_t r = fclose(a0);
     vader_foreign_depth -= 1;
     return r;
 }
 
-static int64_t vader_host_system_posix$sys_fwrite(void* a0, int64_t a1, int64_t a2, void* a3) {
+static int64_t vader_host_system_libc$sys_fwrite(void* a0, int64_t a1, int64_t a2, void* a3) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     vader_foreign_depth += 1;
     int64_t r = fwrite(s0.ptr, a1, a2, a3);
     vader_foreign_depth -= 1;
-    return r;
-}
-
-static int32_t vader_host_system_posix$sys_unlink(vader_string_t a0) {
-    const char* c0 = vader_string_to_cstr(a0);
-    vader_foreign_depth += 1;
-    int32_t r = unlink(c0);
-    vader_foreign_depth -= 1;
-    vader_cstr_free_for(a0, c0);
     return r;
 }
 
@@ -382,7 +383,7 @@ static vader_string_t std_env$temp_dir(void) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = vader_host_std_env$get_env(11u);
+    t0 = std_env$get_env(11u);
     t1 = std_env$temp_dir_of(t0);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -402,6 +403,18 @@ static vader_string_t std_env$temp_dir_of(vader_box_t l0) {
         return t0;
     }
     return 12u;
+}
+
+static vader_box_t std_env$get_env(vader_string_t l0) {
+    vader_box_t t0 = vader_box_null();
+    vader_box_t* gc_roots[1] = { &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    t0 = vader_host_system_libc$sys_getenv(l0);
+    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t std_env$without_trailing_sep(vader_string_t l0) {
@@ -497,7 +510,7 @@ static vader_box_t std_fs$write_file_bytes(vader_string_t l0, void* l1) {
         }
         l2 = (l2 + INT64_C(1));
     }
-    l5 = vader_host_system_posix$sys_fopen(l0, 15u);
+    l5 = vader_host_system_libc$sys_fopen(l0, 15u);
     if (l5.tag == 0u) {
         t1 = std_io$last_io_error(16u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
@@ -506,15 +519,15 @@ static vader_box_t std_fs$write_file_bytes(vader_string_t l0, void* l1) {
     t2 = ((vader_array_t*) l1)->length;
     if ((t2 > INT64_C(0))) {
         l2 = ((vader_array_t*) l1)->length;
-        l2 = vader_host_system_posix$sys_fwrite(l1, INT64_C(1), l2, l4);
+        l2 = vader_host_system_libc$sys_fwrite(l1, INT64_C(1), l2, l4);
         l3 = ((vader_array_t*) l1)->length;
         if (l2 != l3) {
             l6 = std_io$last_io_error(17u);
-            vader_host_system_posix$sys_fclose(l4);
+            vader_host_system_libc$sys_fclose(l4);
             { vader_box_t __vret = vader_ref_box(l6); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
-    t3 = vader_host_system_posix$sys_fclose(l4);
+    t3 = vader_host_system_libc$sys_fclose(l4);
     if (!(t3 != INT32_C(0))) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
