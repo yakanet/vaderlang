@@ -64,11 +64,9 @@ export CEmitOptions :: struct {
     /// `$VADER_VERIFY_BOUNDS`: an access proven in bounds (`bounds_safe`) keeps
     /// its index check, with a message of its own (`VADER_ARRAY_CHECK_PROVEN`).
     verify_bounds: bool = false
-    /// The shims of each `CLibrary` go to a unit of their own
-    /// (`emit_library_unit`), the rest of the program reaching them through
-    /// prototypes: two libraries' headers need not agree with each other. Off,
-    /// one unit holds every shim, as a single stream of C must
-    /// (`vader dump --stage=c`).
+    /// Some shims go to a unit of their own (`foreign_unit_of`), the rest of
+    /// the program reaching them through prototypes. Off, one unit holds every
+    /// shim, as a single stream of C must (`vader dump --stage=c`).
     library_units: bool = false
 }
 

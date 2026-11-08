@@ -15,7 +15,7 @@
 // into the block the slot after the arguments addresses.
 //
 // One unit per `CLibrary`, as the native build gives each its unit
-// (`emit_library_unit`): two libraries' headers need not agree.
+// (`emit_foreign_unit`): two libraries' headers need not agree.
 
 module "vader/emit/c"
 

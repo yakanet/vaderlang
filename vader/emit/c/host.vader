@@ -9,9 +9,10 @@
 //     foreign symbol (`user_extern_shim`), declared once via an `extern`.
 //
 // The shims of a `CLibrary`'s `@extern`s get a C unit of their own
-// (`emit_library_unit`), the rest of the program reaching them through
+// (`emit_foreign_unit`), the rest of the program reaching them through
 // prototypes: two libraries' headers need not agree with each other, as
-// `raylib.h` and `<windows.h>` do not (`Rectangle`, `CloseWindow`).
+// `raylib.h` and `<windows.h>` do not (`Rectangle`, `CloseWindow`). So do the
+// `@extern`s no header declares (`foreign_unit_of`).
 //
 // Same module (`vader/emit/c`), so `EmitCtx` + `c_type_for_val_bare` are
 // in scope without imports.
@@ -28,10 +29,10 @@ import "vader/emit/c/ast"
 // ---- driver ---------------------------------------------------------------
 
 /// Emit every import's shim plus the once-per-module `extern` declarations of
-/// their foreign symbols. Under `ctx.library_units`, a `CLibrary`'s shims are
-/// left to its own unit (`emit_library_unit`) and only declared here. Unused
-/// imports are pruned upstream, so `module.imports` already carries only the
-/// referenced host fns.
+/// their foreign symbols. Under `ctx.library_units`, the shims that get a unit
+/// of their own (`foreign_unit_of`) are left to it and only declared here.
+/// Unused imports are pruned upstream, so `module.imports` already carries only
+/// the referenced host fns.
 emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // Ahead of the shims that dereference them, and of the assertions that check
     // them: both of which name these types. Only under `--split`, where this
@@ -44,54 +45,86 @@ emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         emit_import_group(ctx, printer, ctx.module.imports)
         return
     }
-    emit_import_group(ctx, printer, imports_of_library(ctx.module, ""))
+    emit_import_group(ctx, printer, imports_of_unit(ctx.module, ""))
     prototypes: CTopLevel[]: []
     for imp in ctx.module.imports {
-        if library_name(imp) != "" {
+        if foreign_unit_of(imp) != "" {
             declared :: CSignature { ...shim_signature(ctx, imp), .storage = .Declaration }
             prototypes.push(CPrototype { .signature = declared })
         }
     }
     printer.print_section(CSection {
-        .comment = ["Shims of the `CLibrary` bindings, each defined in its library's unit."],
+        .comment = ["Shims defined in a unit of their own: a `CLibrary`'s, or the headerless one."],
         .items = prototypes,
     })
 }
 
-/// The C unit holding the shims of the `@extern`s of the `CLibrary` named
-/// `library`: its header, its layout assertions and its shims, with no other
-/// library's header in sight. It needs nothing of the program but the runtime
-/// and the mirrors' Vader layout.
+/// The unit `imp`'s shim is defined in under `library_units`: `""` for the
+/// imports header every unit includes, else a unit of its own. A `CLibrary`'s
+/// `@extern`s share their library's (`library_unit_name`). An `@extern` outside
+/// any whose prototype no header owns goes to `HEADERLESS_UNIT`: the prototype
+/// written from its Vader signature may contradict a header that the imports
+/// header includes for another import.
 ///
-/// @param ctx      the emit context of the program, under `library_units`.
-/// @param library  a name `foreign_libraries` lists.
-/// @return         the unit's C source.
-emit_library_unit :: fn(ctx: EmitCtx, library: string) -> string {
+/// @param imp  the import.
+foreign_unit_of :: fn(imp: BcImport) -> string {
+    library :: library_name(imp)
+    if library != "" {
+        return library_unit_name(library)
+    }
+    if synthesises_prototype(imp) {
+        return HEADERLESS_UNIT
+    }
+    return ""
+}
+
+// Whether `imp` is an `@extern` whose C prototype the compiler writes from its
+// Vader signature, no header owning one.
+synthesises_prototype :: fn(imp: BcImport) = imp.is_extern && imp.c_header == ""
+
+/// The C unit `unit` names: the headers, layout assertions and shims of its
+/// imports, with no header of another unit in sight. A `CLibrary`'s unit has
+/// its library's header, `HEADERLESS_UNIT` none beyond the preamble. It needs
+/// nothing of the program but the runtime and the mirrors' Vader layout.
+///
+/// @param ctx   the emit context of the program, under `library_units`.
+/// @param unit  a name `foreign_units` lists.
+/// @return      the unit's C source.
+emit_foreign_unit :: fn(ctx: EmitCtx, unit: string) -> string {
+    imports :: imports_of_unit(ctx.module, unit)
     printer :: CPrinter {}
-    printer.emit_preamble("${GENERATED_C_BANNER} Foreign library `${library}`.")
+    printer.emit_preamble("${GENERATED_C_BANNER} ${foreign_unit_banner(imports)}")
     emit_mirrored_struct_typedefs(ctx.module.types, ctx.struct_c_names, printer)
-    emit_import_group(ctx, printer, imports_of_library(ctx.module, library))
+    emit_import_group(ctx, printer, imports)
     return printer.printed_text()
 }
 
-/// The names of the `CLibrary` bindings the program's `@extern`s reach, sorted:
-/// one C unit each.
+// What the unit of `imports`, one `foreign_units` lists, says it holds.
+foreign_unit_banner :: fn(imports: BcImport[]) -> string {
+    library :: library_name(imports[0])
+    if library == "" {
+        return "Foreign symbols no header declares."
+    }
+    return "Foreign library `${library}`."
+}
+
+/// The foreign units the program's imports need (`foreign_unit_of`), sorted.
 ///
 /// @param module  the program.
-foreign_libraries :: fn(module: BytecodeModule) -> string[] {
+foreign_units :: fn(module: BytecodeModule) -> string[] {
     names: string[]: []
     for imp in module.imports {
-        name :: library_name(imp)
-        if name != "" && !(name in names) {
-            names.push(name)
+        unit :: foreign_unit_of(imp)
+        if unit != "" && !(unit in names) {
+            names.push(unit)
         }
     }
     return sort(names, compare_ascending)
 }
 
-// The imports whose shims `library` holds ("" for those outside any library).
-imports_of_library :: fn(module: BytecodeModule, library: string) -> BcImport[] =
-    module.imports.filter((imp) -> library_name(imp) == library).collect()
+// The imports whose shims `unit` holds ("" for the imports header).
+imports_of_unit :: fn(module: BytecodeModule, unit: string) -> BcImport[] =
+    module.imports.filter((imp) -> foreign_unit_of(imp) == unit).collect()
 
 // The headers, `extern` declarations, assertions and shims of `imports`.
 emit_import_group :: fn(ctx: EmitCtx, printer: CPrinter, imports: BcImport[]) -> void {
@@ -116,7 +149,9 @@ emit_foreign_declarations :: fn(
     for imp in imports {
         if imp.is_extern && !(imp.extern_name in seen_extern) {
             seen_extern.push(imp.extern_name)
-            if imp.c_header != "" {
+            if synthesises_prototype(imp) {
+                extern_decls.push(extern_decl(imp, types))
+            } else {
                 // The header carries the real prototype. Synthesising one beside
                 // it is a CONFLICTING DECLARATION the C compiler refuses, which
                 // is what blocked `WriteFile` against `<windows.h>` and
@@ -124,8 +159,6 @@ emit_foreign_declarations :: fn(
                 if !(imp.c_header in headers) {
                     headers.push(imp.c_header)
                 }
-            } else {
-                extern_decls.push(extern_decl(imp, types))
             }
         }
     }
@@ -779,13 +812,14 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport) -> CFunction = CFunction {
     .body = CBlock { .body = shim_body(imp, ctx.module.types) },
 }
 
-// The head of `imp`'s shim. A shim in its `CLibrary`'s unit takes external
-// linkage, for the prototypes the other units reach it through. Any other is
-// private to each unit that includes it, and `static inline` in a split build,
-// because the shim lives in the SHARED HEADER there: a one-line ABI wrapper is
-// worth nothing as an out-of-line cross-TU call, and it was the real barrier:
-// with the shim in unit 0, wordcount's per-byte read still paid a call per byte
-// even after the runtime accessor behind it became inline (+211 % vs mono).
+// The head of `imp`'s shim. A shim in a unit of its own (`foreign_unit_of`)
+// takes external linkage, for the prototypes the other units reach it through.
+// Any other is private to each unit that includes it, and `static inline` in a
+// split build, because the shim lives in the SHARED HEADER there: a one-line
+// ABI wrapper is worth nothing as an out-of-line cross-TU call, and it was the
+// real barrier: with the shim in unit 0, wordcount's per-byte read still paid a
+// call per byte even after the runtime accessor behind it became inline (+211 %
+// vs mono).
 shim_signature :: fn(ctx: EmitCtx, imp: BcImport) -> CSignature {
     signature :: CSignature {
         .storage = .Internal,
@@ -794,7 +828,7 @@ shim_signature :: fn(ctx: EmitCtx, imp: BcImport) -> CSignature {
         .name = host_shim_name(imp),
         .parameters = value_parameters(imp.signature.params, "a"),
     }
-    if ctx.library_units && library_name(imp) != "" {
+    if ctx.library_units && foreign_unit_of(imp) != "" {
         return CSignature { ...signature, .storage = .External, .inline = false }
     }
     return signature
@@ -1280,3 +1314,56 @@ array_tag :: fn(types: BcType[], elem: i32) -> i32 {
     return -1
 }
 
+// ---- tests ----------------------------------------------------------------
+
+import "std/ffi"
+import "std/testing"
+
+// An `@extern` of no parameter and no result, outside any library, with no header.
+BARE_EXTERN :: BcImport {
+    .extern_name = "f",
+    .mangled_name = r"m$f",
+    .signature = BcSignature {
+        .params = [],
+        .results = [],
+        .param_types = [],
+        .result_types = [],
+        .param_names = [],
+    },
+    .is_extern = true,
+}
+
+@test
+test_foreign_unit_of_an_intrinsic_is_the_imports_header :: fn() -> void {
+    assert_eq(foreign_unit_of(BcImport { ...BARE_EXTERN, .is_extern = false }), "")
+}
+
+@test
+test_foreign_unit_of_an_extern_with_a_header_is_the_imports_header :: fn() -> void {
+    assert_eq(foreign_unit_of(BcImport { ...BARE_EXTERN, .c_header = "<spawn.h>" }), "")
+}
+
+@test
+test_foreign_unit_of_an_extern_of_the_process_is_the_imports_header :: fn() -> void {
+    runtime :: BcImport {
+        ...BARE_EXTERN,
+        .c_header = "vader.h",
+        .library = CLibrary { .name = "", .header = "vader.h" },
+    }
+    assert_eq(foreign_unit_of(runtime), "")
+}
+
+@test
+test_foreign_unit_of_a_headerless_extern_is_its_own_unit :: fn() -> void {
+    assert_eq(foreign_unit_of(BARE_EXTERN), HEADERLESS_UNIT)
+}
+
+@test
+test_foreign_unit_of_an_extern_of_a_library_is_the_library_unit :: fn() -> void {
+    raylib :: BcImport {
+        ...BARE_EXTERN,
+        .c_header = "raylib.h",
+        .library = CLibrary { .name = "raylib", .header = "raylib.h" },
+    }
+    assert_eq(foreign_unit_of(raylib), "_ffi_raylib")
+}

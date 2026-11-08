@@ -9,8 +9,8 @@
 //   - `<base>.h`: every cross-TU declaration : struct typedefs / bodies,
 //                     fn-sig typedefs, the EXTERNAL fn / dispatcher / closure
 //                     prototypes, the import shims themselves (`static inline`,
-//                     so every unit absorbs them) but for the `CLibrary` ones,
-//                     only declared, the atom-count macro, and `extern` decls
+//                     so every unit absorbs them) but for those of the foreign
+//                     units, only declared, the atom-count macro, and `extern` decls
 //                     for the data globals defined in the globals TU.
 //                     (`vader_type_info_table` is already extern'd by
 //                     `vader.h`.)
@@ -20,14 +20,15 @@
 //                     size in mangle-sorted order (deterministic → stable for
 //                     the bootstrap fixed point). Unit 0 also carries the
 //                     trampolines, dispatchers, and `main`.
-//   - one unit per `CLibrary` (`library_unit_name`), holding its shims beside
-//     its header alone.
+//   - the foreign units (`foreign_unit_of`): one per `CLibrary`
+//     (`library_unit_name`), holding its shims beside its header alone, plus
+//     `HEADERLESS_UNIT`.
 //
 // A symbol keeps external linkage only when another unit refers to it
 // (`internal_fn_flags`); the rest stay `static` in their own TU so `cc` can
 // still inline them. The mangle-unique names resolve across TUs either way.
-// A build that does not split by module still gives each `CLibrary` its unit
-// (`emit_c_units`).
+// A build that does not split by module still gives each foreign unit its own
+// file (`emit_c_units`).
 
 module "vader/emit/c"
 
@@ -42,7 +43,7 @@ import "vader/support/text"
 /// A program emitted as several C translation units. `header` is the shared
 /// `.h`, `globals` the data-globals `.c`, and `units` the function `.c` bodies:
 /// one per source module, plus `unit_names[0] == GLUE_UNIT` for the trampolines,
-/// dispatchers and `main`, then one per `CLibrary` for its shims.
+/// dispatchers and `main`, then the foreign units (`foreign_units`).
 export CProgram :: struct {
     header:  string
     /// The `@extern` declarations and their shims, split out of `header`
@@ -58,18 +59,18 @@ export CProgram :: struct {
     unit_names: string[]
 }
 
-/// A program's C as one unit, but for the shims of its `CLibrary` bindings, in a
-/// unit each that the first reaches through prototypes: what a build that does
-/// not split by module compiles.
+/// A program's C as one unit, but for the shims that get a unit of their own
+/// (`foreign_unit_of`), which the first reaches through prototypes: what a
+/// build that does not split by module compiles.
 export CUnits :: struct {
     main:  string
-    /// The library units' names, as files are named after them
-    /// (`library_unit_name`).
+    /// The foreign units' names, as files are named after them
+    /// (`library_unit_name`, `HEADERLESS_UNIT`).
     names: string[]
     units: string[]
 }
 
-/// Emit `m` as one unit plus one per `CLibrary` binding.
+/// Emit `m` as one unit plus its foreign units (`foreign_units`).
 ///
 /// @param m     the bytecode module to lower.
 /// @param opts  emit-time switches ; `entry_mangled` resolves `main`.
@@ -77,7 +78,7 @@ export emit_c_units :: fn(m: BytecodeModule, opts: CEmitOptions) -> CUnits {
     ctx :: new_ctx(m, CEmitOptions { ...opts, .library_units = true })
     names: string[]: []
     units: string[]: []
-    push_library_units(ctx, names, units)
+    push_foreign_units(ctx, names, units)
     return CUnits {
         .main = single_unit(ctx, opts.entry_mangled),
         .names = names,
@@ -91,11 +92,16 @@ export emit_c_units :: fn(m: BytecodeModule, opts: CEmitOptions) -> CUnits {
 /// @param library  the library's name.
 export library_unit_name :: fn(library: string) -> string = "_ffi_${sanitise_ident(library)}"
 
-// Append to `names` and `units` the unit of each `CLibrary` of `ctx`'s program.
-push_library_units :: fn(ctx: EmitCtx, names: string[], units: string[]) -> void {
-    for library in foreign_libraries(ctx.module) {
-        names.push(library_unit_name(library))
-        units.push(emit_library_unit(ctx, library))
+/// The unit name of the `@extern`s outside any `CLibrary` that no header
+/// declares. Distinct from every `library_unit_name`, which has a `_` after
+/// `_ffi`.
+HEADERLESS_UNIT :: "_ffi"
+
+// Append to `names` and `units` each foreign unit of `ctx`'s program.
+push_foreign_units :: fn(ctx: EmitCtx, names: string[], units: string[]) -> void {
+    for unit in foreign_units(ctx.module) {
+        names.push(unit)
+        units.push(emit_foreign_unit(ctx, unit))
     }
 }
 
@@ -135,15 +141,16 @@ export imports_header_name :: fn(header_name: string) -> string {
 /// to the header, the data half to the globals TU, and the code half to the
 /// function units. `EmitCtx.split` is forced on so every def takes external
 /// linkage and the closure forward decls land in the header, and so is
-/// `library_units`: the shared header cannot hold two libraries' headers.
+/// `library_units`: the shims of the foreign units cannot sit in the shared
+/// header (`foreign_unit_of`).
 ///
 /// @param m            the bytecode module to lower.
 /// @param opts         emit-time switches ; `entry_mangled` resolves `main`.
 /// @param header_name  basename of the shared header, `#include`d by every TU
 ///                     (resolved relative to each `.c`: keep them co-located).
 /// @return             the header, the globals TU, and one function TU per
-///                     module (plus unit 0 for the glue), then one per
-///                     `CLibrary`.
+///                     module (plus unit 0 for the glue), then the foreign
+///                     units.
 export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: string) -> CProgram {
     // The partition comes FIRST: the linkage analysis needs to know which unit
     // each function lands in, and the context needs the analysis.
@@ -167,8 +174,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
     // OWN header, included here under a fixed name. They are the only part of
     // this file a target can change, and keeping them inline in the shared one
     // forced a whole 6000-line copy per target the moment a binding diverged.
-    // A `CLibrary`'s shims are only declared there: they need its header, which
-    // stays out of every unit but the library's own.
+    // The shims of the foreign units are only declared there (`foreign_unit_of`).
     imports :: CPrinter {}
     imports.print_section(CSection {
         .comment = ["${GENERATED_C_BANNER} Foreign imports."],
@@ -209,7 +215,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: st
         }
         units.push(unit.printed_text())
     }
-    push_library_units(ctx, names, units)
+    push_foreign_units(ctx, names, units)
 
     return CProgram {
         .header = header.printed_text(),

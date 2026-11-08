@@ -307,7 +307,10 @@ the headers, at no run-time cost.
 
 A named function passed as a callback reaches C as its own symbol (`fn.addr`).
 Each `CLibrary`'s shims go in their own C unit, with that library's headers only,
-so two libraries whose headers declare the same names bind in one program.
+so two libraries whose headers declare the same names bind in one program. The
+shims of the `@extern`s no header declares share one more unit, which includes only
+what every unit opens with: the `extern` synthesised for one of them may contradict
+a header that another `@extern` names.
 
 **`vader run`.** The VM calls an `@extern` dynamically (`runtime/c/rt/ffi.c`),
 opening the library, looking the symbol up and calling it through a trampoline per
