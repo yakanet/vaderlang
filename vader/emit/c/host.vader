@@ -863,6 +863,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedWatchExit     -> { return [perform("vader_sched_watch_exit", [a0])] }
     // std/io: a read of stdin (`runtime/c/rt/sched.c`).
     .IoWaitReadable     -> { return [perform("vader_sched_wait_readable", [a0])] }
+    .IoWaitReadableFor  -> { return [returning("vader_sched_wait_readable_for", [a0, a1])] }
 
     // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
     // argument slots through `vader_array_bytes`, which already owns the

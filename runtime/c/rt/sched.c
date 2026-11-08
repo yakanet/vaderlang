@@ -585,12 +585,28 @@ void vader_sched_watch_exit(int64_t child) {
     vader_sched_watch(VADER_WATCH_EXIT, child);
 }
 
-void vader_sched_wait_readable(int64_t fd) {
-    if (vader_vt_threads() == 0u) return;
+bool vader_sched_wait_readable_for(int64_t fd, int64_t nanos) {
+    if (vader_vt_threads() == 0u) return true;
+    vader_sched_start();
+    int64_t thread = vader_vt_current();
+    int timed = nanos >= 0;
+    int64_t deadline = vader_sched_deadline_in(nanos);
+    uint64_t began = ++g_sched_sleeps_begun;
     while (!vader_os_readable_now(fd)) {
+        if (timed && vader_sched_now() >= deadline) return false;
         vader_sched_watch(VADER_WATCH_READABLE, fd);
+        /* The timer ends the park the watch ends, whichever comes first. */
+        if (timed) {
+            uint32_t sleep = vader_sched_slot_of(thread)->sleep + 1u;
+            vader_sched_arm((vader_sched_timer_t) { deadline, began, thread, sleep });
+        }
         vader_sched_park();
     }
+    return true;
+}
+
+void vader_sched_wait_readable(int64_t fd) {
+    (void) vader_sched_wait_readable_for(fd, -1);
 }
 
 void vader_sched_cancel(int64_t thread) {

@@ -114,7 +114,7 @@ export IntrinsicId :: enum(u8) {
     SchedSpawn, SchedPark, SchedWake, SchedSleepFor, SchedCancel, SchedCurrent,
     SchedWatchReadable, SchedWatchExit,
     // std/io: a read that parks while another thread runs
-    IoWaitReadable,
+    IoWaitReadable, IoWaitReadableFor,
     // std/abort
     AbortPanic,
     // std/target: the OS the process is RUNNING on, not the one it was built
@@ -175,6 +175,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime_scheduler$watch_readable" { return .SchedWatchReadable }
     if mangled == r"std_runtime_scheduler$watch_exit"     { return .SchedWatchExit }
     if mangled == r"std_io$wait_readable"                 { return .IoWaitReadable }
+    if mangled == r"std_io$wait_readable_for"             { return .IoWaitReadableFor }
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
@@ -205,7 +206,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .SchedSpawn | .SchedWake | .SchedCurrent -> false
     .SchedWatchReadable | .SchedWatchExit -> false
     // Other threads run, and collect, before these return.
-    .SchedPark | .SchedSleepFor | .SchedCancel | .IoWaitReadable -> true
+    .SchedPark | .SchedSleepFor | .SchedCancel | .IoWaitReadable | .IoWaitReadableFor -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text, a copy.
@@ -240,7 +241,7 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .SchedWatchReadable | .SchedWatchExit -> false
     // Other threads run before these return, and may shorten any array they
     // reach.
-    .SchedPark | .SchedSleepFor | .SchedCancel | .IoWaitReadable -> true
+    .SchedPark | .SchedSleepFor | .SchedCancel | .IoWaitReadable | .IoWaitReadableFor -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.
