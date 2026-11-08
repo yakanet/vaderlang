@@ -577,7 +577,9 @@ system_poll_stdin :: fn(timeout_ms: i32) -> bool {
     if i64(h) == INVALID_HANDLE {
         return true
     }
-    end_stdin_wait()
+    if !await_stdin_reader(timeout_ms) {
+        return false
+    }
     waited: i32 = 0
     for {
         avail: u32[]: [0]

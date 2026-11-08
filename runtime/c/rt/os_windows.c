@@ -522,18 +522,29 @@ int64_t vader_console_read(void* buf, int64_t max) {
     }
 }
 
-/* End the reader's read of a stdin pipe, a read of no byte that a wait given
- * up leaves under way, and which every peek or read of the pipe waits behind
- * until data comes. The reader may not have begun it yet, hence the loop. A
- * console's read is left alone: it keeps what was typed. */
+/* Wait for the reader's read of a stdin pipe to end, no longer than
+ * `timeout_ms`, with no deadline when it is negative. That read takes no byte,
+ * outlives a wait given up, and every peek of the pipe waits behind it; it ends
+ * once the pipe holds data or has lost its writer, so stdin then reads. 0 at
+ * the deadline with the read still under way, 1 otherwise, at once on a
+ * console or with no read under way. The read is not cancelled: ADR 0130. */
 VADER_HOST_EXPORT
-void vader_stdin_end_wait(void) {
+int32_t vader_stdin_await_reader(int32_t timeout_ms) {
     vader_os_stdin_init();
-    if (g_os_stdin_kind != VADER_STDIN_PIPE) return;
+    if (g_os_stdin_kind != VADER_STDIN_PIPE) return 1;
+    int64_t deadline = 0;
+    if (timeout_ms >= 0) deadline = vader_os_monotonic_ns() + (int64_t) timeout_ms * 1000000;
     while (vader_os_stdin_reading()) {
-        CancelSynchronousIo(g_os_stdin_reader);
-        WaitForSingleObject(g_os_stdin_done, 1);
+        DWORD wait = INFINITE;
+        if (timeout_ms >= 0) {
+            int64_t left = deadline - vader_os_monotonic_ns();
+            if (left <= 0) return 0;
+            wait = (DWORD) vader_os_ms_rounded_up(left);
+        }
+        /* An earlier read may have left the event set: the loop asks again. */
+        WaitForSingleObject(g_os_stdin_done, wait);
     }
+    return 1;
 }
 
 /* What a child's pipe holds before the child waits for a read. */

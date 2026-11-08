@@ -430,7 +430,8 @@ A read of stdin through `std/io` parks only while another thread exists, and
 so does `poll_stdin`, whose deadline is a timer armed for the park its watch
 ends. On Windows, the reader's read of a stdin pipe outlives a wait given up,
 and every other operation on the pipe would wait behind it: stdin is not ready
-while it is under way, and a poll alone ends it before it peeks. A thread that
+while it is under way, and a poll alone waits for it to end, within its deadline,
+before it peeks. That read ends once the pipe holds data or has lost its writer. A thread that
 sleeps with no other thread alive waits on the system clock itself, without a
 switch, which lets a target that cannot switch stacks sleep. A thread whose
 function returns leaves its stack to the next thread: 64 stacks are kept
