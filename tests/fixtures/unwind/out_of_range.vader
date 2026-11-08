@@ -1,0 +1,18 @@
+// tests/fixtures/unwind/out_of_range: a failed run-time check runs the pending
+// defers before the program stops, as a panic does. `tests/panic_unwind.test.ts`
+// runs it on both backends.
+
+module "main"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+
+hour_of :: fn(x: i32) -> Hour = Hour(x)
+
+main :: fn() -> i32 {
+    defer println("defer of main")
+    println("${i32(hour_of(7))}")
+    println("${i32(hour_of(40))}")
+    return 0
+}

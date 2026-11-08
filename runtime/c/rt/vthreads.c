@@ -556,6 +556,7 @@ static size_t vader_vt_threads(void) {
     return g_vt_thread_count;
 }
 
+/* In no set order: the end of a thread moves the last one into its place. */
 static void vader_vt_each_live(void (*fn)(int64_t handle)) {
     for (size_t i = 0; i < g_vt_live_count; i++) {
         vader_vt_t* t = g_vt_live[i];

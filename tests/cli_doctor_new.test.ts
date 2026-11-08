@@ -145,10 +145,10 @@ test("a GC size written with a suffix sizes the heap in MiB, and doctor reports 
 
 test("doctor reports the virtual clock on at `0`, where a GC toggle is off", async () => {
   const { stdout } = await spawnCapture(["doctor", "--json"], {
-    env: { VADER_ASYNC_VIRTUAL_CLOCK: "0", VADER_GC_POISON: "0" },
+    env: { VADER_VIRTUAL_CLOCK: "0", VADER_GC_POISON: "0" },
   });
   const names = JSON.parse(stdout).checks.map((c: { name: string }) => c.name);
-  expect(names).toContain("vader_async_virtual_clock");
+  expect(names).toContain("vader_virtual_clock");
   expect(names).not.toContain("vader_gc_poison");
 }, MEDIUM_BUILD);
 

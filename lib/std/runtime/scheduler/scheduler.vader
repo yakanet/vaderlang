@@ -54,7 +54,7 @@ export wake :: fn(thread: i64) -> void
 /// threads run. A zero or negative `nanos` returns at once; a `wake` does not
 /// end the sleep.
 ///
-/// Under `VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with
+/// Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with
 /// no thread ready, it jumps to the end of the nearest sleep.
 ///
 /// @param nanos  how long to sleep.

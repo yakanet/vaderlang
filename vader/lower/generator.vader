@@ -14,9 +14,9 @@
 //
 // The state struct + next fn are pushed to `project.synth_decls`, drained by
 // `lower_module`, and auto-wired into the `Iterator::next` vtable by
-// `collect_vtable_entries`. The reusable block-split engine (`GenBuild`, the
-// state-split, spill + routing) now lives in `coroutine.vader`; this file
-// keeps the generator-specific entry that drives it.
+// `collect_vtable_entries`. The block-split engine (`GenBuild`, the state-split,
+// spill + routing) lives in `coroutine.vader`; this file keeps the entry that
+// drives it.
 
 module "vader/lower"
 

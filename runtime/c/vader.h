@@ -1404,9 +1404,9 @@ typedef struct {
  * entries in LIFO order. The GC scan treats the stack as a root so
  * captures stay live between push and pop_exec.
  *
- * Panic unwinding: `vader_trap` and `vader_panic` drain the whole defer
- * stack LIFO before `abort()`, guarded by `g_unwinding` so a defer that itself
- * traps does not recurse. No setjmp/longjmp is involved, see
+ * Panic unwinding: `vader_trap`, `vader_panic` and `vader_unreachable` drain
+ * the whole defer stack LIFO before `abort()`, guarded by `g_unwinding` so a
+ * defer that itself traps does not recurse. No setjmp/longjmp is involved, see
  * `vader_run_pending_defers`. */
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);

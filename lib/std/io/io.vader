@@ -1,7 +1,8 @@
 // std/io: synchronous blocking I/O.
 //
 // Scope: standard streams, files, directories and the working directory.
-// No async, no networking, no streaming primitives.
+// A call that waits blocks the system thread, and every task with it. No
+// networking, no streaming primitives.
 
 module "std/io"
 

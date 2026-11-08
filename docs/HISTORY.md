@@ -1449,3 +1449,9 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### 3.8 Language ergonomics
 
 - [x] **`std/iter` has no `min` / `max` terminal**, **closed 2026-11-02** (noted 2026-10-21): `min` / `max :: fn<T: Comparable>(self: Iterator<T>) -> T | null`, the first of equal elements. A float has no `Comparable` (NaN orders against nothing), so it waits for `min_by` / `max_by`.
+
+## Archived from TODO.md, 2026-11-08
+
+### 3.8 Language ergonomics
+
+- [x] **`defer` unwinds on a stop, on both backends**, **closed 2026-11-08** (gap surfaced 2026-05-19): the VM drains each frame's pending defers on every trap; natively, `vader_unreachable` (`runtime/c/rt/defer_traps.c`) now drains the defer stack before `abort()` as `vader_trap` and `vader_panic` do, so a failed run-time check, a singleton called while it initialises or a trait call no dispatcher case covers runs the pending defers, as SPEC §7 *`defer`* states (fixture `tests/fixtures/unwind/out_of_range.vader`, `tests/panic_unwind.test.ts`). A stop still runs the defers of the task that stops alone (TODO.md §3.1).

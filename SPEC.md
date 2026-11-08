@@ -4040,7 +4040,7 @@ main :: fn() -> i32 {
 - `t.is_ready()` tells whether the task has ended, so that `join` would not wait. It never parks, so a loop can poll it.
 - A task shows as `task #N`, its number in the order the program launched them. Two tasks are equal when they are the same task.
 - `launch(...)` as a statement launches the task without waiting for it, as a bare call drops its value.
-- When `main` returns, the tasks still running are cancelled, stderr names them, and the exit code is not zero.
+- When `main` returns, the tasks still running are cancelled, stderr names them in the order they were launched, and the exit code is not zero.
 - When every task waits and no sleep is pending, nothing will wake one: the program stops on a deadlock and names the tasks.
 
 `Async<T>` (`std/core`) is the trait of a `T` later, a value handed over before it is there: `join` waits for it, and `is_ready` tells whether it is there without waiting.
@@ -4093,7 +4093,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (Â
 ### Waiting
 
 - `sleep(d)` (`std/time`) parks the task for at least `d` while the others run. A task alone waits on the system clock.
-- With `VADER_ASYNC_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. It suits tests that do no real I/O.
+- With `VADER_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. Of two sleeps that end together, the one that began first ends first. It suits tests that do no real I/O.
 - I/O in `std/io` blocks the program: no other task runs while a read or a write waits.
 - `spawn` (`std/process`) parks the calling task while its child runs, and a task cancelled meanwhile kills its child.
 

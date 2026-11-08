@@ -50,6 +50,8 @@ plugin_dispatch :: fn() -> PluginDispatch = PluginDispatch {}
 tell_plugins :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> void {
     dispatch :: plugin_dispatch()
     dispatch.running = true
+    // A cancelled task runs its defers: the flag must not outlive the dispatch.
+    defer dispatch.running = false
     for plugin in plugins {
         match msg {
             is TypecheckedMessage -> plugin.on_module(ctx, msg)
@@ -57,7 +59,6 @@ tell_plugins :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> v
             is CompleteMessage    -> plugin.on_complete(ctx, msg.code)
         }
     }
-    dispatch.running = false
 }
 
 // ---- tests ----------------------------------------------------------------

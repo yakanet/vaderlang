@@ -4,8 +4,10 @@
 // every diagnostic mode of the collector, in a debug and a release build; a
 // thread that runs past its stack stops; each thread unwinds its own defers; a
 // switch inside a call to C stops the program. The ready threads run in turn,
-// the shortest sleep ends first, a cancelled thread runs its defers, a deadlock
-// stops the program, and so does `main` returning while a thread runs.
+// the shortest sleep ends first and of two that end together the older, a
+// cancelled thread runs its defers, a deadlock stops the program, and `main`
+// returning while threads run cancels them and names them in the order they
+// started.
 //
 // The fixture (tests/fixtures/virtual_threads/main.vader) is built once per
 // profile, and each case is a run of it with `THREADS_CASE` set; on the VM, each
@@ -137,9 +139,15 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
   }
 
   test("under the virtual clock, the shortest sleep ends first", async () => {
-    const r = await run({ ...caseEnv("sleep_order", ""), VADER_ASYNC_VIRTUAL_CLOCK: "1" });
+    const r = await run({ ...caseEnv("sleep_order", ""), VADER_VIRTUAL_CLOCK: "1" });
     if (r === null) return;
     expect(r).toMatchObject({ stdout: "slept 10 ms\nslept 20 ms\nslept 30 ms\n", stderr: "", exit: 0 });
+  }, LONG_BUILD);
+
+  test("under the virtual clock, sleeps that end together end in the order they began", async () => {
+    const r = await run({ ...caseEnv("sleep_ties", ""), VADER_VIRTUAL_CLOCK: "1" });
+    if (r === null) return;
+    expect(r).toMatchObject({ stdout: "a woke\nb woke\nc woke\n", stderr: "", exit: 0 });
   }, LONG_BUILD);
 
   test("the main thread cannot be cancelled", async () => {
@@ -164,6 +172,20 @@ function threadCases(run: Runner, gcModes: string[], callsIntoC: boolean) {
     expect(r).toMatchObject({
       stdout: "main returns\ndefer of the forgotten thread\n",
       stderr: "vader: task #1 still runs when main returns: cancelled\n",
+      exit: 1,
+    });
+  }, LONG_BUILD);
+
+  test("main returning names the threads still running in the order they started", async () => {
+    const r = await runCase("exit_names_in_order");
+    if (r === null) return;
+    expect(r).toMatchObject({
+      stdout: "the first thread ends\nmain returns\n",
+      stderr: [
+        "vader: task #2 still runs when main returns: cancelled",
+        "vader: task #3 still runs when main returns: cancelled",
+        "",
+      ].join("\n"),
       exit: 1,
     });
   }, LONG_BUILD);

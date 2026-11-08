@@ -12,7 +12,7 @@
  * its own stack, then ends. A defer may park meanwhile, and the cancellation
  * goes on where it stood.
  *
- * Under `VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone: it
+ * Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: it
  * jumps to the end of the nearest one instead of waiting for it. */
 
 #include "internal.h"
@@ -28,6 +28,7 @@ typedef struct {
 
 typedef struct {
     int64_t  deadline;
+    uint64_t began;         /* the order its sleep began in */
     int64_t  thread;
     uint32_t sleep;
 } vader_sched_timer_t;
@@ -52,10 +53,12 @@ static size_t g_sched_ready_head = 0;
 static size_t g_sched_ready_len = 0;
 static size_t g_sched_ready_cap = 0;
 
-/* The sleeps, a min-heap on the deadline. */
+/* The sleeps, a min-heap on the deadline: of two sleeps ending together, the
+ * one that began first wakes first. */
 static vader_sched_timer_t* g_sched_timers = NULL;
 static size_t g_sched_timer_len = 0;
 static size_t g_sched_timer_cap = 0;
+static uint64_t g_sched_sleeps_begun = 0;
 
 /* ---- the slots ------------------------------------------------------------- */
 
@@ -128,7 +131,12 @@ static int64_t vader_sched_now(void) {
     return vader_os_monotonic_ns();
 }
 
-static void vader_sched_arm(int64_t deadline, int64_t thread, uint32_t sleep) {
+static int vader_sched_timer_before(const vader_sched_timer_t* a, const vader_sched_timer_t* b) {
+    if (a->deadline != b->deadline) return a->deadline < b->deadline;
+    return a->began < b->began;
+}
+
+static void vader_sched_arm(vader_sched_timer_t timer) {
     if (g_sched_timer_len == g_sched_timer_cap) {
         size_t cap = 64u;
         if (g_sched_timer_cap != 0u) cap = g_sched_timer_cap * 2u;
@@ -140,13 +148,11 @@ static void vader_sched_arm(int64_t deadline, int64_t thread, uint32_t sleep) {
     size_t i = g_sched_timer_len++;
     while (i > 0u) {
         size_t parent = (i - 1u) / 2u;
-        if (g_sched_timers[parent].deadline <= deadline) break;
+        if (!vader_sched_timer_before(&timer, &g_sched_timers[parent])) break;
         g_sched_timers[i] = g_sched_timers[parent];
         i = parent;
     }
-    g_sched_timers[i].deadline = deadline;
-    g_sched_timers[i].thread = thread;
-    g_sched_timers[i].sleep = sleep;
+    g_sched_timers[i] = timer;
 }
 
 static void vader_sched_drop_first_timer(void) {
@@ -156,10 +162,10 @@ static void vader_sched_drop_first_timer(void) {
     for (;;) {
         size_t child = 2u * i + 1u;
         if (child >= g_sched_timer_len) break;
-        if (child + 1u < g_sched_timer_len && g_sched_timers[child + 1u].deadline < g_sched_timers[child].deadline) {
+        if (child + 1u < g_sched_timer_len && vader_sched_timer_before(&g_sched_timers[child + 1u], &g_sched_timers[child])) {
             child++;
         }
-        if (last.deadline <= g_sched_timers[child].deadline) break;
+        if (!vader_sched_timer_before(&g_sched_timers[child], &last)) break;
         g_sched_timers[i] = g_sched_timers[child];
         i = child;
     }
@@ -245,13 +251,41 @@ static void vader_sched_report_thread(int64_t thread) {
     g_sched_report_names++;
 }
 
+/* The live threads `vader_sched_each_by_number` walks. */
+static int64_t* g_sched_by_number = NULL;
+static size_t   g_sched_by_number_len = 0;
+
+static void vader_sched_collect(int64_t thread) {
+    g_sched_by_number[g_sched_by_number_len++] = thread;
+}
+
+static int vader_sched_compare_numbers(const void* a, const void* b) {
+    uint64_t x = vader_sched_slot_of(*(const int64_t*) a)->number;
+    uint64_t y = vader_sched_slot_of(*(const int64_t*) b)->number;
+    return (x > y) - (x < y);
+}
+
+/* Call `fn` on each live thread, main first, then the tasks in the order they
+ * started: a report reads the same on every run, and as the VM writes it. */
+static void vader_sched_each_by_number(void (*fn)(int64_t thread)) {
+    /* The tasks, and main. */
+    size_t live = vader_vt_threads() + 1u;
+    g_sched_by_number = (int64_t*) malloc(live * sizeof(int64_t));
+    if (g_sched_by_number == NULL) vader_trap("virtual threads: out of memory");
+    g_sched_by_number_len = 0;
+    vader_vt_each_live(vader_sched_collect);
+    qsort(g_sched_by_number, g_sched_by_number_len, sizeof(int64_t), vader_sched_compare_numbers);
+    for (size_t i = 0; i < g_sched_by_number_len; i++) fn(g_sched_by_number[i]);
+    free(g_sched_by_number);
+}
+
 /* Every thread waits on another and none sleeps: name them and stop. */
 static void vader_sched_deadlock(void) {
     g_sched_report_len = 0;
     g_sched_report[0] = '\0';
     g_sched_report_names = 0;
     vader_sched_report_append("virtual threads: a deadlock, every task waits and nothing will wake one:");
-    vader_vt_each_live(vader_sched_report_thread);
+    vader_sched_each_by_number(vader_sched_report_thread);
     vader_trap(g_sched_report);
 }
 
@@ -279,7 +313,7 @@ static void vader_sched_loop(void) {
 static void vader_sched_read_clock(void) {
     if (g_sched_clock_read) return;
     g_sched_clock_read = 1;
-    g_sched_virtual_clock = getenv("VADER_ASYNC_VIRTUAL_CLOCK") != NULL;
+    g_sched_virtual_clock = getenv("VADER_VIRTUAL_CLOCK") != NULL;
 }
 
 static void vader_sched_start(void) {
@@ -358,11 +392,12 @@ void vader_sched_sleep_for(int64_t nanos) {
     int64_t now = vader_sched_now();
     int64_t deadline = INT64_MAX;
     if (nanos < INT64_MAX - now) deadline = now + nanos;
+    uint64_t began = ++g_sched_sleeps_begun;
     /* A wake ends the park, not the sleep. */
     do {
         vader_sched_slot_t* s = vader_sched_slot_of(thread);
         s->sleep++;
-        vader_sched_arm(deadline, thread, s->sleep);
+        vader_sched_arm((vader_sched_timer_t) { deadline, began, thread, s->sleep });
         vader_sched_block();
     } while (vader_sched_now() < deadline);
 }
@@ -399,7 +434,7 @@ static void vader_sched_cancel_at_exit(int64_t thread) {
 
 int vader_sched_exit(int code) {
     if (!g_sched_started || vader_vt_threads() == 0u) return code;
-    vader_vt_each_live(vader_sched_cancel_at_exit);
+    vader_sched_each_by_number(vader_sched_cancel_at_exit);
     g_sched_exiting = 1;
     vader_sched_slot_of(vader_vt_main())->sleep++;
     while (vader_vt_threads() > 0u) vader_sched_block();

@@ -242,6 +242,18 @@ sleep_order :: fn() -> void {
     join_all()
 }
 
+// Under the virtual clock: sleeps that end together end in the order they
+// began.
+sleep_ties :: fn() -> void {
+    for name in ["a", "b", "c"] {
+        spawn(fn() {
+            sleep_for(10_000_000)
+            println("${name} woke")
+        })
+    }
+    join_all()
+}
+
 // A thread sleeps while main wakes it: a wake does not end a sleep.
 real_sleep :: fn() -> void {
     started :: monotonic()
@@ -349,6 +361,16 @@ exit_after_cancel :: fn() -> void {
     println("main returns")
 }
 
+// Main returns while two threads wait, after a third, started before them,
+// ended: the report names the two in the order they started.
+exit_names_in_order :: fn() -> void {
+    spawn_thread(() -> println("the first thread ends"))
+    spawn_thread(park_forever)
+    spawn_thread(park_forever)
+    yield_now()
+    println("main returns")
+}
+
 // Three bursts of threads, more than the stacks kept warm, with a sleep
 // between them: the stacks freed during a sleep go back to the OS, and the
 // next burst reserves them again.
@@ -372,6 +394,7 @@ main :: fn() -> i32 {
         "switch_in_callback"    -> switch_in_callback()
         "take_turns"            -> take_turns()
         "sleep_order"           -> sleep_order()
+        "sleep_ties"            -> sleep_ties()
         "real_sleep"            -> real_sleep()
         "cancel_parked"         -> cancel_parked()
         "cancel_unstarted"      -> cancel_unstarted()
@@ -381,6 +404,7 @@ main :: fn() -> i32 {
         "deadlock"              -> deadlock()
         "exit_with_live_thread" -> exit_with_live_thread()
         "exit_after_cancel"     -> exit_after_cancel()
+        "exit_names_in_order"   -> exit_names_in_order()
         "bursts"                -> bursts()
         _                       -> {
             eprintln("THREADS_CASE: `${case}` names no case")

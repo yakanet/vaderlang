@@ -411,21 +411,22 @@ The scheduler is C and runs on a thread of its own, which runs no Vader code. It
 runs the ready threads in the order they became ready. With none ready, it waits
 for the nearest sleep to end; with no sleep either, every thread waits on
 another, and it stops the program on a deadlock that names them. Under
-`VADER_ASYNC_VIRTUAL_CLOCK`, the clock counts the sleeps alone and jumps to the
-end of the nearest one. A thread that sleeps with no other thread alive waits
-on the system clock itself, without a switch, which lets a target that cannot
-switch stacks sleep. A thread whose function returns leaves its stack to the
-next thread: 64 stacks are kept as they are, the others keep their reservation,
-and the scheduler gives it back to the OS the next time it waits. Outside
-Windows, those others release meanwhile the 256 KiB a thread writes first.
+`VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone and jumps to the end of
+the nearest one. Of two sleeps that end together, the one that began first wakes
+first. A thread that sleeps with no other thread alive waits on the system clock
+itself, without a switch, which lets a target that cannot switch stacks sleep. A
+thread whose function returns leaves its stack to the next thread: 64 stacks are
+kept as they are, the others keep their reservation, and the scheduler gives it
+back to the OS the next time it waits. Outside Windows, those others release
+meanwhile the 256 KiB a thread writes first.
 
 A cancelled thread runs its pending defers on its own stack at its next run,
 then ends; one cancelled before it ran runs nothing. When `main` returns, it
 waits for the end of every thread. Those not cancelled yet are cancelled and
-named on stderr as tasks (`task #1`), and naming one makes a zero exit code 1;
-those cancelled before are on their way out and go unnamed. A switch made from
-a callback that C called stops the program: another thread would run over the
-C frames below it.
+named on stderr as tasks (`task #1`), in the order they started, and naming one
+makes a zero exit code 1; those cancelled before are on their way out and go
+unnamed. A switch made from a callback that C called stops the program: another
+thread would run over the C frames below it.
 
 The VM runs each thread of the program on a thread of its own process, with a
 register file of its own, so the interpreter's frames park with it. A cancelled

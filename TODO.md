@@ -391,6 +391,7 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 ## Phase 3: Beyond self-hosting
 
 ### 3.1 Concurrency: partial
+- [ ] **A stop runs the defers of the task that stops, not those of the others** (noted 2026-11-08). Natively, `vader_trap`, `vader_panic` and `vader_unreachable` (`runtime/c/rt/defer_traps.c`) drain the running thread's defer stack only: the other tasks end with the process, their defers unrun. SPEC §16 *Cancellation* states the behaviour as it is; running every task's defers needs the stop to cancel each one and let it unwind.
 - [ ] **A cancelled sleep keeps its timer.** The timer of a task cancelled while it sleeps stays in the heap until it fires, and wakes nothing (`runtime/c/rt/sched.c`).
 
 ### 3.2 Tasks over several cores
@@ -612,7 +613,6 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 - [ ] **The VM's `ArrayVal` storage as a union** (noted 2026-10-04). Since the VM reads string bytes in place (ADR 0029), `ArrayVal` holds `elements` plus `raw: string | null` (`vader/vm/value.vader`; ADR 0029 still says `u8[] | null`); a reader that forgets `raw` reads an empty `elements` instead of failing to compile. A `backing: Value[] | u8[]` union would force every reader (~43 `.elements` reads in 6 files) to handle both.
 
 ### 3.8 Language ergonomics
-- [~] **`defer` unwinds on panic** (gap surfaced 2026-05-19): **VM DONE, C target pending.** Defers lower to per-frame `DeferPush` / `DeferPopExec` ops; on a trap the **VM now walks frames bottom-up and drains each frame's pending defers before propagating** (`vader/vm/exec.vader:1008`). Remaining (re-checked 2026-10-25): natively, `vader_trap` and `vader_panic` now drain the defer stack before `abort()`, but `vader_unreachable` (`runtime/c/rt/defer_traps.c`) still aborts without it, where the VM unwinds on every trap. The compiler emits `unreachable` for failures a program can meet (a singleton called while it initialises, a trait call no dispatcher case covers), so those skip the defers natively; draining in `vader_unreachable` too would close it. Same fix unlocks a future `recover` / `rescue` primitive. Cross-ref §3.1 Concurrency (panic propagation across spawned tasks).
 - [ ] Static-size arrays `[T; N]`.
 - [ ] **`xs[-1]` counts from the end** (planned 2026-10-19, once an index became any integer: ADR 0093, 0094). Open: whether strings and slices follow (a slice bound clamps a negative to 0 today), the spelling, and what a debug build checks.
 - [ ] **Too many ways for a `match` to leave a variant out** (idea, 2026-10-19, to revisit together). Three forms overlap. A plain `match` must be exhaustive (T3013); a `_` arm lifts that, and on a closed union in value position earns W0005. `@partial` lifts both T3013 and W0005. `@unreachable` lifts T3013 and promises the uncovered variants never come. Read against the code, they reduce to fewer ideas than they suggest:

@@ -83,7 +83,7 @@ ENV_TOGGLES: EnvToggle[]: [
         .effect = "the collector skips its conservative stack scan and can free live objects",
     },
     EnvToggle {
-        .name = "VADER_ASYNC_VIRTUAL_CLOCK",
+        .name = "VADER_VIRTUAL_CLOCK",
         .status = .Warn,
         .effect = "tasks run on a virtual clock: sleeps do not wait",
         .any_value = true,
