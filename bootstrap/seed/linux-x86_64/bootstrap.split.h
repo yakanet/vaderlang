@@ -6,6 +6,7 @@
 
 typedef struct vader_struct_$Cell_9f2327a5edefc8da_t vader_struct_$Cell_9f2327a5edefc8da_t;
 typedef struct vader_struct_$Cell_bool_cd2fd49b_t vader_struct_$Cell_bool_cd2fd49b_t;
+typedef struct vader_struct_$Cell_i32_2af2b319_t vader_struct_$Cell_i32_2af2b319_t;
 typedef struct vader_struct___Tuple_2_471c43984d8ea035_t vader_struct___Tuple_2_471c43984d8ea035_t;
 typedef struct vader_struct___Tuple_2_6a15c9be4dad7d04_t vader_struct___Tuple_2_6a15c9be4dad7d04_t;
 typedef struct vader_struct___Tuple_2_864b311187fca879_t vader_struct___Tuple_2_864b311187fca879_t;
@@ -60,10 +61,12 @@ typedef struct vader_struct___lambda_env_vader_front_effects_136_t vader_struct_
 typedef struct vader_struct___lambda_env_vader_front_effects_138_t vader_struct___lambda_env_vader_front_effects_138_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_140_t vader_struct___lambda_env_vader_front_effects_140_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_142_t vader_struct___lambda_env_vader_front_effects_142_t;
-typedef struct vader_struct___lambda_env_vader_front_effects_147_t vader_struct___lambda_env_vader_front_effects_147_t;
-typedef struct vader_struct___lambda_env_vader_front_effects_149_t vader_struct___lambda_env_vader_front_effects_149_t;
+typedef struct vader_struct___lambda_env_vader_front_effects_144_t vader_struct___lambda_env_vader_front_effects_144_t;
+typedef struct vader_struct___lambda_env_vader_front_effects_146_t vader_struct___lambda_env_vader_front_effects_146_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_151_t vader_struct___lambda_env_vader_front_effects_151_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_153_t vader_struct___lambda_env_vader_front_effects_153_t;
+typedef struct vader_struct___lambda_env_vader_front_effects_155_t vader_struct___lambda_env_vader_front_effects_155_t;
+typedef struct vader_struct___lambda_env_vader_front_effects_157_t vader_struct___lambda_env_vader_front_effects_157_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_16_t vader_struct___lambda_env_vader_front_effects_16_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_23_t vader_struct___lambda_env_vader_front_effects_23_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_28_t vader_struct___lambda_env_vader_front_effects_28_t;
@@ -1228,6 +1231,10 @@ struct vader_struct_$Cell_bool_cd2fd49b_t {
     vader_obj_header_t header;
     bool f_value;
 };
+struct vader_struct_$Cell_i32_2af2b319_t {
+    vader_obj_header_t header;
+    int32_t f_value;
+};
 struct vader_struct___Tuple_2_471c43984d8ea035_t {
     vader_obj_header_t header;
     vader_string_t f__0;
@@ -1295,8 +1302,9 @@ struct vader_struct___defer_env_vader_vm_22_t {
 struct vader_struct___defer_env_vader_vm_24_t {
     vader_obj_header_t header;
     void* f_cap_0;
-    void* f_cap_1;
-    bool f_cap_2;
+    vader_box_t f_cap_1;
+    void* f_cap_2;
+    bool f_cap_3;
 };
 struct vader_struct___lambda_env_vader_core_types_1_t {
     vader_obj_header_t header;
@@ -1469,19 +1477,28 @@ struct vader_struct___lambda_env_vader_front_effects_142_t {
     void* f_cap_1;
     vader_box_t f_cap_2;
 };
-struct vader_struct___lambda_env_vader_front_effects_147_t {
+struct vader_struct___lambda_env_vader_front_effects_144_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+    vader_box_t f_cap_1;
+};
+struct vader_struct___lambda_env_vader_front_effects_146_t {
     vader_obj_header_t header;
     vader_box_t f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_effects_149_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-};
 struct vader_struct___lambda_env_vader_front_effects_151_t {
     vader_obj_header_t header;
-    void* f_cap_0;
+    vader_box_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_front_effects_153_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_front_effects_155_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_front_effects_157_t {
     vader_obj_header_t header;
     vader_string_t f_cap_0;
 };
@@ -1595,7 +1612,7 @@ struct vader_struct___lambda_env_vader_front_effects_72_t {
 struct vader_struct___lambda_env_vader_front_effects_74_t {
     vader_obj_header_t header;
     void* f_cap_0;
-    void* f_cap_1;
+    bool f_cap_1;
 };
 struct vader_struct___lambda_env_vader_front_effects_76_t {
     vader_obj_header_t header;
@@ -6033,6 +6050,7 @@ struct vader_struct_vader_front_effects$JoinPoint_t {
     void* f_block;
     void* f_at;
     bool f_by_loop;
+    uint8_t f_leaving;
 };
 struct vader_struct_vader_front_effects$KeptInto_t {
     vader_obj_header_t header;
@@ -8851,8 +8869,9 @@ struct vader_struct_vader_vm$GuestThread_t {
     vader_obj_header_t header;
     int64_t f_number;
     int64_t f_launcher;
-    bool f_started;
+    bool f_outlives;
     bool f_cancelled;
+    bool f_unwinding;
     vader_box_t f_machine;
 };
 struct vader_struct_vader_vm$GuestThreads_t {
@@ -10109,11 +10128,9 @@ vader_box_t vader_vm$element_at(void* l0, int64_t l1);
 vader_box_t vader_vm$global_zero(uint8_t l0);
 uint8_t vader_vm$field_valtype(void* l0, int32_t l1);
 bool __lambda_vader_vm_6(void* l0, int64_t l1, int64_t l2);
-void vader_vm$unwind(void* l0, void* l1, void* l2, bool l3);
 void vader_vm$guest_threads$keep(void);
 int64_t vader_vm$number_of(void* l0, int64_t l1);
 vader_box_t __lambda_vader_vm_8(void);
-void vader_vm$forget(void* l0, int64_t l1);
 void* __lambda_vader_vm_9(void* l0);
 bool __lambda_vader_vm_11(void* l0, void* l1);
 void* __lambda_vader_vm_12(void* l0);
@@ -10127,6 +10144,8 @@ void __lambda_vader_vm_19(void* l0);
 void vader_vm$run_guest_thread(void* l0, void* l1, bool l2, vader_box_t l3);
 void __defer_vader_vm_21(void* l0);
 void __defer_vader_vm_23(void* l0);
+void vader_vm$forget(void* l0, int64_t l1);
+void vader_vm$unwind_guest(void* l0, vader_box_t l1, void* l2, bool l3);
 uint64_t vader_vm$Scalar$std_core$Hash$hash(void* l0);
 bool vader_vm$Scalar$std_core$Equals$equals(void* l0, void* l1);
 bool vader_vm$Scalar$std_core$Equals$equals$guard(void* l0, vader_box_t l1);
@@ -10235,16 +10254,17 @@ bool __lambda_vader_front_effects_104(void* l0, void* l1);
 bool __lambda_vader_front_effects_106(void* l0, void* l1);
 bool __lambda_vader_front_effects_108(void* l0, void* l1);
 bool __lambda_vader_front_effects_110(void* l0, void* l1);
-bool vader_front_effects$holds_offset(void* l0, int64_t l1);
 bool __lambda_vader_front_effects_112(void* l0, void* l1);
 bool __lambda_vader_front_effects_114(void* l0, void* l1);
 bool __lambda_vader_front_effects_116(void* l0, void* l1);
 bool vader_front_effects$contains(void* l0, void* l1);
+bool vader_front_effects$stays_until_joined(void* l0, bool l1);
 bool vader_front_effects$is_door_task(void* l0, void* l1, vader_box_t l2, vader_box_t l3);
 bool vader_front_effects$keeps_param(void* l0, vader_box_t l1, int64_t l2);
 bool __lambda_vader_front_effects_118(void* l0);
 bool __lambda_vader_front_effects_119(void* l0, vader_box_t l1);
 bool __lambda_vader_front_effects_121(void* l0, vader_box_t l1);
+bool vader_front_effects$ended_by(void* l0, int64_t l1);
 bool vader_front_effects$overlaps(void* l0, int32_t l1, int32_t l2);
 bool vader_front_effects$holds_strictly(void* l0, void* l1);
 bool __lambda_vader_front_effects_123(void* l0, void* l1);
@@ -10260,16 +10280,19 @@ bool vader_front_effects$handed_to_param(void* l0, int64_t l1);
 bool vader_front_effects$expr_reaches(vader_box_t l0, void* l1);
 bool __lambda_vader_front_effects_137(void* l0, void* l1);
 bool __lambda_vader_front_effects_141(void* l0, vader_box_t l1);
-bool __lambda_vader_front_effects_143(int32_t l0, int32_t l1);
-vader_string_t __lambda_vader_front_effects_144(int32_t l0);
+uint8_t __lambda_vader_front_effects_143(void* l0, vader_box_t l1);
+void __lambda_vader_front_effects_145(void* l0, vader_box_t l1);
+bool __lambda_vader_front_effects_147(int32_t l0, int32_t l1);
+vader_string_t __lambda_vader_front_effects_148(int32_t l0);
 void* vader_front_effects$targets_of(void* l0, vader_box_t l1);
-bool __lambda_vader_front_effects_145(void* l0);
+bool __lambda_vader_front_effects_149(void* l0);
 bool vader_front_effects$may_be_element(vader_box_t l0, vader_box_t l1);
-bool __lambda_vader_front_effects_146(void* l0, vader_box_t l1);
-bool __lambda_vader_front_effects_148(void* l0, void* l1);
-bool vader_front_effects$same_root(void* l0, void* l1);
-void* __lambda_vader_front_effects_150(void* l0, vader_box_t l1);
+bool __lambda_vader_front_effects_150(void* l0, vader_box_t l1);
 bool __lambda_vader_front_effects_152(void* l0, void* l1);
+bool vader_front_effects$same_root(void* l0, void* l1);
+bool vader_front_effects$escapes_1(vader_box_t l0, int32_t l1);
+void* __lambda_vader_front_effects_154(void* l0, vader_box_t l1);
+bool __lambda_vader_front_effects_156(void* l0, void* l1);
 bool std_char$is_digit(uint32_t l0);
 bool std_char$is_white_char(uint32_t l0);
 bool std_char$is_alpha(uint32_t l0);
@@ -10478,8 +10501,8 @@ vader_box_t vader_fn_tramp___lambda_vader_front_effects_103(void* env, vader_box
 extern vader_fn_t vader_fn_static___lambda_vader_front_effects_103;
 vader_box_t vader_fn_tramp_vader_front_effects$escapes(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_vader_front_effects$escapes;
-vader_box_t vader_fn_tramp___lambda_vader_front_effects_143(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static___lambda_vader_front_effects_143;
+vader_box_t vader_fn_tramp___lambda_vader_front_effects_147(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static___lambda_vader_front_effects_147;
 vader_box_t vader_fn_lift___defer_std_io_0(void* env);
 vader_box_t vader_fn_lift___defer_std_io_2(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_typecheck_0(void* env);
@@ -10547,6 +10570,8 @@ vader_box_t vader_fn_lift___lambda_vader_front_effects_55(void* env, vader_box_t
 vader_box_t vader_fn_lift___lambda_vader_front_effects_59(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_front_effects_104(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_front_effects_133(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_effects_143(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_front_effects_145(void* env, vader_box_t a0);
 
 /* vtable forwards */
 uint64_t vader_vt_std_core$Hash$hash(vader_box_t recv);
@@ -10554,7 +10579,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3272u
+#define VADER_COMPTIME_ATOM_COUNT 3270u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

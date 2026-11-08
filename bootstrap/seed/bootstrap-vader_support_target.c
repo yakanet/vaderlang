@@ -19,7 +19,7 @@ static bool vader_support_target$Target$std_core$Equals$equals(void* l0, void* l
 bool vader_support_target$Target$std_core$Equals$equals$guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
-    if (l1.tag == 1680u) {
+    if (l1.tag == 1683u) {
         l2 = l1.payload.obj;
         t0 = vader_support_target$Target$std_core$Equals$equals(l0, l2);
         return t0;
@@ -104,7 +104,7 @@ void* vader_support_target$host_target(void) {
     l0 = vader_host_std_target$current_os();
     l1 = vader_host_std_target$current_arch();
     vader_struct_vader_support_target$Target_t* _a0_obj = (vader_struct_vader_support_target$Target_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_target$Target_t));
-    vader_obj_header_init(_a0_obj, 1680u);
+    vader_obj_header_init(_a0_obj, 1683u);
     _a0_obj->f_os = l0;
     _a0_obj->f_arch = l1;
     t0 = (void*) _a0_obj;
@@ -134,7 +134,7 @@ static vader_string_t vader_support_target$os_variant(uint8_t l0) {
 
 vader_box_t vader_support_target$parse_os(vader_string_t l0) {
     vader_box_t l1;
-    if (l0 == 3227u) {
+    if (l0 == 3225u) {
         l1 = vader_box_i32(499u, INT32_C(0));
         return l1;
     }
@@ -142,7 +142,7 @@ vader_box_t vader_support_target$parse_os(vader_string_t l0) {
         l1 = vader_box_i32(499u, INT32_C(1));
     } else if (l0 == 1905u) {
         l1 = vader_box_i32(499u, INT32_C(2));
-    } else if (l0 == 3213u) {
+    } else if (l0 == 3211u) {
         l1 = vader_box_i32(499u, INT32_C(3));
     } else if (l0 == 1730u) {
         l1 = vader_box_i32(499u, INT32_C(4));

@@ -36,7 +36,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l0 = (void*) _a0_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a1_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a1_obj, 1342u);
+    vader_obj_header_init(_a1_obj, 1345u);
     _a1_obj->f_name = 1867u;
     _a1_obj->f_usage = 580u;
     _a1_obj->f_places = l0;
@@ -46,7 +46,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l1 = (void*) _a2_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a3_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a3_obj, 1342u);
+    vader_obj_header_init(_a3_obj, 1345u);
     _a3_obj->f_name = 2048u;
     _a3_obj->f_usage = 585u;
     _a3_obj->f_places = l1;
@@ -56,7 +56,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l2 = (void*) _a4_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a5_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a5_obj, 1342u);
+    vader_obj_header_init(_a5_obj, 1345u);
     _a5_obj->f_name = 2035u;
     _a5_obj->f_usage = 584u;
     _a5_obj->f_places = l2;
@@ -66,8 +66,8 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l3 = (void*) _a6_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a7_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a7_obj, 1342u);
-    _a7_obj->f_name = 2864u;
+    vader_obj_header_init(_a7_obj, 1345u);
+    _a7_obj->f_name = 2861u;
     _a7_obj->f_usage = 605u;
     _a7_obj->f_places = l3;
     _a7_obj->f_doc = 749u;
@@ -76,7 +76,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a8_arr->buf->slots)[_a8_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l4 = (void*) _a8_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a9_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a9_obj, 1342u);
+    vader_obj_header_init(_a9_obj, 1345u);
     _a9_obj->f_name = 2292u;
     _a9_obj->f_usage = 594u;
     _a9_obj->f_places = l4;
@@ -86,7 +86,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a10_arr->buf->slots)[_a10_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l5 = (void*) _a10_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a11_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a11_obj, 1342u);
+    vader_obj_header_init(_a11_obj, 1345u);
     _a11_obj->f_name = 1925u;
     _a11_obj->f_usage = 581u;
     _a11_obj->f_places = l5;
@@ -96,7 +96,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a12_arr->buf->slots)[_a12_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l6 = (void*) _a12_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a13_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a13_obj, 1342u);
+    vader_obj_header_init(_a13_obj, 1345u);
     _a13_obj->f_name = 1684u;
     _a13_obj->f_usage = 572u;
     _a13_obj->f_places = l6;
@@ -106,7 +106,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a14_arr->buf->slots)[_a14_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l7 = (void*) _a14_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a15_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a15_obj, 1342u);
+    vader_obj_header_init(_a15_obj, 1345u);
     _a15_obj->f_name = 2518u;
     _a15_obj->f_usage = 598u;
     _a15_obj->f_places = l7;
@@ -116,7 +116,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a16_arr->buf->slots)[_a16_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l8 = (void*) _a16_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a17_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a17_obj, 1342u);
+    vader_obj_header_init(_a17_obj, 1345u);
     _a17_obj->f_name = 1602u;
     _a17_obj->f_usage = 571u;
     _a17_obj->f_places = l8;
@@ -126,8 +126,8 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a18_arr->buf->slots)[_a18_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l9 = (void*) _a18_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a19_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a19_obj, 1342u);
-    _a19_obj->f_name = 2858u;
+    vader_obj_header_init(_a19_obj, 1345u);
+    _a19_obj->f_name = 2855u;
     _a19_obj->f_usage = 604u;
     _a19_obj->f_places = l9;
     _a19_obj->f_doc = 832u;
@@ -136,7 +136,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a20_arr->buf->slots)[_a20_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l10 = (void*) _a20_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a21_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a21_obj, 1342u);
+    vader_obj_header_init(_a21_obj, 1345u);
     _a21_obj->f_name = 1785u;
     _a21_obj->f_usage = 573u;
     _a21_obj->f_places = l10;
@@ -146,7 +146,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a22_arr->buf->slots)[_a22_arr->offset + 0u] = (uint8_t) INT32_C(1);
     l11 = (void*) _a22_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a23_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a23_obj, 1342u);
+    vader_obj_header_init(_a23_obj, 1345u);
     _a23_obj->f_name = 1787u;
     _a23_obj->f_usage = 575u;
     _a23_obj->f_places = l11;
@@ -156,7 +156,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a24_arr->buf->slots)[_a24_arr->offset + 0u] = (uint8_t) INT32_C(1);
     l12 = (void*) _a24_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a25_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a25_obj, 1342u);
+    vader_obj_header_init(_a25_obj, 1345u);
     _a25_obj->f_name = 1786u;
     _a25_obj->f_usage = 574u;
     _a25_obj->f_places = l12;
@@ -167,7 +167,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a26_arr->buf->slots)[_a26_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l13 = (void*) _a26_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a27_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a27_obj, 1342u);
+    vader_obj_header_init(_a27_obj, 1345u);
     _a27_obj->f_name = 1789u;
     _a27_obj->f_usage = 578u;
     _a27_obj->f_places = l13;
@@ -177,7 +177,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a28_arr->buf->slots)[_a28_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l14 = (void*) _a28_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a29_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a29_obj, 1342u);
+    vader_obj_header_init(_a29_obj, 1345u);
     _a29_obj->f_name = 1788u;
     _a29_obj->f_usage = 576u;
     _a29_obj->f_places = l14;
@@ -187,7 +187,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a30_arr->buf->slots)[_a30_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l15 = (void*) _a30_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a31_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a31_obj, 1342u);
+    vader_obj_header_init(_a31_obj, 1345u);
     _a31_obj->f_name = 1790u;
     _a31_obj->f_usage = 579u;
     _a31_obj->f_places = l15;
@@ -197,7 +197,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a32_arr->buf->slots)[_a32_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l16 = (void*) _a32_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a33_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a33_obj, 1342u);
+    vader_obj_header_init(_a33_obj, 1345u);
     _a33_obj->f_name = 1933u;
     _a33_obj->f_usage = 582u;
     _a33_obj->f_places = l16;
@@ -207,7 +207,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a34_arr->buf->slots)[_a34_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l17 = (void*) _a34_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a35_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a35_obj, 1342u);
+    vader_obj_header_init(_a35_obj, 1345u);
     _a35_obj->f_name = 2684u;
     _a35_obj->f_usage = 602u;
     _a35_obj->f_places = l17;
@@ -217,7 +217,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a36_arr->buf->slots)[_a36_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l18 = (void*) _a36_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a37_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a37_obj, 1342u);
+    vader_obj_header_init(_a37_obj, 1345u);
     _a37_obj->f_name = 2656u;
     _a37_obj->f_usage = 600u;
     _a37_obj->f_places = l18;
@@ -227,7 +227,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a38_arr->buf->slots)[_a38_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l19 = (void*) _a38_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a39_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a39_obj, 1342u);
+    vader_obj_header_init(_a39_obj, 1345u);
     _a39_obj->f_name = 1975u;
     _a39_obj->f_usage = 583u;
     _a39_obj->f_places = l19;
@@ -237,7 +237,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a40_arr->buf->slots)[_a40_arr->offset + 0u] = (uint8_t) INT32_C(2);
     l20 = (void*) _a40_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a41_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a41_obj, 1342u);
+    vader_obj_header_init(_a41_obj, 1345u);
     _a41_obj->f_name = 2581u;
     _a41_obj->f_usage = 599u;
     _a41_obj->f_places = l20;
@@ -247,8 +247,8 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a42_arr->buf->slots)[_a42_arr->offset + 0u] = (uint8_t) INT32_C(2);
     l21 = (void*) _a42_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a43_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a43_obj, 1342u);
-    _a43_obj->f_name = 3005u;
+    vader_obj_header_init(_a43_obj, 1345u);
+    _a43_obj->f_name = 3002u;
     _a43_obj->f_usage = 610u;
     _a43_obj->f_places = l21;
     _a43_obj->f_doc = 764u;
@@ -257,7 +257,7 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a44_arr->buf->slots)[_a44_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l22 = (void*) _a44_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a45_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a45_obj, 1342u);
+    vader_obj_header_init(_a45_obj, 1345u);
     _a45_obj->f_name = 2421u;
     _a45_obj->f_usage = 595u;
     _a45_obj->f_places = l22;
@@ -267,13 +267,13 @@ void* __const_vader_front_parser$DECORATORS(void) {
     ((uint8_t*) _a46_arr->buf->slots)[_a46_arr->offset + 0u] = (uint8_t) INT32_C(3);
     l23 = (void*) _a46_arr;
     vader_struct_vader_front_parser$DecoratorSpec_t* _a47_obj = (vader_struct_vader_front_parser$DecoratorSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$DecoratorSpec_t));
-    vader_obj_header_init(_a47_obj, 1342u);
+    vader_obj_header_init(_a47_obj, 1345u);
     _a47_obj->f_name = 2285u;
     _a47_obj->f_usage = 593u;
     _a47_obj->f_places = l23;
     _a47_obj->f_doc = 829u;
     l23 = (void*) _a47_obj;
-    vader_array_t* _a48_arr = vader_array_new(265u, 24u, 13u, 1342u);
+    vader_array_t* _a48_arr = vader_array_new(265u, 24u, 13u, 1345u);
     ((void**) _a48_arr->buf->slots)[_a48_arr->offset + 23u] = l23;
     ((void**) _a48_arr->buf->slots)[_a48_arr->offset + 22u] = l22;
     ((void**) _a48_arr->buf->slots)[_a48_arr->offset + 21u] = l21;
@@ -327,7 +327,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(2);
     l0 = (void*) _a0_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a1_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a1_obj, 1346u);
+    vader_obj_header_init(_a1_obj, 1349u);
     _a1_obj->f_name = 2686u;
     _a1_obj->f_args = l0;
     _a1_obj->f_result = 2203u;
@@ -338,7 +338,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l1 = (void*) _a2_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a3_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a3_obj, 1346u);
+    vader_obj_header_init(_a3_obj, 1349u);
     _a3_obj->f_name = 1600u;
     _a3_obj->f_args = l1;
     _a3_obj->f_result = 2203u;
@@ -349,10 +349,10 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l2 = (void*) _a4_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a5_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a5_obj, 1346u);
-    _a5_obj->f_name = 2941u;
+    vader_obj_header_init(_a5_obj, 1349u);
+    _a5_obj->f_name = 2938u;
     _a5_obj->f_args = l2;
-    _a5_obj->f_result = 2807u;
+    _a5_obj->f_result = 2804u;
     _a5_obj->f_signature = 608u;
     _a5_obj->f_doc = 790u;
     l2 = (void*) _a5_obj;
@@ -360,10 +360,10 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l3 = (void*) _a6_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a7_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a7_obj, 1346u);
-    _a7_obj->f_name = 2939u;
+    vader_obj_header_init(_a7_obj, 1349u);
+    _a7_obj->f_name = 2936u;
     _a7_obj->f_args = l3;
-    _a7_obj->f_result = 2807u;
+    _a7_obj->f_result = 2804u;
     _a7_obj->f_signature = 607u;
     _a7_obj->f_doc = 964u;
     l3 = (void*) _a7_obj;
@@ -371,7 +371,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a8_arr->buf->slots)[_a8_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l4 = (void*) _a8_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a9_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a9_obj, 1346u);
+    vader_obj_header_init(_a9_obj, 1349u);
     _a9_obj->f_name = 2092u;
     _a9_obj->f_args = l4;
     _a9_obj->f_result = 2203u;
@@ -382,8 +382,8 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a10_arr->buf->slots)[_a10_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l5 = (void*) _a10_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a11_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a11_obj, 1346u);
-    _a11_obj->f_name = 3194u;
+    vader_obj_header_init(_a11_obj, 1349u);
+    _a11_obj->f_name = 3192u;
     _a11_obj->f_args = l5;
     _a11_obj->f_result = 2203u;
     _a11_obj->f_signature = 612u;
@@ -394,7 +394,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a12_arr->buf->slots)[_a12_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l6 = (void*) _a12_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a13_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a13_obj, 1346u);
+    vader_obj_header_init(_a13_obj, 1349u);
     _a13_obj->f_name = 2094u;
     _a13_obj->f_args = l6;
     _a13_obj->f_result = 2203u;
@@ -406,7 +406,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a14_arr->buf->slots)[_a14_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l7 = (void*) _a14_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a15_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a15_obj, 1346u);
+    vader_obj_header_init(_a15_obj, 1349u);
     _a15_obj->f_name = 2663u;
     _a15_obj->f_args = l7;
     _a15_obj->f_result = 1712u;
@@ -417,7 +417,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a16_arr->buf->slots)[_a16_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l8 = (void*) _a16_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a17_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a17_obj, 1346u);
+    vader_obj_header_init(_a17_obj, 1349u);
     _a17_obj->f_name = 2460u;
     _a17_obj->f_args = l8;
     _a17_obj->f_result = 2669u;
@@ -428,7 +428,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a18_arr->buf->slots)[_a18_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l9 = (void*) _a18_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a19_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a19_obj, 1346u);
+    vader_obj_header_init(_a19_obj, 1349u);
     _a19_obj->f_name = 2434u;
     _a19_obj->f_args = l9;
     _a19_obj->f_result = 2669u;
@@ -439,10 +439,10 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a20_arr->buf->slots)[_a20_arr->offset + 0u] = (uint8_t) INT32_C(3);
     l10 = (void*) _a20_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a21_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a21_obj, 1346u);
-    _a21_obj->f_name = 2943u;
+    vader_obj_header_init(_a21_obj, 1349u);
+    _a21_obj->f_name = 2940u;
     _a21_obj->f_args = l10;
-    _a21_obj->f_result = 2924u;
+    _a21_obj->f_result = 2921u;
     _a21_obj->f_signature = 609u;
     _a21_obj->f_doc = 965u;
     l10 = (void*) _a21_obj;
@@ -450,7 +450,7 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a22_arr->buf->slots)[_a22_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l11 = (void*) _a22_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a23_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a23_obj, 1346u);
+    vader_obj_header_init(_a23_obj, 1349u);
     _a23_obj->f_name = 2098u;
     _a23_obj->f_args = l11;
     _a23_obj->f_result = 2091u;
@@ -461,10 +461,10 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a24_arr->buf->slots)[_a24_arr->offset + 0u] = (uint8_t) INT32_C(0);
     l12 = (void*) _a24_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a25_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a25_obj, 1346u);
-    _a25_obj->f_name = 2934u;
+    vader_obj_header_init(_a25_obj, 1349u);
+    _a25_obj->f_name = 2931u;
     _a25_obj->f_args = l12;
-    _a25_obj->f_result = 2935u;
+    _a25_obj->f_result = 2932u;
     _a25_obj->f_signature = 606u;
     _a25_obj->f_doc = 966u;
     l12 = (void*) _a25_obj;
@@ -473,14 +473,14 @@ void* __const_vader_front_parser$INTRINSICS(void) {
     ((uint8_t*) _a26_arr->buf->slots)[_a26_arr->offset + 0u] = (uint8_t) INT32_C(1);
     l13 = (void*) _a26_arr;
     vader_struct_vader_front_parser$IntrinsicSpec_t* _a27_obj = (vader_struct_vader_front_parser$IntrinsicSpec_t*) vader_gc_alloc(sizeof(vader_struct_vader_front_parser$IntrinsicSpec_t));
-    vader_obj_header_init(_a27_obj, 1346u);
+    vader_obj_header_init(_a27_obj, 1349u);
     _a27_obj->f_name = 2079u;
     _a27_obj->f_args = l13;
     _a27_obj->f_result = 2079u;
     _a27_obj->f_signature = 586u;
     _a27_obj->f_doc = 960u;
     l13 = (void*) _a27_obj;
-    vader_array_t* _a28_arr = vader_array_new(266u, 14u, 13u, 1346u);
+    vader_array_t* _a28_arr = vader_array_new(266u, 14u, 13u, 1349u);
     ((void**) _a28_arr->buf->slots)[_a28_arr->offset + 13u] = l13;
     ((void**) _a28_arr->buf->slots)[_a28_arr->offset + 12u] = l12;
     ((void**) _a28_arr->buf->slots)[_a28_arr->offset + 11u] = l11;

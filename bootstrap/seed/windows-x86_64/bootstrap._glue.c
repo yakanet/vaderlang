@@ -928,13 +928,13 @@ vader_fn_t vader_fn_static_vader_front_effects$escapes = {
     { 472u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_vader_front_effects$escapes, NULL,
 };
 
-vader_box_t vader_fn_tramp___lambda_vader_front_effects_143(void* env, vader_box_t a0, vader_box_t a1) {
+vader_box_t vader_fn_tramp___lambda_vader_front_effects_147(void* env, vader_box_t a0, vader_box_t a1) {
     (void) env;
-    return vader_box_bool(492u, __lambda_vader_front_effects_143(((int32_t) a0.payload.i), ((int32_t) a1.payload.i)));
+    return vader_box_bool(492u, __lambda_vader_front_effects_147(((int32_t) a0.payload.i), ((int32_t) a1.payload.i)));
 }
 
-vader_fn_t vader_fn_static___lambda_vader_front_effects_143 = {
-    { 460u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_vader_front_effects_143, NULL,
+vader_fn_t vader_fn_static___lambda_vader_front_effects_147 = {
+    { 460u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_vader_front_effects_147, NULL,
 };
 
 vader_box_t vader_fn_lift___defer_std_io_0(void* env) {
@@ -1232,6 +1232,15 @@ vader_box_t vader_fn_lift___lambda_vader_front_effects_133(void* env, vader_box_
     return vader_box_bool(492u, __lambda_vader_front_effects_133(env, a0));
 }
 
+vader_box_t vader_fn_lift___lambda_vader_front_effects_143(void* env, vader_box_t a0) {
+    return vader_box_i32(499u, (int32_t)(uint32_t) __lambda_vader_front_effects_143(env, a0));
+}
+
+vader_box_t vader_fn_lift___lambda_vader_front_effects_145(void* env, vader_box_t a0) {
+    __lambda_vader_front_effects_145(env, a0);
+    return vader_box_null();
+}
+
 /* vtable dispatchers */
 uint64_t vader_vt_std_core$Hash$hash(vader_box_t recv) {
     switch (recv.tag) {
@@ -1245,8 +1254,8 @@ uint64_t vader_vt_std_core$Hash$hash(vader_box_t recv) {
         case 501u: return std_core$u32$Hash$hash(((uint32_t) recv.payload.i));
         case 502u: return std_core$u64$Hash$hash(((uint64_t) recv.payload.i));
         case 493u: return std_core$char$Hash$hash(((uint32_t) recv.payload.i));
-        case 951u: return toolchain_span$Span$std_core$Hash$hash(recv.payload.obj);
-        case 1709u: return vader_vm$Scalar$std_core$Hash$hash(recv.payload.obj);
+        case 954u: return toolchain_span$Span$std_core$Hash$hash(recv.payload.obj);
+        case 1712u: return vader_vm$Scalar$std_core$Hash$hash(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Hash.hash");
     }
     vader_unreachable("vtable miss in std_core$Hash.hash");
@@ -1267,9 +1276,9 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0) {
         case 492u: return std_core$bool$Equals$equals$guard(recv.payload.b, a0);
         case 493u: return std_core$char$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
         case 494u: return std_core$string$Equals$equals$guard(recv.payload.s, a0);
-        case 1680u: return vader_support_target$Target$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 951u: return toolchain_span$Span$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 1709u: return vader_vm$Scalar$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1683u: return vader_support_target$Target$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 954u: return toolchain_span$Span$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1712u: return vader_vm$Scalar$std_core$Equals$equals$guard(recv.payload.obj, a0);
         default: vader_unreachable("vtable miss in std_core$Equals.equals");
     }
     vader_unreachable("vtable miss in std_core$Equals.equals");

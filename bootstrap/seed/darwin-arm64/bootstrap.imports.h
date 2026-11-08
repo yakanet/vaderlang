@@ -39,14 +39,6 @@ static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
     return vader_string_hash(a0);
 }
 
-static inline void vader_host_std_io$wait_readable(int64_t a0) {
-    vader_sched_wait_readable(a0);
-}
-
-static inline bool vader_host_std_io$wait_readable_for(int64_t a0, int64_t a1) {
-    return vader_sched_wait_readable_for(a0, a1);
-}
-
 static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     vader_foreign_depth += 1;
@@ -55,6 +47,14 @@ static inline vader_box_t vader_host_std_env$get_env(vader_string_t a0) {
     vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(494u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
+}
+
+static inline void vader_host_std_runtime_wait$wait_readable(int64_t a0) {
+    vader_sched_wait_readable(a0);
+}
+
+static inline bool vader_host_std_runtime_wait$wait_readable_for(int64_t a0, int64_t a1) {
+    return vader_sched_wait_readable_for(a0, a1);
 }
 
 static inline uint8_t vader_host_std_target$current_os(void) {
@@ -282,6 +282,10 @@ static inline void vader_host_std_runtime_scheduler$cancel_thread(int64_t a0) {
 
 static inline int64_t vader_host_std_runtime_scheduler$current_thread(void) {
     return vader_sched_current();
+}
+
+static inline bool vader_host_std_runtime_scheduler$is_cancelled(void) {
+    return vader_sched_is_cancelled();
 }
 
 static inline void vader_host_std_runtime_scheduler$watch_readable(int64_t a0) {

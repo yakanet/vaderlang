@@ -62,7 +62,7 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2944u;
+        l1 = 2941u;
     } else if (l0 == INT32_C(2)) {
         l1 = 1867u;
     } else if (l0 == INT32_C(3)) {
@@ -80,7 +80,7 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     } else if (l0 == INT32_C(9)) {
         l1 = 1773u;
     } else if (l0 == INT32_C(10)) {
-        l1 = 3183u;
+        l1 = 3181u;
     } else {
         if (!(l0 == INT32_C(11))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -241,7 +241,7 @@ static void* vader_support_profile$profiler$singleton(void) {
     vader_array_t* _a2_arr = vader_array_new(27u, 0u, 7u, 497u);
     l2 = (void*) _a2_arr;
     vader_struct_std_collections$Map__vader_support_profile_ProfPhase__Any_t* _a3_obj = (vader_struct_std_collections$Map__vader_support_profile_ProfPhase__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Map__vader_support_profile_ProfPhase__Any_t));
-    vader_obj_header_init(_a3_obj, 833u);
+    vader_obj_header_init(_a3_obj, 836u);
     _a3_obj->f_ekeys = l0;
     _a3_obj->f_evals = l1;
     _a3_obj->f_index = l2;
@@ -251,7 +251,7 @@ static void* vader_support_profile$profiler$singleton(void) {
     _a3_obj->f_tombs = INT64_C(0);
     l0 = (void*) _a3_obj;
     vader_struct_vader_support_profile$Counters_t* _a4_obj = (vader_struct_vader_support_profile$Counters_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$Counters_t));
-    vader_obj_header_init(_a4_obj, 1675u);
+    vader_obj_header_init(_a4_obj, 1678u);
     _a4_obj->f_peak_rss = INT64_C(0);
     _a4_obj->f_copied = INT64_C(0);
     _a4_obj->f_allocated = INT64_C(0);
@@ -259,7 +259,7 @@ static void* vader_support_profile$profiler$singleton(void) {
     _a4_obj->f_collections = INT64_C(0);
     l1 = (void*) _a4_obj;
     vader_struct_vader_support_profile$Profiler_t* _a5_obj = (vader_struct_vader_support_profile$Profiler_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$Profiler_t));
-    vader_obj_header_init(_a5_obj, 1677u);
+    vader_obj_header_init(_a5_obj, 1680u);
     _a5_obj->f_totals = l0;
     _a5_obj->f_open = vader_box_obj(0u, NULL);
     _a5_obj->f_start = l1;
@@ -334,7 +334,7 @@ static void* vader_support_profile$read_counters(void) {
     l3 = vader_host_std_runtime$allocations();
     l4 = vader_host_std_runtime$collections();
     vader_struct_vader_support_profile$Counters_t* _a0_obj = (vader_struct_vader_support_profile$Counters_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_profile$Counters_t));
-    vader_obj_header_init(_a0_obj, 1675u);
+    vader_obj_header_init(_a0_obj, 1678u);
     _a0_obj->f_peak_rss = l0;
     _a0_obj->f_copied = l1;
     _a0_obj->f_allocated = l2;
