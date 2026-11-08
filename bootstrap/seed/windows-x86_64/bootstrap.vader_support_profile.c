@@ -62,7 +62,7 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2941u;
+        l1 = 2942u;
     } else if (l0 == INT32_C(2)) {
         l1 = 1867u;
     } else if (l0 == INT32_C(3)) {
@@ -80,7 +80,7 @@ static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     } else if (l0 == INT32_C(9)) {
         l1 = 1773u;
     } else if (l0 == INT32_C(10)) {
-        l1 = 3181u;
+        l1 = 3183u;
     } else {
         if (!(l0 == INT32_C(11))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

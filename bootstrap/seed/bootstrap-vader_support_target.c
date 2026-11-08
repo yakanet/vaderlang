@@ -134,7 +134,7 @@ static vader_string_t vader_support_target$os_variant(uint8_t l0) {
 
 vader_box_t vader_support_target$parse_os(vader_string_t l0) {
     vader_box_t l1;
-    if (l0 == 3225u) {
+    if (l0 == 3227u) {
         l1 = vader_box_i32(499u, INT32_C(0));
         return l1;
     }
@@ -142,7 +142,7 @@ vader_box_t vader_support_target$parse_os(vader_string_t l0) {
         l1 = vader_box_i32(499u, INT32_C(1));
     } else if (l0 == 1905u) {
         l1 = vader_box_i32(499u, INT32_C(2));
-    } else if (l0 == 3211u) {
+    } else if (l0 == 3213u) {
         l1 = vader_box_i32(499u, INT32_C(3));
     } else if (l0 == 1730u) {
         l1 = vader_box_i32(499u, INT32_C(4));

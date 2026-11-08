@@ -10585,7 +10585,7 @@ bool vader_vt_std_core$Equals$equals(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3270u
+#define VADER_COMPTIME_ATOM_COUNT 3272u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
