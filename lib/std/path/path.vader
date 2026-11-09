@@ -12,17 +12,12 @@ import "std/string" {
 import "std/string_builder"
 import "std/target"
 
-/// Path separator codepoint. POSIX-only (`/`).
-export SEP :: '/'
-/// Path separator as a string: useful for direct concatenation.
-export SEP_STR :: "/"
-
 /// Rewrite OS-native path separators to the canonical `/`. The compiler keeps
 /// `/` as its single internal separator (module discovery, the module index,
 /// and `vader/front/resolver::join_path` are all `/`-based) so a path entering from
 /// an OS boundary that may carry `\` (Windows CLI arguments, env vars) must be
 /// funnelled through here first, otherwise `parent` / `filename` (which split
-/// on `SEP`) silently return empty. POSIX paths pass through unchanged.
+/// on `/`) silently return empty. POSIX paths pass through unchanged.
 /// Takes and returns a raw `string`, not a `Path`: the compiler internals it
 /// serves (`vader/front/resolver::loader`, `vader/tools/lsp/protocol::uri`) are string-based,
 /// and the CLI-side `Path` conversion stops at their boundary. Nothing technical
@@ -31,7 +26,7 @@ export SEP_STR :: "/"
 ///
 /// @param s  a path string, possibly using `\` separators.
 /// @return   the same path with every `\` rewritten to `/`.
-export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', SEP_STR)
+export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', "/")
 
 /// Rewrite the canonical `/` to the separator of the OS the program runs on:
 /// `\` on Windows, unchanged elsewhere. For a path shown to a user or handed to a
@@ -42,7 +37,7 @@ export to_native :: fn(s: string) -> string {
     if current_os() != .Windows {
         return s
     }
-    return s.replace_chars_where((c: char) -> c == SEP, "\\")
+    return s.replace_chars_where((c: char) -> c == '/', "\\")
 }
 
 /// An immutable filesystem path: a nominal newtype over `string`. Zero-cost:
@@ -74,7 +69,7 @@ export to_native :: fn(self: Path) -> string = self.as_string().to_native()
 
 /// True iff the path starts with the separator (`/foo`). Empty paths are
 /// considered NOT absolute.
-export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with(SEP_STR)
+export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with("/")
 
 
 /// Parent directory: everything before the last separator. Returns the
@@ -84,13 +79,13 @@ export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with(
 /// @return      the parent path.
 export parent :: fn(self: Path) -> Path {
     s :: string(self)
-    idx :: s.last_index_of(SEP, 0)
+    idx :: s.last_index_of('/', 0)
     if idx < 0 {
         return Path("")
     }
     if idx == 0 {
         // Root: keep the leading "/" so parent of "/foo" is "/".
-        return Path(SEP_STR)
+        return Path("/")
     }
     return Path(s.byte_slice(0, idx))
 }
@@ -101,7 +96,7 @@ export parent :: fn(self: Path) -> Path {
 /// @return      the filename string (no leading separator).
 export filename :: fn(self: Path) -> string {
     s :: string(self)
-    idx :: s.last_index_of(SEP, 0)
+    idx :: s.last_index_of('/', 0)
     if idx < 0 {
         return s
     }
@@ -196,17 +191,17 @@ export join :: fn(self: Path, other: string) -> Path {
     if other.is_empty() {
         return self
     }
-    if other[0] == SEP {
+    if other[0] == '/' {
         return Path(other)
     }
     s :: string(self)
     if s.is_empty() {
         return Path(other)
     }
-    if s.str_ends_with(SEP_STR) {
+    if s.str_ends_with("/") {
         return Path(s + other)
     }
-    return Path(s + SEP_STR + other)
+    return Path(s + "/" + other)
 }
 
 // `path / "child"`: operator sugar for `join`. The `/` mirrors the path
@@ -235,10 +230,10 @@ export starts_with :: fn(self: Path, prefix: Path) -> bool {
     }
     // Boundary check: next char in self must be a separator, or prefix must
     // itself end on one.
-    if !pfx.is_empty() && pfx[prefix_len - 1] == SEP {
+    if !pfx.is_empty() && pfx.byte_at(prefix_len - 1) == '/' {
         return true
     }
-    return s[prefix_len] == SEP
+    return s.byte_at(prefix_len) == '/'
 }
 
 /// True when `self` ends with `suffix` on a segment boundary. Same
@@ -257,10 +252,10 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
         return true
     }
     cut :: self_len - suffix_len
-    if !sfx.is_empty() && sfx[0] == SEP {
+    if !sfx.is_empty() && sfx.byte_at(0) == '/' {
         return true
     }
-    return s[cut - 1] == SEP
+    return s.byte_at(cut - 1) == '/'
 }
 
 // ---- normalization --------------------------------------------------------
@@ -289,8 +284,8 @@ export normalize :: fn(self: Path) -> Path {
     seg_start := i
     for i <= n {
         at_end :: i == n
-        is_sep :: !at_end && s.matches_at(i, SEP_STR)
-        if is_sep || at_end {
+        at_separator :: !at_end && s.matches_at(i, "/")
+        if at_separator || at_end {
             seg :: s.byte_slice(seg_start, i)
             if seg.is_empty() || seg == "." {
                 // skip
@@ -320,11 +315,11 @@ export normalize :: fn(self: Path) -> Path {
     }
     sb :: StringBuilder {}
     if abs {
-        sb.append(SEP_STR)
+        sb.append("/")
     }
     for j in 0..<count {
         if j > 0 {
-            sb.append(SEP_STR)
+            sb.append("/")
         }
         sb.append(segments[j])
     }
@@ -423,4 +418,16 @@ import "std/testing"
 
 @test test_to_native_round_trip :: fn() -> void {
     assert_eq(to_posix(to_native("a/b/c.vader")), "a/b/c.vader")
+}
+
+@test
+test_starts_with_a_prefix_beyond_ascii :: fn() -> void {
+    assert("café/x".to_path().starts_with("café".to_path()), "a segment boundary after `é`")
+    assert(!"cafés/x".to_path().starts_with("café".to_path()), "no boundary inside a name")
+}
+
+@test
+test_ends_with_a_suffix_beyond_ascii :: fn() -> void {
+    assert("x/été".to_path().ends_with("été".to_path()), "a segment boundary before `é`")
+    assert(!"x/aété".to_path().ends_with("été".to_path()), "no boundary inside a name")
 }

@@ -809,7 +809,7 @@ static bool std_path$starts_with(vader_string_t l0, vader_string_t l1) {
     vader_string_t l2, l3;
     int64_t l4, l5;
     bool t0;
-    uint32_t t1;
+    uint8_t t1;
     l2 = l0;
     l3 = l1;
     t0 = std_string$starts_with(l2, l3);
@@ -824,20 +824,20 @@ static bool std_path$starts_with(vader_string_t l0, vader_string_t l1) {
     t0 = std_string$is_empty(l3);
     if (!(t0)) {
         l4 = vader_chk_sub(i64, l5, INT64_C(1));
-        t1 = std_core$string$Index$at(l3, l4);
-        if (t1 == 47u) {
+        t1 = vader_host_std_core$byte_at(l3, l4);
+        if (t1 == INT32_C(47)) {
             return true;
         }
     }
-    t1 = std_core$string$Index$at(l2, l5);
-    return t1 == 47u;
+    t1 = vader_host_std_core$byte_at(l2, l5);
+    return t1 == INT32_C(47);
 }
 
 static bool std_path$ends_with(vader_string_t l0, vader_string_t l1) {
     vader_string_t l2, l3;
     int64_t l4, l5;
     bool t0;
-    uint32_t t1;
+    uint8_t t1;
     l2 = l0;
     l3 = l1;
     t0 = std_string$ends_with(l2, l3);
@@ -852,14 +852,14 @@ static bool std_path$ends_with(vader_string_t l0, vader_string_t l1) {
     l4 = vader_chk_sub(i64, l4, l5);
     t0 = std_string$is_empty(l3);
     if (!(t0)) {
-        t1 = std_core$string$Index$at(l3, INT64_C(0));
-        if (t1 == 47u) {
+        t1 = vader_host_std_core$byte_at(l3, INT64_C(0));
+        if (t1 == INT32_C(47)) {
             return true;
         }
     }
     l4 = vader_chk_sub(i64, l4, INT64_C(1));
-    t1 = std_core$string$Index$at(l2, l4);
-    return t1 == 47u;
+    t1 = vader_host_std_core$byte_at(l2, l4);
+    return t1 == INT32_C(47);
 }
 
 static vader_string_t std_path$normalize(vader_string_t l0) {

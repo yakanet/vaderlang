@@ -1268,8 +1268,8 @@ fn 25 std_path$starts_with (string,string) -> bool
     local.set 4   ; self_len
     local.get 3   ; pfx
     local.get 4   ; self_len
-    call 10   ; std_core$string$Index$at
-    char.const 47
+    call.import 1   ; std_core$byte_at
+    i32.const 47
     i32.eq
     if $L3 void
       return.lit bool.const true
@@ -1277,8 +1277,8 @@ fn 25 std_path$starts_with (string,string) -> bool
   end $L2
   local.get 2   ; s
   local.get 5   ; prefix_len
-  call 10   ; std_core$string$Index$at
-  char.const 47
+  call.import 1   ; std_core$byte_at
+  i32.const 47
   i32.eq
   return
 end
@@ -1321,8 +1321,8 @@ fn 26 std_path$ends_with (string,string) -> bool
   else
     local.get 3   ; sfx
     i64.const 0
-    call 10   ; std_core$string$Index$at
-    char.const 47
+    call.import 1   ; std_core$byte_at
+    i32.const 47
     i32.eq
     if $L3 void
       return.lit bool.const true
@@ -1334,8 +1334,8 @@ fn 26 std_path$ends_with (string,string) -> bool
   local.set 4   ; self_len
   local.get 2   ; s
   local.get 4   ; self_len
-  call 10   ; std_core$string$Index$at
-  char.const 47
+  call.import 1   ; std_core$byte_at
+  i32.const 47
   i32.eq
   return
 end
@@ -1349,7 +1349,7 @@ fn 27 std_path$normalize (string) -> string
   local i i64
   local seg_start i64
   local at_end bool
-  local is_sep bool
+  local at_separator bool
   local or_res bool
   local seg string
   local or_res bool
@@ -1400,12 +1400,12 @@ fn 27 std_path$normalize (string) -> string
         local.get 6   ; i
         string.const 47   ; "/"
         call 33   ; std_string$matches_at
-        local.set 9   ; is_sep
+        local.set 9   ; at_separator
       else
         bool.const false
-        local.set 9   ; is_sep
+        local.set 9   ; at_separator
       end $L4
-      local.get 9   ; is_sep
+      local.get 9   ; at_separator
       if $L5 void
         bool.const true
         local.set 10   ; or_res

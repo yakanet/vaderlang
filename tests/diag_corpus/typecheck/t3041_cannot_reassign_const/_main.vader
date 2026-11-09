@@ -3,9 +3,9 @@
 // that holds it. A parameter and a `:=` local may be rebound.
 module "snippet"
 
-import "std/path" { SEP as S }
+import "std/string" { MAX_CODEPOINT as S }
 
-P :: import "std/path"
+P :: import "std/string"
 
 LIMIT :: 3
 
@@ -22,7 +22,7 @@ export rebind :: fn(n: i32) -> i32 {
     y := 0
     [LIMIT, y] = [4, 5]
     S = 'x'
-    P.SEP = 'x'
+    P.MAX_CODEPOINT = 'x'
     one = two
     n = 3
     return x + y + n
