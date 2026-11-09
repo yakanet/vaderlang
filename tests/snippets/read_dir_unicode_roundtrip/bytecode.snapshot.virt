@@ -64,11 +64,11 @@ import 1 byte_at std_core$byte_at result_type=6 param_types=2,4 param_c_out= par
 import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 5 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<stdlib.h>,<sys/stat.h> result_type=19 param_types=2 param_c_out= param_by_address= (string) -> any
-import 6 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 5 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=19 param_types=2 param_c_out= param_by_address= (string) -> any
+import 6 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 8 extern :vader_stream_size system_posix$sys_stream_size headers=vader.h result_type=4 param_types=18 param_c_out= param_by_address= (pointer) -> i64
-import 9 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<stdlib.h>,<sys/stat.h> result_type=19 param_types=18 param_c_out= param_by_address= (pointer) -> any
+import 9 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=19 param_types=18 param_c_out= param_by_address= (pointer) -> any
 import 10 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=2 param_types=18 param_c_out= param_by_address= (pointer) -> string
 import 11 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
 import 12 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=9 param_types=2 param_c_out= param_by_address= (string) -> any

@@ -265,6 +265,13 @@ export GENERIC_READ: u32 : 0x8000_0000
 /// See `GENERIC_READ`.
 export GENERIC_WRITE: u32 : 0x4000_0000
 
+/// See `GENERIC_READ`: every right a write takes, `FILE_WRITE_DATA` included.
+export FILE_GENERIC_WRITE: u32 : 0x0012_0116
+
+/// See `GENERIC_READ`: the right to write anywhere in the file. A handle that
+/// holds `FILE_GENERIC_WRITE` without it can only append.
+export FILE_WRITE_DATA: u32 : 0x2
+
 /// `dwShareMode`: let other readers in while we hold the file.
 export FILE_SHARE_READ: u32 : 0x1
 
@@ -277,8 +284,17 @@ export FILE_SHARE_DELETE: u32 : 0x4
 /// `dwCreationDisposition`: truncate an existing file, create it otherwise.
 export CREATE_ALWAYS: u32 : 2
 
+/// See `CREATE_ALWAYS`: create a file, and fail when one exists.
+export CREATE_NEW: u32 : 1
+
 /// See `CREATE_ALWAYS`: open only what already exists.
 export OPEN_EXISTING: u32 : 3
+
+/// See `CREATE_ALWAYS`: open a file, created when missing.
+export OPEN_ALWAYS: u32 : 4
+
+/// See `CREATE_ALWAYS`: truncate an existing file, fail when it is missing.
+export TRUNCATE_EXISTING: u32 : 5
 
 /// `dwFlagsAndAttributes`: no special semantics.
 export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
@@ -298,6 +314,33 @@ export FILE_FLAG_BACKUP_SEMANTICS: u32 : 0x0200_0000
 export create_file_w :: fn(path: u16[], access: u32, share: u32,
                            security: CPointer | null, disposition: u32,
                            flags: u32, template: CPointer | null) -> Handle
+
+/// `SetFilePointer` origins: the start, the current position, the end.
+export FILE_BEGIN: u32 : 0
+
+/// See `FILE_BEGIN`.
+export FILE_CURRENT: u32 : 1
+
+/// See `FILE_BEGIN`.
+export FILE_END: u32 : 2
+
+/// What `set_file_pointer` answers on failure, and for a position whose low
+/// half has every bit set: `get_last_error` is then 0 on success.
+export INVALID_SET_FILE_POINTER: u32 : 0xFFFF_FFFF
+
+/// `SetFilePointer`. Moves the position of `h` by a 64-bit distance given as
+/// two halves, and gives the new position back the same way.
+///
+/// Not `SetFilePointerEx`, whose distance is a `LARGE_INTEGER` passed by
+/// value: a union, which no `@extern` parameter can spell.
+///
+/// @param low     the low half of the distance.
+/// @param high    the high half of the distance, in a one-element array the
+///                call overwrites with the high half of the new position.
+/// @param method  `FILE_BEGIN`, `FILE_CURRENT` or `FILE_END`.
+/// @return        the low half of the new position.
+@extern(KERNEL32, "SetFilePointer")
+export set_file_pointer :: fn(h: Handle, low: i32, @c_out high: i32[], method: u32) -> u32
 
 /// Bytes to reserve for a `WIN32_FIND_DATAW`.
 ///

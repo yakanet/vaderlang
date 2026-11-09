@@ -7,9 +7,10 @@ int32_t _NSGetExecutablePath(void* buf, void* size);  // system_darwin$ns_get_ex
 uint32_t mach_task_self(void);  // system_darwin$mach_task_self
 int32_t task_info(uint32_t task, uint32_t flavor, void* info, void* count);  // system_darwin$task_info
 
-/* FILE_SYSTEM (system/posix): <dirent.h>, <stdlib.h>, <sys/stat.h> */
+/* FILE_SYSTEM (system/posix): <dirent.h>, <fcntl.h>, <stdlib.h>, <sys/stat.h> */
 int32_t closedir(void* dir);  // system_posix$sys_closedir
 int32_t mkdir(const char* path, uint32_t mode);  // system_posix$sys_mkdir
+int32_t open(const char* path, int32_t flags, ...);  // system_posix$sys_open, variadic: int32_t mode
 void* opendir(const char* path);  // system_posix$sys_opendir
 void* readdir(void* dir);  // system_posix$sys_readdir
 void* realpath(const char* path, void* resolved);  // system_posix$sys_realpath
@@ -46,6 +47,7 @@ bool QueryPerformanceFrequency(void* freq);  // system_windows$query_performance
 bool ReadFile(void* h, void* buf, uint32_t count, void* read, void* overlapped);  // system_windows$read_file
 bool SetConsoleMode(void* h, uint32_t mode);  // system_windows$set_console_mode
 int32_t SetCurrentDirectoryW(const void* path);  // system_windows$set_current_directory
+uint32_t SetFilePointer(void* h, int32_t low, void* high, uint32_t method);  // system_windows$set_file_pointer
 void Sleep(uint32_t ms);  // system_windows$sleep_ms
 bool TerminateProcess(void* h, uint32_t code);  // system_windows$terminate_process
 uint32_t WaitForSingleObject(void* h, uint32_t timeout_ms);  // system_windows$wait_for_single_object
@@ -110,6 +112,7 @@ int32_t chdir(const char* path);  // system_posix$sys_chdir
 int32_t close(int32_t fd);  // system_posix$sys_close
 void* getcwd(void* buf, int64_t size);  // system_posix$sys_getcwd
 int32_t isatty(int32_t fd);  // system_posix$sys_isatty
+int64_t lseek(int32_t fd, int64_t offset, int32_t whence);  // system_posix$sys_lseek
 int32_t pipe(void* fds);  // system_posix$sys_pipe
 int64_t read(int32_t fd, void* buf, int64_t count);  // system_posix$sys_read
 int64_t readlink(const char* path, void* buf, int64_t size);  // system_posix$sys_readlink
@@ -120,6 +123,8 @@ int64_t write(int32_t fd, const void* buf, int64_t count);  // system_posix$sys_
 /* VADER_RUNTIME (system/posix): vader.h */
 const char* vader_dirent_name(void* ent);  // system_posix$dirent_name
 void* vader_environ(void);  // system_posix$sys_environ
+int32_t vader_fd_kind(int32_t fd);  // system_posix$sys_fd_kind
+int64_t vader_fd_size(int32_t fd);  // system_posix$sys_fd_size
 int32_t vader_last_errno(void);  // system_posix$sys_last_errno
 int32_t vader_path_kind(const char* path);  // system_posix$sys_path_kind
 int64_t vader_path_mtime(const char* path);  // system_posix$sys_path_mtime

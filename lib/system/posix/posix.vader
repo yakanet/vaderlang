@@ -24,7 +24,7 @@ UNISTD :: CLibrary {
 
 FILE_SYSTEM :: CLibrary {
     .name = "",
-    .headers = ["<dirent.h>", "<stdlib.h>", "<sys/stat.h>"],
+    .headers = ["<dirent.h>", "<fcntl.h>", "<stdlib.h>", "<sys/stat.h>"],
 }
 
 SPAWN :: CLibrary {
@@ -529,6 +529,65 @@ export sys_access :: fn(path: string, mode: i32) -> i32
 /// empty one would vanish through a call named remove_FILE.
 @extern(UNISTD, "unlink")
 export sys_unlink :: fn(path: string) -> i32
+
+/// `open(2)` access modes: exactly one of the three.
+export O_RDONLY: i32: 0
+/// See `O_RDONLY`.
+export O_WRONLY: i32: 1
+/// See `O_RDONLY`.
+export O_RDWR: i32: 2
+
+/// `open(2)` flags. The values are not portable, Darwin and Linux disagree on
+/// each of them.
+export O_APPEND: i32: if VADER_OS == .Darwin { 0x8 } else { 0x400 }
+/// See `O_APPEND`.
+export O_CREAT: i32: if VADER_OS == .Darwin { 0x200 } else { 0x40 }
+/// See `O_APPEND`.
+export O_TRUNC: i32: if VADER_OS == .Darwin { 0x400 } else { 0x200 }
+/// See `O_APPEND`.
+export O_EXCL: i32: if VADER_OS == .Darwin { 0x800 } else { 0x80 }
+/// See `O_APPEND`. Closes the descriptor in a program `posix_spawn` starts.
+export O_CLOEXEC: i32: if VADER_OS == .Darwin { 0x0100_0000 } else { 0x8_0000 }
+
+/// `open(2)`. A descriptor, or -1 with `errno` set.
+///
+/// @param path   the file to open.
+/// @param flags  one access mode, `O_RDONLY` to `O_RDWR`, and the `O_*` flags.
+/// @param mode   permission bits of a file `O_CREAT` creates, masked by the
+///               process umask.
+// `mode_t` goes through the `...` of `int open(const char *, int, ...)`, where C
+// reads it as an `int`.
+@extern(FILE_SYSTEM, "open")
+export sys_open :: fn(path: string, flags: i32, @c_variadic mode: i32) -> i32
+
+/// `lseek(2)` origins: the start, the current offset, the end.
+export SEEK_SET: i32: 0
+/// See `SEEK_SET`.
+export SEEK_CUR: i32: 1
+/// See `SEEK_SET`.
+export SEEK_END: i32: 2
+
+/// `lseek(2)`. The new offset from the start, or -1 with `errno` set: `ESPIPE`
+/// on a pipe, which has no offset.
+///
+/// @param whence  `SEEK_SET`, `SEEK_CUR` or `SEEK_END`.
+@extern(UNISTD, "lseek")
+export sys_lseek :: fn(fd: i32, offset: i64, whence: i32) -> i64
+
+/// What kind of file the descriptor `fd` is open on, via `fstat(2)`, for the
+/// reason `sys_path_kind` gives.
+///
+/// @return  one of the `PATH_*` answers; `PATH_MISSING` when `fstat` fails.
+@extern(VADER_RUNTIME, "vader_fd_kind")
+export sys_fd_kind :: fn(fd: i32) -> i32
+
+/// The size of the regular file the descriptor `fd` is open on, via `fstat(2)`,
+/// for the reason `sys_path_kind` gives.
+///
+/// @return  -1 for anything but a regular file (a pipe, a device, whose size
+///          says nothing of what a read finds), or when `fstat` fails.
+@extern(VADER_RUNTIME, "vader_fd_size")
+export sys_fd_size :: fn(fd: i32) -> i64
 
 /// `clock_gettime(2)`. Fills `ts`: two cells standing in for `struct timespec`,
 /// both members being 64-bit here: with seconds then nanoseconds. -1 on failure.

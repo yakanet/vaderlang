@@ -301,20 +301,33 @@ char** vader_environ(void) {
     return environ;
 }
 
-/* What KIND of thing `path` is. Ordinals must match
+/* What KIND of file `st` describes. Ordinals must match
  * `lib/system/posix/posix.vader`'s `PATH_*` constants.
  *
  * Here rather than in Vader because `struct stat` is not mirrorable at all: a
  * mirror is only valid as a contiguous leading prefix, `st_mode` leads on no
  * arch, and the arches disagree on field order.
  * See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`. */
+static int32_t kind_of_stat(const struct stat* st) {
+    if (S_ISREG(st->st_mode)) return 1;
+    if (S_ISDIR(st->st_mode)) return 2;
+    return 3;
+}
+
+/* The size of a regular file, -1 for anything else (a pipe, a device): only a
+ * regular file's size says how much a read will find. */
+static int64_t size_of_stat(const struct stat* st) {
+    if (!S_ISREG(st->st_mode)) return -1;
+    return (int64_t) st->st_size;
+}
+
+/* What KIND of thing `path` is, as `kind_of_stat` names it; 0 when `stat`
+ * fails. */
 VADER_HOST_EXPORT
 int32_t vader_path_kind(const char* path) {
     struct stat st;
     if (stat(path, &st) != 0) return 0;
-    if (S_ISREG(st.st_mode))  return 1;
-    if (S_ISDIR(st.st_mode))  return 2;
-    return 3;
+    return kind_of_stat(&st);
 }
 
 /* When `path` was last modified, in nanoseconds since the Unix epoch, or -1 when
@@ -331,14 +344,33 @@ int64_t vader_path_mtime(const char* path) {
 #endif
 }
 
-/* The size of the regular file the `FILE*` `stream` reads, or -1 for anything
- * else (a pipe, a device) or when `fstat` fails: only a regular file's size says
- * how much a read will find. Here for the reason `vader_path_kind` gives. */
+/* The size of the regular file the `FILE*` `stream` reads, as `size_of_stat`
+ * gives it, or -1 when `fstat` fails. Here for the reason `vader_path_kind`
+ * gives. */
 VADER_HOST_EXPORT
 int64_t vader_stream_size(void* stream) {
     struct stat st;
-    if (fstat(fileno((FILE*) stream), &st) != 0 || !S_ISREG(st.st_mode)) return -1;
-    return (int64_t) st.st_size;
+    if (fstat(fileno((FILE*) stream), &st) != 0) return -1;
+    return size_of_stat(&st);
+}
+
+/* What KIND of file the descriptor `fd` is open on, with `vader_path_kind`'s
+ * ordinals; 0 when `fstat` fails. Here for the reason `vader_path_kind` gives. */
+VADER_HOST_EXPORT
+int32_t vader_fd_kind(int32_t fd) {
+    struct stat st;
+    if (fstat(fd, &st) != 0) return 0;
+    return kind_of_stat(&st);
+}
+
+/* The size of the regular file the descriptor `fd` is open on, as
+ * `size_of_stat` gives it, or -1 when `fstat` fails. Here for the reason
+ * `vader_path_kind` gives. */
+VADER_HOST_EXPORT
+int64_t vader_fd_size(int32_t fd) {
+    struct stat st;
+    if (fstat(fd, &st) != 0) return -1;
+    return size_of_stat(&st);
 }
 
 /* Reading a NAMED member of a C struct is the one step a Vader FFI call cannot

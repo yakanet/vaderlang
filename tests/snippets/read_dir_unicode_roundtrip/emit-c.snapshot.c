@@ -201,6 +201,7 @@ const size_t vader_type_info_count = 22;
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "vader.h"
