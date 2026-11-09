@@ -1,0 +1,12 @@
+// P1033: `@c_header` naming its header through a constant. The header is read
+// at compile time, as a plain string literal: anything else would leave the
+// declaration without a header, its prototype synthesised in silence.
+module "snippet"
+
+HEADER :: "<stdlib.h>"
+
+@c_header(HEADER)
+@extern("abs")
+c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return c_abs(-1) }

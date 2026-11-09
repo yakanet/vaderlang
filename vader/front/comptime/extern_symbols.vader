@@ -19,16 +19,15 @@ import "toolchain/span"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 
-// Report each C symbol a second `@extern` declaration of the project claims
-// (C4020), unless both declarations name a header, and each variadic `@extern`
-// that names none (C4021). Every module is read, not only what the program
-// reaches.
+// Report each C symbol two `@extern` declarations of the project claim (C4020),
+// unless both declarations name a header, and each variadic `@extern` that names
+// none (C4021). Every module is read, not only what the program reaches.
 check_extern_symbols :: fn(
     loaded: LoadedProject,
     libraries: Map<i64, CLibrary>,
     diags: Diagnostic[],
 ) -> void {
-    claimed :: Map<string, FnDecl> {}
+    claimed :: Map<string, Claim> {}
     for [_, module] in loaded.modules {
         for decl in concat_file_decls(module.module.files) {
             if decl !is FnDecl || decl.body != null {
@@ -39,19 +38,56 @@ check_extern_symbols :: fn(
                 detail :: "`${decl.name}` is variadic: name the header declaring `${extern_symbol_of(decl)}` with `@c_header`, or in its `CLibrary`'s `headers`"
                 diags.push(comptime_error(.VariadicExternWithoutHeader, extern_decorator.span, detail))
             }
+            claim :: Claim {
+                .decl = decl,
+                .module = module.module.module_name,
+                .span = symbol_span(decl, extern_decorator),
+            }
             symbol :: extern_symbol_of(decl)
-            prior :: claimed.get_or_put(symbol, decl)
-            if prior.id == decl.id {
+            prior :: claimed.get_or_put(symbol, claim)
+            if prior.decl.id == decl.id {
                 continue
             }
-            if owns_prototype(prior, libraries) && owns_prototype(decl, libraries) {
-                continue
+            if !owns_prototype(decl, libraries) {
+                diags.push(claimed_twice(symbol, claim, prior, libraries))
+            } else if !owns_prototype(prior.decl, libraries) {
+                // The declaration to change is the one without a header, whichever
+                // module was read first, and the symbol goes to the one with a
+                // header so that no declaration is reported twice.
+                claimed[symbol] = claim
+                diags.push(claimed_twice(symbol, prior, claim, libraries))
             }
-            detail :: "`${symbol}` is already declared on `${prior.name}`"
-            span :: symbol_span(decl, extern_decorator)
-            diags.push(comptime_error(.ExternSymbolClaimedTwice, span, detail))
         }
     }
+}
+
+// An `@extern` declaration claiming a C symbol, and where it is.
+Claim :: struct {
+    decl: FnDecl
+    /// The module declaring it, named in the report of the other declaration.
+    module: string
+    /// Where the symbol is written (`symbol_span`).
+    span: Span
+}
+
+// C4020 on `blamed`, a declaration of `symbol` without a header, which `other`
+// declares too.
+claimed_twice :: fn(
+    symbol: string,
+    blamed: Claim,
+    other: Claim,
+    libraries: Map<i64, CLibrary>,
+) -> Diagnostic {
+    detail :: "`${symbol}` is also declared on `${other.decl.name}` in `${other.module}`: ${claimed_twice_fix(other, libraries)}"
+    return comptime_error(.ExternSymbolClaimedTwice, blamed.span, detail)
+}
+
+// What fixes a declaration without a header that `other` declares too.
+claimed_twice_fix :: fn(other: Claim, libraries: Map<i64, CLibrary>) -> string {
+    if owns_prototype(other.decl, libraries) {
+        return "name the header declaring it with `@c_header`, or in its `CLibrary`'s `headers`, as that one does"
+    }
+    return "declare it once, or give both declarations a header"
 }
 
 // Where the C symbol of `decl` is written: the last argument of its `@extern`,

@@ -943,7 +943,9 @@ promoted_through_ellipsis :: fn(t: Type) -> string {
         return narrower_than_int(storage_integer(base).bits)
     }
     if base is EnumType {
-        return narrower_than_int(base.repr.bits)
+        // An enum with variant data stores a rank, and crosses as its written
+        // value, at the width its header writes.
+        return narrower_than_int((base.written_width ?? base.repr).bits)
     }
     if base is PrimitiveType {
         if base.name == "f32" {

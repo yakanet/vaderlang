@@ -1,4 +1,4 @@
-// The second declarations of `abs` and `labs`.
+// The second declarations of `abs`, `labs` and `llabs`.
 module "snippet/other"
 
 import "std/ffi"
@@ -10,3 +10,6 @@ export other_abs :: fn(x: i32) -> i32
 
 @extern(LIBC, "labs")
 export other_labs :: fn(x: i64) -> i64
+
+@extern(LIBC, "llabs")
+export other_llabs :: fn(x: i64) -> i64

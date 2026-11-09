@@ -485,6 +485,7 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     p.reject_assert_decorator(decorators)
     p.check_guard_arity(decorators)
     p.check_c_struct_arguments(decorators)
+    p.check_c_header_arguments(decorators)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null {
         visibility = .Public
@@ -670,6 +671,21 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
     if d.args.len() == 1 && string_literal_text(d.args[0]) == null {
         p.error(.DecoratorArgumentForm, d.args[0].span,
             "`@c_struct` names the C type with a plain string literal (no interpolation)")
+    }
+}
+
+// `@c_header` names one header, as a plain string: a reader that met anything
+// else would find no header and synthesise the prototype, in silence.
+check_c_header_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
+    d :: find_decorator(decorators, "c_header") ?? return
+    if d.args.len() != 1 {
+        p.error(.DecoratorArgumentCount, d.span,
+            "`@c_header` takes one argument : the header, as in a C `#include`")
+        return
+    }
+    if string_literal_text(d.args[0]) == null {
+        p.error(.DecoratorArgumentForm, d.args[0].span,
+            "`@c_header` names the header with a plain string literal (no interpolation)")
     }
 }
 

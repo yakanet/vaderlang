@@ -1,7 +1,9 @@
 // C4020: two `@extern` declarations, in two modules, claim the C symbol `abs`
 // and neither names a header that would own its prototype. `labs` is declared
 // twice too, but both declarations name a header, through a `CLibrary`: that
-// pair passes.
+// pair passes. `llabs` is declared here without a header and in the other module
+// with one: the report lands here, on the declaration to change, although this
+// module is read first.
 module "snippet"
 
 import "snippet/other"
@@ -15,4 +17,9 @@ c_abs :: fn(x: i32) -> i32
 @extern(LIBC, "labs")
 c_labs :: fn(x: i64) -> i64
 
-main :: fn() -> i32 { return c_abs(-1) + other_abs(1) + i32(c_labs(-1) + other_labs(1)) }
+@extern("llabs")
+c_llabs :: fn(x: i64) -> i64
+
+main :: fn() -> i32 {
+    return c_abs(-1) + other_abs(1) + i32(c_labs(-1) + other_labs(1) + c_llabs(-1) + other_llabs(1))
+}

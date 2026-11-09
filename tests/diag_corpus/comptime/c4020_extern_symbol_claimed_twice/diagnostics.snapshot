@@ -1,1 +1,2 @@
-[8:9] error[C4020] two `@extern` declarations claim one C symbol: `abs` is already declared on `c_abs`
+[20:9] error[C4020] two `@extern` declarations claim one C symbol: `llabs` is also declared on `other_llabs` in `snippet/other`: name the header declaring it with `@c_header`, or in its `CLibrary`'s `headers`, as that one does
+[8:9] error[C4020] two `@extern` declarations claim one C symbol: `abs` is also declared on `c_abs` in `snippet`: declare it once, or give both declarations a header

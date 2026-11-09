@@ -2,13 +2,22 @@
 //
 // The marked parameters close the list, and each is declared as C reads it: no
 // mirror copied by value, and nothing the default promotions widen (`u8`,
-// `bool`, `f32`). A mirror lent by address passes, as its pointer.
+// `bool`, `f32`). A mirror lent by address passes, as its pointer, and so does an
+// enum with variant data whose written values are `i32`, though its rank fits a
+// `u8`.
 module "snippet"
 
 @c_struct("div_t")
 Div :: struct {
     quot: i32
     rem: i32
+}
+
+CommandInfo :: struct { name: string }
+
+Command :: enum(CommandInfo, i32) {
+    GetFlags { .name = "F_GETFL" } = 3,
+    SetFlags { .name = "F_SETFL" } = 4,
 }
 
 @c_header("<fcntl.h>")
@@ -26,5 +35,9 @@ mirror_by_value :: fn(fd: i32, @c_variadic d: Div) -> i32
 @c_header("<fcntl.h>")
 @extern("fcntl")
 mirror_by_address :: fn(fd: i32, @c_variadic @c_out d: Div) -> i32
+
+@c_header("<fcntl.h>")
+@extern("fcntl")
+enum_with_data :: fn(fd: i32, @c_variadic command: Command) -> i32
 
 main :: fn() -> i32 { return 0 }

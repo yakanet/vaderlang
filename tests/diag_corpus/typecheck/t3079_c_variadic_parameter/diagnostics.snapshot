@@ -1,5 +1,5 @@
-[16:57] error[T3079] decorator not allowed on this parameter: `flags` follows a `@c_variadic` parameter: mark it `@c_variadic` too
-[20:24] error[T3079] decorator not allowed on this parameter: C widens a `u8` it receives through `...` to `i32`: declare the parameter `i32`
-[20:47] error[T3079] decorator not allowed on this parameter: C widens a `bool` it receives through `...` to `i32`: declare the parameter `i32`
-[20:71] error[T3079] decorator not allowed on this parameter: C widens a `f32` it receives through `...` to `f64`: declare the parameter `f64`
-[24:32] error[T3079] decorator not allowed on this parameter: a `@c_struct` mirror cannot go through `...` by value: lend it with `@c_address` or `@c_out`
+[25:57] error[T3079] decorator not allowed on this parameter: `flags` follows a `@c_variadic` parameter: mark it `@c_variadic` too
+[29:24] error[T3079] decorator not allowed on this parameter: C widens a `u8` it receives through `...` to `i32`: declare the parameter `i32`
+[29:47] error[T3079] decorator not allowed on this parameter: C widens a `bool` it receives through `...` to `i32`: declare the parameter `i32`
+[29:71] error[T3079] decorator not allowed on this parameter: C widens a `f32` it receives through `...` to `f64`: declare the parameter `f64`
+[33:32] error[T3079] decorator not allowed on this parameter: a `@c_struct` mirror cannot go through `...` by value: lend it with `@c_address` or `@c_out`
