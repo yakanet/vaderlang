@@ -1,0 +1,8 @@
+# stdout
+https://example.com:8443/a~b/c%2Fd?q=1#top
+path /a~b/c%2Fd decoded /a~b/c/d
+file:///tmp/100%25%20sure/%C3%A9t%C3%A9.txt
+back /tmp/100% sure/été.txt
+refused: not a file URI: the scheme is `https`
+# exit
+0

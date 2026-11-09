@@ -1,0 +1,688 @@
+// std/uri: URIs as RFC 3986 writes them, and the files they name (RFC 8089).
+//
+// Decoding is a call (`decoded_path`), never done when a URI is read, so
+// `a%2Fb` stays one segment. Everything here is computed from its arguments
+// but `to_uri` of a relative path, which reads the working directory.
+
+module "std/uri"
+
+import "std/env"
+import "std/path"
+import "std/string"
+import "std/string_builder"
+import "std/target"
+
+// ---- the URI --------------------------------------------------------------
+
+/// A URI as RFC 3986 reads it: `scheme:[//authority]path[?query][#fragment]`.
+///
+/// Each component is kept percent-encoded and normalised: the scheme and the
+/// host in lower case, every escape in upper-case hexadecimal, and an escaped
+/// unreserved character (a letter, a digit, `-`, `.`, `_`, `~`) written as
+/// itself. Two spellings of one URI display the same. A reserved character and
+/// its escape stay apart, as the RFC keeps them: `c:` is not `c%3A`.
+///
+/// @example
+///   u :: parse_uri("HTTP://Example.com:8080/a%7eb?q=1#top")
+///   if u is Uri {
+///       "${u}"   // "http://example.com:8080/a~b?q=1#top"
+///       u.path   // "/a~b"
+///   }
+export Uri :: struct {
+    /// In lower case: `https`, `file`.
+    scheme:    string
+    /// Null when the URI has no `//`; `file:///x` has one, its host empty.
+    authority: Authority | null = null
+    /// Percent-encoded; `decoded_path` decodes it.
+    path:      string = ""
+    /// Percent-encoded, without its `?`; null when there is none.
+    query:     string | null = null
+    /// Percent-encoded, without its `#`; null when there is none.
+    fragment:  string | null = null
+}
+
+/// The `[userinfo@]host[:port]` of a URI.
+export Authority :: struct {
+    /// Percent-encoded, without its `@`.
+    userinfo: string | null = null
+    /// A registered name in lower case, an IPv4 address, or an IP literal with
+    /// its brackets (`[::1]`); empty in `file:///x`.
+    host:     string = ""
+    port:     i64 | null = null
+}
+
+/// Why a text is no URI, or a URI names no file.
+export UriError :: struct {
+    msg:    string
+    /// The byte of the text where the problem lies; 0 when it lies nowhere in
+    /// particular.
+    offset: i64 = 0
+}
+
+/// Read `text` as a URI: a scheme, then what RFC 3986 allows after it.
+///
+/// A relative reference, which has no scheme, is refused: resolving one
+/// against a base is not done here.
+///
+/// @param text  the URI, percent-encoded as it travels.
+/// @return      the URI, each component normalised.
+/// @error       `UriError` at the first byte the grammar refuses: no scheme, a
+///              character no component takes, a `%` without two hexadecimal
+///              digits, a port past 65535.
+/// @example
+///   parse_uri("file:///home/me/notes.txt")
+export parse_uri :: fn(text: string) -> Uri | UriError {
+    scheme_end :: text.scheme_length()
+    if scheme_end == 0 {
+        return UriError { .msg = "no scheme" }
+    }
+    n :: text.byte_len()
+    next: i64 = scheme_end + 1
+    authority: Authority | null = null
+    if text.matches_at(next, "//") {
+        end :: text.end_of(next + 2, "/?#")
+        parsed :: text.parse_authority(next + 2, end)
+        if parsed is UriError {
+            return parsed
+        }
+        authority = parsed
+        next = end
+    }
+    path_end :: text.end_of(next, "?#")
+    path :: text.normalized(next, path_end, is_path_byte)
+    if path is UriError {
+        return path
+    }
+    next = path_end
+    query: string | null = null
+    if next < n && text.byte_at(next) == '?' {
+        query_end :: text.end_of(next + 1, "#")
+        read :: text.normalized(next + 1, query_end, is_query_byte)
+        if read is UriError {
+            return read
+        }
+        query = read
+        next = query_end
+    }
+    fragment: string | null = null
+    if next < n {
+        read :: text.normalized(next + 1, n, is_query_byte)
+        if read is UriError {
+            return read
+        }
+        fragment = read
+    }
+    return Uri {
+        .scheme = text.byte_slice(0, scheme_end).to_lower(),
+        .authority = authority,
+        .path = path,
+        .query = query,
+        .fragment = fragment,
+    }
+}
+
+/// The path of `uri`, its escapes decoded.
+///
+/// @param uri  the URI.
+export decoded_path :: fn(uri: Uri) -> string = percent_decode(uri.path)
+
+Uri implements Display {
+    /// The URI as RFC 3986 writes it, from its normalised components.
+    to_string :: fn(self) -> string {
+        sb :: StringBuilder {}
+        sb.append(self.scheme)
+        sb.append(":")
+        authority :: self.authority
+        if authority != null {
+            sb.append("//")
+            sb.append("${authority}")
+        }
+        sb.append(self.path)
+        query :: self.query
+        if query != null {
+            sb.append("?")
+            sb.append(query)
+        }
+        fragment :: self.fragment
+        if fragment != null {
+            sb.append("#")
+            sb.append(fragment)
+        }
+        return sb.to_string()
+    }
+}
+
+Authority implements Display {
+    /// `[userinfo@]host[:port]`.
+    to_string :: fn(self) -> string {
+        sb :: StringBuilder {}
+        userinfo :: self.userinfo
+        if userinfo != null {
+            sb.append(userinfo)
+            sb.append("@")
+        }
+        sb.append(self.host)
+        port :: self.port
+        if port != null {
+            sb.append(":${port}")
+        }
+        return sb.to_string()
+    }
+}
+
+// The length of the scheme `text` opens with, before its `:`; 0 when it opens
+// with none. A scheme is a letter, then letters, digits, `+`, `-` or `.`.
+scheme_length :: fn(text: string) -> i64 {
+    for i in 0..<text.byte_len() {
+        b :: text.byte_at(i)
+        if b == ':' {
+            return i
+        }
+        if !is_letter(b) && (i == 0 || !(is_digit(b) || b == '+' || b == '-' || b == '.')) {
+            return 0
+        }
+    }
+    return 0
+}
+
+// The offset of the first byte of `text` from `from` on that `stops` holds, or
+// the length of `text` when none does.
+end_of :: fn(text: string, from: i64, stops: string) -> i64 {
+    stop_bytes :: stops.bytes()
+    for i in from..<text.byte_len() {
+        if stop_bytes.index_of(text.byte_at(i)) != null {
+            return i
+        }
+    }
+    return text.byte_len()
+}
+
+// The authority `text[from..<to]`: `[userinfo@]host[:port]`.
+parse_authority :: fn(text: string, from: i64, to: i64) -> Authority | UriError {
+    at :: text.byte_offset_of('@', from, to)
+    userinfo: string | null = null
+    host_from: i64 = from
+    if at != null {
+        read :: text.normalized(from, at, is_userinfo_byte)
+        if read is UriError {
+            return read
+        }
+        userinfo = read
+        host_from = at + 1
+    }
+    host_end: i64 = to
+    if host_from < to && text.byte_at(host_from) == '[' {
+        close :: text.byte_offset_of(']', host_from, to) ?? return UriError {
+            .msg = "unclosed IP literal",
+            .offset = host_from,
+        }
+        host_end = close + 1
+        if host_end < to && text.byte_at(host_end) != ':' {
+            return UriError { .msg = "port expected after an IP literal", .offset = host_end }
+        }
+    } else {
+        host_end = text.last_byte_offset_of(':', host_from, to) ?? to
+    }
+    host :: text.normalized(host_from, host_end, is_host_byte)
+    if host is UriError {
+        return host
+    }
+    port :: text.parse_port(host_end, to)
+    if port is UriError {
+        return port
+    }
+    return Authority {
+        .userinfo = userinfo,
+        .host = host.lower_outside_escapes(),
+        .port = port,
+    }
+}
+
+// The port after the `:` at `from`, null when `text[from..<to]` is empty or a
+// bare `:`.
+parse_port :: fn(text: string, from: i64, to: i64) -> i64 | null | UriError {
+    if to - from <= 1 {
+        return null
+    }
+    value: i64 = 0
+    for i in from + 1..<to {
+        b :: text.byte_at(i)
+        if !is_digit(b) {
+            return UriError { .msg = "port is not a number", .offset = i }
+        }
+        value = value * 10 + i64(b - '0')
+        if value > 65535 {
+            return UriError { .msg = "port past 65535", .offset = from + 1 }
+        }
+    }
+    return value
+}
+
+// The component `text[from..<to]`, its escapes normalised: hexadecimal in
+// upper case, an unreserved character decoded. A byte `allowed` refuses, or a
+// `%` without two hexadecimal digits, is an error at its offset.
+normalized :: fn(text: string, from: i64, to: i64, allowed: fn(u8) -> bool) -> string | UriError {
+    out: u8[]: []
+    i: i64 = from
+    for i < to {
+        b :: text.byte_at(i)
+        if b == '%' {
+            value :: text.escape_at(i, to) ?? return UriError {
+                .msg = "invalid percent escape",
+                .offset = i,
+            }
+            out.push_escape(value)
+            i += 3
+            continue
+        }
+        if !allowed(b) {
+            return UriError { .msg = "character not allowed here", .offset = i }
+        }
+        out.push(b)
+        i += 1
+    }
+    return out.bytes_to_string()
+}
+
+// The byte the escape `%XX` at `i` stands for, null when two hexadecimal
+// digits do not follow before `to`.
+escape_at :: fn(text: string, i: i64, to: i64) -> u8 | null {
+    if i + 2 >= to {
+        return null
+    }
+    high :: hex_value(text.byte_at(i + 1)) ?? return null
+    low :: hex_value(text.byte_at(i + 2)) ?? return null
+    return high * 16 + low
+}
+
+// Append `value` as a normalised escape: itself when it is unreserved, `%XX`
+// in upper case otherwise.
+push_escape :: fn(out: u8[], value: u8) -> void {
+    if is_unreserved(value) {
+        out.push(value)
+        return
+    }
+    out.push_hex_escape(value)
+}
+
+// Append `%XX` for `value`, its hexadecimal in upper case.
+push_hex_escape :: fn(out: u8[], value: u8) -> void {
+    out.push('%')
+    out.push(HEX_DIGITS.byte_at(i64(value >> 4)))
+    out.push(HEX_DIGITS.byte_at(i64(value & 0xF)))
+}
+
+HEX_DIGITS :: "0123456789ABCDEF"
+
+hex_value :: fn(b: u8) -> u8 | null = match b {
+    '0'..='9' -> b - '0'
+    'A'..='F' -> b - 'A' + 10
+    'a'..='f' -> b - 'a' + 10
+    _         -> null
+}
+
+// `text` with its ASCII letters in lower case, but those of its escapes, which
+// stay in upper case.
+lower_outside_escapes :: fn(text: string) -> string {
+    out: u8[]: []
+    escape: i64 = 0
+    for b in text.bytes() {
+        if b == '%' {
+            escape = 3
+        }
+        if escape == 0 && b >= 'A' && b <= 'Z' {
+            out.push(b + 32)
+        } else {
+            out.push(b)
+        }
+        if escape > 0 {
+            escape -= 1
+        }
+    }
+    return out.bytes_to_string()
+}
+
+// The offset of the first `b` of `text[from..<to]`, null when it holds none.
+byte_offset_of :: fn(text: string, b: u8, from: i64, to: i64) -> i64 | null {
+    for i in from..<to {
+        if text.byte_at(i) == b {
+            return i
+        }
+    }
+    return null
+}
+
+// The offset of the last `b` of `text[from..<to]`, null when it holds none.
+last_byte_offset_of :: fn(text: string, b: u8, from: i64, to: i64) -> i64 | null {
+    i: i64 = to - 1
+    for i >= from {
+        if text.byte_at(i) == b {
+            return i
+        }
+        i -= 1
+    }
+    return null
+}
+
+// ---- the characters each component takes -----------------------------------
+
+is_letter :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
+
+is_digit :: fn(b: u8) -> bool = b >= '0' && b <= '9'
+
+is_unreserved :: fn(b: u8) -> bool =
+    is_letter(b) || is_digit(b) || b == '-' || b == '.' || b == '_' || b == '~'
+
+is_sub_delimiter :: fn(b: u8) -> bool = match b {
+    '!' | '$' | '&' | '\'' | '(' | ')' | '*' | '+' | ',' | ';' | '=' -> true
+    _                                                                 -> false
+}
+
+is_path_byte :: fn(b: u8) -> bool =
+    is_unreserved(b) || is_sub_delimiter(b) || b == ':' || b == '@' || b == '/'
+
+is_query_byte :: fn(b: u8) -> bool = is_path_byte(b) || b == '?'
+
+is_userinfo_byte :: fn(b: u8) -> bool = is_unreserved(b) || is_sub_delimiter(b) || b == ':'
+
+// A registered name, an IPv4 address, or an IP literal and its brackets.
+is_host_byte :: fn(b: u8) -> bool =
+    is_unreserved(b) || is_sub_delimiter(b) || b == ':' || b == '[' || b == ']'
+
+// ---- percent-encoding -----------------------------------------------------
+
+/// `text` with every byte but the unreserved ones (a letter, a digit, `-`, `.`,
+/// `_`, `~`) written as a `%XX` escape: what a value inside one component of
+/// a URI takes.
+///
+/// @param text  the text to encode, as bytes.
+/// @example
+///   percent_encode("a b/c")   // "a%20b%2Fc"
+export percent_encode :: fn(text: string) -> string {
+    out: u8[]: []
+    for b in text.bytes() {
+        out.push_escape(b)
+    }
+    return out.bytes_to_string()
+}
+
+/// `text` with its `%XX` escapes decoded. A `%` not followed by two
+/// hexadecimal digits stays as it is written.
+///
+/// @param text  percent-encoded text.
+/// @example
+///   percent_decode("a%20b%2Fc")   // "a b/c"
+export percent_decode :: fn(text: string) -> string {
+    out: u8[]: []
+    n :: text.byte_len()
+    i: i64 = 0
+    for i < n {
+        value :: text.escape_at(i, n)
+        if text.byte_at(i) == '%' && value != null {
+            out.push(value)
+            i += 3
+            continue
+        }
+        out.push(text.byte_at(i))
+        i += 1
+    }
+    return out.bytes_to_string()
+}
+
+// ---- files (RFC 8089) -----------------------------------------------------
+
+/// The `file` URI of `path`: `file:///home/me/my%20notes.txt`. On Windows a
+/// drive path gives `file:///c:/dir/x`, its letter in lower case, and a UNC
+/// path `file://server/share/x`. A relative path is first made absolute
+/// against the working directory.
+///
+/// @param path  a file path, `/`-separated, or `\`-separated too on Windows.
+/// @example
+///   "${to_uri("/home/me/my notes.txt")}"   // "file:///home/me/my%20notes.txt"
+export to_uri :: fn(path: string) -> Uri = path.file_uri(VADER_OS)
+
+/// The file path `uri` names, `/`-separated: `/home/me/notes.txt`; on Windows
+/// a drive path (`c:/dir/x`) or a UNC one (`//server/share/x`).
+///
+/// @param uri  a `file` URI.
+/// @error      `UriError` when `uri` names no local file: a scheme other than
+///             `file`, a query or a fragment, a user or a port, a host on
+///             another OS than Windows (`localhost` is this machine), or an
+///             escaped `/` or NUL in the path, which no file name holds.
+export to_path :: fn(uri: Uri) -> string | UriError = uri.file_path(VADER_OS)
+
+// The URI of `path`, read as the OS `os` writes paths.
+file_uri :: fn(path: string, os: Os) -> Uri {
+    absolute :: path.slashed(os).absolute(os)
+    if os == .Windows && absolute.starts_with("//") {
+        slash :: absolute.end_of(2, "/")
+        host :: absolute.byte_slice(2, slash).encoded(is_host_byte).lower_outside_escapes()
+        return Uri {
+            .scheme = "file",
+            .authority = Authority { .host = host },
+            .path = absolute.byte_slice(slash, absolute.byte_len()).encoded(is_path_byte),
+        }
+    }
+    return Uri {
+        .scheme = "file",
+        .authority = Authority {},
+        .path = absolute.rooted(os).encoded(is_path_byte),
+    }
+}
+
+// `path` with `\` read as `/` on Windows, as it is: a POSIX file name may hold
+// a `\`.
+slashed :: fn(path: string, os: Os) -> string {
+    if os == .Windows {
+        return to_posix(path)
+    }
+    return path
+}
+
+// `path` made absolute against the working directory: kept as it is when it
+// starts with `/`, or on Windows with a drive letter.
+absolute :: fn(path: string, os: Os) -> string {
+    if path.starts_with("/") || (os == .Windows && path.has_drive()) {
+        return path
+    }
+    return string(current_working_directory().to_path().join(path))
+}
+
+// `path` starting with `/`: a Windows drive path takes one before its letter,
+// which it brings down to lower case.
+rooted :: fn(path: string, os: Os) -> string {
+    if os == .Windows && path.has_drive() {
+        return "/${path.byte_slice(0, 1).to_lower()}${path.byte_slice(1, path.byte_len())}"
+    }
+    return path
+}
+
+// Whether `path` opens with a drive letter and its colon: `c:`.
+has_drive :: fn(path: string) -> bool =
+    path.byte_len() >= 2 && is_letter(path.byte_at(0)) && path.byte_at(1) == ':'
+
+// `text` with every byte `allowed` refuses written as a `%XX` escape.
+encoded :: fn(text: string, allowed: fn(u8) -> bool) -> string {
+    out: u8[]: []
+    for b in text.bytes() {
+        if allowed(b) {
+            out.push(b)
+        } else {
+            out.push_hex_escape(b)
+        }
+    }
+    return out.bytes_to_string()
+}
+
+// The file path `uri` names, as the OS `os` writes paths.
+file_path :: fn(uri: Uri, os: Os) -> string | UriError {
+    if uri.scheme != "file" {
+        return UriError { .msg = "not a file URI: the scheme is `${uri.scheme}`" }
+    }
+    if uri.query != null || uri.fragment != null {
+        return UriError { .msg = "a file URI holds no query and no fragment" }
+    }
+    if uri.path.escapes_a_separator(os) {
+        return UriError { .msg = "an escaped separator or NUL in a file path" }
+    }
+    decoded :: uri.decoded_path()
+    authority :: uri.authority
+    if authority != null {
+        if authority.userinfo != null || authority.port != null {
+            return UriError { .msg = "a file URI holds no user and no port" }
+        }
+        host :: authority.host
+        if host != "" && host != "localhost" {
+            if os != .Windows {
+                return UriError { .msg = "a file on another host: `${host}`" }
+            }
+            return "//${host}${decoded}"
+        }
+    }
+    if decoded == "" {
+        return "/"
+    }
+    after_slash :: decoded.byte_slice(1, decoded.byte_len())
+    if os == .Windows && decoded.starts_with("/") && after_slash.has_drive() {
+        return after_slash
+    }
+    return decoded
+}
+
+// Whether the encoded `path` escapes a byte that would cut or end a file name
+// once decoded: `/`, NUL, and `\` on Windows.
+escapes_a_separator :: fn(path: string, os: Os) -> bool {
+    n :: path.byte_len()
+    for i in 0..<n {
+        if path.byte_at(i) == '%' {
+            value :: path.escape_at(i, n)
+            if value == '/' || value == 0 || (os == .Windows && value == '\\') {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The display of what `parse_uri` reads in `text`, or why it refuses it.
+reread :: fn(text: string) -> string {
+    u :: parse_uri(text)
+    if u is UriError {
+        return "error at ${u.offset}: ${u.msg}"
+    }
+    return "${u}"
+}
+
+@test
+test_parse_uri_splits_the_components :: fn() -> void {
+    u :: parse_uri("https://me:pw@Example.COM:8443/a/b?x=1&y=2#frag")
+    if u is UriError {
+        assert(false, "a valid URI")
+        return
+    }
+    assert_eq(u.scheme, "https")
+    assert_eq(u.path, "/a/b")
+    assert_eq(u.query ?? "none", "x=1&y=2")
+    assert_eq(u.fragment ?? "none", "frag")
+    authority :: u.authority
+    if authority == null {
+        assert(false, "an authority")
+        return
+    }
+    assert_eq(authority.userinfo ?? "none", "me:pw")
+    assert_eq(authority.host, "example.com")
+    assert_eq(authority.port ?? -1, 8443)
+}
+
+@test
+test_parse_uri_normalises_case_and_escapes :: fn() -> void {
+    assert_eq(reread("HTTP://Example.com/%7euser/a%2fb%3a"), "http://example.com/~user/a%2Fb%3A")
+    assert_eq(reread("mailto:someone@example.com"), "mailto:someone@example.com")
+    assert_eq(reread("urn:isbn:0451450523"), "urn:isbn:0451450523")
+    assert_eq(reread("http://[::1]:80/"), "http://[::1]:80/")
+    assert_eq(reread("http://host:/x"), "http://host/x")
+    assert_eq(reread("ftp://anonymous@Host.org/a"), "ftp://anonymous@host.org/a")
+    assert_eq(reread("http://A%2fb.org/"), "http://a%2Fb.org/")
+}
+
+@test
+test_parse_uri_refuses_what_the_grammar_refuses :: fn() -> void {
+    assert_eq(reread("relative/path"), "error at 0: no scheme")
+    assert_eq(reread("1http://x"), "error at 0: no scheme")
+    assert_eq(reread("http://x/a b"), "error at 10: character not allowed here")
+    assert_eq(reread("http://x/%zz"), "error at 9: invalid percent escape")
+    assert_eq(reread("http://x:99999/"), "error at 9: port past 65535")
+    assert_eq(reread("http://[::1/"), "error at 7: unclosed IP literal")
+}
+
+@test
+test_percent_encode_and_decode :: fn() -> void {
+    assert_eq(percent_encode("a b/c~é"), "a%20b%2Fc~%C3%A9")
+    assert_eq(percent_decode("a%20b%2Fc~%C3%A9"), "a b/c~é")
+    assert_eq(percent_decode("100%"), "100%")
+    assert_eq(percent_decode("%4"), "%4")
+}
+
+@test
+test_file_uri_of_a_posix_path :: fn() -> void {
+    assert_eq("${"/home/me/my notes#1.txt".file_uri(.Linux)}", "file:///home/me/my%20notes%231.txt")
+    assert_eq("${"/tmp/100%".file_uri(.Linux)}", "file:///tmp/100%25")
+    assert_eq("${"/a\\b".file_uri(.Linux)}", "file:///a%5Cb")
+}
+
+@test
+test_file_uri_of_a_windows_path :: fn() -> void {
+    assert_eq("${"C:\\dev\\a b.vader".file_uri(.Windows)}", "file:///c:/dev/a%20b.vader")
+    assert_eq("${"//server/share/x".file_uri(.Windows)}", "file://server/share/x")
+}
+
+@test
+test_a_relative_path_is_made_absolute :: fn() -> void {
+    assert_eq("${to_uri("notes.txt")}", "${to_uri("${current_working_directory()}/notes.txt")}")
+}
+
+// The path the `file` URI `text` names on `os`, or why it names none.
+path_of :: fn(text: string, os: Os) -> string {
+    u :: parse_uri(text)
+    if u is UriError {
+        return "error: ${u.msg}"
+    }
+    p :: u.file_path(os)
+    if p is UriError {
+        return "error: ${p.msg}"
+    }
+    return p
+}
+
+@test
+test_file_path_of_a_uri :: fn() -> void {
+    assert_eq(path_of("file:///home/me/my%20notes.txt", .Linux), "/home/me/my notes.txt")
+    assert_eq(path_of("file://localhost/etc/hosts", .Linux), "/etc/hosts")
+    assert_eq(path_of("file:///c%3A/dev/x.vader", .Windows), "c:/dev/x.vader")
+    assert_eq(path_of("file:///c:/dev/x.vader", .Windows), "c:/dev/x.vader")
+    assert_eq(path_of("file://server/share/x", .Windows), "//server/share/x")
+    assert_eq(path_of("file://localhost", .Windows), "/")
+}
+
+@test
+test_file_path_refuses_a_uri_that_names_no_local_file :: fn() -> void {
+    other_scheme :: path_of("https://example.com/x", .Linux)
+    assert_eq(other_scheme, "error: not a file URI: the scheme is `https`")
+    assert_eq(path_of("file://server/share/x", .Linux), "error: a file on another host: `server`")
+    assert_eq(path_of("file:///a%2Fb", .Linux), "error: an escaped separator or NUL in a file path")
+    assert_eq(path_of("file:///a?b", .Linux), "error: a file URI holds no query and no fragment")
+    windows_backslash :: path_of("file:///c:/a%5Cb", .Windows)
+    assert_eq(windows_backslash, "error: an escaped separator or NUL in a file path")
+    assert_eq(path_of("file:///a%5Cb", .Linux), "/a\\b")
+}
+
+@test
+test_a_path_survives_the_round_trip :: fn() -> void {
+    for p in ["/tmp/100%25/a b#c?d", "/x/été/東京", "/a;b=c,d"] {
+        assert_eq(path_of("${p.file_uri(.Linux)}", .Linux), p)
+    }
+}

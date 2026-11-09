@@ -1,0 +1,28 @@
+module "snippet"
+
+import "std/console"
+import "std/uri"
+
+// A URI read and normalised, a file path taken to its URI and back, and a URI
+// that names no local file refused.
+main :: fn() -> i32 {
+    web :: parse_uri("HTTPS://Example.com:8443/a%7eb/c%2fd?q=1#top")
+    if web is Uri {
+        println("${web}")
+        println("path ${web.path} decoded ${web.decoded_path()}")
+    }
+    file :: to_uri("/tmp/100% sure/été.txt")
+    println("${file}")
+    back :: file.to_path()
+    if back is string {
+        println("back ${back}")
+    }
+    remote :: parse_uri("https://example.com/x")
+    if remote is Uri {
+        refused :: remote.to_path()
+        if refused is UriError {
+            println("refused: ${refused.msg}")
+        }
+    }
+    return 0
+}
