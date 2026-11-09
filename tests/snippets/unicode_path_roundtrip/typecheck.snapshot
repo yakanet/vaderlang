@@ -56,4 +56,4 @@
   expr 27:32    IdentExpr      :: string
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
-  expr 374:60   StructLitExpr  :: RemoveOptions
+  expr 376:60   StructLitExpr  :: RemoveOptions

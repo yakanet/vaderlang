@@ -102,6 +102,24 @@ last_io_error :: fn(msg: string) -> IOError {
     return classified_error(msg, win32_error_kind(e), i32(e))
 }
 
+/// Null when the system call whose outcome is `succeeded` worked, else the
+/// error it left, as `last_io_error` reads it.
+///
+/// `succeeded` is computed before this body runs, so nothing reaches the system
+/// between the call and the read of its error.
+///
+/// @param succeeded  whether the call worked: `sys_rmdir(path) == 0`.
+/// @param msg        the fallback diagnostic of `last_io_error`.
+/// @example
+///   # import "system/posix"
+///   removed :: failure_unless(sys_rmdir("build/empty") == 0, "cannot remove directory")
+export failure_unless :: fn(succeeded: bool, msg: string) -> null | IOError {
+    if succeeded {
+        return null
+    }
+    return last_io_error(msg)
+}
+
 // The error of the platform code `code`, which `kind` classifies; `msg` names
 // it when `kind` does not.
 classified_error :: fn(msg: string, kind: IOErrorKind, code: i32) = IOError {
@@ -140,6 +158,7 @@ win32_error_kind :: fn(e: u32) -> IOErrorKind {
     if e == ERROR_BROKEN_PIPE    { return .BrokenPipe }
     if e == ERROR_DISK_FULL      { return .NoSpace }
     if e == ERROR_DIR_NOT_EMPTY  { return .DirectoryNotEmpty }
+    if e == ERROR_DIRECTORY      { return .NotADirectory }
     return .Other
 }
 

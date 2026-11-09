@@ -237,8 +237,7 @@ export flush_generated :: fn(ctx: BuildContext) -> string[] {
 /// Only files starting with `GENERATED_BANNER` are removed. That is the whole
 /// safety argument for a recursive delete driven by a driver-supplied path: a
 /// `generated_root` aimed at real sources destroys nothing. Directories are left
-/// behind: the stdlib has no `remove_dir`, and an empty folder declares no
-/// module, so nothing resolves through it.
+/// behind: an empty folder declares no module, so nothing resolves through it.
 ///
 /// @param dir  the generated root ; a path that does not exist is not an error.
 /// @return     how many files were removed.

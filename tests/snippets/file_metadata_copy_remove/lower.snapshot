@@ -120,7 +120,6 @@
     fn std.fs.create  // std_fs$create
     fn std.fs.create_dir  // std_fs$create_dir
     fn std.fs.exists  // std_fs$exists
-    fn std.fs.failure_unless  // std_fs$failure_unless
     fn std.fs.fd_of  // std_fs$fd_of
     fn std.fs.give_back  // std_fs$give_back
     fn std.fs.has_nul  // std_fs$has_nul
@@ -129,7 +128,9 @@
     fn std.fs.is_dir  // std_fs$is_dir
     fn std.fs.is_same_file  // std_fs$is_same_file
     fn std.fs.kind_of  // std_fs$kind_of
+    fn std.fs.kind_of_dirent  // std_fs$kind_of_dirent
     fn std.fs.link_flag  // std_fs$link_flag
+    fn std.fs.list_dir  // std_fs$list_dir
     fn std.fs.metadata  // std_fs$metadata
     fn std.fs.mkdir_one  // std_fs$mkdir_one
     fn std.fs.mode_with  // std_fs$mode_with
@@ -162,6 +163,7 @@
     struct __defer_env_std_fs_1
     struct __defer_env_std_fs_3
     struct std.fs.File  // std_fs$File
+    struct std.fs.ListedEntry  // std_fs$ListedEntry
     struct std.fs.Metadata  // std_fs$Metadata
     struct std.fs.MetadataOptions  // std_fs$MetadataOptions
     struct std.fs.OpenOptions  // std_fs$OpenOptions
@@ -171,6 +173,7 @@
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
   system/posix

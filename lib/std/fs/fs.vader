@@ -331,33 +331,70 @@ without_verbatim_prefix :: fn(p: string) -> string {
     return p
 }
 
-/// List the immediate entries of `path` in OS-provided order. Excludes
-/// `.` and `..`. Names are relative: join against `path` (e.g. via
-/// `std/path`) for full paths.
+/// List the immediate entries of `path` in the order the system gives them,
+/// `.` and `..` left out. Names are relative: join them to `path` for full
+/// paths.
+///
 /// @param path  the directory to list.
-/// @return      entry names (no path prefix).
-/// @error       `IOError` if `path` isn't a directory or can't be opened.
+/// @return      the entry names, without `path`.
+/// @error       `IOError` when `path` cannot be listed: `.NotFound` when it
+///              does not exist, `.NotADirectory` for a file.
+export read_dir :: fn(path: string) -> string[] | IOError {
+    if path.has_nul() {
+        return NUL_IN_PATH
+    }
+    listed :: path.list_dir()
+    if listed is IOError {
+        return listed
+    }
+    names: string[]: []
+    for entry in listed {
+        names.push(entry.name)
+    }
+    return names
+}
+
+ListedEntry :: struct {
+    name: string
+    kind: EntryKind
+}
+
+// The entries of the directory `path`, each with its kind, in the order the
+// system gives them: `.` and `..` left out. A link is reported as one, never
+// followed.
 @target
-export read_dir :: fn(path: string) -> string[] | IOError
+list_dir :: fn(path: string) -> ListedEntry[] | IOError
 
 @target(.Linux, .Darwin)
-read_dir :: fn(path: string) -> string[] | IOError {
-    d :: sys_opendir(path) ?? return IOError {
-        .msg = "read_dir: cannot open `${path}`",
-    }
+list_dir :: fn(path: string) -> ListedEntry[] | IOError {
+    d :: sys_opendir(path) ?? return last_io_error("cannot read directory")
     defer sys_closedir(d)
-    out: string[]: []
+    out: ListedEntry[]: []
     for {
         p :: sys_readdir(d) ?? break
         name :: dirent_name(p)
         if name != "." && name != ".." {
-            out.push(name)
+            kind :: path.kind_of_dirent(name, dirent_kind(p))
+            out.push(ListedEntry { .name = name, .kind = kind })
         }
     }
     return out
 }
 
-// What `read_dir` puts between `path` and `*`: nothing after a separator, after a
+// The kind `d_type` gave the entry `name` of `dir`, asked of the entry itself
+// when the file system does not record it.
+kind_of_dirent :: fn(dir: string, name: string, kind: i32) -> EntryKind {
+    if kind != PATH_MISSING {
+        return kind_of(i64(kind))
+    }
+    cells :: "${dir}/${name}".stat_cells(false)
+    if cells is IOError {
+        return .Other
+    }
+    return kind_of(cells[0])
+}
+
+// What `list_dir` puts between `path` and `*`: nothing after a separator, after a
 // drive's colon, or on the empty path.
 glob_separator :: fn(path: string) -> string {
     n :: path.byte_len()
@@ -372,7 +409,7 @@ glob_separator :: fn(path: string) -> string {
 }
 
 @target(.Windows)
-read_dir :: fn(path: string) -> string[] | IOError {
+list_dir :: fn(path: string) -> ListedEntry[] | IOError {
     // `FindFirstFileW` wants a GLOB, not a directory: the separator is added
     // only when the path does not already end in one, so `C:\` stays `C:\*`.
     // The last byte decides, read directly: a separator is ASCII, so a byte test
@@ -387,14 +424,16 @@ read_dir :: fn(path: string) -> string[] | IOError {
     data: u8[]: [0] * FIND_DATA_BYTES
     h :: find_first_file(to_wide("${path}${sep}*"), data)
     if i64(h) == INVALID_HANDLE {
-        return IOError { .msg = "read_dir: cannot open `${path}`" }
+        return last_io_error("cannot read directory")
     }
     defer find_close(h)
-    out: string[]: []
+    out: ListedEntry[]: []
+    cells: u32[]: [0, 0]
     for {
         name :: find_data_name(data)
         if name != "." && name != ".." {
-            out.push(name)
+            find_data_attributes(data, cells)
+            out.push(ListedEntry { .name = name, .kind = kind_of_attributes(cells[0], cells[1]) })
         }
         if !find_next_file(h, data) {
             break

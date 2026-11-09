@@ -115,7 +115,7 @@ system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError {
     }
     attributes :: info[0]
     return Metadata {
-        .kind = h.kind_of_handle(attributes, follow_links),
+        .kind = kind_of_attributes(attributes, h.reparse_tag_of(attributes, follow_links)),
         .size = (i64(info[8]) << 32) | i64(info[9]),
         .modification_time = nanoseconds_of_filetime(info[5], info[6]),
         .read_only = (attributes & FILE_ATTRIBUTE_READONLY) != 0,
@@ -158,10 +158,13 @@ open_flags_of :: fn(follow_links: bool) -> u32 {
     return FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT
 }
 
-// The `EntryKind` of the entry `h` opens, whose Windows file attributes are
-// `attributes`. A link shows only when it was not followed.
-kind_of_handle :: fn(h: Handle, attributes: u32, follow_links: bool) -> EntryKind {
-    if !follow_links && h.is_link(attributes) {
+// The `EntryKind` of Windows file `attributes` and reparse `tag`, for a
+// listing as for `metadata`. A reparse point is a link only when its tag is a
+// name surrogate, a symbolic link or a junction: one of another kind, a cloud
+// placeholder say, is the file or the directory it holds.
+kind_of_attributes :: fn(attributes: u32, tag: u32) -> EntryKind {
+    reparse :: (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+    if reparse && (tag & IO_REPARSE_TAG_NAME_SURROGATE) != 0 {
         return .Symlink
     }
     if (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0 {
@@ -170,19 +173,18 @@ kind_of_handle :: fn(h: Handle, attributes: u32, follow_links: bool) -> EntryKin
     return .File
 }
 
-// Whether the entry `h` opens stands for another, a symbolic link or a
-// junction. A reparse point of another kind, a cloud placeholder say, is the
-// file or the directory it holds.
-is_link :: fn(h: Handle, attributes: u32) -> bool {
-    if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0 {
-        return false
+// The reparse tag of the entry `h` opens, 0 when it is no reparse point or the
+// link was followed. A tag that cannot be read counts as a link's, which
+// `remove` never follows.
+reparse_tag_of :: fn(h: Handle, attributes: u32, follow_links: bool) -> u32 {
+    if follow_links || (attributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0 {
+        return 0
     }
-    // A tag that cannot be read counts as a link, which `remove` never follows.
     tag: u32[]: [0, 0]
     if !get_file_information_by_handle_ex(h, FILE_ATTRIBUTE_TAG_INFO, tag, 8) {
-        return true
+        return IO_REPARSE_TAG_NAME_SURROGATE
     }
-    return (tag[1] & IO_REPARSE_TAG_NAME_SURROGATE) != 0
+    return tag[1]
 }
 
 @target
@@ -455,16 +457,6 @@ system_remove_directory :: fn(path: string) = failure_unless(
     remove_directory_w(to_wide(path)),
     "cannot remove directory",
 )
-
-// Null when the system call succeeded, else the error it left: `succeeded` is
-// computed before this body runs, so nothing reaches the system between the
-// call and the read of its error.
-failure_unless :: fn(succeeded: bool, msg: string) -> null | IOError {
-    if succeeded {
-        return null
-    }
-    return last_io_error(msg)
-}
 
 // ---- tests ----------------------------------------------------------------
 

@@ -1,0 +1,31 @@
+module "snippet"
+
+import "std/console"
+import "std/env"
+import "std/io"
+
+// A variable set, replaced, listed, emptied, then removed; a name no variable
+// can take refused.
+main :: fn() -> i32 {
+    name :: "VADER_SNIPPET_ENV"
+    set_env(name, "first")
+    set_env(name, "été")
+    value :: get_env(name) ?? "unset"
+    println("get: ${value}")
+    for v in env_vars() {
+        if v.name == name {
+            println("listed: ${v.value}")
+        }
+    }
+    set_env(name, "")
+    empty :: get_env(name) ?? "unset"
+    println("empty: [${empty}]")
+    unset_env(name)
+    after :: get_env(name) ?? "unset"
+    println("after unset: ${after}")
+    refused :: set_env("A=B", "x")
+    if refused is IOError {
+        println("refused: ${refused.kind}")
+    }
+    return 0
+}

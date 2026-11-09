@@ -55,7 +55,7 @@
   expr 36:5     IfExpr         :: void
   expr 36:8     BinaryExpr     :: bool
   expr 36:8     IdentExpr      :: IOError | string
-  expr 374:60   StructLitExpr  :: RemoveOptions
+  expr 376:60   StructLitExpr  :: RemoveOptions
   expr 37:17    StringLitExpr  :: string
   expr 37:32    FieldExpr      :: string
   expr 37:32    IdentExpr      :: IOError

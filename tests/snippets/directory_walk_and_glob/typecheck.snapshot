@@ -1,0 +1,108 @@
+# Typecheck
+
+## tests/snippets/directory_walk_and_glob
+  FnDecl         main                 :: fn() -> i32
+  expr 12:13    StringLitExpr  :: string
+  expr 12:16    CallExpr       :: string
+  expr 12:16    IdentExpr      :: fn() -> string
+  expr 13:12    IdentExpr      :: string
+  expr 13:18    StructLitExpr  :: RemoveOptions
+  expr 13:5     CallExpr       :: IOError | null
+  expr 13:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
+  expr 14:16    StringLitExpr  :: string
+  expr 14:19    IdentExpr      :: string
+  expr 14:5     CallExpr       :: IOError | null
+  expr 14:5     IdentExpr      :: fn(string) -> IOError | null
+  expr 15:16    StringLitExpr  :: string
+  expr 15:19    IdentExpr      :: string
+  expr 15:5     CallExpr       :: IOError | null
+  expr 15:5     IdentExpr      :: fn(string) -> IOError | null
+  expr 16:16    StringLitExpr  :: string
+  expr 16:19    IdentExpr      :: string
+  expr 16:37    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: IOError | null
+  expr 16:5     IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 17:16    StringLitExpr  :: string
+  expr 17:19    IdentExpr      :: string
+  expr 17:42    StringLitExpr  :: string
+  expr 17:5     CallExpr       :: IOError | null
+  expr 17:5     IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 18:16    StringLitExpr  :: string
+  expr 18:19    IdentExpr      :: string
+  expr 18:49    StringLitExpr  :: string
+  expr 18:5     CallExpr       :: IOError | null
+  expr 18:5     IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 19:16    StringLitExpr  :: string
+  expr 19:19    IdentExpr      :: string
+  expr 19:5     CallExpr       :: IOError | null
+  expr 19:5     IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 19:51    StringLitExpr  :: string
+  expr 20:10    CallExpr       :: IOError | Walker
+  expr 20:10    IdentExpr      :: fn(string, WalkOptions) -> IOError | Walker
+  expr 20:15    IdentExpr      :: string
+  expr 20:21    StructLitExpr  :: WalkOptions
+  expr 20:46    LambdaExpr     :: fn(WalkEntry) -> bool
+  expr 20:51    BinaryExpr     :: bool
+  expr 20:51    FieldExpr      :: string
+  expr 20:51    IdentExpr      :: WalkEntry
+  expr 20:61    StringLitExpr  :: string
+  expr 21:13    IdentExpr      :: Walker
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: IOError | Walker
+  expr 22:22    IdentExpr      :: Walker
+  expr 23:13    CallExpr       :: void
+  expr 23:13    IdentExpr      :: fn(T) -> void
+  expr 23:21    StringLitExpr  :: string
+  expr 23:24    FieldExpr      :: i64
+  expr 23:24    IdentExpr      :: WalkEntry
+  expr 23:39    FieldExpr      :: EntryKind
+  expr 23:39    IdentExpr      :: WalkEntry
+  expr 23:53    FieldExpr      :: string
+  expr 23:53    IdentExpr      :: WalkEntry
+  expr 25:17    StringLitExpr  :: string
+  expr 25:28    CallExpr       :: i64
+  expr 25:28    FieldExpr      :: IOError[]
+  expr 25:28    FieldExpr      :: fn() -> i64
+  expr 25:28    IdentExpr      :: Walker
+  expr 25:9     CallExpr       :: void
+  expr 25:9     IdentExpr      :: fn(T) -> void
+  expr 27:16    CallExpr       :: GlobError | IOError | string[]
+  expr 27:16    IdentExpr      :: fn(string, string) -> GlobError | IOError | string[]
+  expr 27:27    IdentExpr      :: string
+  expr 27:33    StringLitExpr  :: string
+  expr 28:5     IfExpr         :: void
+  expr 28:8     BinaryExpr     :: bool
+  expr 28:8     IdentExpr      :: GlobError | IOError | string[]
+  expr 29:21    IdentExpr      :: string[]
+  expr 30:13    CallExpr       :: void
+  expr 30:13    IdentExpr      :: fn(T) -> void
+  expr 30:21    StringLitExpr  :: string
+  expr 30:31    CallExpr       :: string
+  expr 30:31    FieldExpr      :: fn(i64, i64) -> string
+  expr 30:31    IdentExpr      :: string
+  expr 30:47    BinaryExpr     :: i64
+  expr 30:47    CallExpr       :: i64
+  expr 30:47    FieldExpr      :: fn() -> i64
+  expr 30:47    IdentExpr      :: string
+  expr 30:68    CallExpr       :: i64
+  expr 30:68    FieldExpr      :: fn() -> i64
+  expr 30:68    IdentExpr      :: string
+  expr 33:16    CallExpr       :: IOError | Walker
+  expr 33:16    IdentExpr      :: fn(string, WalkOptions) -> IOError | Walker
+  expr 33:21    StringLitExpr  :: string
+  expr 33:24    IdentExpr      :: string
+  expr 34:19    IdentExpr      :: IOError
+  expr 34:5     IfExpr         :: void
+  expr 34:8     BinaryExpr     :: bool
+  expr 34:8     IdentExpr      :: IOError | Walker
+  expr 35:17    StringLitExpr  :: string
+  expr 35:31    FieldExpr      :: IOErrorKind
+  expr 35:31    IdentExpr      :: IOError
+  expr 35:9     CallExpr       :: void
+  expr 35:9     IdentExpr      :: fn(T) -> void
+  expr 37:12    IdentExpr      :: string
+  expr 37:18    StructLitExpr  :: RemoveOptions
+  expr 37:5     CallExpr       :: IOError | null
+  expr 37:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
+  expr 73:56    StructLitExpr  :: WalkOptions

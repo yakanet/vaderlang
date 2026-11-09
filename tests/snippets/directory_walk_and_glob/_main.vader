@@ -1,0 +1,39 @@
+module "snippet"
+
+import "std/console"
+import "std/env"
+import "std/fs"
+import "std/io"
+
+// A small tree walked in preorder, each directory's entries by name, with one
+// directory left unvisited; then the files a pattern picks, and a root that is
+// a file refused.
+main :: fn() -> i32 {
+    root :: "${temp_dir()}/vader_snippet_walk"
+    remove(root, RemoveOptions { .recursive = true, .force = true })
+    create_dir("${root}/src/front")
+    create_dir("${root}/node_modules/x")
+    write_file("${root}/README.md", "r")
+    write_file("${root}/src/main.vader", "m")
+    write_file("${root}/src/front/lexer.vader", "l")
+    write_file("${root}/node_modules/x/index.js", "i")
+    w :: walk(root, WalkOptions { .descend = e -> e.name != "node_modules" })
+    if w is Walker {
+        for entry in w {
+            println("${entry.depth} ${entry.kind} ${entry.relative}")
+        }
+        println("errors: ${w.errors.len()}")
+    }
+    sources :: glob_files(root, "**/*.vader")
+    if sources is string[] {
+        for path in sources {
+            println("source ${path.byte_slice(root.byte_len() + 1, path.byte_len())}")
+        }
+    }
+    refused :: walk("${root}/README.md")
+    if refused is IOError {
+        println("file root: ${refused.kind}")
+    }
+    remove(root, RemoveOptions { .recursive = true })
+    return 0
+}

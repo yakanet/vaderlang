@@ -1,0 +1,1448 @@
+module _main
+type 0 scalar null
+type 1 scalar i32
+type 2 scalar string
+type 3 array 4
+type 4 scalar u8
+type 5 union 6,0
+type 6 scalar i64
+type 7 struct std_core$Buffer {  }
+type 8 scalar bool
+type 9 scalar void
+type 10 union 11,0
+type 11 struct std_io$IOError { msg:2,kind:4,code:1 }
+type 12 union 0,2
+type 13 array 14
+type 14 struct std_env$EnvVar { name:2,value:2 }
+type 15 fn (14,14) -> 8
+type 16 array 17
+type 17 ref _
+type 18 fn (17,17) -> 8
+type 19 union 20,0
+type 20 struct __Tuple_string_string_66940ed4 { _0:2,_1:2 }
+string 0 "VADER_SNIPPET_ENV"
+string 1 "first"
+string 2 "été"
+string 3 "unset"
+string 4 "get: "
+string 5 "listed: "
+string 6 ""
+string 7 "empty: ["
+string 8 "]"
+string 9 "after unset: "
+string 10 "A=B"
+string 11 "x"
+string 12 "refused: "
+string 13 "\n"
+string 14 "name `"
+string 15 "`"
+string 16 "value with a NUL byte"
+string 17 "="
+string 18 "invalid environment variable: "
+string 19 "cannot set variable"
+string 20 "cannot unset variable"
+string 21 "file not found"
+string 22 "permission denied"
+string 23 "interrupted"
+string 24 "already exists"
+string 25 "not a directory"
+string 26 "is a directory"
+string 27 "would block"
+string 28 "broken pipe"
+string 29 "no space left on device"
+string 30 "invalid argument"
+string 31 "directory not empty"
+string 32 "bad file descriptor"
+string 33 "Other"
+string 34 "NotFound"
+string 35 "PermissionDenied"
+string 36 "Interrupted"
+string 37 "AlreadyExists"
+string 38 "NotADirectory"
+string 39 "IsADirectory"
+string 40 "WouldBlock"
+string 41 "BrokenPipe"
+string 42 "NoSpace"
+string 43 "InvalidInput"
+string 44 "DirectoryNotEmpty"
+string 45 "BadHandle"
+import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$byte_at result_type=4 param_types=2,6 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,6,6 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 bytes std_core$bytes result_type=3 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,3,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 6 extern :vader_environ_entry system_posix$sys_environ_entry headers=vader.h result_type=12 param_types=6 param_c_out= param_by_address= (i64) -> any
+import 7 extern :setenv system_posix$sys_setenv headers=<stdlib.h> result_type=1 param_types=2,2,1 param_c_out= param_by_address= (string,string,i32) -> i32
+import 8 extern :unsetenv system_posix$sys_unsetenv headers=<stdlib.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
+import 9 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=12 param_types=2 param_c_out= param_by_address= (string) -> any
+impl 7 std_core$ByteAccess
+impl 11 std_core$Error
+export main 0
+
+fn 0 snippet$main () -> i32
+  local name string
+  local value string
+  local __coalesce_0 any
+  local __for_arr_1 ref
+  local __for_len_2 i64
+  local __for_i_3 i64
+  local v ref
+  string.const 0   ; "VADER_SNIPPET_ENV"
+  local.tee 0   ; name
+  string.const 1   ; "first"
+  call 8   ; std_env$set_env
+  drop
+  local.get 0   ; name
+  string.const 2   ; "été"
+  call 8   ; std_env$set_env
+  drop
+  local.get 0   ; name
+  call 9   ; std_env$get_env
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    string.const 3   ; "unset"
+    local.set 1   ; value
+  else
+    local.get 2   ; __coalesce_0
+    ref.cast 2   ; string
+    local.set 1   ; value
+  end $L0
+  string.const 4   ; "get: "
+  local.get 1   ; value
+  call 1   ; concat_2
+  call 7   ; std_console$println__string
+  call 10   ; std_env$env_vars
+  local.tee 3   ; __for_arr_1
+  array.len
+  local.set 4   ; __for_len_2
+  i64.const 0
+  local.set 5   ; __for_i_3
+  loop $L1 void
+    local.get 5   ; __for_i_3
+    local.get 4   ; __for_len_2
+    i64.lt
+    if $L2 void
+      local.get 3   ; __for_arr_1
+      local.get 5   ; __for_i_3
+      array.get 13   ; std_env$EnvVar[]
+      local.set 6   ; v
+      local.field 6 14 0   ; v std_env$EnvVar.name
+      ref.cast 2   ; string
+      local.get 0   ; name
+      string.eq
+      if $L3 void
+        local.field 6 14 1   ; v std_env$EnvVar.value
+        ref.cast 2   ; string
+        local.set 1   ; value
+        string.const 5   ; "listed: "
+        local.get 1   ; value
+        call 1   ; concat_2
+        call 7   ; std_console$println__string
+      end $L3
+      local.get 5   ; __for_i_3
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_3
+      br $L1
+    end $L2
+  end $L1
+  local.get 0   ; name
+  string.const 6   ; ""
+  call 8   ; std_env$set_env
+  drop
+  local.get 0   ; name
+  call 9   ; std_env$get_env
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L4 void
+    string.const 3   ; "unset"
+    local.set 1   ; value
+  else
+    local.get 2   ; __coalesce_0
+    ref.cast 2   ; string
+    local.set 1   ; value
+  end $L4
+  string.const 7   ; "empty: ["
+  local.get 1   ; value
+  string.const 8   ; "]"
+  call 2   ; concat_3
+  call 7   ; std_console$println__string
+  local.get 0   ; name
+  call 11   ; std_env$unset_env
+  drop
+  local.get 0   ; name
+  call 9   ; std_env$get_env
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L5 void
+    string.const 3   ; "unset"
+    local.set 0   ; name
+  else
+    local.get 2   ; __coalesce_0
+    ref.cast 2   ; string
+    local.set 0   ; name
+  end $L5
+  string.const 9   ; "after unset: "
+  local.get 0   ; name
+  call 1   ; concat_2
+  call 7   ; std_console$println__string
+  string.const 10   ; "A=B"
+  string.const 11   ; "x"
+  call 8   ; std_env$set_env
+  local.tee 2   ; __coalesce_0
+  type_check 11   ; std_io$IOError
+  if $L6 void
+    local.get 2   ; __coalesce_0
+    ref.cast 11   ; std_io$IOError
+    struct.get 11 1   ; std_io$IOError.kind
+    call 23   ; std_io$IOErrorKind$std_core$Display$to_string
+    local.set 0   ; name
+    string.const 12   ; "refused: "
+    local.get 0   ; name
+    call 1   ; concat_2
+    call 7   ; std_console$println__string
+    return.lit i32.const 0
+  end $L6
+  return.lit i32.const 0
+end
+
+fn 1 concat_2 (string,string) -> string
+  local c0 i64
+  local $call_4 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 2 concat_3 (string,string,string) -> string
+  local c0 i64
+  local $call_5 i64
+  local $call_8 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 3   ; c0
+  local.get 4   ; $call_5
+  i64.add
+  local.set 4   ; $call_5
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 5   ; $call_8
+  local.get 4   ; $call_5
+  local.get 5   ; $call_8
+  i64.add
+  local.tee 5   ; $call_8
+  buffer.new
+  local.tee 6   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 3   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 4   ; $call_5
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 5   ; $call_8
+  buffer_to_string
+  return
+end
+
+fn 3 std_core$index_of__u8 (ref,u8) -> any
+  local i i64
+  local __for_hi_0 i64
+  i64.const 0
+  local.set 2   ; i
+  local.get 0   ; arg 0
+  array.len
+  local.set 3   ; __for_hi_0
+  loop $L0 void
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
+    i64.lt
+    if $L1 void
+      local.get 0   ; arg 0
+      local.get 2   ; i
+      array.get 3   ; u8[]
+      ref.cast 4   ; u8
+      local.get 1   ; arg 1
+      i32.eq
+      if $L2 void
+        local.get 2   ; i
+        retag 6   ; i64
+        return
+      end $L2
+      local.get 2   ; i
+      i64.const 1
+      i64.add
+      local.set 2   ; i
+      br $L0
+    end $L1
+  end $L0
+  return.lit null.const
+end
+
+fn 4 std_console$write (u8,string) -> void
+  local buf ref
+  local sent i64
+  local $len_7 i64
+  local $len_9 i64
+  local chunk ref
+  local $len_12 i64
+  local n i32
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 5   ; std_console$write_text
+  if $L0 void
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 3   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L1 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_7
+    local.get 3   ; sent
+    local.get 4   ; $len_7
+    i64.ge
+    if $L2 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_9
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_9
+      array.slice 3   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_12
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_12
+      call 6   ; std_console$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_17
+      local.get 3   ; sent
+      local.get 9   ; $cast_17
+      i64.checked_add
+      local.set 3   ; sent
+      br $L1
+    end $L2
+  end $L1
+  return
+end
+
+fn 5 std_console$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 6 std_console$write_bytes (u8,ref,i64) -> i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 4   ; system_posix$sys_write
+    i64.to_i32
+    return
+  end $L0
+  i32.const 2
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 4   ; system_posix$sys_write
+  i64.to_i32
+  return
+end
+
+fn 7 std_console$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 13   ; "\n"
+  call 1   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 4   ; std_console$write
+  return
+end
+
+fn 8 std_env$set_env (string,string) -> any
+  local.get 0   ; arg 0
+  call 12   ; std_env$is_variable_name
+  if $L0 void
+  else
+    string.const 14   ; "name `"
+    local.get 0   ; arg 0
+    string.const 15   ; "`"
+    call 2   ; concat_3
+    call 13   ; std_env$invalid_variable
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 3   ; std_core$bytes
+  i32.const 0
+  call 3   ; std_core$index_of__u8
+  type_check 0   ; null
+  if $L1 void
+  else
+    string.const 16   ; "value with a NUL byte"
+    call 13   ; std_env$invalid_variable
+    return
+  end $L1
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 14   ; std_env$system_set_env
+  return
+end
+
+fn 9 std_env$get_env (string) -> any
+  local.get 0   ; arg 0
+  call.import 9   ; system_libc$sys_getenv
+  return
+end
+
+fn 10 std_env$env_vars () -> ref
+  local vars ref
+  local index i64
+  local entry string
+  local __coalesce_0 any
+  local parts ref
+  local __coalesce_1 any
+  local $field_20 string
+  local $field_21 string
+  local $struct_22 ref
+  array.new 13 0   ; std_env$EnvVar[]
+  local.set 0   ; vars
+  i64.const 0
+  local.set 1   ; index
+  loop $L0 void
+    local.get 1   ; index
+    call 15   ; std_env$system_environ_entry
+    local.tee 3   ; __coalesce_0
+    type_check 0   ; null
+    if $L1 void
+    else
+      local.get 3   ; __coalesce_0
+      ref.cast 2   ; string
+      local.set 2   ; entry
+      local.get 1   ; index
+      i64.const 1
+      i64.checked_add
+      local.set 1   ; index
+      local.get 2   ; entry
+      string.const 17   ; "="
+      call 27   ; std_string$split_first
+      local.tee 5   ; __coalesce_1
+      type_check 0   ; null
+      if $L2 void
+        br $L0
+      end $L2
+      local.get 5   ; __coalesce_1
+      ref.cast 20   ; __Tuple_string_string_66940ed4
+      local.set 4   ; parts
+      local.field 4 20 0   ; parts __Tuple_string_string_66940ed4._0
+      ref.cast 2   ; string
+      string.const 6   ; ""
+      string.ne
+      if $L3 void
+      else
+        br $L0
+      end $L3
+      local.field 4 20 0   ; parts __Tuple_string_string_66940ed4._0
+      ref.cast 2   ; string
+      local.set 6   ; $field_20
+      local.field 4 20 1   ; parts __Tuple_string_string_66940ed4._1
+      ref.cast 2   ; string
+      local.set 7   ; $field_21
+      local.get 6   ; $field_20
+      local.get 7   ; $field_21
+      struct.new 14   ; std_env$EnvVar
+      local.set 8   ; $struct_22
+      local.get 0   ; vars
+      local.get 8   ; $struct_22
+      array.push 14   ; std_env$EnvVar
+      br $L0
+    end $L1
+  end $L0
+  fn.ref 16 15   ; std_env$by_name fn
+  local.set 4   ; parts
+  local.get 0   ; vars
+  local.get 4   ; parts
+  call 24   ; std_sort$sort__std_env_EnvVar
+  return
+end
+
+fn 11 std_env$unset_env (string) -> any
+  local.get 0   ; arg 0
+  call 12   ; std_env$is_variable_name
+  if $L0 void
+  else
+    string.const 14   ; "name `"
+    local.get 0   ; arg 0
+    string.const 15   ; "`"
+    call 2   ; concat_3
+    call 13   ; std_env$invalid_variable
+    return
+  end $L0
+  local.get 0   ; arg 0
+  call 17   ; std_env$system_unset_env
+  return
+end
+
+fn 12 std_env$is_variable_name (string) -> bool
+  local and_res bool
+  local.get 0   ; arg 0
+  string.const 6   ; ""
+  string.ne
+  if $L0 void
+    local.get 0   ; arg 0
+    call.import 3   ; std_core$bytes
+    i32.const 61
+    call 3   ; std_core$index_of__u8
+    type_check 0   ; null
+    local.set 1   ; and_res
+  else
+    bool.const false
+    local.set 1   ; and_res
+  end $L0
+  local.get 1   ; and_res
+  if $L1 void
+    local.get 0   ; arg 0
+    call.import 3   ; std_core$bytes
+    i32.const 0
+    call 3   ; std_core$index_of__u8
+    type_check 0   ; null
+    return
+  end $L1
+  return.lit bool.const false
+end
+
+fn 13 std_env$invalid_variable (string) -> ref
+  string.const 18   ; "invalid environment variable: "
+  local.get 0   ; arg 0
+  call 1   ; concat_2
+  i32.const 10
+  i32.const 0
+  struct.new 11   ; std_io$IOError
+  return
+end
+
+fn 14 std_env$system_set_env (string,string) -> any
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.const 1
+  call.import 7   ; system_posix$sys_setenv
+  i32.const 0
+  i32.eq
+  string.const 19   ; "cannot set variable"
+  call 18   ; std_io$failure_unless
+  return
+end
+
+fn 15 std_env$system_environ_entry (i64) -> any
+  local.get 0   ; arg 0
+  call.import 6   ; system_posix$sys_environ_entry
+  return
+end
+
+fn 16 std_env$by_name (ref,ref) -> bool
+  local $field_2 string
+  local $field_3 string
+  local.field 0 14 0   ; arg 0 std_env$EnvVar.name
+  ref.cast 2   ; string
+  local.set 2   ; $field_2
+  local.field 1 14 0   ; arg 1 std_env$EnvVar.name
+  ref.cast 2   ; string
+  local.set 3   ; $field_3
+  local.get 2   ; $field_2
+  local.get 3   ; $field_3
+  string.compare
+  i32.const 0
+  i32.lt
+  return
+end
+
+fn 17 std_env$system_unset_env (string) -> any
+  local.get 0   ; arg 0
+  call.import 8   ; system_posix$sys_unsetenv
+  i32.const 0
+  i32.eq
+  string.const 20   ; "cannot unset variable"
+  call 18   ; std_io$failure_unless
+  return
+end
+
+fn 18 std_io$failure_unless (bool,string) -> any
+  local.get 0   ; arg 0
+  if $L0 void
+  else
+    local.get 1   ; arg 1
+    call 19   ; std_io$last_io_error
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 19 std_io$last_io_error (string) -> ref
+  local e i32
+  local $call_3 u8
+  call.import 5   ; system_posix$sys_last_errno
+  local.tee 1   ; e
+  call 21   ; std_io$errno_kind
+  local.set 2   ; $call_3
+  local.get 0   ; arg 0
+  local.get 2   ; $call_3
+  local.get 1   ; e
+  call 20   ; std_io$classified_error
+  return
+end
+
+fn 20 std_io$classified_error (string,u8,i32) -> ref
+  local.get 1   ; arg 1
+  local.get 0   ; arg 0
+  call 22   ; std_io$describe_io_error_kind
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  struct.new 11   ; std_io$IOError
+  return
+end
+
+fn 21 std_io$errno_kind (i32) -> u8
+  local if_res i32
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.eq
+  if $L0 void
+    return.lit i32.const 1
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    return.lit i32.const 2
+  end $L1
+  local.get 0   ; arg 0
+  i32.const 13
+  i32.eq
+  if $L2 void
+    return.lit i32.const 2
+  end $L2
+  local.get 0   ; arg 0
+  i32.const 4
+  i32.eq
+  if $L3 void
+    return.lit i32.const 3
+  end $L3
+  local.get 0   ; arg 0
+  i32.const 17
+  i32.eq
+  if $L4 void
+    return.lit i32.const 4
+  end $L4
+  local.get 0   ; arg 0
+  i32.const 20
+  i32.eq
+  if $L5 void
+    return.lit i32.const 5
+  end $L5
+  local.get 0   ; arg 0
+  i32.const 21
+  i32.eq
+  if $L6 void
+    return.lit i32.const 6
+  end $L6
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L7 void
+    i32.const 35
+    local.set 1   ; if_res
+  else
+    i32.const 11
+    local.set 1   ; if_res
+  end $L7
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L8 void
+    return.lit i32.const 7
+  end $L8
+  local.get 0   ; arg 0
+  i32.const 32
+  i32.eq
+  if $L9 void
+    return.lit i32.const 8
+  end $L9
+  local.get 0   ; arg 0
+  i32.const 28
+  i32.eq
+  if $L10 void
+    return.lit i32.const 9
+  end $L10
+  local.get 0   ; arg 0
+  i32.const 22
+  i32.eq
+  if $L11 void
+    return.lit i32.const 10
+  end $L11
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L12 void
+    i32.const 66
+    local.set 1   ; if_res
+  else
+    i32.const 39
+    local.set 1   ; if_res
+  end $L12
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L13 void
+    return.lit i32.const 11
+  end $L13
+  local.get 0   ; arg 0
+  i32.const 9
+  i32.eq
+  if $L14 void
+  else
+    return.lit i32.const 0
+  end $L14
+  return.lit i32.const 12
+end
+
+fn 22 std_io$describe_io_error_kind (u8,string) -> string
+  local if_res string
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L0 void
+    string.const 21   ; "file not found"
+    local.tee 2   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.eq
+  if $L1 void
+    string.const 22   ; "permission denied"
+    local.set 2   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 3
+    i32.eq
+    if $L2 void
+      string.const 23   ; "interrupted"
+      local.set 2   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 4
+      i32.eq
+      if $L3 void
+        string.const 24   ; "already exists"
+        local.set 2   ; if_res
+      else
+        local.get 0   ; arg 0
+        i32.const 5
+        i32.eq
+        if $L4 void
+          string.const 25   ; "not a directory"
+          local.set 2   ; if_res
+        else
+          local.get 0   ; arg 0
+          i32.const 6
+          i32.eq
+          if $L5 void
+            string.const 26   ; "is a directory"
+            local.set 2   ; if_res
+          else
+            local.get 0   ; arg 0
+            i32.const 7
+            i32.eq
+            if $L6 void
+              string.const 27   ; "would block"
+              local.set 2   ; if_res
+            else
+              local.get 0   ; arg 0
+              i32.const 8
+              i32.eq
+              if $L7 void
+                string.const 28   ; "broken pipe"
+                local.set 2   ; if_res
+              else
+                local.get 0   ; arg 0
+                i32.const 9
+                i32.eq
+                if $L8 void
+                  string.const 29   ; "no space left on device"
+                  local.set 2   ; if_res
+                else
+                  local.get 0   ; arg 0
+                  i32.const 10
+                  i32.eq
+                  if $L9 void
+                    string.const 30   ; "invalid argument"
+                    local.set 2   ; if_res
+                  else
+                    local.get 0   ; arg 0
+                    i32.const 11
+                    i32.eq
+                    if $L10 void
+                      string.const 31   ; "directory not empty"
+                      local.set 2   ; if_res
+                    else
+                      local.get 0   ; arg 0
+                      i32.const 12
+                      i32.eq
+                      if $L11 void
+                        string.const 32   ; "bad file descriptor"
+                        local.set 2   ; if_res
+                      else
+                        local.get 0   ; arg 0
+                        i32.const 0
+                        i32.eq
+                        if $L12 void
+                        else
+                          unreachable
+                        end $L12
+                        local.get 1   ; arg 1
+                        local.set 2   ; if_res
+                      end $L11
+                    end $L10
+                  end $L9
+                end $L8
+              end $L7
+            end $L6
+          end $L5
+        end $L4
+      end $L3
+    end $L2
+  end $L1
+  local.get 2   ; if_res
+  return
+end
+
+fn 23 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+  local if_res string
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 33   ; "Other"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 34   ; "NotFound"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 2
+    i32.eq
+    if $L2 void
+      string.const 35   ; "PermissionDenied"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 3
+      i32.eq
+      if $L3 void
+        string.const 36   ; "Interrupted"
+        local.set 1   ; if_res
+      else
+        local.get 0   ; arg 0
+        i32.const 4
+        i32.eq
+        if $L4 void
+          string.const 37   ; "AlreadyExists"
+          local.set 1   ; if_res
+        else
+          local.get 0   ; arg 0
+          i32.const 5
+          i32.eq
+          if $L5 void
+            string.const 38   ; "NotADirectory"
+            local.set 1   ; if_res
+          else
+            local.get 0   ; arg 0
+            i32.const 6
+            i32.eq
+            if $L6 void
+              string.const 39   ; "IsADirectory"
+              local.set 1   ; if_res
+            else
+              local.get 0   ; arg 0
+              i32.const 7
+              i32.eq
+              if $L7 void
+                string.const 40   ; "WouldBlock"
+                local.set 1   ; if_res
+              else
+                local.get 0   ; arg 0
+                i32.const 8
+                i32.eq
+                if $L8 void
+                  string.const 41   ; "BrokenPipe"
+                  local.set 1   ; if_res
+                else
+                  local.get 0   ; arg 0
+                  i32.const 9
+                  i32.eq
+                  if $L9 void
+                    string.const 42   ; "NoSpace"
+                    local.set 1   ; if_res
+                  else
+                    local.get 0   ; arg 0
+                    i32.const 10
+                    i32.eq
+                    if $L10 void
+                      string.const 43   ; "InvalidInput"
+                      local.set 1   ; if_res
+                    else
+                      local.get 0   ; arg 0
+                      i32.const 11
+                      i32.eq
+                      if $L11 void
+                        string.const 44   ; "DirectoryNotEmpty"
+                        local.set 1   ; if_res
+                      else
+                        local.get 0   ; arg 0
+                        i32.const 12
+                        i32.eq
+                        if $L12 void
+                        else
+                          unreachable
+                        end $L12
+                        string.const 45   ; "BadHandle"
+                        local.set 1   ; if_res
+                      end $L11
+                    end $L10
+                  end $L9
+                end $L8
+              end $L7
+            end $L6
+          end $L5
+        end $L4
+      end $L3
+    end $L2
+  end $L1
+  local.get 1   ; if_res
+  return
+end
+
+fn 24 std_sort$sort__std_env_EnvVar (ref,ref) -> ref
+  local n i64
+  local out ref
+  local buf ref
+  local.get 0   ; arg 0
+  array.len
+  local.set 2   ; n
+  local.get 0   ; arg 0
+  call 31   ; std_iter$clone__std_env_EnvVar
+  local.set 3   ; out
+  local.get 2   ; n
+  i64.const 2
+  i64.lt
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    call 31   ; std_iter$clone__std_env_EnvVar
+    local.set 4   ; buf
+    local.get 3   ; out
+    local.get 4   ; buf
+    i64.const 0
+    local.get 2   ; n
+    local.get 1   ; arg 1
+    call 25   ; std_sort$merge_sort_range__Any
+    local.get 3   ; out
+    return
+  end $L0
+  local.get 3   ; out
+  return
+end
+
+fn 25 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
+  local n i64
+  local i i64
+  local $idx_17 any
+  local b i64
+  local k i64
+  local $idx_29 any
+  local $idx_32 any
+  local $idx_33 any
+  local $idx_35 any
+  local $idx_38 any
+  local.get 3   ; arg 3
+  local.get 2   ; arg 2
+  i64.checked_sub
+  local.tee 5   ; n
+  i64.const 2
+  i64.lt
+  if $L0 void
+    return
+  end $L0
+  local.get 5   ; n
+  i64.const 16
+  i64.le
+  if $L1 void
+    local.get 0   ; arg 0
+    local.get 2   ; arg 2
+    local.get 3   ; arg 3
+    local.get 4   ; arg 4
+    call 26   ; std_sort$insertion_sort_range__Any
+    return
+  end $L1
+  local.get 5   ; n
+  i64.const 2
+  i64.div
+  local.set 5   ; n
+  local.get 2   ; arg 2
+  local.get 5   ; n
+  i64.checked_add
+  local.set 5   ; n
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  local.get 5   ; n
+  local.get 4   ; arg 4
+  call 25   ; std_sort$merge_sort_range__Any
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 5   ; n
+  local.get 3   ; arg 3
+  local.get 4   ; arg 4
+  call 25   ; std_sort$merge_sort_range__Any
+  local.get 2   ; arg 2
+  local.set 6   ; i
+  loop $L2 void
+    local.get 6   ; i
+    local.get 3   ; arg 3
+    i64.lt
+    if $L3 void
+      local.get 0   ; arg 0
+      local.get 6   ; i
+      array.get 16   ; ref[]
+      local.set 7   ; $idx_17
+      local.get 1   ; arg 1
+      local.get 6   ; i
+      local.get 7   ; $idx_17
+      array.set 16   ; ref[]
+      local.get 6   ; i
+      i64.const 1
+      i64.add
+      local.set 6   ; i
+      br $L2
+    end $L3
+  end $L2
+  local.get 2   ; arg 2
+  local.set 6   ; i
+  local.get 5   ; n
+  local.set 8   ; b
+  local.get 2   ; arg 2
+  local.set 9   ; k
+  loop $L4 void
+    local.get 9   ; k
+    local.get 3   ; arg 3
+    i64.lt
+    if $L5 void
+      local.get 6   ; i
+      local.get 5   ; n
+      i64.ge
+      if $L6 void
+        local.get 1   ; arg 1
+        local.get 8   ; b
+        array.get 16   ; ref[]
+        local.set 7   ; $idx_17
+        local.get 0   ; arg 0
+        local.get 9   ; k
+        local.get 7   ; $idx_17
+        array.set 16   ; ref[]
+        local.get 8   ; b
+        i64.const 1
+        i64.checked_add
+        local.set 8   ; b
+      else
+        local.get 8   ; b
+        local.get 3   ; arg 3
+        i64.ge
+        if $L7 void
+          local.get 1   ; arg 1
+          local.get 6   ; i
+          array.get 16   ; ref[]
+          local.set 10   ; $idx_29
+          local.get 0   ; arg 0
+          local.get 9   ; k
+          local.get 10   ; $idx_29
+          array.set 16   ; ref[]
+          local.get 6   ; i
+          i64.const 1
+          i64.checked_add
+          local.set 6   ; i
+        else
+          local.get 1   ; arg 1
+          local.get 8   ; b
+          array.get 16   ; ref[]
+          local.set 11   ; $idx_32
+          local.get 1   ; arg 1
+          local.get 6   ; i
+          array.get 16   ; ref[]
+          local.set 12   ; $idx_33
+          local.get 11   ; $idx_32
+          local.get 12   ; $idx_33
+          local.get 4   ; arg 4
+          call.indirect 18   ; fn
+          if $L8 void
+            local.get 1   ; arg 1
+            local.get 8   ; b
+            array.get 16   ; ref[]
+            local.set 13   ; $idx_35
+            local.get 0   ; arg 0
+            local.get 9   ; k
+            local.get 13   ; $idx_35
+            array.set 16   ; ref[]
+            local.get 8   ; b
+            i64.const 1
+            i64.checked_add
+            local.set 8   ; b
+          else
+            local.get 1   ; arg 1
+            local.get 6   ; i
+            array.get 16   ; ref[]
+            local.set 14   ; $idx_38
+            local.get 0   ; arg 0
+            local.get 9   ; k
+            local.get 14   ; $idx_38
+            array.set 16   ; ref[]
+            local.get 6   ; i
+            i64.const 1
+            i64.checked_add
+            local.set 6   ; i
+          end $L8
+        end $L7
+      end $L6
+      local.get 9   ; k
+      i64.const 1
+      i64.add
+      local.set 9   ; k
+      br $L4
+    end $L5
+  end $L4
+  return
+end
+
+fn 26 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
+  local i i64
+  local x any
+  local j i64
+  local $sub_checked_13 i64
+  local $idx_14 any
+  local $sub_checked_17 i64
+  local $idx_18 any
+  local.get 1   ; arg 1
+  i64.const 1
+  i64.checked_add
+  local.set 4   ; i
+  loop $L0 void
+    local.get 4   ; i
+    local.get 2   ; arg 2
+    i64.lt
+    if $L1 void
+      local.get 0   ; arg 0
+      local.get 4   ; i
+      array.get 16   ; ref[]
+      local.set 5   ; x
+      local.get 4   ; i
+      local.set 6   ; j
+      block $L2 void
+        loop $L3 void
+          local.get 6   ; j
+          local.get 1   ; arg 1
+          i64.gt
+          if $L4 void
+            local.get 6   ; j
+            i64.const 1
+            i64.checked_sub
+            local.set 7   ; $sub_checked_13
+            local.get 0   ; arg 0
+            local.get 7   ; $sub_checked_13
+            array.get 16   ; ref[]
+            local.set 8   ; $idx_14
+            local.get 5   ; x
+            local.get 8   ; $idx_14
+            local.get 3   ; arg 3
+            call.indirect 18   ; fn
+            if $L5 void
+            else
+              br $L2
+            end $L5
+            local.get 6   ; j
+            i64.const 1
+            i64.checked_sub
+            local.set 9   ; $sub_checked_17
+            local.get 0   ; arg 0
+            local.get 9   ; $sub_checked_17
+            array.get 16   ; ref[]
+            local.set 10   ; $idx_18
+            local.get 0   ; arg 0
+            local.get 6   ; j
+            local.get 10   ; $idx_18
+            array.set 16   ; ref[]
+            local.get 6   ; j
+            i64.const 1
+            i64.checked_sub
+            local.set 6   ; j
+            br $L3
+          end $L4
+        end $L3
+      end $L2
+      local.get 0   ; arg 0
+      local.get 6   ; j
+      local.get 5   ; x
+      array.set 16   ; ref[]
+      local.get 4   ; i
+      i64.const 1
+      i64.add
+      local.set 4   ; i
+      br $L0
+    end $L1
+  end $L0
+  return
+end
+
+fn 27 std_string$split_first (string,string) -> any
+  local $call_2 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 28   ; std_string$first_byte_offset
+  local.set 2   ; $call_2
+  local.get 0   ; arg 0
+  local.get 2   ; $call_2
+  local.get 1   ; arg 1
+  call 29   ; std_string$cut_at
+  return
+end
+
+fn 28 std_string$first_byte_offset (string,string) -> i64
+  local n i64
+  local m i64
+  local first u8
+  local i i64
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; n
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.tee 3   ; m
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit i64.const 0
+  end $L0
+  local.get 3   ; m
+  local.get 2   ; n
+  i64.gt
+  if $L1 void
+    return.lit i64.const -1
+  end $L1
+  local.get 1   ; arg 1
+  i64.const 0
+  call.import 1   ; std_core$byte_at
+  local.set 4   ; first
+  i64.const 0
+  local.set 5   ; i
+  local.get 2   ; n
+  local.get 3   ; m
+  i64.checked_sub
+  i64.const 1
+  i64.checked_add
+  local.set 2   ; n
+  loop $L2 void
+    local.get 5   ; i
+    local.get 2   ; n
+    i64.lt
+    if $L3 void
+      local.get 0   ; arg 0
+      local.get 5   ; i
+      call.import 1   ; std_core$byte_at
+      local.get 4   ; first
+      i32.eq
+      if $L4 void
+        local.get 0   ; arg 0
+        local.get 5   ; i
+        local.get 1   ; arg 1
+        call 30   ; std_string$matches_at
+        if $L5 void
+          local.get 5   ; i
+          return
+        end $L5
+      end $L4
+      local.get 5   ; i
+      i64.const 1
+      i64.add
+      local.set 5   ; i
+      br $L2
+    end $L3
+  end $L2
+  return.lit i64.const -1
+end
+
+fn 29 std_string$cut_at (string,i64,string) -> any
+  local $call_7 string
+  local $call_8 i64
+  local $call_10 i64
+  local $call_11 string
+  local.get 1   ; arg 1
+  i64.const 0
+  i64.lt
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    i64.const 0
+    local.get 1   ; arg 1
+    call.import 2   ; std_core$byte_slice
+    local.set 3   ; $call_7
+    local.get 2   ; arg 2
+    call.import 0   ; std_core$byte_len
+    local.set 4   ; $call_8
+    local.get 1   ; arg 1
+    local.get 4   ; $call_8
+    i64.checked_add
+    local.set 4   ; $call_8
+    local.get 0   ; arg 0
+    call.import 0   ; std_core$byte_len
+    local.set 5   ; $call_10
+    local.get 0   ; arg 0
+    local.get 4   ; $call_8
+    local.get 5   ; $call_10
+    call.import 2   ; std_core$byte_slice
+    local.set 6   ; $call_11
+    local.get 3   ; $call_7
+    local.get 6   ; $call_11
+    struct.new 20   ; __Tuple_string_string_66940ed4
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 30 std_string$matches_at (string,i64,string) -> bool
+  local m i64
+  local $call_5 i64
+  local $add_checked_14 i64
+  local $call_15 u8
+  local $call_16 u8
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; m
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 1   ; arg 1
+  local.get 4   ; $call_5
+  i64.gt
+  if $L0 void
+    return.lit bool.const false
+  end $L0
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.get 1   ; arg 1
+  i64.checked_sub
+  local.set 4   ; $call_5
+  local.get 3   ; m
+  local.get 4   ; $call_5
+  i64.gt
+  if $L1 void
+    return.lit bool.const false
+  end $L1
+  i64.const 0
+  local.set 4   ; $call_5
+  loop $L2 void
+    local.get 4   ; $call_5
+    local.get 3   ; m
+    i64.lt
+    if $L3 void
+      local.get 1   ; arg 1
+      local.get 4   ; $call_5
+      i64.checked_add
+      local.set 5   ; $add_checked_14
+      local.get 0   ; arg 0
+      local.get 5   ; $add_checked_14
+      call.import 1   ; std_core$byte_at
+      local.set 6   ; $call_15
+      local.get 2   ; arg 2
+      local.get 4   ; $call_5
+      call.import 1   ; std_core$byte_at
+      local.set 7   ; $call_16
+      local.get 6   ; $call_15
+      local.get 7   ; $call_16
+      i32.ne
+      if $L4 void
+        return.lit bool.const false
+      end $L4
+      local.get 4   ; $call_5
+      i64.const 1
+      i64.add
+      local.set 4   ; $call_5
+      br $L2
+    end $L3
+  end $L2
+  return.lit bool.const true
+end
+
+fn 31 std_iter$clone__std_env_EnvVar (ref) -> ref
+  local out ref
+  local.get 0   ; arg 0
+  array.len
+  array.reserve 13   ; std_env$EnvVar[]
+  local.tee 1   ; out
+  local.get 0   ; arg 0
+  array.push_all
+  local.get 1   ; out
+  return
+end

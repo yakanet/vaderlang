@@ -97,7 +97,7 @@
   expr 36:17    CallExpr       :: Iterator<string>
   expr 36:17    FieldExpr      :: fn() -> Iterator<string>
   expr 36:17    IdentExpr      :: File
-  expr 374:60   StructLitExpr  :: RemoveOptions
+  expr 376:60   StructLitExpr  :: RemoveOptions
   expr 37:17    StringLitExpr  :: string
   expr 37:26    IdentExpr      :: string
   expr 37:9     CallExpr       :: void

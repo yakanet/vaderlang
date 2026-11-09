@@ -1,0 +1,8 @@
+# stdout
+get: été
+listed: été
+empty: []
+after unset: unset
+refused: InvalidInput
+# exit
+0

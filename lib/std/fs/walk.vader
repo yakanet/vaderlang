@@ -1,0 +1,301 @@
+// std/fs/walk: the entries under a directory, at every depth, and the files a
+// glob pattern picks among them.
+//
+// A walk reads one listing per directory: the kind of each entry comes with
+// the listing (`list_dir` in fs.vader), never from a probe of the entry.
+
+module "std/fs"
+
+import "std/glob"
+import "std/io"
+import "std/path"
+import "std/sort"
+import "std/string"
+
+// ---- walk -----------------------------------------------------------------
+
+/// An entry `walk` reaches.
+export WalkEntry :: struct {
+    /// The root joined to `relative`: a path the other calls of `std/fs` take.
+    path:     string
+    /// The path under the root, `/`-separated: `src/main.vader`.
+    relative: string
+    /// The last component of the path: `main.vader`.
+    name:     string
+    kind:     EntryKind
+    /// 1 for an entry of the root, 2 for an entry of one of its directories,
+    /// and so on.
+    depth:    i64
+}
+
+/// How `walk` goes down the tree.
+export WalkOptions :: struct {
+    /// Whether to go down into the directory `entry`, which the walk yields
+    /// either way. Every directory by default.
+    descend: fn(WalkEntry) -> bool = every_directory
+}
+
+/// The walk of the tree under a directory. A `for` over it yields every entry
+/// under the root in preorder, a directory before what it holds, the entries of
+/// each directory by name. A link is yielded as `.Symlink` and never followed.
+export Walker :: struct {
+    /// The directories the walk could not read and skipped, one error each, in
+    /// the order it met them. A second `for` over the walker starts it over.
+    errors:  IOError[] = []
+    @internal
+    root:    string = ""
+    @internal
+    options: WalkOptions = WalkOptions {}
+    /// The root's entries, as `walk` listed them.
+    @internal
+    listed:  ListedEntry[] = []
+}
+
+/// Walk the tree under the directory `root`: every entry at every depth, the
+/// root left out.
+///
+/// The root is listed at once, so what keeps it from being walked is an error
+/// here; a directory below it that cannot be read is skipped, and kept in
+/// `errors`.
+///
+/// @param root     the directory to walk.
+/// @param options  which directories to go down into.
+/// @error          `IOError` when `root` cannot be listed: `.NotFound` when it
+///                 does not exist, `.NotADirectory` for a file.
+/// @example
+///   # import "std/console"
+///   w :: walk("src", WalkOptions { .descend = e -> e.name != "node_modules" })
+///   if w is Walker {
+///       for entry in w {
+///           println(entry.relative)
+///       }
+///   }
+export walk :: fn(root: string, options: WalkOptions = WalkOptions {}) -> Walker | IOError {
+    if root.has_nul() {
+        return NUL_IN_PATH
+    }
+    listed :: root.list_dir()
+    if listed is IOError {
+        return listed
+    }
+    return Walker {
+        .root = root,
+        .options = options,
+        .listed = listed,
+    }
+}
+
+Walker implements Into<Iterator<WalkEntry>> {
+    into :: fn(self) -> Iterator<WalkEntry> {
+        self.errors.clear()
+        // A stack: the entry to yield next is the last one.
+        pending: WalkEntry[]: []
+        pending.push_entries(self.listed, self.root, "", 1)
+        for {
+            entry :: pending.remove_last() ?? break
+            yield entry
+            if entry.kind == .Directory && self.options.descend(entry) {
+                listed :: entry.path.list_dir()
+                if listed is IOError {
+                    self.errors.push(listed)
+                    continue
+                }
+                pending.push_entries(listed, entry.path, entry.relative, entry.depth + 1)
+            }
+        }
+    }
+}
+
+every_directory :: fn(entry: WalkEntry) -> bool = true
+
+// Push the entries `listed` of the directory `dir`, `relative` under the root,
+// on `pending`: the first by name last, so that it comes off first.
+push_entries :: fn(
+    pending: WalkEntry[],
+    listed: ListedEntry[],
+    dir: string,
+    relative: string,
+    depth: i64,
+) -> void {
+    for listed_entry in sort(listed, by_name_descending) {
+        pending.push(WalkEntry {
+            .path = string(dir.to_path().join(listed_entry.name)),
+            .relative = string(relative.to_path().join(listed_entry.name)),
+            .name = listed_entry.name,
+            .kind = listed_entry.kind,
+            .depth = depth,
+        })
+    }
+}
+
+by_name_descending :: fn(a: ListedEntry, b: ListedEntry) -> bool = a.name > b.name
+
+// ---- glob -----------------------------------------------------------------
+
+/// The paths under the directory `root` whose path relative to it matches
+/// `pattern`, sorted: every entry but the directories, at any depth, joined to
+/// `root`.
+///
+/// A directory the walk cannot read is skipped, as a shell's expansion skips
+/// it.
+///
+/// @param root     the directory to search.
+/// @param pattern  a `std/glob` pattern over the `/`-separated relative path,
+///                 with its default options: `**/*.vader`.
+/// @error          `GlobError` when `pattern` does not parse, `IOError` when
+///                 `root` cannot be listed.
+/// @example
+///   sources :: glob_files("src", "**/*.vader")
+export glob_files :: fn(root: string, pattern: string) -> string[] | GlobError | IOError {
+    glob :: parse_glob(pattern)
+    if glob is GlobError {
+        return glob
+    }
+    w :: walk(root)
+    if w is IOError {
+        return w
+    }
+    found: string[]: []
+    for entry in w {
+        if entry.kind != .Directory && glob.matches(entry.relative) {
+            found.push(entry.path)
+        }
+    }
+    return sort(found, compare_ascending)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/env"
+import "std/testing"
+import "system/posix"
+
+// A tree for one test: `a.txt`, `b/c.txt`, `b/d/e.txt`, `z.vader`, under a
+// fresh directory of the temp directory.
+probe_tree :: fn(name: string) -> string {
+    root :: "${temp_dir()}/vader_walk_${name}"
+    root.remove(RemoveOptions { .recursive = true, .force = true })
+    create_dir("${root}/b/d")
+    write_file("${root}/a.txt", "a")
+    write_file("${root}/b/c.txt", "c")
+    write_file("${root}/b/d/e.txt", "e")
+    write_file("${root}/z.vader", "z")
+    return root
+}
+
+// The relative paths a walk of `root` yields with their depths, in its order.
+walked :: fn(root: string, options: WalkOptions = WalkOptions {}) -> string {
+    w :: walk(root, options)
+    if w is IOError {
+        return "error: ${w.msg}"
+    }
+    out: string[]: []
+    for entry in w {
+        out.push("${entry.relative}:${entry.depth}")
+    }
+    return out.join(" ")
+}
+
+@test
+test_walk_yields_the_tree_in_preorder_by_name :: fn() -> void {
+    root :: probe_tree("preorder")
+    defer root.remove(RemoveOptions { .recursive = true })
+    assert_eq(walked(root), "a.txt:1 b:1 b/c.txt:2 b/d:2 b/d/e.txt:3 z.vader:1")
+}
+
+@test
+test_walk_entries_carry_their_path_and_kind :: fn() -> void {
+    root :: probe_tree("kinds")
+    defer root.remove(RemoveOptions { .recursive = true })
+    w :: walk(root)
+    if w is IOError {
+        assert(false, "the root is walked")
+        return
+    }
+    for entry in w {
+        if entry.relative == "b/d" {
+            assert_eq(entry.path, "${root}/b/d")
+            assert_eq(entry.name, "d")
+            assert_eq(entry.kind, .Directory)
+        }
+        if entry.relative == "b/d/e.txt" {
+            assert_eq(entry.kind, .File)
+        }
+    }
+    assert_eq(w.errors.len(), 0)
+}
+
+@test
+test_walk_descends_only_where_asked :: fn() -> void {
+    root :: probe_tree("descend")
+    defer root.remove(RemoveOptions { .recursive = true })
+    options :: WalkOptions { .descend = e -> e.name != "d" }
+    assert_eq(walked(root, options), "a.txt:1 b:1 b/c.txt:2 b/d:2 z.vader:1")
+}
+
+@test
+test_walk_of_a_missing_root_or_a_file :: fn() -> void {
+    root :: probe_tree("roots")
+    defer root.remove(RemoveOptions { .recursive = true })
+    missing :: walk("${root}/absent")
+    assert(missing is IOError && missing.kind == .NotFound, "a missing root is not found")
+    file :: walk("${root}/a.txt")
+    assert(file is IOError && file.kind == .NotADirectory, "a file is not a directory")
+}
+
+@test
+test_walk_reports_a_link_without_following_it :: fn() -> void {
+    // Making a link takes a privilege on Windows.
+    if VADER_OS == .Windows {
+        return
+    }
+    root :: probe_tree("link")
+    defer root.remove(RemoveOptions { .recursive = true })
+    sys_symlink("${root}/b", "${root}/link")
+    expected :: "a.txt:1 b:1 b/c.txt:2 b/d:2 b/d/e.txt:3 link:1 z.vader:1"
+    assert_eq(walked(root), expected)
+}
+
+@test
+test_walk_skips_an_unreadable_directory_and_keeps_why :: fn() -> void {
+    // Windows has no permission bits a test can take away.
+    if VADER_OS == .Windows {
+        return
+    }
+    root :: probe_tree("unreadable")
+    defer root.remove(RemoveOptions { .recursive = true })
+    sys_chmod("${root}/b/d", 0)
+    defer sys_chmod("${root}/b/d", 0o755)
+    w :: walk(root)
+    if w is IOError {
+        assert(false, "the root is walked")
+        return
+    }
+    count: i64 = 0
+    for entry in w {
+        count += 1
+    }
+    // Five entries but `e.txt`, which only the unreadable `d` holds.
+    assert_eq(count, 5)
+    assert_eq(w.errors.len(), 1)
+    assert_eq(w.errors[0].kind, .PermissionDenied)
+}
+
+@test
+test_glob_files_picks_the_files_a_pattern_matches :: fn() -> void {
+    root :: probe_tree("glob")
+    defer root.remove(RemoveOptions { .recursive = true })
+    found :: glob_files(root, "**/*.txt")
+    if found is GlobError || found is IOError {
+        assert(false, "the root is searched")
+        return
+    }
+    assert_eq(found.join(" "), "${root}/a.txt ${root}/b/c.txt ${root}/b/d/e.txt")
+}
+
+@test
+test_glob_files_refuses_a_pattern_that_does_not_parse :: fn() -> void {
+    root :: probe_tree("glob_bad")
+    defer root.remove(RemoveOptions { .recursive = true })
+    assert(glob_files(root, "a\\") is GlobError, "a trailing escape does not parse")
+}

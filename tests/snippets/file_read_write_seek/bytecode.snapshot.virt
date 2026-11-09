@@ -26,10 +26,13 @@ type 23 union 24,4
 type 24 array 3
 type 25 union 4,26
 type 26 array 5
-type 27 struct __defer_env_std_fs_1 { cap_0:21 }
-type 28 union 21,0
-type 29 array 4
-type 30 fn () -> 12
+type 27 union 4,28
+type 28 array 29
+type 29 struct std_fs$ListedEntry { name:5,kind:9 }
+type 30 struct __defer_env_std_fs_1 { cap_0:21 }
+type 31 union 21,0
+type 32 array 4
+type 33 fn () -> 12
 string 0 "/vader_snippet_file_read_write_seek"
 string 1 "create failed: "
 string 2 "one\r\ntwo\nthree"
@@ -71,60 +74,60 @@ string 37 "is a directory"
 string 38 "seek failed"
 string 39 "cannot probe file"
 string 40 "/"
-string 41 "read_dir: cannot open `"
-string 42 "`"
+string 41 "cannot remove directory"
+string 42 "cannot read directory"
 string 43 "."
 string 44 ".."
-string 45 "cannot remove directory"
-string 46 "file not found"
-string 47 "permission denied"
-string 48 "interrupted"
-string 49 "already exists"
-string 50 "not a directory"
-string 51 "would block"
-string 52 "broken pipe"
-string 53 "no space left on device"
-string 54 "invalid argument"
-string 55 "directory not empty"
-string 56 "bad file descriptor"
-string 57 "Other"
-string 58 "NotFound"
-string 59 "PermissionDenied"
-string 60 "Interrupted"
-string 61 "AlreadyExists"
-string 62 "NotADirectory"
-string 63 "IsADirectory"
-string 64 "WouldBlock"
-string 65 "BrokenPipe"
-string 66 "NoSpace"
-string 67 "InvalidInput"
-string 68 "DirectoryNotEmpty"
-string 69 "BadHandle"
-string 70 "file is closed"
-string 71 "path contains a NUL byte"
-data 0 structs 4 3 1 strref 70 u8 0c i32 00000000
-data 1 structs 4 3 1 strref 71 u8 0a i32 00000000
+string 45 "file not found"
+string 46 "permission denied"
+string 47 "interrupted"
+string 48 "already exists"
+string 49 "not a directory"
+string 50 "would block"
+string 51 "broken pipe"
+string 52 "no space left on device"
+string 53 "invalid argument"
+string 54 "directory not empty"
+string 55 "bad file descriptor"
+string 56 "Other"
+string 57 "NotFound"
+string 58 "PermissionDenied"
+string 59 "Interrupted"
+string 60 "AlreadyExists"
+string 61 "NotADirectory"
+string 62 "IsADirectory"
+string 63 "WouldBlock"
+string 64 "BrokenPipe"
+string 65 "NoSpace"
+string 66 "InvalidInput"
+string 67 "DirectoryNotEmpty"
+string 68 "BadHandle"
+string 69 "file is closed"
+string 70 "path contains a NUL byte"
+data 0 structs 4 3 1 strref 69 u8 0c i32 00000000
+data 1 structs 4 3 1 strref 70 u8 0a i32 00000000
 import 0 byte_len std_core$byte_len result_type=3 param_types=5 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=9 param_types=5,3 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$byte_slice result_type=5 param_types=5,3,3 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes_to_string std_core$bytes_to_string result_type=5 param_types=8 param_c_out= param_by_address= (ref) -> string
 import 4 bytes std_core$bytes result_type=8 param_types=5 param_c_out= param_by_address= (string) -> ref
 import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,8,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 6 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=28 param_types=5 param_c_out= param_by_address= (string) -> any
+import 6 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=31 param_types=5 param_c_out= param_by_address= (string) -> any
 import 7 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=21 param_c_out= param_by_address= (pointer) -> i32
 import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 9 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=1 param_types=5,1,24 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 10 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=28 param_types=21 param_c_out= param_by_address= (pointer) -> any
+import 10 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=31 param_types=21 param_c_out= param_by_address= (pointer) -> any
 import 11 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=21 param_c_out= param_by_address= (pointer) -> string
-import 12 extern :read system_posix$sys_read headers=<unistd.h> result_type=3 param_types=1,8,3 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
-import 13 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 14 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 15 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 16 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=5,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
-import 17 extern :lseek system_posix$sys_lseek headers=<unistd.h> result_type=3 param_types=1,3,1 param_c_out= param_by_address= (i32,i64,i32) -> i64
-import 18 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 19 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
-import 20 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
+import 12 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=1 param_types=21 param_c_out= param_by_address= (pointer) -> i32
+import 13 extern :read system_posix$sys_read headers=<unistd.h> result_type=3 param_types=1,8,3 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
+import 14 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
+import 15 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 16 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 17 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=5,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
+import 18 extern :lseek system_posix$sys_lseek headers=<unistd.h> result_type=3 param_types=1,3,1 param_c_out= param_by_address= (i32,i64,i32) -> i64
+import 19 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
+import 20 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
+import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
 impl 7 std_core$ByteAccess
 impl 4 std_core$Error
 export main 0
@@ -453,7 +456,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
-    call 58   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 60   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 2   ; $field_9
     string.const 14   ; "read after close: "
     local.get 2   ; $field_9
@@ -482,7 +485,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
-    call 58   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 60   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 2   ; $field_9
     string.const 16   ; "missing: "
     local.get 2   ; $field_9
@@ -509,7 +512,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
-    call 58   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 60   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 2   ; $field_9
     string.const 17   ; "directory: "
     local.get 2   ; $field_9
@@ -932,7 +935,7 @@ end
 
 fn 14 std_env$get_env (string) -> any
   local.get 0   ; arg 0
-  call.import 20   ; system_libc$sys_getenv
+  call.import 21   ; system_libc$sys_getenv
   return
 end
 
@@ -1042,9 +1045,9 @@ fn 17 std_fs$write (ref,any) -> any
   local.field 0 15 6   ; arg 0 std_fs$File.closed
   ref.cast 11   ; bool
   if $L0 void
-    data.const 0 29   ; pool[0] std_io$IOError[]
+    data.const 0 32   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 29   ; std_io$IOError[]
+    array.get 32   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -1193,9 +1196,9 @@ fn 20 std_fs$read (ref,i64) -> any
   local.field 0 15 6   ; arg 0 std_fs$File.closed
   ref.cast 11   ; bool
   if $L0 void
-    data.const 0 29   ; pool[0] std_io$IOError[]
+    data.const 0 32   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 29   ; std_io$IOError[]
+    array.get 32   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -1257,7 +1260,7 @@ fn 20 std_fs$read (ref,i64) -> any
   local.set 3   ; $field_16
   local.get 2   ; $field_15
   local.get 3   ; $field_16
-  call 60   ; std_math$min__i64
+  call 62   ; std_math$min__i64
   local.set 2   ; $field_15
   local.field 0 15 2   ; arg 0 std_fs$File.buffer
   local.set 5   ; $field_30
@@ -1268,7 +1271,7 @@ fn 20 std_fs$read (ref,i64) -> any
   local.get 3   ; $field_16
   local.get 2   ; $field_15
   array.slice 8   ; u8[]
-  call 59   ; std_iter$clone__u8
+  call 61   ; std_iter$clone__u8
   local.set 5   ; $field_30
   local.get 0   ; arg 0
   local.get 2   ; $field_15
@@ -1288,9 +1291,9 @@ fn 21 std_fs$seek (ref,i64,u8) -> any
     call 33   ; std_fs$move
     return
   end $L0
-  data.const 0 29   ; pool[0] std_io$IOError[]
+  data.const 0 32   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 29   ; std_io$IOError[]
+  array.get 32   ; std_io$IOError[]
   return
 end
 
@@ -1299,9 +1302,9 @@ fn 22 std_fs$size (ref) -> any
   local.field 0 15 6   ; arg 0 std_fs$File.closed
   ref.cast 11   ; bool
   if $L0 void
-    data.const 0 29   ; pool[0] std_io$IOError[]
+    data.const 0 32   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 29   ; std_io$IOError[]
+    array.get 32   ; std_io$IOError[]
     return
   end $L0
   local.field 0 15 1   ; arg 0 std_fs$File.handle
@@ -1329,9 +1332,9 @@ fn 23 std_fs$refill (ref) -> any
   local.field 0 15 6   ; arg 0 std_fs$File.closed
   ref.cast 11   ; bool
   if $L0 void
-    data.const 0 29   ; pool[0] std_io$IOError[]
+    data.const 0 32   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 29   ; std_io$IOError[]
+    array.get 32   ; std_io$IOError[]
     return
   end $L0
   local.field 0 15 2   ; arg 0 std_fs$File.buffer
@@ -1432,9 +1435,9 @@ fn 25 std_fs$remove (string,ref) -> any
   local.get 0   ; arg 0
   call 36   ; std_fs$has_nul
   if $L0 void
-    data.const 1 29   ; pool[1] std_io$IOError[]
+    data.const 1 32   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 29   ; std_io$IOError[]
+    array.get 32   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1538,7 +1541,7 @@ fn 28 std_fs$system_write (any,ref) -> any
         br $L0
       end $L2
       string.const 26   ; "write failed"
-      call 54   ; std_io$last_io_error
+      call 55   ; std_io$last_io_error
       return
     end $L1
   end $L0
@@ -1550,7 +1553,7 @@ end
 fn 29 std_fs$system_close (any) -> any
   local.get 0   ; arg 0
   call 38   ; std_fs$fd_of
-  call.import 13   ; system_posix$sys_close
+  call.import 14   ; system_posix$sys_close
   i32.const 0
   i32.ne
   if $L0 void
@@ -1558,7 +1561,7 @@ fn 29 std_fs$system_close (any) -> any
     return.lit null.const
   end $L0
   string.const 27   ; "close failed"
-  call 54   ; std_io$last_io_error
+  call 55   ; std_io$last_io_error
   return
 end
 
@@ -1567,9 +1570,9 @@ fn 30 std_fs$refusal_of (string,ref) -> any
   local.get 0   ; arg 0
   call 36   ; std_fs$has_nul
   if $L0 void
-    data.const 1 29   ; pool[1] std_io$IOError[]
+    data.const 1 32   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 29   ; std_io$IOError[]
+    array.get 32   ; std_io$IOError[]
     return
   end $L0
   local.field 1 17 1   ; arg 1 std_fs$OpenOptions.write
@@ -1658,13 +1661,13 @@ fn 31 std_fs$system_open (string,ref) -> any
   local.get 0   ; arg 0
   local.get 2   ; $call_2
   i32.const 438
-  call.import 16   ; system_posix$sys_open
+  call.import 17   ; system_posix$sys_open
   local.tee 2   ; $call_2
   i32.const 0
   i32.lt
   if $L0 void
     string.const 33   ; "cannot open file"
-    call 54   ; std_io$last_io_error
+    call 55   ; std_io$last_io_error
     return
   end $L0
   local.get 1   ; arg 1
@@ -1673,12 +1676,12 @@ fn 31 std_fs$system_open (string,ref) -> any
   i32.eq
   if $L1 void
     local.get 2   ; $call_2
-    call.import 18   ; system_posix$sys_fd_kind
+    call.import 19   ; system_posix$sys_fd_kind
     i32.const 2
     i32.eq
     if $L2 void
       local.get 2   ; $call_2
-      call.import 13   ; system_posix$sys_close
+      call.import 14   ; system_posix$sys_close
       drop
       i32.const 21
       call 42   ; std_fs$is_a_directory
@@ -1761,7 +1764,7 @@ end
 fn 34 std_fs$system_size (any) -> i64
   local.get 0   ; arg 0
   call 38   ; std_fs$fd_of
-  call.import 19   ; system_posix$sys_fd_size
+  call.import 20   ; system_posix$sys_fd_size
   return
 end
 
@@ -1772,7 +1775,7 @@ fn 35 std_fs$system_read (any,ref,i64) -> any
     call 38   ; std_fs$fd_of
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 12   ; system_posix$sys_read
+    call.import 13   ; system_posix$sys_read
     local.tee 3   ; n
     i64.const 0
     i64.ge
@@ -1786,7 +1789,7 @@ fn 35 std_fs$system_read (any,ref,i64) -> any
         br $L0
       end $L2
       string.const 34   ; "read failed"
-      call 54   ; std_io$last_io_error
+      call 55   ; std_io$last_io_error
       return
     end $L1
   end $L0
@@ -1827,11 +1830,11 @@ fn 37 std_fs$system_remove (string,ref) -> any
   if $L1 void
   else
     local.get 0   ; arg 0
-    call.import 14   ; system_posix$sys_unlink
+    call.import 15   ; system_posix$sys_unlink
     i32.const 0
     i32.eq
     string.const 35   ; "cannot remove file"
-    call 48   ; std_fs$failure_unless
+    call 56   ; std_io$failure_unless
     return
   end $L1
   local.get 0   ; arg 0
@@ -2018,12 +2021,12 @@ fn 43 std_fs$system_seek (any,i64,u8) -> any
   call 38   ; std_fs$fd_of
   local.set 3   ; $call_3
   local.get 2   ; arg 2
-  call 49   ; std_fs$whence_of
+  call 48   ; std_fs$whence_of
   local.set 4   ; $call_4
   local.get 3   ; $call_3
   local.get 1   ; arg 1
   local.get 4   ; $call_4
-  call.import 17   ; system_posix$sys_lseek
+  call.import 18   ; system_posix$sys_lseek
   local.tee 5   ; position
   i64.const 0
   i64.lt
@@ -2034,7 +2037,7 @@ fn 43 std_fs$system_seek (any,i64,u8) -> any
     return
   end $L0
   string.const 38   ; "seek failed"
-  call 54   ; std_io$last_io_error
+  call 55   ; std_io$last_io_error
   return
 end
 
@@ -2075,7 +2078,7 @@ fn 45 std_fs$stat_cells (string,bool) -> any
   array.new 24 4   ; i64[]
   local.set 2   ; cells
   local.get 1   ; arg 1
-  call 50   ; std_fs$link_flag
+  call 49   ; std_fs$link_flag
   local.set 3   ; $call_8
   local.get 0   ; arg 0
   local.get 3   ; $call_8
@@ -2089,7 +2092,7 @@ fn 45 std_fs$stat_cells (string,bool) -> any
     return
   end $L0
   string.const 39   ; "cannot probe file"
-  call 54   ; std_io$last_io_error
+  call 55   ; std_io$last_io_error
   return
 end
 
@@ -2129,7 +2132,7 @@ fn 47 std_fs$remove_directory (string,ref) -> any
   ref.cast 11   ; bool
   if $L0 void
     local.get 0   ; arg 0
-    call 51   ; std_fs$read_dir
+    call 50   ; std_fs$read_dir
     local.tee 2   ; names
     type_check 4   ; std_io$IOError
     if $L1 void
@@ -2176,22 +2179,11 @@ fn 47 std_fs$remove_directory (string,ref) -> any
     end $L2
   end $L0
   local.get 0   ; arg 0
-  call 53   ; std_fs$system_remove_directory
+  call 51   ; std_fs$system_remove_directory
   return
 end
 
-fn 48 std_fs$failure_unless (bool,string) -> any
-  local.get 0   ; arg 0
-  if $L0 void
-  else
-    local.get 1   ; arg 1
-    call 54   ; std_io$last_io_error
-    return
-  end $L0
-  return.lit null.const
-end
-
-fn 49 std_fs$whence_of (u8) -> i32
+fn 48 std_fs$whence_of (u8) -> i32
   local if_res i32
   local.get 0   ; arg 0
   i32.const 0
@@ -2222,7 +2214,7 @@ fn 49 std_fs$whence_of (u8) -> i32
   return
 end
 
-fn 50 std_fs$link_flag (bool) -> i32
+fn 49 std_fs$link_flag (bool) -> i32
   local.get 0   ; arg 0
   if $L0 void
   else
@@ -2231,32 +2223,99 @@ fn 50 std_fs$link_flag (bool) -> i32
   return.lit i32.const 1
 end
 
-fn 51 std_fs$read_dir (string) -> any
+fn 50 std_fs$read_dir (string) -> any
+  local listed any
+  local names ref
+  local __for_arr_0 ref
+  local __for_len_1 i64
+  local __for_i_2 i64
+  local $field_20 string
+  local.get 0   ; arg 0
+  call 36   ; std_fs$has_nul
+  if $L0 void
+    data.const 1 32   ; pool[1] std_io$IOError[]
+    i64.const 0
+    array.get 32   ; std_io$IOError[]
+    return
+  end $L0
+  local.get 0   ; arg 0
+  call 52   ; std_fs$list_dir
+  local.tee 1   ; listed
+  type_check 4   ; std_io$IOError
+  if $L1 void
+    local.get 1   ; listed
+    ref.cast 4   ; std_io$IOError
+    return
+  end $L1
+  array.new 26 0   ; string[]
+  local.set 2   ; names
+  local.get 1   ; listed
+  ref.cast 28   ; std_fs$ListedEntry[]
+  local.tee 3   ; __for_arr_0
+  array.len
+  local.set 4   ; __for_len_1
+  i64.const 0
+  local.set 5   ; __for_i_2
+  loop $L2 void
+    local.get 5   ; __for_i_2
+    local.get 4   ; __for_len_1
+    i64.lt
+    if $L3 void
+      local.get 3   ; __for_arr_0
+      local.get 5   ; __for_i_2
+      array.get 28   ; std_fs$ListedEntry[]
+      struct.get 29 0   ; std_fs$ListedEntry.name
+      ref.cast 5   ; string
+      local.set 6   ; $field_20
+      local.get 2   ; names
+      local.get 6   ; $field_20
+      array.push 5 2   ; string names
+      local.get 5   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 5   ; __for_i_2
+      br $L2
+    end $L3
+  end $L2
+  local.get 2   ; names
+  return
+end
+
+fn 51 std_fs$system_remove_directory (string) -> any
+  local.get 0   ; arg 0
+  call.import 16   ; system_posix$sys_rmdir
+  i32.const 0
+  i32.eq
+  string.const 41   ; "cannot remove directory"
+  call 56   ; std_io$failure_unless
+  return
+end
+
+fn 52 std_fs$list_dir (string) -> any
   local d pointer
   local __coalesce_0 any
   local out ref
+  local p pointer
   local name string
+  local $call_23 i32
+  local kind u8
+  local $struct_26 ref
   local.get 0   ; arg 0
   call.import 6   ; system_posix$sys_opendir
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
-    string.const 41   ; "read_dir: cannot open `"
-    local.get 0   ; arg 0
-    string.const 42   ; "`"
-    call 4   ; concat_3
-    i32.const 0
-    i32.const 0
-    struct.new 4   ; std_io$IOError
+    string.const 42   ; "cannot read directory"
+    call 55   ; std_io$last_io_error
     return
   end $L0
   local.get 2   ; __coalesce_0
   ref.cast 21   ; pointer
   local.tee 1   ; d
-  struct.new 27   ; __defer_env_std_fs_1
-  make_closure 52 30   ; __defer_std_fs_0 fn
+  struct.new 30   ; __defer_env_std_fs_1
+  make_closure 53 33   ; __defer_std_fs_0 fn
   defer.push
-  array.new 26 0   ; string[]
+  array.new 28 0   ; std_fs$ListedEntry[]
   local.set 3   ; out
   loop $L1 void
     local.get 1   ; d
@@ -2267,24 +2326,37 @@ fn 51 std_fs$read_dir (string) -> any
     else
       local.get 2   ; __coalesce_0
       ref.cast 21   ; pointer
+      local.tee 4   ; p
       call.import 11   ; system_posix$dirent_name
-      local.tee 4   ; name
+      local.tee 5   ; name
       string.const 43   ; "."
       string.ne
       if $L3 void
       else
         br $L1
       end $L3
-      local.get 4   ; name
+      local.get 5   ; name
       string.const 44   ; ".."
       string.ne
       if $L4 void
       else
         br $L1
       end $L4
+      local.get 4   ; p
+      call.import 12   ; system_posix$dirent_kind
+      local.set 6   ; $call_23
+      local.get 0   ; arg 0
+      local.get 5   ; name
+      local.get 6   ; $call_23
+      call 54   ; std_fs$kind_of_dirent
+      local.set 7   ; kind
+      local.get 5   ; name
+      local.get 7   ; kind
+      struct.new 29   ; std_fs$ListedEntry
+      local.set 8   ; $struct_26
       local.get 3   ; out
-      local.get 4   ; name
-      array.push 5   ; string
+      local.get 8   ; $struct_26
+      array.push 29   ; std_fs$ListedEntry
       br $L1
     end $L2
   end $L1
@@ -2293,49 +2365,81 @@ fn 51 std_fs$read_dir (string) -> any
   return
 end
 
-fn 52 __defer_std_fs_0 (ref) -> void
-  local.field 0 27 0   ; arg 0 __defer_env_std_fs_1.cap_0
+fn 53 __defer_std_fs_0 (ref) -> void
+  local.field 0 30 0   ; arg 0 __defer_env_std_fs_1.cap_0
   ref.cast 21   ; pointer
   call.import 7   ; system_posix$sys_closedir
   drop
   return
 end
 
-fn 53 std_fs$system_remove_directory (string) -> any
-  local.get 0   ; arg 0
-  call.import 15   ; system_posix$sys_rmdir
+fn 54 std_fs$kind_of_dirent (string,string,i32) -> u8
+  local cells any
+  local.get 2   ; arg 2
   i32.const 0
-  i32.eq
-  string.const 45   ; "cannot remove directory"
-  call 48   ; std_fs$failure_unless
-  return
+  i32.ne
+  if $L0 void
+    local.get 2   ; arg 2
+    i32.to_i64
+    call 46   ; std_fs$kind_of
+    return
+  end $L0
+  local.get 0   ; arg 0
+  string.const 40   ; "/"
+  local.get 1   ; arg 1
+  call 4   ; concat_3
+  bool.const false
+  call 45   ; std_fs$stat_cells
+  local.tee 3   ; cells
+  type_check 4   ; std_io$IOError
+  if $L1 void
+  else
+    local.get 3   ; cells
+    ref.cast 24   ; i64[]
+    i32.const 0
+    load_slot_i64
+    call 46   ; std_fs$kind_of
+    return
+  end $L1
+  return.lit i32.const 3
 end
 
-fn 54 std_io$last_io_error (string) -> ref
+fn 55 std_io$last_io_error (string) -> ref
   local e i32
   local $call_3 u8
   call.import 8   ; system_posix$sys_last_errno
   local.tee 1   ; e
-  call 56   ; std_io$errno_kind
+  call 58   ; std_io$errno_kind
   local.set 2   ; $call_3
   local.get 0   ; arg 0
   local.get 2   ; $call_3
   local.get 1   ; e
-  call 55   ; std_io$classified_error
+  call 57   ; std_io$classified_error
   return
 end
 
-fn 55 std_io$classified_error (string,u8,i32) -> ref
+fn 56 std_io$failure_unless (bool,string) -> any
+  local.get 0   ; arg 0
+  if $L0 void
+  else
+    local.get 1   ; arg 1
+    call 55   ; std_io$last_io_error
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 57 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 57   ; std_io$describe_io_error_kind
+  call 59   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 4   ; std_io$IOError
   return
 end
 
-fn 56 std_io$errno_kind (i32) -> u8
+fn 58 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -2439,13 +2543,13 @@ fn 56 std_io$errno_kind (i32) -> u8
   return.lit i32.const 12
 end
 
-fn 57 std_io$describe_io_error_kind (u8,string) -> string
+fn 59 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
   i32.eq
   if $L0 void
-    string.const 46   ; "file not found"
+    string.const 45   ; "file not found"
     local.tee 2   ; if_res
     return
   end $L0
@@ -2453,28 +2557,28 @@ fn 57 std_io$describe_io_error_kind (u8,string) -> string
   i32.const 2
   i32.eq
   if $L1 void
-    string.const 47   ; "permission denied"
+    string.const 46   ; "permission denied"
     local.set 2   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 3
     i32.eq
     if $L2 void
-      string.const 48   ; "interrupted"
+      string.const 47   ; "interrupted"
       local.set 2   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 4
       i32.eq
       if $L3 void
-        string.const 49   ; "already exists"
+        string.const 48   ; "already exists"
         local.set 2   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 5
         i32.eq
         if $L4 void
-          string.const 50   ; "not a directory"
+          string.const 49   ; "not a directory"
           local.set 2   ; if_res
         else
           local.get 0   ; arg 0
@@ -2488,42 +2592,42 @@ fn 57 std_io$describe_io_error_kind (u8,string) -> string
             i32.const 7
             i32.eq
             if $L6 void
-              string.const 51   ; "would block"
+              string.const 50   ; "would block"
               local.set 2   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 8
               i32.eq
               if $L7 void
-                string.const 52   ; "broken pipe"
+                string.const 51   ; "broken pipe"
                 local.set 2   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 9
                 i32.eq
                 if $L8 void
-                  string.const 53   ; "no space left on device"
+                  string.const 52   ; "no space left on device"
                   local.set 2   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 10
                   i32.eq
                   if $L9 void
-                    string.const 54   ; "invalid argument"
+                    string.const 53   ; "invalid argument"
                     local.set 2   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 11
                     i32.eq
                     if $L10 void
-                      string.const 55   ; "directory not empty"
+                      string.const 54   ; "directory not empty"
                       local.set 2   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 12
                       i32.eq
                       if $L11 void
-                        string.const 56   ; "bad file descriptor"
+                        string.const 55   ; "bad file descriptor"
                         local.set 2   ; if_res
                       else
                         local.get 0   ; arg 0
@@ -2550,13 +2654,13 @@ fn 57 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 58 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+fn 60 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 57   ; "Other"
+    string.const 56   ; "Other"
     local.tee 1   ; if_res
     return
   end $L0
@@ -2564,77 +2668,77 @@ fn 58 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 58   ; "NotFound"
+    string.const 57   ; "NotFound"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 2
     i32.eq
     if $L2 void
-      string.const 59   ; "PermissionDenied"
+      string.const 58   ; "PermissionDenied"
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 3
       i32.eq
       if $L3 void
-        string.const 60   ; "Interrupted"
+        string.const 59   ; "Interrupted"
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 4
         i32.eq
         if $L4 void
-          string.const 61   ; "AlreadyExists"
+          string.const 60   ; "AlreadyExists"
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
           i32.const 5
           i32.eq
           if $L5 void
-            string.const 62   ; "NotADirectory"
+            string.const 61   ; "NotADirectory"
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
             i32.const 6
             i32.eq
             if $L6 void
-              string.const 63   ; "IsADirectory"
+              string.const 62   ; "IsADirectory"
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 7
               i32.eq
               if $L7 void
-                string.const 64   ; "WouldBlock"
+                string.const 63   ; "WouldBlock"
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 8
                 i32.eq
                 if $L8 void
-                  string.const 65   ; "BrokenPipe"
+                  string.const 64   ; "BrokenPipe"
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 9
                   i32.eq
                   if $L9 void
-                    string.const 66   ; "NoSpace"
+                    string.const 65   ; "NoSpace"
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 10
                     i32.eq
                     if $L10 void
-                      string.const 67   ; "InvalidInput"
+                      string.const 66   ; "InvalidInput"
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 11
                       i32.eq
                       if $L11 void
-                        string.const 68   ; "DirectoryNotEmpty"
+                        string.const 67   ; "DirectoryNotEmpty"
                         local.set 1   ; if_res
                       else
                         local.get 0   ; arg 0
@@ -2644,7 +2748,7 @@ fn 58 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                         else
                           unreachable
                         end $L12
-                        string.const 69   ; "BadHandle"
+                        string.const 68   ; "BadHandle"
                         local.set 1   ; if_res
                       end $L11
                     end $L10
@@ -2661,7 +2765,7 @@ fn 58 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   return
 end
 
-fn 59 std_iter$clone__u8 (ref) -> ref
+fn 61 std_iter$clone__u8 (ref) -> ref
   local out ref
   local.get 0   ; arg 0
   array.len
@@ -2673,7 +2777,7 @@ fn 59 std_iter$clone__u8 (ref) -> ref
   return
 end
 
-fn 60 std_math$min__i64 (i64,i64) -> i64
+fn 62 std_math$min__i64 (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.lt

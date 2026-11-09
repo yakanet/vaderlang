@@ -1,0 +1,13 @@
+# stdout
+1 File README.md
+1 Directory node_modules
+1 Directory src
+2 Directory src/front
+3 File src/front/lexer.vader
+2 File src/main.vader
+errors: 0
+source src/front/lexer.vader
+source src/main.vader
+file root: NotADirectory
+# exit
+0

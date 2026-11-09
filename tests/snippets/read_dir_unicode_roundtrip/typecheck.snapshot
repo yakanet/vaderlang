@@ -51,7 +51,7 @@
   expr 35:78    UnaryExpr      :: bool
   expr 35:82    IdentExpr      :: IOError
   expr 35:9     IdentExpr      :: bool
-  expr 374:60   StructLitExpr  :: RemoveOptions
+  expr 376:60   StructLitExpr  :: RemoveOptions
   expr 37:13    StringLitExpr  :: string
   expr 37:23    IdentExpr      :: bool
   expr 37:5     CallExpr       :: void

@@ -1,0 +1,118 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      name: string = "VADER_SNIPPET_ENV"
+      std.env.set_env(name, "first")
+      std.env.set_env(name, "été")
+      value: string = {
+          __coalesce_0: null | string = std.env.get_env(name)
+          if __coalesce_0 is null { "unset" } else { string(__coalesce_0) } :string
+      }
+      std.console.println<string>(concat_2("get: ", value))
+      {
+          __for_arr_1: EnvVar[] = std.env.env_vars()
+          __for_len_2: i64 = @array.len(__for_arr_1)
+          __for_i_3: i64 = 0
+          for __for_i_3 < __for_len_2 {
+              v: EnvVar = __for_arr_1[__for_i_3]
+              if v.name == name {
+                  std.console.println<string>(concat_2("listed: ", v.value))
+              }
+          } @step {
+              __for_i_3 = __for_i_3 +% i64(1)
+          }
+      }
+      std.env.set_env(name, "")
+      empty: string = {
+          __coalesce_4: null | string = std.env.get_env(name)
+          if __coalesce_4 is null { "unset" } else { string(__coalesce_4) } :string
+      }
+      std.console.println<string>(concat_3("empty: [", empty, "]"))
+      std.env.unset_env(name)
+      after: string = {
+          __coalesce_5: null | string = std.env.get_env(name)
+          if __coalesce_5 is null { "unset" } else { string(__coalesce_5) } :string
+      }
+      std.console.println<string>(concat_2("after unset: ", after))
+      refused: IOError | null = std.env.set_env("A=B", "x")
+      if refused is IOError {
+          std.console.println<string>(concat_2("refused: ", std.io.IOErrorKind.to_string(IOError(refused).kind)))
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+
+## lowered in dependencies
+  std/target/baked
+    const VADER_OS: Os  inline
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std.core.string.compare  // std_core$string$Comparable$compare
+    struct std.core.Buffer  // std_core$Buffer
+  std/env
+    fn std.env.by_name  // std_env$by_name
+    fn std.env.env_vars  // std_env$env_vars
+    fn std.env.get_env  // std_env$get_env
+    fn std.env.invalid_variable  // std_env$invalid_variable
+    fn std.env.is_variable_name  // std_env$is_variable_name
+    fn std.env.set_env  // std_env$set_env
+    fn std.env.system_environ_entry  // std_env$system_environ_entry
+    fn std.env.system_set_env  // std_env$system_set_env
+    fn std.env.system_unset_env  // std_env$system_unset_env
+    fn std.env.unset_env  // std_env$unset_env
+    struct std.env.EnvVar  // std_env$EnvVar
+  std/io
+    fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
+    fn std.io.classified_error  // std_io$classified_error
+    fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.failure_unless  // std_io$failure_unless
+    fn std.io.last_io_error  // std_io$last_io_error
+    struct std.io.IOError  // std_io$IOError
+  std/iter
+    fn std.iter.clone<EnvVar>  // std_iter$clone__std_env_EnvVar
+  std/sort
+    fn std.sort.insertion_sort_range<Any>  // std_sort$insertion_sort_range__Any
+    fn std.sort.merge_sort_range<Any>  // std_sort$merge_sort_range__Any
+    fn std.sort.sort<EnvVar>  // std_sort$sort__std_env_EnvVar
+  std/string
+    fn std.string.cut_at  // std_string$cut_at
+    fn std.string.first_byte_offset  // std_string$first_byte_offset
+    fn std.string.matches_at  // std_string$matches_at
+    fn std.string.split_first  // std_string$split_first
+  system/posix
+    const EAGAIN: i32  inline
+    const ENOTEMPTY: i32  inline
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

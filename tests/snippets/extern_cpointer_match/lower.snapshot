@@ -85,14 +85,15 @@
     fn std.fs.bytes_of  // std_fs$bytes_of
     fn std.fs.close  // std_fs$close
     fn std.fs.create  // std_fs$create
-    fn std.fs.failure_unless  // std_fs$failure_unless
     fn std.fs.fd_of  // std_fs$fd_of
     fn std.fs.give_back  // std_fs$give_back
     fn std.fs.has_nul  // std_fs$has_nul
     fn std.fs.invalid_options  // std_fs$invalid_options
     fn std.fs.is_a_directory  // std_fs$is_a_directory
     fn std.fs.kind_of  // std_fs$kind_of
+    fn std.fs.kind_of_dirent  // std_fs$kind_of_dirent
     fn std.fs.link_flag  // std_fs$link_flag
+    fn std.fs.list_dir  // std_fs$list_dir
     fn std.fs.move  // std_fs$move
     fn std.fs.open  // std_fs$open
     fn std.fs.open_flags  // std_fs$open_flags
@@ -113,12 +114,14 @@
     fn std.fs.write_file  // std_fs$write_file
     struct __defer_env_std_fs_1
     struct std.fs.File  // std_fs$File
+    struct std.fs.ListedEntry  // std_fs$ListedEntry
     struct std.fs.OpenOptions  // std_fs$OpenOptions
     struct std.fs.RemoveOptions  // std_fs$RemoveOptions
   std/io
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
   system/posix
