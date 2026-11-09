@@ -185,7 +185,7 @@ x: f64
 
 ### `vader dump`
 
-`vader dump --stage=<stage> <path>` prints one stage of the pipeline ([`ARCHITECTURE.md`](ARCHITECTURE.md)). The stages, in order, are `lexer`, `ast`, `resolved-ast`, `typed-ast`, `callees`, `effects`, `evaluated-ast`, `lowered-ast`, `dced-ast`, `targets`, `cfg`, `ranges`, `bytecode`, `c` and `wasm` *(planned)*. `ast` prints JSON and `evaluated-ast` Markdown; `vader dump --help` says what each prints.
+`vader dump --stage=<stage> <path>` prints one stage of the pipeline ([`ARCHITECTURE.md`](ARCHITECTURE.md)). The stages, in order, are `lexer`, `ast`, `resolved-ast`, `typed-ast`, `callees`, `effects`, `evaluated-ast`, `lowered-ast`, `dced-ast`, `targets`, `cfg`, `ranges`, `bytecode`, `c`, `externs` and `wasm` *(planned)*. `ast` prints JSON and `evaluated-ast` Markdown; `vader dump --help` says what each prints. `externs` lists each `@extern` of the modules in scope, called or not, as the C prototype the compiler calls it through, to compare with the header of its library.
 
 `--target`, `--entry`, `--project` and `--include-paths` work as for `run` and `build`.
 

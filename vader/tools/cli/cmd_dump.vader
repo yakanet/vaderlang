@@ -27,6 +27,7 @@ import "vader/core/types"
 import "vader/front/comptime"
 import "vader/lower/dump"
 import "vader/lower/dce"
+import "vader/lower/ir"
 import "vader/emit/virt"
 import "vader/midir"
 import "vader/midir/pipeline"
@@ -37,6 +38,8 @@ import "vader/support/diagnostics"
 import "vader/front/effects"
 import "std/collections"
 import "toolchain/ast"
+import "vader/core/bytecode"
+import "vader/emit/bytecode"
 import "vader/emit/c"
 import "vader/support/text"
 
@@ -121,6 +124,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     }
     if stage == "c" {
         return run_c_stage(entry, line_directives, include_path_flags, target, project_root)
+    }
+    if stage == "externs" {
+        return run_externs_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "dced-ast" {
         return run_dced_stage(entry, module_filter, include_path_flags, target, project_root)
@@ -438,6 +444,51 @@ run_c_stage :: fn(
     // such dump emit one.
     eprint_dump_diags(b)
     return 0
+}
+
+// `--stage=externs`: each `@extern` the modules in scope declare, as the C
+// prototype it is called through (`dump_externs`), the uncalled ones included.
+run_externs_stage :: fn(
+    file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
+    le :: lower_to_entry_from(pipeline)
+    scope :: dump_scope(module_filter, pipeline.loaded)
+    back_end_diags: Diagnostic[]: []
+    if !any_error_diag(le.pre_diags) {
+        // The lowering prune keeps every `@extern` as a root, and only the
+        // `optimize` passes of the emit drop the imports nothing calls.
+        pruned :: prune_unreachable_fns(le.lowered, false)
+        opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = false }
+        module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, back_end_diags)
+        print(dump_externs(imports_in_scope(module.imports, pruned, scope), module.types))
+    }
+    print_pipeline_diags(pipeline, le.lower_diags + back_end_diags, scope)
+    return 0
+}
+
+// The imports among `imports` that a module of `scope` declares.
+imports_in_scope :: fn(
+    imports: BcImport[], lowered: LoweredProject, scope: string[],
+) -> BcImport[] {
+    declared :: Set<string> {}
+    for [_, m] in lowered.modules {
+        if module_in_scope(m.display_path, scope) {
+            for d in m.decls {
+                if d is LoweredFnDecl {
+                    declared.add(d.mangled)
+                }
+            }
+        }
+    }
+    kept: BcImport[]: []
+    for imp in imports {
+        if imp.mangled_name in declared {
+            kept.push(imp)
+        }
+    }
+    return kept
 }
 
 run_lower_stage :: fn(

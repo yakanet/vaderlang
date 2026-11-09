@@ -1,0 +1,36 @@
+// One `@extern` of each shape, called or not, for `vader dump --stage=externs`:
+// `tests/extern_prototypes.test.ts` says which line of the listing pins what.
+
+module "main"
+
+import "std/ffi"
+
+DEMO :: CLibrary { .name = "demo", .headers = ["<demo.h>"] }
+
+@c_struct("struct timespec")
+Timespec :: struct { tv_sec: i64, tv_nsec: i64 }
+
+@extern("puts")
+c_puts :: fn(s: string) -> i32
+
+@c_header("<fcntl.h>")
+@c_variadic(2)
+@extern("fcntl")
+set_flags :: fn(fd: i32, command: i32, flags: i32) -> i32
+
+@extern(DEMO, "demo_fill")
+demo_fill :: fn(@c_out buf: u8[], size: u64) -> i64
+
+@extern(DEMO, "demo_now")
+demo_now :: fn(@c_pointer @c_out t: Timespec) -> i32
+
+@extern(DEMO, "demo_count")
+demo_count :: fn(@c_pointer n: u32) -> void
+
+@c_type("size_t")
+@extern(DEMO, "demo_size")
+demo_size :: fn(@c_type("size_t") n: u64) -> u64
+
+main :: fn() -> i32 {
+    return c_puts("hi")
+}

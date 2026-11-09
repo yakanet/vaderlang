@@ -1,0 +1,232 @@
+// vader/emit/c/externs: each `@extern` as the C prototype it is called through.
+//
+// The view behind `vader dump --stage=externs`: what the compiler believes each
+// foreign function takes and returns, written as C, to compare by eye with the
+// header of its library. The types are the ones `extern_decl` (`host.vader`)
+// declares for a shim, so a lent array reads `void*`, as it crosses.
+
+module "vader/emit/c"
+
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "vader/core/bytecode"
+import "vader/emit/c/ast"
+
+/// Write each `@extern` of `imports` as the C prototype the compiler calls it
+/// through, grouped under the library and the headers that declare it.
+///
+/// @param imports  the imports to list ; those that are not an `@extern` are
+///                 skipped.
+/// @param types    the type table of their module, which their signatures index.
+/// @return         `# Externs`, then a `## <library>: <headers>` section per
+///                 group, one prototype per line followed by its Vader mangle.
+export dump_externs :: fn(imports: BcImport[], types: BcType[]) -> string {
+    listed: ListedExtern[]: []
+    for imp in imports {
+        if imp.is_extern {
+            listed.push(
+                ListedExtern {
+                    .section = extern_section(imp),
+                    .name = imp.extern_name,
+                    .prototype = extern_prototype(imp, types),
+                },
+            )
+        }
+    }
+    out :: StringBuilder {}
+    out.append("# Externs\n")
+    section := ""
+    for e in sort(listed, listed_before) {
+        if e.section != section {
+            out.append("\n## ${e.section}\n\n")
+            section = e.section
+        }
+        out.append("${e.prototype}\n")
+    }
+    return out.to_string()
+}
+
+// One line of the listing, with the section it falls under and the C name that
+// orders it within the section.
+ListedExtern :: struct {
+    section: string
+    name: string
+    prototype: string
+}
+
+// Sections in order, then the C names in each. The prototype breaks a tie: one
+// symbol declared by two modules.
+listed_before :: fn(a: ListedExtern, b: ListedExtern) -> bool {
+    if a.section != b.section {
+        return a.section < b.section
+    }
+    if a.name != b.name {
+        return a.name < b.name
+    }
+    return a.prototype < b.prototype
+}
+
+// The title of the section `imp` falls under: where its symbol is looked up, and
+// the headers that declare it.
+extern_section :: fn(imp: BcImport) -> string {
+    place :: lookup_place(imp)
+    if synthesises_prototype(imp) {
+        return "${place}, no header: the compiler writes the prototype"
+    }
+    return "${place}: ${imp.c_headers.join(", ")}"
+}
+
+// The library the interpreter opens for `imp`, or the running process.
+lookup_place :: fn(imp: BcImport) -> string {
+    name :: library_name(imp)
+    if name == "" {
+        return "the process"
+    }
+    return name
+}
+
+// `imp` as a C prototype with its parameters named, then its Vader mangle and the
+// arguments it passes through `...`, which C names none of.
+extern_prototype :: fn(imp: BcImport, types: BcType[]) -> string {
+    fixed :: fixed_parameters(imp)
+    parameters: CParameter[]: []
+    for j in 0..<fixed {
+        parameters.push(named_parameter(imp, types, j))
+    }
+    if imp.c_variadic_fixed >= 0 {
+        parameters.push(CParameter { .type = "..." })
+    }
+    signature :: CSignature {
+        .result = extern_result_type(imp, types),
+        .name = imp.extern_name,
+        .parameters = parameters,
+    }
+    printer :: CPrinter {}
+    printer.print_item(CPrototype { .signature = signature })
+    prototype :: printer.printed_text().trim()
+    return "${prototype}  // ${imp.mangled_name}${variadic_arguments(imp, types, fixed)}"
+}
+
+// How many parameters of `imp` come before its `...`: all of them unless it is
+// variadic.
+fixed_parameters :: fn(imp: BcImport) -> i64 {
+    count :: imp.signature.params.len()
+    if imp.c_variadic_fixed < 0 || i64(imp.c_variadic_fixed) > count {
+        return count
+    }
+    return i64(imp.c_variadic_fixed)
+}
+
+// `, variadic: ` then the parameters of `imp` from `fixed` on, those it passes
+// through `...`: empty when there is none.
+variadic_arguments :: fn(imp: BcImport, types: BcType[], fixed: i64) -> string {
+    passed: string[]: []
+    for j in fixed..<imp.signature.params.len() {
+        parameter :: named_parameter(imp, types, j)
+        passed.push("${parameter.type} ${parameter.name}".trim())
+    }
+    if passed.len() == 0 {
+        return ""
+    }
+    return ", variadic: ${passed.join(", ")}"
+}
+
+// Parameter `j` of `imp` with its C type, and its Vader name when it has one.
+named_parameter :: fn(imp: BcImport, types: BcType[], j: i64) -> CParameter {
+    type :: extern_parameter_type(imp, types, j)
+    names :: imp.signature.param_names
+    if j >= names.len() {
+        return CParameter { .type = type }
+    }
+    return CParameter { .type = type, .name = names[j] }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/ffi"
+import "std/testing"
+
+// An `@extern` named `name`, mangled `mangled`, taking `params` (named
+// `names`) and returning `result`, outside any library and with no header.
+listed_extern :: fn(
+    name: string,
+    mangled: string,
+    params: ValType[],
+    names: string[],
+    result: ValType,
+) -> BcImport {
+    unknown: i32[]: []
+    for _ in params {
+        unknown.push(-1)
+    }
+    return BcImport {
+        .extern_name = name,
+        .mangled_name = mangled,
+        .signature = BcSignature {
+            .params = params,
+            .results = [result],
+            .param_types = unknown,
+            .result_types = [-1],
+            .param_names = names,
+        },
+        .is_extern = true,
+    }
+}
+
+@test
+test_dump_externs_groups_by_library_and_headers :: fn() -> void {
+    write :: BcImport {
+        ...listed_extern("write", r"posix$write", [.I32, .I64], ["fd", "count"], .I64),
+        .c_headers = ["<unistd.h>"],
+        .library = CLibrary { .name = "", .headers = ["<unistd.h>"] },
+    }
+    sleep :: BcImport {
+        ...listed_extern("Sleep", r"windows$sleep", [.U32], ["ms"], .Void),
+        .c_headers = ["<windows.h>"],
+        .library = CLibrary { .name = "kernel32", .headers = ["<windows.h>"] },
+    }
+    errno :: listed_extern("last_errno", r"rt$last_errno", [], [], .I32)
+    expected :: [
+        "# Externs",
+        "",
+        "## kernel32: <windows.h>",
+        "",
+        "void Sleep(uint32_t ms);  // windows\$sleep",
+        "",
+        "## the process, no header: the compiler writes the prototype",
+        "",
+        "int32_t last_errno(void);  // rt\$last_errno",
+        "",
+        "## the process: <unistd.h>",
+        "",
+        "int64_t write(int32_t fd, int64_t count);  // posix\$write",
+        "",
+    ]
+    assert_eq(dump_externs([write, sleep, errno], []), expected.join("\n"))
+}
+
+@test
+test_dump_externs_skips_an_intrinsic :: fn() -> void {
+    intrinsic :: BcImport {
+        ...listed_extern("byte_len", r"core$byte_len", [.String], ["s"], .I64),
+        .is_extern = false,
+    }
+    assert_eq(dump_externs([intrinsic], []), "# Externs\n")
+}
+
+@test
+test_dump_externs_comments_the_variadic_arguments :: fn() -> void {
+    parameters: ValType[]: [.I32, .U64, .Pointer]
+    ioctl :: BcImport {
+        ...listed_extern("ioctl", r"posix$ioctl", parameters, ["fd", "request", "arg"], .I32),
+        .c_headers = ["<sys/ioctl.h>"],
+        .c_variadic_fixed = 2,
+    }
+    listing :: dump_externs([ioctl], [])
+    assert(
+        "int32_t ioctl(int32_t fd, uint64_t request, ...);  // posix\$ioctl, variadic: void* arg"
+            in listing,
+        "the variadic argument in the comment after the mangle",
+    )
+}
