@@ -3513,7 +3513,7 @@ Without a header, the compiler declares the C function from its Vader signature,
 sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 ```
 
-The C compiler then checks the arguments against the real declaration, except what a `const void *` or a `void *` points to (*`@c_address`*), which converts to any pointer. Without a header nothing is checked: `isatty` declared as `fn(fd: i64) -> i64` compiles, links, and passes its argument wrongly.
+The C compiler then checks the arguments against the real declaration, and with clang or GCC a mismatch fails a native build. A pointer is checked on its `const`: an array lent without `@c_out` to a parameter C writes is a mismatch. What a `const void *` or a `void *` points to is not checked, since it converts to any pointer, unless `@c_type` names it (*`@c_address`*). Without a header nothing is checked: `isatty` declared as `fn(fd: i64) -> i64` compiles, links, and passes its argument wrongly.
 
 The argument is written as in a C `#include`:
 

@@ -37,9 +37,10 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     c_units :: split_c_units(work, prog)
     rt :: runtime_or_probe(request.runtime_root)
 
-    // Splitting stops `cc` inlining across the cut; the link-time optimisation
-    // `lto_flags` turns on gives it back.
-    flavour :: lto_flavour(cc, release)
+    // The toolchain spells the pointer checks of `cc_opt_flags`, and the link-time
+    // optimisation `lto_flags` turns on, which gives back the inlining splitting
+    // stops.
+    flavour :: cc_flavour(cc)
 
     // One `cc -c` per TU (+ the runtime). A pool of tasks runs them, each task
     // taking the next one once its own ends, so the OS compiles them across
@@ -153,15 +154,6 @@ compile_from :: fn(jobs: CompileJob[], next: AtomicInt) -> CompileOutcome[] {
         k = next.fetch_add(1)
     }
     return outcomes
-}
-
-// The toolchain family the link-time optimisation flags are chosen for, probed
-// only for a release build: a debug build takes none (`lto_flags`).
-lto_flavour :: fn(cc: string, release: bool) -> CcFlavour {
-    if !release {
-        return .Unknown
-    }
-    return cc_flavour(cc)
 }
 
 // The object `cc` compiles the unit `unit` to: its name under the C stem `work`,
@@ -283,7 +275,7 @@ cc_compile_argv :: fn(
     includes: string[],
 ) -> string[] {
     argv: string[]: [cc]
-    argv.push_all(cc_opt_flags(release))
+    argv.push_all(cc_opt_flags(release, flavour))
     argv.push_all(lto_flags(flavour, release, false, 0))
     push_include_flags(argv, rt, quote_dir)
     argv.push_all(includes)
@@ -292,32 +284,6 @@ cc_compile_argv :: fn(
     argv.push("-o")
     argv.push(obj)
     return argv
-}
-
-/// Probe `cc --version`, once per build.
-///
-/// Order matters: a clang banner does not say "gcc", but a GCC one may be
-/// spelled `cc (GCC) 14.2.0`, so clang is tested first and the GCC test is
-/// case-insensitive.
-///
-/// @param cc  the C compiler this build invokes.
-/// @return    the toolchain family, `Unknown` when the probe fails.
-cc_flavour :: fn(cc: string) -> CcFlavour {
-    r :: spawn([cc, "--version"])
-    if r is ProcessError {
-        return .Unknown
-    }
-    if r.exit != 0 {
-        return .Unknown
-    }
-    banner :: r.stdout.to_lower()
-    if "clang" in banner {
-        return .Clang
-    }
-    if "gcc" in banner || "free software foundation" in banner {
-        return .Gcc
-    }
-    return .Unknown
 }
 
 // `cc` linking `objs` into `out`, with the link-time optimisation flags, the

@@ -68,7 +68,9 @@ export build_ffi_adapters :: fn(
             .message = "cannot be written to `${dir.to_native()}`: ${made.message()}",
         }
     }
-    argv :: flags.clone()
+    // Kept out of the fingerprint: these flags refuse a library but never change
+    // one, so the toolchain probe their spelling needs runs only when one compiles.
+    argv :: flags + header_check_flags(cc_flavour(cc))
     for k in 0..<units.units.len() {
         source :: dir.join_path("${units.names[k]}.c")
         written :: write_file_string(source, units.units[k])
@@ -99,7 +101,7 @@ export build_ffi_adapters :: fn(
 
 // The command line of the adapter library, up to its sources.
 adapter_flags :: fn(cc: string, native: NativeFlags, rt: string, quote_dir: string) -> string[] {
-    argv: string[]: [cc, "-shared", "-O1", REFUSE_IMPLICIT_DECLARATIONS]
+    argv: string[]: [cc, "-shared", "-O1"]
     if current_os() != .Windows {
         argv.push("-fPIC")
     }

@@ -39,7 +39,7 @@ export runtime_or_probe :: fn(runtime_root: string) -> string {
 /// Beside the executable first (the `dist/` bundle layout), then the invocation
 /// directory: the same sidecar probe the stdlib resolution uses.
 export runtime_c_root :: fn() -> string = resolve_sidecar("runtime/c", "vader.h")
-/// The flags every C compile of emitted code takes, by build mode.
+/// The flags every C compile of emitted code takes, by build mode and toolchain.
 ///
 /// Release adds `-falign-functions=64`, for speed; debug keeps `-O0 -g` so a
 /// `#line`-carrying build is steppable. Release alone defines `NDEBUG`, which turns the checked arithmetic of `runtime/c/vader.h` from
@@ -48,11 +48,17 @@ export runtime_c_root :: fn() -> string = resolve_sidecar("runtime/c", "vader.h"
 /// C operator on a signed type, where C leaves an overflow undefined and a compiler
 /// assumes none happens, gcc even at `-O0`. The emitter computes some `u32` / `u64`
 /// arithmetic on signed C temporaries, so unsigned wrapping depends on the flag too.
-/// Both refuse a call to an undeclared function (`REFUSE_IMPLICIT_DECLARATIONS`).
-export cc_opt_flags :: fn(release: bool) -> string[] = if release {
-    ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64", "-fwrapv", REFUSE_IMPLICIT_DECLARATIONS]
+/// Both refuse a call the headers do not accept (`header_check_flags`).
+///
+/// @param release  the build mode.
+/// @param flavour  the toolchain, which spells the header checks.
+export cc_opt_flags :: fn(release: bool, flavour: CcFlavour) -> string[] =
+    mode_flags(release) + header_check_flags(flavour)
+
+mode_flags :: fn(release: bool) -> string[] = if release {
+    ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64", "-fwrapv"]
 } else {
-    ["-std=c11", "-O0", "-g", "-fwrapv", REFUSE_IMPLICIT_DECLARATIONS]
+    ["-std=c11", "-O0", "-g", "-fwrapv"]
 }
 
 /// Makes a call to a function no header declares an error, where an older GCC or
@@ -60,8 +66,33 @@ export cc_opt_flags :: fn(release: bool) -> string[] = if release {
 /// of the call going through the `int` prototype C would guess.
 REFUSE_IMPLICIT_DECLARATIONS :: "-Werror=implicit-function-declaration"
 
+/// Makes a pointer argument the header's prototype does not accept an error, where
+/// clang and an older GCC only warn: a pointee of another type or width, as a
+/// `@c_type` naming the wrong integer gives. Under clang it also covers a dropped
+/// `const`, as an array lent without `@c_out` to a parameter C writes gives.
+REFUSE_INCOMPATIBLE_POINTERS :: "-Werror=incompatible-pointer-types"
+
+/// GCC's own name for a dropped `const`, which clang counts among the incompatible
+/// pointers and does not know by this name.
+REFUSE_DISCARDED_QUALIFIERS :: "-Werror=discarded-qualifiers"
+
+/// The flags that make the C compiler refuse a call the headers do not accept, as
+/// `flavour` spells them: a call to a function none declares, or a pointer
+/// argument its prototype does not take. An unrecognised compiler gets the
+/// spellings clang and GCC both know.
+///
+/// @param flavour  the toolchain (`cc_flavour`).
+header_check_flags :: fn(flavour: CcFlavour) -> string[] = match flavour {
+    .Gcc              -> [
+        REFUSE_IMPLICIT_DECLARATIONS,
+        REFUSE_INCOMPATIBLE_POINTERS,
+        REFUSE_DISCARDED_QUALIFIERS,
+    ]
+    .Clang | .Unknown -> [REFUSE_IMPLICIT_DECLARATIONS, REFUSE_INCOMPATIBLE_POINTERS]
+}
+
 /// Which C toolchain `cc` is, since the two that matter spell link-time
-/// optimisation differently.
+/// optimisation and some warnings differently.
 export CcFlavour :: enum(u8) {
     /// clang / LLVM: ThinLTO.
     Clang
@@ -70,6 +101,32 @@ export CcFlavour :: enum(u8) {
     /// Anything else, or a probe that failed. No LTO: an unrecognised compiler
     /// gets the plain split, which is correct everywhere, just not as fast.
     Unknown
+}
+
+/// Probe `cc --version`, once per build.
+///
+/// Order matters: a clang banner does not say "gcc", but a GCC one may be
+/// spelled `cc (GCC) 14.2.0`, so clang is tested first and the GCC test is
+/// case-insensitive.
+///
+/// @param cc  the C compiler this build invokes.
+/// @return    the toolchain family, `Unknown` when the probe fails.
+cc_flavour :: fn(cc: string) -> CcFlavour {
+    r :: spawn([cc, "--version"])
+    if r is ProcessError {
+        return .Unknown
+    }
+    if r.exit != 0 {
+        return .Unknown
+    }
+    banner :: r.stdout.to_lower()
+    if "clang" in banner {
+        return .Clang
+    }
+    if "gcc" in banner || "free software foundation" in banner {
+        return .Gcc
+    }
+    return .Unknown
 }
 
 /// LLVM's ceiling, in IR instructions, on a callee ThinLTO will import across
@@ -353,6 +410,7 @@ export push_include_flags :: fn(argv: string[], rt: string, quote_dir: string) -
 ///                      to probe beside the running executable. A build DRIVER
 ///                      must pass it: the driver binary lives under the
 ///                      project's `build/`, so the probe would look there.
+/// @param flavour       the toolchain `cc` is (`cc_flavour`).
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
 /// @param os            the OS the binary is built for (`push_os_link_flags`).
 export cc_argv :: fn(
@@ -360,6 +418,7 @@ export cc_argv :: fn(
     c_files: string[],
     out: Path,
     release: bool,
+    flavour: CcFlavour,
     ldflags: string,
     runtime_root: string,
     quote_dir: string,
@@ -367,7 +426,7 @@ export cc_argv :: fn(
     os: Os,
 ) -> string[] {
     argv: string[]: [cc]
-    argv.push_all(cc_opt_flags(release))
+    argv.push_all(cc_opt_flags(release, flavour))
     rt :: runtime_or_probe(runtime_root)
     push_include_flags(argv, rt, quote_dir)
     argv.push_all(native.includes)
@@ -474,7 +533,19 @@ export link_native :: fn(
     stem :: intermediate_stem(out) ?? return 1
     c_file :: "${stem}.c".to_path()
     c_files :: write_c_units(c_file, c) ?? return 1
-    argv :: cc_argv(cc, c_files, out, release, ldflags, runtime_root, quote_dir, native, os)
+    flavour :: cc_flavour(cc)
+    argv :: cc_argv(
+        cc,
+        c_files,
+        out,
+        release,
+        flavour,
+        ldflags,
+        runtime_root,
+        quote_dir,
+        native,
+        os,
+    )
     res :: spawn(argv)
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")
@@ -590,20 +661,42 @@ test_quote_include_dir_is_the_entry_directory :: fn() -> void {
 
 @test
 test_cc_opt_flags_wrap_signed_arithmetic :: fn() -> void {
-    assert("-fwrapv" in cc_opt_flags(true), "a release build wraps the wrapping operators")
-    assert("-fwrapv" in cc_opt_flags(false), "a debug build wraps the wrapping operators")
+    release :: cc_opt_flags(true, .Unknown)
+    debug :: cc_opt_flags(false, .Unknown)
+    assert("-fwrapv" in release, "a release build wraps the wrapping operators")
+    assert("-fwrapv" in debug, "a debug build wraps the wrapping operators")
 }
 
 @test
 test_cc_opt_flags_refuse_an_undeclared_function :: fn() -> void {
-    assert(REFUSE_IMPLICIT_DECLARATIONS in cc_opt_flags(true), "a release build refuses one")
-    assert(REFUSE_IMPLICIT_DECLARATIONS in cc_opt_flags(false), "a debug build refuses one")
+    release :: cc_opt_flags(true, .Unknown)
+    debug :: cc_opt_flags(false, .Unknown)
+    assert(REFUSE_IMPLICIT_DECLARATIONS in release, "a release build refuses one")
+    assert(REFUSE_IMPLICIT_DECLARATIONS in debug, "a debug build refuses one")
+}
+
+@test
+test_cc_opt_flags_refuse_a_mismatched_pointer :: fn() -> void {
+    release :: cc_opt_flags(true, .Clang)
+    debug :: cc_opt_flags(false, .Clang)
+    assert(REFUSE_INCOMPATIBLE_POINTERS in release, "a release build refuses one")
+    assert(REFUSE_INCOMPATIBLE_POINTERS in debug, "a debug build refuses one")
+}
+
+@test
+test_header_check_flags_name_a_dropped_const_for_gcc_alone :: fn() -> void {
+    gcc :: header_check_flags(.Gcc)
+    assert(REFUSE_DISCARDED_QUALIFIERS in gcc, "gcc has its own name for a dropped const")
+    clang :: header_check_flags(.Clang)
+    assert(!(REFUSE_DISCARDED_QUALIFIERS in clang), "clang does not know the name gcc gives it")
 }
 
 @test
 test_cc_opt_flags_check_overflow_outside_release :: fn() -> void {
-    assert("-DNDEBUG" in cc_opt_flags(true), "a release build wraps a checked operation")
-    assert(!("-DNDEBUG" in cc_opt_flags(false)), "a debug build checks it")
+    release :: cc_opt_flags(true, .Unknown)
+    debug :: cc_opt_flags(false, .Unknown)
+    assert("-DNDEBUG" in release, "a release build wraps a checked operation")
+    assert(!("-DNDEBUG" in debug), "a debug build checks it")
 }
 
 @test
