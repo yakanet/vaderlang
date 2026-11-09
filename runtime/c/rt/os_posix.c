@@ -346,7 +346,8 @@ int64_t vader_path_mtime(const char* path) {
 
 /* The size of the regular file the `FILE*` `stream` reads, as `size_of_stat`
  * gives it, or -1 when `fstat` fails. Here for the reason `vader_path_kind`
- * gives. */
+ * gives. No binding calls it: the committed bootstrap seed does, and the
+ * seed's build fails without it. */
 VADER_HOST_EXPORT
 int64_t vader_stream_size(void* stream) {
     struct stat st;

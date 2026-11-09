@@ -7,7 +7,6 @@ module "std/fs"
 import "std/io"
 import "std/path"
 import "std/target"
-import "system/libc"
 import "system/posix"
 import "system/windows"
 
@@ -15,11 +14,10 @@ import "system/windows"
 /// binary: the bytes are taken verbatim, no UTF-8 reinterpretation. This is
 /// the canonical file-read primitive ; `read_file_string` decodes on top.
 ///
-/// A first chunk is the whole of most files. Past it, a regular file is read in
-/// one go into an array of its size. Anything else is read by chunks to its end
-/// or to `max_bytes`: a pipe or a device, a file that grew, and one whose size
-/// passes `max_bytes`, a size being a claim the content may not bear out. On
-/// Windows, a read short of what it asked for ends the file, a pipe's included.
+/// A regular file is read in one go, into an array of its size. Anything else
+/// is read by chunks to its end or to `max_bytes`: a pipe or a device, a file
+/// that grew, and one whose size passes `max_bytes`, a size being a claim the
+/// content may not bear out.
 ///
 /// @param path       filesystem path (absolute or cwd-relative).
 /// @param max_bytes  the most bytes accepted, `READ_LIMIT_DEFAULT` by default:
@@ -29,122 +27,64 @@ import "system/windows"
 /// @return           the file's raw bytes.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`: `"file too large"`.
-@target
-export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> u8[] | IOError
-
-@target(.Linux, .Darwin)
-read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
-    f :: sys_fopen(path, "rb") ?? return last_io_error("cannot open file")
-    // Runs once a `return` has computed its value: `last_io_error` reads
-    // `errno` before `fclose` overwrites it.
-    defer sys_fclose(f)
+export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> u8[] | IOError {
+    f :: open(path)
+    if f is IOError {
+        return f
+    }
+    defer f.close()
     out: u8[] = []
+    size :: system_size(f.handle)
+    if reads_whole(size, max_bytes) {
+        // Its size and one byte more, so that a read short of it shows the end.
+        whole: u8[]: [0] * (size + 1)
+        got :: read_into(f.handle, whole)
+        if got is IOError {
+            return got
+        }
+        if got <= size {
+            return whole[0..<got]
+        }
+        // It grew past its size: the chunks read on.
+        out = whole
+    }
     chunk: u8[]: [0] * READ_CHUNK
     for {
-        n :: sys_fread(chunk, 1, chunk.len(), f)
-        if n > 0 {
-            out.push_all(chunk[0..<n])
-        }
-        // After every read, the one that hits end of file included: a stream
-        // shorter than one chunk is held to `max_bytes` here.
         if out.len() > max_bytes {
             return IOError { .msg = "file too large" }
         }
-        if n < chunk.len() {
-            // A short `fread` is end of file OR an error; the count alone does
-            // not say which. Without this, an openable-but-unreadable path -- a
-            // DIRECTORY, where `fopen` succeeds and `fread` fails EISDIR --
-            // would read as an empty success.
-            if sys_ferror(f) != 0 {
-                return last_io_error("read failed")
-            }
+        n :: system_read(f.handle, chunk, READ_CHUNK)
+        if n is IOError {
+            return n
+        }
+        if n == 0 {
             return out
         }
-        if out.len() == READ_CHUNK {
-            whole :: whole_buffer(sys_stream_size(f), max_bytes) ?? continue
-            chunk.copy_to(0, whole, 0, READ_CHUNK)
-            want :: whole.len() - READ_CHUNK
-            got :: sys_fread(whole[READ_CHUNK..<whole.len()], 1, want, f)
-            if got < want {
-                if sys_ferror(f) != 0 {
-                    return last_io_error("read failed")
-                }
-                return whole[0..<READ_CHUNK + got]
-            }
-            // It grew past its size: the chunks read on.
-            out = whole
-        }
+        out.push_all(chunk[0..<n])
     }
 }
 
-/// Windows reads through `CreateFileW`, not the CRT: only the `W` entry points
-/// take a real UTF-16 path, and `ReadFile` reports a failure the CRT would have
-/// folded into a short read.
-@target(.Windows)
-read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
-    h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, null,
-                       OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
-    // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
-    if i64(h) == INVALID_HANDLE {
-        return last_io_error("file not found")
-    }
-    // Runs once a `return` has computed its value: `last_io_error` reads the
-    // last-error slot before `CloseHandle` overwrites it.
-    defer close_handle(h)
-    out: u8[] = []
-    chunk: u8[]: [0] * READ_CHUNK
-    got: u32[]: [0]
-    for {
-        if !read_file(h, chunk, u32(chunk.len()), got, null) {
-            return last_io_error("read failed")
-        }
-        n :: i64(got[0])
-        if n > 0 {
-            out.push_all(chunk[0..<n])
-        }
-        // After every read, end of file included, as in the POSIX body.
-        if out.len() > max_bytes {
-            return IOError { .msg = "file too large" }
-        }
-        // A synchronous read short of the request has reached end of file --
-        // and unlike the CRT path, a genuine ERROR took the branch above.
-        if n < chunk.len() {
-            return out
-        }
-        if out.len() == READ_CHUNK {
-            // A pipe, a console or a device has no size to go by.
-            size: i64[]: [-1]
-            if get_file_type(h) != FILE_TYPE_DISK || !get_file_size_ex(h, size) {
-                size[0] = -1
-            }
-            whole :: whole_buffer(size[0], max_bytes) ?? continue
-            chunk.copy_to(0, whole, 0, READ_CHUNK)
-            want :: whole.len() - READ_CHUNK
-            if !read_file(h, whole[READ_CHUNK..<whole.len()], u32(want), got, null) {
-                return last_io_error("read failed")
-            }
-            if i64(got[0]) < want {
-                return whole[0..<READ_CHUNK + i64(got[0])]
-            }
-            // It grew past its size: the chunks read on.
-            out = whole
-        }
-    }
-}
+// Whether a file of `size` bytes is read in one go: a regular file (-1 is
+// anything else), held to `max_bytes` (past it, the chunks refuse what the
+// content bears out), that one `ReadFile` call can ask for.
+reads_whole :: fn(size: i64, max_bytes: i64) =
+    size >= 0 && size <= max_bytes && size < WHOLE_READ_MAX
 
-// The array a regular file of `size` bytes is read into once its first chunk
-// came back full: its size and one byte more, so that a read short of it shows
-// the end, the first chunk copied in and the rest read in place. Null, for the
-// chunks to go on, when the size is unknown (-1) or does not pass one chunk, when
-// it passes `max_bytes` (a size is a claim: a file can shrink, `/proc/kcore`
-// reports the kernel's address space; the chunks refuse what does pass it), or
-// when one read cannot ask for that much.
-whole_buffer :: fn(size: i64, max_bytes: i64) -> u8[] | null {
-    if size <= READ_CHUNK || size > max_bytes || size >= WHOLE_READ_MAX {
-        return null
+// Fill `into` from `handle`, read after read: how many bytes came, fewer than
+// `into.len()` once the file has ended.
+read_into :: fn(handle: Fd | Handle, into: u8[]) -> i64 | IOError {
+    got: i64 = 0
+    for got < into.len() {
+        n :: system_read(handle, into[got..<into.len()], into.len() - got)
+        if n is IOError {
+            return n
+        }
+        if n == 0 {
+            return got
+        }
+        got += n
     }
-    whole: u8[]: [0] * (size + 1)
-    return whole
+    return got
 }
 
 // The largest file read whole: what one `ReadFile` call can ask for.
@@ -171,73 +111,19 @@ export READ_LIMIT_DEFAULT: i64: 16 * 1024 * 1024
 /// @param path     filesystem path.
 /// @param content  the raw bytes to write.
 /// @error          `IOError` if the file can't be opened or written.
-@target
-export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError
-
-@target(.Linux, .Darwin)
-write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
-    // A NUL byte truncates the path at the C boundary, so the file would land
-    // somewhere the caller never named and every later step would blame the
-    // wrong thing. Refused here, where the truncation would happen.
-    for i in 0..<path.byte_len() {
-        b :: path.byte_at(i)
-        if b == 0 {
-            return IOError { .msg = "path contains a NUL byte" }
-        }
+export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
+    f :: create(path)
+    if f is IOError {
+        return f
     }
-    f :: sys_fopen(path, "wb") ?? return last_io_error("open failed")
-    if content.len() > 0 {
-        n :: sys_fwrite(content, 1, content.len(), f)
-        if n != content.len() {
-            // Before `fclose`, which overwrites `errno`.
-            err :: last_io_error("short write")
-            sys_fclose(f)
-            return err
-        }
+    written :: f.write(content)
+    // Closed either way, and its failure reported: some file systems keep for
+    // `close` a write that never reached the disk.
+    closed :: f.close()
+    if written is IOError {
+        return written
     }
-    if sys_fclose(f) != 0 {
-        return last_io_error("close failed")
-    }
-    return null
-}
-
-/// Windows writes through `CreateFileW` for the same reason it reads through
-/// it: the `A` entry points cannot name a path outside the ANSI code page.
-@target(.Windows)
-write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
-    // A NUL byte truncates the path at the C boundary, so the file would land
-    // somewhere the caller never named and every later step would blame the
-    // wrong thing. Refused here, where the truncation would happen.
-    for i in 0..<path.byte_len() {
-        b :: path.byte_at(i)
-        if b == 0 {
-            return IOError { .msg = "path contains a NUL byte" }
-        }
-    }
-    // No share mode: an exclusive write is what replacing a file means.
-    // `FILE_SHARE_READ` for the same reason as the read path: `fopen` lets
-    // others read while we write, and a build that tails its own output should
-    // not fail. Write sharing is NOT granted -- two writers to one file is the
-    // race this refuses.
-    h :: create_file_w(to_wide(path), GENERIC_WRITE, FILE_SHARE_READ, null,
-                       CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null)
-    if i64(h) == INVALID_HANDLE {
-        return last_io_error("open failed")
-    }
-    if content.len() > 0 {
-        // See `write_bytes` on why the count is taken and ignored.
-        written: u32[]: [0]
-        if !write_file(h, content, u32(content.len()), written, null) {
-            // Before `CloseHandle`, which overwrites the last-error slot.
-            err :: last_io_error("short write")
-            close_handle(h)
-            return err
-        }
-    }
-    if !close_handle(h) {
-        return last_io_error("close failed")
-    }
-    return null
+    return closed
 }
 
 // Create one directory. True when it exists afterwards: an existing directory
@@ -613,9 +499,8 @@ import "std/testing"
 }
 
 @test test_a_failed_read_carries_why :: fn() -> void {
-    // Every `fopen` failure used to answer "file not found", whatever the
-    // reason. A missing path is the one classification every platform agrees
-    // on: POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
+    // A missing path is the one classification every platform agrees on:
+    // POSIX `ENOENT`, Win32 `ERROR_FILE_NOT_FOUND`.
     missing :: read_file_bytes("${temp_dir()}/vader_no_such_probe", READ_LIMIT_DEFAULT)
     if missing is IOError {
         assert_eq(missing.kind, .NotFound)

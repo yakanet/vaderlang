@@ -37,13 +37,29 @@
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.index_of<u8>  // std_core$index_of__u8
     struct std.core.Buffer  // std_core$Buffer
   std/fs
     fn __defer_std_fs_0
+    fn std.fs.access_mode  // std_fs$access_mode
+    fn std.fs.close  // std_fs$close
+    fn std.fs.fd_of  // std_fs$fd_of
+    fn std.fs.invalid_options  // std_fs$invalid_options
+    fn std.fs.is_a_directory  // std_fs$is_a_directory
+    fn std.fs.open  // std_fs$open
+    fn std.fs.open_flags  // std_fs$open_flags
     fn std.fs.read_file_bytes  // std_fs$read_file_bytes
     fn std.fs.read_file_string  // std_fs$read_file_string
-    fn std.fs.whole_buffer  // std_fs$whole_buffer
+    fn std.fs.read_into  // std_fs$read_into
+    fn std.fs.reads_whole  // std_fs$reads_whole
+    fn std.fs.refusal_of  // std_fs$refusal_of
+    fn std.fs.system_close  // std_fs$system_close
+    fn std.fs.system_open  // std_fs$system_open
+    fn std.fs.system_read  // std_fs$system_read
+    fn std.fs.system_size  // std_fs$system_size
     struct __defer_env_std_fs_1
+    struct std.fs.File  // std_fs$File
+    struct std.fs.OpenOptions  // std_fs$OpenOptions
   std/io
     fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.classified_error  // std_io$classified_error
@@ -54,6 +70,11 @@
   system/posix
     const EAGAIN: i32  inline
     const ENOTEMPTY: i32  inline
+    const O_APPEND: i32  inline
+    const O_CLOEXEC: i32  inline
+    const O_CREAT: i32  inline
+    const O_EXCL: i32  inline
+    const O_TRUNC: i32  inline
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize
   system/windows

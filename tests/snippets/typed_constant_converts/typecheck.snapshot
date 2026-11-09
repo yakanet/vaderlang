@@ -8,6 +8,7 @@
   ConstDecl      NOTE                 :: Label
   ConstDecl      NOTE_TEXT            :: string
   ConstDecl      ROOM                 :: Label
+  expr 224:62   IdentExpr      :: i64
   expr 22:33    StructLitExpr  :: Label
   expr 22:49    StringLitExpr  :: string
   expr 22:52    FieldExpr      :: i32
@@ -21,7 +22,6 @@
   expr 32:13    CallExpr       :: IOError | string
   expr 32:13    IdentExpr      :: fn(string, i64) -> IOError | string
   expr 32:30    StringLitExpr  :: string
-  expr 338:62   IdentExpr      :: i64
   expr 33:16    IdentExpr      :: IOError
   expr 33:5     IfExpr         :: void
   expr 33:8     BinaryExpr     :: bool

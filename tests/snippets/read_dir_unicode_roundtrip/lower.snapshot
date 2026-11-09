@@ -80,6 +80,7 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.index_of<u8>  // std_core$index_of__u8
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -91,15 +92,39 @@
     fn std.env.temp_dir_of  // std_env$temp_dir_of
     fn std.env.without_trailing_sep  // std_env$without_trailing_sep
   std/fs
+    const FILE_CLOSED: IOError  data pool #0, element 0
     fn __defer_std_fs_0
     fn __defer_std_fs_2
+    fn std.fs.access_mode  // std_fs$access_mode
+    fn std.fs.close  // std_fs$close
+    fn std.fs.create  // std_fs$create
+    fn std.fs.fd_of  // std_fs$fd_of
+    fn std.fs.give_back  // std_fs$give_back
+    fn std.fs.invalid_options  // std_fs$invalid_options
+    fn std.fs.is_a_directory  // std_fs$is_a_directory
+    fn std.fs.move  // std_fs$move
+    fn std.fs.open  // std_fs$open
+    fn std.fs.open_flags  // std_fs$open_flags
     fn std.fs.read_dir  // std_fs$read_dir
     fn std.fs.read_file_bytes  // std_fs$read_file_bytes
+    fn std.fs.read_into  // std_fs$read_into
+    fn std.fs.reads_whole  // std_fs$reads_whole
+    fn std.fs.refusal_of  // std_fs$refusal_of
     fn std.fs.remove_file  // std_fs$remove_file
-    fn std.fs.whole_buffer  // std_fs$whole_buffer
+    fn std.fs.system_close  // std_fs$system_close
+    fn std.fs.system_offset  // std_fs$system_offset
+    fn std.fs.system_open  // std_fs$system_open
+    fn std.fs.system_read  // std_fs$system_read
+    fn std.fs.system_seek  // std_fs$system_seek
+    fn std.fs.system_size  // std_fs$system_size
+    fn std.fs.system_write  // std_fs$system_write
+    fn std.fs.whence_of  // std_fs$whence_of
+    fn std.fs.write  // std_fs$write
     fn std.fs.write_file_bytes  // std_fs$write_file_bytes
     struct __defer_env_std_fs_1
     struct __defer_env_std_fs_3
+    struct std.fs.File  // std_fs$File
+    struct std.fs.OpenOptions  // std_fs$OpenOptions
   std/io
     fn std.io.IOError.message  // std_io$IOError$std_core$Error$message
     fn std.io.classified_error  // std_io$classified_error
@@ -110,6 +135,11 @@
   system/posix
     const EAGAIN: i32  inline
     const ENOTEMPTY: i32  inline
+    const O_APPEND: i32  inline
+    const O_CLOEXEC: i32  inline
+    const O_CREAT: i32  inline
+    const O_EXCL: i32  inline
+    const O_TRUNC: i32  inline
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize
   system/windows

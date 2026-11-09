@@ -32,7 +32,7 @@ export OpenOptions :: struct {
     /// `write` or `append`.
     create_new:  bool = false
     /// The bytes a read asks the system for at once, at least 1.
-    buffer_size: i64  = 64 * 1024
+    buffer_size: i64  = READ_CHUNK
 }
 
 /// Where `seek` counts an offset from.
@@ -479,6 +479,24 @@ system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError 
         return last_io_error("read failed")
     }
     return i64(got[0])
+}
+
+// The size of the regular file `handle` is open on, -1 for anything else: a
+// pipe or a device, whose size says nothing of what a read finds.
+@target
+system_size :: fn(handle: Fd | Handle) -> i64
+
+@target(.Linux, .Darwin)
+system_size :: fn(handle: Fd | Handle) -> i64 = sys_fd_size(fd_of(handle))
+
+@target(.Windows)
+system_size :: fn(handle: Fd | Handle) -> i64 {
+    h :: handle_of(handle)
+    size: i64[]: [-1]
+    if get_file_type(h) != FILE_TYPE_DISK || !get_file_size_ex(h, size) {
+        return -1
+    }
+    return size[0]
 }
 
 // Write what one system call takes of `bytes`: how many.

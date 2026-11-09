@@ -85,7 +85,7 @@
           .create = false,
           .truncate = false,
           .create_new = false,
-          .buffer_size = i64(64) * i64(1024),
+          .buffer_size = i64(65536),
       })
       if missing is IOError {
           std.console.println<string>(concat_2("missing: ", std.io.IOErrorKind.to_string(IOError(missing).kind)))
@@ -97,7 +97,7 @@
           .create = false,
           .truncate = false,
           .create_new = false,
-          .buffer_size = i64(64) * i64(1024),
+          .buffer_size = i64(65536),
       })
       if directory is IOError {
           std.console.println<string>(concat_2("directory: ", std.io.IOErrorKind.to_string(IOError(directory).kind)))

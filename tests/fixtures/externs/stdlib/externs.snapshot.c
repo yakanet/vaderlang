@@ -55,13 +55,8 @@ int32_t WideCharToMultiByte(uint32_t code_page, uint32_t flags, const void* src,
 bool WriteConsoleW(void* h, const void* text, uint32_t count, void* written, void* reserved);  // system_windows$write_console_w
 bool WriteFile(void* h, const void* buf, uint32_t count, void* written, void* overlapped);  // system_windows$write_file
 
-/* LIBC (system/libc): <stdio.h>, <stdlib.h> */
-int32_t fclose(void* stream);  // system_libc$sys_fclose
-int32_t ferror(void* stream);  // system_libc$sys_ferror
-void* fopen(const char* path, const char* mode);  // system_libc$sys_fopen
-int64_t fread(void* buf, int64_t size, int64_t count, void* stream);  // system_libc$sys_fread
+/* LIBC (system/libc): <stdlib.h> */
 void free(void* p);  // system_libc$sys_free
-int64_t fwrite(const void* buf, int64_t size, int64_t count, void* stream);  // system_libc$sys_fwrite
 const char* getenv(const char* name);  // system_libc$sys_getenv
 
 /* LIBM (std/math): <math.h> */
@@ -128,7 +123,6 @@ int64_t vader_fd_size(int32_t fd);  // system_posix$sys_fd_size
 int32_t vader_last_errno(void);  // system_posix$sys_last_errno
 int32_t vader_path_kind(const char* path);  // system_posix$sys_path_kind
 int64_t vader_path_mtime(const char* path);  // system_posix$sys_path_mtime
-int64_t vader_stream_size(void* stream);  // system_posix$sys_stream_size
 
 /* VADER_RUNTIME (system/windows): vader.h */
 int64_t vader_console_read(void* buf, int64_t max);  // system_windows$console_read

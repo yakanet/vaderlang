@@ -294,7 +294,6 @@ const size_t vader_type_info_count = 22;
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <stdio.h>
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
@@ -558,7 +557,6 @@ static int32_t snippet$main(void) {
     }
     t0 = std_env$temp_dir();
     l2 = concat_2(t0, 15u);
-    l6 = INT64_C(65536);
     vader_struct_std_fs$OpenOptions_t* _a6_obj = (vader_struct_std_fs$OpenOptions_t*) vader_gc_alloc(sizeof(vader_struct_std_fs$OpenOptions_t));
     vader_obj_header_init(_a6_obj, 16u);
     _a6_obj->f_read = true;
@@ -567,7 +565,7 @@ static int32_t snippet$main(void) {
     _a6_obj->f_create = false;
     _a6_obj->f_truncate = false;
     _a6_obj->f_create_new = false;
-    _a6_obj->f_buffer_size = l6;
+    _a6_obj->f_buffer_size = INT64_C(65536);
     l3 = (void*) _a6_obj;
     l1 = std_fs$open(l2, l3);
     if (l1.tag == 4u) {
@@ -577,7 +575,6 @@ static int32_t snippet$main(void) {
         std_console$println__string(t0);
     }
     l2 = std_env$temp_dir();
-    l6 = INT64_C(65536);
     vader_struct_std_fs$OpenOptions_t* _a7_obj = (vader_struct_std_fs$OpenOptions_t*) vader_gc_alloc(sizeof(vader_struct_std_fs$OpenOptions_t));
     vader_obj_header_init(_a7_obj, 16u);
     _a7_obj->f_read = true;
@@ -586,7 +583,7 @@ static int32_t snippet$main(void) {
     _a7_obj->f_create = false;
     _a7_obj->f_truncate = false;
     _a7_obj->f_create_new = false;
-    _a7_obj->f_buffer_size = l6;
+    _a7_obj->f_buffer_size = INT64_C(65536);
     l3 = (void*) _a7_obj;
     l1 = std_fs$open(l2, l3);
     if (l1.tag == 4u) {
@@ -875,17 +872,15 @@ static vader_string_t std_env$without_trailing_sep(vader_string_t l0) {
 }
 
 static vader_box_t std_fs$create(vader_string_t l0) {
-    int64_t l1;
-    void* l2 = NULL;
+    void* l1 = NULL;
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[1] = { &l2 };
+    void** gc_raw_roots[1] = { &l1 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = INT64_C(65536);
     vader_struct_std_fs$OpenOptions_t* _a0_obj = (vader_struct_std_fs$OpenOptions_t*) vader_gc_alloc(sizeof(vader_struct_std_fs$OpenOptions_t));
     vader_obj_header_init(_a0_obj, 16u);
     _a0_obj->f_read = false;
@@ -894,9 +889,9 @@ static vader_box_t std_fs$create(vader_string_t l0) {
     _a0_obj->f_create = true;
     _a0_obj->f_truncate = true;
     _a0_obj->f_create_new = false;
-    _a0_obj->f_buffer_size = l1;
-    l2 = (void*) _a0_obj;
-    t0 = std_fs$open(l0, l2);
+    _a0_obj->f_buffer_size = INT64_C(65536);
+    l1 = (void*) _a0_obj;
+    t0 = std_fs$open(l0, l1);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

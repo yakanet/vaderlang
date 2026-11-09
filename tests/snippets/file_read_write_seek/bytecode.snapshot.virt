@@ -98,7 +98,7 @@ import 9 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1
 import 10 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=5,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 11 extern :lseek system_posix$sys_lseek headers=<unistd.h> result_type=3 param_types=1,3,1 param_c_out= param_by_address= (i32,i64,i32) -> i64
 import 12 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 13 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
+import 13 extern :getenv system_libc$sys_getenv headers=<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
 impl 7 std_core$ByteAccess
 impl 4 std_core$Error
 export main 0
@@ -427,15 +427,13 @@ fn 0 snippet$main () -> i32
   string.const 14   ; "/vader_snippet_file_absent"
   call 3   ; concat_2
   local.set 2   ; $field_9
-  i64.const 65536
-  local.set 6   ; $field_74
   bool.const true
   bool.const false
   bool.const false
   bool.const false
   bool.const false
   bool.const false
-  local.get 6   ; $field_74
+  i64.const 65536
   struct.new 16   ; std_fs$OpenOptions
   local.set 3   ; $struct_24
   local.get 2   ; $field_9
@@ -456,15 +454,13 @@ fn 0 snippet$main () -> i32
   end $L12
   call 11   ; std_env$temp_dir
   local.set 2   ; $field_9
-  i64.const 65536
-  local.set 6   ; $field_74
   bool.const true
   bool.const false
   bool.const false
   bool.const false
   bool.const false
   bool.const false
-  local.get 6   ; $field_74
+  i64.const 65536
   struct.new 16   ; std_fs$OpenOptions
   local.set 3   ; $struct_24
   local.get 2   ; $field_9
@@ -939,21 +935,18 @@ fn 14 std_env$without_trailing_sep (string) -> string
 end
 
 fn 15 std_fs$create (string) -> any
-  local $mul_checked_9 i64
-  local $struct_10 ref
+  local $struct_8 ref
+  bool.const false
+  bool.const true
+  bool.const false
+  bool.const true
+  bool.const true
+  bool.const false
   i64.const 65536
-  local.set 1   ; $mul_checked_9
-  bool.const false
-  bool.const true
-  bool.const false
-  bool.const true
-  bool.const true
-  bool.const false
-  local.get 1   ; $mul_checked_9
   struct.new 16   ; std_fs$OpenOptions
-  local.set 2   ; $struct_10
+  local.set 1   ; $struct_8
   local.get 0   ; arg 0
-  local.get 2   ; $struct_10
+  local.get 1   ; $struct_8
   call 18   ; std_fs$open
   return
 end
