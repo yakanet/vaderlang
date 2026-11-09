@@ -673,12 +673,12 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
     }
 }
 
-// `@c_pointer` and `@c_out` belong on a PARAMETER and `@c_struct` on a struct.
-// Written on a declaration they reach neither check and do nothing: the same
-// silent no-op `reject_free_fn_decorators` exists to prevent.
+// `@c_address`, `@c_pointer` and `@c_out` belong on a PARAMETER and `@c_struct` on
+// a struct. Written on a declaration they reach neither check and do nothing: the
+// same silent no-op `reject_free_fn_decorators` exists to prevent.
 reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> void {
     for d in decorators {
-        if d.name == "c_pointer" || d.name == "c_out" {
+        if d.name == "c_address" || d.name == "c_pointer" || d.name == "c_out" {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@${d.name}` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
         }

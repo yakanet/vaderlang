@@ -289,7 +289,12 @@ emits a dedicated op (`i32.add`), so `a + b` and `a.add(b)` take the same path.
 ## Foreign calls
 
 An `@extern` declaration becomes a host import of the bytecode, which each backend
-binds its own way.
+binds its own way. The import's signature carries what its parameter decorators
+say: which parameters cross by address (`BcSignature.param_by_address`), which C
+writes (`param_c_out`), and where `...` starts (`BcImport.c_variadic_fixed`), so
+no backend reads a decorator. A mirror that `@c_out` writes crosses by address
+too, which the bytecode emitter sets once every struct is reserved
+(`lend_written_mirrors`, `vader/emit/bytecode/emit.vader`).
 
 **Native build.** For each `@extern`, the C emitter writes a shim,
 `vader_host_<mangled>` (`vader/emit/c/host.vader`), reached by the import's

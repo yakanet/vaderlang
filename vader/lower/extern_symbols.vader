@@ -7,7 +7,8 @@
 // other declares the wrong types. A header owns it (`@c_header`, or the `headers`
 // of the `CLibrary` the declaration names), and `cc` checks each call against
 // it: two declarations that both name one may differ, as `stat` does with the
-// mirror each system fills.
+// mirror each system fills. A variadic one needs that header: what it passes
+// through `...` is the argument list of one call, never the prototype.
 
 module "vader/lower"
 
@@ -19,8 +20,9 @@ import "vader/front/resolver"
 import "vader/support/diagnostics"
 
 // Report each C symbol a second `@extern` declaration of the project claims
-// (M5011), unless both declarations name a header. Every module is read, not
-// only what the program reaches.
+// (M5011), unless both declarations name a header, and each variadic `@extern`
+// that names none (M5012). Every module is read, not only what the program
+// reaches.
 check_extern_symbols :: fn(
     loaded: LoadedProject,
     libraries: Map<i64, CLibrary>,
@@ -31,6 +33,10 @@ check_extern_symbols :: fn(
         for decl in module_decls(module) {
             if decl !is FnDecl || decl.body != null || !decorators_have(decl.decorators, "extern") {
                 continue
+            }
+            if c_variadic_start(decl) >= 0 && !owns_prototype(decl, libraries) {
+                detail :: "`${decl.name}` is variadic: name the header declaring `${extern_symbol_of(decl)}` with `@c_header`, or in its `CLibrary`'s `headers`"
+                diags.push(lower_error(.VariadicExternWithoutHeader, decl.name_span, detail))
             }
             symbol :: extern_symbol_of(decl)
             prior :: claimed.get_or_put(symbol, decl)

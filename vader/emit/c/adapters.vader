@@ -132,7 +132,7 @@ adapter_argument :: fn(imp: BcImport, types: BcType[], j: i64) -> CExpression {
     if mirror != "" {
         return CUnary { .operator = "*", .operand = cast("const ${mirror}*", address) }
     }
-    // A `@c_pointer` scalar was spilled into the frame; a pointer that may be
+    // A `@c_address` scalar was spilled into the frame; a pointer that may be
     // null rides as one.
     if param_is_by_address(sig, j) || is_abi_nullable_pointer(types, type_index) {
         return address

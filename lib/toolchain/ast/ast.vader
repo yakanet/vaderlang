@@ -248,6 +248,30 @@ export extern_headers :: fn(decl: FnDecl, library: CLibrary | null) -> string[] 
     return library.headers
 }
 
+/// The index of the first parameter of an `@extern` declaration that C receives
+/// through the `...` of its prototype, or `-1` when it is not variadic.
+///
+/// That is the first parameter marked `@c_variadic`, else the count of fixed
+/// parameters a `@c_variadic(N)` on the declaration gives. A count that is not one
+/// integer literal reads as `-1`.
+///
+/// @param decl  the bodyless function declaration.
+export c_variadic_start :: fn(decl: FnDecl) -> i64 {
+    for i in 0..<decl.params.len() {
+        if decorators_have(decl.params[i].decorators, "c_variadic") {
+            return i
+        }
+    }
+    d :: find_decorator(decl.decorators, "c_variadic") ?? return -1
+    if d.args.len() == 1 {
+        count :: d.args[0]
+        if count is IntLitExpr {
+            return int_literal_value(count)
+        }
+    }
+    return -1
+}
+
 /// The C type a struct declaration mirrors, or `""` when it carries no
 /// `@c_struct`.
 ///

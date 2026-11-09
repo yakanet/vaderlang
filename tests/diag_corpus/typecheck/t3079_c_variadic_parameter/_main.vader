@@ -1,0 +1,30 @@
+// T3079: a parameter C receives through `...` that cannot go there.
+//
+// The marked parameters close the list, and each is declared as C reads it: no
+// mirror copied by value, and nothing the default promotions widen (`u8`,
+// `bool`, `f32`). A mirror lent by address passes, as its pointer.
+module "snippet"
+
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+@c_header("<fcntl.h>")
+@extern("fcntl")
+unmarked_after :: fn(fd: i32, @c_variadic command: i32, flags: i32) -> i32
+
+@c_header("<fcntl.h>")
+@extern("fcntl")
+widened :: fn(fd: i32, @c_variadic small: u8, @c_variadic flag: bool, @c_variadic ratio: f32) -> i32
+
+@c_header("<fcntl.h>")
+@extern("fcntl")
+mirror_by_value :: fn(fd: i32, @c_variadic d: Div) -> i32
+
+@c_header("<fcntl.h>")
+@extern("fcntl")
+mirror_by_address :: fn(fd: i32, @c_variadic @c_out d: Div) -> i32
+
+main :: fn() -> i32 { return 0 }

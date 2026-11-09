@@ -1,0 +1,18 @@
+// M5012: a variadic `@extern` that names no header.
+//
+// What it passes through `...` is the argument list of one call, not the
+// prototype, which only a header gives. `with_library` passes: its `CLibrary`
+// lists `<stdio.h>`.
+module "snippet"
+
+import "std/ffi"
+
+STDIO :: CLibrary { .name = "", .headers = ["<stdio.h>"] }
+
+@extern("snprintf")
+without_header :: fn(@c_out into: u8[], size: u64, format: string, @c_variadic n: i32) -> i32
+
+@extern(STDIO, "printf")
+with_library :: fn(format: string, @c_variadic n: i32) -> i32
+
+main :: fn() -> i32 { return 0 }

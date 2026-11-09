@@ -1,0 +1,15 @@
+// T3079: `@c_address` beside `@c_out`.
+//
+// `@c_out` lends the mirror by address already, for C to write into: the two
+// together say one thing twice.
+module "snippet"
+
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+@extern fill_div :: fn(@c_address @c_out d: Div) -> void
+
+main :: fn() -> i32 { return 0 }

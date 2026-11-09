@@ -1,0 +1,10 @@
+// T3050: a variadic `@extern` whose every parameter goes through `...`.
+//
+// A C prototype names at least one parameter before `...`.
+module "snippet"
+
+@c_header("<fcntl.h>")
+@extern("fcntl")
+all_variadic :: fn(@c_variadic fd: i32, @c_variadic command: i32) -> i32
+
+main :: fn() -> i32 { return 0 }

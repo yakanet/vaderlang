@@ -9,7 +9,7 @@ import "system/posix"
 
 @c_header("<poll.h>")
 @extern("poll")
-lend_pollfd :: fn(@c_pointer @c_out fds: Pollfd, nfds: u64, timeout_ms: i32) -> i32
+lend_pollfd :: fn(@c_out fds: Pollfd, nfds: u64, timeout_ms: i32) -> i32
 
 main :: fn() -> i32 {
     fds :: Pollfd { .fd = -1, .events = 1, .revents = 7 }

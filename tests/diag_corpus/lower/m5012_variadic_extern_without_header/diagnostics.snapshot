@@ -1,0 +1,1 @@
+[13:1] error[M5012] a variadic `@extern` names no header: `without_header` is variadic: name the header declaring `snprintf` with `@c_header`, or in its `CLibrary`'s `headers`

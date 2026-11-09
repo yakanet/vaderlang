@@ -255,10 +255,11 @@ export LowerCode :: enum(CodeInfo) {
     /// at run time instead.
     IntoCoercionFailed { .id = "M5004", .message = "`Into` coercion cannot be lowered" },
     /// Reserved: an intrinsic the lowerer cannot lower panics in `emit/bytecode/emit` instead.
-    IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
-    UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
-    ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
-    ExternSymbolClaimedTwice { .id = "M5011", .message = "two `@extern` declarations claim one C symbol" },
+    IntrinsicUnsupported        { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
+    UnresolvedIdent             { .id = "M5007", .message = "identifier did not resolve at lowering" },
+    ComptimeForNotUnrollable    { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
+    ExternSymbolClaimedTwice    { .id = "M5011", .message = "two `@extern` declarations claim one C symbol" },
+    VariadicExternWithoutHeader { .id = "M5012", .message = "a variadic `@extern` names no header" },
 }
 
 // `WARNING`: non-fatal diagnostics.

@@ -48,7 +48,7 @@
             "variadic": false,
             "decorators": [
               {
-                "name": "c_pointer",
+                "name": "c_address",
                 "args": []
               }
             ]
@@ -133,7 +133,7 @@
             "variadic": false,
             "decorators": [
               {
-                "name": "c_pointer",
+                "name": "c_address",
                 "args": []
               }
             ]
@@ -218,7 +218,7 @@
             "variadic": false,
             "decorators": [
               {
-                "name": "c_pointer",
+                "name": "c_address",
                 "args": []
               }
             ]
@@ -303,7 +303,7 @@
             "variadic": false,
             "decorators": [
               {
-                "name": "c_pointer",
+                "name": "c_address",
                 "args": []
               }
             ]

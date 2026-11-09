@@ -3286,12 +3286,12 @@ Decorators are compiler instructions prefixed with `@`. They act at compile time
 |-----------|--------|---------|
 | `@comptime` | fn / value | Evaluates at compile time (§14) |
 | `@extern`, `@extern("symbol")`, `@extern(LIBRARY, "symbol")` | fn without body | Declares a foreign function (§13) |
-| `@c_pointer` | parameter of an `@extern` fn | Passes the parameter's address (§13) |
-| `@c_out` | parameter of an `@extern` fn | C writes through the parameter (§13) |
+| `@c_address` | parameter of an `@extern` fn | Lends the parameter by address, for C to read (§13) |
+| `@c_out` | parameter of an `@extern` fn | Lends the parameter by address, for C to write (§13) |
 | `@c_type("size_t")` | parameter or result of an `@extern` fn | The C spelling of an integer type (§13) |
 | `@c_header("<header.h>")` | `@extern` fn | Takes the prototype from a C header (§13) |
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
-| `@c_variadic(N)` | `@extern` fn | The C function is variadic after `N` fixed parameters (§13) |
+| `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
 | `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
 | `@intrinsic` | fn or impl without body | The host runtime provides the body (*`@intrinsic`*, below) |
 | `@export`, `@export("name")` | fn | Exposes the function under an unmangled name (§13) |
@@ -3454,25 +3454,36 @@ A library is its `name`: two constants of one name describe the same binary, and
 - `headers` may differ: the library's calls are compiled with the headers of both.
 - The empty name is the running process: constants of that name need not agree.
 
-### `@c_pointer`: a parameter crossing as an address
+### `@c_address`: a parameter C reads through an address
 
-A C function often takes a pointer where the value would do (`localtime(const time_t *)`). `@c_pointer` on the parameter passes C the address of a copy of the argument, valid for the call; no pointer type appears in Vader.
+A C function often takes a pointer where the value would do (`localtime(const time_t *)`). `@c_address` on the parameter passes C the address of a copy of the argument, valid for the call; no pointer type appears in Vader.
 
 ```vader
 TimeT :: i64
 
 @extern("localtime")
-localtime :: fn(@c_pointer t: TimeT) -> CPointer
+localtime :: fn(@c_address t: TimeT) -> CPointer
 ```
 
-`@c_pointer` applies to a scalar (a number, `bool`, `char`, `CPointer`, or a distinct type over one), which crosses read-only as a `const T*` (*`@c_out`*), or to a `@c_struct` mirror (below).
+A parameter crosses as the C prototype spells it:
+
+| C | Vader | What C receives |
+|---|---|---|
+| `T x` | `x: T` | A copy. |
+| `const T *x`, a scalar or a struct | `@c_address x: T` | The address of a copy, which it only reads. |
+| `T *x`, a struct | `@c_out x: T` | The address of a copy, read back after the call. |
+| `const T *x`, an array | `x: T[]` | The elements, which it only reads. |
+| `T *x`, an array | `@c_out x: T[]` | The elements, which it writes in place. |
+
+`@c_address` applies to a scalar (a number, `bool`, `char`, `CPointer`, or a distinct type over one) or to a `@c_struct` mirror (below). A `string` and an array cross as pointers already.
 
 The following are errors:
 
 - any other decorator on a parameter;
-- `@c_pointer` or `@c_out` on a parameter of a function that is not `@extern`;
-- an argument to `@c_pointer` or `@c_out`;
-- `@c_pointer` on any other type, a `string` or an array included, which already cross as pointers.
+- `@c_address`, `@c_out` or `@c_variadic` on a parameter of a function that is not `@extern`;
+- an argument to one of them;
+- `@c_address` on any other type;
+- `@c_address` beside `@c_out`, which lends the argument by address already.
 
 ### `@c_out`: C writes through the parameter
 
@@ -3481,9 +3492,9 @@ The following are errors:
 sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 ```
 
-Without `@c_out`, C only reads what it is lent: an array crosses as a `const void*`, and a mirror lent with `@c_pointer` is not read back. With it, an array crosses as a `void*` whose elements C writes in place, and a mirror is copied back after the call.
+`@c_out` lends the argument by address, and C may read it as well as write it: it is filled before the call and read back after. An array crosses as a `void*` whose elements C writes in place, a mirror as the address of a C struct copied back into it. Without `@c_out`, C only reads what it is lent: an array crosses as a `const void*`.
 
-`@c_out` needs storage that outlives the call, an array or a mirror lent with `@c_pointer`: on a scalar, a `string` or a mirror passed by value, it is an error. To read a scalar back on both backends, lend a one-element array (`@c_out written: u32[]`), the shape of every `T*` out-parameter (`WriteFile`'s `lpNumberOfBytesWritten`).
+`@c_out` needs storage that outlives the call, an array or a mirror: on a scalar or a `string`, it is an error. To read a scalar back on both backends, lend a one-element array (`@c_out written: u32[]`), the shape of every `T*` out-parameter (`WriteFile`'s `lpNumberOfBytesWritten`).
 
 Passing a frozen value (§5 *Frozen values*) to a `@c_out` parameter is an error, as to any parameter its callee modifies.
 
@@ -3506,16 +3517,25 @@ The argument is written as in a C `#include`:
 
 ### `@c_variadic`: a variadic C function
 
-A variadic C function (`fcntl`, `ioctl`) is declared once per argument list the program calls it with, each declaration taking its prototype from a header (`@c_header` or its library's `headers`) to share one symbol (*`@extern`*). `@c_variadic(N)` gives the number of fixed parameters, those before the `...` of the C prototype:
+A variadic C function (`fcntl`, `ioctl`) is declared once per argument list the program calls it with, each declaration taking its prototype from a header (`@c_header` or its library's `headers`) to share one symbol (*`@extern`*). `@c_variadic` marks each parameter the C prototype receives through its `...`:
 
 ```vader
 @c_header("<fcntl.h>")
-@c_variadic(2)
 @extern("fcntl")
-set_flags :: fn(fd: i32, command: i32, flags: i32) -> i32
+set_flags :: fn(fd: i32, command: i32, @c_variadic flags: i32) -> i32
 ```
 
-A native build reads the prototype from the header, `vader run` reads `N`: without it, `vader run` calls the function as a fixed one, and on some systems (darwin-arm64) the function then reads its variadic arguments from the wrong place.
+A native build reads the prototype from the header, `vader run` reads the marks: without them, `vader run` calls the function as a fixed one, and on some systems (darwin-arm64) the function then reads its variadic arguments from the wrong place.
+
+A parameter passed through `...` is declared as C receives it. C widens an integer narrower than `int` and a `bool` to `int`, and an `f32` to `double`: they are declared `i32` and `f64`.
+
+The following are errors:
+
+- a variadic declaration without a header;
+- `@c_variadic` on the first parameter, since a C prototype names at least one before `...`;
+- a parameter after a `@c_variadic` one that is not marked too;
+- a `@c_struct` mirror passed through `...` by value;
+- an integer narrower than `i32`, a `bool` or an `f32` passed through `...`.
 
 ### `@main_thread`: a C function bound to the main thread
 
@@ -3557,7 +3577,7 @@ A struct marked `@c_struct` mirrors a C struct, and can cross an `@extern` call 
 @c_struct("div_t")
 Div :: struct { quot: i32, rem: i32 }
 
-@extern fill_div :: fn(@c_pointer @c_out d: Div, quot: i32, rem: i32) -> void
+@extern fill_div :: fn(@c_out d: Div, quot: i32, rem: i32) -> void
 
 @c_header("<stdlib.h>")
 @extern("div") c_div :: fn(numerator: i32, denominator: i32) -> Div
@@ -3567,7 +3587,7 @@ Div :: struct { quot: i32, rem: i32 }
 
 Each field is copied to and from the C member of the same name, which the C compiler places from the real header:
 
-- by address, for a parameter with `@c_pointer`, C receives a C struct filled from the mirror, copied back after the call with `@c_out`;
+- by address, for a parameter with `@c_address` or `@c_out`, C receives a C struct filled from the mirror, copied back after the call with `@c_out`;
 - by value otherwise, C receives a copy passed as the platform's ABI wants, and a result is copied into a new Vader struct, nested mirrors included.
 
 A mirrored field is a number, `bool`, `char`, `CPointer`, an enum with a written width and no variant data, or another `@c_struct`. Any other field type, a plain struct included, is an error when the mirror crosses an `@extern`.

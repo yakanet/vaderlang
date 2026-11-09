@@ -475,20 +475,26 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
     return AST.c_struct_spelling(sd.decorators, sd.name)
 }
 
-/// Whether the parameter carries `@c_pointer`.
-///
-/// @param pm  the parameter.
-/// @return    whether it crosses as an address.
-param_has_c_pointer :: fn(pm: AST.FnParam) -> bool = AST.decorators_have(pm.decorators, "c_pointer")
+// The decorator that lends the parameter by address for C to read, `@c_address`
+// or `@c_pointer`, or `""` when it carries neither.
+address_decorator :: fn(pm: AST.FnParam) -> string {
+    if AST.decorators_have(pm.decorators, "c_address") {
+        return "c_address"
+    }
+    if AST.decorators_have(pm.decorators, "c_pointer") {
+        return "c_pointer"
+    }
+    return ""
+}
 
 /// Check the decorators written on each of `decl`'s parameters.
 ///
-/// `@c_pointer`, `@c_out` and `@c_type` are the only ones a parameter may carry,
-/// and only on an `@extern` declaration. `@c_pointer` says the foreign callee
-/// receives the parameter's ADDRESS rather than its value ; `@c_out` says C writes
-/// through the parameter: without it, C only reads ; `@c_type` names the C type
-/// the callee declares for it. None means anything for a fn Vader compiles a body
-/// for.
+/// `@c_address`, `@c_out`, `@c_type` and `@c_variadic` are the only ones a
+/// parameter may carry, and only on an `@extern` declaration. `@c_address` says
+/// the foreign callee receives the ADDRESS of a copy, which it only reads ;
+/// `@c_out` that C writes through the parameter ; `@c_type` names the C type the
+/// callee declares for it ; `@c_variadic` that C receives it through `...`. None
+/// means anything for a fn Vader compiles a body for.
 ///
 /// @param decl       the fn whose parameters to check.
 /// @param is_extern  whether the declaration carries `@extern`.
@@ -499,8 +505,8 @@ validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagno
             if !is_parameter_decorator(d.name) {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
-                    "`@${d.name}` cannot decorate a parameter: only `@c_pointer`, `@c_out` "
-                        + "and `@c_type` can"))
+                    "`@${d.name}` cannot decorate a parameter: only `@c_address`, `@c_out`, "
+                        + "`@c_type` and `@c_variadic` can"))
             } else if !is_extern {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
@@ -770,23 +776,24 @@ validate_extern_signature :: fn(
     return_type :: signature.return_type
     for i in 0..<decl.params.len() {
         pt :: params[i]
+        lent :: address_decorator(decl.params[i])
+        if lent == "c_address" && AST.decorators_have(decl.params[i].decorators, "c_out") {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_address` beside `@c_out`: `@c_out` already lends the argument by address, so drop `@c_address`",
+                ),
+            )
+            continue
+        }
         // A struct crosses only on a type that declares which C type it mirrors:
         // the shim declares a real one and marshals field by field, so the C
         // compiler computes the offsets from the real header. An undeclared
         // struct has no C spelling to declare and would have to guess a layout.
-        // With `@c_pointer` C gets the struct's address, without it a copy.
+        // With `@c_address` or `@c_out` C gets the address of a copy, without
+        // either the copy itself.
         if mirrors_a_c_struct(pt, typed) {
-            lent :: param_has_c_pointer(decl.params[i])
-            if !lent && AST.decorators_have(decl.params[i].decorators, "c_out") {
-                diags.push(
-                    typecheck_error(
-                        .InvalidParameterDecorator,
-                        decl.params[i].span,
-                        "`@c_out` on `${display_type(pt)}` passed by value: C receives a copy and writes nothing back; mark the parameter `@c_pointer` to lend the struct itself",
-                    ),
-                )
-                continue
-            }
             validate_mirror_fields(pt, decl.params[i].span, typed, Set<i32> {}, diags)
             continue
         }
@@ -813,19 +820,19 @@ validate_extern_signature :: fn(
             )
             continue
         }
-        // `@c_pointer` spills the argument to a stack temporary and hands over
+        // `@c_address` spills the argument to a stack temporary and hands over
         // its address. That only means something for a value C can receive a
         // pointer TO: a scalar, or a mirror (handled above). On anything else
         // the shim takes the address of the Vader representation, a `string`
         // parameter would pass a `const char**` aimed at an atom ID, an array
         // one a pointer to the array header, and the `(void*)` cast the shim
         // emits hides the mismatch from `cc`.
-        if param_has_c_pointer(decl.params[i]) && !is_unmarshalled_scalar(pt, false) {
+        if lent != "" && !is_unmarshalled_scalar(pt, false) {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
                     decl.params[i].span,
-                    "`@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` (a `string` and an array already cross as pointers, so drop the decorator)",
+                    "`@${lent}` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` (a `string` and an array already cross as pointers, so drop the decorator)",
                 ),
             )
             continue
@@ -847,6 +854,7 @@ validate_extern_signature :: fn(
             )
         }
     }
+    validate_variadic_parameters(decl, params, typed, diags)
     callback :: callback_beside_enum_values(params)
     if callback != null {
         diags.push(
@@ -871,6 +879,103 @@ validate_extern_signature :: fn(
             ),
         )
     }
+}
+
+// The parameters `decl` passes through the `...` of its C prototype. They close
+// the list, after at least one fixed parameter, and each is declared as C
+// receives it. The header a variadic needs is checked once its library is
+// evaluated (M5012).
+validate_variadic_parameters :: fn(
+    decl: AST.FnDecl,
+    params: Type[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    start :: AST.c_variadic_start(decl)
+    if start < 0 {
+        return
+    }
+    count_fault :: variadic_count_fault(decl, start)
+    if count_fault != null {
+        diags.push(typecheck_error(.InvalidExternDecl, decl.name_span, count_fault))
+        return
+    }
+    marked :: AST.decorators_have(decl.params[start].decorators, "c_variadic")
+    for j in start..<decl.params.len() {
+        pm :: decl.params[j]
+        if marked && !AST.decorators_have(pm.decorators, "c_variadic") {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    pm.span,
+                    "`${pm.name}` follows a `@c_variadic` parameter: mark it `@c_variadic` too",
+                ),
+            )
+            continue
+        }
+        fault :: variadic_parameter_fault(params[j], pm, typed) ?? continue
+        diags.push(typecheck_error(.InvalidParameterDecorator, pm.span, fault))
+    }
+}
+
+// What is wrong with `decl` taking its variadic arguments from parameter
+// `start` on, or null: C wants at least one fixed parameter before `...`.
+variadic_count_fault :: fn(decl: AST.FnDecl, start: i64) -> string | null {
+    if start == 0 {
+        return "a variadic C function takes at least one fixed parameter before `...`: `${decl.name}` passes every one through it"
+    }
+    if start > decl.params.len() {
+        return "`@c_variadic(${start})` counts more fixed parameters than the ${decl.params.len()} `${decl.name}` declares"
+    }
+    return null
+}
+
+// What is wrong with passing `pm`, of type `t`, through `...`, or null. A
+// mirror must cross by address, and a value C's default promotions would widen
+// is declared at the width the callee reads.
+variadic_parameter_fault :: fn(t: Type, pm: AST.FnParam, typed: TypedProgram) -> string | null {
+    by_address :: address_decorator(pm) != "" || AST.decorators_have(pm.decorators, "c_out")
+    if by_address {
+        return null
+    }
+    if mirrors_a_c_struct(t, typed) {
+        return "a `@c_struct` mirror cannot go through `...` by value: lend it with `@c_address` or `@c_out`"
+    }
+    promoted :: promoted_through_ellipsis(t)
+    if promoted == "" {
+        return null
+    }
+    return "C widens a `${display_type(t)}` it receives through `...` to `${promoted}`: declare the parameter `${promoted}`"
+}
+
+// The Vader type C's default promotions turn `t` into when it goes through
+// `...`, or `""` when it crosses as it is: an integer narrower than `int`, a
+// `bool` and an `f32` reach the callee widened.
+promoted_through_ellipsis :: fn(t: Type) -> string {
+    base :: strip_distinct(t)
+    if base is RangeType {
+        return narrower_than_int(storage_integer(base).bits)
+    }
+    if base is EnumType {
+        return narrower_than_int(base.repr.bits)
+    }
+    if base is PrimitiveType {
+        if base.name == "f32" {
+            return "f64"
+        }
+        if base.name == "bool" {
+            return "i32"
+        }
+    }
+    return ""
+}
+
+// `i32` for an integer of `bits` that C promotes to `int`, else `""`.
+narrower_than_int :: fn(bits: i64) -> string {
+    if bits < 32 {
+        return "i32"
+    }
+    return ""
 }
 
 /// Check the library a 2-argument `@extern` names, and record the constant in

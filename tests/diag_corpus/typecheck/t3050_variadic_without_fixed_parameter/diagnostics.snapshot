@@ -1,0 +1,1 @@
+[8:1] error[T3050] invalid `@extern` declaration: a variadic C function takes at least one fixed parameter before `...`: `all_variadic` passes every one through it

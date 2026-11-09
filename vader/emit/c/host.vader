@@ -215,10 +215,10 @@ include_of :: fn(operand: string) -> CInclude {
 ///
 /// One mirror can do both, through two declarations.
 MirrorCrossings :: struct {
-    /// Lent by address (`@c_pointer`): C works on the shim's struct, and the
+    /// Lent by address (`@c_address`, `@c_out`): C works on the shim's struct, and the
     /// interpreter builds a block of its own for it.
     lent:   Set<i32>
-    /// Copied by value: a parameter without `@c_pointer`, or a result.
+    /// Copied by value: a parameter lent by neither, or a result.
     copied: Set<i32>
 }
 
@@ -615,19 +615,18 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
     }
     mirror :: mirrored_c_struct(types, sig.param_types[j])
     if mirror != "" {
-        // Classified BEFORE `@c_pointer`, as `user_extern_shim` does: the
+        // Classified BEFORE a lent scalar, as `user_extern_shim` does: the
         // shim spills a real C struct and passes ITS address, so the erased
         // slot type would declare `void**` against a `struct timespec*`.
         // The two cascades must agree on the order or the prototype and the
-        // call site disagree. Without `@c_pointer` the struct itself crosses.
+        // call site disagree. Not lent by address, the struct itself crosses.
         if param_is_by_address(sig, j) {
             return pointer_to(mirror, writes)
         }
         return mirror
     }
     if param_is_by_address(sig, j) {
-        // `@c_pointer`: the callee takes `T*`. `const` unless `@c_out` says it
-        // writes through it.
+        // `@c_address`: the callee takes `const T*`.
         return pointer_to(spilled_c_type(imp, j), writes)
     }
     if is_abi_nullable_pointer(types, sig.param_types[j]) {
@@ -649,7 +648,7 @@ extern_result_type :: fn(imp: BcImport, types: BcType[]) -> string {
     return c_result_type(imp) ?? extern_c_type(bc_single_result(imp.signature))
 }
 
-// The C type of the temporary a `@c_pointer` scalar parameter is spilled to.
+// The C type of the temporary a `@c_address` scalar parameter is spilled to.
 spilled_c_type :: fn(imp: BcImport, j: i64) -> string =
     param_c_type(imp, j) ?? c_type_for_val_bare(imp.signature.params[j])
 

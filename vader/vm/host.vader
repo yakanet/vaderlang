@@ -571,8 +571,8 @@ dispatch_extern :: fn(
         if v is FnVal {
             return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a callback, and the interpreter has no address for a Vader function" }
         }
-        // Checked BEFORE the `@c_pointer` branch: a `@c_struct` parameter
-        // carries that decorator too, and that branch reads a SCALAR. The shim
+        // Checked BEFORE the by-address branch: a mirror lent by address takes
+        // it too, and that branch reads a SCALAR. The shim
         // declares a real C struct and marshals by field name; nothing here can
         // build one at run time.
         if v is StructVal {
@@ -615,12 +615,12 @@ dispatch_extern :: fn(
             continue
         }
         if bc.param_is_by_address(info.signature, i) {
-            // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
+            // `@c_address`: the callee takes the ADDRESS of a scalar. Spill it
             // into the frame's data area and hand over that offset: the mirror
             // of the stack temporary the native shim spills to.
             width :: i64(bc.size_of_val_type(params[i]))
             if width == 0 || width > 8 {
-                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_address` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
             w :: lent_scalar_word(v, width, at_pc, info.extern_name, i)
             if w is Trap { return w }

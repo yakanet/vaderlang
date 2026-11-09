@@ -247,28 +247,13 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
         // A body is the Vader function an `@extern` taking an enum with variant
         // data lowers to (`lower/extern_values.vader`), not the import.
         is_extern = d.body == null && decorators_have(fn_decl.decorators, "extern")
-        c_variadic_fixed = c_variadic_fixed_of(fn_decl.decorators)
+        c_variadic_fixed = i32(c_variadic_start(fn_decl))
     }
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
         .c_variadic_fixed = c_variadic_fixed,
     }
-}
-
-/// The fixed-argument count a `@c_variadic(N)` declares, or `-1`.
-///
-/// @param decorators  the declaration's decorators.
-c_variadic_fixed_of :: fn(decorators: Decorator[]) -> i32 {
-    for d in decorators {
-        if d.name == "c_variadic" && d.args.len() == 1 {
-            a :: d.args[0]
-            if a is IntLitExpr {
-                return i32(int_literal_value(a))
-            }
-        }
-    }
-    return -1
 }
 
 make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
