@@ -1,0 +1,44 @@
+// An array lent to C crosses as the native array stores it, on both engines:
+// one C scalar per element, `bool`, `char` and floats included, and C's writes
+// come back into it. An empty array crosses as NULL, which `mbstowcs` reads as
+// "measure only".
+module "snippet"
+
+import "std/console"
+import "std/ffi"
+
+STRING :: CLibrary { .name = "", .headers = ["<string.h>"] }
+
+STDLIB :: CLibrary { .name = "", .headers = ["<stdlib.h>"] }
+
+@extern(STRING, "memcpy")
+copy_bools :: fn(@c_out to: bool[], from: bool[], bytes: u64) -> CPointer
+
+@extern(STRING, "memcpy")
+copy_chars :: fn(@c_out to: char[], from: char[], bytes: u64) -> CPointer
+
+@extern(STRING, "memcpy")
+copy_f32s :: fn(@c_out to: f32[], from: f32[], bytes: u64) -> CPointer
+
+@extern(STRING, "memcpy")
+copy_f64s :: fn(@c_out to: f64[], from: f64[], bytes: u64) -> CPointer
+
+@extern(STDLIB, "mbstowcs")
+to_wide :: fn(@c_out to: u32[], from: string, count: u64) -> u64
+
+main :: fn() -> i32 {
+    bools :: [false, false, false]
+    copy_bools(bools, [true, false, true], 3)
+    println("${bools}")
+    chars :: ['-', '-']
+    copy_chars(chars, ['é', 'z'], 8)
+    println("${chars}")
+    singles: f32[]: [0.0, 0.0]
+    copy_f32s(singles, [1.5, -2.25], 8)
+    println("${singles}")
+    doubles :: [0.0, 0.0]
+    copy_f64s(doubles, [3.5, -0.125], 16)
+    println("${doubles}")
+    println("${to_wide([], "abc", 0)}")
+    return 0
+}

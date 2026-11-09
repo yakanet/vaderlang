@@ -1,0 +1,39 @@
+# Typecheck
+
+## tests/snippets/extern_integer_widths
+  FnDecl         magnitude_of_i8      :: fn(i8) -> i64
+  FnDecl         magnitude_of_u32     :: fn(u32) -> i64
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         parse_i16            :: fn(string) -> i16
+  FnDecl         parse_i8             :: fn(string) -> i8
+  FnDecl         parse_u16            :: fn(string) -> u16
+  FnDecl         parse_u8             :: fn(string) -> u8
+  ConstDecl      STDLIB               :: CLibrary
+  expr 11:11    StructLitExpr  :: CLibrary
+  expr 11:30    StringLitExpr  :: string
+  expr 11:45    SeqLitExpr     :: string[]
+  expr 11:46    StringLitExpr  :: string
+  expr 34:13    StringLitExpr  :: string
+  expr 34:16    CallExpr       :: i64
+  expr 34:16    IdentExpr      :: fn(u32) -> i64
+  expr 34:33    IdentExpr      :: u32
+  expr 34:41    CallExpr       :: i64
+  expr 34:41    IdentExpr      :: fn(i8) -> i64
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 34:57    IdentExpr      :: i8
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    CallExpr       :: u8
+  expr 35:16    IdentExpr      :: fn(string) -> u8
+  expr 35:25    StringLitExpr  :: string
+  expr 35:35    CallExpr       :: i8
+  expr 35:35    IdentExpr      :: fn(string) -> i8
+  expr 35:44    StringLitExpr  :: string
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 35:54    CallExpr       :: u16
+  expr 35:54    IdentExpr      :: fn(string) -> u16
+  expr 35:64    StringLitExpr  :: string
+  expr 35:76    CallExpr       :: i16
+  expr 35:76    IdentExpr      :: fn(string) -> i16
+  expr 35:86    StringLitExpr  :: string

@@ -1,0 +1,62 @@
+# Typecheck
+
+## tests/snippets/extern_lend_arrays
+  FnDecl         copy_bools           :: fn(bool[], bool[], u64) -> CPointer
+  FnDecl         copy_chars           :: fn(char[], char[], u64) -> CPointer
+  FnDecl         copy_f32s            :: fn(f32[], f32[], u64) -> CPointer
+  FnDecl         copy_f64s            :: fn(f64[], f64[], u64) -> CPointer
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      STDLIB               :: CLibrary
+  ConstDecl      STRING               :: CLibrary
+  FnDecl         to_wide              :: fn(u32[], string, u64) -> u64
+  expr 10:11    StructLitExpr  :: CLibrary
+  expr 10:30    StringLitExpr  :: string
+  expr 10:45    SeqLitExpr     :: string[]
+  expr 10:46    StringLitExpr  :: string
+  expr 12:11    StructLitExpr  :: CLibrary
+  expr 12:30    StringLitExpr  :: string
+  expr 12:45    SeqLitExpr     :: string[]
+  expr 12:46    StringLitExpr  :: string
+  expr 30:14    SeqLitExpr     :: bool[]
+  expr 31:16    IdentExpr      :: bool[]
+  expr 31:23    SeqLitExpr     :: bool[]
+  expr 31:5     CallExpr       :: CPointer
+  expr 31:5     IdentExpr      :: fn(bool[], bool[], u64) -> CPointer
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    IdentExpr      :: bool[]
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:14    SeqLitExpr     :: char[]
+  expr 34:16    IdentExpr      :: char[]
+  expr 34:23    SeqLitExpr     :: char[]
+  expr 34:5     CallExpr       :: CPointer
+  expr 34:5     IdentExpr      :: fn(char[], char[], u64) -> CPointer
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    IdentExpr      :: char[]
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:21    SeqLitExpr     :: f32[]
+  expr 37:15    IdentExpr      :: f32[]
+  expr 37:24    SeqLitExpr     :: f32[]
+  expr 37:5     CallExpr       :: CPointer
+  expr 37:5     IdentExpr      :: fn(f32[], f32[], u64) -> CPointer
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    IdentExpr      :: f32[]
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:16    SeqLitExpr     :: f64[]
+  expr 40:15    IdentExpr      :: f64[]
+  expr 40:24    SeqLitExpr     :: f64[]
+  expr 40:5     CallExpr       :: CPointer
+  expr 40:5     IdentExpr      :: fn(f64[], f64[], u64) -> CPointer
+  expr 41:13    StringLitExpr  :: string
+  expr 41:16    IdentExpr      :: f64[]
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    CallExpr       :: u64
+  expr 42:16    IdentExpr      :: fn(u32[], string, u64) -> u64
+  expr 42:24    SeqLitExpr     :: u32[]
+  expr 42:28    StringLitExpr  :: string
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,37 @@
+// An integer crosses at the width its declaration writes, on both engines.
+// `llabs` takes a `long long`: a `u32` above 2^31 reaches it extended by zeros,
+// as C converts it, and an `i8` by its sign. `atoi` returns an `int`: read as a
+// `u8`, an `i8`, a `u16` or an `i16`, it is cut to that width, as the shim's C
+// conversion cuts it.
+module "snippet"
+
+import "std/console"
+import "std/ffi"
+
+STDLIB :: CLibrary { .name = "", .headers = ["<stdlib.h>"] }
+
+@extern(STDLIB, "llabs")
+magnitude_of_u32 :: fn(x: u32) -> i64
+
+@extern(STDLIB, "llabs")
+magnitude_of_i8 :: fn(x: i8) -> i64
+
+@extern(STDLIB, "atoi")
+parse_u8 :: fn(text: string) -> u8
+
+@extern(STDLIB, "atoi")
+parse_i8 :: fn(text: string) -> i8
+
+@extern(STDLIB, "atoi")
+parse_u16 :: fn(text: string) -> u16
+
+@extern(STDLIB, "atoi")
+parse_i16 :: fn(text: string) -> i16
+
+main :: fn() -> i32 {
+    big: u32: 3000000000
+    small: i8: -5
+    println("${magnitude_of_u32(big)} ${magnitude_of_i8(small)}")
+    println("${parse_u8("300")} ${parse_i8("200")} ${parse_u16("70000")} ${parse_i16("40000")}")
+    return 0
+}

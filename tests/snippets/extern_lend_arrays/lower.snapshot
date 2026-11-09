@@ -1,0 +1,114 @@
+# Lower
+
+## snippet
+  storage
+    const STDLIB: CLibrary  data pool #1, element 0
+    const STRING: CLibrary  data pool #0, element 0
+  snippet.copy_bools :: fn(to: bool[], from: bool[], bytes: u64) -> CPointer  // snippet$copy_bools
+  snippet.copy_chars :: fn(to: char[], from: char[], bytes: u64) -> CPointer  // snippet$copy_chars
+  snippet.copy_f32s :: fn(to: f32[], from: f32[], bytes: u64) -> CPointer  // snippet$copy_f32s
+  snippet.copy_f64s :: fn(to: f64[], from: f64[], bytes: u64) -> CPointer  // snippet$copy_f64s
+  snippet.to_wide :: fn(to: u32[], from: string, count: u64) -> u64  // snippet$to_wide
+  snippet.main :: fn() -> i32 {  // snippet$main
+      bools: bool[] = [false, false, false] :bool[]
+      snippet.copy_bools(bools, [true, false, true] :bool[], u64(3))
+      std.console.println<string>(std.core.bool[].to_string(bools))
+      chars: char[] = ['-', '-'] :char[]
+      snippet.copy_chars(chars, ['\u{e9}', 'z'] :char[], u64(8))
+      std.console.println<string>(std.core.char[].to_string(chars))
+      singles: f32[] = [f32(0.0), f32(0.0)] :f32[]
+      snippet.copy_f32s(singles, [f32(1.5), f32(-2.25)] :f32[], u64(8))
+      std.console.println<string>(std.core.f32[].to_string(singles))
+      doubles: f64[] = [0.0, 0.0] :f64[]
+      snippet.copy_f64s(doubles, [3.5, -0.125] :f64[], u64(16))
+      std.console.println<string>(std.core.f64[].to_string(doubles))
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, snippet.to_wide([] :u32[], "abc", u64(0)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #2
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #3
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #4
+    const FLOAT_POW5_SPLIT: u64[]  data pool #5
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.bool[].to_string  // std_core$$array$Display$to_string__bool
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.char[].to_string  // std_core$$array$Display$to_string__char
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f32[].to_string  // std_core$$array$Display$to_string__f32
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.f64[].to_string  // std_core$$array$Display$to_string__f64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+  std/ffi
+    struct std.ffi.CLibrary  // std_ffi$CLibrary
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

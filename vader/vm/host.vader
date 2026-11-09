@@ -31,16 +31,23 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: i64) -> I64Val |
     return read_i64(v, at_pc, "extern `${extern_name}` arg ${i}")
 }
 
-// The bytes C reads through the address of scalar argument `i`, as one word of
-// `width` bytes, written as a mirror field of that type is: an `f32` is held in
-// an `F64Val`, so a float takes its bits at `width`.
-lent_scalar_word :: fn(
-    v: Value, width: i64, at_pc: i32, extern_name: string, i: i64,
+// The bytes C reads of `v`, a scalar lent by address or an element of a lent
+// array, as one word of `width` bytes, written as a mirror field of that type
+// is: an `f32` is held in an `F64Val`, so a float takes its bits at `width`.
+// `what` names `v` in the trap message, built only for a value that is no word.
+lent_word :: fn(
+    v: Value, width: i64, at_pc: i32, extern_name: string, what: string,
 ) -> I64Val | Trap {
+    if v is I64Val {
+        return v
+    }
+    if v is I32Val {
+        return I64Val(i64(v))
+    }
     if v is F64Val {
         return I64Val(i64(float_bits(f64(v), width)))
     }
-    return read_scalar_word(v, at_pc, "extern `${extern_name}` arg ${i}")
+    return read_scalar_word(v, at_pc, "extern `${extern_name}` ${what}")
 }
 
 // Serve `ffi_call` or, `through_adapter`, `ffi_call_frame` to code the VM runs:
@@ -502,8 +509,9 @@ call_foreign :: fn(callee: i64, through_adapter: bool, desc: u8[], frame: u8[], 
 /// and calling through a trampoline, or through its adapter.
 ///
 /// A trampoline covers integer, `bool` and pointer-width parameters, `f64`,
-/// `string`, any number of lent arrays of integer elements of any width the
-/// target spells, and `@c_struct` mirrors lent by address, up to eight
+/// `string`, any number of lent arrays of C scalars (integers of any width the
+/// target spells, floats, `bool`, `char`), and `@c_struct` mirrors lent by
+/// address, up to eight
 /// arguments. What it does not (`adapter_reason`) goes through the adapter the
 /// driver built, which `cc` compiled against the real prototype; without one,
 /// the call traps naming the reason, because calling with a mis-marshalled
@@ -622,7 +630,7 @@ dispatch_extern :: fn(
             if width == 0 || width > 8 {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_address` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
-            w :: lent_scalar_word(v, width, at_pc, info.extern_name, i)
+            w :: lent_word(v, width, at_pc, info.extern_name, "arg ${i}")
             if w is Trap { return w }
             desc.push(u8(FFI_ADDR))
             addr_slots.push(slot_words.len())
@@ -631,7 +639,15 @@ dispatch_extern :: fn(
         } else if v is ArrayVal {
             elem :: lent_element_val_type(types, v.type_id)
             if elem == null {
-                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only integer elements are covered)" }
+                return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only C scalar elements are covered)" }
+            }
+            // NULL, as the native lend passes an empty array: a callee that
+            // reads NULL as "none" (`mbstowcs` measuring) answers alike on both
+            // engines, and one that writes has nowhere to write.
+            if element_count(v) == 0 {
+                desc.push(u8(FFI_WORD))
+                slot_words.push(0)
+                continue
             }
             width :: i64(bc.size_of_val_type(elem))
             desc.push(u8(FFI_ADDR))
@@ -645,12 +661,9 @@ dispatch_extern :: fn(
             } else {
                 borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
                 for cell in v.elements {
-                    b :: if cell is I64Val { i64(cell) } else if cell is I32Val { i64(cell) } else {
-                        failed :: read_i64(cell, at_pc, "extern `${info.extern_name}` element")
-                        if failed is Trap { return failed }
-                        i64(failed)
-                    }
-                    push_little_endian(data, b, width)
+                    word :: lent_word(cell, width, at_pc, info.extern_name, "element")
+                    if word is Trap { return word }
+                    push_little_endian(data, i64(word), width)
                 }
             }
         } else if v is StringVal {
@@ -681,7 +694,7 @@ dispatch_extern :: fn(
             w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
             desc.push(u8(FFI_WORD))
-            slot_words.push(i64(w))
+            slot_words.push(word_of_class(i64(w), params[i]))
         }
     }
 
@@ -732,12 +745,8 @@ dispatch_extern :: fn(
     // storage, so the write lands in place.
     for b in borrowed {
         width :: i64(bc.size_of_val_type(b.element))
-        // Only an integer class reaches `LentArray`, so unsigned is the whole
-        // question: `lent_element_val_type` filtered the rest out.
-        signed :: !bc.is_unsigned_val(b.element)
         for j in 0..<b.target.elements.len() {
-            written :: read_little_endian(frame, base + b.at + j * width, width, signed)
-            b.target.elements[j] = retyped_int(b.target.elements[j], written)
+            b.target.elements[j] = written_scalar(frame, base + b.at + j * width, width, b.element)
         }
     }
     // Same reason as the arrays above: the block is a copy, so a callee that
@@ -909,26 +918,31 @@ read_back_mirror :: fn(
             continue
         }
         width :: bc.c_field_width(fields[j], types) ?? continue
-        if target.fields[j] is F64Val {
-            target.fields[j] = F64Val(read_float(frame, base + layout.offsets[j], width))
-            continue
-        }
         val :: field_val_type(types, fields[j])
-        written :: read_little_endian(frame, base + layout.offsets[j], width, !bc.is_unsigned_val(val))
-        target.fields[j] = mirror_field_value(val, written)
+        target.fields[j] = written_scalar(frame, base + layout.offsets[j], width, val)
     }
 }
 
-// What a mirror field of class `val` holds once C wrote `raw` into it, in the
-// carrier the interpreter keeps for that class (`extern_result` picks the same
-// for a result): the declared class decides, not the value the field held.
-mirror_field_value :: fn(val: bc.ValType, raw: i64) -> Value = match val {
+// The scalar of class `val` C left in the `width` bytes at `at` of `buf`, a
+// mirror field or an element of a lent array.
+written_scalar :: fn(buf: u8[], at: i64, width: i64, val: bc.ValType) -> Value {
+    if bc.is_float_val(val) {
+        return F64Val(read_float(buf, at, width))
+    }
+    return scalar_value(val, read_little_endian(buf, at, width, !bc.is_unsigned_val(val)))
+}
+
+// What a scalar of class `val` holds once C wrote `raw` into it, in the carrier
+// the interpreter keeps for that class (`extern_result` picks the same for a
+// result): the declared class decides, not the value the scalar held.
+scalar_value :: fn(val: bc.ValType, raw: i64) -> Value = match val {
     .Bool                                  -> BoolVal(raw != 0)
     .Char                                  -> CharVal(char(u32(raw & 0xFFFF_FFFF)))
     .I8 | .I16 | .I32 | .U8 | .U16 | .U32  -> I32Val(i32(raw))
     .I64 | .U64 | .Pointer                 -> I64Val(raw)
-    // A float field is read by `read_float`; the rest is no mirror field
-    // (`front/typecheck/decl::validate_mirror_fields`).
+    // A float is read by `read_float`; the rest is no mirror field
+    // (`front/typecheck/decl::validate_mirror_fields`) and no lent element
+    // (`is_lendable_element`).
     .F32 | .F64 | .String | .Null | .Void | .Ref | .Any -> I64Val(raw)
 }
 
@@ -1039,13 +1053,13 @@ write_little_endian :: fn(buf: u8[], at: i64, value: i64, width: i64) -> void {
 LentArray :: struct {
     target: ArrayVal
     at:     i64
-    /// What the array holds: the stride of the spill and the read-back, and
-    /// whether the read-back sign-extends.
+    /// What the array holds: the stride of the spill and the read-back, and the
+    /// carrier each element is read back into.
     element: bc.ValType
 }
 
 /// The `ValType` of the elements an array value holds, or `null` when they are
-/// not integers the lend can spill.
+/// not C scalars the lend can spill.
 ///
 /// Read off the VALUE's `type_id`, not the import's signature: a `.virt` reload
 /// carries no `BcType` indices for a signature (`virt_reader_bc` reconstructs
@@ -1070,11 +1084,16 @@ lent_element_val_type :: fn(types: bc.BcType[], array_type_id: i32) -> bc.ValTyp
     if element !is bc.BcScalar {
         return null
     }
-    if !bc.is_integer_val(element.val) {
+    if !is_lendable_element(element.val) {
         return null
     }
     return element.val
 }
+
+// Whether an array of `val` elements is lent as the native lend passes it: one C
+// scalar per element, as wide as the native array stores it.
+is_lendable_element :: fn(val: bc.ValType) -> bool =
+    bc.is_integer_val(val) || bc.is_float_val(val) || val == .Bool || val == .Char
 
 /// Read `width` bytes of `buf` at `at` back as an integer.
 ///
@@ -1086,18 +1105,32 @@ lent_element_val_type :: fn(types: bc.BcType[], array_type_id: i32) -> bc.ValTyp
 /// @param width   how many bytes it occupies.
 /// @param signed  whether to sign-extend a narrow value.
 /// @return        the integer C left there.
-read_little_endian :: fn(buf: u8[], at: i64, width: i64, signed: bool) -> i64 {
-    value: i64 = 0
-    for k in 0..<width {
-        value = value | (i64(buf[at + k]) << i64(k * 8))
+read_little_endian :: fn(buf: u8[], at: i64, width: i64, signed: bool) -> i64 =
+    at_width(i64(bc.read_le(buf, at, width)), width, signed)
+
+// The low `width` bytes of `value`, extended to a word: by its sign when
+// `signed`, by zeros otherwise.
+at_width :: fn(value: i64, width: i64, signed: bool) -> i64 {
+    if width >= 8 {
+        return value
     }
-    if signed && width < 8 {
-        sign_bit :: i64(1) << i64(width * 8 - 1)
-        if (value & sign_bit) != 0 {
-            value = value - (sign_bit << 1)
-        }
+    sign_bit :: i64(1) << i64(width * 8 - 1)
+    low :: value & ((sign_bit << 1) - 1)
+    if signed && (low & sign_bit) != 0 {
+        return low - (sign_bit << 1)
     }
-    return value
+    return low
+}
+
+// `value`, an integer of class `val`, as the word C receives once it converts it
+// to a wider type: an unsigned class extends by zeros, a signed one by its sign.
+// The interpreter holds a `u32` as the bits of an `I32Val`, so `3000000000`
+// reaches here negative.
+word_of_class :: fn(value: i64, val: bc.ValType) -> i64 {
+    if !bc.is_integer_val(val) {
+        return value
+    }
+    return at_width(value, i64(bc.size_of_val_type(val)), !bc.is_unsigned_val(val))
 }
 
 
@@ -1184,12 +1217,14 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
         return HostOk { .value = BoolVal(i32(raw & 0xFFFF_FFFF) != 0) }
     }
     // A narrow integer keeps the carrier the VM uses for its width : `i32` and
-    // below ride `I32Val`, everything wider rides `I64Val`.
+    // below ride `I32Val`, everything wider rides `I64Val`. It is cut to its
+    // width first, as the native shim's conversion cuts it: `atoi` read as a
+    // `u8` gives 44 for "300", whatever the callee left in the upper bits.
     if result == .I32 || result == .U32
         || result == .I16 || result == .U16
         || result == .I8 || result == .U8
         || result == .Char {
-        return HostOk { .value = I32Val(i32(raw)) }
+        return HostOk { .value = I32Val(i32(word_of_class(raw, result))) }
     }
     return HostOk { .value = I64Val(raw) }
 }
