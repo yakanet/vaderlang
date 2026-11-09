@@ -8,6 +8,6 @@ module "snippet"
 @c_struct("struct holder")
 Holder :: struct { name: string, n: i32 }
 
-@extern show :: fn(@c_pointer h: Holder) -> i32
+@extern show :: fn(@c_address h: Holder) -> i32
 
 main :: fn() -> i32 { return 0 }

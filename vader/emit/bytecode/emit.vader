@@ -201,7 +201,7 @@ c_struct_of :: fn(origin: MonoEntry) -> string {
 }
 
 /// Copy `sig`, filling `param_by_address` and `param_c_out` from the origin
-/// declaration's `@c_address` (or `@c_pointer`) and `@c_out` decorators. A
+/// declaration's `@c_address` and `@c_out` decorators. A
 /// mirror `@c_out` writes is lent by address later (`lend_written_mirrors`).
 ///
 /// @param sig     the signature built from the CFG params.
@@ -215,8 +215,7 @@ with_param_decorators :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature 
     by_address: bool[]: []
     c_out: bool[]: []
     for p in d.params {
-        address :: decorators_have(p.decorators, "c_address")
-        by_address.push(address || decorators_have(p.decorators, "c_pointer"))
+        by_address.push(decorators_have(p.decorators, "c_address"))
         c_out.push(decorators_have(p.decorators, "c_out"))
     }
     out :: BcSignature { ...sig }

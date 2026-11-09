@@ -162,7 +162,7 @@ export ERROR_ALREADY_EXISTS: u32: 183
 /// NOT pass as null.
 ///
 /// `written` is a one-element array so the count READS BACK, the same shape
-/// `read_file` uses. A `@c_pointer` scalar would not: the callee writes through
+/// `read_file` uses. A scalar `@c_address` would not: the callee writes through
 /// it and the value is discarded.
 ///
 /// @param h           the device handle.
@@ -413,7 +413,7 @@ export ScreenBufferInfo :: struct {
 @extern(KERNEL32, "GetConsoleScreenBufferInfo")
 export get_console_screen_buffer_info :: fn(
     h: Handle,
-    @c_pointer @c_out info: ScreenBufferInfo,
+    @c_out info: ScreenBufferInfo,
 ) -> bool
 
 /// `PeekNamedPipe`. Reports how many bytes are readable WITHOUT consuming them.
@@ -520,8 +520,8 @@ export create_process :: fn(application: CPointer | null, @c_out command_line: u
                             proc_attrs: CPointer | null, thread_attrs: CPointer | null,
                             inherit: bool, flags: u32,
                             environment: CPointer | null, directory: CPointer | null,
-                            @c_pointer startup: StartupInfo,
-                            @c_pointer @c_out info: ProcessInformation) -> bool
+                            @c_out startup: StartupInfo,
+                            @c_out info: ProcessInformation) -> bool
 
 /// `WaitForSingleObject`. `WAIT_OBJECT_0` once the process has exited.
 ///

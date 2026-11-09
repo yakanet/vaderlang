@@ -207,7 +207,7 @@ export Div :: struct {
     rem:  i32
 }
 
-@extern fill_div :: fn(@c_pointer @c_out d: Div, quot: i32, rem: i32) -> void
+@extern fill_div :: fn(@c_out d: Div, quot: i32, rem: i32) -> void
 
 export fills :: fn(d: Div) -> void {
     fill_div(d, 7, 3)

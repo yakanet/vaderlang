@@ -3,7 +3,7 @@ int32_t clock_gettime(int32_t clock_id, void* ts);  // system_posix$sys_clock_ge
 int32_t nanosleep(const void* req, void* rem);  // system_posix$sys_nanosleep
 
 /* DARWIN (system/darwin): <mach-o/dyld.h>, <mach/mach.h> */
-int32_t _NSGetExecutablePath(void* buf, const uint32_t* size);  // system_darwin$ns_get_executable_path
+int32_t _NSGetExecutablePath(void* buf, void* size);  // system_darwin$ns_get_executable_path
 uint32_t mach_task_self(void);  // system_darwin$mach_task_self
 int32_t task_info(uint32_t task, uint32_t flavor, void* info, void* count);  // system_darwin$task_info
 
@@ -18,7 +18,7 @@ void* realpath(const char* path, void* resolved);  // system_posix$sys_realpath
 bool CloseHandle(void* h);  // system_windows$close_handle
 bool CreateDirectoryW(const void* path, void* security);  // system_windows$create_directory
 void* CreateFileW(const void* path, uint32_t access, uint32_t share, void* security, uint32_t disposition, uint32_t flags, void* template);  // system_windows$create_file_w
-bool CreateProcessA(void* application, void* command_line, void* proc_attrs, void* thread_attrs, bool inherit, uint32_t flags, void* environment, void* directory, const STARTUPINFOA* startup, PROCESS_INFORMATION* info);  // system_windows$create_process
+bool CreateProcessA(void* application, void* command_line, void* proc_attrs, void* thread_attrs, bool inherit, uint32_t flags, void* environment, void* directory, STARTUPINFOA* startup, PROCESS_INFORMATION* info);  // system_windows$create_process
 int32_t DeleteFileW(const void* path);  // system_windows$delete_file
 bool FindClose(void* handle);  // system_windows$find_close
 void* FindFirstFileW(const void* pattern, void* data);  // system_windows$find_first_file

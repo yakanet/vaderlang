@@ -21,10 +21,10 @@ set_flags :: fn(fd: i32, command: i32, @c_variadic flags: i32) -> i32
 demo_fill :: fn(@c_out buf: u8[], size: u64) -> i64
 
 @extern(DEMO, "demo_now")
-demo_now :: fn(@c_pointer @c_out t: Timespec) -> i32
+demo_now :: fn(@c_out t: Timespec) -> i32
 
 @extern(DEMO, "demo_count")
-demo_count :: fn(@c_pointer n: u32) -> void
+demo_count :: fn(@c_address n: u32) -> void
 
 @c_type("size_t")
 @extern(DEMO, "demo_size")

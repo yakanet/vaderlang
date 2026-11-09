@@ -335,7 +335,7 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         } else {
             "param_types=${join_indices(imp.signature.param_types)} "
         }
-        // `@c_out` and `@c_pointer` per parameter. `write_signature` renders
+        // `@c_out` and `@c_address` per parameter. `write_signature` renders
         // neither (it serves functions too), so without them a `.virt` re-read
         // lost the write-back: the callee filled the block and the VM never
         // copied it out, leaving the Vader struct at its pre-call values.

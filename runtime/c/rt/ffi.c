@@ -111,7 +111,7 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
  * word.
  *
  * The fixed count cannot be derived from the argument count (only the callee's
- * real prototype knows it) so it is declared, by `@c_variadic(N)`.
+ * real prototype knows it) so it is declared, by `@c_variadic`.
  *
  * One prototype per fixed count, written out: the cast has to name the fixed
  * parameters, and C has no way to build a prototype from a count. */

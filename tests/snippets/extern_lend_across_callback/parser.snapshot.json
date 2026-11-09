@@ -197,10 +197,6 @@
             "variadic": false,
             "decorators": [
               {
-                "name": "c_pointer",
-                "args": []
-              },
-              {
                 "name": "c_out",
                 "args": []
               }

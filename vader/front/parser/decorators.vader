@@ -103,12 +103,6 @@ export DECORATORS: DecoratorSpec[]: [
         .doc    = "Includes the header instead of synthesising a prototype for an `@extern` fn, so `cc` checks the call against the real declaration.",
     },
     DecoratorSpec {
-        .name   = "c_pointer",
-        .usage  = "@c_pointer",
-        .places = [.Parameter],
-        .doc    = "On a parameter of an `@extern` fn: the callee receives the parameter's address, not its value. `@c_out` says whether C writes through it. `T3079` anywhere else.",
-    },
-    DecoratorSpec {
         .name   = "c_address",
         .usage  = "@c_address",
         .places = [.Parameter],
@@ -135,7 +129,7 @@ export DECORATORS: DecoratorSpec[]: [
     DecoratorSpec {
         .name   = "c_variadic",
         .usage  = "@c_variadic",
-        .places = [.Declaration, .Parameter],
+        .places = [.Parameter],
         .doc    = "On a parameter of an `@extern` fn: C receives it, and every parameter after it, through the `...` of its prototype.",
     },
     DecoratorSpec {
@@ -222,7 +216,7 @@ test_decorator_spec_finds_a_known_name :: fn() -> void {
 @test
 test_decorator_on_its_places :: fn() -> void {
     assert(decorator_on("c_type", .Declaration) && decorator_on("c_type", .Parameter), "c_type sits on both")
-    assert(!decorator_on("c_pointer", .Declaration), "c_pointer sits on a parameter only")
+    assert(!decorator_on("c_address", .Declaration), "c_address sits on a parameter only")
     assert(decorator_on("internal", .Field), "internal sits on a field")
     assert(!decorator_on("nope", .Declaration), "an unknown name sits nowhere")
 }

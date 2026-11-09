@@ -238,7 +238,7 @@ declare_fn :: fn(
         validate_extern(decl, return_type, diags)
     } else {
         // `validate_extern` checks them for an `@extern`; every other fn has to
-        // be checked here, or `@c_pointer` would pass unnoticed on a Vader body
+        // be checked here, or `@c_address` would pass unnoticed on a Vader body
         // where it means nothing.
         validate_param_decorators(decl, false, diags)
         validate_result_c_type(decl, return_type, false, diags)
@@ -473,18 +473,6 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
     }
     sd :: typed.struct_decls[t.symbol.id] ?? return ""
     return AST.c_struct_spelling(sd.decorators, sd.name)
-}
-
-// The decorator that lends the parameter by address for C to read, `@c_address`
-// or `@c_pointer`, or `""` when it carries neither.
-address_decorator :: fn(pm: AST.FnParam) -> string {
-    if AST.decorators_have(pm.decorators, "c_address") {
-        return "c_address"
-    }
-    if AST.decorators_have(pm.decorators, "c_pointer") {
-        return "c_pointer"
-    }
-    return ""
 }
 
 /// Check the decorators written on each of `decl`'s parameters.
@@ -776,8 +764,8 @@ validate_extern_signature :: fn(
     return_type :: signature.return_type
     for i in 0..<decl.params.len() {
         pt :: params[i]
-        lent :: address_decorator(decl.params[i])
-        if lent == "c_address" && AST.decorators_have(decl.params[i].decorators, "c_out") {
+        lent :: AST.decorators_have(decl.params[i].decorators, "c_address")
+        if lent && AST.decorators_have(decl.params[i].decorators, "c_out") {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
@@ -827,12 +815,12 @@ validate_extern_signature :: fn(
         // parameter would pass a `const char**` aimed at an atom ID, an array
         // one a pointer to the array header, and the `(void*)` cast the shim
         // emits hides the mismatch from `cc`.
-        if lent != "" && !is_unmarshalled_scalar(pt, false) {
+        if lent && !is_unmarshalled_scalar(pt, false) {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
                     decl.params[i].span,
-                    "`@${lent}` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` (a `string` and an array already cross as pointers, so drop the decorator)",
+                    "`@c_address` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` (a `string` and an array already cross as pointers, so drop the decorator)",
                 ),
             )
             continue
@@ -895,15 +883,14 @@ validate_variadic_parameters :: fn(
     if start < 0 {
         return
     }
-    count_fault :: variadic_count_fault(decl, start)
-    if count_fault != null {
-        diags.push(typecheck_error(.InvalidExternDecl, decl.name_span, count_fault))
+    if start == 0 {
+        detail :: "a variadic C function takes at least one fixed parameter before `...`: `${decl.name}` passes every one through it"
+        diags.push(typecheck_error(.InvalidExternDecl, decl.name_span, detail))
         return
     }
-    marked :: AST.decorators_have(decl.params[start].decorators, "c_variadic")
     for j in start..<decl.params.len() {
         pm :: decl.params[j]
-        if marked && !AST.decorators_have(pm.decorators, "c_variadic") {
+        if !AST.decorators_have(pm.decorators, "c_variadic") {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
@@ -918,23 +905,12 @@ validate_variadic_parameters :: fn(
     }
 }
 
-// What is wrong with `decl` taking its variadic arguments from parameter
-// `start` on, or null: C wants at least one fixed parameter before `...`.
-variadic_count_fault :: fn(decl: AST.FnDecl, start: i64) -> string | null {
-    if start == 0 {
-        return "a variadic C function takes at least one fixed parameter before `...`: `${decl.name}` passes every one through it"
-    }
-    if start > decl.params.len() {
-        return "`@c_variadic(${start})` counts more fixed parameters than the ${decl.params.len()} `${decl.name}` declares"
-    }
-    return null
-}
-
 // What is wrong with passing `pm`, of type `t`, through `...`, or null. A
 // mirror must cross by address, and a value C's default promotions would widen
 // is declared at the width the callee reads.
 variadic_parameter_fault :: fn(t: Type, pm: AST.FnParam, typed: TypedProgram) -> string | null {
-    by_address :: address_decorator(pm) != "" || AST.decorators_have(pm.decorators, "c_out")
+    by_address :: AST.decorators_have(pm.decorators, "c_address")
+        || AST.decorators_have(pm.decorators, "c_out")
     if by_address {
         return null
     }

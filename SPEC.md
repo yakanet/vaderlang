@@ -3480,6 +3480,7 @@ A parameter crosses as the C prototype spells it:
 The following are errors:
 
 - any other decorator on a parameter;
+- `@c_address`, `@c_out` or `@c_variadic` on a declaration rather than on one of its parameters;
 - `@c_address`, `@c_out` or `@c_variadic` on a parameter of a function that is not `@extern`;
 - an argument to one of them;
 - `@c_address` on any other type;

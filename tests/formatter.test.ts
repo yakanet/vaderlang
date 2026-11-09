@@ -46,10 +46,9 @@ const SNIPPETS = [
   // printer corrupted for as long as this file was not in the list. A
   // committed snippet pins the shape better than an invented source does.
   "capture_loop_var",
-  // A PARAMETER decorator: `@c_pointer` was silently dropped by the formatter,
-  // and without it a `@c_struct` crosses by value, where its `@c_out` is refused,
-  // so formatting this file used to stop it compiling. The AST round-trip is
-  // what catches it.
+  // A PARAMETER decorator (`@c_out d: Div`), which the formatter once dropped
+  // silently: the mirror then crosses by value and the file still compiles.
+  // The AST round-trip is what catches it.
   "c_struct_layout",
 ];
 

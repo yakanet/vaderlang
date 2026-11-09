@@ -14,6 +14,6 @@ HttpStatus :: enum(StatusInfo) {
 @c_struct("struct reply")
 Reply :: struct { status: HttpStatus, n: i32 }
 
-@extern send :: fn(@c_pointer r: Reply) -> i32
+@extern send :: fn(@c_address r: Reply) -> i32
 
 main :: fn() -> i32 { return 0 }

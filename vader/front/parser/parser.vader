@@ -673,12 +673,13 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
     }
 }
 
-// `@c_address`, `@c_pointer` and `@c_out` belong on a PARAMETER and `@c_struct` on
-// a struct. Written on a declaration they reach neither check and do nothing: the
-// same silent no-op `reject_free_fn_decorators` exists to prevent.
+// The decorators the registry places on a PARAMETER only (`@c_address`, `@c_out`,
+// `@c_variadic`) and `@c_struct`, which belongs on a struct. Written on a
+// declaration they reach neither check and do nothing: the same silent no-op
+// `reject_free_fn_decorators` exists to prevent.
 reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> void {
     for d in decorators {
-        if d.name == "c_address" || d.name == "c_pointer" || d.name == "c_out" {
+        if decorator_on(d.name, .Parameter) && !decorator_on(d.name, .Declaration) {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@${d.name}` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
         }
@@ -1217,7 +1218,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             // Decorators come before the name, as everywhere else. Which ones
             // are ACCEPTED is a typecheck question, not a parse one: the
             // parser's job is to carry them to a pass that knows the context
-            // (only an `@extern` declaration admits `@c_pointer`).
+            // (only an `@extern` declaration admits `@c_address`).
             param_decorators :: p.parse_decorators()
             is_variadic := false
             if p.check(.Dot) && p.check_at(.Dot, 1) && p.check_at(.Dot, 2) {
