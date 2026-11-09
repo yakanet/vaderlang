@@ -200,6 +200,7 @@
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.index_of<i64>  // std_core$index_of__i64
     fn std.core.insert_point  // std_core$insert_point
     fn std.core.log10_pow2  // std_core$log10_pow2
     fn std.core.log10_pow5  // std_core$log10_pow5

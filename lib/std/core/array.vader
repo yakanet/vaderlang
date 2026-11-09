@@ -176,6 +176,22 @@ export is_disjoint :: fn<T: Equals>(self: T[], other: T[]) -> bool {
     return true
 }
 
+/// The index of the first element of `self` equal to `value`, null when there
+/// is none.
+///
+/// @param value  the element looked for.
+/// @example
+///   [3, 5, 3].index_of(3)   // 0
+///   [3, 5, 3].index_of(7)   // null
+export index_of :: fn<T: Equals>(self: T[], value: T) -> i64 | null {
+    for i in 0..<self.len() {
+        if self[i] == value {
+            return i
+        }
+    }
+    return null
+}
+
 /// Remove the first element of `self` equal to `value`, keeping the others in
 /// order ; whether there was one.
 ///
@@ -185,14 +201,10 @@ export is_disjoint :: fn<T: Equals>(self: T[], other: T[]) -> bool {
 ///   xs.remove_value(1)   // true: xs is [2, 1]
 ///   xs.remove_value(7)   // false
 export remove_value :: fn<T: Equals>(self: T[], value: T) -> bool {
-    for i in 0..<self.len() {
-        if self[i] == value {
-            self.copy_to(i + 1, self, i, self.len() - i - 1)
-            self.remove_last()
-            return true
-        }
-    }
-    return false
+    i :: self.index_of(value) ?? return false
+    self.copy_to(i + 1, self, i, self.len() - i - 1)
+    self.remove_last()
+    return true
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -255,4 +267,17 @@ test_remove_value_leaves_an_array_without_it_alone :: fn() -> void {
     xs :: [1, 2]
     assert(!xs.remove_value(7), "7 is not there")
     assert(xs.content_equals([1, 2]), "unchanged")
+}
+
+@test
+test_index_of_finds_the_first_equal_element :: fn() -> void {
+    assert([3, 5, 3].index_of(3) == 0, "the first 3")
+    assert([3, 5, 3].index_of(5) == 1, "the 5")
+}
+
+@test
+test_index_of_an_absent_element_is_null :: fn() -> void {
+    assert([3, 5].index_of(7) == null, "7 is not there")
+    empty: i32[]: []
+    assert(empty.index_of(7) == null, "nothing is in an empty array")
 }
