@@ -31,6 +31,18 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: i64) -> I64Val |
     return read_i64(v, at_pc, "extern `${extern_name}` arg ${i}")
 }
 
+// The bytes C reads through the address of scalar argument `i`, as one word of
+// `width` bytes, written as a mirror field of that type is: an `f32` is held in
+// an `F64Val`, so a float takes its bits at `width`.
+lent_scalar_word :: fn(
+    v: Value, width: i64, at_pc: i32, extern_name: string, i: i64,
+) -> I64Val | Trap {
+    if v is F64Val {
+        return I64Val(i64(float_bits(f64(v), width)))
+    }
+    return read_scalar_word(v, at_pc, "extern `${extern_name}` arg ${i}")
+}
+
 // Serve `ffi_call` or, `through_adapter`, `ffi_call_frame` to code the VM runs:
 // an address, a descriptor and a frame, passed on as real byte arrays.
 hosted_frame_call :: fn(
@@ -606,12 +618,12 @@ dispatch_extern :: fn(
             // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
             // into the frame's data area and hand over that offset: the mirror
             // of the stack temporary the native shim spills to.
-            w :: extern_word(v, at_pc, info.extern_name, i)
-            if w is Trap { return w }
             width :: i64(bc.size_of_val_type(params[i]))
             if width == 0 || width > 8 {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
+            w :: lent_scalar_word(v, width, at_pc, info.extern_name, i)
+            if w is Trap { return w }
             desc.push(u8(FFI_ADDR))
             addr_slots.push(slot_words.len())
             slot_words.push(data.len())

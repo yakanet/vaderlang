@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/extern_lend_scalar_by_address
+  FnDecl         copy_bool            :: fn(u8[], bool, u64) -> void
+  FnDecl         copy_char            :: fn(u8[], char, u64) -> void
+  FnDecl         copy_f32             :: fn(u8[], f32, u64) -> void
+  FnDecl         copy_f64             :: fn(u8[], f64, u64) -> void
+  FnDecl         main                 :: fn() -> i32
+  expr 25:17    SeqLitExpr     :: u8[]
+  expr 26:14    IdentExpr      :: u8[]
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(u8[], f64, u64) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:20    IdentExpr      :: u8[]
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 28:19    SeqLitExpr     :: u8[]
+  expr 29:14    IdentExpr      :: u8[]
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(u8[], f32, u64) -> void
+  expr 30:13    StringLitExpr  :: string
+  expr 30:20    IdentExpr      :: u8[]
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:17    SeqLitExpr     :: u8[]
+  expr 32:15    IdentExpr      :: u8[]
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(u8[], bool, u64) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:21    IdentExpr      :: u8[]
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 34:19    SeqLitExpr     :: u8[]
+  expr 35:15    IdentExpr      :: u8[]
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(u8[], char, u64) -> void
+  expr 36:13    StringLitExpr  :: string
+  expr 36:21    IdentExpr      :: u8[]
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void

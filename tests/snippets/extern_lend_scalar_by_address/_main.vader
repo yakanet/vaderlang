@@ -1,0 +1,38 @@
+module "snippet"
+
+import "std/console"
+
+// A scalar lent by address (`@c_pointer`): `memcpy` copies the bytes C finds
+// behind the address into an array, which shows what crossed, on both engines.
+
+@c_header("<string.h>")
+@extern("memcpy")
+copy_f64 :: fn(@c_out into: u8[], @c_pointer x: f64, count: u64) -> void
+
+@c_header("<string.h>")
+@extern("memcpy")
+copy_f32 :: fn(@c_out into: u8[], @c_pointer x: f32, count: u64) -> void
+
+@c_header("<string.h>")
+@extern("memcpy")
+copy_bool :: fn(@c_out into: u8[], @c_pointer x: bool, count: u64) -> void
+
+@c_header("<string.h>")
+@extern("memcpy")
+copy_char :: fn(@c_out into: u8[], @c_pointer x: char, count: u64) -> void
+
+main :: fn() -> i32 {
+    wide: u8[]: [0, 0, 0, 0, 0, 0, 0, 0]
+    copy_f64(wide, -1.5, 8)
+    println("f64 ${wide}")
+    narrow: u8[]: [0, 0, 0, 0]
+    copy_f32(narrow, 1.5, 4)
+    println("f32 ${narrow}")
+    flag: u8[]: [7]
+    copy_bool(flag, true, 1)
+    println("bool ${flag}")
+    letter: u8[]: [0, 0, 0, 0]
+    copy_char(letter, 'é', 4)
+    println("char ${letter}")
+    return 0
+}
