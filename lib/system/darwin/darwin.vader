@@ -17,7 +17,7 @@ DARWIN :: CLibrary {
 /// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success, non-zero when
 /// `buf` was too small.
 ///
-/// ⚠️ C writes the NEEDED capacity back through `size` and Vader never sees it: a
+/// C writes the NEEDED capacity back through `size` and Vader never sees it: a
 /// scalar `@c_pointer` cannot be an out-parameter (`@c_out` on one is `T3079`), the
 /// shim's temporary dying at the return. A caller wanting to retry at the right size
 /// must lend a one-element array instead. The one caller does not: it starts at
