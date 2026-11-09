@@ -1,1 +1,1 @@
-[13:1] error[C4021] a variadic `@extern` names no header: `without_header` is variadic: name the header declaring `snprintf` with `@c_header`, or in its `CLibrary`'s `headers`
+[12:1] error[C4021] a variadic `@extern` names no header: `without_header` is variadic: name the header declaring `snprintf` with `@c_header`, or in its `CLibrary`'s `headers`

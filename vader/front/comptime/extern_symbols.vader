@@ -15,6 +15,7 @@ module "vader/front/comptime"
 import "std/collections"
 import "std/ffi"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 
@@ -30,12 +31,13 @@ check_extern_symbols :: fn(
     claimed :: Map<string, FnDecl> {}
     for [_, module] in loaded.modules {
         for decl in concat_file_decls(module.module.files) {
-            if decl !is FnDecl || decl.body != null || !decorators_have(decl.decorators, "extern") {
+            if decl !is FnDecl || decl.body != null {
                 continue
             }
+            extern_decorator :: find_decorator(decl.decorators, "extern") ?? continue decl
             if c_variadic_start(decl) >= 0 && !owns_prototype(decl, libraries) {
                 detail :: "`${decl.name}` is variadic: name the header declaring `${extern_symbol_of(decl)}` with `@c_header`, or in its `CLibrary`'s `headers`"
-                diags.push(comptime_error(.VariadicExternWithoutHeader, decl.name_span, detail))
+                diags.push(comptime_error(.VariadicExternWithoutHeader, extern_decorator.span, detail))
             }
             symbol :: extern_symbol_of(decl)
             prior :: claimed.get_or_put(symbol, decl)
@@ -46,9 +48,19 @@ check_extern_symbols :: fn(
                 continue
             }
             detail :: "`${symbol}` is already declared on `${prior.name}`"
-            diags.push(comptime_error(.ExternSymbolClaimedTwice, decl.name_span, detail))
+            span :: symbol_span(decl, extern_decorator)
+            diags.push(comptime_error(.ExternSymbolClaimedTwice, span, detail))
         }
     }
+}
+
+// Where the C symbol of `decl` is written: the last argument of its `@extern`,
+// else its name, which is then the symbol (`extern_symbol_of`).
+symbol_span :: fn(decl: FnDecl, extern_decorator: Decorator) -> Span {
+    if extern_decorator.args.len() == 0 {
+        return decl.name_span
+    }
+    return extern_decorator.args[extern_decorator.args.len() - 1].span
 }
 
 // Whether a header owns the prototype of `decl` (`extern_headers`).
