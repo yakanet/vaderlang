@@ -215,6 +215,8 @@ export ERROR_BROKEN_PIPE: u32: 109
 export ERROR_DISK_FULL: u32: 112
 export ERROR_DIR_NOT_EMPTY: u32: 145
 export ERROR_ALREADY_EXISTS: u32: 183
+/// A directory was asked of a path that names a file.
+export ERROR_DIRECTORY: u32: 267
 
 /// `WriteFile`. False on failure: the caller reads `GetLastError`.
 ///
@@ -456,6 +458,38 @@ export find_close :: fn(handle: Handle) -> bool
 /// @return      the entry name.
 @extern(VADER_RUNTIME, "vader_find_data_name")
 export find_data_name :: fn(data: u8[]) -> string
+
+/// The attributes of a filled `WIN32_FIND_DATAW` into `out[0]`, and its reparse
+/// tag into `out[1]`, 0 when it is no reparse point.
+///
+/// @param data  the buffer `find_first_file` filled.
+/// @param out   two cells.
+@extern(VADER_RUNTIME, "vader_find_data_attributes")
+export find_data_attributes :: fn(data: u8[], @c_out out: u32[]) -> void
+
+/// The `index`-th `NAME=value` of the system's environment block, null past
+/// the last. The `=C:` entries naming each drive's directory come back too.
+///
+/// @param index  from 0, the caller stopping at the first null.
+@extern(VADER_RUNTIME, "vader_environ_entry")
+export environment_entry :: fn(index: i64) -> string | null
+
+/// `GetEnvironmentVariableW`: the value of `name` into `buf`, and its length
+/// in UTF-16 units. When `buf` is too small, the size it needs, its NUL
+/// included; 0 when `name` is unset.
+///
+/// @param size  the size of `buf` in UTF-16 units.
+@extern(KERNEL32, "GetEnvironmentVariableW")
+export get_environment_variable_w :: fn(name: u16[], @c_out buf: u16[], size: u32) -> u32
+
+/// `SetEnvironmentVariableW`: `name` takes `value`. False on failure.
+@extern(KERNEL32, "SetEnvironmentVariableW")
+export set_environment_variable_w :: fn(name: u16[], value: u16[]) -> bool
+
+/// `SetEnvironmentVariableW` with a null value, which unsets `name`. False on
+/// failure.
+@extern(KERNEL32, "SetEnvironmentVariableW")
+export unset_environment_variable_w :: fn(name: u16[], value: CPointer | null) -> bool
 
 /// Up to `max` bytes of what was typed at the console, as UTF-8. The runtime
 /// reads the console, ahead of time while a task waits on it, and keeps what a

@@ -7,6 +7,10 @@ int32_t _NSGetExecutablePath(void* buf, void* size);  // system_darwin$ns_get_ex
 uint32_t mach_task_self(void);  // system_darwin$mach_task_self
 int32_t task_info(uint32_t task, uint32_t flavor, void* info, void* count);  // system_darwin$task_info
 
+/* ENVIRONMENT (system/posix): <stdlib.h> */
+int32_t setenv(const char* name, const char* value, int32_t overwrite);  // system_posix$sys_setenv
+int32_t unsetenv(const char* name);  // system_posix$sys_unsetenv
+
 /* FILE_SYSTEM (system/posix): <dirent.h>, <fcntl.h>, <stdlib.h>, <sys/stat.h> */
 int32_t chmod(const char* path, uint32_t mode);  // system_posix$sys_chmod
 int32_t closedir(void* dir);  // system_posix$sys_closedir
@@ -31,6 +35,7 @@ uint32_t GetActiveProcessorCount(uint16_t group);  // system_windows$get_active_
 bool GetConsoleMode(void* h, void* mode);  // system_windows$get_console_mode
 bool GetConsoleScreenBufferInfo(void* h, CONSOLE_SCREEN_BUFFER_INFO* info);  // system_windows$get_console_screen_buffer_info
 uint32_t GetCurrentDirectoryW(uint32_t size, void* buf);  // system_windows$get_current_directory
+uint32_t GetEnvironmentVariableW(const void* name, void* buf, uint32_t size);  // system_windows$get_environment_variable_w
 bool GetExitCodeProcess(void* h, void* code);  // system_windows$get_exit_code_process
 bool GetFileAttributesExW(const void* path, int32_t level, void* data);  // system_windows$get_file_attributes_ex
 uint32_t GetFileAttributesW(const void* path);  // system_windows$get_file_attributes
@@ -53,6 +58,8 @@ bool ReadFile(void* h, void* buf, uint32_t count, void* read, void* overlapped);
 bool RemoveDirectoryW(const void* path);  // system_windows$remove_directory_w
 bool SetConsoleMode(void* h, uint32_t mode);  // system_windows$set_console_mode
 int32_t SetCurrentDirectoryW(const void* path);  // system_windows$set_current_directory
+bool SetEnvironmentVariableW(const void* name, const void* value);  // system_windows$set_environment_variable_w
+bool SetEnvironmentVariableW(const void* name, void* value);  // system_windows$unset_environment_variable_w
 bool SetFileAttributesW(const void* path, uint32_t attributes);  // system_windows$set_file_attributes_w
 uint32_t SetFilePointer(void* h, int32_t low, void* high, uint32_t method);  // system_windows$set_file_pointer
 void Sleep(uint32_t ms);  // system_windows$sleep_ms
@@ -126,8 +133,10 @@ int32_t unlink(const char* path);  // system_posix$sys_unlink
 int64_t write(int32_t fd, const void* buf, int64_t count);  // system_posix$sys_write
 
 /* VADER_RUNTIME (system/posix): vader.h */
+int32_t vader_dirent_kind(void* ent);  // system_posix$dirent_kind
 const char* vader_dirent_name(void* ent);  // system_posix$dirent_name
 void* vader_environ(void);  // system_posix$sys_environ
+const char* vader_environ_entry(int64_t index);  // system_posix$sys_environ_entry
 int32_t vader_fd_kind(int32_t fd);  // system_posix$sys_fd_kind
 int64_t vader_fd_size(int32_t fd);  // system_posix$sys_fd_size
 int32_t vader_last_errno(void);  // system_posix$sys_last_errno
@@ -137,6 +146,8 @@ int32_t vader_path_stat(const char* path, int32_t follow_links, void* out);  // 
 
 /* VADER_RUNTIME (system/windows): vader.h */
 int64_t vader_console_read(void* buf, int64_t max);  // system_windows$console_read
+const char* vader_environ_entry(int64_t index);  // system_windows$environment_entry
+void vader_find_data_attributes(const void* data, void* out);  // system_windows$find_data_attributes
 const char* vader_find_data_name(const void* data);  // system_windows$find_data_name
 bool vader_overlapped_pipe(void* read_end, void* write_end);  // system_windows$create_watched_pipe
 void* vader_ptr_at(const void* base, int64_t i);  // system_windows$ptr_at

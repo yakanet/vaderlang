@@ -483,6 +483,50 @@ const char* vader_find_data_name(const void* fd) {
     return utf8;
 }
 
+/* The attributes of a filled `WIN32_FIND_DATAW` into `out[0]`, and its reparse
+ * tag into `out[1]`: `dwReserved0`, which holds the tag on a reparse point
+ * only, so 0 elsewhere. */
+VADER_HOST_EXPORT
+void vader_find_data_attributes(const void* fd, uint32_t* out) {
+    const WIN32_FIND_DATAW* d = (const WIN32_FIND_DATAW*) fd;
+    out[0] = d->dwFileAttributes;
+    out[1] = 0;
+    if ((d->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+        out[1] = d->dwReserved0;
+    }
+}
+
+/* The `index`-th `NAME=value` of the environment, as UTF-8; NULL past the
+ * last. The block is the system's, which `SetEnvironmentVariableW` changes,
+ * and not the C library's copy; it is taken anew at each call, an environment
+ * holding tens of entries. The `=C:` entries naming each drive's directory
+ * come back like the others.
+ *
+ * The result lives in a static buffer, valid until the next call: the shim
+ * interns it before then. An entry holds at most 32767 UTF-16 units. */
+VADER_HOST_EXPORT
+const char* vader_environ_entry(int64_t index) {
+    static char utf8[32768 * 3];
+    wchar_t* block = GetEnvironmentStringsW();
+    if (block == NULL) {
+        return NULL;
+    }
+    const wchar_t* entry = block;
+    for (int64_t i = 0; i < index && *entry != L'\0'; i++) {
+        entry += wcslen(entry) + 1;
+    }
+    const char* result = NULL;
+    if (*entry != L'\0') {
+        int n = WideCharToMultiByte(CP_UTF8, 0, entry, -1, utf8, (int) sizeof(utf8), NULL, NULL);
+        if (n <= 0) {
+            utf8[0] = '\0';
+        }
+        result = utf8;
+    }
+    FreeEnvironmentStringsW(block);
+    return result;
+}
+
 /* Up to `max` bytes of what was typed at the console, as UTF-8: what an earlier
  * read brought first, a read of the console otherwise, which waits for the
  * reader when it is reading. 0 at the end of the input, -1 on a failure, whose

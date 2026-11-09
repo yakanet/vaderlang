@@ -1478,8 +1478,10 @@ int32_t        vader_current_arch(void);
  */
 VADER_HOST_EXPORT int32_t     vader_last_errno(void);
 VADER_HOST_EXPORT void*       vader_ptr_at(const void* base, int64_t i);
+VADER_HOST_EXPORT const char* vader_environ_entry(int64_t index);
 #if defined(_WIN32)
 VADER_HOST_EXPORT const char* vader_find_data_name(const void* fd);
+VADER_HOST_EXPORT void        vader_find_data_attributes(const void* fd, uint32_t* out);
 VADER_HOST_EXPORT int64_t     vader_console_read(void* buf, int64_t max);
 VADER_HOST_EXPORT int32_t     vader_stdin_await_reader(int32_t timeout_ms);
 VADER_HOST_EXPORT int32_t     vader_overlapped_pipe(void* read_end, void* write_end);
@@ -1492,6 +1494,7 @@ VADER_HOST_EXPORT int64_t     vader_stream_size(void* stream);
 VADER_HOST_EXPORT int32_t     vader_fd_kind(int32_t fd);
 VADER_HOST_EXPORT int64_t     vader_fd_size(int32_t fd);
 VADER_HOST_EXPORT const char* vader_dirent_name(void* ent);
+VADER_HOST_EXPORT int32_t     vader_dirent_kind(void* ent);
 #endif
 
 

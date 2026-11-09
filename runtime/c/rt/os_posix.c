@@ -301,17 +301,25 @@ char** vader_environ(void) {
     return environ;
 }
 
-/* What KIND of file `st` describes. Ordinals must match
+/* The `index`-th `NAME=value` of `environ`, NULL past the last: the caller
+ * stops there. A `setenv` may move the array, so it is read entry by entry,
+ * never held. */
+VADER_HOST_EXPORT
+const char* vader_environ_entry(int64_t index) {
+    return environ[index];
+}
+
+/* What KIND of file `mode` describes. Ordinals must match
  * `lib/system/posix/posix.vader`'s `PATH_*` constants.
  *
  * Here rather than in Vader because `struct stat` is not mirrorable at all: a
  * mirror is only valid as a contiguous leading prefix, `st_mode` leads on no
  * arch, and the arches disagree on field order.
  * See `docs/adr/0013-what-the-ffi-boundary-cannot-express.md`. */
-static int32_t kind_of_stat(const struct stat* st) {
-    if (S_ISREG(st->st_mode)) return 1;
-    if (S_ISDIR(st->st_mode)) return 2;
-    if (S_ISLNK(st->st_mode)) return 4;
+static int32_t kind_of_mode(mode_t mode) {
+    if (S_ISREG(mode)) return 1;
+    if (S_ISDIR(mode)) return 2;
+    if (S_ISLNK(mode)) return 4;
     return 3;
 }
 
@@ -332,13 +340,13 @@ static int64_t size_of_stat(const struct stat* st) {
     return (int64_t) st->st_size;
 }
 
-/* What KIND of thing `path` is, as `kind_of_stat` names it; 0 when `stat`
+/* What KIND of thing `path` is, as `kind_of_mode` names it; 0 when `stat`
  * fails. */
 VADER_HOST_EXPORT
 int32_t vader_path_kind(const char* path) {
     struct stat st;
     if (stat(path, &st) != 0) return 0;
-    return kind_of_stat(&st);
+    return kind_of_mode(st.st_mode);
 }
 
 /* When `path` was last modified, as `mtime_of_stat` gives it, or -1 when `stat`
@@ -352,7 +360,7 @@ int64_t vader_path_mtime(const char* path) {
 }
 
 /* What the file system records of `path`, in four cells of `out`: its kind as
- * `kind_of_stat` names it, its size, when it was last modified as
+ * `kind_of_mode` names it, its size, when it was last modified as
  * `mtime_of_stat` gives it, and its permission bits. Through `stat`, or `lstat`
  * when `follow_links` is 0, so that a link reports itself. 0 on success, -1 when
  * the call fails, `errno` saying why. Here for the reason `vader_path_kind`
@@ -362,7 +370,7 @@ int32_t vader_path_stat(const char* path, int32_t follow_links, int64_t* out) {
     struct stat st;
     int failed = follow_links ? stat(path, &st) : lstat(path, &st);
     if (failed != 0) return -1;
-    out[0] = kind_of_stat(&st);
+    out[0] = kind_of_mode(st.st_mode);
     out[1] = (int64_t) st.st_size;
     out[2] = mtime_of_stat(&st);
     out[3] = (int64_t) (st.st_mode & 07777);
@@ -386,7 +394,7 @@ VADER_HOST_EXPORT
 int32_t vader_fd_kind(int32_t fd) {
     struct stat st;
     if (fstat(fd, &st) != 0) return 0;
-    return kind_of_stat(&st);
+    return kind_of_mode(st.st_mode);
 }
 
 /* The size of the regular file the descriptor `fd` is open on, as
@@ -414,6 +422,16 @@ int64_t vader_fd_size(int32_t fd) {
 VADER_HOST_EXPORT
 const char* vader_dirent_name(void* ent) {
     return ((const struct dirent*) ent)->d_name;
+}
+
+/* What KIND of entry `ent` is, as `kind_of_mode` names it, from `d_type`
+ * rather than a `stat`; 0 when the file system does not record it
+ * (`DT_UNKNOWN`), and the caller then asks `vader_path_stat`. */
+VADER_HOST_EXPORT
+int32_t vader_dirent_kind(void* ent) {
+    unsigned char type = ((const struct dirent*) ent)->d_type;
+    if (type == DT_UNKNOWN) return 0;
+    return kind_of_mode(DTTOIF(type));
 }
 
 /* ---- library loader ------------------------------------------------------ */
