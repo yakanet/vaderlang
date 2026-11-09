@@ -102,7 +102,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
     if up_to_date {
         println("vader doc: `${out.to_native()}` is up to date")
     } else {
-        remove_file(stamp_file)
+        remove(stamp_file)
         code :: vite(install, copy, ["build", "--logLevel", "warn"])
         if code != 0 || !exists(join_path(out, SITE_MARKER)) {
             eprintln("vader doc: the site could not be built")
@@ -357,7 +357,7 @@ site_copy :: fn(install: string, template: string, data_dir: string) -> string |
     }
     for stale in template_files(dir, "") {
         if !(stale in files) && !(stale in [SITE_ENV_FILE, SITE_STAMP_FILE]) {
-            remove_file(join_path(dir, stale))
+            remove(join_path(dir, stale))
         }
     }
     return dir

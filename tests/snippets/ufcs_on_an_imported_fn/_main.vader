@@ -31,7 +31,7 @@ main :: fn() -> i32 {
     if named is IOError {
         println("named 4:   ${named.msg}")
     }
-    removed :: remove_file(path)
+    removed :: remove(path)
     if removed is IOError {
         println("cleanup failed: ${removed.msg}")
     }

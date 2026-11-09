@@ -2,6 +2,7 @@
 
 ## tests/snippets/default_naming_a_std_constant
   FnDecl         main                 :: fn() -> i32
+  expr 195:62   IdentExpr      :: i64
   expr 19:13    StringLitExpr  :: string
   expr 19:16    CallExpr       :: string
   expr 19:16    IdentExpr      :: fn() -> string
@@ -13,15 +14,14 @@
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
   expr 21:8     IdentExpr      :: IOError | null
-  expr 225:62   IdentExpr      :: i64
   expr 22:17    StringLitExpr  :: string
   expr 22:34    FieldExpr      :: string
   expr 22:34    IdentExpr      :: IOError
   expr 22:9     CallExpr       :: void
   expr 22:9     IdentExpr      :: fn(T) -> void
   expr 25:11    CallExpr       :: IOError | null
-  expr 25:11    IdentExpr      :: fn(string) -> IOError | null
-  expr 25:23    IdentExpr      :: string
+  expr 25:11    IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
+  expr 25:18    IdentExpr      :: string
   expr 27:13    CallExpr       :: IOError | string
   expr 27:13    IdentExpr      :: fn(string, i64) -> IOError | string
   expr 27:30    IdentExpr      :: string
@@ -55,6 +55,7 @@
   expr 36:5     IfExpr         :: void
   expr 36:8     BinaryExpr     :: bool
   expr 36:8     IdentExpr      :: IOError | string
+  expr 374:60   StructLitExpr  :: RemoveOptions
   expr 37:17    StringLitExpr  :: string
   expr 37:32    FieldExpr      :: string
   expr 37:32    IdentExpr      :: IOError

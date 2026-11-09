@@ -88,7 +88,7 @@ export build_ffi_adapters :: fn(
         return AdapterBuildError { .message = "need a C compiler, and `${cc}` did not run: ${why}" }
     }
     if compiled.exit != 0 {
-        _ :: remove_file(library)
+        _ :: remove(library)
         return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir.to_native()}`):\n${compiled.stderr}" }
     }
     // Written last: a run cut short leaves a library that is not to be trusted.

@@ -4,6 +4,7 @@
   FnDecl         c_fclose             :: fn(CPointer) -> i32
   FnDecl         c_fopen              :: fn(string, string) -> CPointer | null
   FnDecl         main                 :: fn() -> i32
+  expr 374:60   StructLitExpr  :: RemoveOptions
   expr 37:13    StringLitExpr  :: string
   expr 37:16    CallExpr       :: string
   expr 37:16    IdentExpr      :: fn() -> string
@@ -55,6 +56,6 @@
   expr 59:24    CallExpr       :: void
   expr 59:24    IdentExpr      :: fn(T) -> void
   expr 59:32    StringLitExpr  :: string
-  expr 61:17    IdentExpr      :: string
+  expr 61:12    IdentExpr      :: string
   expr 61:5     CallExpr       :: IOError | null
-  expr 61:5     IdentExpr      :: fn(string) -> IOError | null
+  expr 61:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null

@@ -439,7 +439,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = {
-    { 23u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+    { 24u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 13u, 4u,
@@ -773,7 +773,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     },
 };
 static const vader_array_t vader_data_1 = {
-    { 23u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
+    { 24u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const struct vader_struct_std_core$Stop_t vader_data_2_e0 = { { 7u, 0u, 0u, 0u, NULL } };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_2_buf = {
@@ -1056,7 +1056,7 @@ static int32_t snippet$main(void) {
         break;
     }
     l5 = 5u;
-    vader_array_t* _a0_arr = vader_array_new(24u, 0u, 8u, 10u);
+    vader_array_t* _a0_arr = vader_array_new(23u, 0u, 8u, 10u);
     l11 = (void*) _a0_arr;
     l3 = INT64_C(0);
     l4 = vader_host_std_core$byte_len(l5);

@@ -1,0 +1,628 @@
+// std/fs/entries: what the file system records of a path, and the calls that
+// rename, copy and remove what a path names.
+//
+// POSIX reads a path's record through one runtime accessor, `sys_path_stat`:
+// `struct stat` has no mirror (docs/adr/0013-what-the-ffi-boundary-cannot-express.md).
+// Windows opens the path and asks the handle.
+
+module "std/fs"
+
+import "std/io"
+import "std/target"
+import "system/libc"
+import "system/posix"
+import "system/windows"
+
+// ---- metadata -------------------------------------------------------------
+
+/// What a path names.
+@displayable
+export EntryKind :: enum {
+    File
+    Directory
+    /// A symbolic link, reported only by a `metadata` that does not follow it.
+    Symlink
+    /// A device, a pipe, a socket.
+    Other
+}
+
+/// What the file system records of an entry.
+export Metadata :: struct {
+    kind:              EntryKind
+    /// In bytes. A directory's says nothing portable.
+    size:              i64
+    /// In nanoseconds since the Unix epoch, as `modification_time` gives it.
+    modification_time: i64
+    /// Whether no one may write it: no write bit on POSIX, the read-only
+    /// attribute on Windows.
+    read_only:         bool
+}
+
+/// How `metadata` reads a path.
+export MetadataOptions :: struct {
+    /// Report what a symbolic link points to; false reports the link itself,
+    /// as `.Symlink`.
+    follow_links: bool = true
+}
+
+/// What the file system records of `path`.
+///
+/// @param path     the entry to probe.
+/// @param options  whether a symbolic link is followed, as it is by default.
+/// @error          `IOError` when `path` cannot be probed: `.NotFound` when it
+///                 does not exist, a followed link that points nowhere
+///                 included.
+/// @example
+///   # import "std/console"
+///   entry :: metadata("notes.txt")
+///   if entry is Metadata {
+///       println("${entry.size} bytes")
+///   }
+export metadata :: fn(
+    path: string,
+    options: MetadataOptions = MetadataOptions {},
+) -> Metadata | IOError {
+    if path.has_nul() {
+        return NUL_IN_PATH
+    }
+    return path.system_metadata(options.follow_links)
+}
+
+/// Make `path` read-only, or writable again.
+///
+/// On POSIX, read-only takes every write bit away, and writable gives the
+/// owner's back: the other bits stay as they are.
+///
+/// @param read_only  true to forbid writing, false to allow it.
+/// @error            `IOError` when `path` cannot be probed or changed.
+export set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
+    if path.has_nul() {
+        return NUL_IN_PATH
+    }
+    return path.system_set_read_only(read_only)
+}
+
+@target
+system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError
+
+@target(.Linux, .Darwin)
+system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError {
+    cells :: path.stat_cells(follow_links)
+    if cells is IOError {
+        return cells
+    }
+    return Metadata {
+        .kind = kind_of(cells[0]),
+        .size = cells[1],
+        .modification_time = cells[2],
+        .read_only = (cells[3] & 0o222) == 0,
+    }
+}
+
+@target(.Windows)
+system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError {
+    h :: create_file_w(to_wide(path), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                       null, OPEN_EXISTING, open_flags_of(follow_links), null)
+    if i64(h) == INVALID_HANDLE {
+        return last_io_error("cannot probe file")
+    }
+    // Runs once a `return` has computed its value: `last_io_error` reads the
+    // last-error slot before `CloseHandle` overwrites it.
+    defer close_handle(h)
+    info: u32[]: [0] * FILE_INFORMATION_CELLS
+    if !get_file_information_by_handle(h, info) {
+        return last_io_error("cannot probe file")
+    }
+    attributes :: info[0]
+    return Metadata {
+        .kind = h.kind_of_handle(attributes, follow_links),
+        .size = (i64(info[8]) << 32) | i64(info[9]),
+        .modification_time = nanoseconds_of_filetime(info[5], info[6]),
+        .read_only = (attributes & FILE_ATTRIBUTE_READONLY) != 0,
+    }
+}
+
+// The four cells `sys_path_stat` fills for `path`: its kind, its size, when it
+// was last modified, its permission bits.
+stat_cells :: fn(path: string, follow_links: bool) -> i64[] | IOError {
+    cells: i64[]: [0, 0, 0, 0]
+    if sys_path_stat(path, link_flag(follow_links), cells) != 0 {
+        return last_io_error("cannot probe file")
+    }
+    return cells
+}
+
+// `follow_links` as `sys_path_stat` takes it.
+link_flag :: fn(follow_links: bool) -> i32 {
+    if follow_links {
+        return 1
+    }
+    return 0
+}
+
+// The `EntryKind` of a `PATH_*` answer.
+kind_of :: fn(cell: i64) -> EntryKind {
+    kind :: i32(cell)
+    if kind == PATH_REGULAR   { return .File }
+    if kind == PATH_DIRECTORY { return .Directory }
+    if kind == PATH_SYMLINK   { return .Symlink }
+    return .Other
+}
+
+// The `CreateFileW` flags that open a path to probe it: a directory as well as
+// a file, and the link itself unless it is followed.
+open_flags_of :: fn(follow_links: bool) -> u32 {
+    if follow_links {
+        return FILE_FLAG_BACKUP_SEMANTICS
+    }
+    return FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT
+}
+
+// The `EntryKind` of the entry `h` opens, whose Windows file attributes are
+// `attributes`. A link shows only when it was not followed.
+kind_of_handle :: fn(h: Handle, attributes: u32, follow_links: bool) -> EntryKind {
+    if !follow_links && h.is_link(attributes) {
+        return .Symlink
+    }
+    if (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0 {
+        return .Directory
+    }
+    return .File
+}
+
+// Whether the entry `h` opens stands for another, a symbolic link or a
+// junction. A reparse point of another kind, a cloud placeholder say, is the
+// file or the directory it holds.
+is_link :: fn(h: Handle, attributes: u32) -> bool {
+    if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0 {
+        return false
+    }
+    // A tag that cannot be read counts as a link, which `remove` never follows.
+    tag: u32[]: [0, 0]
+    if !get_file_information_by_handle_ex(h, FILE_ATTRIBUTE_TAG_INFO, tag, 8) {
+        return true
+    }
+    return (tag[1] & IO_REPARSE_TAG_NAME_SURROGATE) != 0
+}
+
+@target
+system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
+    cells :: path.stat_cells(true)
+    if cells is IOError {
+        return cells
+    }
+    mode :: u32(mode_with(cells[3], read_only))
+    return failure_unless(sys_chmod(path, mode) == 0, "cannot change permissions")
+}
+
+@target(.Windows)
+system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
+    wide :: to_wide(path)
+    attributes :: get_file_attributes(wide)
+    if attributes == INVALID_FILE_ATTRIBUTES {
+        return last_io_error("cannot probe file")
+    }
+    changed :: set_file_attributes_w(wide, attributes_with(attributes, read_only))
+    return failure_unless(changed, "cannot change attributes")
+}
+
+// The permission bits `mode` takes: every write bit away when read-only, the
+// owner's back when writable.
+mode_with :: fn(mode: i64, read_only: bool) -> i64 {
+    if read_only {
+        return mode & ~0o222
+    }
+    return mode | 0o200
+}
+
+attributes_with :: fn(attributes: u32, read_only: bool) -> u32 {
+    if read_only {
+        return attributes | FILE_ATTRIBUTE_READONLY
+    }
+    return attributes & ~FILE_ATTRIBUTE_READONLY
+}
+
+// ---- rename and copy ------------------------------------------------------
+
+/// Give the entry at `from` the name `to`, replacing a file that held it.
+///
+/// Both names on one file system: across two, copy then remove.
+///
+/// @param from  the entry to rename.
+/// @param to    its new name.
+/// @error       `IOError` when the entry cannot be renamed: `.NotFound` when
+///              `from` does not exist.
+export rename :: fn(from: string, to: string) -> null | IOError {
+    if from.has_nul() || to.has_nul() {
+        return NUL_IN_PATH
+    }
+    return from.system_rename(to)
+}
+
+/// Copy the file at `from` to `to`, its permissions with it, replacing a file
+/// that held the name.
+///
+/// @param from  the file to copy.
+/// @param to    the name of the copy.
+/// @error       `IOError` when the copy fails: `.IsADirectory` for a directory,
+///              `.InvalidInput` when both name one file, which the copy would
+///              empty before reading it.
+export copy :: fn(from: string, to: string) -> null | IOError {
+    if from.has_nul() || to.has_nul() {
+        return NUL_IN_PATH
+    }
+    if from.is_same_file(to) {
+        return IOError { .msg = "copy onto itself", .kind = .InvalidInput }
+    }
+    return from.system_copy(to)
+}
+
+// Whether `from` and `to` both exist and name one file.
+is_same_file :: fn(from: string, to: string) -> bool {
+    source :: real_path(from)
+    target :: real_path(to)
+    return source is string && target is string && source == target
+}
+
+@target
+system_rename :: fn(from: string, to: string) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_rename :: fn(from: string, to: string) = failure_unless(
+    sys_rename(from, to) == 0,
+    "cannot rename",
+)
+
+@target(.Windows)
+system_rename :: fn(from: string, to: string) -> null | IOError {
+    moved :: move_file_ex_w(to_wide(from), to_wide(to), MOVEFILE_REPLACE_EXISTING)
+    return failure_unless(moved, "cannot rename")
+}
+
+@target
+system_copy :: fn(from: string, to: string) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_copy :: fn(from: string, to: string) -> null | IOError {
+    cells :: from.stat_cells(true)
+    if cells is IOError {
+        return cells
+    }
+    copied :: from.copy_content(to)
+    if copied is IOError {
+        return copied
+    }
+    return failure_unless(sys_chmod(to, u32(cells[3])) == 0, "cannot copy permissions")
+}
+
+@target(.Windows)
+system_copy :: fn(from: string, to: string) -> null | IOError {
+    if !copy_file_w(to_wide(from), to_wide(to), false) {
+        return last_io_error("cannot copy").refine_directory_denial(from)
+    }
+    return null
+}
+
+// Write what the file `from` holds to a new file `to`, chunk after chunk.
+copy_content :: fn(from: string, to: string) -> null | IOError {
+    input :: from.open()
+    if input is IOError {
+        return input
+    }
+    defer input.close()
+    output :: to.create()
+    if output is IOError {
+        return output
+    }
+    copied :: input.copy_chunks(output)
+    // Closed either way, and its failure reported: some file systems keep for
+    // `close` a write that never reached the disk.
+    closed :: output.close()
+    if copied is IOError {
+        return copied
+    }
+    return closed
+}
+
+// Write what `input` reads to `output`, chunk after chunk, to the end.
+copy_chunks :: fn(input: File, output: File) -> null | IOError {
+    chunk: u8[]: [0] * READ_CHUNK
+    for {
+        n :: system_read(input.handle, chunk, READ_CHUNK)
+        if n is IOError {
+            return n
+        }
+        if n == 0 {
+            return null
+        }
+        written :: output.write(chunk[0..<n])
+        if written is IOError {
+            return written
+        }
+    }
+}
+
+// ---- remove ---------------------------------------------------------------
+
+/// How `remove` treats what it finds.
+export RemoveOptions :: struct {
+    /// Remove a directory that holds entries, and them first. A link among
+    /// them is removed, never followed.
+    recursive: bool = false
+    /// Succeed when `path` does not exist, as `rm -f` does, and remove a
+    /// read-only entry on Windows too.
+    force:     bool = false
+}
+
+/// Remove the file, the link or the empty directory at `path`, as `rm` does: a
+/// directory that holds entries takes `.recursive`.
+///
+/// A link is removed, not what it points to.
+///
+/// @param path     the entry to remove.
+/// @param options  whether to remove a directory's entries, and to accept a
+///                 missing path.
+/// @error          `IOError` when the entry cannot be removed: `.NotFound` when
+///                 it does not exist and `force` is off, `.DirectoryNotEmpty`
+///                 for a directory with entries and `recursive` off.
+/// @example
+///   remove("build/out.c")
+///   remove("build", RemoveOptions { .recursive = true, .force = true })
+export remove :: fn(path: string, options: RemoveOptions = RemoveOptions {}) -> null | IOError {
+    if path.has_nul() {
+        return NUL_IN_PATH
+    }
+    removed :: path.system_remove(options)
+    if removed is IOError && removed.kind == .NotFound && options.force {
+        return null
+    }
+    return removed
+}
+
+// Remove what `path` names, as `remove` does once `path` holds no NUL.
+@target
+system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
+    cells :: path.stat_cells(false)
+    if cells is IOError {
+        return cells
+    }
+    if kind_of(cells[0]) == .Directory {
+        return path.remove_directory(options)
+    }
+    // `unlink` takes a read-only file already: `force` has nothing to add.
+    return failure_unless(sys_unlink(path) == 0, "cannot remove file")
+}
+
+@target(.Windows)
+system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
+    wide :: to_wide(path)
+    attributes :: get_file_attributes(wide)
+    if attributes == INVALID_FILE_ATTRIBUTES {
+        return last_io_error("cannot remove")
+    }
+    if options.force && (attributes & FILE_ATTRIBUTE_READONLY) != 0 {
+        set_file_attributes_w(wide, attributes_with(attributes, false))
+    }
+    if (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0 {
+        return failure_unless(delete_file(wide) != 0, "cannot remove file")
+    }
+    // A link to a directory is a directory to Windows: `RemoveDirectoryW` takes
+    // it and leaves what it points to. A reparse point that cannot be probed
+    // counts as a link, so a failed probe never sends the walk through one.
+    if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0 {
+        entry :: path.system_metadata(false)
+        if entry !is Metadata || entry.kind == .Symlink {
+            return path.system_remove_directory()
+        }
+    }
+    return path.remove_directory(options)
+}
+
+// Remove the directory `path`, what it holds first under `recursive`.
+remove_directory :: fn(path: string, options: RemoveOptions) -> null | IOError {
+    if options.recursive {
+        names :: read_dir(path)
+        if names is IOError {
+            return names
+        }
+        for name in names {
+            removed :: remove("${path}/${name}", options)
+            if removed is IOError {
+                return removed
+            }
+        }
+    }
+    return path.system_remove_directory()
+}
+
+@target
+system_remove_directory :: fn(path: string) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_remove_directory :: fn(path: string) = failure_unless(
+    sys_rmdir(path) == 0,
+    "cannot remove directory",
+)
+
+@target(.Windows)
+system_remove_directory :: fn(path: string) = failure_unless(
+    remove_directory_w(to_wide(path)),
+    "cannot remove directory",
+)
+
+// Null when the system call succeeded, else the error it left: `succeeded` is
+// computed before this body runs, so nothing reaches the system between the
+// call and the read of its error.
+failure_unless :: fn(succeeded: bool, msg: string) -> null | IOError {
+    if succeeded {
+        return null
+    }
+    return last_io_error(msg)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/env"
+import "std/testing"
+
+// A fresh directory in the temp directory, for one test.
+probe_dir :: fn(name: string) -> string {
+    dir :: "${temp_dir()}/vader_entries_${name}"
+    dir.remove(RemoveOptions { .recursive = true, .force = true })
+    made :: create_dir(dir)
+    assert(made !is IOError, "the probe directory was made")
+    return dir
+}
+
+// What `metadata` reports of `path`'s kind, `.Other` when it fails.
+kind_at :: fn(path: string, options: MetadataOptions) -> EntryKind {
+    entry :: path.metadata(options)
+    if entry is IOError {
+        return .Other
+    }
+    return entry.kind
+}
+
+@test
+test_metadata_of_a_file_and_a_directory :: fn() -> void {
+    dir :: probe_dir("metadata")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    file :: "${dir}/a.txt"
+    write_file(file, "hello")
+    entry :: file.metadata()
+    if entry is IOError {
+        assert(false, "the file is probed")
+        return
+    }
+    assert_eq(entry.kind, .File)
+    assert_eq(entry.size, 5)
+    assert(!entry.read_only, "a file just written is writable")
+    assert(entry.modification_time > 0, "written after the epoch")
+    assert_eq(kind_at(dir, MetadataOptions {}), .Directory)
+}
+
+@test
+test_metadata_of_a_missing_path :: fn() -> void {
+    missing :: "${temp_dir()}/vader_entries_absent".metadata()
+    assert(missing is IOError && missing.kind == .NotFound, "a missing path is not found")
+}
+
+@test
+test_metadata_follows_a_link_unless_asked :: fn() -> void {
+    // Making a link takes a privilege on Windows.
+    if VADER_OS == .Windows {
+        return
+    }
+    dir :: probe_dir("link")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    write_file("${dir}/target.txt", "x")
+    linked :: sys_symlink("${dir}/target.txt", "${dir}/link")
+    assert_eq(linked, 0)
+    assert_eq(kind_at("${dir}/link", MetadataOptions {}), .File)
+    assert_eq(kind_at("${dir}/link", MetadataOptions { .follow_links = false }), .Symlink)
+}
+
+@test
+test_set_read_only_and_back :: fn() -> void {
+    dir :: probe_dir("read_only")
+    defer dir.remove(RemoveOptions { .recursive = true, .force = true })
+    file :: "${dir}/a.txt"
+    write_file(file, "x")
+    assert(file.set_read_only(true) !is IOError, "made read-only")
+    locked :: file.metadata()
+    assert(locked is Metadata && locked.read_only, "reported read-only")
+    assert(file.set_read_only(false) !is IOError, "made writable")
+    unlocked :: file.metadata()
+    assert(unlocked is Metadata && !unlocked.read_only, "reported writable")
+}
+
+@test
+test_rename_replaces_the_target :: fn() -> void {
+    dir :: probe_dir("rename")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    write_file("${dir}/from.txt", "new")
+    write_file("${dir}/to.txt", "old")
+    assert("${dir}/from.txt".rename("${dir}/to.txt") !is IOError, "renamed")
+    assert(!exists("${dir}/from.txt"), "the old name is gone")
+    back :: read_file_string("${dir}/to.txt")
+    assert(back is string && back == "new", "the target holds what was renamed")
+}
+
+@test
+test_copy_takes_the_content_and_the_permissions :: fn() -> void {
+    dir :: probe_dir("copy")
+    defer dir.remove(RemoveOptions { .recursive = true, .force = true })
+    from :: "${dir}/from.txt"
+    write_file(from, "content")
+    from.set_read_only(true)
+    to :: "${dir}/to.txt"
+    assert(from.copy(to) !is IOError, "copied")
+    back :: read_file_string(to)
+    assert(back is string && back == "content", "the copy holds the content")
+    copied :: to.metadata()
+    assert(copied is Metadata && copied.read_only, "and the source's permissions")
+}
+
+@test
+test_copy_onto_itself_is_refused :: fn() -> void {
+    dir :: probe_dir("copy_self")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    file :: "${dir}/a.txt"
+    write_file(file, "kept")
+    refused :: file.copy("${dir}/./a.txt")
+    assert(refused is IOError && refused.kind == .InvalidInput, "a copy onto itself is refused")
+    back :: read_file_string(file)
+    assert(back is string && back == "kept", "and the file is untouched")
+}
+
+@test
+test_remove_takes_a_file_and_an_empty_directory :: fn() -> void {
+    dir :: probe_dir("remove")
+    file :: "${dir}/a.txt"
+    write_file(file, "x")
+    assert(file.remove() !is IOError, "the file is removed")
+    assert(!exists(file), "and gone")
+    assert(dir.remove() !is IOError, "the empty directory is removed")
+    assert(!exists(dir), "and gone")
+}
+
+@test
+test_remove_refuses_a_directory_with_entries :: fn() -> void {
+    dir :: probe_dir("remove_full")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    write_file("${dir}/a.txt", "x")
+    refused :: dir.remove()
+    assert(refused is IOError && refused.kind == .DirectoryNotEmpty, "entries take recursive")
+    assert(exists("${dir}/a.txt"), "and nothing is removed")
+}
+
+@test
+test_remove_recursive_leaves_what_a_link_points_to :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    outside :: probe_dir("remove_outside")
+    defer outside.remove(RemoveOptions { .recursive = true })
+    write_file("${outside}/kept.txt", "x")
+    dir :: probe_dir("remove_tree")
+    create_dir("${dir}/sub")
+    write_file("${dir}/sub/a.txt", "x")
+    sys_symlink(outside, "${dir}/sub/link")
+    assert(dir.remove(RemoveOptions { .recursive = true }) !is IOError, "the tree is removed")
+    assert(!exists(dir), "and gone")
+    assert(exists("${outside}/kept.txt"), "what the link points to is left")
+}
+
+@test
+test_remove_of_a_missing_path :: fn() -> void {
+    missing :: "${temp_dir()}/vader_entries_absent"
+    refused :: missing.remove()
+    assert(refused is IOError && refused.kind == .NotFound, "a missing path is not found")
+    assert(missing.remove(RemoveOptions { .force = true }) !is IOError, "unless forced")
+}

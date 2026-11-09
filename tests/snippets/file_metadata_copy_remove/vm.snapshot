@@ -1,0 +1,9 @@
+# stdout
+kind=File size=5 read_only=false
+copy size=5 read_only=true
+not empty: DirectoryNotEmpty
+removed: true, exists: false
+missing: NotFound
+forced: true
+# exit
+0

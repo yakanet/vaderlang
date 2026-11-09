@@ -18,6 +18,7 @@
   expr 15:8     BinaryExpr     :: bool
   expr 15:8     IdentExpr      :: IOError | string
   expr 16:12    StringLitExpr  :: string
+  expr 195:62   IdentExpr      :: i64
   expr 20:10    CallExpr       :: IOError | string
   expr 20:10    IdentExpr      :: fn(string, i64) -> IOError | string
   expr 20:27    IdentExpr      :: string
@@ -25,7 +26,6 @@
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
   expr 21:8     IdentExpr      :: IOError | string
-  expr 225:62   IdentExpr      :: i64
   expr 22:19    IdentExpr      :: IOError
   expr 23:16    StringLitExpr  :: string
   expr 23:36    CallExpr       :: string

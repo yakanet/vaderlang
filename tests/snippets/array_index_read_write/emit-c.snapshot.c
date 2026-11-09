@@ -128,7 +128,7 @@ static int32_t snippet$main(void) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(9u, 3u, 7u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(10u, 3u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
@@ -167,7 +167,7 @@ static int32_t snippet$main(void) {
     l4 = std_core$write_int(l3, l4, l5);
     t1 = std_core$finish_buffer(l3, l4);
     std_console$println__string(t1);
-    vader_array_t* _a5_arr = vader_array_new(10u, 3u, 8u, 4u);
+    vader_array_t* _a5_arr = vader_array_new(9u, 3u, 8u, 4u);
     ((int64_t*) _a5_arr->buf->slots)[_a5_arr->offset + 2u] = (int64_t) INT64_C(30);
     ((int64_t*) _a5_arr->buf->slots)[_a5_arr->offset + 1u] = (int64_t) INT64_C(20);
     ((int64_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (int64_t) INT64_C(10);

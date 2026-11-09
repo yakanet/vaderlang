@@ -23,7 +23,7 @@ main :: fn() -> i32 {
     }
     println("roundtrip=${read_back.len() == 5}")
     println("exists=${exists(path)}")
-    remove_file(path)
+    remove(path)
     println("removed=${!exists(path)}")
     return 0
 }

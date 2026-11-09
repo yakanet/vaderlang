@@ -269,7 +269,7 @@ export sweep_generated :: fn(dir: string) -> i64 {
         if !content.starts_with(GENERATED_BANNER) {
             continue
         }
-        dropped :: remove_file(path)
+        dropped :: remove(path)
         if dropped is IOError {
             continue
         }
@@ -440,7 +440,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     assert(removed == 1,
         "the sweep should remove the one generated file: removed=${removed} ${flush_diagnosis(ctx, flushed)}")
     assert(exists(mine), "a file without the banner is not ours to delete")
-    remove_file(mine)
+    remove(mine)
 }
 
 @test test_flush_reports_a_path_it_cannot_write :: fn() -> void {
@@ -454,7 +454,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     assert_eq(ctx.flush_generated().len(), 0)
     assert_eq(ctx.reports_of().len(), 1)
     assert_eq(ctx.reports_of()[0].code.id, "H6008")
-    remove_file(blocker)
+    remove(blocker)
 }
 
 @test test_sweep_of_a_missing_root_is_not_an_error :: fn() -> void {

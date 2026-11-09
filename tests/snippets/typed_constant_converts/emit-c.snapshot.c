@@ -21,7 +21,13 @@ struct vader_struct_std_core$Buffer_t {
 };
 
 /* Compile-time atom table. */
-static const char vader_atom_blob[] = " C" "\0" "<" "\0" ">" "\0" "from a file" "\0" "\n" "\0";
+static const char vader_atom_blob[] =
+    " C" "\0"
+    "<" "\0"
+    ">" "\0"
+    "from a file" "\0"
+    "\n" "\0"
+    "path contains a NUL byte" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
@@ -29,9 +35,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[5] },
     { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 5u
+#define VADER_COMPTIME_ATOM_COUNT 6u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /

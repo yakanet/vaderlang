@@ -1,0 +1,38 @@
+module "snippet"
+
+import "std/console"
+import "std/env"
+import "std/fs"
+import "std/io"
+
+// A file probed, copied with its permissions, renamed, made read-only, then the
+// directory removed: refused while it holds entries, taken whole with
+// `.recursive`, and a missing path accepted under `.force` alone.
+main :: fn() -> i32 {
+    dir :: "${temp_dir()}/vader_snippet_metadata_copy_remove"
+    create_dir(dir)
+    write_file("${dir}/a.txt", "hello")
+    entry :: metadata("${dir}/a.txt")
+    if entry is Metadata {
+        println("kind=${entry.kind} size=${entry.size} read_only=${entry.read_only}")
+    }
+    copy("${dir}/a.txt", "${dir}/b.txt")
+    rename("${dir}/b.txt", "${dir}/c.txt")
+    set_read_only("${dir}/c.txt", true)
+    copied :: metadata("${dir}/c.txt")
+    if copied is Metadata {
+        println("copy size=${copied.size} read_only=${copied.read_only}")
+    }
+    kept :: remove(dir)
+    if kept is IOError {
+        println("not empty: ${kept.kind}")
+    }
+    gone :: remove(dir, RemoveOptions { .recursive = true, .force = true })
+    println("removed: ${gone !is IOError}, exists: ${exists(dir)}")
+    missing :: remove(dir)
+    if missing is IOError {
+        println("missing: ${missing.kind}")
+    }
+    println("forced: ${remove(dir, RemoveOptions { .force = true }) !is IOError}")
+    return 0
+}

@@ -40,7 +40,7 @@
   }
   __defer_env_snippet_1 :: struct { cap_0: string }
   __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
-      std.fs.remove_file(__env_0.cap_0)
+      std.fs.remove(__env_0.cap_0, RemoveOptions { .recursive = false, .force = false })
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -49,6 +49,16 @@
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
   }
 
 ## lowered in dependencies
@@ -80,29 +90,40 @@
     fn std.env.temp_dir_of  // std_env$temp_dir_of
     fn std.env.without_trailing_sep  // std_env$without_trailing_sep
   std/fs
-    const FILE_CLOSED: IOError  data pool #0, element 0
+    const FILE_CLOSED: IOError  data pool #1, element 0
+    const NUL_IN_PATH: IOError  data pool #0, element 0
     fn __defer_std_fs_0
+    fn __defer_std_fs_2
     fn std.fs.access_mode  // std_fs$access_mode
     fn std.fs.bytes_of  // std_fs$bytes_of
     fn std.fs.close  // std_fs$close
     fn std.fs.create  // std_fs$create
+    fn std.fs.failure_unless  // std_fs$failure_unless
     fn std.fs.fd_of  // std_fs$fd_of
     fn std.fs.give_back  // std_fs$give_back
+    fn std.fs.has_nul  // std_fs$has_nul
     fn std.fs.invalid_options  // std_fs$invalid_options
     fn std.fs.is_a_directory  // std_fs$is_a_directory
+    fn std.fs.kind_of  // std_fs$kind_of
+    fn std.fs.link_flag  // std_fs$link_flag
     fn std.fs.move  // std_fs$move
     fn std.fs.open  // std_fs$open
     fn std.fs.open_flags  // std_fs$open_flags
+    fn std.fs.read_dir  // std_fs$read_dir
     fn std.fs.read_file_bytes  // std_fs$read_file_bytes
     fn std.fs.read_file_string  // std_fs$read_file_string
     fn std.fs.read_into  // std_fs$read_into
     fn std.fs.reads_whole  // std_fs$reads_whole
     fn std.fs.refusal_of  // std_fs$refusal_of
-    fn std.fs.remove_file  // std_fs$remove_file
+    fn std.fs.remove  // std_fs$remove
+    fn std.fs.remove_directory  // std_fs$remove_directory
+    fn std.fs.stat_cells  // std_fs$stat_cells
     fn std.fs.system_close  // std_fs$system_close
     fn std.fs.system_offset  // std_fs$system_offset
     fn std.fs.system_open  // std_fs$system_open
     fn std.fs.system_read  // std_fs$system_read
+    fn std.fs.system_remove  // std_fs$system_remove
+    fn std.fs.system_remove_directory  // std_fs$system_remove_directory
     fn std.fs.system_seek  // std_fs$system_seek
     fn std.fs.system_size  // std_fs$system_size
     fn std.fs.system_write  // std_fs$system_write
@@ -110,8 +131,10 @@
     fn std.fs.write  // std_fs$write
     fn std.fs.write_file  // std_fs$write_file
     struct __defer_env_std_fs_1
+    struct __defer_env_std_fs_3
     struct std.fs.File  // std_fs$File
     struct std.fs.OpenOptions  // std_fs$OpenOptions
+    struct std.fs.RemoveOptions  // std_fs$RemoveOptions
   std/io
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind

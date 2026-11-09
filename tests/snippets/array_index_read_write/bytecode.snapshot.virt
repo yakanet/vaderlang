@@ -8,8 +8,8 @@ type 5 scalar bool
 type 6 scalar u8
 type 7 array 6
 type 8 scalar void
-type 9 array 1
-type 10 array 4
+type 9 array 4
+type 10 array 1
 type 11 array 12
 type 12 scalar f64
 type 13 array 2
@@ -44,7 +44,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 9 3   ; i32[]
+  array.new 10 3   ; i32[]
   local.tee 0   ; xs
   i32.const 0
   load_slot_i32
@@ -118,7 +118,7 @@ fn 0 snippet$main () -> i32
   i64.const 10
   i64.const 20
   i64.const 30
-  array.new 10 3   ; i64[]
+  array.new 9 3   ; i64[]
   local.tee 3   ; __buf_0
   i32.const 0
   load_slot_i64
@@ -199,7 +199,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; xs
   i64.const 1
   i64.const 3
-  array.slice 9   ; i32[]
+  array.slice 10   ; i32[]
   local.set 0   ; xs
   i64.const 46
   buffer.new

@@ -184,36 +184,6 @@ export create_dir :: fn(path: string) -> null | IOError {
     return null
 }
 
-/// Delete the file at `path`.
-///
-/// Files only. A directory is refused by the platform rather than silently
-/// recursed into: the conservative default for something irreversible. A
-/// missing path is an error too: a caller that does not care checks `exists`
-/// first, and one that does would rather hear about it.
-///
-/// @param path  file to delete.
-/// @return      `null` on success.
-/// @error       `IOError` when the path is missing, is a directory, or is not
-///              removable.
-@target
-export remove_file :: fn(path: string) -> null | IOError
-
-@target(.Linux, .Darwin)
-remove_file :: fn(path: string) -> null | IOError {
-    if sys_unlink(path) != 0 {
-        return last_io_error("cannot remove file")
-    }
-    return null
-}
-
-@target(.Windows)
-remove_file :: fn(path: string) -> null | IOError {
-    if delete_file(to_wide(path)) == 0 {
-        return last_io_error("cannot remove file")
-    }
-    return null
-}
-
 /// Read a file fully into a UTF-8 string: a thin text decode over
 /// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
 /// @param path       filesystem path (absolute or cwd-relative).
@@ -282,11 +252,11 @@ export modification_time :: fn(path: string) -> i64 | IOError
 
 @target(.Linux, .Darwin)
 modification_time :: fn(path: string) -> i64 | IOError {
-    nanoseconds :: sys_path_mtime(path)
-    if nanoseconds == -1 {
-        return last_io_error("cannot probe file")
+    cells :: path.stat_cells(true)
+    if cells is IOError {
+        return cells
     }
-    return nanoseconds
+    return cells[2]
 }
 
 @target(.Windows)
@@ -295,7 +265,12 @@ modification_time :: fn(path: string) -> i64 | IOError {
     if !get_file_attributes_ex(to_wide(path), GET_FILE_EX_INFO_STANDARD, data) {
         return last_io_error("cannot probe file")
     }
-    ticks :: i64(data[5]) | (i64(data[6]) << 32)
+    return nanoseconds_of_filetime(data[5], data[6])
+}
+
+// The nanoseconds since the Unix epoch of a `FILETIME`, given as its two halves.
+nanoseconds_of_filetime :: fn(low: u32, high: u32) -> i64 {
+    ticks :: i64(low) | (i64(high) << 32)
     return (ticks - FILETIME_UNIX_EPOCH_TICKS) * 100
 }
 
@@ -437,7 +412,7 @@ import "std/testing"
     file :: "${temp_dir()}/vader_is_dir_probe"
     wrote :: write_file(file, "x")
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     assert(is_dir(temp_dir()), "the temp dir is a directory")
     assert(!is_dir(file), "a regular file is not")
@@ -449,7 +424,7 @@ import "std/testing"
     file :: "${temp_dir()}/vader_mtime_probe"
     wrote :: write_file(file, "x")
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     written :: modification_time(file)
     assert(written is i64 && written > 0, "a file just written has a time after the epoch")
@@ -465,7 +440,7 @@ import "std/testing"
     file :: "${temp_dir()}/vader_real_path_probe"
     wrote :: write_file(file, "x")
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     direct :: real_path(file)
     temp_name :: to_path(temp_dir()).filename()
@@ -507,7 +482,7 @@ import "std/testing"
     file :: "${temp_dir()}/vader_kind_probe"
     wrote :: write_file(file, "0123456789")
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     too_big :: read_file_bytes(file, 4)
     if too_big is IOError {
@@ -522,7 +497,7 @@ import "std/testing"
     file :: "${temp_dir()}/vader_read_limit_probe"
     wrote :: write_file(file, "0123456789")
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     // The ceiling is inclusive.
     assert(read_file_bytes(file, 10) !is IOError, "exactly at the ceiling is fine")
@@ -535,7 +510,7 @@ import "std/testing"
     content[content.len() - 1] = 9
     wrote :: write_file(file, content)
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     back :: read_file_bytes(file)
     if back is IOError {
@@ -550,7 +525,7 @@ import "std/testing"
     content: u8[]: [3] * READ_CHUNK
     wrote :: write_file(file, content)
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     back :: read_file_bytes(file)
     if back is IOError {
@@ -574,7 +549,7 @@ import "std/testing"
     content: u8[]: [5] * (READ_CHUNK * 3)
     wrote :: write_file(file, content)
     assert(wrote !is IOError, "the probe was written")
-    defer remove_file(file)
+    defer remove(file)
 
     assert(read_file_bytes(file, content.len()) !is IOError, "exactly at the ceiling is fine")
     assert(read_file_bytes(file, content.len() - 1) is IOError, "one byte past it is refused")

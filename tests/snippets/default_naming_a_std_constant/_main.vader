@@ -22,7 +22,7 @@ main :: fn() -> i32 {
         println("setup failed: ${wrote.msg}")
         return 1
     }
-    defer remove_file(path)
+    defer remove(path)
 
     bare :: read_file_string(path)
     if bare is string {

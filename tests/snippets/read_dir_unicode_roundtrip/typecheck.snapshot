@@ -51,6 +51,7 @@
   expr 35:78    UnaryExpr      :: bool
   expr 35:82    IdentExpr      :: IOError
   expr 35:9     IdentExpr      :: bool
+  expr 374:60   StructLitExpr  :: RemoveOptions
   expr 37:13    StringLitExpr  :: string
   expr 37:23    IdentExpr      :: bool
   expr 37:5     CallExpr       :: void
@@ -59,6 +60,6 @@
   expr 38:25    IdentExpr      :: bool
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 39:17    IdentExpr      :: string
+  expr 39:12    IdentExpr      :: string
   expr 39:5     CallExpr       :: IOError | null
-  expr 39:5     IdentExpr      :: fn(string) -> IOError | null
+  expr 39:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null

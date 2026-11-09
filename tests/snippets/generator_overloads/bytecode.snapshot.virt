@@ -22,8 +22,8 @@ type 19 scalar void
 type 20 ref std_core$Iterator
 type 21 struct snippet_halves$$genstate_upto { s0:14,s1:14,state:1 }
 type 22 union 14,7
-type 23 array 13
-type 24 array 10
+type 23 array 10
+type 24 array 13
 type 25 ref $genstate_upto_1
 type 26 ref $genstate_upto
 type 27 ref $genstate_upto
@@ -290,7 +290,7 @@ fn 2 snippet$main () -> i32
   end $L10
   string.const 5   ; "pq"
   local.set 5   ; s
-  array.new 24 0   ; i64[]
+  array.new 23 0   ; i64[]
   local.set 11   ; halves
   i64.const 0
   local.set 3   ; __off_1
@@ -1215,11 +1215,11 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 23   ; pool[0] u64[]
+    data.const 0 24   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 23   ; pool[0] u64[]
+    data.const 0 24   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1329,11 +1329,11 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 23   ; pool[1] u64[]
+    data.const 1 24   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 23   ; pool[1] u64[]
+    data.const 1 24   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

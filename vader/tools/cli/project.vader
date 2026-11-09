@@ -227,7 +227,7 @@ described_project :: fn(
     path :: join_path(artefacts, "description-${i64(Time.monotonic())}.json")
     // Even when the driver fails: one that failed after describing itself (a
     // generation round, its own reports) has written it all the same.
-    defer remove_file(path)
+    defer remove(path)
     request :: DriverRequest {
         .mode = mode,
         .selected = selected,

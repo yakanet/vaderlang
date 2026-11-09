@@ -195,7 +195,7 @@
                   "kind": "CallExpr",
                   "callee": {
                     "kind": "IdentExpr",
-                    "name": "remove_file"
+                    "name": "remove"
                   },
                   "args": [
                     {

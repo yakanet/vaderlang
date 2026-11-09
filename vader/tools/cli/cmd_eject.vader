@@ -50,7 +50,7 @@ cmd_eject :: fn(args: string[]) -> i32 {
             + "a folder holding both is refused")
         return 0
     }
-    removed :: remove_file(manifest_path)
+    removed :: remove(manifest_path)
     if removed is IOError {
         eprintln("vader eject: cannot remove `${manifest_path.to_native()}`: ${removed.message()}")
         return 1

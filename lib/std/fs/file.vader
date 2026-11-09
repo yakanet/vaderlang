@@ -108,10 +108,8 @@ export create :: fn(path: string) -> File | IOError = open(path, OpenOptions {
 
 // Why `path` and `options` open no file, null when they do.
 refusal_of :: fn(path: string, options: OpenOptions) -> IOError | null {
-    // A NUL byte ends the path at the C boundary, so the file would be one the
-    // caller never named.
-    if path.bytes().index_of(0) != null {
-        return IOError { .msg = "path contains a NUL byte", .kind = .InvalidInput }
+    if path.has_nul() {
+        return NUL_IN_PATH
     }
     writes :: options.write || options.append
     if !options.read && !writes {
@@ -131,6 +129,12 @@ refusal_of :: fn(path: string, options: OpenOptions) -> IOError | null {
     }
     return null
 }
+
+// Whether `path` holds a NUL byte, which ends it at the C boundary: the call
+// would reach an entry the caller never named, so it is refused.
+has_nul :: fn(path: string) = path.bytes().index_of(0) != null
+
+NUL_IN_PATH :: IOError { .msg = "path contains a NUL byte", .kind = .InvalidInput }
 
 invalid_options :: fn(why: string) = IOError {
     .msg = "invalid open options: ${why}",
@@ -409,12 +413,7 @@ system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, null,
                        disposition(options), FILE_ATTRIBUTE_NORMAL, null)
     if i64(h) == INVALID_HANDLE {
-        failure :: last_io_error("cannot open file")
-        // `CreateFileW` refuses a directory as it refuses a forbidden file.
-        if failure.kind == .PermissionDenied && is_dir(path) {
-            return is_a_directory(failure.code)
-        }
-        return failure
+        return last_io_error("cannot open file").refine_directory_denial(path)
     }
     return h
 }
@@ -424,6 +423,15 @@ is_a_directory :: fn(code: i32) = IOError {
     .msg = "is a directory",
     .kind = .IsADirectory,
     .code = code,
+}
+
+// `failure`, or the refusal of a directory when `path` names one: Windows
+// refuses a directory as it refuses a forbidden file.
+refine_directory_denial :: fn(failure: IOError, path: string) -> IOError {
+    if failure.kind == .PermissionDenied && is_dir(path) {
+        return is_a_directory(failure.code)
+    }
+    return failure
 }
 
 // The `open(2)` flags of `options`.
@@ -675,7 +683,7 @@ test_open_refuses_a_directory :: fn() -> void {
 @test
 test_open_refuses_options_that_contradict_each_other :: fn() -> void {
     path :: probe_file("contradict", "x")
-    defer remove_file(path)
+    defer remove(path)
     no_access :: open(path, OpenOptions { .read = false })
     assert(no_access is IOError && no_access.kind == .InvalidInput, "neither read nor write")
     no_write :: open(path, OpenOptions { .truncate = true })
@@ -690,7 +698,7 @@ test_create_then_read_back :: fn() -> void {
         assert(false, "the file is created")
         return
     }
-    defer remove_file(path)
+    defer remove(path)
     assert(w.write("hello, ") !is IOError, "the first write")
     assert(w.write("world") !is IOError, "the second write")
     assert(w.close() !is IOError, "the close")
@@ -706,7 +714,7 @@ test_create_then_read_back :: fn() -> void {
 @test
 test_read_crosses_buffers_of_any_size :: fn() -> void {
     path :: probe_file("small_buffer", "abcdefghij")
-    defer remove_file(path)
+    defer remove(path)
     for chunk in [1, 3, 4, 5, 100] {
         f :: open(path, OpenOptions { .buffer_size = 4 })
         if f is IOError {
@@ -721,7 +729,7 @@ test_read_crosses_buffers_of_any_size :: fn() -> void {
 @test
 test_seek_counts_from_what_the_caller_read :: fn() -> void {
     path :: probe_file("seek", "0123456789")
-    defer remove_file(path)
+    defer remove(path)
     f :: open(path)
     if f is IOError {
         assert(false, "the file opens")
@@ -742,7 +750,7 @@ test_seek_counts_from_what_the_caller_read :: fn() -> void {
 @test
 test_a_write_after_a_read_lands_at_the_position :: fn() -> void {
     path :: probe_file("read_then_write", "0123456789")
-    defer remove_file(path)
+    defer remove(path)
     f :: open(path, OpenOptions { .write = true })
     if f is IOError {
         assert(false, "the file opens")
@@ -758,7 +766,7 @@ test_a_write_after_a_read_lands_at_the_position :: fn() -> void {
 @test
 test_append_writes_at_the_end_wherever_the_position :: fn() -> void {
     path :: probe_file("append", "head")
-    defer remove_file(path)
+    defer remove(path)
     f :: open(path, OpenOptions { .append = true })
     if f is IOError {
         assert(false, "the file opens")
@@ -774,7 +782,7 @@ test_append_writes_at_the_end_wherever_the_position :: fn() -> void {
 @test
 test_create_new_refuses_an_existing_file :: fn() -> void {
     path :: probe_file("create_new", "x")
-    defer remove_file(path)
+    defer remove(path)
     f :: open(path, OpenOptions { .write = true, .create_new = true })
     if f is IOError {
         assert_eq(f.kind, .AlreadyExists)
@@ -787,7 +795,7 @@ test_create_new_refuses_an_existing_file :: fn() -> void {
 test_lines_cut_as_string_lines_does :: fn() -> void {
     text :: "one\r\ntwo\n\nlonger than the buffer\nlast\r"
     path :: probe_file("lines", text)
-    defer remove_file(path)
+    defer remove(path)
     f :: open(path, OpenOptions { .buffer_size = 4 })
     if f is IOError {
         assert(false, "the file opens")
@@ -805,7 +813,7 @@ test_lines_cut_as_string_lines_does :: fn() -> void {
 @test
 test_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
     path :: probe_file("lines_closed", "a\nb\n")
-    defer remove_file(path)
+    defer remove(path)
     f :: open(path)
     if f is IOError {
         assert(false, "the file opens")
@@ -828,7 +836,7 @@ test_size_counts_every_write :: fn() -> void {
         assert(false, "the file is created")
         return
     }
-    defer path.remove_file()
+    defer path.remove()
     assert_eq(number_of(f.size()), 0)
     f.write("abc")
     assert_eq(number_of(f.size()), 3)
@@ -842,7 +850,7 @@ test_size_counts_every_write :: fn() -> void {
 @test
 test_close_twice_and_read_after :: fn() -> void {
     path :: probe_file("close", "x")
-    defer path.remove_file()
+    defer path.remove()
     f :: path.open()
     if f is IOError {
         assert(false, "the file opens")

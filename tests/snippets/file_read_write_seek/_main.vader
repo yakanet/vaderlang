@@ -52,7 +52,7 @@ main :: fn() -> i32 {
     if directory is IOError {
         println("directory: ${directory.kind}")
     }
-    remove_file(path)
+    remove(path)
     return 0
 }
 

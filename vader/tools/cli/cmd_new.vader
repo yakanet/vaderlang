@@ -518,7 +518,7 @@ import "std/testing"
     manifest :: join_path(project, MANIFEST_FILENAME)
     write_file(manifest, render_manifest("my-app"))
     m :: read_manifest(project)
-    remove_file(manifest)
+    remove(manifest)
     assert_eq(m.problems.len(), 0)
     assert_eq(m.entries.len(), 1)
     assert_eq(m.entries[0].name, "my-app")

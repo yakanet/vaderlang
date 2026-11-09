@@ -28,7 +28,7 @@ DOC_FORMAT_VERSION: f64: 2.0
 /// @param modules  the documented modules.
 /// @error          `IOError` when a folder or a file cannot be written.
 export write_doc_data :: fn(dir: string, modules: DocModule[]) -> null | IOError {
-    remove_file(join_path(dir, STAMP_FILE))
+    remove(join_path(dir, STAMP_FILE))
     remove_previous_modules(dir)
     for m in modules {
         path :: module_file(dir, m.path)
@@ -85,7 +85,7 @@ remove_previous_modules :: fn(dir: string) -> void {
         }
         file :: module_file(dir, path.value)
         if Path(file).normalize().starts_with(modules_dir) {
-            remove_file(file)
+            remove(file)
         }
     }
 }

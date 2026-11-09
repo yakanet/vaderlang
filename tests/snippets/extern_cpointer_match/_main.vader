@@ -58,6 +58,6 @@ main :: fn() -> i32 {
         }
         is null     -> println("matched null")
     }
-    remove_file(path)
+    remove(path)
     return 0
 }

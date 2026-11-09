@@ -95,10 +95,12 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
   std/fs
+    const NUL_IN_PATH: IOError  data pool #0, element 0
     fn __defer_std_fs_0
     fn std.fs.access_mode  // std_fs$access_mode
     fn std.fs.close  // std_fs$close
     fn std.fs.fd_of  // std_fs$fd_of
+    fn std.fs.has_nul  // std_fs$has_nul
     fn std.fs.invalid_options  // std_fs$invalid_options
     fn std.fs.is_a_directory  // std_fs$is_a_directory
     fn std.fs.open  // std_fs$open

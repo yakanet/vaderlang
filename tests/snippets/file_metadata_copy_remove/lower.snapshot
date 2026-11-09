@@ -1,0 +1,192 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      dir: string = concat_2(std.env.temp_dir(), "/vader_snippet_metadata_copy_remove")
+      std.fs.create_dir(dir)
+      std.fs.write_file(concat_2(dir, "/a.txt"), "hello")
+      entry: IOError | Metadata = std.fs.metadata(concat_2(dir, "/a.txt"), MetadataOptions { .follow_links = true })
+      if entry is Metadata {
+          std.console.println<string>({
+              __p_0: string = std.fs.EntryKind.to_string(Metadata(entry).kind)
+              __buf_1: Buffer = std.core.new_byte_buffer(i64(47) +% std.core.byte_len(__p_0))
+              __off_2: i64 = 0
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, "kind=")
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, " size=")
+              __off_2 = std.core.write_int(__buf_1, __off_2, Metadata(entry).size)
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, " read_only=")
+              __off_2 = std.core.write_bool(__buf_1, __off_2, Metadata(entry).read_only)
+              std.core.finish_buffer(__buf_1, __off_2)
+          } :string)
+      }
+      std.fs.copy(concat_2(dir, "/a.txt"), concat_2(dir, "/b.txt"))
+      std.fs.rename(concat_2(dir, "/b.txt"), concat_2(dir, "/c.txt"))
+      std.fs.set_read_only(concat_2(dir, "/c.txt"), true)
+      copied: IOError | Metadata = std.fs.metadata(concat_2(dir, "/c.txt"), MetadataOptions { .follow_links = true })
+      if copied is Metadata {
+          std.console.println<string>({
+              __buf_3: Buffer = std.core.new_byte_buffer(i64(46))
+              __off_4: i64 = 0
+              __off_4 = std.core.write_string_at(__buf_3, __off_4, "copy size=")
+              __off_4 = std.core.write_int(__buf_3, __off_4, Metadata(copied).size)
+              __off_4 = std.core.write_string_at(__buf_3, __off_4, " read_only=")
+              __off_4 = std.core.write_bool(__buf_3, __off_4, Metadata(copied).read_only)
+              std.core.finish_buffer(__buf_3, __off_4)
+          } :string)
+      }
+      kept: IOError | null = std.fs.remove(dir, RemoveOptions { .recursive = false, .force = false })
+      if kept is IOError {
+          std.console.println<string>(concat_2("not empty: ", std.io.IOErrorKind.to_string(IOError(kept).kind)))
+      }
+      gone: IOError | null = std.fs.remove(dir, RemoveOptions { .recursive = true, .force = true })
+      std.console.println<string>({
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(29))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "removed: ")
+          __off_6 = std.core.write_bool(__buf_5, __off_6, !(gone is IOError))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, ", exists: ")
+          __off_6 = std.core.write_bool(__buf_5, __off_6, std.fs.exists(dir))
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      missing: IOError | null = std.fs.remove(dir, RemoveOptions { .recursive = false, .force = false })
+      if missing is IOError {
+          std.console.println<string>(concat_2("missing: ", std.io.IOErrorKind.to_string(IOError(missing).kind)))
+      }
+      std.console.println<string>({
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(13))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "forced: ")
+          __off_8 = std.core.write_bool(__buf_7, __off_8, !(std.fs.remove(dir, RemoveOptions { .recursive = false, .force = true }) is IOError))
+          std.core.finish_buffer(__buf_7, __off_8)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+
+## lowered in dependencies
+  std/target/baked
+    const VADER_OS: Os  inline
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/env
+    fn std.env.get_env  // std_env$get_env
+    fn std.env.temp_dir  // std_env$temp_dir
+    fn std.env.temp_dir_of  // std_env$temp_dir_of
+    fn std.env.without_trailing_sep  // std_env$without_trailing_sep
+  std/fs
+    const FILE_CLOSED: IOError  data pool #1, element 0
+    const NUL_IN_PATH: IOError  data pool #0, element 0
+    fn __defer_std_fs_0
+    fn __defer_std_fs_2
+    fn std.fs.EntryKind.to_string  // std_fs$EntryKind$std_core$Display$to_string
+    fn std.fs.access_mode  // std_fs$access_mode
+    fn std.fs.bytes_of  // std_fs$bytes_of
+    fn std.fs.close  // std_fs$close
+    fn std.fs.copy  // std_fs$copy
+    fn std.fs.copy_chunks  // std_fs$copy_chunks
+    fn std.fs.copy_content  // std_fs$copy_content
+    fn std.fs.create  // std_fs$create
+    fn std.fs.create_dir  // std_fs$create_dir
+    fn std.fs.exists  // std_fs$exists
+    fn std.fs.failure_unless  // std_fs$failure_unless
+    fn std.fs.fd_of  // std_fs$fd_of
+    fn std.fs.give_back  // std_fs$give_back
+    fn std.fs.has_nul  // std_fs$has_nul
+    fn std.fs.invalid_options  // std_fs$invalid_options
+    fn std.fs.is_a_directory  // std_fs$is_a_directory
+    fn std.fs.is_dir  // std_fs$is_dir
+    fn std.fs.is_same_file  // std_fs$is_same_file
+    fn std.fs.kind_of  // std_fs$kind_of
+    fn std.fs.link_flag  // std_fs$link_flag
+    fn std.fs.metadata  // std_fs$metadata
+    fn std.fs.mkdir_one  // std_fs$mkdir_one
+    fn std.fs.mode_with  // std_fs$mode_with
+    fn std.fs.move  // std_fs$move
+    fn std.fs.open  // std_fs$open
+    fn std.fs.open_flags  // std_fs$open_flags
+    fn std.fs.read_dir  // std_fs$read_dir
+    fn std.fs.real_path  // std_fs$real_path
+    fn std.fs.refusal_of  // std_fs$refusal_of
+    fn std.fs.remove  // std_fs$remove
+    fn std.fs.remove_directory  // std_fs$remove_directory
+    fn std.fs.rename  // std_fs$rename
+    fn std.fs.set_read_only  // std_fs$set_read_only
+    fn std.fs.stat_cells  // std_fs$stat_cells
+    fn std.fs.system_close  // std_fs$system_close
+    fn std.fs.system_copy  // std_fs$system_copy
+    fn std.fs.system_metadata  // std_fs$system_metadata
+    fn std.fs.system_offset  // std_fs$system_offset
+    fn std.fs.system_open  // std_fs$system_open
+    fn std.fs.system_read  // std_fs$system_read
+    fn std.fs.system_remove  // std_fs$system_remove
+    fn std.fs.system_remove_directory  // std_fs$system_remove_directory
+    fn std.fs.system_rename  // std_fs$system_rename
+    fn std.fs.system_seek  // std_fs$system_seek
+    fn std.fs.system_set_read_only  // std_fs$system_set_read_only
+    fn std.fs.system_write  // std_fs$system_write
+    fn std.fs.whence_of  // std_fs$whence_of
+    fn std.fs.write  // std_fs$write
+    fn std.fs.write_file  // std_fs$write_file
+    struct __defer_env_std_fs_1
+    struct __defer_env_std_fs_3
+    struct std.fs.File  // std_fs$File
+    struct std.fs.Metadata  // std_fs$Metadata
+    struct std.fs.MetadataOptions  // std_fs$MetadataOptions
+    struct std.fs.OpenOptions  // std_fs$OpenOptions
+    struct std.fs.RemoveOptions  // std_fs$RemoveOptions
+  std/io
+    fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
+    fn std.io.classified_error  // std_io$classified_error
+    fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.last_io_error  // std_io$last_io_error
+    struct std.io.IOError  // std_io$IOError
+  system/posix
+    const EAGAIN: i32  inline
+    const ENOTEMPTY: i32  inline
+    const O_APPEND: i32  inline
+    const O_CLOEXEC: i32  inline
+    const O_CREAT: i32  inline
+    const O_EXCL: i32  inline
+    const O_TRUNC: i32  inline
+    fn system.posix.up_to_nul  // system_posix$up_to_nul
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -36,6 +36,6 @@ main :: fn() -> i32 {
     }
     println("listed=${listed}")
     println("reopened=${reopened}")
-    remove_file(path)
+    remove(path)
     return 0
 }

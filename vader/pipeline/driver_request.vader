@@ -264,7 +264,7 @@ test_driver_description_reads_back_as_a_manifest :: fn() -> void {
     written :: write_driver_description(path, project)
     assert(written == null, "the project is written")
     read :: read_driver_description(path)
-    remove_file(path)
+    remove(path)
     if read is IOError {
         assert(false, "the project reads back")
         return

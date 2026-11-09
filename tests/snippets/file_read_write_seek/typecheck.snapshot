@@ -97,6 +97,7 @@
   expr 36:17    CallExpr       :: Iterator<string>
   expr 36:17    FieldExpr      :: fn() -> Iterator<string>
   expr 36:17    IdentExpr      :: File
+  expr 374:60   StructLitExpr  :: RemoveOptions
   expr 37:17    StringLitExpr  :: string
   expr 37:26    IdentExpr      :: string
   expr 37:9     CallExpr       :: void
@@ -163,9 +164,9 @@
   expr 53:31    IdentExpr      :: IOError
   expr 53:9     CallExpr       :: void
   expr 53:9     IdentExpr      :: fn(T) -> void
-  expr 55:17    IdentExpr      :: string
+  expr 55:12    IdentExpr      :: string
   expr 55:5     CallExpr       :: IOError | null
-  expr 55:5     IdentExpr      :: fn(string) -> IOError | null
+  expr 55:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
   expr 60:14    IdentExpr      :: IOError
   expr 60:5     IfExpr         :: void
   expr 60:8     BinaryExpr     :: bool

@@ -8,7 +8,7 @@
   ConstDecl      NOTE                 :: Label
   ConstDecl      NOTE_TEXT            :: string
   ConstDecl      ROOM                 :: Label
-  expr 225:62   IdentExpr      :: i64
+  expr 195:62   IdentExpr      :: i64
   expr 22:33    StructLitExpr  :: Label
   expr 22:49    StringLitExpr  :: string
   expr 22:52    FieldExpr      :: i32

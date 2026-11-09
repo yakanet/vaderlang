@@ -11,14 +11,18 @@ struct vader_struct_std_core$Buffer_t {
 };
 
 /* Compile-time atom table. */
-static const char vader_atom_blob[] = "Hello from file!" "\0" "\n" "\0";
+static const char vader_atom_blob[] =
+    "Hello from file!" "\0"
+    "\n" "\0"
+    "path contains a NUL byte" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 2u
+#define VADER_COMPTIME_ATOM_COUNT 3u
 
 static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);

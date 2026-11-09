@@ -609,7 +609,7 @@ export DRIVER_TIMEOUT_MS: i64: 600_000
 // error is dropped. It matters that this really unlinks: a blanked file left in
 // the project root would be a `.vader` that declares nothing.
 remove_entry :: fn(path: string) -> void {
-    remove_file(path)
+    remove(path)
 }
 
 // ---- tests ----------------------------------------------------------------
