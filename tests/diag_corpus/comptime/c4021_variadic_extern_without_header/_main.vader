@@ -1,4 +1,4 @@
-// M5012: a variadic `@extern` that names no header.
+// C4021: a variadic `@extern` that names no header.
 //
 // What it passes through `...` is the argument list of one call, not the
 // prototype, which only a header gives. `with_library` passes: its `CLibrary`

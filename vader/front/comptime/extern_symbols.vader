@@ -1,5 +1,5 @@
-// vader/lower/extern_symbols: the C symbols the project's `@extern` declarations
-// claim, checked once comptime has evaluated their libraries.
+// vader/front/comptime/extern_symbols: the C symbols the project's `@extern`
+// declarations claim, checked once their libraries are evaluated.
 //
 // The backend emits one prototype per C symbol (`emit_import_shims`), so two
 // declarations of one symbol share it. When no header owns that prototype, it is
@@ -10,18 +10,17 @@
 // mirror each system fills. A variadic one needs that header: what it passes
 // through `...` is the argument list of one call, never the prototype.
 
-module "vader/lower"
+module "vader/front/comptime"
 
 import "std/collections"
 import "std/ffi"
 import "toolchain/ast"
-import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 
 // Report each C symbol a second `@extern` declaration of the project claims
-// (M5011), unless both declarations name a header, and each variadic `@extern`
-// that names none (M5012). Every module is read, not only what the program
+// (C4020), unless both declarations name a header, and each variadic `@extern`
+// that names none (C4021). Every module is read, not only what the program
 // reaches.
 check_extern_symbols :: fn(
     loaded: LoadedProject,
@@ -30,13 +29,13 @@ check_extern_symbols :: fn(
 ) -> void {
     claimed :: Map<string, FnDecl> {}
     for [_, module] in loaded.modules {
-        for decl in module_decls(module) {
+        for decl in concat_file_decls(module.module.files) {
             if decl !is FnDecl || decl.body != null || !decorators_have(decl.decorators, "extern") {
                 continue
             }
             if c_variadic_start(decl) >= 0 && !owns_prototype(decl, libraries) {
                 detail :: "`${decl.name}` is variadic: name the header declaring `${extern_symbol_of(decl)}` with `@c_header`, or in its `CLibrary`'s `headers`"
-                diags.push(lower_error(.VariadicExternWithoutHeader, decl.name_span, detail))
+                diags.push(comptime_error(.VariadicExternWithoutHeader, decl.name_span, detail))
             }
             symbol :: extern_symbol_of(decl)
             prior :: claimed.get_or_put(symbol, decl)
@@ -47,7 +46,7 @@ check_extern_symbols :: fn(
                 continue
             }
             detail :: "`${symbol}` is already declared on `${prior.name}`"
-            diags.push(lower_error(.ExternSymbolClaimedTwice, decl.name_span, detail))
+            diags.push(comptime_error(.ExternSymbolClaimedTwice, decl.name_span, detail))
         }
     }
 }

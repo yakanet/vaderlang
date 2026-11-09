@@ -1,4 +1,4 @@
-// M5011: two `@extern` declarations, in two modules, claim the C symbol `abs`
+// C4020: two `@extern` declarations, in two modules, claim the C symbol `abs`
 // and neither names a header that would own its prototype. `labs` is declared
 // twice too, but both declarations name a header, through a `CLibrary`: that
 // pair passes.

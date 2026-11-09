@@ -232,18 +232,20 @@ export ResolverCode :: enum(CodeInfo) {
 
 // C-codes belong to the comptime evaluator.
 export ComptimeCode :: enum(CodeInfo) {
-    CannotEvaluate        { .id = "C4001", .message = "expression cannot be evaluated at compile time" },
-    EvaluationPanic       { .id = "C4002", .message = "comptime evaluation panicked" },
-    NotCallable           { .id = "C4003", .message = "function is not callable in comptime context" },
-    DivisionByZero        { .id = "C4005", .message = "comptime division by zero" },
-    TypeMismatch          { .id = "C4007", .message = "comptime value has incompatible type" },
-    DependencyCycle       { .id = "C4009", .message = "comptime evaluation depends on itself" },
-    FeatureNotSupported   { .id = "C4011", .message = "comptime feature not yet supported" },
-    AssertFailed          { .id = "C4015", .message = "compile-time assertion failed" },
-    HostRefusedAtComptime { .id = "C4016", .message = "a comptime evaluation cannot call this host" },
-    IntegerOverflow       { .id = "C4017", .message = "integer overflow in a constant expression" },
-    SingletonAtComptime   { .id = "C4018", .message = "a `@singleton` function cannot run at comptime" },
-    LibrariesDisagree     { .id = "C4019", .message = "two `CLibrary` constants of one name describe different binaries" },
+    CannotEvaluate              { .id = "C4001", .message = "expression cannot be evaluated at compile time" },
+    EvaluationPanic             { .id = "C4002", .message = "comptime evaluation panicked" },
+    NotCallable                 { .id = "C4003", .message = "function is not callable in comptime context" },
+    DivisionByZero              { .id = "C4005", .message = "comptime division by zero" },
+    TypeMismatch                { .id = "C4007", .message = "comptime value has incompatible type" },
+    DependencyCycle             { .id = "C4009", .message = "comptime evaluation depends on itself" },
+    FeatureNotSupported         { .id = "C4011", .message = "comptime feature not yet supported" },
+    AssertFailed                { .id = "C4015", .message = "compile-time assertion failed" },
+    HostRefusedAtComptime       { .id = "C4016", .message = "a comptime evaluation cannot call this host" },
+    IntegerOverflow             { .id = "C4017", .message = "integer overflow in a constant expression" },
+    SingletonAtComptime         { .id = "C4018", .message = "a `@singleton` function cannot run at comptime" },
+    LibrariesDisagree           { .id = "C4019", .message = "two `CLibrary` constants of one name describe different binaries" },
+    ExternSymbolClaimedTwice    { .id = "C4020", .message = "two `@extern` declarations claim one C symbol" },
+    VariadicExternWithoutHeader { .id = "C4021", .message = "a variadic `@extern` names no header" },
 }
 
 // M-codes belong to the lowering pass (AST -> Lowered IR). The `M` prefix
@@ -255,11 +257,9 @@ export LowerCode :: enum(CodeInfo) {
     /// at run time instead.
     IntoCoercionFailed { .id = "M5004", .message = "`Into` coercion cannot be lowered" },
     /// Reserved: an intrinsic the lowerer cannot lower panics in `emit/bytecode/emit` instead.
-    IntrinsicUnsupported        { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
-    UnresolvedIdent             { .id = "M5007", .message = "identifier did not resolve at lowering" },
-    ComptimeForNotUnrollable    { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
-    ExternSymbolClaimedTwice    { .id = "M5011", .message = "two `@extern` declarations claim one C symbol" },
-    VariadicExternWithoutHeader { .id = "M5012", .message = "a variadic `@extern` names no header" },
+    IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
+    UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
+    ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
 }
 
 // `WARNING`: non-fatal diagnostics.

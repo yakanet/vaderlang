@@ -1,0 +1,1 @@
+[9:8] error[C4020] two `@extern` declarations claim one C symbol: `abs` is already declared on `c_abs`

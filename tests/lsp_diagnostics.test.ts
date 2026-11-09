@@ -111,6 +111,21 @@ test("LSP surfaces a comptime division by zero (C4005) and a cycle (C4009)", asy
   expect(codes.sort()).toEqual(["C4005", "C4009"]);
 }, MEDIUM_BUILD);
 
+test("LSP surfaces an extern symbol claimed twice (C4020) and a headerless variadic (C4021)", async () => {
+  const source = [
+    `module "snippet"`,
+    `@extern("abs")`,
+    `c_abs :: fn(x: i32) -> i32`,
+    `@extern("abs")`,
+    `c_abs_again :: fn(x: i32) -> i32`,
+    `@extern("snprintf")`,
+    `format :: fn(out: u8[], size: usize, pattern: string, @c_variadic value: i32) -> i32`,
+    ``,
+  ].join("\n");
+  const codes = (await diagnosticsFor(source)).map(d => d.code).filter(c => c.startsWith("C"));
+  expect(codes.sort()).toEqual(["C4020", "C4021"]);
+}, MEDIUM_BUILD);
+
 test("LSP publishes each diagnostic once, as the CLI prints it", async () => {
   // An `implements` naming an unknown type reports some of its spans twice.
   const source = [

@@ -884,7 +884,7 @@ validate_extern_signature :: fn(
 // The parameters `decl` passes through the `...` of its C prototype. They close
 // the list, after at least one fixed parameter, and each is declared as C
 // receives it. The header a variadic needs is checked once its library is
-// evaluated (M5012).
+// evaluated (C4021).
 validate_variadic_parameters :: fn(
     decl: AST.FnDecl,
     params: Type[],
