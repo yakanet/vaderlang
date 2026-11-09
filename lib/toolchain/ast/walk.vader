@@ -141,7 +141,7 @@ ignore_node :: fn(n: Node) -> void {}
 export find_expr :: fn(n: Node, accept: fn(Expr) -> bool) -> Expr | null {
     found: Expr[]: []
     inspect(n, (m) -> take_first(m, accept, found))
-    return found.first_or_null()
+    return found.first()
 }
 
 take_first :: fn(n: Node, accept: fn(Expr) -> bool, found: Expr[]) -> Walk {

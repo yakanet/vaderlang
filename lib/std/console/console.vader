@@ -253,18 +253,6 @@ export read_available :: fn(max: i64) -> string | IOError {
     return bytes.bytes_to_string()
 }
 
-/// `read_available` with null in place of its error, for a caller that only
-/// tells a read from its absence.
-///
-/// @param max  ceiling on the bytes returned.
-export read_available_or_null :: fn(max: i64) -> string | null {
-    read :: read_available(max)
-    if read is IOError {
-        return null
-    }
-    return read
-}
-
 /// Read stdin up to its end: what a program takes when its input is a file or
 /// the output of another program.
 ///
@@ -448,5 +436,4 @@ import "std/testing"
 @test test_reading_nothing_is_refused_without_touching_stdin :: fn() -> void {
     refused :: read_available(0)
     assert(refused is IOError && refused.kind == .InvalidInput, "no room is an invalid input")
-    assert(read_available_or_null(0) == null, "and the twin answers null")
 }

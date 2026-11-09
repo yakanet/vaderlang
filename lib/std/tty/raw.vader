@@ -16,6 +16,7 @@
 module "std/tty"
 
 import "std/console"
+import "std/option"
 import "std/string"
 import "system/posix"
 import "system/windows"
@@ -196,7 +197,8 @@ columns :: fn() -> i32 {
 /// @return     the bytes read, never empty, since a successful read yields at
 ///             least one byte, or `null` at end of input, on a read failure,
 ///             and on a target with no terminal.
-export read_keys :: fn(max: i32) -> string | null = read_available_or_null(i64(clamp_keys(max)))
+export read_keys :: fn(max: i32) -> string | null =
+    read_available(i64(clamp_keys(max))).or_null()
 
 /// Bytes returned at most, whatever the caller asked for. A key press is a few
 /// bytes (an arrow is three); more is a paste, handed over in pieces.

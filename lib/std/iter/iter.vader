@@ -62,7 +62,7 @@ export count :: fn<T>(it: Iterator<T>) -> i64 {
 /// The first element of `arr`, or `null` when it is empty: O(1).
 ///
 /// @param arr  source array.
-export first_or_null :: fn<T>(arr: T[]) -> T | null {
+export first :: fn<T>(arr: T[]) -> T | null {
     if arr.len() == 0 {
         return null
     }
@@ -191,8 +191,8 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 
 /// Slide a fixed-size window over `self`, yielding each run of `size` consecutive
 /// elements. Step 1, no partial windows: a source shorter than `size` yields
-/// nothing. Mirrors Kotlin's `windowed(size)`. Like `zip`, takes `T[]` (not a lazy
-/// `Iterator`) because the overlapping pull needs indexed access.
+/// nothing. Like `zip`, takes `T[]` (not a lazy `Iterator`) because the
+/// overlapping pull needs indexed access.
 ///
 /// Each window is a zero-copy VIEW aliasing `self` (the built-in `arr[lo..<hi]`
 /// slice): cheap, but a later mutation of `self` shows through ; `.clone()` a
@@ -241,7 +241,7 @@ export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, i64]> {
 CHUNK_RESERVE_CAP: i64: 1024
 
 /// Split `self` into consecutive runs of `size` elements ; the last run holds
-/// what remains and may be shorter. Mirrors Kotlin's `chunked(size)`.
+/// what remains and may be shorter.
 ///
 /// Unlike `window`, each chunk is a FRESH array, not a view: the source is a
 /// lazy `Iterator`, so there is nothing to alias.
@@ -272,7 +272,7 @@ export chunked :: fn<T>(self: Iterator<T>, size: i64) -> Iterator<T[]> {
 }
 
 /// Lazily yield each element of `self` the first time it occurs, in order of
-/// first occurrence. Mirrors Kotlin's `distinct()`.
+/// first occurrence.
 ///
 /// Remembers every element seen so far, so memory grows with the number of
 /// DISTINCT elements, not with the length of the stream.
@@ -291,7 +291,6 @@ export distinct :: fn<T: Hash & Equals>(self: Iterator<T>) -> Iterator<T> {
 }
 
 /// Lazily yield the non-null elements of `self`, typed without the `null`.
-/// Mirrors Kotlin's `filterNotNull()`.
 /// @param self  source iterator over a nullable element type.
 /// @return      a lazy `Iterator<T>`: `self` with every `null` dropped.
 /// @example
@@ -549,7 +548,6 @@ export max :: fn<T: Comparable>(self: Iterator<T>) -> T | null {
 }
 
 /// The element whose `key` is least (an array auto-coerces at the call site).
-/// Mirrors Kotlin's `minBy`: `key` runs once per element.
 ///
 /// @param self  the elements to compare.
 /// @param key   the value each element is compared by.
@@ -571,7 +569,6 @@ export min_by :: fn<T, K: Comparable>(self: Iterator<T>, key: fn(T) -> K) -> T |
 }
 
 /// The element whose `key` is greatest (an array auto-coerces at the call site).
-/// Mirrors Kotlin's `maxBy`: `key` runs once per element.
 ///
 /// @param self  the elements to compare.
 /// @param key   the value each element is compared by.
@@ -614,10 +611,10 @@ import "std/testing"
     assert_eq(empty.last() ?? -1, -1)
 }
 
-@test test_first_or_null_of_an_array :: fn() -> void {
-    assert_eq([4, 5, 6].first_or_null() ?? -1, 4)
+@test test_first_of_an_array :: fn() -> void {
+    assert_eq([4, 5, 6].first() ?? -1, 4)
     empty: i32[]: []
-    assert_eq(empty.first_or_null() ?? -1, -1)
+    assert_eq(empty.first() ?? -1, -1)
 }
 
 @test test_is_empty_iterator :: fn() -> void {

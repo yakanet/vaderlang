@@ -93,9 +93,9 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrMove      -> { return ins.src }
         is InstrBinOp     -> { return ins.lhs }
         is InstrUnOp      -> { return ins.operand }
-        is InstrCall      -> { return ins.args.first_or_null() }
-        is InstrCallIndirect -> { return ins.args.first_or_null() ?? ins.callee }
-        is InstrVirtualCall -> { return ins.args.first_or_null() ?? ins.receiver }
+        is InstrCall      -> { return ins.args.first() }
+        is InstrCallIndirect -> { return ins.args.first() ?? ins.callee }
+        is InstrVirtualCall -> { return ins.args.first() ?? ins.receiver }
         is InstrFieldGet      -> { return ins.target }
         is InstrFieldSet      -> { return ins.target }
         is InstrUnionFieldGet -> { return ins.target }
@@ -105,8 +105,8 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrArrayLen      -> { return ins.target }
         is InstrArrayPush     -> { return ins.target }
         is InstrArraySlice    -> { return ins.target }
-        is InstrStructNew   -> { return ins.fields.first_or_null() }
-        is InstrArrayNew -> { return ins.elements.first_or_null() }
+        is InstrStructNew   -> { return ins.fields.first() }
+        is InstrArrayNew -> { return ins.elements.first() }
         is InstrTypeCheck   -> { return ins.value }
         is InstrCast        -> { return ins.value }
         is InstrCellNew     -> { return ins.value }
@@ -114,7 +114,7 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrCellSet     -> { return ins.cell }
         is InstrGlobalSet   -> { return ins.value }
         is InstrMakeClosure -> { return ins.env }
-        is InstrIntrinsic   -> { return ins.args.first_or_null() }
+        is InstrIntrinsic   -> { return ins.args.first() }
         is InstrDeferPush    -> { return ins.value }
         is InstrDeferPopExec -> { return null }
     }

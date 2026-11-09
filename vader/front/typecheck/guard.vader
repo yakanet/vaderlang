@@ -737,7 +737,7 @@ callee_guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] |
 /// @param call  a call in a condition, already checked.
 guard_narrowing :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow | null {
     narrowings :: guard_narrowings(call, typed) ?? return null
-    return narrowings.first_or_null()
+    return narrowings.first()
 }
 
 /// Push what a call to a guard narrows where it evaluated to `truth`.

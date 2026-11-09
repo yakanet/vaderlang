@@ -333,7 +333,7 @@ open_blocks :: fn(ctx: FnEmitCfg, ys: BlockId[], next: BlockId) -> BlockId {
         y :: ys[ys.len() - 1 - i]
         cf_block(ctx, ctx.fn_.blocks[i32(y)].span, y)
     }
-    return ys.first_or_null() ?? next
+    return ys.first() ?? next
 }
 
 // Close the `block`s `open_blocks` opened for `ys`, each block in `ys` emitted
