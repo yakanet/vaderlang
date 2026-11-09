@@ -15,6 +15,8 @@ module "vader/tools/lsp/protocol"
 
 import "json"
 import "std/collections"
+import "std/option"
+import "std/uri"
 import "vader/support/diagnostics"
 import "toolchain/span"
 
@@ -147,11 +149,30 @@ location_link_json :: fn(
 
 // ---- params extraction ----------------------------------------------------
 
-/// `params.textDocument.uri`, or `""` when absent.
-export position_uri :: fn(params: JsonValue) -> string {
-    td :: get_field(params, "textDocument")
-    return get_string(td, "uri")
+/// One spelling for the URIs of one document: the key of the open documents,
+/// and the URI `to_uri` builds from the document's path.
+///
+/// A client may write one file's URI several ways: VS Code escapes a Windows
+/// drive's colon (`file:///c%3A/x`) and every byte past the unreserved ones. A
+/// `file` URI therefore goes through its path and back, so `file:///c%3A/x`
+/// and `file:///C:/x` both become `file:///c:/x` on Windows; another URI is
+/// normalised as RFC 3986 reads it, and one that does not parse is kept as it
+/// came.
+///
+/// @param raw  the URI as the client sent it.
+export canonical_uri :: fn(raw: string) -> string {
+    parsed :: parse_uri(raw).or_null() ?? return raw
+    path :: parsed.to_path()
+    if path is string {
+        return path.to_uri().to_string()
+    }
+    return parsed.to_string()
 }
+
+/// `params.textDocument.uri` in the form `canonical_uri` gives, the key of the
+/// open documents, or `""` when absent.
+export position_uri :: fn(params: JsonValue) -> string =
+    canonical_uri(get_string(get_field(params, "textDocument"), "uri"))
 
 /// `params.position.line` (0-based), or `0` when absent.
 export position_line :: fn(params: JsonValue) -> i32 {
@@ -182,6 +203,7 @@ export range_field :: fn(params: JsonValue, bound: string, key: string) -> i32 =
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/target"
 import "std/testing"
 
 @test
@@ -206,4 +228,26 @@ test_span_to_range_utf16_astral :: fn() -> void {
         .end   = Position { .file = "t", .offset = 6, .line = 1, .column = 4 },
     }
     assert_eq(span_to_range_json(sp, li).start_character, 3)
+}
+
+@test
+test_canonical_uri_gives_one_spelling_per_file :: fn() -> void {
+    assert_eq(canonical_uri("file:///abs/a%2Ev%61der"), "file:///abs/a.vader")
+    assert_eq(canonical_uri("file:///abs/a%2Bb/x.vader"), "file:///abs/a+b/x.vader")
+    assert_eq(canonical_uri("untitled:Untitled-1"), "untitled:Untitled-1")
+}
+
+@test
+test_canonical_uri_keeps_what_does_not_parse :: fn() -> void {
+    assert_eq(canonical_uri("file:///abs/my path.vader"), "file:///abs/my path.vader")
+    assert_eq(canonical_uri(""), "")
+}
+
+@test
+test_canonical_uri_reads_a_drive_colon_however_escaped :: fn() -> void {
+    if VADER_OS != .Windows {
+        return
+    }
+    assert_eq(canonical_uri("file:///C%3A/x/a.vader"), "file:///c:/x/a.vader")
+    assert_eq(canonical_uri("file:///c:/x/a.vader"), "file:///c:/x/a.vader")
 }

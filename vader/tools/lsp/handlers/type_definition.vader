@@ -17,6 +17,8 @@
 module "vader/tools/lsp/handlers"
 
 import "json"
+import "std/option"
+import "std/uri"
 import "vader/core/types"
 import "vader/core/symbol"
 import "vader/tools/lsp/protocol"
@@ -27,9 +29,7 @@ import "vader/tools/lsp/analysis"
 /// a typed value or the value's type has no declaration to jump to.
 export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri == "" { return JsonNull {} }
-    file_path :: uri_to_path(uri)
-    if file_path == "" { return JsonNull {} }
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
 
     cursor :: typed_cursor(state, file_path, position_line(params), position_character(params)) ?? return JsonNull {}
     found :: expr_under(cursor) ?? return JsonNull {}
@@ -38,7 +38,7 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
     sym :: type_symbol(ty) ?? return JsonNull {}
     da :: sym.defined_at ?? return JsonNull {}
     li :: state.line_index_for_path(da.start.file)
-    return location_json(path_to_uri(da.start.file), da.span_to_range_json(li))
+    return location_json(da.start.file.to_uri().to_string(), da.span_to_range_json(li))
 }
 
 // The declaring `Symbol` carried by a named type, or null for types with no

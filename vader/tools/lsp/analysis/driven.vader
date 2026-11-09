@@ -21,9 +21,11 @@ import "std/collections"
 import "std/env"
 import "std/fs"
 import "std/io"
+import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
+import "std/uri"
 import "vader/front/resolver"
 import "vader/pipeline"
 import "vader/tools/lsp/protocol"
@@ -176,7 +178,8 @@ settle :: fn(self: ServerState, root: string, known: DrivenProject, roots: strin
     register_project_roots(root, roots)
     forget_project_analyses(self, root)
     for [uri, _] in self.docs {
-        if is_inside(uri_to_path(uri), root) {
+        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? continue
+        if is_inside(path, root) {
             self.dirty[uri] = true
         }
     }

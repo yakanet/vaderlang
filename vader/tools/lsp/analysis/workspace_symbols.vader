@@ -13,6 +13,7 @@ import "std/fs"
 import "std/io"
 import "std/sort"
 import "std/string"
+import "std/uri"
 import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
@@ -207,7 +208,7 @@ common_prefix :: fn(word: string, query: string, at: i64) -> i64 {
 file_symbols :: fn(
     state: ServerState, kept: Map<string, FileSymbols>, path: string, module: string,
 ) -> WorkspaceSymbol[] {
-    open :: state.index_for(path_to_uri(path))
+    open :: state.index_for(path.to_uri().to_string())
     if open != null {
         return symbols_of(open, path, module)
     }
@@ -239,7 +240,8 @@ disk_symbols :: fn(
     if header.name != module {
         return []
     }
-    return symbols_of(build_index(path_to_uri(path), source, state.position_encoding), path, module)
+    uri :: path.to_uri().to_string()
+    return symbols_of(build_index(uri, source, state.position_encoding), path, module)
 }
 
 // The top-level declarations and type members `idx` indexes, when its file
@@ -272,7 +274,8 @@ workspace_roots :: fn(state: ServerState) -> IncludePath[] {
     if root.byte_len() == 0 {
         return []
     }
-    roots :: document_roots(state, path_to_uri(join_path(root, "workspace.vader"))) ?? return []
+    uri :: join_path(root, "workspace.vader").to_uri().to_string()
+    roots :: document_roots(state, uri) ?? return []
     return roots.paths
 }
 

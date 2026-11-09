@@ -8,6 +8,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/uri"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
@@ -26,7 +27,7 @@ export handle_workspace_symbol :: fn(state: ServerState, params: JsonValue) -> J
         obj :: Map<string, JsonValue> {}
         obj["name"]          = JsonString { .value = s.name }
         obj["kind"]          = JsonNumber { .value = f64(symbol_kind(s.kind, s.owner)) }
-        obj["location"]      = location_json(path_to_uri(s.path), s.range)
+        obj["location"]      = location_json(s.path.to_uri().to_string(), s.range)
         obj["containerName"] = JsonString { .value = container_line(s.module, s.owner) }
         out.push(JsonObject { .entries = obj })
     }

@@ -12,6 +12,8 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/option"
+import "std/uri"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/tools/lsp/analysis"
@@ -27,11 +29,12 @@ RUN_TEST_COMMAND :: "vader.runTest"
 ///
 /// @param params  the request params carrying `textDocument.uri`.
 /// @return        a `CodeLens[]` JSON array ; empty when the document was
-///                never indexed or holds no test.
+///                never indexed, names no file, or holds no test.
 export handle_code_lens :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     idx :: state.index_for(uri) ?? return JsonArray { .items = [] }
-    folder :: project_or_folder_of_document(uri_to_path(uri))
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonArray { .items = [] }
+    folder :: project_or_folder_of_document(path)
     return JsonArray { .items = test_lenses(idx.program, uri, folder, idx.line_index) }
 }
 

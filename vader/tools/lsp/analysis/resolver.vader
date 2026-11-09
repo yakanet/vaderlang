@@ -11,7 +11,9 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
+import "std/option"
 import "std/string"
+import "std/uri"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
@@ -52,7 +54,10 @@ export resolve :: fn(
     // leads there.
     module :: roots.entry
     if module != null {
-        sibling :: first_in_files(state, module.files, uri_to_path(idx.uri), (sub: DocIndex) -> sub.find_toplevel(name))
+        here :: parse_uri(idx.uri).and_then(u -> u.to_path()).or_null()
+        sibling :: first_in_files(
+            state, module.files, here, (sub: DocIndex) -> sub.find_toplevel(name),
+        )
         if sibling != null { return sibling }
     }
     imp :: idx.find_import(name)
@@ -122,7 +127,7 @@ member_in_module :: fn(
     state: ServerState, paths: IncludePath[], module_path: string, name: string,
 ) -> ExternalHit | null {
     module :: module_named(state, module_path, paths) ?? return null
-    return first_in_files(state, module.files, "", (sub: DocIndex) -> sub.find_member(name))
+    return first_in_files(state, module.files, null, (sub: DocIndex) -> sub.find_member(name))
 }
 
 /// Find `name` among the top-level decls of the module `module_path` names, as
@@ -153,7 +158,7 @@ find_in_module :: fn(
     state: ServerState, paths: IncludePath[], module_path: string, name: string, exported_only: bool,
 ) -> ExternalHit | null {
     module :: module_named(state, module_path, paths) ?? return null
-    return first_in_files(state, module.files, "", (sub: DocIndex) -> if exported_only {
+    return first_in_files(state, module.files, null, (sub: DocIndex) -> if exported_only {
         sub.find_exported_toplevel(name)
     } else {
         sub.find_toplevel(name)
@@ -170,10 +175,13 @@ find_in_module :: fn(
 ///
 /// @param state  the server state, for the overlay and the position encoding.
 /// @param files  the candidate files, in search order.
-/// @param skip   a file to pass over (the document already searched) or `""`.
+/// @param skip   a file to pass over (the document already searched), or null.
 /// @param query  the decl to look for in one file's index.
 export first_in_files :: fn(
-    state: ServerState, files: string[], skip: string, query: fn(DocIndex) -> DeclEntry | null,
+    state: ServerState,
+    files: string[],
+    skip: string | null,
+    query: fn(DocIndex) -> DeclEntry | null,
 ) -> ExternalHit | null {
     for file in files {
         if file == skip {
@@ -183,7 +191,7 @@ export first_in_files :: fn(
         if src.byte_len() == 0 {
             continue
         }
-        uri :: path_to_uri(file)
+        uri :: file.to_uri().to_string()
         index :: state.index_for(uri) ?? build_index(uri, src, state.position_encoding)
         found :: query(index) ?? continue
         return ExternalHit {
@@ -217,17 +225,14 @@ export project_or_folder_of_document :: fn(path: string) -> string =
 /// from that file (`search_roots`), each made absolute, and the module the
 /// document belongs to. Null for a URI that names no file.
 ///
-/// Absolute because a target becomes a URI, and `path_to_uri("lib/…")` reads as
-/// root-absolute to the editor ("file not found"): the loader falls back to a
-/// cwd-relative `lib` when no bundle sits beside the binary.
+/// Absolute, as the paths of the documents are, so that a file found under a
+/// root compares equal to the document that holds it: the loader falls back to
+/// a cwd-relative `lib` when no bundle sits beside the binary.
 ///
 /// @param state  carries the host's roots, searched first (`include_flags`).
 /// @param uri    the document's URI.
 export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
-    path :: uri_to_path(uri)
-    if path.byte_len() == 0 {
-        return null
-    }
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return null
     discard: Diagnostic[]: []
     roots :: search_roots(
         path, state.include_flags, project_of_document(path), doc_overlay(state), discard,

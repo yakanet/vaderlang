@@ -3,14 +3,15 @@
 // of its folder, a file with no `module` line is told so on itself, no request
 // answers with another file's data, a file changed outside the editor
 // reaches the open documents once the client reports it, an open document
-// whose file is deleted leaves its module, and changes batched in one
-// notification leave the document at the last one.
+// whose file is deleted leaves its module, changes batched in one
+// notification leave the document at the last one, and a document is the same
+// whichever way the client spells its URI.
 //
 // The session is driven one message at a time, since what the test sends next
 // depends on what the server has already answered.
 
 import { afterAll, expect, test } from "bun:test";
-import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -238,5 +239,28 @@ test("changes batched in one notification leave the document at the last one", a
   });
   const unresolved = errors(await session.diagnosticsOf(uri, changed));
   expect(unresolved.map(d => [d.code, d.range.start.line])).toEqual([["R2006", 4]]);
+  await session.close();
+}, MEDIUM_BUILD);
+
+test("an open document is found again whichever way the client spells its URI", async () => {
+  // A folder whose name the server's URIs and VS Code's spell apart: VS Code
+  // escapes every byte but the unreserved ones, so `+` reaches the server as
+  // `%2B`, where the server's own URI keeps it bare.
+  const dir = join(project({}), "a+b c");
+  mkdirSync(dir);
+  writeFileSync(join(dir, "a.vader"), 'module "demo"\n');
+  writeFileSync(join(dir, "b.vader"), "");
+  const session = new Session(dir, {});
+  const spelled = (name: string) =>
+    `file://${join(dir, name).split("/").map(encodeURIComponent).join("/")}`;
+  // The sibling's declaration exists only in its unsaved text.
+  session.open(spelled("a.vader"), SIBLING);
+  const uri = spelled("b.vader");
+  session.open(uri, 'module "demo"\n\nexport TWICE :: ANSWER * 2\n');
+  expect(errors(await session.diagnosticsOf(pathToUri(join(dir, "b.vader"))))).toEqual([]);
+  const found = await session.request("textDocument/definition", {
+    textDocument: { uri }, position: { line: 2, character: 17 },
+  });
+  expect([found?.uri, found?.range.start.line]).toEqual([pathToUri(join(dir, "a.vader")), 2]);
   await session.close();
 }, MEDIUM_BUILD);

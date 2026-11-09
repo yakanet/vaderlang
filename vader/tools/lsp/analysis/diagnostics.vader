@@ -16,6 +16,8 @@ module "vader/tools/lsp/analysis"
 
 import "std/collections"
 import "json"
+import "std/option"
+import "std/uri"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/front/dead_code"
@@ -26,9 +28,9 @@ import "vader/tools/lsp/protocol"
 /// diagnostics to the client. Non-file URIs and empty docs short-circuit to an empty
 /// array: the client clears any stale squiggles either way.
 export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
-    file_path :: uri_to_path(uri)
-    if file_path == "" {
-        publish(self, uri, [])
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+    if file_path == null {
+        clear_diagnostics_for_uri(uri)
         return
     }
     // Held back until a driven project's roots are first known: every import of
@@ -49,14 +51,13 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
     checked :: CheckedProject { .result = cached.result, .effects = cached.effects }
     evaluate_checked(cached.project, checked, diags)
     diags.push_all(unused_export_diags(cached.project))
-    publish(self, uri, diags)
+    publish(self, uri, file_path, diags)
 }
 
 /// Push an empty diagnostics array: clears any existing squiggles in
 /// the client. Called from `didClose`.
-export clear_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
-    publish(self, uri, [])
-}
+export clear_diagnostics_for_uri :: fn(uri: string) -> void =
+    send_diagnostics(uri, [])
 
 /// The opt-in project-wide `unused-export` (W0012) findings for an
 /// already-loaded project: the LSP side of the `vader lint` recipe. Surfaced
@@ -74,20 +75,19 @@ unused_export_diags :: fn(project: LoadedProject) =
     dead_export_diags(dead_exports_of_project(project).findings)
 
 /// Push a `publishDiagnostics` notification carrying `diags` filtered to
-/// those whose primary span belongs to `uri` (we don't squiggle another file's
-/// errors on the open document), each exact duplicate once, as the CLI renders
-/// them. Everything else is published as is so the editor reports exactly what
-/// the compiler detects, cascade noise included : the diagnostics come straight
-/// from the shared `check_file`, the same path `vader dump --stage=typed-ast`
-/// uses.
-publish :: fn(self: ServerState, uri: string, diags: Diagnostic[]) -> void {
-    file_path :: uri_to_path(uri)
+/// those whose primary span lies in `file_path`, the file `uri` names (we don't
+/// squiggle another file's errors on the open document), each exact duplicate
+/// once, as the CLI renders them. Everything else is published as is so the
+/// editor reports exactly what the compiler detects, cascade noise included :
+/// the diagnostics come straight from the shared `check_file`, the same path
+/// `vader dump --stage=typed-ast` uses.
+publish :: fn(self: ServerState, uri: string, file_path: string, diags: Diagnostic[]) -> void {
     // Every published diagnostic is filtered to `file_path` below, so one index
     // for the open document encodes them all.
     li :: self.line_index_for_path(file_path)
     shown: Diagnostic[]: []
     for d in diags {
-        if file_path == "" || d.primary.start.file == file_path {
+        if d.primary.start.file == file_path {
             shown.push(d)
         }
     }
@@ -95,6 +95,10 @@ publish :: fn(self: ServerState, uri: string, diags: Diagnostic[]) -> void {
     for d in dedup_diagnostics(shown) {
         items.push(encode_diagnostic(d, li))
     }
+    send_diagnostics(uri, items)
+}
+
+send_diagnostics :: fn(uri: string, items: JsonValue[]) -> void {
     params :: Map<string, JsonValue> {}
     params["uri"]         = JsonString { .value = uri }
     params["diagnostics"] = JsonArray { .items = items }

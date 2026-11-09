@@ -22,7 +22,9 @@ module "vader/tools/lsp/handlers"
 
 import "std/collections"
 import "json"
+import "std/option"
 import "std/string"
+import "std/uri"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/front/typecheck"
@@ -37,11 +39,8 @@ import "toolchain/span"
 /// array response, never a null.
 export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri == "" {
-        return JsonArray { .items = [] }
-    }
-    file_path :: uri_to_path(uri)
-    if file_path == "" {
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+    if file_path == null {
         return JsonArray { .items = [] }
     }
     cached :: typed_project_for(state, file_path)

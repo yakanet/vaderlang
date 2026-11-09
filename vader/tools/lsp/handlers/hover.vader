@@ -33,8 +33,10 @@ module "vader/tools/lsp/handlers"
 import "json"
 import "std/collections"
 import "std/iter"
+import "std/option"
 import "std/path"
 import "std/string"
+import "std/uri"
 import "vader/tools/fmt"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
@@ -129,7 +131,9 @@ decl_hover :: fn(hit: ExternalHit, instance: string) -> JsonValue {
         parts.push("---")
         parts.push(format_vaderdoc(doc))
     }
-    parts.push("*${uri_to_path(hit.uri).to_path().filename()}*")
+    // A URI that names no file is shown as it is.
+    shown :: parse_uri(hit.uri).and_then(u -> u.to_path()).or_null() ?? hit.uri
+    parts.push("*${shown.to_path().filename()}*")
     return markdown_hover(parts.join("\n\n"))
 }
 
@@ -153,7 +157,8 @@ generic_instance :: fn(
     if !hit.target.generic || is_declaration_site(uri, idx, hit, line, character) {
         return ""
     }
-    cursor :: typed_cursor(state, uri_to_path(uri), line, character) ?? return ""
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return ""
+    cursor :: typed_cursor(state, path, line, character) ?? return ""
     found :: expr_under(cursor) ?? return ""
     ty :: cursor.typed.expr_types[found.id] ?? return ""
     return display_type(ty)
@@ -264,10 +269,7 @@ bullets :: fn(items: string[]) -> string {
 /// inferred type at (line, character), `name: T` on a named value. Returns
 /// `null` on miss so the caller can fall through to the decl hover.
 try_typed_hover :: fn(self: ServerState, uri: string, idx: DocIndex, line: i32, character: i32) -> JsonValue | null {
-    file_path :: uri_to_path(uri)
-    if file_path == "" {
-        return null
-    }
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return null
     cursor :: typed_cursor(self, file_path, line, character) ?? return null
     // Binding-name hover first : when the cursor sits on a `let` /
     // `::` binding name, show the RHS's inferred type instead of the

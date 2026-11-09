@@ -15,6 +15,8 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/option"
+import "std/uri"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/actions"
@@ -27,9 +29,10 @@ import "vader/tools/lsp/actions"
 /// @return        a `CodeAction[]` JSON array.
 export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri == "" { return JsonArray { .items = [] } }
-    file_path :: uri_to_path(uri)
-    if file_path == "" { return JsonArray { .items = [] } }
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+    if file_path == null {
+        return JsonArray { .items = [] }
+    }
 
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] ?? return JsonArray { .items = [] }

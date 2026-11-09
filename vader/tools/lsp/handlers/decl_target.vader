@@ -11,6 +11,8 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/option"
+import "std/uri"
 import "toolchain/span"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
@@ -35,12 +37,8 @@ DeclTarget :: struct {
 
 // The declaration under the cursor of `params`, or null.
 cursor_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null {
-    uri :: position_uri(params)
-    path :: uri_to_path(uri)
-    if path == "" {
-        return null
-    }
-    return target_at(state, uri, path, position_line(params), position_character(params))
+    path :: parse_uri(position_uri(params)).and_then(u -> u.to_path()).or_null() ?? return null
+    return target_at(state, path, path, position_line(params), position_character(params))
 }
 
 // The declaration the `item` of `params` names, found again at its selection
@@ -48,29 +46,26 @@ cursor_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null 
 // its own file's.
 item_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null {
     item :: get_field(params, "item")
-    path :: uri_to_path(get_string(item, "uri"))
-    if path == "" {
-        return null
-    }
+    path :: parse_uri(get_string(item, "uri")).and_then(u -> u.to_path()).or_null() ?? return null
     start :: get_field(get_field(item, "selectionRange"), "start")
     line :: get_number(start, "line")
     character :: get_number(start, "character")
     entry :: get_string(get_field(item, "data"), "entry")
     if entry != "" {
-        found :: target_at(state, path_to_uri(entry), path, line, character)
+        found :: target_at(state, entry, path, line, character)
         if found != null {
             return found
         }
     }
-    return target_at(state, path_to_uri(path), path, line, character)
+    return target_at(state, path, path, line, character)
 }
 
 // The declaration named at the 0-based position in the file at `path`, read in
-// the project of the document `uri`.
+// the project of the document at `document`.
 target_at :: fn(
-    state: ServerState, uri: string, path: string, line: i32, character: i32,
+    state: ServerState, document: string, path: string, line: i32, character: i32,
 ) -> DeclTarget | null {
-    cached :: typed_project_for(state, uri_to_path(uri))
+    cached :: typed_project_for(state, document)
     index :: reference_index_of(cached)
     [l, column] :: state.span_point(path, line, character)
     site :: site_at(index, path, l, column) ?? return null
@@ -80,7 +75,7 @@ target_at :: fn(
     decl :: doc_index_for(state, indices, at.file).entry_at_offset(at.offset) ?? return null
     return DeclTarget {
         .state     = state,
-        .uri       = uri,
+        .uri       = document.to_uri().to_string(),
         .project   = cached,
         .index     = index,
         .site      = site,
@@ -109,7 +104,7 @@ doc_index_for :: fn(
 
 // The open document's index of the file at `path`, else one built from its text.
 open_or_built_index :: fn(state: ServerState, path: string) -> DocIndex {
-    uri :: path_to_uri(path)
+    uri :: path.to_uri().to_string()
     open :: state.index_for(uri)
     if open != null {
         return open
@@ -130,7 +125,7 @@ hierarchy_item_json :: fn(
     obj["name"]           = JsonString { .value = decl.name }
     obj["kind"]           = JsonNumber { .value = f64(kind) }
     obj["detail"]         = JsonString { .value = detail }
-    obj["uri"]            = JsonString { .value = path_to_uri(path) }
+    obj["uri"]            = JsonString { .value = path.to_uri().to_string() }
     obj["range"]          = range_json(decl.full_span.span_to_range_json(li))
     obj["selectionRange"] = range_json(decl.name_span.span_to_range_json(li))
     obj["data"]           = JsonObject { .entries = data }
@@ -151,5 +146,6 @@ read_line_index :: fn(target: DeclTarget, path: string) -> LineIndex {
 // The `Location` of `span`.
 span_location :: fn(target: DeclTarget, span: Span) -> JsonValue {
     path :: span.start.file
-    return location_json(path_to_uri(path), span.span_to_range_json(target.line_index_for(path)))
+    uri :: path.to_uri().to_string()
+    return location_json(uri, span.span_to_range_json(target.line_index_for(path)))
 }

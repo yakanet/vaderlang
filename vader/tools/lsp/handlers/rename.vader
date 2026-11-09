@@ -19,6 +19,8 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/option"
+import "std/uri"
 import "vader/support/diagnostics"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
@@ -30,9 +32,7 @@ AST :: import "toolchain/ast"
 /// resolved reference: the client then refuses the rename.
 export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri == "" { return JsonNull {} }
-    file_path :: uri_to_path(uri)
-    if file_path == "" { return JsonNull {} }
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
     cached :: typed_project_for(state, file_path)
     index :: reference_index_of(cached)
     site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
@@ -44,9 +44,7 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
 /// reference or `newName` is empty.
 export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri == "" { return JsonNull {} }
-    file_path :: uri_to_path(uri)
-    if file_path == "" { return JsonNull {} }
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
     new_name :: rename_new_name(params)
     if new_name == "" { return JsonNull {} }
 
@@ -136,7 +134,7 @@ in_signature :: fn(f: DeclEntry, offset: i64) -> bool {
 workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState, li_cache: Map<string, LineIndex>) -> JsonValue {
     by_uri :: Map<string, JsonValue[]> {}
     for e in edits {
-        key :: path_to_uri(e.span.start.file)
+        key :: e.span.start.file.to_uri().to_string()
         te :: text_edit_json(e.span, new_name, state, li_cache)
         by_uri.get_or_put_with(key, () -> []).push(te)
     }

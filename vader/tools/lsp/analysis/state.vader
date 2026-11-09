@@ -8,7 +8,9 @@ module "vader/tools/lsp/analysis"
 
 import "json"
 import "std/collections"
+import "std/option"
 import "std/string"
+import "std/uri"
 import "vader/pipeline/check"
 import "vader/front/resolver"
 import "vader/support/target"
@@ -238,7 +240,7 @@ export source_for :: fn(self: ServerState, uri: string) -> string | null {
 /// cross-file results (goto-def / references targets in other modules).
 ///
 export source_for_path :: fn(self: ServerState, path: string) -> string {
-    open :: self.docs[path_to_uri(path)]
+    open :: self.docs[path.to_uri().to_string()]
     if open is string { return open }
     disk :: read_file_string(path)
     if disk is string { return disk }
@@ -249,7 +251,7 @@ export source_for_path :: fn(self: ServerState, path: string) -> string {
 /// document's own, or one built from the disk source. The single resolution
 /// point for encoding a cross-file span's `character` offsets.
 export line_index_for_path :: fn(self: ServerState, path: string) -> LineIndex {
-    open :: self.indices[path_to_uri(path)]
+    open :: self.indices[path.to_uri().to_string()]
     if open != null {
         return open.line_index
     }
@@ -282,7 +284,7 @@ export index_for :: fn(self: ServerState, uri: string) -> DocIndex | null {
 /// load+typecheck.
 ///
 /// @param self       the server state (carries the overlay + the cache).
-/// @param file_path  the entry file's filesystem path (from `uri_to_path`).
+/// @param file_path  the entry file's filesystem path (from its URI's `to_path`).
 /// @return           the cached-or-freshly-built project, typecheck result,
 ///                   and diagnostics.
 export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectCache {
@@ -379,14 +381,17 @@ export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> Sou
 
 /// Build a filesystem-path → current-text overlay from every open document,
 /// for the resolver to consult before the disk, to discover modules as to read
-/// them. `docs` is keyed by uri ; the loader reads by path, so convert each key
-/// via `uri_to_path`. An empty document is left to the disk.
+/// them. `docs` is keyed by uri ; the loader reads by path, so each key gives
+/// way to its path. An empty document is left to the disk.
 ///
 /// @param self  the server state, holding the open documents.
 export doc_overlay :: fn(self: ServerState) -> Map<string, string> {
     overlay :: Map<string, string> {}
     for [uri, text] in self.docs {
-        if text != "" { overlay[uri_to_path(uri)] = text }
+        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? continue
+        if text != "" {
+            overlay[path] = text
+        }
     }
     return overlay
 }
@@ -402,7 +407,7 @@ track_virt_document :: fn(self: ServerState, uri: string, text: string) -> void 
 /// `{ textDocument: { uri, languageId, version, text } }`.
 export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
-    uri :: get_string(td, "uri")
+    uri :: position_uri(params)
     if uri.byte_len() == 0 { return }
     text :: get_string(td, "text")
     self.docs[uri] = text
@@ -419,7 +424,8 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
 /// roots: its project describes itself again (`ensure_described`), its known
 /// roots serving meanwhile. Params shape : { textDocument: { uri } }
 export handle_did_save :: fn(self: ServerState, params: JsonValue) -> void {
-    describe_again_if_driver(self, uri_to_path(get_string(get_field(params, "textDocument"), "uri")))
+    path :: parse_uri(position_uri(params)).and_then(u -> u.to_path()).or_null() ?? return
+    describe_again_if_driver(self, path)
 }
 
 // Have the project of `path` describe itself again when `path` is its
@@ -443,8 +449,7 @@ forget_analyses :: fn(self: ServerState) -> void {
 /// Each change carries the whole text and they apply in order: when a client
 /// batches several in one notification, the last one is the document.
 export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
-    td :: get_field(params, "textDocument")
-    uri :: get_string(td, "uri")
+    uri :: position_uri(params)
     if uri.byte_len() == 0 { return }
     changes :: get_field(params, "contentChanges")
     if changes !is JsonArray {
@@ -470,8 +475,7 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
 /// `textDocument/didClose` handler. Drops the document and pushes an empty
 /// diagnostics array so the client clears any squiggles.
 export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
-    td :: get_field(params, "textDocument")
-    uri :: get_string(td, "uri")
+    uri :: position_uri(params)
     if uri.byte_len() == 0 { return }
     drop_document(self, uri)
 }
@@ -488,7 +492,7 @@ drop_document :: fn(self: ServerState, uri: string) -> void {
     forget_analyses(self)
     self.dirty.remove(uri)
     self.indices.remove(uri)
-    clear_diagnostics_for_uri(self, uri)
+    clear_diagnostics_for_uri(uri)
 }
 
 /// Recompute + publish diagnostics for every document a didChange marked dirty
@@ -577,8 +581,8 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
     }
     changed: string[]: []
     for change in changes.items {
-        uri :: get_string(change, "uri")
-        path :: uri_to_path(uri)
+        uri :: canonical_uri(get_string(change, "uri"))
+        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? continue
         if self.docs[uri] != null {
             if !is_deletion(change, path) {
                 continue
@@ -594,7 +598,8 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
     forget_analyses(self)
     self.union_cache = null
     for [uri, _] in self.docs {
-        if !is_virt_uri(uri) && touches_document(changed, uri_to_path(uri)) {
+        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? continue
+        if !is_virt_uri(uri) && touches_document(changed, path) {
             self.dirty[uri] = true
         }
     }

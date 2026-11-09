@@ -18,6 +18,8 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/option"
+import "std/uri"
 import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -119,10 +121,7 @@ member_by_type :: fn(
         // like a wildcard.
         return resolve_in_module(state, uri, alias_path, name, true)
     }
-    file_path :: uri_to_path(uri)
-    if file_path.byte_len() == 0 {
-        return null
-    }
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return null
     // DURING an edit burst this project is deliberately stale: `handle_did_change`
     // rebuilds the document index but keeps the typed cache, so the debounce can
     // typecheck once instead of per keystroke. The AST here is then the PREVIOUS
@@ -182,7 +181,7 @@ chosen_member :: fn(
     if src.byte_len() == 0 {
         return null
     }
-    uri :: path_to_uri(at.file)
+    uri :: at.file.to_uri().to_string()
     index :: state.index_for(uri) ?? build_index(uri, src, state.position_encoding)
     // By position, not by name : the overloads share it.
     target :: index.entry_at_offset(at.offset) ?? return null
@@ -341,7 +340,7 @@ member_in_declaring_module :: fn(
     state: ServerState, path: string, owner: string, name: string,
 ) -> ExternalHit | null {
     query :: (sub: DocIndex) -> sub.find_member_of(owner, name)
-    here :: first_in_files(state, [path], "", query)
+    here :: first_in_files(state, [path], null, query)
     if here != null {
         return here
     }
@@ -359,8 +358,10 @@ def_response :: fn(
     name_span: Span, full_span: Span, origin_li: LineIndex,
 ) -> JsonValue {
     // The target spans (`name_span` / `full_span`) live in `uri`'s file, which
-    // may differ from the origin's: encode each with its own file's index.
-    target_li :: state.line_index_for_path(uri_to_path(uri))
+    // may differ from the origin's: encode each with its own file's index. A
+    // URI that names no file is the origin's own document, an untitled buffer.
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+    target_li :: if path == null { origin_li } else { state.line_index_for_path(path) }
     clicked :: if origin == null { null } else { origin.span_to_range_json(origin_li) }
     full :: full_span.span_to_range_json(target_li)
     name :: name_span.span_to_range_json(target_li)

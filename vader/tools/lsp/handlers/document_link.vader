@@ -14,6 +14,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/uri"
 import "toolchain/ast"
 import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
@@ -55,7 +56,7 @@ import_link :: fn(
     range :: path_string_range(imp, source, li) ?? return null
     obj :: Map<string, JsonValue> {}
     obj["range"]  = range_json(range)
-    obj["target"] = JsonString { .value = path_to_uri(module.files[0]) }
+    obj["target"] = JsonString { .value = module.files[0].to_uri().to_string() }
     return JsonObject { .entries = obj }
 }
 
