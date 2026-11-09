@@ -182,7 +182,7 @@ emit_foreign_declarations :: fn(
     // declarations of one symbol may spell it differently.
     printer.print_section(CSection {
         .comment = ["`@c_type` spellings, checked against the C types."],
-        .items = c_type_asserts(imports),
+        .items = c_type_asserts(imports, types),
     })
     // Layout assertions for every `@c_struct` a shim marshals. `cc` (which has
     // the real header) refuses to compile a mirror whose field width differs
@@ -610,8 +610,8 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
         // declaration transcribes the C prototype one-to-one, and a callee
         // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
         // `@c_out` decides `void*` vs `const void*`, through
-        // `BcSignature.param_c_out`.
-        return pointer_to("void", writes)
+        // `BcSignature.param_c_out`, and `@c_type` names what it points to.
+        return pointer_to(param_c_type(imp, j) ?? "void", writes)
     }
     mirror :: mirrored_c_struct(types, sig.param_types[j])
     if mirror != "" {
@@ -653,15 +653,20 @@ spilled_c_type :: fn(imp: BcImport, j: i64) -> string =
     param_c_type(imp, j) ?? c_type_for_val_bare(imp.signature.params[j])
 
 // One `_Static_assert` per distinct `@c_type` of the extern `imports` and the
-// Vader type it renames.
-c_type_asserts :: fn(imports: BcImport[]) -> CTopLevel[] {
+// Vader type it renames, or the array element it names.
+c_type_asserts :: fn(imports: BcImport[], types: BcType[]) -> CTopLevel[] {
     out: CTopLevel[]: []
     seen: string[]: []
     for imp in imports {
         sig :: imp.signature
         for j in 0..<sig.params.len() {
             spelling :: param_c_type(imp, j) ?? continue
-            push_c_type_assert(spelling, sig.params[j], seen, out)
+            if is_abi_array(types, sig.param_types[j]) {
+                element :: val_type_of_field(types, array_element_tag(types, sig.param_types[j]))
+                push_pointee_assert(spelling, element, seen, out)
+            } else {
+                push_c_type_assert(spelling, sig.params[j], seen, out)
+            }
         }
         spelling :: c_result_type(imp) ?? continue
         push_c_type_assert(spelling, bc_single_result(sig), seen, out)
@@ -669,21 +674,75 @@ c_type_asserts :: fn(imports: BcImport[]) -> CTopLevel[] {
     return out
 }
 
-// Push the assert that `spelling` is an integer as wide as the Vader `val`, unless
-// `seen` holds that pair already.
+// Push the assert that `spelling` is an integer as wide as the Vader `val`.
 push_c_type_assert :: fn(spelling: string, val: ValType, seen: string[], out: CTopLevel[]) -> void {
     vader_type :: c_type_for_val_bare(val)
-    key :: "${spelling} ${vader_type}"
-    if key in seen {
-        return
-    }
-    seen.push(key)
-    c_width :: call("sizeof", [verbatim(spelling)])
-    wide :: binary(.Equal, c_width, call("sizeof", [verbatim(vader_type)]))
     // An integer type truncates `0.5` to `0` ; a floating one keeps it.
     integral :: binary(.Equal, cast(spelling, verbatim("0.5")), number(0))
     message :: "@c_type(${spelling}) is an integer as wide as ${vader_type}"
-    out.push(static_assert(binary(.LogicalAnd, wide, integral), message))
+    push_width_assert(spelling, vader_type, integral, message, seen, out)
+}
+
+// Push the assert that `spelling` names what an array of `val` holds: as wide as
+// one element and, when `spelling` is an integer, of its signedness. Any other C
+// type (a struct, a union, a pointer) is a layout laid over the elements and only
+// has to be as wide.
+push_pointee_assert :: fn(
+    spelling: string,
+    val: ValType,
+    seen: string[],
+    out: CTopLevel[],
+) -> void {
+    vader_type :: c_type_for_val_bare(val)
+    message :: "@c_type(${spelling}) names the elements of ${vader_type}[]"
+    push_width_assert(spelling, vader_type, pointee_signedness(spelling, val), message, seen, out)
+}
+
+// Push the assert that `spelling` is as wide as `vader_type` and that `also` holds,
+// unless `seen` holds its message already: one per spelling, Vader type and kind.
+push_width_assert :: fn(
+    spelling: string,
+    vader_type: string,
+    also: CExpression,
+    message: string,
+    seen: string[],
+    out: CTopLevel[],
+) -> void {
+    if message in seen {
+        return
+    }
+    seen.push(message)
+    c_width :: call("sizeof", [verbatim(spelling)])
+    wide :: binary(.Equal, c_width, call("sizeof", [verbatim(vader_type)]))
+    out.push(static_assert(binary(.LogicalAnd, wide, also), message))
+}
+
+// The test that `spelling` is no integer of the other signedness than `val`, and
+// no integer at all when `val` is not one. `_Generic` classes the C type without
+// converting to it, which a struct would refuse: 1 for a signed integer, 0 for an
+// unsigned one, 2 for anything else. A `char` is either, as the target says.
+pointee_signedness :: fn(spelling: string, val: ValType) -> CExpression {
+    class :: verbatim(
+        "_Generic(*(${spelling}*)0, signed char: 1, short: 1, int: 1, long: 1, long long: 1, "
+            + "unsigned char: 0, unsigned short: 0, unsigned int: 0, unsigned long: 0, "
+            + "unsigned long long: 0, char: ((char)-1 < 0), _Bool: 0, default: 2)",
+    )
+    if is_unsigned_val(val) || val == .Char || val == .Bool {
+        return binary(.NotEqual, class, number(1))
+    }
+    if is_integer_val(val) {
+        return binary(.NotEqual, class, number(0))
+    }
+    return binary(.Equal, class, number(2))
+}
+
+// The buffer `bytes`, a `const void*`, as the pointer type `target` the callee
+// declares: unconverted when that is its own type.
+as_buffer_type :: fn(target: string, bytes: CExpression) -> CExpression {
+    if target == "const void*" {
+        return bytes
+    }
+    return cast(target, bytes)
 }
 
 // `type*`, or `const type*` when the callee may not write through it.
@@ -1004,11 +1063,10 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             // (GC forward, borrowed view, materialised buf); contract in `vader.h`.
             slice :: call("vader_array_bytes", [cast("vader_array_t*", a)])
             before.push(declaration("vader_slice_t", "s${j}", slice))
-            // `ptr` is `const void*` ; only a `@c_out` slot needs the cast away.
             // `.len` is deliberately unused : the callee's length, if any, is a
             // parameter of its own (see the note on revision A in the plan).
             bytes :: CMember { .base = verbatim("s${j}"), .member = "ptr" }
-            call_args.push(if param_is_c_out(sig, j) { cast("void*", bytes) } else { bytes })
+            call_args.push(as_buffer_type(extern_parameter_type(imp, types, j), bytes))
         } else if mirrored_c_struct(types, sig.param_types[j]) != "" {
             // A mirrored struct, lent by address or copied by value. The shim
             // declares a REAL one of the C type and marshals field by field, so

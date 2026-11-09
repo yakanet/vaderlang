@@ -575,6 +575,19 @@ result_c_type_fault :: fn(
     return null
 }
 
+// What is wrong with `@c_type` on a parameter of type `t`, or null. It spells an
+// integer, or names what an array points to ; a mirror's C type is its
+// `@c_struct` already.
+param_c_type_fault :: fn(t: Type, typed: TypedProgram) -> string | null {
+    if mirrors_a_c_struct(t, typed) {
+        return "a `@c_struct` mirror names its C type already, so drop `@c_type`"
+    }
+    if is_c_integer(t) || array_backing(t) != null {
+        return null
+    }
+    return "`@c_type` respells an integer or names an array's element for C, got `${display_type(t)}`"
+}
+
 // Whether `t` is an integer C may declare under another name of its width, a
 // distinct type over one included. An unresolved type passes : its own
 // diagnostic is enough.
@@ -775,6 +788,13 @@ validate_extern_signature :: fn(
             )
             continue
         }
+        if AST.decorators_have(decl.params[i].decorators, "c_type") {
+            fault :: param_c_type_fault(pt, typed)
+            if fault != null {
+                diags.push(typecheck_error(.InvalidParameterDecorator, decl.params[i].span, fault))
+                continue
+            }
+        }
         // A struct crosses only on a type that declares which C type it mirrors:
         // the shim declares a real one and marshals field by field, so the C
         // compiler computes the offsets from the real header. An undeclared
@@ -783,16 +803,6 @@ validate_extern_signature :: fn(
         // either the copy itself.
         if mirrors_a_c_struct(pt, typed) {
             validate_mirror_fields(pt, decl.params[i].span, typed, Set<i32> {}, diags)
-            continue
-        }
-        if AST.decorators_have(decl.params[i].decorators, "c_type") && !is_c_integer(pt) {
-            diags.push(
-                typecheck_error(
-                    .InvalidParameterDecorator,
-                    decl.params[i].span,
-                    "`@c_type` respells an integer for C, got `${display_type(pt)}`",
-                ),
-            )
             continue
         }
         // C writes back through an array's buffer (a mirror is copied back, above) ;

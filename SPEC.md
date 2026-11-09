@@ -3288,7 +3288,7 @@ Decorators are compiler instructions prefixed with `@`. They act at compile time
 | `@extern`, `@extern("symbol")`, `@extern(LIBRARY, "symbol")` | fn without body | Declares a foreign function (§13) |
 | `@c_address` | parameter of an `@extern` fn | Lends the parameter by address, for C to read (§13) |
 | `@c_out` | parameter of an `@extern` fn | Lends the parameter by address, for C to write (§13) |
-| `@c_type("size_t")` | parameter or result of an `@extern` fn | The C spelling of an integer type (§13) |
+| `@c_type("size_t")` | parameter or result of an `@extern` fn | The C spelling of an integer type, or of what an array points to (§13) |
 | `@c_header("<header.h>")` | `@extern` fn | Takes the prototype from a C header (§13) |
 | `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13), named by an optional C type name |
 | `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
@@ -3552,7 +3552,7 @@ draw :: fn() -> i64 = gpu_draw()
 t :: launch(draw)   // error: the task reaches `gpu_draw`
 ```
 
-### `@c_type`: the C spelling of an integer
+### `@c_type`: the C spelling of an integer, or of what an array points to
 
 Without a header, the compiler spells a number by its Vader type (a `u64` is a `uint64_t`), which conflicts with a header that uses another name for the same width (`size_t`, `off_t`, `DWORD`). `@c_type` names the C type:
 
@@ -3564,10 +3564,21 @@ c_strnlen :: fn(s: string, @c_type("size_t") max: u64) -> u64
 
 On a parameter, `@c_type` spells that parameter; on the declaration, the result. The value is converted to the C type and back, and the C type must be an integer exactly as wide as the Vader one, or a native build fails. With `@c_header`, the header gives the prototype and `@c_type` only adds the conversions.
 
+On an array parameter, `@c_type` names one element, the `T` of `T *x` in the table of *`@c_address`*: C receives a `T *` instead of a `void *` (a `const T *` without `@c_out`), and a header checks it against its prototype:
+
+```vader
+@extern(KERNEL32, "GetConsoleMode")
+get_console_mode :: fn(h: Handle, @c_type("DWORD") @c_out mode: u32[]) -> bool
+```
+
+The named type must be exactly as wide as one element, and of its signedness when it is an integer, or a native build fails. Any other C type, a struct or a union laid over the elements (`LARGE_INTEGER` over an `i64[]`), only has to be as wide. A byte buffer standing for a larger struct takes no `@c_type`: C receives a `void *`.
+
 The following are errors:
 
 - `@c_type` without exactly one argument, a plain string;
-- `@c_type` on a parameter or a result that is not an integer, or a distinct type over one;
+- `@c_type` on a parameter that is neither an integer, a distinct type over one, nor an array;
+- `@c_type` on a result that is not an integer, or a distinct type over one;
+- `@c_type` on a `@c_struct` mirror, which names its C type already;
 - `@c_type` outside an `@extern` declaration.
 
 ### `@c_struct`: mirroring a C struct

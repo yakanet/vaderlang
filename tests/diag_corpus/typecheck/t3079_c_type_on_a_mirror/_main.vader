@@ -1,0 +1,11 @@
+// `@c_type` on a `@c_struct` mirror: T3079. The mirror names its C type through
+// `@c_struct` already, and the shim declares that one: a `@c_type` beside it
+// would be read by nothing.
+module "snippet"
+
+@c_struct("struct pair")
+Pair :: struct { a: i32, b: i32 }
+
+@extern fill :: fn(@c_type("struct other") @c_out p: Pair) -> void
+
+main :: fn() -> i32 { return 0 }

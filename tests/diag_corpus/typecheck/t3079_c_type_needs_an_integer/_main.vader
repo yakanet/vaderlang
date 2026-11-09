@@ -1,8 +1,8 @@
 module "snippet"
 
-// `@c_type` names the C type a foreign callee declares for an INTEGER : a `string`
-// already crosses as `const char*`, a float travels in a float register, and its
-// argument is one plain string.
+// `@c_type` names the C type a foreign callee declares for an INTEGER, or for
+// what an ARRAY points to : a `string` already crosses as `const char*`, a float
+// travels in a float register, and its argument is one plain string.
 @extern("puts")
 c_puts :: fn(@c_type("char*") s: string) -> i32
 

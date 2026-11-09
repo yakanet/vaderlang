@@ -118,7 +118,7 @@ export DECORATORS: DecoratorSpec[]: [
         .name   = "c_type",
         .usage  = "@c_type(\"size_t\")",
         .places = [.Declaration, .Parameter],
-        .doc    = "The C type the callee declares for an integer parameter, or for the result when on the fn, where it is not the Vader type's own spelling. Must be as wide as the Vader type.",
+        .doc    = "The C type the callee declares for an integer parameter, for what an array parameter points to, or for the result when on the fn, where it is not the Vader type's own spelling. Must be as wide as the Vader type, or as one element of the array.",
     },
     DecoratorSpec {
         .name   = "c_struct",

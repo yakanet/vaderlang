@@ -1,0 +1,28 @@
+// `@c_type` on an array parameter names what the C pointer points to. The shim
+// hands `frexp` an `int*` and `time` a `time_t*`, which `cc` checks against the
+// prototypes of `<math.h>` and `<time.h>`, and asserts each named type as wide
+// as an element of the array, and of its signedness.
+module "snippet"
+
+import "std/console"
+import "std/ffi"
+
+MATH :: CLibrary { .name = "", .headers = ["<math.h>"] }
+
+CLOCK :: CLibrary { .name = "", .headers = ["<time.h>"] }
+
+@extern(MATH, "frexp")
+split_float :: fn(x: f64, @c_type("int") @c_out exponent: i32[]) -> f64
+
+@extern(CLOCK, "time")
+now :: fn(@c_type("time_t") @c_out at: i64[]) -> i64
+
+main :: fn() -> i32 {
+    exponent: i32[]: [0]
+    mantissa :: split_float(8.0, exponent)
+    println("${mantissa} ${exponent[0]}")
+    at: i64[]: [0]
+    returned :: now(at)
+    println("${returned == at[0] && returned > 0}")
+    return 0
+}

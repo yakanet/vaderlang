@@ -202,7 +202,8 @@ export BcImport :: struct {
     /// registers. `cc` gets the same fact from `@c_header`; nothing gave it to us.
     c_variadic_fixed: i32 = -1
     /// Per-parameter `@c_type`, parallel to the signature's params: the C type the
-    /// foreign callee declares, `""` where the Vader type's own spelling is meant.
+    /// foreign callee declares, or the one an array parameter points to ; `""`
+    /// where the Vader type's own spelling, or `void`, is meant.
     /// Empty when no parameter carries one.
     param_c_types: string[] = []
     /// The `@c_type` of the declaration, the C type of its result ; `""` when the

@@ -26,6 +26,9 @@ demo_now :: fn(@c_out t: Timespec) -> i32
 @extern(DEMO, "demo_count")
 demo_count :: fn(@c_address n: u32) -> void
 
+@extern(DEMO, "demo_read")
+demo_read :: fn(@c_type("unsigned int") cells: u32[]) -> void
+
 @c_type("size_t")
 @extern(DEMO, "demo_size")
 demo_size :: fn(@c_type("size_t") n: u64) -> u64

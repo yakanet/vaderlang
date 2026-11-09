@@ -307,8 +307,10 @@ takes every offset from the header.
 
 `_Static_assert` lines in the generated C pin each mirrored field's width, offset
 and, for an integer, signedness to the C field of that name, and each `@c_type` to
-an integer as wide as the Vader one: `cc` checks what the declarations assume of
-the headers, at no run-time cost.
+an integer as wide as the Vader one, or, on an array, to the width of one element
+and, through a `_Generic` that classes the named type, its signedness when it is an
+integer. `cc` checks what the declarations assume of the headers, at no run-time
+cost.
 
 A named function passed as a callback reaches C as its own symbol (`fn.addr`).
 Each `CLibrary`'s shims go in their own C unit, with that library's headers only,

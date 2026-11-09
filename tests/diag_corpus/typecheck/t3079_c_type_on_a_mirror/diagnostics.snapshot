@@ -1,0 +1,1 @@
+[9:20] error[T3079] decorator not allowed on this parameter: a `@c_struct` mirror names its C type already, so drop `@c_type`
