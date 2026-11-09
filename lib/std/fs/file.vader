@@ -257,17 +257,18 @@ refill :: fn(f: File) -> i64 | IOError {
 
 // ---- writing and seeking --------------------------------------------------
 
-/// Write all of `bytes` at the position, which moves past them; at the end of
-/// the file under `append`.
+/// Write all of `content` at the position, which moves past it; at the end of
+/// the file under `append`. A string is written as its UTF-8 bytes.
 ///
-/// @param bytes  what to write.
-/// @error        `IOError` when the system cannot write all of it, or `f` is
-///               closed. Part of `bytes` may be written by then.
-export write :: fn(f: File, bytes: u8[]) -> null | IOError {
+/// @param content  what to write.
+/// @error          `IOError` when the system cannot write all of it, or `f` is
+///                 closed. Part of `content` may be written by then.
+export write :: fn(f: File, content: u8[] | string) -> null | IOError {
     if f.closed {
         return FILE_CLOSED
     }
-    rewound :: give_back(f)
+    bytes :: content.bytes_of()
+    rewound :: f.give_back()
     if rewound is IOError {
         return rewound
     }
@@ -287,12 +288,13 @@ export write :: fn(f: File, bytes: u8[]) -> null | IOError {
     return null
 }
 
-/// Write the UTF-8 bytes of `s`, as `write` does.
-///
-/// @param s  what to write.
-/// @error    `IOError` when the system cannot write all of it, or `f` is
-///           closed.
-export write_string :: fn(f: File, s: string) -> null | IOError = f.write(s.bytes())
+// The bytes `content` writes: a string's UTF-8 bytes.
+bytes_of :: fn(content: u8[] | string) -> u8[] {
+    if content is string {
+        return content.bytes()
+    }
+    return content
+}
 
 /// Move the position to `offset` bytes from `from`.
 ///
@@ -340,6 +342,22 @@ system_offset :: fn(f: File, offset: i64, from: SeekFrom) -> i64 {
         return offset - (f.filled - f.next)
     }
     return offset
+}
+
+/// The size of the file in bytes, every write included: a `File` writes straight
+/// through, so nothing waits in a buffer.
+///
+/// @error  `IOError` when the file has no size (a pipe, a device), or `f` is
+///         closed.
+export size :: fn(f: File) -> i64 | IOError {
+    if f.closed {
+        return FILE_CLOSED
+    }
+    length :: system_size(f.handle)
+    if length < 0 {
+        return IOError { .msg = "no size: not a regular file", .kind = .InvalidInput }
+    }
+    return length
 }
 
 /// Close `f`: its system handle goes back, and every later read, write or seek
@@ -605,17 +623,17 @@ import "std/testing"
 // A file of `content` in the temp directory, for one test.
 probe_file :: fn(name: string, content: string) -> string {
     path :: "${temp_dir()}/vader_file_${name}"
-    wrote :: write_file_string(path, content)
+    wrote :: write_file(path, content)
     assert(wrote !is IOError, "the probe was written")
     return path
 }
 
-// The position `seek` answered, -1 when it failed.
-moved_to :: fn(position: i64 | IOError) -> i64 {
-    if position is IOError {
+// The number a call answered, -1 when it failed.
+number_of :: fn(answer: i64 | IOError) -> i64 {
+    if answer is IOError {
         return -1
     }
-    return position
+    return answer
 }
 
 // What `f` reads from its position to its end, `chunk` bytes at a time.
@@ -673,8 +691,8 @@ test_create_then_read_back :: fn() -> void {
         return
     }
     defer remove_file(path)
-    assert(w.write_string("hello, ") !is IOError, "the first write")
-    assert(w.write_string("world") !is IOError, "the second write")
+    assert(w.write("hello, ") !is IOError, "the first write")
+    assert(w.write("world") !is IOError, "the second write")
     assert(w.close() !is IOError, "the close")
     r :: open(path)
     if r is IOError {
@@ -712,12 +730,12 @@ test_seek_counts_from_what_the_caller_read :: fn() -> void {
     defer f.close()
     first :: f.read(2)
     assert(first is u8[] && first.bytes_to_string() == "01", "two bytes, the rest read ahead")
-    assert_eq(moved_to(f.seek(0, .Current)), 2)
-    assert_eq(moved_to(f.seek(3, .Current)), 5)
+    assert_eq(number_of(f.seek(0, .Current)), 2)
+    assert_eq(number_of(f.seek(3, .Current)), 5)
     assert_eq(read_rest(f, 10), "56789")
-    assert_eq(moved_to(f.seek(-3, .End)), 7)
+    assert_eq(number_of(f.seek(-3, .End)), 7)
     assert_eq(read_rest(f, 10), "789")
-    assert_eq(moved_to(f.seek(1, .Start)), 1)
+    assert_eq(number_of(f.seek(1, .Start)), 1)
     assert_eq(read_rest(f, 10), "123456789")
 }
 
@@ -731,7 +749,7 @@ test_a_write_after_a_read_lands_at_the_position :: fn() -> void {
         return
     }
     f.read(3)
-    assert(f.write_string("abc") !is IOError, "the write")
+    assert(f.write("abc") !is IOError, "the write")
     f.close()
     back :: read_file_string(path)
     assert(back is string && back == "012abc6789", "written after the three bytes read")
@@ -747,7 +765,7 @@ test_append_writes_at_the_end_wherever_the_position :: fn() -> void {
         return
     }
     f.seek(0, .Start)
-    assert(f.write_string("+tail") !is IOError, "the write")
+    assert(f.write("+tail") !is IOError, "the write")
     f.close()
     back :: read_file_string(path)
     assert(back is string && back == "head+tail", "appended")
@@ -803,10 +821,29 @@ test_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
 }
 
 @test
+test_size_counts_every_write :: fn() -> void {
+    path :: "${temp_dir()}/vader_file_size"
+    f :: path.create()
+    if f is IOError {
+        assert(false, "the file is created")
+        return
+    }
+    defer path.remove_file()
+    assert_eq(number_of(f.size()), 0)
+    f.write("abc")
+    assert_eq(number_of(f.size()), 3)
+    f.write([100, 101])
+    assert_eq(number_of(f.size()), 5)
+    f.close()
+    after :: f.size()
+    assert(after is IOError && after.kind == .BadHandle, "a closed file has no size")
+}
+
+@test
 test_close_twice_and_read_after :: fn() -> void {
     path :: probe_file("close", "x")
-    defer remove_file(path)
-    f :: open(path)
+    defer path.remove_file()
+    f :: path.open()
     if f is IOError {
         assert(false, "the file opens")
         return

@@ -8,7 +8,7 @@
           std.console.println<string>(concat_2("create failed: ", IOError(w).msg))
           return 1
       }
-      std.fs.write_string(File(w), "one\r\ntwo\nthree")
+      std.fs.write(File(w), "one\r\ntwo\nthree")
       std.fs.close(File(w))
       f: File | IOError = std.fs.open(path, OpenOptions {
           .read = true,
@@ -28,9 +28,10 @@
           std.console.println<string>(concat_2("read: ", std.core.bytes_to_string(u8[](first))))
       }
       std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
-      std.fs.write_string(File(f), "E")
+      std.fs.write(File(f), "E")
       std.console.println<string>(concat_2("after the write: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
       std.console.println<string>(concat_2("end: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(2)))))
+      std.console.println<string>(concat_2("size: ", snippet.position(std.fs.size(File(f)))))
       std.fs.seek(File(f), i64(0), SeekFrom(0))
       {
           f: File = File(f)
@@ -158,6 +159,7 @@
   std/fs
     const FILE_CLOSED: IOError  data pool #0, element 0
     fn std.fs.access_mode  // std_fs$access_mode
+    fn std.fs.bytes_of  // std_fs$bytes_of
     fn std.fs.close  // std_fs$close
     fn std.fs.create  // std_fs$create
     fn std.fs.fd_of  // std_fs$fd_of
@@ -174,15 +176,16 @@
     fn std.fs.refusal_of  // std_fs$refusal_of
     fn std.fs.remove_file  // std_fs$remove_file
     fn std.fs.seek  // std_fs$seek
+    fn std.fs.size  // std_fs$size
     fn std.fs.system_close  // std_fs$system_close
     fn std.fs.system_offset  // std_fs$system_offset
     fn std.fs.system_open  // std_fs$system_open
     fn std.fs.system_read  // std_fs$system_read
     fn std.fs.system_seek  // std_fs$system_seek
+    fn std.fs.system_size  // std_fs$system_size
     fn std.fs.system_write  // std_fs$system_write
     fn std.fs.whence_of  // std_fs$whence_of
     fn std.fs.write  // std_fs$write
-    fn std.fs.write_string  // std_fs$write_string
     struct std.fs.File  // std_fs$File
     struct std.fs.OpenOptions  // std_fs$OpenOptions
   std/io

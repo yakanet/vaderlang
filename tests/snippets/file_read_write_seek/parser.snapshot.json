@@ -184,7 +184,7 @@
                     "kind": "IdentExpr",
                     "name": "w"
                   },
-                  "field": "write_string"
+                  "field": "write"
                 },
                 "args": [
                   {
@@ -514,7 +514,7 @@
                     "kind": "IdentExpr",
                     "name": "f"
                   },
-                  "field": "write_string"
+                  "field": "write"
                 },
                 "args": [
                   {
@@ -660,6 +660,59 @@
                                       "spread": false
                                     }
                                   ]
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "size: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "position"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "FieldExpr",
+                                    "target": {
+                                      "kind": "IdentExpr",
+                                      "name": "f"
+                                    },
+                                    "field": "size"
+                                  },
+                                  "args": []
                                 },
                                 "spread": false
                               }

@@ -543,7 +543,7 @@ rebuild_driver :: fn(
     cc: string, ldflags: string,
 ) -> i32 {
     entry :: driver_entry_path(root)
-    written :: write_file_string(entry, render_driver_entry())
+    written :: write_file(entry, render_driver_entry())
     if written is IOError {
         eprintln("vader ${command}: cannot write the build entry at ${entry.to_native()}: "
             + written.msg)
@@ -575,7 +575,7 @@ rebuild_driver :: fn(
     }
     // A stamp we cannot write is not fatal: it only costs the next build a
     // rebuild, which is what happens today anyway.
-    write_file_string(stamp, key)
+    write_file(stamp, key)
     return 0
 }
 
@@ -660,7 +660,7 @@ import "std/testing"
 @test test_validate_driver_missing_build :: fn() -> void {
     // A driver with no `build` must be caught before anything is generated.
     path :: join_path(temp_dir(), "vader_driver_probe_missing.vader")
-    write_file_string(path, "module \"build\"\n\nother :: fn() -> void {}\n")
+    write_file(path, "module \"build\"\n\nother :: fn() -> void {}\n")
     problem :: validate_driver(path)
     assert(problem is Diagnostic, "a driver without `build` is a problem")
     if problem is Diagnostic {
@@ -670,7 +670,7 @@ import "std/testing"
 
 @test test_validate_driver_wrong_arity :: fn() -> void {
     path :: join_path(temp_dir(), "vader_driver_probe_arity.vader")
-    write_file_string(path, "module \"build\"\n\nbuild :: fn() -> void {}\n")
+    write_file(path, "module \"build\"\n\nbuild :: fn() -> void {}\n")
     problem :: validate_driver(path)
     assert(problem is Diagnostic, "a nullary `build` cannot be called by the entry")
     if problem is Diagnostic {
@@ -680,7 +680,7 @@ import "std/testing"
 
 @test test_validate_driver_accepts_the_expected_shape :: fn() -> void {
     path :: join_path(temp_dir(), "vader_driver_probe_ok.vader")
-    write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { return 0 }\n")
+    write_file(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { return 0 }\n")
     assert(validate_driver(path) == null, "the documented shape validates")
 }
 
@@ -688,7 +688,7 @@ import "std/testing"
     // A `void` driver could not fail a build: that is how a reported problem
     // used to exit 0.
     path :: join_path(temp_dir(), "vader_driver_probe_void.vader")
-    write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
+    write_file(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
     problem :: validate_driver(path)
     assert(problem is Diagnostic, "a void `build` cannot carry an exit status")
     if problem is Diagnostic {
@@ -700,7 +700,7 @@ import "std/testing"
     // The real build reports these against the driver with full spans; saying
     // it twice would double every message.
     path :: join_path(temp_dir(), "vader_driver_probe_broken.vader")
-    write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { (((\n")
+    write_file(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { (((\n")
     assert(validate_driver(path) == null, "parse errors are left to the real build")
 }
 

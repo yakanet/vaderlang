@@ -3,6 +3,7 @@ read: on
 position: 2
 after the write: 3
 end: 14
+size: 14
 line: onE
 line: two
 line: three

@@ -73,7 +73,7 @@ export build_ffi_adapters :: fn(
     argv :: flags + header_check_flags(cc_flavour(cc))
     for k in 0..<units.units.len() {
         source :: dir.join_path("${units.names[k]}.c")
-        written :: write_file_string(source, units.units[k])
+        written :: write_file(source, units.units[k])
         if written is IOError {
             return AdapterBuildError { .message = "cannot be written to `${source.to_native()}`: ${written.message()}" }
         }
@@ -92,7 +92,7 @@ export build_ffi_adapters :: fn(
         return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir.to_native()}`):\n${compiled.stderr}" }
     }
     // Written last: a run cut short leaves a library that is not to be trusted.
-    marked :: write_file_string(built, "")
+    marked :: write_file(built, "")
     if marked is IOError {
         return AdapterBuildError { .message = "cannot be written to `${built.to_native()}`: ${marked.message()}" }
     }

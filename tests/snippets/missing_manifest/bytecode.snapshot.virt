@@ -381,7 +381,7 @@ end
 fn 11 std_fs$read_file_bytes (string,i64) -> any
   local $struct_9 ref
   local f any
-  local size i64
+  local length i64
   local $arr_24 ref
   local $add_checked_26 i64
   local got any
@@ -416,14 +416,14 @@ fn 11 std_fs$read_file_bytes (string,i64) -> any
   ref.cast 16   ; std_fs$File
   struct.get 16 1   ; std_fs$File.handle
   call 15   ; std_fs$system_size
-  local.tee 4   ; size
+  local.tee 4   ; length
   local.get 1   ; arg 1
   call 16   ; std_fs$reads_whole
   if $L1 void
     i32.const 0
     array.new 3 1   ; u8[]
     local.set 5   ; $arr_24
-    local.get 4   ; size
+    local.get 4   ; length
     i64.const 1
     i64.checked_add
     local.set 6   ; $add_checked_26
@@ -448,15 +448,15 @@ fn 11 std_fs$read_file_bytes (string,i64) -> any
     end $L2
     local.get 7   ; got
     ref.cast 6   ; i64
-    local.get 4   ; size
+    local.get 4   ; length
     i64.le
     if $L3 void
       local.get 7   ; got
       ref.cast 6   ; i64
-      local.set 4   ; size
+      local.set 4   ; length
       local.get 5   ; $arr_24
       i64.const 0
-      local.get 4   ; size
+      local.get 4   ; length
       array.slice 3   ; u8[]
       local.set 8   ; __result_1
       defer.pop_exec 1
@@ -505,10 +505,10 @@ fn 11 std_fs$read_file_bytes (string,i64) -> any
       end $L7
       local.get 7   ; got
       ref.cast 6   ; i64
-      local.set 4   ; size
+      local.set 4   ; length
       local.get 5   ; $arr_24
       i64.const 0
-      local.get 4   ; size
+      local.get 4   ; length
       array.slice 3   ; u8[]
       local.set 9   ; $slice_67
       local.get 2   ; $struct_9

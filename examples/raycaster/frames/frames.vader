@@ -212,5 +212,5 @@ write_ppm :: fn(frame: Frame, path: string) -> null | IOError {
     if data is PpmError {
         return IOError { .msg = data.msg }
     }
-    return write_file_bytes(path, data)
+    return write_file(path, data)
 }

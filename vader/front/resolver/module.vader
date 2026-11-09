@@ -411,7 +411,7 @@ test_normalized_path_reads_backslashes_as_slashes :: fn() -> void {
 test_a_registered_toolchain_root_provides_its_sidecars :: fn() -> void {
     toolchain :: join_path(temp_dir(), "vader_registered_toolchain_probe")
     create_dir(join_path(toolchain, "kit"))
-    write_file_string(join_path(toolchain, "kit/marker"), "")
+    write_file(join_path(toolchain, "kit/marker"), "")
     register_toolchain_root(toolchain)
     found :: sidecar_root("kit", "marker")
     register_toolchain_root("")
@@ -424,9 +424,9 @@ test_a_registered_toolchain_root_provides_its_sidecars :: fn() -> void {
 test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {
     dir :: join_path(temp_dir(), "vader_holds_build_driver_probe")
     create_dir(dir)
-    write_file_string(join_path(dir, DRIVER_FILENAME), "module \"tools\"\n")
+    write_file(join_path(dir, DRIVER_FILENAME), "module \"tools\"\n")
     assert(!holds_build_driver(dir), "a source file named build.vader is no driver")
-    write_file_string(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
+    write_file(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
     assert(holds_build_driver(dir), "one declaring `module \"build\"` is")
 }
 

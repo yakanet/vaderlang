@@ -78,7 +78,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "write_file_string"
+                  "name": "write_file"
                 },
                 "args": [
                   {

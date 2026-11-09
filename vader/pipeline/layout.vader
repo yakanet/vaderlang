@@ -152,7 +152,7 @@ copy_tree :: fn(source: string, target: string) -> bool {
         eprintln("vader build: cannot read `${source.to_native()}`: ${bytes.message()}")
         return false
     }
-    written :: write_file_bytes(target, bytes)
+    written :: write_file(target, bytes)
     if written is IOError {
         eprintln("vader build: cannot write `${target.to_native()}`: ${written.message()}")
         return false

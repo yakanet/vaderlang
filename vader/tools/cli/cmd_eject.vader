@@ -38,7 +38,7 @@ cmd_eject :: fn(args: string[]) -> i32 {
     dir :: action_input(parsed).as_string()
     manifest :: ejectable_manifest(dir) ?? return 1
     driver :: join_path(dir, DRIVER_FILENAME)
-    written :: write_file_string(driver, render_driver(manifest))
+    written :: write_file(driver, render_driver(manifest))
     if written is IOError {
         eprintln("vader eject: cannot write `${driver.to_native()}`: ${written.message()}")
         return 1

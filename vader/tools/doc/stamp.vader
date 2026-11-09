@@ -138,7 +138,7 @@ export write_stamp :: fn(
     lines: string[]: [input_key(inputs, seen.lines)]
     lines.push_all(seen.folders)
     lines.push_all(left_out.map((l: string) -> LEFT_OUT_LINE + l).collect())
-    write_file_string(join_path(dir, STAMP_FILE), lines.join("\n") + "\n")
+    write_file(join_path(dir, STAMP_FILE), lines.join("\n") + "\n")
 }
 
 // The stamp's file name in the data folder.

@@ -219,7 +219,7 @@ test_a_project_under_a_std_core_folder_is_not_the_prelude :: fn() -> void {
     dir :: join_path(temp_dir(), "vader_core_by_name_probe/mystd/core")
     create_dir(dir)
     entry :: join_path(dir, "_main.vader")
-    write_file_string(entry, "module \"repro\"\n\nmain :: fn() -> i32 = 0\n")
+    write_file(entry, "module \"repro\"\n\nmain :: fn() -> i32 = 0\n")
     project :: load_project(entry, [], null)
     core :: project.modules[find_core_module_id(project) ?? ""]
     if core == null {

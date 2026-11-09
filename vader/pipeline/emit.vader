@@ -444,7 +444,7 @@ export cc_argv :: fn(
 ///
 /// @return 0 on success; 1 after printing why, so a caller can just propagate.
 export write_out :: fn(path: Path, content: string) -> i32 {
-    wr :: write_file_string(path.as_string(), content)
+    wr :: write_file(path.as_string(), content)
     if wr is IOError {
         eprintln("vader build: cannot write `${path.to_native()}`: ${wr.message()}")
         return 1

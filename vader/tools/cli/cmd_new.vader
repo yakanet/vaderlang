@@ -366,7 +366,7 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
 }
 
 write_one :: fn(path: string, content: string) -> null | ScaffoldError {
-    res :: write_file_string(path, content)
+    res :: write_file(path, content)
     if res is IOError {
         return ScaffoldError { .msg = "cannot write `${path.to_native()}`: ${res.message()}" }
     }
@@ -428,7 +428,7 @@ init_git :: fn(dir: string) -> string | null {
 // ---- reporting ------------------------------------------------------------
 
 // What was written and what each file is for: the part that makes this a
-// teaching command rather than three `write_file_string` calls.
+// teaching command rather than three `write_file` calls.
 report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> string {
     out :: StringBuilder {}
     out.append("vader new: ${report_heading(project)}\n")
@@ -516,7 +516,7 @@ import "std/testing"
     project :: join_path(temp_dir(), "vader_new_manifest")
     create_dir(project)
     manifest :: join_path(project, MANIFEST_FILENAME)
-    write_file_string(manifest, render_manifest("my-app"))
+    write_file(manifest, render_manifest("my-app"))
     m :: read_manifest(project)
     remove_file(manifest)
     assert_eq(m.problems.len(), 0)

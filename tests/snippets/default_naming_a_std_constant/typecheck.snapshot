@@ -6,14 +6,14 @@
   expr 19:16    CallExpr       :: string
   expr 19:16    IdentExpr      :: fn() -> string
   expr 20:14    CallExpr       :: IOError | null
-  expr 20:14    IdentExpr      :: fn(string, string) -> IOError | null
-  expr 20:32    IdentExpr      :: string
-  expr 20:38    StringLitExpr  :: string
+  expr 20:14    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 20:25    IdentExpr      :: string
+  expr 20:31    StringLitExpr  :: string
   expr 21:17    IdentExpr      :: IOError
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
   expr 21:8     IdentExpr      :: IOError | null
-  expr 224:62   IdentExpr      :: i64
+  expr 225:62   IdentExpr      :: i64
   expr 22:17    StringLitExpr  :: string
   expr 22:34    FieldExpr      :: string
   expr 22:34    IdentExpr      :: IOError

@@ -155,7 +155,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
                 return .Drift
             }
             // In-place. (Stdout case routes to run_one_stdout above.)
-            w :: write_file_string(path, out.output)
+            w :: write_file(path, out.output)
             match w {
                 is IOError -> {
                     eprintln("vader fmt: cannot write ${path.to_native()}")

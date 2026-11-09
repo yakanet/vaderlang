@@ -15,7 +15,7 @@
           std.console.println<string>("encode failed")
           return 1
       }
-      wr: IOError | null = std.fs.write_file_bytes(path, u8[](enc))
+      wr: IOError | null = std.fs.write_file(path, u8[](enc))
       if wr is Error {
           std.console.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
           return 1
@@ -114,6 +114,7 @@
     const FILE_CLOSED: IOError  data pool #0, element 0
     fn __defer_std_fs_0
     fn std.fs.access_mode  // std_fs$access_mode
+    fn std.fs.bytes_of  // std_fs$bytes_of
     fn std.fs.close  // std_fs$close
     fn std.fs.create  // std_fs$create
     fn std.fs.fd_of  // std_fs$fd_of
@@ -136,7 +137,7 @@
     fn std.fs.system_write  // std_fs$system_write
     fn std.fs.whence_of  // std_fs$whence_of
     fn std.fs.write  // std_fs$write
-    fn std.fs.write_file_bytes  // std_fs$write_file_bytes
+    fn std.fs.write_file  // std_fs$write_file
     struct __defer_env_std_fs_1
     struct std.fs.File  // std_fs$File
     struct std.fs.OpenOptions  // std_fs$OpenOptions

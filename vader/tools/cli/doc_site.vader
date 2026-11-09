@@ -83,7 +83,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
         return missing("a folder holds a `'`, which the build's variables cannot carry")
     }
     env_file :: join_path(copy, SITE_ENV_FILE)
-    written :: write_file_string(env_file, env)
+    written :: write_file(env_file, env)
     if written is IOError {
         return missing("cannot write `${env_file.to_native()}`: ${written.message()}")
     }
@@ -108,7 +108,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
             eprintln("vader doc: the site could not be built")
             return 1
         }
-        write_file_string(stamp_file, stamp)
+        write_file(stamp_file, stamp)
         println("vader doc: `${out.to_native()}` holds the site")
     }
     if !open {
@@ -309,7 +309,7 @@ site_install :: fn(template: string) -> string | null {
         eprintln("vader doc: `npm ci` failed in `${dir.to_native()}`")
         return null
     }
-    write_file_string(join_path(dir, INSTALLED_MARKER), "")
+    write_file(join_path(dir, INSTALLED_MARKER), "")
     return dir
 }
 
@@ -398,7 +398,7 @@ copy_file :: fn(from: string, to: string) -> bool {
         eprintln("vader doc: cannot create `${dir_of(to).to_native()}`: ${made.message()}")
         return false
     }
-    written :: write_file_bytes(to, bytes)
+    written :: write_file(to, bytes)
     if written is IOError {
         eprintln("vader doc: cannot write `${to.to_native()}`: ${written.message()}")
         return false

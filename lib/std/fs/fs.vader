@@ -34,15 +34,15 @@ export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) 
     }
     defer f.close()
     out: u8[] = []
-    size :: system_size(f.handle)
-    if reads_whole(size, max_bytes) {
+    length :: system_size(f.handle)
+    if reads_whole(length, max_bytes) {
         // Its size and one byte more, so that a read short of it shows the end.
-        whole: u8[]: [0] * (size + 1)
+        whole: u8[]: [0] * (length + 1)
         got :: read_into(f.handle, whole)
         if got is IOError {
             return got
         }
-        if got <= size {
+        if got <= length {
             return whole[0..<got]
         }
         // It grew past its size: the chunks read on.
@@ -106,13 +106,14 @@ READ_CHUNK: i64 : 64 * 1024
 /// Name your own when you know what you are reading.
 export READ_LIMIT_DEFAULT: i64: 16 * 1024 * 1024
 
-/// Write raw bytes to `path`, replacing any existing file. Lossless for
-/// arbitrary binary. The canonical file-write primitive.
+/// Write `content` to `path`, replacing any existing file: an array of bytes
+/// as it stands, lossless for binary, and a string as its UTF-8 bytes.
+///
 /// @param path     filesystem path.
-/// @param content  the raw bytes to write.
+/// @param content  what the file holds afterwards.
 /// @error          `IOError` if the file can't be opened or written.
-export write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
-    f :: create(path)
+export write_file :: fn(path: string, content: u8[] | string) -> null | IOError {
+    f :: path.create()
     if f is IOError {
         return f
     }
@@ -226,14 +227,6 @@ export read_file_string :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT)
     if r is IOError { return r }
     return r.bytes_to_string()
 }
-
-/// Write a UTF-8 string to `path`, replacing any existing file: a thin
-/// encode over `write_file_bytes`. Use `write_file_bytes` directly for binary.
-/// @param path     filesystem path.
-/// @param content  the UTF-8 string to write.
-/// @error          `IOError` if the file can't be opened or written.
-export write_file_string :: fn(path: string, content: string) -> null | IOError =
-    write_file_bytes(path, content.bytes())
 
 /// True iff `path` resolves to an existing filesystem entry (file or
 /// directory). Errors (e.g. permission denied) collapse to `false`.
@@ -442,7 +435,7 @@ import "std/testing"
 
 @test test_is_dir_separates_a_directory_from_a_file :: fn() -> void {
     file :: "${temp_dir()}/vader_is_dir_probe"
-    wrote :: write_file_string(file, "x")
+    wrote :: write_file(file, "x")
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -454,7 +447,7 @@ import "std/testing"
 
 @test test_modification_time_of_a_file_and_of_a_missing_path :: fn() -> void {
     file :: "${temp_dir()}/vader_mtime_probe"
-    wrote :: write_file_string(file, "x")
+    wrote :: write_file(file, "x")
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -470,7 +463,7 @@ import "std/testing"
 
 @test test_real_path_gives_two_spellings_of_a_file_one_answer :: fn() -> void {
     file :: "${temp_dir()}/vader_real_path_probe"
-    wrote :: write_file_string(file, "x")
+    wrote :: write_file(file, "x")
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -512,7 +505,7 @@ import "std/testing"
     // A ceiling this library imposes is not a system failure, so it carries no
     // code and stays `.Other`.
     file :: "${temp_dir()}/vader_kind_probe"
-    wrote :: write_file_string(file, "0123456789")
+    wrote :: write_file(file, "0123456789")
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -527,7 +520,7 @@ import "std/testing"
 
 @test test_read_file_bytes_honours_its_ceiling :: fn() -> void {
     file :: "${temp_dir()}/vader_read_limit_probe"
-    wrote :: write_file_string(file, "0123456789")
+    wrote :: write_file(file, "0123456789")
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -540,7 +533,7 @@ import "std/testing"
     file :: "${temp_dir()}/vader_read_whole_probe"
     content: u8[]: [7] * (READ_CHUNK + 10)
     content[content.len() - 1] = 9
-    wrote :: write_file_bytes(file, content)
+    wrote :: write_file(file, content)
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -555,7 +548,7 @@ import "std/testing"
 @test test_read_file_bytes_reads_a_file_of_exactly_one_chunk :: fn() -> void {
     file :: "${temp_dir()}/vader_read_one_chunk_probe"
     content: u8[]: [3] * READ_CHUNK
-    wrote :: write_file_bytes(file, content)
+    wrote :: write_file(file, content)
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
@@ -579,7 +572,7 @@ import "std/testing"
 @test test_read_file_bytes_holds_a_file_read_whole_to_its_ceiling :: fn() -> void {
     file :: "${temp_dir()}/vader_read_whole_ceiling_probe"
     content: u8[]: [5] * (READ_CHUNK * 3)
-    wrote :: write_file_bytes(file, content)
+    wrote :: write_file(file, content)
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 

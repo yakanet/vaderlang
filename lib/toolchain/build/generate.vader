@@ -112,7 +112,7 @@ export generated_files_of :: fn(ctx: BuildContext) -> string[] = ctx.generated
 // `emit_module("Gen/Serde", …)` write a file the parser then rejected with P1028,
 // which is a diagnostic against machine-written code.
 //
-// It doubles as the gate between driver-built names and `write_file_string`: a
+// It doubles as the gate between driver-built names and `write_file`: a
 // driver composes these from user data (a struct name, a module name it read),
 // and `../../src/main` would otherwise overwrite the project's own source. The
 // parser's grammar admits only `[a-z][a-z0-9_]*` segments joined by `/`, so
@@ -211,7 +211,7 @@ export flush_generated :: fn(ctx: BuildContext) -> string[] {
                 "`${dir.to_native()}` for module `${g.name}`: ${made.msg}"))
             continue
         }
-        written :: write_file_string(path, content)
+        written :: write_file(path, content)
         if written is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
                 "`${path.to_native()}`: ${written.msg}"))
@@ -344,7 +344,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
 }
 
 @test test_emit_rejects_a_traversing_name :: fn() -> void {
-    // The gate between driver-built names and `write_file_string`.
+    // The gate between driver-built names and `write_file`.
     ctx :: new_build_context(["driver", "/tmp/proj"])
     ctx.emit_module("../../src/main", "x :: 1")
     assert_eq(ctx.reports_of().len(), 1)
@@ -431,7 +431,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     create_dir(root)
     sweep_generated(root)
     mine :: join_path(root, "handwritten.vader")
-    write_file_string(mine, "module \"mine\"\n")
+    write_file(mine, "module \"mine\"\n")
     ctx :: new_build_context(["driver", temp_dir()])
     ctx.generated_root = "vader_gen_probe_sweep"
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
@@ -447,7 +447,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     // `create_dir` cannot make a directory under a FILE. The build has to say so
     // rather than settle having generated nothing.
     blocker :: join_path(temp_dir(), "vader_gen_probe_blocker")
-    write_file_string(blocker, "not a directory\n")
+    write_file(blocker, "not a directory\n")
     ctx :: new_build_context(["driver", temp_dir()])
     ctx.generated_root = "vader_gen_probe_blocker/inside"
     ctx.emit_module("gen/probe", "x :: 1")

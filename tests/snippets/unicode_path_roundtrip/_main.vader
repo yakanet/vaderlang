@@ -11,7 +11,7 @@ import "std/fs"
 // machine): only that the round trip survived.
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_héllo_zoé_日本.txt"
-    written :: write_file_bytes(path, [104, 101, 108, 108, 111])
+    written :: write_file(path, [104, 101, 108, 108, 111])
     if written is Error {
         println("write failed: ${written.message()}")
         return 1

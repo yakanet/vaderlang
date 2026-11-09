@@ -2,10 +2,10 @@
 
 ## tests/snippets/io_roundtrip
   FnDecl         main                 :: fn() -> i32
-  expr 11:23    IdentExpr      :: string
-  expr 11:29    StringLitExpr  :: string
+  expr 11:16    IdentExpr      :: string
+  expr 11:22    StringLitExpr  :: string
   expr 11:5     CallExpr       :: IOError | null
-  expr 11:5     IdentExpr      :: fn(string, string) -> IOError | null
+  expr 11:5     IdentExpr      :: fn(string, string | u8[]) -> IOError | null
   expr 13:13    StringLitExpr  :: string
   expr 13:24    CallExpr       :: bool
   expr 13:24    IdentExpr      :: fn(string) -> bool
@@ -24,7 +24,7 @@
   expr 18:22    CallExpr       :: void
   expr 18:22    IdentExpr      :: fn(T) -> void
   expr 18:30    StringLitExpr  :: string
-  expr 224:62   IdentExpr      :: i64
+  expr 225:62   IdentExpr      :: i64
   expr 8:13     StringLitExpr  :: string
   expr 8:16     CallExpr       :: string
   expr 8:16     IdentExpr      :: fn() -> string

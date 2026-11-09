@@ -191,7 +191,7 @@ read_build_arg :: fn(build: BuildRequest, arg: string) -> void {
 ///                 also sit under `$VADER_HOME`.
 /// @error          the `IOError` of a file that could not be written.
 export write_driver_description :: fn(path: string, project: Manifest) -> null | IOError =
-    write_file_string(path, stringify_manifest(project))
+    write_file(path, stringify_manifest(project))
 
 /// The project a driver described.
 ///

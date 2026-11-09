@@ -610,7 +610,7 @@ test_discovery_skips_the_folders_the_loader_skips :: fn() -> void {
     root :: "${temp_dir()}/vader_test_discovery_probe"
     for dir in ["build", "node_modules", "lib/build", "lib/target"] {
         create_dir("${root}/${dir}")
-        write_file_string("${root}/${dir}/probe.vader", "")
+        write_file("${root}/${dir}/probe.vader", "")
     }
     found: string[]: []
     for p in discover_vader_files(root.to_path()) {

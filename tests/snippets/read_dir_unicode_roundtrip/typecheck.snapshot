@@ -8,9 +8,9 @@
   expr 17:16    IdentExpr      :: fn() -> string
   expr 17:30    IdentExpr      :: string
   expr 18:16    CallExpr       :: IOError | null
-  expr 18:16    IdentExpr      :: fn(string, u8[]) -> IOError | null
-  expr 18:33    IdentExpr      :: string
-  expr 18:39    SeqLitExpr     :: u8[]
+  expr 18:16    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 18:27    IdentExpr      :: string
+  expr 18:33    SeqLitExpr     :: u8[]
   expr 19:19    IdentExpr      :: Error
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
