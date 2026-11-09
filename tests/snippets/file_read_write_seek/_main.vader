@@ -1,0 +1,70 @@
+module "snippet"
+
+import "std/console"
+import "std/env"
+import "std/fs"
+import "std/io"
+
+// A `File` read through a four-byte buffer, sought, written after a read, then
+// read by lines: each step prints what the file holds by then, so the native
+// run and the interpreter compare byte for byte.
+main :: fn() -> i32 {
+    path :: "${temp_dir()}/vader_snippet_file_read_write_seek"
+    w :: create(path)
+    if w is IOError {
+        println("create failed: ${w.msg}")
+        return 1
+    }
+    w.write_string("one\r\ntwo\nthree")
+    w.close()
+
+    f :: open(path, OpenOptions { .write = true, .buffer_size = 4 })
+    if f is IOError {
+        println("open failed: ${f.msg}")
+        return 1
+    }
+    first :: f.read(2)
+    if first is u8[] {
+        println("read: ${first.bytes_to_string()}")
+    }
+    println("position: ${position(f.seek(0, .Current))}")
+    f.write_string("E")
+    println("after the write: ${position(f.seek(0, .Current))}")
+    println("end: ${position(f.seek(0, .End))}")
+    f.seek(0, .Start)
+    for line in f.lines() {
+        println("line: ${line}")
+    }
+    println("error: ${outcome(f.error)}")
+    println("close: ${outcome(f.close())}")
+    println("close again: ${outcome(f.close())}")
+    after :: f.read(1)
+    if after is IOError {
+        println("read after close: ${after.kind}")
+    }
+
+    missing :: open("${temp_dir()}/vader_snippet_file_absent")
+    if missing is IOError {
+        println("missing: ${missing.kind}")
+    }
+    directory :: open(temp_dir())
+    if directory is IOError {
+        println("directory: ${directory.kind}")
+    }
+    remove_file(path)
+    return 0
+}
+
+position :: fn(at: i64 | IOError) -> string {
+    if at is IOError {
+        return at.msg
+    }
+    return "${at}"
+}
+
+outcome :: fn(failure: IOError | null) -> string {
+    if failure is IOError {
+        return failure.msg
+    }
+    return "none"
+}

@@ -1,0 +1,16 @@
+# stdout
+read: on
+position: 2
+after the write: 3
+end: 14
+line: onE
+line: two
+line: three
+error: none
+close: none
+close again: none
+read after close: BadHandle
+missing: NotFound
+directory: IsADirectory
+# exit
+0

@@ -1,0 +1,214 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      path: string = concat_2(std.env.temp_dir(), "/vader_snippet_file_read_write_seek")
+      w: File | IOError = std.fs.create(path)
+      if w is IOError {
+          std.console.println<string>(concat_2("create failed: ", IOError(w).msg))
+          return 1
+      }
+      std.fs.write_string(File(w), "one\r\ntwo\nthree")
+      std.fs.close(File(w))
+      f: File | IOError = std.fs.open(path, OpenOptions {
+          .read = true,
+          .write = true,
+          .append = false,
+          .create = false,
+          .truncate = false,
+          .create_new = false,
+          .buffer_size = i64(4),
+      })
+      if f is IOError {
+          std.console.println<string>(concat_2("open failed: ", IOError(f).msg))
+          return 1
+      }
+      first: IOError | u8[] = std.fs.read(File(f), i64(2))
+      if first is u8[] {
+          std.console.println<string>(concat_2("read: ", std.core.bytes_to_string(u8[](first))))
+      }
+      std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
+      std.fs.write_string(File(f), "E")
+      std.console.println<string>(concat_2("after the write: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
+      std.console.println<string>(concat_2("end: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(2)))))
+      std.fs.seek(File(f), i64(0), SeekFrom(0))
+      {
+          f: File = File(f)
+          $exit$i12: {
+              head: u8[] = [] :u8[]
+              for {
+                  if f.next == f.filled {
+                      got: i64 | IOError = std.fs.refill(f)
+                      if got is IOError {
+                          f.error = IOError(got)
+                          break $exit$i12
+                      }
+                      if i64(got) == i64(0) {
+                          break
+                      }
+                  }
+                  unread: u8[] = f.buffer[f.next..<f.filled]
+                  newline: i64 | null = std.core.index_of<u8>(unread, u8(10))
+                  if newline is null {
+                      @array.push_all(head, unread)
+                      f.next = f.filled
+                      continue
+                  }
+                  f.next = f.next + (i64(newline) + i64(1))
+                  if @array.len(head) == i64(0) {
+                      line: string = std.fs.line_of(unread[i64(0)..<i64(newline)])
+                      std.console.println<string>(concat_2("line: ", line))
+                  } else {
+                      @array.push_all(head, unread[i64(0)..<i64(newline)])
+                      line: string = std.fs.line_of(head)
+                      std.console.println<string>(concat_2("line: ", line))
+                      head = [] :u8[]
+                  }
+              }
+              if @array.len(head) > i64(0) {
+                  line: string = std.core.bytes_to_string(head)
+                  std.console.println<string>(concat_2("line: ", line))
+              }
+          }
+      }
+      std.console.println<string>(concat_2("error: ", snippet.outcome(File(f).error)))
+      std.console.println<string>(concat_2("close: ", snippet.outcome(std.fs.close(File(f)))))
+      std.console.println<string>(concat_2("close again: ", snippet.outcome(std.fs.close(File(f)))))
+      after: IOError | u8[] = std.fs.read(File(f), i64(1))
+      if after is IOError {
+          std.console.println<string>(concat_2("read after close: ", std.io.IOErrorKind.to_string(IOError(after).kind)))
+      }
+      missing: File | IOError = std.fs.open(concat_2(std.env.temp_dir(), "/vader_snippet_file_absent"), OpenOptions {
+          .read = true,
+          .write = false,
+          .append = false,
+          .create = false,
+          .truncate = false,
+          .create_new = false,
+          .buffer_size = i64(64) * i64(1024),
+      })
+      if missing is IOError {
+          std.console.println<string>(concat_2("missing: ", std.io.IOErrorKind.to_string(IOError(missing).kind)))
+      }
+      directory: File | IOError = std.fs.open(std.env.temp_dir(), OpenOptions {
+          .read = true,
+          .write = false,
+          .append = false,
+          .create = false,
+          .truncate = false,
+          .create_new = false,
+          .buffer_size = i64(64) * i64(1024),
+      })
+      if directory is IOError {
+          std.console.println<string>(concat_2("directory: ", std.io.IOErrorKind.to_string(IOError(directory).kind)))
+      }
+      std.fs.remove_file(path)
+      return 0
+  }
+  snippet.position :: fn(at: i64 | IOError) -> string {  // snippet$position
+      if at is IOError {
+          return IOError(at).msg
+      }
+      return {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(at))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.outcome :: fn(failure: IOError | null) -> string {  // snippet$outcome
+      if failure is IOError {
+          return IOError(failure).msg
+      }
+      return "none"
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/target/baked
+    const VADER_OS: Os  inline
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/env
+    fn std.env.get_env  // std_env$get_env
+    fn std.env.temp_dir  // std_env$temp_dir
+    fn std.env.temp_dir_of  // std_env$temp_dir_of
+    fn std.env.without_trailing_sep  // std_env$without_trailing_sep
+  std/fs
+    const FILE_CLOSED: IOError  data pool #0, element 0
+    fn std.fs.access_mode  // std_fs$access_mode
+    fn std.fs.close  // std_fs$close
+    fn std.fs.create  // std_fs$create
+    fn std.fs.fd_of  // std_fs$fd_of
+    fn std.fs.give_back  // std_fs$give_back
+    fn std.fs.invalid_options  // std_fs$invalid_options
+    fn std.fs.is_a_directory  // std_fs$is_a_directory
+    fn std.fs.line_of  // std_fs$line_of
+    fn std.fs.move  // std_fs$move
+    fn std.fs.open  // std_fs$open
+    fn std.fs.open_flags  // std_fs$open_flags
+    fn std.fs.read  // std_fs$read
+    fn std.fs.read_past_buffer  // std_fs$read_past_buffer
+    fn std.fs.refill  // std_fs$refill
+    fn std.fs.refusal_of  // std_fs$refusal_of
+    fn std.fs.remove_file  // std_fs$remove_file
+    fn std.fs.seek  // std_fs$seek
+    fn std.fs.system_close  // std_fs$system_close
+    fn std.fs.system_offset  // std_fs$system_offset
+    fn std.fs.system_open  // std_fs$system_open
+    fn std.fs.system_read  // std_fs$system_read
+    fn std.fs.system_seek  // std_fs$system_seek
+    fn std.fs.system_write  // std_fs$system_write
+    fn std.fs.whence_of  // std_fs$whence_of
+    fn std.fs.write  // std_fs$write
+    fn std.fs.write_string  // std_fs$write_string
+    struct std.fs.File  // std_fs$File
+    struct std.fs.OpenOptions  // std_fs$OpenOptions
+  std/io
+    fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
+    fn std.io.classified_error  // std_io$classified_error
+    fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.last_io_error  // std_io$last_io_error
+    struct std.io.IOError  // std_io$IOError
+  std/iter
+    fn std.iter.clone<u8>  // std_iter$clone__u8
+  std/math
+    fn std.math.min<i64>  // std_math$min__i64
+  system/posix
+    const EAGAIN: i32  inline
+    const ENOTEMPTY: i32  inline
+    const O_APPEND: i32  inline
+    const O_CLOEXEC: i32  inline
+    const O_CREAT: i32  inline
+    const O_EXCL: i32  inline
+    const O_TRUNC: i32  inline
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

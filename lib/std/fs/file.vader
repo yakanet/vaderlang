@@ -1,0 +1,800 @@
+// std/fs/file: a file held open, read, written and sought in place.
+//
+// A `File` reads through a buffer of its own and writes straight through, so a
+// write fails at the call that made it. What it holds of the system is a
+// descriptor on POSIX and a handle on Windows; only the `system_*` primitives at
+// the end of this file name either.
+
+module "std/fs"
+
+import "std/io"
+import "std/iter"
+import "std/math"
+import "std/target"
+import "system/posix"
+import "system/windows"
+
+// ---- opening --------------------------------------------------------------
+
+/// How `open` opens a file. Every field has a default, so a literal names only
+/// what changes: `OpenOptions { .write = true, .create = true }`.
+export OpenOptions :: struct {
+    read:        bool = true
+    /// Write from the position, which `seek` moves.
+    write:       bool = false
+    /// Write at the end of the file, wherever the position stands.
+    append:      bool = false
+    /// Create the file when it is missing. Needs `write` or `append`.
+    create:      bool = false
+    /// Empty the file when it exists. Needs `write`, and refuses `append`.
+    truncate:    bool = false
+    /// Create the file, and fail with `.AlreadyExists` when one is there. Needs
+    /// `write` or `append`.
+    create_new:  bool = false
+    /// The bytes a read asks the system for at once, at least 1.
+    buffer_size: i64  = 64 * 1024
+}
+
+/// Where `seek` counts an offset from.
+export SeekFrom :: enum {
+    Start
+    Current
+    End
+}
+
+/// A file `open` holds open. Reads, writes and `seek` move one position
+/// through it.
+///
+/// Close it with `close`, most often by `defer`: a `File` dropped open keeps its
+/// system handle until the process ends.
+export File :: struct {
+    /// What ended a `lines` loop early, null while nothing did.
+    error:    IOError | null = null
+    @internal
+    handle:   Fd | Handle
+    /// What was read ahead of the caller: `buffer[next..<filled]` is unread.
+    @internal
+    buffer:   u8[] = []
+    @internal
+    next:     i64 = 0
+    @internal
+    filled:   i64 = 0
+    /// The size `buffer` takes at the first read that needs it.
+    @internal
+    capacity: i64
+    @internal
+    closed:   bool = false
+}
+
+/// Open the file at `path` as `options` say: for reading alone by default.
+///
+/// @param path     the file to open.
+/// @param options  how: read, write, append, create.
+/// @error          `IOError` when the file cannot be opened as asked:
+///                 `.NotFound`, `.PermissionDenied`, `.AlreadyExists` under
+///                 `create_new`, `.IsADirectory` for a directory, and
+///                 `.InvalidInput` for options that contradict each other.
+/// @example
+///   f :: open("notes.txt")
+///   if f is File {
+///       defer f.close()
+///       for line in f.lines() {
+///           println(line)
+///       }
+///   }
+export open :: fn(path: string, options: OpenOptions = OpenOptions {}) -> File | IOError {
+    refusal :: refusal_of(path, options)
+    if refusal != null {
+        return refusal
+    }
+    handle :: system_open(path, options)
+    if handle is IOError {
+        return handle
+    }
+    return File { .handle = handle, .capacity = options.buffer_size }
+}
+
+/// Open the file at `path` for writing alone, created when it is missing and
+/// emptied when it exists.
+///
+/// @param path  the file to create.
+/// @error       `IOError` when the file cannot be created or emptied.
+export create :: fn(path: string) -> File | IOError = open(path, OpenOptions {
+    .read = false,
+    .write = true,
+    .create = true,
+    .truncate = true,
+})
+
+// Why `path` and `options` open no file, null when they do.
+refusal_of :: fn(path: string, options: OpenOptions) -> IOError | null {
+    // A NUL byte ends the path at the C boundary, so the file would be one the
+    // caller never named.
+    if path.bytes().index_of(0) != null {
+        return IOError { .msg = "path contains a NUL byte", .kind = .InvalidInput }
+    }
+    writes :: options.write || options.append
+    if !options.read && !writes {
+        return invalid_options("neither read nor write")
+    }
+    if (options.create || options.create_new) && !writes {
+        return invalid_options("create without write")
+    }
+    if options.truncate && !options.write {
+        return invalid_options("truncate without write")
+    }
+    if options.truncate && options.append {
+        return invalid_options("truncate with append")
+    }
+    if options.buffer_size < 1 {
+        return invalid_options("buffer size below 1")
+    }
+    return null
+}
+
+invalid_options :: fn(why: string) = IOError {
+    .msg = "invalid open options: ${why}",
+    .kind = .InvalidInput,
+}
+
+// ---- reading --------------------------------------------------------------
+
+/// Read at most `max` bytes from the position, which moves past them.
+///
+/// Fewer than `max` is not the end of the file: a read stops where what was
+/// read ahead stops, or where the system's answer does. Only an empty array is.
+///
+/// @param max  the most bytes wanted.
+/// @return     the bytes read, empty at the end of the file.
+/// @error      `IOError` when the system cannot read, or `f` is closed.
+export read :: fn(f: File, max: i64) -> u8[] | IOError {
+    if f.closed {
+        return FILE_CLOSED
+    }
+    if max < 0 {
+        return IOError { .msg = "negative read size", .kind = .InvalidInput }
+    }
+    if max == 0 {
+        return []
+    }
+    if f.next == f.filled {
+        if max >= f.capacity {
+            return read_past_buffer(f, max)
+        }
+        got :: refill(f)
+        if got is IOError {
+            return got
+        }
+    }
+    end :: min(f.filled, f.next + max)
+    // A copy: the next refill writes over the buffer.
+    out :: f.buffer[f.next..<end].clone()
+    f.next = end
+    return out
+}
+
+/// Lazily yield the lines of `f` from its position, cut as `std/string`'s
+/// `lines` cuts them: on `\n`, a `\r` right before it left out, and no empty line
+/// after a final break.
+///
+/// A read that fails ends the loop as the end of the file would: `f.error` then
+/// holds why.
+///
+/// @return  a lazy `Iterator<string>`, one read per buffer the lines fill.
+export lines :: fn(f: File) -> Iterator<string> {
+    // The start of a line whose break a later read brings.
+    head: u8[] = []
+    for {
+        if f.next == f.filled {
+            got :: refill(f)
+            if got is IOError {
+                f.error = got
+                return
+            }
+            if got == 0 {
+                break
+            }
+        }
+        unread :: f.buffer[f.next..<f.filled]
+        newline :: unread.index_of('\n')
+        if newline == null {
+            head.push_all(unread)
+            f.next = f.filled
+            continue
+        }
+        f.next += newline + 1
+        if head.len() == 0 {
+            yield line_of(unread[0..<newline])
+        } else {
+            head.push_all(unread[0..<newline])
+            yield line_of(head)
+            head = []
+        }
+    }
+    if head.len() > 0 {
+        yield head.bytes_to_string()
+    }
+}
+
+// A read of `max` bytes, at least the buffer's size, while the buffer is
+// empty: straight into the array returned, since the buffer would only add a
+// copy.
+read_past_buffer :: fn(f: File, max: i64) -> u8[] | IOError {
+    into: u8[]: [0] * max
+    n :: system_read(f.handle, into, max)
+    if n is IOError {
+        return n
+    }
+    return into[0..<n]
+}
+
+// The line `bytes` hold up to a `\n`, the `\r` of a `\r\n` break left out.
+line_of :: fn(bytes: u8[]) -> string {
+    n :: bytes.len()
+    if n > 0 && bytes[n - 1] == '\r' {
+        return bytes[0..<n - 1].bytes_to_string()
+    }
+    return bytes.bytes_to_string()
+}
+
+// Read ahead once the caller has taken all that was: the bytes the system
+// gave, 0 at the end of the file.
+refill :: fn(f: File) -> i64 | IOError {
+    if f.closed {
+        return FILE_CLOSED
+    }
+    if f.buffer.len() == 0 {
+        f.buffer = [0] * f.capacity
+    }
+    n :: system_read(f.handle, f.buffer, f.capacity)
+    if n is IOError {
+        return n
+    }
+    f.next = 0
+    f.filled = n
+    return n
+}
+
+// ---- writing and seeking --------------------------------------------------
+
+/// Write all of `bytes` at the position, which moves past them; at the end of
+/// the file under `append`.
+///
+/// @param bytes  what to write.
+/// @error        `IOError` when the system cannot write all of it, or `f` is
+///               closed. Part of `bytes` may be written by then.
+export write :: fn(f: File, bytes: u8[]) -> null | IOError {
+    if f.closed {
+        return FILE_CLOSED
+    }
+    rewound :: give_back(f)
+    if rewound is IOError {
+        return rewound
+    }
+    done: i64 = 0
+    for done < bytes.len() {
+        n :: system_write(f.handle, bytes[done..<bytes.len()])
+        if n is IOError {
+            return n
+        }
+        // A write the system took none of, without saying why, would
+        // otherwise be asked again forever.
+        if n == 0 {
+            return IOError { .msg = "write failed: nothing written" }
+        }
+        done += n
+    }
+    return null
+}
+
+/// Write the UTF-8 bytes of `s`, as `write` does.
+///
+/// @param s  what to write.
+/// @error    `IOError` when the system cannot write all of it, or `f` is
+///           closed.
+export write_string :: fn(f: File, s: string) -> null | IOError = f.write(s.bytes())
+
+/// Move the position to `offset` bytes from `from`.
+///
+/// @param offset  the distance, negative to go back.
+/// @param from    `.Start`, `.Current` or `.End` of the file.
+/// @return        the new position, from the start of the file.
+/// @error         `IOError` when the position would be negative, `f` cannot be
+///                sought (a pipe), or `f` is closed.
+export seek :: fn(f: File, offset: i64, from: SeekFrom) -> i64 | IOError {
+    if f.closed {
+        return FILE_CLOSED
+    }
+    return move(f, offset, from)
+}
+
+// Hand what was read ahead back to the system before a write, so that the
+// write lands at the caller's position.
+give_back :: fn(f: File) -> null | IOError {
+    if f.next == f.filled {
+        return null
+    }
+    position :: move(f, 0, .Current)
+    if position is IOError {
+        return position
+    }
+    return null
+}
+
+// Move the system's position to the caller's `offset` from `from`, and drop
+// what was read ahead; kept when the move fails, since nothing moved.
+move :: fn(f: File, offset: i64, from: SeekFrom) -> i64 | IOError {
+    position :: system_seek(f.handle, system_offset(f, offset, from), from)
+    if position is IOError {
+        return position
+    }
+    f.next = 0
+    f.filled = 0
+    return position
+}
+
+// `offset` as the system counts it: from `.Current`, the system stands at the
+// end of what was read ahead, past the caller.
+system_offset :: fn(f: File, offset: i64, from: SeekFrom) -> i64 {
+    if from == .Current {
+        return offset - (f.filled - f.next)
+    }
+    return offset
+}
+
+/// Close `f`: its system handle goes back, and every later read, write or seek
+/// fails. A second `close` does nothing.
+///
+/// @error  `IOError` when the system reports a failure on closing, which some
+///         file systems keep for a write that never reached the disk.
+export close :: fn(f: File) -> null | IOError {
+    if f.closed {
+        return null
+    }
+    f.closed = true
+    f.buffer = []
+    f.next = 0
+    f.filled = 0
+    return system_close(f.handle)
+}
+
+// What a read, a write or a seek on a closed `File` answers.
+FILE_CLOSED: IOError: IOError { .msg = "file is closed", .kind = .BadHandle }
+
+// ---- system primitives ----------------------------------------------------
+
+// Open `path` as `options` say, which `refusal_of` has checked: a
+// descriptor on POSIX, a handle on Windows.
+@target
+system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError
+
+@target(.Linux, .Darwin)
+system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
+    fd :: sys_open(path, open_flags(options), 0o666)
+    if fd < 0 {
+        return last_io_error("cannot open file")
+    }
+    // `open` takes a directory for reading alone, and its first read fails; a
+    // write refuses it with `EISDIR` already.
+    if access_mode(options) == O_RDONLY && sys_fd_kind(fd) == PATH_DIRECTORY {
+        sys_close(fd)
+        return is_a_directory(EISDIR)
+    }
+    return Fd(fd)
+}
+
+@target(.Windows)
+system_open :: fn(path: string, options: OpenOptions) -> Fd | Handle | IOError {
+    // Every share mode, so that a file open here can be read, written, renamed
+    // or deleted elsewhere, as POSIX lets it be.
+    h :: create_file_w(to_wide(path), desired_access(options),
+                       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, null,
+                       disposition(options), FILE_ATTRIBUTE_NORMAL, null)
+    if i64(h) == INVALID_HANDLE {
+        failure :: last_io_error("cannot open file")
+        // `CreateFileW` refuses a directory as it refuses a forbidden file.
+        if failure.kind == .PermissionDenied && is_dir(path) {
+            return is_a_directory(failure.code)
+        }
+        return failure
+    }
+    return h
+}
+
+// The refusal of a directory, with the platform's code for it.
+is_a_directory :: fn(code: i32) = IOError {
+    .msg = "is a directory",
+    .kind = .IsADirectory,
+    .code = code,
+}
+
+// The `open(2)` flags of `options`.
+open_flags :: fn(options: OpenOptions) -> i32 {
+    flags: i32 = O_CLOEXEC | access_mode(options)
+    if options.append     { flags = flags | O_APPEND }
+    if options.create     { flags = flags | O_CREAT }
+    if options.truncate   { flags = flags | O_TRUNC }
+    if options.create_new { flags = flags | O_CREAT | O_EXCL }
+    return flags
+}
+
+// The `open(2)` access mode of `options`.
+access_mode :: fn(options: OpenOptions) -> i32 {
+    writes :: options.write || options.append
+    if options.read && writes { return O_RDWR }
+    if writes                 { return O_WRONLY }
+    return O_RDONLY
+}
+
+// The `CreateFileW` access rights of `options`. A handle that may write only by
+// appending lacks `FILE_WRITE_DATA`, and Windows then writes at the end.
+desired_access :: fn(options: OpenOptions) -> u32 {
+    access: u32 = 0
+    if options.read {
+        access = GENERIC_READ
+    }
+    if options.append {
+        access = access | (FILE_GENERIC_WRITE & ~FILE_WRITE_DATA)
+    } else if options.write {
+        access = access | GENERIC_WRITE
+    }
+    return access
+}
+
+// The `CreateFileW` disposition of `options`.
+disposition :: fn(options: OpenOptions) -> u32 {
+    if options.create_new                 { return CREATE_NEW }
+    if options.create && options.truncate { return CREATE_ALWAYS }
+    if options.create                     { return OPEN_ALWAYS }
+    if options.truncate                   { return TRUNCATE_EXISTING }
+    return OPEN_EXISTING
+}
+
+// Read at most `count` bytes into `into`: how many, 0 at the end of the file.
+@target
+system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError
+
+@target(.Linux, .Darwin)
+system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError {
+    for {
+        n :: sys_read(fd_of(handle), into, count)
+        if n >= 0 {
+            return n
+        }
+        // A signal cut the read short before any byte came: ask again.
+        if sys_last_errno() != EINTR {
+            return last_io_error("read failed")
+        }
+    }
+}
+
+@target(.Windows)
+system_read :: fn(handle: Fd | Handle, into: u8[], count: i64) -> i64 | IOError {
+    got: u32[]: [0]
+    if !read_file(handle_of(handle), into, u32(min(count, WHOLE_READ_MAX)), got, null) {
+        // A pipe whose writer has closed ends this way, not with a read of 0.
+        if get_last_error() == ERROR_BROKEN_PIPE {
+            return 0
+        }
+        return last_io_error("read failed")
+    }
+    return i64(got[0])
+}
+
+// Write what one system call takes of `bytes`: how many.
+@target
+system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError
+
+@target(.Linux, .Darwin)
+system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
+    for {
+        n :: sys_write(fd_of(handle), bytes, bytes.len())
+        if n >= 0 {
+            return n
+        }
+        // A signal cut the write short before any byte went: ask again.
+        if sys_last_errno() != EINTR {
+            return last_io_error("write failed")
+        }
+    }
+}
+
+@target(.Windows)
+system_write :: fn(handle: Fd | Handle, bytes: u8[]) -> i64 | IOError {
+    written: u32[]: [0]
+    count :: u32(min(bytes.len(), WHOLE_READ_MAX))
+    if !write_file(handle_of(handle), bytes, count, written, null) {
+        return last_io_error("write failed")
+    }
+    return i64(written[0])
+}
+
+// Move the position `offset` bytes from `from`: the new one, from the start.
+@target
+system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError
+
+@target(.Linux, .Darwin)
+system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError {
+    position :: sys_lseek(fd_of(handle), offset, whence_of(from))
+    if position < 0 {
+        return last_io_error("seek failed")
+    }
+    return position
+}
+
+@target(.Windows)
+system_seek :: fn(handle: Fd | Handle, offset: i64, from: SeekFrom) -> i64 | IOError {
+    // The distance goes in two halves, and the high one comes back in place.
+    high: i32[]: [i32(offset >> 32)]
+    low :: set_file_pointer(handle_of(handle), i32(offset), high, method_of(from))
+    if low == INVALID_SET_FILE_POINTER && get_last_error() != 0 {
+        return last_io_error("seek failed")
+    }
+    return (i64(high[0]) << 32) | i64(low)
+}
+
+whence_of :: fn(from: SeekFrom) -> i32 = match from {
+    .Start   -> SEEK_SET
+    .Current -> SEEK_CUR
+    .End     -> SEEK_END
+}
+
+method_of :: fn(from: SeekFrom) -> u32 = match from {
+    .Start   -> FILE_BEGIN
+    .Current -> FILE_CURRENT
+    .End     -> FILE_END
+}
+
+// Give the handle back to the system.
+@target
+system_close :: fn(handle: Fd | Handle) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_close :: fn(handle: Fd | Handle) -> null | IOError {
+    // Not asked again on `EINTR`: Linux has closed the descriptor by then, and
+    // another thread may already have it.
+    if sys_close(fd_of(handle)) != 0 {
+        return last_io_error("close failed")
+    }
+    return null
+}
+
+@target(.Windows)
+system_close :: fn(handle: Fd | Handle) -> null | IOError {
+    if !close_handle(handle_of(handle)) {
+        return last_io_error("close failed")
+    }
+    return null
+}
+
+// A `File` holds an `Fd` on POSIX and a `Handle` on Windows: the other member is
+// a bug of this module, and stops the program.
+
+fd_of :: fn(handle: Fd | Handle) -> i32 = @unreachable match handle {
+    is Fd -> i32(handle)
+}
+
+handle_of :: fn(handle: Fd | Handle) -> Handle = @unreachable match handle {
+    is Handle -> handle
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/env"
+import "std/string"
+import "std/testing"
+
+// A file of `content` in the temp directory, for one test.
+probe_file :: fn(name: string, content: string) -> string {
+    path :: "${temp_dir()}/vader_file_${name}"
+    wrote :: write_file_string(path, content)
+    assert(wrote !is IOError, "the probe was written")
+    return path
+}
+
+// The position `seek` answered, -1 when it failed.
+moved_to :: fn(position: i64 | IOError) -> i64 {
+    if position is IOError {
+        return -1
+    }
+    return position
+}
+
+// What `f` reads from its position to its end, `chunk` bytes at a time.
+read_rest :: fn(f: File, chunk: i64) -> string {
+    out: u8[]: []
+    for {
+        got :: f.read(chunk)
+        if got is IOError {
+            assert(false, "the read succeeds")
+            return ""
+        }
+        if got.len() == 0 {
+            return out.bytes_to_string()
+        }
+        out.push_all(got)
+    }
+}
+
+@test
+test_open_a_missing_file_is_not_found :: fn() -> void {
+    f :: open("${temp_dir()}/vader_file_absent")
+    if f is IOError {
+        assert_eq(f.kind, .NotFound)
+    } else {
+        assert(false, "a missing file does not open")
+    }
+}
+
+@test
+test_open_refuses_a_directory :: fn() -> void {
+    f :: open(temp_dir())
+    if f is IOError {
+        assert_eq(f.kind, .IsADirectory)
+    } else {
+        assert(false, "a directory does not open as a file")
+    }
+}
+
+@test
+test_open_refuses_options_that_contradict_each_other :: fn() -> void {
+    path :: probe_file("contradict", "x")
+    defer remove_file(path)
+    no_access :: open(path, OpenOptions { .read = false })
+    assert(no_access is IOError && no_access.kind == .InvalidInput, "neither read nor write")
+    no_write :: open(path, OpenOptions { .truncate = true })
+    assert(no_write is IOError && no_write.kind == .InvalidInput, "truncate without write")
+}
+
+@test
+test_create_then_read_back :: fn() -> void {
+    path :: "${temp_dir()}/vader_file_round_trip"
+    w :: create(path)
+    if w is IOError {
+        assert(false, "the file is created")
+        return
+    }
+    defer remove_file(path)
+    assert(w.write_string("hello, ") !is IOError, "the first write")
+    assert(w.write_string("world") !is IOError, "the second write")
+    assert(w.close() !is IOError, "the close")
+    r :: open(path)
+    if r is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    defer r.close()
+    assert_eq(read_rest(r, 3), "hello, world")
+}
+
+@test
+test_read_crosses_buffers_of_any_size :: fn() -> void {
+    path :: probe_file("small_buffer", "abcdefghij")
+    defer remove_file(path)
+    for chunk in [1, 3, 4, 5, 100] {
+        f :: open(path, OpenOptions { .buffer_size = 4 })
+        if f is IOError {
+            assert(false, "the file opens")
+            return
+        }
+        assert_eq(read_rest(f, chunk), "abcdefghij")
+        f.close()
+    }
+}
+
+@test
+test_seek_counts_from_what_the_caller_read :: fn() -> void {
+    path :: probe_file("seek", "0123456789")
+    defer remove_file(path)
+    f :: open(path)
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    defer f.close()
+    first :: f.read(2)
+    assert(first is u8[] && first.bytes_to_string() == "01", "two bytes, the rest read ahead")
+    assert_eq(moved_to(f.seek(0, .Current)), 2)
+    assert_eq(moved_to(f.seek(3, .Current)), 5)
+    assert_eq(read_rest(f, 10), "56789")
+    assert_eq(moved_to(f.seek(-3, .End)), 7)
+    assert_eq(read_rest(f, 10), "789")
+    assert_eq(moved_to(f.seek(1, .Start)), 1)
+    assert_eq(read_rest(f, 10), "123456789")
+}
+
+@test
+test_a_write_after_a_read_lands_at_the_position :: fn() -> void {
+    path :: probe_file("read_then_write", "0123456789")
+    defer remove_file(path)
+    f :: open(path, OpenOptions { .write = true })
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    f.read(3)
+    assert(f.write_string("abc") !is IOError, "the write")
+    f.close()
+    back :: read_file_string(path)
+    assert(back is string && back == "012abc6789", "written after the three bytes read")
+}
+
+@test
+test_append_writes_at_the_end_wherever_the_position :: fn() -> void {
+    path :: probe_file("append", "head")
+    defer remove_file(path)
+    f :: open(path, OpenOptions { .append = true })
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    f.seek(0, .Start)
+    assert(f.write_string("+tail") !is IOError, "the write")
+    f.close()
+    back :: read_file_string(path)
+    assert(back is string && back == "head+tail", "appended")
+}
+
+@test
+test_create_new_refuses_an_existing_file :: fn() -> void {
+    path :: probe_file("create_new", "x")
+    defer remove_file(path)
+    f :: open(path, OpenOptions { .write = true, .create_new = true })
+    if f is IOError {
+        assert_eq(f.kind, .AlreadyExists)
+    } else {
+        assert(false, "an existing file is not created anew")
+    }
+}
+
+@test
+test_lines_cut_as_string_lines_does :: fn() -> void {
+    text :: "one\r\ntwo\n\nlonger than the buffer\nlast\r"
+    path :: probe_file("lines", text)
+    defer remove_file(path)
+    f :: open(path, OpenOptions { .buffer_size = 4 })
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    defer f.close()
+    read: string[]: []
+    for line in f.lines() {
+        read.push(line)
+    }
+    assert(f.error !is IOError, "no read failed")
+    assert(read.content_equals(text.lines().collect()), "the lines of the string")
+}
+
+@test
+test_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
+    path :: probe_file("lines_closed", "a\nb\n")
+    defer remove_file(path)
+    f :: open(path)
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    f.close()
+    count: i64 = 0
+    for line in f.lines() {
+        count += 1
+    }
+    assert_eq(count, 0)
+    assert(f.error is IOError && f.error.kind == .BadHandle, "the loop says why")
+}
+
+@test
+test_close_twice_and_read_after :: fn() -> void {
+    path :: probe_file("close", "x")
+    defer remove_file(path)
+    f :: open(path)
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    assert(f.close() !is IOError, "the first close")
+    assert(f.close() !is IOError, "a second does nothing")
+    after :: f.read(1)
+    assert(after is IOError && after.kind == .BadHandle, "a read after close fails")
+}
