@@ -1,0 +1,12 @@
+// Every module of `lib/` that declares an `@extern`, imported for the listing
+// `tests/extern_prototypes.test.ts` keeps in `externs.snapshot.c`.
+
+module "main"
+
+import "std/math"
+import "system/darwin"
+import "system/libc"
+import "system/posix"
+import "system/windows"
+
+main :: fn() -> i32 = 0

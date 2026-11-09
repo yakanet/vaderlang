@@ -462,10 +462,36 @@ run_externs_stage :: fn(
         pruned :: prune_unreachable_fns(le.lowered, false)
         opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = false }
         module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, back_end_diags)
-        print(dump_externs(imports_in_scope(module.imports, pruned, scope), module.types))
+        imports :: imports_in_scope(module.imports, pruned, scope)
+        print(dump_externs(imports, module.types, library_constants(pipeline.typed, pruned)))
     }
     print_pipeline_diags(pipeline, le.lower_diags + back_end_diags, scope)
     return 0
+}
+
+// The `CLibrary` constant each `@extern` of `lowered` names, by mangle. The
+// typecheck keys them by declaration, whose node id is unique in the project.
+library_constants :: fn(
+    typed: TypedProject, lowered: LoweredProject,
+) -> Map<string, LibraryConstant> {
+    by_declaration :: Map<i64, LibraryConstant> {}
+    for [_, program] in typed.modules {
+        for [id, symbol] in program.extern_libraries {
+            by_declaration[id] = LibraryConstant {
+                .name = symbol.name,
+                .module = symbol.module_name,
+            }
+        }
+    }
+    constants :: Map<string, LibraryConstant> {}
+    for [_, m] in lowered.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl && d.origin.decl is FnDecl {
+                constants[d.mangled] = by_declaration[d.origin.decl.id] ?? continue
+            }
+        }
+    }
+    return constants
 }
 
 // The imports among `imports` that a module of `scope` declares.

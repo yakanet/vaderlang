@@ -7,27 +7,44 @@
 
 module "vader/emit/c"
 
+import "std/collections"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
 import "vader/core/bytecode"
 import "vader/emit/c/ast"
 
+/// The `CLibrary` constant an `@extern` names, as its declaration spells it.
+export LibraryConstant :: struct {
+    name: string
+    /// The declared name of the module declaring the constant.
+    module: string
+}
+
 /// Write each `@extern` of `imports` as the C prototype the compiler calls it
-/// through, grouped under the library and the headers that declare it.
+/// through, grouped under the `CLibrary` constant and the headers that declare
+/// it.
 ///
-/// @param imports  the imports to list ; those that are not an `@extern` are
-///                 skipped.
-/// @param types    the type table of their module, which their signatures index.
-/// @return         `# Externs`, then a `## <library>: <headers>` section per
-///                 group, one prototype per line followed by its Vader mangle.
-export dump_externs :: fn(imports: BcImport[], types: BcType[]) -> string {
+/// @param imports    the imports to list ; those that are not an `@extern` are
+///                   skipped.
+/// @param types      the type table of their module, which their signatures
+///                   index.
+/// @param constants  the constant each `@extern` names, by mangle ; one absent
+///                   names none.
+/// @return           C: per group, a comment naming the constant, the library
+///                   when it has a name, and the headers, then one prototype per
+///                   line followed by its Vader mangle.
+export dump_externs :: fn(
+    imports: BcImport[],
+    types: BcType[],
+    constants: Map<string, LibraryConstant>,
+) -> string {
     listed: ListedExtern[]: []
     for imp in imports {
         if imp.is_extern {
             listed.push(
                 ListedExtern {
-                    .section = extern_section(imp),
+                    .section = extern_section(imp, constants[imp.mangled_name]),
                     .name = imp.extern_name,
                     .prototype = extern_prototype(imp, types),
                 },
@@ -35,11 +52,13 @@ export dump_externs :: fn(imports: BcImport[], types: BcType[]) -> string {
         }
     }
     out :: StringBuilder {}
-    out.append("# Externs\n")
     section := ""
     for e in sort(listed, listed_before) {
         if e.section != section {
-            out.append("\n## ${e.section}\n\n")
+            if section != "" {
+                out.append("\n")
+            }
+            out.append("/* ${e.section} */\n")
             section = e.section
         }
         out.append("${e.prototype}\n")
@@ -67,23 +86,28 @@ listed_before :: fn(a: ListedExtern, b: ListedExtern) -> bool {
     return a.prototype < b.prototype
 }
 
-// The title of the section `imp` falls under: where its symbol is looked up, and
-// the headers that declare it.
-extern_section :: fn(imp: BcImport) -> string {
-    place :: lookup_place(imp)
+// The title of the section `imp` falls under: the constant it names, and the
+// headers that declare it.
+extern_section :: fn(imp: BcImport, constant: LibraryConstant | null) -> string {
+    owner :: library_owner(imp, constant)
     if synthesises_prototype(imp) {
-        return "${place}, no header: the compiler writes the prototype"
+        return "${owner}, no header: the compiler writes the prototype"
     }
-    return "${place}: ${imp.c_headers.join(", ")}"
+    return "${owner}: ${imp.c_headers.join(", ")}"
 }
 
-// The library the interpreter opens for `imp`, or the running process.
-lookup_place :: fn(imp: BcImport) -> string {
+// `constant` and the module declaring it, then the library it opens or links.
+// The empty name, nothing to open or link, goes unsaid.
+library_owner :: fn(imp: BcImport, constant: LibraryConstant | null) -> string {
+    if constant == null {
+        return "no CLibrary"
+    }
+    owner :: "${constant.name} (${constant.module})"
     name :: library_name(imp)
     if name == "" {
-        return "the process"
+        return owner
     }
-    return name
+    return "${owner}, library ${name}"
 }
 
 // `imp` as a C prototype with its parameters named, then its Vader mangle and the
@@ -175,7 +199,7 @@ listed_extern :: fn(
 }
 
 @test
-test_dump_externs_groups_by_library_and_headers :: fn() -> void {
+test_dump_externs_groups_by_constant_and_headers :: fn() -> void {
     write :: BcImport {
         ...listed_extern("write", r"posix$write", [.I32, .I64], ["fd", "count"], .I64),
         .c_headers = ["<unistd.h>"],
@@ -187,23 +211,21 @@ test_dump_externs_groups_by_library_and_headers :: fn() -> void {
         .library = CLibrary { .name = "kernel32", .headers = ["<windows.h>"] },
     }
     errno :: listed_extern("last_errno", r"rt$last_errno", [], [], .I32)
+    constants :: Map<string, LibraryConstant> {}
+    constants[r"posix$write"] = LibraryConstant { .name = "UNISTD", .module = "system/posix" }
+    constants[r"windows$sleep"] = LibraryConstant { .name = "KERNEL32", .module = "system/windows" }
     expected :: [
-        "# Externs",
-        "",
-        "## kernel32: <windows.h>",
-        "",
+        "/* KERNEL32 (system/windows), library kernel32: <windows.h> */",
         "void Sleep(uint32_t ms);  // windows\$sleep",
         "",
-        "## the process, no header: the compiler writes the prototype",
-        "",
-        "int32_t last_errno(void);  // rt\$last_errno",
-        "",
-        "## the process: <unistd.h>",
-        "",
+        "/* UNISTD (system/posix): <unistd.h> */",
         "int64_t write(int32_t fd, int64_t count);  // posix\$write",
         "",
+        "/* no CLibrary, no header: the compiler writes the prototype */",
+        "int32_t last_errno(void);  // rt\$last_errno",
+        "",
     ]
-    assert_eq(dump_externs([write, sleep, errno], []), expected.join("\n"))
+    assert_eq(dump_externs([write, sleep, errno], [], constants), expected.join("\n"))
 }
 
 @test
@@ -212,7 +234,7 @@ test_dump_externs_skips_an_intrinsic :: fn() -> void {
         ...listed_extern("byte_len", r"core$byte_len", [.String], ["s"], .I64),
         .is_extern = false,
     }
-    assert_eq(dump_externs([intrinsic], []), "# Externs\n")
+    assert_eq(dump_externs([intrinsic], [], Map<string, LibraryConstant> {}), "")
 }
 
 @test
@@ -223,7 +245,7 @@ test_dump_externs_comments_the_variadic_arguments :: fn() -> void {
         .c_headers = ["<sys/ioctl.h>"],
         .c_variadic_fixed = 2,
     }
-    listing :: dump_externs([ioctl], [])
+    listing :: dump_externs([ioctl], [], Map<string, LibraryConstant> {})
     assert(
         "int32_t ioctl(int32_t fd, uint64_t request, ...);  // posix\$ioctl, variadic: void* arg"
             in listing,
