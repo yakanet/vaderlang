@@ -130,7 +130,7 @@ export DECORATORS: DecoratorSpec[]: [
         .name   = "c_variadic",
         .usage  = "@c_variadic",
         .places = [.Parameter],
-        .doc    = "On a parameter of an `@extern` fn: C receives it, and every parameter after it, through the `...` of its prototype.",
+        .doc    = "On a parameter of an `@extern` fn: C receives it through the `...` of its prototype. Every parameter after it carries the mark too, and a header must declare the function.",
     },
     DecoratorSpec {
         .name   = "displayable",

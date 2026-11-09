@@ -3459,10 +3459,9 @@ A library is its `name`: two constants of one name describe the same binary, and
 A C function often takes a pointer where the value would do (`localtime(const time_t *)`). `@c_address` on the parameter passes C the address of a copy of the argument, valid for the call; no pointer type appears in Vader.
 
 ```vader
-TimeT :: i64
-
+@c_header("<time.h>")
 @extern("localtime")
-localtime :: fn(@c_address t: TimeT) -> CPointer
+localtime :: fn(@c_type("time_t") @c_address t: i64) -> CPointer
 ```
 
 A parameter crosses as the C prototype spells it:
@@ -3475,7 +3474,11 @@ A parameter crosses as the C prototype spells it:
 | `const T *x`, an array | `x: T[]` | The elements, which it only reads. |
 | `T *x`, an array | `@c_out x: T[]` | The elements, which it writes in place. |
 
+A scalar lent by address and an array cross as a `const void *` (a `void *` with `@c_out`), unless `@c_type` names what they point to (*`@c_type`*). A mirror crosses as the address of its C struct.
+
 `@c_address` applies to a scalar (a number, `bool`, `char`, `CPointer`, or a distinct type over one) or to a `@c_struct` mirror (below). A `string` and an array cross as pointers already.
+
+An array of structs, mirrors included, does not cross. Lend the array of their members in order instead: `f32[]` for a `Vector2 *` whose struct holds two `float`.
 
 The following are errors:
 
@@ -3489,11 +3492,12 @@ The following are errors:
 ### `@c_out`: C writes through the parameter
 
 ```vader
+@c_header("<unistd.h>")
 @extern("read")
 sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 ```
 
-`@c_out` lends the argument by address, and C may read it as well as write it: it is filled before the call and read back after. An array crosses as a `void*` whose elements C writes in place, a mirror as the address of a C struct copied back into it. Without `@c_out`, C only reads what it is lent: an array crosses as a `const void*`.
+`@c_out` lends the argument by address, and C may read it as well as write it: it is filled before the call and read back after. C writes an array's elements in place, and a mirror's C struct is copied back into it. Without `@c_out`, C only reads what it is lent.
 
 `@c_out` needs storage that outlives the call, an array or a mirror: on a scalar or a `string`, it is an error. To read a scalar back on both backends, lend a one-element array (`@c_out written: u32[]`), the shape of every `T*` out-parameter (`WriteFile`'s `lpNumberOfBytesWritten`).
 
@@ -3509,7 +3513,7 @@ Without a header, the compiler declares the C function from its Vader signature,
 sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 ```
 
-The C compiler then checks every argument against the real declaration. Without a header nothing does: `isatty` declared as `fn(fd: i64) -> i64` compiles, links, and passes its argument wrongly.
+The C compiler then checks the arguments against the real declaration, except what a `const void *` or a `void *` points to (*`@c_address`*), which converts to any pointer. Without a header nothing is checked: `isatty` declared as `fn(fd: i64) -> i64` compiles, links, and passes its argument wrongly.
 
 The argument is written as in a C `#include`:
 
@@ -3562,7 +3566,7 @@ Without a header, the compiler spells a number by its Vader type (a `u64` is a `
 c_strnlen :: fn(s: string, @c_type("size_t") max: u64) -> u64
 ```
 
-On a parameter, `@c_type` spells that parameter; on the declaration, the result. The value is converted to the C type and back, and the C type must be an integer exactly as wide as the Vader one, or a native build fails. With `@c_header`, the header gives the prototype and `@c_type` only adds the conversions.
+On a parameter, `@c_type` spells that parameter, or for a scalar lent by address (`@c_address`) the type it points to; on the declaration, the result. The value is converted to the C type and back, and the C type must be an integer exactly as wide as the Vader one, or a native build fails. With `@c_header`, the header gives the prototype and `@c_type` only adds the conversions.
 
 On an array parameter, `@c_type` names one element, the `T` of `T *x` in the table of *`@c_address`*: C receives a `T *` instead of a `void *` (a `const T *` without `@c_out`), and a header checks it against its prototype:
 
