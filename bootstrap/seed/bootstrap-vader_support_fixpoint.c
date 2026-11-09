@@ -88,7 +88,7 @@ static void* vader_support_fixpoint$components_bottom_up(void* l0) {
     vader_array_t* _a8_arr = vader_array_new(28u, 0u, 8u, 498u);
     l7 = (void*) _a8_arr;
     vader_struct_vader_support_fixpoint$TarjanWalk_t* _a9_obj = (vader_struct_vader_support_fixpoint$TarjanWalk_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_fixpoint$TarjanWalk_t));
-    vader_obj_header_init(_a9_obj, 1675u);
+    vader_obj_header_init(_a9_obj, 1677u);
     _a9_obj->f_order = l2;
     _a9_obj->f_low = l3;
     _a9_obj->f_on_stack = l4;
@@ -163,7 +163,7 @@ static void* vader_support_fixpoint$components_bottom_up(void* l0) {
                         VADER_ARRAY_RESOLVE_BUF(_a20_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a20_slotarr, l15)
                         l17 = ((int32_t*) _a20_slotarr->buf->slots)[_a20_slotarr->offset + (size_t) l15];
-                        l18 = std_math$min_2(l16, l17);
+                        l18 = std_math$min__i32(l16, l17);
                         vader_array_t* _a21_slotarr = ((vader_array_t*) l6);
                         VADER_ARRAY_RESOLVE_BUF(_a21_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a21_slotarr, l11)
@@ -187,7 +187,7 @@ static void* vader_support_fixpoint$components_bottom_up(void* l0) {
                     VADER_ARRAY_RESOLVE_BUF(_a23_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a23_slotarr, l11)
                     l24 = ((int32_t*) _a23_slotarr->buf->slots)[_a23_slotarr->offset + (size_t) l11];
-                    l25 = std_math$min_2(l23, l24);
+                    l25 = std_math$min__i32(l23, l24);
                     vader_array_t* _a24_slotarr = ((vader_array_t*) l7);
                     VADER_ARRAY_RESOLVE_BUF(_a24_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a24_slotarr, l20)
@@ -298,7 +298,7 @@ static void* vader_support_fixpoint$pop_component(void* l0, int32_t l1) {
         }
         break;
     }
-    vader_host_std_abort$panic(2877u);
+    vader_host_std_abort$panic(2899u);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }

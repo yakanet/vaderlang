@@ -1234,8 +1234,8 @@ uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv) {
         case 501u: return std_core$u32$Hash$hash(((uint32_t) recv.payload.i));
         case 502u: return std_core$u64$Hash$hash(((uint64_t) recv.payload.i));
         case 493u: return std_core$char$Hash$hash(((uint32_t) recv.payload.i));
-        case 954u: return toolchain_span$Span$std_core$Hash$hash(recv.payload.obj);
-        case 1712u: return vader_vm$Scalar$std_core$Hash$hash(recv.payload.obj);
+        case 955u: return toolchain_span$Span$std_core$Hash$hash(recv.payload.obj);
+        case 1714u: return vader_vm$Scalar$std_core$Hash$hash(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Hash.hash");
     }
     vader_unreachable("vtable miss in std_core$Hash.hash");
@@ -1256,9 +1256,9 @@ bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
         case 492u: return std_core$bool$Equals$equals$guard(recv.payload.b, a0);
         case 493u: return std_core$char$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
         case 494u: return std_core$string$Equals$equals$guard(recv.payload.s, a0);
-        case 1683u: return vader_support_target$Target$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 954u: return toolchain_span$Span$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 1712u: return vader_vm$Scalar$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1685u: return vader_support_target$Target$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 955u: return toolchain_span$Span$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1714u: return vader_vm$Scalar$std_core$Equals$equals$guard(recv.payload.obj, a0);
         default: vader_unreachable("vtable miss in std_core$Equals.equals");
     }
     vader_unreachable("vtable miss in std_core$Equals.equals");

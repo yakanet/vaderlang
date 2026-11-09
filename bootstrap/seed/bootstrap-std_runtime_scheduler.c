@@ -45,7 +45,7 @@ void* std_runtime_scheduler$gate_or_new(vader_box_t l0) {
         vader_array_t* _a0_arr = vader_array_new(28u, 0u, 8u, 498u);
         l2 = (void*) _a0_arr;
         vader_struct_std_runtime_scheduler$InitGate_t* _a1_obj = (vader_struct_std_runtime_scheduler$InitGate_t*) vader_gc_alloc(sizeof(vader_struct_std_runtime_scheduler$InitGate_t));
-        vader_obj_header_init(_a1_obj, 858u);
+        vader_obj_header_init(_a1_obj, 859u);
         _a1_obj->f_held = false;
         _a1_obj->f_owner = INT64_C(0);
         _a1_obj->f_waiters = l2;

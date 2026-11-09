@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Headers named by `@c_header`: they own the prototypes below. */
+/* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <windows.h>
 
 void* vader_host_system_windows$get_std_handle(uint32_t a0) {
