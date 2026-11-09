@@ -641,6 +641,10 @@ extern_result_type :: fn(imp: BcImport, types: BcType[]) -> string {
     if is_abi_nullable_pointer(types, result_type) {
         return "void*"
     }
+    if is_abi_nullable_string(types, result_type) {
+        // A `char*` that may be NULL, read as `forwarded_result` reads it.
+        return "const char*"
+    }
     mirror :: mirrored_c_struct(types, result_type)
     if mirror != "" {
         return mirror
@@ -651,6 +655,19 @@ extern_result_type :: fn(imp: BcImport, types: BcType[]) -> string {
 // The C type of the temporary a `@c_address` scalar parameter is spilled to.
 spilled_c_type :: fn(imp: BcImport, j: i64) -> string =
     param_c_type(imp, j) ?? c_type_for_val_bare(imp.signature.params[j])
+
+// The address of `p<j>`, the temporary a `@c_address` scalar is spilled to. Typed
+// when `@c_type` names the C type, so that a header checks it against its
+// prototype. `(void*)` otherwise: a Vader `u32` is `uint32_t` while Win32 spells
+// the same 32 bits `unsigned long`, distinct pointer types to C, which rejects
+// the mismatch, and `void*` converts to either.
+spilled_address :: fn(imp: BcImport, j: i64) -> CExpression {
+    address :: address_of(verbatim("p${j}"))
+    if param_c_type(imp, j) == null {
+        return cast("void*", address)
+    }
+    return address
+}
 
 // One `_Static_assert` per distinct `@c_type` of the extern `imports` and the
 // Vader type it renames, or the array element it names.
@@ -1111,11 +1128,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             // temporary lives for the call and no longer, which is the whole
             // contract, and why no pointer type appears in Vader.
             before.push(declaration(spilled_c_type(imp, j), "p${j}", a))
-            // `(void*)` and not a bare `&p`: with `@c_header` the real prototype
-            // is visible, and a Vader `u32` is `uint32_t` while Win32 spells the
-            // same 32 bits `unsigned long`: distinct pointer types to C, which
-            // rejects the mismatch. `void*` converts to either.
-            call_args.push(cast("void*", address_of(verbatim("p${j}"))))
+            call_args.push(spilled_address(imp, j))
         } else if is_abi_nullable_pointer(types, sig.param_types[j]) {
             // The union rides as a box inside Vader; C wants a bare `void*`.
             tag :: CMember { .base = a, .member = "tag" }

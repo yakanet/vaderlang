@@ -5,6 +5,8 @@
   snippet.copy_f32 :: fn(into: u8[], x: f32, count: u64) -> void  // snippet$copy_f32
   snippet.copy_bool :: fn(into: u8[], x: bool, count: u64) -> void  // snippet$copy_bool
   snippet.copy_char :: fn(into: u8[], x: char, count: u64) -> void  // snippet$copy_char
+  snippet.utc_time :: fn(seconds: i64) -> CPointer  // snippet$utc_time
+  snippet.format_time :: fn(time: CPointer) -> string  // snippet$format_time
   snippet.main :: fn() -> i32 {  // snippet$main
       wide: u8[] = [u8(0), u8(0), u8(0), u8(0), u8(0), u8(0), u8(0), u8(0)] :u8[]
       snippet.copy_f64(wide, -1.5, u64(8))
@@ -18,6 +20,7 @@
       letter: u8[] = [u8(0), u8(0), u8(0), u8(0)] :u8[]
       snippet.copy_char(letter, '\u{e9}', u64(4))
       std.console.println<string>(concat_2("char ", std.core.u8[].to_string(letter)))
+      std.console.print<string>(concat_2("time ", snippet.format_time(snippet.utc_time(i64(0)))))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -31,6 +34,7 @@
 
 ## lowered in dependencies
   std/console
+    fn std.console.print<string>  // std_console$print__string
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
     fn std.console.write_bytes  // std_console$write_bytes
@@ -41,6 +45,7 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.string.to_string  // std_core$string$Display$to_string
     fn std.core.u8.to_string  // std_core$u8$Display$to_string
     fn std.core.u8[].to_string  // std_core$$array$Display$to_string__u8
     fn std.core.write_string_at  // std_core$write_string_at

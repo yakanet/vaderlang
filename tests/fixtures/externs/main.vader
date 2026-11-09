@@ -13,6 +13,9 @@ Timespec :: struct { tv_sec: i64, tv_nsec: i64 }
 @extern("puts")
 c_puts :: fn(s: string) -> i32
 
+@extern("ttyname")
+terminal_name :: fn(fd: i32) -> string | null
+
 @c_header("<fcntl.h>")
 @extern("fcntl")
 set_flags :: fn(fd: i32, command: i32, @c_variadic flags: i32) -> i32

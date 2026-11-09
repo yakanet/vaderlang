@@ -15,6 +15,14 @@
         "decorators": []
       },
       {
+        "kind": "ImportDecl",
+        "path": "std/ffi",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "copy_f64",
         "visibility": "private",
@@ -347,6 +355,130 @@
                   {
                     "kind": "text",
                     "value": "memcpy"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "utc_time",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "seconds",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            "defaultValue": null,
+            "variadic": false,
+            "decorators": [
+              {
+                "name": "c_type",
+                "args": [
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "time_t"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "c_address",
+                "args": []
+              }
+            ]
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "CPointer"
+        },
+        "body": null,
+        "decorators": [
+          {
+            "name": "c_header",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "<time.h>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "extern",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "gmtime"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "format_time",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "time",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "CPointer"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": null,
+        "decorators": [
+          {
+            "name": "c_header",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "<time.h>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "extern",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "asctime"
                   }
                 ]
               }
@@ -778,6 +910,64 @@
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "letter"
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "print"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "time "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "format_time"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "IdentExpr",
+                                    "name": "utc_time"
+                                  },
+                                  "args": [
+                                    {
+                                      "name": null,
+                                      "value": {
+                                        "kind": "IntLitExpr",
+                                        "value": "0n"
+                                      },
+                                      "spread": false
+                                    }
+                                  ]
+                                },
+                                "spread": false
+                              }
+                            ]
                           }
                         }
                       ]

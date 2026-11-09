@@ -1,12 +1,13 @@
 // tests/extern_prototypes: `vader dump --stage=externs`, each `@extern` as the C
 // prototype the compiler calls it through.
 //
-// The shapes fixture calls one `@extern` of eight: the listing holds the seven it
+// The shapes fixture calls one `@extern` of nine: the listing holds the eight it
 // never calls too, which a native build drops. One line per shape: a scalar lent
 // by address (`const`), a lent array C writes (`void*`), a mirror lent and
 // written, a lent array whose elements `@c_type` names, a `@c_type` on a
-// parameter and on the result, a string with no header, and a variadic, whose
-// variadic argument the comment names after the mangle.
+// parameter and on the result, a string with no header, a `string | null` result
+// with no header (`const char*`), and a variadic, whose variadic argument the
+// comment names after the mangle.
 //
 // The stdlib listing is a snapshot, pinned to one target so that it does not
 // depend on the host.
@@ -34,6 +35,7 @@ const EXPECTED = [
   "",
   "/* no CLibrary, no header: the compiler writes the prototype */",
   "int32_t puts(const char* s);  // main$c_puts",
+  "const char* ttyname(int32_t fd);  // main$terminal_name",
   "",
   "/* no CLibrary: <fcntl.h> */",
   "int32_t fcntl(int32_t fd, int32_t command, ...);  // main$set_flags, variadic: int32_t flags",

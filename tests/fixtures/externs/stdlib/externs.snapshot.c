@@ -60,7 +60,7 @@ void* fopen(const char* path, const char* mode);  // system_libc$sys_fopen
 int64_t fread(void* buf, int64_t size, int64_t count, void* stream);  // system_libc$sys_fread
 void free(void* p);  // system_libc$sys_free
 int64_t fwrite(const void* buf, int64_t size, int64_t count, void* stream);  // system_libc$sys_fwrite
-vader_box_t getenv(const char* name);  // system_libc$sys_getenv
+const char* getenv(const char* name);  // system_libc$sys_getenv
 
 /* LIBM (std/math): <math.h> */
 double acos(double x);  // std_math$acos

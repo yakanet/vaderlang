@@ -1,9 +1,12 @@
 module "snippet"
 
 import "std/console"
+import "std/ffi"
 
 // A scalar lent by address (`@c_address`): `memcpy` copies the bytes C finds
 // behind the address into an array, which shows what crossed, on both engines.
+// `gmtime` reads a scalar `@c_type` names: C receives a `time_t *`, which
+// `<time.h>` checks against its prototype.
 
 @c_header("<string.h>")
 @extern("memcpy")
@@ -21,6 +24,14 @@ copy_bool :: fn(@c_out into: u8[], @c_address x: bool, count: u64) -> void
 @extern("memcpy")
 copy_char :: fn(@c_out into: u8[], @c_address x: char, count: u64) -> void
 
+@c_header("<time.h>")
+@extern("gmtime")
+utc_time :: fn(@c_type("time_t") @c_address seconds: i64) -> CPointer
+
+@c_header("<time.h>")
+@extern("asctime")
+format_time :: fn(time: CPointer) -> string
+
 main :: fn() -> i32 {
     wide: u8[]: [0, 0, 0, 0, 0, 0, 0, 0]
     copy_f64(wide, -1.5, 8)
@@ -34,5 +45,6 @@ main :: fn() -> i32 {
     letter: u8[]: [0, 0, 0, 0]
     copy_char(letter, 'é', 4)
     println("char ${letter}")
+    print("time ${format_time(utc_time(0))}")
     return 0
 }
