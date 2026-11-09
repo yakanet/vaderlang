@@ -100,6 +100,13 @@ export create_directory :: fn(path: u16[], security: CPointer | null) -> bool
 /// `FILE_ATTRIBUTE_DIRECTORY`: set when the entry is a directory.
 export FILE_ATTRIBUTE_DIRECTORY: u32 : 0x10
 
+/// `FILE_ATTRIBUTE_READONLY`: set when the entry may not be written.
+export FILE_ATTRIBUTE_READONLY: u32 : 0x1
+
+/// `FILE_ATTRIBUTE_REPARSE_POINT`: set on a reparse point read without following
+/// it, a link or another kind (`IO_REPARSE_TAG_NAME_SURROGATE` tells them apart).
+export FILE_ATTRIBUTE_REPARSE_POINT: u32 : 0x400
+
 /// What `GetFileAttributesW` returns for a path it cannot query.
 export INVALID_FILE_ATTRIBUTES: u32 : 0xFFFF_FFFF
 
@@ -127,13 +134,66 @@ export get_file_attributes_ex :: fn(path: u16[], level: i32, @c_out data: u32[])
 @extern(KERNEL32, "GetFileAttributesW")
 export get_file_attributes :: fn(path: u16[]) -> u32
 
-/// `DeleteFileW`. Zero on failure. Refuses a directory outright, which is the
-/// behaviour `std/fs::remove_file` promises.
+/// `DeleteFileW`. Zero on failure. Refuses a directory, and a link to one.
 ///
 /// @param path  the file to delete.
 /// @return      non-zero on success.
 @extern(KERNEL32, "DeleteFileW")
 export delete_file :: fn(path: u16[]) -> i32
+
+/// `RemoveDirectoryW`. False on failure: `ERROR_DIR_NOT_EMPTY` for a directory
+/// that holds anything. Removes a link to a directory, not what it points to.
+@extern(KERNEL32, "RemoveDirectoryW")
+export remove_directory_w :: fn(path: u16[]) -> bool
+
+/// `SetFileAttributesW`. False on failure.
+///
+/// @param attributes  the whole bitmask, `get_file_attributes` read first.
+@extern(KERNEL32, "SetFileAttributesW")
+export set_file_attributes_w :: fn(path: u16[], attributes: u32) -> bool
+
+/// `MoveFileExW`. False on failure.
+///
+/// @param flags  `MOVEFILE_REPLACE_EXISTING` to take the place of a file.
+@extern(KERNEL32, "MoveFileExW")
+export move_file_ex_w :: fn(from: u16[], to: u16[], flags: u32) -> bool
+
+/// See `move_file_ex_w`.
+export MOVEFILE_REPLACE_EXISTING: u32 : 0x1
+
+/// `CopyFileW`: the content and the attributes. False on failure.
+///
+/// @param fail_if_exists  false to replace the target.
+@extern(KERNEL32, "CopyFileW")
+export copy_file_w :: fn(from: u16[], to: u16[], fail_if_exists: bool) -> bool
+
+/// `GetFileInformationByHandle`. False on failure.
+///
+/// @param info  `FILE_INFORMATION_CELLS` cells for a `BY_HANDLE_FILE_INFORMATION`:
+///              the attributes in cell 0, the last write `FILETIME` in cells 5
+///              (low) and 6 (high), the size in cells 8 (high) and 9 (low).
+@extern(KERNEL32, "GetFileInformationByHandle")
+export get_file_information_by_handle :: fn(h: Handle, @c_out info: u32[]) -> bool
+
+/// The `DWORD`s of a `BY_HANDLE_FILE_INFORMATION`.
+export FILE_INFORMATION_CELLS: i64 : 13
+
+/// `GetFileInformationByHandleEx`: one record of the entry `h` opens. False on
+/// failure.
+///
+/// @param class  the record: `FILE_ATTRIBUTE_TAG_INFO` for the attributes in
+///               cell 0 and the reparse tag in cell 1.
+/// @param size   the size of `info` in bytes.
+@extern(KERNEL32, "GetFileInformationByHandleEx")
+export get_file_information_by_handle_ex :: fn(h: Handle, class: i32, @c_out info: u32[],
+                                               size: u32) -> bool
+
+/// `FileAttributeTagInfo`, a record of two `DWORD`s.
+export FILE_ATTRIBUTE_TAG_INFO: i32 : 9
+
+/// The reparse tag bit of an entry that stands for another: a symbolic link, a
+/// junction. A cloud placeholder or a deduplicated file has a tag without it.
+export IO_REPARSE_TAG_NAME_SURROGATE: u32 : 0x2000_0000
 
 /// `GetLastError`. The calling thread's last Win32 error code.
 ///
@@ -301,6 +361,9 @@ export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
 
 /// `dwFlagsAndAttributes`: open a directory as well as a file.
 export FILE_FLAG_BACKUP_SEMANTICS: u32 : 0x0200_0000
+
+/// `dwFlagsAndAttributes`: open a link itself rather than what it points to.
+export FILE_FLAG_OPEN_REPARSE_POINT: u32 : 0x0020_0000
 
 /// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure: test it with
 /// `i64(h) == INVALID_HANDLE`, never against null.

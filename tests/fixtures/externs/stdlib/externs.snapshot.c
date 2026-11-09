@@ -8,6 +8,7 @@ uint32_t mach_task_self(void);  // system_darwin$mach_task_self
 int32_t task_info(uint32_t task, uint32_t flavor, void* info, void* count);  // system_darwin$task_info
 
 /* FILE_SYSTEM (system/posix): <dirent.h>, <fcntl.h>, <stdlib.h>, <sys/stat.h> */
+int32_t chmod(const char* path, uint32_t mode);  // system_posix$sys_chmod
 int32_t closedir(void* dir);  // system_posix$sys_closedir
 int32_t mkdir(const char* path, uint32_t mode);  // system_posix$sys_mkdir
 int32_t open(const char* path, int32_t flags, ...);  // system_posix$sys_open, variadic: int32_t mode
@@ -17,6 +18,7 @@ void* realpath(const char* path, void* resolved);  // system_posix$sys_realpath
 
 /* KERNEL32 (system/windows), library kernel32: <windows.h> */
 bool CloseHandle(void* h);  // system_windows$close_handle
+bool CopyFileW(const void* from, const void* to, bool fail_if_exists);  // system_windows$copy_file_w
 bool CreateDirectoryW(const void* path, void* security);  // system_windows$create_directory
 void* CreateFileW(const void* path, uint32_t access, uint32_t share, void* security, uint32_t disposition, uint32_t flags, void* template);  // system_windows$create_file_w
 bool CreateProcessA(void* application, void* command_line, void* proc_attrs, void* thread_attrs, bool inherit, uint32_t flags, void* environment, void* directory, STARTUPINFOA* startup, PROCESS_INFORMATION* info);  // system_windows$create_process
@@ -32,6 +34,8 @@ uint32_t GetCurrentDirectoryW(uint32_t size, void* buf);  // system_windows$get_
 bool GetExitCodeProcess(void* h, void* code);  // system_windows$get_exit_code_process
 bool GetFileAttributesExW(const void* path, int32_t level, void* data);  // system_windows$get_file_attributes_ex
 uint32_t GetFileAttributesW(const void* path);  // system_windows$get_file_attributes
+bool GetFileInformationByHandle(void* h, void* info);  // system_windows$get_file_information_by_handle
+bool GetFileInformationByHandleEx(void* h, int32_t class, void* info, uint32_t size);  // system_windows$get_file_information_by_handle_ex
 bool GetFileSizeEx(void* h, void* size);  // system_windows$get_file_size_ex
 uint32_t GetFileType(void* h);  // system_windows$get_file_type
 uint32_t GetFinalPathNameByHandleW(void* h, void* buf, uint32_t size, uint32_t flags);  // system_windows$get_final_path_name_by_handle_w
@@ -40,13 +44,16 @@ uint32_t GetModuleFileNameW(void* module, void* buf, uint32_t size);  // system_
 void* GetStdHandle(uint32_t which);  // system_windows$get_std_handle
 void GetSystemTimePreciseAsFileTime(void* ft);  // system_windows$get_system_time_precise_as_file_time
 uint32_t GetTempPathW(uint32_t size, void* buf);  // system_windows$get_temp_path
+bool MoveFileExW(const void* from, const void* to, uint32_t flags);  // system_windows$move_file_ex_w
 int32_t MultiByteToWideChar(uint32_t code_page, uint32_t flags, const char* src, int32_t src_len, void* dst, int32_t dst_len);  // system_windows$multi_byte_to_wide_char
 bool PeekNamedPipe(void* h, void* buf, uint32_t size, void* read, void* available, void* message);  // system_windows$peek_named_pipe
 bool QueryPerformanceCounter(void* counter);  // system_windows$query_performance_counter
 bool QueryPerformanceFrequency(void* freq);  // system_windows$query_performance_frequency
 bool ReadFile(void* h, void* buf, uint32_t count, void* read, void* overlapped);  // system_windows$read_file
+bool RemoveDirectoryW(const void* path);  // system_windows$remove_directory_w
 bool SetConsoleMode(void* h, uint32_t mode);  // system_windows$set_console_mode
 int32_t SetCurrentDirectoryW(const void* path);  // system_windows$set_current_directory
+bool SetFileAttributesW(const void* path, uint32_t attributes);  // system_windows$set_file_attributes_w
 uint32_t SetFilePointer(void* h, int32_t low, void* high, uint32_t method);  // system_windows$set_file_pointer
 void Sleep(uint32_t ms);  // system_windows$sleep_ms
 bool TerminateProcess(void* h, uint32_t code);  // system_windows$terminate_process
@@ -55,9 +62,10 @@ int32_t WideCharToMultiByte(uint32_t code_page, uint32_t flags, const void* src,
 bool WriteConsoleW(void* h, const void* text, uint32_t count, void* written, void* reserved);  // system_windows$write_console_w
 bool WriteFile(void* h, const void* buf, uint32_t count, void* written, void* overlapped);  // system_windows$write_file
 
-/* LIBC (system/libc): <stdlib.h> */
+/* LIBC (system/libc): <stdio.h>, <stdlib.h> */
 void free(void* p);  // system_libc$sys_free
 const char* getenv(const char* name);  // system_libc$sys_getenv
+int32_t rename(const char* from, const char* to);  // system_libc$sys_rename
 
 /* LIBM (std/math): <math.h> */
 double acos(double x);  // std_math$acos
@@ -111,6 +119,8 @@ int64_t lseek(int32_t fd, int64_t offset, int32_t whence);  // system_posix$sys_
 int32_t pipe(void* fds);  // system_posix$sys_pipe
 int64_t read(int32_t fd, void* buf, int64_t count);  // system_posix$sys_read
 int64_t readlink(const char* path, void* buf, int64_t size);  // system_posix$sys_readlink
+int32_t rmdir(const char* path);  // system_posix$sys_rmdir
+int32_t symlink(const char* target, const char* link);  // system_posix$sys_symlink
 int64_t sysconf(int32_t name);  // system_posix$sys_sysconf
 int32_t unlink(const char* path);  // system_posix$sys_unlink
 int64_t write(int32_t fd, const void* buf, int64_t count);  // system_posix$sys_write
@@ -123,6 +133,7 @@ int64_t vader_fd_size(int32_t fd);  // system_posix$sys_fd_size
 int32_t vader_last_errno(void);  // system_posix$sys_last_errno
 int32_t vader_path_kind(const char* path);  // system_posix$sys_path_kind
 int64_t vader_path_mtime(const char* path);  // system_posix$sys_path_mtime
+int32_t vader_path_stat(const char* path, int32_t follow_links, void* out);  // system_posix$sys_path_stat
 
 /* VADER_RUNTIME (system/windows): vader.h */
 int64_t vader_console_read(void* buf, int64_t max);  // system_windows$console_read

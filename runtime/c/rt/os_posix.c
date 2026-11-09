@@ -311,7 +311,18 @@ char** vader_environ(void) {
 static int32_t kind_of_stat(const struct stat* st) {
     if (S_ISREG(st->st_mode)) return 1;
     if (S_ISDIR(st->st_mode)) return 2;
+    if (S_ISLNK(st->st_mode)) return 4;
     return 3;
+}
+
+/* When `st` was last modified, in nanoseconds since the Unix epoch. Darwin
+ * names the member `st_mtimespec` where Linux says `st_mtim`. */
+static int64_t mtime_of_stat(const struct stat* st) {
+#if defined(__APPLE__)
+    return (int64_t) st->st_mtimespec.tv_sec * INT64_C(1000000000) + st->st_mtimespec.tv_nsec;
+#else
+    return (int64_t) st->st_mtim.tv_sec * INT64_C(1000000000) + st->st_mtim.tv_nsec;
+#endif
 }
 
 /* The size of a regular file, -1 for anything else (a pipe, a device): only a
@@ -330,18 +341,32 @@ int32_t vader_path_kind(const char* path) {
     return kind_of_stat(&st);
 }
 
-/* When `path` was last modified, in nanoseconds since the Unix epoch, or -1 when
- * `stat` fails. Here for the reason `vader_path_kind` gives, and because Darwin
- * names the member `st_mtimespec` where Linux says `st_mtim`. */
+/* When `path` was last modified, as `mtime_of_stat` gives it, or -1 when `stat`
+ * fails. Here for the reason `vader_path_kind` gives. No binding calls it: the
+ * committed bootstrap seed does, and the seed's build fails without it. */
 VADER_HOST_EXPORT
 int64_t vader_path_mtime(const char* path) {
     struct stat st;
     if (stat(path, &st) != 0) return -1;
-#if defined(__APPLE__)
-    return (int64_t) st.st_mtimespec.tv_sec * INT64_C(1000000000) + st.st_mtimespec.tv_nsec;
-#else
-    return (int64_t) st.st_mtim.tv_sec * INT64_C(1000000000) + st.st_mtim.tv_nsec;
-#endif
+    return mtime_of_stat(&st);
+}
+
+/* What the file system records of `path`, in four cells of `out`: its kind as
+ * `kind_of_stat` names it, its size, when it was last modified as
+ * `mtime_of_stat` gives it, and its permission bits. Through `stat`, or `lstat`
+ * when `follow_links` is 0, so that a link reports itself. 0 on success, -1 when
+ * the call fails, `errno` saying why. Here for the reason `vader_path_kind`
+ * gives. */
+VADER_HOST_EXPORT
+int32_t vader_path_stat(const char* path, int32_t follow_links, int64_t* out) {
+    struct stat st;
+    int failed = follow_links ? stat(path, &st) : lstat(path, &st);
+    if (failed != 0) return -1;
+    out[0] = kind_of_stat(&st);
+    out[1] = (int64_t) st.st_size;
+    out[2] = mtime_of_stat(&st);
+    out[3] = (int64_t) (st.st_mode & 07777);
+    return 0;
 }
 
 /* The size of the regular file the `FILE*` `stream` reads, as `size_of_stat`

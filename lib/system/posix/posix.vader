@@ -165,12 +165,27 @@ export sys_path_kind :: fn(path: string) -> i32
 @extern(VADER_RUNTIME, "vader_path_mtime")
 export sys_path_mtime :: fn(path: string) -> i64
 
-/// The four answers `sys_path_kind` gives. Values must match `vader_path_kind`.
+/// The answers `sys_path_kind` gives, and the kind `sys_path_stat` reports.
+/// Values must match `kind_of_stat` in the runtime.
 export PATH_MISSING: i32: 0
 export PATH_REGULAR: i32: 1
 export PATH_DIRECTORY: i32: 2
 /// Device, FIFO, socket: anything with no size to speak of.
 export PATH_OTHER: i32: 3
+/// Only `sys_path_stat` without `follow_links` reports a link itself.
+export PATH_SYMLINK: i32: 4
+
+/// What the file system records of `path`, via `stat(2)` or `lstat(2)`, for the
+/// reason `sys_path_kind` gives.
+///
+/// @param follow_links  1 to report what a link points to, 0 for the link.
+/// @param out           four cells the call fills: the kind (one of the
+///                      `PATH_*` answers but `PATH_MISSING`), the size in bytes,
+///                      the modification time in nanoseconds since the Unix
+///                      epoch, the permission bits.
+/// @return              0, or -1 with `errno` set.
+@extern(VADER_RUNTIME, "vader_path_stat")
+export sys_path_stat :: fn(path: string, follow_links: i32, @c_out out: i64[]) -> i32
 
 /// `readdir(3)`. The next entry, or null at the end of the directory.
 ///
@@ -520,6 +535,22 @@ export sys_access :: fn(path: string, mode: i32) -> i32
 /// empty one would vanish through a call named remove_FILE.
 @extern(UNISTD, "unlink")
 export sys_unlink :: fn(path: string) -> i32
+
+/// `rmdir(2)`. 0 on success, -1 with `errno` set: `ENOTEMPTY` for a directory
+/// that holds anything.
+@extern(UNISTD, "rmdir")
+export sys_rmdir :: fn(path: string) -> i32
+
+/// `symlink(2)`: a link at `link` that points to `target`. 0 on success, -1
+/// with `errno` set.
+@extern(UNISTD, "symlink")
+export sys_symlink :: fn(target: string, link: string) -> i32
+
+/// `chmod(2)`. 0 on success, -1 with `errno` set.
+///
+/// @param mode  permission bits, `u32` for the reason `sys_mkdir` gives.
+@extern(FILE_SYSTEM, "chmod")
+export sys_chmod :: fn(path: string, mode: u32) -> i32
 
 /// `open(2)` access modes: exactly one of the three.
 export O_RDONLY: i32: 0

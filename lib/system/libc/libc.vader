@@ -10,7 +10,7 @@ import "std/ffi"
 /// The C standard library: glibc or musl on Linux, `libSystem` on macOS, the
 /// UCRT on Windows. No library to open, the process has it. A POSIX call goes
 /// in `system/posix`, a Win32 one in `system/windows`.
-export LIBC :: CLibrary { .name = "", .headers = ["<stdlib.h>"] }
+export LIBC :: CLibrary { .name = "", .headers = ["<stdio.h>", "<stdlib.h>"] }
 
 /// `getenv(3)`: the value of environment variable `name`, or null when it is
 /// unset. On Windows the value is in the process's ANSI code page.
@@ -18,6 +18,12 @@ export LIBC :: CLibrary { .name = "", .headers = ["<stdlib.h>"] }
 /// @param name  the variable name.
 @extern(LIBC, "getenv")
 export sys_getenv :: fn(name: string) -> string | null
+
+/// `rename(3)`: `from` takes the name `to`, replacing what held it, on one
+/// file system. 0 on success, -1 with `errno` set. POSIX only: the Windows CRT
+/// refuses an existing target and reads ANSI paths.
+@extern(LIBC, "rename")
+export sys_rename :: fn(from: string, to: string) -> i32
 
 /// `free(3)`. Releases a block the C library allocated.
 ///

@@ -1487,6 +1487,7 @@ VADER_HOST_EXPORT int32_t     vader_overlapped_pipe(void* read_end, void* write_
 VADER_HOST_EXPORT char**      vader_environ(void);
 VADER_HOST_EXPORT int32_t     vader_path_kind(const char* path);
 VADER_HOST_EXPORT int64_t     vader_path_mtime(const char* path);
+VADER_HOST_EXPORT int32_t     vader_path_stat(const char* path, int32_t follow_links, int64_t* out);
 VADER_HOST_EXPORT int64_t     vader_stream_size(void* stream);
 VADER_HOST_EXPORT int32_t     vader_fd_kind(int32_t fd);
 VADER_HOST_EXPORT int64_t     vader_fd_size(int32_t fd);
