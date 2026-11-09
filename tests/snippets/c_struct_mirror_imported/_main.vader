@@ -1,0 +1,18 @@
+module "snippet"
+
+import "std/console"
+import "system/posix"
+
+// A mirror declared by another module (`Pollfd`, from `system/posix`) crosses an
+// `@extern` of this one. `poll` ignores a negative descriptor and zeroes its
+// `revents`: the 7 written before the call reads back 0.
+
+@c_header("<poll.h>")
+@extern("poll")
+lend_pollfd :: fn(@c_pointer @c_out fds: Pollfd, nfds: u64, timeout_ms: i32) -> i32
+
+main :: fn() -> i32 {
+    fds :: Pollfd { .fd = -1, .events = 1, .revents = 7 }
+    println("poll ${lend_pollfd(fds, 1, 0)}, revents ${fds.revents}")
+    return 0
+}

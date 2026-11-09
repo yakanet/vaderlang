@@ -1,0 +1,12 @@
+{
+  "native": {
+    "skip_on": {
+      "win32": "poll is POSIX: Windows has WSAPoll"
+    }
+  },
+  "vm": {
+    "skip_on": {
+      "win32": "poll is POSIX: Windows has WSAPoll"
+    }
+  }
+}

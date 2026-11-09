@@ -7,7 +7,8 @@
 // table without re-walking the AST.
 //
 // Handled here :
-//   - `@extern` ABI validation (T3050 / T3051) via `validate_extern`.
+//   - `@extern` ABI validation (T3050 / T3051) via `validate_extern`, and
+//     `validate_extern_types` once every module's structs are known.
 //   - Const-as-type-alias detection : an un-annotated const
 //     whose value is in type position registers an alias / distinct type
 //     (`is_type_expr` → `alias_for`) ; an annotated const gets
@@ -234,7 +235,7 @@ declare_fn :: fn(
         check_main_signature(decl, params, return_type, diags)
     }
     if AST.decorators_have(decl.decorators, "extern") {
-        validate_extern(decl, params, return_type, typed, diags)
+        validate_extern(decl, return_type, diags)
     } else {
         // `validate_extern` checks them for an `@extern`; every other fn has to
         // be checked here, or `@c_pointer` would pass unnoticed on a Vader body
@@ -702,13 +703,9 @@ callback_beside_enum_values :: fn(params: Type[]) -> i64 | null {
     return callback
 }
 
-validate_extern :: fn(
-    decl: AST.FnDecl,
-    params: Type[],
-    return_type: Type,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> void {
+// What an `@extern` declaration says, apart from the types crossing it
+// (`validate_extern_types`).
+validate_extern :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> void {
     if decl.body !is null {
         diags.push(
             typecheck_error(
@@ -740,6 +737,37 @@ validate_extern :: fn(
             diags.push(typecheck_error(.InvalidExternDecl, symbol.span, detail))
         }
     }
+}
+
+/// Check what crosses each `@extern` `typed` declares: every parameter and the
+/// result must be a C scalar, a `string`, an array or a `@c_struct` mirror, with
+/// the decorators their kind admits.
+///
+/// Runs once every module's structs are known (`broadcast_struct_decls`): a
+/// mirror may be declared by another module than the `@extern` it crosses.
+///
+/// @param typed  the module, its declarations declared.
+/// @param diags  accumulator for T3050 and T3079.
+export validate_extern_types :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for [id, decl] in typed.fn_decls {
+        if AST.decorators_have(decl.decorators, "extern") {
+            signature :: typed.decl_types[id]
+            if signature is FnType {
+                validate_extern_signature(decl, signature, typed, diags)
+            }
+        }
+    }
+}
+
+// The parameter and result types of the `@extern` `decl`, declared `signature`.
+validate_extern_signature :: fn(
+    decl: AST.FnDecl,
+    signature: FnType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    params :: signature.params
+    return_type :: signature.return_type
     for i in 0..<decl.params.len() {
         pt :: params[i]
         // A struct crosses only on a type that declares which C type it mirrors:

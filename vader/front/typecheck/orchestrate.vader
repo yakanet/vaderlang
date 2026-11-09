@@ -208,6 +208,10 @@ check_project_modules :: fn(
     broadcast_struct_decls(per_module)
     share_type_param_symbols(per_module)
     expand_struct_spreads(entry_typed, diags)
+    // Before `cross_publish_fn_decls`: each module checks its own `@extern`.
+    for [_, typed] in per_module {
+        validate_extern_types(typed, diags)
+    }
     share_guards(per_module)
     // Wire was done before declare ; now populate the remaining
     // typecheck-side tables that depend on per-module decl types.

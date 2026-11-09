@@ -768,7 +768,7 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
 }
 
 /// True when the import slot at `type_index` is a primitive-element array:
-/// the shape `validate_extern` admits, and which crosses as ONE bare pointer.
+/// the shape `validate_extern_types` admits, and which crosses as ONE bare pointer.
 ///
 /// A length, when the callee wants one, is a parameter of its own.
 ///
