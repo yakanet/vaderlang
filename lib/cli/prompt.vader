@@ -60,6 +60,10 @@ export PromptError :: struct {
     message: string
 }
 
+PromptError implements Error {
+    message :: fn(self) -> string = self.message
+}
+
 no_terminal :: fn(question: string) = PromptError {
     .reason = .NoTerminal,
     .message = "no terminal to ask on: ${question}",

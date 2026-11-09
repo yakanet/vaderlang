@@ -59,6 +59,10 @@ export UriError :: struct {
     offset: i64 = 0
 }
 
+UriError implements Error {
+    message :: fn(self) -> string = self.msg
+}
+
 /// Read `text` as a URI: a scheme, then what RFC 3986 allows after it.
 ///
 /// A relative reference, which has no scheme, is refused: resolving one
@@ -398,10 +402,24 @@ is_host_byte :: fn(b: u8) -> bool =
 /// @param text  the text to encode, as bytes.
 /// @example
 ///   percent_encode("a b/c")   // "a%20b%2Fc"
-export percent_encode :: fn(text: string) -> string {
+export percent_encode :: fn(text: string) -> string =
+    text.percent_encode_where(b -> !is_unreserved(b))
+
+/// `text` with every byte `escaped` picks written as a `%XX` escape, the others
+/// as they are.
+///
+/// @param text     the text to encode, as bytes.
+/// @param escaped  whether a byte is written as an escape.
+/// @example
+///   percent_encode_where("a b/c", b -> b == ' ')   // "a%20b/c"
+export percent_encode_where :: fn(text: string, escaped: fn(u8) -> bool) -> string {
     out: u8[]: []
     for b in text.bytes() {
-        out.push_escape(b)
+        if escaped(b) {
+            out.push_hex_escape(b)
+        } else {
+            out.push(b)
+        }
     }
     return out.bytes_to_string()
 }
@@ -456,19 +474,23 @@ file_uri :: fn(path: string, os: Os) -> Uri {
     absolute :: path.slashed(os).absolute(os)
     if os == .Windows && absolute.starts_with("//") {
         slash :: absolute.end_of(2, "/")
-        host :: absolute.byte_slice(2, slash).encoded(is_host_byte).lower_outside_escapes()
+        name :: absolute.byte_slice(2, slash)
+        host :: name.percent_encode_where(b -> !is_host_byte(b)).lower_outside_escapes()
         return Uri {
             .scheme = "file",
             .authority = Authority { .host = host },
-            .path = absolute.byte_slice(slash, absolute.byte_len()).encoded(is_path_byte),
+            .path = absolute.byte_slice(slash, absolute.byte_len()).encoded_path(),
         }
     }
     return Uri {
         .scheme = "file",
         .authority = Authority {},
-        .path = absolute.rooted(os).encoded(is_path_byte),
+        .path = absolute.rooted(os).encoded_path(),
     }
 }
+
+// `path` with the bytes a URI path does not take escaped.
+encoded_path :: fn(path: string) -> string = path.percent_encode_where(b -> !is_path_byte(b))
 
 // `path` with `\` read as `/` on Windows, as it is: a POSIX file name may hold
 // a `\`.
@@ -500,19 +522,6 @@ rooted :: fn(path: string, os: Os) -> string {
 // Whether `path` opens with a drive letter and its colon: `c:`.
 has_drive :: fn(path: string) -> bool =
     path.byte_len() >= 2 && is_letter(path.byte_at(0)) && path.byte_at(1) == ':'
-
-// `text` with every byte `allowed` refuses written as a `%XX` escape.
-encoded :: fn(text: string, allowed: fn(u8) -> bool) -> string {
-    out: u8[]: []
-    for b in text.bytes() {
-        if allowed(b) {
-            out.push(b)
-        } else {
-            out.push_hex_escape(b)
-        }
-    }
-    return out.bytes_to_string()
-}
 
 // The file path `uri` names, as the OS `os` writes paths.
 file_path :: fn(uri: Uri, os: Os) -> string | UriError {
@@ -625,6 +634,7 @@ test_percent_encode_and_decode :: fn() -> void {
     assert_eq(percent_decode("a%20b%2Fc~%C3%A9"), "a b/c~é")
     assert_eq(percent_decode("100%"), "100%")
     assert_eq(percent_decode("%4"), "%4")
+    assert_eq(percent_encode_where("a b/c", b -> b == ' '), "a%20b/c")
 }
 
 @test

@@ -141,6 +141,7 @@ static vader_box_t std_uri$normalized(vader_string_t l0, int64_t l1, int64_t l2,
 static bool std_uri$is_query_byte(uint8_t l0);
 static vader_string_t std_uri$percent_decode(vader_string_t l0);
 static void* std_uri$file_uri(vader_string_t l0, uint8_t l1);
+static bool __lambda_std_uri_0(uint8_t l0);
 static vader_box_t std_uri$file_path(void* l0, uint8_t l1);
 static bool std_uri$is_letter(uint8_t l0);
 static bool std_uri$is_digit(uint8_t l0);
@@ -156,7 +157,9 @@ static vader_box_t std_uri$escape_at(vader_string_t l0, int64_t l1, int64_t l2);
 static void std_uri$push_escape(void* l0, uint8_t l1);
 static vader_string_t std_uri$slashed(vader_string_t l0, uint8_t l1);
 static vader_string_t std_uri$absolute(vader_string_t l0, uint8_t l1);
-static vader_string_t std_uri$encoded(vader_string_t l0, void* l1);
+static vader_string_t std_uri$percent_encode_where(vader_string_t l0, void* l1);
+static vader_string_t std_uri$encoded_path(vader_string_t l0);
+static bool __lambda_std_uri_1(uint8_t l0);
 static vader_string_t std_uri$rooted(vader_string_t l0, uint8_t l1);
 static bool std_uri$escapes_a_separator(vader_string_t l0, uint8_t l1);
 static bool std_uri$has_drive(vader_string_t l0);
@@ -204,6 +207,15 @@ static vader_fn_t vader_fn_static_std_uri$is_query_byte = {
     { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_uri$is_query_byte, NULL,
 };
 
+static vader_box_t vader_fn_tramp___lambda_std_uri_0(void* env, vader_box_t a0) {
+    (void) env;
+    return vader_box_bool(8u, __lambda_std_uri_0(((uint8_t) a0.payload.i)));
+}
+
+static vader_fn_t vader_fn_static___lambda_std_uri_0 = {
+    { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_std_uri_0, NULL,
+};
+
 static vader_box_t vader_fn_tramp_std_uri$is_userinfo_byte(void* env, vader_box_t a0) {
     (void) env;
     return vader_box_bool(8u, std_uri$is_userinfo_byte(((uint8_t) a0.payload.i)));
@@ -220,6 +232,15 @@ static vader_box_t vader_fn_tramp_std_uri$is_host_byte(void* env, vader_box_t a0
 
 static vader_fn_t vader_fn_static_std_uri$is_host_byte = {
     { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_uri$is_host_byte, NULL,
+};
+
+static vader_box_t vader_fn_tramp___lambda_std_uri_1(void* env, vader_box_t a0) {
+    (void) env;
+    return vader_box_bool(8u, __lambda_std_uri_1(((uint8_t) a0.payload.i)));
+}
+
+static vader_fn_t vader_fn_static___lambda_std_uri_1 = {
+    { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_std_uri_1, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_std_path_0(void* env, vader_box_t a0) {
@@ -1288,14 +1309,13 @@ static void* std_uri$file_uri(vader_string_t l0, uint8_t l1) {
     vader_string_t l4 = 0;
     int64_t l3, l6;
     void* l5 = NULL;
-    void* l7 = NULL;
     vader_string_t t0 = 0;
     bool t1;
     void* t2 = NULL;
-    void** gc_raw_roots[3] = { &l5, &l7, &t2 };
+    void** gc_raw_roots[2] = { &l5, &t2 };
     vader_string_t* gc_atom_roots[4] = { &l0, &l2, &l4, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     t0 = std_uri$slashed(l0, l1);
@@ -1305,8 +1325,8 @@ static void* std_uri$file_uri(vader_string_t l0, uint8_t l1) {
         if (t1) {
             l3 = std_uri$end_of(l2, INT64_C(2), 18u);
             l4 = vader_host_std_core$byte_slice(l2, INT64_C(2), l3);
-            l5 = (void*) &vader_fn_static_std_uri$is_host_byte;
-            t0 = std_uri$encoded(l4, l5);
+            l5 = (void*) &vader_fn_static___lambda_std_uri_0;
+            t0 = std_uri$percent_encode_where(l4, l5);
             l4 = std_uri$lower_outside_escapes(t0);
             vader_struct_std_uri$Authority_t* _a0_obj = (vader_struct_std_uri$Authority_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$Authority_t));
             vader_obj_header_init(_a0_obj, 17u);
@@ -1315,9 +1335,8 @@ static void* std_uri$file_uri(vader_string_t l0, uint8_t l1) {
             _a0_obj->f_port = vader_box_obj(0u, NULL);
             l5 = (void*) _a0_obj;
             l6 = vader_host_std_core$byte_len(l2);
-            l4 = vader_host_std_core$byte_slice(l2, l3, l6);
-            l7 = (void*) &vader_fn_static_std_uri$is_path_byte;
-            l4 = std_uri$encoded(l4, l7);
+            t0 = vader_host_std_core$byte_slice(l2, l3, l6);
+            l4 = std_uri$encoded_path(t0);
             vader_struct_std_uri$Uri_t* _a1_obj = (vader_struct_std_uri$Uri_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$Uri_t));
             vader_obj_header_init(_a1_obj, 13u);
             _a1_obj->f_scheme = 19u;
@@ -1335,9 +1354,8 @@ static void* std_uri$file_uri(vader_string_t l0, uint8_t l1) {
     _a2_obj->f_host = 0u;
     _a2_obj->f_port = vader_box_obj(0u, NULL);
     l5 = (void*) _a2_obj;
-    l2 = std_uri$rooted(l2, l1);
-    l7 = (void*) &vader_fn_static_std_uri$is_path_byte;
-    l2 = std_uri$encoded(l2, l7);
+    t0 = std_uri$rooted(l2, l1);
+    l2 = std_uri$encoded_path(t0);
     vader_struct_std_uri$Uri_t* _a3_obj = (vader_struct_std_uri$Uri_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$Uri_t));
     vader_obj_header_init(_a3_obj, 13u);
     _a3_obj->f_scheme = 19u;
@@ -1347,6 +1365,12 @@ static void* std_uri$file_uri(vader_string_t l0, uint8_t l1) {
     _a3_obj->f_fragment = vader_box_obj(0u, NULL);
     t2 = (void*) _a3_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool __lambda_std_uri_0(uint8_t l0) {
+    bool t0;
+    t0 = std_uri$is_host_byte(l0);
+    return !(t0);
 }
 
 static vader_box_t std_uri$file_path(void* l0, uint8_t l1) {
@@ -1855,7 +1879,7 @@ static vader_string_t std_uri$absolute(vader_string_t l0, uint8_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_uri$encoded(vader_string_t l0, void* l1) {
+static vader_string_t std_uri$percent_encode_where(vader_string_t l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     int64_t l4, l5;
@@ -1885,14 +1909,34 @@ static vader_string_t std_uri$encoded(vader_string_t l0, void* l1) {
         t0 = ((vader_fn_erased_sig_1_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i32(3u, (int32_t)(uint32_t) l6));
         t1 = t0.payload.b;
         if (t1) {
-            vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l6);
-        } else {
             std_uri$push_hex_escape(l2, l6);
+        } else {
+            vader_array_push_u8((vader_array_t*) l2, (int32_t) (uint8_t) l6);
         }
         l5 = (l5 + INT64_C(1));
     }
     t2 = vader_host_std_core$bytes_to_string(l2);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t std_uri$encoded_path(vader_string_t l0) {
+    void* l1 = NULL;
+    vader_string_t t0 = 0;
+    void** gc_raw_roots[1] = { &l1 };
+    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    l1 = (void*) &vader_fn_static___lambda_std_uri_1;
+    t0 = std_uri$percent_encode_where(l0, l1);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool __lambda_std_uri_1(uint8_t l0) {
+    bool t0;
+    t0 = std_uri$is_path_byte(l0);
+    return !(t0);
 }
 
 static vader_string_t std_uri$rooted(vader_string_t l0, uint8_t l1) {

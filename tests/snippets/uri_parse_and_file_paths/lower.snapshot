@@ -101,12 +101,14 @@
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
   std/uri
+    fn __lambda_std_uri_0
+    fn __lambda_std_uri_1
     fn std.uri.Authority.to_string  // std_uri$Authority$std_core$Display$to_string
     fn std.uri.Uri.to_string  // std_uri$Uri$std_core$Display$to_string
     fn std.uri.absolute  // std_uri$absolute
     fn std.uri.byte_offset_of  // std_uri$byte_offset_of
     fn std.uri.decoded_path  // std_uri$decoded_path
-    fn std.uri.encoded  // std_uri$encoded
+    fn std.uri.encoded_path  // std_uri$encoded_path
     fn std.uri.end_of  // std_uri$end_of
     fn std.uri.escape_at  // std_uri$escape_at
     fn std.uri.escapes_a_separator  // std_uri$escapes_a_separator
@@ -129,6 +131,7 @@
     fn std.uri.parse_port  // std_uri$parse_port
     fn std.uri.parse_uri  // std_uri$parse_uri
     fn std.uri.percent_decode  // std_uri$percent_decode
+    fn std.uri.percent_encode_where  // std_uri$percent_encode_where
     fn std.uri.push_escape  // std_uri$push_escape
     fn std.uri.push_hex_escape  // std_uri$push_hex_escape
     fn std.uri.rooted  // std_uri$rooted

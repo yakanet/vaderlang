@@ -65,6 +65,22 @@ export or_else :: fn<T>(x: T | Error, f: fn(Error) -> T) -> T {
     return x
 }
 
+/// The value, or null when it is an error: for a caller that acts on the
+/// failure alone and has no use for why.
+///
+/// @param x  a fallible value.
+/// @return   `x` narrowed to `T`, otherwise null.
+/// @example
+///   # import "std/uri"
+///   uri :: parse_uri("file:///tmp/a.vader").or_null()   // a `Uri`
+///   none :: parse_uri("no scheme").or_null()            // null
+export or_null :: fn<T>(x: T | Error) -> T | null {
+    if x is Error {
+        return null
+    }
+    return x
+}
+
 /// Transform the ok value with `f` ; an error passes through unchanged.
 ///
 /// @param x  a fallible value.
@@ -149,6 +165,17 @@ test_or_error :: fn() -> void {
 test_or_else_error :: fn() -> void {
     assert_eq(ok().or_else(fn(e: Error) { return 0 }), 42)
     assert_eq(bad().or_else(fn(e: Error) { return 100 }), 100)
+}
+
+@test
+test_or_null :: fn() -> void {
+    assert_eq(ok().or_null() ?? -1, 42)
+    assert(bad().or_null() == null, "an error gives null")
+}
+
+@test
+test_or_null_narrows_a_concrete_error :: fn() -> void {
+    assert_eq(counted(41).or_null() ?? -1, 41)
 }
 
 @test
