@@ -3,7 +3,7 @@
 // `T.zero()` inside `sum`, `T.one()` inside `product`). It has no vtable slot, so
 // a trait mixing it with `self` members still dispatches those on a value. Two
 // traits declaring the same static name stay apart : the bound picks the impl
-// (`via_b` → `B`'s). `is_zero` is generic over `Zero & Equals` ; `BigInt` keeps
+// (`via_b` → `B`'s). `is_zero` is generic over `Zero & Equals` ; `Limbs` keeps
 // its own.
 
 module "snippet"
@@ -60,6 +60,21 @@ P implements B {
 via_a :: fn<T: A>() -> T = T.make()
 via_b :: fn<T: B>() -> T = T.make()
 
+// Base-2^32 limbs: zero is any run of zero limbs, so `Limbs` answers `is_zero`
+// itself: an array has no `Equals` to compare it with `Limbs.zero()`.
+Limbs :: u32[]
+
+Limbs implements Zero -> []
+
+is_zero :: fn(self: Limbs) -> bool {
+    for limb in self {
+        if limb != 0 {
+            return false
+        }
+    }
+    return true
+}
+
 areas :: fn(xs: Shape[]) -> i32 {
     t := 0
     for x in xs {
@@ -83,12 +98,12 @@ main :: fn() -> i32 {
     a: P: via_a()
     b: P: via_b()
     println(a.v * 10 + b.v)
-    println(BigInt.zero().len())
+    println(Limbs.zero().len())
     println([2, 3, 4].product())
     println([1.5, 4.0].product())
     println(i64(0).is_zero())
     println(2.5.is_zero())
-    limbs: BigInt: [0, 0]
+    limbs: Limbs: [0, 0]
     println(limbs.is_zero())
     return 0
 }

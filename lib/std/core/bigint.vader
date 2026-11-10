@@ -28,7 +28,7 @@ module "std/core"
 /// `bigint * u32` (`Mul<u32>`) and `bigint / u32` → `[quotient, remainder]`
 /// (`Div<u32, [BigInt, u32]>`). `mul_add_small` (×+add) has no operator form and
 /// stays a method.
-export BigInt :: u32[]
+BigInt :: u32[]
 
 /// Multiply by a small scalar and add a small scalar : `self * mul + add`.
 ///
@@ -39,7 +39,7 @@ export BigInt :: u32[]
 /// @param mul   the u32 multiplier.
 /// @param add   a u32 addend folded into the low limb (carrying up).
 /// @return      `self * mul + add`, one limb wider when it overflows.
-export mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
+mul_add_small :: fn(self: BigInt, mul: u32, add: u32) -> BigInt {
     out: BigInt: []
     carry: u64 = u64(add)
     for i in 0..<self.len() {
@@ -89,7 +89,7 @@ BigInt implements Div<u32, [BigInt, u32]> {
 }
 
 /// `floor(self / d)`, discarding the remainder.
-export div_small :: fn(self: BigInt, d: u32) -> BigInt {
+div_small :: fn(self: BigInt, d: u32) -> BigInt {
     [q, _rem] :: self / d
     return q
 }
@@ -99,7 +99,7 @@ export div_small :: fn(self: BigInt, d: u32) -> BigInt {
 /// @param self  the operand.
 /// @param bits  the shift amount in bits.
 /// @return      `self << bits`.
-export shl :: fn(self: BigInt, bits: i32) -> BigInt {
+shl :: fn(self: BigInt, bits: i32) -> BigInt {
     out: BigInt: []
     for 0..<i64(bits / 32) { out.push(0) }
     bit_shift :: bits % 32
@@ -119,7 +119,7 @@ export shl :: fn(self: BigInt, bits: i32) -> BigInt {
 
 /// True when every limb is zero. The generic `is_zero` does not apply : `BigInt`
 /// has no `Equals`, and its zero has several forms.
-export is_zero :: fn(self: BigInt) -> bool {
+is_zero :: fn(self: BigInt) -> bool {
     for i in 0..<self.len() {
         if self[i] != 0 { return false }
     }
@@ -127,7 +127,7 @@ export is_zero :: fn(self: BigInt) -> bool {
 }
 
 /// True when any set bit lies strictly below bit position `pos`.
-export any_below :: fn(self: BigInt, pos: i32) -> bool {
+any_below :: fn(self: BigInt, pos: i32) -> bool {
     whole :: pos / 32
     bit :: pos % 32
     for i in 0..<i64(whole) {
@@ -148,7 +148,7 @@ export any_below :: fn(self: BigInt, pos: i32) -> bool {
 ///
 /// @param self  the operand.
 /// @return      the number of significant bits.
-export bit_len :: fn(self: BigInt) -> i32 {
+bit_len :: fn(self: BigInt) -> i32 {
     i: i32 = i32(self.len()) - 1
     for i >= 0 {
         if self[i] != 0 { return i * 32 + (32 - clz32(self[i])) }
@@ -162,7 +162,7 @@ export bit_len :: fn(self: BigInt) -> i32 {
 /// @param self  the operand.
 /// @param off   bit offset (>= 0) ; bits past the top read as 0.
 /// @return      the 64-bit window `(self >> off) & (2^64 - 1)`.
-export bits64 :: fn(self: BigInt, off: i32) -> u64 {
+bits64 :: fn(self: BigInt, off: i32) -> u64 {
     base :: i64(off / 32)
     sh :: off % 32
     w0 :: self.limb(base)
@@ -177,7 +177,7 @@ export bits64 :: fn(self: BigInt, off: i32) -> u64 {
 /// @param self  a NON-zero operand.
 /// @return      `[hi, lo]`: the leading 128 bits, left-shifted so the most
 ///              significant bit lands in bit 127 of `hi`.
-export top128 :: fn(self: BigInt) -> [u64, u64] {
+top128 :: fn(self: BigInt) -> [u64, u64] {
     b :: self.bit_len()
     if b <= 128 {
         lo :: self.limb(0) | (self.limb(1) << 32)
@@ -191,7 +191,7 @@ export top128 :: fn(self: BigInt) -> [u64, u64] {
 ///
 /// @param k  a non-negative exponent.
 /// @return   the power of two with bit `k` set and all others clear.
-export two_pow :: fn(k: i32) -> BigInt {
+two_pow :: fn(k: i32) -> BigInt {
     out: BigInt: []
     for _z in 0..<(k / 32) { out.push(0) }
     out.push(u32(1) << u32(k % 32))
@@ -204,7 +204,7 @@ export two_pow :: fn(k: i32) -> BigInt {
 /// `top128` and the dtoa split rows.
 ///
 /// @return  the shifted `[hi, lo]` ; bits above 128 are dropped.
-export shl128 :: fn(hi: u64, lo: u64, s: i32) -> [u64, u64] {
+shl128 :: fn(hi: u64, lo: u64, s: i32) -> [u64, u64] {
     if s == 0 { return [hi, lo] }
     if s >= 64 { return [lo << u64(s - 64), u64(0)] }
     return [(hi << u64(s)) | (lo >> u64(64 - s)), lo << u64(s)]

@@ -627,6 +627,132 @@
         "isExpressionBodied": true
       },
       {
+        "kind": "ConstDecl",
+        "name": "Limbs",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "ArrayTypeExpr",
+          "element": {
+            "kind": "IdentExpr",
+            "name": "u32"
+          }
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [],
+        "forType": {
+          "kind": "IdentExpr",
+          "name": "Limbs"
+        },
+        "traitName": "Zero",
+        "traitArgs": [],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "",
+            "visibility": "public",
+            "typeParams": [],
+            "params": [],
+            "returnType": null,
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "SeqLitExpr",
+                "elements": []
+              }
+            },
+            "decorators": [],
+            "samSynthetic": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "is_zero",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "self",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Limbs"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "bool"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "in",
+                "binding": "limb",
+                "iter": {
+                  "kind": "IdentExpr",
+                  "name": "self"
+                }
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "IfExpr",
+                  "cond": {
+                    "kind": "BinaryExpr",
+                    "op": "neq",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "limb"
+                    },
+                    "right": {
+                      "kind": "IntLitExpr",
+                      "value": "0n"
+                    }
+                  },
+                  "then": {
+                    "kind": "BlockExpr",
+                    "stmts": [
+                      {
+                        "kind": "ReturnStmt",
+                        "value": {
+                          "kind": "BoolLitExpr",
+                          "value": false
+                        }
+                      }
+                    ],
+                    "trailing": null
+                  },
+                  "else": null
+                }
+              },
+              "isComptime": false
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "BoolLitExpr",
+                "value": true
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "areas",
         "visibility": "private",
@@ -1215,7 +1341,7 @@
                             "kind": "FieldExpr",
                             "target": {
                               "kind": "IdentExpr",
-                              "name": "BigInt"
+                              "name": "Limbs"
                             },
                             "field": "zero"
                           },
@@ -1386,7 +1512,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "BigInt"
+                "name": "Limbs"
               },
               "value": {
                 "kind": "SeqLitExpr",

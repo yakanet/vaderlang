@@ -28,7 +28,7 @@ PF_MAX_RTE        :: 23        // max_exponent_round_to_even
 /// The scanned parts of a decimal float : significand `w` (first <= 19
 /// significant digits), power-of-ten exponent `q`, sign, and whether more than
 /// 19 significant digits were seen (needs the slow path, not yet built).
-export DecimalParts :: struct {
+DecimalParts :: struct {
     w:               u64
     q:               i32
     negative:        bool
@@ -44,7 +44,7 @@ pf_is_digit :: fn(b: u8) = b >= '0' && b <= '9'
 ///
 /// @param s  the decimal float text.
 /// @return   the scanned parts, or `null` when `s` is not a decimal float.
-export scan_decimal :: fn(s: string) -> DecimalParts | null {
+scan_decimal :: fn(s: string) -> DecimalParts | null {
     n :: s.byte_len()
     if n == 0 { return null }
     i: i64 = 0
@@ -136,7 +136,7 @@ pf_product :: fn(q: i32, w: u64) -> [u64, u64] {
 /// @param w0  the significand (<= 19 significant digits).
 /// @param q   the power-of-ten exponent.
 /// @return    `(power2 << 52) | mantissa`, OR the caller's sign bit onto it.
-export eisel_lemire :: fn(w0: u64, q: i32) -> u64 {
+eisel_lemire :: fn(w0: u64, q: i32) -> u64 {
     if w0 == 0 || q < PF_SMALLEST_POW5 { return u64(0) }
     if q > PF_LARGEST_POW5 { return u64(PF_INFINITE_POWER) << u64(PF_MANTISSA_BITS) }
     lz :: pf_clz64(w0)

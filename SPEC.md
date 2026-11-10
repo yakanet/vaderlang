@@ -1928,7 +1928,7 @@ A value of the trait reaches only its instance members, even in a trait that als
 - an instance member called on a type;
 - a static member named without being called (`f :: i64.zero`).
 
-`std/core` declares `Zero` and `One` (§15 *`std/core`*), and `BigInt` implements `Zero`. `std/iter` has `sum :: fn<T: Add & Zero>(self: Iterator<T>) -> T` and `product :: fn<T: Mul & One>(self: Iterator<T>) -> T`.
+`std/core` declares `Zero` and `One` (§15 *`std/core`*), and the integer and float types implement both. `std/iter` has `sum :: fn<T: Add & Zero>(self: Iterator<T>) -> T` and `product :: fn<T: Mul & One>(self: Iterator<T>) -> T`.
 
 #### Coherence: one impl per (type, trait, arguments)
 
