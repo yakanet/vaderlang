@@ -75,10 +75,11 @@ string 39 "no space left on device"
 string 40 "invalid argument"
 string 41 "directory not empty"
 string 42 "bad file descriptor"
-string 43 "path contains a NUL byte"
-string 44 "file is closed"
-data 0 structs 15 3 1 strref 43 u8 0a i32 00000000
-data 1 structs 15 3 1 strref 44 u8 0c i32 00000000
+string 43 "end of input"
+string 44 "path contains a NUL byte"
+string 45 "file is closed"
+data 0 structs 15 3 1 strref 44 u8 0a i32 00000000
+data 1 structs 15 3 1 strref 45 u8 0c i32 00000000
 import 0 extern fopen snippet$c_fopen headers=<stdio.h> result_type=3 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
 import 1 extern fclose snippet$c_fclose headers=<stdio.h> result_type=1 param_types=4 param_c_out= param_by_address= (pointer) -> i32
 import 2 byte_len std_core$byte_len result_type=8 param_types=2 param_c_out= param_by_address= (string) -> i64
@@ -1845,14 +1846,22 @@ fn 48 std_io$describe_io_error_kind (u8,string) -> string
                         local.set 2   ; if_res
                       else
                         local.get 0   ; arg 0
-                        i32.const 0
+                        i32.const 13
                         i32.eq
                         if $L12 void
+                          string.const 43   ; "end of input"
+                          local.set 2   ; if_res
                         else
-                          unreachable
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          local.get 1   ; arg 1
+                          local.set 2   ; if_res
                         end $L12
-                        local.get 1   ; arg 1
-                        local.set 2   ; if_res
                       end $L11
                     end $L10
                   end $L9

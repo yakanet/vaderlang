@@ -1,0 +1,58 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      line: IOError | string = std.console.read_line()
+      if line is IOError {
+          std.console.println<bool>(IOError(line).kind == IOErrorKind(13))
+      }
+      rest: IOError | string = std.console.read_stdin_to_end()
+      if rest is string {
+          std.console.println<i64>(std.core.byte_len(string(rest)))
+      }
+      return 0
+  }
+
+## lowered in dependencies
+  std/target/baked
+    const VADER_OS: Os  inline
+  std/console
+    const END_OF_INPUT: IOError  data pool #0, element 0
+    fn std.console.println<bool>  // std_console$println__bool
+    fn std.console.println<i64>  // std_console$println__i64
+    fn std.console.read_line  // std_console$read_line
+    fn std.console.read_ready  // std_console$read_ready
+    fn std.console.read_stdin_to_end  // std_console$read_stdin_to_end
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    const STDIN: Fd | PipeHandle  inline
+    fn std.io.classified_error  // std_io$classified_error
+    fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.descriptor_word  // std_io$descriptor_word
+    fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.last_io_error  // std_io$last_io_error
+    fn std.io.wait_readable  // std_io$wait_readable
+    struct std.io.IOError  // std_io$IOError
+  system/posix
+    const EAGAIN: i32  inline
+    const ENOTEMPTY: i32  inline
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

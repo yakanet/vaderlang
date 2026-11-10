@@ -169,17 +169,18 @@ export eprintln :: fn<T: Display>(msg: T) -> void = write(.Stderr, "${msg}\n")
 /// Read one line from stdin, blocking until a newline arrives. The
 /// returned string does NOT include the trailing `\n`.
 /// @return      the line text.
-/// @error       `IOError` on EOF or stdin read failure.
+/// @error       `IOError` of kind `.EndOfInput` when stdin ends before the line
+///              holds a byte, or on a failed read.
 export read_line :: fn() -> string | IOError {
     out: u8[]: []
     // One byte at a time: stdin is a stream, and reading ahead of the newline
     // would consume input the next caller expects to still be there.
-    for _ in 0..<MAX_LINE {
+    for 0..<MAX_LINE {
         b :: read_ready(1)
         if b is IOError {
-            // EOF with something already read is a final line without its
-            // newline, which is a line; EOF with nothing is the error.
-            if out.len() > 0 {
+            // The end of input after part of a line is a final line without its
+            // newline; with nothing read, or on a failed read, the error stands.
+            if b.kind == .EndOfInput && out.len() > 0 {
                 return out.bytes_to_string()
             }
             return b
@@ -208,8 +209,8 @@ MAX_LINE: i64 : 1024 * 1024
 /// custom RPC).
 /// @param n     number of bytes to consume.
 /// @return      a string of exactly `n` bytes (interpreted as UTF-8).
-/// @error       `IOError` on end of input, a failed read, or a target with no
-///              stdin.
+/// @error       `IOError` of kind `.EndOfInput` when stdin ends before `n`
+///              bytes, on a failed read, or on a target with no stdin.
 export read_stdin :: fn(n: i64) -> string | IOError {
     out: u8[]: [] * n
     for out.len() < n {
@@ -240,8 +241,9 @@ READ_CHUNK: i64 : 64 * 1024
 ///
 /// @param max  ceiling on the bytes returned.
 /// @return     at least one byte.
-/// @error      `IOError` at end of input, on a failed read, on a target with no
-///             stdin, and `.InvalidInput` when `max` is not positive.
+/// @error      `IOError` of kind `.EndOfInput` at end of input, on a failed
+///             read, on a target with no stdin, and `.InvalidInput` when `max`
+///             is not positive.
 export read_available :: fn(max: i64) -> string | IOError {
     if max <= 0 {
         return IOError { .msg = "`max` is not positive: ${max}", .kind = .InvalidInput }
@@ -263,7 +265,7 @@ export read_stdin_to_end :: fn() -> string | IOError {
     for {
         chunk :: read_ready(READ_CHUNK)
         if chunk is IOError {
-            if chunk.msg == END_OF_INPUT.msg {
+            if chunk.kind == .EndOfInput {
                 return out.bytes_to_string()
             }
             return chunk
@@ -278,7 +280,8 @@ export read_stdin_to_end :: fn() -> string | IOError {
 /// whatever the code page; what a read brings past `max` waits for the next.
 ///
 /// @param max  ceiling on the bytes returned, positive.
-/// @error      `IOError` on end of input or a failed read.
+/// @error      `IOError` of kind `.EndOfInput` at end of input, or on a failed
+///             read.
 /// The general body covers the targets with no backend that could run this:
 /// `wasi-wasm32` and `browser-wasm32`. Reporting failure is what every caller
 /// already handles, and it is what `write_bytes` does on the same targets.
@@ -335,7 +338,7 @@ read_ready :: fn(max: i64) -> u8[] | IOError {
 }
 
 /// What a read at the end of stdin answers.
-END_OF_INPUT :: IOError { .msg = "end of input" }
+END_OF_INPUT :: IOError { .msg = "end of input", .kind = .EndOfInput }
 
 // What `console_read` hands out, as a read of stdin answers it.
 read_console :: fn(max: i64) -> u8[] | IOError {

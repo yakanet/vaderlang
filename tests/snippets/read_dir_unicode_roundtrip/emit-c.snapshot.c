@@ -105,6 +105,7 @@ static const char vader_atom_blob[] =
     "invalid argument" "\0"
     "directory not empty" "\0"
     "bad file descriptor" "\0"
+    "end of input" "\0"
     "path contains a NUL byte" "\0"
     "file is closed" "\0";
 
@@ -151,17 +152,18 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[574] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[591] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[611] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[631] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[656] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[631] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[644] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[669] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 44u
+#define VADER_COMPTIME_ATOM_COUNT 45u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    { 13u, 0u, 0u, 0u, NULL }, 43u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
+    { 13u, 0u, 0u, 0u, NULL }, 44u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 13u, 0u,
@@ -173,7 +175,7 @@ static const vader_array_t vader_data_0 = {
     { 34u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const struct vader_struct_std_io$IOError_t vader_data_1_e0 = {
-    { 13u, 0u, 0u, 0u, NULL }, 44u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
+    { 13u, 0u, 0u, 0u, NULL }, 45u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 13u, 0u,
@@ -2043,6 +2045,8 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
         l2 = 41u;
     } else if (l0 == INT32_C(12)) {
         l2 = 42u;
+    } else if (l0 == INT32_C(13)) {
+        l2 = 43u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

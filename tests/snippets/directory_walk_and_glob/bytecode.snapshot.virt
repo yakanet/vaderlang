@@ -139,44 +139,46 @@ string 55 "no space left on device"
 string 56 "invalid argument"
 string 57 "directory not empty"
 string 58 "bad file descriptor"
-string 59 "NotFound"
-string 60 "PermissionDenied"
-string 61 "Interrupted"
-string 62 "AlreadyExists"
-string 63 "NotADirectory"
-string 64 "IsADirectory"
-string 65 "WouldBlock"
-string 66 "BrokenPipe"
-string 67 "NoSpace"
-string 68 "InvalidInput"
-string 69 "DirectoryNotEmpty"
-string 70 "BadHandle"
-string 71 "a trailing `\\` quotes nothing"
-string 72 "a class cannot start a range"
-string 73 "the range `"
-string 74 "-"
-string 75 "` is reversed"
-string 76 "POSIX names no class `[:"
-string 77 ":]`"
-string 78 "a class cannot end a range"
-string 79 "the POSIX locale has no element `["
-string 80 "]`"
-string 81 "alnum"
-string 82 "alpha"
-string 83 "blank"
-string 84 "cntrl"
-string 85 "digit"
-string 86 "graph"
-string 87 "lower"
-string 88 "print"
-string 89 "punct"
-string 90 "space"
-string 91 "upper"
-string 92 "xdigit"
-string 93 "path contains a NUL byte"
-string 94 "file is closed"
-data 0 structs 17 3 1 strref 93 u8 0a i32 00000000
-data 1 structs 17 3 1 strref 94 u8 0c i32 00000000
+string 59 "end of input"
+string 60 "NotFound"
+string 61 "PermissionDenied"
+string 62 "Interrupted"
+string 63 "AlreadyExists"
+string 64 "NotADirectory"
+string 65 "IsADirectory"
+string 66 "WouldBlock"
+string 67 "BrokenPipe"
+string 68 "NoSpace"
+string 69 "InvalidInput"
+string 70 "DirectoryNotEmpty"
+string 71 "BadHandle"
+string 72 "EndOfInput"
+string 73 "a trailing `\\` quotes nothing"
+string 74 "a class cannot start a range"
+string 75 "the range `"
+string 76 "-"
+string 77 "` is reversed"
+string 78 "POSIX names no class `[:"
+string 79 ":]`"
+string 80 "a class cannot end a range"
+string 81 "the POSIX locale has no element `["
+string 82 "]`"
+string 83 "alnum"
+string 84 "alpha"
+string 85 "blank"
+string 86 "cntrl"
+string 87 "digit"
+string 88 "graph"
+string 89 "lower"
+string 90 "print"
+string 91 "punct"
+string 92 "space"
+string 93 "upper"
+string 94 "xdigit"
+string 95 "path contains a NUL byte"
+string 96 "file is closed"
+data 0 structs 17 3 1 strref 95 u8 0a i32 00000000
+data 1 structs 17 3 1 strref 96 u8 0c i32 00000000
 data 2 structs 13 0 1
 data 3 structs 57 0 1
 data 4 structs 62 0 1
@@ -3499,14 +3501,22 @@ fn 69 std_io$describe_io_error_kind (u8,string) -> string
                         local.set 2   ; if_res
                       else
                         local.get 0   ; arg 0
-                        i32.const 0
+                        i32.const 13
                         i32.eq
                         if $L12 void
+                          string.const 59   ; "end of input"
+                          local.set 2   ; if_res
                         else
-                          unreachable
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          local.get 1   ; arg 1
+                          local.set 2   ; if_res
                         end $L12
-                        local.get 1   ; arg 1
-                        local.set 2   ; if_res
                       end $L11
                     end $L10
                   end $L9
@@ -3536,88 +3546,96 @@ fn 70 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 59   ; "NotFound"
+    string.const 60   ; "NotFound"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 2
     i32.eq
     if $L2 void
-      string.const 60   ; "PermissionDenied"
+      string.const 61   ; "PermissionDenied"
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 3
       i32.eq
       if $L3 void
-        string.const 61   ; "Interrupted"
+        string.const 62   ; "Interrupted"
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 4
         i32.eq
         if $L4 void
-          string.const 62   ; "AlreadyExists"
+          string.const 63   ; "AlreadyExists"
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
           i32.const 5
           i32.eq
           if $L5 void
-            string.const 63   ; "NotADirectory"
+            string.const 64   ; "NotADirectory"
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
             i32.const 6
             i32.eq
             if $L6 void
-              string.const 64   ; "IsADirectory"
+              string.const 65   ; "IsADirectory"
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 7
               i32.eq
               if $L7 void
-                string.const 65   ; "WouldBlock"
+                string.const 66   ; "WouldBlock"
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 8
                 i32.eq
                 if $L8 void
-                  string.const 66   ; "BrokenPipe"
+                  string.const 67   ; "BrokenPipe"
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 9
                   i32.eq
                   if $L9 void
-                    string.const 67   ; "NoSpace"
+                    string.const 68   ; "NoSpace"
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 10
                     i32.eq
                     if $L10 void
-                      string.const 68   ; "InvalidInput"
+                      string.const 69   ; "InvalidInput"
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 11
                       i32.eq
                       if $L11 void
-                        string.const 69   ; "DirectoryNotEmpty"
+                        string.const 70   ; "DirectoryNotEmpty"
                         local.set 1   ; if_res
                       else
                         local.get 0   ; arg 0
                         i32.const 12
                         i32.eq
                         if $L12 void
+                          string.const 71   ; "BadHandle"
+                          local.set 1   ; if_res
                         else
-                          unreachable
+                          local.get 0   ; arg 0
+                          i32.const 13
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          string.const 72   ; "EndOfInput"
+                          local.set 1   ; if_res
                         end $L12
-                        string.const 70   ; "BadHandle"
-                        local.set 1   ; if_res
                       end $L11
                     end $L10
                   end $L9
@@ -4693,7 +4711,7 @@ fn 89 std_glob$token_at (ref,i64,ref) -> any
     local.get 5   ; $len_9
     i64.eq
     if $L1 void
-      string.const 71   ; "a trailing `\\` quotes nothing"
+      string.const 73   ; "a trailing `\\` quotes nothing"
       local.get 1   ; arg 1
       struct.new 28   ; std_glob$GlobError
       return
@@ -5359,11 +5377,11 @@ fn 91 std_glob$bracket_token (ref,i64,bool) -> any
           local.get 24   ; high_char
           call 9   ; std_core$char$Display$to_string
           local.set 27   ; $call_90
-          string.const 73   ; "the range `"
+          string.const 75   ; "the range `"
           local.get 26   ; $call_88
-          string.const 74   ; "-"
+          string.const 76   ; "-"
           local.get 27   ; $call_90
-          string.const 75   ; "` is reversed"
+          string.const 77   ; "` is reversed"
           call 4   ; concat_5
           local.get 4   ; $add_checked_6
           struct.new 28   ; std_glob$GlobError
@@ -5394,7 +5412,7 @@ fn 91 std_glob$bracket_token (ref,i64,bool) -> any
       type_check 0   ; null
       if $L16 void
       else
-        string.const 72   ; "a class cannot start a range"
+        string.const 74   ; "a class cannot start a range"
         local.get 16   ; after_class
         struct.new 28   ; std_glob$GlobError
         return
@@ -5598,9 +5616,9 @@ fn 94 std_glob$class_at (ref,i64) -> any
     struct.new 65   ; __Tuple_u8_i64_485b013f
     return
   end $L1
-  string.const 76   ; "POSIX names no class `[:"
+  string.const 78   ; "POSIX names no class `[:"
   local.get 6   ; name
-  string.const 77   ; ":]`"
+  string.const 79   ; ":]`"
   call 3   ; concat_3
   local.get 1   ; arg 1
   struct.new 28   ; std_glob$GlobError
@@ -5658,7 +5676,7 @@ fn 95 std_glob$range_end_at (ref,i64) -> any
     i64.const 1
     i64.checked_add
     local.set 2   ; $add_checked_3
-    string.const 78   ; "a class cannot end a range"
+    string.const 80   ; "a class cannot end a range"
     local.get 2   ; $add_checked_3
     struct.new 28   ; std_glob$GlobError
     return
@@ -5797,11 +5815,11 @@ fn 96 std_glob$endpoint_at (ref,i64) -> any
       local.get 4   ; $idx_12
       call 9   ; std_core$char$Display$to_string
       local.set 13   ; $call_46
-      string.const 79   ; "the POSIX locale has no element `["
+      string.const 81   ; "the POSIX locale has no element `["
       local.get 12   ; $call_45
       local.get 11   ; name
       local.get 13   ; $call_46
-      string.const 80   ; "]`"
+      string.const 82   ; "]`"
       call 4   ; concat_5
       local.get 1   ; arg 1
       struct.new 28   ; std_glob$GlobError
@@ -6021,7 +6039,7 @@ end
 fn 100 std_glob$posix_class_named (string) -> any
   local if_res any
   local.get 0   ; arg 0
-  string.const 81   ; "alnum"
+  string.const 83   ; "alnum"
   string.eq
   if $L0 void
     i32.const 0
@@ -6030,7 +6048,7 @@ fn 100 std_glob$posix_class_named (string) -> any
     return
   end $L0
   local.get 0   ; arg 0
-  string.const 82   ; "alpha"
+  string.const 84   ; "alpha"
   string.eq
   if $L1 void
     i32.const 1
@@ -6038,7 +6056,7 @@ fn 100 std_glob$posix_class_named (string) -> any
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    string.const 83   ; "blank"
+    string.const 85   ; "blank"
     string.eq
     if $L2 void
       i32.const 2
@@ -6046,7 +6064,7 @@ fn 100 std_glob$posix_class_named (string) -> any
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
-      string.const 84   ; "cntrl"
+      string.const 86   ; "cntrl"
       string.eq
       if $L3 void
         i32.const 3
@@ -6054,7 +6072,7 @@ fn 100 std_glob$posix_class_named (string) -> any
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
-        string.const 85   ; "digit"
+        string.const 87   ; "digit"
         string.eq
         if $L4 void
           i32.const 4
@@ -6062,7 +6080,7 @@ fn 100 std_glob$posix_class_named (string) -> any
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
-          string.const 86   ; "graph"
+          string.const 88   ; "graph"
           string.eq
           if $L5 void
             i32.const 5
@@ -6070,7 +6088,7 @@ fn 100 std_glob$posix_class_named (string) -> any
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
-            string.const 87   ; "lower"
+            string.const 89   ; "lower"
             string.eq
             if $L6 void
               i32.const 6
@@ -6078,7 +6096,7 @@ fn 100 std_glob$posix_class_named (string) -> any
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
-              string.const 88   ; "print"
+              string.const 90   ; "print"
               string.eq
               if $L7 void
                 i32.const 7
@@ -6086,7 +6104,7 @@ fn 100 std_glob$posix_class_named (string) -> any
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
-                string.const 89   ; "punct"
+                string.const 91   ; "punct"
                 string.eq
                 if $L8 void
                   i32.const 8
@@ -6094,7 +6112,7 @@ fn 100 std_glob$posix_class_named (string) -> any
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
-                  string.const 90   ; "space"
+                  string.const 92   ; "space"
                   string.eq
                   if $L9 void
                     i32.const 9
@@ -6102,7 +6120,7 @@ fn 100 std_glob$posix_class_named (string) -> any
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
-                    string.const 91   ; "upper"
+                    string.const 93   ; "upper"
                     string.eq
                     if $L10 void
                       i32.const 10
@@ -6110,7 +6128,7 @@ fn 100 std_glob$posix_class_named (string) -> any
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
-                      string.const 92   ; "xdigit"
+                      string.const 94   ; "xdigit"
                       string.eq
                       if $L11 void
                         i32.const 11

@@ -75,6 +75,7 @@ static const char vader_atom_blob[] =
     "invalid argument" "\0"
     "directory not empty" "\0"
     "bad file descriptor" "\0"
+    "end of input" "\0"
     "path contains a NUL byte" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
@@ -107,16 +108,17 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[392] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[409] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[429] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[449] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[449] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[462] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 30u
+#define VADER_COMPTIME_ATOM_COUNT 31u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    { 11u, 0u, 0u, 0u, NULL }, 30u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
+    { 11u, 0u, 0u, 0u, NULL }, 31u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 11u, 0u,
@@ -1151,6 +1153,8 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
         l2 = 28u;
     } else if (l0 == INT32_C(12)) {
         l2 = 29u;
+    } else if (l0 == INT32_C(13)) {
+        l2 = 30u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

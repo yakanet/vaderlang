@@ -113,6 +113,7 @@ static const char vader_atom_blob[] =
     "invalid argument" "\0"
     "directory not empty" "\0"
     "bad file descriptor" "\0"
+    "end of input" "\0"
     "Other" "\0"
     "NotFound" "\0"
     "PermissionDenied" "\0"
@@ -126,6 +127,7 @@ static const char vader_atom_blob[] =
     "InvalidInput" "\0"
     "DirectoryNotEmpty" "\0"
     "BadHandle" "\0"
+    "EndOfInput" "\0"
     "file is closed" "\0"
     "path contains a NUL byte" "\0";
 
@@ -185,30 +187,32 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[760] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[777] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[797] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[817] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[823] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[832] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[849] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[861] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[875] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[889] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[902] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[913] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[924] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[932] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[945] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[963] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[973] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[988] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[817] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[830] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[836] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[845] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[862] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[874] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[888] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[902] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[915] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[926] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[937] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[945] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[958] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[976] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[986] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[997] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1012] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 70u
+#define VADER_COMPTIME_ATOM_COUNT 72u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    { 4u, 0u, 0u, 0u, NULL }, 69u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
+    { 4u, 0u, 0u, 0u, NULL }, 71u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 4u, 0u,
@@ -220,7 +224,7 @@ static const vader_array_t vader_data_0 = {
     { 32u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const struct vader_struct_std_io$IOError_t vader_data_1_e0 = {
-    { 4u, 0u, 0u, 0u, NULL }, 70u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
+    { 4u, 0u, 0u, 0u, NULL }, 72u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 4u, 0u,
@@ -2300,6 +2304,8 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
         l2 = 54u;
     } else if (l0 == INT32_C(12)) {
         l2 = 55u;
+    } else if (l0 == INT32_C(13)) {
+        l2 = 56u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -2312,36 +2318,38 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
 static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 56u;
+        l1 = 57u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 57u;
-    } else if (l0 == INT32_C(2)) {
         l1 = 58u;
-    } else if (l0 == INT32_C(3)) {
+    } else if (l0 == INT32_C(2)) {
         l1 = 59u;
-    } else if (l0 == INT32_C(4)) {
+    } else if (l0 == INT32_C(3)) {
         l1 = 60u;
-    } else if (l0 == INT32_C(5)) {
+    } else if (l0 == INT32_C(4)) {
         l1 = 61u;
-    } else if (l0 == INT32_C(6)) {
+    } else if (l0 == INT32_C(5)) {
         l1 = 62u;
-    } else if (l0 == INT32_C(7)) {
+    } else if (l0 == INT32_C(6)) {
         l1 = 63u;
-    } else if (l0 == INT32_C(8)) {
+    } else if (l0 == INT32_C(7)) {
         l1 = 64u;
-    } else if (l0 == INT32_C(9)) {
+    } else if (l0 == INT32_C(8)) {
         l1 = 65u;
-    } else if (l0 == INT32_C(10)) {
+    } else if (l0 == INT32_C(9)) {
         l1 = 66u;
-    } else if (l0 == INT32_C(11)) {
+    } else if (l0 == INT32_C(10)) {
         l1 = 67u;
+    } else if (l0 == INT32_C(11)) {
+        l1 = 68u;
+    } else if (l0 == INT32_C(12)) {
+        l1 = 69u;
     } else {
-        if (!(l0 == INT32_C(12))) {
+        if (!(l0 == INT32_C(13))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 68u;
+        l1 = 70u;
     }
     return l1;
 }

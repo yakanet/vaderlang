@@ -9,8 +9,8 @@ VADER_ARCH = .X86_64
 # Selected body
 main$platform_kind <- main-windows.vader:19
 main$platform_tag <- main-windows.vader:16
-std_console$read_ready <- lib/std/console/console.vader:314
-std_console$system_poll_stdin <- lib/std/console/console.vader:397
+std_console$read_ready <- lib/std/console/console.vader:317
+std_console$system_poll_stdin <- lib/std/console/console.vader:400
 std_console$write_bytes <- lib/std/console/console.vader:52
 std_console$write_text <- lib/std/console/console.vader:75
-std_io$last_io_error <- lib/std/io/io.vader:100
+std_io$last_io_error <- lib/std/io/io.vader:103

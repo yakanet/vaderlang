@@ -102,22 +102,24 @@ string 60 "no space left on device"
 string 61 "invalid argument"
 string 62 "directory not empty"
 string 63 "bad file descriptor"
-string 64 "NotFound"
-string 65 "PermissionDenied"
-string 66 "Interrupted"
-string 67 "AlreadyExists"
-string 68 "NotADirectory"
-string 69 "IsADirectory"
-string 70 "WouldBlock"
-string 71 "BrokenPipe"
-string 72 "NoSpace"
-string 73 "InvalidInput"
-string 74 "DirectoryNotEmpty"
-string 75 "BadHandle"
-string 76 "path contains a NUL byte"
-string 77 "file is closed"
-data 0 structs 12 3 1 strref 76 u8 0a i32 00000000
-data 1 structs 12 3 1 strref 77 u8 0c i32 00000000
+string 64 "end of input"
+string 65 "NotFound"
+string 66 "PermissionDenied"
+string 67 "Interrupted"
+string 68 "AlreadyExists"
+string 69 "NotADirectory"
+string 70 "IsADirectory"
+string 71 "WouldBlock"
+string 72 "BrokenPipe"
+string 73 "NoSpace"
+string 74 "InvalidInput"
+string 75 "DirectoryNotEmpty"
+string 76 "BadHandle"
+string 77 "EndOfInput"
+string 78 "path contains a NUL byte"
+string 79 "file is closed"
+data 0 structs 12 3 1 strref 78 u8 0a i32 00000000
+data 1 structs 12 3 1 strref 79 u8 0c i32 00000000
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=7 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
@@ -2906,14 +2908,22 @@ fn 72 std_io$describe_io_error_kind (u8,string) -> string
                         local.set 2   ; if_res
                       else
                         local.get 0   ; arg 0
-                        i32.const 0
+                        i32.const 13
                         i32.eq
                         if $L12 void
+                          string.const 64   ; "end of input"
+                          local.set 2   ; if_res
                         else
-                          unreachable
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          local.get 1   ; arg 1
+                          local.set 2   ; if_res
                         end $L12
-                        local.get 1   ; arg 1
-                        local.set 2   ; if_res
                       end $L11
                     end $L10
                   end $L9
@@ -2943,88 +2953,96 @@ fn 73 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 64   ; "NotFound"
+    string.const 65   ; "NotFound"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 2
     i32.eq
     if $L2 void
-      string.const 65   ; "PermissionDenied"
+      string.const 66   ; "PermissionDenied"
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 3
       i32.eq
       if $L3 void
-        string.const 66   ; "Interrupted"
+        string.const 67   ; "Interrupted"
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 4
         i32.eq
         if $L4 void
-          string.const 67   ; "AlreadyExists"
+          string.const 68   ; "AlreadyExists"
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
           i32.const 5
           i32.eq
           if $L5 void
-            string.const 68   ; "NotADirectory"
+            string.const 69   ; "NotADirectory"
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
             i32.const 6
             i32.eq
             if $L6 void
-              string.const 69   ; "IsADirectory"
+              string.const 70   ; "IsADirectory"
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 7
               i32.eq
               if $L7 void
-                string.const 70   ; "WouldBlock"
+                string.const 71   ; "WouldBlock"
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 8
                 i32.eq
                 if $L8 void
-                  string.const 71   ; "BrokenPipe"
+                  string.const 72   ; "BrokenPipe"
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 9
                   i32.eq
                   if $L9 void
-                    string.const 72   ; "NoSpace"
+                    string.const 73   ; "NoSpace"
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 10
                     i32.eq
                     if $L10 void
-                      string.const 73   ; "InvalidInput"
+                      string.const 74   ; "InvalidInput"
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 11
                       i32.eq
                       if $L11 void
-                        string.const 74   ; "DirectoryNotEmpty"
+                        string.const 75   ; "DirectoryNotEmpty"
                         local.set 1   ; if_res
                       else
                         local.get 0   ; arg 0
                         i32.const 12
                         i32.eq
                         if $L12 void
+                          string.const 76   ; "BadHandle"
+                          local.set 1   ; if_res
                         else
-                          unreachable
+                          local.get 0   ; arg 0
+                          i32.const 13
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          string.const 77   ; "EndOfInput"
+                          local.set 1   ; if_res
                         end $L12
-                        string.const 75   ; "BadHandle"
-                        local.set 1   ; if_res
                       end $L11
                     end $L10
                   end $L9

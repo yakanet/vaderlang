@@ -52,8 +52,9 @@ string 25 "no space left on device"
 string 26 "invalid argument"
 string 27 "directory not empty"
 string 28 "bad file descriptor"
-string 29 "path contains a NUL byte"
-data 0 structs 11 3 1 strref 29 u8 0a i32 00000000
+string 29 "end of input"
+string 30 "path contains a NUL byte"
+data 0 structs 11 3 1 strref 30 u8 0a i32 00000000
 import 0 byte_len std_core$byte_len result_type=6 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=3 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=3 param_types=1 param_c_out= param_by_address= (string) -> ref
@@ -1278,14 +1279,22 @@ fn 31 std_io$describe_io_error_kind (u8,string) -> string
                         local.set 2   ; if_res
                       else
                         local.get 0   ; arg 0
-                        i32.const 0
+                        i32.const 13
                         i32.eq
                         if $L12 void
+                          string.const 29   ; "end of input"
+                          local.set 2   ; if_res
                         else
-                          unreachable
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          local.get 1   ; arg 1
+                          local.set 2   ; if_res
                         end $L12
-                        local.get 1   ; arg 1
-                        local.set 2   ; if_res
                       end $L11
                     end $L10
                   end $L9

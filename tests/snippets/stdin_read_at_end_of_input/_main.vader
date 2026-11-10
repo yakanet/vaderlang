@@ -1,0 +1,20 @@
+// A read of stdin that finds its end says so by its kind, `.EndOfInput`, which
+// a caller tests without reading the message. The snippet runs with an empty
+// stdin: `read_line` finds the end, and `read_stdin_to_end` returns nothing.
+
+module "snippet"
+
+import "std/console"
+import "std/io"
+
+main :: fn() -> i32 {
+    line :: read_line()
+    if line is IOError {
+        println(line.kind == .EndOfInput)
+    }
+    rest :: read_stdin_to_end()
+    if rest is string {
+        println(rest.byte_len())
+    }
+    return 0
+}

@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/stdin_read_at_end_of_input
+  FnDecl         main                 :: fn() -> i32
+  expr 11:13    CallExpr       :: IOError | string
+  expr 11:13    IdentExpr      :: fn() -> IOError | string
+  expr 12:16    IdentExpr      :: IOError
+  expr 12:5     IfExpr         :: void
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     IdentExpr      :: IOError | string
+  expr 13:17    BinaryExpr     :: bool
+  expr 13:17    FieldExpr      :: IOErrorKind
+  expr 13:17    IdentExpr      :: IOError
+  expr 13:30    DotVariantExpr :: IOErrorKind
+  expr 13:9     CallExpr       :: void
+  expr 13:9     IdentExpr      :: fn(T) -> void
+  expr 15:13    CallExpr       :: IOError | string
+  expr 15:13    IdentExpr      :: fn() -> IOError | string
+  expr 16:16    IdentExpr      :: string
+  expr 16:5     IfExpr         :: void
+  expr 16:8     BinaryExpr     :: bool
+  expr 16:8     IdentExpr      :: IOError | string
+  expr 17:17    CallExpr       :: i64
+  expr 17:17    FieldExpr      :: fn() -> i64
+  expr 17:17    IdentExpr      :: string
+  expr 17:9     CallExpr       :: void
+  expr 17:9     IdentExpr      :: fn(T) -> void
