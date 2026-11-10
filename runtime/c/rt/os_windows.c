@@ -415,6 +415,10 @@ static void vader_os_ensure_stdio_binary(void) {
     _setmode(_fileno(stderr), _O_BINARY);
 }
 
+/* Windows has no SIGPIPE: a write whose reader is gone fails on its own. */
+static void vader_os_catch_broken_pipes(void) {
+}
+
 /* Write UTF-8 `text` to the console `h` as UTF-16, which it renders whatever its
  * code page; 0, with nothing written, when the conversion cannot be made. A
  * UTF-8 text never takes more UTF-16 units than it has bytes. */
@@ -455,6 +459,13 @@ static void vader_os_report_fatal(const char* what, const char* detail, size_t d
 }
 
 /* ---- accessors ----------------------------------------------------------- */
+
+/* Reached only by a POSIX body the interpreter runs here for a pinned target:
+ * there is no SIGPIPE to raise, so the program ends with a failure. */
+VADER_HOST_EXPORT
+void vader_end_on_broken_pipe(void) {
+    _exit(EXIT_FAILURE);
+}
 
 /* Reading a NAMED member of a C struct is the one step a Vader FFI call cannot
  * take for itself, and it is all this accessor does: `std/fs::read_dir` drives

@@ -136,6 +136,12 @@ export ENOTEMPTY: i32: if VADER_OS == .Darwin { 66 } else { 39 }
 @extern(VADER_RUNTIME, "vader_last_errno")
 export sys_last_errno :: fn() -> i32
 
+/// End the program as the default action of `SIGPIPE` would. The runtime catches
+/// that signal, so a write whose reader is gone fails with `EPIPE` instead: a
+/// write to stdout or stderr calls this then, to stop as any program does.
+@extern(VADER_RUNTIME, "vader_end_on_broken_pipe")
+export sys_end_on_broken_pipe :: fn() -> void
+
 /// What KIND of thing `path` is, via `stat(2)`.
 ///
 /// `struct stat` is NOT mirrorable, not "ambiguous between arches", genuinely

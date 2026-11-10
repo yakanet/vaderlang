@@ -70,12 +70,14 @@ import 0 byte_len std_core$byte_len result_type=7 param_types=4 param_c_out= par
 import 1 bytes_to_string std_core$bytes_to_string result_type=4 param_types=19 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=19 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=1,19,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 spawn_thread std_runtime_scheduler$spawn_thread result_type=7 param_types=27 param_c_out= param_by_address= (ref) -> i64
-import 5 park std_runtime_scheduler$park result_type=3 () -> void
-import 6 wake std_runtime_scheduler$wake result_type=3 param_types=7 param_c_out= param_by_address= (i64) -> void
-import 7 sleep_for std_runtime_scheduler$sleep_for result_type=3 param_types=7 param_c_out= param_by_address= (i64) -> void
-import 8 current_thread std_runtime_scheduler$current_thread result_type=7 () -> i64
-import 9 is_cancelled std_runtime_scheduler$is_cancelled result_type=15 () -> bool
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void
+import 6 spawn_thread std_runtime_scheduler$spawn_thread result_type=7 param_types=27 param_c_out= param_by_address= (ref) -> i64
+import 7 park std_runtime_scheduler$park result_type=3 () -> void
+import 8 wake std_runtime_scheduler$wake result_type=3 param_types=7 param_c_out= param_by_address= (i64) -> void
+import 9 sleep_for std_runtime_scheduler$sleep_for result_type=3 param_types=7 param_c_out= param_by_address= (i64) -> void
+import 10 current_thread std_runtime_scheduler$current_thread result_type=7 () -> i64
+import 11 is_cancelled std_runtime_scheduler$is_cancelled result_type=15 () -> bool
 impl 6 std_core$ByteAccess
 impl 9 std_core$Display
 impl 25 std_core$Display
@@ -3352,21 +3354,40 @@ fn 59 std_console$write_text (u8,string) -> bool
 end
 
 fn 60 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 3   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 4   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end
@@ -3413,7 +3434,7 @@ end
 
 fn 63 std_task$sleep (i64) -> void
   local.get 0   ; arg 0
-  call.import 7   ; std_runtime_scheduler$sleep_for
+  call.import 9   ; std_runtime_scheduler$sleep_for
   return
 end
 
@@ -3479,7 +3500,7 @@ fn 67 std_task$start_thread (ref) -> i64
   local.get 2   ; $add_checked_5
   struct.set 26 0   ; std_task$Started.count
   local.get 0   ; arg 0
-  call.import 4   ; std_runtime_scheduler$spawn_thread
+  call.import 6   ; std_runtime_scheduler$spawn_thread
   return
 end
 
@@ -3536,7 +3557,7 @@ fn 70 std_task$run__i32 (ref,ref) -> void
   struct.new 30   ; __defer_env_std_task_3
   make_closure 71 27   ; __defer_std_task_2 fn
   defer.push
-  call.import 9   ; std_runtime_scheduler$is_cancelled
+  call.import 11   ; std_runtime_scheduler$is_cancelled
   if $L0 void
   else
     local.field 0 25 3   ; arg 0 std_task$Task__i32.result
@@ -3604,7 +3625,7 @@ fn 72 std_task$end__i32 (ref) -> void
       end $L2
       local.field 4 37 0   ; waiter std_task$Waiter.thread
       ref.cast 7   ; i64
-      call.import 6   ; std_runtime_scheduler$wake
+      call.import 8   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -3626,7 +3647,7 @@ fn 73 std_task$join__i32 (ref) -> any
     call 75   ; std_task$outcome__i32
     return
   end $L0
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 1   ; me
   local.field 0 25 4   ; arg 0 std_task$Task__i32.waiters
   local.set 2   ; $field_4
@@ -3648,7 +3669,7 @@ fn 73 std_task$join__i32 (ref) -> any
     ref.cast 15   ; bool
     if $L2 void
     else
-      call.import 5   ; std_runtime_scheduler$park
+      call.import 7   ; std_runtime_scheduler$park
       br $L1
     end $L2
   end $L1
@@ -3814,7 +3835,7 @@ end
 
 fn 80 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 2   ; me
   local.field 0 42 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 15   ; bool
@@ -3869,7 +3890,7 @@ fn 82 std_runtime_scheduler$await_gate (ref,i64) -> void
     local.field 0 42 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 15   ; bool
     if $L1 void
-      call.import 5   ; std_runtime_scheduler$park
+      call.import 7   ; std_runtime_scheduler$park
       br $L0
     end $L1
   end $L0
@@ -3914,7 +3935,7 @@ fn 84 std_runtime_scheduler$let_go (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 6   ; std_runtime_scheduler$wake
+      call.import 8   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add

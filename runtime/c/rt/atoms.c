@@ -31,8 +31,10 @@ static void        vader_atom_profile_dump(void);
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
                                    vader_u32_t count) {
     /* The emitted `main` calls atom-init first, so this is the one place every
-     * C-emitted binary passes through at start. */
+     * C-emitted binary passes through at start: the process-wide settings of
+     * the standard streams and of SIGPIPE go here. */
     vader_os_ensure_stdio_binary();
+    vader_os_catch_broken_pipes();
     if (g_atoms_initialized) return;
     g_atoms_initialized = 1;
 

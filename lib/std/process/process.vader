@@ -810,7 +810,8 @@ await_child :: fn(child: ChildProcess) -> void {
 /// @param child  what `spawn_interactive` returned.
 /// @param data   the bytes to write.
 /// @error        `ProcessError` when the child has no stdin pipe (another
-///               launch, or `close_input`), has ended, or the write fails.
+///               launch, or `close_input`), reads no more input (it closed its
+///               stdin, or ended), or the write fails.
 @target
 export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError
 
@@ -819,16 +820,17 @@ write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError {
     pipe :: child.in_pipe ?? return ProcessError {
         .msg = "\"${child.program}\" has no stdin to write",
     }
-    // A write to a child that has ended raises SIGPIPE, which ends this process.
-    // Asking first leaves the window of a child that ends during the write.
-    if poll_exit(child) != RUNNING {
-        return ProcessError { .msg = "\"${child.program}\" has ended" }
-    }
     rest := data
     for rest.len() > 0 {
         n :: sys_write(fd_of(pipe), rest, rest.len())
         if n < 0 {
-            return ProcessError { .msg = "writing to \"${child.program}\" failed" }
+            // The runtime catches SIGPIPE: a child that closed its stdin, or
+            // ended, answers EPIPE.
+            failure :: last_io_error("writing to \"${child.program}\" failed")
+            if failure.kind == .BrokenPipe {
+                return ProcessError { .msg = "\"${child.program}\" reads no more input" }
+            }
+            return ProcessError { .msg = failure.msg }
         }
         rest = rest[n..<rest.len()]
     }
@@ -1020,6 +1022,7 @@ cannot_launch :: fn(program: string) -> ProcessError =
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/fs"
 import "std/task"
 import "std/testing"
 
@@ -1098,6 +1101,55 @@ test_read_output_of_a_silent_child_gives_back_nothing_in_time :: fn() -> void {
         got :: child.read_output(1.millis())
         assert(got.out.len() == 0 && !got.ended, "nothing came, and cat still runs")
     }
+}
+
+// The child closes its stdin, says so, then waits: the write finds no reader.
+// Without the runtime catching SIGPIPE, the write would end the test process.
+@test
+test_write_input_of_a_child_that_reads_no_more_is_an_error :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    child :: spawn_interactive(["sh", "-c", "exec 0<&-; echo closed; exec sleep 5"])
+    if child is ProcessError {
+        fail("sh launches")
+        return
+    }
+    defer child.kill()
+    assert_eq(answer_of(child, 7), "closed\n")
+    assert(child.write_input("x\n".bytes()) is ProcessError, "a child without a reader on its stdin")
+}
+
+// A program printing without end into `| head -c 1` stops once `head` has gone.
+@test
+test_a_program_printing_past_its_reader_stops :: fn() -> void {
+    if VADER_OS == .Windows {
+        return
+    }
+    // A folder of its own: the program's module is every `.vader` file beside it.
+    folder :: "${temp_dir()}/vader-printing-past-its-reader"
+    create_dir(folder)
+    source :: "${folder}/main.vader"
+    probe :: "module \"probe\"\n\nimport \"std/console\"\n\nmain :: fn() -> i32 {\n    for {\n        println(\"x\")\n    }\n}\n"
+    assert(write_file(source, probe) == null, "the probe program is written")
+    pipeline :: ["sh", "-c", "\"$0\" run \"$1\" | head -c 1", current_executable_location(), source]
+    child :: spawn_start(pipeline)
+    if child is ProcessError {
+        fail("sh launches")
+        return
+    }
+    defer child.kill()
+    printed: u8[]: []
+    began :: monotonic()
+    for began.since() < 60.seconds() {
+        chunk :: child.read_output(1.seconds())
+        printed.push_all(chunk.out)
+        if chunk.ended {
+            break
+        }
+    }
+    assert_eq(printed.bytes_to_string(), "x")
+    assert(child.poll() is ProcessResult, "the program stopped once `head` had gone")
 }
 
 @test

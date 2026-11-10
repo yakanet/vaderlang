@@ -9,10 +9,10 @@ VADER_ARCH = .Wasm32
 
 # Selected body
 main$platform_tag <- main.vader:14
-std_console$read_ready <- lib/std/console/console.vader:290
-std_console$system_poll_stdin <- lib/std/console/console.vader:399
-std_console$write_bytes <- lib/std/console/console.vader:40
-std_console$write_text <- lib/std/console/console.vader:73
+std_console$read_ready <- lib/std/console/console.vader:299
+std_console$system_poll_stdin <- lib/std/console/console.vader:408
+std_console$write_bytes <- lib/std/console/console.vader:42
+std_console$write_text <- lib/std/console/console.vader:81
 std_io$last_io_error <- (no body)
 std_time$monotonic_ns <- (no body)
 std_time$now_unix_ms <- (no body)

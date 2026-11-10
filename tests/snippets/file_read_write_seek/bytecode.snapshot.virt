@@ -117,20 +117,21 @@ import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 p
 import 6 extern :opendir system_posix$sys_opendir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=31 param_types=5 param_c_out= param_by_address= (string) -> any
 import 7 extern :closedir system_posix$sys_closedir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=21 param_c_out= param_by_address= (pointer) -> i32
 import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 9 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=1 param_types=5,1,24 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
-import 10 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=31 param_types=21 param_c_out= param_by_address= (pointer) -> any
-import 11 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=21 param_c_out= param_by_address= (pointer) -> string
-import 12 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=1 param_types=21 param_c_out= param_by_address= (pointer) -> i32
-import 13 extern :read system_posix$sys_read headers=<unistd.h> result_type=3 param_types=1,8,3 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
-import 14 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 15 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 16 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
-import 17 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=5,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
-import 18 extern :lseek system_posix$sys_lseek headers=<unistd.h> result_type=3 param_types=1,3,1 param_c_out= param_by_address= (i32,i64,i32) -> i64
-import 19 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 20 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
-import 21 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
-import 22 current_os std_target$current_os result_type=9 () -> u8
+import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=12 () -> void
+import 10 extern :vader_path_stat system_posix$sys_path_stat headers=vader.h result_type=1 param_types=5,1,24 param_c_out=0,0,1 param_by_address= (string,i32,ref) -> i32
+import 11 extern :readdir system_posix$sys_readdir headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=31 param_types=21 param_c_out= param_by_address= (pointer) -> any
+import 12 extern :vader_dirent_name system_posix$dirent_name headers=vader.h result_type=5 param_types=21 param_c_out= param_by_address= (pointer) -> string
+import 13 extern :vader_dirent_kind system_posix$dirent_kind headers=vader.h result_type=1 param_types=21 param_c_out= param_by_address= (pointer) -> i32
+import 14 extern :read system_posix$sys_read headers=<unistd.h> result_type=3 param_types=1,8,3 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
+import 15 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
+import 16 extern :unlink system_posix$sys_unlink headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 17 extern :rmdir system_posix$sys_rmdir headers=<unistd.h> result_type=1 param_types=5 param_c_out= param_by_address= (string) -> i32
+import 18 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=5,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
+import 19 extern :lseek system_posix$sys_lseek headers=<unistd.h> result_type=3 param_types=1,3,1 param_c_out= param_by_address= (i32,i64,i32) -> i64
+import 20 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
+import 21 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
+import 22 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=13 param_types=5 param_c_out= param_by_address= (string) -> any
+import 23 current_os std_target$current_os result_type=9 () -> u8
 impl 7 std_core$ByteAccess
 impl 4 std_core$Error
 export main 0
@@ -884,21 +885,40 @@ fn 10 std_console$write_text (u8,string) -> bool
 end
 
 fn 11 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 5   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 8   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 9   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end
@@ -951,7 +971,7 @@ end
 
 fn 15 std_env$get_env (string) -> any
   local.get 0   ; arg 0
-  call.import 21   ; system_libc$sys_getenv
+  call.import 22   ; system_libc$sys_getenv
   return
 end
 
@@ -1492,7 +1512,7 @@ end
 fn 29 std_fs$system_close (any) -> any
   local.get 0   ; arg 0
   call 38   ; std_fs$fd_of
-  call.import 14   ; system_posix$sys_close
+  call.import 15   ; system_posix$sys_close
   i32.const 0
   i32.ne
   if $L0 void
@@ -1600,7 +1620,7 @@ fn 31 std_fs$system_open (string,ref) -> any
   local.get 0   ; arg 0
   local.get 2   ; $call_2
   i32.const 438
-  call.import 17   ; system_posix$sys_open
+  call.import 18   ; system_posix$sys_open
   local.tee 2   ; $call_2
   i32.const 0
   i32.lt
@@ -1615,12 +1635,12 @@ fn 31 std_fs$system_open (string,ref) -> any
   i32.eq
   if $L1 void
     local.get 2   ; $call_2
-    call.import 19   ; system_posix$sys_fd_kind
+    call.import 20   ; system_posix$sys_fd_kind
     i32.const 2
     i32.eq
     if $L2 void
       local.get 2   ; $call_2
-      call.import 14   ; system_posix$sys_close
+      call.import 15   ; system_posix$sys_close
       drop
       i32.const 21
       call 42   ; std_fs$is_a_directory
@@ -1703,7 +1723,7 @@ end
 fn 34 std_fs$system_size (any) -> i64
   local.get 0   ; arg 0
   call 38   ; std_fs$fd_of
-  call.import 20   ; system_posix$sys_fd_size
+  call.import 21   ; system_posix$sys_fd_size
   return
 end
 
@@ -1714,7 +1734,7 @@ fn 35 std_fs$system_read (any,ref,i64) -> any
     call 38   ; std_fs$fd_of
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 13   ; system_posix$sys_read
+    call.import 14   ; system_posix$sys_read
     local.tee 3   ; n
     i64.const 0
     i64.ge
@@ -1769,7 +1789,7 @@ fn 37 std_fs$system_remove (string,ref) -> any
   if $L1 void
   else
     local.get 0   ; arg 0
-    call.import 15   ; system_posix$sys_unlink
+    call.import 16   ; system_posix$sys_unlink
     i32.const 0
     i32.eq
     string.const 35   ; "cannot remove file"
@@ -1965,7 +1985,7 @@ fn 43 std_fs$system_seek (any,i64,u8) -> any
   local.get 3   ; $call_3
   local.get 1   ; arg 1
   local.get 4   ; $call_4
-  call.import 18   ; system_posix$sys_lseek
+  call.import 19   ; system_posix$sys_lseek
   local.tee 5   ; position
   i64.const 0
   i64.lt
@@ -2022,7 +2042,7 @@ fn 45 std_fs$stat_cells (string,bool) -> any
   local.get 0   ; arg 0
   local.get 3   ; $call_8
   local.get 2   ; cells
-  call.import 9   ; system_posix$sys_path_stat
+  call.import 10   ; system_posix$sys_path_stat
   i32.const 0
   i32.ne
   if $L0 void
@@ -2222,7 +2242,7 @@ end
 
 fn 51 std_fs$system_remove_directory (string) -> any
   local.get 0   ; arg 0
-  call.import 16   ; system_posix$sys_rmdir
+  call.import 17   ; system_posix$sys_rmdir
   i32.const 0
   i32.eq
   string.const 41   ; "cannot remove directory"
@@ -2258,7 +2278,7 @@ fn 52 std_fs$list_dir (string) -> any
   local.set 3   ; out
   loop $L1 void
     local.get 1   ; d
-    call.import 10   ; system_posix$sys_readdir
+    call.import 11   ; system_posix$sys_readdir
     local.tee 2   ; __coalesce_0
     type_check 0   ; null
     if $L2 void
@@ -2266,7 +2286,7 @@ fn 52 std_fs$list_dir (string) -> any
       local.get 2   ; __coalesce_0
       ref.cast 21   ; pointer
       local.tee 4   ; p
-      call.import 11   ; system_posix$dirent_name
+      call.import 12   ; system_posix$dirent_name
       local.tee 5   ; name
       string.const 43   ; "."
       string.ne
@@ -2282,7 +2302,7 @@ fn 52 std_fs$list_dir (string) -> any
         br $L1
       end $L4
       local.get 4   ; p
-      call.import 12   ; system_posix$dirent_kind
+      call.import 13   ; system_posix$dirent_kind
       local.set 6   ; $call_23
       local.get 0   ; arg 0
       local.get 5   ; name
@@ -2730,7 +2750,7 @@ fn 61 std_path$to_path (string) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  call.import 22   ; std_target$current_os
+  call.import 23   ; std_target$current_os
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4

@@ -272,6 +272,11 @@ static char* vader_os_stack_base(void);
 /* Put stdin, stdout and stderr in binary mode, on an OS that has another one.
  * Idempotent. */
 static void vader_os_ensure_stdio_binary(void);
+/* Catch SIGPIPE, on an OS that has it, with a handler that does nothing: a write
+ * whose reader is gone then fails with EPIPE instead of ending the program.
+ * Caught rather than ignored, so an `exec` gives a child the default back.
+ * Idempotent. */
+static void vader_os_catch_broken_pipes(void);
 /* Write `vader: <what><detail>` on its own line, on stderr. */
 static void vader_os_report_fatal(const char* what, const char* detail, size_t detail_len);
 

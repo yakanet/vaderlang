@@ -7,10 +7,10 @@ VADER_ARCH = .Arm64
 
 # Selected body
 main$normalize <- main.vader:20
-std_console$read_ready <- lib/std/console/console.vader:300
-std_console$system_poll_stdin <- lib/std/console/console.vader:406
-std_console$write_bytes <- lib/std/console/console.vader:45
-std_console$write_text <- lib/std/console/console.vader:73
+std_console$read_ready <- lib/std/console/console.vader:309
+std_console$system_poll_stdin <- lib/std/console/console.vader:415
+std_console$write_bytes <- lib/std/console/console.vader:47
+std_console$write_text <- lib/std/console/console.vader:81
 std_io$last_io_error <- lib/std/io/io.vader:98
 std_time$monotonic_ns <- lib/std/time/time.vader:77
 std_time$now_unix_ms <- lib/std/time/time.vader:51

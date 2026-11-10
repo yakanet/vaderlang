@@ -88,6 +88,7 @@ const size_t vader_type_info_count = 13;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
+#include "vader.h"
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
@@ -103,6 +104,20 @@ static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a
     int64_t r = write(a0, s1.ptr, a2);
     vader_foreign_depth -= 1;
     return r;
+}
+
+static int32_t vader_host_system_posix$sys_last_errno(void) {
+    vader_foreign_depth += 1;
+    int32_t r = vader_last_errno();
+    vader_foreign_depth -= 1;
+    return r;
+}
+
+static void vader_host_system_posix$sys_end_on_broken_pipe(void) {
+    vader_foreign_depth += 1;
+    vader_end_on_broken_pipe();
+    vader_foreign_depth -= 1;
+    return;
 }
 
 static vader_box_t snippet$Countdown$std_core$Iterator$next(void* l0) {
@@ -281,16 +296,27 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1) {
 }
 
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2) {
-    int64_t t0;
+    int32_t l3;
+    int64_t l4;
+    int32_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     if (l0 == INT32_C(0)) {
-        t0 = vader_host_system_posix$sys_write(INT32_C(1), l1, l2);
-        { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+        l3 = INT32_C(1);
+    } else {
+        l3 = INT32_C(2);
     }
-    t0 = vader_host_system_posix$sys_write(INT32_C(2), l1, l2);
-    { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+    l4 = vader_host_system_posix$sys_write(l3, l1, l2);
+    if ((l4 < INT64_C(0))) {
+        t0 = vader_host_system_posix$sys_last_errno();
+        if (t0 == INT32_C(32)) {
+            vader_host_system_posix$sys_end_on_broken_pipe();
+            { int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
+        }
+        { int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    { int32_t __vret = ((int32_t) (int64_t) l4); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_console$println__string(vader_string_t l0) {

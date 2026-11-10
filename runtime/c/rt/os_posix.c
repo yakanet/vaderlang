@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <pthread.h>
+#include <signal.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -281,11 +282,33 @@ static char* vader_os_stack_base(void) {
 static void vader_os_ensure_stdio_binary(void) {
 }
 
+static void vader_os_on_broken_pipe(int signal_number) {
+    (void) signal_number;
+}
+
+static void vader_os_catch_broken_pipes(void) {
+    struct sigaction action;
+    memset(&action, 0, sizeof action);
+    action.sa_handler = vader_os_on_broken_pipe;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGPIPE, &action, NULL);
+}
+
 static void vader_os_report_fatal(const char* what, const char* detail, size_t detail_len) {
     fprintf(stderr, "vader: %s%.*s\n", what, (int) detail_len, detail);
 }
 
 /* ---- accessors ----------------------------------------------------------- */
+
+/* End the program as the default action of SIGPIPE would, which the runtime
+ * catches instead (`vader_os_catch_broken_pipes`). */
+VADER_HOST_EXPORT
+void vader_end_on_broken_pipe(void) {
+    signal(SIGPIPE, SIG_DFL);
+    raise(SIGPIPE);
+    /* `raise` returns when this thread blocks SIGPIPE. */
+    _exit(128 + SIGPIPE);
+}
 
 /* The process environment, as `posix_spawnp` wants it.
  *

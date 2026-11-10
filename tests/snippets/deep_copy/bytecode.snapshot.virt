@@ -91,11 +91,13 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=3 param_types=25 p
 import 2 bytes std_core$bytes result_type=25 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 3 deep_copy std_core$deep_copy__i32__ result_type=32 param_types=32 param_c_out= param_by_address= (any) -> any
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=2,25,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 5 spawn_thread std_runtime_scheduler$spawn_thread result_type=13 param_types=35 param_c_out= param_by_address= (ref) -> i64
-import 6 park std_runtime_scheduler$park result_type=31 () -> void
-import 7 wake std_runtime_scheduler$wake result_type=31 param_types=13 param_c_out= param_by_address= (i64) -> void
-import 8 current_thread std_runtime_scheduler$current_thread result_type=13 () -> i64
-import 9 is_cancelled std_runtime_scheduler$is_cancelled result_type=15 () -> bool
+import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
+import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=31 () -> void
+import 7 spawn_thread std_runtime_scheduler$spawn_thread result_type=13 param_types=35 param_c_out= param_by_address= (ref) -> i64
+import 8 park std_runtime_scheduler$park result_type=31 () -> void
+import 9 wake std_runtime_scheduler$wake result_type=31 param_types=13 param_c_out= param_by_address= (i64) -> void
+import 10 current_thread std_runtime_scheduler$current_thread result_type=13 () -> i64
+import 11 is_cancelled std_runtime_scheduler$is_cancelled result_type=15 () -> bool
 impl 12 std_core$ByteAccess
 impl 16 std_core$Display
 impl 9 std_core$Display
@@ -4003,21 +4005,40 @@ fn 58 std_console$write_text (u8,string) -> bool
 end
 
 fn 59 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 4   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 5   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 6   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end
@@ -4124,7 +4145,7 @@ fn 65 std_task$start_thread (ref) -> i64
   local.get 2   ; $add_checked_5
   struct.set 34 0   ; std_task$Started.count
   local.get 0   ; arg 0
-  call.import 5   ; std_runtime_scheduler$spawn_thread
+  call.import 7   ; std_runtime_scheduler$spawn_thread
   return
 end
 
@@ -4181,7 +4202,7 @@ fn 68 std_task$run__i32 (ref,ref) -> void
   struct.new 38   ; __defer_env_std_task_5
   make_closure 69 35   ; __defer_std_task_4 fn
   defer.push
-  call.import 9   ; std_runtime_scheduler$is_cancelled
+  call.import 11   ; std_runtime_scheduler$is_cancelled
   if $L0 void
   else
     local.field 0 9 3   ; arg 0 std_task$Task__i32.result
@@ -4249,7 +4270,7 @@ fn 70 std_task$end__i32 (ref) -> void
       end $L2
       local.field 4 42 0   ; waiter std_task$Waiter.thread
       ref.cast 13   ; i64
-      call.import 7   ; std_runtime_scheduler$wake
+      call.import 9   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -4271,7 +4292,7 @@ fn 71 std_task$join__i32 (ref) -> any
     call 73   ; std_task$outcome__i32
     return
   end $L0
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 1   ; me
   local.field 0 9 4   ; arg 0 std_task$Task__i32.waiters
   local.set 2   ; $field_4
@@ -4293,7 +4314,7 @@ fn 71 std_task$join__i32 (ref) -> any
     ref.cast 15   ; bool
     if $L2 void
     else
-      call.import 6   ; std_runtime_scheduler$park
+      call.import 8   ; std_runtime_scheduler$park
       br $L1
     end $L2
   end $L1
@@ -4412,7 +4433,7 @@ end
 
 fn 76 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 2   ; me
   local.field 0 47 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 15   ; bool
@@ -4467,7 +4488,7 @@ fn 78 std_runtime_scheduler$await_gate (ref,i64) -> void
     local.field 0 47 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 15   ; bool
     if $L1 void
-      call.import 6   ; std_runtime_scheduler$park
+      call.import 8   ; std_runtime_scheduler$park
       br $L0
     end $L1
   end $L0
@@ -4512,7 +4533,7 @@ fn 80 std_runtime_scheduler$let_go (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 7   ; std_runtime_scheduler$wake
+      call.import 9   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add

@@ -40,8 +40,9 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 pa
 import 2 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 5 extern :read system_posix$sys_read headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
-import 6 wait_readable std_runtime_wait$wait_readable result_type=8 param_types=4 param_c_out= param_by_address= (i64) -> void
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
+import 6 extern :read system_posix$sys_read headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
+import 7 wait_readable std_runtime_wait$wait_readable result_type=8 param_types=4 param_c_out= param_by_address= (i64) -> void
 impl 3 std_core$ByteAccess
 impl 10 std_core$Error
 export main 0
@@ -505,7 +506,7 @@ fn 9 std_console$read_ready (i64) -> any
       i32.const 0
       local.get 1   ; buf
       local.get 0   ; arg 0
-      call.import 5   ; system_posix$sys_read
+      call.import 6   ; system_posix$sys_read
       local.tee 3   ; got
       i64.const 0
       i64.gt
@@ -542,21 +543,40 @@ fn 10 std_console$write_text (u8,string) -> bool
 end
 
 fn 11 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 3   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 4   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end
@@ -634,7 +654,7 @@ end
 fn 15 std_io$wait_readable (any) -> void
   local.get 0   ; arg 0
   call 17   ; std_io$descriptor_word
-  call.import 6   ; std_runtime_wait$wait_readable
+  call.import 7   ; std_runtime_wait$wait_readable
   return
 end
 

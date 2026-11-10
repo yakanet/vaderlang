@@ -74,10 +74,11 @@ import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,6,6 param_c_
 import 3 bytes std_core$bytes result_type=3 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=1,3,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 6 extern :vader_environ_entry system_posix$sys_environ_entry headers=vader.h result_type=14 param_types=6 param_c_out= param_by_address= (i64) -> any
-import 7 extern :setenv system_posix$sys_setenv headers=<stdlib.h> result_type=1 param_types=2,2,1 param_c_out= param_by_address= (string,string,i32) -> i32
-import 8 extern :unsetenv system_posix$sys_unsetenv headers=<stdlib.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
-import 9 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=14 param_types=2 param_c_out= param_by_address= (string) -> any
+import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
+import 7 extern :vader_environ_entry system_posix$sys_environ_entry headers=vader.h result_type=14 param_types=6 param_c_out= param_by_address= (i64) -> any
+import 8 extern :setenv system_posix$sys_setenv headers=<stdlib.h> result_type=1 param_types=2,2,1 param_c_out= param_by_address= (string,string,i32) -> i32
+import 9 extern :unsetenv system_posix$sys_unsetenv headers=<stdlib.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
+import 10 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=14 param_types=2 param_c_out= param_by_address= (string) -> any
 impl 9 std_core$ByteAccess
 impl 13 std_core$Error
 export main 0
@@ -393,21 +394,40 @@ fn 6 std_console$write_text (u8,string) -> bool
 end
 
 fn 7 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 4   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 5   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 6   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end
@@ -455,7 +475,7 @@ end
 
 fn 10 std_env$get_env (string) -> any
   local.get 0   ; arg 0
-  call.import 9   ; system_libc$sys_getenv
+  call.import 10   ; system_libc$sys_getenv
   return
 end
 
@@ -589,7 +609,7 @@ fn 15 std_env$system_set_env (string,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.const 1
-  call.import 7   ; system_posix$sys_setenv
+  call.import 8   ; system_posix$sys_setenv
   i32.const 0
   i32.eq
   string.const 19   ; "cannot set variable"
@@ -599,7 +619,7 @@ end
 
 fn 16 std_env$system_environ_entry (i64) -> any
   local.get 0   ; arg 0
-  call.import 6   ; system_posix$sys_environ_entry
+  call.import 7   ; system_posix$sys_environ_entry
   return
 end
 
@@ -622,7 +642,7 @@ end
 
 fn 18 std_env$system_unset_env (string) -> any
   local.get 0   ; arg 0
-  call.import 8   ; system_posix$sys_unsetenv
+  call.import 9   ; system_posix$sys_unsetenv
   i32.const 0
   i32.eq
   string.const 20   ; "cannot unset variable"

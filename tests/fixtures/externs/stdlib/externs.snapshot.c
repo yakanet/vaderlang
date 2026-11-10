@@ -14,6 +14,7 @@ int32_t unsetenv(const char* name);  // system_posix$sys_unsetenv
 /* FILE_SYSTEM (system/posix): <dirent.h>, <fcntl.h>, <stdlib.h>, <sys/stat.h> */
 int32_t chmod(const char* path, uint32_t mode);  // system_posix$sys_chmod
 int32_t closedir(void* dir);  // system_posix$sys_closedir
+int32_t fcntl(int32_t fd, int32_t cmd, ...);  // system_posix$sys_fcntl, variadic: int32_t arg
 int32_t mkdir(const char* path, uint32_t mode);  // system_posix$sys_mkdir
 int32_t open(const char* path, int32_t flags, ...);  // system_posix$sys_open, variadic: int32_t mode
 void* opendir(const char* path);  // system_posix$sys_opendir
@@ -135,6 +136,7 @@ int64_t write(int32_t fd, const void* buf, int64_t count);  // system_posix$sys_
 /* VADER_RUNTIME (system/posix): vader.h */
 int32_t vader_dirent_kind(void* ent);  // system_posix$dirent_kind
 const char* vader_dirent_name(void* ent);  // system_posix$dirent_name
+void vader_end_on_broken_pipe(void);  // system_posix$sys_end_on_broken_pipe
 void* vader_environ(void);  // system_posix$sys_environ
 const char* vader_environ_entry(int64_t index);  // system_posix$sys_environ_entry
 int32_t vader_fd_kind(int32_t fd);  // system_posix$sys_fd_kind

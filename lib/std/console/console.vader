@@ -2,7 +2,9 @@
 //
 // Writes to stdout and stderr, reads of stdin. On Linux and macOS, a read of
 // stdin parks its task while the other tasks run. Any other call that waits
-// blocks the system thread, and every task with it.
+// blocks the system thread, and every task with it. A write to a stream whose
+// reader is gone (`prog | head`) ends the program there, as `SIGPIPE` does for
+// any program: the runtime catches the signal, and `write_bytes` stops instead.
 
 module "std/console"
 
@@ -44,9 +46,15 @@ write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
 @target(.Linux, .Darwin)
 write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
     fd :: if out == .Stdout { STDOUT } else { STDERR }
+    written :: sys_write(fd, buf, count)
+    // The raw code, not `last_io_error`: it allocates, and an allocation on this
+    // cold path would give every write a GC frame.
+    if written < 0 && sys_last_errno() == EPIPE {
+        sys_end_on_broken_pipe()
+    }
     // `ssize_t` down to the `i32` this reports. A single write never approaches
     // 2 GB, and the -1 failure value survives the narrowing.
-    return i32(sys_write(fd, buf, count))
+    return i32(written)
 }
 
 @target(.Windows)
@@ -124,7 +132,8 @@ has_console_mode :: fn(h: Handle) -> bool {
 // them straight to the callee: no copy, and nothing to free.
 //
 // A short write is retried; a failure is silent, which is the contract the
-// `fwrite` + `fflush` host it replaces already had.
+// `fwrite` + `fflush` host it replaces already had, save a reader gone, which
+// ends the program (`write_bytes`).
 write :: fn(out: Stream, msg: string) -> void {
     if write_text(out, msg) {
         return

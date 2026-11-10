@@ -26,6 +26,8 @@ import 2 bytes std_core$bytes result_type=8 param_types=5 param_c_out= param_by_
 import 3 extern abs snippet_status$abs_status$extern_import headers=<stdlib.h> result_type=4 param_types=4 param_c_out= param_by_address= (i32) -> i32
 import 4 extern srand snippet_status$seed_with$extern_import headers=<stdlib.h> result_type=9 param_types=4 param_c_out= param_by_address= (i32) -> void
 import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=2 param_types=4,8,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
+import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
 impl 6 std_core$ByteAccess
 export main 2
 
@@ -458,21 +460,40 @@ fn 10 std_console$write_text (u8,string) -> bool
 end
 
 fn 11 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 5   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 5   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 6   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 7   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end

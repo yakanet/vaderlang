@@ -102,12 +102,14 @@ import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_c_out= par
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=27 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=27 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=4,27,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
-import 4 panic std_abort$panic result_type=7 param_types=2 param_c_out= param_by_address= (string) -> void
-import 5 spawn_thread std_runtime_scheduler$spawn_thread result_type=3 param_types=36 param_c_out= param_by_address= (ref) -> i64
-import 6 park std_runtime_scheduler$park result_type=7 () -> void
-import 7 wake std_runtime_scheduler$wake result_type=7 param_types=3 param_c_out= param_by_address= (i64) -> void
-import 8 current_thread std_runtime_scheduler$current_thread result_type=3 () -> i64
-import 9 is_cancelled std_runtime_scheduler$is_cancelled result_type=23 () -> bool
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=7 () -> void
+import 6 panic std_abort$panic result_type=7 param_types=2 param_c_out= param_by_address= (string) -> void
+import 7 spawn_thread std_runtime_scheduler$spawn_thread result_type=3 param_types=36 param_c_out= param_by_address= (ref) -> i64
+import 8 park std_runtime_scheduler$park result_type=7 () -> void
+import 9 wake std_runtime_scheduler$wake result_type=7 param_types=3 param_c_out= param_by_address= (i64) -> void
+import 10 current_thread std_runtime_scheduler$current_thread result_type=3 () -> i64
+import 11 is_cancelled std_runtime_scheduler$is_cancelled result_type=23 () -> bool
 impl 16 std_core$ByteAccess
 impl 12 std_core$Display
 impl 13 std_core$Iterator
@@ -3660,21 +3662,40 @@ fn 61 std_console$write_text (u8,string) -> bool
 end
 
 fn 62 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   if $L0 void
     i32.const 1
-    local.get 1   ; arg 1
-    local.get 2   ; arg 2
-    call.import 3   ; system_posix$sys_write
-    i64.to_i32
-    return
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
   end $L0
-  i32.const 2
+  local.get 3   ; fd
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 3   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 4   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
   i64.to_i32
   return
 end
@@ -3817,7 +3838,7 @@ fn 69 std_task$wake_first (ref) -> void
     local.get 0   ; arg 0
     i32.const 0
     load_slot_i64
-    call.import 7   ; std_runtime_scheduler$wake
+    call.import 9   ; std_runtime_scheduler$wake
     return
   end $L0
   return
@@ -3885,7 +3906,7 @@ fn 73 std_task$start_thread (ref) -> i64
   local.get 2   ; $add_checked_5
   struct.set 35 0   ; std_task$Started.count
   local.get 0   ; arg 0
-  call.import 5   ; std_runtime_scheduler$spawn_thread
+  call.import 7   ; std_runtime_scheduler$spawn_thread
   return
 end
 
@@ -3923,7 +3944,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
     local.get 2   ; __buf_0
     local.get 3   ; __off_1
     call 8   ; std_core$finish_buffer
-    call.import 4   ; std_abort$panic
+    call.import 6   ; std_abort$panic
     unreachable
   else
     local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
@@ -3948,7 +3969,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
     ref.cast 23   ; bool
     if $L3 void
       string.const 23   ; "send: the channel is closed"
-      call.import 4   ; std_abort$panic
+      call.import 6   ; std_abort$panic
       unreachable
     else
       local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
@@ -4036,7 +4057,7 @@ fn 77 std_task$close__i64 (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 7   ; std_runtime_scheduler$wake
+      call.import 9   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -4058,7 +4079,7 @@ fn 77 std_task$close__i64 (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 7   ; std_runtime_scheduler$wake
+      call.import 9   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -4073,7 +4094,7 @@ fn 78 std_task$await_room__i64 (ref) -> void
   local me i64
   local $call_7 i64
   local $field_8 i64
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 1   ; me
   local.field 0 13 3   ; arg 0 std_task$Channel__i64.senders
   local.get 1   ; me
@@ -4098,7 +4119,7 @@ fn 78 std_task$await_room__i64 (ref) -> void
         local.field 0 13 2   ; arg 0 std_task$Channel__i64.closed
         ref.cast 23   ; bool
         br_if $L0
-        call.import 6   ; std_runtime_scheduler$park
+        call.import 8   ; std_runtime_scheduler$park
         br $L1
       end $L2
     end $L1
@@ -4127,7 +4148,7 @@ end
 
 fn 80 std_task$await_message__i64 (ref) -> void
   local me i64
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 1   ; me
   local.field 0 13 4   ; arg 0 std_task$Channel__i64.receivers
   local.get 1   ; me
@@ -4145,7 +4166,7 @@ fn 80 std_task$await_message__i64 (ref) -> void
         local.field 0 13 2   ; arg 0 std_task$Channel__i64.closed
         ref.cast 23   ; bool
         br_if $L0
-        call.import 6   ; std_runtime_scheduler$park
+        call.import 8   ; std_runtime_scheduler$park
         br $L1
       end $L2
     end $L1
@@ -4288,7 +4309,7 @@ fn 89 std_task$run__i64 (ref,ref) -> void
   struct.new 45   ; __defer_env_std_task_5
   make_closure 90 36   ; __defer_std_task_4 fn
   defer.push
-  call.import 9   ; std_runtime_scheduler$is_cancelled
+  call.import 11   ; std_runtime_scheduler$is_cancelled
   if $L0 void
   else
     local.field 0 10 3   ; arg 0 std_task$Task__i64.result
@@ -4356,7 +4377,7 @@ fn 91 std_task$end__i64 (ref) -> void
       end $L2
       local.field 4 51 0   ; waiter std_task$Waiter.thread
       ref.cast 3   ; i64
-      call.import 7   ; std_runtime_scheduler$wake
+      call.import 9   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -4378,7 +4399,7 @@ fn 92 std_task$join__i64 (ref) -> any
     call 94   ; std_task$outcome__i64
     return
   end $L0
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 1   ; me
   local.field 0 10 4   ; arg 0 std_task$Task__i64.waiters
   local.set 2   ; $field_4
@@ -4400,7 +4421,7 @@ fn 92 std_task$join__i64 (ref) -> any
     ref.cast 23   ; bool
     if $L2 void
     else
-      call.import 6   ; std_runtime_scheduler$park
+      call.import 8   ; std_runtime_scheduler$park
       br $L1
     end $L2
   end $L1
@@ -4671,7 +4692,7 @@ fn 99 std_collections$remove_first__i64 (ref) -> i64
   i64.eq
   if $L0 void
     string.const 24   ; "remove_first: the queue is empty"
-    call.import 4   ; std_abort$panic
+    call.import 6   ; std_abort$panic
     unreachable
   else
     local.field 0 49 0   ; arg 0 std_collections$Queue__i64.items
@@ -4879,7 +4900,7 @@ end
 
 fn 106 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
-  call.import 8   ; std_runtime_scheduler$current_thread
+  call.import 10   ; std_runtime_scheduler$current_thread
   local.set 2   ; me
   local.field 0 57 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 23   ; bool
@@ -4934,7 +4955,7 @@ fn 108 std_runtime_scheduler$await_gate (ref,i64) -> void
     local.field 0 57 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 23   ; bool
     if $L1 void
-      call.import 6   ; std_runtime_scheduler$park
+      call.import 8   ; std_runtime_scheduler$park
       br $L0
     end $L1
   end $L0
@@ -4979,7 +5000,7 @@ fn 110 std_runtime_scheduler$let_go (ref) -> void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
       load_slot_i64
-      call.import 7   ; std_runtime_scheduler$wake
+      call.import 9   ; std_runtime_scheduler$wake
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add

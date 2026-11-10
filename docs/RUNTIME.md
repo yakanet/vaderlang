@@ -510,6 +510,16 @@ run time, aborts natively without running the defers (`TODO.md`).
 
 The `i32` that `main` returns is the exit status (SPEC §6 *`main` entry point*).
 
+**Broken pipes.** On Linux and macOS the runtime catches `SIGPIPE` when a natively
+compiled program starts, `vader` and so the VM included, with a handler that does
+nothing: a write to a pipe whose reader is gone fails with `EPIPE` instead of ending
+the program, and `std/process` reports it for a child that stopped reading. A write
+to stdout or stderr that fails so ends the program as the signal would
+(`std/console`), so `prog | head` stops `prog` as it stops any other program. An
+`exec` gives a caught signal its default back: the children a program starts get
+`SIGPIPE` as usual. Windows has no `SIGPIPE`: a write to a pipe whose reader is
+gone fails, and stdout and stderr ignore it as before.
+
 **The defer stack.** The closures a `defer` registers
 ([`ARCHITECTURE.md`](ARCHITECTURE.md), *Lowered AST*) live on one stack per
 thread, globals of the C runtime that a switch saves and restores, and a field of
