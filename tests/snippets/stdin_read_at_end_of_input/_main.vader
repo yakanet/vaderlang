@@ -11,10 +11,14 @@ main :: fn() -> i32 {
     line :: read_line()
     if line is IOError {
         println(line.kind == .EndOfInput)
+    } else {
+        println("a line: ${line}")
     }
     rest :: read_stdin_to_end()
     if rest is string {
         println(rest.byte_len())
+    } else {
+        println("an error: ${rest.msg}")
     }
     return 0
 }

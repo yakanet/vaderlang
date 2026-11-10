@@ -14,14 +14,23 @@
   expr 13:30    DotVariantExpr :: IOErrorKind
   expr 13:9     CallExpr       :: void
   expr 13:9     IdentExpr      :: fn(T) -> void
-  expr 15:13    CallExpr       :: IOError | string
-  expr 15:13    IdentExpr      :: fn() -> IOError | string
-  expr 16:16    IdentExpr      :: string
-  expr 16:5     IfExpr         :: void
-  expr 16:8     BinaryExpr     :: bool
-  expr 16:8     IdentExpr      :: IOError | string
-  expr 17:17    CallExpr       :: i64
-  expr 17:17    FieldExpr      :: fn() -> i64
-  expr 17:17    IdentExpr      :: string
-  expr 17:9     CallExpr       :: void
-  expr 17:9     IdentExpr      :: fn(T) -> void
+  expr 15:17    StringLitExpr  :: string
+  expr 15:28    IdentExpr      :: string
+  expr 15:9     CallExpr       :: void
+  expr 15:9     IdentExpr      :: fn(T) -> void
+  expr 17:13    CallExpr       :: IOError | string
+  expr 17:13    IdentExpr      :: fn() -> IOError | string
+  expr 18:16    IdentExpr      :: string
+  expr 18:5     IfExpr         :: void
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     IdentExpr      :: IOError | string
+  expr 19:17    CallExpr       :: i64
+  expr 19:17    FieldExpr      :: fn() -> i64
+  expr 19:17    IdentExpr      :: string
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(T) -> void
+  expr 21:17    StringLitExpr  :: string
+  expr 21:30    FieldExpr      :: string
+  expr 21:30    IdentExpr      :: IOError
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void
