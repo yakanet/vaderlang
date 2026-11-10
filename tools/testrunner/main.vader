@@ -1,0 +1,560 @@
+// tools/testrunner/main: compare the stage dumps of the snippets to their snapshots.
+//
+// Prototype of the test runner: K long-lived `vader dump-worker` children, each
+// owned by a task that takes the cases from one channel and feeds them to it,
+// one line per case on its stdin (see `vader/tools/cli/cmd_dump_worker.vader`
+// for the protocol). Each stage text is compared to the committed snapshot. A
+// worker that dies, or overruns the deadline of a case, is replaced on the rest
+// of its case, the stage it was on recorded as the harness records a failed
+// run.
+//
+// `vader build --release` in this folder builds it, under `build/`. Usage, from
+// the repository root:
+//
+//   testrunner <vader> [k] [phases, a comma list with `vm` on request]
+//
+// The comparison rules are those of `tests/snapshot.ts`, as
+// `tools/testrunner_proto/driver.py` ports them, except for the `vm` stage: its
+// exit code is truncated to 8 bits, as a process would.
+
+module "tools/testrunner"
+
+import "json"
+import "std/console"
+import "std/env"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/option"
+import "std/process"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "std/task"
+import "std/time"
+
+// ---- the cases ------------------------------------------------------------
+
+// One stage of a snippet: the phase the harness names it by, the stage of
+// `vader dump`, and the snapshot file.
+Stage :: struct {
+    phase:    string
+    dump:     string
+    snapshot: string
+}
+
+STAGES: Stage[]: [
+    Stage {
+        .phase    = "lexer",
+        .dump     = "lexer",
+        .snapshot = "lexer.snapshot",
+    },
+    Stage {
+        .phase    = "parser",
+        .dump     = "ast",
+        .snapshot = "parser.snapshot.json",
+    },
+    Stage {
+        .phase    = "typecheck",
+        .dump     = "typed-ast",
+        .snapshot = "typecheck.snapshot",
+    },
+    Stage {
+        .phase    = "comptime",
+        .dump     = "evaluated-ast",
+        .snapshot = "comptime.snapshot.md",
+    },
+    Stage {
+        .phase    = "lower",
+        .dump     = "lowered-ast",
+        .snapshot = "lower.snapshot",
+    },
+    Stage {
+        .phase    = "bytecode",
+        .dump     = "bytecode",
+        .snapshot = "bytecode.snapshot.virt",
+    },
+    Stage {
+        .phase    = "emit_c",
+        .dump     = "c",
+        .snapshot = "emit-c.snapshot.c",
+    },
+]
+
+VM_STAGE :: Stage {
+    .phase    = "vm",
+    .dump     = "vm",
+    .snapshot = "vm.snapshot",
+}
+
+SNIPPETS :: "tests/snippets"
+
+// A snippet and the stages to check on it.
+Case :: struct {
+    name:    string
+    stages:  Stage[]
+    modules: string[]
+}
+
+case_dir :: fn(name: string) -> string = "${SNIPPETS}/${name}"
+
+// The snippets under `SNIPPETS`, in name order, with the stages of `phases`
+// their `_config.json` lets run.
+find_cases :: fn(phases: string[]) -> Case[] {
+    listed :: read_dir(SNIPPETS)
+    if listed is IOError {
+        return []
+    }
+    cases: Case[]: []
+    for name in sort(listed, (a, b) -> a < b) {
+        dir :: case_dir(name)
+        if !exists("${dir}/_main.vader") {
+            continue
+        }
+        config :: read_config(dir)
+        stages :: stages_of(dir, config, phases)
+        if stages.len() > 0 {
+            cases.push(Case {
+                .name    = name,
+                .stages  = stages,
+                .modules = strings_of(member(config, "modules")),
+            })
+        }
+    }
+    return cases
+}
+
+// The `_config.json` of the snippet in `dir`, null when it has none.
+read_config :: fn(dir: string) -> JsonValue | null {
+    text :: read_file_string("${dir}/_config.json")
+    if text is IOError {
+        return null
+    }
+    parsed :: parse(text)
+    if parsed is JsonError {
+        return null
+    }
+    return parsed
+}
+
+// The member `key` of `value`, null when absent or when `value` is no object.
+member :: fn(value: JsonValue | null, key: string) -> JsonValue | null {
+    if value is JsonObject {
+        return value.entries[key]
+    }
+    return null
+}
+
+// The strings of a JSON array, none for anything else.
+strings_of :: fn(value: JsonValue | null) -> string[] {
+    out: string[]: []
+    if value is JsonArray {
+        for item in value.items {
+            if item is JsonString {
+                out.push(item.value)
+            }
+        }
+    }
+    return out
+}
+
+stages_of :: fn(dir: string, config: JsonValue | null, phases: string[]) -> Stage[] {
+    allowed :: member(config, "phases")
+    listed :: strings_of(allowed)
+    stages: Stage[]: []
+    for stage in STAGES {
+        if phases.contains(stage.phase) && (allowed == null || listed.contains(stage.phase)) {
+            stages.push(stage)
+        }
+    }
+    if phases.contains("vm") && exists("${dir}/vm.snapshot") && !vm_excluded(dir, config) {
+        stages.push(VM_STAGE)
+    }
+    return stages
+}
+
+// Whether the VM corpus leaves the snippet out: skipped, skipped on this
+// system, or linking a C helper.
+vm_excluded :: fn(dir: string, config: JsonValue | null) -> bool {
+    vm :: member(config, "vm")
+    if member(vm, "skip") != null || member(member(vm, "skip_on"), platform_name()) != null {
+        return true
+    }
+    listed :: read_dir(dir)
+    if listed is IOError {
+        return false
+    }
+    for file in listed {
+        if file.starts_with("helper") && file.ends_with(".c") {
+            return true
+        }
+    }
+    return false
+}
+
+// The name `skip_on` gives this system, Node's `process.platform`. The runner
+// starts processes, which WASI and the browser cannot.
+platform_name :: fn() -> string = @unreachable match VADER_OS {
+    .Darwin  -> "darwin"
+    .Windows -> "win32"
+    .Linux   -> "linux"
+}
+
+// ---- a worker -------------------------------------------------------------
+
+// The longest a case may take before its worker is killed.
+CASE_TIMEOUT_SECONDS: i64: 300
+
+// A `vader dump-worker` child, and what it wrote on stderr since it started.
+Worker :: struct {
+    child: ChildProcess
+    err:   u8[] = []
+}
+
+// What a worker wrote for the stages of one case.
+Run :: struct {
+    /// One per stage the worker ended, in the order of the case line.
+    results: StageResult[] = []
+    /// What the stage after them wrote before the worker stopped.
+    partial: string = ""
+    /// Whether the worker wrote the end of the case.
+    done:    bool = false
+}
+
+// The text of one stage the worker ended.
+StageResult :: struct {
+    out:  string
+    /// The stderr of a `vm` run, which the worker captures apart.
+    err:  string = ""
+    code: i32
+}
+
+// Feed `case` to `worker` for `stages`, and read what it writes until the end
+// of the case, its own end, or the deadline, which kills it.
+run_on :: fn(worker: Worker, case: Case, stages: Stage[]) -> Run {
+    dumps :: stages.map(s -> s.dump).collect()
+    line :: "${case_dir(case.name)}/_main.vader\t${case.modules.join(",")}\t${dumps.join(",")}\n"
+    began :: monotonic()
+    got: u8[]: []
+    ended := worker.child.write_input(line.bytes()) != null
+    for !ended && !case_done(got) {
+        left :: seconds(CASE_TIMEOUT_SECONDS) - began.since()
+        if left <= 0 {
+            worker.child.kill()
+            break
+        }
+        chunk :: worker.child.read_output(left)
+        got.push_all(chunk.out)
+        worker.err.push_all(chunk.err)
+        ended = chunk.ended
+    }
+    return parse_run(got.bytes_to_string())
+}
+
+// Whether `got` ends with the line `\u{1e}done <micros>` closing a case.
+case_done :: fn(got: u8[]) -> bool {
+    n :: got.len()
+    if n == 0 || got[n - 1] != '\n' {
+        return false
+    }
+    start := n - 1
+    for start > 0 && got[start - 1] != '\n' {
+        start -= 1
+    }
+    return got[start] == 0x1e && got[start..<n].bytes_to_string().starts_with("\u{1e}done ")
+}
+
+// Split what a worker wrote for a case on its markers.
+parse_run :: fn(text: string) -> Run {
+    run :: Run {}
+    pieces :: text.split("\u{1e}")
+    buffer := pieces[0]
+    // The stdout of a `vm` run, once its stderr has started.
+    vm_out: string | null = null
+    for i in 1..<pieces.len() {
+        halves :: pieces[i].split_first("\n") ?? [pieces[i], ""]
+        marker :: halves.0
+        if marker.starts_with("done ") {
+            run.done = true
+            return run
+        }
+        if marker == "stderr" {
+            vm_out = buffer
+        } else if marker.starts_with("end ") {
+            code :: parse_int(marker.split(" ")[1]).or_null() ?? -1
+            run.results.push(ended_stage(vm_out, buffer, code))
+            vm_out = null
+        }
+        buffer = halves.1
+    }
+    run.partial = buffer
+    return run
+}
+
+// The result of a stage: `text` is its dump, or the stderr of a `vm` run whose
+// stdout is `vm_out`.
+ended_stage :: fn(vm_out: string | null, text: string, code: i32) -> StageResult {
+    if vm_out == null {
+        return StageResult { .out = text, .code = code }
+    }
+    return StageResult {
+        .out  = vm_out,
+        .err  = text,
+        .code = code,
+    }
+}
+
+// The exit code of a worker that ended, -1 for a signal.
+exit_of :: fn(child: ChildProcess) -> i32 {
+    for {
+        ended :: child.poll()
+        if ended is ProcessResult {
+            return ended.exit
+        }
+        if ended is ProcessError {
+            return -1
+        }
+        child.read_output(seconds(1))
+    }
+}
+
+// ---- the texts compared ---------------------------------------------------
+
+// The text the harness records for `result`.
+stage_text :: fn(stage: Stage, result: StageResult) -> string {
+    if stage.phase == "vm" {
+        return format_run(result.out, result.err, result.code & 0xFF)
+    }
+    if result.code != 0 {
+        return snapshot_text(stage, failed_text(result.code, "", result.out))
+    }
+    return snapshot_text(stage, result.out)
+}
+
+snapshot_text :: fn(stage: Stage, text: string) -> string =
+    if stage.phase == "parser" { ast_as_json(text) } else { text }
+
+// The dump of the `ast` stage as the JSON the parser snapshot holds.
+ast_as_json :: fn(dump: string) -> string {
+    head :: "# AST\n"
+    if !dump.starts_with(head) {
+        return dump
+    }
+    body :: dump.trim_prefix(head)
+    halves :: body.split_first("\n# Diagnostics\n") ?? [body, ""]
+    lines: JsonValue[]: []
+    for line in halves.1.split("\n") {
+        if line != "" {
+            lines.push(JsonString { .value = line })
+        }
+    }
+    diagnostics :: stringify(JsonArray { .items = lines }, 2)
+    return "{\n  \"ast\": ${nested(halves.0.trim())},\n  \"diagnostics\": ${nested(diagnostics)}\n}\n"
+}
+
+nested :: fn(text: string) -> string = text.replace_all("\n", "\n  ")
+
+failed_text :: fn(code: i32, stderr: string, stdout: string) -> string =
+    "# vader CLI failed (exit ${canonical_exit(code, stderr)})\n${stderr}${stdout}"
+
+// A run that stopped on a trap, a panic or a signal exits 134, whatever the
+// system reported.
+canonical_exit :: fn(code: i32, stderr: string) -> i32 {
+    if code != 0 && (code < 0 || code >= 128 || has_stop_line(stderr)) {
+        return 134
+    }
+    return code
+}
+
+has_stop_line :: fn(stderr: string) -> bool = stderr.lines().any_match(
+    (line: string) -> line.starts_with("vader: trap: ") || line.starts_with("vader: panic: "),
+)
+
+// A run as `formatRun` in tests/snapshot.ts writes it, the stop lines of the VM
+// in the native spelling.
+format_run :: fn(stdout: string, stderr: string, code: i32) -> string {
+    shared :: stderr.split("\n").map(native_stop_line).collect().join("\n")
+    out :: StringBuilder {}
+    if stdout != "" {
+        out.append("# stdout\n${stdout}")
+    }
+    if shared != "" {
+        out.append("# stderr\n${shared}")
+    }
+    exit :: if has_stop_line(shared) { 134 } else { code }
+    out.append("# exit\n${exit}\n")
+    return out.to_string()
+}
+
+// `vader vm: <what> at pc=<n>` as the native binary writes it.
+native_stop_line :: fn(line: string) -> string {
+    if !line.starts_with("vader vm: ") {
+        return line
+    }
+    what :: without_pc(line.trim_prefix("vader vm: "))
+    if what.starts_with("panic: ") {
+        return "vader: ${what}"
+    }
+    return "vader: trap: ${what}"
+}
+
+without_pc :: fn(what: string) -> string {
+    halves :: what.split_last(" at pc=") ?? return what
+    if halves.1 == "" || parse_int(halves.1) is ParseError {
+        return what
+    }
+    return halves.0
+}
+
+// ---- the pool -------------------------------------------------------------
+
+// What one task found over the cases it ran.
+Tally :: struct {
+    same:    i64 = 0
+    differ:  string[] = []
+    crashes: string[] = []
+}
+
+// A task's worker, started on first use and after each crash.
+Slot :: struct {
+    vader:   string
+    capture: string
+    worker:  Worker | null = null
+}
+
+// Take indices of `cases` from `queue` until it is closed, and run each case on
+// the slot's worker.
+serve :: fn(slot: Slot, cases: Case[], queue: Channel<i64>) -> Tally {
+    tally :: Tally {}
+    for i in queue {
+        run_case(slot, cases[i], tally)
+    }
+    stop_worker(slot)
+    return tally
+}
+
+// Run the stages of `case`, on a new worker for those left after a crash.
+run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
+    todo := case.stages
+    for todo.len() > 0 {
+        worker :: worker_of(slot) ?? return
+        run :: run_on(worker, case, todo)
+        ended :: run.results.len()
+        for i in 0..<ended {
+            check(case, todo[i], stage_text(todo[i], run.results[i]), tally)
+        }
+        if run.done {
+            return
+        }
+        code :: exit_of(worker.child)
+        slot.worker = null
+        // Dead after its last stage ended, the worker crashed on none.
+        if ended == todo.len() {
+            return
+        }
+        stage :: todo[ended]
+        text :: failed_text(code, worker.err.bytes_to_string(), run.partial)
+        check(case, stage, snapshot_text(stage, text), tally)
+        tally.crashes.push("${case.name}/${stage.phase} exit ${code}")
+        todo = todo[(ended + 1)..<todo.len()]
+    }
+}
+
+worker_of :: fn(slot: Slot) -> Worker | null {
+    current :: slot.worker
+    if current != null {
+        return current
+    }
+    child :: spawn_interactive([slot.vader, "dump-worker", slot.capture])
+    if child is ProcessError {
+        eprintln("testrunner: ${child.msg}")
+        return null
+    }
+    started :: Worker { .child = child }
+    slot.worker = started
+    return started
+}
+
+// Close the stdin of the slot's worker, which then exits, and wait for it.
+stop_worker :: fn(slot: Slot) -> void {
+    worker :: slot.worker ?? return
+    worker.child.close_input()
+    exit_of(worker.child)
+}
+
+check :: fn(case: Case, stage: Stage, text: string, tally: Tally) -> void {
+    expected :: read_file_string("${case_dir(case.name)}/${stage.snapshot}")
+    if expected is string && expected == text {
+        tally.same += 1
+        return
+    }
+    tally.differ.push("${case.name}/${stage.phase}")
+}
+
+// ---- main -----------------------------------------------------------------
+
+main :: fn(argv: string[]) -> i32 {
+    if argv.len() < 2 {
+        eprintln("usage: testrunner <vader> [k] [phases]")
+        return 2
+    }
+    vader :: argv[1]
+    // The workers inherit this environment, and a `VADER_HOME` moves the modules
+    // of the toolchain in the dumps: the snapshots are taken without one.
+    unset_env("VADER_HOME")
+    k :: worker_count(argv)
+    phases :: if argv.len() > 3 { argv[3].split(",") } else { STAGES.map(s -> s.phase).collect() }
+    cases :: find_cases(phases)
+    // Indices rather than the cases: a task that reads an array of a `Case` it
+    // received is taken for one that writes it.
+    queue :: Channel<i64> { .capacity = UNBOUNDED }
+    for i in 0..<cases.len() {
+        queue.send(i)
+    }
+    queue.close()
+    began :: monotonic()
+    tasks: Task<Tally>[]: []
+    captures: string[]: []
+    for i in 0..<k {
+        slot :: Slot { .vader = vader, .capture = created_capture_dir(i) }
+        captures.push(slot.capture)
+        tasks.push(launch(() -> serve(slot, cases, queue)))
+    }
+    total :: Tally {}
+    for result in join_all(tasks) {
+        if result is Tally {
+            total.same += result.same
+            total.differ.push_all(result.differ)
+            total.crashes.push_all(result.crashes)
+        }
+    }
+    elapsed :: began.since().to_millis()
+    checks :: total.same + total.differ.len()
+    println("k=${k}: ${elapsed} ms wall, ${cases.len()} cases, ${checks} stage checks")
+    println("k=${k}: snapshots same ${total.same}, differ ${total.differ.len()}, crashes ${total.crashes.len()}")
+    for name in total.differ {
+        println("  != snapshot: ${name}")
+    }
+    for crash in total.crashes {
+        println("  crash: ${crash}")
+    }
+    for dir in captures {
+        remove(dir, RemoveOptions { .recursive = true })
+    }
+    return if total.differ.len() == 0 { 0 } else { 1 }
+}
+
+worker_count :: fn(argv: string[]) -> i32 {
+    given :: if argv.len() > 2 { parse_int(argv[2]).or_null() ?? 0 } else { 0 }
+    if given > 0 {
+        return given
+    }
+    return processor_count()
+}
+
+// The folder worker `i` captures its runs in, created.
+created_capture_dir :: fn(i: i32) -> string {
+    dir :: "${temp_dir()}/vader-testrunner-${i}"
+    create_dir(dir)
+    return dir
+}
