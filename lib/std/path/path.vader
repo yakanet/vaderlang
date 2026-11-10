@@ -121,28 +121,6 @@ parent_on :: fn(s: string, os: Os) -> string {
     return without_trailing_separators(path.byte_slice(0, cut), os)
 }
 
-/// The two halves of a filename, as returned by `basename`.
-///
-/// RETAINED against its own redundancy: `filename()` / `name()` / `extension()`
-/// cover every use, and this should have gone with them, but removing it makes
-/// `vader test lib/std/path` panic in `to_posix`, a function it never touched
-/// (`no field replace_chars_where on Path`). Bisected: ADDING the three views is
-/// fine, REMOVING this is what breaks, so it is a materialisation bug the removal
-/// merely exposes. `tests/vader_e2e.test.ts` runs that isolated mode per stdlib
-/// module, so the panic is CI-visible. See TODO.md; delete this once fixed.
-export Basename :: struct {
-    /// The filename without its final extension: `"archive.tar"`.
-    name:      string
-    /// The final extension without the leading dot: `"gz"`.
-    extension: string
-}
-
-/// Both halves of the final segment at once. Prefer `name()` / `extension()`.
-/// @param self  the path receiver.
-/// @return      `{ name, extension }`, split at the last dot of the filename.
-export basename :: fn(self: Path) -> Basename =
-    Basename { .name = self.name(), .extension = self.extension() }
-
 // Byte offset of the extension-separating dot inside a FILENAME (never a full
 // path), or null when there is none. The `min_index` of 1 is the whole subtlety: a
 // leading dot marks a hidden file rather than an extension, and it only means
