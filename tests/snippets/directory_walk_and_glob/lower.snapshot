@@ -133,11 +133,14 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.clone<ListedEntry>  // std_core$clone__std_fs_ListedEntry
+    fn std.core.clone<string>  // std_core$clone__string
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.codepoint_offset  // std_core$codepoint_offset
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.string.at  // std_core$string$Index$at
     fn std.core.string.compare  // std_core$string$Comparable$compare
@@ -239,9 +242,6 @@
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
-  std/iter
-    fn std.iter.clone<ListedEntry>  // std_iter$clone__std_fs_ListedEntry
-    fn std.iter.clone<string>  // std_iter$clone__string
   std/path
     fn std.path.join  // std_path$join
     fn std.path.to_path  // std_path$to_path
@@ -257,7 +257,6 @@
     fn std.string.chars  // std_string$chars
     fn std.string.compare_ascending  // std_string$compare_ascending
     fn std.string.ends_with  // std_string$ends_with
-    fn std.string.is_empty  // std_string$is_empty
     fn std.string.matches_at  // std_string$matches_at
     struct std.string.StringChars  // std_string$StringChars
   std/string_builder

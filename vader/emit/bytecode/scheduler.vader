@@ -19,7 +19,6 @@
 module "vader/emit/bytecode"
 
 import "std/collections"
-import "std/iter"
 import "vader/midir"
 
 /// Stack-pass-through hints for one fn.

@@ -109,6 +109,7 @@
     fn std.core.codepoint_offset  // std_core$codepoint_offset
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.string.at  // std_core$string$Index$at
     fn std.core.write_bool  // std_core$write_bool
@@ -132,7 +133,6 @@
     fn std.path.to_path  // std_path$to_path
   std/string
     fn std.string.ends_with  // std_string$ends_with
-    fn std.string.is_empty  // std_string$is_empty
     fn std.string.last_index_of  // std_string$last_index_of
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.starts_with  // std_string$starts_with

@@ -37,7 +37,7 @@ total :: fn(shapes: Shape[]) -> i32 {
     return sum
 }
 
-first :: fn(shapes: Shape[]) -> Shape = shapes[0]
+head :: fn(shapes: Shape[]) -> Shape = shapes[0]
 
 add_square :: fn(shapes: Shape[]) -> void {
     shapes.push(Square { .s = 1 })
@@ -51,7 +51,7 @@ apply :: fn(f: fn(Shape[]) -> i32, circles: Circle[]) -> i32 = f(circles)
 
 main :: fn() -> i32 {
     circles :: [Circle { .r = 2 }]
-    n :: total(circles) + first(circles).area()
+    n :: total(circles) + head(circles).area()
     add_square(circles)
     circles.add_square()
     _ :: group(circles)

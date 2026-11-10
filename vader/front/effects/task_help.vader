@@ -12,7 +12,6 @@
 
 module "vader/front/effects"
 
-import "std/iter"
 import "vader/core/types"
 
 // The way out of the clash of `s` with the task's `t`. `moved` is how the help names

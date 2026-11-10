@@ -6,8 +6,6 @@
 
 module "frozen"
 
-import "std/iter"
-
 export Cfg :: struct {
     n: i32
 }

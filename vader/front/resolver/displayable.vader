@@ -9,7 +9,6 @@
 
 module "vader/front/resolver"
 
-import "std/iter"
 import "std/string_builder"
 import "vader/front/parser"
 AST :: import "toolchain/ast"

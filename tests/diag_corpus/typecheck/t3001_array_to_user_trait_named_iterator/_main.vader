@@ -6,6 +6,6 @@ Iterator :: trait<T> {
     peek :: fn(self) -> T
 }
 
-first :: fn(it: Iterator<i32>) -> i32 = it.peek()
+head :: fn(it: Iterator<i32>) -> i32 = it.peek()
 
-main :: fn() -> i32 = first([1, 2, 3])
+main :: fn() -> i32 = head([1, 2, 3])

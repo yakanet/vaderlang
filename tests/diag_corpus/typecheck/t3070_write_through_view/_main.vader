@@ -3,8 +3,6 @@
 // one too, while a copy is the program's own. T3070, twice.
 module "snippet"
 
-import "std/iter"
-
 bytes_of :: fn(s: string) -> u8[] = s.bytes()
 
 main :: fn() -> i32 {

@@ -7,8 +7,6 @@
 
 module "std/sort"
 
-import "std/iter"
-
 /// Return a fresh array containing `arr`'s elements in sorted order. The
 /// input is never mutated. Equal elements keep their input order, so the
 /// sort is stable. Complexity O(n log n) (top-down merge sort with an

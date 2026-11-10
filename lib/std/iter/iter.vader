@@ -15,9 +15,7 @@
 //     `any_match` / `all_match` / `find` / `find_map` take an `Iterator<T>` and
 //     consume it with one `for` (a raw array auto-coerces at the call site) ; over
 //     a chain, the call inlines into the fused loop.
-//   - **Array helpers** `clone` / `is_empty` / `count` / `last` take a `T[]`, in
-//     O(1). For a plain array prefer the built-ins : `arr.len()`,
-//     `arr[start..<end]`, `arr.clone()` (not the removed `slice` / eager `collect`).
+//   - `count` on a `T[]` is its length, in O(1).
 //   - `partition` / `group_by` / `unzip` sort the elements into several
 //     collections (grouping.vader) ; `peekable` wraps an iterator so its next
 //     element can be looked at first (peekable.vader).
@@ -25,12 +23,6 @@
 module "std/iter"
 
 import "std/collections"
-
-/// True when `arr` carries no elements.
-///
-/// @param arr  source array.
-/// @return     true when `arr.len() == 0`.
-export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 
 /// True when `it` yields nothing. Pulls one element at most, with no peek: a
 /// `false` result has consumed the first one.
@@ -57,27 +49,6 @@ export count :: fn<T>(it: Iterator<T>) -> i64 {
         total += 1
     }
     return total
-}
-
-/// The first element of `arr`, or `null` when it is empty: O(1).
-///
-/// @param arr  source array.
-export first :: fn<T>(arr: T[]) -> T | null {
-    if arr.len() == 0 {
-        return null
-    }
-    return arr[0]
-}
-
-/// The last element of `arr`, or `null` when it is empty: O(1).
-///
-/// @param arr  source array.
-export last :: fn<T>(arr: T[]) -> T | null {
-    n :: arr.len()
-    if n == 0 {
-        return null
-    }
-    return arr[n - 1]
 }
 
 /// Drain `it`, returning its last element, or `null` when it yields none.
@@ -151,25 +122,6 @@ export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
         p *= x
     }
     return p
-}
-
-// `slice` removed: it was a trivial wrapper over the built-in `arr[start..<end]`
-// view (zero-copy, copy-on-write on push, const-preserving). Use the index-range
-// form directly.
-
-/// Fresh copy of `arr`. The returned array is independent: mutating it does
-/// not affect `arr`.
-///
-/// Use this to modify what a frozen value holds (a module constant, a view of a
-/// string's bytes), or to break aliasing between a slice view and its parent.
-///
-/// Naming overlaps with the `Clone` trait in `std/core` (currently
-/// without implementors). When `T[] implements Clone` lands, this free
-/// fn becomes the impl: `arr.clone()` resolves identically either way.
-export clone :: fn<T>(arr: T[]) -> T[] {
-    out: T[]: [] * arr.len()
-    out.push_all(arr)
-    return out
 }
 
 /// Lazily pair elements of `self` and `other` into tuples, stopping at the
@@ -603,18 +555,8 @@ import "std/testing"
     assert_eq((0..<0).last() ?? -1, -1)
 }
 
-@test test_count_and_last_of_an_array :: fn() -> void {
-    xs :: [4, 5, 6]
-    assert_eq(xs.count(), 3)
-    assert_eq(xs.last() ?? -1, 6)
-    empty: i32[]: []
-    assert_eq(empty.last() ?? -1, -1)
-}
-
-@test test_first_of_an_array :: fn() -> void {
-    assert_eq([4, 5, 6].first() ?? -1, 4)
-    empty: i32[]: []
-    assert_eq(empty.first() ?? -1, -1)
+@test test_count_of_an_array :: fn() -> void {
+    assert_eq([4, 5, 6].count(), 3)
 }
 
 @test test_is_empty_iterator :: fn() -> void {

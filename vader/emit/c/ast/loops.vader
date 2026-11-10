@@ -12,7 +12,6 @@
 module "vader/emit/c/ast"
 
 import "std/collections"
-import "std/iter"
 
 /// Rewrite the loops of a function body as C loops.
 ///

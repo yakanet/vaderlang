@@ -171,6 +171,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static int32_t snippet$main(void);
 static void* snippet$parse_one(vader_string_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static bool std_core$is_empty_1(vader_string_t l0);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 static bool std_core$is_utf8_continuation(uint8_t l0);
 static void std_core$codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* __o0, int64_t* __o1);
@@ -214,7 +215,6 @@ static int32_t semver$compare_prerelease(vader_string_t l0, vader_string_t l1);
 static bool semver$term_satisfies(void* l0, void* l1);
 static int32_t semver$compare_id(vader_string_t l0, vader_string_t l1);
 static int32_t semver$compare_lex(vader_string_t l0, vader_string_t l1);
-static bool std_string$is_empty(vader_string_t l0);
 static vader_string_t std_string$trim(vader_string_t l0);
 static vader_box_t std_string$parse_int(vader_string_t l0);
 static bool std_string$is_white_byte(uint8_t l0);
@@ -250,9 +250,9 @@ const vader_type_info_t vader_type_info_table[29] = {
         .string_count = 2,
     },
     [4] = { .slot_size = 1 },
-    [5] = { .slot_size = 8 },
-    [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 1 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 8 },
+    [7] = { .slot_size = 4 },
     [8] = { .slot_size = 4 },
     [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
@@ -340,7 +340,7 @@ static vader_string_t vader_host_std_core$byte_slice(vader_string_t a0, int64_t 
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 4u);
+    return (void*) vader_string_bytes_view(a0, 10u, 5u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -456,6 +456,12 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
     t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool std_core$is_empty_1(vader_string_t l0) {
+    int64_t t0;
+    t0 = vader_host_std_core$byte_len(l0);
+    return t0 == INT64_C(0);
 }
 
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1) {
@@ -700,7 +706,7 @@ static vader_box_t semver$parse(vader_string_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
@@ -813,7 +819,7 @@ static vader_box_t semver$parse(vader_string_t l0) {
         VADER_ARRAY_CHECK_INDEX(_a6_slotarr, INT32_C(2))
         ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) INT32_C(2)] = (int32_t) l4;
         if ((l3 < l2)) {
-            t0 = std_string$is_empty(l9);
+            t0 = std_core$is_empty_1(l9);
             if (t0) {
                 vader_struct_std_string$ParseError_t* _a7_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a7_obj, 13u);
@@ -823,7 +829,7 @@ static vader_box_t semver$parse(vader_string_t l0) {
             }
         }
         if ((l2 < l1)) {
-            t0 = std_string$is_empty(l10);
+            t0 = std_core$is_empty_1(l10);
             if (t0) {
                 vader_struct_std_string$ParseError_t* _a8_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a8_obj, 13u);
@@ -832,10 +838,10 @@ static vader_box_t semver$parse(vader_string_t l0) {
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
         }
-        t0 = std_string$is_empty(l9);
+        t0 = std_core$is_empty_1(l9);
         if (!(t0)) {
             l15 = semver$validate_prerelease(l9);
-            t0 = std_string$is_empty(l15);
+            t0 = std_core$is_empty_1(l15);
             if (!(t0)) {
                 vader_struct_std_string$ParseError_t* _a9_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a9_obj, 13u);
@@ -844,10 +850,10 @@ static vader_box_t semver$parse(vader_string_t l0) {
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
         }
-        t0 = std_string$is_empty(l10);
+        t0 = std_core$is_empty_1(l10);
         if (!(t0)) {
             l15 = semver$validate_build(l10);
-            t0 = std_string$is_empty(l15);
+            t0 = std_core$is_empty_1(l15);
             if (!(t0)) {
                 vader_struct_std_string$ParseError_t* _a10_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a10_obj, 13u);
@@ -908,7 +914,7 @@ static vader_box_t semver$parse_range(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = std_string$trim(l0);
-    t0 = std_string$is_empty(l1);
+    t0 = std_core$is_empty_1(l1);
     if (t0) {
         t1 = semver$wildcard_range();
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
@@ -975,7 +981,7 @@ static vader_box_t semver$parse_numeric_id(vader_string_t l0) {
         vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
@@ -1032,7 +1038,7 @@ static vader_string_t semver$validate_prerelease(vader_string_t l0) {
         if (t0 == INT32_C(46)) {
             t1 = vader_host_std_core$byte_slice(l0, l2, l3);
             l4 = semver$validate_prerelease_id(t1);
-            t2 = std_string$is_empty(l4);
+            t2 = std_core$is_empty_1(l4);
             if (!(t2)) {
                 return l4;
             }
@@ -1059,7 +1065,7 @@ static vader_string_t semver$validate_build(vader_string_t l0) {
         if (t0 == INT32_C(46)) {
             t1 = vader_host_std_core$byte_slice(l0, l2, l3);
             l4 = semver$validate_build_id(t1);
-            t2 = std_string$is_empty(l4);
+            t2 = std_core$is_empty_1(l4);
             if (!(t2)) {
                 return l4;
             }
@@ -1371,7 +1377,7 @@ static bool semver$is_all_digits(vader_string_t l0) {
     bool t0;
     uint32_t t1;
     int64_t t2;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         return false;
     }
@@ -1426,7 +1432,7 @@ static vader_string_t semver$validate_prerelease_id(vader_string_t l0) {
     uint32_t t1;
     int64_t t2;
     uint8_t t3;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         return 25u;
     }
@@ -1506,7 +1512,7 @@ static vader_string_t semver$validate_build_id(vader_string_t l0) {
     bool t0;
     uint32_t t1;
     int64_t t2;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         return 28u;
     }
@@ -1608,7 +1614,7 @@ static bool semver$is_bare_operator(vader_string_t l0) {
     bool t0;
     uint32_t t1;
     int64_t t2;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         return false;
     }
@@ -1689,7 +1695,7 @@ static vader_box_t semver$parse_token(vader_string_t l0) {
         vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
@@ -1866,7 +1872,7 @@ static vader_box_t semver$parse_partial(vader_string_t l0) {
         vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_string$is_empty(l0);
+    t0 = std_core$is_empty_1(l0);
     if (t0) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
@@ -2055,10 +2061,10 @@ static vader_box_t semver$parse_partial(vader_string_t l0) {
             }
         }
     }
-    t0 = std_string$is_empty(l9);
+    t0 = std_core$is_empty_1(l9);
     if (!(t0)) {
         l8 = semver$validate_prerelease(l9);
-        t0 = std_string$is_empty(l8);
+        t0 = std_core$is_empty_1(l8);
         if (!(t0)) {
             vader_struct_std_string$ParseError_t* _a13_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
             vader_obj_header_init(_a13_obj, 13u);
@@ -2068,12 +2074,12 @@ static vader_box_t semver$parse_partial(vader_string_t l0) {
         }
         ((vader_struct_semver$PartialVersion_t*) l13)->f_prerelease = l9;
     }
-    t0 = std_string$is_empty(l10);
+    t0 = std_core$is_empty_1(l10);
     if (t0) {
         { vader_box_t __vret = vader_ref_box(l13); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l8 = semver$validate_build(l10);
-    t0 = std_string$is_empty(l8);
+    t0 = std_core$is_empty_1(l8);
     if (!(t0)) {
         vader_struct_std_string$ParseError_t* _a14_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a14_obj, 13u);
@@ -2224,7 +2230,7 @@ static vader_box_t semver$parse_comparator_token(uint8_t l0, vader_string_t l1) 
         vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = std_string$is_empty(l1);
+    t0 = std_core$is_empty_1(l1);
     if (t0) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
@@ -2516,14 +2522,14 @@ static vader_string_t semver$Version$std_core$Display$to_string(void* l0) {
     l5 = std_core$finish_buffer(l2, l3);
     std_string__builder$append(l1, l5);
     t2 = ((vader_struct_semver$Version_t*) l0)->f_prerelease;
-    t3 = std_string$is_empty(t2);
+    t3 = std_core$is_empty_1(t2);
     if (!(t3)) {
         std_string__builder$append(l1, 21u);
         l5 = ((vader_struct_semver$Version_t*) l0)->f_prerelease;
         std_string__builder$append(l1, l5);
     }
     t2 = ((vader_struct_semver$Version_t*) l0)->f_build;
-    t3 = std_string$is_empty(t2);
+    t3 = std_core$is_empty_1(t2);
     if (t3) {
         t2 = std_string__builder$StringBuilder$std_core$Display$to_string(l1);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -2610,9 +2616,9 @@ static int32_t semver$compare_versions(void* l0, void* l1) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     t0 = ((vader_struct_semver$Version_t*) l0)->f_prerelease;
-    l4 = std_string$is_empty(t0);
+    l4 = std_core$is_empty_1(t0);
     t0 = ((vader_struct_semver$Version_t*) l1)->f_prerelease;
-    l5 = std_string$is_empty(t0);
+    l5 = std_core$is_empty_1(t0);
     if (l4) {
         if (l5) {
             { vader_gc_top = gc_frame.prev; return INT32_C(0); }
@@ -2646,7 +2652,7 @@ static bool semver$clause_contains(void* l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_semver$Version_t*) l1)->f_prerelease;
-    t1 = std_string$is_empty(t0);
+    t1 = std_core$is_empty_1(t0);
     if (!(t1)) {
         l2 = false;
         l3 = ((vader_struct_semver$RangeClause_t*) l0)->f_terms;
@@ -2668,7 +2674,7 @@ static bool semver$clause_contains(void* l0, void* l1) {
                     l12 = ((vader_struct_semver$Version_t*) l1)->f_patch;
                     if (l11 == l12) {
                         t0 = ((vader_struct_semver$Version_t*) l6)->f_prerelease;
-                        t1 = std_string$is_empty(t0);
+                        t1 = std_core$is_empty_1(t0);
                         if (!(t1)) {
                             l2 = true;
                             break;
@@ -2875,12 +2881,6 @@ static int32_t semver$compare_lex(vader_string_t l0, vader_string_t l1) {
         return INT32_C(0);
     }
     return INT32_C(1);
-}
-
-static bool std_string$is_empty(vader_string_t l0) {
-    int64_t t0;
-    t0 = vader_host_std_core$byte_len(l0);
-    return t0 == INT64_C(0);
 }
 
 static vader_string_t std_string$trim(vader_string_t l0) {

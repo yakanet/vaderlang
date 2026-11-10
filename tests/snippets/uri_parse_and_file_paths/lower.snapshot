@@ -70,6 +70,7 @@
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.string.at  // std_core$string$Index$at
     fn std.core.utf8_encode  // std_core$utf8_encode
@@ -88,7 +89,6 @@
     fn std.path.to_posix  // std_path$to_posix
   std/string
     fn std.string.ends_with  // std_string$ends_with
-    fn std.string.is_empty  // std_string$is_empty
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.replace_chars_where  // std_string$replace_chars_where
     fn std.string.starts_with  // std_string$starts_with

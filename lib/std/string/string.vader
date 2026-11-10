@@ -7,11 +7,6 @@ module "std/string"
 import "std/string_builder"
 import "std/math"
 
-/// True for the empty string. Equivalent to `s.byte_len() == 0` but
-/// reads cleanly at call sites: emptiness is the same in byte and
-/// codepoint views.
-export is_empty :: fn(s: string) -> bool = s.byte_len() == 0
-
 /// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private:
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
@@ -766,11 +761,6 @@ import "std/testing"
     assert_eq(byte_len(""), 0)
     assert_eq(byte_len("abc"), 3)
     assert_eq(byte_len("héllo"), 6)
-}
-
-@test test_is_empty :: fn() -> void {
-    assert(is_empty(""), "empty string should be empty")
-    assert(!is_empty("x"), "non-empty string should not be empty")
 }
 
 @test test_bytes :: fn() -> void {

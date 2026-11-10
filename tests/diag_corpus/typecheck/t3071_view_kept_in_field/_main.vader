@@ -4,8 +4,6 @@
 // accepted: `bytes_of` hands views out as `bytes()` does. T3071, twice.
 module "snippet"
 
-import "std/iter"
-
 Packet :: struct {
     payload: u8[]
 }

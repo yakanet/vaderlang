@@ -165,6 +165,12 @@ export len :: fn(s: string) -> i64 {
     return count
 }
 
+/// True for the empty string: emptiness is the same in bytes and in codepoints,
+/// so nothing is counted.
+///
+/// @param s  source string.
+export is_empty :: fn(s: string) -> bool = s.byte_len() == 0
+
 // The bytes `ascii_prefix` tests at once.
 ASCII_BLOCK: i64: 64
 
@@ -246,6 +252,11 @@ string implements Index<Range<i64>, string> {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test test_is_empty_string :: fn() -> void {
+    assert("".is_empty(), "the empty string")
+    assert(!"x".is_empty(), "a string with a byte")
+}
 
 // Assert that `s` decodes to exactly `want`, one `codepoint_at_byte` step each.
 assert_decodes :: fn(s: string, want: char[]) -> void {

@@ -21,7 +21,6 @@
 
 module "crypto"
 
-import "std/iter"
 import "std/string_builder"
 import "std/math"
 import "std/numbers"

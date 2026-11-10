@@ -8,8 +8,6 @@
 
 module "toolchain/ast"
 
-import "std/iter"
-
 // ---- the walk -------------------------------------------------------------
 
 /// Any node `inspect` hands its visitor: a declaration, an expression (a type

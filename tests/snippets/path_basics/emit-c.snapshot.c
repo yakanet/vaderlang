@@ -126,6 +126,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core$finish_buffer(void* l0, int64_t l1);
 static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2);
+static bool std_core$is_empty_1(vader_string_t l0);
 static void std_core$codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* __o0, int64_t* __o1);
 static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 static bool std_core$is_utf8_continuation(uint8_t l0);
@@ -150,7 +151,6 @@ static vader_string_t std_path$normalize(vader_string_t l0);
 static vader_box_t std_path$extension_dot(vader_string_t l0);
 static vader_box_t std_string$last_index_of(vader_string_t l0, uint32_t l1, int64_t l2);
 static bool std_string$starts_with(vader_string_t l0, vader_string_t l1);
-static bool std_string$is_empty(vader_string_t l0);
 static bool std_string$ends_with(vader_string_t l0, vader_string_t l1);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 static void std_string__builder$append(void* l0, vader_string_t l1);
@@ -435,6 +435,12 @@ static int64_t std_core$write_bool(void* l0, int64_t l1, bool l2) {
     }
     t0 = std_core$write_string_at(l0, l1, 44u);
     return t0;
+}
+
+static bool std_core$is_empty_1(vader_string_t l0) {
+    int64_t t0;
+    t0 = vader_host_std_core$byte_len(l0);
+    return t0 == INT64_C(0);
 }
 
 static void std_core$codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* __o0, int64_t* __o1) {
@@ -794,7 +800,7 @@ static vader_string_t std_path$join(vader_string_t l0, vader_string_t l1) {
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-    t0 = std_string$is_empty(l1);
+    t0 = std_core$is_empty_1(l1);
     if (t0) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -803,7 +809,7 @@ static vader_string_t std_path$join(vader_string_t l0, vader_string_t l1) {
         { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = l0;
-    t0 = std_string$is_empty(l2);
+    t0 = std_core$is_empty_1(l2);
     if (t0) {
         { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -832,7 +838,7 @@ static bool std_path$starts_with(vader_string_t l0, vader_string_t l1) {
     if (l4 == l5) {
         return true;
     }
-    t0 = std_string$is_empty(l3);
+    t0 = std_core$is_empty_1(l3);
     if (!(t0)) {
         l4 = vader_chk_sub(i64, l5, INT64_C(1));
         t1 = vader_host_std_core$byte_at(l3, l4);
@@ -861,7 +867,7 @@ static bool std_path$ends_with(vader_string_t l0, vader_string_t l1) {
         return true;
     }
     l4 = vader_chk_sub(i64, l4, l5);
-    t0 = std_string$is_empty(l3);
+    t0 = std_core$is_empty_1(l3);
     if (!(t0)) {
         t1 = vader_host_std_core$byte_at(l3, INT64_C(0));
         if (t1 == INT32_C(47)) {
@@ -892,7 +898,7 @@ static vader_string_t std_path$normalize(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = l0;
-    t0 = std_string$is_empty(l1);
+    t0 = std_core$is_empty_1(l1);
     if (t0) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -921,7 +927,7 @@ static vader_string_t std_path$normalize(vader_string_t l0) {
         }
         if (l10) {
             l11 = vader_host_std_core$byte_slice(l1, l7, l6);
-            t0 = std_string$is_empty(l11);
+            t0 = std_core$is_empty_1(l11);
             if (t0) {
                 l12 = true;
             } else {
@@ -994,7 +1000,7 @@ static vader_string_t std_path$normalize(vader_string_t l0) {
         l5 = (l5 + INT64_C(1));
     }
     l1 = std_string__builder$StringBuilder$std_core$Display$to_string(l17);
-    t0 = std_string$is_empty(l1);
+    t0 = std_core$is_empty_1(l1);
     if (t0) {
         if (!(l2)) {
             { vader_gc_top = gc_frame.prev; return 48u; }
@@ -1038,12 +1044,6 @@ static bool std_string$starts_with(vader_string_t l0, vader_string_t l1) {
     bool t0;
     t0 = std_string$matches_at(l0, INT64_C(0), l1);
     return t0;
-}
-
-static bool std_string$is_empty(vader_string_t l0) {
-    int64_t t0;
-    t0 = vader_host_std_core$byte_len(l0);
-    return t0 == INT64_C(0);
 }
 
 static bool std_string$ends_with(vader_string_t l0, vader_string_t l1) {

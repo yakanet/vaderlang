@@ -87,9 +87,9 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 11   ; std_console$println__string
+  call 12   ; std_console$println__string
   local.get 0   ; nums
-  call 12   ; std_iter$clone__i32
+  call 8   ; std_core$clone__i32
   local.set 0   ; nums
   i64.const 29
   buffer.new
@@ -114,7 +114,7 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   call 3   ; std_core$finish_buffer
-  call 11   ; std_console$println__string
+  call 12   ; std_console$println__string
   string.const 2   ; "a"
   string.const 3   ; "b"
   string.const 4   ; "c"
@@ -195,7 +195,7 @@ fn 0 snippet$main () -> i32
       local.get 9   ; __buf_6
       local.get 10   ; __off_7
       call 3   ; std_core$finish_buffer
-      call 11   ; std_console$println__string
+      call 12   ; std_console$println__string
       local.get 3   ; $len_12
       i64.const 1
       i64.add
@@ -247,7 +247,7 @@ fn 0 snippet$main () -> i32
       local.get 9   ; __buf_6
       local.get 4   ; $len_44
       call 3   ; std_core$finish_buffer
-      call 11   ; std_console$println__string
+      call 12   ; std_console$println__string
       local.get 3   ; $len_12
       i64.const 1
       i64.add
@@ -290,7 +290,7 @@ fn 0 snippet$main () -> i32
       local.get 0   ; nums
       local.get 4   ; $len_44
       call 3   ; std_core$finish_buffer
-      call 11   ; std_console$println__string
+      call 12   ; std_console$println__string
       local.get 3   ; $len_12
       i64.const 1
       i64.add
@@ -350,7 +350,7 @@ fn 0 snippet$main () -> i32
       local.get 1   ; __buf_0
       local.get 12   ; __off_20
       call 3   ; std_core$finish_buffer
-      call 11   ; std_console$println__string
+      call 12   ; std_console$println__string
       local.get 2   ; __off_1
       i64.const 1
       i64.checked_add
@@ -405,7 +405,7 @@ fn 0 snippet$main () -> i32
       local.get 0   ; nums
       local.get 2   ; __off_1
       call 3   ; std_core$finish_buffer
-      call 11   ; std_console$println__string
+      call 12   ; std_console$println__string
       br $L9
     end $L10
   end $L9
@@ -715,7 +715,19 @@ fn 7 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
   end $L0
 end
 
-fn 8 std_console$write (u8,string) -> void
+fn 8 std_core$clone__i32 (ref) -> ref
+  local out ref
+  local.get 0   ; arg 0
+  array.len
+  array.reserve 2   ; i32[]
+  local.tee 1   ; out
+  local.get 0   ; arg 0
+  array.push_all
+  local.get 1   ; out
+  return
+end
+
+fn 9 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -726,7 +738,7 @@ fn 8 std_console$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 9   ; std_console$write_text
+  call 10   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -757,7 +769,7 @@ fn 8 std_console$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 10   ; std_console$write_bytes
+      call 11   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -777,11 +789,11 @@ fn 8 std_console$write (u8,string) -> void
   return
 end
 
-fn 9 std_console$write_text (u8,string) -> bool
+fn 10 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 10 std_console$write_bytes (u8,ref,i64) -> i32
+fn 11 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -801,7 +813,7 @@ fn 10 std_console$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 11 std_console$println__string (string) -> void
+fn 12 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 13   ; "\n"
@@ -809,19 +821,7 @@ fn 11 std_console$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 8   ; std_console$write
-  return
-end
-
-fn 12 std_iter$clone__i32 (ref) -> ref
-  local out ref
-  local.get 0   ; arg 0
-  array.len
-  array.reserve 2   ; i32[]
-  local.tee 1   ; out
-  local.get 0   ; arg 0
-  array.push_all
-  local.get 1   ; out
+  call 9   ; std_console$write
   return
 end
 

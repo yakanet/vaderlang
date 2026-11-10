@@ -71,6 +71,7 @@
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.clone<EnvVar>  // std_core$clone__std_env_EnvVar
     fn std.core.index_of<u8>  // std_core$index_of__u8
     fn std.core.string.compare  // std_core$string$Comparable$compare
     struct std.core.Buffer  // std_core$Buffer
@@ -94,8 +95,6 @@
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
-  std/iter
-    fn std.iter.clone<EnvVar>  // std_iter$clone__std_env_EnvVar
   std/sort
     fn std.sort.insertion_sort_range<Any>  // std_sort$insertion_sort_range__Any
     fn std.sort.merge_sort_range<Any>  // std_sort$merge_sort_range__Any

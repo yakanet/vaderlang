@@ -852,7 +852,7 @@ for c in greeting {               // c: char, one code point at a time
 }
 
 bytes :: greeting.bytes()         // the UTF-8 bytes, a frozen u8[] view
-copy :: bytes.clone()             // a u8[] of its own (std/iter), which may be written
+copy :: bytes.clone()             // a u8[] of its own, which may be written
 greeting.byte_at(1)               // 195, the first byte of é
 ```
 
@@ -870,7 +870,7 @@ greeting.byte_at(1)               // 195, the first byte of é
 xs :: [10, 20, 30, 40]
 same :: xs                // the same array: an array is a reference
 same[0] = 11              // xs is [11, 20, 30, 40]
-copy :: xs.clone()        // a fresh array (std/iter)
+copy :: xs.clone()        // a fresh array
 
 h: Hour: 3
 xs[h]                     // 40: any integer type indexes, a range too

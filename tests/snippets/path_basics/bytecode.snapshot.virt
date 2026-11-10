@@ -75,13 +75,13 @@ export main 1
 fn 0 snippet$show_path (string,string) -> void
   local $call_3 string
   local.get 1   ; arg 1
-  call 16   ; std_path$as_string
+  call 17   ; std_path$as_string
   local.set 2   ; $call_3
   local.get 0   ; arg 0
   string.const 0   ; "="
   local.get 2   ; $call_3
   call 2   ; concat_3
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   return
 end
 
@@ -93,47 +93,47 @@ fn 1 snippet$main () -> i32
   local $call_28 bool
   local $call_32 string
   string.const 1   ; "src/parser/expr.ts"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 0   ; p
   string.const 2   ; "path"
   local.get 0   ; p
   call 0   ; snippet$show_path
   local.get 0   ; p
-  call 18   ; std_path$filename
+  call 19   ; std_path$filename
   local.set 1   ; $call_5
   string.const 3   ; "filename="
   local.get 1   ; $call_5
   call 3   ; concat_2
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   local.get 0   ; p
-  call 19   ; std_path$name
+  call 20   ; std_path$name
   local.set 1   ; $call_5
   string.const 4   ; "name="
   local.get 1   ; $call_5
   call 3   ; concat_2
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   local.get 0   ; p
-  call 20   ; std_path$extension
+  call 21   ; std_path$extension
   local.set 1   ; $call_5
   string.const 5   ; "extension="
   local.get 1   ; $call_5
   call 3   ; concat_2
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   local.get 0   ; p
-  call 21   ; std_path$parent
+  call 22   ; std_path$parent
   local.set 1   ; $call_5
   string.const 6   ; "parent"
   local.get 1   ; $call_5
   call 0   ; snippet$show_path
   local.get 0   ; p
-  call 21   ; std_path$parent
-  call 21   ; std_path$parent
+  call 22   ; std_path$parent
+  call 22   ; std_path$parent
   local.set 1   ; $call_5
   string.const 7   ; "grand"
   local.get 1   ; $call_5
   call 0   ; snippet$show_path
   string.const 8   ; "/usr/local/bin/vader"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 1   ; $call_5
   i64.const 21
   buffer.new
@@ -146,7 +146,7 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 1   ; $call_5
-  call 22   ; std_path$is_absolute
+  call 23   ; std_path$is_absolute
   local.set 4   ; $call_28
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
@@ -156,23 +156,23 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   local.get 1   ; $call_5
-  call 21   ; std_path$parent
+  call 22   ; std_path$parent
   local.set 5   ; $call_32
   string.const 10   ; "abs.parent"
   local.get 5   ; $call_32
   call 0   ; snippet$show_path
   local.get 1   ; $call_5
-  call 18   ; std_path$filename
-  call 17   ; std_path$to_path
+  call 19   ; std_path$filename
+  call 18   ; std_path$to_path
   local.set 5   ; $call_32
   string.const 11   ; "abs.filename"
   local.get 5   ; $call_32
   call 0   ; snippet$show_path
   local.get 1   ; $call_5
-  call 21   ; std_path$parent
-  call 21   ; std_path$parent
+  call 22   ; std_path$parent
+  call 22   ; std_path$parent
   local.set 1   ; $call_5
   string.const 12   ; "abs.parent.parent"
   local.get 1   ; $call_5
@@ -187,9 +187,9 @@ fn 1 snippet$main () -> i32
   string.const 13   ; "empty is empty="
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  call 23   ; std_path$empty_path
+  call 24   ; std_path$empty_path
   local.set 1   ; $call_5
-  call 23   ; std_path$empty_path
+  call 24   ; std_path$empty_path
   local.set 5   ; $call_32
   local.get 1   ; $call_5
   local.get 5   ; $call_32
@@ -203,7 +203,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   i64.const 16
   buffer.new
   local.set 2   ; __buf_0
@@ -214,7 +214,7 @@ fn 1 snippet$main () -> i32
   string.const 14   ; "p is empty="
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
-  call 23   ; std_path$empty_path
+  call 24   ; std_path$empty_path
   local.set 1   ; $call_5
   local.get 0   ; p
   local.get 1   ; $call_5
@@ -228,34 +228,34 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   string.const 16   ; "/etc"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   string.const 17   ; "hosts"
-  call 24   ; std_path$join
+  call 25   ; std_path$join
   local.set 0   ; p
   string.const 15   ; "join"
   local.get 0   ; p
   call 0   ; snippet$show_path
   string.const 19   ; "/etc/"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   string.const 17   ; "hosts"
-  call 24   ; std_path$join
+  call 25   ; std_path$join
   local.set 0   ; p
   string.const 18   ; "join with sep"
   local.get 0   ; p
   call 0   ; snippet$show_path
   string.const 16   ; "/etc"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   string.const 21   ; "/var/log"
-  call 24   ; std_path$join
+  call 25   ; std_path$join
   local.set 0   ; p
   string.const 20   ; "join absolute"
   local.get 0   ; p
   call 0   ; snippet$show_path
-  call 23   ; std_path$empty_path
+  call 24   ; std_path$empty_path
   string.const 23   ; "foo"
-  call 24   ; std_path$join
+  call 25   ; std_path$join
   local.set 0   ; p
   string.const 22   ; "join empty base"
   local.get 0   ; p
@@ -271,14 +271,14 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   string.const 25   ; "a/b/c"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 0   ; p
   string.const 26   ; "a/b"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 1   ; $call_5
   local.get 0   ; p
   local.get 1   ; $call_5
-  call 25   ; std_path$starts_with
+  call 26   ; std_path$starts_with
   local.set 4   ; $call_28
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
@@ -288,7 +288,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   i64.const 27
   buffer.new
   local.set 2   ; __buf_0
@@ -300,14 +300,14 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   string.const 28   ; "a/bc"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 0   ; p
   string.const 26   ; "a/b"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 1   ; $call_5
   local.get 0   ; p
   local.get 1   ; $call_5
-  call 25   ; std_path$starts_with
+  call 26   ; std_path$starts_with
   local.set 4   ; $call_28
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
@@ -317,7 +317,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   i64.const 26
   buffer.new
   local.set 2   ; __buf_0
@@ -329,14 +329,14 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   string.const 25   ; "a/b/c"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 0   ; p
   string.const 30   ; "b/c"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 1   ; $call_5
   local.get 0   ; p
   local.get 1   ; $call_5
-  call 26   ; std_path$ends_with
+  call 27   ; std_path$ends_with
   local.set 4   ; $call_28
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
@@ -346,7 +346,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   i64.const 25
   buffer.new
   local.set 2   ; __buf_0
@@ -358,14 +358,14 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   string.const 25   ; "a/b/c"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 0   ; p
   string.const 32   ; "/c"
-  call 17   ; std_path$to_path
+  call 18   ; std_path$to_path
   local.set 1   ; $call_5
   local.get 0   ; p
   local.get 1   ; $call_5
-  call 26   ; std_path$ends_with
+  call 27   ; std_path$ends_with
   local.set 4   ; $call_28
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
@@ -375,38 +375,38 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   call 4   ; std_core$finish_buffer
-  call 15   ; std_console$println__string
+  call 16   ; std_console$println__string
   string.const 34   ; "a/./b/../c"
-  call 17   ; std_path$to_path
-  call 27   ; std_path$normalize
+  call 18   ; std_path$to_path
+  call 28   ; std_path$normalize
   local.set 0   ; p
   string.const 33   ; "norm a/./b/../c"
   local.get 0   ; p
   call 0   ; snippet$show_path
   string.const 36   ; "/a/b/../c"
-  call 17   ; std_path$to_path
-  call 27   ; std_path$normalize
+  call 18   ; std_path$to_path
+  call 28   ; std_path$normalize
   local.set 0   ; p
   string.const 35   ; "norm /a/b/../c"
   local.get 0   ; p
   call 0   ; snippet$show_path
   string.const 38   ; ".."
-  call 17   ; std_path$to_path
-  call 27   ; std_path$normalize
+  call 18   ; std_path$to_path
+  call 28   ; std_path$normalize
   local.set 0   ; p
   string.const 37   ; "norm .."
   local.get 0   ; p
   call 0   ; snippet$show_path
   string.const 40   ; "./."
-  call 17   ; std_path$to_path
-  call 27   ; std_path$normalize
+  call 18   ; std_path$to_path
+  call 28   ; std_path$normalize
   local.set 0   ; p
   string.const 39   ; "norm ./."
   local.get 0   ; p
   call 0   ; snippet$show_path
   string.const 42   ; "/a//b"
-  call 17   ; std_path$to_path
-  call 27   ; std_path$normalize
+  call 18   ; std_path$to_path
+  call 28   ; std_path$normalize
   local.set 0   ; p
   string.const 41   ; "norm /a//b"
   local.get 0   ; p
@@ -523,7 +523,15 @@ fn 6 std_core$write_bool (ref,i64,bool) -> i64
   return
 end
 
-fn 7 std_core$codepoint_at_byte (string,i64) -> (char,i64)
+fn 7 std_core$is_empty_1 (string) -> bool
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  i64.const 0
+  i64.eq
+  return
+end
+
+fn 8 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local b u8
   local code u32
   local width i64
@@ -543,7 +551,7 @@ fn 7 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local.get 0   ; arg 0
   local.get 2   ; b
   local.get 1   ; arg 1
-  call 8   ; std_core$decode_tail
+  call 9   ; std_core$decode_tail
   local.set 4   ; width
   local.set 3   ; code
   local.get 3   ; code
@@ -579,7 +587,7 @@ fn 7 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   end $L1
 end
 
-fn 8 std_core$decode_tail (string,u8,i64) -> (u32,i64)
+fn 9 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local or_res bool
   local n i64
   local $add_checked_21 i64
@@ -628,7 +636,7 @@ fn 8 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.get 5   ; $add_checked_21
   call.import 1   ; std_core$byte_at
   local.tee 6   ; b1
-  call 9   ; std_core$is_utf8_continuation
+  call 10   ; std_core$is_utf8_continuation
   if $L3 void
   else
     i32.const 65533
@@ -757,7 +765,7 @@ fn 8 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.get 5   ; $add_checked_21
   call.import 1   ; std_core$byte_at
   local.tee 10   ; b2
-  call 9   ; std_core$is_utf8_continuation
+  call 10   ; std_core$is_utf8_continuation
   if $L15 void
   else
     i32.const 65533
@@ -815,7 +823,7 @@ fn 8 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.get 4   ; n
   call.import 1   ; std_core$byte_at
   local.tee 11   ; b3
-  call 9   ; std_core$is_utf8_continuation
+  call 10   ; std_core$is_utf8_continuation
   if $L18 void
   else
     i32.const 65533
@@ -863,7 +871,7 @@ fn 8 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   return
 end
 
-fn 9 std_core$is_utf8_continuation (u8) -> bool
+fn 10 std_core$is_utf8_continuation (u8) -> bool
   local.get 0   ; arg 0
   i32.const 192
   i32.bitand
@@ -872,7 +880,7 @@ fn 9 std_core$is_utf8_continuation (u8) -> bool
   return
 end
 
-fn 10 std_core$string$Index$at (string,i64) -> char
+fn 11 std_core$string$Index$at (string,i64) -> char
   local $call_6 i64
   local.get 0   ; arg 0
   call.import 3   ; std_core$is_ascii
@@ -881,11 +889,11 @@ fn 10 std_core$string$Index$at (string,i64) -> char
     local.get 0   ; arg 0
     i64.const 0
     local.get 1   ; arg 1
-    call 11   ; std_core$codepoint_offset
+    call 12   ; std_core$codepoint_offset
     local.set 2   ; $call_6
     local.get 0   ; arg 0
     local.get 2   ; $call_6
-    call 7   ; std_core$codepoint_at_byte
+    call 8   ; std_core$codepoint_at_byte
     drop
     return
   end $L0
@@ -896,7 +904,7 @@ fn 10 std_core$string$Index$at (string,i64) -> char
   return
 end
 
-fn 11 std_core$codepoint_offset (string,i64,i64) -> i64
+fn 12 std_core$codepoint_offset (string,i64,i64) -> i64
   local n i64
   local i i64
   local k i64
@@ -938,7 +946,7 @@ fn 11 std_core$codepoint_offset (string,i64,i64) -> i64
           local.get 0   ; arg 0
           local.get 6   ; b
           local.get 4   ; i
-          call 8   ; std_core$decode_tail
+          call 9   ; std_core$decode_tail
           local.set 8   ; $call_elem_22
           drop
           local.get 8   ; $call_elem_22
@@ -960,7 +968,7 @@ fn 11 std_core$codepoint_offset (string,i64,i64) -> i64
   return
 end
 
-fn 12 std_console$write (u8,string) -> void
+fn 13 std_console$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_7 i64
@@ -971,7 +979,7 @@ fn 12 std_console$write (u8,string) -> void
   local $cast_17 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 13   ; std_console$write_text
+  call 14   ; std_console$write_text
   if $L0 void
     return
   end $L0
@@ -1002,7 +1010,7 @@ fn 12 std_console$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_12
-      call 14   ; std_console$write_bytes
+      call 15   ; std_console$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -1022,11 +1030,11 @@ fn 12 std_console$write (u8,string) -> void
   return
 end
 
-fn 13 std_console$write_text (u8,string) -> bool
+fn 14 std_console$write_text (u8,string) -> bool
   return.lit bool.const false
 end
 
-fn 14 std_console$write_bytes (u8,ref,i64) -> i32
+fn 15 std_console$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1046,7 +1054,7 @@ fn 14 std_console$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 15 std_console$println__string (string) -> void
+fn 16 std_console$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 45   ; "\n"
@@ -1054,21 +1062,21 @@ fn 15 std_console$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 12   ; std_console$write
+  call 13   ; std_console$write
   return
 end
 
-fn 16 std_path$as_string (string) -> string
+fn 17 std_path$as_string (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 17 std_path$to_path (string) -> string
+fn 18 std_path$to_path (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 18 std_path$filename (string) -> string
+fn 19 std_path$filename (string) -> string
   local s string
   local __coalesce_0 any
   local $add_checked_11 i64
@@ -1077,7 +1085,7 @@ fn 18 std_path$filename (string) -> string
   local.tee 1   ; s
   char.const 47
   i64.const 0
-  call 29   ; std_string$last_index_of
+  call 30   ; std_string$last_index_of
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -1099,14 +1107,14 @@ fn 18 std_path$filename (string) -> string
   return
 end
 
-fn 19 std_path$name (string) -> string
+fn 20 std_path$name (string) -> string
   local fname string
   local idx i64
   local __coalesce_0 any
   local.get 0   ; arg 0
-  call 18   ; std_path$filename
+  call 19   ; std_path$filename
   local.tee 1   ; fname
-  call 28   ; std_path$extension_dot
+  call 29   ; std_path$extension_dot
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -1123,15 +1131,15 @@ fn 19 std_path$name (string) -> string
   return
 end
 
-fn 20 std_path$extension (string) -> string
+fn 21 std_path$extension (string) -> string
   local fname string
   local __coalesce_0 any
   local $add_checked_10 i64
   local $call_11 i64
   local.get 0   ; arg 0
-  call 18   ; std_path$filename
+  call 19   ; std_path$filename
   local.tee 1   ; fname
-  call 28   ; std_path$extension_dot
+  call 29   ; std_path$extension_dot
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -1152,7 +1160,7 @@ fn 20 std_path$extension (string) -> string
   return
 end
 
-fn 21 std_path$parent (string) -> string
+fn 22 std_path$parent (string) -> string
   local s string
   local idx i64
   local __coalesce_0 any
@@ -1160,7 +1168,7 @@ fn 21 std_path$parent (string) -> string
   local.tee 1   ; s
   char.const 47
   i64.const 0
-  call 29   ; std_string$last_index_of
+  call 30   ; std_string$last_index_of
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -1182,29 +1190,29 @@ fn 21 std_path$parent (string) -> string
   return.lit string.const 47   ; "/"
 end
 
-fn 22 std_path$is_absolute (string) -> bool
+fn 23 std_path$is_absolute (string) -> bool
   local.get 0   ; arg 0
-  call 16   ; std_path$as_string
+  call 17   ; std_path$as_string
   string.const 47   ; "/"
-  call 30   ; std_string$starts_with
+  call 31   ; std_string$starts_with
   return
 end
 
-fn 23 std_path$empty_path () -> string
+fn 24 std_path$empty_path () -> string
   return.lit string.const 46   ; ""
 end
 
-fn 24 std_path$join (string,string) -> string
+fn 25 std_path$join (string,string) -> string
   local s string
   local.get 1   ; arg 1
-  call 31   ; std_string$is_empty
+  call 7   ; std_core$is_empty_1
   if $L0 void
     local.get 0   ; arg 0
     return
   end $L0
   local.get 1   ; arg 1
   i64.const 0
-  call 10   ; std_core$string$Index$at
+  call 11   ; std_core$string$Index$at
   char.const 47
   i32.eq
   if $L1 void
@@ -1213,7 +1221,7 @@ fn 24 std_path$join (string,string) -> string
   end $L1
   local.get 0   ; arg 0
   local.tee 2   ; s
-  call 31   ; std_string$is_empty
+  call 7   ; std_core$is_empty_1
   if $L2 void
     local.get 1   ; arg 1
     return
@@ -1235,7 +1243,7 @@ fn 24 std_path$join (string,string) -> string
   return
 end
 
-fn 25 std_path$starts_with (string,string) -> bool
+fn 26 std_path$starts_with (string,string) -> bool
   local s string
   local pfx string
   local self_len i64
@@ -1246,7 +1254,7 @@ fn 25 std_path$starts_with (string,string) -> bool
   local.set 3   ; pfx
   local.get 2   ; s
   local.get 3   ; pfx
-  call 30   ; std_string$starts_with
+  call 31   ; std_string$starts_with
   if $L0 void
   else
     return.lit bool.const false
@@ -1264,7 +1272,7 @@ fn 25 std_path$starts_with (string,string) -> bool
     return.lit bool.const true
   end $L1
   local.get 3   ; pfx
-  call 31   ; std_string$is_empty
+  call 7   ; std_core$is_empty_1
   if $L2 void
   else
     local.get 5   ; prefix_len
@@ -1288,7 +1296,7 @@ fn 25 std_path$starts_with (string,string) -> bool
   return
 end
 
-fn 26 std_path$ends_with (string,string) -> bool
+fn 27 std_path$ends_with (string,string) -> bool
   local s string
   local sfx string
   local self_len i64
@@ -1321,7 +1329,7 @@ fn 26 std_path$ends_with (string,string) -> bool
   i64.checked_sub
   local.set 4   ; self_len
   local.get 3   ; sfx
-  call 31   ; std_string$is_empty
+  call 7   ; std_core$is_empty_1
   if $L2 void
   else
     local.get 3   ; sfx
@@ -1345,7 +1353,7 @@ fn 26 std_path$ends_with (string,string) -> bool
   return
 end
 
-fn 27 std_path$normalize (string) -> string
+fn 28 std_path$normalize (string) -> string
   local s string
   local abs bool
   local segments ref
@@ -1365,13 +1373,13 @@ fn 27 std_path$normalize (string) -> string
   local sb ref
   local.get 0   ; arg 0
   local.tee 1   ; s
-  call 31   ; std_string$is_empty
+  call 7   ; std_core$is_empty_1
   if $L0 void
     local.get 0   ; arg 0
     return
   end $L0
   local.get 0   ; arg 0
-  call 22   ; std_path$is_absolute
+  call 23   ; std_path$is_absolute
   local.set 2   ; abs
   array.new 13 0   ; string[]
   local.set 3   ; segments
@@ -1425,7 +1433,7 @@ fn 27 std_path$normalize (string) -> string
         local.get 6   ; i
         call.import 2   ; std_core$byte_slice
         local.tee 11   ; seg
-        call 31   ; std_string$is_empty
+        call 7   ; std_core$is_empty_1
         if $L7 void
           bool.const true
           local.set 12   ; or_res
@@ -1570,7 +1578,7 @@ fn 27 std_path$normalize (string) -> string
   local.get 17   ; sb
   call 35   ; std_string__builder$StringBuilder$std_core$Display$to_string
   local.tee 1   ; s
-  call 31   ; std_string$is_empty
+  call 7   ; std_core$is_empty_1
   if $L19 void
     local.get 2   ; abs
     if $L20 void
@@ -1584,15 +1592,15 @@ fn 27 std_path$normalize (string) -> string
   return
 end
 
-fn 28 std_path$extension_dot (string) -> any
+fn 29 std_path$extension_dot (string) -> any
   local.get 0   ; arg 0
   char.const 46
   i64.const 1
-  call 29   ; std_string$last_index_of
+  call 30   ; std_string$last_index_of
   return
 end
 
-fn 29 std_string$last_index_of (string,char,i64) -> any
+fn 30 std_string$last_index_of (string,char,i64) -> any
   local n i64
   local last any
   local i i64
@@ -1613,7 +1621,7 @@ fn 29 std_string$last_index_of (string,char,i64) -> any
     if $L1 void
       local.get 0   ; arg 0
       local.get 5   ; i
-      call 7   ; std_core$codepoint_at_byte
+      call 8   ; std_core$codepoint_at_byte
       local.set 8   ; $call_elem_20
       local.set 6   ; cp
       local.get 8   ; $call_elem_20
@@ -1642,19 +1650,11 @@ fn 29 std_string$last_index_of (string,char,i64) -> any
   return
 end
 
-fn 30 std_string$starts_with (string,string) -> bool
+fn 31 std_string$starts_with (string,string) -> bool
   local.get 0   ; arg 0
   i64.const 0
   local.get 1   ; arg 1
   call 33   ; std_string$matches_at
-  return
-end
-
-fn 31 std_string$is_empty (string) -> bool
-  local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
-  i64.const 0
-  i64.eq
   return
 end
 

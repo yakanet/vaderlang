@@ -14,6 +14,7 @@
 //
 // `ArrayOps` lives in `std/core` (the prelude), so array methods resolve with no
 // import: exactly like `arr in coll` (Contains) or `[v] * n` (Mul) in core.vader.
+// What produces or consumes an iterator over an array is in `std/iter`.
 
 module "std/core"
 
@@ -207,9 +208,48 @@ export remove_value :: fn<T: Equals>(self: T[], value: T) -> bool {
     return true
 }
 
+/// True when `self` holds no element.
+export is_empty :: fn<T>(self: T[]) -> bool = self.len() == 0
+
+/// The first element of `self`, null when it is empty.
+export first :: fn<T>(self: T[]) -> T | null = if self.len() == 0 { null } else { self[0] }
+
+/// The last element of `self`, null when it is empty.
+export last :: fn<T>(self: T[]) -> T | null =
+    if self.len() == 0 { null } else { self[self.len() - 1] }
+
+/// A fresh copy of `self`: mutating it does not affect `self`.
+///
+/// Use this to modify what a frozen value holds (a module constant, a view of a
+/// string's bytes), or to break aliasing between a slice view and its parent.
+export clone :: fn<T>(self: T[]) -> T[] {
+    out: T[]: [] * self.len()
+    out.push_all(self)
+    return out
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_is_empty_first_and_last_of_an_array :: fn() -> void {
+    xs :: [4, 5, 6]
+    empty: i32[]: []
+    assert(!xs.is_empty() && empty.is_empty(), "only the empty array is empty")
+    assert_eq(xs.first() ?? -1, 4)
+    assert_eq(xs.last() ?? -1, 6)
+    assert(empty.first() == null && empty.last() == null, "nothing to take from an empty array")
+}
+
+@test
+test_clone_is_independent :: fn() -> void {
+    xs :: [1, 2]
+    copy :: xs.clone()
+    copy.push(3)
+    assert_eq(xs.len(), 2)
+    assert_eq(copy.len(), 3)
+}
 
 new_int_row :: fn() -> i32[] = []
 

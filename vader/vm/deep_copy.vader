@@ -10,7 +10,6 @@
 
 module "vader/vm"
 
-import "std/iter"
 bc :: import "vader/core/bytecode"
 
 /// A copy of `v` that shares nothing it can write: what `deep_copy` returns.

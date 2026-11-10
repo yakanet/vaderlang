@@ -4,11 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct vader_struct_std_env$EnvVar_t vader_struct_std_env$EnvVar_t;
 typedef struct vader_struct_std_core$Buffer_t vader_struct_std_core$Buffer_t;
 typedef struct vader_struct_std_io$IOError_t vader_struct_std_io$IOError_t;
-typedef struct vader_struct_std_env$EnvVar_t vader_struct_std_env$EnvVar_t;
 typedef struct vader_struct___Tuple_string_string_66940ed4_t vader_struct___Tuple_string_string_66940ed4_t;
 
+struct vader_struct_std_env$EnvVar_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    vader_string_t f_value;
+};
 struct vader_struct_std_core$Buffer_t {
     vader_obj_header_t header;
 };
@@ -17,11 +22,6 @@ struct vader_struct_std_io$IOError_t {
     vader_string_t f_msg;
     uint8_t f_kind;
     int32_t f_code;
-};
-struct vader_struct_std_env$EnvVar_t {
-    vader_obj_header_t header;
-    vader_string_t f_name;
-    vader_string_t f_value;
 };
 struct vader_struct___Tuple_string_string_66940ed4_t {
     vader_obj_header_t header;
@@ -135,6 +135,7 @@ static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_box_t std_core$index_of__u8(void* l0, uint8_t l1);
+static void* std_core$clone__std_env_EnvVar(void* l0);
 static void std_console$write(uint8_t l0, vader_string_t l1);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
@@ -162,7 +163,6 @@ static vader_box_t std_string$split_first(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_string$first_byte_offset(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_string$cut_at(vader_string_t l0, vader_box_t l1, vader_string_t l2);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
-static void* std_iter$clone__std_env_EnvVar(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
@@ -170,7 +170,7 @@ typedef vader_box_t (*vader_fn_erased_sig_2_t)(void* env, vader_box_t a0, vader_
 
 static vader_box_t vader_fn_tramp_std_env$by_name(void* env, vader_box_t a0, vader_box_t a1) {
     (void) env;
-    return vader_box_bool(8u, std_env$by_name(a0.payload.obj, a1.payload.obj));
+    return vader_box_bool(10u, std_env$by_name(a0.payload.obj, a1.payload.obj));
 }
 
 static vader_fn_t vader_fn_static_std_env$by_name = {
@@ -191,28 +191,28 @@ const vader_type_info_t vader_type_info_table[21] = {
     [5] = { .slot_size = 16 },
     [6] = { .slot_size = 8 },
     [7] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
-        .slot_size = 8,
-    },
-    [8] = { .slot_size = 1 },
-    [10] = { .slot_size = 16 },
-    [11] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$IOError_t),
-        .slot_size = 8,
-        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$IOError_t, f_msg) },
-        .string_count = 1,
-    },
-    [12] = { .slot_size = 16 },
-    [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [14] = {
+    [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_env$EnvVar_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_env$EnvVar_t, f_name), offsetof(vader_struct_std_env$EnvVar_t, f_value) },
         .string_count = 2,
     },
+    [9] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
+        .slot_size = 8,
+    },
+    [10] = { .slot_size = 1 },
+    [12] = { .slot_size = 16 },
+    [13] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io$IOError_t),
+        .slot_size = 8,
+        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io$IOError_t, f_msg) },
+        .string_count = 1,
+    },
+    [14] = { .slot_size = 16 },
     [15] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
@@ -373,7 +373,7 @@ static int32_t snippet$main(void) {
     t0 = concat_2(9u, l0);
     std_console$println__string(t0);
     l2 = std_env$set_env(10u, 11u);
-    if (l2.tag == 11u) {
+    if (l2.tag == 13u) {
         t1 = l2.payload.obj;
         l0 = std_io$IOErrorKind$std_core$Display$to_string(((vader_struct_std_io$IOError_t*) t1)->f_kind);
         t0 = concat_2(12u, l0);
@@ -444,6 +444,19 @@ static vader_box_t std_core$index_of__u8(void* l0, uint8_t l1) {
         l2 = (l2 + INT64_C(1));
     }
     return vader_box_obj(0u, NULL);
+}
+
+static void* std_core$clone__std_env_EnvVar(void* l0) {
+    void* l1 = NULL;
+    int64_t t0;
+    void** gc_raw_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = ((vader_array_t*) l0)->length;
+    vader_array_t* _a0_arr = vader_array_reserve(7u, (int64_t) t0, 13u, 8u);
+    l1 = (void*) _a0_arr;
+    vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
+    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_console$write(uint8_t l0, vader_string_t l1) {
@@ -569,7 +582,7 @@ static void* std_env$env_vars(void) {
         vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(13u, 0u, 13u, 14u);
+    vader_array_t* _a0_arr = vader_array_new(7u, 0u, 13u, 8u);
     l0 = (void*) _a0_arr;
     l1 = INT64_C(0);
     for (;;) {
@@ -589,7 +602,7 @@ static void* std_env$env_vars(void) {
             l6 = ((vader_struct___Tuple_string_string_66940ed4_t*) l4)->f__0;
             l7 = ((vader_struct___Tuple_string_string_66940ed4_t*) l4)->f__1;
             vader_struct_std_env$EnvVar_t* _a1_obj = (vader_struct_std_env$EnvVar_t*) vader_gc_alloc(sizeof(vader_struct_std_env$EnvVar_t));
-            vader_obj_header_init(_a1_obj, 14u);
+            vader_obj_header_init(_a1_obj, 8u);
             _a1_obj->f_name = l6;
             _a1_obj->f_value = l7;
             l8 = (void*) _a1_obj;
@@ -662,7 +675,7 @@ static void* std_env$invalid_variable(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     t0 = concat_2(18u, l0);
     vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a0_obj, 11u);
+    vader_obj_header_init(_a0_obj, 13u);
     _a0_obj->f_msg = t0;
     _a0_obj->f_kind = (uint8_t) 10;
     _a0_obj->f_code = INT32_C(0);
@@ -756,7 +769,7 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
     vader_gc_top = &gc_frame;
     t0 = std_io$describe_io_error_kind(l1, l0);
     vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a0_obj, 11u);
+    vader_obj_header_init(_a0_obj, 13u);
     _a0_obj->f_msg = t0;
     _a0_obj->f_kind = l1;
     _a0_obj->f_code = l2;
@@ -904,9 +917,9 @@ static void* std_sort$sort__std_env_EnvVar(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l2 = ((vader_array_t*) l0)->length;
-    l3 = std_iter$clone__std_env_EnvVar(l0);
+    l3 = std_core$clone__std_env_EnvVar(l0);
     if (!((l2 < INT64_C(2)))) {
-        l4 = std_iter$clone__std_env_EnvVar(l0);
+        l4 = std_core$clone__std_env_EnvVar(l0);
         std_sort$merge_sort_range__Any(l3, l4, INT64_C(0), l2, l1);
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -1160,19 +1173,6 @@ static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t 
         l4 = (l4 + INT64_C(1));
     }
     return true;
-}
-
-static void* std_iter$clone__std_env_EnvVar(void* l0) {
-    void* l1 = NULL;
-    int64_t t0;
-    void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    vader_array_t* _a0_arr = vader_array_reserve(13u, (int64_t) t0, 13u, 14u);
-    l1 = (void*) _a0_arr;
-    vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
-    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {
