@@ -70,6 +70,14 @@ jobs:
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
+      - name: "Temporary: measure the dump worker against one dump per stage"
+        if: ${{ !cancelled() && runner.os == 'Linux' && hashFiles('build/vader') != '' }}
+        continue-on-error: true
+        timeout-minutes: 20
+        run: |
+          nproc
+          python3 -I tools/testrunner_proto/driver.py ./build/vader both 1 "$RUNNER_TEMP/k4.json" 4
+          python3 -I tools/testrunner_proto/driver.py ./build/vader worker 1 "$RUNNER_TEMP/k1.json" 1
       - name: Test
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:
