@@ -348,7 +348,7 @@ Alarm :: struct {
 /// @example
 ///   # import "std/time"
 ///   slow :: launch(() -> sleep(50.millis()))
-///   timeout(slow, 10.millis())   // a TimeoutError, after 10 ms
+///   slow.timeout(10.millis())   // a TimeoutError, after 10 ms
 export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutError {
     if task.ended {
         return outcome(task)
@@ -588,13 +588,13 @@ test_timeout_cancels_a_task_that_runs_late :: fn() -> void {
         park_forever()
         return 0
     })
-    assert_eq("${timeout(stuck, 1.millis())}", "timed out after 1 ms")
+    assert_eq("${stuck.timeout(1.millis())}", "timed out after 1 ms")
     assert_eq("${stuck.join()}", "cancelled")
 }
 
 @test
 test_timeout_gives_back_a_result_in_time :: fn() -> void {
-    assert_eq("${timeout(launch(() -> after_yields(4, 1)), 10.seconds())}", "4")
+    assert_eq("${launch(() -> after_yields(4, 1)).timeout(10.seconds())}", "4")
 }
 
 @test
@@ -621,7 +621,7 @@ test_try_join_all_waits_for_the_defers_of_the_cancelled :: fn() -> void {
 @test
 test_timeout_waits_for_the_defers_of_the_cancelled :: fn() -> void {
     unwound :: Flag {}
-    timeout(launch(() -> unwinds_into(unwound)), 1.millis())
+    launch(() -> unwinds_into(unwound)).timeout(1.millis())
     assert(unwound.set, "the task's defers ran before `timeout` returned")
 }
 

@@ -23,7 +23,6 @@ import "std/env"
 import "std/io"
 import "std/numbers"
 import "std/runtime/scheduler"
-import "std/time"
 import "system/libc"
 import "system/posix"
 import "system/windows"
@@ -870,27 +869,29 @@ export ChildOutput :: struct {
     ended: bool
 }
 
-/// Take what `child` wrote since the last call, waiting at most `within` for it
-/// to write or end when it has not yet.
+/// Take what `child` wrote since the last call, waiting for it to write or end
+/// when it has not yet.
 ///
-/// The bytes are taken: the result of `poll` holds only what no `read_output`
-/// took. An answer with no bytes and `ended` false means `within` ran out.
+/// The wait has no deadline: `timeout` of `std/task` gives it one, around the
+/// task that reads. A child the deadline gave up on still runs: `kill` it. The
+/// bytes are taken: the result of `poll` holds only what no `read_output` took.
 ///
-/// @param child   what `spawn_start` or `spawn_interactive` returned.
-/// @param within  the longest wait; zero takes what is there without waiting.
-/// @return        what the child wrote since the last call, and whether it has
-///                ended.
+/// @param child  what `spawn_start` or `spawn_interactive` returned.
+/// @return       what the child wrote since the last call, and whether it has
+///               ended.
 /// @example
+///   # import "std/task"
 ///   # import "std/time"
 ///   child :: spawn_interactive(["cat"])
 ///   if child is ChildProcess {
 ///       child.write_input("hello\n".bytes())
-///       child.read_output(1.seconds()).out.bytes_to_string()   // "hello\n"
+///       child.read_output().out.bytes_to_string()                // "hello\n"
+///       launch(() -> child.read_output()).timeout(1.seconds())   // a TimeoutError
 ///       child.kill()
 ///   }
-export read_output :: fn(child: ChildProcess, within: Duration) -> ChildOutput {
-    if !has_news(child) && within > 0 {
-        wait_for_news(child, within)
+export read_output :: fn(child: ChildProcess) -> ChildOutput {
+    for !has_news(child) {
+        await_child(child)
     }
     taken :: ChildOutput {
         .out   = child.out,
@@ -905,33 +906,6 @@ export read_output :: fn(child: ChildProcess, within: Duration) -> ChildOutput {
 // Drain the pipes of `child`, and tell whether it wrote or ended.
 has_news :: fn(child: ChildProcess) -> bool =
     poll_exit(child) != RUNNING || child.out.len() > 0 || child.err.len() > 0
-
-// Whether the timer of a `wait_for_news` went off.
-Alarm :: struct {
-    rang: bool = false
-}
-
-// Park until `child` writes or ends, or `within` runs out. The scheduler parks
-// with no deadline, so a timer thread ends the last park.
-wait_for_news :: fn(child: ChildProcess, within: Duration) -> void {
-    me :: current_thread()
-    alarm :: Alarm {}
-    timer :: spawn_thread(fn() {
-        if is_cancelled() {
-            return
-        }
-        sleep_for(i64(within))
-        alarm.rang = true
-        wake(me)
-    })
-    defer cancel_thread(timer)
-    for !alarm.rang {
-        await_child(child)
-        if has_news(child) {
-            return
-        }
-    }
-}
 
 // ---- attached run ----------------------------------------------------------
 
@@ -1025,6 +999,7 @@ cannot_launch :: fn(program: string) -> ProcessError =
 import "std/fs"
 import "std/task"
 import "std/testing"
+import "std/time"
 
 @test
 test_processor_count_platform_call_succeeds :: fn() -> void {
@@ -1085,21 +1060,21 @@ test_closing_the_input_of_an_interactive_child_ends_it :: fn() -> void {
     child :: spawn_interactive(["cat"])
     if child is ChildProcess {
         child.close_input()
-        for !child.read_output(5.seconds()).ended {}
+        for !child.read_output().ended {}
         assert(child.poll() is ProcessResult, "cat exits once its input ends")
     }
 }
 
 @test
-test_read_output_of_a_silent_child_gives_back_nothing_in_time :: fn() -> void {
+test_read_output_of_a_silent_child_waits_until_a_timeout :: fn() -> void {
     if VADER_OS == .Windows {
         return
     }
     child :: spawn_interactive(["cat"])
     if child is ChildProcess {
         defer child.kill()
-        got :: child.read_output(1.millis())
-        assert(got.out.len() == 0 && !got.ended, "nothing came, and cat still runs")
+        waited :: launch(() -> child.read_output()).timeout(1.millis())
+        assert(waited is TimeoutError, "nothing came, and `timeout` ended the wait")
     }
 }
 
@@ -1139,17 +1114,9 @@ test_a_program_printing_past_its_reader_stops :: fn() -> void {
         return
     }
     defer child.kill()
-    printed: u8[]: []
-    began :: monotonic()
-    for began.since() < 60.seconds() {
-        chunk :: child.read_output(1.seconds())
-        printed.push_all(chunk.out)
-        if chunk.ended {
-            break
-        }
-    }
-    assert_eq(printed.bytes_to_string(), "x")
-    assert(child.poll() is ProcessResult, "the program stopped once `head` had gone")
+    printed :: launch(() -> output_until_end(child)).timeout(60.seconds())
+    assert(printed is string && printed == "x", "the program printed, then stopped once `head` had gone")
+    assert(child.poll() is ProcessResult, "the shell ended with it")
 }
 
 @test
@@ -1165,11 +1132,23 @@ test_write_input_of_a_child_without_a_stdin_pipe_is_an_error :: fn() -> void {
 answer_of :: fn(child: ChildProcess, want: i64) -> string {
     got: u8[]: []
     for got.len() < want {
-        chunk :: child.read_output(5.seconds())
+        chunk :: child.read_output()
         got.push_all(chunk.out)
-        if chunk.ended || chunk.out.len() == 0 {
+        if chunk.ended {
             break
         }
     }
     return got.bytes_to_string()
+}
+
+// What `child` writes on its stdout until it ends.
+output_until_end :: fn(child: ChildProcess) -> string {
+    printed: u8[]: []
+    for {
+        chunk :: child.read_output()
+        printed.push_all(chunk.out)
+        if chunk.ended {
+            return printed.bytes_to_string()
+        }
+    }
 }

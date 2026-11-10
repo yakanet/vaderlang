@@ -230,25 +230,34 @@ StageResult :: struct {
 }
 
 // Feed `case` to `worker` for `stages`, and read what it writes until the end
-// of the case, its own end, or the deadline, which kills it.
+// of the case or of the worker, or until `CASE_TIMEOUT_SECONDS` runs out, which
+// kills it.
 run_on :: fn(worker: Worker, case: Case, stages: Stage[]) -> Run {
     dumps :: stages.map(s -> s.dump).collect()
     line :: "${case_dir(case.name)}/_main.vader\t${case.modules.join(",")}\t${dumps.join(",")}\n"
-    began :: monotonic()
+    if worker.child.write_input(line.bytes()) != null {
+        return Run {}
+    }
     got: u8[]: []
-    ended := worker.child.write_input(line.bytes()) != null
-    for !ended && !case_done(got) {
-        left :: seconds(CASE_TIMEOUT_SECONDS) - began.since()
-        if left <= 0 {
-            worker.child.kill()
-            break
-        }
-        chunk :: worker.child.read_output(left)
-        got.push_all(chunk.out)
-        worker.err.push_all(chunk.err)
-        ended = chunk.ended
+    // Bound before the test: the task analysis sees `timeout` join its task
+    // only then.
+    read :: launch(() -> read_case(worker, got)).timeout(CASE_TIMEOUT_SECONDS.seconds())
+    if read is TimeoutError {
+        worker.child.kill()
     }
     return parse_run(got.bytes_to_string())
+}
+
+// Read what `worker` writes into `got` until the end of the case, or its own.
+read_case :: fn(worker: Worker, got: u8[]) -> void {
+    for !case_done(got) {
+        chunk :: worker.child.read_output()
+        got.push_all(chunk.out)
+        worker.err.push_all(chunk.err)
+        if chunk.ended {
+            return
+        }
+    }
 }
 
 // Whether `got` ends with the line `\u{1e}done <micros>` closing a case.
@@ -314,7 +323,7 @@ exit_of :: fn(child: ChildProcess) -> i32 {
         if ended is ProcessError {
             return -1
         }
-        child.read_output(seconds(1))
+        child.read_output()
     }
 }
 

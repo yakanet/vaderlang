@@ -485,7 +485,7 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     }
     argv :: [exe]
     argv.push_all(driver_request_args(rooted))
-    match outcome :: timeout(launch(() -> spawn(argv)), DRIVER_TIMEOUT_MS.millis()) {
+    match outcome :: launch(() -> spawn(argv)).timeout(DRIVER_TIMEOUT_MS.millis()) {
         is TimeoutError -> {
             seconds :: DRIVER_TIMEOUT_MS / 1000
             eprintln("vader ${command}: the build driver did not finish within ${seconds}s, killed")
