@@ -2,10 +2,10 @@
 //
 // Not part of the auto-imported prelude (std/core) on purpose : a free-fn
 // `@intrinsic` in the prelude perturbs every program's type / string interning
-// order (`panic`'s `string -> void` interns `void` earlier), which both bloats
-// no-main fixtures with the synthesised `$$wrapper` thunk and shifts the
-// TS↔Vader bytecode-parity baseline. Living in its own module means only the
-// callers that actually `import "std/abort"` pay that cost.
+// order (`panic`'s `string -> void` interns `void` earlier), which bloats
+// no-main fixtures with the synthesised `$$wrapper` thunk. Living in its own
+// module means only the callers that actually `import "std/abort"` pay that
+// cost.
 //
 // `std/testing` builds its `assert` / `fail` helpers on `panic` from here.
 

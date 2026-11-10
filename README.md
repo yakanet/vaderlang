@@ -28,7 +28,7 @@ Circle :: struct { radius: f64 }
 Rect   :: struct { w: f64, h: f64 }
 
 area :: fn(s: Shape) -> f64 = match s {
-    is Circle -> pi * s.radius * s.radius
+    is Circle -> PI * s.radius * s.radius
     is Rect   -> s.w * s.h
 }
 

@@ -254,7 +254,7 @@ validate_prerelease_id :: fn(id: string) -> string {
     if id.is_empty() { return "empty prerelease identifier" }
     only_digits := true
     for c in id {
-        if !is_alnum(c) && c != '-' { return "invalid character in prerelease identifier" }
+        if !is_alphanumeric(c) && c != '-' { return "invalid character in prerelease identifier" }
         if !is_digit(c) { only_digits = false }
     }
     if only_digits && id.byte_len() > 1 && id.byte_at(0) == '0' {
@@ -282,7 +282,7 @@ validate_prerelease :: fn(s: string) -> string {
 validate_build_id :: fn(id: string) -> string {
     if id.is_empty() { return "empty build identifier" }
     for c in id {
-        if !is_alnum(c) && c != '-' { return "invalid character in build identifier" }
+        if !is_alphanumeric(c) && c != '-' { return "invalid character in build identifier" }
     }
     return ""
 }

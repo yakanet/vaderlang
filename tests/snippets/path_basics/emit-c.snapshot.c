@@ -142,7 +142,6 @@ static vader_string_t std_path$name(vader_string_t l0);
 static vader_string_t std_path$extension(vader_string_t l0);
 static vader_string_t std_path$parent(vader_string_t l0);
 static vader_string_t std_path$root(vader_string_t l0);
-static vader_string_t std_path$empty_path(void);
 static vader_string_t std_path$join(vader_string_t l0, vader_string_t l1);
 static bool std_path$starts_with(vader_string_t l0, vader_string_t l1);
 static bool std_path$ends_with(vader_string_t l0, vader_string_t l1);
@@ -290,17 +289,14 @@ static int32_t snippet$main(void) {
     l3 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l3, l4, 14u);
-    l1 = std_path$empty_path();
-    l2 = std_path$empty_path();
-    l5 = l1 == l2;
+    l5 = 0u == 0u;
     l4 = std_core$write_bool(l3, l4, l5);
     t0 = std_core$finish_buffer(l3, l4);
     std_console$println__string(t0);
     l3 = (void*) vader_buffer_new((size_t) INT64_C(16));
     l4 = INT64_C(0);
     l4 = std_core$write_string_at(l3, l4, 15u);
-    l1 = std_path$empty_path();
-    l5 = l0 == l1;
+    l5 = l0 == 0u;
     l4 = std_core$write_bool(l3, l4, l5);
     t0 = std_core$finish_buffer(l3, l4);
     std_console$println__string(t0);
@@ -313,8 +309,7 @@ static int32_t snippet$main(void) {
     t0 = std_path$to_path(17u);
     l0 = std_path$join(t0, 22u);
     snippet$show_path(21u, l0);
-    t0 = std_path$empty_path();
-    l0 = std_path$join(t0, 24u);
+    l0 = std_path$join(0u, 24u);
     snippet$show_path(23u, l0);
     l3 = (void*) vader_buffer_new((size_t) INT64_C(28));
     l4 = INT64_C(0);
@@ -754,10 +749,6 @@ static vader_string_t std_path$root(vader_string_t l0) {
     l3 = std_path$root_length(l1, l2);
     t0 = vader_host_std_core$byte_slice(l1, INT64_C(0), l3);
     return t0;
-}
-
-static vader_string_t std_path$empty_path(void) {
-    return 0u;
 }
 
 static vader_string_t std_path$join(vader_string_t l0, vader_string_t l1) {

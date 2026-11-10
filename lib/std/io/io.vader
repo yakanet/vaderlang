@@ -44,7 +44,7 @@ export IOErrorKind :: enum(u8) {
 /// `T | IOError` return. Narrow with `is IOError` ; widen to `Error` for
 /// a trait-typed slot.
 export IOError :: struct {
-    /// Short human-readable diagnostic ("file not found", "EOF", ...).
+    /// Short human-readable diagnostic ("file not found", "end of input", ...).
     msg: string
     /// Portable classification. `.Other` when the failure had no platform code
     /// (a ceiling this library imposes) or when the code is one `IOErrorKind`

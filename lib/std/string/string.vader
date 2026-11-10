@@ -150,7 +150,7 @@ string implements Into<Iterator<char>> {
 /// lower stage. The method delegates to the module-private `byte_contains`
 /// (a byte-wise scan).
 string implements Contains<string> {
-    contains :: fn(self, sub: string) -> bool { return byte_contains(self, sub) }
+    contains :: fn(self, sub: string) -> bool = byte_contains(self, sub)
 }
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : `a < b` as a
@@ -471,7 +471,7 @@ export ParseError :: struct {
 }
 
 ParseError implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 /// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
@@ -612,10 +612,6 @@ export wrap_words :: fn(text: string, width: i64) -> string[] {
     return lines
 }
 
-// Char classification (`is_white_char`/`is_digit`/`is_alpha`/`is_alnum`) moved
-// to `std/char`: `fn(char) -> bool` predicates belong with char classification,
-// not the codepoint-string API. Callers `import "std/char"`.
-
 /// Strip `suffix` if `s` ends with it ; otherwise return `s` unchanged.
 /// Trims at most one occurrence.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
@@ -709,7 +705,7 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 /// segments. Mirrors `replace_chars_where(s, pred, ...)`: same predicate
 /// convention, same pair-with-`is_*` ergonomics. For whitespace
 /// splitting, pass `is_white_char` ; for word-boundary splitting
-/// (alphanumeric runs), pass `c -> !c.is_alnum()`. Empty inputs return
+/// (alphanumeric runs), pass `c -> !c.is_alphanumeric()`. Empty inputs return
 /// an empty array.
 ///
 /// @param s     source string.

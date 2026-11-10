@@ -32,7 +32,7 @@ export Monotonic :: i64
 export Duration :: i64
 
 // ---- the clock primitives (module-private : callers use `now()` /
-//      `monotonic()` / `StopWatch`, never the bare i64) --------------------
+//      `monotonic()` / `Stopwatch`, never the bare i64) --------------------
 //
 // POSIX reads a `struct timespec`, Win32 a FILETIME and a performance counter,
 // and the two shapes differ enough that `@target` selects a BODY: the split
@@ -166,16 +166,16 @@ Duration implements Sub -> Duration(i64(self) - i64(other))
 // ---- Duration accessors --------------------------------------------------
 
 /// Whole nanoseconds.
-export to_nanos :: fn(self: Duration) -> i64 { return i64(self) }
+export to_nanos :: fn(self: Duration) -> i64 = i64(self)
 
 /// Whole microseconds (truncated towards zero).
-export to_micros :: fn(self: Duration) -> i64 { return i64(self) / 1000 }
+export to_micros :: fn(self: Duration) -> i64 = i64(self) / 1000
 
 /// Whole milliseconds (truncated towards zero).
-export to_millis :: fn(self: Duration) -> i64 { return i64(self) / 1_000_000 }
+export to_millis :: fn(self: Duration) -> i64 = i64(self) / 1_000_000
 
 /// Whole seconds (truncated towards zero).
-export to_seconds :: fn(self: Duration) -> i64 { return i64(self) / 1_000_000_000 }
+export to_seconds :: fn(self: Duration) -> i64 = i64(self) / 1_000_000_000
 
 // ---- Duration formatting -------------------------------------------------
 
@@ -282,7 +282,7 @@ export TimeError :: struct {
 }
 
 TimeError implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 parse_digits :: fn(s: string, start: i64, count: i64) -> i64 | TimeError {

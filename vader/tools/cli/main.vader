@@ -101,7 +101,7 @@ parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
 // The action's own argument: `positionals[0]`, or `""` when it has none.
 // Anything past it belongs to the action's `TailKind`, never to the CLI.
 action_file :: fn(parsed: ParsedArgs) -> Path =
-    if parsed.positionals.len() == 0 { empty_path() } else { Path(parsed.positionals[0]) }
+    if parsed.positionals.len() == 0 { EMPTY_PATH } else { Path(parsed.positionals[0]) }
 
 // The action's own argument, or the folder the command runs in when it has
 // none: `vader build` alone builds the project there.

@@ -232,7 +232,7 @@ static void std_console$println__string(vader_string_t l0);
 static void std_console$eprintln__string(vader_string_t l0);
 static bool std_char$is_white_char(uint32_t l0);
 static bool std_char$is_digit(uint32_t l0);
-static bool std_char$is_alnum(uint32_t l0);
+static bool std_char$is_alphanumeric(uint32_t l0);
 static bool std_char$is_alpha(uint32_t l0);
 static void std_string__builder$append_char(void* l0, uint32_t l1);
 static vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
@@ -1500,7 +1500,7 @@ static vader_string_t semver$validate_prerelease_id(vader_string_t l0) {
             if ((l5 < INT32_C(128))) {
                 l3 = vader_chk_add(i64, l3, INT64_C(1));
                 l6 = ((uint32_t) (uint8_t) l5);
-                t0 = std_char$is_alnum(l6);
+                t0 = std_char$is_alphanumeric(l6);
                 if (!(t0)) {
                     if (l6 != 45u) {
                         return 27u;
@@ -1528,7 +1528,7 @@ static vader_string_t semver$validate_prerelease_id(vader_string_t l0) {
                 }
             }
             l9 = ((uint32_t) (uint32_t) l7);
-            t0 = std_char$is_alnum(l9);
+            t0 = std_char$is_alphanumeric(l9);
             if (!(t0)) {
                 if (l9 != 45u) {
                     return 27u;
@@ -1579,7 +1579,7 @@ static vader_string_t semver$validate_build_id(vader_string_t l0) {
             if ((l4 < INT32_C(128))) {
                 l2 = vader_chk_add(i64, l2, INT64_C(1));
                 l5 = ((uint32_t) (uint8_t) l4);
-                t0 = std_char$is_alnum(l5);
+                t0 = std_char$is_alphanumeric(l5);
                 if (!(t0)) {
                     if (l5 != 45u) {
                         return 30u;
@@ -1603,7 +1603,7 @@ static vader_string_t semver$validate_build_id(vader_string_t l0) {
                 }
             }
             l8 = ((uint32_t) (uint32_t) l6);
-            t0 = std_char$is_alnum(l8);
+            t0 = std_char$is_alphanumeric(l8);
             if (!(t0)) {
                 if (l8 != 45u) {
                     return 30u;
@@ -3349,7 +3349,7 @@ static bool std_char$is_digit(uint32_t l0) {
     return false;
 }
 
-static bool std_char$is_alnum(uint32_t l0) {
+static bool std_char$is_alphanumeric(uint32_t l0) {
     bool t0;
     t0 = std_char$is_alpha(l0);
     if (t0) {

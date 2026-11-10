@@ -59,9 +59,9 @@ write_signed_bigint :: fn(sb: StringBuilder, v: i64) -> void {
 }
 
 // Match JS `JSON.stringify` : integer-valued floats serialise without `.0`
-// (`10.0` → `"10"`). Delegates to `f64.to_compact_str` from std/numbers.
+// (`10.0` → `"10"`). Delegates to `f64.to_compact_string` from std/numbers.
 write_f64 :: fn(sb: StringBuilder, v: f64) -> void {
-    sb.append(v.to_compact_str())
+    sb.append(v.to_compact_string())
 }
 
 write_null :: fn(sb: StringBuilder) -> void { sb.append("null") }

@@ -256,13 +256,7 @@ give_terminal_back :: fn() -> void {
 
 // Width to render inside, leaving a column so a full-width line does not wrap on
 // its own. 80 columns when the terminal will not say.
-render_width :: fn() -> i32 {
-    reported :: TTY.columns()
-    if reported <= 0 {
-        return 79
-    }
-    return reported - 1
-}
+render_width :: fn() -> i32 = (TTY.columns() ?? 80) - 1
 
 /// Cut `s` to `width` columns, marking the cut so a truncated option does not
 /// read as a complete one.

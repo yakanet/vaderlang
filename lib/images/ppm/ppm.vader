@@ -34,7 +34,7 @@ export PpmError :: struct {
 }
 
 PpmError implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 /// Bytes per colour sample for a given maxval: 1 when `maxval < 256`, else 2.

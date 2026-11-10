@@ -12,7 +12,7 @@ module "main"
 import "std/console"
 import "std/math"
 
-export circle_area :: fn(radius: f64) -> f64 = pi * radius * radius
+export circle_area :: fn(radius: f64) -> f64 = PI * radius * radius
 
 main :: fn() -> i32 {
     println("${circle_area(1.0) > 3.14}")
@@ -37,7 +37,7 @@ math :: import "std/math"
 
 hypotenuse :: fn(a: f64, b: f64) -> f64 = math.sqrt(a * a + b * b)
 # main :: fn() -> i32 {
-#     println("${hypotenuse(3.0, 4.0)} ${math.floor(math.pi)}")
+#     println("${hypotenuse(3.0, 4.0)} ${math.floor(math.PI)}")
 #     return 0
 # }
 ```

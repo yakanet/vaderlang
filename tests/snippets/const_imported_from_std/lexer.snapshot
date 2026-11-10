@@ -27,7 +27,7 @@
 [13:12-13:13] lparen         "("
 [13:13-13:14] string_begin   "\""
 [13:14-13:16] interp_open    "${"
-[13:16-13:18] ident          "pi"
+[13:16-13:18] ident          "PI"
 [13:18-13:19] interp_close   "}"
 [13:19-13:20] string_end     "\""
 [13:20-13:21] rparen         ")"
@@ -36,7 +36,7 @@
 [14:12-14:13] lparen         "("
 [14:13-14:14] string_begin   "\""
 [14:14-14:16] interp_open    "${"
-[14:16-14:18] ident          "pi"
+[14:16-14:18] ident          "PI"
 [14:19-14:20] star           "*"
 [14:21-14:24] float_literal  "2.0" =2.0
 [14:24-14:25] interp_close   "}"

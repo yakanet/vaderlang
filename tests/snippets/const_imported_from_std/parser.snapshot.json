@@ -53,7 +53,7 @@
                           "kind": "interp",
                           "expr": {
                             "kind": "IdentExpr",
-                            "name": "pi"
+                            "name": "PI"
                           }
                         }
                       ]
@@ -84,7 +84,7 @@
                             "op": "mul",
                             "left": {
                               "kind": "IdentExpr",
-                              "name": "pi"
+                              "name": "PI"
                             },
                             "right": {
                               "kind": "FloatLitExpr",

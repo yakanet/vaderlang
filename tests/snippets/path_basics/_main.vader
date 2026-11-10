@@ -22,13 +22,13 @@ main :: fn() -> i32 {
     show_path("abs.filename", to_path(abs.filename()))
     show_path("abs.parent.parent", abs.parent().parent())
 
-    println("empty is empty=${empty_path() == empty_path()}")
-    println("p is empty=${p == empty_path()}")
+    println("empty is empty=${EMPTY_PATH == EMPTY_PATH}")
+    println("p is empty=${p == EMPTY_PATH}")
 
     show_path("join", "/etc".to_path().join("hosts"))
     show_path("join with sep", "/etc/".to_path().join("hosts"))
     show_path("join absolute", "/etc".to_path().join("/var/log"))
-    show_path("join empty base", empty_path().join("foo"))
+    show_path("join empty base", EMPTY_PATH.join("foo"))
 
     println("a/b/c starts_with a/b: ${"a/b/c".to_path().starts_with("a/b".to_path())}")
     println("a/bc starts_with a/b: ${"a/bc".to_path().starts_with("a/b".to_path())}")

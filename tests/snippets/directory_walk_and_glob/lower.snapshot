@@ -120,8 +120,8 @@
   std/target/baked
     const VADER_OS: Os  inline
   std/char
-    fn std.char.is_alnum  // std_char$is_alnum
     fn std.char.is_alpha  // std_char$is_alpha
+    fn std.char.is_alphanumeric  // std_char$is_alphanumeric
     fn std.char.is_digit  // std_char$is_digit
   std/console
     fn std.console.println<string>  // std_console$println__string

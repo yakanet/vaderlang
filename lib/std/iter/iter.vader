@@ -62,7 +62,7 @@ export last :: fn<T>(it: Iterator<T>) -> T | null {
     return result
 }
 
-// `collect` on an array is `arr.clone()` (built-in) ; the only `collect` here
+// `collect` on an array is `arr.clone()` (prelude) ; the only `collect` here
 // is the Iterator terminal below: drains a lazy chain into a fresh array.
 
 /// Drain `it` into a fresh array. Pair with the lazy combinators
@@ -76,10 +76,10 @@ export collect :: fn<T>(it: Iterator<T>) -> T[] {
     return out
 }
 
-// Eager `map` / `filter` array overloads removed: `map` / `filter` are ONLY the
-// lazy `generator` combinators now (bottom of this file). `arr.map(f)` resolves
-// unambiguously to the lazy `Iterator<U>` and fuses over the raw array (the
-// implicit array head) ; drain to an array with `.collect()` when needed.
+// `map` / `filter` exist only as the lazy `generator` combinators (bottom of
+// this file): `arr.map(f)` resolves unambiguously to the lazy `Iterator<U>`
+// and fuses over the raw array (the implicit array head) ; drain to an array
+// with `.collect()` when needed.
 
 /// Left-fold the iterator with seed `init`. `f(acc, x)` is called for every
 /// element in order ; the final accumulator is returned. A raw array coerces to

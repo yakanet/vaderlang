@@ -6349,7 +6349,7 @@ fn 108 std_glob$holds (u8,char) -> bool
   i32.eq
   if $L0 void
     local.get 1   ; arg 1
-    call 113   ; std_char$is_alnum
+    call 113   ; std_char$is_alphanumeric
     local.tee 2   ; if_res
     return
   end $L0
@@ -6475,7 +6475,7 @@ fn 108 std_glob$holds (u8,char) -> bool
                   local.get 3   ; and_res
                   if $L15 void
                     local.get 1   ; arg 1
-                    call 113   ; std_char$is_alnum
+                    call 113   ; std_char$is_alphanumeric
                     bool.not
                     local.set 2   ; if_res
                   else
@@ -6734,7 +6734,7 @@ fn 112 std_char$is_digit (char) -> bool
   return.lit bool.const false
 end
 
-fn 113 std_char$is_alnum (char) -> bool
+fn 113 std_char$is_alphanumeric (char) -> bool
   local.get 0   ; arg 0
   call 114   ; std_char$is_alpha
   if $L0 void

@@ -29,7 +29,7 @@ export JsonValue :: JsonString | JsonNumber | JsonBool | JsonNull | JsonArray | 
 export JsonString :: struct { value: string }
 
 /// JSON number variant: `f64`. Integer-valued numbers round-trip
-/// through `to_compact_str` for cleaner output.
+/// through `to_compact_string` for cleaner output.
 export JsonNumber :: struct { value: f64 }
 
 /// JSON `true`/`false`.
@@ -55,7 +55,7 @@ export JsonError :: struct {
 }
 
 JsonError implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 // ---- parser ---------------------------------------------------------------
@@ -327,17 +327,14 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
 
 // Read exactly 4 hex digits at `p.pos` (a `\uXXXX` payload: the `\u` is
 // already consumed), advancing `p.pos` by 4 on success. Returns the 0..0xFFFF
-// value, or -1 (without advancing) on incomplete input / a non-hex digit.
-read_hex4 :: fn(p: Parser) -> i32 {
+// value, or null (without advancing) on incomplete input / a non-hex digit.
+read_hex4 :: fn(p: Parser) -> i32 | null {
     if p.pos + 4 > p.src.byte_len() {
-        return -1
+        return null
     }
     v := 0
     for k in i64(0)..<4 {
-        d :: hex_digit_value(char(p.src.byte_at(p.pos + k)))
-        if d < 0 {
-            return -1
-        }
+        d :: hex_digit_value(char(p.src.byte_at(p.pos + k))) ?? return null
         v = v * 16 + d
     }
     p.pos = p.pos + 4
@@ -352,10 +349,7 @@ read_hex4 :: fn(p: Parser) -> i32 {
 // loop to re-decode, so it keeps its own meaning. Returns false on incomplete /
 // non-hex input.
 decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
-    hi_val :: read_hex4(p)
-    if hi_val < 0 {
-        return false
-    }
+    hi_val :: read_hex4(p) ?? return false
     hi :: u32(hi_val)
     if !is_surrogate(hi) {
         sb.append_char(char(hi))            // ordinary BMP scalar
@@ -368,7 +362,7 @@ decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
             saved :: p.pos
             p.pos = p.pos + 2
             lo_val :: read_hex4(p)
-            if lo_val >= 0 && is_low_surrogate(u32(lo_val)) {
+            if lo_val != null && is_low_surrogate(u32(lo_val)) {
                 sb.append_char(combine_surrogates(hi, u32(lo_val)))
                 return true
             }
@@ -519,7 +513,7 @@ escape_of :: fn(c: u8) -> string | null = match c {
 // an int/float distinction), so preserving `.0` would carry no information:
 // emit the canonical short form, matching JS `JSON.stringify`, Go
 // `encoding/json`, and RFC 8785 (JCS).
-write_number :: fn(sb: StringBuilder, v: f64) -> void = sb.append(v.to_compact_str())
+write_number :: fn(sb: StringBuilder, v: f64) -> void = sb.append(v.to_compact_string())
 
 write_value :: fn(sb: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> void {
     match v {

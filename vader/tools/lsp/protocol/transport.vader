@@ -24,7 +24,7 @@ export TransportError :: struct {
 }
 
 TransportError implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 /// Read one JSON-RPC frame from stdin. Returns the raw JSON body as a

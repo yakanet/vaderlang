@@ -440,17 +440,17 @@ export remove :: fn<K: Hash & Equals, V>(self: Map<K, V>, key: K) -> bool {
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
-export len :: fn<K, V>(self: Map<K, V>) -> i64 { return self.size }
+export len :: fn<K, V>(self: Map<K, V>) -> i64 = self.size
 
 /// True iff no entries have been inserted (or all were removed). O(1).
-export is_empty :: fn<K, V>(self: Map<K, V>) -> bool { return self.size == 0 }
+export is_empty :: fn<K, V>(self: Map<K, V>) -> bool = self.size == 0
 
 // Operator sugar: `m[key]` reads via Index, `m[key] = v` writes via
 // IndexSet, `key in m` dispatches via Contains. The impl bodies reuse `get` /
 // `put` / `contains_key`, so each impl restates the struct's `K: Hash & Equals`
 // bound those calls require.
 Map<K, V> implements<K: Hash & Equals, V> Index<K, V | null> {
-    at :: fn(self, key: K) -> V | null { return self.get(key) }
+    at :: fn(self, key: K) -> V | null = self.get(key)
 }
 
 Map<K, V> implements<K: Hash & Equals, V> IndexSet<K, V> {
@@ -458,7 +458,7 @@ Map<K, V> implements<K: Hash & Equals, V> IndexSet<K, V> {
 }
 
 Map<K, V> implements<K: Hash & Equals, V> Contains<K> {
-    contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
+    contains :: fn(self, key: K) -> bool = self.contains_key(key)
 }
 
 /// Walk every key in insertion order, over the map itself: nothing is copied.

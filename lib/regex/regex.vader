@@ -55,7 +55,7 @@ export RegexError :: struct {
 }
 
 RegexError implements Error {
-    message :: fn(self) -> string { return "${self.msg} (at position ${self.position})" }
+    message :: fn(self) -> string = "${self.msg} (at position ${self.position})"
 }
 
 // ---- Instruction set (Cox VM) ---------------------------------------------

@@ -139,7 +139,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | 
 /// Odd-length input is rounded down (the bytecode writer always emits
 /// even-length blobs, so this only fires on malformed input). Digit
 /// decoding delegates to `std/numbers::hex_digit_value` ; an invalid
-/// digit (-1 return) leaks through as a high-bit junk byte, which the
+/// digit reads as `0xF` and leaks through as a junk byte, which the
 /// caller treats as out-of-range data and surfaces as a value mismatch.
 ///
 /// @param s  hex digits (no `0x` prefix, no separators).
@@ -149,8 +149,8 @@ hex_to_bytes :: fn(s: string) -> u8[] {
     i: i64 = 0
     len :: s.byte_len()
     for i + 1 < len {
-        hi :: u32(hex_digit_value(char(u32(s.byte_at(i)))))
-        lo :: u32(hex_digit_value(char(u32(s.byte_at(i + 1)))))
+        hi :: u32(hex_digit_value(char(u32(s.byte_at(i)))) ?? 0xF)
+        lo :: u32(hex_digit_value(char(u32(s.byte_at(i + 1)))) ?? 0xF)
         out.push(u8((hi << 4) | lo))
         i += 2
     }

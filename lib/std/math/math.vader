@@ -5,9 +5,9 @@ module "std/math"
 import "std/ffi"
 
 /// π (3.141592653589793).
-export pi :: 3.141592653589793
+export PI :: 3.141592653589793
 /// Euler's number, e (2.718281828459045).
-export e :: 2.718281828459045
+export E :: 2.718281828459045
 
 // ---- Float operations -----------------------------------------------------
 
@@ -75,17 +75,17 @@ export cos :: fn(x: f64) -> f64
 /// Tangent of `x` in radians.
 @extern(LIBM, "tan")
 export tan :: fn(x: f64) -> f64
-/// Arc sine of `x`, in radians in `[-pi/2, pi/2]`: `NaN` outside `[-1, 1]`.
+/// Arc sine of `x`, in radians in `[-PI/2, PI/2]`: `NaN` outside `[-1, 1]`.
 @extern(LIBM, "asin")
 export asin :: fn(x: f64) -> f64
-/// Arc cosine of `x`, in radians in `[0, pi]`: `NaN` outside `[-1, 1]`.
+/// Arc cosine of `x`, in radians in `[0, PI]`: `NaN` outside `[-1, 1]`.
 @extern(LIBM, "acos")
 export acos :: fn(x: f64) -> f64
-/// Arc tangent of `x`, in radians in `[-pi/2, pi/2]`.
+/// Arc tangent of `x`, in radians in `[-PI/2, PI/2]`.
 @extern(LIBM, "atan")
 export atan :: fn(x: f64) -> f64
 /// Angle of the point `(x, y)` from the positive x axis, in radians in
-/// `[-pi, pi]`: the arc tangent of `y / x`, in the quadrant of the point.
+/// `[-PI, PI]`: the arc tangent of `y / x`, in the quadrant of the point.
 /// @param y  the ordinate, the first argument as in C.
 /// @param x  the abscissa.
 @extern(LIBM, "atan2")
@@ -298,11 +298,11 @@ export pow :: fn(base: i64, exponent: u32) -> i64 {
 import "std/testing"
 
 @test test_pi_close :: fn() -> void {
-    assert_close(pi, 3.141592653589793, 0.000001)
+    assert_close(PI, 3.141592653589793, 0.000001)
 }
 
 @test test_e_close :: fn() -> void {
-    assert_close(e, 2.718281828459045, 0.000001)
+    assert_close(E, 2.718281828459045, 0.000001)
 }
 
 @test test_sqrt :: fn() -> void {
@@ -325,8 +325,8 @@ import "std/testing"
     assert_close(sin(0.0), 0.0, 0.000001)
     assert_close(cos(0.0), 1.0, 0.000001)
     assert_close(tan(0.0), 0.0, 0.000001)
-    assert_close(sin(pi), 0.0, 0.000001)
-    assert_close(cos(pi), -1.0, 0.000001)
+    assert_close(sin(PI), 0.0, 0.000001)
+    assert_close(cos(PI), -1.0, 0.000001)
 }
 
 @test test_floor_ceil_round :: fn() -> void {
@@ -416,16 +416,16 @@ import "std/testing"
 @test test_exponentials_and_logarithms :: fn() -> void {
     assert_close(exp(0.0), 1.0, 0.000001)
     assert_close(log(1.0), 0.0, 0.000001)
-    assert_close(log(e), 1.0, 0.000001)
+    assert_close(log(E), 1.0, 0.000001)
     assert_close(log2(8.0), 3.0, 0.000001)
     assert_close(log10(1000.0), 3.0, 0.000001)
 }
 
 @test test_inverse_trigonometry :: fn() -> void {
-    assert_close(asin(1.0), pi / 2.0, 0.000001)
-    assert_close(acos(-1.0), pi, 0.000001)
-    assert_close(atan(1.0), pi / 4.0, 0.000001)
-    assert_close(atan2(1.0, -1.0), 3.0 * pi / 4.0, 0.000001)
+    assert_close(asin(1.0), PI / 2.0, 0.000001)
+    assert_close(acos(-1.0), PI, 0.000001)
+    assert_close(atan(1.0), PI / 4.0, 0.000001)
+    assert_close(atan2(1.0, -1.0), 3.0 * PI / 4.0, 0.000001)
 }
 
 @test test_float_classification :: fn() -> void {

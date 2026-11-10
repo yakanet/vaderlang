@@ -222,9 +222,9 @@ ray_at :: fn(player: Player, level: Level, camera: f64) -> Hit = cast_ray(
 test_ray_walls_read_left_to_right :: fn() -> void {
     room :: ["#####", "#...#", "#.@.#", "#...#", "#####"]
     assert(reads_left_to_right(room, 0.0), "a wall seen eastwards")
-    assert(reads_left_to_right(room, pi), "a wall seen westwards")
-    assert(reads_left_to_right(room, pi / 2.0), "a wall seen southwards")
-    assert(reads_left_to_right(room, -pi / 2.0), "a wall seen northwards")
+    assert(reads_left_to_right(room, PI), "a wall seen westwards")
+    assert(reads_left_to_right(room, PI / 2.0), "a wall seen southwards")
+    assert(reads_left_to_right(room, -PI / 2.0), "a wall seen northwards")
 }
 
 @test
@@ -234,7 +234,7 @@ test_ray_doors_read_left_to_right :: fn() -> void {
     north_of :: ["#####", "#.@.#", "##D##", "#...#", "#####"]
     south_of :: ["#####", "#...#", "##D##", "#.@.#", "#####"]
     assert(reads_left_to_right(west_of, 0.0), "a door seen eastwards")
-    assert(reads_left_to_right(east_of, pi), "a door seen westwards")
-    assert(reads_left_to_right(north_of, pi / 2.0), "a door seen southwards")
-    assert(reads_left_to_right(south_of, -pi / 2.0), "a door seen northwards")
+    assert(reads_left_to_right(east_of, PI), "a door seen westwards")
+    assert(reads_left_to_right(north_of, PI / 2.0), "a door seen southwards")
+    assert(reads_left_to_right(south_of, -PI / 2.0), "a door seen northwards")
 }

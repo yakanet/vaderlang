@@ -166,7 +166,7 @@ test_player_starts_facing_east :: fn() -> void {
 @test
 test_player_turn_right_faces_south :: fn() -> void {
     player :: new_player(tiny())
-    player.turn(pi / 2.0)
+    player.turn(PI / 2.0)
     assert(abs(player.direction_y - 1.0) < 0.000001, "a quarter turn right faces south")
     assert(abs(player.plane_x + PLANE_LENGTH) < 0.000001, "the plane follows, to the west")
 }
@@ -249,7 +249,7 @@ test_player_works_the_door_ahead :: fn() -> void {
     level :: tiny()
     player :: new_player(level)
     player.x = 2.5
-    player.turn(pi / 2.0)
+    player.turn(PI / 2.0)
     noises: Noise[]: []
     player.use_ahead(level, noises)
     assert(level.doors[0].opening, "the door south of the player opens")

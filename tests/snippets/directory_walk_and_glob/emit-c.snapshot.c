@@ -578,7 +578,7 @@ static void std_string__builder$append_char(void* l0, uint32_t l1);
 static vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
 static int64_t std_string__builder$byte_len(void* l0);
 static bool std_char$is_digit(uint32_t l0);
-static bool std_char$is_alnum(uint32_t l0);
+static bool std_char$is_alphanumeric(uint32_t l0);
 static bool std_char$is_alpha(uint32_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -4913,7 +4913,7 @@ static bool std_glob$holds(uint8_t l0, uint32_t l1) {
     bool t0;
     int32_t t1;
     if (l0 == INT32_C(0)) {
-        l2 = std_char$is_alnum(l1);
+        l2 = std_char$is_alphanumeric(l1);
         return l2;
     }
     if (l0 == INT32_C(1)) {
@@ -4957,7 +4957,7 @@ static bool std_glob$holds(uint8_t l0, uint32_t l1) {
             l3 = false;
         }
         if (l3) {
-            t0 = std_char$is_alnum(l1);
+            t0 = std_char$is_alphanumeric(l1);
             l2 = !(t0);
         } else {
             l2 = false;
@@ -5103,7 +5103,7 @@ static bool std_char$is_digit(uint32_t l0) {
     return false;
 }
 
-static bool std_char$is_alnum(uint32_t l0) {
+static bool std_char$is_alphanumeric(uint32_t l0) {
     bool t0;
     t0 = std_char$is_alpha(l0);
     if (t0) {

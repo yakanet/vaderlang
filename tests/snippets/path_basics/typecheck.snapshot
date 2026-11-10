@@ -75,17 +75,14 @@
   expr 23:5     IdentExpr      :: fn(string, Path) -> void
   expr 25:13    StringLitExpr  :: string
   expr 25:31    BinaryExpr     :: bool
-  expr 25:31    CallExpr       :: Path
-  expr 25:31    IdentExpr      :: fn() -> Path
-  expr 25:47    CallExpr       :: Path
-  expr 25:47    IdentExpr      :: fn() -> Path
+  expr 25:31    IdentExpr      :: Path
+  expr 25:45    IdentExpr      :: Path
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
   expr 26:13    StringLitExpr  :: string
   expr 26:27    BinaryExpr     :: bool
   expr 26:27    IdentExpr      :: Path
-  expr 26:32    CallExpr       :: Path
-  expr 26:32    IdentExpr      :: fn() -> Path
+  expr 26:32    IdentExpr      :: Path
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
   expr 28:15    StringLitExpr  :: string
@@ -117,12 +114,11 @@
   expr 30:54    StringLitExpr  :: string
   expr 31:15    StringLitExpr  :: string
   expr 31:34    CallExpr       :: Path
-  expr 31:34    CallExpr       :: Path
   expr 31:34    FieldExpr      :: fn(string) -> Path
-  expr 31:34    IdentExpr      :: fn() -> Path
+  expr 31:34    IdentExpr      :: Path
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(string, Path) -> void
-  expr 31:52    StringLitExpr  :: string
+  expr 31:50    StringLitExpr  :: string
   expr 33:13    StringLitExpr  :: string
   expr 33:39    CallExpr       :: Path
   expr 33:39    CallExpr       :: bool

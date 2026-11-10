@@ -42,7 +42,7 @@ export ProcessError :: struct {
 }
 
 ProcessError implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 /// Outcome of a child that ran to completion. `exit` is the OS exit status ;

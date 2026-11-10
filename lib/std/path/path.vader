@@ -76,7 +76,7 @@ export to_path :: fn(s: string) -> Path {
 }
 
 /// The empty path (`""`). Useful as an identity for `join` / as a default.
-export empty_path :: fn() -> Path = Path("")
+export EMPTY_PATH :: Path("")
 
 // ---- accessors ------------------------------------------------------------
 
@@ -414,7 +414,7 @@ import "std/testing"
 }
 
 @test test_empty_path :: fn() -> void {
-    p :: empty_path()
+    p :: EMPTY_PATH
     assert_eq(p.as_string(), "")
 }
 
@@ -422,7 +422,7 @@ import "std/testing"
     from_the_root :: if current_os() == .Windows { "C:/usr/bin" } else { "/usr/bin" }
     assert(from_the_root.to_path().is_absolute(), "a path from the root")
     assert(!"relative/path".to_path().is_absolute(), "relative/path is not absolute")
-    assert(!empty_path().is_absolute(), "empty path is not absolute")
+    assert(!EMPTY_PATH.is_absolute(), "empty path is not absolute")
 }
 
 @test test_parent :: fn() -> void {
@@ -560,7 +560,7 @@ test_to_posix_on_each_os :: fn() -> void {
 @test test_join :: fn() -> void {
     assert_eq("a".to_path().join("b").as_string(), "a/b")
     assert_eq("a/".to_path().join("b").as_string(), "a/b")
-    assert_eq(empty_path().join("b").as_string(), "b")
+    assert_eq(EMPTY_PATH.join("b").as_string(), "b")
 }
 
 @test test_starts_ends_with :: fn() -> void {

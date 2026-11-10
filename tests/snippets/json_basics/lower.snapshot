@@ -178,7 +178,7 @@
     fn std.numbers.digits_in_base  // std_numbers$digits_in_base
     fn std.numbers.hex_digit  // std_numbers$hex_digit
     fn std.numbers.hex_digit_value  // std_numbers$hex_digit_value
-    fn std.numbers.to_compact_str  // std_numbers$to_compact_str
+    fn std.numbers.to_compact_string  // std_numbers$to_compact_string
     fn std.numbers.to_hex  // std_numbers$to_hex
   std/string
     fn std.string.combine_surrogates  // std_string$combine_surrogates

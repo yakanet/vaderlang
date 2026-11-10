@@ -107,7 +107,7 @@ profiling :: fn() -> bool {
 }
 
 read_counters :: fn() -> Counters = Counters {
-    .peak_rss = peak_resident_bytes(),
+    .peak_rss = peak_resident_bytes() ?? 0,
     .copied = bytes_copied(),
     .allocated = allocated_bytes(),
     .allocations = allocations(),
@@ -210,10 +210,10 @@ export prof_dump :: fn() -> void {
         write_row(sb, phase_name(phase), totals, sum.wall_ns, growth)
         sb.append(" ${right("${totals.calls}", 5)}\n")
     }
-    peak :: peak_resident_bytes()
+    peak :: peak_resident_bytes() ?? 0
     write_row(sb, "TOTAL", sum, sum.wall_ns, signed(mebibytes(peak)))
     sb.append("\n")
-    sb.append("  peak-RSS ${mebibytes(peak)} MB | RSS-now ${mebibytes(resident_bytes())} MB | ")
+    sb.append("  peak-RSS ${mebibytes(peak)} MB | RSS-now ${mebibytes(resident_bytes() ?? 0)} MB | ")
     sb.append("live-set ${mebibytes(bytes_used())} MB\n")
     eprint(sb.to_string())
 }

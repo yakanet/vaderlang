@@ -6,8 +6,8 @@
 // on top of `if x == null` / `if x is Error` narrowing: called via UFCS
 // (`x.or(d)` on either, `r.map(f)`) for default / transform / chain, the
 // cases where a full narrowing block would be noise. Control flow (early
-// return, branching, propagation) stays with `if` / `match`. They replace the
-// removed `?` operator. See `docs/adr/0011-errors-and-null-are-ordinary-union-values.md`.
+// return, branching, propagation) stays with `if` / `match`. See
+// `docs/adr/0011-errors-and-null-are-ordinary-union-values.md`.
 
 module "std/option"
 
@@ -131,8 +131,8 @@ Boom implements Error {
     message :: fn(self) -> string = "boom ${self.code}"
 }
 
-ok  :: fn() -> i32 | Error { return 42 }
-bad :: fn() -> i32 | Error { return Boom { .code = 7 } }
+ok  :: fn() -> i32 | Error = 42
+bad :: fn() -> i32 | Error = Boom { .code = 7 }
 
 halve :: fn(v: i32) -> i32 | Error {
     if v % 2 != 0 { return Boom { .code = 1 } }

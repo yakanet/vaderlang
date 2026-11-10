@@ -9,22 +9,22 @@ module "std/time"
 
 /// A monotonic stopwatch. Construct with `start()`, read elapsed time with
 /// `stop()`. Cheap to copy (it holds a single zero-cost `Monotonic`).
-export StopWatch :: struct {
+export Stopwatch :: struct {
     /// The monotonic instant the stopwatch was started at.
     @internal
     started: Monotonic
 }
 
 /// Start a stopwatch from the current monotonic instant.
-/// @return  a `StopWatch` anchored at `monotonic()`.
-export start :: fn() -> StopWatch = StopWatch { .started = monotonic() }
+/// @return  a `Stopwatch` anchored at `monotonic()`.
+export start :: fn() -> Stopwatch = Stopwatch { .started = monotonic() }
 
 /// Elapsed `Duration` since the stopwatch was started. Re-reads the monotonic
 /// clock on every call, so repeated `stop()`s report time since `start()`,
 /// not since the previous `stop()` ; the stopwatch is never consumed.
 /// @param self  the running stopwatch.
 /// @return      a non-negative `Duration` in normal operation.
-export stop :: fn(self: StopWatch) -> Duration = self.started.since()
+export stop :: fn(self: Stopwatch) -> Duration = self.started.since()
 
 // ---- tests ----------------------------------------------------------------
 

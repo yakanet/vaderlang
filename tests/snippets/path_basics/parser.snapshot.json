@@ -617,20 +617,12 @@
                             "kind": "BinaryExpr",
                             "op": "eq",
                             "left": {
-                              "kind": "CallExpr",
-                              "callee": {
-                                "kind": "IdentExpr",
-                                "name": "empty_path"
-                              },
-                              "args": []
+                              "kind": "IdentExpr",
+                              "name": "EMPTY_PATH"
                             },
                             "right": {
-                              "kind": "CallExpr",
-                              "callee": {
-                                "kind": "IdentExpr",
-                                "name": "empty_path"
-                              },
-                              "args": []
+                              "kind": "IdentExpr",
+                              "name": "EMPTY_PATH"
                             }
                           }
                         }
@@ -669,12 +661,8 @@
                               "name": "p"
                             },
                             "right": {
-                              "kind": "CallExpr",
-                              "callee": {
-                                "kind": "IdentExpr",
-                                "name": "empty_path"
-                              },
-                              "args": []
+                              "kind": "IdentExpr",
+                              "name": "EMPTY_PATH"
                             }
                           }
                         }
@@ -918,12 +906,8 @@
                       "callee": {
                         "kind": "FieldExpr",
                         "target": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "IdentExpr",
-                            "name": "empty_path"
-                          },
-                          "args": []
+                          "kind": "IdentExpr",
+                          "name": "EMPTY_PATH"
                         },
                         "field": "join"
                       },

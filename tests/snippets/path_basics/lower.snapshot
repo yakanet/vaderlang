@@ -21,20 +21,20 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "empty is empty=")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.path.empty_path() == std.path.empty_path())
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std.path.EMPTY_PATH == std.path.EMPTY_PATH)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.console.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(16))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "p is empty=")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, p == std.path.empty_path())
+          __off_3 = std.core.write_bool(__buf_2, __off_3, p == std.path.EMPTY_PATH)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       snippet.show_path("join", std.path.join(std.path.to_path("/etc"), "hosts"))
       snippet.show_path("join with sep", std.path.join(std.path.to_path("/etc/"), "hosts"))
       snippet.show_path("join absolute", std.path.join(std.path.to_path("/etc"), "/var/log"))
-      snippet.show_path("join empty base", std.path.join(std.path.empty_path(), "foo"))
+      snippet.show_path("join empty base", std.path.join(std.path.EMPTY_PATH, "foo"))
       std.console.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(28))
           __off_5: i64 = 0
@@ -111,8 +111,8 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
   std/path
+    const EMPTY_PATH: Path  inline
     fn std.path.as_string  // std_path$as_string
-    fn std.path.empty_path  // std_path$empty_path
     fn std.path.ends_with  // std_path$ends_with
     fn std.path.extension  // std_path$extension
     fn std.path.extension_dot  // std_path$extension_dot

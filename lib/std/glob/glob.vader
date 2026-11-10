@@ -396,7 +396,7 @@ posix_class_named :: fn(name: string) -> PosixClass | null = match name {
 // Whether `class` holds `ch`. The POSIX locale is ASCII: no other character
 // belongs to any class.
 holds :: fn(class: PosixClass, ch: char) -> bool = match class {
-    .Alnum  -> ch.is_alnum()
+    .Alnum  -> ch.is_alphanumeric()
     .Alpha  -> ch.is_alpha()
     .Blank  -> ch == ' ' || ch == '\t'
     .Cntrl  -> u32(ch) < 0x20 || u32(ch) == 0x7F
@@ -404,7 +404,7 @@ holds :: fn(class: PosixClass, ch: char) -> bool = match class {
     .Graph  -> ch in '!'..='~'
     .Lower  -> ch in 'a'..='z'
     .Print  -> ch in ' '..='~'
-    .Punct  -> ch in '!'..='~' && !ch.is_alnum()
+    .Punct  -> ch in '!'..='~' && !ch.is_alphanumeric()
     .Space  -> ch == ' ' || u32(ch) in 0x09..=0x0D
     .Upper  -> ch in 'A'..='Z'
     .Xdigit -> ch.is_digit() || ch in 'a'..='f' || ch in 'A'..='F'

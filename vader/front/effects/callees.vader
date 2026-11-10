@@ -394,7 +394,8 @@ writes_bytes :: fn(elements: i32) -> ParamEffects[] =
 /// @param key  the intrinsic's key, as `intrinsic_effects` takes it.
 makes_frozen_view :: fn(key: string) -> bool = key == "std/core.bytes"
 
-// `self.copy_to(src_off, dst, dst_off, count)`: `self`'s elements go into `dst`.
+// `self.copy_to(source_offset, destination, destination_offset, count)`: the
+// elements of `self` go into `destination`.
 copy_to_effects :: fn(elements: i32) -> ParamEffects[] =
     [effects_of(.Stored, elements), none(), effects_of(.Assigned, elements), none(), none()]
 

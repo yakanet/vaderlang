@@ -65,28 +65,29 @@ export count_allocations :: fn() -> void
 // ---- memory footprint -----------------------------------------------------
 
 /// The most memory the process has held resident at once, in bytes: it never
-/// decreases. 0 where the platform gives no reading, as on Windows.
+/// decreases. Null where the platform gives no reading, as on Windows.
 /// @return  the peak resident set size, in bytes.
 @target
-export peak_resident_bytes :: fn() -> i64 = 0
+export peak_resident_bytes :: fn() -> i64 | null = null
 
 @target(.Linux, .Darwin)
-peak_resident_bytes :: fn() -> i64 {
+peak_resident_bytes :: fn() -> i64 | null {
     usage: i64[]: [0] * RUSAGE_CELLS
     if sys_getrusage(RUSAGE_SELF, usage) != 0 {
-        return 0
+        return null
     }
     return usage[RU_MAXRSS_CELL] * RU_MAXRSS_UNIT
 }
 
 /// The memory the process holds resident now, in bytes. Where the platform
-/// gives no current reading, the peak stands in for it.
+/// gives no current reading, the peak stands in for it, and null where it gives
+/// neither.
 /// @return  the resident set size, in bytes.
 @target
-export resident_bytes :: fn() -> i64 = peak_resident_bytes()
+export resident_bytes :: fn() -> i64 | null = peak_resident_bytes()
 
 @target(.Darwin)
-resident_bytes :: fn() -> i64 {
+resident_bytes :: fn() -> i64 | null {
     info: u64[]: [0] * 6
     count: u32[]: [MACH_TASK_BASIC_INFO_COUNT]
     if task_info(mach_task_self(), MACH_TASK_BASIC_INFO, info, count) != KERN_SUCCESS {
@@ -97,7 +98,7 @@ resident_bytes :: fn() -> i64 {
 
 // `/proc/self/statm` holds sizes in pages, the resident set second.
 @target(.Linux)
-resident_bytes :: fn() -> i64 {
+resident_bytes :: fn() -> i64 | null {
     statm :: read_file_string("/proc/self/statm")
     if statm is IOError {
         return peak_resident_bytes()
@@ -120,6 +121,6 @@ import "std/testing"
 @test
 test_resident_bytes_read_the_process_where_the_platform_tells :: fn() -> void {
     readable :: VADER_OS != .Windows
-    assert((resident_bytes() > 0) == readable, "the resident set, where the platform gives it")
-    assert((peak_resident_bytes() > 0) == readable, "the peak, where the platform gives it")
+    assert((resident_bytes() != null) == readable, "the resident set, where the platform gives it")
+    assert((peak_resident_bytes() != null) == readable, "the peak, where the platform gives it")
 }

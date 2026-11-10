@@ -118,8 +118,8 @@
     struct semver.Version  // semver$Version
     struct semver.VersionRange  // semver$VersionRange
   std/char
-    fn std.char.is_alnum  // std_char$is_alnum
     fn std.char.is_alpha  // std_char$is_alpha
+    fn std.char.is_alphanumeric  // std_char$is_alphanumeric
     fn std.char.is_digit  // std_char$is_digit
     fn std.char.is_white_char  // std_char$is_white_char
   std/console

@@ -61,7 +61,7 @@ export Base64Error :: struct {
 }
 
 Base64Error implements Error {
-    message :: fn(self) -> string { return self.msg }
+    message :: fn(self) -> string = self.msg
 }
 
 // Decode one base64 character to its 6-bit value, or i32(-1) for any

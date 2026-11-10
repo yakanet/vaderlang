@@ -248,7 +248,7 @@ test_vector2_normalized :: fn() -> void {
 
 @test
 test_vector2_rotated_quarter_turn :: fn() -> void {
-    turned :: Vector2 { .x = 1.0, .y = 0.0 }.rotated(f32(pi / 2.0))
+    turned :: Vector2 { .x = 1.0, .y = 0.0 }.rotated(f32(PI / 2.0))
     assert_close(f64(turned.x), 0.0, 1.0e-6)
     assert_close(f64(turned.y), 1.0, 1.0e-6)
 }

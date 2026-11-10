@@ -932,7 +932,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 1302) vader_data_0_buf = {
     },
 };
 static const vader_array_t vader_data_0 = {
-    { 43u, 0u, 0u, 0u, NULL }, 1302u, 1302u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
+    { 44u, 0u, 0u, 0u, NULL }, 1302u, 1302u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 8u, 4u,
@@ -1282,7 +1282,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_1_buf = {
     },
 };
 static const vader_array_t vader_data_1 = {
-    { 43u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
+    { 44u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_2_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 8u, 4u,
@@ -1616,7 +1616,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_2_buf = {
     },
 };
 static const vader_array_t vader_data_2 = {
-    { 43u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
+    { 44u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 static const struct vader_struct_json$JsonNull_t vader_data_3_e0 = { { 25u, 0u, 0u, 0u, NULL } };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_3_buf = {
@@ -1626,7 +1626,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_3_buf = {
     },
 };
 static const vader_array_t vader_data_3 = {
-    { 50u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
+    { 51u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
 };
 
 static void snippet$show(vader_string_t l0, vader_string_t l1);
@@ -1710,7 +1710,7 @@ static bool json$match_keyword(void* l0, vader_string_t l1);
 static void json$write_indent(void* l0, int32_t l1, int32_t l2);
 static vader_box_t json$escape_of(uint8_t l0);
 static bool json$decode_unicode_escape(void* l0, void* l1);
-static int32_t json$read_hex4(void* l0);
+static vader_box_t json$read_hex4(void* l0);
 static vader_box_t std_string$parse_float(vader_string_t l0);
 static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32_t l2);
@@ -1734,10 +1734,10 @@ static void std_collections$rehash__string__Any(void* l0, int64_t l1);
 static void std_collections$grow_index__string__Any(void* l0);
 static bool std_collections$put__string__Any(void* l0, vader_string_t l1, vader_box_t l2);
 static int64_t std_collections$len__string__Any(void* l0);
-static vader_string_t std_numbers$to_compact_str(double l0);
+static vader_string_t std_numbers$to_compact_string(double l0);
 static vader_string_t std_numbers$to_hex(uint64_t l0);
 static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool l2);
-static int32_t std_numbers$hex_digit_value(uint32_t l0);
+static vader_box_t std_numbers$hex_digit_value(uint32_t l0);
 static uint32_t std_numbers$digit_char(uint64_t l0, bool l1);
 static uint32_t std_numbers$hex_digit(uint64_t l0);
 static uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
@@ -1746,7 +1746,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[52] = {
+const vader_type_info_t vader_type_info_table[53] = {
     [1] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
@@ -1851,47 +1851,44 @@ const vader_type_info_t vader_type_info_table[52] = {
     [37] = { .slot_size = 16 },
     [38] = { .slot_size = 16 },
     [39] = { .slot_size = 16 },
-    [40] = {
+    [40] = { .slot_size = 16 },
+    [41] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [41] = {
+    [42] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t, f_ekeys), offsetof(vader_struct_std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t, f_evals), offsetof(vader_struct_std_collections$Map__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t, f_index) },
         .ref_count = 3,
     },
-    [42] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
-    },
     [43] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [44] = { .slot_size = 16 },
-    [45] = {
+    [44] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+    },
+    [45] = { .slot_size = 16 },
+    [46] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_string$ParseError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string$ParseError_t, f_msg) },
         .string_count = 1,
     },
-    [46] = {
+    [47] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [47] = {
+    [48] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections$Map__string__Any_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections$Map__string__Any_t, f_ekeys), offsetof(vader_struct_std_collections$Map__string__Any_t, f_evals), offsetof(vader_struct_std_collections$Map__string__Any_t, f_index) },
         .ref_count = 3,
     },
-    [48] = { .slot_size = 16 },
-    [49] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
-    },
+    [49] = { .slot_size = 16 },
     [50] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
@@ -1900,8 +1897,12 @@ const vader_type_info_t vader_type_info_table[52] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
+    [52] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+    },
 };
-const size_t vader_type_info_count = 52;
+const size_t vader_type_info_count = 53;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -4459,7 +4460,7 @@ static vader_string_t json$stringify(vader_box_t l0, int32_t l1) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(46u, 0u, 0u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(47u, 0u, 0u, 1u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
     vader_obj_header_init(_a1_obj, 31u);
@@ -4711,7 +4712,7 @@ static vader_box_t json$parse_string(void* l0) {
             { vader_box_t __vret = vader_box_string(1u, t2); vader_gc_top = gc_frame.prev; return __vret; }
         }
         if (l5 == INT32_C(92)) {
-            vader_array_t* _a0_arr = vader_array_new(46u, 0u, 0u, 1u);
+            vader_array_t* _a0_arr = vader_array_new(47u, 0u, 0u, 1u);
             t0 = (void*) _a0_arr;
             vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
             vader_obj_header_init(_a1_obj, 31u);
@@ -4753,14 +4754,14 @@ static vader_box_t json$parse_object(void* l0, int32_t l1) {
         t0 = l2.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(46u, 0u, 0u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(47u, 0u, 0u, 1u);
     l3 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(49u, 0u, 0u, 48u);
+    vader_array_t* _a1_arr = vader_array_new(50u, 0u, 0u, 49u);
     l4 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(42u, 0u, 7u, 3u);
+    vader_array_t* _a2_arr = vader_array_new(43u, 0u, 7u, 3u);
     l5 = (void*) _a2_arr;
     vader_struct_std_collections$Map__string__Any_t* _a3_obj = (vader_struct_std_collections$Map__string__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections$Map__string__Any_t));
-    vader_obj_header_init(_a3_obj, 47u);
+    vader_obj_header_init(_a3_obj, 48u);
     _a3_obj->f_ekeys = l3;
     _a3_obj->f_evals = l4;
     _a3_obj->f_index = l5;
@@ -4851,7 +4852,7 @@ static vader_box_t json$parse_array(void* l0, int32_t l1) {
         t0 = l2.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(40u, 0u, 13u, 29u);
+    vader_array_t* _a0_arr = vader_array_new(41u, 0u, 13u, 29u);
     l3 = (void*) _a0_arr;
     json$skip_ws(l0);
     t1 = json$at_end(l0);
@@ -5112,7 +5113,7 @@ static vader_box_t json$parse_number(void* l0) {
         t2 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l7.tag == 45u)) {
+    if (!(l7.tag == 46u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     t2 = json$fail(l0, 52u);
@@ -5283,7 +5284,7 @@ static void json$write_number(void* l0, double l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = std_numbers$to_compact_str(l1);
+    l2 = std_numbers$to_compact_string(l1);
     std_string__builder$append(l0, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -5485,57 +5486,61 @@ static vader_box_t json$escape_of(uint8_t l0) {
 }
 
 static bool json$decode_unicode_escape(void* l0, void* l1) {
-    int32_t l2;
+    vader_box_t l2 = vader_box_null();
     uint32_t l3, l9;
     bool l4;
     uint32_t l5, l10;
     int64_t l6, l7;
     vader_string_t l8 = 0;
-    int32_t t0;
-    bool t1;
-    int64_t t2;
-    vader_string_t t3 = 0;
-    uint8_t t4;
+    int32_t t0, t1;
+    bool t2;
+    int64_t t3;
+    vader_string_t t4 = 0;
+    uint8_t t5;
+    vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_string_t* gc_atom_roots[2] = { &l8, &t3 };
+    vader_string_t* gc_atom_roots[2] = { &l8, &t4 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l2 = json$read_hex4(l0);
-    if ((l2 < INT32_C(0))) {
+    if (l2.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return false; }
     }
-    t0 = l2;
-    l3 = (uint32_t) (int32_t) t0;
-    t1 = std_string$is_surrogate(l3);
-    if (t1) {
-        t1 = std_string$is_high_surrogate(l3);
-        if (t1) {
-            t2 = ((vader_struct_json$Parser_t*) l0)->f_pos;
-            l6 = vader_chk_add(i64, t2, INT64_C(2));
-            t3 = ((vader_struct_json$Parser_t*) l0)->f_src;
-            l7 = vader_host_std_core$byte_len(t3);
+    t0 = ((int32_t) l2.payload.i);
+    t1 = t0;
+    l3 = (uint32_t) (int32_t) t1;
+    t2 = std_string$is_surrogate(l3);
+    if (t2) {
+        t2 = std_string$is_high_surrogate(l3);
+        if (t2) {
+            t3 = ((vader_struct_json$Parser_t*) l0)->f_pos;
+            l6 = vader_chk_add(i64, t3, INT64_C(2));
+            t4 = ((vader_struct_json$Parser_t*) l0)->f_src;
+            l7 = vader_host_std_core$byte_len(t4);
             if ((l6 <= l7)) {
                 l8 = ((vader_struct_json$Parser_t*) l0)->f_src;
                 l6 = ((vader_struct_json$Parser_t*) l0)->f_pos;
-                t4 = vader_host_std_core$byte_at(l8, l6);
-                if (t4 == INT32_C(92)) {
+                t5 = vader_host_std_core$byte_at(l8, l6);
+                if (t5 == INT32_C(92)) {
                     l8 = ((vader_struct_json$Parser_t*) l0)->f_src;
-                    t2 = ((vader_struct_json$Parser_t*) l0)->f_pos;
-                    l6 = vader_chk_add(i64, t2, INT64_C(1));
-                    t4 = vader_host_std_core$byte_at(l8, l6);
-                    if (t4 == INT32_C(117)) {
+                    t3 = ((vader_struct_json$Parser_t*) l0)->f_pos;
+                    l6 = vader_chk_add(i64, t3, INT64_C(1));
+                    t5 = vader_host_std_core$byte_at(l8, l6);
+                    if (t5 == INT32_C(117)) {
                         l6 = ((vader_struct_json$Parser_t*) l0)->f_pos;
-                        t2 = ((vader_struct_json$Parser_t*) l0)->f_pos;
-                        l7 = vader_chk_add(i64, t2, INT64_C(2));
+                        t3 = ((vader_struct_json$Parser_t*) l0)->f_pos;
+                        l7 = vader_chk_add(i64, t3, INT64_C(2));
                         ((vader_struct_json$Parser_t*) l0)->f_pos = l7;
                         l2 = json$read_hex4(l0);
-                        if ((l2 >= INT32_C(0))) {
-                            t1 = std_string$is_low_surrogate((uint32_t) (int32_t) l2);
-                            if (t1) {
-                                t0 = l2;
-                                l9 = (uint32_t) (int32_t) t0;
+                        if (!(l2.tag == 0u)) {
+                            t0 = ((int32_t) l2.payload.i);
+                            t2 = std_string$is_low_surrogate((uint32_t) (int32_t) t0);
+                            if (t2) {
+                                t0 = ((int32_t) l2.payload.i);
+                                t1 = t0;
+                                l9 = (uint32_t) (int32_t) t1;
                                 l5 = std_string$combine_surrogates(l3, l9);
                                 std_string__builder$append_char(l1, l5);
                                 { vader_gc_top = gc_frame.prev; return true; }
@@ -5565,10 +5570,11 @@ static bool json$decode_unicode_escape(void* l0, void* l1) {
     { vader_gc_top = gc_frame.prev; return true; }
 }
 
-static int32_t json$read_hex4(void* l0) {
+static vader_box_t json$read_hex4(void* l0) {
     int64_t l1, l2;
-    int32_t l3, l5;
-    vader_string_t l4;
+    int32_t l3, l4;
+    vader_string_t l5;
+    vader_box_t l6;
     int64_t t0;
     vader_string_t t1;
     uint8_t t2;
@@ -5578,27 +5584,28 @@ static int32_t json$read_hex4(void* l0) {
     t1 = ((vader_struct_json$Parser_t*) l0)->f_src;
     l2 = vader_host_std_core$byte_len(t1);
     if ((l1 > l2)) {
-        return INT32_C(-1);
+        return vader_box_obj(0u, NULL);
     }
     l3 = INT32_C(0);
     l1 = INT64_C(0);
     while ((l1 < INT64_C(4))) {
-        l4 = ((vader_struct_json$Parser_t*) l0)->f_src;
+        l5 = ((vader_struct_json$Parser_t*) l0)->f_src;
         t0 = ((vader_struct_json$Parser_t*) l0)->f_pos;
         l2 = vader_chk_add(i64, t0, l1);
-        t2 = vader_host_std_core$byte_at(l4, l2);
-        l5 = std_numbers$hex_digit_value(((uint32_t) (uint8_t) t2));
-        if ((l5 < INT32_C(0))) {
-            return INT32_C(-1);
+        t2 = vader_host_std_core$byte_at(l5, l2);
+        l6 = std_numbers$hex_digit_value(((uint32_t) (uint8_t) t2));
+        if (l6.tag == 0u) {
+            return vader_box_obj(0u, NULL);
         }
+        l4 = ((int32_t) l6.payload.i);
         t3 = vader_chk_mul(i32, l3, INT32_C(16));
-        l3 = vader_chk_add(i32, t3, l5);
+        l3 = vader_chk_add(i32, t3, l4);
         l1 = (l1 + INT64_C(1));
     }
     t0 = ((vader_struct_json$Parser_t*) l0)->f_pos;
     l1 = vader_chk_add(i64, t0, INT64_C(4));
     ((vader_struct_json$Parser_t*) l0)->f_pos = l1;
-    return l3;
+    return vader_box_i32(3u, l3);
 }
 
 static vader_box_t std_string$parse_float(vader_string_t l0) {
@@ -5617,7 +5624,7 @@ static vader_box_t std_string$parse_float(vader_string_t l0) {
     if (l1.tag == 0u) {
         t0 = concat_3(71u, l0, 72u);
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
-        vader_obj_header_init(_a0_obj, 45u);
+        vader_obj_header_init(_a0_obj, 46u);
         _a0_obj->f_msg = t0;
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
@@ -5668,7 +5675,7 @@ static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32
     if ((l3 >= l1)) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(46u, 0u, 0u, 1u);
+    vader_array_t* _a0_arr = vader_array_new(47u, 0u, 0u, 1u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
     vader_obj_header_init(_a1_obj, 31u);
@@ -5939,7 +5946,7 @@ static void std_collections$rehash__string__Any(void* l0, int64_t l1) {
     } else {
         l2 = INT64_C(0);
     }
-    vader_array_t* _a0_arr = vader_array_reserve(42u, (int64_t) l2, 7u, 3u);
+    vader_array_t* _a0_arr = vader_array_reserve(43u, (int64_t) l2, 7u, 3u);
     l3 = (void*) _a0_arr;
     l2 = INT64_C(0);
     vader_array_t* _pc15_hdr = (vader_array_t*) l3;
@@ -6144,7 +6151,7 @@ static int64_t std_collections$len__string__Any(void* l0) {
     return t0;
 }
 
-static vader_string_t std_numbers$to_compact_str(double l0) {
+static vader_string_t std_numbers$to_compact_string(double l0) {
     double l1;
     void* l2 = NULL;
     int64_t l3, l4;
@@ -6201,7 +6208,7 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
     if (l0 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return 74u; }
     }
-    vader_array_t* _a0_arr = vader_array_new(51u, 0u, 11u, 9u);
+    vader_array_t* _a0_arr = vader_array_new(52u, 0u, 11u, 9u);
     l3 = (void*) _a0_arr;
     l4 = l0;
     vader_array_t* _pc10_hdr = (vader_array_t*) l3;
@@ -6235,7 +6242,7 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
         }
         break;
     }
-    vader_array_t* _a1_arr = vader_array_new(46u, 0u, 0u, 1u);
+    vader_array_t* _a1_arr = vader_array_new(47u, 0u, 0u, 1u);
     t1 = (void*) _a1_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a2_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
     vader_obj_header_init(_a2_obj, 31u);
@@ -6258,8 +6265,8 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
     { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t std_numbers$hex_digit_value(uint32_t l0) {
-    int32_t l1;
+static vader_box_t std_numbers$hex_digit_value(uint32_t l0) {
+    vader_box_t l1;
     bool l2;
     int32_t t0, t1;
     if ((l0 >= 48u)) {
@@ -6269,7 +6276,7 @@ static int32_t std_numbers$hex_digit_value(uint32_t l0) {
     }
     if (l2) {
         t0 = vader_chk_sub(u32, ((int32_t) (uint32_t) l0), INT32_C(48));
-        l1 = t0;
+        l1 = vader_box_i32(3u, t0);
         return l1;
     }
     if ((l0 >= 97u)) {
@@ -6280,7 +6287,7 @@ static int32_t std_numbers$hex_digit_value(uint32_t l0) {
     if (l2) {
         t0 = vader_chk_sub(u32, ((int32_t) (uint32_t) l0), INT32_C(97));
         t1 = vader_chk_add(u32, t0, INT32_C(10));
-        l1 = t1;
+        l1 = vader_box_i32(3u, t1);
     } else {
         if ((l0 >= 65u)) {
             l2 = (l0 <= 70u);
@@ -6290,9 +6297,9 @@ static int32_t std_numbers$hex_digit_value(uint32_t l0) {
         if (l2) {
             t0 = vader_chk_sub(u32, ((int32_t) (uint32_t) l0), INT32_C(65));
             t1 = vader_chk_add(u32, t0, INT32_C(10));
-            l1 = t1;
+            l1 = vader_box_i32(3u, t1);
         } else {
-            l1 = INT32_C(-1);
+            l1 = vader_box_obj(0u, NULL);
         }
     }
     return l1;

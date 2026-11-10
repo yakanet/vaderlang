@@ -370,7 +370,7 @@ materialize_nongeneric_imported_fns :: fn(
 // `lower_const_decl` path and pushed into its owning (stdlib) module so the
 // end-of-project `inline_consts` pass routes its read sites: scalars inline,
 // bulky arrays become a `__const_*` accessor fn. Without this, a referenced
-// stdlib const (`std/math::pi`) never reaches `project.modules` and
+// stdlib const (`std/math::PI`) never reaches `project.modules` and
 // `build_ident` emits `unreachable`, truncating the caller. Sibling of
 // `materialize_nongeneric_imported_fns`.
 materialize_nongeneric_imported_consts :: fn(
