@@ -29,7 +29,7 @@ import "system/windows"
 /// process killed mid-prompt would leave the shell with no echo) and it makes
 /// handling the cancellation the caller's job.
 ///
-/// ⚠️ **Always pair it with `defer raw_mode_end()`.** `defer` covers the normal
+/// **Always pair it with `defer raw_mode_end()`.** `defer` covers the normal
 /// return AND a panic (the runtime runs pending defers before aborting), which
 /// is the whole reason the restore does not need a signal handler. What it does
 /// not cover is a kill from outside the process; a shell's `reset` fixes that.
@@ -38,7 +38,7 @@ import "system/windows"
 ///         interactive terminal: in which case NOTHING was changed and the
 ///         caller must fall back rather than read keys.
 ///
-/// ⚠️ On POSIX this goes through `cfmakeraw`, which also clears `OPOST`: a bare
+/// On POSIX this goes through `cfmakeraw`, which also clears `OPOST`: a bare
 /// `\n` no longer returns the carriage. Print through `raw_print` between
 /// `begin` and `end`: `println` is only safe once the terminal is restored.
 @target

@@ -416,7 +416,7 @@ export set_file_pointer :: fn(h: Handle, low: i32, @c_out high: i32[], method: u
 /// against the mingw headers, and it is 320 for the ANSI twin); over-reserving
 /// wastes a few hundred bytes on the stack, under-reserving corrupts.
 ///
-/// ⚠️ Do NOT narrow this to what one toolchain reports.
+/// Do NOT narrow this to what one toolchain reports.
 export FIND_DATA_BYTES: i64: 1024
 
 /// `FindFirstFileW`. The pattern is a directory path with `\*` appended.

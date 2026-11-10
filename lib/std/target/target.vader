@@ -103,7 +103,7 @@ Arch implements Display -> match self {
 
 import "std/testing"
 
-// ⚠️ These call `to_string()` rather than interpolating `"${Os.Darwin}"`, which
+// These call `to_string()` rather than interpolating `"${Os.Darwin}"`, which
 // yields the ORDINAL instead of the Display form: a compiler bug, recorded in
 // TODO. Interpolating a variable works; only the qualified literal is affected.
 @test test_os_display_is_the_command_line_spelling :: fn() -> void {

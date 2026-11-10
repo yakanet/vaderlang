@@ -330,7 +330,7 @@ export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
 /// instead of bricking every invocation. That silence is deliberate and it is
 /// paid for by `vader doctor`, which reports the variable as set-and-unusable.
 ///
-/// ⚠️ The root it returns is ABSOLUTE, so it becomes an absolute module-id prefix:
+/// The root it returns is ABSOLUTE, so it becomes an absolute module-id prefix:
 /// the same thing a `dist/` bundle already does, and the reason the cwd fallback
 /// in `resolve_sidecar` stays relative (see its note on snapshot-order drift). Do
 /// not set this variable when running the snapshot corpus.

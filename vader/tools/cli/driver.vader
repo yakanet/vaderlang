@@ -142,7 +142,7 @@ export compiler_source_home :: fn() -> string {
 ///     is the wrong neighbourhood for it. Keeping it out also makes the layering
 ///     structural rather than policed: nothing under `lib/` is the compiler.
 ///
-/// ⚠️ The marker is `vader/pipeline`, and it must stay a module the driver's own
+/// The marker is `vader/pipeline`, and it must stay a module the driver's own
 /// closure needs. It used to be `vader/hooks` (the contract itself) which broke
 /// the moment that moved out to `toolchain/build`: both probes then missed and the
 /// function fell through to `root`, which a CHECKOUT masks (the repo root does
@@ -187,7 +187,7 @@ export compiler_source_root :: fn(root: string) -> string {
 /// its own executable: **38 ms for 3.4 MB natively**, against an 8.2 s driver
 /// build, which is what makes checking cheaper than rebuilding.
 ///
-/// ⚠️ Measure natively, not through `vader run`: the same hash takes 27 s in the
+/// Measure natively, not through `vader run`: the same hash takes 27 s in the
 /// VM, and reading that as a `std/crypto` problem is a mistake I made. The VM
 /// only ever runs the comptime table construction here.
 ///
