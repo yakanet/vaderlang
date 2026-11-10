@@ -87,7 +87,6 @@
     fn semver.caret_upper  // semver$caret_upper
     fn semver.clause_contains  // semver$clause_contains
     fn semver.compare_id  // semver$compare_id
-    fn semver.compare_lex  // semver$compare_lex
     fn semver.compare_prerelease  // semver$compare_prerelease
     fn semver.compare_versions  // semver$compare_versions
     fn semver.expand_caret  // semver$expand_caret
@@ -96,20 +95,24 @@
     fn semver.expand_xrange  // semver$expand_xrange
     fn semver.is_all_digits  // semver$is_all_digits
     fn semver.is_bare_operator  // semver$is_bare_operator
+    fn semver.is_identifier_text  // semver$is_identifier_text
     fn semver.is_x_token  // semver$is_x_token
     fn semver.parse  // semver$parse
     fn semver.parse_clause  // semver$parse_clause
     fn semver.parse_comparator_token  // semver$parse_comparator_token
+    fn semver.parse_core  // semver$parse_core
     fn semver.parse_numeric_id  // semver$parse_numeric_id
     fn semver.parse_partial  // semver$parse_partial
     fn semver.parse_range  // semver$parse_range
     fn semver.parse_token  // semver$parse_token
     fn semver.partial_to_lower  // semver$partial_to_lower
+    fn semver.prerelease_dash  // semver$prerelease_dash
+    fn semver.sections_of  // semver$sections_of
     fn semver.term_satisfies  // semver$term_satisfies
-    fn semver.validate_build  // semver$validate_build
     fn semver.validate_build_id  // semver$validate_build_id
-    fn semver.validate_prerelease  // semver$validate_prerelease
+    fn semver.validate_identifiers  // semver$validate_identifiers
     fn semver.validate_prerelease_id  // semver$validate_prerelease_id
+    fn semver.validate_sections  // semver$validate_sections
     fn semver.wildcard_range  // semver$wildcard_range
     fn semver.zero_pre  // semver$zero_pre
     struct semver.PartialVersion  // semver$PartialVersion
@@ -117,6 +120,7 @@
     struct semver.RangeTerm  // semver$RangeTerm
     struct semver.Version  // semver$Version
     struct semver.VersionRange  // semver$VersionRange
+    struct semver.VersionSections  // semver$VersionSections
   std/char
     fn std.char.is_alpha  // std_char$is_alpha
     fn std.char.is_alphanumeric  // std_char$is_alphanumeric
@@ -137,6 +141,7 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.string.compare  // std_core$string$Comparable$compare
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
@@ -145,10 +150,15 @@
     struct std.core.Buffer  // std_core$Buffer
   std/string
     fn std.string.ParseError.message  // std_string$ParseError$std_core$Error$message
+    fn std.string.contains_char  // std_string$contains_char
+    fn std.string.cut_at  // std_string$cut_at
+    fn std.string.index_of  // std_string$index_of
     fn std.string.is_white_byte  // std_string$is_white_byte
+    fn std.string.last_byte_offset  // std_string$last_byte_offset
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.parse_int  // std_string$parse_int
     fn std.string.split  // std_string$split
+    fn std.string.split_last  // std_string$split_last
     fn std.string.split_where  // std_string$split_where
     fn std.string.starts_with  // std_string$starts_with
     fn std.string.trim  // std_string$trim

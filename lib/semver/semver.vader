@@ -95,87 +95,22 @@ TermOp :: enum { Eq, Lt, Lte, Gt, Gte }
 ///       is ParseError -> eprintln(parsed.message())
 ///   }
 export parse :: fn(s: string) -> Version | ParseError {
-    if s.is_empty() { return ParseError { .msg = "empty version string" } }
-    n :: s.byte_len()
-
-    // Locate the build separator `+` first (last occurrence: build
-    // identifiers cannot themselves contain `+`).
-    plus_pos: i64 = n
-    for i in 0..<n {
-        if s.byte_at(i) == '+' { plus_pos = i }
+    if s.is_empty() {
+        return ParseError { .msg = "empty version string" }
     }
-
-    // Locate the first `-` that lives in the pre-release slot, i.e.
-    // the first `-` after the patch component, which lives after the
-    // second `.`. Earlier `-` bytes are part of an alphanumeric
-    // identifier (`alpha-1` etc.) and must NOT be treated as separators.
-    dash_pos: i64 = plus_pos
-    dots_seen: i32 = 0
-    for j in 0..<plus_pos {
-        b :: s.byte_at(j)
-        if b == '.' { dots_seen += 1 }
-        else if b == '-' && dots_seen >= 2 {
-            dash_pos = j
-            break
-        }
+    sections :: sections_of(s)
+    core :: parse_core(sections.core)
+    if core is ParseError {
+        return core
     }
-
-    core_end :: if dash_pos < plus_pos { dash_pos } else { plus_pos }
-    core     :: s.byte_slice(0, core_end)
-    pre      :: if dash_pos < plus_pos { s.byte_slice(dash_pos + 1, plus_pos) } else { "" }
-    build    :: if plus_pos < n        { s.byte_slice(plus_pos + 1, n)        } else { "" }
-
-    // Core must be M.N.P with exactly three numeric identifiers,
-    // each free of leading zeros.
-    triple :: [0, 0, 0]
-    fill: i64 = 0
-    start: i64 = 0
-    cn :: core.byte_len()
-    for k in 0..<cn {
-        if core.byte_at(k) == '.' {
-            if fill >= 3 { return ParseError { .msg = "too many '.' in version core" } }
-            piece :: core.byte_slice(start, k)
-            v :: parse_numeric_id(piece)
-            match v {
-                is i32        -> { triple[fill] = v }
-                is ParseError -> { return ParseError { .msg = "version core: ${v.message()}" } }
-            }
-            fill += 1
-            start = k + 1
-        }
+    sections_error :: validate_sections(sections)
+    if sections_error != null {
+        return sections_error
     }
-    if fill != 2 { return ParseError { .msg = "version core must be M.N.P" } }
-    last_piece :: core.byte_slice(start, cn)
-    last_v :: parse_numeric_id(last_piece)
-    match last_v {
-        is i32        -> { triple[2] = last_v }
-        is ParseError -> { return ParseError { .msg = "version core: ${last_v.message()}" } }
-    }
-
-    // A trailing `-` or `+` separator with nothing after it is invalid :
-    // the spec requires at least one identifier whenever the separator
-    // is present. `dash_pos < plus_pos` means we saw a `-`, etc.
-    if dash_pos < plus_pos && pre.is_empty() {
-        return ParseError { .msg = "empty prerelease section" }
-    }
-    if plus_pos < n && build.is_empty() {
-        return ParseError { .msg = "empty build section" }
-    }
-    if !pre.is_empty() {
-        e1 :: validate_prerelease(pre)
-        if !e1.is_empty() { return ParseError { .msg = e1 } }
-    }
-    if !build.is_empty() {
-        e2 :: validate_build(build)
-        if !e2.is_empty() { return ParseError { .msg = e2 } }
-    }
-
     return Version {
-        .major      = triple[0],
-        .minor      = triple[1],
-        .patch      = triple[2],
-        .prerelease = pre,
-        .build      = build,
+        ...core,
+        .prerelease = sections.prerelease ?? "",
+        .build      = sections.build ?? "",
     }
 }
 
@@ -204,16 +139,68 @@ export parse_range :: fn(s: string) -> VersionRange | ParseError {
         cl :: parse_clause(cstr.trim())
         match cl {
             is RangeClause -> { out_clauses.push(cl) }
-            is ParseError  -> { return ParseError { .msg = cl.message() } }
+            is ParseError  -> { return cl }
         }
-    }
-    if out_clauses.len() == 0 {
-        return ParseError { .msg = "empty range" }
     }
     return VersionRange { .clauses = out_clauses }
 }
 
 // ---- internal helpers ----------------------------------------------------
+
+// A version string cut at its separators. A section is `null` when its
+// separator is absent, `""` when nothing follows the separator.
+VersionSections :: struct {
+    core:       string
+    prerelease: string | null = null
+    build:      string | null = null
+}
+
+// Cut `s` at the last `+` (build identifiers hold none) and at the `-` that
+// opens the pre-release.
+sections_of :: fn(s: string) -> VersionSections {
+    halves :: s.split_last("+")
+    head :: if halves == null { s } else { halves.0 }
+    build: string | null: if halves == null { null } else { halves.1 }
+    dash :: prerelease_dash(head)
+    if dash == null {
+        return VersionSections { .core = head, .build = build }
+    }
+    return VersionSections {
+        .core       = head.byte_slice(0, dash),
+        .prerelease = head.byte_slice(dash + 1, head.byte_len()),
+        .build      = build,
+    }
+}
+
+// Byte offset of the `-` that opens the pre-release: the first one after the
+// second `.`, since a pre-release follows a full `M.N.P` core.
+prerelease_dash :: fn(head: string) -> i64 | null {
+    first_dot :: head.index_of('.') ?? return null
+    second_dot :: head.index_of('.', first_dot + 1) ?? return null
+    return head.index_of('-', second_dot + 1)
+}
+
+// Parse the `M.N.P` core: exactly three numeric identifiers, each free of
+// leading zeros.
+parse_core :: fn(core: string) -> Version | ParseError {
+    pieces :: core.split(".")
+    if pieces.len() != 3 {
+        return ParseError { .msg = "version core must be M.N.P" }
+    }
+    triple: i32[]: []
+    for piece in pieces {
+        value :: parse_numeric_id(piece)
+        if value is ParseError {
+            return ParseError { .msg = "version core: ${value.message()}" }
+        }
+        triple.push(value)
+    }
+    return Version {
+        .major = triple[0],
+        .minor = triple[1],
+        .patch = triple[2],
+    }
+}
 
 is_all_digits :: fn(s: string) -> bool {
     if s.is_empty() { return false }
@@ -228,7 +215,9 @@ is_all_digits :: fn(s: string) -> bool {
 is_bare_operator :: fn(s: string) -> bool {
     if s.is_empty() { return false }
     for c in s {
-        if c != '<' && c != '>' && c != '=' && c != '~' && c != '^' { return false }
+        if !"<>=~^".contains_char(c) {
+            return false
+        }
     }
     return true
 }
@@ -248,74 +237,73 @@ parse_numeric_id :: fn(s: string) -> i32 | ParseError {
     }
 }
 
-// Validate one pre-release segment. Charset `[0-9A-Za-z-]`,
-// non-empty ; if all-digits, no leading zero.
-validate_prerelease_id :: fn(id: string) -> string {
-    if id.is_empty() { return "empty prerelease identifier" }
-    only_digits := true
-    for c in id {
-        if !is_alphanumeric(c) && c != '-' { return "invalid character in prerelease identifier" }
-        if !is_digit(c) { only_digits = false }
+// Validate one pre-release identifier: charset `[0-9A-Za-z-]`, non-empty, and
+// no leading zero when all digits.
+validate_prerelease_id :: fn(id: string) -> ParseError | null {
+    if id.is_empty() {
+        return ParseError { .msg = "empty prerelease identifier" }
     }
-    if only_digits && id.byte_len() > 1 && id.byte_at(0) == '0' {
-        return "leading zero in numeric prerelease identifier"
+    if !is_identifier_text(id) {
+        return ParseError { .msg = "invalid character in prerelease identifier" }
     }
-    return ""
-}
-
-validate_prerelease :: fn(s: string) -> string {
-    n :: s.byte_len()
-    start: i64 = 0
-    for i in 0..<n {
-        if s.byte_at(i) == '.' {
-            id :: s.byte_slice(start, i)
-            err :: validate_prerelease_id(id)
-            if !err.is_empty() { return err }
-            start = i + 1
-        }
+    if id.byte_len() > 1 && id.byte_at(0) == '0' && is_all_digits(id) {
+        return ParseError { .msg = "leading zero in numeric prerelease identifier" }
     }
-    return validate_prerelease_id(s.byte_slice(start, n))
+    return null
 }
 
 // Build identifiers : same charset, but leading zeros are allowed
 // per §10 (build metadata is opaque, not used for ordering).
-validate_build_id :: fn(id: string) -> string {
-    if id.is_empty() { return "empty build identifier" }
-    for c in id {
-        if !is_alphanumeric(c) && c != '-' { return "invalid character in build identifier" }
+validate_build_id :: fn(id: string) -> ParseError | null {
+    if id.is_empty() {
+        return ParseError { .msg = "empty build identifier" }
     }
-    return ""
+    if !is_identifier_text(id) {
+        return ParseError { .msg = "invalid character in build identifier" }
+    }
+    return null
 }
 
-validate_build :: fn(s: string) -> string {
-    n :: s.byte_len()
-    start: i64 = 0
-    for i in 0..<n {
-        if s.byte_at(i) == '.' {
-            id :: s.byte_slice(start, i)
-            err :: validate_build_id(id)
-            if !err.is_empty() { return err }
-            start = i + 1
+// Validate the pre-release and build sections that are present. A separator
+// with nothing after it fails: the spec wants at least one identifier.
+validate_sections :: fn(sections: VersionSections) -> ParseError | null {
+    pre :: sections.prerelease
+    if pre != null {
+        pre_error :: validate_identifiers(pre, validate_prerelease_id)
+        if pre_error != null {
+            return pre_error
         }
     }
-    return validate_build_id(s.byte_slice(start, n))
+    build :: sections.build
+    if build == null {
+        return null
+    }
+    return validate_identifiers(build, validate_build_id)
 }
 
-// Lexicographic ASCII byte compare. Used for non-numeric pre-release
-// identifier ordering per §11.
-compare_lex :: fn(a: string, b: string) -> i32 {
-    na :: a.byte_len()
-    nb :: b.byte_len()
-    common :: if na < nb { na } else { nb }
-    for i in 0..<common {
-        ba :: a.byte_at(i)
-        bb :: b.byte_at(i)
-        if ba < bb { return -1 }
-        if ba > bb { return  1 }
+// Run `check` on each dot-separated identifier of `section`, up to the first
+// failure.
+validate_identifiers :: fn(
+    section: string,
+    check: fn(string) -> ParseError | null,
+) -> ParseError | null {
+    for id in section.split(".") {
+        error :: check(id)
+        if error != null {
+            return error
+        }
     }
-    if na < nb { return -1 }
-    if na > nb { return  1 }
-    return 0
+    return null
+}
+
+// True when every character of `id` is in `[0-9A-Za-z-]`.
+is_identifier_text :: fn(id: string) -> bool {
+    for c in id {
+        if !is_alphanumeric(c) && c != '-' {
+            return false
+        }
+    }
+    return true
 }
 
 // One pre-release identifier compare per §11 : numeric < non-numeric ;
@@ -349,9 +337,9 @@ compare_id :: fn(a: string, b: string) -> i32 {
         nb :: b.byte_len()
         if na < nb { return -1 }
         if na > nb { return  1 }
-        return compare_lex(a, b)
+        return a.compare(b)
     }
-    return compare_lex(a, b)
+    return a.compare(b)
 }
 
 // Three-way Version compare per §11. Free helper so both the
@@ -412,68 +400,37 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
     if s.is_empty()      { return ParseError { .msg = "empty version expression" } }
     if s.is_x_token()    { return PartialVersion {} }
 
-    n :: s.byte_len()
-    // Locate `+` (last) and the first `-` after two `.`.
-    plus_pos: i64 = n
-    for i in 0..<n {
-        if s.byte_at(i) == '+' { plus_pos = i }
-    }
-    dash_pos: i64 = plus_pos
-    dots_seen: i32 = 0
-    for j in 0..<plus_pos {
-        b :: s.byte_at(j)
-        if b == '.' { dots_seen += 1 }
-        else if b == '-' && dots_seen >= 2 {
-            dash_pos = j
-            break
-        }
-    }
-    core_end :: if dash_pos < plus_pos { dash_pos } else { plus_pos }
-    core     :: s.byte_slice(0, core_end)
-    pre      :: if dash_pos < plus_pos { s.byte_slice(dash_pos + 1, plus_pos) } else { "" }
-    build    :: if plus_pos < n        { s.byte_slice(plus_pos + 1, n)         } else { "" }
-
-    parts :: core.split(".")
-    if parts.len() == 0 || parts.len() > 3 {
+    sections :: sections_of(s)
+    parts :: sections.core.split(".")
+    if parts.len() > 3 {
         return ParseError { .msg = "version expression has wrong number of components" }
     }
 
     result :: PartialVersion {}
-    if parts.len() >= 1 {
-        if !is_x_token(parts[0]) {
-            match v :: parse_numeric_id(parts[0]) {
-                is i32        -> { result.major = v }
-                is ParseError -> { return ParseError { .msg = "major: ${v.message()}" } }
-            }
+    if !is_x_token(parts[0]) {
+        match v :: parse_numeric_id(parts[0]) {
+            is i32        -> { result.major = v }
+            is ParseError -> { return ParseError { .msg = "major: ${v.message()}" } }
         }
     }
-    if parts.len() >= 2 {
-        if !is_x_token(parts[1]) {
-            match v :: parse_numeric_id(parts[1]) {
-                is i32        -> { result.minor = v }
-                is ParseError -> { return ParseError { .msg = "minor: ${v.message()}" } }
-            }
+    if parts.len() >= 2 && !is_x_token(parts[1]) {
+        match v :: parse_numeric_id(parts[1]) {
+            is i32        -> { result.minor = v }
+            is ParseError -> { return ParseError { .msg = "minor: ${v.message()}" } }
         }
     }
-    if parts.len() >= 3 {
-        if !is_x_token(parts[2]) {
-            match v :: parse_numeric_id(parts[2]) {
-                is i32        -> { result.patch = v }
-                is ParseError -> { return ParseError { .msg = "patch: ${v.message()}" } }
-            }
+    if parts.len() >= 3 && !is_x_token(parts[2]) {
+        match v :: parse_numeric_id(parts[2]) {
+            is i32        -> { result.patch = v }
+            is ParseError -> { return ParseError { .msg = "patch: ${v.message()}" } }
         }
     }
-    // Pre-release / build only meaningful when triple is fully set.
-    if !pre.is_empty() {
-        e1 :: validate_prerelease(pre)
-        if !e1.is_empty() { return ParseError { .msg = e1 } }
-        result.prerelease = pre
+    sections_error :: validate_sections(sections)
+    if sections_error != null {
+        return sections_error
     }
-    if !build.is_empty() {
-        e2 :: validate_build(build)
-        if !e2.is_empty() { return ParseError { .msg = e2 } }
-        result.build = build
-    }
+    result.prerelease = sections.prerelease ?? ""
+    result.build = sections.build ?? ""
     return result
 }
 
@@ -672,7 +629,7 @@ parse_clause :: fn(s: string) -> RangeClause | ParseError {
         if is_bare_operator(tokens[i]) && i + 1 < n && tokens[i + 1] != "-" {
             match parsed :: parse_token(tokens[i] + tokens[i + 1]) {
                 is RangeTerm[] -> { for t in parsed { terms.push(t) } }
-                is ParseError  -> { return ParseError { .msg = parsed.message() } }
+                is ParseError  -> { return parsed }
             }
             i += 2
             continue
@@ -698,7 +655,7 @@ parse_clause :: fn(s: string) -> RangeClause | ParseError {
         }
         match parsed :: parse_token(tokens[i]) {
             is RangeTerm[] -> { for t in parsed { terms.push(t) } }
-            is ParseError  -> { return ParseError { .msg = parsed.message() } }
+            is ParseError  -> { return parsed }
         }
         i += 1
     }
@@ -955,6 +912,13 @@ import "std/testing"
     }
 }
 
+@test test_parse_four_components :: fn() -> void {
+    match parse("1.2.3.4") {
+        is Version -> assert(false, "expected err")
+        is ParseError -> {}
+    }
+}
+
 @test test_parse_leading_zero_major :: fn() -> void {
     match parse("01.2.3") {
         is Version -> assert(false, "expected err")
@@ -1163,6 +1127,15 @@ parse_range_ok :: fn(s: string) -> VersionRange {
     match e :: parse_range("not a range") {
         is VersionRange -> assert(false, "expected err")
         is ParseError   -> assert(!e.message().is_empty(), "msg non-empty")
+    }
+}
+
+@test test_parse_range_trailing_separator :: fn() -> void {
+    for text in ["^1.2.3-", "~1.2.3+", "1.2.3- - 2.0.0"] {
+        match parse_range(text) {
+            is VersionRange -> assert(false, "`${text}` should fail")
+            is ParseError   -> {}
+        }
     }
 }
 
