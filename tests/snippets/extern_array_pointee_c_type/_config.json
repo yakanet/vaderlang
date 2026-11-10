@@ -1,0 +1,7 @@
+{
+  "vm": {
+    "skip_on": {
+      "win32": "the UCRT's `time` is an inline of <time.h> over `_time64`: no DLL exports `time` for the interpreter to find"
+    }
+  }
+}
