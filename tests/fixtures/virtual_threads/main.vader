@@ -16,6 +16,7 @@ import "std/console"
 import "std/io"
 import "std/runtime"
 import "std/runtime/scheduler"
+import "std/task"
 import "std/time"
 
 // The threads `spawn` started, which `join_all` waits for.
@@ -315,10 +316,10 @@ stdin_polls :: fn() -> void {
             sleep(40.millis())
         }
     })
-    if !poll_stdin(10) {
+    if !poll_stdin(10.millis()) {
         println("a first poll gives up")
     }
-    if poll_stdin(5000) {
+    if poll_stdin(5000.millis()) {
         println("a second poll finds the line")
     }
     print_line_read()
@@ -333,11 +334,11 @@ stdin_polls_alone :: fn() -> void {
     spawn(fn() {
         sleep(20.millis())
     })
-    if !poll_stdin(5) {
+    if !poll_stdin(5.millis()) {
         println("a poll beside a thread gives up")
     }
     join_all()
-    if !poll_stdin(50) {
+    if !poll_stdin(50.millis()) {
         println("a poll alone gives up")
     }
     print_line_read()

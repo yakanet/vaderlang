@@ -303,6 +303,20 @@ cancel_and_wait :: fn<T>(tasks: Task<T>[]) -> void {
     }
 }
 
+// ---- waiting --------------------------------------------------------------
+
+/// Park the calling task for at least `d`, while the other tasks run; a zero or
+/// negative `d` returns at once. A task alone waits on the system clock.
+///
+/// Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone and
+/// jumps to the end of the nearest one.
+///
+/// @param d  how long to wait.
+/// @example
+///   # import "std/time"
+///   sleep(20.millis())
+export sleep :: fn(d: Duration) -> void = sleep_for(i64(d))
+
 // ---- deadlines ------------------------------------------------------------
 
 /// What `timeout` gives back when the task did not end in time.
@@ -364,6 +378,17 @@ export timeout :: fn<T>(task: Task<T>, d: Duration) -> T | Cancelled | TimeoutEr
 
 import "std/string"
 import "std/testing"
+
+@test test_sleep_waits_at_least_the_duration :: fn() -> void {
+    start :: monotonic()
+    sleep(2.millis())
+    assert(i64(start.since()) >= 2_000_000, "sleep returned before its duration")
+}
+
+@test test_sleep_on_a_negative_duration_returns :: fn() -> void {
+    sleep(nanos(-1))
+    sleep(nanos(0))
+}
 
 // Let the other ready threads run once.
 yield_now :: fn() -> void {

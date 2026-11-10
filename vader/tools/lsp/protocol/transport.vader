@@ -17,6 +17,7 @@ import "std/console"
 import "std/io"
 import "std/string"
 import "std/string_builder"
+import "std/time"
 
 export TransportError :: struct {
     msg: string
@@ -101,7 +102,7 @@ export read_frame :: fn() -> string | TransportError {
 /// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
 /// @return            `true` if `read_frame` won't block on the first byte
 ///                    (data ready, or peer hangup so the read sees EOF).
-export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(timeout_ms)
+export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(millis(i64(timeout_ms)))
 
 /// Write one JSON-RPC frame to stdout. Encodes the `Content-Length`
 /// header from the body's byte length, emits the `\r\n\r\n` separator,

@@ -13,7 +13,7 @@
 //
 // The runtime serves these, and under the VM the host serves them with its
 // own: a program and the VM that runs it share one scheduler. This module
-// imports nothing, so it can sit under `std/io` and `std/time`.
+// imports nothing, so any module can sit on it: `std/task` and `std/process` do.
 //
 // Over them, the gates of the values built on first use: in a program that
 // loads this module, every `@singleton`, and every constant whose value runs

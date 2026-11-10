@@ -7,8 +7,10 @@ VADER_ARCH = .X86_64
 
 # Selected body
 main$platform_tag <- main-posix.vader:7
-std_console$read_ready <- lib/std/console/console.vader:299
-std_console$system_poll_stdin <- lib/std/console/console.vader:386
-std_console$write_bytes <- lib/std/console/console.vader:44
-std_console$write_text <- lib/std/console/console.vader:72
-std_io$last_io_error <- lib/std/io/io.vader:97
+std_console$read_ready <- lib/std/console/console.vader:300
+std_console$system_poll_stdin <- lib/std/console/console.vader:406
+std_console$write_bytes <- lib/std/console/console.vader:45
+std_console$write_text <- lib/std/console/console.vader:73
+std_io$last_io_error <- lib/std/io/io.vader:98
+std_time$monotonic_ns <- lib/std/time/time.vader:77
+std_time$now_unix_ms <- lib/std/time/time.vader:51

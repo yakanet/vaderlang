@@ -77,11 +77,11 @@ const vader_type_info_t vader_type_info_table[14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [11] = {
+    [11] = { .slot_size = 8 },
+    [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
-    [12] = { .slot_size = 8 },
     [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
@@ -191,7 +191,7 @@ static int32_t snippet$main(void) {
     l4 = std_core$write_int(l6, l4, l5);
     t1 = std_core$finish_buffer(l6, l4);
     std_console$println__string(t1);
-    vader_array_t* _a8_arr = vader_array_new(11u, 2u, 10u, 12u);
+    vader_array_t* _a8_arr = vader_array_new(12u, 2u, 10u, 11u);
     ((double*) _a8_arr->buf->slots)[_a8_arr->offset + 1u] = (double) 2.5;
     ((double*) _a8_arr->buf->slots)[_a8_arr->offset + 0u] = (double) 1.5;
     l3 = (void*) _a8_arr;

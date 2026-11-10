@@ -4133,9 +4133,9 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (Â
 
 ### Waiting
 
-- `sleep(d)` (`std/time`) parks the task for at least `d` while the others run. A task alone waits on the system clock.
+- `sleep(d)` (`std/task`) parks the task for at least `d` while the others run. A task alone waits on the system clock.
 - With `VADER_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. Of two sleeps that end together, the one that began first ends first. It suits tests that do no real I/O.
-- A read of stdin (`std/console`) may park, and so may `poll_stdin(ms)`, which waits at most `ms` milliseconds for stdin to have something to read: a block that holds a lock can make neither. Both park the task while the others run. A write or a file read blocks the program: no other task runs meanwhile.
+- A read of stdin (`std/console`) may park, and so may `poll_stdin(d)`, which waits at most `d` for stdin to have something to read: a block that holds a lock can make neither. Both park the task while the others run. A write or a file read blocks the program: no other task runs meanwhile.
 - `spawn` (`std/process`) parks the calling task while its child runs, and a task cancelled meanwhile kills its child.
 
 ### Combinators

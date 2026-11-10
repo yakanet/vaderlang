@@ -3,7 +3,7 @@
 ## snippet
   snippet.step :: fn(tag: string) -> i32 {  // snippet$step
       @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 { .cap_0 = tag }))
-      std.time.sleep(std.time.millis(i64(1)))
+      std.task.sleep(std.time.millis(i64(1)))
       @defer_push(@closure(__defer_snippet_2, __defer_env_snippet_3 { .cap_0 = tag }))
       std.console.println<string>(concat_2("body ", tag))
       {
@@ -13,7 +13,7 @@
   }
   snippet.inner :: fn() -> i32 {  // snippet$inner
       @defer_push(@closure(__defer_snippet_4, __defer_env_snippet_5 {}))
-      std.time.sleep(std.time.millis(i64(1000)))
+      std.task.sleep(std.time.millis(i64(1000)))
       std.console.println<string>("inner body (unreached)")
       {
           @defer_run(1)
@@ -32,7 +32,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(std.task.launch<i32>(__lambda_snippet_8))))
       parked: Task<i32> = std.task.launch<i32>(snippet.outer)
-      std.time.sleep(std.time.millis(i64(1)))
+      std.task.sleep(std.time.millis(i64(1)))
       std.task.cancel<i32>(parked)
       std.console.println<string>(@vcall(std.core.Display.to_string, std.task.join<i32>(parked)))
       return 0
@@ -164,6 +164,7 @@
     fn std.task.launch<i32>  // std_task$launch__i32
     fn std.task.outcome<i32>  // std_task$outcome__i32
     fn std.task.run<i32>  // std_task$run__i32
+    fn std.task.sleep  // std_task$sleep
     fn std.task.start_thread  // std_task$start_thread
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i32>  // std_task$stop_waiting__i32
@@ -179,7 +180,6 @@
     struct std.task.Waiter  // std_task$Waiter
   std/time
     fn std.time.millis  // std_time$millis
-    fn std.time.sleep  // std_time$sleep
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

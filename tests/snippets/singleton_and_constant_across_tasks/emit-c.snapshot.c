@@ -1053,6 +1053,7 @@ static void std_console$println__string(vader_string_t l0);
 static int32_t std_option$unwrap__i32(vader_box_t l0);
 static vader_string_t std_task$Task$std_core$Display$to_string__i32(void* l0);
 static vader_string_t std_task$Task$std_core$Display$to_string__string(void* l0);
+static void std_task$sleep(int64_t l0);
 static void* std_task$started(void);
 static void* std_task$started$singleton(void);
 static void std_task$started$keep(void);
@@ -1076,7 +1077,6 @@ static vader_box_t std_task$outcome__string(void* l0);
 static void std_task$cancel__string(void* l0);
 static void std_task$stop_waiting__i32(void* l0, int64_t l1);
 static void std_task$stop_waiting__string(void* l0, int64_t l1);
-static void std_time$sleep(int64_t l0);
 static int64_t std_time$millis(int64_t l0);
 static void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
 static bool std_runtime_scheduler$run_gated(void* l0, void* l1);
@@ -1577,7 +1577,7 @@ static int32_t snippet$compute_answer(void) {
     vader_gc_top = &gc_frame;
     std_console$println__string(1u);
     t0 = std_time$millis(INT64_C(1));
-    std_time$sleep(t0);
+    std_task$sleep(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(42); }
 }
 
@@ -1696,7 +1696,7 @@ static int32_t snippet$main(void* l0) {
     t0 = (void*) &vader_fn_static___lambda_snippet_3;
     l2 = std_task$launch__string(t0);
     t3 = std_time$millis(INT64_C(1));
-    std_time$sleep(t3);
+    std_task$sleep(t3);
     std_task$cancel__string(l1);
     t1 = std_task$join__string(l1);
     l3 = std_core$Display$to_string$$dispatch(t1);
@@ -1751,7 +1751,7 @@ static vader_string_t snippet$config$singleton(void) {
     vader_gc_top = &gc_frame;
     std_console$println__string(5u);
     t0 = std_time$millis(INT64_C(1));
-    std_time$sleep(t0);
+    std_task$sleep(t0);
     std_console$println__string(6u);
     { vader_gc_top = gc_frame.prev; return 7u; }
 }
@@ -1778,7 +1778,7 @@ static vader_string_t snippet$pool$singleton(void) {
     vader_gc_top = &gc_frame;
     std_console$println__string(8u);
     t0 = std_time$millis(INT64_C(20));
-    std_time$sleep(t0);
+    std_task$sleep(t0);
     std_console$println__string(9u);
     { vader_gc_top = gc_frame.prev; return 10u; }
 }
@@ -3582,6 +3582,13 @@ static vader_string_t std_task$Task$std_core$Display$to_string__string(void* l0)
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void std_task$sleep(int64_t l0) {
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    vader_host_std_runtime_scheduler$sleep_for(l0);
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
 static void* std_task$started(void) {
     void* l0 = NULL;
     void* l1 = NULL;
@@ -4139,13 +4146,6 @@ static void std_task$stop_waiting__string(void* l0, int64_t l1) {
         l3 = (l3 + INT64_C(1));
     }
     return;
-}
-
-static void std_time$sleep(int64_t l0) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    vader_host_std_runtime_scheduler$sleep_for(l0);
-    { vader_gc_top = gc_frame.prev; return; }
 }
 
 static int64_t std_time$millis(int64_t l0) {

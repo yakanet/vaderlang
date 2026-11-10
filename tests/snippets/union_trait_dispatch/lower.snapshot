@@ -316,6 +316,11 @@
     struct std.core.FloatDec32  // std_core$FloatDec32
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Stop  // std_core$Stop
+  std/string
+    fn std.string.byte_contains  // std_string$byte_contains
+    fn std.string.first_byte_offset  // std_string$first_byte_offset
+    fn std.string.matches_at  // std_string$matches_at
+    fn std.string.string.contains  // std_string$string$std_core$Contains$contains
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

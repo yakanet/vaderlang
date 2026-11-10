@@ -978,6 +978,7 @@ static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
 static vader_string_t std_task$Task$std_core$Display$to_string__i64(void* l0);
+static void std_task$sleep(int64_t l0);
 static void* std_task$started(void);
 static void* std_task$started$singleton(void);
 static void std_task$started$keep(void);
@@ -992,7 +993,6 @@ static void __defer_std_task_4(void* l0);
 static vader_box_t std_task$outcome__i64(void* l0);
 static void std_task$stop_waiting__i64(void* l0, int64_t l1);
 static void* std_task$join_all__i64(void* l0);
-static void std_time$sleep(int64_t l0);
 static int64_t std_time$millis(int64_t l0);
 static void* std_runtime_scheduler$gate_or_new(vader_box_t l0);
 static bool std_runtime_scheduler$run_gated(void* l0, void* l1);
@@ -1268,7 +1268,7 @@ static int64_t snippet$nap(vader_string_t l0, int64_t l1) {
     t0 = concat_2(l0, 1u);
     std_console$println__string(t0);
     t1 = std_time$millis(l1);
-    std_time$sleep(t1);
+    std_task$sleep(t1);
     l2 = l0;
     l3 = vader_host_std_core$byte_len(l2);
     l4 = (void*) vader_buffer_new((size_t) (INT64_C(34) + l3));
@@ -2965,6 +2965,13 @@ static vader_string_t std_task$Task$std_core$Display$to_string__i64(void* l0) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static void std_task$sleep(int64_t l0) {
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    vader_host_std_runtime_scheduler$sleep_for(l0);
+    { vader_gc_top = gc_frame.prev; return; }
+}
+
 static void* std_task$started(void) {
     void* l0 = NULL;
     void* l1 = NULL;
@@ -3296,13 +3303,6 @@ static void* std_task$join_all__i64(void* l0) {
         l4 = (l4 + INT64_C(1));
     }
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static void std_time$sleep(int64_t l0) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    vader_host_std_runtime_scheduler$sleep_for(l0);
-    { vader_gc_top = gc_frame.prev; return; }
 }
 
 static int64_t std_time$millis(int64_t l0) {

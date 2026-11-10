@@ -3,7 +3,7 @@
 ## snippet
   snippet.nap :: fn(name: string, delay: i64) -> i64 {  // snippet$nap
       std.console.println<string>(concat_2(name, ": start"))
-      std.time.sleep(std.time.millis(delay))
+      std.task.sleep(std.time.millis(delay))
       std.console.println<string>({
           __p_0: string = name
           __buf_1: Buffer = std.core.new_byte_buffer(i64(34) +% std.core.byte_len(__p_0))
@@ -148,6 +148,7 @@
     fn std.task.launch<i64>  // std_task$launch__i64
     fn std.task.outcome<i64>  // std_task$outcome__i64
     fn std.task.run<i64>  // std_task$run__i64
+    fn std.task.sleep  // std_task$sleep
     fn std.task.start_thread  // std_task$start_thread
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i64>  // std_task$stop_waiting__i64
@@ -163,7 +164,6 @@
     struct std.task.Waiter  // std_task$Waiter
   std/time
     fn std.time.millis  // std_time$millis
-    fn std.time.sleep  // std_time$sleep
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

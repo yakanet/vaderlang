@@ -52,7 +52,7 @@
   }
   snippet.compute_answer :: fn() -> i32 {  // snippet$compute_answer
       std.console.println<string>("answer computed")
-      std.time.sleep(std.time.millis(i64(1)))
+      std.task.sleep(std.time.millis(i64(1)))
       return 42
   }
   snippet.read_answer :: fn() -> i32 {  // snippet$read_answer
@@ -93,7 +93,7 @@
       std.console.println<string>(concat_5(@vcall(std.core.Display.to_string, std.task.join<string>(first)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(second)), " ", snippet.config()))
       cancelled: Task<string> = std.task.launch<string>(__lambda_snippet_2)
       waiting: Task<string> = std.task.launch<string>(__lambda_snippet_3)
-      std.time.sleep(std.time.millis(i64(1)))
+      std.task.sleep(std.time.millis(i64(1)))
       std.task.cancel<string>(cancelled)
       std.console.println<string>(concat_3(@vcall(std.core.Display.to_string, std.task.join<string>(cancelled)), " ", @vcall(std.core.Display.to_string, std.task.join<string>(waiting))))
       reader: Task<i32> = std.task.launch<i32>(snippet.read_answer)
@@ -113,7 +113,7 @@
   }
   snippet$config$singleton :: fn() -> string {
       std.console.println<string>("config starts")
-      std.time.sleep(std.time.millis(i64(1)))
+      std.task.sleep(std.time.millis(i64(1)))
       std.console.println<string>("config done")
       return "cfg"
   }
@@ -126,7 +126,7 @@
   }
   snippet$pool$singleton :: fn() -> string {
       std.console.println<string>("pool starts")
-      std.time.sleep(std.time.millis(i64(20)))
+      std.task.sleep(std.time.millis(i64(20)))
       std.console.println<string>("pool done")
       return "pool"
   }
@@ -307,6 +307,7 @@
     fn std.task.outcome<string>  // std_task$outcome__string
     fn std.task.run<i32>  // std_task$run__i32
     fn std.task.run<string>  // std_task$run__string
+    fn std.task.sleep  // std_task$sleep
     fn std.task.start_thread  // std_task$start_thread
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i32>  // std_task$stop_waiting__i32
@@ -328,7 +329,6 @@
     struct std.task.Waiter  // std_task$Waiter
   std/time
     fn std.time.millis  // std_time$millis
-    fn std.time.sleep  // std_time$sleep
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

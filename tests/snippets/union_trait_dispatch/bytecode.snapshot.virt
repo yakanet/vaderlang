@@ -42,6 +42,7 @@ type 39 struct std_core$Dec64 { mantissa:28,exp:6 }
 type 40 struct __Tuple_u64_u64_u64_2d035edd { _0:28,_1:28,_2:28 }
 type 41 union 6,0
 type 42 array 28
+type 43 union 17,0
 string 0 "INT "
 string 1 "STR "
 string 2 "="
@@ -108,17 +109,18 @@ vtable std_core$Index.at 12 85
 vtable std_core$Contains.contains 16 13
 vtable std_core$Contains.contains 20 31
 vtable std_core$Contains.contains 12 87
+vtable std_core$Contains.contains 7 100
 vtable std_core$Add.add 22 17
-vtable std_core$Add.add 29 101
-vtable std_core$Add.add 30 102
-vtable std_core$Add.add 6 103
-vtable std_core$Add.add 17 104
-vtable std_core$Add.add 31 105
-vtable std_core$Add.add 32 106
-vtable std_core$Add.add 33 107
-vtable std_core$Add.add 28 108
-vtable std_core$Add.add 35 109
-vtable std_core$Add.add 2 110
+vtable std_core$Add.add 29 105
+vtable std_core$Add.add 30 106
+vtable std_core$Add.add 6 107
+vtable std_core$Add.add 17 108
+vtable std_core$Add.add 31 109
+vtable std_core$Add.add 32 110
+vtable std_core$Add.add 33 111
+vtable std_core$Add.add 28 112
+vtable std_core$Add.add 35 113
+vtable std_core$Add.add 2 114
 vtable std_core$Add.add 7 46
 vtable std_core$Display.to_string 22 18
 vtable std_core$Display.to_string 29 32
@@ -4487,7 +4489,7 @@ fn 90 std_collections$rehash__string__i32 (ref,i64) -> void
       local.get 4   ; e
       array.get 25   ; string[]
       ref.cast 7   ; string
-      call 100   ; std_core$string$Hash$hash$$wrapper
+      call 104   ; std_core$string$Hash$hash$$wrapper
       local.tee 6   ; perturb
       local.get 2   ; if_res
       call 88   ; std_collections$first_slot
@@ -4600,7 +4602,7 @@ fn 92 std_collections$put__string__i32 (ref,string,i32) -> bool
   i64.gt
   if $L0 void
     local.get 1   ; arg 1
-    call 100   ; std_core$string$Hash$hash$$wrapper
+    call 104   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
     local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
     ref.cast 17   ; i64
@@ -4771,7 +4773,7 @@ fn 93 std_collections$get__string__i32 (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 100   ; std_core$string$Hash$hash$$wrapper
+  call 104   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 17   ; i64
@@ -4844,7 +4846,7 @@ fn 94 std_collections$contains_key__string__i32 (ref,string) -> bool
     return.lit bool.const false
   end $L0
   local.get 1   ; arg 1
-  call 100   ; std_core$string$Hash$hash$$wrapper
+  call 104   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$Map__string__i32.mask
   ref.cast 17   ; i64
@@ -5003,76 +5005,223 @@ fn 99 std_console$println__string (string) -> void
   return
 end
 
-fn 100 std_core$string$Hash$hash$$wrapper (string) -> u64
+fn 100 std_string$string$std_core$Contains$contains (string,string) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 101   ; std_string$byte_contains
+  return
+end
+
+fn 101 std_string$byte_contains (string,string) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 102   ; std_string$first_byte_offset
+  type_check 0   ; null
+  bool.not
+  return
+end
+
+fn 102 std_string$first_byte_offset (string,string) -> any
+  local n i64
+  local m i64
+  local first u8
+  local i i64
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; n
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.tee 3   ; m
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i64.const 0
+    retag 17   ; i64
+    return
+  end $L0
+  local.get 3   ; m
+  local.get 2   ; n
+  i64.gt
+  if $L1 void
+    return.lit null.const
+  end $L1
+  local.get 1   ; arg 1
+  i64.const 0
+  call.import 1   ; std_core$byte_at
+  local.set 4   ; first
+  i64.const 0
+  local.set 5   ; i
+  local.get 2   ; n
+  local.get 3   ; m
+  i64.checked_sub
+  i64.const 1
+  i64.checked_add
+  local.set 2   ; n
+  loop $L2 void
+    local.get 5   ; i
+    local.get 2   ; n
+    i64.lt
+    if $L3 void
+      local.get 0   ; arg 0
+      local.get 5   ; i
+      call.import 1   ; std_core$byte_at
+      local.get 4   ; first
+      i32.eq
+      if $L4 void
+        local.get 0   ; arg 0
+        local.get 5   ; i
+        local.get 1   ; arg 1
+        call 103   ; std_string$matches_at
+        if $L5 void
+          local.get 5   ; i
+          retag 17   ; i64
+          return
+        end $L5
+      end $L4
+      local.get 5   ; i
+      i64.const 1
+      i64.add
+      local.set 5   ; i
+      br $L2
+    end $L3
+  end $L2
+  return.lit null.const
+end
+
+fn 103 std_string$matches_at (string,i64,string) -> bool
+  local m i64
+  local $call_5 i64
+  local $add_checked_14 i64
+  local $call_15 u8
+  local $call_16 u8
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; m
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 1   ; arg 1
+  local.get 4   ; $call_5
+  i64.gt
+  if $L0 void
+    return.lit bool.const false
+  end $L0
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.get 1   ; arg 1
+  i64.checked_sub
+  local.set 4   ; $call_5
+  local.get 3   ; m
+  local.get 4   ; $call_5
+  i64.gt
+  if $L1 void
+    return.lit bool.const false
+  end $L1
+  i64.const 0
+  local.set 4   ; $call_5
+  loop $L2 void
+    local.get 4   ; $call_5
+    local.get 3   ; m
+    i64.lt
+    if $L3 void
+      local.get 1   ; arg 1
+      local.get 4   ; $call_5
+      i64.checked_add
+      local.set 5   ; $add_checked_14
+      local.get 0   ; arg 0
+      local.get 5   ; $add_checked_14
+      call.import 1   ; std_core$byte_at
+      local.set 6   ; $call_15
+      local.get 2   ; arg 2
+      local.get 4   ; $call_5
+      call.import 1   ; std_core$byte_at
+      local.set 7   ; $call_16
+      local.get 6   ; $call_15
+      local.get 7   ; $call_16
+      i32.ne
+      if $L4 void
+        return.lit bool.const false
+      end $L4
+      local.get 4   ; $call_5
+      i64.const 1
+      i64.add
+      local.set 4   ; $call_5
+      br $L2
+    end $L3
+  end $L2
+  return.lit bool.const true
+end
+
+fn 104 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
   call.import 6   ; std_core$string$Hash$hash
   return
 end
 
-fn 101 std_core$i8$Add$add$$wrapper (i8,i8) -> i8
+fn 105 std_core$i8$Add$add$$wrapper (i8,i8) -> i8
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i8.checked_add
   return
 end
 
-fn 102 std_core$i16$Add$add$$wrapper (i16,i16) -> i16
+fn 106 std_core$i16$Add$add$$wrapper (i16,i16) -> i16
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i16.checked_add
   return
 end
 
-fn 103 std_core$i32$Add$add$$wrapper (i32,i32) -> i32
+fn 107 std_core$i32$Add$add$$wrapper (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.checked_add
   return
 end
 
-fn 104 std_core$i64$Add$add$$wrapper (i64,i64) -> i64
+fn 108 std_core$i64$Add$add$$wrapper (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.checked_add
   return
 end
 
-fn 105 std_core$u8$Add$add$$wrapper (u8,u8) -> u8
+fn 109 std_core$u8$Add$add$$wrapper (u8,u8) -> u8
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u8.checked_add
   return
 end
 
-fn 106 std_core$u16$Add$add$$wrapper (u16,u16) -> u16
+fn 110 std_core$u16$Add$add$$wrapper (u16,u16) -> u16
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u16.checked_add
   return
 end
 
-fn 107 std_core$u32$Add$add$$wrapper (u32,u32) -> u32
+fn 111 std_core$u32$Add$add$$wrapper (u32,u32) -> u32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u32.checked_add
   return
 end
 
-fn 108 std_core$u64$Add$add$$wrapper (u64,u64) -> u64
+fn 112 std_core$u64$Add$add$$wrapper (u64,u64) -> u64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u64.checked_add
   return
 end
 
-fn 109 std_core$f32$Add$add$$wrapper (f32,f32) -> f32
+fn 113 std_core$f32$Add$add$$wrapper (f32,f32) -> f32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.add
   return
 end
 
-fn 110 std_core$f64$Add$add$$wrapper (f64,f64) -> f64
+fn 114 std_core$f64$Add$add$$wrapper (f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   f64.add

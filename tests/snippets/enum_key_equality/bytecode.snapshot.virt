@@ -27,6 +27,7 @@ type 24 struct std_collections$Map__snippet_HttpStatus__string { ekeys:20,evals:
 type 25 union 0,8
 type 26 array 4
 type 27 array 8
+type 28 union 10,0
 string 0 " "
 string 1 "gone"
 string 2 "here"
@@ -36,8 +37,9 @@ string 5 "true"
 string 6 "false"
 string 7 "\n"
 import 0 byte_len std_core$byte_len result_type=10 param_types=8 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=20 param_types=8 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=4,20,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 byte_at std_core$byte_at result_type=5 param_types=8,10 param_c_out= param_by_address= (string,i64) -> u8
+import 2 bytes std_core$bytes result_type=20 param_types=8 param_c_out= param_by_address= (string) -> ref
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=4,20,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 9 std_core$ByteAccess
 impl 22 std_core$Index
 impl 22 std_core$IndexSet
@@ -62,6 +64,7 @@ vtable std_core$Equals.equals 19 22
 vtable std_core$Equals.equals 8 23
 vtable std_core$Contains.contains 22 26
 vtable std_core$Contains.contains 24 29
+vtable std_core$Contains.contains 8 47
 export main 2
 
 fn 0 snippet$same_through_trait (any,any) -> bool
@@ -2052,7 +2055,7 @@ fn 43 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$bytes
+  call.import 2   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -2110,14 +2113,14 @@ fn 45 std_console$write_bytes (u8,ref,i64) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 2   ; system_posix$sys_write
+    call.import 3   ; system_posix$sys_write
     i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 2   ; system_posix$sys_write
+  call.import 3   ; system_posix$sys_write
   i64.to_i32
   return
 end
@@ -2132,4 +2135,151 @@ fn 46 std_console$println__string (string) -> void
   local.get 1   ; $call_3
   call 43   ; std_console$write
   return
+end
+
+fn 47 std_string$string$std_core$Contains$contains (string,string) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 48   ; std_string$byte_contains
+  return
+end
+
+fn 48 std_string$byte_contains (string,string) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 49   ; std_string$first_byte_offset
+  type_check 0   ; null
+  bool.not
+  return
+end
+
+fn 49 std_string$first_byte_offset (string,string) -> any
+  local n i64
+  local m i64
+  local first u8
+  local i i64
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; n
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.tee 3   ; m
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i64.const 0
+    retag 10   ; i64
+    return
+  end $L0
+  local.get 3   ; m
+  local.get 2   ; n
+  i64.gt
+  if $L1 void
+    return.lit null.const
+  end $L1
+  local.get 1   ; arg 1
+  i64.const 0
+  call.import 1   ; std_core$byte_at
+  local.set 4   ; first
+  i64.const 0
+  local.set 5   ; i
+  local.get 2   ; n
+  local.get 3   ; m
+  i64.checked_sub
+  i64.const 1
+  i64.checked_add
+  local.set 2   ; n
+  loop $L2 void
+    local.get 5   ; i
+    local.get 2   ; n
+    i64.lt
+    if $L3 void
+      local.get 0   ; arg 0
+      local.get 5   ; i
+      call.import 1   ; std_core$byte_at
+      local.get 4   ; first
+      i32.eq
+      if $L4 void
+        local.get 0   ; arg 0
+        local.get 5   ; i
+        local.get 1   ; arg 1
+        call 50   ; std_string$matches_at
+        if $L5 void
+          local.get 5   ; i
+          retag 10   ; i64
+          return
+        end $L5
+      end $L4
+      local.get 5   ; i
+      i64.const 1
+      i64.add
+      local.set 5   ; i
+      br $L2
+    end $L3
+  end $L2
+  return.lit null.const
+end
+
+fn 50 std_string$matches_at (string,i64,string) -> bool
+  local m i64
+  local $call_5 i64
+  local $add_checked_14 i64
+  local $call_15 u8
+  local $call_16 u8
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; m
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 1   ; arg 1
+  local.get 4   ; $call_5
+  i64.gt
+  if $L0 void
+    return.lit bool.const false
+  end $L0
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.get 1   ; arg 1
+  i64.checked_sub
+  local.set 4   ; $call_5
+  local.get 3   ; m
+  local.get 4   ; $call_5
+  i64.gt
+  if $L1 void
+    return.lit bool.const false
+  end $L1
+  i64.const 0
+  local.set 4   ; $call_5
+  loop $L2 void
+    local.get 4   ; $call_5
+    local.get 3   ; m
+    i64.lt
+    if $L3 void
+      local.get 1   ; arg 1
+      local.get 4   ; $call_5
+      i64.checked_add
+      local.set 5   ; $add_checked_14
+      local.get 0   ; arg 0
+      local.get 5   ; $add_checked_14
+      call.import 1   ; std_core$byte_at
+      local.set 6   ; $call_15
+      local.get 2   ; arg 2
+      local.get 4   ; $call_5
+      call.import 1   ; std_core$byte_at
+      local.set 7   ; $call_16
+      local.get 6   ; $call_15
+      local.get 7   ; $call_16
+      i32.ne
+      if $L4 void
+        return.lit bool.const false
+      end $L4
+      local.get 4   ; $call_5
+      i64.const 1
+      i64.add
+      local.set 4   ; $call_5
+      br $L2
+    end $L3
+  end $L2
+  return.lit bool.const true
 end

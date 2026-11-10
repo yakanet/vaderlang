@@ -7,6 +7,7 @@
 module "std/io"
 
 Wait :: import "std/runtime/wait"
+import "std/time"
 import "system/posix"
 import "system/windows"
 
@@ -180,15 +181,15 @@ export STDIN: Descriptor: Fd(0)
 /// @param d  what to wait on; `STDIN` for standard input.
 export wait_readable :: fn(d: Descriptor) -> void = Wait.wait_readable(descriptor_word(d))
 
-/// Park the running task as `wait_readable` does, but no longer than `nanos`.
+/// Park the running task as `wait_readable` does, but no longer than `timeout`.
 /// With no other task, it returns `true` at once, and the caller asks the
 /// system itself.
 ///
-/// @param d      what to wait on; `STDIN` for standard input.
-/// @param nanos  the longest wait; a negative one waits with no deadline.
-/// @return       `false` once `nanos` have passed with nothing to read on `d`.
-export wait_readable_for :: fn(d: Descriptor, nanos: i64) -> bool =
-    Wait.wait_readable_for(descriptor_word(d), nanos)
+/// @param d        what to wait on; `STDIN` for standard input.
+/// @param timeout  the longest wait; a negative one waits with no deadline.
+/// @return         `false` once `timeout` has passed with nothing to read on `d`.
+export wait_readable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
+    Wait.wait_readable_for(descriptor_word(d), timeout.to_nanos())
 
 // The machine word a wait names `d` by: the descriptor, or the address of the
 // handle.

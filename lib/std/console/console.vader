@@ -7,6 +7,7 @@
 module "std/console"
 
 import "std/io"
+import "std/time"
 import "system/posix"
 import "system/windows"
 
@@ -353,7 +354,7 @@ read_console :: fn(max: i64) -> u8[] | IOError {
     return buf[0..<got]
 }
 
-/// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
+/// True iff stdin has data ready within `timeout` (zero is a non-blocking
 /// probe). Lets a length-prefixed server detect a quiescent input window,
 /// e.g. drain a burst of notifications, then do expensive work once. The wait
 /// parks the running task while other tasks run, and blocks the process
@@ -364,14 +365,33 @@ read_console :: fn(max: i64) -> u8[] | IOError {
 /// (pipe hangup) reports ready so the next read observes EOF rather than
 /// spinning.
 ///
-/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking, a
-///                    negative one waits with no deadline.
-/// @return            `true` if a subsequent `read_stdin` won't block on the
-///                    first byte (data ready, or EOF/hangup pending).
+/// @param timeout  the longest wait; zero polls without blocking, a negative
+///                 one waits with no deadline.
+/// @return         `true` if a subsequent `read_stdin` won't block on the
+///                 first byte (data ready, or EOF/hangup pending).
 // With another task, the wait returns once stdin reads, and the system then
 // answers at once; alone, it returns at once, and the system waits.
-export poll_stdin :: fn(timeout_ms: i32) -> bool =
-    wait_readable_for(STDIN, i64(timeout_ms) * 1_000_000) && system_poll_stdin(timeout_ms)
+export poll_stdin :: fn(timeout: Duration) -> bool =
+    wait_readable_for(STDIN, timeout) && system_poll_stdin(poll_milliseconds(timeout))
+
+// `timeout` in the whole milliseconds a system poll takes: rounded up, so that
+// the poll never ends before `timeout`, at most the largest `i32`, and -1, the
+// systems' own spelling, for no deadline.
+poll_milliseconds :: fn(timeout: Duration) -> i32 {
+    nanos :: timeout.to_nanos()
+    if nanos < 0 {
+        return -1
+    }
+    whole :: nanos / 1_000_000
+    rounded :: if nanos % 1_000_000 == 0 { whole } else { whole + 1 }
+    if rounded > i64(MAX_POLL_MILLISECONDS) {
+        return MAX_POLL_MILLISECONDS
+    }
+    return i32(rounded)
+}
+
+// The longest wait a system poll takes, about 24 days.
+MAX_POLL_MILLISECONDS: i32 : 2_147_483_647
 
 // Ask the system whether stdin has data ready within `timeout_ms`, blocking
 // every task meanwhile.
@@ -435,6 +455,14 @@ system_poll_stdin :: fn(timeout_ms: i32) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test test_poll_milliseconds_rounds_up_and_keeps_no_deadline :: fn() -> void {
+    assert_eq(poll_milliseconds(nanos(0)), 0)
+    assert_eq(poll_milliseconds(nanos(1)), 1)
+    assert_eq(poll_milliseconds(millis(5)), 5)
+    assert_eq(poll_milliseconds(nanos(-1)), -1)
+    assert_eq(poll_milliseconds(seconds(3_000_000)), MAX_POLL_MILLISECONDS)
+}
 
 @test test_reading_nothing_is_refused_without_touching_stdin :: fn() -> void {
     refused :: read_available(0)

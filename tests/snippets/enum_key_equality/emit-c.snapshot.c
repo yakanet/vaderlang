@@ -108,6 +108,10 @@ static void std_console$write(uint8_t l0, vader_string_t l1);
 static bool std_console$write_text(uint8_t l0, vader_string_t l1);
 static int32_t std_console$write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_console$println__string(vader_string_t l0);
+static bool std_string$string$std_core$Contains$contains(vader_string_t l0, vader_string_t l1);
+static bool std_string$byte_contains(vader_string_t l0, vader_string_t l1);
+static vader_box_t std_string$first_byte_offset(vader_string_t l0, vader_string_t l1);
+static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 typedef vader_box_t (*vader_fn_erased_sig_1_t)(void* env, vader_box_t a0);
@@ -119,7 +123,7 @@ static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[28] = {
+const vader_type_info_t vader_type_info_table[29] = {
     [1] = { .slot_size = 16 },
     [2] = { .slot_size = 1 },
     [3] = { .slot_size = 16 },
@@ -175,14 +179,19 @@ const vader_type_info_t vader_type_info_table[28] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
     },
+    [28] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 28;
+const size_t vader_type_info_count = 29;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
 
 static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
+}
+
+static uint8_t vader_host_std_core$byte_at(vader_string_t a0, int64_t a1) {
+    return vader_string_byte_at(a0, a1);
 }
 
 static void* vader_host_std_core$bytes(vader_string_t a0) {
@@ -1392,6 +1401,76 @@ static void std_console$println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
+static bool std_string$string$std_core$Contains$contains(vader_string_t l0, vader_string_t l1) {
+    bool t0;
+    t0 = std_string$byte_contains(l0, l1);
+    return t0;
+}
+
+static bool std_string$byte_contains(vader_string_t l0, vader_string_t l1) {
+    vader_box_t t0;
+    t0 = std_string$first_byte_offset(l0, l1);
+    return !(t0.tag == 0u);
+}
+
+static vader_box_t std_string$first_byte_offset(vader_string_t l0, vader_string_t l1) {
+    int64_t l2, l3, l5;
+    uint8_t l4;
+    int64_t t0;
+    uint8_t t1;
+    bool t2;
+    l2 = vader_host_std_core$byte_len(l0);
+    l3 = vader_host_std_core$byte_len(l1);
+    if (l3 == INT64_C(0)) {
+        return vader_box_i64(10u, INT64_C(0));
+    }
+    if ((l3 > l2)) {
+        return vader_box_obj(0u, NULL);
+    }
+    l4 = vader_host_std_core$byte_at(l1, INT64_C(0));
+    l5 = INT64_C(0);
+    t0 = vader_chk_sub(i64, l2, l3);
+    l2 = vader_chk_add(i64, t0, INT64_C(1));
+    while ((l5 < l2)) {
+        t1 = vader_host_std_core$byte_at(l0, l5);
+        if (t1 == l4) {
+            t2 = std_string$matches_at(l0, l5, l1);
+            if (t2) {
+                return vader_box_i64(10u, l5);
+            }
+        }
+        l5 = (l5 + INT64_C(1));
+    }
+    return vader_box_obj(0u, NULL);
+}
+
+static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2) {
+    int64_t l3, l4, l5;
+    uint8_t l6, l7;
+    int64_t t0;
+    l3 = vader_host_std_core$byte_len(l2);
+    l4 = vader_host_std_core$byte_len(l0);
+    if ((l1 > l4)) {
+        return false;
+    }
+    t0 = vader_host_std_core$byte_len(l0);
+    l4 = vader_chk_sub(i64, t0, l1);
+    if ((l3 > l4)) {
+        return false;
+    }
+    l4 = INT64_C(0);
+    while ((l4 < l3)) {
+        l5 = vader_chk_add(i64, l1, l4);
+        l6 = vader_host_std_core$byte_at(l0, l5);
+        l7 = vader_host_std_core$byte_at(l2, l4);
+        if (l6 != l7) {
+            return false;
+        }
+        l4 = (l4 + INT64_C(1));
+    }
+    return true;
+}
+
 /* vtable dispatchers */
 static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
@@ -1417,6 +1496,7 @@ static bool std_core$Contains$contains$$dispatch(vader_box_t recv, vader_box_t a
     switch (recv.tag) {
         case 22u: return std_collections$Map$std_core$Contains$contains__snippet_Color__i32(recv.payload.obj, ((uint8_t) a0.payload.i));
         case 24u: return std_collections$Map$std_core$Contains$contains__snippet_HttpStatus__string(recv.payload.obj, ((uint8_t) a0.payload.i));
+        case 8u: return std_string$string$std_core$Contains$contains(recv.payload.s, a0.payload.s);
         default: vader_unreachable("vtable miss in std_core$Contains.contains");
     }
     vader_unreachable("vtable miss in std_core$Contains.contains");

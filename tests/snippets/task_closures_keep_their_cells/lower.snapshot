@@ -8,7 +8,7 @@
           _: i32 = 0
           for _ < naps {
               __lambda_snippet_0(bump)
-              std.time.sleep(std.time.millis(i64(1)))
+              std.task.sleep(std.time.millis(i64(1)))
           } @step {
               _ = _ +% 1
           }
@@ -148,6 +148,7 @@
     fn std.task.launch<i32>  // std_task$launch__i32
     fn std.task.outcome<i32>  // std_task$outcome__i32
     fn std.task.run<i32>  // std_task$run__i32
+    fn std.task.sleep  // std_task$sleep
     fn std.task.start_thread  // std_task$start_thread
     fn std.task.started  // std_task$started
     fn std.task.stop_waiting<i32>  // std_task$stop_waiting__i32
@@ -163,7 +164,6 @@
     struct std.task.Waiter  // std_task$Waiter
   std/time
     fn std.time.millis  // std_time$millis
-    fn std.time.sleep  // std_time$sleep
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize
