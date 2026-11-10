@@ -613,6 +613,23 @@ export O_CLOEXEC: i32: if VADER_OS == .Darwin { 0x0100_0000 } else { 0x8_0000 }
 @extern(FILE_SYSTEM, "open")
 export sys_open :: fn(path: string, flags: i32, @c_variadic mode: i32) -> i32
 
+/// `F_SETFD`, the `fcntl(2)` command that sets a descriptor's own flags. 2 on
+/// both systems.
+export F_SETFD: i32: 2
+
+/// `FD_CLOEXEC`, the descriptor flag that closes it in a program `posix_spawn`
+/// starts. 1 on both systems.
+export FD_CLOEXEC: i32: 1
+
+/// `fcntl(2)` with an `int` argument, which goes through the `...` of
+/// `int fcntl(int, int, ...)`. -1 with `errno` set on failure.
+///
+/// @param fd   the descriptor.
+/// @param cmd  the command, `F_SETFD` say.
+/// @param arg  what the command takes, `FD_CLOEXEC` for `F_SETFD`.
+@extern(FILE_SYSTEM, "fcntl")
+export sys_fcntl :: fn(fd: i32, cmd: i32, @c_variadic arg: i32) -> i32
+
 /// `lseek(2)` origins: the start, the current offset, the end.
 export SEEK_SET: i32: 0
 /// See `SEEK_SET`.
