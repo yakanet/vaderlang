@@ -15,7 +15,7 @@ import { test, expect } from "bun:test";
 // cannot compile the Target-ABI stdlib (the byte-Buffer StringBuilder, the
 // `std/core` `bytes` primitive, the memory opcodes), so this suite must spawn
 // the self-hosted binary, which is the snapshot/run oracle everywhere else.
-import { runCli, LONG_BUILD } from "./cli-bin.ts";
+import { runCli } from "./cli-bin.ts";
 import { findTestModules, listVaderFiles } from "./vader-sources.ts";
 import { readFileSync } from "fs";
 
@@ -28,9 +28,12 @@ const TEST_DECORATORS_RE = /^@test\s/gm;
 // (compile + VM-run its @tests), far heavier than the former in-process TS CLI:
 // 30+ concurrent spawns starve the CPU and trip the per-run kill timer. Bun still
 // parallelises across test FILES, so this only serialises modules within this file.
+const MEASURE_BUDGET = 600_000;
 for (const dir of [...findTestModules("lib"), ...findTestModules("vader")]) {
   test(`vader test ${dir}`, async () => {
-    const { exit, stdout, stderr } = await runCli(["test", dir], undefined, LONG_BUILD);
+    const started = Date.now();
+    const { exit, stdout, stderr } = await runCli(["test", dir], undefined, MEASURE_BUDGET);
+    console.error(`[e2e-timing] ${new Date(started).toISOString()} ${dir}: ${Date.now() - started} ms, exit ${exit}`);
     // Surface the subprocess output on failure. Asserting the exit code alone
     // made a red CI say only "expected 0, received 1" for a run of dozens of
     // module tests: the one that actually failed, and its trap message, were
@@ -45,5 +48,5 @@ for (const dir of [...findTestModules("lib"), ...findTestModules("vader")]) {
       .map((f) => readFileSync(f, "utf8").match(TEST_DECORATORS_RE)?.length ?? 0)
       .reduce((a, b) => a + b, 0);
     expect(Number(/(\d+) tests \|/.exec(stdout)?.[1])).toBe(declared);
-  }, { timeout: LONG_BUILD });
+  }, { timeout: MEASURE_BUDGET });
 }
