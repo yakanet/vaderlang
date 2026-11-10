@@ -46,9 +46,9 @@
   expr 19:12    FieldExpr      :: fn() -> Path
   expr 19:12    StringLitExpr  :: string
   expr 20:13    StringLitExpr  :: string
-  expr 20:32    CallExpr       :: bool
-  expr 20:32    FieldExpr      :: fn() -> bool
-  expr 20:32    IdentExpr      :: Path
+  expr 20:25    CallExpr       :: Path
+  expr 20:25    FieldExpr      :: fn() -> Path
+  expr 20:25    IdentExpr      :: Path
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:15    StringLitExpr  :: string

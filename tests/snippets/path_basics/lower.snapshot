@@ -13,61 +13,55 @@
       snippet.show_path("parent", std.path.parent(p))
       snippet.show_path("grand", std.path.parent(std.path.parent(p)))
       abs: Path = std.path.to_path("/usr/local/bin/vader")
-      std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
-          __off_1: i64 = 0
-          __off_1 = std.core.write_string_at(__buf_0, __off_1, "abs is_absolute=")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.path.is_absolute(abs))
-          std.core.finish_buffer(__buf_0, __off_1)
-      } :string)
+      std.console.println<string>(concat_2("abs root=", std.path.root(abs)))
       snippet.show_path("abs.parent", std.path.parent(abs))
       snippet.show_path("abs.filename", std.path.to_path(std.path.filename(abs)))
       snippet.show_path("abs.parent.parent", std.path.parent(std.path.parent(abs)))
       std.console.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
-          __off_3: i64 = 0
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, "empty is empty=")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.path.empty_path() == std.path.empty_path())
-          std.core.finish_buffer(__buf_2, __off_3)
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "empty is empty=")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std.path.empty_path() == std.path.empty_path())
+          std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.console.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(16))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, "p is empty=")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, p == std.path.empty_path())
-          std.core.finish_buffer(__buf_4, __off_5)
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(16))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "p is empty=")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, p == std.path.empty_path())
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       snippet.show_path("join", std.path.join(std.path.to_path("/etc"), "hosts"))
       snippet.show_path("join with sep", std.path.join(std.path.to_path("/etc/"), "hosts"))
       snippet.show_path("join absolute", std.path.join(std.path.to_path("/etc"), "/var/log"))
       snippet.show_path("join empty base", std.path.join(std.path.empty_path(), "foo"))
       std.console.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(28))
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(28))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "a/b/c starts_with a/b: ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, std.path.starts_with(std.path.to_path("a/b/c"), std.path.to_path("a/b")))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.console.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(27))
           __off_7: i64 = 0
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, "a/b/c starts_with a/b: ")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, std.path.starts_with(std.path.to_path("a/b/c"), std.path.to_path("a/b")))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "a/bc starts_with a/b: ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, std.path.starts_with(std.path.to_path("a/bc"), std.path.to_path("a/b")))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.console.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(27))
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(26))
           __off_9: i64 = 0
-          __off_9 = std.core.write_string_at(__buf_8, __off_9, "a/bc starts_with a/b: ")
-          __off_9 = std.core.write_bool(__buf_8, __off_9, std.path.starts_with(std.path.to_path("a/bc"), std.path.to_path("a/b")))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "a/b/c ends_with b/c: ")
+          __off_9 = std.core.write_bool(__buf_8, __off_9, std.path.ends_with(std.path.to_path("a/b/c"), std.path.to_path("b/c")))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.console.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(26))
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(25))
           __off_11: i64 = 0
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, "a/b/c ends_with b/c: ")
-          __off_11 = std.core.write_bool(__buf_10, __off_11, std.path.ends_with(std.path.to_path("a/b/c"), std.path.to_path("b/c")))
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, "a/b/c ends_with /c: ")
+          __off_11 = std.core.write_bool(__buf_10, __off_11, std.path.ends_with(std.path.to_path("a/b/c"), std.path.to_path("/c")))
           std.core.finish_buffer(__buf_10, __off_11)
-      } :string)
-      std.console.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(25))
-          __off_13: i64 = 0
-          __off_13 = std.core.write_string_at(__buf_12, __off_13, "a/b/c ends_with /c: ")
-          __off_13 = std.core.write_bool(__buf_12, __off_13, std.path.ends_with(std.path.to_path("a/b/c"), std.path.to_path("/c")))
-          std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       snippet.show_path("norm a/./b/../c", std.path.normalize(std.path.to_path("a/./b/../c")))
       snippet.show_path("norm /a/b/../c", std.path.normalize(std.path.to_path("/a/b/../c")))
@@ -106,12 +100,11 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
-    fn std.core.codepoint_offset  // std_core$codepoint_offset
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.is_empty  // std_core$is_empty_1
+    fn std.core.is_empty<string>  // std_core$is_empty__string
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.string.at  // std_core$string$Index$at
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -124,13 +117,25 @@
     fn std.path.extension  // std_path$extension
     fn std.path.extension_dot  // std_path$extension_dot
     fn std.path.filename  // std_path$filename
-    fn std.path.is_absolute  // std_path$is_absolute
+    fn std.path.filename_on  // std_path$filename_on
+    fn std.path.is_absolute_on  // std_path$is_absolute_on
+    fn std.path.is_anchored  // std_path$is_anchored
+    fn std.path.is_ascii_letter  // std_path$is_ascii_letter
     fn std.path.join  // std_path$join
+    fn std.path.join_on  // std_path$join_on
+    fn std.path.last_separator  // std_path$last_separator
     fn std.path.name  // std_path$name
+    fn std.path.next_separator  // std_path$next_separator
     fn std.path.normalize  // std_path$normalize
+    fn std.path.normalize_on  // std_path$normalize_on
     fn std.path.parent  // std_path$parent
+    fn std.path.parent_on  // std_path$parent_on
+    fn std.path.prefix_length  // std_path$prefix_length
+    fn std.path.root  // std_path$root
+    fn std.path.root_length  // std_path$root_length
     fn std.path.starts_with  // std_path$starts_with
     fn std.path.to_path  // std_path$to_path
+    fn std.path.without_trailing_separators  // std_path$without_trailing_separators
   std/string
     fn std.string.ends_with  // std_string$ends_with
     fn std.string.last_index_of  // std_string$last_index_of

@@ -425,7 +425,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "abs is_absolute="
+                          "value": "abs root="
                         },
                         {
                           "kind": "interp",
@@ -437,7 +437,7 @@
                                 "kind": "IdentExpr",
                                 "name": "abs"
                               },
-                              "field": "is_absolute"
+                              "field": "root"
                             },
                             "args": []
                           }

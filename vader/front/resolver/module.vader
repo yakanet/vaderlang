@@ -229,16 +229,13 @@ export join_path :: fn(base: string, seg: string) -> string {
 export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_string() }
 
 /// `path` made absolute against the working directory, the base a relative path
-/// is read from.
+/// is read from. On Windows a path from the root (`/x`) takes the drive of the
+/// working directory.
 ///
-/// @param path  a `/`-separated path; one that starts with `/` or a drive letter
-///              is kept as it is.
-export absolute_path :: fn(path: string) -> string {
-    if is_absolute_path(path) {
-        return path
-    }
-    return join_path(current_working_directory(), path)
-}
+/// @param path  a `/`-separated path; an absolute one is kept as it is, a
+///              leading `./` dropped.
+export absolute_path :: fn(path: string) -> string =
+    string(current_working_directory().to_path().join(trim_prefix(path, "./")))
 
 /// `path` absolute and normalized, `\` read as `/`: one spelling for a file,
 /// whatever the loader or the command line wrote.
@@ -247,12 +244,6 @@ export absolute_path :: fn(path: string) -> string {
 ///              or absolute.
 export normalized_path :: fn(path: string) -> string =
     absolute_path(path.to_posix()).to_path().normalize().as_string()
-
-/// Whether `path` is absolute: it starts with `/`, or with a drive letter.
-///
-/// @param path  a `/`-separated path.
-export is_absolute_path :: fn(path: string) -> bool =
-    path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':')
 
 /// Resolve a resource directory `<base>/subdir` next to the executable, falling
 /// back to the bare cwd-relative `subdir`. The sidecar candidate wins only when
@@ -400,11 +391,22 @@ export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/target"
 import "std/testing"
 
 @test
-test_normalized_path_reads_backslashes_as_slashes :: fn() -> void {
+test_normalized_path_reads_backslashes_as_slashes_on_windows :: fn() -> void {
+    if current_os() != .Windows {
+        return
+    }
     assert_eq(normalized_path(r"C:\Temp\doc\.\shapes"), "C:/Temp/doc/shapes")
+}
+
+@test
+test_a_path_from_the_root_takes_the_working_drive :: fn() -> void {
+    cwd :: current_working_directory()
+    drive :: if current_os() == .Windows { cwd.byte_slice(0, 2) } else { "" }
+    assert_eq(absolute_path("/x"), "${drive}/x")
 }
 
 @test

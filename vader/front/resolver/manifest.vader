@@ -274,9 +274,10 @@ export asset_problem :: fn(asset: string) -> string | null {
 }
 
 // Whether `path` names something outside the project root it is relative to:
-// an absolute path, a drive, or a `..` step.
+// an absolute path, a drive, or a `..` step. A manifest goes from one OS to
+// another, so `\` is a separator here whatever the host.
 leaves_project :: fn(path: string) -> bool {
-    posix :: to_posix(path)
+    posix :: path.replace_chars_where((c: char) -> c == '\\', "/")
     return posix.starts_with("/") || ":" in posix || ".." in posix.split("/")
 }
 
@@ -423,4 +424,11 @@ test_a_manifest_without_name_or_version_writes_neither :: fn() -> void {
     out :: Map<string, JsonValue> {}
     write_manifest_json(out, Manifest {})
     assert_eq(out.keys().collect().join(","), "includePaths,entries,assets")
+}
+
+@test
+test_leaves_project_reads_both_separators_on_every_host :: fn() -> void {
+    assert(leaves_project(r"..\x"), "a `..` step written with a backslash")
+    assert(leaves_project("../x"), "a `..` step")
+    assert(!leaves_project(r"assets\x"), "a folder of the project")
 }

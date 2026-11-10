@@ -406,7 +406,7 @@ export sys_poll_one :: fn(@c_out fds: Pollfd, nfds: u64, timeout_ms: i32) -> i32
 /// built from fixed-width members. A SIZE, not an offset, which is why no
 /// architecture axis is needed where a `struct stat` mirror would have wanted one.
 ///
-/// ⚠️ Do NOT narrow this to the per-system figure. The risk is asymmetric:
+/// Do NOT narrow this to the per-system figure. The risk is asymmetric:
 /// over-reserving wastes 12 bytes on Linux, under-reserving is an out-of-bounds
 /// write by `tcgetattr`, which nothing here checks. One constant, taken high, is
 /// the shape that cannot be got wrong.

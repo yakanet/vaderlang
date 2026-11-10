@@ -18,7 +18,7 @@
   expr 15:8     BinaryExpr     :: bool
   expr 15:8     IdentExpr      :: IOError | string
   expr 16:12    StringLitExpr  :: string
-  expr 195:62   IdentExpr      :: i64
+  expr 189:62   IdentExpr      :: i64
   expr 20:10    CallExpr       :: IOError | string
   expr 20:10    IdentExpr      :: fn(string, i64) -> IOError | string
   expr 20:27    IdentExpr      :: string

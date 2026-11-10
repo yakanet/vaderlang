@@ -17,7 +17,7 @@ main :: fn() -> i32 {
     show_path("grand", p.parent().parent())
 
     abs :: "/usr/local/bin/vader".to_path()
-    println("abs is_absolute=${abs.is_absolute()}")
+    println("abs root=${abs.root()}")
     show_path("abs.parent", abs.parent())
     show_path("abs.filename", to_path(abs.filename()))
     show_path("abs.parent.parent", abs.parent().parent())

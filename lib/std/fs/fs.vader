@@ -156,22 +156,16 @@ export create_dir :: fn(path: string) -> null | IOError {
     if path.byte_len() >= 4096 {
         return IOError { .msg = "path too long" }
     }
-    // Each prefix in turn. From 1, so a leading `/` is a root and not a
-    // component, and repeated separators are skipped.
-    for i in 1..<path.byte_len() {
+    // Each prefix in turn after the root, skipping repeated separators. A root
+    // is not a component: `CreateDirectoryA("C:")` reports ERROR_ALREADY_EXISTS,
+    // and the re-test then asks about "the current directory ON DRIVE C:", a
+    // per-drive notion that need not exist when the process works from another
+    // drive (a CI runner on `D:\a\...` with a `C:` temp directory).
+    for i in path.to_path().root().as_string().byte_len()..<path.byte_len() {
         if path.byte_at(i) != '/' {
             continue
         }
         if path.byte_at(i - 1) == '/' {
-            continue
-        }
-        // `C:` is a root, not a component. `CreateDirectoryA("C:")` reports
-        // ERROR_ALREADY_EXISTS, and the re-test then asks about "the current
-        // directory ON DRIVE C:": a per-drive notion that need not exist when
-        // the process works from another drive. A CI runner on `D:\a\...` with
-        // a `C:` temp directory is exactly that shape. Not guarded off POSIX,
-        // where a directory may legitimately be named `a:`.
-        if VADER_OS == .Windows && i == 2 && path.byte_at(1) == ':' {
             continue
         }
         if !mkdir_one(path.byte_slice(0, i)) {
@@ -315,20 +309,7 @@ real_path :: fn(path: string) -> string | IOError {
     if n == 0 {
         return last_io_error("cannot resolve path")
     }
-    return without_verbatim_prefix(to_posix(from_wide(buf, i32(n))))
-}
-
-// A path `GetFinalPathNameByHandleW` wrote, `/`-separated, without its verbatim
-// prefix: `//?/C:/x` is `C:/x`, `//?/UNC/host/share/x` is `//host/share/x`.
-// `byte_slice` stops at the end of a shorter path.
-without_verbatim_prefix :: fn(p: string) -> string {
-    if p.byte_slice(0, 8) == "//?/UNC/" {
-        return "//" + p.byte_slice(8, p.byte_len())
-    }
-    if p.byte_slice(0, 4) == "//?/" {
-        return p.byte_slice(4, p.byte_len())
-    }
-    return p
+    return to_posix(from_wide(buf, i32(n)))
 }
 
 /// List the immediate entries of `path` in the order the system gives them,

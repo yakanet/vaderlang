@@ -221,8 +221,10 @@ test_an_event_is_one_line_led_by_rs :: fn() -> void {
 
 @test
 test_a_located_event_says_where_the_test_is :: fn() -> void {
+    // On Windows `/repo` takes the working drive.
+    file :: normalized_path("/repo/window.vader")
     expected :: "\u{1E}{\"event\":\"start\",\"module\":\"std/iter\",\"test\":\"test_sizes\","
-        + "\"file\":\"/repo/window.vader\",\"line\":12,"
+        + "\"file\":\"${file}\",\"line\":12,"
         + "\"filter\":\"std/iter:window.vader:test_sizes\"}\n"
     assert_eq(event_text(located_event("start", probe_located_test())), expected)
 }

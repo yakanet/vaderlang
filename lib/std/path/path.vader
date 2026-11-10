@@ -3,6 +3,12 @@
 // Paths are immutable string-backed values. Every operation returns a fresh
 // Path rather than mutating. The separator is `/` on every OS: `to_posix`
 // brings a path in from the OS, `to_native` takes one out to show it.
+//
+// What a path's root is depends on the OS the program runs on (`current_os`):
+// `/` everywhere, and on Windows a drive (`C:/`) or a share (`//host/share/`).
+// Elsewhere `C:` is a file name and `\` a byte a name may hold. The `*_on`
+// kernels take the OS as a parameter. No path ends with `/` but a root: what
+// builds one leaves it out, what reads one (a `Path(...)` cast) reads past it.
 
 module "std/path"
 
@@ -12,21 +18,31 @@ import "std/string" {
 import "std/string_builder"
 import "std/target"
 
-/// Rewrite OS-native path separators to the canonical `/`. The compiler keeps
-/// `/` as its single internal separator (module discovery, the module index,
-/// and `vader/front/resolver::join_path` are all `/`-based) so a path entering from
-/// an OS boundary that may carry `\` (Windows CLI arguments, env vars) must be
-/// funnelled through here first, otherwise `parent` / `filename` (which split
-/// on `/`) silently return empty. POSIX paths pass through unchanged.
-/// Takes and returns a raw `string`, not a `Path`: the compiler internals it
-/// serves (`vader/front/resolver::loader`, `vader/tools/lsp/protocol::uri`) are string-based,
-/// and the CLI-side `Path` conversion stops at their boundary. Nothing technical
-/// forces this any more: a `Path -> Path` signature used to panic in midir on the
-/// chained cast inside, which is fixed: it is scope.
+/// Rewrite the separators of the OS the program runs on to the canonical `/`.
+/// On Windows, `\` becomes `/` and the verbatim prefix a system call may hand
+/// back goes: `\\?\C:\x` is `C:/x`, `\\?\UNC\host\share` is `//host/share`.
+/// Elsewhere `\` is a byte a file name may hold, and the path is unchanged.
 ///
-/// @param s  a path string, possibly using `\` separators.
-/// @return   the same path with every `\` rewritten to `/`.
-export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', "/")
+/// A path entering from the OS (a command-line argument, an environment
+/// variable, a system call) goes through here first: the operations of this
+/// module split on `/` only.
+///
+/// @param s  a path as the OS writes it.
+export to_posix :: fn(s: string) -> string = to_posix_on(s, current_os())
+
+to_posix_on :: fn(s: string, os: Os) -> string {
+    if os != .Windows {
+        return s
+    }
+    slashed :: s.replace_chars_where((c: char) -> c == '\\', "/")
+    if slashed.str_starts_with("//?/UNC/") {
+        return "//" + slashed.byte_slice(8, slashed.byte_len())
+    }
+    if slashed.str_starts_with("//?/") {
+        return slashed.byte_slice(4, slashed.byte_len())
+    }
+    return slashed
+}
 
 /// Rewrite the canonical `/` to the separator of the OS the program runs on:
 /// `\` on Windows, unchanged elsewhere. For a path shown to a user or handed to a
@@ -48,10 +64,16 @@ export Path :: string
 
 // ---- constructors ---------------------------------------------------------
 
-/// Wrap an existing string as a `Path`. No validation: assumes the caller
-/// has produced a syntactically valid path.
+/// Wrap a string as a `Path`, without the `/` it ends with unless it is a root
+/// (`/`, `C:/`). No other validation: the string is taken as `/`-separated.
 /// @param s  the path string.
-export to_path :: fn(s: string) -> Path = Path(s)
+export to_path :: fn(s: string) -> Path {
+    // Asking for the OS is a call; most strings need no trimming.
+    if !s.str_ends_with("/") {
+        return Path(s)
+    }
+    return Path(without_trailing_separators(s, current_os()))
+}
 
 /// The empty path (`""`). Useful as an identity for `join` / as a default.
 export empty_path :: fn() -> Path = Path("")
@@ -67,34 +89,36 @@ export as_string :: fn(self: Path) -> string = string(self)
 /// @param self  a path in the canonical `/` form.
 export to_native :: fn(self: Path) -> string = self.as_string().to_native()
 
-/// True iff the path starts with the separator (`/foo`). Empty paths are
-/// considered NOT absolute.
-export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with("/")
-
-
-/// Parent directory: everything before the last separator. Returns the
-/// empty path when there's no separator, or `/` when the path is at the
-/// filesystem root.
+/// The last segment: a file or directory name, without separator. Empty for a
+/// root and for the empty path; a `/` at the end is read past.
 /// @param self  the path receiver.
-/// @return      the parent path.
-export parent :: fn(self: Path) -> Path {
-    s :: string(self)
-    idx :: s.last_index_of('/') ?? return Path("")
-    if idx == 0 {
-        // Root: keep the leading "/" so parent of "/foo" is "/".
-        return Path("/")
-    }
-    return Path(s.byte_slice(0, idx))
+/// @example
+///   "a/b/c.txt".to_path().filename()   // "c.txt"
+///   "/".to_path().filename()           // ""
+export filename :: fn(self: Path) -> string = filename_on(string(self), current_os())
+
+filename_on :: fn(s: string, os: Os) -> string {
+    path :: without_trailing_separators(s, os)
+    root :: root_length(path, os)
+    cut :: last_separator(path, root) ?? return path.byte_slice(root, path.byte_len())
+    return path.byte_slice(cut + 1, path.byte_len())
 }
 
-/// Last segment (filename or directory name). For a path with no
-/// separator, returns the whole path's string.
+/// The directory holding `self`: everything before its last segment. A root is
+/// its own parent (`/`, `C:/`), and a path of one relative segment has the
+/// empty path; a `/` at the end is read past.
 /// @param self  the path receiver.
-/// @return      the filename string (no leading separator).
-export filename :: fn(self: Path) -> string {
-    s :: string(self)
-    idx :: s.last_index_of('/') ?? return s
-    return s.byte_slice(idx + 1, s.byte_len())
+/// @example
+///   "/usr/bin/cat".to_path().parent()   // "/usr/bin"
+///   "/usr".to_path().parent()           // "/"
+///   "a".to_path().parent()              // ""
+export parent :: fn(self: Path) -> Path = Path(parent_on(string(self), current_os()))
+
+parent_on :: fn(s: string, os: Os) -> string {
+    path :: without_trailing_separators(s, os)
+    root :: root_length(path, os)
+    cut :: last_separator(path, root) ?? return path.byte_slice(0, root)
+    return without_trailing_separators(path.byte_slice(0, cut), os)
 }
 
 /// The two halves of a filename, as returned by `basename`.
@@ -167,29 +191,133 @@ export extension :: fn(self: Path) -> string {
     return fname.byte_slice(idx + 1, fname.byte_len())
 }
 
+// ---- roots ----------------------------------------------------------------
+
+/// The root `self` opens with: `/`, and on Windows a drive (`C:/`, or `C:` for
+/// a path from that drive's working directory) or a share (`//host/share/`).
+/// Empty for a relative path.
+/// @param self  the path receiver.
+/// @example
+///   "/usr/bin".to_path().root()   // "/"
+///   "src/main".to_path().root()   // ""
+export root :: fn(self: Path) -> Path {
+    s :: string(self)
+    return Path(s.byte_slice(0, root_length(s, current_os())))
+}
+
+/// True when `self` names the same file from any working directory: `/x` on
+/// POSIX, `C:/x` or `//host/share` on Windows. A Windows `/x` is not absolute:
+/// it lacks the drive, which joining it to the working directory supplies.
+/// @param self  the path receiver.
+export is_absolute :: fn(self: Path) -> bool = is_absolute_on(string(self), current_os())
+
+is_absolute_on :: fn(s: string, os: Os) -> bool =
+    is_anchored(s, os) && (os != .Windows || prefix_length(s, os) > 0)
+
+// Whether `s` opens on a `/` that a `..` cannot climb past: the POSIX root, the
+// root of a drive (`C:/`), a share. Not a drive alone (`C:x`), relative to that
+// drive's working directory.
+is_anchored :: fn(s: string, os: Os) -> bool {
+    root :: root_length(s, os)
+    return s.str_starts_with("/") || (root > 0 && s.byte_at(root - 1) == '/')
+}
+
+// The bytes of `s` that name a drive or a share on Windows: `C:`, or
+// `//host/share` up to the separator after the share. 0 for any other path, and
+// on every other OS.
+prefix_length :: fn(s: string, os: Os) -> i64 {
+    if os != .Windows {
+        return 0
+    }
+    n :: s.byte_len()
+    if n >= 2 && is_ascii_letter(s.byte_at(0)) && s.byte_at(1) == ':' {
+        return 2
+    }
+    if n < 3 || s.byte_at(0) != '/' || s.byte_at(1) != '/' || s.byte_at(2) == '/' {
+        return 0
+    }
+    after_host :: next_separator(s, 2) ?? return n
+    return next_separator(s, after_host + 1) ?? n
+}
+
+// The bytes of the root `s` opens with: its drive or share, and the `/` after.
+root_length :: fn(s: string, os: Os) -> i64 {
+    prefix :: prefix_length(s, os)
+    if prefix < s.byte_len() && s.byte_at(prefix) == '/' {
+        return prefix + 1
+    }
+    return prefix
+}
+
+// `s` without the `/` it ends with, the root's own kept: `a/b/` is `a/b`, `/`
+// stays `/`.
+without_trailing_separators :: fn(s: string, os: Os) -> string {
+    n :: s.byte_len()
+    if n == 0 || s.byte_at(n - 1) != '/' {
+        return s
+    }
+    root :: root_length(s, os)
+    end := n
+    for end > root && s.byte_at(end - 1) == '/' {
+        end -= 1
+    }
+    return s.byte_slice(0, end)
+}
+
+// Byte scans for `/`, which never occurs inside a multi-byte UTF-8 sequence.
+next_separator :: fn(s: string, from: i64) -> i64 | null {
+    for i in from..<s.byte_len() {
+        if s.byte_at(i) == '/' {
+            return i
+        }
+    }
+    return null
+}
+
+last_separator :: fn(s: string, from: i64) -> i64 | null {
+    i := s.byte_len()
+    for i > from {
+        i -= 1
+        if s.byte_at(i) == '/' {
+            return i
+        }
+    }
+    return null
+}
+
+is_ascii_letter :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
+
 // ---- combinators ----------------------------------------------------------
 
-/// Append a sub-path. Adds a separator between segments unless one is
-/// already present. If `other` is absolute (starts with `/`), it
-/// REPLACES `self` (Java `Path.resolve` semantics).
+/// `other` appended to `self`, one `/` between them. An absolute `other`
+/// replaces `self` (Java `Path.resolve`). On Windows, an `other` from the root
+/// (`/x`) keeps the drive of `self`, and one with a drive alone (`D:x`)
+/// replaces it.
 /// @param self   the base path.
 /// @param other  the segment to append (may itself contain separators).
 /// @return       a fresh `Path`.
-export join :: fn(self: Path, other: string) -> Path {
+/// @example
+///   "a".to_path().join("b/c")    // "a/b/c"
+///   "a".to_path().join("/etc")   // "/etc" on POSIX
+export join :: fn(self: Path, other: string) -> Path =
+    Path(join_on(string(self), other, current_os()))
+
+join_on :: fn(base: string, other: string, os: Os) -> string {
     if other.is_empty() {
-        return self
+        return without_trailing_separators(base, os)
     }
-    if other[0] == '/' {
-        return Path(other)
+    if prefix_length(other, os) > 0 || is_absolute_on(other, os) {
+        return without_trailing_separators(other, os)
     }
-    s :: string(self)
-    if s.is_empty() {
-        return Path(other)
+    // Left: a Windows `/x`, which keeps the drive of `base`.
+    if other.str_starts_with("/") {
+        drive :: base.byte_slice(0, prefix_length(base, os))
+        return without_trailing_separators(drive + other, os)
     }
-    if s.str_ends_with("/") {
-        return Path(s + other)
-    }
-    return Path(s + "/" + other)
+    // A drive alone (`C:`) takes the segment with no `/`: `C:x`.
+    bare :: base.str_ends_with("/") || base.byte_len() == prefix_length(base, os)
+    separator :: if bare { "" } else { "/" }
+    return without_trailing_separators(base + separator + other, os)
 }
 
 // `path / "child"`: operator sugar for `join`. The `/` mirrors the path
@@ -248,9 +376,9 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 
 // ---- normalization --------------------------------------------------------
 
-/// Collapse `.` and `..` segments. Purely lexical: does NOT touch the
-/// filesystem (no symlink resolution, no existence check). Preserves an
-/// absolute prefix when present.
+/// Collapse `.` and `..` segments and repeated separators. Purely lexical: does
+/// NOT touch the filesystem (no symlink resolution, no existence check). Keeps
+/// the root, which a `..` does not climb past.
 ///
 /// @param self  the path receiver.
 /// @return      a fresh, lexically-normalised `Path`.
@@ -259,63 +387,43 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
 ///   "a/b/..".to_path().normalize()    // "a"
 ///   "/a/../b".to_path().normalize()   // "/b"
 ///   "../foo".to_path().normalize()    // "../foo"
-export normalize :: fn(self: Path) -> Path {
-    s :: string(self)
-    if s.is_empty() {
-        return self
-    }
-    abs :: self.is_absolute()
-    segments: string[]: []
-    count: i64 = 0
+export normalize :: fn(self: Path) -> Path = Path(normalize_on(string(self), current_os()))
+
+normalize_on :: fn(s: string, os: Os) -> string {
     n :: s.byte_len()
-    i: i64 = if abs { 1 } else { 0 }
-    seg_start := i
-    for i <= n {
-        at_end :: i == n
-        at_separator :: !at_end && s.matches_at(i, "/")
-        if at_separator || at_end {
-            seg :: s.byte_slice(seg_start, i)
-            if seg.is_empty() || seg == "." {
-                // skip
-            } else if seg == ".." {
-                can_pop :: count > 0 && segments[count - 1] != ".."
-                if can_pop {
-                    count = count - 1
-                } else if !abs {
-                    if count < segments.len() {
-                        segments[count] = seg
-                    } else {
-                        segments.push(seg)
-                    }
-                    count = count + 1
-                }
-            } else {
-                if count < segments.len() {
-                    segments[count] = seg
-                } else {
-                    segments.push(seg)
-                }
-                count = count + 1
-            }
-            seg_start = i + 1
+    if n == 0 {
+        return s
+    }
+    root :: root_length(s, os)
+    anchored :: is_anchored(s, os)
+    kept: string[]: []
+    start := root
+    for start <= n {
+        end :: next_separator(s, start) ?? n
+        segment :: s.byte_slice(start, end)
+        start = end + 1
+        if segment.is_empty() || segment == "." {
+            continue
         }
-        i = i + 1
-    }
-    sb :: StringBuilder {}
-    if abs {
-        sb.append("/")
-    }
-    for j in 0..<count {
-        if j > 0 {
-            sb.append("/")
+        climbs :: segment == ".." && kept.len() > 0 && kept[kept.len() - 1] != ".."
+        if climbs {
+            kept.remove_last()
+        } else if segment != ".." || !anchored {
+            kept.push(segment)
         }
-        sb.append(segments[j])
     }
-    out :: sb.to_string()
-    if out.is_empty() && !abs {
-        return Path(".")
+    if root == 0 && kept.is_empty() {
+        return "."
     }
-    return Path(out)
+    out :: StringBuilder {}
+    out.append(s.byte_slice(0, root))
+    for i in 0..<kept.len() {
+        if i > 0 {
+            out.append("/")
+        }
+        out.append(kept[i])
+    }
+    return out.to_string()
 }
 
 // ---------------------------------------------------------------------- tests
@@ -333,7 +441,8 @@ import "std/testing"
 }
 
 @test test_is_absolute :: fn() -> void {
-    assert("/usr/bin".to_path().is_absolute(), "/usr/bin is absolute")
+    from_the_root :: if current_os() == .Windows { "C:/usr/bin" } else { "/usr/bin" }
+    assert(from_the_root.to_path().is_absolute(), "a path from the root")
     assert(!"relative/path".to_path().is_absolute(), "relative/path is not absolute")
     assert(!empty_path().is_absolute(), "empty path is not absolute")
 }
@@ -342,12 +451,99 @@ import "std/testing"
     assert_eq("a/b/c".to_path().parent().as_string(), "a/b")
     assert_eq("a".to_path().parent().as_string(), "")
     assert_eq("/usr/bin/cat".to_path().parent().as_string(), "/usr/bin")
+    assert_eq("/usr".to_path().parent().as_string(), "/")
+    assert_eq("/".to_path().parent().as_string(), "/")
 }
 
 @test test_filename :: fn() -> void {
     assert_eq("a/b/c".to_path().filename(), "c")
     assert_eq("file.txt".to_path().filename(), "file.txt")
-    assert_eq("a/b/".to_path().filename(), "")
+    assert_eq("/".to_path().filename(), "")
+}
+
+@test
+test_a_trailing_separator_is_read_past :: fn() -> void {
+    assert_eq("a/b/".to_path().as_string(), "a/b")
+    assert_eq("a//".to_path().as_string(), "a")
+    assert_eq("/".to_path().as_string(), "/")
+    assert_eq(filename_on("a/b/", .Linux), "b")
+    assert_eq(parent_on("a/b/", .Linux), "a")
+}
+
+@test
+test_root :: fn() -> void {
+    assert_eq("/usr/bin".to_path().root().as_string(), "/")
+    assert_eq("src/main".to_path().root().as_string(), "")
+}
+
+@test
+test_root_of_each_os :: fn() -> void {
+    windows :: (s: string) -> s.byte_slice(0, root_length(s, .Windows))
+    assert_eq(windows("C:/x"), "C:/")
+    assert_eq(windows("C:x"), "C:")
+    assert_eq(windows("//host/share/x"), "//host/share/")
+    assert_eq(windows("//host/share"), "//host/share")
+    assert_eq(windows("/x"), "/")
+    assert_eq(windows("x"), "")
+    linux :: (s: string) -> s.byte_slice(0, root_length(s, .Linux))
+    assert_eq(linux("C:/x"), "")
+    assert_eq(linux("//host/share"), "/")
+}
+
+@test
+test_is_absolute_on_each_os :: fn() -> void {
+    assert(is_absolute_on("C:/x", .Windows), "a drive and its root")
+    assert(is_absolute_on("//host/share", .Windows), "a share")
+    assert(!is_absolute_on("/x", .Windows), "a root without its drive")
+    assert(!is_absolute_on("C:x", .Windows), "a drive without its root")
+    assert(is_absolute_on("/x", .Linux), "the POSIX root")
+    assert(!is_absolute_on("C:/x", .Linux), "`C:` is a POSIX file name")
+}
+
+@test
+test_join_on_windows :: fn() -> void {
+    assert_eq(join_on("a", "C:/x", .Windows), "C:/x")
+    assert_eq(join_on("D:/work", "/x", .Windows), "D:/x")
+    assert_eq(join_on("//host/share", "/x", .Windows), "//host/share/x")
+    assert_eq(join_on("C:/a", "D:x", .Windows), "D:x")
+    assert_eq(join_on("C:", "x", .Windows), "C:x")
+    assert_eq(join_on("C:/", "x/", .Windows), "C:/x")
+}
+
+@test
+test_join_on_posix :: fn() -> void {
+    assert_eq(join_on("a", "C:/x", .Linux), "a/C:/x")
+    assert_eq(join_on("a", "/x", .Linux), "/x")
+    assert_eq(join_on("a/", "b/", .Linux), "a/b")
+    assert_eq(join_on("a/", "", .Linux), "a")
+}
+
+@test
+test_normalize_keeps_the_root :: fn() -> void {
+    assert_eq(normalize_on("C:/../x", .Windows), "C:/x")
+    assert_eq(normalize_on("C:/..", .Windows), "C:/")
+    assert_eq(normalize_on("//host/share/a/../..", .Windows), "//host/share/")
+    assert_eq(normalize_on("C:../x", .Windows), "C:../x")
+    assert_eq(normalize_on("//srv/share/x", .Linux), "/srv/share/x")
+    assert_eq(normalize_on("/..", .Linux), "/")
+    assert_eq(normalize_on("C:/../x", .Linux), "x")
+}
+
+@test
+test_parent_and_filename_of_a_drive :: fn() -> void {
+    assert_eq(parent_on("C:/x", .Windows), "C:/")
+    assert_eq(parent_on("C:/", .Windows), "C:/")
+    assert_eq(filename_on("C:/", .Windows), "")
+    assert_eq(filename_on("C:x", .Windows), "x")
+    assert_eq(parent_on("C:/x", .Linux), "C:")
+}
+
+@test
+test_to_posix_on_each_os :: fn() -> void {
+    assert_eq(to_posix_on(r"a\b", .Windows), "a/b")
+    assert_eq(to_posix_on(r"\\?\C:\x", .Windows), "C:/x")
+    assert_eq(to_posix_on(r"\\?\UNC\host\share\x", .Windows), "//host/share/x")
+    assert_eq(to_posix_on(r"a\b", .Linux), r"a\b")
 }
 
 // The three views on a final segment, checked together so they can't drift:

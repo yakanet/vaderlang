@@ -7,11 +7,13 @@
           std.console.println<string>(std.uri.Uri.to_string(Uri(web)))
           std.console.println<string>(concat_4("path ", Uri(web).path, " decoded ", std.uri.decoded_path(Uri(web))))
       }
-      file: Uri = std.uri.to_uri("/tmp/100% sure/été.txt")
-      std.console.println<string>(std.uri.Uri.to_string(file))
-      back: string | UriError = std.uri.to_path(file)
-      if back is string {
-          std.console.println<string>(concat_2("back ", string(back)))
+      file: Uri | UriError = std.uri.parse_uri("file:///tmp/100%25%20sure/%C3%A9t%C3%A9.txt")
+      if file is Uri {
+          std.console.println<string>(std.uri.Uri.to_string(Uri(file)))
+          back: string | UriError = std.uri.to_path(Uri(file))
+          if back is string {
+              std.console.println<string>(concat_2("back ", string(back)))
+          }
       }
       remote: Uri | UriError = std.uri.parse_uri("https://example.com/x")
       if remote is Uri {
@@ -54,8 +56,6 @@
   }
 
 ## lowered in dependencies
-  std/target/baked
-    const VADER_OS: Os  inline
   std/console
     fn std.console.println<string>  // std_console$println__string
     fn std.console.write  // std_console$write
@@ -65,32 +65,18 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
-    fn std.core.codepoint_offset  // std_core$codepoint_offset
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<u8>  // std_core$index_of__u8
-    fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
-    fn std.core.string.at  // std_core$string$Index$at
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/env
-    fn std.env.current_working_directory  // std_env$current_working_directory
-    fn std.env.without_trailing_sep  // std_env$without_trailing_sep
-  std/path
-    fn __lambda_std_path_0
-    fn std.path.join  // std_path$join
-    fn std.path.to_path  // std_path$to_path
-    fn std.path.to_posix  // std_path$to_posix
   std/string
-    fn std.string.ends_with  // std_string$ends_with
     fn std.string.matches_at  // std_string$matches_at
-    fn std.string.replace_chars_where  // std_string$replace_chars_where
     fn std.string.starts_with  // std_string$starts_with
     fn std.string.to_lower  // std_string$to_lower
     fn std.string.to_lower_cp  // std_string$to_lower_cp
@@ -101,19 +87,14 @@
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
   std/uri
-    fn __lambda_std_uri_0
-    fn __lambda_std_uri_1
     fn std.uri.Authority.to_string  // std_uri$Authority$std_core$Display$to_string
     fn std.uri.Uri.to_string  // std_uri$Uri$std_core$Display$to_string
-    fn std.uri.absolute  // std_uri$absolute
     fn std.uri.byte_offset_of  // std_uri$byte_offset_of
     fn std.uri.decoded_path  // std_uri$decoded_path
-    fn std.uri.encoded_path  // std_uri$encoded_path
     fn std.uri.end_of  // std_uri$end_of
     fn std.uri.escape_at  // std_uri$escape_at
     fn std.uri.escapes_a_separator  // std_uri$escapes_a_separator
     fn std.uri.file_path  // std_uri$file_path
-    fn std.uri.file_uri  // std_uri$file_uri
     fn std.uri.has_drive  // std_uri$has_drive
     fn std.uri.hex_value  // std_uri$hex_value
     fn std.uri.is_digit  // std_uri$is_digit
@@ -131,19 +112,14 @@
     fn std.uri.parse_port  // std_uri$parse_port
     fn std.uri.parse_uri  // std_uri$parse_uri
     fn std.uri.percent_decode  // std_uri$percent_decode
-    fn std.uri.percent_encode_where  // std_uri$percent_encode_where
     fn std.uri.push_escape  // std_uri$push_escape
     fn std.uri.push_hex_escape  // std_uri$push_hex_escape
-    fn std.uri.rooted  // std_uri$rooted
     fn std.uri.scheme_length  // std_uri$scheme_length
-    fn std.uri.slashed  // std_uri$slashed
     fn std.uri.to_path  // std_uri$to_path
-    fn std.uri.to_uri  // std_uri$to_uri
     struct std.uri.Authority  // std_uri$Authority
     struct std.uri.Uri  // std_uri$Uri
     struct std.uri.UriError  // std_uri$UriError
   system/posix
-    fn system.posix.up_to_nul  // system_posix$up_to_nul
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize
   system/windows

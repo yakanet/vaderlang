@@ -790,6 +790,7 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/target"
 import "std/testing"
 
 @test
@@ -842,6 +843,10 @@ test_declared_roots_rank_as_a_manifest_does :: fn() -> void {
 
 @test
 test_declared_roots_are_found_whatever_the_separators :: fn() -> void {
+    // Only Windows reads `\` as a separator.
+    if current_os() != .Windows {
+        return
+    }
     register_project_roots(r"C:\no\such\vader_project", ["vendor"])
     assert_eq(manifest_at("C:/no/such/vader_project").include_paths.len(), 1)
 }

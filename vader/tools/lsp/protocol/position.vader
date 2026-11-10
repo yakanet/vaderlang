@@ -232,8 +232,9 @@ test_span_to_range_utf16_astral :: fn() -> void {
 
 @test
 test_canonical_uri_gives_one_spelling_per_file :: fn() -> void {
-    assert_eq(canonical_uri("file:///abs/a%2Ev%61der"), "file:///abs/a.vader")
-    assert_eq(canonical_uri("file:///abs/a%2Bb/x.vader"), "file:///abs/a+b/x.vader")
+    // The server's own spelling: on Windows `/abs` takes the working drive.
+    assert_eq(canonical_uri("file:///abs/a%2Ev%61der"), to_uri("/abs/a.vader").to_string())
+    assert_eq(canonical_uri("file:///abs/a%2Bb/x.vader"), to_uri("/abs/a+b/x.vader").to_string())
     assert_eq(canonical_uri("untitled:Untitled-1"), "untitled:Untitled-1")
 }
 

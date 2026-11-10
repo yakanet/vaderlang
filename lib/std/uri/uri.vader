@@ -457,7 +457,7 @@ export percent_decode :: fn(text: string) -> string {
 /// @param path  a file path, `/`-separated, or `\`-separated too on Windows.
 /// @example
 ///   "${to_uri("/home/me/my notes.txt")}"   // "file:///home/me/my%20notes.txt"
-export to_uri :: fn(path: string) -> Uri = path.file_uri(VADER_OS)
+export to_uri :: fn(path: string) -> Uri = path.file_uri(current_os())
 
 /// The file path `uri` names, `/`-separated: `/home/me/notes.txt`; on Windows
 /// a drive path (`c:/dir/x`) or a UNC one (`//server/share/x`).
@@ -467,7 +467,7 @@ export to_uri :: fn(path: string) -> Uri = path.file_uri(VADER_OS)
 ///             `file`, a query or a fragment, a user or a port, a host on
 ///             another OS than Windows (`localhost` is this machine), or an
 ///             escaped `/` or NUL in the path, which no file name holds.
-export to_path :: fn(uri: Uri) -> string | UriError = uri.file_path(VADER_OS)
+export to_path :: fn(uri: Uri) -> string | UriError = uri.file_path(current_os())
 
 // The URI of `path`, read as the OS `os` writes paths.
 file_uri :: fn(path: string, os: Os) -> Uri {
@@ -496,15 +496,18 @@ encoded_path :: fn(path: string) -> string = path.percent_encode_where(b -> !is_
 // a `\`.
 slashed :: fn(path: string, os: Os) -> string {
     if os == .Windows {
-        return to_posix(path)
+        return path.replace_chars_where((c: char) -> c == '\\', "/")
     }
     return path
 }
 
 // `path` made absolute against the working directory: kept as it is when it
-// starts with `/`, or on Windows with a drive letter.
+// starts with `/`, or on Windows with a drive letter or a share. A Windows path
+// from the root (`/x`) takes the drive of the working directory.
 absolute :: fn(path: string, os: Os) -> string {
-    if path.starts_with("/") || (os == .Windows && path.has_drive()) {
+    absolute_on_windows :: path.has_drive() || path.starts_with("//")
+    kept :: if os == .Windows { absolute_on_windows } else { path.starts_with("/") }
+    if kept {
         return path
     }
     return string(current_working_directory().to_path().join(path))

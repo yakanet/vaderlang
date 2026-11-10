@@ -182,7 +182,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "to_uri"
+                  "name": "parse_uri"
                 },
                 "args": [
                   {
@@ -192,62 +192,13 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "/tmp/100% sure/été.txt"
+                          "value": "file:///tmp/100%25%20sure/%C3%A9t%C3%A9.txt"
                         }
                       ]
                     },
                     "spread": false
                   }
                 ]
-              }
-            },
-            {
-              "kind": "ExprStmt",
-              "expr": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "println"
-                },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "interp",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "file"
-                          }
-                        }
-                      ]
-                    },
-                    "spread": false
-                  }
-                ]
-              }
-            },
-            {
-              "kind": "LetStmt",
-              "mutable": false,
-              "binding": {
-                "kind": "SimpleBinding",
-                "name": "back"
-              },
-              "type": null,
-              "value": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "file"
-                  },
-                  "field": "to_path"
-                },
-                "args": []
               }
             },
             {
@@ -259,44 +210,114 @@
                   "op": "is",
                   "left": {
                     "kind": "IdentExpr",
-                    "name": "back"
+                    "name": "file"
                   },
                   "right": {
                     "kind": "IdentExpr",
-                    "name": "string"
+                    "name": "Uri"
                   }
                 },
                 "then": {
                   "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "text",
-                              "value": "back "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "back"
-                              }
-                            }
-                          ]
+                  "stmts": [
+                    {
+                      "kind": "ExprStmt",
+                      "expr": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "println"
                         },
-                        "spread": false
+                        "args": [
+                          {
+                            "name": null,
+                            "value": {
+                              "kind": "StringLitExpr",
+                              "parts": [
+                                {
+                                  "kind": "interp",
+                                  "expr": {
+                                    "kind": "IdentExpr",
+                                    "name": "file"
+                                  }
+                                }
+                              ]
+                            },
+                            "spread": false
+                          }
+                        ]
                       }
-                    ]
+                    },
+                    {
+                      "kind": "LetStmt",
+                      "mutable": false,
+                      "binding": {
+                        "kind": "SimpleBinding",
+                        "name": "back"
+                      },
+                      "type": null,
+                      "value": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "file"
+                          },
+                          "field": "to_path"
+                        },
+                        "args": []
+                      }
+                    }
+                  ],
+                  "trailing": {
+                    "kind": "IfExpr",
+                    "cond": {
+                      "kind": "BinaryExpr",
+                      "op": "is",
+                      "left": {
+                        "kind": "IdentExpr",
+                        "name": "back"
+                      },
+                      "right": {
+                        "kind": "IdentExpr",
+                        "name": "string"
+                      }
+                    },
+                    "then": {
+                      "kind": "BlockExpr",
+                      "stmts": [],
+                      "trailing": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "println"
+                        },
+                        "args": [
+                          {
+                            "name": null,
+                            "value": {
+                              "kind": "StringLitExpr",
+                              "parts": [
+                                {
+                                  "kind": "text",
+                                  "value": "back "
+                                },
+                                {
+                                  "kind": "interp",
+                                  "expr": {
+                                    "kind": "IdentExpr",
+                                    "name": "back"
+                                  }
+                                }
+                              ]
+                            },
+                            "spread": false
+                          }
+                        ]
+                      }
+                    },
+                    "else": null
                   }
                 },
                 "else": null

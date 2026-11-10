@@ -251,8 +251,14 @@ test("an open document is found again whichever way the client spells its URI", 
   writeFileSync(join(dir, "a.vader"), 'module "demo"\n');
   writeFileSync(join(dir, "b.vader"), "");
   const session = new Session(dir, {});
-  const spelled = (name: string) =>
-    `file://${join(dir, name).split("/").map(encodeURIComponent).join("/")}`;
+  const spelled = (name: string) => {
+    let path = join(dir, name).replace(/\\/g, "/");
+    // A Windows drive path, `C:/...`, takes the `/` a URI path opens with.
+    if (!path.startsWith("/")) {
+      path = `/${path}`;
+    }
+    return `file://${path.split("/").map(encodeURIComponent).join("/")}`;
+  };
   // The sibling's declaration exists only in its unsaved text.
   session.open(spelled("a.vader"), SIBLING);
   const uri = spelled("b.vader");

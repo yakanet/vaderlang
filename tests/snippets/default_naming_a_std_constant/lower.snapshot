@@ -88,7 +88,6 @@
     fn std.env.get_env  // std_env$get_env
     fn std.env.temp_dir  // std_env$temp_dir
     fn std.env.temp_dir_of  // std_env$temp_dir_of
-    fn std.env.without_trailing_sep  // std_env$without_trailing_sep
   std/fs
     const FILE_CLOSED: IOError  data pool #1, element 0
     const NUL_IN_PATH: IOError  data pool #0, element 0
@@ -144,6 +143,17 @@
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
+  std/path
+    fn std.path.as_string  // std_path$as_string
+    fn std.path.is_ascii_letter  // std_path$is_ascii_letter
+    fn std.path.next_separator  // std_path$next_separator
+    fn std.path.prefix_length  // std_path$prefix_length
+    fn std.path.root_length  // std_path$root_length
+    fn std.path.to_path  // std_path$to_path
+    fn std.path.without_trailing_separators  // std_path$without_trailing_separators
+  std/string
+    fn std.string.ends_with  // std_string$ends_with
+    fn std.string.matches_at  // std_string$matches_at
   system/posix
     const EAGAIN: i32  inline
     const ENOTEMPTY: i32  inline

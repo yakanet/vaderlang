@@ -3,19 +3,22 @@ module "snippet"
 import "std/console"
 import "std/uri"
 
-// A URI read and normalised, a file path taken to its URI and back, and a URI
-// that names no local file refused.
+// A URI read and normalised, a file URI taken to its path, and a URI that names
+// no local file refused. A path taken to its URI depends on the OS (a Windows
+// `/tmp` takes the working drive), so the unit tests of `std/uri` hold that one.
 main :: fn() -> i32 {
     web :: parse_uri("HTTPS://Example.com:8443/a%7eb/c%2fd?q=1#top")
     if web is Uri {
         println("${web}")
         println("path ${web.path} decoded ${web.decoded_path()}")
     }
-    file :: to_uri("/tmp/100% sure/été.txt")
-    println("${file}")
-    back :: file.to_path()
-    if back is string {
-        println("back ${back}")
+    file :: parse_uri("file:///tmp/100%25%20sure/%C3%A9t%C3%A9.txt")
+    if file is Uri {
+        println("${file}")
+        back :: file.to_path()
+        if back is string {
+            println("back ${back}")
+        }
     }
     remote :: parse_uri("https://example.com/x")
     if remote is Uri {

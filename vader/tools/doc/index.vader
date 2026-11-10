@@ -468,9 +468,11 @@ import "std/testing"
 
 @test
 test_display_path_under_and_outside_its_base :: fn() -> void {
-    assert_eq(display_path("/repo/lib/std/io/io.vader", "/repo"), "lib/std/io/io.vader")
-    assert_eq(display_path("/repo/./lib/../lib/x.vader", "/repo"), "lib/x.vader")
-    assert_eq(display_path("/other/x.vader", "/repo"), "/other/x.vader")
+    // Normalized as the paths are: on Windows `/repo` takes the working drive.
+    base :: normalized_path("/repo")
+    assert_eq(display_path("/repo/lib/std/io/io.vader", base), "lib/std/io/io.vader")
+    assert_eq(display_path("/repo/./lib/../lib/x.vader", base), "lib/x.vader")
+    assert_eq(display_path("/other/x.vader", base), normalized_path("/other/x.vader"))
 }
 
 @test

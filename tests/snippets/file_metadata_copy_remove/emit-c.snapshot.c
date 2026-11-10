@@ -283,7 +283,6 @@ static void std_console$println__string(vader_string_t l0);
 static vader_string_t std_env$temp_dir(void);
 static vader_string_t std_env$temp_dir_of(vader_box_t l0);
 static vader_box_t std_env$get_env(vader_string_t l0);
-static vader_string_t std_env$without_trailing_sep(vader_string_t l0);
 static vader_box_t std_fs$create_dir(vader_string_t l0);
 static vader_box_t std_fs$write_file(vader_string_t l0, vader_box_t l1);
 static vader_box_t std_fs$metadata(vader_string_t l0, void* l1);
@@ -343,6 +342,16 @@ static uint8_t std_io$errno_kind(int32_t l0);
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1);
 static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0);
 static vader_string_t system_posix$up_to_nul(void* l0);
+static vader_string_t std_path$to_path(vader_string_t l0);
+static vader_string_t std_path$root(vader_string_t l0);
+static vader_string_t std_path$as_string(vader_string_t l0);
+static vader_string_t std_path$without_trailing_separators(vader_string_t l0, uint8_t l1);
+static int64_t std_path$root_length(vader_string_t l0, uint8_t l1);
+static int64_t std_path$prefix_length(vader_string_t l0, uint8_t l1);
+static bool std_path$is_ascii_letter(uint8_t l0);
+static vader_box_t std_path$next_separator(vader_string_t l0, int64_t l1);
+static bool std_string$ends_with(vader_string_t l0, vader_string_t l1);
+static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -670,6 +679,10 @@ static int32_t vader_host_system_libc$sys_rename(vader_string_t a0, vader_string
     vader_cstr_free_for(a0, c0);
     vader_cstr_free_for(a1, c1);
     return r;
+}
+
+static uint8_t vader_host_std_target$current_os(void) {
+    return vader_current_os();
 }
 
 static int32_t snippet$main(void) {
@@ -1028,7 +1041,7 @@ static vader_string_t std_env$temp_dir(void) {
 static vader_string_t std_env$temp_dir_of(vader_box_t l0) {
     vader_string_t l1;
     vader_box_t l2;
-    vader_string_t t0;
+    vader_string_t t0, t1;
     l2 = l0;
     if (l2.tag == 0u) {
         l1 = 0u;
@@ -1036,8 +1049,9 @@ static vader_string_t std_env$temp_dir_of(vader_box_t l0) {
         l1 = l2.payload.s;
     }
     if (!(l1 == 0u)) {
-        t0 = std_env$without_trailing_sep(l1);
-        return t0;
+        t0 = std_path$to_path(l1);
+        t1 = std_path$as_string(t0);
+        return t1;
     }
     return 19u;
 }
@@ -1054,47 +1068,18 @@ static vader_box_t std_env$get_env(vader_string_t l0) {
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_env$without_trailing_sep(vader_string_t l0) {
-    int64_t l1, l2, l3, l4, l5;
-    int64_t t0, t1;
-    uint8_t t2;
-    vader_string_t t3;
-    l1 = INT64_C(0);
-    l2 = INT64_C(0);
-    l3 = vader_host_std_core$byte_len(l0);
-    while ((l2 < l3)) {
-        t0 = vader_host_std_core$byte_len(l0);
-        t1 = vader_chk_sub(i64, t0, INT64_C(1));
-        l4 = vader_chk_sub(i64, t1, l2);
-        if (l4 == INT64_C(0)) break;
-        t2 = vader_host_std_core$byte_at(l0, l4);
-        if (t2 != INT32_C(47)) break;
-        l5 = vader_chk_sub(i64, l4, INT64_C(1));
-        t2 = vader_host_std_core$byte_at(l0, l5);
-        if (t2 == INT32_C(58)) break;
-        l1 = vader_chk_add(i64, l1, INT64_C(1));
-        l2 = (l2 + INT64_C(1));
-    }
-    if (!(l1 == INT64_C(0))) {
-        t0 = vader_host_std_core$byte_len(l0);
-        l1 = vader_chk_sub(i64, t0, l1);
-        t3 = vader_host_std_core$byte_slice(l0, INT64_C(0), l1);
-        return t3;
-    }
-    return l0;
-}
-
 static vader_box_t std_fs$create_dir(vader_string_t l0) {
     int64_t l1, l2, l3;
     int64_t t0;
     void* t1 = NULL;
-    uint8_t t2;
+    vader_string_t t2 = 0;
     vader_string_t t3 = 0;
-    bool t4;
+    uint8_t t4;
+    bool t5;
     void** gc_raw_roots[1] = { &t1 };
-    vader_string_t* gc_atom_roots[2] = { &l0, &t3 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &t2, &t3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     t0 = vader_host_std_core$byte_len(l0);
@@ -1117,32 +1102,26 @@ static vader_box_t std_fs$create_dir(vader_string_t l0) {
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    l1 = INT64_C(1);
+    t2 = std_path$to_path(l0);
+    t3 = std_path$root(t2);
+    t2 = std_path$as_string(t3);
+    l1 = vader_host_std_core$byte_len(t2);
     l2 = vader_host_std_core$byte_len(l0);
     while ((l1 < l2)) {
-        t2 = vader_host_std_core$byte_at(l0, l1);
-        if (t2 != INT32_C(47)) {
+        t4 = vader_host_std_core$byte_at(l0, l1);
+        if (t4 != INT32_C(47)) {
             l1 = (l1 + INT64_C(1));
             continue;
         }
         l3 = vader_chk_sub(i64, l1, INT64_C(1));
-        t2 = vader_host_std_core$byte_at(l0, l3);
-        if (t2 == INT32_C(47)) {
+        t4 = vader_host_std_core$byte_at(l0, l3);
+        if (t4 == INT32_C(47)) {
             l1 = (l1 + INT64_C(1));
             continue;
         }
-        if (INT32_C(1) == INT32_C(0)) {
-            if (l1 == INT64_C(2)) {
-                t2 = vader_host_std_core$byte_at(l0, INT64_C(1));
-                if (t2 == INT32_C(58)) {
-                    l1 = (l1 + INT64_C(1));
-                    continue;
-                }
-            }
-        }
-        t3 = vader_host_std_core$byte_slice(l0, INT64_C(0), l1);
-        t4 = std_fs$mkdir_one(t3);
-        if (!(t4)) {
+        t2 = vader_host_std_core$byte_slice(l0, INT64_C(0), l1);
+        t5 = std_fs$mkdir_one(t2);
+        if (!(t5)) {
             vader_struct_std_io$IOError_t* _a2_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
             vader_obj_header_init(_a2_obj, 12u);
             _a2_obj->f_msg = 22u;
@@ -1153,8 +1132,8 @@ static vader_box_t std_fs$create_dir(vader_string_t l0) {
         }
         l1 = (l1 + INT64_C(1));
     }
-    t4 = std_fs$mkdir_one(l0);
-    if (!(t4)) {
+    t5 = std_fs$mkdir_one(l0);
+    if (!(t5)) {
         vader_struct_std_io$IOError_t* _a3_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
         vader_obj_header_init(_a3_obj, 12u);
         _a3_obj->f_msg = 23u;
@@ -2742,6 +2721,202 @@ static vader_string_t system_posix$up_to_nul(void* l0) {
     t2 = (void*) _a1_arr;
     t3 = vader_host_std_core$bytes_to_string(t2);
     { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t std_path$to_path(vader_string_t l0) {
+    uint8_t l1;
+    bool t0;
+    vader_string_t t1;
+    t0 = std_string$ends_with(l0, 34u);
+    if (!(t0)) {
+        return l0;
+    }
+    l1 = vader_host_std_target$current_os();
+    t1 = std_path$without_trailing_separators(l0, l1);
+    return t1;
+}
+
+static vader_string_t std_path$root(vader_string_t l0) {
+    vader_string_t l1;
+    uint8_t l2;
+    int64_t l3;
+    vader_string_t t0;
+    l1 = l0;
+    l2 = vader_host_std_target$current_os();
+    l3 = std_path$root_length(l1, l2);
+    t0 = vader_host_std_core$byte_slice(l1, INT64_C(0), l3);
+    return t0;
+}
+
+static vader_string_t std_path$as_string(vader_string_t l0) {
+    return l0;
+}
+
+static vader_string_t std_path$without_trailing_separators(vader_string_t l0, uint8_t l1) {
+    int64_t l2, l3, l4;
+    uint8_t t0;
+    vader_string_t t1;
+    l2 = vader_host_std_core$byte_len(l0);
+    if (l2 == INT64_C(0)) {
+        return l0;
+    }
+    l3 = vader_chk_sub(i64, l2, INT64_C(1));
+    t0 = vader_host_std_core$byte_at(l0, l3);
+    if (t0 != INT32_C(47)) {
+        return l0;
+    }
+    l3 = std_path$root_length(l0, l1);
+    while ((l2 > l3)) {
+        l4 = vader_chk_sub(i64, l2, INT64_C(1));
+        t0 = vader_host_std_core$byte_at(l0, l4);
+        if (!(t0 == INT32_C(47))) {
+            break;
+        }
+        l2 = vader_chk_sub(i64, l2, INT64_C(1));
+    }
+    t1 = vader_host_std_core$byte_slice(l0, INT64_C(0), l2);
+    return t1;
+}
+
+static int64_t std_path$root_length(vader_string_t l0, uint8_t l1) {
+    int64_t l2, l3;
+    uint8_t t0;
+    int64_t t1;
+    l2 = std_path$prefix_length(l0, l1);
+    l3 = vader_host_std_core$byte_len(l0);
+    if ((l2 < l3)) {
+        t0 = vader_host_std_core$byte_at(l0, l2);
+        if (t0 == INT32_C(47)) {
+            t1 = vader_chk_add(i64, l2, INT64_C(1));
+            return t1;
+        }
+        return l2;
+    }
+    return l2;
+}
+
+static int64_t std_path$prefix_length(vader_string_t l0, uint8_t l1) {
+    int64_t l2, l4;
+    vader_box_t l3;
+    uint8_t t0;
+    bool t1;
+    int64_t t2;
+    if (l1 != INT32_C(0)) {
+        return INT64_C(0);
+    }
+    l2 = vader_host_std_core$byte_len(l0);
+    if ((l2 >= INT64_C(2))) {
+        t0 = vader_host_std_core$byte_at(l0, INT64_C(0));
+        t1 = std_path$is_ascii_letter(t0);
+        if (t1) {
+            t0 = vader_host_std_core$byte_at(l0, INT64_C(1));
+            if (t0 == INT32_C(58)) {
+                return INT64_C(2);
+            }
+        }
+    }
+    if ((l2 < INT64_C(3))) {
+        return INT64_C(0);
+    }
+    t0 = vader_host_std_core$byte_at(l0, INT64_C(0));
+    if (t0 != INT32_C(47)) {
+        return INT64_C(0);
+    }
+    t0 = vader_host_std_core$byte_at(l0, INT64_C(1));
+    if (t0 != INT32_C(47)) {
+        return INT64_C(0);
+    }
+    t0 = vader_host_std_core$byte_at(l0, INT64_C(2));
+    if (t0 == INT32_C(47)) {
+        return INT64_C(0);
+    }
+    l3 = std_path$next_separator(l0, INT64_C(2));
+    if (l3.tag == 0u) {
+        return l2;
+    }
+    t2 = ((int64_t) l3.payload.i);
+    l4 = vader_chk_add(i64, t2, INT64_C(1));
+    l3 = std_path$next_separator(l0, l4);
+    if (l3.tag == 0u) {
+        return l2;
+    }
+    t2 = ((int64_t) l3.payload.i);
+    return t2;
+}
+
+static bool std_path$is_ascii_letter(uint8_t l0) {
+    bool l1;
+    if ((l0 >= INT32_C(97))) {
+        l1 = (l0 <= INT32_C(122));
+    } else {
+        l1 = false;
+    }
+    if (l1) {
+        return true;
+    }
+    if ((l0 >= INT32_C(65))) {
+        l1 = (l0 <= INT32_C(90));
+    } else {
+        l1 = false;
+    }
+    return l1;
+}
+
+static vader_box_t std_path$next_separator(vader_string_t l0, int64_t l1) {
+    int64_t l2, l3;
+    uint8_t t0;
+    l2 = l1;
+    l3 = vader_host_std_core$byte_len(l0);
+    while ((l2 < l3)) {
+        t0 = vader_host_std_core$byte_at(l0, l2);
+        if (t0 == INT32_C(47)) {
+            return vader_box_i64(4u, l2);
+        }
+        l2 = (l2 + INT64_C(1));
+    }
+    return vader_box_obj(0u, NULL);
+}
+
+static bool std_string$ends_with(vader_string_t l0, vader_string_t l1) {
+    int64_t l2, l3;
+    bool t0;
+    l2 = vader_host_std_core$byte_len(l1);
+    l3 = vader_host_std_core$byte_len(l0);
+    if (!((l2 > l3))) {
+        l2 = vader_host_std_core$byte_len(l0);
+        l3 = vader_host_std_core$byte_len(l1);
+        l2 = vader_chk_sub(i64, l2, l3);
+        t0 = std_string$matches_at(l0, l2, l1);
+        return t0;
+    }
+    return false;
+}
+
+static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t l2) {
+    int64_t l3, l4, l5;
+    uint8_t l6, l7;
+    int64_t t0;
+    l3 = vader_host_std_core$byte_len(l2);
+    l4 = vader_host_std_core$byte_len(l0);
+    if ((l1 > l4)) {
+        return false;
+    }
+    t0 = vader_host_std_core$byte_len(l0);
+    l4 = vader_chk_sub(i64, t0, l1);
+    if ((l3 > l4)) {
+        return false;
+    }
+    l4 = INT64_C(0);
+    while ((l4 < l3)) {
+        l5 = vader_chk_add(i64, l1, l4);
+        l6 = vader_host_std_core$byte_at(l0, l5);
+        l7 = vader_host_std_core$byte_at(l2, l4);
+        if (l6 != l7) {
+            return false;
+        }
+        l4 = (l4 + INT64_C(1));
+    }
+    return true;
 }
 
 int main(int argc, char** argv) {

@@ -14,6 +14,7 @@ import "std/fs"
 import "std/io"
 import "std/iter"
 import "std/math"
+import "std/path"
 import "std/string"
 import "toolchain/ast"
 import "vader/front/resolver"
@@ -139,16 +140,8 @@ place :: fn(ctx: TextCtx, e: IndexEntry, file: string, line: i32, column: i32) -
 
 // The file `file` of the data as the text names it.
 named_from_here :: fn(ctx: TextCtx, file: string) -> string {
-    whole :: if_relative(file, ctx.base)
+    whole :: string(ctx.base.to_path().join(file))
     return display_path(resolved(whole), ctx.here)
-}
-
-// `file` under `base` when it is relative, as it is otherwise.
-if_relative :: fn(file: string, base: string) -> string {
-    if is_absolute_path(file) {
-        return file
-    }
-    return join_path(base, file)
 }
 
 // `path` as the filesystem resolves it, as written when it does not resolve.
