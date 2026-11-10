@@ -25,14 +25,14 @@ import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 import "toolchain/span"
 
+// The canonical primitives paint as `Type`, minus `null` (a keyword, coloured
+// elsewhere) plus `type` (the metatype). Derives from `vader/core/types` so a new
+// primitive is picked up automatically.
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in
 /// expression position (`i32(x)` cast, `i32.MAX` field access, …) we
 /// paint it `Type` instead of the positional `Variable` default. Order
 /// doesn't matter: keep alphabetised for human scanning.
-// The canonical primitives paint as `Type`, minus `null` (a keyword, coloured
-// elsewhere) plus `type` (the metatype). Derives from `vader/core/types` so a new
-// primitive is picked up automatically.
 is_primitive_type_name :: fn(name: string) -> bool =
     (is_scalar_type_name(name) && name != "null") || name == "type"
 

@@ -47,15 +47,15 @@ check_pattern_bound_exprs :: fn(
     }
 }
 
-/// Type-check a `MatchExpr`. `expected` flows into every arm body so
-/// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
-/// arm to i32.
 // The symbol the resolver minted for a `match` header's binding ; null without one.
 header_symbol :: fn(binding: AST.SimpleBinding | null, typed: TypedProgram) -> Symbol | null {
     present :: binding ?? return null
     return typed.resolved.idents[present.name_span.hash()]
 }
 
+/// Type-check a `MatchExpr`. `expected` flows into every arm body so
+/// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
+/// arm to i32.
 infer_match :: fn(
     e: AST.MatchExpr,
     expected: Type | null,

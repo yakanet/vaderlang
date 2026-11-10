@@ -172,10 +172,16 @@ export sign :: fn(x: i64) -> i64 {
 }
 
 /// Clamp `x` to `[lo, hi]`: `min(max(x, lo), hi)`, so `hi` when `lo > hi`.
+///
+/// @param hi  the upper bound, which wins over `lo` when they cross.
 export clamp :: fn<T: Comparable>(x: T, lo: T, hi: T) -> T = min(max(x, lo), hi)
 /// Clamp an `f64` to `[lo, hi]`, NaN when any of the three is.
+///
+/// @param hi  the upper bound, which wins over `lo` when they cross.
 export clamp :: fn(x: f64, lo: f64, hi: f64) -> f64 = min(max(x, lo), hi)
 /// Clamp an `f32` to `[lo, hi]`, NaN when any of the three is.
+///
+/// @param hi  the upper bound, which wins over `lo` when they cross.
 export clamp :: fn(x: f32, lo: f32, hi: f32) -> f32 = min(max(x, lo), hi)
 
 /// Linear interpolation between `a` (`t = 0`) and `b` (`t = 1`). `t` is

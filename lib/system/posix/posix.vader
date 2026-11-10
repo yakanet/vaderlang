@@ -464,6 +464,10 @@ export Winsize :: struct {
 /// direction and the payload size, which differ between the two ioctl schemes.
 export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 
+// `int ioctl(int, unsigned long, ...)`: the third argument is VARIADIC.
+// Unmarked, the interpreter casts to a non-variadic prototype; on darwin-arm64
+// variadic arguments travel on the STACK, so the callee reads an uninitialised
+// word and the kernel writes eight bytes through it while reporting success.
 /// `ioctl(2)` for `TIOCGWINSZ`. 0 on success, -1 otherwise.
 ///
 /// `ioctl` is variadic; `<sys/ioctl.h>` brings the real prototype, so the shim's
@@ -472,10 +476,6 @@ export TIOCGWINSZ: u64: if VADER_OS == .Darwin { 0x4008_7468 } else { 0x5413 }
 /// @param fd       the descriptor to ask about: 1 for stdout.
 /// @param request  always `TIOCGWINSZ` here.
 /// @param ws       receives the size.
-// `int ioctl(int, unsigned long, ...)`: the third argument is VARIADIC.
-// Unmarked, the interpreter casts to a non-variadic prototype; on darwin-arm64
-// variadic arguments travel on the STACK, so the callee reads an uninitialised
-// word and the kernel writes eight bytes through it while reporting success.
 @extern(TERMINAL, "ioctl")
 export sys_ioctl_winsize :: fn(fd: i32, request: u64, @c_variadic @c_out ws: Winsize) -> i32
 
@@ -602,14 +602,14 @@ export O_EXCL: i32: if VADER_OS == .Darwin { 0x800 } else { 0x80 }
 /// See `O_APPEND`. Closes the descriptor in a program `posix_spawn` starts.
 export O_CLOEXEC: i32: if VADER_OS == .Darwin { 0x0100_0000 } else { 0x8_0000 }
 
+// `mode_t` goes through the `...` of `int open(const char *, int, ...)`, where C
+// reads it as an `int`.
 /// `open(2)`. A descriptor, or -1 with `errno` set.
 ///
 /// @param path   the file to open.
 /// @param flags  one access mode, `O_RDONLY` to `O_RDWR`, and the `O_*` flags.
 /// @param mode   permission bits of a file `O_CREAT` creates, masked by the
 ///               process umask.
-// `mode_t` goes through the `...` of `int open(const char *, int, ...)`, where C
-// reads it as an `int`.
 @extern(FILE_SYSTEM, "open")
 export sys_open :: fn(path: string, flags: i32, @c_variadic mode: i32) -> i32
 

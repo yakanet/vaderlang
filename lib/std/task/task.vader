@@ -198,8 +198,9 @@ export join_all :: fn<T>(tasks: Task<T>[]) -> (T | Cancelled)[] {
 /// have run, and is given back.
 ///
 /// @param tasks  the tasks to wait for, each returning a value or an error.
-/// @return       what each returned in the order of `tasks`, or the first
-///               error in the order they ended.
+/// @return       what each returned, in the order of `tasks`.
+/// @error        the first error a task ended with, `Cancelled` included, in the
+///               order they ended.
 export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
     defer cancel_and_wait(tasks)
     group :: watch(tasks)
@@ -341,8 +342,9 @@ Alarm :: struct {
 ///
 /// @param task  a task `launch` returned.
 /// @param d     how long to wait.
-/// @return      what the task returned, `Cancelled` when it was cancelled
-///              before, or a `TimeoutError` when `d` ran out first.
+/// @return      what the task returned, or `Cancelled` when it was cancelled
+///              before.
+/// @error       `TimeoutError` when `d` ran out first.
 /// @example
 ///   # import "std/time"
 ///   slow :: launch(() -> sleep(50.millis()))

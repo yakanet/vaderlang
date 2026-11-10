@@ -150,6 +150,9 @@ export without_escapes :: fn(s: string) -> string {
 /// Wrap `s` in an arbitrary SGR sequence `code` (e.g. "1;31") when coloring is
 /// enabled, else return `s` unchanged. Escape hatch for combinations the named
 /// helpers don't cover; prefer the named helpers for the common cases.
+///
+/// @param code  the SGR parameters, without the `ESC [` before them and the `m`
+///              after them.
 export sgr :: fn(code: string, s: string) -> string = paint(code, s)
 
 // ---- styles ---------------------------------------------------------------

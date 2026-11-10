@@ -228,12 +228,12 @@ erase_each :: fn(types: Type[]) -> Type[] {
 
 // ---- what a type still waits on -------------------------------------------
 
+// @partial: only TypeParam and the composite variants can hold a type-param; every
+// scalar / primitive variant has no inner type.
 /// True if `t` contains at least one `TypeParam`, or an inference variable,
 /// anywhere in its shape : a slot that still waits on a type parameter.
 ///
 /// @param t  the type to scan.
-// @partial: only TypeParam and the composite variants can hold a type-param; every
-// scalar / primitive variant has no inner type.
 export type_contains_type_param :: fn(t: Type) -> bool = @partial match t {
     is TypeParamType | InferVar -> true
     is ArrayType  -> type_contains_type_param(t.element)

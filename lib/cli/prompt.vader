@@ -495,6 +495,7 @@ export select :: fn(question: string, choices: Choice[]) -> i64 | PromptError {
     }
 }
 
+// @partial: only the four movement keys move; every other press leaves `cursor` as is.
 /// Where the cursor goes for a movement key: wrapping at both ends, so a long
 /// list is reachable from either direction.
 ///
@@ -502,7 +503,6 @@ export select :: fn(question: string, choices: Choice[]) -> i64 | PromptError {
 /// @param count   number of options; must be > 0.
 /// @param key     the press to apply; anything that does not move returns
 ///                `cursor` unchanged.
-// @partial: only the four movement keys move; every other press leaves `cursor` as is.
 export moved :: fn(cursor: i64, count: i64, key: Key) -> i64 = @partial match key {
     .Up   -> (cursor + count - 1) % count
     .Down -> (cursor + 1) % count

@@ -312,13 +312,13 @@ stack_class_of :: fn(kind: ValType) -> ValType {
     return .I32
 }
 
+// @partial: only the four integer widths that reach push_eager are guarded ;
+// every other ValType (floats, refs) stays a bare operator.
 /// Runtime guard-helper name for an integer `div` / `mod`, or `null` for a
 /// width the backend leaves as a bare operator (floats: IEEE `inf` / `nan`,
 /// no guard). `push_eager` only ever passes `.Divide` or `.Remainder` here. The name is
 /// `vader_<div|mod>_<width>` ; the helpers live in `runtime/c/vader.h` and
 /// carry trap messages matching the VM's op labels.
-// @partial: only the four integer widths that reach push_eager are guarded ;
-// every other ValType (floats, refs) stays a bare operator.
 div_mod_helper :: fn(op: CBinaryOperator, val: ValType) -> string | null = @partial match val {
     .I32 | .I64 | .U32 | .U64 -> {
         verb :: if op == .Divide { "div" } else { "mod" }

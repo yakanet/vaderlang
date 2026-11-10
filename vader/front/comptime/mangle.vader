@@ -9,16 +9,16 @@ import "std/collections"
 import "vader/core/types"
 import "vader/support/text"
 
+// A distinct (newtype) has no backend identity: it mangles as its backing so
+// every instance name (call site, struct literal, allocation, dispatch) is
+// consistent with the source-stripped instance entries. `strip_distinct`
+// handles nesting (`Map<BlockId>` → `Map<i32>`).
 /// Mangle segment for a single type argument : `sanitise_ident(qualified_
 /// display_type(t))`. Shared by the lowerer's fn-instance /
 /// struct-instance suffixes so erased args render `Any`, nested generics
 /// survive (`Box<Box<i32>>` → `snippet_Box_snippet_Box_i32__`), and two
 /// same-named types of different modules name two instances. A bare
 /// type-name fallback collapses `Any`/nested args and breaks dedup parity.
-// A distinct (newtype) has no backend identity: it mangles as its backing so
-// every instance name (call site, struct literal, allocation, dispatch) is
-// consistent with the source-stripped instance entries. `strip_distinct`
-// handles nesting (`Map<BlockId>` → `Map<i32>`).
 export mangle_type_arg :: fn(t: Type) -> string =
     sanitise_ident(qualified_display_type(strip_distinct(t)))
 

@@ -105,7 +105,8 @@ export finish_buffer :: fn(self: Buffer, len: i64) -> string = self.intern_strin
 /// the interned atom, no read-only `u8[]` view materialised: how code reads a
 /// string's bytes, the peer of `byte_len` for the `[i]` case.
 ///
-/// @error traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
+/// @param i  a byte offset, not a codepoint index.
+/// @error    traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
 @intrinsic export byte_at :: fn(s: string, i: i64) -> u8
 
 /// The bytes of `s` from offset `start` up to `end`, excluded, as a string: an

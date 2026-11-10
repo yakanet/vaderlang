@@ -18,6 +18,8 @@ import "std/abort"
 abs_f64 :: fn(x: f64) = if x < 0.0 { -x } else { x }
 
 /// Plain boolean assertion. `assert(false, "...")` traps with `msg`.
+///
+/// @param msg  the only thing the failure prints: it names the case.
 export assert :: fn(cond: bool, msg: string) -> void {
     if !cond {
         panic(msg)
@@ -31,6 +33,8 @@ export fail :: fn(msg: string) -> void {
 }
 
 /// Assert `actual == expected`. Failure message includes both values.
+///
+/// @param expected  the value `actual` must equal; the failure prints it first.
 export assert_eq :: fn<T: Display & Equals>(actual: T, expected: T) -> void {
     if actual != expected {
         panic("assert_eq failed: expected ${expected}, got ${actual}")
@@ -73,6 +77,8 @@ export assert_gte :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
 }
 
 /// Assert `|actual - expected| <= eps`. Float-friendly equality.
+///
+/// @param eps  the largest difference accepted, itself included.
 export assert_close :: fn(actual: f64, expected: f64, eps: f64) -> void {
     if abs_f64(actual - expected) > eps {
         panic("assert_close failed: ${actual} not within ${eps} of ${expected}")
