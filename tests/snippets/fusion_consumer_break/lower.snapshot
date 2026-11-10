@@ -183,7 +183,7 @@
           f: fn(i32) -> i32[] = counted
           n: i64 = 1
           $exit$i69: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i69
               }
               i: i64 = 0
@@ -609,7 +609,7 @@
                               __fuse_arr_2: i32[] = [7, 8, 9] :i32[]
                               n: i64 = 2
                               $exit$i192: {
-                                  if n == i64(0) {
+                                  if n <= i64(0) {
                                       break $exit$i192
                                   }
                                   i: i64 = 0

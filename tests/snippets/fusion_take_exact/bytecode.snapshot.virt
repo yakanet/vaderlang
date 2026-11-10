@@ -86,7 +86,7 @@ fn 0 snippet$counting (i64) -> void
   local.get 0   ; arg 0
   local.tee 5   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -252,7 +252,7 @@ fn 2 snippet$through_flat_map () -> void
   i64.const 4
   local.tee 2   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -424,7 +424,7 @@ fn 4 snippet$from_a_generator () -> void
   i64.const 2
   local.tee 0   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -1905,7 +1905,7 @@ fn 24 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> any
                                     local.field 0 21 1   ; arg 0 std_iter$__gen_state_std_iter_1.s1
                                     ref.cast 1   ; i64
                                     i64.const 0
-                                    i64.eq
+                                    i64.le
                                     if $L23 void
                                       local.get 0   ; arg 0
                                       i32.const 18

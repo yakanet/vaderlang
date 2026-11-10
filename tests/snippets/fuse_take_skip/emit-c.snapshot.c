@@ -96,7 +96,7 @@ static int32_t snippet$main(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a0_arr;
     l1 = INT64_C(3);
-    if (!(l1 == INT64_C(0))) {
+    if (!((l1 <= INT64_C(0)))) {
         l2 = INT64_C(0);
         l3 = ((vader_array_t*) l0)->length;
         l4 = INT64_C(0);
@@ -153,7 +153,7 @@ static int32_t snippet$main(void) {
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a4_arr;
     l1 = INT64_C(2);
-    if (l1 == INT64_C(0)) {
+    if ((l1 <= INT64_C(0))) {
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     }
     l2 = INT64_C(0);

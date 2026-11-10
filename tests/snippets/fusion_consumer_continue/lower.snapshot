@@ -63,7 +63,7 @@
           __fuse_arr_0: i32[] = [1, 2, 3, 4] :i32[]
           n: i64 = 2
           $exit$i39: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i39
               }
               i: i64 = 0
@@ -278,7 +278,7 @@
           __fuse_arr_3: i32[] = [1, 2, 3, 4] :i32[]
           n: i64 = 2
           $exit$i73: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i73
               }
               i: i64 = 0
@@ -416,7 +416,7 @@
           __fuse_arr_2: i32[] = [1, 2, 3, 4, 5, 6] :i32[]
           n: i64 = 3
           $exit$i111: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i111
               }
               i: i64 = 0

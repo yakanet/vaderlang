@@ -218,7 +218,7 @@
           __fuse_arr_2: i32[] = [1, 2, 3, 4, 5] :i32[]
           n: i64 = 3
           $exit$i85: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i85
               }
               i: i64 = 0

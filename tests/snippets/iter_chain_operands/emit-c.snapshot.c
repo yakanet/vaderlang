@@ -519,7 +519,7 @@ static int32_t snippet$main(void) {
     l2 = snippet$source(7u, l0);
     l8 = snippet$limit(INT64_C(2));
     l9 = INT64_C(0);
-    if (!(l8 == INT64_C(0))) {
+    if (!((l8 <= INT64_C(0)))) {
         l12 = INT64_C(0);
         l13 = ((vader_array_t*) l2)->length;
         l14 = INT64_C(0);

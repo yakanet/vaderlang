@@ -41,7 +41,7 @@ fn 0 snippet$main () -> i32
   i64.const 3
   local.tee 1   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -172,7 +172,7 @@ fn 0 snippet$main () -> i32
   i64.const 2
   local.tee 1   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L7 void
     return.lit i32.const 0
   end $L7

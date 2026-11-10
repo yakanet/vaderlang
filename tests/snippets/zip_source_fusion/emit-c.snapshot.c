@@ -359,7 +359,7 @@ static int32_t snippet$main(void) {
     l5 = INT64_C(2);
     vader_array_t* _a10_arr = vader_array_new(5u, 0u, 7u, 2u);
     l4 = (void*) _a10_arr;
-    if (!(l5 == INT64_C(0))) {
+    if (!((l5 <= INT64_C(0)))) {
         l6 = INT64_C(0);
         l13 = ((vader_array_t*) l2)->length;
         l14 = ((vader_array_t*) l3)->length;

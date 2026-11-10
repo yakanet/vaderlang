@@ -409,7 +409,7 @@
           out: i32[] = [] :i32[]
           {
               $exit$i59: {
-                  if n == i64(0) {
+                  if n <= i64(0) {
                       break $exit$i59
                   }
                   i: i64 = 0

@@ -646,7 +646,7 @@ fn 7 snippet$continue_over_take () -> void
   i64.const 3
   local.tee 2   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -2687,7 +2687,7 @@ fn 26 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> any
                                     local.field 0 19 1   ; arg 0 std_iter$__gen_state_std_iter_1.s1
                                     ref.cast 12   ; i64
                                     i64.const 0
-                                    i64.eq
+                                    i64.le
                                     if $L23 void
                                       local.get 0   ; arg 0
                                       i32.const 18

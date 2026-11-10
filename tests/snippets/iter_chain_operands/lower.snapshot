@@ -202,7 +202,7 @@
               total: i64 = 0
               {
                   $exit$i98: {
-                      if n == i64(0) {
+                      if n <= i64(0) {
                           break $exit$i98
                       }
                       i: i64 = 0

@@ -135,12 +135,12 @@
           total: i64 = 0
           {
               $exit$i69: {
-                  if n == i64(0) {
+                  if n <= i64(0) {
                       break $exit$i69
                   }
                   i: i64 = 0
                   $exit$i64: {
-                      if n == i64(0) {
+                      if n <= i64(0) {
                           break $exit$i64
                       }
                       i: i64 = 0
@@ -420,7 +420,7 @@
           __fuse_arr_5: i32[] = [1, 2, 3] :i32[]
           n: i64 = 2
           $exit$i162: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i162
               }
               i: i64 = 0
@@ -433,7 +433,7 @@
                       __fuse_arr_2: i32[] = [4, 5, 6] :i32[]
                       n: i64 = 1
                       $exit$i167: {
-                          if n == i64(0) {
+                          if n <= i64(0) {
                               break $exit$i167
                           }
                           i: i64 = 0

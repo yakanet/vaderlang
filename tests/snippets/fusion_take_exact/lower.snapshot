@@ -9,7 +9,7 @@
           f: fn(i32) -> i32 = counted
           n: i64 = n
           $exit$i12: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i12
               }
               i: i64 = 0
@@ -64,7 +64,7 @@
           f: fn(i32) -> i32[] = snippet.spread
           n: i64 = 4
           $exit$i29: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i29
               }
               i: i64 = 0
@@ -137,7 +137,7 @@
           n: i32 = 5
           n: i64 = 2
           $exit$i70: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i70
               }
               i: i64 = 0

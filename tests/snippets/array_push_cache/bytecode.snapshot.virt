@@ -1308,7 +1308,7 @@ fn 24 snippet$taken (ref) -> ref
   local.set 3   ; out
   local.get 2   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
     local.get 3   ; out
     return

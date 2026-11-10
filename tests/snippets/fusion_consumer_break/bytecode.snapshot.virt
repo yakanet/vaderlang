@@ -580,7 +580,7 @@ fn 6 snippet$flat_map_take_calls () -> void
   i64.const 1
   local.tee 4   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -1565,7 +1565,7 @@ fn 15 snippet$nested_break_outer () -> void
             i64.const 2
             local.tee 9   ; n
             i64.const 0
-            i64.eq
+            i64.le
             if $L5 void
             else
               i64.const 0
@@ -3788,7 +3788,7 @@ fn 39 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> any
                                     local.field 0 24 1   ; arg 0 std_iter$__gen_state_std_iter_2.s1
                                     ref.cast 14   ; i64
                                     i64.const 0
-                                    i64.eq
+                                    i64.le
                                     if $L23 void
                                       local.get 0   ; arg 0
                                       i32.const 18

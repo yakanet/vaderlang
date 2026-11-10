@@ -1107,7 +1107,7 @@ static void* snippet$taken(void* l0) {
     l2 = INT64_C(3);
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l3 = (void*) _a0_arr;
-    if (l2 == INT64_C(0)) {
+    if ((l2 <= INT64_C(0))) {
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l4 = INT64_C(0);

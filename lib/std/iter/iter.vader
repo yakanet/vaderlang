@@ -357,9 +357,9 @@ export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends:
-/// pulling exactly `n` items from `self`, none for `take(0)`.
+/// pulling exactly `n` items from `self`, none for an `n` of 0 or less.
 export take :: fn<T>(self: Iterator<T>, n: i64) -> Iterator<T> {
-    if n == 0 {
+    if n <= 0 {
         return
     }
     i: i64 = 0
@@ -792,6 +792,14 @@ take_pulls_lazy :: fn(n: i64) -> i32 {
 
 @test test_take_zero_pulls_nothing_lazy :: fn() -> void {
     assert_eq(take_pulls_lazy(0), 0)
+}
+
+@test test_take_negative_pulls_nothing_fused :: fn() -> void {
+    assert_eq(take_pulls_fused(-1), 0)
+}
+
+@test test_take_negative_pulls_nothing_lazy :: fn() -> void {
+    assert_eq(take_pulls_lazy(-1), 0)
 }
 
 @test

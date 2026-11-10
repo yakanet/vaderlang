@@ -624,7 +624,7 @@ static void snippet$continue_over_take(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
     l1 = (void*) _a0_arr;
     l2 = INT64_C(3);
-    if (!(l2 == INT64_C(0))) {
+    if (!((l2 <= INT64_C(0)))) {
         l3 = INT64_C(0);
         l4 = ((vader_array_t*) l1)->length;
         l5 = INT64_C(0);
@@ -1729,7 +1729,7 @@ static vader_box_t std_iter$__gen_state_std_iter_1$Iterator$next(void* l0) {
                                                                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                                                                         }
                                                                         t1 = ((vader_struct_std_iter$__gen_state_std_iter_1_t*) l0)->f_s1;
-                                                                        if (t1 == INT64_C(0)) {
+                                                                        if ((t1 <= INT64_C(0))) {
                                                                             ((vader_struct_std_iter$__gen_state_std_iter_1_t*) l0)->f_state = INT32_C(18);
                                                                         } else {
                                                                             ((vader_struct_std_iter$__gen_state_std_iter_1_t*) l0)->f_state = INT32_C(16);

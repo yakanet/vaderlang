@@ -436,14 +436,14 @@ fn 8 snippet$take_take () -> void
   local.set 3   ; total
   local.get 2   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
     local.set 4   ; i
     local.get 0   ; fused
     i64.const 0
-    i64.eq
+    i64.le
     if $L1 void
     else
       i64.const 0
@@ -1143,7 +1143,7 @@ fn 13 snippet$nested_take () -> void
   i64.const 2
   local.tee 2   ; n
   i64.const 0
-  i64.eq
+  i64.le
   if $L0 void
   else
     i64.const 0
@@ -1171,7 +1171,7 @@ fn 13 snippet$nested_take () -> void
           i64.const 1
           local.tee 7   ; n
           i64.const 0
-          i64.eq
+          i64.le
           if $L4 void
           else
             i64.const 0
@@ -4239,7 +4239,7 @@ fn 49 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> any
                                     local.field 0 28 1   ; arg 0 std_iter$__gen_state_std_iter_2.s1
                                     ref.cast 13   ; i64
                                     i64.const 0
-                                    i64.eq
+                                    i64.le
                                     if $L23 void
                                       local.get 0   ; arg 0
                                       i32.const 18

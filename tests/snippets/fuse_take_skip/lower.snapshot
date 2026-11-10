@@ -6,7 +6,7 @@
           __fuse_arr_2: i32[] = [10, 20, 30, 40, 50] :i32[]
           n: i64 = 3
           $exit$i5: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i5
               }
               i: i64 = 0
@@ -59,7 +59,7 @@
           n: i64 = 1
           n: i64 = 2
           $exit$i30: {
-              if n == i64(0) {
+              if n <= i64(0) {
                   break $exit$i30
               }
               i: i64 = 0

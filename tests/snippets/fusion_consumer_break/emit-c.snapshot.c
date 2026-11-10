@@ -667,7 +667,7 @@ static void snippet$flat_map_take_calls(void) {
     l2 = (void*) _a3_arr;
     l3 = l1;
     l4 = INT64_C(1);
-    if (!(l4 == INT64_C(0))) {
+    if (!((l4 <= INT64_C(0)))) {
         l5 = INT64_C(0);
         l6 = ((vader_array_t*) l2)->length;
         l7 = INT64_C(0);
@@ -1210,7 +1210,7 @@ static void snippet$nested_break_outer(void) {
                 ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(7);
                 l8 = (void*) _a3_arr;
                 l9 = INT64_C(2);
-                if (!(l9 == INT64_C(0))) {
+                if (!((l9 <= INT64_C(0)))) {
                     l10 = INT64_C(0);
                     l11 = ((vader_array_t*) l8)->length;
                     l12 = INT64_C(0);
@@ -2458,7 +2458,7 @@ static vader_box_t std_iter$__gen_state_std_iter_2$Iterator$next(void* l0) {
                                                                             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                                                                         }
                                                                         t1 = ((vader_struct_std_iter$__gen_state_std_iter_2_t*) l0)->f_s1;
-                                                                        if (t1 == INT64_C(0)) {
+                                                                        if ((t1 <= INT64_C(0))) {
                                                                             ((vader_struct_std_iter$__gen_state_std_iter_2_t*) l0)->f_state = INT32_C(18);
                                                                         } else {
                                                                             ((vader_struct_std_iter$__gen_state_std_iter_2_t*) l0)->f_state = INT32_C(16);

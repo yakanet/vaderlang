@@ -552,7 +552,7 @@ fn 5 snippet$main () -> i32
   local.set 9   ; __fuse_i_1
   local.get 8   ; __fuse_len_0
   i64.const 0
-  i64.eq
+  i64.le
   if $L20 void
   else
     i64.const 0
