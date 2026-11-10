@@ -5,7 +5,7 @@
 // merged into one brace block with their entries de-duplicated and sorted.
 //
 //   import "vader/geometry" { Span as S }         import "std/string" { join as _, split as cut }
-//   import "std/string" { split as cut }      →
+//   import "std/string" { split as cut }      ->
 //   import "std/string" { join as _ }             import "vader/geometry" { Span as S }
 //
 // Conservative by design (lossy = refuse, like the rewrite actions). The action
@@ -238,8 +238,8 @@ test_organize_sorts_alphabetically :: fn() -> void {
         assert(false, "expected an edit")
         return
     }
-    // One list, alphabetical, no blank line: `std/…` < `vader/…` here by path, not
-    // by origin, which is the point. A `json` or `toolchain/…` import sorts among
+    // One list, alphabetical, no blank line: `std/...` < `vader/...` here by path, not
+    // by origin, which is the point. A `json` or `toolchain/...` import sorts among
     // them rather than into a nameless "other" bucket.
     expected :: "import \"std/string\" { split as cut }\nimport \"vader/geometry\" { Span as S }"
     assert(r.new_text == expected, "sorts by path with no group break: got [${r.new_text}]")

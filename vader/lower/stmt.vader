@@ -208,13 +208,13 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             // annotation, OR an unused let with zero body use-sites).
             // Mint without bumping `ctx.uniq` so the synth doesn't
             // drift later `fresh_synthetic_symbol("sb")` / `("try")` /
-            // … naming.
+            // ... naming.
             symbol :: match symbol_or_null {
                 is Symbol -> symbol_or_null
                 is null -> synth_unused_local(ctx, simple.name)
             }
             binding_type :: ctx.types.local_type(simple)
-            // `let t: type = …` is an in-fn type alias: no runtime
+            // `let t: type = ...` is an in-fn type alias: no runtime
             // slot, the typer pre-resolved the type. Skip emit.
             if binding_type is TypeMetaType { return }
             if binding_type is FnType && is_fn_alias(ctx, simple.name_span) {
@@ -278,7 +278,7 @@ synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
 /// Local + param symbols don't live in `resolved.symbols` (that's the top-level
 /// table) ; they surface through `resolved.idents`, the use-site map. Rather than
 /// scan it per lookup, this goes through the per-module
-/// `defined-span → Symbol` index (`ensure_local_symbol_index`) : the first call
+/// `defined-span -> Symbol` index (`ensure_local_symbol_index`) : the first call
 /// for a module pays the build, every later one is a single probe.
 ///
 /// @param project_ctx  carries the per-module index cache.
@@ -297,7 +297,7 @@ lookup_local_symbol :: fn(
 // Build (or fetch) the per-module `defined_span_key -> Symbol` index.
 // The first call for a given module pays the O(symbols + idents) build
 // cost ; every subsequent lookup is constant-time. The resolver's
-// `idents` map is the use-site → Symbol view ; combined with the
+// `idents` map is the use-site -> Symbol view ; combined with the
 // flat `symbols` array (for zero-use bindings) it covers exactly
 // the two passes of the previous naive walk.
 ensure_local_symbol_index :: fn(
@@ -380,7 +380,7 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     if s is LoweredReturn   { return true }
     if s is LoweredBreak    { return true }
     if s is LoweredContinue { return true }
-    // `wrap_stmts(span, [… pop_exec, return])` produces a
+    // `wrap_stmts(span, [... pop_exec, return])` produces a
     // `LoweredExprStmt { expr = LoweredBlock { stmts, trailing = null } }`
     // whose inner block's last stmt is the actual return / break /
     // continue. Peek through one level so the enclosing block's

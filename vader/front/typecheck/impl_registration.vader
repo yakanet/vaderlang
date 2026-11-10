@@ -180,7 +180,7 @@ record_impl_members :: fn(
 }
 
 // An impl's own type parameters, as the parameters of the struct it is written
-// for : `Box<U> implements<U> …` gives `U ↦ T` for `Box :: struct<T>`. Empty for any
+// for : `Box<U> implements<U> ...` gives `U ↦ T` for `Box :: struct<T>`. Empty for any
 // other receiver ; an impl written for one instance binds none.
 impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> Map<i32, Type> {
     bindings :: Map<i32, Type> {}

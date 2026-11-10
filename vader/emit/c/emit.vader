@@ -1,4 +1,4 @@
-// vader/emit/c/emit: BytecodeModule → C source.
+// vader/emit/c/emit: BytecodeModule -> C source.
 //
 // The pipeline driver (`emit_c`) + the section emitters : type decls,
 // forward decls, fn-sig typedefs, fn-value trampolines, the type-info
@@ -40,14 +40,14 @@ import "vader/emit/c/ast"
 /// `export main N`). A multi-module program (the compiler imports
 /// `vader/tools/lsp`, which has its OWN `main`) has several fns all flagged
 /// `is_main`, and the entry one isn't necessarily first in the fn table, so
-/// the `main()` shim resolves it by name. Empty → fall back to the first
+/// the `main()` shim resolves it by name. Empty -> fall back to the first
 /// `is_main` fn (single-main programs).
 ///
 /// `split` emits the module with EXTERNAL linkage (drops the `static`
 /// storage class on every function / data global) plus forward decls for the
 /// address-taken fn-value closures. It prepares the source for a multi-file
-/// split (one program → header + globals + N function TUs, compiled in
-/// parallel). Off by default → the monolithic single-TU output (with `static`
+/// split (one program -> header + globals + N function TUs, compiled in
+/// parallel). Off by default -> the monolithic single-TU output (with `static`
 /// everywhere) that CI / release builds ship, unchanged.
 export CEmitOptions :: struct {
     entry_mangled: string
@@ -79,8 +79,8 @@ export EmitCtx :: struct {
     /// Indexed by type slot. Computed by `new_ctx`.
     struct_c_names: string[]
     /// Runtime atom id per string-literal pool index (parallel to
-    /// `module.strings`). Empty string → 0 (VADER_ATOM_EMPTY) ; every
-    /// other literal → a contiguous id `1..M`. `string.const` inlines
+    /// `module.strings`). Empty string -> 0 (VADER_ATOM_EMPTY) ; every
+    /// other literal -> a contiguous id `1..M`. `string.const` inlines
     /// the id at its use site. Computed by `new_ctx`.
     atom_ids: i32[]
     /// The literals the emitted table holds, in id order (id k is at index
@@ -520,9 +520,9 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     }
     items: CTopLevel[]: []
     // The `BcDataEntry` carries no array type_id (the op does) ; recover it by
-    // scanning the module's `data.const` ops once, pool_index → type_id.
+    // scanning the module's `data.const` ops once, pool_index -> type_id.
     type_ids :: data_pool_type_ids(ctx.module)
-    // The value→atom map scans the whole module string table ; only string
+    // The value->atom map scans the whole module string table ; only string
     // arrays need it, so skip the build when the pool is all primitive.
     atom_of :: if has_str_data(ctx.module.data_pool) { build_string_atom_map(ctx) } else { Map<string, i32> {} }
     for i in 0..<ctx.module.data_pool.len() {
@@ -957,7 +957,7 @@ emit_str_data_entry :: fn(
     push_pool_array(items, array, "vader_box_t", .Boxed, slots)
 }
 
-// Value → comptime atom id, parallel to `module.strings` / `atom_ids`. Every
+// Value -> comptime atom id, parallel to `module.strings` / `atom_ids`. Every
 // data-pool string is interned into `module.strings` by `emit/bytecode`, so each
 // element resolves here ; `atom_for` defaults a stray miss to the empty atom.
 build_string_atom_map :: fn(ctx: EmitCtx) -> Map<string, i32> {
@@ -986,7 +986,7 @@ atom_for :: fn(atom_of: Map<string, i32>, value: string) -> i32 {
 // kinds store the raw bit pattern verbatim (`(cty) UINT64_C(bits)`). Float kinds
 // must NOT numerically convert the bits: they reinterpret via `from_bits` and
 // re-render the value as a C float literal (`float_lit`), so `2.5` lands as the
-// double `2.5`, not the integer `0x4004…` cast to double.
+// double `2.5`, not the integer `0x4004...` cast to double.
 data_slot :: fn(kind: ArrayKind, bits: u64) -> CExpression {
     type :: c_type_for_array_kind(kind)
     if kind == .F64 { return cast(type, verbatim(float_lit(bits.from_bits()))) }
@@ -1262,7 +1262,7 @@ single_reference_row :: fn(
     ],
 )
 
-// `[index] = { members… }`: one row of the type-info table.
+// `[index] = { members... }`: one row of the type-info table.
 info_row :: fn(index: i64, members: CExpression[]) -> CExpression = designated(
     "[${index}]",
     initializer_list(members),
@@ -1303,12 +1303,12 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
         ftype :: ctx.module.types[f.type_index]
         offset :: "offsetof(${cname}, ${field_c_name(f.name)})"
         // The offset bucket MUST match the field's C type so the GC scans it
-        // with the right reader: a raw `void*` (`.Ref`) via `ref_offsets` →
-        // `vader_gc_scan_raw`, a `vader_box_t` (`.Any`) via `ptr_offsets` →
+        // with the right reader: a raw `void*` (`.Ref`) via `ref_offsets` ->
+        // `vader_gc_scan_raw`, a `vader_box_t` (`.Any`) via `ptr_offsets` ->
         // `vader_gc_scan_box`. Derive the bucket from `val_type_of_bc_type` (the
         // same predicate `c_type_for` uses) so the two can't drift: misfiling a
         // raw `void*` under `ptr_offsets` makes the collector read the pointer as
-        // a 16 B box, forwarding garbage / never updating the field → a stale ref
+        // a 16 B box, forwarding garbage / never updating the field -> a stale ref
         // after a move (the `Map` ekeys UAF). Only `string` primitives take
         // a `str_offsets` tracking slot ; other primitives carry no heap ref.
         if ftype is BcScalar {
@@ -1348,7 +1348,7 @@ struct_info_row :: fn(
     return info_row(type_index, members)
 }
 
-// `.<prefix>_offsets = (const uint16_t[]){ offsets… }, .<prefix>_count = N`,
+// `.<prefix>_offsets = (const uint16_t[]){ offsets... }, .<prefix>_count = N`,
 // nothing when `offsets` is empty. The list is a compound literal : static
 // storage, used by this row alone, so it needs no name.
 push_offset_list :: fn(members: CExpression[], prefix: string, offsets: string[]) -> void {
@@ -1372,7 +1372,7 @@ push_offset_list :: fn(members: CExpression[], prefix: string, offsets: string[]
 // `emit_vtable_dispatchers`) live in `dispatch.vader` (same module):
 // trait-method dispatch is its own responsibility.
 
-/// `int main(...)` shim. No `is_main` fn → the `return 0;` stub. Otherwise
+/// `int main(...)` shim. No `is_main` fn -> the `return 0;` stub. Otherwise
 /// a signature-aware entry : `vader_atom`/`vader_gc` init, optional
 /// `[string]` argv construction, and the call to the user `main`, whose exit
 /// code `vader_scheduler_exit` returns once the threads still running are
@@ -1446,7 +1446,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
                 unsigned(i64(string_tag)),
             ],
         )
-        // The entry's `argv: [string]` param is a concrete array → a raw `void*`
+        // The entry's `argv: [string]` param is a concrete array -> a raw `void*`
         // (`.Ref`) ; pass the array pointer directly. (`.Any` would box.)
         if function.signature.params[0] == .Ref {
             body.push(declaration("void*", "__args", cast("void*", argv)))

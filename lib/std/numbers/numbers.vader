@@ -211,7 +211,7 @@ export to_fixed :: fn(self: f64, decimals: i64) -> string =
 export strip_numeric_text :: fn(text: string, base: i32) -> string {
     start: i64: if base == 10 { 0 } else { 2 }
     body :: text.byte_slice(start, text.byte_len())
-    // Fast path : no `_` to filter → return the slice directly.
+    // Fast path : no `_` to filter -> return the slice directly.
     if !body.contains("_") { return body }
     return body.replace_chars_where((c: char) -> c == '_', "")
 }

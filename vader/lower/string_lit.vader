@@ -151,7 +151,7 @@ merge_into_literal_tail :: fn(out: LoweredExpr[], lit: LoweredStringLit) -> bool
 // ICE for the (provably-dead) std/core buffer-API resolution guards: std/core
 // is the force-loaded prelude, so these never fire. A resolution miss here is a
 // broken toolchain, not a user error, so we PANIC (fail loud) rather than emit a
-// degraded `stub` that would silently miscompile every `${…}` / `+`.
+// degraded `stub` that would silently miscompile every `${...}` / `+`.
 unreachable_buffer :: fn(why: string) -> LoweredExpr =
     unreachable("lower_string_lit: ${why} (std/core must be force-loaded)")
 
@@ -198,11 +198,11 @@ classify_kind :: fn(t: Type) -> WriterKind {
     return .Display
 }
 
-// Interpolation → ONE exact-sized byte buffer when some part is a directly
+// Interpolation -> ONE exact-sized byte buffer when some part is a directly
 // writable primitive (int / uint / bool) : those write their digits straight in,
 // skipping the throwaway interned string the old `value.to_string()` minted per
-// `${int}`. The buffer is sized up front, verbatim text bytes + bounds (≤ 20 per
-// int, ≤ 5 per bool) + the runtime `byte_len` of string / `${Display}` parts, so
+// `${int}`. The buffer is sized up front, verbatim text bytes + bounds (<= 20 per
+// int, <= 5 per bool) + the runtime `byte_len` of string / `${Display}` parts, so
 // it never grows ; `off` threads through the offset-returning `write_*`
 // primitives, interned once. A purely text + `${string}` / `${Display}`
 // interpolation has no digit to format, so it stays on the leaner all-string

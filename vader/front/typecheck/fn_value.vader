@@ -46,7 +46,7 @@ instantiate_fn_value :: fn(
     return instance_in_slot(expr, decl, got, [], expected, typed, diags)
 }
 
-/// Type `f<T1, …>` naming a generic function : the written arguments fix its first
+/// Type `f<T1, ...>` naming a generic function : the written arguments fix its first
 /// parameters, the slot binds the rest.
 ///
 /// @param e         the written instance.

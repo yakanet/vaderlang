@@ -46,7 +46,7 @@ export sanitise_ident :: fn(raw: string) -> string {
 /// Used by the lexer dump.
 ///
 /// @param s  the raw string to quote.
-/// @return   `s` wrapped in `"…"` with the five C/JSON escapes applied.
+/// @return   `s` wrapped in `"..."` with the five C/JSON escapes applied.
 export quote_simple :: fn(s: string) -> string {
     sb :: StringBuilder {}
     sb.append_char('"')
@@ -93,7 +93,7 @@ string_escape :: fn(c: char) -> string | null {
 }
 
 /// The escape that writes the codepoint `code` in a Vader string or character
-/// literal: `\n`, `\t`, `\r`, `\0`, or `\u{…}` for any other.
+/// literal: `\n`, `\t`, `\r`, `\0`, or `\u{...}` for any other.
 ///
 /// @param code  a codepoint a literal cannot hold as is.
 export escape_codepoint :: fn(code: u32) -> string {

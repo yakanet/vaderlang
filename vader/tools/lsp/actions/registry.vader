@@ -1,7 +1,7 @@
 // vader/tools/lsp/actions/registry: the code-action framework.
 //
 // A code action is a cursor-driven source refactoring (`textDocument/codeAction`
-// → the editor lightbulb). Each action is a plain record carrying a predicate
+// -> the editor lightbulb). Each action is a plain record carrying a predicate
 // and an edit producer ; `all_actions()` is the central registration table. The
 // handler (`handlers/code_action`) finds the AST node under the cursor and calls
 // `run_actions`, which returns one `ActionResult` per applicable action.
@@ -193,7 +193,7 @@ rt_splice :: fn(src: string, r: ActionResult) -> string {
 }
 
 // Round-trip an action over a single source-backed node, exactly as the handler
-// would (`run_actions` → splice the result over its target span), and report
+// would (`run_actions` -> splice the result over its target span), and report
 // whether the rewritten document still reparses clean.
 //
 // A substring assert (in each action's own tests) proves a rewrite *looks*
@@ -240,7 +240,7 @@ test_roundtrip_match_to_if :: fn() -> void {
         assert(false, "expected a match")
         return
     }
-    assert(rt_roundtrip_clean(src, m), "match→if edit reparses clean")
+    assert(rt_roundtrip_clean(src, m), "match->if edit reparses clean")
 }
 
 @test
@@ -252,7 +252,7 @@ test_roundtrip_if_to_match :: fn() -> void {
         assert(false, "expected an if")
         return
     }
-    assert(rt_roundtrip_clean(src, ifx), "if→match edit reparses clean")
+    assert(rt_roundtrip_clean(src, ifx), "if->match edit reparses clean")
 }
 
 @test

@@ -181,7 +181,7 @@ export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> vo
 
 // ---- natural loops --------------------------------------------------------
 
-/// Natural-loop bodies, keyed by header block id. A back-edge u→v
+/// Natural-loop bodies, keyed by header block id. A back-edge u->v
 /// exists when v dominates u ; the natural loop's body is
 /// `{v} ∪ all blocks that reach u without going through v`. Returns
 /// one entry per back-edge target. Pure-fn: caller passes the preds
@@ -369,7 +369,7 @@ export multi_dsts :: fn(ins: Instruction) -> LocalId[] | null {
 }
 
 /// The local an instruction writes to, or `null` for pure side-
-/// effecting ops (FieldSet, ArraySet, …), zero-result calls, and a call
+/// effecting ops (FieldSet, ArraySet, ...), zero-result calls, and a call
 /// handing back SEVERAL values, where there is no single answer. Ask
 /// `multi_dsts` first when every written local matters, or `writes_local`
 /// about one.

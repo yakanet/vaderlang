@@ -582,7 +582,7 @@ all_satisfy_bound :: fn(types: Type[], trait_key: string, typed: TypedProgram) -
 }
 
 /// The trait args recorded for `t implements <trait_key>` in
-/// `struct_trait_args` (`Hello implements Greeter(i32)` →
+/// `struct_trait_args` (`Hello implements Greeter(i32)` ->
 /// `[i32]`), or `null` when no concrete impl is registered for `t`'s
 /// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_infer`
 /// and the lowerer's trait-param monomorphisation.
@@ -644,9 +644,9 @@ coincides_with_any :: fn(lists: Type[][], args: Type[]) -> bool {
 
 /// The trait args for `t implements <trait>`, with a GENERIC impl's recorded
 /// args resolved against `t`'s concrete instance args. A generic impl records the
-/// impl's own type-params (`FilterIterator<T> implements Iterator<T>` → `[T]`), so
+/// impl's own type-params (`FilterIterator<T> implements Iterator<T>` -> `[T]`), so
 /// a concrete `FilterIterator<i32>` needs `[T]` substituted by `[i32]` (via the
-/// struct decl's `type_params` ↔ the instance's `.args`). Returns the raw args
+/// struct decl's `type_params` <-> the instance's `.args`). Returns the raw args
 /// when `t` isn't a struct instance or its decl is unavailable. Mirrors
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.

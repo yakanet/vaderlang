@@ -26,7 +26,7 @@ build :: fn(args: string[]) -> i32 {
             // The filter is on the DECLARED module name. When `module_name`
             // carried the loader's filesystem key instead, this matched nothing
             // and the rule ran over the stdlib too, so the committed
-            // expectation showing no `std/…` report is what pins that fix.
+            // expectation showing no `std/...` report is what pins that fix.
             if msg.module_name.starts_with("std/") {
                 continue
             }

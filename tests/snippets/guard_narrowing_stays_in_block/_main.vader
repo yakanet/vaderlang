@@ -1,4 +1,4 @@
-// A divergent guard (`if b is A { return … }`) narrows `b` for the rest of its
+// A divergent guard (`if b is A { return ... }`) narrows `b` for the rest of its
 // block only. Several guards on the same binding inside a nested block used to
 // leak: the block restored them first to last, leaving what a later guard found,
 // so the sibling block's `b is A` was refused as a test that can never match

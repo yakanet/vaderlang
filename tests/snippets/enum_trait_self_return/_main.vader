@@ -1,6 +1,6 @@
 // An enum implementing traits.
 //   - A trait method returning `Self`, with an expression-bodied impl method
-//     that needs the trait's return type (Self → forType, here Direction)
+//     that needs the trait's return type (Self -> forType, here Direction)
 //     propagated as the body's expected type so the dot-shorthand arms
 //     (`.West`, `.South`, ...) can resolve.
 //   - A brace-bodied `Display` impl whose value is a trailing `match`.

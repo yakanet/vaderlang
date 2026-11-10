@@ -1,5 +1,5 @@
 // A literal stored in a range must be one of its values : in a local, a field, an
-// array, an optional slot, a conversion `Hour(…)` or into a distinct over the range,
+// array, an optional slot, a conversion `Hour(...)` or into a distinct over the range,
 // and a `match` pattern alike. Beside a distinct over an integer, a literal is a
 // value of that integer.
 module "snippet"

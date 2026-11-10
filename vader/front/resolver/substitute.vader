@@ -6,8 +6,8 @@
 // corresponding replacement.
 //
 // Used by `materialize.vader` to rewrite trait method signatures :
-//   - `Self` → impl's `for_type`
-//   - trait type-param names → impl's `trait_args[i]`
+//   - `Self` -> impl's `for_type`
+//   - trait type-param names -> impl's `trait_args[i]`
 //
 // Returns fresh nodes: the input TypeExpr is untouched.
 
@@ -18,7 +18,7 @@ import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 
-/// Name → replacement TypeExpr. Built by callers (materialize entry
+/// Name -> replacement TypeExpr. Built by callers (materialize entry
 /// points) and passed once through the substitution walker.
 export Subst :: struct {
     entries: Map<string, AST.TypeExpr>
@@ -28,7 +28,7 @@ export new_subst :: fn() -> Subst {
     return Subst { .entries = Map<string, AST.TypeExpr> {} }
 }
 
-/// Bind `name` → `replacement`. `replacement` is treated as the
+/// Bind `name` -> `replacement`. `replacement` is treated as the
 /// "original" tree ; substitution clones it on every lookup so a single
 /// subst entry can be reused across multiple call sites without
 /// AST-node aliasing.
@@ -157,7 +157,7 @@ test_substitute_passes_through_when_unbound :: fn() -> void {
 
 @test
 test_substitute_recurses_into_fn_type :: fn() -> void {
-    // `fn(T) -> T` with T → i32 should yield `fn(i32) -> i32`.
+    // `fn(T) -> T` with T -> i32 should yield `fn(i32) -> i32`.
     t: AST.TypeExpr: make_ident("T")
     params: AST.TypeExpr[]: [t]
     src :: AST.FnTypeExpr {
@@ -190,7 +190,7 @@ test_substitute_recurses_into_fn_type :: fn() -> void {
 
 @test
 test_substitute_recurses_into_generic_inst :: fn() -> void {
-    // `Foo<T>` with T → i32 should yield `Foo(i32)`.
+    // `Foo<T>` with T -> i32 should yield `Foo(i32)`.
     // Two-step typing: Vader's typechecker infers `[make_ident("T")]` as
     // `IdentExpr[]` and refuses to widen to `TypeExpr[]`: annotating
     // the element first ropes it into the wider type.

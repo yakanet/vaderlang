@@ -6,7 +6,7 @@
 // when the param type is lowered.
 //
 // The typecheck registers the aliases first (`register_aliases`): every
-// `T :: …` is registered project-wide before any fn signature gets
+// `T :: ...` is registered project-wide before any fn signature gets
 // lowered.
 
 module "snippet"

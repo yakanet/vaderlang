@@ -15,7 +15,7 @@
 //
 // Flag forms recognised, all equivalent per kind:
 //
-// - `--name` / `-n`: a bool flag, sets `name → "true"`.
+// - `--name` / `-n`: a bool flag, sets `name -> "true"`.
 // - `--name=v` / `-n=v`: a string flag, its value inline.
 // - `--name v` / `-n v`: a string flag, its value spaced.
 // - `--`: closes the option zone.
@@ -305,7 +305,7 @@ find_spec :: fn(specs: FlagSpec[], name: string, long: bool) -> FlagSpec | null 
 // ---- reading the result ----------------------------------------------------
 
 /// True iff `name` was seen as a bool flag (or set explicitly to `"true"`).
-/// Missing flag → `false`, no error.
+/// Missing flag -> `false`, no error.
 /// @param self  parser output.
 /// @param name  canonical flag name (not an alias: the parser normalises).
 export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
@@ -337,7 +337,7 @@ export string_flags :: fn(self: ParsedArgs, name: string) -> string[] = self.rep
 /// The value is already known to parse (`parse` rejected it otherwise) so this
 /// cannot fail. It still falls back on an unparseable value rather than trapping,
 /// for the case a caller reads an `Int` flag from a `ParsedArgs` it never checked
-/// `errors` on. Range limits stay the caller's: `--parallel` wants ≥ 1, which is
+/// `errors` on. Range limits stay the caller's: `--parallel` wants >= 1, which is
 /// its business, not the parser's.
 ///
 /// @param self     parser output.

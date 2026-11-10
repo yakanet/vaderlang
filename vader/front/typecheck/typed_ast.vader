@@ -4,7 +4,7 @@
 // expression / local / decl / param types, struct & trait decls, narrowing
 // stacks, cross-module type caches, and so on, each populated by its
 // producing pass (`decl.vader`, `stmt.vader`, `field.vader`, `narrow.vader`,
-// the orchestrator, …). Most tables are span-keyed (`line:col`), the same
+// the orchestrator, ...). Most tables are span-keyed (`line:col`), the same
 // convention as `vader/front/resolver/body.vader::ResolvedFile.idents` ; the
 // id-stable tables (`expr_types` by `Expr.id`, `decl_types` by `Symbol.id`)
 // note their key in their own field doc.
@@ -79,7 +79,7 @@ export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Sp
 /// @param typed  the module's typechecked program.
 /// @param file   the source file the lookup is on behalf of: `Span.start.file`
 ///               of the node being resolved, never a hard-coded path.
-/// @return       that file's name → overloads table, or null.
+/// @return       that file's name -> overloads table, or null.
 imported_overloads_table_in :: fn(
     typed: TypedProgram, file: string,
 ) -> Map<string, FnCandidate[]> | null = typed.imported_fn_overloads[file]
@@ -143,7 +143,7 @@ export chosen_decl :: fn(typed: TypedProgram, callee_id: i64) -> AST.FnDecl | nu
     return chosen.decl
 }
 
-/// The impl member a method call `x.m(…)` dispatched to, see
+/// The impl member a method call `x.m(...)` dispatched to, see
 /// `TypedProgram.chosen_impl_methods`. Null when the callee is no impl method.
 ///
 /// @param typed      the module the call was checked in.
@@ -239,7 +239,7 @@ export ImplMethod :: struct {
 /// that declares it (`register_project_impls`), and the impls of the generators'
 /// states (`register_generator_iter_impls`).
 export ImplTables :: struct {
-    /// `type::method_name → ImplMethod[]`, every impl member of that name, under two
+    /// `type::method_name -> ImplMethod[]`, every impl member of that name, under two
     /// keys per member: the impl's own type (`impl_type_key`, arguments included)
     /// and its side (`impl_side_key`); plus `into_impl_key` for an `Into` impl, and
     /// the base of its target for a generic one (`into_impl_method`). Several
@@ -248,19 +248,19 @@ export ImplTables :: struct {
     /// `record_impl_members`.
     impl_methods: Map<string, ImplMethod[]> = Map<string, ImplMethod[]> {}
 
-    /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
+    /// `"${impl_base_key}::${methodName}" -> the `trait_key`s of every trait
     /// providing the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous:
     /// `field.vader` emits T3032.
     impl_method_traits: Map<string, string[]> = Map<string, string[]> {}
 
-    /// `impl_base_key → trait_key`s for every `X implements Trait` impl: what
+    /// `impl_base_key -> trait_key`s for every `X implements Trait` impl: what
     /// the run-time `is Trait` test sees. A generic impl
     /// counts here for every argument ; `impl_bounds` narrows it to the arguments
     /// its bounds admit (`struct_implements_trait`).
     struct_implemented_traits: Map<string, string[]> = Map<string, string[]> {}
 
-    /// `Symbol.id → trait_key`s: the twin of `struct_implemented_traits` for
+    /// `Symbol.id -> trait_key`s: the twin of `struct_implemented_traits` for
     /// the types that have a declaration, populated in lockstep by
     /// `record_struct_trait`. Symbol ids are project-global-unique (one
     /// shared `SymbolFactory`). Threaded to the bytecode
@@ -273,17 +273,17 @@ export ImplTables :: struct {
     /// `struct_trait_args[side of Hello]["main.Greeter"] = [[i32]]`, and
     /// `Vec2 implements Add<f64>` beside `Add<Vec2>` two lists. Read by
     /// `unify_struct_to_trait_infer` so a generic fn parametrised by
-    /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
+    /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T -> i32.
     struct_trait_args: Map<string, Map<string, Type[][]>> =
         Map<string, Map<string, Type[][]>> {}
 
-    /// `impl_base_key` → each generic impl of that base, with the bounds it puts
+    /// `impl_base_key` -> each generic impl of that base, with the bounds it puts
     /// on the type's arguments ; an impl for a type without arguments puts no
     /// bound and is not recorded.
     impl_bounds: Map<string, BoundedImpl[]> = Map<string, BoundedImpl[]> {}
 
     /// `impl_base_key` of every base an impl on one instance is written for
-    /// (`Wrapper` for `Wrapper<MonType> implements …`): the receivers whose
+    /// (`Wrapper` for `Wrapper<MonType> implements ...`): the receivers whose
     /// lookups ask their own type's key before their base's (`own_impl_key`).
     instance_impl_bases: Set<string> = Set<string> {}
 
@@ -292,19 +292,19 @@ export ImplTables :: struct {
     /// built.
     has_structural_target: bool = false
 
-    /// `impl_base_key(for_ty) → element` for every `X implements Iterator<T>` impl,
+    /// `impl_base_key(for_ty) -> element` for every `X implements Iterator<T>` impl,
     /// and every `X implements Into<Iterator<T>>` of an `X` that is no iterator
     /// itself: the impl's own `T`, which a reader substitutes against the
     /// instance's arguments. Consumed by `for_loop.vader::for_in_element` so `for c in
     /// some_iter` binds `c` to T.
     iter_element_types: Map<string, Type> = Map<string, Type> {}
 
-    /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`
+    /// `impl_base_key(for_ty) -> T` for every `X implements Index<I, T>`
     /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
     /// `m` is a user struct with an Index impl.
     index_target_types: Map<string, Type> = Map<string, Type> {}
 
-    /// `impl_base_key(for_ty) → K` for every `X implements Index<K, _>`
+    /// `impl_base_key(for_ty) -> K` for every `X implements Index<K, _>`
     /// impl. Consumed by `expr_index.vader` / `stmt.vader` to pin a
     /// free-literal index key (`m[9000000000]`) to the resolved key type
     /// instead of letting it default to i32 and silently truncate.
@@ -314,7 +314,7 @@ export ImplTables :: struct {
     /// which need not be a read's (`Index<string, _>` beside `IndexSet<i32, _>`).
     index_set_key_types: Map<string, Type> = Map<string, Type> {}
 
-    /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
+    /// `impl_base_key(for_ty) -> V` for every `X implements IndexSet<K, V>`
     /// impl. Consumed by `let_assign.vader::check_assign` to pin a free-literal
     /// index-set value (`m[k] = 9000000000`) to the declared value type.
     /// Distinct from `index_target_types` (which records the nullable
@@ -342,8 +342,8 @@ export TypedProgram :: struct {
     /// Target type of every implicit `.into()` coercion, keyed by the
     /// coerced value expression's `Expr.id`. Written by `coerce.vader::
     /// try_into` on the two `.into()`-flavoured branches (a real `Into`
-    /// impl and the `T[] → Iterator<T>` blanket): trait widening
-    /// (`Cat → Animal`) is a subtype widen with no synthesised call, so
+    /// impl and the `T[] -> Iterator<T>` blanket): trait widening
+    /// (`Cat -> Animal`) is a subtype widen with no synthesised call, so
     /// it records nothing. Read by the LSP inlay-hint handler, which surfaces a
     /// ghost `.into()` at the value's end, and by the lowering where a value's
     /// slot type is not at hand (`lower_converted`, a destructured leaf) ; the
@@ -370,7 +370,7 @@ export TypedProgram :: struct {
     /// as packed elements. Only empty-array bindings are recorded.
     empty_array_inits: Map<u64, i64>
 
-    /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
+    /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl...).
     /// Keyed by `Symbol.id`. Previously span-keyed via
     /// `decl.name_span.hash()` but that collided across files in
     /// multi-file modules (two decls at same `(line, col)` would
@@ -388,7 +388,7 @@ export TypedProgram :: struct {
     /// via `Span.hash()`.
     param_types: Map<u64, Type>
 
-    /// Type of every type-position expression: `let x: T = …` annotations,
+    /// Type of every type-position expression: `let x: T = ...` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
     /// own span via `Span.hash()` so downstream passes can reuse what
     /// `type_from_expr` already computed.
@@ -412,7 +412,7 @@ export TypedProgram :: struct {
     /// shared once `cross_publish_trait_decls` runs.
     trait_decls: Map<i32, AST.TraitDecl>
 
-    /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
+    /// `Symbol.id -> FnDecl` for every top-level fn (and impl method).
     /// Lets call-site code reach the fn's `type_params` (with bounds)
     /// without re-walking the AST. Populated at `declare_module` time, then
     /// project-wide and shared once `cross_publish_fn_decls` runs, so nothing
@@ -440,14 +440,14 @@ export TypedProgram :: struct {
     /// can label each expression line without re-walking the AST.
     expr_kinds: Map<i64, string>
 
-    /// Per-ImportBinding redirect table : `Symbol.id → ImportTarget`.
+    /// Per-ImportBinding redirect table : `Symbol.id -> ImportTarget`.
     /// Populated by `vader/front/resolver/wire.vader::wire_imports` ; null
     /// for single-module pipelines where no wire pass ran. When set,
     /// `infer_ident` / `infer_field` consult it to follow named
     /// imports to their concrete export symbol's type.
     import_targets: ImportTargetTable | null
 
-    /// Cross-module type cache : `Symbol.id → declared Type` for
+    /// Cross-module type cache : `Symbol.id -> declared Type` for
     /// every external symbol reachable via `import_targets`.
     /// Populated by the multi-module orchestrator after typing each
     /// module's decls. `type_of_symbol` falls back to this when the
@@ -455,14 +455,14 @@ export TypedProgram :: struct {
     /// symbol's `defined_at` is in another module).
     external_types: Map<i32, Type>
 
-    /// Per-namespace export tables : `module_id → field_name → Type`.
+    /// Per-namespace export tables : `module_id -> field_name -> Type`.
     /// Populated alongside `external_types` for every namespace
     /// `name :: import "p"` binding. Consumed by `field.vader` so
     /// `mod.foo` accesses can resolve to the export's concrete type.
     namespace_exports: Map<string, Map<string, Type>>
 
     /// Exported FN members per namespace, every overload in declaration order :
-    /// `module_id → fn_name → candidates`. Populated alongside
+    /// `module_id -> fn_name -> candidates`. Populated alongside
     /// `namespace_exports` for every `name :: import "p"` binding. A
     /// namespace-qualified call (`mod.foo(...)`) picks among them as a bare call
     /// does (`call.vader::pick_overload`), then reorders named args and fills
@@ -472,7 +472,7 @@ export TypedProgram :: struct {
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
     /// need to refer to core types (Range, Field, Display, Error,
-    /// Iterator, …) without going through a user-side import.
+    /// Iterator, ...) without going through a user-side import.
     /// Well-known `std/core` struct symbols synthesised without a source span
     /// (`Range` for `a..b`, `Field` for `@fields`). Populated once from core by
     /// the orchestrator ; replaces the name-keyed core-symbol lookups for these.
@@ -509,7 +509,7 @@ export TypedProgram :: struct {
     /// neither may lend its names to the other.
     imported_fn_overloads: Map<string, Map<string, FnCandidate[]>>
 
-    /// `FieldExpr.id → original first-param type` for every
+    /// `FieldExpr.id -> original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
     /// curried away). `infer_call` unifies it against the receiver's
     /// type to harvest type-param bindings before substituting the
@@ -517,7 +517,7 @@ export TypedProgram :: struct {
     /// signature for display.
     ufcs_receiver_types: Map<i64, Type>
 
-    /// Callee id → the fn typecheck chose for the call : the fn a UFCS `x.f(…)`
+    /// Callee id -> the fn typecheck chose for the call : the fn a UFCS `x.f(...)`
     /// dispatched to (keyed by the `FieldExpr`), the overload a direct call to
     /// an overloaded name picked (keyed by the `IdentExpr`: the resolver binds
     /// that name to its first declaration).
@@ -528,30 +528,30 @@ export TypedProgram :: struct {
     /// fns this file imports only behind a namespace alias, or not at all.
     chosen_fns: Map<i64, FnCandidate>
 
-    /// `FieldExpr` id → the impl method a call `x.m(…)` dispatched to. Read by
+    /// `FieldExpr` id -> the impl method a call `x.m(...)` dispatched to. Read by
     /// tooling: the lowerer finds the impl member from the receiver itself.
     chosen_impl_methods: Map<i64, ImplMethod>
 
-    /// `FieldExpr` id → the members a callee is offered by several impls of one
+    /// `FieldExpr` id -> the members a callee is offered by several impls of one
     /// trait (`Add<f64>`, `Add<Vec2>`) ; the call picks among them by its arguments.
     overloaded_members: Map<i64, ImplMethod[]>
 
-    /// Integer literal id → a literal `check_expr` left free that does not fit the
+    /// Integer literal id -> a literal `check_expr` left free that does not fit the
     /// `i32` it defaults to: T3066 unless a later context repins it
     /// (`report_literals_past_default`).
     literals_past_default: Map<i64, AST.IntLitExpr>
 
-    /// `FieldExpr` id → the static member a `Type.member` access names. Read by
+    /// `FieldExpr` id -> the static member a `Type.member` access names. Read by
     /// the lowerer, which calls the owner's impl member directly, with no
     /// receiver.
     static_members: Map<i64, StaticMember>
 
-    /// Type-parameter symbol id → the traits of its bound. A project check
+    /// Type-parameter symbol id -> the traits of its bound. A project check
     /// shares ONE table across every module (`broadcast_type_param_bounds`), so a
     /// call reaches the bounds of an imported callee (T3006).
     type_param_bound_traits: Map<i32, TypeParamBound>
 
-    /// Struct symbol id → the bounds its declaration puts on its type arguments,
+    /// Struct symbol id -> the bounds its declaration puts on its type arguments,
     /// shared across modules like `type_param_bound_traits`. A struct literal meets
     /// them (T3006).
     struct_bounds: Map<i32, ArgBound[]>
@@ -602,9 +602,9 @@ export TypedProgram :: struct {
     /// and read by `expand_struct_spreads`.
     struct_spreads: Map<i32, StructSpreads> = Map<i32, StructSpreads> {}
 
-    /// A type parameter's declaration site (`tp.span.hash()`) → the symbol the
-    /// resolver gave it, for every parameter a declaration lists in its `<…>` ; a
-    /// parameter an impl binds through its receiver alone (`Box<W> implements …`)
+    /// A type parameter's declaration site (`tp.span.hash()`) -> the symbol the
+    /// resolver gave it, for every parameter a declaration lists in its `<...>` ; a
+    /// parameter an impl binds through its receiver alone (`Box<W> implements ...`)
     /// is not listed. Shared across modules (`share_type_param_symbols`), so a
     /// substitution reaches the parameters of an imported declaration by id.
     type_param_symbols: Map<u64, Symbol> = Map<u64, Symbol> {}
@@ -615,7 +615,7 @@ export TypedProgram :: struct {
     /// validate against the fn's declared return type. Mutable.
     current_fn_ctx: FnContext | null
 
-    /// `AST.id → Span` reverse lookup for the typed-ast dump's `line:col`
+    /// `AST.id -> Span` reverse lookup for the typed-ast dump's `line:col`
     /// rendering (or `undefined:undefined` for a node it did not record). Populated
     /// alongside `expr_kinds`, and, like it, only when `dump_types` is set
     /// (see below) ; `expr_types` always populates, these two do not.
@@ -646,18 +646,18 @@ export TypedProgram :: struct {
     /// fold to a literal when the ident resolves to a key here.
     let_type_aliases: Map<i32, Type>
 
-    /// Const Symbol.id → its declaration, from which the const walk finds its entry.
+    /// Const Symbol.id -> its declaration, from which the const walk finds its entry.
     const_decls: Map<i32, AST.ConstDecl>
 
-    /// `@extern` node id → the `CLibrary` constant it names, as the typecheck
+    /// `@extern` node id -> the `CLibrary` constant it names, as the typecheck
     /// accepted it (`check_extern_library`) ; the comptime pass evaluates each.
     extern_libraries: Map<i64, Symbol> = Map<i64, Symbol> {}
 
-    /// Enum Symbol.id → its declaration, from which the lowerer builds the enum's
+    /// Enum Symbol.id -> its declaration, from which the lowerer builds the enum's
     /// variant data and value tables.
     enum_decls: Map<i32, AST.EnumDecl>
 
-    /// Generic fn AST-node id → true when its body needs each instance's real
+    /// Generic fn AST-node id -> true when its body needs each instance's real
     /// types (`keep_instances_concrete`) : a trait dispatch on a type-param (no
     /// vtable resolves a `virtual.call` on an erased `ref _` receiver), or a free
     /// fn looked up from a receiver or argument that names one (`Any` names no
@@ -666,7 +666,7 @@ export TypedProgram :: struct {
     /// `Any`. Keyed by node id (not name) so overloaded generics don't collide.
     fn_needs_concrete_instances: Map<i64, bool>
 
-    /// Generic fn AST-node id → true when its body tests a type parameter at run
+    /// Generic fn AST-node id -> true when its body tests a type parameter at run
     /// time (`x is U`), or hands its own to a fn that does
     /// (`propagate_type_param_observation`) : its instances stay concrete
     /// (`fn_instance_flavor`). Apart from `fn_needs_concrete_instances`, whose
@@ -674,27 +674,27 @@ export TypedProgram :: struct {
     /// observation climbs to the callers.
     fn_observes_type_params: Map<i64, bool>
 
-    /// Generic fn AST-node id → true when its body interpolates a value whose
+    /// Generic fn AST-node id -> true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
     /// on it. Read by the lowerer's instance flavor : a distinct or a range
     /// argument then gets a concrete instance, since a shared one reads it as its
     /// representation and the dispatch would reach that type's `Display`.
     fn_display_dispatches: Map<i64, bool>
 
-    /// `FieldExpr.id` → true when `v.x` reads a field of an enum value's
+    /// `FieldExpr.id` -> true when `v.x` reads a field of an enum value's
     /// variant data rather than naming a variant (`Enum.Variant`). The lowerer
     /// reads the variant-data table for these and folds every other enum-typed
     /// field access to the variant's integer.
     enum_data_reads: Map<i64, bool>
 
-    /// Argument id → the argument, when it fits its parameter only by widening an
+    /// Argument id -> the argument, when it fits its parameter only by widening an
     /// array element: `Circle[]` into `(Circle | null)[]`. A receiver counts as an
     /// argument. The widening is sound only if the callee neither replaces an
     /// element nor grows, keeps or returns an array on the way down, which the
     /// effect summary checks once every module is typed.
     widened_arguments: Map<i64, WidenedArgument> = Map<i64, WidenedArgument> {}
 
-    /// For-in iterable id → true when the loop walks the values of the type the
+    /// For-in iterable id -> true when the loop walks the values of the type the
     /// iterable names (`for h in Hour`, `for d in Weekday` ; `walked_type`), rather
     /// than iterating a value.
     walked_types: Map<i64, bool> = Map<i64, bool> {}
@@ -713,18 +713,18 @@ export TypedProgram :: struct {
     /// would silently reach another overload.
     overloaded_arg_depth: i32 = 0
 
-    /// Resolution result for var-targeted loop jumps : `ForStmt.id` → the
+    /// Resolution result for var-targeted loop jumps : `ForStmt.id` -> the
     /// iteration-variable name a `break <var>` / `continue <var>` targeted it by.
     /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops:
     /// untargeted loops keep their pristine `ForStmt.label`). Written
     /// idempotently, so it survives the two-pass / multi-module walks.
     loop_target_labels: Map<i64, string>
 
-    /// A jump that names a labelled loop by its iteration variable: jump id → the
+    /// A jump that names a labelled loop by its iteration variable: jump id -> the
     /// loop's label, which it is lowered under.
     jump_labels: Map<i64, string>
 
-    /// Every `break` / `continue` → the `ForStmt.id` of the loop it targets,
+    /// Every `break` / `continue` -> the `ForStmt.id` of the loop it targets,
     /// written bare or by name. The fusion reads it: a jump out of a body spliced
     /// into a producer's code may have to land elsewhere than its loop.
     jump_targets: Map<i64, i64>
@@ -733,7 +733,7 @@ export TypedProgram :: struct {
     /// its turn types it then (`settle_const_read`).
     const_walk: ConstWalk = ConstWalk {}
 
-    /// Callee node id → what its call invokes, noted where the typecheck decides it
+    /// Callee node id -> what its call invokes, noted where the typecheck decides it
     /// (`note_callee`).
     callees: Map<i64, Callee> = Map<i64, Callee> {}
 

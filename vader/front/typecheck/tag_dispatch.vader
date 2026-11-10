@@ -199,7 +199,7 @@ array_members_have_bodies :: fn(
 }
 
 // The instance of the trait `sym` every variant of `u` implements, argument by
-// argument : a type they all take (`Add<i32, …>`), or `Self` where each takes itself
+// argument : a type they all take (`Add<i32, ...>`), or `Self` where each takes itself
 // (`Out = Self` : `i32` for `i32`, `Money` for `Money`). Null when a variant does not
 // implement it, or the variants' arguments differ otherwise.
 union_trait_instance :: fn(u: UnionType, sym: Symbol, typed: TypedProgram) -> TraitType | null {

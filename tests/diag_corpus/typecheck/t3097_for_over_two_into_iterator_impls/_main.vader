@@ -1,5 +1,5 @@
 // A `for` over a struct that is no `Iterator` converts it into one, through an
-// `Into` whose argument it does not name : with two `Into<Iterator<…>>` impls, it
+// `Into` whose argument it does not name : with two `Into<Iterator<...>>` impls, it
 // cannot tell which to take. T3097, at the iterable.
 module "snippet"
 

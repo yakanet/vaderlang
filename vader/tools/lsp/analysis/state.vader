@@ -39,7 +39,7 @@ export ProjectCache :: struct {
     /// with (`evaluate_checked`).
     effects:    Fx.EffectSummary
     diags:      Diagnostic[]
-    /// Module-name → `LoadedModule` map (`module_index_by_name`), built once per
+    /// Module-name -> `LoadedModule` map (`module_index_by_name`), built once per
     /// cache entry so per-request consumers (wildcard completion) don't rebuild
     /// it. Keyed by the logical `module "..."` name (the string an `import`
     /// uses) not the resolved filesystem path.
@@ -88,7 +88,7 @@ export UnionCache :: struct {
 /// One LSP server instance's document table. The single shared state is
 /// passed to every handler ; no globals.
 export ServerState :: struct {
-    /// uri → current document text. Empty string for closed documents.
+    /// uri -> current document text. Empty string for closed documents.
     docs:                       Map<string, string>
     /// Last load+typecheck, reused across typed requests. `null` after didOpen /
     /// didClose and after `flush_dirty_diagnostics` rebuilds it ; deliberately
@@ -113,14 +113,14 @@ export ServerState :: struct {
     /// The folder the client opened, from `initialize` ; the working directory
     /// when it names none.
     workspace_root:             string
-    /// path → the symbols of a workspace file read from the disk, and its
+    /// path -> the symbols of a workspace file read from the disk, and its
     /// modification time then (`workspace_symbols`).
     symbols:                    Map<string, FileSymbols>
-    /// uri → per-document goto-def + hover index. Rebuilt on every
+    /// uri -> per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
     indices:                    Map<string, DocIndex>
-    /// uri → "diagnostics need a (re)publish". Set by `handle_did_change` and by
+    /// uri -> "diagnostics need a (re)publish". Set by `handle_did_change` and by
     /// a driven project settling on new roots, removed by `handle_did_close`
     /// (suppresses a closed doc), drained by
     /// `flush_dirty_diagnostics` once an edit burst settles (see
@@ -139,7 +139,7 @@ export ServerState :: struct {
     /// range on Ctrl/Cmd-hover), `Location` otherwise.
     definition_link_support:    bool
     /// The `character` counting unit negotiated at `initialize`
-    /// (`general.positionEncodings`). Every byte ↔ (line, character)
+    /// (`general.positionEncodings`). Every byte <-> (line, character)
     /// conversion routes through a `LineIndex` built with this. Defaults to
     /// `Utf16`: the LSP protocol default when the client offers nothing.
     position_encoding:          PositionEncoding
@@ -158,16 +158,16 @@ export ServerState :: struct {
     /// watcher registration). The client's response is ignored, so uniqueness
     /// is the only requirement.
     next_request_id:            i64
-    /// uri → an open `.virt` document read back by the bytecode reader. Filled on
+    /// uri -> an open `.virt` document read back by the bytecode reader. Filled on
     /// the first request that needs it, dropped on every didOpen / didChange /
     /// didClose of that document : a large dump takes a noticeable fraction of a
     /// second to read, and the editor asks for hints on every scroll.
     virt_listings:              Map<string, Virt.VirtListing | Virt.VirtParseError>
-    /// uri → the line index of an open `.virt` document, rebuilt on every didOpen
+    /// uri -> the line index of an open `.virt` document, rebuilt on every didOpen
     /// / didChange : each request on it converts a position, and indexing a large
     /// dump costs milliseconds.
     virt_line_indices:          Map<string, LineIndex>
-    /// project folder → what the server knows of a project its `build.vader`
+    /// project folder -> what the server knows of a project its `build.vader`
     /// describes: the roots registered, the `vader info` run in flight.
     driven:                     Map<string, DrivenProject>
     /// Whether every `build.vader` stays unrun (`--no-hooks`): a project it
@@ -379,7 +379,7 @@ export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> Sou
     return null
 }
 
-/// Build a filesystem-path → current-text overlay from every open document,
+/// Build a filesystem-path -> current-text overlay from every open document,
 /// for the resolver to consult before the disk, to discover modules as to read
 /// them. `docs` is keyed by uri ; the loader reads by path, so each key gives
 /// way to its path. An empty document is left to the disk.

@@ -3,10 +3,10 @@
 // Type of `if cond { then } else { else }` is the union of branch
 // types. Surface T3019 when the condition isn't `bool`-assignable.
 //
-// Branch-condition narrowing (`if x is T { … }`, `x == null`,
+// Branch-condition narrowing (`if x is T { ... }`, `x == null`,
 // `x.f != null`, including `&&` and `||` chains) is applied through
 // `narrow.vader` in the then/else branches ; free-numeric branch types repin via
-// `join_branch_types` ; divergent guards (`if … { return }`) narrow the
+// `join_branch_types` ; divergent guards (`if ... { return }`) narrow the
 // fall-through. See `detect_is_narrow` / `push_cond_narrows`.
 
 module "vader/front/typecheck"
@@ -152,7 +152,7 @@ check_else_branch_expr :: fn(
     return result
 }
 
-// Minimal `if x is T { … }` narrowing : when the cond is a binary `is`
+// Minimal `if x is T { ... }` narrowing : when the cond is a binary `is`
 // op whose LHS is an `IdentExpr` resolving to a local Symbol, narrow
 // that binding to `T` inside the then-branch.
 //
@@ -414,7 +414,7 @@ detect_is_narrow :: fn(
     if cond.left is AST.FieldExpr {
         field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
         // Compose against the field's current flow-narrowed type so chained
-        // `if x.f is A {…} else if x.f is B {…}` guards refine instead of
+        // `if x.f is A {...} else if x.f is B {...}` guards refine instead of
         // resetting to the declared type (mirrors the ident path).
         base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
         return type_test_narrowing(0, field_info.field_key, base, narrowed, typed)

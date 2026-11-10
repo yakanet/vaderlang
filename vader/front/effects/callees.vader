@@ -25,9 +25,9 @@ AST :: import "toolchain/ast"
 export CalleeIndex :: struct {
     /// Per node, the function and the module that typed it.
     functions: Function[] = []
-    /// Declaration id → node, for each function with a body.
+    /// Declaration id -> node, for each function with a body.
     nodes: Map<i64, i32> = Map<i64, i32> {}
-    /// A trait default's declaration id → the node every impl inheriting it runs.
+    /// A trait default's declaration id -> the node every impl inheriting it runs.
     /// Apart from `nodes`: a declaration naming the trait's member itself may reach
     /// any impl's override, so `target_of_decl` must not find the default there.
     default_nodes: Map<i64, i32> = Map<i64, i32> {}
@@ -63,7 +63,7 @@ export CalleeIndex :: struct {
     any: ParamEffects = any_effects()
     /// The loaded project, whose modules hold the symbols a namespace alias names.
     project: LoadedProject
-    /// `trait_key.member` → the members of that name of every impl of the trait.
+    /// `trait_key.member` -> the members of that name of every impl of the trait.
     members: Map<string, CallTarget[]> = Map<string, CallTarget[]> {}
     /// Bodyless functions the compiler knows nothing of while they are lent a value
     /// that holds references: each is assumed to do anything with it.

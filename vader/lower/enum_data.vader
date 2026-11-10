@@ -1,7 +1,7 @@
 // vader/lower/enum_data: the tables behind enum variant data.
 //
 // An enum whose header declares variant data (`enum(Info)`) stores the RANK of
-// its variant (0, 1, 2… in declaration order) and keeps its data in a synthetic
+// its variant (0, 1, 2... in declaration order) and keeps its data in a synthetic
 // read-only module const `<Enum>$data : Info[]`, one slot per rank : `v.field`
 // lowers to `<Enum>$data[i64(v)].field`, `Info(v)` to the slot itself.
 //

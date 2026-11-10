@@ -9,7 +9,7 @@
 //
 // What it knows is a map from an object local to the locals its fields were
 // built from. That record survives a `Move` (the builder emits
-// `call → move → field_get`, so the reads name an alias), and dies as soon as
+// `call -> move -> field_get`, so the reads name an alias), and dies as soon as
 // the object local (or any of the field locals) is written again.
 //
 // ACROSS BLOCKS: a block starts from what holds on EVERY way in, the
@@ -149,7 +149,7 @@ forward_block_with :: fn(
             continue
         }
         // A copy carries the record with it. The builder emits
-        // `call → move → field_get`, so without this the reads name an alias of
+        // `call -> move -> field_get`, so without this the reads name an alias of
         // the object and nothing matches.
         if ins is InstrMove {
             aliased :: built[i32(ins.src)]

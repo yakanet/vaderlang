@@ -1,6 +1,6 @@
 // F2a : a fn colliding with a same-named TYPE or CONST is R2004, regardless of
 // decl order. `add_fn` now flags an existing type/const (matching `add_named`
-// for the reverse order); before, `type→fn` and `const→fn` were silently
+// for the reverse order); before, `type->fn` and `const->fn` were silently
 // swallowed (the fn joined the overload bucket with no diagnostic).
 module "snippet"
 

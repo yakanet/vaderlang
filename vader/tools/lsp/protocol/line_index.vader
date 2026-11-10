@@ -1,4 +1,4 @@
-// vader/tools/lsp/protocol/line_index: byte ↔ LSP (line, character) conversion.
+// vader/tools/lsp/protocol/line_index: byte <-> LSP (line, character) conversion.
 //
 // LSP positions are `(line, character)` where `character` is counted in the
 // encoding negotiated at `initialize` (`general.positionEncodings`, LSP 3.17+).
@@ -254,7 +254,7 @@ import "std/testing"
 
 @test test_offset_second_line :: fn() -> void {
     li :: new_line_index("abc\ndéf", .Utf16)   // é on line 1
-    // line 1: d@4 é@5(2B) f@7. utf-16 char 2 on line 1 → 'f' at byte 7.
+    // line 1: d@4 é@5(2B) f@7. utf-16 char 2 on line 1 -> 'f' at byte 7.
     assert_eq(li_offset(li, 1, 2), 7)
     assert_eq(li_offset(li, 1, 0), 4)   // line start
 }

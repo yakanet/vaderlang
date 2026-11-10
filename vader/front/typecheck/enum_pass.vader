@@ -1,6 +1,6 @@
 // vader/front/typecheck/enum_pass: variant index resolution for enum decls.
 //
-// Walks `EnumDecl.variants` and produces the canonical `name → value` map :
+// Walks `EnumDecl.variants` and produces the canonical `name -> value` map :
 // explicit `= N` values land verbatim ; bare variants take `previous + 1`
 // (starting at 0). Range checking against the written width's bounds and
 // duplicate-value detection emit T3030 / T3031.
@@ -20,7 +20,7 @@ import "vader/front/parser"
 import "vader/core/types"
 import "toolchain/span"
 
-/// Compute the canonical `name → value` map for `decl`. `width` is the integer the
+/// Compute the canonical `name -> value` map for `decl`. `width` is the integer the
 /// header writes, which bounds the values ; null leaves them unbounded.
 ///
 /// Side effects : pushes T3030 (out-of-range) and T3031 (duplicate value)

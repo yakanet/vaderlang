@@ -210,7 +210,7 @@ kept_suffix :: fn(kept: Type | null) -> string {
 // `build_mixed_subst`). Such an instance is monomorphized MIXED : those args
 // kept concrete (devirt + primops/atom-eq inline), references erased to `Any`
 // (uniform pointer). `Any` is `AnyType`, not `PrimitiveType`, so an all-erased
-// transitive arg list (`[Any, Any]`) is correctly EXCLUDED → stays fully erased
+// transitive arg list (`[Any, Any]`) is correctly EXCLUDED -> stays fully erased
 // (symbol-id indexed). An all-primitive arg list satisfies this too, and a mixed
 // subst over all-primitive args equals the concrete subst.
 has_any_kept_arg :: fn(impls: ImplRegistry, type_args: Type[]) -> bool {
@@ -234,7 +234,7 @@ args_suffix :: fn(args: Type[]) -> string {
 /// dispatch: `i32.eq` instead of a `virtual.call` thunk) and flattens every
 /// other arg to a bare `__Any`. The flatten avoids the inner-shape leak a structure-preserving
 /// `args_suffix(any_leaves_of(...))` would cause, e.g. `Map<Any, Any[]>`
-/// → `at__Any__Any__` diverging from a sibling's `at__Any__Any`. All three
+/// -> `at__Any__Any__` diverging from a sibling's `at__Any__Any`. All three
 /// suffix sites (`materialize_impl_for_instance`, `find_impl_member_for`,
 /// `lower_for_in`) MUST call this with the same `args` so each call name
 /// reconciles with the single materialised body (the dedupe keys on the suffix).

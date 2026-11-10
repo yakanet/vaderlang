@@ -27,7 +27,7 @@ sum_iter :: fn(it: Iterator<i32>) -> i32 {
 }
 
 // Count items via a chained `Iterator<T>`-receiver call. UFCS picks the
-// lazy `filter :: fn<T>(self: Iterator<T>, …) -> Iterator<T>`
+// lazy `filter :: fn<T>(self: Iterator<T>, ...) -> Iterator<T>`
 // overload, then std/iter's `count` consumes the chain without allocating an
 // intermediate array.
 is_l :: fn(c: char) -> bool { return c == 'l' }
@@ -37,7 +37,7 @@ count_ls :: fn(s: string) -> i64 {
 
 main :: fn() -> i32 {
     a :: sum_iter(0..<5)               // 0+1+2+3+4 = 10
-    b :: sum_iter([10, 20, 30])        // T[] → Iterator<T> coercion
+    b :: sum_iter([10, 20, 30])        // T[] -> Iterator<T> coercion
     println("range sum  = ${a}")
     println("array sum  = ${b}")
 

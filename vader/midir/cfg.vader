@@ -1,7 +1,7 @@
 // vader/midir/cfg: CFG / Instruction / Terminator data types.
 //
 // The types, and the few accessors every pass shares (`fn_span`, `pos_key`).
-// The Lowered ↔ CFG ↔ bytecode pipeline keeps the two IRs distinct :
+// The Lowered <-> CFG <-> bytecode pipeline keeps the two IRs distinct :
 // the build pass (`build.vader`) walks LoweredProject into CFGProject ;
 // CFG-private types (this file) include BasicBlock / Instruction /
 // Terminator and never leak back into the Lowered tree.
@@ -81,7 +81,7 @@ export CFGExternDecl :: struct {
     origin:      MonoEntry
     extern_name: string
     /// True when the originating decl carried @extern (user-supplied
-    /// foreign symbol: c-emit emits a real `extern …(…)` declaration
+    /// foreign symbol: c-emit emits a real `extern ...(...)` declaration
     /// that the linker resolves). False for @intrinsic-style bodyless
     /// fns (stdlib host bindings handled by the c-emit shim switch).
     is_extern:   bool
@@ -188,9 +188,9 @@ export TermUnreachable :: struct {
 
 // ---- instruction positions ------------------------------------------------
 
-// An instruction's position as one key: `block × POS_STRIDE + index`. The stride
+// An instruction's position as one key: `block x POS_STRIDE + index`. The stride
 // bounds a block's instruction count and leaves room in an `i64` for about
-// 9 × 10¹² blocks.
+// 9 x 10¹² blocks.
 POS_STRIDE: i64: 1000000
 
 /// Encode an instruction's position as one `i64` key, for the sets that mark
@@ -613,7 +613,7 @@ export CFGProject :: struct {
     data_pool: DataPoolEntry[]
     /// Mirrors `LoweredProject.globals`: the type of each global slot.
     globals: GlobalSlot[]
-    /// `Symbol.id → trait names`: frontend trait membership carried verbatim
+    /// `Symbol.id -> trait names`: frontend trait membership carried verbatim
     /// from `LoweredProject`, consumed by `build_impl_table_from_vtable` to
     /// emit `is Trait` rows for every interned struct tag (incl. generic
     /// instances + never-called impls the vtable-sourced path misses).

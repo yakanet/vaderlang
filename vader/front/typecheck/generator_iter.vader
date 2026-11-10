@@ -73,7 +73,7 @@ generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl |
 /// Register every `generator` fn's synthetic state struct as `implements
 /// Iterator<U>`, in the impl tables every module shares, so a call to it types as
 /// a concrete iterator (chains resolve) regardless of which module consumes it.
-/// Runs before the full body walks so `try_trait_widen` sees `<fn>$State →
+/// Runs before the full body walks so `try_trait_widen` sees `<fn>$State ->
 /// Iterator` while typing chained receivers.
 ///
 /// Each generator registers from the module that declares it, walking only that

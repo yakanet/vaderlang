@@ -143,7 +143,7 @@ check_loop_jump :: fn(
         target :: resolve_loop_target(typed.loop_stack, name)
         if target == null {
             // A local, an unknown name, or a jump outside any loop, never a valid
-            // target. `break`ing a non-loop makes no sense → hard error (T3067).
+            // target. `break`ing a non-loop makes no sense -> hard error (T3067).
             diags.push(
                 typecheck_error(
                     .LoopTargetNotLoopVariable,

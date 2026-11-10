@@ -49,7 +49,7 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
                 return completion_list(builtin_items())
             }
 
-            // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
+            // Member access (`receiver.<cursor>`) -> Tier 2 : the receiver's
             // struct fields + impl methods, resolved through the typed cache.
             dot :: member_context(li, line0, char0)
             if dot != null {
@@ -67,7 +67,7 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             seen :: Map<string, bool> {}
 
             // The typed cache lets us show a binding's *inferred* type
-            // (`x :: foo()` → `Symbol`) instead of the index's RHS source
+            // (`x :: foo()` -> `Symbol`) instead of the index's RHS source
             // slice, see `decl_detail`. An untitled buffer names no file.
             file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
             ctx :: detail_ctx(state, file_path)
@@ -130,14 +130,14 @@ detail_ctx :: fn(state: ServerState, fp: string | null) -> DetailCtx {
 
 // Detail string for a scope-completion item. An unannotated local binding
 // (`x :: foo()`) carries only a RHS source slice in the index ; when the typed
-// cache resolves its inferred type, show that (`Symbol`, `i32`, …) instead:
+// cache resolves its inferred type, show that (`Symbol`, `i32`, ...) instead:
 // matching the hover / inlay UX. The type is read from the typed project's own
 // AST (by cursor position, file-independent), since the index is a separate
 // parse. Everything else keeps the index's signature (decl heads, annotated
 // params, imports).
 decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -> string {
     // Functions: drop the redundant `<name> :: ` prefix (the label already
-    // carries the name) leaving just the signature (`fn(ctx: …) -> Symbol`).
+    // carries the name) leaving just the signature (`fn(ctx: ...) -> Symbol`).
     if d.kind == .Fn { return strip_binding_prefix(d.signature) }
     if d.kind != .Local { return d.signature }
     if typed == null { return d.signature }
@@ -161,7 +161,7 @@ append_wildcard_completions :: fn(
 ) -> void {
     if fp == null || idx.wildcards.paths.len() == 0 { return }
     cached :: typed_project_for(state, fp)
-    // The import-name → module map is memoized on the project cache; each
+    // The import-name -> module map is memoized on the project cache; each
     // wildcard path names a module whose public, wildcard-exposable exports
     // (fn / struct / enum / trait / alias / const) enter scope unqualified:
     // the same predicate the resolver's scope seeding uses.
@@ -245,9 +245,9 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
 
     // Namespace-import alias receiver (`G.<member>` where `G :: import "p"`) :
     // list the target module's exports. The receiver types as UnresolvedType,
-    // or not at all in a type position (`G.Node { … }`), and the UFCS loop
+    // or not at all in a type position (`G.Node { ... }`), and the UFCS loop
     // below (through is_assignable's Unresolved-matches-every-free-fn rule) would
-    // otherwise offer every imported free fn (print/…).
+    // otherwise offer every imported free fn (print/...).
     ns_mod :: namespace_base_mod_id(recv, cached.result.typed)
     if ns_mod != null {
         exports :: cached.result.typed.namespace_exports[ns_mod]
@@ -291,7 +291,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
         items.push(completion_item(name, .Method, display_type(method.ty)))
     }
 
-    // Free-fn UFCS methods: a free `fn(self: T, …)` called as `recv.f(…)`, e.g.
+    // Free-fn UFCS methods: a free `fn(self: T, ...)` called as `recv.f(...)`, e.g.
     // `mint :: fn(self: NodeIdFactory)` invoked `f.mint()`. Not in an impl block,
     // so the loop above misses them ; match every free fn whose first param fits.
     // Skipped for UnresolvedType / TypeParamType receivers : an Unresolved one fits
@@ -309,7 +309,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     }
 
     // Trait methods reachable through a generic param's bound (`t: T` where
-    // `T: Display` → offer `to_string`). The impl + UFCS loops can't see these.
+    // `T: Display` -> offer `to_string`). The impl + UFCS loops can't see these.
     if recv_type is TypeParamType {
         for mname in typeparam_bound_method_names(recv_type, cached.result.typed) {
             if seen[mname] != null { continue }
@@ -499,7 +499,7 @@ match_result_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedP
 }
 
 // Statement-context expected type : a `return .|` value (the enclosing fn's
-// return type) or a typed local's value (`x: T = .|` → the annotation `T`).
+// return type) or a typed local's value (`x: T = .|` -> the annotation `T`).
 // Walks fn bodies, threading the fn's return TypeExpr ; explicit `return` is
 // honoured at any depth, the implicit-return value only at the fn-body trailing.
 stmt_expected_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
@@ -536,7 +536,7 @@ scan_block :: fn(b: AST.BlockExpr, line: i32, col: i32, ret_ty: AST.TypeExpr | n
         if r != null { return r }
     }
     // Fn-body fallback: a leading dot anywhere in the body that wasn't a typed
-    // local or a nested block is a `return` / implicit-return value → the fn's
+    // local or a nested block is a `return` / implicit-return value -> the fn's
     // return type. Nested blocks pass fn_body = false, so they don't trigger it.
     if fn_body && ret_ty != null { return type_from_expr(ret_ty, typed.resolved, []) }
     return null
@@ -622,7 +622,7 @@ param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typed
 }
 
 // Declared type of the parameter slot the cursor sits in for an enclosing call
-// `f(…, .|, …)` or `x.f(…, .|, …)`: the callee resolves via `lookup_fn_decl`.
+// `f(..., .|, ...)` or `x.f(..., .|, ...)`: the callee resolves via `lookup_fn_decl`.
 call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
     call :: find_enclosing_call(decls, line, col) ?? return null
     fd :: lookup_fn_decl(call.callee, typed) ?? return null

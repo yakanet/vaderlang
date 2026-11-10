@@ -3,7 +3,7 @@
 // Extends the top-level decl walker in `resolve.vader` with a full
 // scope-tracking walk over fn bodies, blocks, lambdas, for-loops,
 // match headers, and match patterns. Produces a span-keyed
-// `AST.IdentExpr → Symbol` map that downstream consumers (the LSP today,
+// `AST.IdentExpr -> Symbol` map that downstream consumers (the LSP today,
 // the self-host typechecker tomorrow) read instead of re-walking the
 // AST themselves.
 //
@@ -11,7 +11,7 @@
 // resolution, generic substitution, impl-block dispatch, and
 // decorator validation live in the compiler-grade resolver /
 // typechecker, not here. The output here is intentionally a flat
-// AST.IdentExpr → Symbol map ; richer per-expr metadata stays in the
+// AST.IdentExpr -> Symbol map ; richer per-expr metadata stays in the
 // compiler-grade resolver.
 
 module "vader/front/resolver"
@@ -40,7 +40,7 @@ export FileScope :: struct {
 export ConstLocal :: enum {
     /// Declared with `::`.
     Declared
-    /// The variable of a `for … in`, bound anew each turn.
+    /// The variable of a `for ... in`, bound anew each turn.
     LoopVariable
     /// The name a `match` header gives its scrutinee.
     MatchHeader
@@ -57,7 +57,7 @@ export ResolvedFile :: struct {
     /// via `Span.hash()`.
     idents:    Map<u64, Symbol>
     /// Locals nothing may rebind, and why : a `name :: ...` binding, or the
-    /// variable of a `for … in`. `name :=` ones don't appear here. Read by
+    /// variable of a `for ... in`. `name :=` ones don't appear here. Read by
     /// typecheck's check_assign for T3041.
     immutable_locals: Map<i32, ConstLocal>
     /// Locals, parameters and pattern bindings no assignment of the file rebinds,
@@ -74,14 +74,14 @@ export ResolvedFile :: struct {
     /// it. Any call may run that lambda, so a narrowing of one does not survive
     /// a call.
     closure_rebound: Set<i32>
-    /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
+    /// `Symbol.id -> bound TypeExpr` for every TypeParam minted with
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
     type_param_bounds: Map<i32, AST.Expr>
     /// Each trait's `Self` as its default bodies read it, by the trait's symbol id.
     trait_self_params: Map<i32, Symbol>
     /// R-code diagnostics emitted during body resolution
-    /// (unresolved ident, reserved name, …).
+    /// (unresolved ident, reserved name, ...).
     diags: Diagnostic[]
 }
 
@@ -108,7 +108,7 @@ export resolve_program :: fn(
 /// signature stays the declaration's.
 ///
 /// @param programs     the module's files.
-/// @param file_scopes  every file of the module, by `Program.file`, → its scope.
+/// @param file_scopes  every file of the module, by `Program.file`, -> its scope.
 /// @param module_path  the module's id in the project.
 /// @param factory      mints the locals.
 export resolve_module_programs :: fn(
@@ -183,7 +183,7 @@ ResolveState :: struct {
     ambiguous:        Map<string, string[]>
     /// The names of `ambiguous` only functions provide: no R2031 on a call.
     overloaded:       Set<string> = Set<string> {}
-    /// Every file of the module → its scope.
+    /// Every file of the module -> its scope.
     file_scopes:      Map<string, FileScope>
 }
 
@@ -236,7 +236,7 @@ bind_param :: fn(self: ResolveState, p: AST.FnParam) -> void {
 // local or a parameter already in scope (see `bind_local_checked`).
 warn_collision :: fn(self: ResolveState, name: string, at: Span) -> void {
     // `_` is the discard wildcard: many `_` bindings coexist by design
-    // (`for _ in …`, `_ :: expr`), so never flag it as a shadow / redeclaration.
+    // (`for _ in ...`, `_ :: expr`), so never flag it as a shadow / redeclaration.
     idx :: if name == "_" { -1 } else { self.scope.lookup_frame_index(name) }
     if idx <= 0 {
         return
@@ -659,7 +659,7 @@ walk_let :: fn(self: ResolveState, s: AST.LetStmt) -> void {
     }
 }
 
-// A `for … in` variable : a constant binding the loop alone gives a value each
+// A `for ... in` variable : a constant binding the loop alone gives a value each
 // turn, declared by no operator, so never a W0015 candidate.
 declare_loop_local :: fn(self: ResolveState, sym: Symbol) -> void {
     self.immutable_locals[sym.id] = .LoopVariable
@@ -681,8 +681,8 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding, out: Symbol[]) -> 
         is AST.SimpleBinding -> {
             sym :: self.bind_local_checked(.Local, b.name, b.name_span)
             // Park the Symbol against the binding's name_span so
-            // downstream passes (typecheck → let_type_aliases stash,
-            // lower → ident-to-binding lookup) can recover the
+            // downstream passes (typecheck -> let_type_aliases stash,
+            // lower -> ident-to-binding lookup) can recover the
             // local's Symbol.id without re-walking the body's scope.
             // Mirrors the Param / TypeParam pattern at the top of
             // this file (mint then index into `idents`).
@@ -711,7 +711,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
     match f :: s.form {
         is AST.InFor                      -> {
             match nv :: f.loop_var {
-                // `for [k, v] in …` binds each pattern leaf ; `for x in …` binds
+                // `for [k, v] in ...` binds each pattern leaf ; `for x in ...` binds
                 // the single var ; `for <range>` (DiscardVar) binds nothing.
                 // The minted Symbol is recorded in `idents` under the loop var's own
                 // span, as a fn param's is, so a later pass reaches it without
@@ -731,7 +731,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
                 is AST.DiscardVar     -> {}
             }
         }
-        // Neither header form binds a name; only `for x in …` does.
+        // Neither header form binds a name; only `for x in ...` does.
         is AST.InfiniteFor | AST.WhileFor -> {}
     }
     first_rebind :: self.rebind_log.len()
@@ -753,7 +753,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
 
 // ---- W0015 : a `:=` nothing reassigns -------------------------------------
 
-/// One `name := …` declaration awaiting proof that it is ever reassigned.
+/// One `name := ...` declaration awaiting proof that it is ever reassigned.
 ///
 /// The unit is the DECLARATION, not the name: `[a, b] := pair` carries a single
 /// `:=` for both, so reassigning either one justifies it.
@@ -958,7 +958,7 @@ walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
 
 walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {
     self.walk_expr(e.scrutinee)
-    // `match x :: e { … }`: one scope around every arm, minted AFTER the
+    // `match x :: e { ... }`: one scope around every arm, minted AFTER the
     // scrutinee is walked so `x` cannot refer to itself. Registered in `idents`
     // at the `x` token so the type-checker can find the symbol from the
     // MatchExpr alone (mirrors the param / type-param declarations above).

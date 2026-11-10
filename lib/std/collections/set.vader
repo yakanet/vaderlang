@@ -6,7 +6,7 @@
 module "std/collections"
 
 /// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
-/// `Map<T, bool>`: every member is stored as a `(T → true)` entry,
+/// `Map<T, bool>`: every member is stored as a `(T -> true)` entry,
 /// so lookups inherit the compact-map O(1)-average behaviour.
 export Set :: struct<T: Hash & Equals> {
     /// Backing map. Defaults empty so `Set<T> {}` is a valid literal.

@@ -105,7 +105,7 @@ export DebugController :: struct {
     /// Program write hook. `stream` is `0` = stdout, `STDERR_STREAM` = stderr (the
     /// VM's `.IoWrite` Stream tag) ; `text` is the raw payload.
     output_sink: fn(i32, string) -> void
-    /// Absolute file → set of 1-based breakpoint lines. Shared (by shallow
+    /// Absolute file -> set of 1-based breakpoint lines. Shared (by shallow
     /// copy) with the DAP layer, so `setBreakpoints` updates reach the VM.
     breakpoints: Map<string, Set<i32>>
     /// Invoked at a stop with the paused call stack ; blocks driving the DAP
@@ -158,8 +158,8 @@ export line_has_breakpoint :: fn(controller: DebugController, file: string, line
 
 /// Whether a bytecode local is a user-visible source variable (worth showing in
 /// the Variables view) rather than a compiler-synthesised temporary. Filters
-/// midir temps (`$…` : `$k_0`, `$call_14`, `$cast_8`) and lowering synthetics
-/// (`__…` : `__buf_0`, `__for_i_4`) plus the `if_res` match/if result slot.
+/// midir temps (`$...` : `$k_0`, `$call_14`, `$cast_8`) and lowering synthetics
+/// (`__...` : `__buf_0`, `__for_i_4`) plus the `if_res` match/if result slot.
 /// Uses byte comparison: a `"$"` string literal would open interpolation.
 ///
 /// @param name  the `BcLocal.name`.
@@ -212,7 +212,7 @@ mk_controller :: fn(bps: Map<string, Set<i32>>) -> DebugController = DebugContro
     assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 13), true)
     assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 20), true)
     assert_eq(line_has_breakpoint(c, "/tmp/a.vader", 14), false)
-    // Unknown file → no breakpoint.
+    // Unknown file -> no breakpoint.
     assert_eq(line_has_breakpoint(c, "/tmp/other.vader", 13), false)
 }
 

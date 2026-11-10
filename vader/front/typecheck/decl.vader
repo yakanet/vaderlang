@@ -11,7 +11,7 @@
 //     `validate_extern_types` once every module's structs are known.
 //   - Const-as-type-alias detection : an un-annotated const
 //     whose value is in type position registers an alias / distinct type
-//     (`is_type_expr` → `alias_for`) ; an annotated const gets
+//     (`is_type_expr` -> `alias_for`) ; an annotated const gets
 //     its annotated type ; an un-annotated value const stays un-typed at
 //     decl level (its literal type lands in `expr_types` at body time).
 //
@@ -150,7 +150,7 @@ declare_decl :: fn(
         is AST.ImportDecl    -> {}
     }
 }
-// ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
+// ImplDecl -> ImplRegistry (impls.vader). AssertDecl -> comptime only.
 // ImportDecl was wired by the resolver. No-op here for all three.
 
 // Index the symbol the resolver gave each type parameter `decl` declares, its
@@ -245,7 +245,7 @@ declare_fn :: fn(
         validate_main_thread(decl, diags)
     }
     // A bodyless top-level free fn becomes a host import (`lower/decl.vader`
-    // returns a null body → `call.import`). Host-ness must be *declared* :
+    // returns a null body -> `call.import`). Host-ness must be *declared* :
     // `@intrinsic` for a stdlib host binding, `@extern` for a foreign C symbol.
     // Without either, the import is unbound and traps at runtime, so require
     // the annotation here. Impl members and trait-method
@@ -273,7 +273,7 @@ declare_fn :: fn(
     check_public_fn_visibility(decl, params, return_type, diags)
 }
 
-/// The type parameters a `<…>` declares, as the parameters a signature
+/// The type parameters a `<...>` declares, as the parameters a signature
 /// quantifies over.
 ///
 /// @param params    the written parameters.

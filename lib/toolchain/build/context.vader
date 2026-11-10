@@ -11,7 +11,7 @@
 //     build :: fn(args: string[]) -> i32 {
 //         ctx :: new_build_context(args)
 //         ctx.add_entry("app", "src/main.vader")
-//         for msg in ctx.messages() { … }
+//         for msg in ctx.messages() { ... }
 //     }
 //
 // This file is the CONTRACT: what a driver fills in, and what it reads back.
@@ -149,7 +149,7 @@ export new_build_context :: fn(args: string[]) -> BuildContext {
     request :: parse_driver_request(args)
     // The driver runs from its project's `build/driver/`: probing beside
     // itself, the loader would miss the toolchain the CLI names, its `lib/`,
-    // its C runtime and a `$VADER_HOME/…` root included. Empty when the driver
+    // its C runtime and a `$VADER_HOME/...` root included. Empty when the driver
     // was run by hand, which leaves that probe as it is.
     register_toolchain_root(request.toolchain_root)
     ctx :: new_build_context_from(request)

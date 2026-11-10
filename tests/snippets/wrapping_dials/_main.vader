@@ -2,7 +2,7 @@
 // know : `@min(T)` and `@max(T)` read them, `x in T` narrows an `i64` into `T`, and
 // `T(x)` converts one, stopping the run outside. Its values are computed on as
 // `i64`, which a `T` widens into, so getting a `T` back takes one of the two :
-// `clamp_to` with `in`, `wrap_next` with `T(…)`. Each range is an instance of its
+// `clamp_to` with `in`, `wrap_next` with `T(...)`. Each range is an instance of its
 // own, a primitive too (`u8`).
 module "snippet"
 

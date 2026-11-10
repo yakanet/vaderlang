@@ -143,7 +143,7 @@ Skeleton :: struct {
     extra: i64 = 0
     /// How many arguments its calls pass, all calls together.
     arguments: i64 = 0
-    /// Extra root → the slot it starts in. A binding copies these roots rather than
+    /// Extra root -> the slot it starts in. A binding copies these roots rather than
     /// aliasing them ; a copy root starts in no slot. Null until a root is seeded.
     seeds: Map<i64, i64> | null = null
     /// What the task check reads besides the constraints: the names the body
@@ -968,7 +968,7 @@ test_evaluate_lends_anything_to_an_unknown_callee :: fn() -> void {
     s.add_site([AnyCallee {}], [null, second], UNSET, empty_span())
     out :: evaluated(s, test_ctx(t, []))
     assert_eq(out[0].accesses.len(), 0)
-    assert_eq(rendered(t, out, 1), "stored …, unknown …")
+    assert_eq(rendered(t, out, 1), "stored ..., unknown ...")
 }
 
 @test
@@ -981,7 +981,7 @@ test_evaluate_settles_a_slot_that_reads_itself :: fn() -> void {
     s.add_mark(cursor, ROOT, .Assigned, empty_span())
     assert_eq(
         rendered(t, evaluated(s, test_ctx(t, [])), 0),
-        "assigned , assigned .next, assigned .next.next, assigned .next.next.next…",
+        "assigned , assigned .next, assigned .next.next, assigned .next.next.next...",
     )
 }
 
@@ -1023,7 +1023,7 @@ test_evaluate_hands_an_unknown_function_value_anything :: fn() -> void {
     first: i64: 0
     s.add_site([CalleeNode { .node = 0 }], [first, null], UNSET, empty_span())
     facts :: [[hands_elements(t), ParamEffects {}]]
-    assert_eq(rendered(t, evaluated(s, test_ctx(t, facts)), 0), "stored []…, unknown []…")
+    assert_eq(rendered(t, evaluated(s, test_ctx(t, facts)), 0), "stored []..., unknown []...")
 }
 
 // Root 0 at `.bots[]`, held at `ITEM` below the value: an iterator over the bots.

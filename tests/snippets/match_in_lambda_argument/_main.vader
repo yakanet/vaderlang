@@ -1,7 +1,7 @@
 // A block passed as an argument separates its statements with newlines, as any
 // block does. The `match` below has two `is` arms and the next statement opens
 // with `[`: were the newlines inside the call's parentheses absorbed, the second
-// arm would read as `{ … } is Square` and the destructuring as an index of the
+// arm would read as `{ ... } is Square` and the destructuring as an index of the
 // line above.
 module "snippet"
 

@@ -1,4 +1,4 @@
-/// Decimal → float, correctly rounded. The mirror of `fmt_float`, and the other
+/// Decimal -> float, correctly rounded. The mirror of `fmt_float`, and the other
 /// half of a subsystem that was deliberately moved off the host: `parse_float`
 /// used to be `strtod` natively and a naive accumulator on the VM, and the two
 /// disagreed on real inputs. One pure-Vader implementation now serves both, which

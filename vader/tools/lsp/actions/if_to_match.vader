@@ -1,16 +1,16 @@
-// vader/tools/lsp/actions/if_to_match: the `if` → `match` rewrite action.
+// vader/tools/lsp/actions/if_to_match: the `if` -> `match` rewrite action.
 //
-// The inverse of match→if : an `if / else if / … / else` chain whose every
+// The inverse of match->if : an `if / else if / ... / else` chain whose every
 // condition discriminates the SAME identifier scrutinee collapses to a `match`.
-// Requires ≥ 2 conditions (so ≥ 3 arms: the inverse threshold of match→if's
-// ≤ 2, which keeps the two actions from offering a round-trip on the same node)
+// Requires >= 2 conditions (so >= 3 arms: the inverse threshold of match->if's
+// <= 2, which keeps the two actions from offering a round-trip on the same node)
 // and a final `else` (the `_` arm) so the match is exhaustive.
 //
 //   if x is A {             match x {
-//       …x…                     is A -> { …x… }
-//   } else if x == 0 {   →      0    -> { …0… }
-//       …0…                     _    -> { …e… }
-//   } else { …e… }          }
+//       ...x...                     is A -> { ...x... }
+//   } else if x == 0 {   ->      0    -> { ...0... }
+//       ...0...                     _    -> { ...e... }
+//   } else { ...e... }          }
 //
 // Lossy = refuse : a non-`is`/`==` condition, a different scrutinee in any
 // branch, or a missing final `else` all decline.
@@ -21,7 +21,7 @@ import "vader/tools/fmt"
 AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
 
-/// The if→match code action. Registered in `registry.vader::all_actions`.
+/// The if->match code action. Registered in `registry.vader::all_actions`.
 if_to_match_action :: fn() -> CodeAction = CodeAction {
     .kind          = "refactor.rewrite",
     .title         = "Convert if to match",
@@ -58,7 +58,7 @@ is_match_convertible :: fn(ifx: AST.IfExpr) -> bool {
     return chain_ok(ch)
 }
 
-// ≥ 2 conditions all discriminating the same identifier scrutinee on the left.
+// >= 2 conditions all discriminating the same identifier scrutinee on the left.
 chain_ok :: fn(ch: IfChain) -> bool {
     if ch.conds.len() < 2 { return false }
     name :: scrutinee_name(ch.conds[0])
@@ -130,7 +130,7 @@ build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr {
     }
 }
 
-// `x is T` → `is T` ; `x == v` → the literal pattern `v`.
+// `x is T` -> `is T` ; `x == v` -> the literal pattern `v`.
 cond_to_pattern :: fn(c: AST.BinaryExpr) -> AST.Pattern {
     if c.op == .Is {
         return AST.IsPattern { .span = c.span, .ty = c.right, .inner = null }
@@ -153,7 +153,7 @@ tif_find_if :: fn(decls: AST.Decl[]) -> AST.IfExpr | null {
     return null
 }
 
-// A two-condition chain with an `else`: the shape if→match converts.
+// A two-condition chain with an `else`: the shape if->match converts.
 CONVERTIBLE_IF_CHAIN :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
 
 @test
@@ -185,7 +185,7 @@ test_if_to_match_declines_two_branches :: fn() -> void {
         return
     }
     ctx :: ActionCtx { .source = src }
-    assert(!itm_applicable(ifx, ctx), "single condition stays in match→if territory")
+    assert(!itm_applicable(ifx, ctx), "single condition stays in match->if territory")
 }
 
 @test

@@ -40,7 +40,7 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
 }
 
 /// Every keyword's source text: the single list tooling consults for the
-/// keyword set (LSP completion, …). Kept in lock-step with `lookup_keyword` by
+/// keyword set (LSP completion, ...). Kept in lock-step with `lookup_keyword` by
 /// `test_keywords_match_lookup`. Excludes the `module` soft keyword, which
 /// `lookup_keyword` deliberately does not recognise (it is contextual).
 export KEYWORDS :: [

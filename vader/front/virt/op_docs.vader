@@ -21,7 +21,7 @@ OPS_REFERENCE :: @comptime {
     return read
 }
 
-// The one entry every conversion shares : `u64.to_i32`, `i64.to_f64`, …
+// The one entry every conversion shares : `u64.to_i32`, `i64.to_f64`, ...
 CONVERSION_KEY :: "<from>.to_<to>"
 
 // What a checked op's exact type is written as in its entry : `<type>.checked_add`.

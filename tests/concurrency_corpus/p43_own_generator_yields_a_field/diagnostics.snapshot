@@ -1,1 +1,1 @@
-[46:22] error[T3128] value written while a task uses it: the task launched at line 45 writes `level.bots[].pos…` (through `recenter`, which writes it at line 31) while this reads it ; move this after the join at line 47
+[46:22] error[T3128] value written while a task uses it: the task launched at line 45 writes `level.bots[].pos...` (through `recenter`, which writes it at line 31) while this reads it ; move this after the join at line 47

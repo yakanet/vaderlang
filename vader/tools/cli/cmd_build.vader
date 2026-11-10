@@ -544,7 +544,7 @@ unit_named :: fn(prog: CProgram, name: string) -> string | null {
     return null
 }
 
-// `<os>-<arch>,<os>-<arch>,…`, or null after naming what is wrong: a fragment that
+// `<os>-<arch>,<os>-<arch>,...`, or null after naming what is wrong: a fragment that
 // names no target, or no target at all.
 parse_target_list :: fn(spec: string) -> Target[] | null {
     out: Target[]: []

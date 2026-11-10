@@ -584,7 +584,7 @@ null_member :: fn(type: string, member: string) -> CExpression = pointer_member(
 )
 
 /// `extern <ret> <name>(<params>);` for an `@extern` import: foreign ABI
-/// types (`string` → `const char*`), declared once per distinct symbol.
+/// types (`string` -> `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
     parameters: CParameter[]: []
     for j in 0..<imp.signature.params.len() {
@@ -1020,7 +1020,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .StringEquals | .PrimIntEquals | .PrimDisplayToString | .NotIntrinsic -> {}
     }
     // User `@extern`: forward to the real C symbol ; everything else is a
-    // host fn the c-emit doesn't recognise (version skew) → trap loudly.
+    // host fn the c-emit doesn't recognise (version skew) -> trap loudly.
     if imp.is_extern {
         return user_extern_shim(imp, types)
     }

@@ -117,7 +117,7 @@ namespace_overloads :: fn(e: AST.FieldExpr, typed: TypedProgram) -> FnCandidate[
     return by_name[e.field]
 }
 
-// A callee several impls of one trait offer (`v.add(…)` with `Add<f64>` beside
+// A callee several impls of one trait offer (`v.add(...)` with `Add<f64>` beside
 // `Add<Vec2>`, `w.into()` with `Into<Label>` beside `Into<Tag>`) : the member the
 // call's first argument picks, or, for a member without one, the one whose result
 // fits `expected`. The pick is noted as the call's callee, which the lowering calls.
@@ -442,7 +442,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             return null
         }
     }
-    // Already in parameter order at full arity → nothing to reorder. A list this
+    // Already in parameter order at full arity -> nothing to reorder. A list this
     // function produced is in that shape, named arguments included : a call checked
     // again keeps its arguments.
     if c.args.len() == params.len() && in_parameter_order(params, c.args) {
@@ -923,7 +923,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
 /// what the lowerer reads to pick the buffer's element kind, so leaving it at
 /// `?[]` allocates a BOXED buffer while the widened local makes every read and
 /// write packed: a mismatch that corrupts silently once the buffer grows past
-/// its first allocation (`x := [] ; 9 × push(i)` read back `x[8] == 0`), or that
+/// its first allocation (`x := [] ; 9 x push(i)` read back `x[8] == 0`), or that
 /// a callee pushing into its `u8[]` parameter traps on.
 ///
 /// @param e        a read of the local ; anything else is left alone.
@@ -1013,7 +1013,7 @@ is_checked_conversion :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
 /// T3010 for an illegal conversion via the shared `cast_allowed` gate (same as
 /// `expr_cast.vader::infer_cast`).
 ///
-/// @error T3010 when a `(value → target)` pair is not a legal conversion
+/// @error T3010 when a `(value -> target)` pair is not a legal conversion
 ///        (`i32("hello")`, `bool(someStruct)`).
 cast_call_target :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     target :: cast_target_type(c, typed, diags)
@@ -1297,7 +1297,7 @@ repin_free_ufcs_receiver_at_instance :: fn(
 }
 
 /// The declaration a call's callee names: a bare or explicitly instantiated name
-/// (`f`, `f<…>`), through an import redirect, or a namespace-qualified `M.f`.
+/// (`f`, `f<...>`), through an import redirect, or a namespace-qualified `M.f`.
 /// Says nothing about overloads: `chosen_decl` holds the one typecheck picked.
 ///
 /// @param callee  the call's callee expression.
@@ -1376,7 +1376,7 @@ reject_indirect_callbacks :: fn(
 
 callee_name :: fn(callee: AST.Expr) -> string {
     // @partial: only ident / field callees carry a source name; any other callee
-    // shape is anonymous → the "<callee>" placeholder.
+    // shape is anonymous -> the "<callee>" placeholder.
     @partial match callee {
         is AST.IdentExpr -> { return callee.name }
         is AST.FieldExpr -> { return callee.field }
@@ -1565,7 +1565,7 @@ main :: fn() -> void { greet(42) }
                     found = true
                 }
             }
-            assert(found, "expected T3001 for int → string")
+            assert(found, "expected T3001 for int -> string")
         }
     }
 }

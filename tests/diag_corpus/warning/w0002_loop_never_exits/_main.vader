@@ -63,7 +63,7 @@ conditional :: fn() -> i32 {
 }
 
 // Quiet: the `??` fallback sits in an operand, since a compound assignment
-// desugars to `n = n + (… ?? break)`.
+// desugars to `n = n + (... ?? break)`.
 compound_break :: fn() -> i32 {
     n := 0
     for {

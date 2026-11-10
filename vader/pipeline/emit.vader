@@ -1,6 +1,6 @@
 // vader/pipeline/emit: the native link, and the `cc` flags every link shares.
 //
-// Bytecode → C → binary as one C unit plus the external runtime, one `cc`.
+// Bytecode -> C -> binary as one C unit plus the external runtime, one `cc`.
 // `split_build.vader` is the split form, and `output.vader` chooses between
 // them. Both live in the pipeline because a build driver produces output too,
 // and a link written once per caller is how flags drift: release opts, the

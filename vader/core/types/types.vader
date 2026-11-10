@@ -38,7 +38,7 @@ export EnumType :: struct {
     /// holding its ranks.
     repr:          MachineInteger
     /// What a variant stores, keyed by name : its written value, or for an enum
-    /// with variant data its rank (0, 1, 2… in declaration order).
+    /// with variant data its rank (0, 1, 2... in declaration order).
     indices:       Map<string, i64>
     /// The struct each variant carries a constant value of, from the header ;
     /// null for an enum without variant data.
@@ -65,7 +65,7 @@ export DistinctType :: struct {
     /// The underlying type the value is represented as. A primitive
     /// (`Meters :: i64`) or a composite: array (`BigInt :: u32[]`),
     /// struct, or tuple alias. Classifiers must recurse into it
-    /// (`val_type_of_type`, `array_backing`, `struct_backing`, …)
+    /// (`val_type_of_type`, `array_backing`, `struct_backing`, ...)
     /// rather than assume a primitive.
     backing: Type
 }
@@ -104,7 +104,7 @@ export ArrayType :: struct {
 }
 
 export TupleType :: struct {
-    /// Heterogeneous fixed-arity sequence (≥ 2 elements).
+    /// Heterogeneous fixed-arity sequence (>= 2 elements).
     elements: Type[]
 }
 
@@ -268,7 +268,7 @@ export is_free_numeric :: fn(t: Type) -> bool {
 /// concrete type to flow into downstream phases.
 export default_if_free :: fn(t: Type) -> Type {
     // @partial: only the three Free* literal variants default to a concrete
-    // primitive; every other type is already concrete → returned unchanged.
+    // primitive; every other type is already concrete -> returned unchanged.
     @partial match t {
         is FreeIntType   -> { return TY_I32 }
         is FreeFloatType -> { return TY_F64 }
@@ -429,7 +429,7 @@ export impl_base_key :: fn(t: Type) -> string {
     // (primitives, sentinels) are unique by their printed name.
     //
     // ArrayType collapses to the element-independent key `"[]"` so a CONCRETE
-    // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
+    // array (`BlockId[][]`) matches a blanket `T[] implements ...` impl (registered
     // under the same `"[]"` key) ; the param-named `"T[]"` would match no
     // concrete array. An impl on a concrete array (`i32[]`) registers under its
     // own key and is read first, and one on a partly generic array (`T[][]`) is
@@ -447,12 +447,12 @@ export impl_base_key :: fn(t: Type) -> string {
 
 /// The nominal symbol an impl written for `t` is keyed by ; null for
 /// shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
-/// Union, …). A distinct (newtype) is nominal, it carries its OWN impls
+/// Union, ...). A distinct (newtype) is nominal, it carries its OWN impls
 /// (`MyId implements Hash`), not the backing's, so it resolves to its own
 /// symbol.
 export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
     // @partial: only the three nominal variants carry an impl target symbol;
-    // every structural / primitive variant (Array, Fn, Union, …) carries none.
+    // every structural / primitive variant (Array, Fn, Union, ...) carries none.
     @partial match t {
         is StructType -> { return t.symbol }
         is EnumType -> { return t.symbol }
@@ -808,7 +808,7 @@ export strip_distinct :: fn(t: Type) -> Type {
 }
 
 /// The backing array of `t`: `t` itself when it's an array, or the array a
-/// distinct newtype wraps (`BigInt :: u32[]` → `u32[]`). `null` for anything
+/// distinct newtype wraps (`BigInt :: u32[]` -> `u32[]`). `null` for anything
 /// else. Lets the STRUCTURAL array ops (index, `len`/`push`, literal coercion,
 /// for-in) forward through an array-backed distinct newtype while its trait
 /// impls (operator overloads) stay nominal on the distinct's own key.
@@ -823,7 +823,7 @@ export array_backing :: fn(t: Type) -> ArrayType | null {
 }
 
 /// The backing struct of `t`: `t` itself when it's a struct, or the struct a
-/// distinct newtype wraps (`Color :: Rgb` → `Rgb`). `null` for anything else.
+/// distinct newtype wraps (`Color :: Rgb` -> `Rgb`). `null` for anything else.
 /// Lets the STRUCTURAL struct ops (field access, struct-literal construction)
 /// forward through a struct-backed distinct newtype while its trait impls
 /// (operator overloads) stay nominal on the distinct's own key.
@@ -837,7 +837,7 @@ export struct_backing :: fn(t: Type) -> StructType | null {
 }
 
 /// The backing tuple of `t`: `t` itself when it's a tuple, or the tuple a
-/// distinct newtype wraps (`Coord :: [i32, i32]` → `[i32, i32]`). `null` for
+/// distinct newtype wraps (`Coord :: [i32, i32]` -> `[i32, i32]`). `null` for
 /// anything else. Lets the STRUCTURAL tuple ops (positional `.0` access,
 /// literal construction, `[a, b]` destructure) forward through a tuple-backed
 /// distinct newtype while its trait impls stay nominal on the distinct's key.
@@ -849,7 +849,7 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
 
 /// The scalar `t` is : `t` itself when it is a primitive or an integer, or the
 /// scalar a distinct newtype wraps, through any number of distinct layers
-/// (`Handle :: CPointer` → `CPointer`). `null` for anything else : what `==`
+/// (`Handle :: CPointer` -> `CPointer`). `null` for anything else : what `==`
 /// compares two scalars through.
 export scalar_backing :: fn(t: Type) -> PrimitiveType | RangeType | null {
     if t is PrimitiveType | RangeType { return t }

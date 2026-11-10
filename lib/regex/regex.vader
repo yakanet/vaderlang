@@ -1,23 +1,23 @@
 // regex: Thompson NFA regex engine.
 //
 // Scope :
-//   * Literal bytes, `.`, escapes (`\n` / `\t` / `\r` / `\\` / `\.` …).
+//   * Literal bytes, `.`, escapes (`\n` / `\t` / `\r` / `\\` / `\.` ...).
 //   * Char classes : `[abc]`, `[^abc]`, `[a-z]` plus the `\d` / `\D` /
 //     `\w` / `\W` / `\s` / `\S` shorthands (ASCII-only).
 //   * Quantifiers : `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}`, all greedy.
 //   * Alternation `a|b`.
-//   * Groups `(…)`: every group captures, addressable by index 1..N.
+//   * Groups `(...)`: every group captures, addressable by index 1..N.
 //   * Anchors `^`, `$` (whole-input, not multiline).
 //
-// Not supported : non-greedy `*?`, named groups `(?<x>…)`,
-// backrefs `\1`, lookaround `(?=…)` / `(?!…)`, Unicode properties.
+// Not supported : non-greedy `*?`, named groups `(?<x>...)`,
+// backrefs `\1`, lookaround `(?=...)` / `(?!...)`, Unicode properties.
 //
 // Algorithm : Thompson VM (Cox, "Regular Expression Matching: the
 // Virtual Machine Approach"). Each compiled `Pattern` is an array of
 // `Inst` ops ; matching runs a BFS over a `Thread` set, and `add_thread`
 // deduplicates by pc within each step (the `seen` generation array), so a
 // step holds at most one thread per instruction. That per-pc dedup is what
-// makes the worst case O(n × m) (input length × program length), no
+// makes the worst case O(n x m) (input length x program length), no
 // catastrophic backtracking, and what bounds the epsilon-closure recursion
 // on cyclic programs like `(a*)*`. Captures use the `Save N` op writing the
 // current input offset into the thread's `groups` array.
@@ -40,7 +40,7 @@ export Pattern :: struct {
 
 /// A successful match. `start` and `end` are byte offsets into the
 /// input string (`end` exclusive). `groups[0]` is always the whole
-/// match ; `groups[i]` (1 ≤ i ≤ group_count) is the i-th capture, or
+/// match ; `groups[i]` (1 <= i <= group_count) is the i-th capture, or
 /// empty if the group never matched.
 export Match :: struct {
     start:  i64
@@ -119,7 +119,7 @@ Parser :: struct {
     insts:          Inst[]
     next_group_id:  i64
     // Current group-nesting depth. Bumped on each `(` descent and capped at
-    // MAX_GROUP_DEPTH so a pathological `(((…` can't overflow the parser's
+    // MAX_GROUP_DEPTH so a pathological `(((...` can't overflow the parser's
     // mutual recursion (would crash `compile` instead of returning RegexError).
     depth:          i64
 }
@@ -858,7 +858,7 @@ add_thread :: fn(
     gen: i64,
 ) -> void {
     // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain
-    // (e.g. the N chained `InstSplit` a `a?`×N pattern compiles to) recursed one
+    // (e.g. the N chained `InstSplit` a `a?`xN pattern compiles to) recursed one
     // frame per link and blew the stack (VM trap at 1024 frames) even though
     // `seen[]` bounds the total visit count. An explicit LIFO stack removes the
     // depth limit. Children are pushed in REVERSE of the recursive visit order so
@@ -1195,19 +1195,19 @@ import "std/testing"
 @test test_pathological_patterns_terminate :: fn() -> void {
     // Regression: without per-pc thread dedup in `add_thread`, `(a+)+c`
     // was exponential (ReDoS): this input took >20s at N=22. With the
-    // dedup the whole run is O(n × m).
+    // dedup the whole run is O(n x m).
     redos :: compile("(a+)+c")
     match redos {
         is Pattern -> {
-            assert(!redos.matches("aaaaaaaaaaaaaaaaaaaaaaaaaaaab"), "(a+)+c rejects a…b fast")
-            assert(redos.matches("aaaaaaaaaaaaaaaaaaaaaaaaaaaac"),  "(a+)+c matches a…c")
+            assert(!redos.matches("aaaaaaaaaaaaaaaaaaaaaaaaaaaab"), "(a+)+c rejects a...b fast")
+            assert(redos.matches("aaaaaaaaaaaaaaaaaaaaaaaaaaaac"),  "(a+)+c matches a...c")
         }
         is RegexError -> assert(false, "compile (a+)+c failed")
     }
 }
 
 @test test_deep_group_nesting_rejected :: fn() -> void {
-    // A pathological `(((…` must return RegexError, not overflow the parser's
+    // A pathological `(((...` must return RegexError, not overflow the parser's
     // mutual recursion (CR-h). 300 exceeds MAX_GROUP_DEPTH (200).
     sb :: StringBuilder {}
     for _ in 0..<300 { sb.append_char('(') }
@@ -1218,7 +1218,7 @@ import "std/testing"
 }
 
 @test test_long_optional_chain_matches :: fn() -> void {
-    // Regression for CR-i : a long acyclic epsilon chain (`a?`×N) overflowed
+    // Regression for CR-i : a long acyclic epsilon chain (`a?`xN) overflowed
     // add_thread's recursion (VM trapped at 1024 frames). The iterative closure
     // handles it, and the push/remove_last worklist stays bounded (owner
     // buf->length shrink in the runtime: no capacity-doubling detach).

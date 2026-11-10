@@ -51,7 +51,7 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
         })
         spilled
     }
-    // `match x :: e { … }` binds `x` to the ONE evaluation above: a binding of
+    // `match x :: e { ... }` binds `x` to the ONE evaluation above: a binding of
     // its own, not the match's own slot, because a lambda in an arm may capture
     // it and a captured binding is heap-promoted to a `Cell` while the pattern
     // predicates need the bare value.
@@ -230,7 +230,7 @@ pattern_predicate :: fn(
             // scrutinee temp: reusing it twice is the same shape the tuple /
             // struct predicates already rely on. Over a union the bounds carry
             // the variant they order, tested first : `target is i32 &&
-            // i32(target) >= lower && …`.
+            // i32(target) >= lower && ...`.
             lo :: lower_expr(ctx, pattern.lower)
             hi :: lower_expr(ctx, pattern.upper)
             ordered :: lo.type
@@ -259,7 +259,7 @@ pattern_predicate :: fn(
             return and_all(span, parts)
         }
         is OrPattern -> {
-            // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
+            // Disjunction of the alternatives' predicates : `p1 || p2 || ...`.
             // A null sub-predicate (an always-true alternative) collapses the
             // whole or-pattern to always-true.
             parts: LoweredExpr[]: []
@@ -306,7 +306,7 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
     // resolved the target's type.
     resolved :: unwrap_enum_type(target_type, ctx)
     // @partial: only EnumType carries variant indices; every other Type is
-    // unresolved here (earlier diagnostics apply) → unreachable.
+    // unresolved here (earlier diagnostics apply) -> unreachable.
     @partial match resolved {
         is EnumType -> {
             index :: resolved.indices[name] ?? return LoweredUnreachable {

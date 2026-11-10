@@ -1,4 +1,4 @@
-// The variable of a `for … in` is a constant binding, bound anew each turn : a
+// The variable of a `for ... in` is a constant binding, bound anew each turn : a
 // range counter, an array element, a fused chain's element and a destructured pair
 // are none of them rebound in the body. Changing what one designates is allowed,
 // and the condition form binds nothing : its `i` is an ordinary local.

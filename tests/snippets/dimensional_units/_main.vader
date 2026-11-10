@@ -53,7 +53,7 @@ main :: fn() -> i32 {
     later :: t0 + elapsed          // Instant, heterogeneous Add
     println("${i64(later)}")       // 1250
 
-    m :: Meters(3) + Meters(4)     // no Meters impl → i64 fallback
+    m :: Meters(3) + Meters(4)     // no Meters impl -> i64 fallback
     println("${m}")                // 7
     return 0
 }

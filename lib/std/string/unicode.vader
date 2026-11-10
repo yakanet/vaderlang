@@ -15,11 +15,11 @@ export MAX_CODEPOINT :: char(0x10FFFF)
 
 // ---- widths ---------------------------------------------------------------
 
-/// UTF-8 encoded byte length (1–4) of codepoint `c`, as `utf8_encode` writes it:
-///   - `U+0000..U+007F`     → 1 byte
-///   - `U+0080..U+07FF`     → 2 bytes
-///   - `U+0800..U+FFFF`     → 3 bytes
-///   - `U+10000..U+10FFFF`  → 4 bytes
+/// UTF-8 encoded byte length (1 to 4) of codepoint `c`, as `utf8_encode` writes it:
+///   - `U+0000..U+007F`     -> 1 byte
+///   - `U+0080..U+07FF`     -> 2 bytes
+///   - `U+0800..U+FFFF`     -> 3 bytes
+///   - `U+10000..U+10FFFF`  -> 4 bytes
 ///
 /// The width a `char` takes once encoded, not the width it was decoded from:
 /// `codepoint_at_byte` answers that one.

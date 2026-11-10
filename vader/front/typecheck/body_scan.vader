@@ -55,7 +55,7 @@ body_yields :: fn(fn_decl: AST.FnDecl) -> bool {
 /// @param n  the statement or expression to scan.
 export has_yield :: fn(n: AST.Node) -> bool = node_contains(n, BodyProbe { .kind = .Yield })
 
-/// True when `s` is an infinite `for { … }` that no `break` can leave.
+/// True when `s` is an infinite `for { ... }` that no `break` can leave.
 ///
 /// Only the `InfiniteFor` form qualifies. `for cond` and `for x in xs` both
 /// carry an exit edge, and deciding that one is never taken would need

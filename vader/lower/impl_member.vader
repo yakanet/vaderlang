@@ -45,7 +45,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// Build a call to a resolved impl member, OR inline its body when trivial.
 /// Only the identity `fn(self) = self` is inlined: the call collapses
 /// to the receiver (`args[0]`), eliminating the call (e.g. every `string`-part
-/// `${…}` interpolation's no-op `to_string`). All other members emit the direct
+/// `${...}` interpolation's no-op `to_string`). All other members emit the direct
 /// `LoweredCall`. The single hook every "resolve impl member + build call" site
 /// should route through.
 build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
@@ -61,7 +61,7 @@ build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: 
 // `seen_generic_impl_recv`. Called for every construction (`note_construction`)
 // and every impl-member call (`build_ufcs_member`).
 queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
-    // Distinct→backing on the receiver's args before keying/queuing: the
+    // Distinct->backing on the receiver's args before keying/queuing: the
     // queued instance must be the raw backing instance, not a separate
     // distinct one. Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(recv.args)
@@ -119,7 +119,7 @@ resolve_impl_member :: fn(
         if !decorators_have(decl.decorators, "intrinsic") {
             return member_or_instance(ctx, target_type, m, entry, own_args)
         }
-        // An `@intrinsic` fallback is bodyless → never an inlineable identity.
+        // An `@intrinsic` fallback is bodyless -> never an inlineable identity.
         if fallback == null { fallback = ImplMemberMatch { .entry = entry, .member = m } }
     }
     if fallback != null {
@@ -156,16 +156,16 @@ member_vtable_slot :: fn(trait_key: string, member: FnDecl) -> VtableSlot | null
 
 // The instance suffix of the member `entry` materialises for `target_type`. A
 // generic-struct receiver picks up the materialised member's instance suffix. The
-// materialiser erases the args to `Any` for generic impls (`Range<i32>` →
+// materialiser erases the args to `Any` for generic impls (`Range<i32>` ->
 // `count__Any`) so the shared erased body's sibling self-calls resolve to one
-// name ; an impl on one instance keeps the concrete suffix (`Wrapper<i32>` →
-// `count__i32`). Primitive receivers (`string implements Display`) have no args →
+// name ; an impl on one instance keeps the concrete suffix (`Wrapper<i32>` ->
+// `count__i32`). Primitive receivers (`string implements Display`) have no args ->
 // empty suffix. A member with type parameters of its own keeps the concrete args
 // (`member_instance`).
-// @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
+// @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none -> "".
 receiver_suffix :: fn(ctx: FnLowerCtx, entry: ImplEntry, target_type: Type) -> string =
     @partial match target_type {
-        // Generic impl : structure-free `__Any` × arity so the call-site name
+        // Generic impl : structure-free `__Any` x arity so the call-site name
         // matches the single deduped body regardless of the receiver's concrete
         // args (see `mixed_any_suffix`). Concrete-instantiation impls keep their
         // concrete args.
@@ -199,7 +199,7 @@ build_ufcs_member :: fn(
     //
     // The module prefix is the IMPL's owning module (`entry.module`), NOT the
     // caller's (`ctx`). For an impl like `string implements Display`
-    // reached from `println` in std/console, the mangle must read `std_core$…`,
+    // reached from `println` in std/console, the mangle must read `std_core$...`,
     // matching where the impl is declared / its surfaced decl is registered,
     // or the callee is unresolved at emit. Same-module user impls are unaffected
     // (entry.module == ctx's).
@@ -209,15 +209,15 @@ build_ufcs_member :: fn(
     suffix :: "${receiver_suffix(ctx, entry, target_type)}${entry.overload_suffix}"
     mangled :: impl_member_name(entry.module, target_type, entry.trait_symbol, member.name, suffix)
     // Record the call so the post-lowering pass surfaces referenced stdlib impl
-    // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
-    // implements Hash -> u64(self)`) → materialised real fn.
+    // members : bodyless (`@intrinsic`) -> import ; with-body (e.g. `i32
+    // implements Hash -> u64(self)`) -> materialised real fn.
     ctx.project.referenced_impl_mangles.add(mangled)
     note_member_origin(ctx, mangled, member, entry.trait_key)
-    // Array impl (`T[] implements Contains` / `Into`, `MonType[] implements …`) :
+    // Array impl (`T[] implements Contains` / `Into`, `MonType[] implements ...`) :
     // the generic-impl materialiser is struct-instance-driven and never reaches an
     // array receiver, so record the element type and the member keyed by this
     // call-site mangle. `surface_array_impl_members` materialises one concrete
-    // body per element (substituting `T → element`, so e.g. `contains`'s `==`
+    // body per element (substituting `T -> element`, so e.g. `contains`'s `==`
     // devirtualises).
     if target_type is ArrayType {
         ctx.project.array_member_uses[mangled] = ArrayMemberUse {
@@ -589,7 +589,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
     arg :: lower_expr(ctx, call.args[0].value)
     // `Target(value)` runs the `into` the typecheck recorded at `value` when
     // `Source implements Into<Target>` ; the numeric-primitive cast then wraps the
-    // converted value (`cast → i32 / call into(u)`).
+    // converted value (`cast -> i32 / call into(u)`).
     inner :: prepare_into(ctx, call.args[0].value, arg, type, call.span)
     if type is PrimitiveType {
         n :: type.name

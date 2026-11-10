@@ -71,7 +71,7 @@ ReturnShape :: struct {
     forward_to: string | null = null
 }
 
-// Mangle → the shape its return now carries.
+// Mangle -> the shape its return now carries.
 //
 // The TYPE walk comes FIRST and alone: both gates read `f.return_type` and
 // nothing else, so a project whose functions return neither a tuple nor a
@@ -328,7 +328,7 @@ drop_records_touching :: fn(built: Map<i32, LocalId[]>, local: LocalId) -> void 
     }
 }
 
-// `_0` → 0. Negative when the name is not a tuple position.
+// `_0` -> 0. Negative when the name is not a tuple position.
 tuple_field_index :: fn(field: string) -> i32 {
     if !field.starts_with("_") {
         return -1

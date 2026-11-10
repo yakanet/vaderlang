@@ -1,4 +1,4 @@
-// A `for … in` over a collection whose ELEMENTS are themselves nullable.
+// A `for ... in` over a collection whose ELEMENTS are themselves nullable.
 //
 // `Iterator.next` hands back `T | Stop`, and only `Stop` says the iteration is
 // over, so a yielded `null` is just an element.

@@ -147,7 +147,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
 }
 
 // Read `file` for a dump stage. Returns the contents on success or
-// null after writing the canonical "vader: cannot read …" line to
+// null after writing the canonical "vader: cannot read ..." line to
 // stderr: every stage that consumes a source file shares this path.
 read_source :: fn(file: Path) -> string | null {
     src_or_err :: read_file_string(file.as_string())
@@ -362,7 +362,7 @@ run_ranges_stage :: fn(
     return 0
 }
 
-/// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
+/// Lowered IR plus the few bits the CFG -> bytecode tail still needs, with the
 /// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
 /// `LoweredProject` carries a static `Type` on every expression (see
 /// `vader/lower/ir/lowered_ast.vader`), so nothing here references the typecheck
@@ -554,7 +554,7 @@ run_targets_stage :: fn(file: Path, target: Target | null, project_root: string 
     //
     // It is also the only observable for a target this machine cannot run.
     // `# Selected body` answers "which body"; the constants have no other trace
-    // until the emitted C, where both branches of an `if VADER_OS == …` survive
+    // until the emitted C, where both branches of an `if VADER_OS == ...` survive
     // in the atom table and the folded one is indistinguishable.
     println("# Baked")
     baked :: project.modules[BAKED_FOLDER]

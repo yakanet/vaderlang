@@ -7,7 +7,7 @@
 // field / alias / const / enum types, decorator args. Then BFS from the roots
 // (`export`-visible decls, `main`, `@test` / `@extern` / `@intrinsic`, every
 // `impl` member, `@assert`); a PRIVATE top-level decl whose name is never reached
-// is dead → W0007.
+// is dead -> W0007.
 //
 // `dead_exports` (W0012, at the bottom) reuses the very same collectors and BFS,
 // but merges EVERY module's decls and drops the `export`-is-a-root clause, so a
@@ -246,11 +246,11 @@ export check_dead_code :: fn(
     }
 }
 
-// The `__comptime_NAME` fn behind a `NAME :: @comptime …` const: its refs count,
+// The `__comptime_NAME` fn behind a `NAME :: @comptime ...` const: its refs count,
 // but only the const, which the user wrote, is reported.
 is_comptime_helper :: fn(d: AST.Decl) -> bool = d is AST.FnDecl && d.comptime_synthetic
 
-// Append `refs` to the edge set for `name` (overloads share a name → merge).
+// Append `refs` to the edge set for `name` (overloads share a name -> merge).
 register_refs :: fn(m: Map<string, string[]>, name: string, refs: string[]) -> void {
     // A name met first takes `refs` itself.
     cur :: m.put_absent(name, refs) ?? return
@@ -448,14 +448,14 @@ dead_count_in :: fn(src: string, module_name: string) -> i64 {
 
 @test
 test_flags_unreachable_private :: fn() -> void {
-    // `helper` is private and reached by nothing → flagged.
+    // `helper` is private and reached by nothing -> flagged.
     src :: "module \"t\"\nhelper :: fn() -> i32 = 1\nmain :: fn() -> i32 = 0\n"
     assert_eq(dead_count(src), 1)
 }
 
 @test
 test_keeps_reachable_private :: fn() -> void {
-    // `helper` is reached from `main` → not flagged.
+    // `helper` is reached from `main` -> not flagged.
     src :: "module \"t\"\nhelper :: fn() -> i32 = 1\nmain :: fn() -> i32 = helper()\n"
     assert_eq(dead_count(src), 0)
 }
@@ -469,7 +469,7 @@ test_exported_is_root :: fn() -> void {
 
 @test
 test_transitive_dead_flags_both :: fn() -> void {
-    // `a` references `b`, but nothing live reaches `a` → both are dead. A plain
+    // `a` references `b`, but nothing live reaches `a` -> both are dead. A plain
     // "has a caller" check would wrongly spare `b`; root-reachability flags both.
     src :: "module \"t\"\na :: fn() -> i32 = b()\nb :: fn() -> i32 = 2\nmain :: fn() -> i32 = 0\n"
     assert_eq(dead_count(src), 2)

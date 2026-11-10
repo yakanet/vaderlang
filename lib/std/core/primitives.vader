@@ -184,7 +184,7 @@ export write_bool :: fn(self: Buffer, off: i64, b: bool) -> i64 {
     return self.write_string_at(off, "false")
 }
 
-/// Materialise a `string` from verbatim UTF-8 bytes: the canonical bytes→string
+/// Materialise a `string` from verbatim UTF-8 bytes: the canonical bytes->string
 /// primitive (inverse of `bytes`). Host intrinsic backed by `vader_string_as_string`
 /// (the runtime symbol kept its name) ; O(1) on a borrowed `bytes()` slice, O(n) on
 /// a packed array, no UTF-8 validation.
@@ -193,7 +193,7 @@ export write_bool :: fn(self: Buffer, off: i64, b: bool) -> i64 {
 @intrinsic export bytes_to_string :: fn(bs: u8[]) -> string
 
 /// Borrow the UTF-8 bytes of a string as a read-only `u8[]` view: the canonical
-/// string→bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
+/// string->bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
 /// by `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
 /// view of the interned bytes on native, read in place on the VM until a write
 /// copies it. To read a string's bytes, `byte_len`, `byte_at` and `byte_slice` take
@@ -218,17 +218,17 @@ null   implements Display -> "null"
 f32 implements Display -> format_f32(self)
 f64 implements Display -> format_f64(self)
 
-// ---- bit reinterpret (float ↔ raw IEEE bits) ------------------------------
+// ---- bit reinterpret (float <-> raw IEEE bits) ------------------------------
 //
 // Distinct from the numeric `u64(x)` / `f64(b)` casts (which convert the VALUE).
-// `@intrinsic` → the `F64ToBits` / `BitsToF64` opcodes (a `union` cast in C, no
+// `@intrinsic` -> the `F64ToBits` / `BitsToF64` opcodes (a `union` cast in C, no
 // runtime symbol). Foundation for the pure-Vader shortest-double formatter
 // and the VM's `LoadF64` byte codec.
 
-@intrinsic f64 implements FloatBits     // → F64ToBits
-@intrinsic u64 implements BitsFloat     // → BitsToF64
-@intrinsic f32 implements Float32Bits   // → F32ToBits
-@intrinsic u32 implements Bits32Float   // → BitsToF32
+@intrinsic f64 implements FloatBits     // -> F64ToBits
+@intrinsic u64 implements BitsFloat     // -> BitsToF64
+@intrinsic f32 implements Float32Bits   // -> F32ToBits
+@intrinsic u32 implements Bits32Float   // -> BitsToF32
 
 // ---- Equals ---------------------------------------------------------------
 

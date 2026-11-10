@@ -3,7 +3,7 @@
 // This is the sole producer of the `lexer.snapshot` fixtures ; the output
 // format is stable so the snapshot suite can diff it against them.
 //
-// Lives in the lexer module rather than the CLI : the TokenKind→snake_case
+// Lives in the lexer module rather than the CLI : the TokenKind->snake_case
 // table belongs next to the enum it indexes, and the dump is a primitive
 // other front-ends (LSP, formatter, future tools) will want to reuse.
 
@@ -83,7 +83,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
     }
 }
 
-// TokenKind → its snake_case name, used by the dump so output stays stable.
+// TokenKind -> its snake_case name, used by the dump so output stays stable.
 // Public so the
 // parser's `describe_token` can reuse it (folder-modules ignore `private`
 // across files but the explicit visibility documents intent).

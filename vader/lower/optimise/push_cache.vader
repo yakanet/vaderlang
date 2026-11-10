@@ -15,7 +15,7 @@
 //
 // It marks the PUSH, not the loop. The structured loop does not survive `midir`
 // (`cf_loop` rebuilds an op from a CFG back edge), while a push travels intact
-// as `LoweredArrayPush → InstrArrayPush → ArrayPush`. Where to put the lifted
+// as `LoweredArrayPush -> InstrArrayPush -> ArrayPush`. Where to put the lifted
 // locals is a backend question anyway: a C local and a wasm local are not the
 // same thing, so the split is: this pass proves it is SAFE, the backend decides
 // where the state lives.

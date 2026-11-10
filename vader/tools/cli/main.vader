@@ -153,11 +153,11 @@ reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
 // program wants: `positionals[0]` is the path (which the program skips as its
 // own argv[0]) and the rest is its tail, untouched.
 
-// Compile a `.vader` source through load → typecheck → comptime → lower →
-// CFG → bytecode (the same path as `dump --stage=bytecode`), then execute
+// Compile a `.vader` source through load -> typecheck -> comptime -> lower ->
+// CFG -> bytecode (the same path as `dump --stage=bytecode`), then execute
 // the result on the VM. The emitted `BytecodeModule` round-trips through
 // `dump_bytecode` / `parse_virt_bc`: the in-memory equivalent of
-// `vader dump --stage=bytecode … | vader run`: preserving the exact `.virt`
+// `vader dump --stage=bytecode ... | vader run`: preserving the exact `.virt`
 // behaviour the VM corpus is validated against.
 
 // Resolve the VM entry index for `vader run <file>`. The default entry is the

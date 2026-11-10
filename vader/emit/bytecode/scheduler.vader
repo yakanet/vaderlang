@@ -11,7 +11,7 @@
 //   - `cur` is the immediately-preceding instruction of `next`.
 //   - `cur.dst` matches `next`'s first stack-pushed operand.
 //
-// Same shape for last-instruction → terminator with Return.value /
+// Same shape for last-instruction -> terminator with Return.value /
 // CondBranch.cond.
 //
 // Instructions are keyed by position (`pos_key`, `vader/midir/cfg.vader`).
@@ -46,7 +46,7 @@ schedule_stack :: fn(fn_: CFGFunction) -> ScheduleHints {
             hints.skip_set.add(pos_key(b.id, i))
             hints.skip_first_get.add(pos_key(b.id, i + 1))
         }
-        // Last instruction → terminator. Same single-use condition,
+        // Last instruction -> terminator. Same single-use condition,
         // but the consumer is whatever the terminator reads first.
         if b.instructions.len() == 0 { continue }
         last_idx :: b.instructions.len() - 1

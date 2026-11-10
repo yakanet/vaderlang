@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/console"
 
-// A lambda inside an arm captures the `match x :: …` binding. Nothing can rebind
+// A lambda inside an arm captures the `match x :: ...` binding. Nothing can rebind
 // it, so the env holds a copy of its value, and the lambda of each arm reads it
 // narrowed to that arm's type.
 

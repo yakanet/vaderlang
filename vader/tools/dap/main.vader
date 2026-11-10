@@ -60,7 +60,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
     // closures so response / event / program-output frames all draw from one
     // counter.
     seq_cell: i32[]: [0]
-    // Breakpoints : absolute file → set of 1-based lines. Populated by
+    // Breakpoints : absolute file -> set of 1-based lines. Populated by
     // `setBreakpoints` BEFORE `configurationDone`, then handed to the VM inside
     // the `DebugController` (shared by reference, so mid-pause `setBreakpoints`
     // reaches the VM too).
@@ -145,8 +145,8 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: Map<string, Set
         close_session(seq_cell, 1)
         return
     }
-    // Route every program write to an `output` event: stdout → category
-    // "stdout", stderr → "stderr". Captures `seq_cell` by cell.
+    // Route every program write to an `output` event: stdout -> category
+    // "stdout", stderr -> "stderr". Captures `seq_cell` by cell.
     sink :: fn(stream: i32, text: string) -> void {
         category :: if stream == 0 { "stdout" } else { "stderr" }
         emit_output(seq_cell, category, text)
@@ -222,8 +222,8 @@ answer_until_disconnect :: fn(seq_cell: i32[]) -> void {
 // Driven from inside the VM (`DebugController.on_pause`) when execution stops.
 // Emits `stopped`, then blocks handling DAP requests (stackTrace / scopes /
 // variables / threads / setBreakpoints) until the client resumes, and returns
-// the `StepMode` the resume command maps to (`continue` → Continue, `next` →
-// StepOver, `stepIn` → StepInto, `stepOut` → StepOut ; `disconnect` / EOF →
+// the `StepMode` the resume command maps to (`continue` -> Continue, `next` ->
+// StepOver, `stepIn` -> StepInto, `stepOut` -> StepOut ; `disconnect` / EOF ->
 // Continue so the program runs to its end).
 run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: Map<string, Set<i32>>) -> StepMode {
     emit_stopped(seq_cell, ctx)
@@ -248,7 +248,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: Map<string, Set<i32>>)
             respond(seq_cell, request_seq, command, true, variables_body(view, reference))
         } else if command == "evaluate" {
             // Hover / Watch / REPL : resolve a bare identifier against the named
-            // frame's locals. Unknown expression → `success: false` so the editor
+            // frame's locals. Unknown expression -> `success: false` so the editor
             // shows nothing rather than a bogus value.
             args :: get_field(msg, "arguments")
             frame_id :: get_number(args, "frameId")
@@ -521,14 +521,14 @@ stop_line :: fn(message: string) -> string {
 }
 
 // Display name for a stack frame : the tail after the last `$` of the mangled
-// name (`snippet$main` → `main`), or the whole name when it carries no `$`.
+// name (`snippet$main` -> `main`), or the whole name when it carries no `$`.
 // Uses a char literal (not a `"$"` string: a bare `$` opens interpolation).
 display_fn_name :: fn(mangled: string) -> string {
     idx :: mangled.last_index_of('$') ?? return mangled
     return mangled.byte_slice(idx + 1, mangled.byte_len())
 }
 
-// Final path segment (`/a/b/c.vader` → `c.vader`) for the `source.name`.
+// Final path segment (`/a/b/c.vader` -> `c.vader`) for the `source.name`.
 basename :: fn(path: string) -> string {
     parts :: path.split("/")
     if parts.len() == 0 { return path }

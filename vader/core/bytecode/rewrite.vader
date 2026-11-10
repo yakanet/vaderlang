@@ -46,7 +46,7 @@ export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: i64) ->
 /// branch lands on. Shared by `run_bc_peephole`, `strip_self_copies` and the
 /// VM's translation to register code (`vader/vm/reg_translate.vader`).
 ///
-/// @param jump_table  the function's PC→target table.
+/// @param jump_table  the function's PC->target table.
 /// @param n           body length (bitmap size).
 /// @return            length-`n` bool array, `true` at each branch target.
 export mark_jump_targets :: fn(jump_table: i32[], n: i64) -> bool[] {

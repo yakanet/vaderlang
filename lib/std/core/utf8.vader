@@ -28,7 +28,7 @@ export is_utf8_continuation :: fn(b: u8) -> bool = (b & 0xC0) == 0x80
 /// interning via `bytes_to_string` or appending into a byte buffer.
 /// `codepoint_at_byte` reads back what this writes.
 /// @param c  the codepoint to encode.
-/// @return   the 1–4 UTF-8 bytes encoding `c`.
+/// @return   the 1 to 4 UTF-8 bytes encoding `c`.
 export utf8_encode :: fn(c: char) -> u8[] {
     cp :: u32(c)
     if cp < 0x80 {

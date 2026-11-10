@@ -37,7 +37,7 @@ export NamedText :: struct {
     names: WrittenName[]
 }
 
-/// Longest const, field or variant head shown before it is cut with ` …` : a
+/// Longest const, field or variant head shown before it is cut with ` ...` : a
 /// table written over many lines is a value, not a signature. A union alias is
 /// never cut: its `|` chain IS the signature.
 HEAD_VALUE_MAX: i64: 120
@@ -115,7 +115,7 @@ export format_spread_head :: fn(source: string, s: p.StructSpread) -> NamedText 
 }
 
 /// Render an enum variant's head on one line : `Name`, `Name = 3`,
-/// `Name { .id = "T3009", .message = "…" }`.
+/// `Name { .id = "T3009", .message = "..." }`.
 ///
 /// @param source  the document the variant's spans index into.
 /// @param v       the variant.
@@ -221,7 +221,7 @@ export format_decl_display :: fn(source: string, d: p.Decl, width: i64) -> strin
         lines[lines.len() - 1] = lines[lines.len() - 1] + " {"
         for i in 0..<members.len() {
             if i == DISPLAY_MEMBERS_MAX {
-                lines.push("    // … ${members.len() - i} more")
+                lines.push("    // ... ${members.len() - i} more")
                 break
             }
             lines.push("    " + members[i])
@@ -351,7 +351,7 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> NamedText {
     return cut_head(h.finish_named(), HEAD_VALUE_MAX)
 }
 
-// `head` kept to its first line and to `limit` bytes, a cut marked ` …`, with the
+// `head` kept to its first line and to `limit` bytes, a cut marked ` ...`, with the
 // names that end before the cut. A block value (a lambda body) still breaks lines
 // in flat mode, hence the first line. The cut backs off to a UTF-8 lead byte, so
 // it never splits a character.
@@ -368,7 +368,7 @@ cut_head :: fn(head: NamedText, limit: i64) -> NamedText {
         }
     }
     return NamedText {
-        .text = text.byte_slice(0, end).trim() + " …",
+        .text = text.byte_slice(0, end).trim() + " ...",
         .names = head.names.filter((n: WrittenName) -> n.end <= end).collect(),
     }
 }
@@ -465,7 +465,7 @@ test_head_cut_keeps_the_names_before_the_cut :: fn() -> void {
 @test
 test_head_long_value_is_cut :: fn() -> void {
     head :: head_of(long_table("1000", 41))
-    assert(head.ends_with(" …"), "a long table value is cut")
+    assert(head.ends_with(" ..."), "a long table value is cut")
     assert(head.byte_len() <= HEAD_VALUE_MAX + 4, "the cut keeps the limit")
 }
 
@@ -506,7 +506,7 @@ test_display_long_member_list_is_counted :: fn() -> void {
         variants.append("    V${i},\n")
     }
     display :: display_of("Big :: enum {\n${variants.to_string()}}", 60)
-    assert(display.contains("    V15,\n    // … 4 more\n}"), "the list stops after the cap")
+    assert(display.contains("    V15,\n    // ... 4 more\n}"), "the list stops after the cap")
     assert(!display.contains("V16"), "nothing past the cap is shown")
 }
 

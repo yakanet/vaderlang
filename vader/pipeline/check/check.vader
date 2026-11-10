@@ -131,7 +131,7 @@ export FileCheck :: struct {
 /// diagnostic the pipeline produced.
 ///
 /// @param entry_path   the entry file's filesystem path.
-/// @param overlay      filesystem path → unsaved source text, consulted before
+/// @param overlay      filesystem path -> unsaved source text, consulted before
 ///                     the disk ; pass an empty map for on-disk CLI behaviour
 ///                     (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
 /// @param project_root the project the entry belongs to, null for a file on its

@@ -9,7 +9,7 @@
 // no decl is pending (`evaluate_layer`), it:
 //
 //   1. stages the modules owning the pending decls to bytecode (a throwaway
-//      lower → cfg → emit). A pending const is still un-baked, so `lower` inlines
+//      lower -> cfg -> emit). A pending const is still un-baked, so `lower` inlines
 //      its RHS call `f()` at each use site, which makes the callee `f` reachable
 //      and lowered (see `lower/inline_consts.vader`);
 //   2. runs `f` via `exec_comptime_value` and bridges the result `Value` into a
@@ -104,7 +104,7 @@ evaluate_layer :: fn(
         }
         return []
     }
-    // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so its
+    // Not lowered => the const is unused (nothing inlined its RHS call), so its
     // value is genuinely unneeded: skip it silently.
     lowered: Ct.VmRequiredDecl[]: []
     callees: string[]: []

@@ -94,7 +94,7 @@ is_ident_continue :: fn(c: char) = c.is_alphanumeric() || c == '_'
 
 // SPEC §3 newline-suppression set: operators / separators after which a
 // physical newline is NOT a statement terminator.
-// @partial: only the listed operators/separators suppress a following newline; every other token → false.
+// @partial: only the listed operators/separators suppress a following newline; every other token -> false.
 suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     // `T ::\n    A | B | C`: `.DeclConst` / `.DeclVar` let the RHS of a `::` /
     // `:=` binding wrap onto the next line, mirroring the pipe / arrow
@@ -115,7 +115,7 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
 //   T ::            cond := a == 1          name :: first_name(user)
 //       | A             && b == 2               ?? "anonymous"
 // A compound assignment (`+=`) lexes as its own kind, so it is never one.
-// @partial: only the infix-only operators continue a line; every other token → false.
+// @partial: only the infix-only operators continue a line; every other token -> false.
 continues_previous_line :: fn(k: TokenKind) = @partial match k {
     .Plus | .Star | .Slash | .Percent | .Caret | .QuestionQuestion | .Eq | .Neq | .Same
         | .NotSame | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe

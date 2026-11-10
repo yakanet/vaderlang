@@ -1,10 +1,10 @@
 // vader/tools/lsp/protocol/position: LSP position geometry + params extraction.
 //
 // The JSON encoders for the LSP `Position` / `Range` / `Location` shapes, plus
-// the params-object readers every position-bearing request shares. The byte ↔
+// the params-object readers every position-bearing request shares. The byte <->
 // (line, character) conversion itself lives in `line_index.vader` : a `LineIndex`
 // counts `character` offsets in the encoding negotiated at `initialize`
-// (`general.positionEncodings`, LSP 3.17+, see `lifecycle.vader`). `Span`→range
+// (`general.positionEncodings`, LSP 3.17+, see `lifecycle.vader`). `Span`->range
 // encoding therefore takes the span's own `LineIndex` so cross-file results
 // (goto-def / references) count in the right file's text.
 //
@@ -208,7 +208,7 @@ import "std/testing"
 
 @test
 test_span_to_range_utf8 :: fn() -> void {
-    // "café x" : span [0, 6) → end char 6 (bytes) under utf-8.
+    // "café x" : span [0, 6) -> end char 6 (bytes) under utf-8.
     li :: new_line_index("café x", .Utf8)
     sp :: Span {
         .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
@@ -221,7 +221,7 @@ test_span_to_range_utf8 :: fn() -> void {
 
 @test
 test_span_to_range_utf16_astral :: fn() -> void {
-    // "a😀b" : 'b' at byte 5 → utf-16 character 3 (😀 counts 2).
+    // "a😀b" : 'b' at byte 5 -> utf-16 character 3 (😀 counts 2).
     li :: new_line_index("a😀b", .Utf16)
     sp :: Span {
         .start = Position { .file = "t", .offset = 5, .line = 1, .column = 3 },

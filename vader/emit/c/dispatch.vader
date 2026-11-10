@@ -9,10 +9,10 @@
 // There used to be a second: per-tag slot tables (`vt_<typeIdx>` +
 // `vader_vtable_table[]`) behind a generic `vader_virtual_dispatch(tag, slot)`
 // helper. Removed 2026-07-28: the helper had no caller anywhere, so the tables
-// were 33 × 64 pointers plus a 561-entry index, ~21 KB of dead data in every
+// were 33 x 64 pointers plus a 561-entry index, ~21 KB of dead data in every
 // binary. They kept nothing alive either: the 34 functions they addressed are all
 // called elsewhere. With them went the slot registry (the pinned `Hash.hash`=0 /
-// `Equals.equals`=1 / … numbering) that existed only to lay them out.
+// `Equals.equals`=1 / ... numbering) that existed only to lay them out.
 //
 // The runtime half went with it a commit later, once a seed that no longer emits
 // the tables was committed: `vader.h` had to keep declaring `vader_vtable_t`
@@ -106,7 +106,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 }
 
 /// Emit one dispatch helper per `(trait.method)` : `static <ret>
-/// <key>$$dispatch(vader_box_t recv, …)` switching on `recv.tag` and
+/// <key>$$dispatch(vader_box_t recv, ...)` switching on `recv.tag` and
 /// forwarding to the matching impl. Each arm unboxes args to the impl's
 /// concrete signature ; when the dispatcher returns `any` but the impl
 /// returns a primitive or a raw concrete ref, the result is re-boxed.
@@ -120,7 +120,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         cases: CCase[]: []
         // A distinct (newtype) over a primitive shares its backing's runtime
         // tag, so several entries can map to one tag (e.g. i32 + a distinct
-        // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
+        // BlockId/LocalId -> tag 4). Emit one `case` per tag : the first (the
         // backing's, whose delegating impl is equivalent) wins. Without this
         // the C carries a `duplicate case value`.
         seen_tags: i32[]: []

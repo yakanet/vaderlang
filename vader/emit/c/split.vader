@@ -5,7 +5,7 @@
 // module re-routes the SAME section emitters into a shared header plus N
 // compilation units so an outer driver can `cc -c` them in parallel and link.
 //
-// Layout (one program → several files) :
+// Layout (one program -> several files) :
 //   - `<base>.h`: every cross-TU declaration : struct typedefs / bodies,
 //                     fn-sig typedefs, the EXTERNAL fn / dispatcher / closure
 //                     prototypes, the import shims themselves (`static inline`,
@@ -17,7 +17,7 @@
 //   - `<base>.g.c`: the data-global DEFINITIONS : atom table, data pool,
 //                     type-info table. Pure data, no code.
 //   - `<base>.<k>.c`: the function bodies, partitioned into N buckets by body
-//                     size in mangle-sorted order (deterministic → stable for
+//                     size in mangle-sorted order (deterministic -> stable for
 //                     the bootstrap fixed point). Unit 0 also carries the
 //                     trampolines, dispatchers, and `main`.
 //   - the foreign units (`foreign_unit_of`): one per `CLibrary`
@@ -122,7 +122,7 @@ export GLOBALS_UNIT :: "_globals"
 export IMPORTS_HEADER_SUFFIX :: ".imports.h"
 
 /// Basename of the imports header for a shared header called `header_name`
-/// (`foo.split.h` → `foo.imports.h`).
+/// (`foo.split.h` -> `foo.imports.h`).
 ///
 /// @param header_name  basename of the shared header.
 /// @return             basename of the imports header beside it.
@@ -271,7 +271,7 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 ///   - called by a function in another unit.
 ///
 /// @param m              the module being emitted.
-/// @param buckets        unit → function indices, from `partition_functions`.
+/// @param buckets        unit -> function indices, from `partition_functions`.
 /// @param entry_mangled  mangled name of the entry fn, `""` when there is none.
 /// @return               flags parallel to `m.functions`.
 internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: string) -> bool[] {

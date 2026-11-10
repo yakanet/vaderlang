@@ -6,7 +6,7 @@
 // driver to acknowledge it rather than silently ignore it.
 //
 // Phase names track Vader's own pipeline stages (the ones `vader dump
-// --stage=…` prints) rather than another toolchain's vocabulary.
+// --stage=...` prints) rather than another toolchain's vocabulary.
 
 module "toolchain/build"
 

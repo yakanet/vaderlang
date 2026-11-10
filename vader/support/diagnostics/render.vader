@@ -56,7 +56,7 @@ export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_
 
 // Upper bound on diagnostics rendered in one block. A single root error can
 // cascade into hundreds of derived diagnostics ; past this many the real cause
-// scrolls off, so the tail is collapsed into a "… and N more" line.
+// scrolls off, so the tail is collapsed into a "... and N more" line.
 MAX_SHOWN_DIAGNOSTICS: i64: 100
 
 // Shared body for both public renderers. `show_file` switches the per-line file
@@ -85,7 +85,7 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
     }
     if unique.len() > limit {
         sb.append_char('\n')
-        sb.append("… and ${unique.len() - limit} more diagnostic(s)")
+        sb.append("... and ${unique.len() - limit} more diagnostic(s)")
     }
     return sb.to_string()
 }
@@ -215,7 +215,7 @@ mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
         diags.push(lexer_error(.UnexpectedCharacter, mk_diag_span(i, i + 1), "e"))
     }
     out :: dump_diagnostics_with_file(diags)
-    assert("… and 50 more diagnostic(s)" in out, "expected the cap tail for 150 diagnostics")
+    assert("... and 50 more diagnostic(s)" in out, "expected the cap tail for 150 diagnostics")
 }
 
 @test test_no_cap_tail_under_limit :: fn() -> void {

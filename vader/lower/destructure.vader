@@ -47,7 +47,7 @@ emit_let_binding_leaves :: fn(
         }
         // No inlinable `Into<[...]>` shape : either the typer already rejected
         // this (T3001), or the `Into` impl's `into` body isn't the zero-alloc
-        // `[self.f0, …]` tuple literal we can inline. Don't silently emit
+        // `[self.f0, ...]` tuple literal we can inline. Don't silently emit
         // `_<index>` field reads against a struct (a miscompile): trap loudly.
         // A general allocating `into()` fallback could land here if a
         // computed-body `Into<[...]>` impl ever needs it.
@@ -82,7 +82,7 @@ into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: i64) -> strin
     return null
 }
 
-// Field names of an `into` member whose body is `[self.f0, self.f1, …]`.
+// Field names of an `into` member whose body is `[self.f0, self.f1, ...]`.
 // Returns null unless the body is exactly a tuple/array literal of `self.<f>`
 // field reads (no stmts, no computed elements): anything else routes through
 // the allocating `into()` fallback, not this zero-alloc inline.
@@ -299,7 +299,7 @@ tuple_or_array_element_type :: fn(
         _ -> { return from_typed }
     }
     // @partial: only tuple / array targets have positional element types;
-    // every other Type → unresolved.
+    // every other Type -> unresolved.
     @partial match target_type {
         is TupleType -> {
             if index < target_type.elements.len() { return target_type.elements[index] }

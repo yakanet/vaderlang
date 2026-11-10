@@ -28,14 +28,14 @@ export ImplEntry :: struct {
     /// use the owning module so cross-module calls resolve to the same
     /// mangle the impl's lowered/surfaced decl is registered under.
     module: string = ""
-    /// True when the impl references ≥1 type parameter (`Range<T>
-    /// implements<T> …`, `Range<T> implements …`). Mirrors
+    /// True when the impl references >=1 type parameter (`Range<T>
+    /// implements<T> ...`, `Range<T> implements ...`). Mirrors
     /// `is_empty_substitution(build_impl_mixed_subst(...))` in the lowerer
     /// (`lower/mono_struct.vader`) :
     /// generic impls erase their instance args to `Any` when mangling
     /// materialised members (`__Any` suffix), so call-site resolution
     /// (`find_impl_member_for`, `lower_for_in`) must erase the same way.
-    /// Concrete-instantiation impls (`Wrapper<i32> implements …`) keep
+    /// Concrete-instantiation impls (`Wrapper<i32> implements ...`) keep
     /// the concrete suffix.
     is_generic: bool = false
     /// The trait's `trait_key`.
@@ -45,17 +45,17 @@ export ImplEntry :: struct {
     /// `impl_base_key(for_type)`: compared with a receiver's to ask whether the
     /// impl applies to its declaration.
     target: string = ""
-    /// Written for one instance of its base (`Wrapper<MonType> implements …`,
+    /// Written for one instance of its base (`Wrapper<MonType> implements ...`,
     /// `is_instance_receiver`) : it covers that instance alone, and wins there over
     /// the base's generic impl.
     instance: bool = false
-    /// The trait's arguments as the impl writes them (`Add<f64>` → `[f64]`) : what
+    /// The trait's arguments as the impl writes them (`Add<f64>` -> `[f64]`) : what
     /// tells two impls of one trait on one base apart.
     trait_args: Type[] = []
     /// What tells apart the members of several impls of one trait on one base,
     /// declared in one module (`Vec2 implements Add<f64>` beside `Add<Vec2>`,
-    /// `MonType[] implements Into<Label>` beside `… Into<Tag>`) : "" for the first
-    /// registered, then `$1`, `$2`, …: a `$`, which no type name in a receiver's
+    /// `MonType[] implements Into<Label>` beside `... Into<Tag>`) : "" for the first
+    /// registered, then `$1`, `$2`, ...: a `$`, which no type name in a receiver's
     /// own suffix carries. Every builder of an impl member's mangle appends it : the
     /// call sites and the materialisers.
     overload_suffix: string = ""
@@ -260,11 +260,11 @@ record_specialized_args :: fn(self: ImplRegistry, receiver: Type) -> void {
     }
 }
 
-/// True when the impl references ≥1 type parameter. Mirrors the
+/// True when the impl references >=1 type parameter. Mirrors the
 /// discriminator the lowerer's `build_impl_mixed_subst` computes : the
 /// `implements<T>` form (`impl_.type_params` non-empty) and the legacy
-/// `Foo<T> implements …` form (a `for_type` arg that binds to a `TypeParam`)
-/// both count. Concrete instantiations (`Wrapper<i32> implements …`) bind
+/// `Foo<T> implements ...` form (a `for_type` arg that binds to a `TypeParam`)
+/// both count. Concrete instantiations (`Wrapper<i32> implements ...`) bind
 /// their for-type args to other declarations and return false.
 impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     if impl_.type_params.len() > 0 {
@@ -282,7 +282,7 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     return false
 }
 
-/// The parameters an impl declares : its `implements<…>`, and the fresh names its
+/// The parameters an impl declares : its `implements<...>`, and the fresh names its
 /// `for_type`'s arguments bind when it writes none (`Stack<T> implements Trait<T>`).
 /// An impl member's signature quantifies over them.
 export impl_type_params_of :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> TypeParamType[] {

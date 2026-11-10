@@ -43,7 +43,7 @@ import "vader/lower/ir"
 lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is generator combinators
-    // (`map` / `filter` / …) over a range, an array, a generator call, or an
+    // (`map` / `filter` / ...) over a range, an array, a generator call, or an
     // iterable whose `into` is a generator: the whole pipeline becomes one
     // loop. Skipped when the chain has no fusible bottom.
     chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form)
@@ -194,9 +194,9 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
     return out
 }
 
-// Build the per-iteration loop-var binding stmt(s). A plain `for x in …` yields
+// Build the per-iteration loop-var binding stmt(s). A plain `for x in ...` yields
 // a single `let`, which no body rebinds (T3041), so a closure copies its value. A
-// destructuring `for [k, v] in …` (`pattern != null`) binds the element to a temp
+// destructuring `for [k, v] in ...` (`pattern != null`) binds the element to a temp
 // then destructures it into the pattern leaves: the exact shape a
 // `let [k, v] := <element>` lowers to (reuses `emit_let_binding_leaves` ; the k/v
 // symbols were minted by the resolver). Returns a list so every bind site splices it.
@@ -287,8 +287,8 @@ erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type
     return iterator_of(ctx, element_type) ?? iter_type
 }
 
-// Build the per-iter `.next()` step call. Trait-typed iter →
-// `LoweredVirtualCall` ; concrete struct iter → a direct call to its `next`
+// Build the per-iter `.next()` step call. Trait-typed iter ->
+// `LoweredVirtualCall` ; concrete struct iter -> a direct call to its `next`
 // (`step_member`) ; none, a trap.
 build_step_call :: fn(
     ctx: FnLowerCtx,

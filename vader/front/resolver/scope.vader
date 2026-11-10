@@ -1,7 +1,7 @@
 // vader/front/resolver/scope: lexical scope stack.
 //
 // Extracted from `body.vader` so the body walker, future typechecker,
-// and any other pass that needs ident → symbol lookup share one
+// and any other pass that needs ident -> symbol lookup share one
 // implementation. The stack is a LIFO of `Map<string, Symbol>`
 // frames ; `bind` writes to the innermost frame, `lookup` walks
 // outward until it finds a hit or returns null.
@@ -155,15 +155,15 @@ test_span_hash_is_file_aware :: fn() -> void {
         p :: Position { .file = file, .offset = 0, .line = line, .column = col }
         return Span { .start = p, .end = p }
     }
-    // Same file + position → same hash (deterministic).
+    // Same file + position -> same hash (deterministic).
     assert_eq(at("a", 3, 12).hash(), at("a", 3, 12).hash())
-    // Same (line, col) in DIFFERENT files → different hashes. This is
+    // Same (line, col) in DIFFERENT files -> different hashes. This is
     // the multi-file-module invariant : a per-module map keyed by
     // span.hash() must not collide two distinct idents at the
     // same line/column.
     assert(at("a", 3, 12).hash() != at("b", 3, 12).hash(),
         "Span.hash must disambiguate by file")
-    // Different positions in the same file → different hashes.
+    // Different positions in the same file -> different hashes.
     assert(at("a", 3, 12).hash() != at("a", 3, 13).hash(),
         "Span.hash must disambiguate by column")
 }

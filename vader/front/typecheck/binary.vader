@@ -2,9 +2,9 @@
 //
 // Each operand
 // is recursively checked ; the result type is derived per `OpKind`
-// classification (see `classify` below for the op → kind mapping).
+// classification (see `classify` below for the op -> kind mapping).
 //
-// Trait dispatch for user types is wired : `<`/`<=`/… route through
+// Trait dispatch for user types is wired : `<`/`<=`/... route through
 // `Comparable::compare`, `==` through `Equals`, `in` through a `contains`
 // impl (T3043 names the missing trait when no impl exists). `x is T` runs
 // the T3040 "test never matches" soundness check, and a value-position
@@ -188,7 +188,7 @@ check_arith :: fn(
     // devirtualises to the `array.reserve` / `array.repeat` intrinsics
     // (`lower_binary`). Skip the numeric path for all three so they reach the
     // lookup ; a missing/mismatched impl is then a clean error (`instant +
-    // instant`, `[…] * <non-i64>`).
+    // instant`, `[...] * <non-i64>`).
     if left !is DistinctType && right !is DistinctType && left !is ArrayType {
         if e.op == .Add && is_string(left) && is_string(right) {
             record_site(typed, e, .Operator, BUILTIN_CALLEE)
@@ -328,7 +328,7 @@ arith_trait :: fn(op: AST.BinaryOp) -> string {
 }
 
 /// Check an operator's other operand against the impl member it dispatches to on
-/// `recv` (`Add::add`, `Comparable::compare`, `Equals::equals`, …): the member the
+/// `recv` (`Add::add`, `Comparable::compare`, `Equals::equals`, ...): the member the
 /// operand picks when several impls of the trait offer it (`Add<f64>`,
 /// `Add<Vec2>`), typed as `recv.method(operand)` types it, a generic impl's
 /// parameters bound to `recv`'s arguments (`impl_member_type`).
@@ -336,8 +336,8 @@ arith_trait :: fn(op: AST.BinaryOp) -> string {
 /// @param recv          the operand that dispatches : the left one, a struct for `==`.
 /// @param operand       the other operand's type.
 /// @param operand_expr  the other operand, where a mismatch is reported.
-/// @param trait_name    the operator's trait (`TRAIT_ADD`, …).
-/// @param method_name   the trait method the operator calls (`add`, `compare`, …).
+/// @param trait_name    the operator's trait (`TRAIT_ADD`, ...).
+/// @param method_name   the trait method the operator calls (`add`, `compare`, ...).
 /// @param op_label      how a mismatch names the operator.
 /// @param e             the operator, under which the pick is recorded.
 /// @return              the member specialised at `recv`, whose return type is the
@@ -417,10 +417,10 @@ pick_operator_member :: fn(
 ///
 /// @param recv         the receiver operand's type : the left one, the right one for `in`.
 /// @param operand      the other operand's type, checked against the method's `other`.
-/// @param trait_name   the operator's trait (`TRAIT_ADD`, …) ; a same-named method of
+/// @param trait_name   the operator's trait (`TRAIT_ADD`, ...) ; a same-named method of
 ///                     another bound trait does not count, since the lowerer looks
 ///                     the instance's impl up by trait.
-/// @param method_name  the trait method the operator calls (`add`, `compare`, …).
+/// @param method_name  the trait method the operator calls (`add`, `compare`, ...).
 /// @param operand_expr the other operand, where a mismatch is reported.
 /// @param op_label     how a mismatch names the operator.
 /// @param e            the operator, under which the dispatch is recorded.
@@ -818,7 +818,7 @@ check_equality :: fn(
         return TY_BOOL
     }
     // Both operands concrete (non-null). Numeric equality goes through the shared
-    // `numeric_result` gate (T3017 on `u32 == i32`, `f64 == i32`, …). Free
+    // `numeric_result` gate (T3017 on `u32 == i32`, `f64 == i32`, ...). Free
     // literals fold, so `x == 0` still type-checks.
     if is_numeric(left) && is_numeric(right) {
         numeric_result(e, left, right, typed, diags)
@@ -1281,7 +1281,7 @@ classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
 }
 
 // The type the right operand is checked against: `left`'s for a numeric operator
-// (`numeric_propagation`), so a free literal adopts it (`size + 1` → `1: i64`);
+// (`numeric_propagation`), so a free literal adopts it (`size + 1` -> `1: i64`);
 // for `x in` a literal range or array, a container of `x`'s type, so a free bound
 // or element takes it. A distinct `x` lends its backing, as `<` does to a literal.
 right_operand_context :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram) -> Type | null {
@@ -1439,11 +1439,11 @@ closed_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
     if left is FreeIntType && right is FreeIntType     { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
     // Arithmetic on a `char` literal computes on its code point : the outcome is
-    // an integer, a `char` only through `char(…)`, which checks it.
+    // an integer, a `char` only through `char(...)`, which checks it.
     if left is FreeCharType | FreeIntType && right is FreeCharType | FreeIntType {
         return TY_FREE_INT
     }
-    // FreeInt + concrete int → concrete. FreeInt + float (free or concrete)
+    // FreeInt + concrete int -> concrete. FreeInt + float (free or concrete)
     // is an error : free numeric only folds to a primitive of its own family.
     if left is FreeIntType {
         if is_integer(right) {

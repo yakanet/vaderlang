@@ -1,4 +1,4 @@
-// vader/pipeline/backend: lower → bytecode, as a callable unit.
+// vader/pipeline/backend: lower -> bytecode, as a callable unit.
 //
 // `lower_to_entry` runs the front end and lowers; `prepare_cfg_bytecode_with` carries
 // that through prune, the CFG passes (`vader/midir/pipeline`) and the bytecode
@@ -39,7 +39,7 @@ export canonicalise :: fn(p: Path) -> Path = p.as_string().to_posix().to_path()
 // Canonical `/`-separated form of a path that may have arrived with OS-native
 // separators (Windows argv, env vars). `std/path::to_posix` deliberately works on
 // the raw string (the compiler's internals are all string-based) so this is the
-// one place the CLI does the Path → string → Path round trip.
+// one place the CLI does the Path -> string -> Path round trip.
 /// The module filter to dump, defaulting to the entry's own module.
 ///
 /// `--module=a,b` narrows a dump; with no filter the entry module alone is in
@@ -138,7 +138,7 @@ export flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     return !any_error_diag(all)
 }
 
-/// CFG → `BytecodeModule`: the optimise-and-emit tail every real emit path runs.
+/// CFG -> `BytecodeModule`: the optimise-and-emit tail every real emit path runs.
 ///
 /// Build the CFG and run the midir passes (`build_optimised_cfg`), then
 /// bytecode emit. The profiling brackets are inert unless `$VADER_PROFILE`.
@@ -178,7 +178,7 @@ export bounds_verification_enabled :: fn() -> bool = is_env_flag_on(VERIFY_BOUND
 /// released: the entry mangle, the diagnostics, and the file set for filtering.
 export LoweredEntry :: struct {
     lowered:     LoweredProject
-    /// Entry-fn mangle (`…$main`) for the `export main` directive: resolved
+    /// Entry-fn mangle (`...$main`) for the `export main` directive: resolved
     /// from the typed AST before the pipeline is released.
     entry:       string
     /// Loader + resolver + typecheck + comptime diags, pre-flattened in the
@@ -191,10 +191,10 @@ export LoweredEntry :: struct {
     in_scope_files: string[]
 }
 
-/// Run load → typecheck → comptime → lower, resolve the entry-fn name and
+/// Run load -> typecheck -> comptime -> lower, resolve the entry-fn name and
 /// harvest the diagnostics, then return: letting the `EvaluatedPipeline` and
 /// its per-module `Map` side-tables leave scope before the caller's
-/// CFG → bytecode tail. This is the live-set lever for `vader run` and
+/// CFG -> bytecode tail. This is the live-set lever for `vader run` and
 /// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
 /// the emitter's own tables at the memory peak.
 export lower_to_entry :: fn(file: Path, project_root: string | null) -> LoweredEntry =
@@ -257,7 +257,7 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
 /// Result of `prepare_cfg_bytecode_with`: the canonical bytecode module plus
 /// the bits the caller still needs for diagnostics + entry resolution.
 export CfgBytecode :: struct {
-    /// Entry-fn mangle (`…$main`), resolved inside `lower_to_entry`.
+    /// Entry-fn mangle (`...$main`), resolved inside `lower_to_entry`.
     entry:       string
     /// Loader + resolver + typecheck + comptime diags, canonical order.
     pre_diags:   Diagnostic[]
@@ -267,7 +267,7 @@ export CfgBytecode :: struct {
     module:      BytecodeModule
 }
 
-/// Front end + lower + prune → CFG → bytecode, in one call.
+/// Front end + lower + prune -> CFG -> bytecode, in one call.
 ///
 /// @param file                entry source.
 /// @param want_debug          populate the per-op debug table (kept only when
@@ -291,7 +291,7 @@ export prepare_cfg_bytecode_with :: fn(
         prove_bounds,
     )
 
-/// Carry an ALREADY-LOWERED entry through prune → CFG → bytecode.
+/// Carry an ALREADY-LOWERED entry through prune -> CFG -> bytecode.
 ///
 /// Same reason as `lower_to_entry_from`: a caller that already lowered does not
 /// re-run the front end to reach the bytecode.

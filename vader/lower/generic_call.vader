@@ -49,7 +49,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
 // The call to the instance of the generic fn `fn_sym` that `call` names, its
 // arguments prepared for `params`. Shared by the direct-ident path
 // (`try_lower_generic_fn_call`) and the namespace-member path
-// (`try_lower_namespace_call`, `io.println` → `println<T: Display>`). Null when the
+// (`try_lower_namespace_call`, `io.println` -> `println<T: Display>`). Null when the
 // fn takes no type argument or they are not all concrete (recovery: the caller
 // falls through to its non-generic handling).
 emit_generic_fn_call :: fn(
@@ -112,7 +112,7 @@ instance_symbol :: fn(fn_sym: Symbol, mangled: string) -> Symbol = Symbol {
 // canonical mono mangle in `front/comptime/mangle.vader`) run through `uniq` so two
 // same-name / same-arity overloads (`collect(arr: T[])` vs
 // `collect(it: Iterator<T>)`) don't collide on one fn name: the second to register
-// gets a `_1` suffix, keeping the `dump_bytecode → parse_virt → exec` round-trip's
+// gets a `_1` suffix, keeping the `dump_bytecode -> parse_virt -> exec` round-trip's
 // fn names distinct. Later call sites of the same instance reuse the cached mangle.
 //
 // A distinct among `type_args` keys the instance of its backing, unless the fn

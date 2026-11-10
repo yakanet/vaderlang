@@ -49,7 +49,7 @@ export CMacroStatement :: struct {
     call: CCall
 }
 
-/// `type d1, d2 = v, d3[n] = { … };`: one type, several declarators.
+/// `type d1, d2 = v, d3[n] = { ... };`: one type, several declarators.
 export CDeclaration :: struct {
     type: string
     declarators: CDeclarator[]
@@ -103,7 +103,7 @@ export CBlock :: struct {
     body: CStatement[]
 }
 
-/// `if (condition) { … } else { … }`. An `else` whose only statement is an
+/// `if (condition) { ... } else { ... }`. An `else` whose only statement is an
 /// `if` prints as `else if` (`write_if`).
 export CIf :: struct {
     condition: CExpression
@@ -120,7 +120,7 @@ export CGoto :: struct {
     condition: CExpression | null = null
 }
 
-/// `switch (subject) { case value: … default: … }`. A clause is printed on its
+/// `switch (subject) { case value: ... default: ... }`. A clause is printed on its
 /// `case` line ; one neither last nor leaving the switch gets a `break;`:
 /// clauses never fall through.
 export CSwitch :: struct {
@@ -149,7 +149,7 @@ export CScope :: struct {
     end_label: string = ""
 }
 
-/// `while (condition) { … }`.
+/// `while (condition) { ... }`.
 export CWhile :: struct {
     /// The label before `while`, when a `goto` from an inner loop continues
     /// this one ; `""` for none.
@@ -160,7 +160,7 @@ export CWhile :: struct {
     end_label: string = ""
 }
 
-/// `for (;;) { … }`: a loop left only by `break`, `return` or `goto`.
+/// `for (;;) { ... }`: a loop left only by `break`, `return` or `goto`.
 export CFor :: struct {
     /// The label before `for` ; `""` for none.
     label: string = ""
@@ -234,7 +234,7 @@ export CNumber :: struct {
     unsigned: bool = false
 }
 
-/// `callee(arguments…)`.
+/// `callee(arguments...)`.
 export CCall :: struct {
     callee: string
     arguments: CExpression[]
@@ -246,7 +246,7 @@ export CDesignated :: struct {
     value: CExpression
 }
 
-/// `(type){ elements… }`.
+/// `(type){ elements... }`.
 export CCompoundLiteral :: struct {
     type: string
     elements: CExpression[]
@@ -258,7 +258,7 @@ export CStringLiterals :: struct {
     literals: string[]
 }
 
-/// `{ elements… }`: an aggregate initializer.
+/// `{ elements... }`: an aggregate initializer.
 export CInitializerList :: struct {
     elements: CExpression[]
 }
@@ -373,7 +373,7 @@ export around :: fn(prefix: string, inner: CExpression, suffix: string) -> CExpr
     .parts = [verbatim(prefix), inner, verbatim(suffix)],
 }
 
-/// `parts[0] || parts[1] || …`, unparenthesised.
+/// `parts[0] || parts[1] || ...`, unparenthesised.
 ///
 /// @param parts  the disjuncts, left to right ; must not be empty.
 export any_of :: fn(parts: CExpression[]) -> CExpression {
@@ -394,7 +394,7 @@ export declaration :: fn(type: string, name: string, value: CExpression | null =
     .declarators = [CDeclarator { .name = name, .value = value }],
 }
 
-/// `type name[n] = { elements… };`: `n` is the element count.
+/// `type name[n] = { elements... };`: `n` is the element count.
 ///
 /// @param type      the element type.
 /// @param name      the declared array.
@@ -405,7 +405,7 @@ export array_declaration :: fn(type: string, name: string, elements: CExpression
     return CDeclaration { .type = type, .declarators = [declarator] }
 }
 
-/// `{ elements… }`.
+/// `{ elements... }`.
 ///
 /// @param elements  the initializers, in order.
 export initializer_list :: fn(elements: CExpression[]) -> CExpression = CInitializerList {
@@ -437,7 +437,7 @@ export ZERO :: CNumber { .value = 0, .unsigned = true }
 /// The null pointer, `NULL`.
 export NULL_POINTER :: CVerbatim { .text = "NULL" }
 
-/// `callee(arguments…);`.
+/// `callee(arguments...);`.
 ///
 /// @param callee     the function called for its effect.
 /// @param arguments  its arguments, left to right.
@@ -445,7 +445,7 @@ export perform :: fn(callee: string, arguments: CExpression[]) -> CStatement = C
     .expression = call(callee, arguments),
 }
 
-/// `return callee(arguments…);`.
+/// `return callee(arguments...);`.
 ///
 /// @param callee     the function whose result is returned.
 /// @param arguments  its arguments, left to right.
@@ -459,7 +459,7 @@ export FRAME_RESTORE :: CAssign {
     .value = CVerbatim { .text = "gc_frame.prev" },
 }
 
-/// `callee(arguments…)`.
+/// `callee(arguments...)`.
 ///
 /// @param callee     the function or macro called.
 /// @param arguments  its arguments, left to right.
@@ -561,7 +561,7 @@ export CStructForward :: struct {
     name: string
 }
 
-/// `struct name { fields… };`.
+/// `struct name { fields... };`.
 export CStructDefinition :: struct {
     name: string
     fields: CField[]
@@ -769,7 +769,7 @@ leading_directives :: fn(statements: CStatement[]) -> i64 {
     return n
 }
 
-// The number of `#line` directives `statements[from…]` ends with.
+// The number of `#line` directives `statements[from...]` ends with.
 trailing_directives :: fn(statements: CStatement[], from: i64) -> i64 {
     n: i64 = 0
     for statements.len() - n > from && statements[statements.len() - 1 - n] is CDirective {

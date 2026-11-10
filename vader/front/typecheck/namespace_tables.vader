@@ -89,7 +89,7 @@ share_namespace_private_members :: fn(
     }
 }
 
-// PRIVATE (non-`export`) member names of `mod_id`, as a name→true set. Read at
+// PRIVATE (non-`export`) member names of `mod_id`, as a name->true set. Read at
 // namespace-member access sites (`field.vader`, `type_expr.vader`) to fire R2008
 // on `P.private` instead of degrading to unresolved. Visibility lives on the
 // collected Symbol (`add_fn`/`add_named` carry the decl's `visibility`).

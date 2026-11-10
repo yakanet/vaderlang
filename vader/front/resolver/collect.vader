@@ -43,7 +43,7 @@ export CollectedModule :: struct {
     files: FileImports[]
 }
 
-/// One file's imports : the wildcard paths its `import "p"` / `import "p" { … }`
+/// One file's imports : the wildcard paths its `import "p"` / `import "p" { ... }`
 /// forms inject unqualified, and the names its other forms bind.
 export FileImports :: struct {
     /// The file's source path, exactly as `Program.file` and every span minted
@@ -104,7 +104,7 @@ export collect_module :: fn(
 }
 
 // R2032, a path wildcard-imported twice in the same file : bare `import "p"`
-// plus `import "p" { … }`, or two `{ … }`. Both are wildcards of `p`, so the
+// plus `import "p" { ... }`, or two `{ ... }`. Both are wildcards of `p`, so the
 // second is redundant, and two modifier lists would each hide what the other
 // drops. Flag the second import so the author collapses to one. Namespace
 // bindings (`X :: import "p"`) don't conflict: they qualify, they don't inject
@@ -179,7 +179,7 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, module_name:
 
     existing :: self.symbols[d.name]
     // A fn overloads another fn. Colliding with a TYPE or CONST is a genuine
-    // duplicate → R2004. Return before bucketing so the conflicting fn isn't
+    // duplicate -> R2004. Return before bucketing so the conflicting fn isn't
     // orphaned in fn_overloads.
     if existing is Symbol {
         if existing.kind != .Fn {
@@ -257,7 +257,7 @@ collect_import :: fn(
             self.files[0].paths.push(d.path)
         }
         is DestructureImport -> {
-            // `import "p" { … }`: WILDCARD of p PLUS per-name modifiers:
+            // `import "p" { ... }`: WILDCARD of p PLUS per-name modifiers:
             //   `x as _` excludes x ; `x as y` excludes x under its own name and
             //   binds it as y. A plain name (no `as`) is an error: the wildcard
             //   already brings every export.
@@ -276,7 +276,7 @@ collect_import :: fn(
                         // Every modifier drops its source name from the wildcard.
                         excluded.push(n.name)
                         // `as _` is a pure exclusion ; any other alias renames:
-                        // bind `alias → p.<n.name>` via the usual ImportBinding path.
+                        // bind `alias -> p.<n.name>` via the usual ImportBinding path.
                         if alias != "_" {
                             self.bind_import(alias, n.span, d.path, n.name, module_path, factory, diags)
                         }

@@ -163,8 +163,8 @@ render_type_expr :: fn(e: AST.TypeExpr) -> string {
 // ---- active-parameter computation ----------------------------------------
 
 /// Count commas before `(line, col)` inside `call.args` to compute the
-/// active parameter index. Cursor before the first arg → 0 ; cursor
-/// after the second comma → 2 ; etc.
+/// active parameter index. Cursor before the first arg -> 0 ; cursor
+/// after the second comma -> 2 ; etc.
 active_param_index :: fn(call: AST.CallExpr, line: i32, col: i32) -> i32 {
     i: i32 = 0
     for a in call.args {

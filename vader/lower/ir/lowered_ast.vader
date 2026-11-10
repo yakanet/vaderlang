@@ -162,17 +162,17 @@ export LoweredProject :: struct {
     /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
     /// declaration's node id (`EvaluatedProject.libraries`).
     libraries:      Map<i64, CLibrary> = Map<i64, CLibrary> {}
-    /// Const symbol id → accessor fn, populated by `inline_consts` for
+    /// Const symbol id -> accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the
     /// DCE seeds it as a root (`vader/lower/dce`).
     const_fn_wrap:  Map<i32, ConstFnWrap>
-    /// Const symbol id → lowered value, populated by `inline_consts` for
+    /// Const symbol id -> lowered value, populated by `inline_consts` for
     /// every other (non-fn-wrapped) const. `build_ident` re-builds the
     /// value at each read site (`inline` bucket). Scalars also land here as
     /// a safety net for any reference `lower_ident` didn't fold.
     const_inline:   Map<i32, LoweredExpr>
-    /// Const symbol id → the accessor that builds a const of the data pool again,
+    /// Const symbol id -> the accessor that builds a const of the data pool again,
     /// for the uses that read a fresh value of it (`LoweredIdent.fresh`).
     const_fresh_wrap: Map<i32, ConstFnWrap> = Map<i32, ConstFnWrap> {}
     /// The storage of every module constant, in the order `inline_consts` met
@@ -182,7 +182,7 @@ export LoweredProject :: struct {
     /// literals keep an object each, where every other literal of a struct with no
     /// field is one shared object (`vader/midir/build.vader`).
     identity_compared: Set<i32> = Set<i32> {}
-    /// `Symbol.id → trait_key`s: the frontend's authoritative trait
+    /// `Symbol.id -> trait_key`s: the frontend's authoritative trait
     /// membership (from `ImplTables.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
     /// tag.
@@ -350,7 +350,7 @@ export LoweredLoop :: struct {
 
 /// The trip count of a counted loop, as its emitter knows it: `counter` steps by
 /// one from `start` up to `bound`, reaching it when `inclusive`. No body writes
-/// `counter`: it is a local of the emitter's own or a `for … in` variable, which
+/// `counter`: it is a local of the emitter's own or a `for ... in` variable, which
 /// nothing may rebind (T3041). `start` is what the counter is initialised from
 /// and `bound` what it is tested against, each as the loop's preheader computes
 /// it, any expression, a call included: evaluating either one again, or

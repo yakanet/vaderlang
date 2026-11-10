@@ -327,7 +327,7 @@ export ArrayNew :: struct { type_id: i32, length: i32 = 0 }
 export ArrayPush :: struct { type_id: i32, cache_slot: i32 = -1 }
 /// Pop an index (i32) and an array ; push `array.elements[index]`.
 /// Traps on out-of-bounds index (unless `bounds_safe`).
-/// `bounds_safe` : the producer PROVED the index in range → the C backend
+/// `bounds_safe` : the producer PROVED the index in range -> the C backend
 /// skips the check. Default `false`. The VM always checks (soundness oracle).
 export ArrayGet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop the new element value, an index, and an array ; mutate
@@ -415,10 +415,10 @@ export Retag :: struct { type_id: i32 }
 /// Numeric width conversion. The .virt format emits `<from>.to_<to>`
 /// at every cast site. `target` re-tags the stack value to the
 /// destination storage class (I32Val / I64Val / F64Val / CharVal) so
-/// downstream typed ops (`f64.div`, `u32.shl`, …) find a matching tag.
+/// downstream typed ops (`f64.div`, `u32.shl`, ...) find a matching tag.
 ///
 /// `from_name` carries the SOURCE type as its source-level name (`u64`,
-/// `u32`, `i16`, …): the dump spells `<from>.to_<to>` with it, and the
+/// `u32`, `i16`, ...): the dump spells `<from>.to_<to>` with it, and the
 /// backends read its signedness off it, an unsigned source being widened
 /// with zeros.
 export Convert :: struct {
@@ -539,16 +539,16 @@ export U64Mod :: struct {}
 /// aliases u64 onto `I64Val` ; signed I64Lt would read e.g. SHA-256
 /// round constants (high bit set) as negative and miscompare.
 export U64Lt  :: struct {}
-/// Unsigned 64-bit ≤. See `U64Lt`.
+/// Unsigned 64-bit <=. See `U64Lt`.
 export U64Le  :: struct {}
 /// Unsigned 64-bit >. See `U64Lt`.
 export U64Gt  :: struct {}
-/// Unsigned 64-bit ≥. See `U64Lt`.
+/// Unsigned 64-bit >=. See `U64Lt`.
 export U64Ge  :: struct {}
 /// 64-bit shift-left. Distinct from `I32Shl` so wide-width operands
 /// don't silently truncate to the low 32 bits via the I32 path's
 /// i32-typed apply closure (`u64.shl 32` on a 32-bit register is
-/// shift-by-≥-width and wraps).
+/// shift-by->=-width and wraps).
 export I64Shl    :: struct {}
 /// 64-bit arithmetic shift-right (sign-extending). Pairs with `I64Shl`.
 export I64Shr    :: struct {}
@@ -617,7 +617,7 @@ export I32Shr :: struct {}
 export I32ShrU :: struct {}
 /// Unsigned 32-bit divide. Pops two i32-tagged values carrying a u32
 /// bit pattern, divides as u32, pushes the i32-tagged quotient. The
-/// VM aliases every integer width ≤ 32 bits onto `I32Val` ; signed
+/// VM aliases every integer width <= 32 bits onto `I32Val` ; signed
 /// I32Div would treat e.g. SHA-256 round constants (high bit set) as
 /// negative and divide wrong. Mirrors the `I32Shr` / `I32ShrU` split
 /// above.
@@ -627,11 +627,11 @@ export U32Mod :: struct {}
 /// Unsigned 32-bit less-than. Pops two i32-tagged values carrying a u32
 /// bit pattern, pushes a `BoolVal` of the unsigned compare.
 export U32Lt  :: struct {}
-/// Unsigned 32-bit ≤. See `U32Lt`.
+/// Unsigned 32-bit <=. See `U32Lt`.
 export U32Le  :: struct {}
 /// Unsigned 32-bit >. See `U32Lt`.
 export U32Gt  :: struct {}
-/// Unsigned 32-bit ≥. See `U32Lt`.
+/// Unsigned 32-bit >=. See `U32Lt`.
 export U32Ge  :: struct {}
 /// Pop two bools ; push `BoolVal` (equal).
 export BoolEq :: struct {}
@@ -749,7 +749,7 @@ export BufferNew :: struct {}
 //     promising anyone a speed-up: SHA-256 is big-endian, MD5 little-endian.
 //
 // Everything else about the family maps 1:1 onto WASM (`i32.load`, `i64.store`,
-// `memory.copy`, …), and WASM permits unaligned access, which matters because a
+// `memory.copy`, ...), and WASM permits unaligned access, which matters because a
 // `Buffer` offset carries no alignment guarantee.
 
 /// Read one byte. Pops `obj, off` ; pushes the `u8` at byte offset `off`.
@@ -771,7 +771,7 @@ export StoreI64 :: struct {}
 export StoreF64 :: struct {}
 
 /// 4-byte signed read (`i32` / `u32` / `char` elements).
-/// `bounds_safe` : producer PROVED the index in range → C backend skips the
+/// `bounds_safe` : producer PROVED the index in range -> C backend skips the
 /// bounds check ; default `false`. The VM checks regardless (soundness oracle).
 export LoadSlotI32 :: struct { bounds_safe: bool = false }
 /// 8-byte signed read (`i64` / `u64` elements). `bounds_safe` as above.
@@ -785,7 +785,7 @@ export StoreSlotI64 :: struct { bounds_safe: bool = false }
 /// 8-byte float write (`f64` elements). `bounds_safe` as above.
 export StoreSlotF64 :: struct { bounds_safe: bool = false }
 
-/// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
+/// Bulk byte copy obj->obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
 /// bytes. Lowers to `memmove`. Both ends are GC handles, offsets are integers.
 export MemoryCopy :: struct {}
 
@@ -805,7 +805,7 @@ export BufferWriteString :: struct {}
 
 /// Bit-reinterpret an `f64` as its raw IEEE 754 `u64` bit pattern. Pops an
 /// `f64`, pushes the `u64`. This is NOT a numeric conversion (`u64(x)` truncates
-/// the VALUE): it returns the exact bits (`3.0 → 0x4008000000000000`). Lowers
+/// the VALUE): it returns the exact bits (`3.0 -> 0x4008000000000000`). Lowers
 /// to a `union`/`memcpy` cast in C, no runtime symbol. The shortest-double
 /// formatter (and any float bit-fiddling) is built on this.
 export F64ToBits :: struct {}
@@ -813,7 +813,7 @@ export F64ToBits :: struct {}
 /// Pops a `u64`, pushes the `f64`. NOT `f64(x)` (which widens the integer
 /// VALUE). The VM's `LoadF64` arm (`vm/exec.vader`) decodes its bytes with them.
 export BitsToF64 :: struct {}
-/// `f32` → raw IEEE 754 `u32` bit pattern (the 32-bit analogue of `F64ToBits`).
+/// `f32` -> raw IEEE 754 `u32` bit pattern (the 32-bit analogue of `F64ToBits`).
 /// Pops an `f32`, pushes the `u32`. NOT `u32(x)` (value truncation). Powers the
 /// pure-Vader shortest-`f32` formatter (Ryu f2s).
 export F32ToBits :: struct {}
@@ -841,7 +841,7 @@ export ConstOp ::
 ///           not a literal-producing op.
 export const_op_of :: fn(o: Op) -> ConstOp | null {
     // @partial: only the seven literal-producing ops are `ConstOp` ; every
-    // other `Op` variant (arithmetic, control flow, memory, calls, …) carries
+    // other `Op` variant (arithmetic, control flow, memory, calls, ...) carries
     // no inner literal, so `null` is the right answer for all of them.
     @partial match o {
         is I32Const | I64Const | F64Const | BoolConst | CharConst | NullConst | StringConst -> { return o }

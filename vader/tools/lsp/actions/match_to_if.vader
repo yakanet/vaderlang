@@ -1,12 +1,12 @@
-// vader/tools/lsp/actions/match_to_if: the `match` → `if` rewrite action.
+// vader/tools/lsp/actions/match_to_if: the `match` -> `if` rewrite action.
 //
 // Converts a two-arm `match` whose first arm reduces to an `if` condition into
-// an `if / else`. The cursor-driven form of the "`if` for ≤ 2 cases"
+// an `if / else`. The cursor-driven form of the "`if` for <= 2 cases"
 // convention.
 //
 //   match cell {            if cell is null {
 //       is null  -> A           A
-//       is Node  -> B   →   } else {
+//       is Node  -> B   ->   } else {
 //   }                           B
 //                           }
 //
@@ -15,12 +15,12 @@
 // the common null-guard idiom:
 //
 //   match ns_lookup {          if ns_lookup !is null {
-//       is null -> {}     →        return ns_lookup
-//       _ -> { return … }      }
+//       is null -> {}     ->        return ns_lookup
+//       _ -> { return ... }      }
 //   }
 //
 // Lossy policy = REFUSE : exactly two arms, no guards, the first arm an `is T`
-// (no nested sub-pattern) or a literal (→ the condition), and the second arm
+// (no nested sub-pattern) or a literal (-> the condition), and the second arm
 // droppable to the `else`: a `_`, a literal, or an `is T`. The second arm's
 // predicate is implied by the match's exhaustiveness.
 
@@ -31,7 +31,7 @@ AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
 import "toolchain/span"
 
-/// The match→if code action. Registered in `registry.vader::all_actions`.
+/// The match->if code action. Registered in `registry.vader::all_actions`.
 /// A factory fn (not a const) so cross-file references resolve regardless of
 /// the module's file order under the test-entry compile.
 match_to_if_action :: fn() -> CodeAction = CodeAction {
@@ -87,8 +87,8 @@ build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
     a0 :: m.arms[0]
     a1 :: m.arms[1]
     cond :: build_cond(m.scrutinee, a0.pattern)
-    // Arm 0 empty (`is null -> {}`) → a single-branch guard on the NEGATED
-    // condition running arm 1's body (`if X !is null { … }`, no else).
+    // Arm 0 empty (`is null -> {}`) -> a single-branch guard on the NEGATED
+    // condition running arm 1's body (`if X !is null { ... }`, no else).
     if arm_body_empty(a0.body) {
         return AST.IfExpr {
             .span        = m.span,
@@ -97,7 +97,7 @@ build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
             .else_branch = null,
         }
     }
-    // Arm 1 empty (`_ -> {}`) → a single-branch guard on the condition running
+    // Arm 1 empty (`_ -> {}`) -> a single-branch guard on the condition running
     // arm 0's body ; the empty else is dropped.
     if arm_body_empty(a1.body) {
         return AST.IfExpr {
@@ -124,10 +124,10 @@ arm_body_empty :: fn(body: AST.Expr) -> bool {
     return false
 }
 
-// Negate a condition for the empty-arm-0 case. `X == v` → `X != v` ; `X is T`
-// → `X !is T` (built as `Not(Is)`, which the printer restores to the `!is`
+// Negate a condition for the empty-arm-0 case. `X == v` -> `X != v` ; `X is T`
+// -> `X !is T` (built as `Not(Is)`, which the printer restores to the `!is`
 // spelling: a binding is dropped, unusable on the negated side). Anything else
-// wraps in `!(…)`.
+// wraps in `!(...)`.
 negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
     if cond is AST.BinaryExpr {
         if cond.op == .Eq {
@@ -153,7 +153,7 @@ negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
     return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = cond }
 }
 
-// `is T` → `scrutinee is T` ; literal `v` → `scrutinee == v`.
+// `is T` -> `scrutinee is T` ; literal `v` -> `scrutinee == v`.
 build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
     if p is AST.IsPattern {
         return AST.BinaryExpr {
@@ -264,7 +264,7 @@ test_match_to_if_two_is_arms :: fn() -> void {
 
 @test
 test_match_to_if_null_guard :: fn() -> void {
-    // The empty null arm collapses to a single-branch `if X !is null { … }`:
+    // The empty null arm collapses to a single-branch `if X !is null { ... }`:
     // no empty `if` branch, no `else`.
     src :: """
 f :: fn(ns: i32 | null) -> i32 {

@@ -2,8 +2,8 @@
 // document.
 //
 // An operand that is a table index jumps to the line declaring the entry : `call
-// 79` to `fn 79 …`, `ref.cast 25` to `type 25 …`, `string.const 3` to `string 3
-// …`, `local.get 2` to its `local` line, or to the `fn` header for a parameter,
+// 79` to `fn 79 ...`, `ref.cast 25` to `type 25 ...`, `string.const 3` to `string 3
+// ...`, `local.get 2` to its `local` line, or to the `fn` header for a parameter,
 // which the dump leaves unnamed. A label after `br` / `br_if` / `end` jumps to the
 // `block` / `loop` / `if` opening it. `operand_refs` says what each operand of an
 // op names ; the bytecode reader says on which line each entry sits.

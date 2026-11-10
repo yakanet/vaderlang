@@ -2,7 +2,7 @@
 //
 // `VADER_OS` and `VADER_ARCH` cannot be written by hand: their value is decided
 // per build. But they must behave like any other module-level constant, visible
-// to the comptime evaluator, foldable into a `SEP :: if VADER_OS == …`, nameable
+// to the comptime evaluator, foldable into a `SEP :: if VADER_OS == ...`, nameable
 // in an `@target`-free program, and the cheapest way to get all of that is to
 // GENERATE the module rather than to invent a channel for injected values.
 //

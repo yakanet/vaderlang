@@ -1,6 +1,6 @@
 // vader/emit/c/ast/loops: C loops in place of labels and `goto`.
 //
-// The walker lowers a bytecode `loop` to a labelled scope, `loop_N: { … }`,
+// The walker lowers a bytecode `loop` to a labelled scope, `loop_N: { ... }`,
 // and every `br` to a `goto` : to `loop_N` to continue, to the `end_N` label
 // after a scope to leave it. This pass rewrites each labelled scope as a
 // `while` or a `for (;;)`, the gotos it can as `continue` / `break`, then drops
@@ -16,8 +16,8 @@ import "std/collections"
 /// Rewrite the loops of a function body as C loops.
 ///
 /// A labelled `CScope` is a loop : falling off its end leaves it, a `goto` to
-/// its label runs it again. It becomes `while (c) { … }` when its body is a
-/// lone `if (c)` whose live branch ends by continuing, `for (;;) { … }`
+/// its label runs it again. It becomes `while (c) { ... }` when its body is a
+/// lone `if (c)` whose live branch ends by continuing, `for (;;) { ... }`
 /// otherwise. A `goto` it can express is a `continue` or a `break` ; one it
 /// cannot (a continue of an OUTER loop, which C cannot name) keeps its label.
 ///

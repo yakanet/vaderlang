@@ -1,6 +1,6 @@
 // vader/front/typecheck/expr_cast: CastExpr inference (`T(x)`).
 //
-// A cast `T(x)` resolves to the target type `T`, but the (value → target) pair
+// A cast `T(x)` resolves to the target type `T`, but the (value -> target) pair
 // must be a conversion the backends actually implement, else the cast lowers to
 // a `Convert` op that traps (VM) or reinterprets garbage (native). `infer_cast`
 // validates the pair and emits T3010 for an illegal cast (`i32("hello")`,
@@ -141,7 +141,7 @@ range_conversion_allowed :: fn(src: Type, target: RangeType) -> bool {
 
 // Numeric (int / float, free or concrete), `char`, or an enum: everything the
 // `Convert` op can move between. `is_numeric` already covers the free / numeric
-// cases ; `char` is NOT numeric so it is added explicitly, as is `enum` (↔ its
+// cases ; `char` is NOT numeric so it is added explicitly, as is `enum` (<-> its
 // repr int). `bool` and `string` are deliberately absent (no scalar cast).
 scalar_castable :: fn(t: Type) -> bool {
     if is_numeric(t) || t is EnumType { return true }

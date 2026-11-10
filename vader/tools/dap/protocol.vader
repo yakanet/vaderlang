@@ -8,7 +8,7 @@
 // supplies the DAP-shaped encoders the LSP `rpc.vader` can't provide.
 //
 // (v1 imports `vader/tools/lsp/protocol` directly ; a future refactor may hoist the
-// generic framing into a neutral `vader/jsonrpc` module to decouple dap↔lsp.)
+// generic framing into a neutral `vader/jsonrpc` module to decouple dap<->lsp.)
 
 module "vader/tools/dap"
 
@@ -41,7 +41,7 @@ export encode_response :: fn(seq: i32, request_seq: i32, command: string, succes
 /// Encode a DAP event frame body : `{ seq, type: "event", event, body }`.
 ///
 /// @param seq    this message's monotonic sequence number.
-/// @param event  the event name (`initialized`, `output`, `terminated`, …).
+/// @param event  the event name (`initialized`, `output`, `terminated`, ...).
 /// @param body   event-specific payload (`empty_body()` when none).
 /// @return       the serialized JSON, ready for `write_frame`.
 export encode_event :: fn(seq: i32, event: string, body: JsonValue) -> string {

@@ -39,7 +39,7 @@ export ArrayOps :: trait<T> {
     ) -> void
     /// Remove and return the last element, or `null` when empty.
     remove_last :: fn(self) -> T | null
-    /// Drop every element (length → 0), keeping the reserved capacity.
+    /// Drop every element (length -> 0), keeping the reserved capacity.
     clear :: fn(self) -> void
 }
 

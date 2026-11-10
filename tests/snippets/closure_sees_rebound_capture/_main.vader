@@ -5,7 +5,7 @@
 // parameter reassigned after a closure captured it, at fn entry and inside a
 // lambda ; a local the closure itself increments ; and a generator parameter
 // reassigned between yields, whose cell the generator's frame carries across each
-// suspension. A `for … in` variable is never one : nothing but the loop rebinds it.
+// suspension. A `for ... in` variable is never one : nothing but the loop rebinds it.
 
 module "snippet"
 

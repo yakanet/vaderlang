@@ -165,7 +165,7 @@ ufcs_method_type :: fn(
 }
 
 // The parameters an impl member quantifies over : the enclosing impl's, then its
-// own `<…>`. A receiver binds the impl's (`impl_member_type`) ; a static
+// own `<...>`. A receiver binds the impl's (`impl_member_type`) ; a static
 // call binds them at the call, as its own.
 impl_member_quantifier :: fn(
     impl_: AST.ImplDecl, fd: AST.FnDecl, resolved: ResolvedModule,
@@ -217,7 +217,7 @@ declare_impl_return :: fn(
     diags: Diagnostic[],
 ) -> Type {
     // An unannotated member takes the trait method's return type, with `Self`
-    // substituted to `for_ty`: `Direction implements Turnable { turn_left :: fn(self) = … }`
+    // substituted to `for_ty`: `Direction implements Turnable { turn_left :: fn(self) = ... }`
     // picks up `-> Self` from `Turnable.turn_left`. A default that leaves its own to
     // its body gives it once settled ; until then the member's body gives its own.
     if fd.return_type == null && trait_method !is null {
@@ -249,7 +249,7 @@ param_type :: fn(
         }
         return TY_UNRESOLVED
     }
-    // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
+    // Substitute `Self` -> `for_ty` so an explicit `Self`-typed param (e.g.
     // `Comparable.compare(self, other: Self)`) records the concrete carrier:
     // otherwise the impl method's type keeps `other: Self`, and a caller
     // passing a `for_ty` value mismatches `expected Self, got <for_ty>`.

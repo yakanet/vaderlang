@@ -14,12 +14,12 @@ import "vader/support/integer"
 
 /// What holds at one program point.
 RangeState :: struct {
-    /// Local → its interval, for a local known narrower than its type ; a local
+    /// Local -> its interval, for a local known narrower than its type ; a local
     /// with no entry holds any value of its type.
     intervals: Map<LocalId, Interval>
-    /// `fact_key(x, y)` → the least `c` known with `x - y <= c`.
+    /// `fact_key(x, y)` -> the least `c` known with `x - y <= c`.
     differences: Map<u64, i64>
-    /// Local → the array local whose length it is at most.
+    /// Local -> the array local whose length it is at most.
     lengths: Map<LocalId, LocalId>
 }
 

@@ -150,7 +150,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
     if callee is FieldExpr {
         namespace_symbol :: as_namespace_binding(ctx, callee.target) ?? return null
         // `nsM.T(x)`: the typer typed the callee as the metatype and resolved
-        // the call as a cast (infer_call → TypeMetaType, call.vader). Lower it as
+        // the call as a cast (infer_call -> TypeMetaType, call.vader). Lower it as
         // a cast to the result `type` (shared with the direct-ident cast path),
         // not a plain call to the type symbol. Casts carry exactly one arg.
         // NB the ident path (`try_lower_cast_call`) keys on symbol-kind +
@@ -163,7 +163,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         }
         member_symbol :: recorded_fn_symbol(ctx, call)
             ?? resolve_namespace_member(ctx, namespace_symbol, callee.field)
-        // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
+        // A GENERIC member (`io.println` -> `println<T: Display>`) must harvest
         // its monomorphic instance + point the callee at the mangle, exactly
         // as the direct-ident path does: otherwise the bare member symbol is
         // unresolved at emit. The member's generic signature lives in
@@ -199,7 +199,7 @@ as_ident :: fn(expr: Expr) -> IdentExpr | null {
 // direct-import path via `follow_import_binding`). A bare `id=0` placeholder
 // resolved to NEITHER `function_index_by_symbol_id` (id 0) NOR
 // `function_index_by_mangle` (the fn is reserved under `<module>$<name>`, never
-// the bare name) → unresolved-callee panic at emit. Falls back to the bare
+// the bare name) -> unresolved-callee panic at emit. Falls back to the bare
 // placeholder when the target module / member can't be located (recovery path).
 resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: string) -> Symbol {
     targets :: ctx.typed.import_targets
@@ -269,12 +269,12 @@ fold_const_value :: fn(
     return null
 }
 
-// `<alias>.CONST` → the const's lowered value. Resolves the member to its real
+// `<alias>.CONST` -> the const's lowered value. Resolves the member to its real
 // const symbol in the namespace's target module, then folds it via the shared
 // `fold_const_symbol`. Returns null when the target isn't a namespace binding
 // or the member isn't a const: the caller falls through to regular
 // field-access lowering. Without this the `alias` ident is unresolved and the
-// enclosing expression (a struct literal `.id = AST.UNASSIGNED_NODE_ID`, …)
+// enclosing expression (a struct literal `.id = AST.UNASSIGNED_NODE_ID`, ...)
 // degrades to a drop. Mirror of `try_lower_namespace_call` (fn members) /
 // `try_lower_enum_field` (namespace enum variants).
 // A non-scalar (compound) const reached this way only folds for scalars, so it

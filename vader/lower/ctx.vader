@@ -48,7 +48,7 @@ Capture :: struct {
 /// map across every module), so a bare-id key collides across modules : a
 /// recursive self-capturing closure in module A then leaks its `[self]`
 /// capture into a same-id closure in module B, whose env packs an
-/// out-of-scope symbol → "unresolved ident" → mis-compile. `cell_symbols`
+/// out-of-scope symbol -> "unresolved ident" -> mis-compile. `cell_symbols`
 /// keys by symbol id, which IS project-global-unique (one shared factory),
 /// so it needs no qualification.
 ClosureAnalysis :: struct {
@@ -77,7 +77,7 @@ new_closure_analysis :: fn() -> ClosureAnalysis {
 
 /// An array impl member a call reached (`LowerProjectCtx.array_member_uses`).
 ArrayMemberUse :: struct {
-    /// The array's element : the member is materialised with `T → element`.
+    /// The array's element : the member is materialised with `T -> element`.
     element:     Type
     /// The node id of the member the call chose: the body the mangle names. Two
     /// impls inheriting one default share its span.
@@ -127,7 +127,7 @@ LowerProjectCtx :: struct {
     /// The id each inlined impl member's instances are keyed on, by its
     /// declaration's id: a member has no resolver symbol to lend its own.
     impl_member_ids:     Map<i64, i32> = Map<i64, i32> {}
-    /// Instance clone id → the resolver's id for the same binding: the key of
+    /// Instance clone id -> the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       Map<i32, i32> = Map<i32, i32> {}
     /// How each callee known to consume an iterator argument does it, keyed by
@@ -193,11 +193,11 @@ LowerProjectCtx :: struct {
     /// The defaults being lowered in place right now, by their field's span hash :
     /// a literal reaching one of them again calls its thunk.
     expanding_defaults:  Set<u64> = Set<u64> {}
-    /// Enum symbol id → the synthetic read-only const holding that enum's
+    /// Enum symbol id -> the synthetic read-only const holding that enum's
     /// variant data, one slot per rank. Minted at the first read
     /// (`enum_table_const`) so every read shares one symbol.
     enum_data_consts:    Map<i32, Symbol>
-    /// Enum symbol id → the const holding that enum's written values, one slot
+    /// Enum symbol id -> the const holding that enum's written values, one slot
     /// per rank: for an enum with variant data whose values are not
     /// consecutive. Minted like `enum_data_consts`.
     enum_value_consts:   Map<i32, Symbol>
@@ -207,7 +207,7 @@ LowerProjectCtx :: struct {
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
-    /// (which are `≥ 1`).
+    /// (which are `>= 1`).
     next_synthetic_id:   i32
 
     /// Per-MODULE counter for lifted-symbol NAMES (`__lambda_*`, `__defer_*`).
@@ -235,7 +235,7 @@ LowerProjectCtx :: struct {
     /// Claimed instance mangles, for `uniq` overload disambiguation. Two
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
-    /// register gets a `_1` suffix so the `dump_bytecode → parse_virt`
+    /// register gets a `_1` suffix so the `dump_bytecode -> parse_virt`
     /// round-trip keeps distinct fn names.
     seen_mangled:        Set<string>
 
@@ -245,7 +245,7 @@ LowerProjectCtx :: struct {
     /// and every call to them is dropped (with-body fns) or left unresolved.
     /// `materialize_nongeneric_imported_fns`
     /// emits one `LoweredFnDecl` per harvested symbol (body lowered, or
-    /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
+    /// `null` for `@extern` -> import table). Keyed by `fn_symbol.id` for
     /// dedup ; queued in discovery order for a deterministic dump.
     nongeneric_imported_fns:   Set<i32>
     nongeneric_imported_queue: Queue<Symbol> = Queue<Symbol> {}
@@ -257,7 +257,7 @@ LowerProjectCtx :: struct {
     /// its read sites: `build_ident` then emits `unreachable`, truncating
     /// the caller. `materialize_nongeneric_imported_consts` lowers one
     /// `LoweredConstDecl` per harvested symbol so `inline_consts` handles it
-    /// like any user const (scalar → inline, bulky array → fn-wrap accessor).
+    /// like any user const (scalar -> inline, bulky array -> fn-wrap accessor).
     /// Keyed by `const_symbol.id` for dedup ; queued in discovery order for a
     /// deterministic dump.
     nongeneric_imported_consts:      Set<i32>
@@ -305,7 +305,7 @@ LowerProjectCtx :: struct {
     /// this to surface all primitive impl members of a virtually-dispatched
     /// trait (the mono model materialises every non-generic impl member
     /// upfront then DCEs to the dispatched keys). Empty for snippets
-    /// with no erased primitive dispatch → no surfacing, no snapshot drift.
+    /// with no erased primitive dispatch -> no surfacing, no snapshot drift.
     virtually_dispatched_traits: Set<string>
 
     /// Symbol ids of struct types a value of which can be INHABITED at runtime :
@@ -320,12 +320,12 @@ LowerProjectCtx :: struct {
     /// otherwise an inhabitable-nowhere struct would bloat the table.
     constructed_struct_symbols: Set<i32>
 
-    /// Array impl-member call sites (`x in arr` → `T[] implements Contains`,
-    /// `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps the call-site
+    /// Array impl-member call sites (`x in arr` -> `T[] implements Contains`,
+    /// `[T]`-to-`Iterator` coercion -> `T[] implements Into`) : maps the call-site
     /// mangle (`std_core$$array$Contains$contains__i32`, `std_core$$array$Into$into__i32`)
     /// to the array's element type and the member the call chose.
     /// `surface_array_impl_members` reads this to materialise one CONCRETE
-    /// member body per element type, with `T → element` substituted (so e.g.
+    /// member body per element type, with `T -> element` substituted (so e.g.
     /// `contains`'s `==` devirtualises to the element primop). An array impl has
     /// no struct instance to drive the regular generic-impl materialiser, so it
     /// keys off this table instead.
@@ -345,7 +345,7 @@ LowerProjectCtx :: struct {
     /// Resumable state for the generic-fn-instance materialiser, split into a
     /// build phase (`drain_generic_fn_instances`) and a one-shot flush
     /// (`flush_generic_fn_instances`). `generic_collected` accumulates every
-    /// built instance across the rounds of `lower_project`'s generic↔stdlib
+    /// built instance across the rounds of `lower_project`'s generic<->stdlib
     /// joint fixpoint ; the flush sorts + erasure-dedups + pushes it ONCE after
     /// the fixpoint converges, so emission order is a single deterministic sort.
     @internal
@@ -482,7 +482,7 @@ LiftedFnContext :: struct {
 /// while a single function body is being lowered. The block stack
 /// drives defer-replay ; `lifted_context` is non-null only when we're
 /// inside the body of a lifted lambda ; `comptime_bindings` carries
-/// `@comptime for x in arr { … }` substitutions active inside an
+/// `@comptime for x in arr { ... }` substitutions active inside an
 /// unrolled body.
 FnLowerCtx :: struct {
     project:            LowerProjectCtx
@@ -508,7 +508,7 @@ FnLowerCtx :: struct {
     /// fields rather than as direct locals.
     lifted_context:     LiftedFnContext | null
 
-    /// `@comptime for x in arr { … }` substitutions: keyed by the
+    /// `@comptime for x in arr { ... }` substitutions: keyed by the
     /// loop-var symbol's id, the value is the per-iter literal that
     /// replaces every reference to `x` in the body. Pushed at unroll
     /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
@@ -532,7 +532,7 @@ FnLowerCtx :: struct {
     /// Transient (save/restore, like `comptime_bindings`).
     /// Takes priority over `in_generator`: the two legitimately coexist when a
     /// state-machine generator's body itself consumes another generator inline
-    /// (inner yields → the sink, outer yields → the enclosing state machine).
+    /// (inner yields -> the sink, outer yields -> the enclosing state machine).
     gen_inline_sink:    GenInlineSink | null = null
 
     /// Non-null while lowering an inlined body: a generator's or an iterator

@@ -172,7 +172,7 @@ export underline :: fn(s: string) -> string = paint("4", s)
 /// Reverse video: swap foreground and background (SGR 7).
 export reverse :: fn(s: string) -> string = paint("7", s)
 
-// ---- foreground colors (normal, SGR 30–37) --------------------------------
+// ---- foreground colors (normal, SGR 30-37) --------------------------------
 
 /// Black foreground (SGR 30).
 export black :: fn(s: string) -> string = paint("30", s)
@@ -191,7 +191,7 @@ export cyan :: fn(s: string) -> string = paint("36", s)
 /// White foreground (SGR 37).
 export white :: fn(s: string) -> string = paint("37", s)
 
-// ---- foreground colors (bright, SGR 90–97) --------------------------------
+// ---- foreground colors (bright, SGR 90-97) --------------------------------
 
 /// Bright black / gray foreground (SGR 90).
 export gray :: fn(s: string) -> string = paint("90", s)

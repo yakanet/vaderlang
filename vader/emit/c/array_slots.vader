@@ -119,7 +119,7 @@ drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
 // distinct from the byte-offset bytes-Buffer ops. Outer parens bind `->buf`.
 /// Object pointer behind a heap-ref stack value : a `.Ref` is already a
 /// raw `void*` ; an `.Any` (erased) carries it in `.payload.obj`. Every site that
-/// casts a popped ref to a concrete C pointer (array / buffer / fn / …) routes
+/// casts a popped ref to a concrete C pointer (array / buffer / fn / ...) routes
 /// through this so it handles both classes.
 object_pointer_of :: fn(v: StackVal) = object_pointer(expression_of(v), val_of(v))
 
@@ -241,7 +241,7 @@ emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType, bounds_safe: b
 /// (`emit_array_get`/`emit_array_set`). The flippable widths keep the slot-op
 /// shape (`u32`/`char` store as `int32_t`, same bytes, so the typed read reads
 /// back identical bits) ; the sub-word widths use the signedness-correct C type
-/// (`uint16_t`/`int16_t`/`float`/…) so a later typed read zero/sign-extends right.
+/// (`uint16_t`/`int16_t`/`float`/...) so a later typed read zero/sign-extends right.
 SlotFill :: struct { cty: string, val: ValType }
 
 /// The typed `vader_array_push_*` helper for a primitive element kind, or `null`

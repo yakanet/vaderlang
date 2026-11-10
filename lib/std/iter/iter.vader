@@ -177,10 +177,10 @@ export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
 }
 
 /// Lazily pair each element with its index, starting at 0: the element first,
-/// so `for [x, i] in it.indexed() { … }` reads in the order it is yielded. A
+/// so `for [x, i] in it.indexed() { ... }` reads in the order it is yielded. A
 /// 0-arg combinator: fuses over the source with no intermediate array.
 /// @param self  source iterator (a raw array auto-coerces at the call site).
-/// @return      a lazy `Iterator<[T, i64]>`: `[self[0], 0]`, `[self[1], 1]`, …
+/// @return      a lazy `Iterator<[T, i64]>`: `[self[0], 0]`, `[self[1], 1]`, ...
 export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, i64]> {
     i: i64 = 0
     for x in self {
@@ -200,8 +200,8 @@ CHUNK_RESERVE_CAP: i64: 1024
 ///
 /// @param self  source iterator (a raw array auto-coerces at the call site).
 /// @param size  elements per chunk ; `size == 0` yields nothing.
-/// @return      a lazy `Iterator<T[]>`: `[x0, …, x(size-1)]`, then the next
-///              run, … , then the shorter remainder if any.
+/// @return      a lazy `Iterator<T[]>`: `[x0, ..., x(size-1)]`, then the next
+///              run, ... , then the shorter remainder if any.
 /// @example
 ///   for c in [1, 2, 3, 4, 5].chunked(2) { println("${c}") }   // [1, 2] [3, 4] [5]
 export chunked :: fn<T>(self: Iterator<T>, size: i64) -> Iterator<T[]> {
@@ -261,7 +261,7 @@ export filter_not_null :: fn<T>(self: Iterator<T | null>) -> Iterator<T> {
 /// flattening).
 /// @param self  source iterator.
 /// @param f     mapper from one element to an array of outputs.
-/// @return      an iterator over `f(x0)` then `f(x1)` then … , flattened.
+/// @return      an iterator over `f(x0)` then `f(x1)` then ... , flattened.
 export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
     for x in self {
         for y in f(x) {
@@ -304,7 +304,7 @@ export all_match :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
 }
 
 /// First element matching `pred`, or `null` if none does. Short-circuits.
-/// Consumers narrow naturally : `match hit :: arr.find(p) { is T -> … }`.
+/// Consumers narrow naturally : `match hit :: arr.find(p) { is T -> ... }`.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
 export find :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> T | null {
@@ -337,7 +337,7 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // Each combinator below is a `generator` over a source `Iterator<T>` : it
 // `yield`s transformed elements one at a time, so a chain stays lazy: an
 // element only flows through when the downstream consumer pulls it (`next()`,
-// or `for x in chain {…}`). The fluent shape (`it.map(f).filter(p)`) reads
+// or `for x in chain {...}`). The fluent shape (`it.map(f).filter(p)`) reads
 // like an Iterator pipeline and dispatches via UFCS through the first param's
 // type: overload-resolved against the eager `T[]`-first-param siblings above.
 // The lowerer's iter-chain fusion folds a `for`/terminal-consumed chain into a
@@ -345,13 +345,13 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above:
 /// the resolver picks this one when the receiver implements `Iterator<T>`
-/// (Range, an array iterator, Map, …).
+/// (Range, an array iterator, Map, ...).
 export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
     for x in self { if pred(x) { yield x } }
 }
 
 /// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
-/// can change (`T` → `U`).
+/// can change (`T` -> `U`).
 export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }
 }

@@ -4,16 +4,16 @@
 // takes there : a call (`DirectFn.bindings`), a generic function named as a value,
 // and a member reached on an array receiver (`receiver_instances`). A node is one
 // parameter of one function, by declaration : a type parameter `Q` of the caller
-// met in the type the callee's parameter `P` takes gives an edge `Q → P` : `Q`'s
+// met in the type the callee's parameter `P` takes gives an edge `Q -> P` : `Q`'s
 // instances ask for `P`'s. The edge grows when that type nests `Q` (`[Q, Q]`, `Q[]`,
 // `Box<Q>`) rather than being `Q` itself. An instance of a function then reaches
 // finitely many others, unless a growing edge lies on a cycle : `wrap<T>` calling
-// `wrap([x, x], …)` gives the edge `T → T`, and each instance would ask for a
+// `wrap([x, x], ...)` gives the edge `T -> T`, and each instance would ask for a
 // larger one, without end. Such a call is refused (T3104). A recursion that passes
 // its parameters on unchanged, or calls itself on a fixed type, is not.
 //
 // An array impl's member runs one instance per element type, so a receiver built
-// inside it (`[self].depth(…)`) is an edge like a call. A generic struct's impl
+// inside it (`[self].depth(...)`) is an edge like a call. A generic struct's impl
 // member is not : it runs once per primitive shape of its arguments, every
 // reference argument erased, so `Box<T[]>` built inside `Box<T>`'s impl reaches
 // no new body and adds no edge. A member reached through a bound

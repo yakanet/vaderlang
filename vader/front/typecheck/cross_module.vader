@@ -126,7 +126,7 @@ pull_field_external_types :: fn(
 /// declared in a non-entry module, copy its real declared type from
 /// the owning module's `decl_types` into `entry.external_types`. The
 /// `external_types[id]` presence check inside `register_external`
-/// both memoizes and breaks Struct ↔ Struct cycles.
+/// both memoizes and breaks Struct <-> Struct cycles.
 ///
 /// Spells out the variant arms instead of routing through
 /// `for_each_type` so the recursion stays a plain call graph: a
@@ -186,7 +186,7 @@ register_external :: fn(
     pull_referenced_external_types(declared, entry, per_module)
 }
 
-// Build a name → FnType[] index of every imported free fn so
+// Build a name -> FnType[] index of every imported free fn so
 // `field.vader::try_free_fn_ufcs` can dispatch `x.method()` to a
 // stdlib helper without requiring the user to re-implement it
 // locally. Walks `external_types` (already populated with the

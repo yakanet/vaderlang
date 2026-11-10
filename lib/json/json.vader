@@ -114,7 +114,7 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
 // ---- parse value dispatch -------------------------------------------------
 
 /// Maximum container-nesting depth. A guard against unbounded recursion on
-/// adversarial input (`[[[[…` / `{"a":{"a":…`) : without it a deep document
+/// adversarial input (`[[[[...` / `{"a":{"a":...`) : without it a deep document
 /// overflows the call stack (VM trap / native segfault) instead of returning a
 /// `JsonError`. Kept well under the VM's 1024-frame limit (each nesting level
 /// costs ~2 frames) and comfortably above any realistic document.

@@ -212,7 +212,7 @@ init_object_header :: fn(s: FnState, object: string, type_index: i32) -> void =
 gc_allocation :: fn(c_type: string) -> CExpression =
     cast("${c_type}*", call("vader_gc_alloc", [verbatim("sizeof(${c_type})")]))
 
-/// Append a statement macro call `name(arguments…)`: its expansion is a whole
+/// Append a statement macro call `name(arguments...)`: its expansion is a whole
 /// statement, so it takes no `;`.
 statement_macro :: fn(s: FnState, name: string, arguments: CExpression[]) -> void =
     append_statement(s, CMacroStatement { .call = CCall { .callee = name, .arguments = arguments } })
@@ -221,7 +221,7 @@ statement_macro :: fn(s: FnState, name: string, arguments: CExpression[]) -> voi
 write_barrier :: fn(s: FnState, object: CExpression) -> void =
     evaluate(s, call("VADER_WRITE_BARRIER", [object]))
 
-/// Whether storing `value` can create an old→young edge, so needs the write
+/// Whether storing `value` can create an old->young edge, so needs the write
 /// barrier. A primitive cannot, and neither can an atom: it never moves, and the
 /// major cycle marks atoms by walking the heap, not the cards.
 may_hold_reference :: fn(value: StackVal) -> bool = is_ref_val(val_of(value))
@@ -418,7 +418,7 @@ entry_needs_materialise :: fn(e: StackVal, slot: i32) -> bool = match e {
 }
 
 /// Materialise every stack entry that a write to slot `slot` would
-/// invalidate, in bottom-to-top order (so the emitted `tN = …;` lines
+/// invalidate, in bottom-to-top order (so the emitted `tN = ...;` lines
 /// keep stack order). Run before a `local.set` / `local.tee` mutates the
 /// slot.
 materialize_stack_for_slot :: fn(s: FnState, slot: i32) -> void {

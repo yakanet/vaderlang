@@ -27,7 +27,7 @@ const VERIFY = { VADER_VERIFY_CALLEES: "1" };
 function disagreements(stderr: string): string[] {
   return stderr
     .split("\n")
-    .map((l) => l.match(/^ {4}\d+ × (.*)$/)?.[1])
+    .map((l) => l.match(/^ {4}\d+ x (.*)$/)?.[1])
     .filter((l): l is string => l !== undefined);
 }
 

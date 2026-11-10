@@ -32,16 +32,16 @@ import "toolchain/span"
 /// One module search root (GCC `-I` style). A module name maps to a folder under
 /// `dir`. `prefix` names the namespace `dir` roots : the entry declares
 /// `module "main"` in a folder physically named `app/`, so `{dir = app,
-/// prefix = "main"}` resolves `main/config` → `app/config` and `main` → `app`.
+/// prefix = "main"}` resolves `main/config` -> `app/config` and `main` -> `app`.
 /// The stdlib / project roots reflect the namespace in their own layout, so they
-/// use `prefix = ""` (`module "std/io"` → `<dir>/std/io`).
+/// use `prefix = ""` (`module "std/io"` -> `<dir>/std/io`).
 export IncludePath :: struct {
     dir:    string
     prefix: string
     /// A merge root does NOT shadow a module an earlier root already provided:
     /// its files are APPENDED to it. It is the one exception to "a module lives
     /// in one folder", and the generated tree is its only user: a driver's
-    /// `emit_module("app", …)` has to extend the project's own `app`, whose
+    /// `emit_module("app", ...)` has to extend the project's own `app`, whose
     /// primary folder is elsewhere, so the generated file can see its module
     /// siblings' declarations without an import (and without the cycle an import
     /// would create).
@@ -87,7 +87,7 @@ export include_paths :: fn(entry: IncludePath, plain: IncludePath[], generated: 
 
 // The folder `name` maps to under `ip`, or null when `name` isn't in this root's
 // namespace. Plain root (`prefix == ""`) : `<dir>/name`. Rooted : `name == prefix`
-// → `dir` ; `name` under `prefix/` → `<dir>/<name minus prefix/>`.
+// -> `dir` ; `name` under `prefix/` -> `<dir>/<name minus prefix/>`.
 rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
     if ip.prefix == "" { return join_path(ip.dir, name) }
     if name == ip.prefix { return ip.dir }
@@ -104,7 +104,7 @@ rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
 /// @param name     the module path (== the `import "..."` path == its `module` decl).
 /// @param paths    the ordered include-paths (`include_paths`).
 /// @param index    the lazy cache, keyed by module name.
-/// @param overlay  path → text of the documents an editor holds open, read
+/// @param overlay  path -> text of the documents an editor holds open, read
 ///                 before the disk (`scan_folder`) ; empty outside the LSP.
 /// @return         the resolved module, or null when no include-path hosts it (the
 ///                 caller, `diagnose_import_path`, turns that into R2001).
@@ -196,10 +196,10 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
 /// keeps the merge rule (`IncludePath.merge`) written once.
 ///
 /// @param entry_folder  the folder containing the entry file.
-/// @param overlay       path → text of the documents an editor holds open, read
+/// @param overlay       path -> text of the documents an editor holds open, read
 ///                      before the disk ; empty outside the LSP.
 /// @return              the discovered module, or null for a folder with no
-///                      module decl (→ the caller emits R2001, matching the eager
+///                      module decl (-> the caller emits R2001, matching the eager
 ///                      `find_by_folder` miss).
 export seed_entry :: fn(
     entry_folder: string, overlay: Map<string, string>, diags: Diagnostic[],
@@ -221,14 +221,14 @@ export seed_entry :: fn(
 }
 
 /// Pre-resolve every import declared in `sources` into `index`, so the later
-/// `collect_files → diagnose_import_path` lookup finds the target instead of
+/// `collect_files -> diagnose_import_path` lookup finds the target instead of
 /// firing a spurious R2001: the failure mode that reverted the earlier lazy
 /// attempt (see the note in `loader.vader`). A no-op for already-cached imports.
 ///
 /// @param sources  the entry/module's parsed files.
 /// @param paths    the include paths each import is resolved against.
 /// @param index    the lazy cache to populate.
-/// @param overlay  path → text of the documents an editor holds open, read
+/// @param overlay  path -> text of the documents an editor holds open, read
 ///                 before the disk ; empty outside the LSP.
 /// @param diags    collects R2001 and friends when a path doesn't resolve.
 export preresolve_imports :: fn(

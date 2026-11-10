@@ -3,7 +3,7 @@
 // `messages()` runs the compilation and hands a driver what each stage produced.
 // It lives apart from `context.vader` because it is a different job: that file is
 // the CONTRACT a driver fills in, this one is the machine that consumes it. The
-// two halves grew together and the file was over the ≤500-line target once
+// two halves grew together and the file was over the <=500-line target once
 // generation landed.
 //
 // Same module as `context.vader`, so nothing here needs exporting to reach the
@@ -11,10 +11,10 @@
 //
 // The shape, and why: one stream, looping over generation rounds.
 //
-//     Typechecked (per module) → Typechecked → Evaluated → BeforeEmit
+//     Typechecked (per module) -> Typechecked -> Evaluated -> BeforeEmit
 //                                                             ↓ break: nothing written
 //                          [ emit generated modules, round again if any landed ]
-//                                                  Lowered → OutputWritten → Complete
+//                                                  Lowered -> OutputWritten -> Complete
 //
 // `emit_native` / `emit_c` are shortcuts that drain this, not a second
 // implementation, so a driver that observes sees exactly the build a driver that
@@ -41,7 +41,7 @@ AST :: import "toolchain/ast"
 ///
 /// Nothing compiles until the first message is pulled, so a driver configures
 /// the context first and iterates second. Each entry is run through
-/// the front end (`load → resolve + typecheck → comptime`), yielding one
+/// the front end (`load -> resolve + typecheck -> comptime`), yielding one
 /// `TypecheckedMessage` per module, then a `PhaseMessage`, and finally one
 /// `CompleteMessage` for the whole run.
 ///
@@ -181,7 +181,7 @@ pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         yield CompleteMessage { .code = 1 }
         return
     }
-    // Configuration is read ONCE, here. Mutating `ctx.cc` / `ctx.target` / …
+    // Configuration is read ONCE, here. Mutating `ctx.cc` / `ctx.target` / ...
     // after the first pull is therefore ignored uniformly, rather than honoured
     // for entries not yet reached: a stream cannot re-read what it already
     // acted on, and half-applying a change is worse than ignoring it.

@@ -85,7 +85,7 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
             return true
         }
     }
-    // A `for { … }` no `break` can leave has no exit edge, so whatever follows
+    // A `for { ... }` no `break` can leave has no exit edge, so whatever follows
     // it cannot run. A `return` in the body doesn't reopen one: it leaves the
     // fn, not the loop.
     if s is AST.ForStmt {

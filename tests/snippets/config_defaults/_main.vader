@@ -1,7 +1,7 @@
 // tests/snippets/config_defaults: null-coalescing `??` fallbacks.
 //
 // Exercises every `??` fallback form on both backends : a default value, the
-// divergent `continue` / `break` / `return`, a `{ … }` block, and `??` in
+// divergent `continue` / `break` / `return`, a `{ ... }` block, and `??` in
 // expression position (its low precedence forces parentheses to keep the `+`,
 // which the formatter must preserve).
 

@@ -4,7 +4,7 @@
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
 //      arithmetic, indexing, containment, iteration, error)
 //   2. Core type definitions and their impls (Stop, Range) + the
-//      blanket array / Display→string impls
+//      blanket array / Display->string impls
 //
 // The primitive-type impls (Display, Equals, Hash, Comparable, Step,
 // arithmetic, string) live in the sibling `primitives.vader`: same
@@ -77,7 +77,7 @@ export Clone :: trait {
 ///     `Target` is a user type, the compiler routes the call through
 ///     the matching `Into` impl instead of emitting a primitive cast.
 ///
-/// Coercion is **not** transitive (`A → B → C` never auto-chains), and
+/// Coercion is **not** transitive (`A -> B -> C` never auto-chains), and
 /// `T implements Into<T>` is forbidden. SPEC §4 *Type coercion via `Into`*
 /// gives the full rules, among them which targets convert.
 export Into :: trait<Target> {
@@ -119,8 +119,8 @@ export One :: trait {
 }
 
 /// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
-/// numeric conversion : `u64(x)` truncates the VALUE (`3.7 → 3`), whereas
-/// `x.to_bits()` returns the exact bits (`3.0 → 0x4008000000000000`). The
+/// numeric conversion : `u64(x)` truncates the VALUE (`3.7 -> 3`), whereas
+/// `x.to_bits()` returns the exact bits (`3.0 -> 0x4008000000000000`). The
 /// inverse is `BitsFloat::from_bits`. Powers shortest-double formatting and any
 /// float bit-fiddling, with no per-target runtime symbol (lowers to a `union`
 /// cast). Mirrors Rust's `f64::to_bits` / `f64::from_bits` (deliberately
@@ -305,7 +305,7 @@ T[] implements<T: Equals> Contains<T> {
 }
 
 /// `[lhs] * n`: array repeat / preallocation, the `*` operator on arrays.
-/// `[v] * n` repeats the elements `n` times (`[7, 9] * 2` → `[7, 9, 7, 9]`) ; the
+/// `[v] * n` repeats the elements `n` times (`[7, 9] * 2` -> `[7, 9, 7, 9]`) ; the
 /// empty-LHS form `[] * n` is the preallocation primitive (length 0, capacity `n`:
 /// the `with_capacity` replacement). `*` on an array dispatches here through the
 /// normal trait lookup : a concrete array matches this blanket via the `"[]"`

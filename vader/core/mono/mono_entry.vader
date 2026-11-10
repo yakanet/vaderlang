@@ -30,7 +30,7 @@ export MonoEntry :: struct {
     /// free to rename the externalised symbol without breaking routing.
     is_main: bool
 
-    /// External / human-readable name : `main`, `List\$i32`, … Used by
+    /// External / human-readable name : `main`, `List\$i32`, ... Used by
     /// the C emitter for the C symbol, the binary writer for the
     /// section header, and `vader dump` for diagnostics.
     mangled: string

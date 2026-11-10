@@ -6,7 +6,7 @@
 //   2. A nominal type (`i32` / `string` / a user struct / enum / trait
 //      name): evaluate to `ComptimeValue.TypeVal(type)`. Lifts
 //      `comptime_type_alias` + `comptime_type_value` without the VM.
-//   3. Anything else (Param / Local / Fn / ImportBinding / …) →
+//   3. Anything else (Param / Local / Fn / ImportBinding / ...) ->
 //      `C4001` ; needs VM execution.
 
 module "vader/front/comptime"
@@ -37,7 +37,7 @@ evaluate_ident :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> EvalResul
         return constant
     }
     // Path 2 : type-reference identifier, a declared type or a const naming
-    // one (`i32 :: Int in …`). A name of a value resolves to no type.
+    // one (`i32 :: Int in ...`). A name of a value resolves to no type.
     type_value :: type_from_expr_safe(expr, context)
     if type_value != null { return ok(type_val(type_value)) }
     return vm_required(expr.span, "IdentExpr (${symbol.kind.label})")

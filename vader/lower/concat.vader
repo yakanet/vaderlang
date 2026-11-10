@@ -33,12 +33,12 @@ import "toolchain/span"
 import "vader/lower/ir"
 
 /// Return the shared `concat_N` fn symbol for arity `n`, synthesising it on
-/// first use. The call site lowers to `mk_lowered_call(<this>, operands, …)` ;
+/// first use. The call site lowers to `mk_lowered_call(<this>, operands, ...)` ;
 /// the body is generated once and shared across every N-leaf concat.
 ///
 /// @param ctx  the surrounding fn-body context (carries the project cache +
 ///             concat-decl sink + the force-loaded std/core symbols).
-/// @param n    the arity (number of string leaves) ; always ≥ 2.
+/// @param n    the arity (number of string leaves) ; always >= 2.
 /// @return     the concat fn symbol, or `null` when the std/core buffer API
 ///             can't be resolved (impossible: it is force-loaded ; the caller
 ///             then diverges via `unreachable_buffer`).
@@ -57,12 +57,12 @@ get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 //   concat_N(p0..p<n-1>: string) -> string {
 //       c0 := byte_len(p0)              // prefix-sum cumulative offsets,
 //       c1 := c0 + byte_len(p1)         //   each byte_len evaluated ONCE ;
-//       …                               //   c<i-1> is the byte offset of p_i.
+//       ...                               //   c<i-1> is the byte offset of p_i.
 //       total := c<n-2> + byte_len(p<n-1>)
 //       buf := new_byte_buffer(total)
 //       buf.write_string(0,  p0)        // DIRECT intrinsic, precomputed offset
 //       buf.write_string(c0, p1)
-//       …
+//       ...
 //       finish_buffer(buf, total)
 //   }
 synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {

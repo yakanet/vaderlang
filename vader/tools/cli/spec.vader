@@ -693,7 +693,7 @@ import "std/testing"
     }
     assert_eq(build.name, "build")
     assert(build.flags.len() > 0, "build carries its own flags")
-    // `== null` rather than `assert_eq(…, null)`: the latter wants `Equals` on
+    // `== null` rather than `assert_eq(..., null)`: the latter wants `Equals` on
     // the union and reaches for a host impl that isn't wired for `null`.
     assert(find_command("nope") == null, "an unknown action resolves to null")
 }

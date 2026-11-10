@@ -68,7 +68,7 @@ reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
     }
 }
 
-// ---- lexer tokens → semantic tokens --------------------------------------
+// ---- lexer tokens -> semantic tokens --------------------------------------
 
 collect_token_kinds :: fn(lexed: Token[], out: RawToken[]) -> void {
     for i in 0..<lexed.len() {
@@ -134,7 +134,7 @@ classify_token :: fn(t: Token) -> TokenType | null = match t.kind {
         | .Comma | .Dot | .Colon -> null
 }
 
-// ---- comments → semantic tokens ------------------------------------------
+// ---- comments -> semantic tokens ------------------------------------------
 
 collect_comment_kinds :: fn(idx: DocIndex, out: RawToken[]) -> void {
     for c in comments_of(idx.source, idx.comments).comments {
@@ -367,13 +367,13 @@ token_at :: fn(toks: RawToken[], line: i32, column: i32, length: i32, kind: Toke
         && t.length == length && t.token_type == kind)
 
 // Call sites must carry `Function`, through BOTH callee shapes: a method call
-// (`out.push(…)`, tagged on the field span) and a bare free-fn call
-// (`mk_primitive(…)`). Asserted on the full pipeline, so a later pass
+// (`out.push(...)`, tagged on the field span) and a bare free-fn call
+// (`mk_primitive(...)`). Asserted on the full pipeline, so a later pass
 // overwriting the tag with `Variable` would fail here.
 //
 // This is the server half of the "call-site names lose their colour under the
 // LSP" report: the tag IS emitted, so a client rendering them in the default
-// foreground is missing a semantic-token → attributes mapping.
+// foreground is missing a semantic-token -> attributes mapping.
 @test
 test_call_sites_are_tagged_function :: fn() -> void {
     src :: "main :: fn() -> void {\n    out.push(1)\n    mk_primitive(\"i64\")\n}\n"
@@ -406,7 +406,7 @@ test_struct_fields_are_property :: fn() -> void {
     assert(token_at(toks, 0, 17, 7, .Property), "field declaration is Property")
     assert(token_at(toks, 2, 32, 7, .Property), "`o.release` read is Property")
     lit :: build_sorted_for_test("Opts :: struct { release: bool }\n\nmk :: fn() -> Opts = Opts { .release = true }\n", "file:///g.vader")
-    assert(token_at(lit, 2, 29, 7, .Property), "`.release = …` in a struct literal is Property")
+    assert(token_at(lit, 2, 29, 7, .Property), "`.release = ...` in a struct literal is Property")
 }
 
 // A module const is `static` + `readonly`, which is what makes a client resolve it
@@ -457,7 +457,7 @@ lexer_kind_at :: fn(src: string, offset: i64) -> TokenType | null {
 test_resolver_refines_param_use :: fn() -> void {
     // The `x` in `return x` is a parameter USE ; only the resolver-refinement
     // pass can paint it Parameter (Phase-1 can't tell a param-use from a local).
-    // Guards the refine↔reencode ordering: `refine_via_resolver` probes the
+    // Guards the refine<->reencode ordering: `refine_via_resolver` probes the
     // resolver map by a codepoint column derived from the token's byte offset,
     // NOT the RawToken.column (which is 0 until the later reencode pass). Both `x`
     // occurrences (the param decl and its use) must end up Parameter.

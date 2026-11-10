@@ -31,7 +31,7 @@ IterChainKind :: enum(u8) {
     Range,
     Array,
     Generator,
-    // Concrete-iterator bottom (e.g. `chars()` → `StringChars`) driven by a
+    // Concrete-iterator bottom (e.g. `chars()` -> `StringChars`) driven by a
     // `next()` step-loop: the fallback for a combinator source, or an inlined
     // consumer's argument, that is neither a Range nor an array. Set only via
     // `opaque_iter_bottom`. See `emit_fused_opaque_iter`.
@@ -157,7 +157,7 @@ BodyTemplate :: struct {
 }
 
 // A concrete `Iterator` struct used as a COMBINATOR SOURCE that isn't a Range or
-// array bottom, e.g. `chars()` → `StringChars` under `.filter(p)`. Iterate it
+// array bottom, e.g. `chars()` -> `StringChars` under `.filter(p)`. Iterate it
 // via its own `next()` (a static call for a concrete struct, see
 // `build_step_call`), so the combinator + terminal fuse over it instead of
 // declining. Excludes `generator` state structs (`$genstate_*`): a combinator
@@ -286,7 +286,7 @@ FluentCombinator :: struct {
 unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
     callee :: call.callee
     // @partial: only a FieldExpr (UFCS) or IdentExpr (direct call) callee can be
-    // a fusible combinator; every other Expr callee → null.
+    // a fusible combinator; every other Expr callee -> null.
     @partial match callee {
         // UFCS form `it.map(f)` / `it.indexed()` : the FieldExpr resolved as a
         // free-fn UFCS dispatch (the typer stashed the receiver type under its id).

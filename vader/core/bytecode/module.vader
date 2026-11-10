@@ -270,9 +270,9 @@ export ImplEntry :: struct {
 }
 
 /// One vtable, keyed by `<TraitName>.<MethodName>`, listing the
-/// (receiver type-index → fn-index) mapping the `virtual.call` op
+/// (receiver type-index -> fn-index) mapping the `virtual.call` op
 /// indexes in O(1). Built by the bytecode emitter from every
-/// `T implements Trait { … }` decl. The .virt text format itself
+/// `T implements Trait { ... }` decl. The .virt text format itself
 /// doesn't carry vtable directives: they're rebuilt by the VM's
 /// `build_vtables` from mangled fn names.
 export VtableEntry :: struct {
@@ -280,7 +280,7 @@ export VtableEntry :: struct {
     fn_index: i32
 }
 
-/// One `(trait, method) → entries[]` row of the vtable table.
+/// One `(trait, method) -> entries[]` row of the vtable table.
 export VtableRow :: struct {
     key: string                      // "<trait_key>.<method>", `std/core.Display.to_string`
     entries: VtableEntry[]

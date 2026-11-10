@@ -1,7 +1,7 @@
 // Regression for CR-b : a leaf fn whose only allocating op is `array.slice`
 // (ArraySlice) must still get a GC shadow-stack frame so its ref params are
 // rooted. Missing ArraySlice from op_allocates left `leaf` classified no_frame
-// → a GC triggered by the slice moved `x` / `arr` and later reads went stale
+// -> a GC triggered by the slice moved `x` / `arr` and later reads went stale
 // (native diverged from the VM, which does not move). The slice loop is long
 // enough to force minor collections.
 

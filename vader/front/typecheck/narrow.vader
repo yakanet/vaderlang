@@ -54,7 +54,7 @@ export NarrowSlot :: struct {
 /// already retired. Grouping them keeps that pairing visible at the type, and
 /// keeps every producer in this file.
 export NarrowState :: struct {
-    /// Per-binding narrowed type stack (`Symbol.id → NarrowSlot`). `push_narrow`
+    /// Per-binding narrowed type stack (`Symbol.id -> NarrowSlot`). `push_narrow`
     /// / `pop_narrow` write when a flow-sensitive narrowing is active (inside
     /// the then-branch of `if x is T`, or a match arm); readers go through
     /// `narrow_for_binding`, which falls back to the static type when no
@@ -138,7 +138,7 @@ narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> T
     return cur.ty
 }
 
-/// Build the slot key for a `root.f1.f2.…` chain : `${root_sym.id}#f1#f2…`.
+/// Build the slot key for a `root.f1.f2....` chain : `${root_sym.id}#f1#f2...`.
 /// `fields` must be ordered root-to-leaf. The `#` separator avoids
 /// collisions with `.`-prefixed identifiers and field names like `0`
 /// (tuple positional access).
@@ -284,7 +284,7 @@ narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Typ
 ///     inside an `x is i32` region) keeps the narrowing. Field chains
 ///     rooted at `x` retire unconditionally: `x` now names another value.
 ///   - `x.f = v`: same keep-if-compatible rule for the `x.f` chain slot ;
-///     chains *deeper* than the written field (`x.f.g…`) retire
+///     chains *deeper* than the written field (`x.f.g...`) retire
 ///     unconditionally, the slot now holds a fresh object.
 ///
 /// An `IndexExpr` LHS (`a[i] = v`) never designates a tracked slot :

@@ -75,7 +75,7 @@ export FrozenSite :: struct {
     module: string
     kind: FrozenKind
     /// The constant the value is rooted at, the call that made a view, or the
-    /// conversion that read variant data (`Info(…)`).
+    /// conversion that read variant data (`Info(...)`).
     root: string
     origin: FrozenOrigin
     /// A binding that takes a frozen value or another one, `x :: f() ?? CONST`: its
@@ -94,7 +94,7 @@ FrozenSites :: struct {
     written: Set<string> = Set<string> {}
     /// The uses that read a fresh value of their constant, decided with the sites.
     fresh: FreshReads = FreshReads {}
-    /// Constant symbol id → the uses of other constants its value keeps, which a
+    /// Constant symbol id -> the uses of other constants its value keeps, which a
     /// fresh value of it reads fresh too (`spread_fresh`).
     kept_by_constants: Map<i32, ConstantUse[]> = Map<i32, ConstantUse[]> {}
 }
@@ -107,7 +107,7 @@ FrozenRoot :: struct {
     root: i64
     span: Span
     /// The constant a use names, the call that makes a view (`bytes()`), the
-    /// conversion that reads variant data (`Info(…)`), or the name of a binding.
+    /// conversion that reads variant data (`Info(...)`), or the name of a binding.
     label: string
     /// The symbol id of the name a binding binds ; null for a use.
     binding: i32 | null = null
@@ -233,7 +233,7 @@ frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
 // The slot of the use `c` of variant data kept in the struct `data`.
 variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> i64 {
     use :: ConstantUse { .node = c.id, .symbol = data.symbol.id }
-    return ctx.frozen_source(c, "${data.symbol.name}(…)", .VariantData, use)
+    return ctx.frozen_source(c, "${data.symbol.name}(...)", .VariantData, use)
 }
 
 // The binding of `sym`, at `span`, to what `value` holds: a copy of what it holds

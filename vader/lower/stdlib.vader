@@ -105,7 +105,7 @@ surface_stdlib_impl_externs :: fn(
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
         mangled :: impl_member_mangled(impl_entry, member, self_type)
-        // Only emit members an actual call referenced (direct call → exact
+        // Only emit members an actual call referenced (direct call -> exact
         // mangle) OR an eligible implementor of a virtually-dispatched trait
         // (`vtable_gate`, above): emitting every stdlib impl member
         // unconditionally would intern unused signature types and shift the
@@ -115,8 +115,8 @@ surface_stdlib_impl_externs :: fn(
             continue
         }
         entry :: synth_impl_entry(member, typed, mangled, impl_trait)
-        // Bodyless (`@intrinsic`) → extern import (Vader VM dispatches via
-        // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) →
+        // Bodyless (`@intrinsic`) -> extern import (Vader VM dispatches via
+        // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) ->
         // materialise the real fn so a devirtualised concrete call resolves
         // directly instead of dropping / surfacing as an unbound host import.
         subst :: new_substitution()
@@ -142,7 +142,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 /// (`materialize_impl_for_instance`) is struct-instance-driven and never reaches
 /// an array receiver, so `build_ufcs_member` records the element type and the member
 /// keyed by the call-site mangle (`project_ctx.array_member_uses`) ; here we lower the
-/// member body with a CONCRETE substitution `T → element` (so e.g. `contains`'s
+/// member body with a CONCRETE substitution `T -> element` (so e.g. `contains`'s
 /// `==` devirtualises to the element's primitive comparison, and `into`'s
 /// generator boxes into the concrete `Iterator<element>` the value
 /// slot dispatches on).
@@ -155,7 +155,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 /// @param impl_decl    the candidate impl ; ignored unless it is on an array.
 /// @param typed        the impl's owning module (std/core): source of the subst
 ///                     symbols and entry types.
-/// @param project_ctx  carries `array_member_uses` (mangle → element and member)
+/// @param project_ctx  carries `array_member_uses` (mangle -> element and member)
 ///                     and the `materialized_impl_keys` dedupe set.
 /// @return             one materialised `LoweredFnDecl` per fresh element mangle.
 surface_array_impl_members :: fn(

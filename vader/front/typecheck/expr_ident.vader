@@ -2,21 +2,21 @@
 //
 // Resolves the ident via the resolver's `idents` map and routes per
 // SymbolKind :
-//   - Fn / Struct / Enum / Trait / TypeAlias / Const → look up the
+//   - Fn / Struct / Enum / Trait / TypeAlias / Const -> look up the
 //     decl's declared type in `typed.decl_types` keyed by `name_span`.
-//   - Param → look up `typed.param_types` keyed by the parameter's
+//   - Param -> look up `typed.param_types` keyed by the parameter's
 //     own span (populated by `declare_fn`).
-//   - TypeParam → mk_type_param(sym): type-param refs in value
+//   - TypeParam -> mk_type_param(sym): type-param refs in value
 //     position are usable as the metatype value of that param.
-//   - BuiltinType → `type` (the metatype). A bare reference to a
+//   - BuiltinType -> `type` (the metatype). A bare reference to a
 //     primitive name in expression context is a type-valued expr ;
 //     `type_expr.vader` handles type-position refs separately.
-//   - Local / Binding → `typed.local_types` keyed by the binding's span,
+//   - Local / Binding -> `typed.local_types` keyed by the binding's span,
 //     populated by `let_assign.vader` as it checks each `let` (and by the
 //     pattern binders in `match_expr.vader` / `expr_if.vader`).
-//   - ImportBinding → redirected to its concrete export before lookup, so
+//   - ImportBinding -> redirected to its concrete export before lookup, so
 //     it resolves cross-module via `wire.vader`'s `import_targets`.
-//   - BuiltinFn / Impl / Synthetic / GeneratorState → carry no value type →
+//   - BuiltinFn / Impl / Synthetic / GeneratorState -> carry no value type ->
 //     Unresolved.
 
 module "vader/front/typecheck"
@@ -53,7 +53,7 @@ export declared_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
 }
 
 /// Look up the value-position type of a resolved symbol via `typed`'s
-/// side-tables. Public so other passes (call, field, …) can reach
+/// side-tables. Public so other passes (call, field, ...) can reach
 /// it without re-routing through `infer_ident`.
 export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sym.kind {
     .Fn        -> lookup_decl(sym, typed)

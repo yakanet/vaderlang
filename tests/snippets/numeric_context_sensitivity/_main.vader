@@ -13,7 +13,7 @@ Counter :: struct {
 }
 
 main :: fn() -> i32 {
-    // (1) typed let → all integer widths
+    // (1) typed let -> all integer widths
     a8: i8: 5
     b16: i16: 100
     c32: i32: 1000

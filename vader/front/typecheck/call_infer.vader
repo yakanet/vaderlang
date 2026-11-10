@@ -282,7 +282,7 @@ written_vars :: fn(
     return out
 }
 
-// Fix the variables an explicit `<…>` writes, in the order the callee declares its
+// Fix the variables an explicit `<...>` writes, in the order the callee declares its
 // parameters. Returns the ids of the variables it fixed.
 seed_explicit_infer :: fn(
     type_args: AST.TypeExpr[],
@@ -314,7 +314,7 @@ seed_ufcs_infer :: fn(ctx: CallInference, vars: Map<i32, Type>) -> void {
     unify_argument_infer(pattern, target_ty, ctx.typed, ctx.solutions, ctx.held)
 }
 
-// A struct or primitive argument reaching a `Trait<…>` parameter through its impl
+// A struct or primitive argument reaching a `Trait<...>` parameter through its impl
 // binds the parameter's arguments from the impl's.
 unify_struct_to_trait_infer :: fn(
     pattern: Type,

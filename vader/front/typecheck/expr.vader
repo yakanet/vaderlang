@@ -5,7 +5,7 @@
 //   - bottom-up : compute the natural type of `expr`. Literals are answered
 //     inline in `infer_expr` below (a free int / float / char carries no work
 //     beyond its `TY_FREE_*`) ; every heavier variant has its own file
-//     (`expr_ident`, `call`, `field`, `binary`, `expr_index`, …) and a block
+//     (`expr_ident`, `call`, `field`, `binary`, `expr_index`, ...) and a block
 //     goes to `stmt.vader::check_block`.
 //   - top-down : when `expected` is non-null, narrow FreeInt/FreeFloat
 //     to the concrete primitive so `let x: i64 = 5` works without an
@@ -14,7 +14,7 @@
 //     expression's span.
 //
 // Every Expr variant has a dedicated per-variant handler (literals, ident,
-// call, field, binary, …) and the dispatch match in `infer_expr` is
+// call, field, binary, ...) and the dispatch match in `infer_expr` is
 // exhaustive: a newly-added Expr variant trips T3013 here.
 
 module "vader/front/typecheck"

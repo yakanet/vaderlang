@@ -40,7 +40,7 @@ export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = t
 /// `emit/bytecode/emit.vader::emit_bytecode_from_cfg`, threaded through every
 /// reservation + body-emit call it makes. Carries the
 /// type / string / fn / import interning tables plus the inverse
-/// lookups (symbol id → fn / import index) downstream phases query.
+/// lookups (symbol id -> fn / import index) downstream phases query.
 ///
 /// Distinct from `EmitOptions` so the constructor stays cheap and the
 /// helpers don't need an `opts` parameter when they only touch the
@@ -53,10 +53,10 @@ export EmitterCtx :: struct {
     /// primitive so unboxed nulls have a well-defined tag at runtime
     /// (matches `VADER_BOX_TAG_NULL = 0` in `runtime/c/vader.h`).
     types: BcType[]
-    /// `type_intern_key(t)` → index into `types`. Pre-loaded with
+    /// `type_intern_key(t)` -> index into `types`. Pre-loaded with
     /// `"null"` at index 0 by `new_emitter_ctx`.
     type_key: Map<string, i32>
-    /// `type_intern_hash(t)` → the same index, reached without building the key
+    /// `type_intern_hash(t)` -> the same index, reached without building the key
     /// string, which is the point: the key is rebuilt half a million times per
     /// self-build to index ~1 600 slots, and every level of its recursion
     /// allocates and interns. A hit is VERIFIED against `type_hash_src` by
@@ -70,19 +70,19 @@ export EmitterCtx :: struct {
 
     /// String literal pool. Deduplicated by content via `string_key`.
     strings: string[]
-    /// `string content` → index into `strings`.
+    /// `string content` -> index into `strings`.
     string_key: Map<string, i32>
 
     /// Function table. Each entry mirrors a top-level `LoweredFnDecl`
     /// (regular fns) ; `is_extern`-flagged decls route to `imports`
     /// instead.
     functions: BcFunction[]
-    /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
+    /// `MonoEntry.symbol.id` -> index into `functions`. Lets call sites
     /// resolve target fn slots through the symbol id rather than the
     /// mangled name.
     function_index_by_symbol_id: Map<i32, i32>
 
-    /// Mangled fn name → index into `functions`. Generic-instance call
+    /// Mangled fn name -> index into `functions`. Generic-instance call
     /// sites resolve by mangle : multiple instances of one generic share
     /// the generic's `symbol.id`, so `function_index_by_symbol_id` can't
     /// distinguish them: the per-instance mangle can.
@@ -92,10 +92,10 @@ export EmitterCtx :: struct {
     /// `@intrinsic` shims). Each entry's `signature` mirrors what the
     /// host expects at the C-ABI boundary.
     imports: BcImport[]
-    /// `MonoEntry.symbol.id` → index into `imports`. Same role as
+    /// `MonoEntry.symbol.id` -> index into `imports`. Same role as
     /// `function_index_by_symbol_id` for the import side.
     import_index_by_symbol_id: Map<i32, i32>
-    /// Import mangled-name → index into `imports`. Lets a call whose
+    /// Import mangled-name -> index into `imports`. Lets a call whose
     /// callee carries only a mangle (synthetic `id = 0`, e.g. an
     /// intrinsic impl-member call surfaced as a bodyless extern) resolve
     /// to a `CallImport`. Mirror of `function_index_by_mangle` for imports.
@@ -268,9 +268,9 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
 
 /// Context-aware translation : recursively interns element / param /
 /// return types so the resulting `BcType` carries the right type-table
-/// indices for composite shapes : Struct/Trait → `BcRef { trait_name }`,
-/// Array → `BcArray { element }`, Union → `BcUnion { variants }`,
-/// Fn → `BcFn { params, return_type }`.
+/// indices for composite shapes : Struct/Trait -> `BcRef { trait_name }`,
+/// Array -> `BcArray { element }`, Union -> `BcUnion { variants }`,
+/// Fn -> `BcFn { params, return_type }`.
 /// Tuple synthesises an anonymous struct named after its shape.
 ///
 /// Exhaustive over `Type` by design (no `_` fall-through) : the bare
@@ -304,7 +304,7 @@ bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
                 .return_type = intern_type(t.return_type, ctx),
             }
         }
-        // Anonymous struct with positional fields `_0`, `_1`, … , named after
+        // Anonymous struct with positional fields `_0`, `_1`, ... , named after
         // the tuple's SHAPE so `[i32, string]` and `[bool, string]` still emit
         // distinct C structs.
         //

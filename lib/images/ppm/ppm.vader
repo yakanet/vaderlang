@@ -19,7 +19,7 @@ module "images/ppm"
 export Ppm :: struct {
     width:  u32
     height: u32
-    /// Maximum sample value, in `1..=65535`. `< 256` ⇒ 8-bit (1 byte/sample),
+    /// Maximum sample value, in `1..=65535`. `< 256` => 8-bit (1 byte/sample),
     /// otherwise 16-bit (2 bytes/sample, most-significant byte first).
     maxval: u32
     /// Raw raster, row-major, exactly as stored on disk:
@@ -62,7 +62,7 @@ ScanInt :: struct {
     found: bool
 }
 
-// Advance past whitespace and `# … <LF>` comment lines, returning the index of
+// Advance past whitespace and `# ... <LF>` comment lines, returning the index of
 // the next significant byte (or `bs.len()` at end of input).
 skip_ws :: fn(bs: u8[], from: i64) -> i64 {
     n :: bs.len()

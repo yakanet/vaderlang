@@ -17,7 +17,7 @@ AST :: import "toolchain/ast"
 /// (the typer can't pick a variant), so it falls through to the T3001 mismatch.
 ///
 /// @param value  the coerced value. On a real `.into()` coercion (a matched
-///               `Into` impl or the `T[] → Iterator` blanket) the target type is
+///               `Into` impl or the `T[] -> Iterator` blanket) the target type is
 ///               recorded under its id in `typed.into_coercions` (the LSP's ghost
 ///               `.into()` hint, the lowering where the slot type is not at hand),
 ///               and the `into` is filed as its site ; trait widening records
@@ -32,7 +32,7 @@ try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) 
         note_into(typed, value, got, expected)
         return true
     }
-    // `T[] → Iterator<T>` : lowerer materialises the array's `into` generator
+    // `T[] -> Iterator<T>` : lowerer materialises the array's `into` generator
     // at the call site. Lives in `try_into`, not `is_assignable` : the
     // conversion is recorded on `value` (`note_into`), which a check over
     // types alone never sees.
@@ -193,7 +193,7 @@ value_for_test :: fn(id: i64) -> AST.Expr = AST.IntLitExpr {
     .value = 0,
 }
 
-// `T[] → Iterator<T>` is a real `.into()` coercion : `try_into` records the
+// `T[] -> Iterator<T>` is a real `.into()` coercion : `try_into` records the
 // target type under the value's node id so the LSP can surface a `.into()`
 // hint (the array-into-Iterator param case from the feature request).
 @test
@@ -205,7 +205,7 @@ test_try_into_records_array_to_iter :: fn() -> void {
     assert(typed.into_coercions[7] !is null, "coercion must be recorded under node id 7")
 }
 
-// A plain mismatch (no `Into` impl, no trait widen, not an array→iter) coerces
+// A plain mismatch (no `Into` impl, no trait widen, not an array->iter) coerces
 // to nothing and must leave the into-coercion table untouched: otherwise the
 // LSP would paint a spurious `.into()` hint on a value that never coerces.
 @test

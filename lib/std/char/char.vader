@@ -11,11 +11,11 @@ module "std/char"
 /// @param c  the codepoint to test.
 export is_white_char :: fn(c: char) -> bool = c == ' ' || c == '\t' || c == '\n' || c == '\r'
 
-/// True for an ASCII decimal digit `'0'`–`'9'`.
+/// True for an ASCII decimal digit, `'0'` to `'9'`.
 /// @param c  the codepoint to test.
 export is_digit :: fn(c: char) -> bool = c in '0'..='9'
 
-/// True for an ASCII letter `'a'`–`'z'` or `'A'`–`'Z'`.
+/// True for an ASCII letter, `'a'` to `'z'` or `'A'` to `'Z'`.
 /// @param c  the codepoint to test.
 export is_alpha :: fn(c: char) -> bool = c in 'a'..='z' || c in 'A'..='Z'
 

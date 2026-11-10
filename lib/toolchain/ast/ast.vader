@@ -28,7 +28,7 @@ import "toolchain/span"
 /// Sentinel `id` on a node the parser has just minted.
 ///
 /// Node ids are assigned in a later pass (`vader/front/parser::assign_program_ids`), which
-/// replaces this with a fresh unique value (≥ 1), so a freshly parsed tree carries
+/// replaces this with a fresh unique value (>= 1), so a freshly parsed tree carries
 /// the sentinel everywhere. A generator reading a typechecked tree sees real ids;
 /// one building nodes by hand leaves them at the default: it is every node's
 /// `.id` default, so a construction may omit the field.
@@ -197,7 +197,7 @@ export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null
     return null
 }
 
-/// The C type a `@c_type("…")` among `decs` names, or `""` when none does or its
+/// The C type a `@c_type("...")` among `decs` names, or `""` when none does or its
 /// argument is not one plain string.
 ///
 /// @param decs  the decorators of an `@extern` declaration or of one parameter.
@@ -566,10 +566,10 @@ export TraitDecl :: struct {
     visibility:  Visibility
     type_params: TypeParam[]
     /// The supertrait bound, for either form: `Numeric :: trait<T> = Add & Sub`
-    /// (alias form, `members` empty) or `Hashable :: trait<T> : Hash & Eq { … }`
+    /// (alias form, `members` empty) or `Hashable :: trait<T> : Hash & Eq { ... }`
     /// (methods plus composition). A parsed type expression: typically a
     /// `BinaryExpr(.BitAnd)` chain over trait names, though a single trait
-    /// reference is valid too. `null` for a plain `trait { … }`.
+    /// reference is valid too. `null` for a plain `trait { ... }`.
     requires:    TypeExpr | null
     members:     FnDecl[]
     decorators:  Decorator[]
@@ -813,7 +813,7 @@ export ForStmt :: struct {
     label: string | null
     form:  ForForm
     body:  BlockExpr
-    /// `@comptime for x in <arr> { … }`: unroll at lower time. False for
+    /// `@comptime for x in <arr> { ... }`: unroll at lower time. False for
     /// every other form.
     is_comptime: bool = false
 }
@@ -828,17 +828,17 @@ export InFor       :: struct {
     iter:     Expr
 }
 
-/// The loop variable of a `for … in …`. A union so the mutually exclusive
+/// The loop variable of a `for ... in ...`. A union so the mutually exclusive
 /// shapes can't be miscombined and no sentinel / span-geometry heuristic is
 /// needed downstream: each pass matches on the variant. Kept structural on the
 /// AST (not desugared at parse) so `vader fmt` round-trips every sugar.
 export LoopVar :: NamedVar | DestructureVar | DiscardVar
-/// `for x in …`, and the explicit discard `for _ in coll` (name == `"_"`).
+/// `for x in ...`, and the explicit discard `for _ in coll` (name == `"_"`).
 export NamedVar       :: struct { name: string, span: Span }
-/// `for [k, v] in …`: the leaves bind against the iterable's element type.
+/// `for [k, v] in ...`: the leaves bind against the iterable's element type.
 export DestructureVar :: struct { pattern: LetBinding }
 /// `for <range>`: no user variable is written (the iterable is the range
-/// itself). Also the lower-synthesised varless `for <coll>` (while→for sugar).
+/// itself). Also the lower-synthesised varless `for <coll>` (while->for sugar).
 export DiscardVar     :: struct {}
 
 /// A `break`, optionally naming the loop to leave.
@@ -1223,19 +1223,19 @@ export MatchExpr :: struct {
     id:        i64 = UNASSIGNED_NODE_ID
     scrutinee: Expr
     arms:      MatchArm[]
-    // `@partial match x { … }` opts out of exhaustiveness: no T3013
+    // `@partial match x { ... }` opts out of exhaustiveness: no T3013
     // fires for missing variants. Default `false` keeps the regular
     // exhaustive-by-default behaviour ; the dump suppresses the field
     // when `false` so old snapshots stay byte-identical.
     partial:   bool
-    // `@unreachable match x { … }` likewise opts out of T3013, but asserts
+    // `@unreachable match x { ... }` likewise opts out of T3013, but asserts
     // the *uncovered* variants can never occur : they fall through to the
     // synthesised trap (`LoweredUnreachable`) instead of being handled. Use
     // it for "handle A/B/C, the rest are impossible": no wildcard, no fake
     // value. Mutually exclusive with `partial`. Defaulted so existing
-    // `MatchExpr { … }` literals and old snapshots are unaffected.
+    // `MatchExpr { ... }` literals and old snapshots are unaffected.
     unreachable: bool = false
-    /// `match x :: e { … }`: the name the scrutinee is bound to, visible in every
+    /// `match x :: e { ... }`: the name the scrutinee is bound to, visible in every
     /// arm and guard and narrowed by each arm. Its `name_span` is the declaration
     /// the resolver mints the symbol at.
     binding: SimpleBinding | null = null
@@ -1424,7 +1424,7 @@ export EnumVariantPattern :: struct {
     variant: string
 }
 
-/// Match a literal value : `'a' -> …`, `42 -> …`, `"ok" -> …`, etc.
+/// Match a literal value : `'a' -> ...`, `42 -> ...`, `"ok" -> ...`, etc.
 /// The inner `value` is the parsed literal as an Expr ; the lowerer
 /// emits `scrutinee == value` as the arm predicate.
 export LiteralPattern :: struct {
@@ -1433,7 +1433,7 @@ export LiteralPattern :: struct {
     value: Expr
 }
 
-/// Range pattern : `'a'..='z' -> …`, `0..<10 -> …`. Matches when a scalar
+/// Range pattern : `'a'..='z' -> ...`, `0..<10 -> ...`. Matches when a scalar
 /// scrutinee falls in the range. `inclusive` = `..=` (upper bound included),
 /// else `..<` (excluded). The bounds are literal scalar exprs (char / int) of
 /// the scrutinee's type ; the lowerer emits
@@ -1447,7 +1447,7 @@ export RangePattern :: struct {
     upper:     Expr
 }
 
-/// Or-pattern : `.A | .B -> …`, `1 | 2 | 3 -> …`. Matches when ANY alternative
+/// Or-pattern : `.A | .B -> ...`, `1 | 2 | 3 -> ...`. Matches when ANY alternative
 /// matches. Parsed from pipe-separated patterns in a match arm. The `is A | B`
 /// form does NOT produce this: there the type parser folds `A | B` into a
 /// single union `IsPattern` (equivalent narrowing + exhaustiveness). The
@@ -1480,7 +1480,7 @@ export ArrayTypeExpr :: struct {
 
 // ---- Helpers --------------------------------------------------------------
 
-/// Flatten a `T | U | V | …` `BitOr` BinaryExpr chain into its variant
+/// Flatten a `T | U | V | ...` `BitOr` BinaryExpr chain into its variant
 /// list, in source order. Non-`BitOr` expressions are returned as a
 /// single-element list. Used by `vader/tools/fmt` and `vader/front/typecheck` to
 /// avoid hand-rolling the same recursion on each side.

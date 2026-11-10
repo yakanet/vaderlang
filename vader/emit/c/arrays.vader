@@ -57,12 +57,12 @@ emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
 /// it can travel unboxed. Fully open-coded over the kept `vader_array_t` layout,
 /// no `vader_array_get` call. Three read paths for the others, keyed off
 /// `typed_array_fill_for(kind)` + the kind :
-///   - Boxed → an inline box-slot read.
-///   - `u8` → the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
+///   - Boxed -> an inline box-slot read.
+///   - `u8` -> the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
 ///     `buf == NULL`, reads the atom table with the runtime borrowed tag ; a real
 ///     `u8[]` reads its slots). It is `static inline`, so no `vader_*` symbol is
 ///     added and the read inlines at -O3.
-///   - any other sub-word width → an inline typed read, pushed in its storage
+///   - any other sub-word width -> an inline typed read, pushed in its storage
 ///     class when a later re-box would give back the element's own tag
 ///     (`reboxes_to_own_tag` : `bool`, `f32`), re-boxed via `box_expr` otherwise
 ///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
@@ -84,8 +84,8 @@ emit_array_get :: fn(s: FnState, op: Bc.ArrayGet) -> void {
         // `Boxed` (built in erased generic code), so the reader dispatches on
         // `buf->element_kind`: via a `static inline` runtime helper (inlined at
         // -O3, but keeps the emitted C a clean call). The pushed class is the
-        // element's STACK class : a concrete ref → `.Ref` (raw obj ptr,
-        // `_load_obj`), an erased `BcRef` / a union → `.Any` (tagged box,
+        // element's STACK class : a concrete ref -> `.Ref` (raw obj ptr,
+        // `_load_obj`), an erased `BcRef` / a union -> `.Any` (tagged box,
         // `_load_box`, which recovers the concrete tag from the referent header).
         result_val :: val_type_of_bc_type(elem)
         getter :: if result_val == .Ref { "vader_array_ref_load_obj" } else { "vader_array_ref_load_box" }
@@ -148,7 +148,7 @@ emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
             // (a distinct-primitive trait impl), not a header-bearing ref, so route
             // it through `coerce_expr(.. .Any)`: the SAME box path a `.Any`-slot
             // `local.set` / plain assignment uses, so the box carries the value's
-            // concrete tag (a ref → header tag; a primitive → its own type index),
+            // concrete tag (a ref -> header tag; a primitive -> its own type index),
             // NOT the array's erased `elem_tag` (which would stamp the trait tag and
             // mis-dispatch). Then store box-or-raw by buf kind. (`object_pointer_of` /
             // `box_expr(elem_tag)` were both wrong here: the former splices

@@ -1,7 +1,7 @@
-// vader/front/comptime/eval_seq_lit: `[e0, e1, …]` literal evaluator.
+// vader/front/comptime/eval_seq_lit: `[e0, e1, ...]` literal evaluator.
 //
-// Tuples (typed `[T0, T1, …]`) materialise as `StructValue` with
-// synthetic `_0`, `_1`, … field names. Arrays (typed `T[]`)
+// Tuples (typed `[T0, T1, ...]`) materialise as `StructValue` with
+// synthetic `_0`, `_1`, ... field names. Arrays (typed `T[]`)
 // materialise as `ArrayValue`. The discriminator is the type-checker's
 // `expr_types[expr.id]` ; both shapes recurse through the dispatcher
 // to evaluate elements.
@@ -12,7 +12,7 @@ import "std/collections"
 AST :: import "toolchain/ast"
 import "vader/core/types"
 
-/// Evaluate a `[e0, e1, …]` literal : each element in order, then a tuple or an
+/// Evaluate a `[e0, e1, ...]` literal : each element in order, then a tuple or an
 /// array according to the literal's checked type.
 /// @param expr     the literal node.
 /// @param context  the evaluator context.

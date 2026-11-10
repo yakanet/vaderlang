@@ -3,7 +3,7 @@
 //
 // A generator call fuses one of two ways, decided by the shape of its body, never
 // by its name:
-//   - a COMBINATOR (`map`, `filter`, `chain`, …: a body whose root loops iterate
+//   - a COMBINATOR (`map`, `filter`, `chain`, ...: a body whose root loops iterate
 //     its source params) is a chain LAYER: its source loop fuses with the source
 //     beneath it, and its inner body runs per element (`try_descend_gen_combinator`) ;
 //   - any other generator is a chain SOURCE: its whole body is inlined at the
@@ -210,13 +210,13 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: Map<i32, Type>, ctx:
 
 // Recover the concrete trait args for `concrete` viewed as `tt` (the
 // trait pattern). Three sources, in order :
-//   1. `concrete` is already the same trait (a boxed value) → its args.
+//   1. `concrete` is already the same trait (a boxed value) -> its args.
 //   2. A concrete `implements` recorded in `struct_trait_args`
 //      (`Hello implements Greeter(i32)`, `i32 implements Doubler(i32)`).
 //   3. The builtin `Iterator<T>` element : the first type-arg of a struct
 //      iterator (`Range<i32>`, a generator state struct) or a raw array's
 //      element: covers generic impls whose recorded args are still
-//      type-params, plus the `T[] → Iterator<T>` coercion that has no
+//      type-params, plus the `T[] -> Iterator<T>` coercion that has no
 //      impl decl. Returns `null` when no source resolves.
 trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
     if concrete is TraitType {
@@ -254,7 +254,7 @@ subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: 
 // ---- chained generator combinators ----------------------------------------
 //
 // A generator whose FIRST param is the source iterator, `map`/`filter`
-// (`generator fn<T, U>(self: Iterator<T>, f) -> Iterator<U> { for x in self { … } }`),
+// (`generator fn<T, U>(self: Iterator<T>, f) -> Iterator<U> { for x in self { ... } }`),
 // consumed in a chain (`xs.map(f)`). Unlike a direct call, `self` is
 // itself an iterator we want to FUSE into, not materialise: binding `let self =
 // xs` would leave a boxed array iterator. So a generator combinator is a
@@ -285,7 +285,7 @@ GenComboLayer :: struct {
     loopvar:     Symbol          // the body's primary `for <loopvar> in self` variable
     inner:       AST.BlockExpr   // the primary for-loop body (contains the yield)
     arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`indexed`) or when the non-self param is itself a source (`chain`)
-    arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
+    arg_expr:    AST.Expr | null // the call's non-self DATA argument (`f` of map) ; null as above
     arg_slot:    Type | null     // the DATA param's type under `subst`, its argument's slot ; null as above
     output_elem: Type            // the combinator's yielded element type
     instance:    InlineInstance    // the names this layer's body lowers under
@@ -343,7 +343,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
             .prelude = param1_loop.prelude,
         })
     }
-    // No 3-source combinator exists: reject any loop over param ≥ 2.
+    // No 3-source combinator exists: reject any loop over param >= 2.
     if loops.len() > 1 + extra_sources.len() { return null }
 
     // The non-self DATA arg (null for a 0-arg / all-source combinator): seeds the
@@ -511,7 +511,7 @@ gen_combo_subst :: fn(
 // Emit a `Generator` chain layer: each source loop binds its loop var to every
 // source element and runs the combinator's inner body, whose `yield e` routes (via
 // the shared gen-ctx sink) to the OUTER template's binding + body. The single non-
-// self DATA param (map's `f`, …) is already bound, by `bind_layer_operands` ;
+// self DATA param (map's `f`, ...) is already bound, by `bind_layer_operands` ;
 // multi-source combinators (`chain`) fuse each source loop in body order, all
 // into the same sink.
 emit_fused_gen_combinator :: fn(

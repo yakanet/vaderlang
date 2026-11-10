@@ -239,7 +239,7 @@ Box implements Contains<i32> -> value == self.v
 
 @test
 test_comptime_const_synthetic_fn_not_a_symbol :: fn() -> void {
-    // `NAME :: @comptime { … }` desugars to a synthetic `__comptime_NAME` fn,
+    // `NAME :: @comptime { ... }` desugars to a synthetic `__comptime_NAME` fn,
     // compiler-internal: the outline shows the const alone, and every surfaced
     // symbol's name span stays inside its full span (a client drops the whole
     // response otherwise).

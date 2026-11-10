@@ -245,7 +245,7 @@ test_array_widening_boxed_into_boxed :: fn() -> void {
     string_arr: Type: mk_array(TY_STRING)
     nullable_arr: Type: mk_array(mk_union([TY_STRING, TY_NULL]))
     typed :: empty_typed_program()
-    assert(widening_depth(string_arr, nullable_arr, typed) == 1, "string[] → (string | null)[]")
+    assert(widening_depth(string_arr, nullable_arr, typed) == 1, "string[] -> (string | null)[]")
 }
 
 circle_type :: fn() -> Type {
@@ -267,7 +267,7 @@ test_array_widening_reference_into_reference_union :: fn() -> void {
     circles: Type: mk_array(circle_type())
     nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]))
     typed :: empty_typed_program()
-    assert(widening_depth(circles, nullable, typed) == 1, "Circle[] → (Circle | null)[]")
+    assert(widening_depth(circles, nullable, typed) == 1, "Circle[] -> (Circle | null)[]")
 }
 
 @test
@@ -306,7 +306,7 @@ test_widening_depth_of_rows :: fn() -> void {
 test_widening_depth_of_the_same_array :: fn() -> void {
     ints: Type: mk_array(TY_I32)
     typed :: empty_typed_program()
-    assert(widening_depth(ints, ints, typed) == null, "i32[] → i32[] widens nothing")
+    assert(widening_depth(ints, ints, typed) == null, "i32[] -> i32[] widens nothing")
 }
 
 @test

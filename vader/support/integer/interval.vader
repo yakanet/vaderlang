@@ -500,14 +500,14 @@ values_of_named :: fn(name: string) -> Interval {
 
 @test
 test_literal_fits_machine_bounds :: fn() -> void {
-    // Out of range → rejected (T3066 at the pin site).
+    // Out of range -> rejected (T3066 at the pin site).
     assert(!literal_fits(9000000000, false, values_of_named("i32")), "9e9 does not fit i32")
     assert(!literal_fits(300, false, values_of_named("u8")), "300 does not fit u8")
     assert(!literal_fits(0xFFFF_FFFF_FFFF_FFFF, false, values_of_named("i64")), "u64.MAX past i64")
     assert(!literal_fits(128, false, values_of_named("i8")), "128 does not fit i8")
     assert(!literal_fits(0x8000_0000, false, values_of_named("i32")), "2^31 does not fit i32")
     assert(!literal_fits(0x8000_0000_0000_0000, false, values_of_named("i64")), "2^63 past i64")
-    // In-range values and maxima → accepted.
+    // In-range values and maxima -> accepted.
     assert(literal_fits(0x7FFF_FFFF, false, values_of_named("i32")), "i32.MAX fits i32")
     assert(literal_fits(255, false, values_of_named("u8")), "u8.MAX fits u8")
     assert(literal_fits(0xFFFF_FFFF_FFFF_FFFF, false, values_of_named("u64")), "u64.MAX fits u64")

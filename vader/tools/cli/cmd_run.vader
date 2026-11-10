@@ -93,7 +93,7 @@ run_virt :: fn(path: Path, forward: string[]) -> i32 {
 
 run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -> i32 {
     // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
-    // side-table maps dominate the live set) before this CFG → bytecode tail:
+    // side-table maps dominate the live set) before this CFG -> bytecode tail:
     // the lowered IR carries its own `Type`s, so emit never revisits the
     // typed-AST tables.
     le :: lower_to_entry(file, project_root)
@@ -109,7 +109,7 @@ run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -
         return 1
     }
     // Feed the in-hand `BytecodeModule` straight to the VM: no `.virt` text
-    // round-trip. The former `dump_bytecode → parse_virt_bc` hop was both
+    // round-trip. The former `dump_bytecode -> parse_virt_bc` hop was both
     // pointless overhead and lossy (dump_bytecode drops the data pool).
     // `run_virt` still parses real `.virt` files ; this is the source path.
     state :: prepare(module)

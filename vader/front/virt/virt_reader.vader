@@ -1,6 +1,6 @@
 // vader/front/virt/virt_reader: shared `.virt` op-stream parsing.
 //
-// Holds the per-op line parsers + structured control-flow → linear op-stream
+// Holds the per-op line parsers + structured control-flow -> linear op-stream
 // wiring (`ParserState`, `wire_control_flow`, `parse_op_line`, every
 // `parse_<op>` helper) used by the canonical `.virt` reader in
 // `virt_reader_bc.vader` (which produces a `BytecodeModule`).
@@ -67,7 +67,7 @@ strip_comment :: fn(line: string) -> string {
 }
 
 /// First whitespace-separated token after `prefix`: the structured
-/// ops embed their label here (`block $L0 void` → `$L0`). Zero-alloc :
+/// ops embed their label here (`block $L0 void` -> `$L0`). Zero-alloc :
 /// trims the prefix, finds the next space, slices.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
@@ -129,7 +129,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | 
     after :: cleaned.trim_prefix("string ")
     first_quote :: after.index_of('"')
     if first_quote == null {
-        return DirectiveError { .reason = "expected `string <index> \"…\"`, got no quoted text" }
+        return DirectiveError { .reason = "expected `string <index> \"...\"`, got no quoted text" }
     }
     body :: after.byte_slice(first_quote + 1, after.byte_len() - 1)
     strings.push(decode_escapes(body))
@@ -222,7 +222,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 ///
 /// The dotted width families (`i32.*` / `i64.*` / `u32.*` / `u64.*` / `f64.*`
 /// and every `<from>.to_<to>`) are decoded by the block up front ; the literal
-/// `head == "…"` chain below covers the rest. Between them the two arms must
+/// `head == "..."` chain below covers the rest. Between them the two arms must
 /// cover every op `emit/virt/dump.vader::write_op` can emit: a gap there reaches
 /// `parse_virt_bc` as a `VirtParseError` on a dump the compiler itself produced.
 /// `test_every_op_round_trips` reads back one op of every variant.
@@ -544,7 +544,7 @@ is_unsigned_width :: fn(width: string) -> bool = is_unsigned_int_name(width)
 
 /// Strip `prefix` from `line`, trim, and parse the rest as a base-10
 /// integer. The five op-with-int parsers below all delegate here so the
-/// "slice prefix → parse_int_in_base → unwrap" pattern lives in one
+/// "slice prefix -> parse_int_in_base -> unwrap" pattern lives in one
 /// place ; each wrapper only contributes the variant constructor.
 ///
 /// @param line    the full .virt line (already comment-stripped).
@@ -796,7 +796,7 @@ parse_union_field_set :: fn(line: string) -> Op | null {
 ///
 /// @param line  full line, leading whitespace already stripped.
 /// @return      a `LocalField` op on success, `null` on any parse error
-///              (missing space, non-integer token, …).
+///              (missing space, non-integer token, ...).
 parse_local_field :: fn(line: string) -> Op | null {
     rest :: line.trim_prefix("local.field ").trim()
     s1 :: rest.index_of(' ') ?? return null

@@ -11,7 +11,7 @@ import "vader/support/diagnostics"
 import "vader/core/types"
 AST :: import "toolchain/ast"
 
-/// Type `Name<T1, T2, …>` as the instance it names.
+/// Type `Name<T1, T2, ...>` as the instance it names.
 ///
 /// @param e         the written instance.
 /// @param expected  the slot a function's instance flows into, which binds the

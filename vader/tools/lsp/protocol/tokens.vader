@@ -20,11 +20,11 @@ export TokenType :: enum(u8) {
     Number,       // int / float literals
     Comment,      // `//` and `/* */`
     Operator,     // arithmetic / comparison / logical / etc.
-    Decorator,    // `@test` / `@extern` decorators, `@size_of(…)` intrinsics, vaderdoc tags
+    Decorator,    // `@test` / `@extern` decorators, `@size_of(...)` intrinsics, vaderdoc tags
     EnumMember,   // `.Variant` dot-shorthand
     /// Struct fields: the declaration, `x.field` reads, and `.field = v` in a
     /// struct literal. Split out of `Variable` so clients colour them as fields
-    /// (LSP4IJ → `INSTANCE_FIELD`) instead of as reassignable locals.
+    /// (LSP4IJ -> `INSTANCE_FIELD`) instead of as reassignable locals.
     ///
     /// APPEND-ONLY: a variant's index is what travels in the `initialize` legend,
     /// so new entries go at the END: inserting one above shifts every index
@@ -58,7 +58,7 @@ export RawToken :: struct {
 export TokenModifier :: enum(u8) {
     Documentation,   // vaderdoc-derived tokens carry this
     /// Never reassigned. On a module const this pairs with `Static` so clients
-    /// resolve it to their "constant" colour (LSP4IJ → `CONSTANT`).
+    /// resolve it to their "constant" colour (LSP4IJ -> `CONSTANT`).
     Readonly,
     /// Module-level rather than local. Same append-only rule as `TokenType`:
     /// the index IS the bit position in the wire bitmask.

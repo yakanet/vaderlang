@@ -65,7 +65,7 @@ infer_match :: fn(
 ) -> Type {
     raw_scrut :: check_expr(e.scrutinee, null, typed, diags)
     scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
-    // `match x :: e { … }` : the binding IS the narrowing slot, so an EXPRESSION
+    // `match x :: e { ... }` : the binding IS the narrowing slot, so an EXPRESSION
     // scrutinee narrows exactly like a named one, which is the whole point of the
     // form. The resolver minted the binding at the `x` token and registered it in
     // `idents`, so the symbol is reachable from the MatchExpr alone. The
@@ -316,14 +316,14 @@ infer_match :: fn(
     // so a newly added variant degrades silently into `_` instead of erroring
     // (a silent mis-compile). Any match that CONTRIBUTES A VALUE
     // must enumerate every variant or opt out with `@partial`. This includes the
-    // `return`-per-arm form (every arm diverges → result_ty is `never`), which is
+    // `return`-per-arm form (every arm diverges -> result_ty is `never`), which is
     // the dominant compiler style and the one that hid the `impl_base_key` /
     // `bc_type_of` footguns, so `never` is NOT exempt. Only a genuine void
     // statement match (`_ -> {}`, side-effects only) and open scrutinees
-    // (i32 / string / …) stay out of scope.
+    // (i32 / string / ...) stay out of scope.
     result_ty :: join_branch_types(bodies, arm_types, typed, diags)
     // `has_wildcard` is only set by a wildcard arm, so it already
-    // implies ≥ 1 arm: no explicit arm-count guard needed.
+    // implies >= 1 arm: no explicit arm-count guard needed.
     if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
             diags.push(
@@ -608,7 +608,7 @@ scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
 }
 
 /// Build the `${root_sym.id}#path` field-narrow key when the
-/// scrutinee is a `recv.f1.f2.…` chain rooted at an `IdentExpr`.
+/// scrutinee is a `recv.f1.f2....` chain rooted at an `IdentExpr`.
 /// Returns `""` (no narrowing slot) for other scrutinee shapes.
 scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
     if scrut !is AST.FieldExpr {
@@ -657,7 +657,7 @@ bind_struct_pattern :: fn(
         if scrut !is UnresolvedType {
             diags.push(typecheck_error(
                 .TypeMismatch, sp.span,
-                "a `{ … }` pattern reads the fields of a struct, got `${display_type(scrut)}`"))
+                "a `{ ... }` pattern reads the fields of a struct, got `${display_type(scrut)}`"))
         }
         return
     }
@@ -839,7 +839,7 @@ is_integer_or_char :: fn(t: Type) -> bool = t is RangeType || is_char(t)
 
 scratch_diags :: fn() -> Diagnostic[] { return [] }
 
-// Whether an `is T { … }` pattern tests a field against a literal: it then
+// Whether an `is T { ... }` pattern tests a field against a literal: it then
 // matches only some values of `T`.
 is_constrained :: fn(p: AST.Pattern) -> bool {
     if p !is AST.IsPattern {

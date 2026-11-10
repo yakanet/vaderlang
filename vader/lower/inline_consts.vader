@@ -33,7 +33,7 @@
 //     any reference that didn't fold.
 //
 // A module const is frozen at every level, so the data pool is the default route
-// (`KEYWORDS`, `TOKEN_TYPES`, …), and fn-wrap is reached only by consts whose
+// (`KEYWORDS`, `TOKEN_TYPES`, ...), and fn-wrap is reached only by consts whose
 // elements aren't bakeable. `tests/snippets/const_fn_wrap` guards that path.
 
 module "vader/lower"
@@ -293,7 +293,7 @@ try_data_pool :: fn(
 // aggregate entry : every read becomes `pool[k][0]`, a pointer to one static
 // object. Sound only because a module const is frozen at every level (the effect
 // summary reports a write into one, T3070 / T3072), so nothing can write into the
-// shared `.rodata` object. A const whose declared type is not the struct itself (`X: Value: …`)
+// shared `.rodata` object. A const whose declared type is not the struct itself (`X: Value: ...`)
 // keeps the inline bucket: its reads must carry the declared type.
 try_pool_struct :: fn(
     cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject,

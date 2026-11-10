@@ -97,7 +97,7 @@ is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type) -> bool {
 /// `from is TupleType`. Element-wise and **invariant** : a tuple's fields are
 /// laid out by their types and read with no test, so `[i32, i32]` read as
 /// `[i32 | string, i32]` would take a raw word for a box. A fresh literal adopts
-/// the target's element types instead. No Array ↔ Tuple by design.
+/// the target's element types instead. No Array <-> Tuple by design.
 is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool {
     match to {
         is TupleType -> {
@@ -125,7 +125,7 @@ is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool {
         // Unresolved wildcard (true both ways in `is_assignable`) survives. Fresh
         // literals adopt the target element type in the checker, so the
         // init is reflexive. Fast-path the dominant equal-element case (`equals_type`
-        // ⟹ assignable both ways) so `T[] → T[]` skips the two `is_assignable` passes.
+        // ⟹ assignable both ways) so `T[] -> T[]` skips the two `is_assignable` passes.
         if equals_type(self.element, to.element) { return true }
         return fn_param_compatible(self.element, to.element)
             && fn_param_compatible(to.element, self.element)
@@ -226,7 +226,7 @@ export holds_integer :: fn(wide: Type, narrow: Type) -> bool {
     return primitive_name(narrow) == "" && primitive_name(wide) == ""
 }
 
-/// Single-arg compatibility used by Array → Array and a struct's type arguments.
+/// Single-arg compatibility used by Array -> Array and a struct's type arguments.
 /// An alias of `is_assignable` that documents the variance intent at the call
 /// site.
 fn_param_compatible :: fn(a: Type, b: Type) -> bool {
@@ -238,12 +238,12 @@ fn_param_compatible :: fn(a: Type, b: Type) -> bool {
 ///
 /// Invariance (bidirectional `fn_param_compatible`) is the sound default until a
 /// declaration-site variance model exists : covariance is unsound for a *mutable*
-/// generic container: `Map<i32, i32>` → `Map<i32, i32 | string>`
+/// generic container: `Map<i32, i32>` -> `Map<i32, i32 | string>`
 /// would let a write through the widened alias corrupt the shared `i32` backing,
 /// the exact reference-aliasing hole `is_assignable_array` closes for an array
 /// element. Unresolved args stay wildcards (true both ways in
 /// `is_assignable`) ; a type parameter matches only itself. The equal-arg fast
-/// path keeps the dominant `Foo<T>` → `Foo<T>` case single-pass.
+/// path keeps the dominant `Foo<T>` -> `Foo<T>` case single-pass.
 ///
 /// @param a  the arguments of the value's type.
 /// @param b  the arguments of the slot's type.
@@ -392,19 +392,19 @@ import "std/testing"
 
 @test
 test_assignable_identity :: fn() -> void {
-    assert(is_assignable(TY_I32, TY_I32), "i32 → i32")
+    assert(is_assignable(TY_I32, TY_I32), "i32 -> i32")
 }
 
 @test
 test_assignable_free_int_to_primitive :: fn() -> void {
-    assert(is_assignable(TY_FREE_INT, TY_I64), "FreeInt → i64")
-    assert(!is_assignable(TY_FREE_INT, TY_STRING), "FreeInt → string forbidden")
+    assert(is_assignable(TY_FREE_INT, TY_I64), "FreeInt -> i64")
+    assert(!is_assignable(TY_FREE_INT, TY_STRING), "FreeInt -> string forbidden")
 }
 
 @test
 test_assignable_never_to_anything :: fn() -> void {
-    assert(is_assignable(TY_NEVER, TY_I32), "Never → i32")
-    assert(is_assignable(TY_NEVER, TY_STRING), "Never → string")
+    assert(is_assignable(TY_NEVER, TY_I32), "Never -> i32")
+    assert(is_assignable(TY_NEVER, TY_STRING), "Never -> string")
 }
 
 @test
@@ -412,8 +412,8 @@ test_assignable_into_union :: fn() -> void {
     i32_t: Type: TY_I32
     str_t: Type: TY_STRING
     u :: mk_union([i32_t, str_t])
-    assert(is_assignable(TY_I32, u), "i32 → i32 | string")
-    assert(!is_assignable(TY_BOOL, u), "bool → i32 | string forbidden")
+    assert(is_assignable(TY_I32, u), "i32 -> i32 | string")
+    assert(!is_assignable(TY_BOOL, u), "bool -> i32 | string forbidden")
 }
 
 @test
@@ -426,17 +426,17 @@ test_array_element_invariant :: fn() -> void {
     assert(!is_assignable(i32_arr, union_arr), "i32[] ↛ (i32 | string)[] (invariant)")
     assert(!is_assignable(union_arr, i32_arr), "(i32 | string)[] ↛ i32[] (invariant)")
     assert(is_assignable(union_arr, union_arr2),
-        "(i32 | string)[] → (i32 | string)[] (equal element)")
+        "(i32 | string)[] -> (i32 | string)[] (equal element)")
 }
 
 @test
 test_struct_args_invariant :: fn() -> void {
     // Generic container type-args are invariant : the covariant widen of a
-    // mutable container (`Map<i32, i32>` → `Map<i32, i32 | string>`)
+    // mutable container (`Map<i32, i32>` -> `Map<i32, i32 | string>`)
     // is the reference-aliasing hole rejected here, as for an array.
     i32_t: Type: TY_I32
     wide:  Type: mk_union([TY_I32, TY_STRING])
-    assert(struct_args_compatible([i32_t], [i32_t]), "[i32] → [i32] (equal args)")
+    assert(struct_args_compatible([i32_t], [i32_t]), "[i32] -> [i32] (equal args)")
     assert(!struct_args_compatible([i32_t], [wide]), "[i32] ↛ [i32 | string] (invariant)")
     assert(!struct_args_compatible([wide], [i32_t]), "[i32 | string] ↛ [i32] (invariant)")
 }
@@ -454,8 +454,8 @@ test_array_unresolved_element_wildcard :: fn() -> void {
     // wildcard both ways, so invariance never rejects it.
     unresolved_arr: Type: mk_array(TY_UNRESOLVED)
     i32_arr:        Type: mk_array(TY_I32)
-    assert(is_assignable(unresolved_arr, i32_arr), "?[] → i32[] (wildcard)")
-    assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (wildcard)")
+    assert(is_assignable(unresolved_arr, i32_arr), "?[] -> i32[] (wildcard)")
+    assert(is_assignable(i32_arr, unresolved_arr), "i32[] -> ?[] (wildcard)")
 }
 
 @test
@@ -464,11 +464,11 @@ test_type_param_is_opaque :: fn() -> void {
     // `T` fits only a slot that names it.
     t :: mk_type_param(fresh_type_param(1, "T"))
     i64_t: Type: TY_I64
-    assert(is_assignable(t, t), "T → T")
+    assert(is_assignable(t, t), "T -> T")
     assert(!is_assignable(i64_t, t), "i64 ↛ T")
     assert(!is_assignable(t, i64_t), "T ↛ i64")
     assert(!is_assignable(TY_FREE_INT, t), "{integer} ↛ T")
-    assert(is_assignable(t, mk_union([t, TY_NULL])), "T → T | null")
+    assert(is_assignable(t, mk_union([t, TY_NULL])), "T -> T | null")
 }
 
 @test
@@ -478,5 +478,5 @@ test_erased_type_param_fits_any_argument :: fn() -> void {
     t :: mk_type_param(fresh_type_param(1, "T"))
     i32_arr: Type: mk_array(TY_I32)
     assert(!is_assignable(i32_arr, mk_array(t)), "i32[] ↛ T[]")
-    assert(is_assignable(i32_arr, erase_type_params(mk_array(t))), "i32[] → erased T[]")
+    assert(is_assignable(i32_arr, erase_type_params(mk_array(t))), "i32[] -> erased T[]")
 }

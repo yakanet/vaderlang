@@ -100,7 +100,7 @@ export find_build_driver :: fn(root: string) -> string | null {
 /// Split out so the REPORT and the RESOLUTION ask the same question. `doctor`
 /// first inferred the answer by testing whether the resolved root started with
 /// `$VADER_HOME`, which is a string prefix, not a path: with the variable set to
-/// `…/vaderlang` and the sources at `…/vaderlang2`, it claimed the sources came
+/// `.../vaderlang` and the sources at `.../vaderlang2`, it claimed the sources came
 /// through the variable. Comparing against what this returns cannot say that.
 ///
 /// @return the directory holding `vader/pipeline`, or `""`.

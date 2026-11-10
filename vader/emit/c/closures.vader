@@ -263,7 +263,7 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
 /// value (`vader_fn_static_N`) are synthesised OUTSIDE `module.functions`, so
 /// `emit_forward_decls` never covers them. In a monolithic build the
 /// definitions precede every use within the one TU, so no decl is needed ; a
-/// split build scatters callers and definitions across TUs → each needs a
+/// split build scatters callers and definitions across TUs -> each needs a
 /// prototype (fns) / `extern` (the static value) in the shared header. The
 /// heads mirror `emit_fn_ref_tramp` / `emit_closure_lift` exactly.
 emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
@@ -328,7 +328,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32) -> void
     if sig.params.len() == 0 {
         return
     }
-    // The lifted fn's env param (param 0) is a concrete captured-env struct → a
+    // The lifted fn's env param (param 0) is a concrete captured-env struct -> a
     // raw `void*` (`.Ref`) ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
     arguments: CExpression[]: [coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0])]
@@ -381,7 +381,7 @@ lift_unbox_tail :: fn(params: ValType[]) -> CExpression[] {
     return arguments
 }
 
-/// Call `cname(arguments…)` and return its result boxed for the erased ABI :
+/// Call `cname(arguments...)` and return its result boxed for the erased ABI :
 /// `vader_box_null()` for a void call, the result as is when already a box
 /// (`any`), widened from a raw `ref`, boxed otherwise.
 forward_boxed :: fn(cname: string, arguments: CExpression[], sig: BcSignature) -> CStatement[] {

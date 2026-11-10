@@ -49,11 +49,11 @@ export DirectFn :: struct {
 export BoundMember :: struct {
     trait_key: string
     member: string
-    /// The trait's arguments as the bound names them (`T: Mul<f64>` → `[f64]`) :
+    /// The trait's arguments as the bound names them (`T: Mul<f64>` -> `[f64]`) :
     /// what picks among several impls of the trait on the instance.
     trait_args: Type[] = []
     /// The type each type parameter of the member's own takes at a call, in the
-    /// order the trait declares them (`conv<U>` called on `1.5` → `[f64]`).
+    /// order the trait declares them (`conv<U>` called on `1.5` -> `[f64]`).
     own_args: Type[] = []
 }
 
@@ -380,7 +380,7 @@ in_order :: fn(quantifier: TypeParamType[], bindings: Map<i32, Type>) -> Type[] 
     return out
 }
 
-// Pin every free literal type `bindings` holds to its default (`{integer}` → `i32`).
+// Pin every free literal type `bindings` holds to its default (`{integer}` -> `i32`).
 default_free_bindings :: fn(bindings: Map<i32, Type>) -> void {
     for k in bindings.keys() {
         v :: bindings[k] ?? continue

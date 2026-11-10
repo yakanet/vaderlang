@@ -264,7 +264,7 @@ report_variant_data_write :: fn(
         return false
     }
     shared :: "`${field.field}` is read from the data of a variant, which every read shares"
-    copy :: "a name bound to `${display_type(data)}(…)` holds a copy to modify"
+    copy :: "a name bound to `${display_type(data)}(...)` holds a copy to modify"
     diags.push(typecheck_error(.FrozenValueWritten, field.span, "${shared} ; ${copy}"))
     return true
 }

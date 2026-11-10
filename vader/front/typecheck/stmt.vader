@@ -30,7 +30,7 @@ check_block :: fn(
     ctx: FnContext | null,
 ) -> Type {
     // Track flow-narrowing pushed by divergent guards (`if x is T
-    // { return … }`) so subsequent stmts see the complement type ; each
+    // { return ... }`) so subsequent stmts see the complement type ; each
     // entry holds what to restore on block exit.
     divergent_narrows: PushedNarrow[]: []
     // W0002: track the first stmt past a divergent guard so we can
@@ -78,7 +78,7 @@ check_block :: fn(
     // Don't clobber the trailing expression's `expr_kinds` entry:
     // expression-bodied fns synthesise a BlockExpr around the trailing
     // with overlapping spans, and the trailing's true kind (BinaryExpr
-    // / CallExpr / …) is what callers want to see in the dump.
+    // / CallExpr / ...) is what callers want to see in the dump.
     // The block and its trailing expression have distinct AST ids ; storing
     // only when absent remains a defence in depth.
     if typed.dump_types {

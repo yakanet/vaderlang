@@ -40,7 +40,7 @@ CallNode :: CFGFunction | CFGExternDecl | IndirectCalls | ForeignCallbacks | Unk
 /// `resolution.functions` order, then the externs, then the three fixed nodes.
 CalleeIndex :: struct {
     resolution: CfgResolution
-    /// `vtable_key` → the nodes a virtual call through that key may land on.
+    /// `vtable_key` -> the nodes a virtual call through that key may land on.
     virtual_targets: Map<string, i32[]>
     indirect: i32
     foreign_callbacks: i32

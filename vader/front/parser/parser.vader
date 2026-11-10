@@ -807,7 +807,7 @@ parse_named_import_decl :: fn(p: Parser, decorators: Decorator[], name_tok: Toke
     }
 }
 
-/// Parse `a, b as c` …` with the leading `{` already consumed. Closes
+/// Parse `a, b as c` ...` with the leading `{` already consumed. Closes
 /// on the matching `}`.
 parse_import_name_list_rest :: fn(p: Parser) -> CommaList<ImportName> {
     names: ImportName[]: []
@@ -949,7 +949,7 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
     // Optional bounded-generic typeParam list immediately after `implements` :
-    // `Foo<T> implements<T: Bound> Trait<T> { … }`. The angle list follows
+    // `Foo<T> implements<T: Bound> Trait<T> { ... }`. The angle list follows
     // the keyword that introduces a typeParam scope
     // (`fn<T>`, `struct<T>`, `trait<T>`, `implements<T>`).
     type_params: TypeParam[] = []
@@ -1484,7 +1484,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             minus_tok :: p.match_kind(.Minus)
             lit_tok :: p.expect(.IntLit, "integer literal after `=`")
             val :: lit_tok.value
-            // u64 → i64 wraps the high bit for magnitudes ≥ 2^63. Out-of-range
+            // u64 -> i64 wraps the high bit for magnitudes >= 2^63. Out-of-range
             // explicit variant values are surfaced downstream by T3030
             // ("enum variant value out of range for its written width"), so we
             // don't validate here. A rejected literal leaves `value` null :
@@ -1541,7 +1541,7 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     p.match_kind(.Pipe)
     // `NAME :: @comptime <expr>` sugar : desugar to a synthetic nullary fn
     // `__comptime_NAME` carrying the inner block/expr + a `@comptime`-decorated
-    // const that calls it. Reuses the whole decorator → VM-staging → bake path
+    // const that calls it. Reuses the whole decorator -> VM-staging -> bake path
     // ; no `ComptimeExpr` AST node (which would ripple a T3013 arm across every
     // exhaustive `match expr`).
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
@@ -1574,7 +1574,7 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
     at_tok :: p.advance()         // `@`
     comptime_tok :: p.advance()   // `comptime`
-    // A `{ … }` block isn't an expression-position prefix, so parse it directly ;
+    // A `{ ... }` block isn't an expression-position prefix, so parse it directly ;
     // anything else goes through the expression parser. `wrap_as_block` is a
     // no-op on a block and wraps a bare expr as its trailing.
     raw :: if p.check(.LBrace) { p.parse_block() } else { p.parse_expr(0) }
@@ -1709,7 +1709,7 @@ is_tuple_type :: fn(elements: Expr[]) -> bool {
     return true
 }
 
-// When a `@comptime { … }` block ends in `return <e>` and has no trailing
+// When a `@comptime { ... }` block ends in `return <e>` and has no trailing
 // expression, lift `<e>` into the trailing slot so the synthetic expression-
 // bodied fn infers its return type from it (the typer infers from a block's
 // trailing, not from `return` statements). The user's imperative `return k`
@@ -1740,7 +1740,7 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     p.expect(.Colon, "`:` between type annotation and value")
     // `NAME: T: @comptime <expr>`: same desugar as the untyped form, but the
     // declared `T` becomes the synthetic fn's return type (so e.g.
-    // `K: u32[]: @comptime { … }` evaluates AND `.rodata`-bakes).
+    // `K: u32[]: @comptime { ... }` evaluates AND `.rodata`-bakes).
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
         return p.desugar_comptime_const(decorators, visibility, name_tok, ty)
     }
@@ -1771,10 +1771,10 @@ ident_expr :: fn(span: Span, name: string) = IdentExpr {
 
 parse_type :: fn(p: Parser) -> TypeExpr {
     // Depth guard, sharing `parse_expr`'s budget : the type grammar recurses
-    // through `parse_type_primary`'s `(T)` grouping and `[T, …]` tuples, so
-    // pathologically nested type syntax (`((((…))))` in type position) could
+    // through `parse_type_primary`'s `(T)` grouping and `[T, ...]` tuples, so
+    // pathologically nested type syntax (`((((...))))` in type position) could
     // overflow the native stack the same way a nested value expression can.
-    // The postfix `T[][]…` chain is a loop, not recursion, so it doesn't trip
+    // The postfix `T[][]...` chain is a loop, not recursion, so it doesn't trip
     // this: a downstream AST walker is what a 10 000-deep `T[]` overruns.
     p.expr_depth = p.expr_depth + 1
     if p.expr_depth > MAX_EXPR_DEPTH {
@@ -1845,9 +1845,9 @@ is_binding_hint :: fn(tested: Expr, name: string, negated: bool) -> string {
         return "`${place}` is narrowed in place: drop `as ${name}` and read `${place}`"
     }
     if negated {
-        return "bind the value first, `${name} :: …`, then test `${name} !is …`"
+        return "bind the value first, `${name} :: ...`, then test `${name} !is ...`"
     }
-    return "bind the value first, `${name} :: …`, then test `${name} is …`"
+    return "bind the value first, `${name} :: ...`, then test `${name} is ...`"
 }
 
 // The spelling of a name or of a field chain over one ; null for any other expression.
@@ -1919,8 +1919,8 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     }
     if t.kind == .LBracket {
         // Bracketed type form. Two readings :
-        //   `[T1, T2, ...]`  → tuple type (≥ 2 elements), encoded as `SeqLitExpr`
-        //   `[T]` / `[T,]`   → 1-tuple: forbidden (P1021), recovered as
+        //   `[T1, T2, ...]`  -> tuple type (>= 2 elements), encoded as `SeqLitExpr`
+        //   `[T]` / `[T,]`   -> 1-tuple: forbidden (P1021), recovered as
         //                      ArrayTypeExpr so the user-likely-meant-array
         //                      flow keeps working downstream.
         start :: p.advance()
@@ -2082,8 +2082,8 @@ parse_type_list_until_angle :: fn(p: Parser) -> TypeExpr[] {
 parse_block :: fn(p: Parser) -> BlockExpr {
     lb :: p.expect(.LBrace, "`{` to open block")
     // Depth guard, sharing `parse_expr`/`parse_type`'s budget. Block nesting
-    // recurses parse_block ↔ parse_stmt, so a pathologically deep `for {…}` /
-    // `defer {…}` chain overflows the native stack (SIGSEGV) with no diagnostic:
+    // recurses parse_block <-> parse_stmt, so a pathologically deep `for {...}` /
+    // `defer {...}` chain overflows the native stack (SIGSEGV) with no diagnostic:
     // `MAX_EXPR_DEPTH` only guarded the expression / type grammars (parser-3).
     p.expr_depth = p.expr_depth + 1
     if p.expr_depth > MAX_EXPR_DEPTH {
@@ -2204,7 +2204,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
  *  `{ matched = false }` when the kind isn't a compound assignment. */
 CompoundOpResult :: struct { matched: bool, op: BinaryOp }
 
-// @partial: only compound-assign tokens map to an op; every other token → unmatched.
+// @partial: only compound-assign tokens map to an op; every other token -> unmatched.
 compound_op :: fn(k: TokenKind) = @partial match k {
     .PlusAssign    -> CompoundOpResult { .matched = true, .op = .Add }
     .MinusAssign   -> CompoundOpResult { .matched = true, .op = .Sub }
@@ -2242,8 +2242,8 @@ parse_typed_let :: fn(p: Parser) -> LetStmt {
     name_tok :: p.advance()  // ident
     p.advance()              // `:`
     ty :: p.parse_type()
-    // `=` → mutable binding ; `:` → immutable binding (echoes the second `:`
-    // of the untyped `::` form, with `:=` ↔ `=` on the mutable side).
+    // `=` -> mutable binding ; `:` -> immutable binding (echoes the second `:`
+    // of the untyped `::` form, with `:=` <-> `=` on the mutable side).
     sep :: p.peek()
     mutable := true
     if sep.kind == .Colon {
@@ -2511,7 +2511,7 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     // opening `[` ; if the matching `]` is followed by `in`, keep the parsed
     // pattern on the `InFor` node (`DestructureVar`). The element-temp synthesis
     // + `let <pattern> := <temp>` destructure is done at lower time, not here, so
-    // `vader fmt` sees and re-prints the `for [a, b] in …` sugar verbatim.
+    // `vader fmt` sees and re-prints the `for [a, b] in ...` sugar verbatim.
     if p.looks_like_for_destructure() {
         binding :: p.parse_let_binding()
         p.expect(.KwIn, "`in` after for-loop binding")
@@ -2602,7 +2602,7 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
 // the `??` right binding power (7: below the operator's own 6, so `??` is
 // left-associative and non-chaining).
 parse_coalesce_fallback :: fn(p: Parser) -> CoalesceFallback {
-    // A `match … { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
+    // A `match ... { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
     // if-chain keeps "3 divergent keywords, else a value expression" warning-free.
     k :: p.peek().kind
     if k == .KwReturn   { return p.parse_return() }
@@ -2840,7 +2840,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
 
 parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
     // Depth guard : bail before recursing past `MAX_EXPR_DEPTH` so deeply
-    // nested input (`((((…))))`, `!!!!…`) can't overflow the native stack.
+    // nested input (`((((...))))`, `!!!!...`) can't overflow the native stack.
     p.expr_depth = p.expr_depth + 1
     if p.expr_depth > MAX_EXPR_DEPTH {
         p.expr_depth = p.expr_depth - 1
@@ -2869,8 +2869,8 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
         t :: p.peek()
         pbp :: postfix_bp(t.kind)
         if pbp >= 0 && pbp >= min_bp {
-            // Block-tail expressions (`if { … }`, `match { … }`, bare
-            // `{ … }`) don't auto-chain index / call postfix : the next
+            // Block-tail expressions (`if { ... }`, `match { ... }`, bare
+            // `{ ... }`) don't auto-chain index / call postfix : the next
             // statement could legitimately start with `[` (tuple-let
             // destructure) or `(`, and the free-form whitespace can't
             // tell the two cases apart. Force parens for inline
@@ -3100,7 +3100,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     // Two expression-position `@` forms :
     //   `@partial match x { ... }`: opt-out of exhaustiveness for a match
     //   `@<intrinsic>(args)`: compiler reflection / introspection call
-    //                                 (`@size_of`, `@type_name`, …).
+    //                                 (`@size_of`, `@type_name`, ...).
     //                                 The set of recognised names lives in
     //                                 `vader/front/parser/intrinsics.vader`.
     // Anything else is P1014.
@@ -3206,12 +3206,12 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
             .field_span = name.span,
             .is_numeric = false,
         }
-        // `x.f<T>(…)`, `M.f<T>(…)`, `M.Box<T> { … }` : the same shapes as on a bare
+        // `x.f<T>(...)`, `M.f<T>(...)`, `M.Box<T> { ... }` : the same shapes as on a bare
         // name.
         if scan_angle_generic(p, p.pos) {
             return p.parse_generic_use(field_expr)
         }
-        // Qualified struct literal : `module.Type { .field = …, … }`. The
+        // Qualified struct literal : `module.Type { .field = ..., ... }`. The
         // bare-ident path goes through `parse_ident_or_struct_lit` at
         // prefix time ; the qualified form lands here because `module` was
         // already consumed as the prefix expression and `.Type` is a
@@ -3241,9 +3241,9 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
         }
     }
     // .LBracket: two readings :
-    //   `T[]`  (empty brackets) → ArrayTypeExpr ; type-only construct,
+    //   `T[]`  (empty brackets) -> ArrayTypeExpr ; type-only construct,
     //                             typechecker rejects it in value position.
-    //   `T[i]` (with index)     → IndexExpr (ordinary value-level indexing).
+    //   `T[i]` (with index)     -> IndexExpr (ordinary value-level indexing).
     if p.check_at(.RBracket, 1) {
         p.advance()  // [
         rb :: p.advance()  // ]
@@ -3327,7 +3327,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     return ident_expr(t.span, t.text)
 }
 
-// `head<…>` followed by a call, a struct literal, a member, or nothing more (a generic
+// `head<...>` followed by a call, a struct literal, a member, or nothing more (a generic
 // fn as a value), `<` next.
 parse_generic_use :: fn(p: Parser, head: Expr) -> Expr {
     p.advance()  // `<`
@@ -3512,7 +3512,7 @@ parse_paren :: fn(p: Parser) -> Expr {
     return expr
 }
 
-// True when the upcoming `( … )` is followed by `->`, i.e. the shape opens
+// True when the upcoming `( ... )` is followed by `->`, i.e. the shape opens
 // a lambda without the `fn` keyword. Balanced-paren scan, then skip newlines.
 peek_lambda_without_fn :: fn(p: Parser) -> bool {
     if p.peek().kind != .LParen { return false }
@@ -3651,7 +3651,7 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
 parse_if_expr :: fn(p: Parser) -> IfExpr {
     start :: p.advance()  // `if`
     saved_restriction :: p.no_struct_lit_at
-    // No struct literal at the condition's own depth, so `if Foo { … }` reads
+    // No struct literal at the condition's own depth, so `if Foo { ... }` reads
     // `Foo` as the condition. A leading `(` is an ordinary parenthesised primary
     // that keeps the infix chain going, so `if (i + 1) % 4 == 0` and
     // `if (Point { .x = 1 }).ok` parse as the full expression.
@@ -3696,7 +3696,7 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool, opening: Spa
     // operator, so an `as <name>` after the scrutinee is only met here.
     p.reject_as_binder(
         .MisshapenMatchBinding,
-        (name) -> "name the scrutinee first: `match ${name} :: …`",
+        (name) -> "name the scrutinee first: `match ${name} :: ...`",
     )
 
     p.expect(.LBrace, "`{` to open match arms")
@@ -3718,7 +3718,7 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool, opening: Spa
     }
 }
 
-// The local declaration opening a `match` header, `match x :: e { … }`, or null
+// The local declaration opening a `match` header, `match x :: e { ... }`, or null
 // when the header is a bare scrutinee. Every declaration form parses, so that a
 // wrong one is diagnosed rather than misread: the binding is one constant name,
 // typed as the scrutinee.
@@ -3731,14 +3731,14 @@ parse_match_declaration :: fn(p: Parser) -> LetStmt | null {
     if binding !is SimpleBinding {
         p.error(
             .MisshapenMatchBinding, declared.span,
-            "bind one name, `match x :: …`, and destructure it in an arm (`[a, b] :: x`)",
+            "bind one name, `match x :: ...`, and destructure it in an arm (`[a, b] :: x`)",
         )
     } else if declared.mutable {
-        p.error(.MisshapenMatchBinding, declared.span, "write `match ${binding.name} :: …`")
+        p.error(.MisshapenMatchBinding, declared.span, "write `match ${binding.name} :: ...`")
     } else if declared.ty != null {
         p.error(
             .MisshapenMatchBinding, declared.ty.span,
-            "drop the type, the binding has the scrutinee's: `match ${binding.name} :: …`",
+            "drop the type, the binding has the scrutinee's: `match ${binding.name} :: ...`",
         )
     }
     return declared
@@ -3872,8 +3872,8 @@ parse_pattern :: fn(p: Parser) -> Pattern {
             inner = p.parse_struct_pattern()
         }
         // A match arm binds nothing: the binder lives in the header, `match x ::
-        // e { is T -> … x … }`, where every arm and guard sees it.
-        p.reject_as_binder(.PatternBindsName, (name) -> "name the scrutinee in the header: `match ${name} :: …`")
+        // e { is T -> ... x ... }`, where every arm and guard sees it.
+        p.reject_as_binder(.PatternBindsName, (name) -> "name the scrutinee in the header: `match ${name} :: ...`")
         return IsPattern {
             .span  = p.span_of(t, p.peek_at(-1)),
             .ty    = ty,
@@ -3886,11 +3886,11 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     }
     if t.kind == .Ident {
         // A lone name matched everything and bound it. `_` matches everything;
-        // the header binds (`match x :: e { … _ -> x }`).
+        // the header binds (`match x :: e { ... _ -> x }`).
         p.advance()
         p.error(
             .PatternBindsName, t.span,
-            "write `_`, and name the scrutinee in the header: `match ${t.text} :: …`",
+            "write `_`, and name the scrutinee in the header: `match ${t.text} :: ...`",
         )
         return WildcardPattern { .span = t.span }
     }
@@ -3898,10 +3898,10 @@ parse_pattern :: fn(p: Parser) -> Pattern {
         return p.reject_tuple_pattern()
     }
     if is_literal_start(t) {
-        // `'a' -> …` / `42 -> …` / `true -> …` / `null -> …` / `-1 -> …`.
+        // `'a' -> ...` / `42 -> ...` / `true -> ...` / `null -> ...` / `-1 -> ...`.
         // `parse_prefix` (NOT `parse_expr`) parses exactly one literal / unary
         // and stops at any infix: crucially at `|`, so a literal or-pattern
-        // `1 | 6 -> …` parses as two `LiteralPattern`s the arm loop folds into an
+        // `1 | 6 -> ...` parses as two `LiteralPattern`s the arm loop folds into an
         // `OrPattern`, rather than the bitor expression `(1 | 6)`.
         value :: p.parse_prefix()
         // `'a'..='z'` / `0..<10`: a range pattern. `parse_prefix` stops at the
@@ -3943,7 +3943,7 @@ reject_tuple_pattern :: fn(p: Parser) -> WildcardPattern {
     span :: p.span_of(start, last)
     p.error(
         .TuplePatternRemoved, span,
-        "test the type with `is [T, U]` and destructure in the arm: `[a, b] :: …`",
+        "test the type with `is [T, U]` and destructure in the arm: `[a, b] :: ...`",
     )
     return WildcardPattern { .span = span }
 }

@@ -36,13 +36,13 @@ export hypot :: fn(x: f64, y: f64) -> f64
 @extern(LIBM, "pow")
 export pow :: fn(x: f64, n: f64) -> f64
 
-/// Largest integer `n` such that `n <= x`. `floor(-1.2)` → `-2.0`.
+/// Largest integer `n` such that `n <= x`. `floor(-1.2)` -> `-2.0`.
 @extern(LIBM, "floor")
 export floor :: fn(x: f64) -> f64
-/// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` → `-1.0`.
+/// Smallest integer `n` such that `n >= x`. `ceil(-1.2)` -> `-1.0`.
 @extern(LIBM, "ceil")
 export ceil :: fn(x: f64) -> f64
-/// Round to the nearest integer, ties away from zero. `round(0.5)` → `1.0`.
+/// Round to the nearest integer, ties away from zero. `round(0.5)` -> `1.0`.
 @extern(LIBM, "round")
 export round :: fn(x: f64) -> f64
 /// The integer part of `x`, rounded toward zero: `trunc(-1.7)` is `-1.0`.
@@ -138,7 +138,7 @@ export max :: fn(a: f64, b: f64) -> f64 = if a > b || is_nan(a) { a } else { b }
 /// Larger of two `f32`s, NaN when either is.
 export max :: fn(a: f32, b: f32) -> f32 = if a > b || is_nan(a) { a } else { b }
 
-/// Absolute value of an `f64`. Preserves the sign of zero (`abs(-0.0)` →
+/// Absolute value of an `f64`. Preserves the sign of zero (`abs(-0.0)` ->
 /// `-0.0`): caller normalises if needed.
 export abs :: fn(x: f64) -> f64 = if x < 0.0 { -x } else { x }
 /// Absolute value of an `i32`. `abs(i32::MIN)` overflows (panics in debug,

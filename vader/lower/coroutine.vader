@@ -1,6 +1,6 @@
 // vader/lower/coroutine: the coroutine state-machine engine of a generator.
 //
-// The block-split: the structured-lowered-CFG → numbered-states transform, spill
+// The block-split: the structured-lowered-CFG -> numbered-states transform, spill
 // collection, self-field routing, and dispatch synthesis. `generator.vader`
 // drives it on the pull-only `next()` protocol.
 
@@ -32,7 +32,7 @@ GenBuild :: struct {
     span:     Span
     /// Finalized states: `states[k]` is the if-arm body for `self.state == k`.
     states:   LoweredStmt[][]
-    /// Spilled symbol id → its `g$State` field name (params + all locals).
+    /// Spilled symbol id -> its `g$State` field name (params + all locals).
     field_map: Map<i32, string>
     /// `g$State` fields for the spilled symbols (in declaration order),
     /// excluding the trailing `state: i32`.
@@ -43,8 +43,8 @@ GenBuild :: struct {
     fn_ctx:    FnLowerCtx
 }
 
-/// A dissolved loop's state targets: `continue` / back-edge → `header`,
-/// `break` → `exit`. `label` carries the loop's resolved label (a user `name:`
+/// A dissolved loop's state targets: `continue` / back-edge -> `header`,
+/// `break` -> `exit`. `label` carries the loop's resolved label (a user `name:`
 /// prefix, or an iteration-variable name injected by the loop-jump resolver, see
 /// `lower_for_in::resolve_loop_label`), or `null`, so a `break <var>` / `<label>`
 /// resolves to the right enclosing frame.
@@ -127,7 +127,7 @@ gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
 gb_done_return :: fn(gb: GenBuild) -> LoweredStmt =
     LoweredReturn { .span = gb.span, .value = step_of_done(gb.step, gb.span) }
 
-// ---- block-split (structured-lowered-CFG → numbered states) ---------------
+// ---- block-split (structured-lowered-CFG -> numbered states) ---------------
 
 // Append a filled state, returning its index.
 gb_new_state :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> i64 {
@@ -233,7 +233,7 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
         body_stmts: LoweredStmt[]: []
         body_stmts.push_all(block_stmts_with_trailing(s.body))
         body_stmts.push_all(s.step)
-        body_entry :: gb_compile_seq(gb, body_stmts, header)   // fall-off = back-edge → header
+        body_entry :: gb_compile_seq(gb, body_stmts, header)   // fall-off = back-edge -> header
         gb.loop_stack.remove_last()
         if s.cond == null {
             // Infinite loop (for-in shape): header just enters the body.
@@ -285,7 +285,7 @@ gb_wrap :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredBlock =
 gb_block :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> LoweredBlock =
     mk_void_block(stmts, gb.span)
 
-// Build `if state==i { states[i] } else if state==i+1 { … } else { return null }`.
+// Build `if state==i { states[i] } else if state==i+1 { ... } else { return null }`.
 gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
     then_block :: gb_block(gb, gb.states[i])
     else_block: LoweredBlock: if i + 1 < gb.states.len() {
@@ -338,7 +338,7 @@ gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr
 
 // Collect every `LoweredLet` symbol in a block (recursively through loops /
 // ifs, the trailing expression included: a closing `if` is one) into
-// `gb.field_map` (symbol id → field name) + `gb.fields`. v1 spills every local ;
+// `gb.field_map` (symbol id -> field name) + `gb.fields`. v1 spills every local ;
 // params are pre-seeded by the caller.
 gb_collect_block :: fn(gb: GenBuild, block: LoweredBlock) -> void {
     for s in block.stmts { gb_collect_stmt(gb, s) }
@@ -411,7 +411,7 @@ gb_add_field :: fn(gb: GenBuild, sym: Symbol, ty: Type) -> void {
     )
 }
 
-// ---- routing (spilled local/param refs → self.<field>) --------------------
+// ---- routing (spilled local/param refs -> self.<field>) --------------------
 
 gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
     out: LoweredStmt[]: []
@@ -425,7 +425,7 @@ gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
 gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
     match s {
         is LoweredLet -> {
-            // Every local is spilled → `self.<field> = value`.
+            // Every local is spilled -> `self.<field> = value`.
             name :: gb.field_map[s.symbol.id]
             value :: gb_route_expr(gb, s.value)
             if name == null {

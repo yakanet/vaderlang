@@ -40,13 +40,13 @@ DEEP_COPY      :: r"std_core$deep_copy"
 DEEP_COPY_TYPE :: r"std_core$deep_copy__"
 
 /// The mangle of a `std/core` primitive `@intrinsic` impl member:
-/// `("i32", "Equals", "equals")` → `"std_core$i32$Equals$equals"`. THE grammar
+/// `("i32", "Equals", "equals")` -> `"std_core$i32$Equals$equals"`. THE grammar
 /// authority for building a primitive host mangle, never inline the `$`
 /// separator or the `std_core$` prefix at a call site.
 ///
-/// @param kind    the receiver primitive kind (`"i32"`, `"string"`, …).
-/// @param trait_  the trait segment (`"Equals"`, `"Display"`, …).
-/// @param method  the method segment (`"equals"`, `"to_string"`, …).
+/// @param kind    the receiver primitive kind (`"i32"`, `"string"`, ...).
+/// @param trait_  the trait segment (`"Equals"`, `"Display"`, ...).
+/// @param method  the method segment (`"equals"`, `"to_string"`, ...).
 /// @return        the fully mangled host-import name.
 export primitive_member_mangle :: fn(kind: string, trait_: string, method: string) -> string =
     "${CORE_MODULE}$${kind}$${trait_}$${method}"
@@ -320,7 +320,7 @@ import "std/testing"
     assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
     assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
     assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .StringEquals, "string equals not int")
-    assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown → NotIntrinsic")
+    assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown -> NotIntrinsic")
     assert(intrinsic_id_for(r"std_core$deep_copy__snippet_Shape") == .DeepCopy, "deep copy instance")
     assert(intrinsic_id_for(r"std_core$deep_copy_tree") == .NotIntrinsic, "a longer name is another fn")
 }

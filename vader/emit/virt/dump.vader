@@ -1,4 +1,4 @@
-// vader/emit/virt/dump: `BytecodeModule` → `.virt` text.
+// vader/emit/virt/dump: `BytecodeModule` -> `.virt` text.
 //
 // `dump_bytecode` writes the `.virt` form `parse_virt_bc` reads back, data pool
 // included ; `write_virt` is the same with the entry named from the module's
@@ -10,7 +10,7 @@
 //     fn N name (params) -> result
 //       op
 //       op
-//       …
+//       ...
 //     end
 //
 // Headers : `module NAME`, `type N <decl>`, `string N "..."`,
@@ -44,13 +44,13 @@ export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> str
 /// Like `dump_bytecode`, but appends a trailing `; comment` to each op that
 /// carries a table index, resolving it inline (the string literal behind
 /// `string.const`, the callee mangle behind `call`, the `local.field`'s
-/// receiver + field name, the type name behind `ref.cast`, …).
+/// receiver + field name, the type name behind `ref.cast`, ...).
 ///
 /// A human/AI-facing disassembly view: **not** round-trippable through
 /// `parse_virt_bc` (the comments aren't part of the grammar), so it's gated
 /// behind `dump --stage=bytecode --annotate` and never feeds the VM or the
 /// parity snapshots. Every index lookup is bounds-guarded : an out-of-range
-/// operand renders `<… #N out of range>` instead of trapping, so the view
+/// operand renders `<... #N out of range>` instead of trapping, so the view
 /// stays usable on the very invalid bytecode it's meant to help debug.
 ///
 /// @param module         the bytecode module to render.
@@ -93,8 +93,8 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
 }
 
 // Data pool: one line per pre-materialised read-only `T[]`. Primitive arrays dump
-// as `data N <kind> hex"<le-bytes>"` ; string arrays as `data N str "v0" "v1" …`
-// (each value `quote_string`-escaped, mirroring the `string N "…"` section).
+// as `data N <kind> hex"<le-bytes>"` ; string arrays as `data N str "v0" "v1" ...`
+// (each value `quote_string`-escaped, mirroring the `string N "..."` section).
 // Round-trips through `front/virt/virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
 // the pool ; without this the `.virt` carries `data.const N` ops with no backing
 // entry (pool_index out of range).
@@ -113,16 +113,16 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
             sb.append("data ${i} ${array_kind_name(e.kind)} hex\"${data_items_hex(e)}\"\n")
         } else if e is BcAggregateData {
             // Count-prefixed token stream (no paren balancing). String leaves dump
-            // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`:
+            // as `strref <i>` (a `string N` pool index) instead of inline `str "..."`:
             // the value is interned once in the pool, so the inline copy was a
             // textual redundancy. A HOMOGENEOUS struct array hoists its element type
             // + field count to the header and drops the per-element `struct <symid>
             // <nfields>` prefix :
-            //   data N structs <typeidx> <nfields> <count> <field-value>…
+            //   data N structs <typeidx> <nfields> <count> <field-value>...
             // Heterogeneous / nested arrays keep the general per-element form :
-            //   data N agg <count> <value>…
-            // where <value> is `<kind> <hex>` (primitive) | `str "…"` | `strref <i>` |
-            //   `struct <typeidx> <nfields> <value>…` | `array <typeidx> <n> <value>…`.
+            //   data N agg <count> <value>...
+            // where <value> is `<kind> <hex>` (primitive) | `str "..."` | `strref <i>` |
+            //   `struct <typeidx> <nfields> <value>...` | `array <typeidx> <n> <value>...`.
             // A struct is named by its TYPE INDEX, not its symbol id: the `type` lines
             // carry no symbol id, so an id would name nothing once read back.
             out :: StringBuilder {}
@@ -152,7 +152,7 @@ HomogeneousAgg :: struct {
 
 HETEROGENEOUS :: HomogeneousAgg { .symbol_id = -1, .nfields = 0 }
 
-// Same symbol_id ⇒ same struct decl ⇒ same field count, so one probe yields both.
+// Same symbol_id => same struct decl => same field count, so one probe yields both.
 homogeneous_struct :: fn(ad: BcAggregateData) -> HomogeneousAgg {
     if ad.elements.len() == 0 { return HETEROGENEOUS }
     first :: ad.elements[0]
@@ -166,7 +166,7 @@ homogeneous_struct :: fn(ad: BcAggregateData) -> HomogeneousAgg {
 }
 
 // True when the pool has an aggregate entry: the only kind that dumps `strref`
-// (and so the only reason to build the string→index map).
+// (and so the only reason to build the string->index map).
 data_pool_has_aggregate :: fn(data_pool: BcDataEntry[]) -> bool {
     for e in data_pool { if e is BcAggregateData { return true } }
     return false
@@ -186,7 +186,7 @@ write_data_value :: fn(
 ) -> void {
     if v is BcValPrim {
         // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name
-        // (i32, u8, f64, …) never collides with the str/strref/struct/array tags,
+        // (i32, u8, f64, ...) never collides with the str/strref/struct/array tags,
         // so the parser dispatches a primitive as the fall-through case.
         out.append(" ${array_kind_name(v.kind)} ${data_value_hex(v.kind, v.bits)}")
     } else if v is BcValStr {
@@ -921,7 +921,7 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
 // ---- annotation (--annotate) ----------------------------------------------
 
 // Every lookup is bounds-guarded via the `*_label` helpers, so the annotator
-// never traps on an out-of-range index: surfacing it as `<… #N out of range>`
+// never traps on an out-of-range index: surfacing it as `<... #N out of range>`
 // is itself the signal we want when reading the invalid bytecode this view
 // exists to debug.
 
@@ -930,7 +930,7 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
 /// `string.const`, the callee behind `call`, the type behind `ref.cast`, a field
 /// glued to its struct (`json$JsonError.msg`), or `""` when none of its
 /// operands is an index. `dump_bytecode_annotated` appends it as a trailing
-/// `; …` ; the language server shows it as an inlay hint on a plain dump.
+/// `; ...` ; the language server shows it as an inlay hint on a plain dump.
 ///
 /// @param module    the module the op's indices point into.
 /// @param function  the function whose body holds the op: its locals name the

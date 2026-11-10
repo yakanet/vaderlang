@@ -1,6 +1,6 @@
 // vader/pipeline/frontend: the front end as a callable unit.
 //
-// `load → resolve + typecheck → comptime`, ending in an `EvaluatedPipeline` that
+// `load -> resolve + typecheck -> comptime`, ending in an `EvaluatedPipeline` that
 // carries every table a later stage or an observer needs. Lifted out of
 // `vader/tools/cli/main.vader` unchanged: the CLI was its only caller, and a build
 // driver (`toolchain/build`) needs the same sequence, so leaving it private would
@@ -23,7 +23,7 @@ import "vader/pipeline/check"
 Prof :: import "vader/support/profile"
 
 // Pipeline state shared by the comptime + lowerer dump stages : both
-// run load → typecheck → comptime and only diverge on the final dump.
+// run load -> typecheck -> comptime and only diverge on the final dump.
 export EvaluatedPipeline :: struct {
     loaded:          LoadedProject
     typed:           TypedProject

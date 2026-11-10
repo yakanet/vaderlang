@@ -8,8 +8,8 @@
 // Bonus parser fix exercised by this snippet : `if pair is null
 // { return -1 }` followed by `[a, b] :: pair` no longer gets glued
 // together as `(if pair is null { return -1 })[a, b]`. Block-tail
-// expressions (`if`/`match`/`block`) reject postfix `[ … ]` and
-// `( … )` chaining ; parens force the form when really wanted.
+// expressions (`if`/`match`/`block`) reject postfix `[ ... ]` and
+// `( ... )` chaining ; parens force the form when really wanted.
 
 module "snippet"
 

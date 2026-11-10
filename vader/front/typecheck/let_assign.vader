@@ -100,7 +100,7 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgra
 }
 
 check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    // T3041 : bare-ident assignment to a `::`-bound local, a `for … in` variable or
+    // T3041 : bare-ident assignment to a `::`-bound local, a `for ... in` variable or
     // a module constant.
     // Surface the diag and skip the value-side typing so the dump doesn't carry
     // extra expr_types for a rejected write.
@@ -225,7 +225,7 @@ unwritten_local_hint :: fn(target: AST.Expr, declared: Type, typed: TypedProgram
         return ""
     }
     return "; a local takes the type of its first value: "
-        + "write the type it may hold, as `${target.name}: i64 = …`"
+        + "write the type it may hold, as `${target.name}: i64 = ...`"
 }
 
 // ---- constant reassignment ------------------------------------------------
@@ -270,8 +270,8 @@ local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram
     why :: typed.resolved.immutable_locals[sym.id] ?? return null
     return match why {
         .Declared     -> "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
-        .LoopVariable -> "`${ident.name}` is the variable of a `for … in`, bound anew each turn ; "
-            + "copy it into a `:=` local to change it"
+        .LoopVariable -> "`${ident.name}` is the variable of a `for ... in`, bound anew each "
+            + "turn ; copy it into a `:=` local to change it"
         .MatchHeader  -> "`${ident.name}` names the scrutinee of its `match` ; "
             + "copy it into a `:=` local to change it"
     }
@@ -280,7 +280,7 @@ local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram
 // An access path rendered back to source, for a diagnostic that wants to name
 // the value the user wrote. Only ident + field chains are reproducible from the
 // AST ; anything else takes `fallback`, which each caller phrases for its own
-// sentence ("the collection", a placeholder in a suggested rewrite, …).
+// sentence ("the collection", a placeholder in a suggested rewrite, ...).
 path_name :: fn(e: AST.Expr, fallback: string) -> string {
     if e is AST.FieldExpr { return "${path_name(e.target, fallback)}.${e.field}" }
     if e is AST.IdentExpr { return e.name }

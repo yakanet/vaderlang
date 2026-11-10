@@ -6,7 +6,7 @@
 //      walker can use it as the root scope seed.
 //   2. Body walking (`vader/front/resolver/body.vader`): descends every fn
 //      body, lambda, match arm and pattern, stamping a span-keyed
-//      `IdentExpr → Symbol` map.
+//      `IdentExpr -> Symbol` map.
 //
 // CLI consumers (`dump --stage=resolved-ast`) read `.symbols` ; LSP
 // consumers read `.idents`. Both views come out of one call.
@@ -47,7 +47,7 @@ export ResolvedModule :: struct {
     import_bindings: Symbol[] = []
     idents:  Map<u64, Symbol>
     /// Local Symbol ids nothing may rebind, and why : a `name :: ...` binding (no
-    /// `:=`), or the variable of a `for … in`. Consumed by
+    /// `:=`), or the variable of a `for ... in`. Consumed by
     /// let_assign.vader::check_assign to surface T3041.
     immutable_locals: Map<i32, ConstLocal>
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
@@ -80,9 +80,9 @@ export ResolvedModule :: struct {
     alias_types: Map<i32, Type>
     /// `alias_params[sym.id]` holds a generic alias's type parameters, in order,
     /// so `type_from_expr` can substitute them when the alias is instantiated
-    /// (`Maybe(i32)` → `i32 | null`).
+    /// (`Maybe(i32)` -> `i32 | null`).
     alias_params: Map<i32, TypeParamType[]>
-    /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
+    /// `type_param_bounds[type_param_sym.id]` -> bound TypeExpr (e.g.
     /// `fn[T: Add]` records the `Add` ident here). Consumed by
     /// `field.vader` so `x.method()` on a bounded TypeParam can
     /// dispatch to the trait's declared method.
@@ -94,18 +94,18 @@ export ResolvedModule :: struct {
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
     diags: Diagnostic[]
-    /// `Symbol.id → message` for every decl annotated with
+    /// `Symbol.id -> message` for every decl annotated with
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.
     deprecated_messages: Map<i32, string>
-    /// `namespace_sym.id → field_name → Type` for every `P :: import
+    /// `namespace_sym.id -> field_name -> Type` for every `P :: import
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
     /// TypedProgram. Populated by the typecheck orchestrator before any
     /// declaration, one project-wide table every module of a check shares.
     /// Holds EXPORTED members only.
     namespace_member_types: Map<i32, Map<string, Type>>
-    /// `namespace_sym.id → private-member-name → true` for every
+    /// `namespace_sym.id -> private-member-name -> true` for every
     /// `P :: import "..."` binding : the PRIVATE (non-`export`) members
     /// of the target module. Lets a `P.private` access fire R2008
     /// (matching the destructured-import check in `wire.vader`) instead
@@ -152,7 +152,7 @@ export resolve_module :: fn(program: Program, module_path: string, factory: Symb
 /// @param display_path  the module's path as diagnostics show it.
 /// @param factory       mints the builtin symbols.
 /// @param collected     the module's collected view, one `FileImports` per file.
-/// @param name_index    module name → loaded module, to read wildcard targets.
+/// @param name_index    module name -> loaded module, to read wildcard targets.
 /// @param core_seed     the shared core-prelude seed from `build_core_seed`.
 /// @return              the module's resolution, every file's merged.
 export resolve_module_files :: fn(
@@ -272,7 +272,7 @@ export file_imports :: fn(collected: CollectedModule, file: string) -> FileImpor
 /// @param builtins    the builtin scope, shared by the module's files.
 /// @param collected   the module's collected view.
 /// @param imports     the file's imports.
-/// @param name_index  module name → loaded module, to read wildcard targets.
+/// @param name_index  module name -> loaded module, to read wildcard targets.
 /// @param core_seed   the shared core-prelude seed.
 export file_root_scope :: fn(
     builtins: Map<string, Symbol>, collected: CollectedModule, imports: FileImports,

@@ -71,7 +71,7 @@ range_result :: fn(
 bitwise_operand :: fn(operand: AST.Expr, t: Type, diags: Diagnostic[]) -> Type {
     refined :: refinement_of(t) ?? return t
     diags.push(typecheck_error(.BitwiseOperationOnRange, operand.span,
-        "${display_range(refined)} has no width of its own; convert it first, as `i64(…)`"))
+        "${display_range(refined)} has no width of its own; convert it first, as `i64(...)`"))
     return TY_UNRESOLVED
 }
 

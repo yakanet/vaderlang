@@ -38,7 +38,7 @@ export check_project_with_bodies :: fn(
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
     // First, fill every impl with the members its trait implies, so the resolver
-    // walks their bodies with `self` / `other` / … properly bound. It reports into
+    // walks their bodies with `self` / `other` / ... properly bound. It reports into
     // `project.diags`.
     materialize_impl_members(project, mod_index, core_seed)
     result :: check_project_modules(project, diags, dump_types, core_seed, mod_index)
@@ -131,7 +131,7 @@ check_project_modules :: fn(
     settle_project_aliases(per_module, unsettled)
     // Make every module's enums resolvable cross-module before any fn
     // signature is lowered, so a `d: parser.Visibility` param resolves to
-    // the `EnumType` (→ `repr` ordinal at bytecode emit) instead of the
+    // the `EnumType` (-> `repr` ordinal at bytecode emit) instead of the
     // struct placeholder.
     register_enum_types(per_module, project, alias_types)
     // Wire imports + resolver-side imports_to early so cross-module
@@ -190,7 +190,7 @@ check_project_modules :: fn(
     // Declare every imported module too: the whole-program lowerer lowers imported
     // bodies, so a signature whose param/return is a namespace-qualified imported
     // type (`d: p.TraitDecl`) must resolve here, from the member tables filled
-    // above; otherwise the param degrades to `?` (→ field-gets drop to
+    // above; otherwise the param degrades to `?` (-> field-gets drop to
     // `Drop;Return` in emit).
     for [id, other] in project.modules {
         if id == project.entry {
@@ -217,10 +217,10 @@ check_project_modules :: fn(
     // typecheck-side tables that depend on per-module decl types.
     // Settle expression-bodied fn returns in every non-entry module
     // BEFORE copying their FnTypes into the entry's external_types /
-    // imported_fn_overloads: otherwise a `fn(a, b) = if … { a } …`
+    // imported_fn_overloads: otherwise a `fn(a, b) = if ... { a } ...`
     // export lands as `fn(_, _) -> ?` in the bucket.
     populate_core_symbols(entry_typed, project, per_module)
-    // Cross-publish trait_decls (Iterator, Display, …) to every
+    // Cross-publish trait_decls (Iterator, Display, ...) to every
     // per_module typed program BEFORE settle walks their bodies, so a
     // trait's default method called in another module's body is found
     // via `try_default_trait_method`.
@@ -268,7 +268,7 @@ check_project_modules :: fn(
     // Direction A : register each `generator`'s synthetic `<fn>$State implements
     // Iterator<U>` in the shared impl tables, before the full body walks: a chained
     // combinator's receiver is the prior combinator's concrete `$genstate_<fn>`
-    // result, and typing its `self: Iterator<T>` param needs the struct→trait
+    // result, and typing its `self: Iterator<T>` param needs the struct->trait
     // widening this registers. Cross-module (imported std/iter combinators)
     // resolves each generator's element via its owner module.
     register_generator_iter_impls(per_module, impl_tables, project.factory)
@@ -309,8 +309,8 @@ check_project_modules :: fn(
         // decl_types. `push_overload` is replace-on-signature (idempotent), so it
         // OVERWRITES the stale `fn(i64) -> ?` entry in place rather than leaving it
         // ahead of the settled `fn(i64) -> i64`: no `clear` needed. (That
-        // stale-ahead ordering is what `pick_overload` first-matched into `?` →
-        // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
+        // stale-ahead ordering is what `pick_overload` first-matched into `?` ->
+        // `any` -> wide-int compares truncated to `i32.lt`, the `abs` bug.)
         populate_imported_fn_overloads(other_typed, other.collected.files, typed_by_name)
         other_decls :: concat_file_decls(other.module.files)
         if has_expr_bodied_fn(other_decls) {
@@ -325,7 +325,7 @@ check_project_modules :: fn(
     }
     // Once every body is typed : the cycles run through any module.
     reject_growing_recursion(per_module, diags)
-    // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
+    // Forward resolver-side R-codes (unresolved-ident, reserved-name, ...)
     // so the CLI's `# Diagnostics` block surfaces them next to T-codes.
     for d in entry_typed.resolved.diags {
         diags.push(d)
@@ -443,7 +443,7 @@ populate_from :: fn(
         }
     }
     // Namespace targets : for `name :: import "p"`, materialise an
-    // `(field_name → Type)` table from `p`'s public exports so
+    // `(field_name -> Type)` table from `p`'s public exports so
     // `field.vader` can resolve `name.foo` accesses.
     for [_, mod_id] in targets.namespace_targets {
         entry_typed.namespace_exports.get_or_put_with(

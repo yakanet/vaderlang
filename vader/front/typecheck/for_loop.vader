@@ -55,7 +55,7 @@ check_for :: fn(
                     // A real user name is var-targetable ; the `_` wildcard is not.
                     if nv.name != "_" { binding = nv.name }
                 }
-                // `for [k, v] in …` : type each pattern leaf against the element
+                // `for [k, v] in ...` : type each pattern leaf against the element
                 // (a tuple / array, or a struct that implements `Into<[...]>`),
                 // reusing the destructuring-let machinery. Not var-targetable.
                 is AST.DestructureVar -> {
@@ -239,11 +239,11 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
             // result stored as the trait) carries its element as the sole type arg.
             // Without this a `for x in it` over such a value leaves the loop var
-            // unresolved → it defaults to `i32`, which happens to match an i32
-            // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
+            // unresolved -> it defaults to `i32`, which happens to match an i32
+            // element but mis-types every other (e.g. `Iterator<string>` -> `i32.add`).
             //
             // A type-param-bearing element: a bare `T` inside a generic combinator
-            // (`my_map<T, U>(self: Iterator<T>, …)`), or a composite like `[K, V]` /
+            // (`my_map<T, U>(self: Iterator<T>, ...)`), or a composite like `[K, V]` /
             // `T[]`: is returned AS WRITTEN. It is the honest type of the loop var
             // in that body, and it is what LSP hover and the typecheck snapshots
             // read. Concretising it is the LOWERER's job, per instance: the entry's

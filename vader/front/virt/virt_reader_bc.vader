@@ -4,7 +4,7 @@
 // `vader/core/bytecode::BytecodeModule` that `vader run` executes and
 // `emit/c::emit_c` compiles, so a hand-authored or dumped `.virt` can be run or
 // built to C (`vader build x.virt`). The bodies go through `virt_reader.vader`:
-// the structured control flow → linear op-stream + jump-table wiring
+// the structured control flow -> linear op-stream + jump-table wiring
 // (`ParserState`, `parse_op_line`, `wire_control_flow`).
 //
 // Lossy-by-design vs the emitter's in-memory module: the `.virt` text carries
@@ -15,7 +15,7 @@
 // bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX, the
 // identity the data section names it by (`emit/virt/dump`), and `debug` all-null
 // (`#line` directives are dropped from `.virt`-sourced C). The contract this
-// upholds is *emitted-C equivalence* (`source → C` == `source → .virt → C`,
+// upholds is *emitted-C equivalence* (`source -> C` == `source -> .virt -> C`,
 // modulo `#line`), not byte-identical module round-trip.
 
 module "vader/front/virt"
@@ -85,7 +85,7 @@ positioned :: fn(
 
 /// Where one function of a `.virt` dump sits, by 0-based line.
 export VirtFunctionLines :: struct {
-    /// The `fn N …` header, where the parameters, which the dump leaves
+    /// The `fn N ...` header, where the parameters, which the dump leaves
     /// unnamed, are declared.
     header: i64
     /// Each `local` line, in slot order after the parameters.
@@ -130,7 +130,7 @@ export parse_virt_bc :: fn(source: string) -> BytecodeModule | VirtParseError {
 /// every function, local, op and pool entry.
 ///
 /// Module-level directives (`module` / `type` / `string` / `data` / `import` /
-/// `impl` / `vtable` / `export`) populate the module pools ; each `fn …` opens
+/// `impl` / `vtable` / `export`) populate the module pools ; each `fn ...` opens
 /// a body where ops + the jump table are wired by the shared
 /// `wire_control_flow`. The entry fn is taken from `export main N` and
 /// flagged `is_main` ; a dump without the directive has no entry.
@@ -201,7 +201,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         if !in_function {
             // `vader dump --stage=bytecode` appends a `# Diagnostics` report
             // after the module when the compile raised warnings
-            // (`tools/cli/cmd_dump.vader::run_bytecode_stage` →
+            // (`tools/cli/cmd_dump.vader::run_bytecode_stage` ->
             // `support/diagnostics/render.vader`).
             // It is prose, always terminal, and never bytecode, so it ends the
             // stream rather than failing it. Inside a function body a `#` is not
@@ -407,7 +407,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// bytecode audit. A dump this reader cannot type is a
 /// dump it must refuse.
 ///
-/// @param cleaned  the `type …` line, comment already stripped.
+/// @param cleaned  the `type ...` line, comment already stripped.
 /// @param types    the type table, appended to in ordinal order.
 /// @return         `null` when a type was appended, else why it could not be.
 parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | null {
@@ -415,7 +415,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
     first_space :: after_type.index_of(' ')
     if first_space == null {
         return DirectiveError {
-            .reason = "expected `type <index> <kind> …`, got no kind after the index",
+            .reason = "expected `type <index> <kind> ...`, got no kind after the index",
         }
     }
     rest :: after_type.byte_slice(first_space + 1, after_type.byte_len()).trim()
@@ -481,7 +481,7 @@ find_mirror_marker :: fn(s: string) -> i64 | null {
 
 /// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
 /// full `BcField[]` (name + type-index). `symbol_id` isn't carried by `.virt`
-/// → `-1`.
+/// -> `-1`.
 ///
 /// Field order IS the field index, so a dropped field silently renumbers every one
 /// after it: the reader refuses the line rather than hand back a struct whose
@@ -592,7 +592,7 @@ parse_import_decl_bc :: fn(
     if parts.len() > 1 && parts[1] == "extern" { is_extern = true  name_i = 2 }
     if parts.len() < name_i + 2 {
         return DirectiveError {
-            .reason = "expected `import <module> <name> …`, got ${parts.len()} field(s)",
+            .reason = "expected `import <module> <name> ...`, got ${parts.len()} field(s)",
         }
     }
     // `<lib>:<symbol>` when the symbol comes from a named library, see
@@ -820,8 +820,8 @@ parse_export_decl_bc :: fn(cleaned: string, exports: BcExport[]) -> i32 {
 }
 
 /// Parse a data-pool line into a `BcDataEntry`. Primitive arrays take the form
-/// `data N <kind> hex"…"` (raw `u64` bits per element) ; string arrays take
-/// `data N str "v0" "v1" …` (each value `emit/virt::quote_string`-escaped). Mirrors
+/// `data N <kind> hex"..."` (raw `u64` bits per element) ; string arrays take
+/// `data N str "v0" "v1" ...` (each value `emit/virt::quote_string`-escaped). Mirrors
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
 parse_data_decl_bc :: fn(
@@ -849,11 +849,11 @@ parse_data_decl_bc :: fn(
         data_pool.push(parse_structs_decl(payload, strings))
         return null
     }
-    // Every other kind carries a `hex"…"` blob. A malformed one used to be
+    // Every other kind carries a `hex"..."` blob. A malformed one used to be
     // dropped, which removed a whole pool entry and renumbered every later index.
     if payload.byte_len() < 5 || !payload.starts_with("hex\"") {
         return DirectiveError {
-            .reason = "data `${kind_name}`: expected a `hex\"…\"` payload, got `${payload}`",
+            .reason = "data `${kind_name}`: expected a `hex\"...\"` payload, got `${payload}`",
         }
     }
     if !payload.ends_with("\"") {
@@ -873,9 +873,9 @@ parse_data_decl_bc :: fn(
     return null
 }
 
-/// Tokenise a `"v0" "v1" …` sequence into the decoded string values. Each token
-/// is `emit/virt::quote_string`-escaped ; `\"` / `\\` / `\n` … are honoured via the same
-/// `decode_escapes` the `string N "…"` section uses, so a value containing a
+/// Tokenise a `"v0" "v1" ...` sequence into the decoded string values. Each token
+/// is `emit/virt::quote_string`-escaped ; `\"` / `\\` / `\n` ... are honoured via the same
+/// `decode_escapes` the `string N "..."` section uses, so a value containing a
 /// quote round-trips. Whitespace between tokens is skipped.
 parse_quoted_strings :: fn(s: string) -> string[] {
     out: string[]: []
@@ -903,7 +903,7 @@ parse_quoted_strings :: fn(s: string) -> string[] {
     return out
 }
 
-// Parse the `agg` payload `<count> <value>…` into a `BcAggregateData`. Values
+// Parse the `agg` payload `<count> <value>...` into a `BcAggregateData`. Values
 // are count-prefixed (no paren balancing), see `emit/virt::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
 parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
@@ -918,7 +918,7 @@ parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     return BcAggregateData { .elements = elements }
 }
 
-// Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
+// Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>...`
 // (the dumper's `structs` header). Every element is a `BcValStruct` with the
 // hoisted `symid` ; its `nfields` field values are read flat from the stream.
 parse_structs_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
@@ -985,7 +985,7 @@ token_to_int :: fn(s: string) -> i32 {
     return 0
 }
 
-// Quoted-aware whitespace tokeniser : a `"…"` run (escape-decoded) is one token.
+// Quoted-aware whitespace tokeniser : a `"..."` run (escape-decoded) is one token.
 tokenize_agg :: fn(s: string) -> string[] {
     out: string[]: []
     n :: s.byte_len()
@@ -1217,7 +1217,7 @@ test_parse_virt_bc_reads_every_header_of_an_import :: fn() -> void {
 
 @test test_parse_virt_listing_notes_each_line :: fn() -> void {
     // A comment, a blank line and a `local` take a line but no op ; a structured
-    // `if` … `end` takes one op per line.
+    // `if` ... `end` takes one op per line.
     lines :: [
         "module demo",
         "type 0 scalar i32",

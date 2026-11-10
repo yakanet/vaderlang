@@ -260,7 +260,7 @@ found_binding :: fn(ty: Type | null, st: FindBindingState) -> AST.Walk {
 /// not on a bound name.
 ///
 /// A single name reports the INITIALIZER's inferred type, which is the whole
-/// point of this walk: `hover.vader` wants `origin: ? | null :: span_at(…)` to
+/// point of this walk: `hover.vader` wants `origin: ? | null :: span_at(...)` to
 /// surface what the typechecker resolved, not the `?` the user wrote.
 /// `local_types` holds the DECLARED type, so it is only right where there is no
 /// single initializer to read: a destructuring slot.
@@ -332,7 +332,7 @@ export find_enclosing_call :: fn(
 
 /// Every expression whose span contains `(line, col)`, innermost first. The
 /// code-action layer walks this chain to find the node a given action targets
-/// (the enclosing match for match→if, the enclosing if for if→match, …) without
+/// (the enclosing match for match->if, the enclosing if for if->match, ...) without
 /// a per-node-kind walker. 1-based coords.
 ///
 /// @param decls  the file's top-level declarations to descend.

@@ -1,11 +1,11 @@
-// vader/emit/bytecode/emit: CFG → bytecode emitter.
+// vader/emit/bytecode/emit: CFG -> bytecode emitter.
 //
 // The project context (`EmitterCtx`, `emit_ctx.vader`) holds everything
 // *outside* the function body. Function bodies come from the CFG : the structurer
 // (`structure.vader`) recovers WASM-style `block` / `loop` / `if` nesting
 // from basic blocks + terminators, by dominator tree.
 //
-// This is the canonical CFG → bytecode emitter : every `dump --stage`
+// This is the canonical CFG -> bytecode emitter : every `dump --stage`
 // consumer, `vader run`, the C backend, the bootstrap, and the comptime
 // VM route their bytecode through `emit_bytecode_from_cfg`. `emit_instr`
 // covers the full `Instruction` set ; unresolved callees / materialisation
@@ -118,7 +118,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     }
     // Index by mangle too : intrinsic impl-member calls carry the member's
     // mangle with a synthetic `id = 0`, so the symbol-id path can't resolve
-    // them: the InstrCall emit falls back to this map → `CallImport`.
+    // them: the InstrCall emit falls back to this map -> `CallImport`.
     ctx.import_index_by_mangle[ext.mangled] = import_index
 }
 
@@ -413,13 +413,13 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // place (Vader structs are by-value), so each returns its rewrite
             // and `with_peephole_out` threads it back onto `ctx.functions[i]`.
             //
-            // Order : propagate_const_single_use → run_bc_peephole (Rule 1)
-            // → run_bc_const_fold_arith → drop_dead_stores → coalesce_slots.
+            // Order : propagate_const_single_use -> run_bc_peephole (Rule 1)
+            // -> run_bc_const_fold_arith -> drop_dead_stores -> coalesce_slots.
             //
             // Propagate runs FIRST to inline single-use consts, removing the
             // `const ; set` the CFG interleaves between a value's producer and
             // its first read. That un-interleaving is what lets Rule 1's
-            // `LocalSet N ; LocalGet N → LocalTee N` fold fire on pairs it would
+            // `LocalSet N ; LocalGet N -> LocalTee N` fold fire on pairs it would
             // otherwise miss: notably the buffer / interpolation
             // `set buf ; get buf`, where the first write's constant offset sat
             // between the two. Running propagate before Rule 1 (rather than
@@ -432,7 +432,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // const) as the next propagateable slot. Vader's emit pattern
             // produces chained moves (`%2 = move %1 = move %0 = const`) that
             // unwind one level per pass. Each firing only ever deletes ops
-            // (`const` + `set` gone, `get` → `const`), so the body length
+            // (`const` + `set` gone, `get` -> `const`), so the body length
             // strictly decreases until nothing more inlines: loop on that
             // instead of a fixed unroll count.
             prev_len: i64 = ctx.functions[i].body.len() + 1
@@ -440,8 +440,8 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
                 prev_len = ctx.functions[i].body.len()
                 ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             }
-            // Peephole AFTER propagate : LocalSet+LocalGet → LocalTee, const+
-            // Return → ReturnLit, BoolNot folds. Before drop_dead_stores so a
+            // Peephole AFTER propagate : LocalSet+LocalGet -> LocalTee, const+
+            // Return -> ReturnLit, BoolNot folds. Before drop_dead_stores so a
             // value-`match`'s per-arm `if_res` set+get pairs still fold to tees
             // that drop_dead_stores can then reclaim (avoids the O(N²) cascade).
             ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_peephole(ctx.functions[i]))
@@ -450,7 +450,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // `const ; const ; mul`) collapse.
             ctx.functions[i] = with_peephole_out(ctx.functions[i], run_bc_const_fold_arith(ctx.functions[i]))
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
-            // Second pass : ONLY Rule 5 (`<Const> ; Return` → ReturnLit).
+            // Second pass : ONLY Rule 5 (`<Const> ; Return` -> ReturnLit).
             // drop_dead_stores opens new const-before-return windows by removing
             // dead tees / sets ; re-running the full peephole here would re-fold
             // set+get pairs that slot-renumbering made adjacent, over-folding.
@@ -466,7 +466,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             ctx.functions[i] = with_peephole_out(ctx.functions[i], strip_self_copies(ctx.functions[i]))
         }
         // Pass 4: whole-program prunes on the EmitterCtx.
-        // Order matters : functions → imports → data → globals → types so each pass's root
+        // Order matters : functions -> imports -> data -> globals -> types so each pass's root
         // set reflects the previous pass's drops. (There is no separate
         // vtable-prune pass : vtable rows are reachability-filtered when
         // built, see `build_vtables_from_entries`, and the `used_vtable_keys`
@@ -1141,7 +1141,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         }
 
         field_index :: i32(field_slot)
-        // Fuse `local.get N ; struct.get T F` → `local.field N T F`
+        // Fuse `local.get N ; struct.get T F` -> `local.field N T F`
         // when the just-emitted op is the receiver's slot read.
         fused := false
         if !skipped_receiver_get {
@@ -1216,7 +1216,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // A concrete-primitive element reads through the typed slot op (no box
         // round-trip, no runtime element-kind switch).
         // The array constructors are force-concrete, so a concrete `i32[]` value is
-        // I32-kind at runtime → the typed read is sound. Boxed / ref / `Any` / `u8`
+        // I32-kind at runtime -> the typed read is sound. Boxed / ref / `Any` / `u8`
         // elements stay on the runtime-dispatched `ArrayGet`.
         load_op :: slot_load_op_for(array_element_val_type(target_type), ins.bounds_safe)
         if load_op is null {
@@ -1332,10 +1332,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         if to_val == .Any && is_scalar_class(from_val) {
             push_emit(ctx, Retag { .type_id = intern_type(from_type, ctx.project) }, ins.span)
         } else if from_val != to_val {
-            // Numeric / char ↔ numeric / char routes through Convert,
+            // Numeric / char <-> numeric / char routes through Convert,
             // carrying the source width as a string so the dump emits
             // `<from>.to_<to>` (e.g. `u64.to_i32`). Anything else
-            // (heap-shaped → primitive, etc.) falls through to ref.cast.
+            // (heap-shaped -> primitive, etc.) falls through to ref.cast.
             target_opt :: convert_target_of(to_val)
             if target_opt == null {
                 push_emit(ctx, RefCast { .type_id = intern_type(ins.type, ctx.project) }, ins.span)
@@ -1537,10 +1537,10 @@ DirectCallTarget :: struct {
     signature: BcSignature
 }
 
-// Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`. A fn
+// Direct fn call -> `Call` ; @extern/@intrinsic import -> `CallImport`. A fn
 // resolves as a vtable target does (`resolve_fn_index`, mangle first). An
 // intrinsic impl-member call carries the member's mangle (synthetic id 0) and
-// was surfaced as a bodyless extern → import. An unresolved callee is a
+// was surfaced as a bodyless extern -> import. An unresolved callee is a
 // materialisation gap and fails loud : emitting anything else would
 // silently drop the call and return whatever the stack holds.
 resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
@@ -1621,10 +1621,10 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
         // Pick the const width from the literal's type : a 64-bit integer
         // (`i64`/`u64`) keeps its full `u64` payload via
         // `I64Const` ; narrower types truncate to `I32Const`. Without the
-        // width check, a value ≥ 2^31 (e.g. `i32`-min's magnitude `2147483648`
+        // width check, a value >= 2^31 (e.g. `i32`-min's magnitude `2147483648`
         // wrapped in a `-`) truncated to i32 and the following `i64.neg` then
 
-        // Translate CFG string index → bytecode pool index.
+        // Translate CFG string index -> bytecode pool index.
         pool_idx :: ctx.string_index_map[v.index]
         push_emit(ctx, StringConst { .index = pool_idx }, c.span)
     }

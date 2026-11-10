@@ -29,7 +29,7 @@ export SymbolTarget :: struct {
 /// R2003 / R2008 on the binding's own span into `project.diags`.
 export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     out :: ImportTargetTable {}
-    // One name → id map for the whole project ; reused across every
+    // One name -> id map for the whole project ; reused across every
     // module's import-path resolution. Hoisted out of the inner loop
     // so it's built once (O(N)) rather than per-module (O(N²)).
     name_to_id :: Map<string, string> {}

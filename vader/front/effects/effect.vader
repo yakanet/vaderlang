@@ -63,10 +63,10 @@ export PathTable :: struct {
     step_names: string[] = []
     @internal
     step_ids: Map<string, i32> = Map<string, i32> {}
-    /// (parent, step) → the path one step below the parent.
+    /// (parent, step) -> the path one step below the parent.
     @internal
     children: Map<i64, i32> = Map<i64, i32> {}
-    /// (p, q) → `p` then `q`.
+    /// (p, q) -> `p` then `q`.
     @internal
     joins: Map<i64, i32> = Map<i64, i32> {}
 }
@@ -267,11 +267,11 @@ breaks_widening :: fn(t: PathTable, a: Access, depth: i32) -> bool {
     }
 }
 
-// How the dump writes `p` after its parameter's name: `.f[]`, then `…` when it
+// How the dump writes `p` after its parameter's name: `.f[]`, then `...` when it
 // stands for deeper paths too.
 display_path :: fn(t: PathTable, p: i32) -> string {
     if t.nodes[p].deeper {
-        return "${t.display_steps(p)}…"
+        return "${t.display_steps(p)}..."
     }
     return t.display_steps(p)
 }
@@ -628,7 +628,7 @@ test_joined_appends_the_steps :: fn() -> void {
 test_joined_cuts_past_the_maximum :: fn() -> void {
     t :: PathTable {}
     p :: t.joined(path_of(t, ["a", "b"]), path_of(t, ["c", "d"]))
-    assert_eq(t.display_path(p), ".a.b.c…")
+    assert_eq(t.display_path(p), ".a.b.c...")
 }
 
 @test

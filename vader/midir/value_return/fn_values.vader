@@ -53,7 +53,7 @@ scalarised_copy :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction = CFGF
     .origin = MonoEntry { ...f.origin, .symbol = null },
 }
 
-// `f` with its body replaced by `return <copy>(param…)`.
+// `f` with its body replaced by `return <copy>(param...)`.
 //
 // Its signature, mangle and origin are untouched, so every vtable row, `fn.ref`,
 // `fn.addr` and `make_closure` naming it still resolves to this function and
@@ -222,7 +222,7 @@ mark_forwarding :: fn(
 forwarded_symbol :: fn(sym: Symbol, copy_mangle: string) -> Symbol =
     Symbol { ...sym, .name = copy_mangle }
 
-// Symbol id → mangle, for the chosen functions only.
+// Symbol id -> mangle, for the chosen functions only.
 //
 // `emit/bytecode/emit` resolves a callee by mangle FIRST and by symbol id second, and a
 // call site carries whichever the lowerer put there: an impl member carries its

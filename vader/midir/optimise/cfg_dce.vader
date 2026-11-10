@@ -194,7 +194,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
         })
     }
 
-    // Drop pure instructions whose dst → -1 ; remap survivors.
+    // Drop pure instructions whose dst -> -1 ; remap survivors.
     new_blocks: BasicBlock[]: [] * f.blocks.len()
     for b in f.blocks {
         out: Instruction[]: [] * b.instructions.len()

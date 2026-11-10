@@ -2,7 +2,7 @@
 
 module "std/collections"
 
-// Live entries live in two dense parallel arrays (`ekeys[i]` ↔ `evals[i]`) in
+// Live entries live in two dense parallel arrays (`ekeys[i]` <-> `evals[i]`) in
 // insertion order; a sparse `index` of `i32` maps a hash slot to an entry
 // position (1-based; 0 = empty, -1 = tombstone). Lookup hashes the key, probes the
 // index (`next_slot`) skipping tombstones, and compares via `Equals`. Insert
@@ -29,7 +29,7 @@ export Map :: struct<K: Hash & Equals, V> {
     /// Dense entry values, parallel to `ekeys`.
     @internal
     evals: V[] = []
-    /// Open-addressed hash table : slot → entry position + 1 ; `EMPTY_SLOT`
+    /// Open-addressed hash table : slot -> entry position + 1 ; `EMPTY_SLOT`
     /// (0) = free, `TOMB_SLOT` (-1) = tombstone. Length is a power of two,
     /// lazily allocated to `MINIMAL_INDEX_COUNT` on first insert.
     @internal
@@ -102,7 +102,7 @@ grow_index :: fn<K: Hash & Equals, V>(self: Map<K, V>) -> void {
     self.rehash(new_count)
 }
 
-/// Insert or overwrite `key → value`. Probes the index from `hash & mask` ; an
+/// Insert or overwrite `key -> value`. Probes the index from `hash & mask` ; an
 /// existing key has its value replaced in place, otherwise a fresh entry is
 /// appended (reusing the first tombstone seen, if any). Only an insertion can
 /// grow the index.

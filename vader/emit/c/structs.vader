@@ -163,8 +163,8 @@ push_struct_field :: fn(
 /// shared `symbol_id` for named generics, or both anonymous `__Tuple_*`), same
 /// arity, and each field identical or erased on one side: an open `ref` in the
 /// sibling, or an open `ref` here where the sibling holds a reference. Covers
-/// the all-`Any` form (`zip` erases every field → `[Any, Any]`), partial erasure
-/// (`indexed` keeps the concrete `i64` index, erases only the element →
+/// the all-`Any` form (`zip` erases every field -> `[Any, Any]`), partial erasure
+/// (`indexed` keeps the concrete `i64` index, erases only the element ->
 /// `[Any, i64]`), and the concrete layout an erased consumer receives from a
 /// concrete producer.
 find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
@@ -237,7 +237,7 @@ erased_sibling_field_read :: fn(
         raw :: field_of(sib_cname, recv, sf.name)
         // Reconcile the sibling field's storage class to the concrete field's via
         // the canonical `coerce_expr`: it handles every direction incl. the
-        // `.Any → .Ref` unbox (`.payload.obj`) where the `push_struct_field`
+        // `.Any -> .Ref` unbox (`.payload.obj`) where the `push_struct_field`
         // splice requires a raw `void*` rather than the sibling's box.
         return coerce_expr(types, raw, sf_val, target_val)
     }
@@ -255,7 +255,7 @@ field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpressi
 ///
 /// The barrier is mandatory on a `struct.set` that writes a reference:
 /// mutating an old object's field to reference a young object creates an
-/// old→young edge whose card must be marked dirty, else `scan_old_dirty_cards`
+/// old->young edge whose card must be marked dirty, else `scan_old_dirty_cards`
 /// skips the object and the young referent goes stale when the next minor
 /// moves it. `struct.set_stack` opts out: the lowerer's escape analysis proved
 /// the receiver is stack-allocated, so the macro's `in old?` test would always
@@ -267,7 +267,7 @@ emit_struct_set :: fn(s: FnState, op: Bc.StructSet) -> void {
         value :: pop(s)
         obj :: pop(s)
         f :: t.fields[op.field_index]
-        // A `.Ref` receiver is a raw `void*` ; an `.Any` one is a box → `.payload.obj`.
+        // A `.Ref` receiver is a raw `void*` ; an `.Any` one is a box -> `.payload.obj`.
         obj_ptr :: object_pointer_of(obj)
         place :: field_of(cname, obj_ptr, f.name)
         store_field(s, place, value, f.type_index, struct_set_barrier(op, cname, obj_ptr))
@@ -364,7 +364,7 @@ emit_ref_cast :: fn(s: FnState, op: Bc.RefCast) -> void {
     target_val :: val_type_of_bc_type(s.ctx.module.types[op.type_id])
     // A ref.cast is a representation-preserving reinterpret, so it must honour the
     // erasure boundary: widening a concrete `.Ref` (raw `void*`) into an erased `.Any`
-    // slot boxes it (`vader_ref_box`), narrowing `.Any → .Ref` unboxes, same-class
+    // slot boxes it (`vader_ref_box`), narrowing `.Any -> .Ref` unboxes, same-class
     // is identity. `coerce_expr` covers all of these: the old `unbox_expr` arm
     // wrongly treated a `.Ref` source as already-boxed (copying a `void*` into a
     // box slot, or `.payload.obj`-ing a raw pointer).

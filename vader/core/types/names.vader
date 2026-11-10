@@ -100,7 +100,7 @@ export primitive_name :: fn(t: Type | null) -> string {
 }
 
 /// Whether `name` spells a scalar type the compiler knows by name : a primitive
-/// (`bool`, `string`, `f64`, …) or one of the eight machine integers.
+/// (`bool`, `string`, `f64`, ...) or one of the eight machine integers.
 export is_scalar_type_name :: fn(name: string) -> bool =
     primitive_meta(name) != null || is_int_name(name)
 
@@ -289,7 +289,7 @@ export STRUCT_FIELD :: @type_name(Field)
 export STRUCT_STOP :: @type_name(Stop)
 
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above
-/// (`Add::add`, `Comparable::compare`, `Iterator::next`, …). Same rationale as
+/// (`Add::add`, `Comparable::compare`, `Iterator::next`, ...). Same rationale as
 /// the trait names: one source so a rename touches one line.
 export METHOD_ADD       :: "add"
 export METHOD_SUB       :: "sub"

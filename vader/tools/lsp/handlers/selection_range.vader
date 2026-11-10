@@ -69,7 +69,7 @@ smaller :: fn(a: Span, b: Span) -> bool = width(a) < width(b)
 encloses_strictly :: fn(outer: Span, inner: Span) -> bool =
     span_encloses(outer, inner) && width(outer) > width(inner)
 
-// `{ range, parent: { range, parent: … } }`, the smallest range outermost in the
+// `{ range, parent: { range, parent: ... } }`, the smallest range outermost in the
 // JSON : the chain read from its first span.
 selection_json :: fn(chain: Span[], li: LineIndex) -> JsonValue {
     if chain.len() == 0 {

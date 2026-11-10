@@ -24,7 +24,7 @@ import "vader/tools/lsp/protocol"
 export ExternalHit :: struct {
     uri:    string
     target: DeclEntry
-    /// The `module "…"` of the file at `uri` ; "" when it has none.
+    /// The `module "..."` of the file at `uri` ; "" when it has none.
     module: string
     /// The text `target` was indexed from, which its spans index into.
     source: string

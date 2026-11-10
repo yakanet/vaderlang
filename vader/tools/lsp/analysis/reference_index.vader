@@ -1,4 +1,4 @@
-// vader/tools/lsp/analysis/reference_index: project-wide target → reference-spans index.
+// vader/tools/lsp/analysis/reference_index: project-wide target -> reference-spans index.
 //
 // Shared infrastructure behind find-references (`handlers/references`) and rename
 // (`handlers/rename`). A target is a function, keyed by its declaration so each
@@ -233,7 +233,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
 is_local_kind :: fn(k: SymbolKind) -> bool =
     k == .Local || k == .Param || k == .Binding || k == .TypeParam
 
-// The `__comptime_NAME` fn behind a `NAME :: @comptime …` const: compiler-internal,
+// The `__comptime_NAME` fn behind a `NAME :: @comptime ...` const: compiler-internal,
 // declared at the `@comptime` token, which names nothing a user would rename.
 is_comptime_helper :: fn(typed: TypedProgram, sym: Symbol) -> bool {
     decl :: typed.fn_decls[sym.id] ?? return false
@@ -652,7 +652,7 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         is AST.BoolLitExpr     -> {}
         is AST.NullLitExpr     -> {}
         is AST.CharLitExpr     -> {}
-        // An interpolated `${…}` holds a real expression, and rename REWRITES
+        // An interpolated `${...}` holds a real expression, and rename REWRITES
         // what this collects: miss one and the edit deletes a binding whose
         // uses inside a string still name it, leaving source that no longer
         // compiles.

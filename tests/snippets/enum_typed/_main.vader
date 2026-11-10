@@ -1,10 +1,10 @@
 // Enum representation: the backing type, explicit and implicit values, and
 // conversions to an integer.
 //   - explicit non-consecutive values (`enum(u8)`), newline-separated
-//   - implicit values counting on from an explicit one (`Push = 100` → `Pop`
+//   - implicit values counting on from an explicit one (`Push = 100` -> `Pop`
 //     is 101), in a `u16` enum
 //   - a signed backing type carrying negative values, the implicit value after
-//     one counting from it (`Mid = -1` → `High` is 0)
+//     one counting from it (`Mid = -1` -> `High` is 0)
 //   - a `u32` value past the `i32` range, converted to `u32` and widened to
 //     `u64` (zero-extended, never sign-extended), and the default width
 //   - matches over a typed enum, as a value and as a statement

@@ -1,4 +1,4 @@
-// vader/midir/select/type_classify: typecheck `Type` → bytecode shapes.
+// vader/midir/select/type_classify: typecheck `Type` -> bytecode shapes.
 //
 // The value type a `Type` is held as, and the key a type is interned under.
 // Read by the bytecode emitter (`vader/emit/bytecode`) and by the `midir`
@@ -218,7 +218,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is ArrayType    -> .Ref
     is FnType       -> .Ref
     is TupleType    -> .Ref
-    // Erased / dynamic → `.Any` (tagged box). A trait object may box a
+    // Erased / dynamic -> `.Any` (tagged box). A trait object may box a
     // distinct-primitive impl; a union carries a variable variant; generic
     // type-params / meta / self / `any` are erased.
     is TraitType          -> .Any
@@ -239,7 +239,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
 /// `Any` so the upstream typechecker has the only say in rejecting
 /// the source.
 ///
-/// @param name  the primitive name (`"i32"`, `"string"`, …).
+/// @param name  the primitive name (`"i32"`, `"string"`, ...).
 /// @return      the matching `ValType` ; `Any` for unrecognised names.
 export val_type_of_primitive_name :: fn(name: string) -> ValType {
     // The FFI pointer's SOURCE spelling is `CPointer` while its `.virt`
@@ -319,7 +319,7 @@ export type_intern_hash :: fn(t: Type) -> u64 = match t {
     is InferVar       -> leaked_infer_var(t)
     is DistinctType   -> type_intern_hash(t.backing)
     is RangeType      -> bare_hash(storage_integer(t).name)
-    // The composite cases DO carry a distinct prefix (`Struct#`, `Array<`, …),
+    // The composite cases DO carry a distinct prefix (`Struct#`, `Array<`, ...),
     // so a tag mirrors what the string already separates.
     is StructType     -> argument_hashes(mix64(mix64(FNV_OFFSET_64, 1), symbol_hash(t.symbol)), t.args)
     is TraitType      -> argument_hashes(mix64(mix64(FNV_OFFSET_64, 2), symbol_hash(t.symbol)), t.args)

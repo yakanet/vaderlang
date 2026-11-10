@@ -10,7 +10,7 @@ import "toolchain/build"
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     // A canary, not a name: if emission ever moved above `BeforeEmit`, the build
-    // would print `wrote <project>/build/…/should-not-exist` and the committed
+    // would print `wrote <project>/build/.../should-not-exist` and the committed
     // expectation would fail on that line.
     ctx.add_entry("should-not-exist", "src/main.vader")
 

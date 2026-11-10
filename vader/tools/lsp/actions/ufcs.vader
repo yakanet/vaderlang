@@ -1,15 +1,15 @@
-// vader/tools/lsp/actions/ufcs: free-call → method-call rewrite (`f(x, …)` → `x.f(…)`).
+// vader/tools/lsp/actions/ufcs: free-call -> method-call rewrite (`f(x, ...)` -> `x.f(...)`).
 //
 // Rewrites a free-function call into UFCS method syntax, promoting the first
-// positional argument to the receiver. `x.f(…)` resolves to `f(x, …)`, and `f`
+// positional argument to the receiver. `x.f(...)` resolves to `f(x, ...)`, and `f`
 // is in scope since the call compiles, unless `x`'s struct declares a field `f`
-// holding a function, or every variant of `x`'s union holds one, which `x.f(…)`
+// holding a function, or every variant of `x`'s union holds one, which `x.f(...)`
 // calls instead: the action holds no types to see it.
 //
-//   dbl(n)        →  n.dbl()
-//   max(a, b)     →  a.max(b)
+//   dbl(n)        ->  n.dbl()
+//   max(a, b)     ->  a.max(b)
 //
-// Only the `f(x) → x.f()` direction is offered. The reverse (`x.f() → f(x)`) is
+// Only the `f(x) -> x.f()` direction is offered. The reverse (`x.f() -> f(x)`) is
 // NOT : an impl method can't be called free-form (`b.show()` is valid but
 // `show(b)` is `unresolved identifier`), so the reverse would produce broken
 // code unless `f` is known to be a free fn: a type-aware gate left as a
@@ -25,7 +25,7 @@ import "vader/tools/fmt"
 AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
 
-/// The free-call → method-call action. Registered in `registry::all_actions`.
+/// The free-call -> method-call action. Registered in `registry::all_actions`.
 ufcs_action :: fn() -> CodeAction = CodeAction {
     .kind          = "refactor.rewrite",
     .title         = "Convert to method call",
@@ -59,7 +59,7 @@ ufcs_ok :: fn(c: AST.CallExpr) -> bool {
     return true
 }
 
-// `f(x, rest…)` → `x.f(rest…)`, reusing the receiver + remaining args verbatim.
+// `f(x, rest...)` -> `x.f(rest...)`, reusing the receiver + remaining args verbatim.
 to_method_call :: fn(c: AST.CallExpr) -> AST.CallExpr {
     recv :: c.args[0].value
     rest :: c.args[1..<c.args.len()]

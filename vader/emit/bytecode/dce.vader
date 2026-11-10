@@ -6,7 +6,7 @@
 // they're built: `vader/emit/bytecode/emit.vader::build_vtables_from_entries` only emits a
 // row whose `(trait, method)` key a surviving `virtual.call` references, and
 // the same `used_vtable_keys` set gates which vtable targets root the fn walk.)
-// Run after the CFG → bytecode body emit, before the final
+// Run after the CFG -> bytecode body emit, before the final
 // BytecodeModule assembly. Each pass walks the EmitterCtx and the
 // surviving fn bodies to compute a reachability set, then drops
 // entries that nothing alive references.
@@ -382,7 +382,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> Bc
 /// `globals` with each slot's type index translated through `remap`.
 ///
 /// @param globals  the global slots of a module.
-/// @param remap    old type index → new one.
+/// @param remap    old type index -> new one.
 remap_globals :: fn(globals: BcGlobal[], remap: i32[]) -> BcGlobal[] =
     globals.map((g) -> BcGlobal { ...g, .type_id = remap_idx(remap, g.type_id) }).collect()
 
@@ -480,7 +480,7 @@ visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: Set<i32>) -> void {
 /// which needs the same rewrite over a whole module.
 ///
 /// @param op     a bytecode op.
-/// @param remap  old type index → new one (`-1` for a pruned slot).
+/// @param remap  old type index -> new one (`-1` for a pruned slot).
 export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op = match op {
     is StructNew     -> StructNew { ...op, .type_id = remap_idx(remap, op.type_id) }
     is StructGet     -> StructGet { ...op, .type_id = remap_idx(remap, op.type_id) }

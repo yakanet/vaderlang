@@ -99,7 +99,7 @@ const EXPECTED: [string, string[]][] = [
   ["yields_points", ["returned xs[] at <item>"]],
   ["writes_what_it_pulls", ["assigned xs[].x"]],
   ["reads_what_it_pulls", ["none"]],
-  ["fills", ["assigned d…"]],
+  ["fills", ["assigned d..."]],
 ];
 
 test("the effect summary gives each fixture function its accesses", async () => {
@@ -179,7 +179,7 @@ test("the faults and the kept views are errors", async () => {
 
 /**
  * Each fault of the `# frozen` section with the chain the dump writes under it,
- * the positions left out: `[site, [via …, write]]`.
+ * the positions left out: `[site, [via ..., write]]`.
  */
 function faultChainsOf(dump: string): [string, string[]][] {
   const section = dump.slice(dump.indexOf("\n# frozen\n") + 1);
@@ -211,7 +211,7 @@ test("each frozen fault leads down its calls to the write", async () => {
     ["call fault CFG", ["via `bump` (`c`)", "assigned c.n"]],
     ["call fault CFG", ["via `bump` (`c`)", "assigned c.n"]],
     ["call fault CFG", ["via `fill` (`c`)", "via `set` (`c`)", "assigned c.n"]],
-    ["call fault TREE", ["via `clear` (`n`)", "assigned n.kids[]…"]],
+    ["call fault TREE", ["via `clear` (`n`)", "assigned n.kids[]..."]],
     ["write fault bytes()", ["assigned bs[]"]],
     ["call fault hands_a_view()", ["resized hands_a_view() by `push`"]],
   ]);

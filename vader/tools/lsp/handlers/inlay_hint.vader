@@ -266,7 +266,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
 
 /// Same shape as `emit_let_hint`, but for top-level `ConstDecl`. The
 /// type comes from `declared_type_at`: that's the final defaulted
-/// form (`FreeInt`→`i32`, `FreeFloat`→`f64`), whereas `expr_types`
+/// form (`FreeInt`->`i32`, `FreeFloat`->`f64`), whereas `expr_types`
 /// keeps the un-defaulted free type. Type-alias constants (`Type ::
 /// i32 | string`) get `TY_TYPE` ; we skip those: they're already
 /// self-describing.
@@ -494,7 +494,7 @@ test_anchor_accepts_mutable_operator :: fn() -> void {
 
 @test
 test_anchor_follows_vertical_alignment :: fn() -> void {
-    // `abc  :: 1`: padded name→operator gap, which is why the anchor can't be
+    // `abc  :: 1`: padded name->operator gap, which is why the anchor can't be
     // derived from the NAME either.
     a :: anchor_of("abc  :: 1", name_ending_at(3, 1, 4), value_starting_at(8, 1, 9))
     assert_eq(a.character, 6)

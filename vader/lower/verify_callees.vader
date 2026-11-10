@@ -40,7 +40,7 @@ CalleeVerifier :: struct {
     /// How many choices were compared with the record ; a site lowered twice counts
     /// twice.
     observed: i32 = 0
-    /// Mangle → the impl member a call by that name runs (`note_member_origin`).
+    /// Mangle -> the impl member a call by that name runs (`note_member_origin`).
     members: Map<string, ObservedFn> = Map<string, ObservedFn> {}
 }
 
@@ -536,7 +536,7 @@ render_callee_report :: fn(project: LowerProjectCtx) -> string {
     for [key, pairs] in groups {
         out.append("\n  ${key}\n")
         for [pair, seen] in pairs {
-            out.append("    ${seen.count} × ${pair}  [${source_position(seen.first)}]\n")
+            out.append("    ${seen.count} x ${pair}  [${source_position(seen.first)}]\n")
         }
     }
     return out.to_string()

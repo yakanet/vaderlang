@@ -6,12 +6,12 @@
 // its type as `?`, which meant the use site was never type-checked at all, and
 // then failed in three different ways downstream:
 //
-//   * `x in LATE`        → lowered SILENTLY to `unreachable` (wrong code, no
+//   * `x in LATE`        -> lowered SILENTLY to `unreachable` (wrong code, no
 //                          diagnostic): `lower/binary.vader` resolves `Contains`
 //                          on the operand's type and fell through on `?`.
-//   * `LATE.len()`       → `midir/emit: no field len on ?` (compiler panic).
-//   * `for _ in LATE`    → `midir/emit: unresolved callee 'next'` (panic).
-//   * `LIMIT.to_string()`→ same panic on a scalar const.
+//   * `LATE.len()`       -> `midir/emit: no field len on ?` (compiler panic).
+//   * `for _ in LATE`    -> `midir/emit: unresolved callee 'next'` (panic).
+//   * `LIMIT.to_string()`-> same panic on a scalar const.
 //
 // Indexing (`LATE[0]`) and `string.len()` always worked (neither dispatches on
 // the receiver's type) which is what made the bug look narrower than it was.

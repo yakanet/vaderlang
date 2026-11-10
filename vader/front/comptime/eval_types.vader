@@ -14,7 +14,7 @@ ComptimeContext :: struct {
     /// Owning typed program: gives the resolver lookup (`resolved.idents` /
     /// `resolved.symbols`) plus the decl type tables.
     typed:    TypedProgram
-    /// `Symbol.id → ComptimeValue` for already-evaluated `@comptime` decls in the
+    /// `Symbol.id -> ComptimeValue` for already-evaluated `@comptime` decls in the
     /// current module ; built up as `evaluate_module_decls` walks the topo-sorted
     /// order.
     bindings: Map<i32, ComptimeValue>

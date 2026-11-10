@@ -3,10 +3,10 @@
 
 module "snippet"
 
-// Reached from `main` → must NOT be flagged by unused-export.
+// Reached from `main` -> must NOT be flagged by unused-export.
 export reached :: fn() -> i32 = 42
 
-// Exported but nothing reaches it from the roots → W0012.
+// Exported but nothing reaches it from the roots -> W0012.
 export orphan :: fn() -> i32 = 7
 
 // Private + dead : this is W0007's domain, not unused-export's.

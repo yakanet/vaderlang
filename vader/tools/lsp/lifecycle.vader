@@ -221,7 +221,7 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     completion_provider["triggerCharacters"] = JsonArray { .items = completion_triggers }
     caps["completionProvider"] = JsonObject { .entries = completion_provider }
 
-    // codeActionProvider : cursor-driven rewrites (match↔if, UFCS) plus the
+    // codeActionProvider : cursor-driven rewrites (match<->if, UFCS) plus the
     // file-level organize-imports source action. Advertise the kinds we emit so
     // clients can group / filter them (and surface "Organize Imports").
     ca_kinds: JsonValue[]: [
@@ -256,7 +256,7 @@ negotiate_from :: fn(text: string) -> PositionEncoding {
 }
 
 @test test_negotiate_defaults_to_utf16 :: fn() -> void {
-    // No positionEncodings advertised → the LSP default.
+    // No positionEncodings advertised -> the LSP default.
     assert_eq(position_encoding_kind(negotiate_from("{\"capabilities\":{}}")), "utf-16")
     // utf-16 explicitly offered, no utf-8/utf-32.
     assert_eq(position_encoding_kind(negotiate_from("{\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-16\"]}}}")), "utf-16")
@@ -275,7 +275,7 @@ refresh_support_from :: fn(text: string) -> bool {
 }
 
 @test test_inlay_refresh_support_absent :: fn() -> void {
-    // Any missing link in the path → false (the safe default).
+    // Any missing link in the path -> false (the safe default).
     assert(!refresh_support_from("{\"capabilities\":{}}"), "no workspace -> false")
     assert(!refresh_support_from("{\"capabilities\":{\"workspace\":{\"inlayHint\":{}}}}"), "no refreshSupport key -> false")
 }

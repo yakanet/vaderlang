@@ -25,15 +25,15 @@ module "std/core"
 /// `BigInt :: u32[]` is a distinct newtype (array-backed) : the structural array
 /// ops (index, `len`/`push`, for-in, `[...]` literals) forward to the backing
 /// array, while the scalar arithmetic is overloaded on the nominal type:
-/// `bigint * u32` (`Mul<u32>`) and `bigint / u32` → `[quotient, remainder]`
-/// (`Div<u32, [BigInt, u32]>`). `mul_add_small` (×+add) has no operator form and
+/// `bigint * u32` (`Mul<u32>`) and `bigint / u32` -> `[quotient, remainder]`
+/// (`Div<u32, [BigInt, u32]>`). `mul_add_small` (x+add) has no operator form and
 /// stays a method.
 BigInt :: u32[]
 
 /// Multiply by a small scalar and add a small scalar : `self * mul + add`.
 ///
-/// One limb pass, O(n). The single primitive behind the ×5 power-of-five step
-/// and the ×10 + digit decimal accumulation.
+/// One limb pass, O(n). The single primitive behind the x5 power-of-five step
+/// and the x10 + digit decimal accumulation.
 ///
 /// @param self  the operand.
 /// @param mul   the u32 multiplier.
@@ -60,7 +60,7 @@ BigInt implements Mul<u32, BigInt> -> self.mul_add_small(other, 0)
 /// Zero is the empty limb sequence.
 BigInt implements Zero -> []
 
-/// Floor-divide by a small (u32) scalar → `[quotient, remainder]`: the `/`
+/// Floor-divide by a small (u32) scalar -> `[quotient, remainder]`: the `/`
 /// operator (`bigint / u32`).
 ///
 /// Schoolbook long division from the most-significant limb: O(n) exact, NOT the
@@ -263,7 +263,7 @@ import "std/testing"
 }
 
 @test test_top128_normalizes :: fn() -> void {
-    // 2^300 : top128 normalizes bit 127 → hi = 2^63, lo = 0.
+    // 2^300 : top128 normalizes bit 127 -> hi = 2^63, lo = 0.
     [hi, lo] :: two_pow(300).top128()
     assert_eq(hi, u64(0x8000000000000000))
     assert_eq(lo, u64(0))

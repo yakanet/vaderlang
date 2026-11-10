@@ -63,7 +63,7 @@ assign_tuple :: fn(
         }
         return
     }
-    // Array destructuring : `[first, …rest] := arr` binds every simple/wildcard
+    // Array destructuring : `[first, ...rest] := arr` binds every simple/wildcard
     // slot to the element type and the `RestBinding` to a fresh backing array
     // (the raw slice, not the nominal newtype).
     arr :: array_backing(declared)

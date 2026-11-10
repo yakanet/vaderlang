@@ -1,4 +1,4 @@
-// vader/lower/concat_fusion: fuse a run of `s = s + …` appends into ONE concat.
+// vader/lower/concat_fusion: fuse a run of `s = s + ...` appends into ONE concat.
 //
 // `s = s + a` then `s = s + b` lowers to two `concat_N` calls, and each one is a
 // whole string construction: a right-sized byte buffer, one write per part, and
@@ -6,8 +6,8 @@
 // second call's only use of it is to copy its bytes again. Building the string
 // in k steps costs k buffers and k interns where one would do.
 //
-// So the pass rewrites `concat_M(concat_N(s, a…), b…)` (the shape the two
-// statements form) into `concat_{N+M-1}(s, a…, b…)`. It runs from
+// So the pass rewrites `concat_M(concat_N(s, a...), b...)` (the shape the two
+// statements form) into `concat_{N+M-1}(s, a..., b...)`. It runs from
 // `lower_block` right after each statement is lowered, which is what makes it
 // cheap and what keeps it safe: the two statements are ADJACENT by construction,
 // so nothing can read `s` between them, and a third append fuses against the
@@ -23,7 +23,7 @@ module "vader/lower"
 import "toolchain/span"
 import "vader/lower/ir"
 
-// One `s = s + …` append statement, destructured. `args` is the concat call's
+// One `s = s + ...` append statement, destructured. `args` is the concat call's
 // full operand list: `args[0]` is the `s` being appended to, the rest is what
 // this statement adds.
 CfAppend :: struct {
@@ -34,7 +34,7 @@ CfAppend :: struct {
 
 /// Fuse the last two statements of `stmts` when both append to the same local.
 ///
-/// A no-op unless the tail is exactly the `s = s + …` / `s = s + …` shape. Call
+/// A no-op unless the tail is exactly the `s = s + ...` / `s = s + ...` shape. Call
 /// it after every statement a block lowers: a run of k appends collapses to one
 /// concat by folding pairwise, left to right.
 ///
@@ -70,7 +70,7 @@ fuse_concat_tail :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[]) -> void {
     stmts.remove_last()
 }
 
-// Destructure `s = concat_N(s, …)`, or `null` for anything else. The target must
+// Destructure `s = concat_N(s, ...)`, or `null` for anything else. The target must
 // be a plain local: a captured one is rebound by this very assignment, so it lives
 // in a cell, arrives as a `LoweredCellSet` and never reaches here, which is what rules out a closure
 // observing the intermediate.

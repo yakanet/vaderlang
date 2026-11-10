@@ -12,24 +12,24 @@ module "snippet"
 
 import "std/console"
 
-// No impls → inherits u32's operators (arith / compare / equality / bitwise).
+// No impls -> inherits u32's operators (arith / compare / equality / bitwise).
 Permissions :: u32
 
-// Array-backed → `in` falls back to the array `Contains` blanket.
+// Array-backed -> `in` falls back to the array `Contains` blanket.
 Palette :: u8[]
 
 main :: fn() -> i32 {
     r :: Permissions(0b110)         // read + write
     w :: Permissions(0b010)         // write
-    println("${r & w}")             // bitwise AND → 2
-    println("${r | w}")             // bitwise OR  → 6
-    println("${r ^ w}")             // bitwise XOR → 4
-    println("${r > w}")             // comparison  → true
-    println("${r == w}")            // equality    → false
-    println("${r + w}")             // arithmetic  → 8
+    println("${r & w}")             // bitwise AND -> 2
+    println("${r | w}")             // bitwise OR  -> 6
+    println("${r ^ w}")             // bitwise XOR -> 4
+    println("${r > w}")             // comparison  -> true
+    println("${r == w}")            // equality    -> false
+    println("${r + w}")             // arithmetic  -> 8
 
     pal: Palette: [10, 20, 30]     // array-literal coercion to the distinct
-    println("${20 in pal}")         // membership  → true (array Contains fallback)
+    println("${20 in pal}")         // membership  -> true (array Contains fallback)
     println("${99 in pal}")         // false
     return 0
 }

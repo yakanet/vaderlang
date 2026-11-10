@@ -1,7 +1,7 @@
 // Combinators UFCS-resolve on an ERASED `Iterator<T>` receiver (a fn param, an
 // `.into()` result, any boxed iterator), not just on a concrete
 // `__genstate` head. `it.map(f)` must lower to the free-fn combinator, NOT a
-// `virtual.call Iterator.map` (the trait has no `map` method → runtime miss).
+// `virtual.call Iterator.map` (the trait has no `map` method -> runtime miss).
 // Regression guard for the lowering rule: when the typer resolved free-fn UFCS,
 // the call runs the free fn it chose (`method_target` in vader/lower/ufcs).
 
@@ -27,7 +27,7 @@ drain :: fn(it: Iterator<i32>) -> i32[] {
 }
 
 main :: fn() -> i32 {
-    // 1,2,3,4 → ×3 → 3,6,9,12 → keep >6 → 9,12 → sum 21
+    // 1,2,3,4 -> x3 -> 3,6,9,12 -> keep >6 -> 9,12 -> sum 21
     s :: sum_tripled_hi([1, 2, 3, 4])
     d :: drain([5, 6])
     println("sum=${s} drain=${d.len()} d0=${d[0]} d1=${d[1]}")

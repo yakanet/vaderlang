@@ -3,7 +3,7 @@
 // A machine integer is a storage width, 8, 16, 32 or 64 bits, signed or not, with
 // the values that width holds. `lib/std/core/integers.vader` declares them as
 // ranges of those values: a range of exactly those bounds is that integer, its
-// arithmetic closed and checked (`checked_add`, …), and any other range is held
+// arithmetic closed and checked (`checked_add`, ...), and any other range is held
 // in the narrowest of them holding its values. The bytecode spells each the way
 // this table does (`i32.add`), and so do the compiler's messages and mangled
 // names.
@@ -14,7 +14,7 @@ module "vader/support/integer"
 
 /// A storage width and the values it holds.
 export MachineInteger :: struct {
-    /// How messages, mangled names and the bytecode spell it: `i8` … `u64`.
+    /// How messages, mangled names and the bytecode spell it: `i8` ... `u64`.
     name:      string
     /// 8, 16, 32 or 64.
     bits:      i64

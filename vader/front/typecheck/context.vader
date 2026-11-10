@@ -65,7 +65,7 @@ new_fn_context :: fn(return_type: Type) -> FnContext {
 }
 
 // Keep the generic instances of the fn whose body is being checked concrete rather
-// than erased (`T` → `Any`), see `TypedProgram.fn_needs_concrete_instances`. Each
+// than erased (`T` -> `Any`), see `TypedProgram.fn_needs_concrete_instances`. Each
 // call site says why its construct needs the instance's real types.
 keep_instances_concrete :: fn(typed: TypedProgram) -> void {
     fctx :: typed.current_fn_ctx ?? return

@@ -12,7 +12,7 @@
 // dead-code-eliminated from the runtime image after baking.) Operates on
 // the UTF-8 byte view (`bytes()`) of the input ; output is the
 // lowercase hex digest, matching the convention of every other tool (openssl,
-// shasum, md5sum, GitHub commit hashes…).
+// shasum, md5sum, GitHub commit hashes...).
 //
 // Both algorithms run in O(n) over the input length and use only
 // fixed-size scratch ; safe for streaming-sized inputs once a
@@ -211,7 +211,7 @@ SHA256_K :: @comptime {
         if prime { primes.push(cand) }
         cand = cand + 1
     }
-    // K[i] = floor(frac(cbrt(prime)) * 2^32). No `cbrt` intrinsic → `pow(_, 1/3)`.
+    // K[i] = floor(frac(cbrt(prime)) * 2^32). No `cbrt` intrinsic -> `pow(_, 1/3)`.
     k: u32[]: []
     for p in primes {
         c :: pow(f64(p), 1.0 / 3.0)
@@ -321,9 +321,9 @@ append_hex_u32_le :: fn(sb: StringBuilder, x: u32) -> void {
 }
 
 // MD5 per-round shift amounts : each of the four rounds cycles its own four
-// shifts across its 16 steps, so the 64-entry table is those 4×4 base shifts
+// shifts across its 16 steps, so the 64-entry table is those 4x4 base shifts
 // with each row repeated four times. Built at compile time from the base rows
-// (loop / `push` are outside the tree-walk subset → VM-staged) and materialised
+// (loop / `push` are outside the tree-walk subset -> VM-staged) and materialised
 // read-only in the data section, exactly like `SHA256_K`.
 MD5_S :: @comptime {
     // Round r's four shifts live at base[r*4 .. r*4+3].

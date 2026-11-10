@@ -1,7 +1,7 @@
 // vader/emit/c/body: shared name/type helpers for the C-emit pipeline.
 //
 // Holds the C identifier / literal escaping helpers and the
-// `BcType` / `ValType` → C type mapping + box / unbox / coerce helpers
+// `BcType` / `ValType` -> C type mapping + box / unbox / coerce helpers
 // (`c_type_for*` / `sanitise` / `box_expr` / `unbox_expr` / `coerce_expr`
 // family) used across the C-emit pipeline. The per-op / per-fn body walker
 // lives in `walker.vader` (same module).
@@ -122,9 +122,9 @@ export c_string_lit :: fn(s: string) -> string {
     return buf.bytes_to_string()
 }
 
-// ---- ValType → C type mapping ---------------------------------------------
+// ---- ValType -> C type mapping ---------------------------------------------
 
-/// Primitive `ValType` → bare C type spelling. `null` lands in
+/// Primitive `ValType` -> bare C type spelling. `null` lands in
 /// `vader_box_t` because the runtime null is the box variant whose
 /// tag identifies it ; `any` is a `vader_box_t` too, while `ref` and
 /// `pointer` are a raw `void*`.
@@ -339,11 +339,11 @@ coerce_operand :: fn(types: BcType[], value: CExpression, from: ValType, to: Val
 }
 
 // The C storage type follows directly from the stack class: `val_type_of_bc_type`
-// owns the concrete-heap (`.Ref` → `void*`) vs erased (`.Any` → `vader_box_t`)
+// owns the concrete-heap (`.Ref` -> `void*`) vs erased (`.Any` -> `vader_box_t`)
 // partition and stays exhaustive over `BcType`, so deriving here keeps a single
 // source of truth (and can't drift from the GC's field bucketing, which reads
 // the same predicate, see `classify_struct_fields`).
-/// `BcType` → C type. A concrete heap shape (struct, array, fn) is a
+/// `BcType` -> C type. A concrete heap shape (struct, array, fn) is a
 /// raw `void*`, a union or a ref a `vader_box_t` ; primitives delegate
 /// to `c_type_for_val_bare`.
 ///
@@ -358,7 +358,7 @@ export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_b
 ///           a concrete heap shape, `Any` for a union or a ref.
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcScalar -> t.val
-    // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
+    // Concrete heap -> `.Ref` (void*) ; erased trait/union -> `.Any` (box).
     // Mirrors `type_classify.vader::val_type_of_type`.
     is BcStruct -> .Ref
     is BcArray -> .Ref

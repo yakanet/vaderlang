@@ -158,7 +158,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // to a variant (`l : LocalId | null` recorded as `LocalId` at the
         // `is null` site), `lower_ident` wraps it in a narrowing `LoweredCast`:
         // the C-emit then `ref.cast`-unboxes to the variant and CONSTANT-
-        // FOLDS the tag check (`is null` → `false`). Peel that cast so the
+        // FOLDS the tag check (`is null` -> `false`). Peel that cast so the
         // check runs on the union value (the operand stays at the union
         // type here).
         value :: strip_narrowing_cast(lower_expr(ctx, binary.left))
@@ -175,7 +175,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
                 return lower_in_literal_range(ctx, binary, range_lit)
             }
         }
-        // `x in coll` → `coll.contains(x)`. `x !in coll` → `!coll.contains(x)`,
+        // `x in coll` -> `coll.contains(x)`. `x !in coll` -> `!coll.contains(x)`,
         // through the `Contains` member the typecheck recorded ; an array-backed
         // distinct reaches its backing array's.
         coll_type :: ctx.types.expr_type(binary.right)
@@ -232,7 +232,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         parts :: lower_in_order(ctx, [binary.left, binary.right])
         return mk_array_repeat(parts[0], parts[1], type, binary.span)
     }
-    // Arithmetic + / − / × / ÷ on a user struct with a matching impl
+    // Arithmetic + / − / x / ÷ on a user struct with a matching impl
     // (`Vec implements Add { add(self, other) }` etc.) lowers to a
     // direct call `add(a, b)`.
     op_call :: try_lower_op_overload(ctx, binary, type)
@@ -471,14 +471,14 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
             return mk_lowered_call(target.symbol, call_args, type, binary.span)
         }
         if info.shape == .NotCall {
-            // `a != b` → `not(equals(a, b))`.
+            // `a != b` -> `not(equals(a, b))`.
             equals_call :: mk_lowered_call(target.symbol, call_args, TY_BOOL, binary.span)
             return LoweredUnary {
                 .span = binary.span, .type = TY_BOOL,
                 .op = .Not, .operand = equals_call,
             }
         }
-        // OpShape.CompareCmp : `a < b` → `(compare(a, b)) < 0`, same
+        // OpShape.CompareCmp : `a < b` -> `(compare(a, b)) < 0`, same
         // for <= / > / >=. The outer BinaryOp matches `binary.op`.
         compare_call :: mk_lowered_call(target.symbol, call_args, TY_I32, binary.span)
         return LoweredBinary {

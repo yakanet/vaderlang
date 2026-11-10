@@ -9,11 +9,11 @@ main :: fn() -> i32 {
     // Multi-byte UTF-8 round-trips exactly (2- and 3-byte codepoints).
     println("héllo café 你好".bytes().bytes_to_string())
 
-    // Sliced byte view → string : the byte-indexed substring that the old
+    // Sliced byte view -> string : the byte-indexed substring that the old
     // `byte_slice` produced. "abcde"[1..<4] bytes = b,c,d.
     println("abcde".bytes()[i64(1)..<i64(4)].bytes_to_string())
 
-    // Empty view → empty string.
+    // Empty view -> empty string.
     e :: "".bytes().bytes_to_string()
     println("[${e}]")
 

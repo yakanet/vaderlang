@@ -27,11 +27,11 @@ scale :: fn(self: Box, by: i32, plus: i32 = 0) -> i32 {
 }
 
 export main :: fn() -> i32 {
-    g1 :: greet("Alice")                  // default          → "Hello, Alice" (12)
-    g2 :: greet("Eve", prefix = "Hey")    // named            → "Hey, Eve"     (8)
-    r :: combine(c = 3, a = 1, b = 2)     // reordered        → 123
-    p :: pick(b = 4, a = 5)               // overload-by-name → 54
+    g1 :: greet("Alice")                  // default          -> "Hello, Alice" (12)
+    g2 :: greet("Eve", prefix = "Hey")    // named            -> "Hey, Eve"     (8)
+    r :: combine(c = 3, a = 1, b = 2)     // reordered        -> 123
+    p :: pick(b = 4, a = 5)               // overload-by-name -> 54
     b :: Box { .v = 6 }
-    u :: b.scale(plus = 1, by = 2)        // UFCS named + default → 6*2 + 1 = 13
+    u :: b.scale(plus = 1, by = 2)        // UFCS named + default -> 6*2 + 1 = 13
     return i32(g1.len() + g2.len()) + r + p + u   // 20 + 123 + 54 + 13 = 210
 }

@@ -15,7 +15,7 @@
 //     <name> :: fn(<params>) -> <type> {  // <mangled>
 //         <one statement per line>
 //     }
-//     <name> :: struct { <field>: <type>, … }  // <mangled>
+//     <name> :: struct { <field>: <type>, ... }  // <mangled>
 //     <name>: <type>: <value>  // <mangled>
 //     vtable <trait>.<method> for <type>  <fn>
 //

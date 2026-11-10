@@ -256,13 +256,13 @@ check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
         return check_ok(
             "library-root",
             "found under the working directory: a bare binary",
-            "${under_cwd}: every `std/…` import resolves only while the "
+            "${under_cwd}: every `std/...` import resolves only while the "
                 + "working directory holds it",
         )
     }
     return check_fail(
         "library-root",
-        "not found: no `std/…` import will resolve",
+        "not found: no `std/...` import will resolve",
         "looked for the marker `${LIBRARY_ROOT_MARKER}` under "
             + "${join_path(exe_dir, LIBRARY_ROOT_DIR).to_native()} and ${under_cwd}",
     )

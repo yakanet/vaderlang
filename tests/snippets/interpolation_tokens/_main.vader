@@ -1,5 +1,5 @@
 // The three interpolation forms the lexer splits a string into: a bare `$name`,
-// a `${expression}`, and a `${…}` whose expression is itself a string holding
+// a `${expression}`, and a `${...}` whose expression is itself a string holding
 // an interpolation.
 module "snippet"
 

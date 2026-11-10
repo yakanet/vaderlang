@@ -105,12 +105,12 @@ import "std/testing"
 
 @test test_interp_value_char_renders_glyph :: fn() -> void {
     // comptime-1 : a char in an interpolation renders its glyph, not the
-    // codepoint number (65 → "A"), matching runtime `Display`.
+    // codepoint number (65 -> "A"), matching runtime `Display`.
     assert_eq(interp_value(CharValue { .value = 65 }), "A")
 }
 
 @test test_interp_value_char_multibyte :: fn() -> void {
-    // Non-ASCII codepoint round-trips through UTF-8 (U+00E9 → "é"), proving
+    // Non-ASCII codepoint round-trips through UTF-8 (U+00E9 -> "é"), proving
     // the fix encodes rather than printing `233`.
     assert_eq(interp_value(CharValue { .value = 233 }), "é")
 }

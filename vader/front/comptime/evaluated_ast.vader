@@ -34,7 +34,7 @@ export VmRequiredDecl :: struct {
     /// typecheck recorded the call: the staged function whose origin it is runs,
     /// whichever module declares it (`pipeline/comptime_vm/resolve.vader`).
     callee_decl_id: i64
-    /// Typechecker-resolved type of the const: drives the `Value`→`ComptimeValue`
+    /// Typechecker-resolved type of the const: drives the `Value`->`ComptimeValue`
     /// bridge (scalar widths, array element name).
     decl_type:   Type
     /// The const decl's span, attached to any staging / evaluation diagnostic.

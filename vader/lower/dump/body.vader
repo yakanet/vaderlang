@@ -4,7 +4,7 @@
 // one. `+` is the checked addition and `+%` the one the lowering leaves
 // unchecked ; `==` is the lowered compare, a value's payload or an object's
 // reference. What has no source syntax takes an `@` form : `@cell(x)`,
-// `@pool(k)`, `@global(k)`, `@vcall(trait.method, receiver, …)`,
+// `@pool(k)`, `@global(k)`, `@vcall(trait.method, receiver, ...)`,
 // `@closure(f, env)`, `@defer_push(f)`, `@defer_run(n)`, and `@fresh(NAME)` for
 // a use that reads its constant fresh. A type is printed where it says
 // something : on a `let`, on a literal (`literals.vader`), on a conversion,

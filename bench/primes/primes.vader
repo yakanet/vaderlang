@@ -1,4 +1,4 @@
-/// Count primes ≤ N by trial division: for each candidate n, walk divisors
+/// Count primes <= N by trial division: for each candidate n, walk divisors
 /// from 2 up to floor(sqrt(n)) and reject the moment one divides evenly.
 /// Sized so the natively compiled binary runs in ~100 ms ; VM in ~1-2 s.
 ///
@@ -8,7 +8,7 @@
 /// allocation-free and scales linearly with the CPU workload: the right
 /// shape for a perf benchmark.
 ///
-/// `count` and `sum` are i64: the sum of primes ≤ 200 K is ~1.7·10⁹ which
+/// `count` and `sum` are i64: the sum of primes <= 200 K is ~1.7·10⁹ which
 /// already overflows i32.
 
 module "main"

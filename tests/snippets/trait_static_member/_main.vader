@@ -3,7 +3,7 @@
 // `T.zero()` inside `sum`, `T.one()` inside `product`). It has no vtable slot, so
 // a trait mixing it with `self` members still dispatches those on a value. Two
 // traits declaring the same static name stay apart : the bound picks the impl
-// (`via_b` → `B`'s). `is_zero` is generic over `Zero & Equals` ; `Limbs` keeps
+// (`via_b` -> `B`'s). `is_zero` is generic over `Zero & Equals` ; `Limbs` keeps
 // its own.
 
 module "snippet"

@@ -8,7 +8,7 @@
 // round-trip.
 //
 // Each registered action fires on the innermost node it applies to, so a single
-// request can surface several actions (match→if, if→match, UFCS, …) when the
+// request can surface several actions (match->if, if->match, UFCS, ...) when the
 // cursor sits inside nested convertible constructs.
 
 module "vader/tools/lsp/handlers"
@@ -46,7 +46,7 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     li :: new_line_index(sf.content, state.position_encoding)
 
     items: JsonValue[]: []
-    // Node-driven rewrites (match→if, if→match, UFCS) on the cursor's enclosing
+    // Node-driven rewrites (match->if, if->match, UFCS) on the cursor's enclosing
     // expressions ; then file-level source actions (organize-imports), which
     // don't depend on the cursor sitting inside an expression.
     chain :: enclosing_exprs(sf.program.decls, line, col)

@@ -211,7 +211,7 @@ find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
 ///                   into inference variables.
 /// @param actual     the type the argument (or the result slot) has.
 /// @param solutions  the bindings so far, by variable id ; extended in place.
-/// @param held       the variables an explicit `<…>` fixed. Null holds none.
+/// @param held       the variables an explicit `<...>` fixed. Null holds none.
 export unify_infer :: fn(
     pattern: Type,
     actual: Type,

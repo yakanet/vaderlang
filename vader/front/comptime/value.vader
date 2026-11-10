@@ -31,7 +31,7 @@ export ComptimeValue ::
     | EnumValue
 
 /// Signed integer with the typechecker-resolved primitive name (`i32`,
-/// `i64`, `u8`, `i64`, …). The dump prints `<value>_<typeName>`.
+/// `i64`, `u8`, `i64`, ...). The dump prints `<value>_<typeName>`.
 export IntValue :: struct {
     value:     i64
     type_name: string
@@ -106,7 +106,7 @@ int_val :: fn(value: i64) -> ComptimeValue {
 /// Build an `IntValue` with an explicit primitive name.
 /// @param value      the integer value.
 /// @param type_name  the typechecker-resolved primitive name (`u8`,
-///                   `i64`, `i64`, …).
+///                   `i64`, `i64`, ...).
 /// @return           the wrapped comptime value.
 export int_val_typed :: fn(value: i64, type_name: string) -> ComptimeValue {
     return IntValue { .value = value, .type_name = type_name }

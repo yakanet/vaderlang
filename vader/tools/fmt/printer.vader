@@ -1,4 +1,4 @@
-// vader/tools/fmt/printer: AST → source emitter.
+// vader/tools/fmt/printer: AST -> source emitter.
 //
 // `emit_expr` / `emit_type_expr` accept `Expr | null` directly (with `null`
 // being a no-op): the Vader typechecker flattens the union-alias `Expr` into
@@ -62,7 +62,7 @@ export Printer :: struct {
     // the source never had.
     keep_line_breaks: bool = true
     // Width that follows on the same line once the NEXT delimited construct
-    // closes: the ` ?? return …` after a call. That construct counts it in its
+    // closes: the ` ?? return ...` after a call. That construct counts it in its
     // fit test (`fits_inline`), which clears it before the construct's own
     // children are emitted.
     trailing: i64 = 0
@@ -359,8 +359,8 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
         span :: d.span
         before :: span.start.offset
         // Layout between decls : preserve the source's blank-line decision.
-        //   prev_end_line + 1 == this_decl_start_line  → contiguous, single \n
-        //   gap >= 2                                    → one blank line, \n\n
+        //   prev_end_line + 1 == this_decl_start_line  -> contiguous, single \n
+        //   gap >= 2                                    -> one blank line, \n\n
         // The first decl follows the module line (or the file head when there
         // is no module decl, in which case no separator).
         if i > 0 || has_module {
@@ -398,14 +398,14 @@ emit_decl :: fn(self: Printer, d: p.Decl) -> void {
     }
 }
 
-// True when the decl's name is in a `name :: …` slot eligible for column
+// True when the decl's name is in a `name :: ...` slot eligible for column
 // alignment within a group. Signature-only fns and consts both fit ;
 // fns with a body (block or expression) don't: the existing stdlib
 // convention is single-space `::` for those.
 decl_is_alignable :: fn(d: p.Decl) -> bool {
     // @partial: only signature-only fns and consts get column-aligned `::`
     // slots ; imports, structs, enums, traits, impls, type aliases and
-    // asserts are never alignable, so any other decl kind → false.
+    // asserts are never alignable, so any other decl kind -> false.
     @partial match d {
         is p.FnDecl -> {
             if d.sam_synthetic        { return false }
@@ -420,7 +420,7 @@ decl_is_alignable :: fn(d: p.Decl) -> bool {
 decl_alignable_name :: fn(d: p.Decl) -> string {
     // @partial: only fns and consts have a name in an alignable `::` slot ;
     // every other decl kind (import, struct, enum, trait, impl, type alias,
-    // assert) is never part of an alignment group, so it has no name → "".
+    // assert) is never part of an alignment group, so it has no name -> "".
     @partial match d {
         is p.FnDecl | p.ConstDecl -> { return d.name }
         _ -> { return "" }
@@ -447,7 +447,7 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
     if decl_first_line(cur) != prev.span.end.line + 1 { return false }
     // @partial: only fn and const groups are alignable (guarded above by
     // `decl_is_alignable`) ; any other `prev` kind can never anchor a group,
-    // so it → false. `cur` must additionally match `prev`'s kind to extend.
+    // so it -> false. `cur` must additionally match `prev`'s kind to extend.
     @partial match prev {
         is p.FnDecl -> {
             if cur is p.FnDecl {
@@ -820,7 +820,7 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     self.close_brace_after_comments(d.span)
 }
 
-// The widths a variant pads to so that, across its group, the `{ … }` blocks
+// The widths a variant pads to so that, across its group, the `{ ... }` blocks
 // start in one column and the `=` in another. `0` pads nothing.
 EnumVariantColumns :: struct {
     name:  i64 = 0
@@ -871,7 +871,7 @@ variant_last_line :: fn(v: p.EnumVariant) -> i32 {
     return v.span.end.line
 }
 
-// Single-line width of a variant's `{ … }` block ; `0` without one.
+// Single-line width of a variant's `{ ... }` block ; `0` without one.
 variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
     data :: v.data ?? return 0
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
@@ -880,7 +880,7 @@ variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
     return sub.finish().text_width()
 }
 
-// `Name { … } = value`, padded to `columns`. The value is copied from the
+// `Name { ... } = value`, padded to `columns`. The value is copied from the
 // source, so `0x8892` and `-1` keep their spelling. Padding stops at the last
 // written part : a line never ends in spaces.
 emit_enum_variant :: fn(self: Printer, v: p.EnumVariant, columns: EnumVariantColumns) -> void {
@@ -1026,7 +1026,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     // SAM-sugar forms: the parser synthesises a single fn member with
     // `sam_synthetic = true` for `Type implements Trait -> expr` and
     // `Type implements Trait { stmts }`. Re-emit the user-facing surface
-    // rather than the synthesised `name :: fn(args) { … }` shape.
+    // rather than the synthesised `name :: fn(args) { ... }` shape.
     if d.members.len() == 1 && d.members[0].sam_synthetic {
         m :: d.members[0]
         match b :: m.body {
@@ -1041,7 +1041,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
                         return
                     }
                 }
-                // Block form : `Type implements Trait { stmts… }`.
+                // Block form : `Type implements Trait { stmts... }`.
                 self.write(" ")
                 self.emit_block_expr(b)
                 return
@@ -1295,7 +1295,7 @@ emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
     //   typed   immutable   name: T: value      (two single colons)
     //   typed   mutable     name: T = value
     // Emitting ` = ` for a typed immutable local silently widens it to mutable
-    // (`mutable: false` → `true` on reparse), so the typed branch also keys on
+    // (`mutable: false` -> `true` on reparse), so the typed branch also keys on
     // `mutable`: mirrors the top-level typed-const form in `emit_const_decl`.
     self.emit_let_binding(s.binding)
     match s.ty {
@@ -1365,7 +1365,7 @@ emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
     }
 }
 
-// The augmented-assignment symbol (`"+="`, `"-="`, …) of a compound
+// The augmented-assignment symbol (`"+="`, `"-="`, ...) of a compound
 // assignment, or `null` so the caller renders the plain `=`.
 compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
     op :: p.compound_assign_op(s) ?? return null
@@ -1461,7 +1461,7 @@ emit_null_coalesce :: fn(self: Printer, e: p.NullCoalesceExpr) -> void {
     right_start :: fallback_start(e.fallback)
     place :: self.operator_place(e.op_span, e.left.span.end, right_start)
     // A left operand that closes on a delimiter decides its layout knowing the
-    // ` ?? …` that shares its last line, and explodes rather than run past
+    // ` ?? ...` that shares its last line, and explodes rather than run past
     // `MAX_LINE`.
     shares_line :: !self.flat && place.at == .Inline
     if shares_line && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
@@ -1835,9 +1835,9 @@ emit_postfix_target :: fn(self: Printer, target: p.Expr) -> void {
 // Postfix operators (`.field`, `[index]`, call `(...)`) bind tightest in the
 // grammar, so a looser-binding target only ends up here if the source
 // parenthesised it. Re-wrap it or the parens are dropped and the postfix
-// re-targets a sub-expression : `(0..<3).count()` → `0..<3.count()` rebinds
-// `.count()` to `3`, `(x + y).abs()` → `x + y.abs()` rebinds to `y`, and
-// `(-x).abs()` → `-x.abs()` rebinds to `x`. Covers every non-primary,
+// re-targets a sub-expression : `(0..<3).count()` -> `0..<3.count()` rebinds
+// `.count()` to `3`, `(x + y).abs()` -> `x + y.abs()` rebinds to `y`, and
+// `(-x).abs()` -> `-x.abs()` rebinds to `x`. Covers every non-primary,
 // non-postfix operand ; primaries / postfix chains / self-delimiting forms
 // (`T(x)`, `T<U>`) fall through and stay bare.
 postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
@@ -2036,9 +2036,9 @@ mixed_family_parens :: fn(parent: p.BinaryOp, child: p.BinaryOp) -> bool {
 
 // Emit a condition / scrutinee / for-iterable. The parser parses no struct
 // literal at the condition's own bracket depth (`no_struct_lit_at`), so a
-// `Point { … }` whose `{` would otherwise be read as the block opener must be
+// `Point { ... }` whose `{` would otherwise be read as the block opener must be
 // wrapped in parens, inside which literals parse again, and which reparses to
-// the same AST (`if (Point { .x = 1 }).ok { … }`).
+// the same AST (`if (Point { .x = 1 }).ok { ... }`).
 emit_condition :: fn(self: Printer, cond: p.Expr) -> void {
     if expr_head_is_struct_lit(cond) {
         self.write("(")
@@ -2050,7 +2050,7 @@ emit_condition :: fn(self: Printer, cond: p.Expr) -> void {
 }
 
 // True when `e`'s leftmost atom is a struct literal, possibly behind a field /
-// index / call / binary / range / try chain (`Point { … }.ok`, `Point { … } + x`).
+// index / call / binary / range / try chain (`Point { ... }.ok`, `Point { ... } + x`).
 expr_head_is_struct_lit :: fn(e: p.Expr) -> bool {
     if e is p.StructLitExpr     { return true }
     if e is p.FieldExpr   { return expr_head_is_struct_lit(e.target) }
@@ -2165,7 +2165,7 @@ match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> i64 {
 MATCH_ALIGN_MAX: i64: 44
 
 // A single-line `if <cond> { <one stmt/expr> }` with no `else`: a lookup-table
-// entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned
+// entry. A RUN of >=2 consecutive such statements is kept inline (the aligned
 // lookup-table idiom) ; a lone one is expanded like any other control-flow body.
 inline_if_stmt :: fn(s: p.Stmt) -> bool {
     if s is p.ExprStmt {
@@ -2213,7 +2213,7 @@ if_cond_width :: fn(s: p.Stmt, source: string) -> i64 {
     return 0
 }
 
-// Per-statement `{`-alignment target : for each run of ≥2 consecutive inline
+// Per-statement `{`-alignment target : for each run of >=2 consecutive inline
 // `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
 // Mirrors the `::` decl-group width computation in `alignment_widths`.
 compute_if_align :: fn(stmts: p.Stmt[], source: string) -> i64[] {
@@ -2429,7 +2429,7 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
 // each side when `inner_space`, e.g. `{ a, b }`) ; otherwise explode one item
 // per line, each ending in a trailing comma. An empty list collapses to
 // `open`+`close`. `emit_item` renders a single element: pass the element's
-// dedicated emitter (`emit_call_arg`, `emit_fn_param`, …). The caller writes
+// dedicated emitter (`emit_call_arg`, `emit_fn_param`, ...). The caller writes
 // any prefix (callee, type name) and computes `inline` before calling.
 emit_comma_list :: fn<T>(
     self: Printer,

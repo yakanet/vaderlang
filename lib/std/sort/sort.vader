@@ -2,7 +2,7 @@
 //
 // Stable, O(n log n). Returns a freshly-allocated sorted copy ; the input
 // array is never mutated. Internally a top-down merge sort with an
-// insertion-sort cutoff for sub-ranges of length ≤ 16 (avoids the merge
+// insertion-sort cutoff for sub-ranges of length <= 16 (avoids the merge
 // overhead: same cutoff Java's TimSort uses by default).
 
 module "std/sort"
@@ -23,7 +23,7 @@ export sort :: fn<T>(arr: T[], compare: fn(T, T) -> bool) -> T[] {
     if n < 2 { return out }
     // Scratch buffer pre-sized to n. Every merge overwrites these slots
     // before reading them, so the initial values are placeholders solely to
-    // make `buf[i] = …` land in-bounds.
+    // make `buf[i] = ...` land in-bounds.
     buf :: arr.clone()
     merge_sort_range(out, buf, 0, n, compare)
     return out

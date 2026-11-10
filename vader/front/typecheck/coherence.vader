@@ -13,7 +13,7 @@ import "vader/support/diagnostics"
 // `canonical_key`, so distinct types never collide (it carries struct/enum
 // symbol ids and generic args: `Foo<i32>` and `Foo<string>` stay separate) and
 // equivalent types always match. Returns null for a blanket / generic receiver
-// (`T implements …`, `T[] implements …`): their overlap rules are subtler than
+// (`T implements ...`, `T[] implements ...`): their overlap rules are subtler than
 // concrete-vs-concrete, so they're left unchecked for now.
 coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | null {
     if type_contains_type_param(for_ty) {
@@ -24,7 +24,7 @@ coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | n
 
 // Project-wide trait coherence : at most one impl per (concrete type, trait,
 // trait-args). Walks every loaded module's `ImplDecl`s (including the `std/core`
-// prelude, whose impls are in scope everywhere) into one key→span map and fires
+// prelude, whose impls are in scope everywhere) into one key->span map and fires
 // R2030 on the second impl of a key. Catches a user redefining a prelude impl
 // (`i32 implements Display`): previously a silent, order-dependent shadow that
 // could recurse / mis-resolve. Mirror of Rust's E0119 (concrete-receiver subset).
@@ -200,7 +200,7 @@ check_module_fn_redefinitions :: fn(
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
     // Group fn decls by name (cheap: no type resolution) ; resolve signatures
-    // only for names with ≥2 decls. Signatures come from the AST, the
+    // only for names with >=2 decls. Signatures come from the AST, the
     // authoritative source of declared params, not from `decl_types`.
     by_name :: Map<string, AST.FnDecl[]> {}
     for decl in concat_file_decls(loaded.module.files) {
@@ -218,7 +218,7 @@ check_module_fn_redefinitions :: fn(
         imported_names.add(sig.local)
     }
     // Signature keys of the module's fns, by name, where there is something to
-    // check : ≥2 decls (a possible in-module redefinition) or a same-named import.
+    // check : >=2 decls (a possible in-module redefinition) or a same-named import.
     module_keys :: Map<string, Map<string, bool>> {}
     for [name, group] in by_name {
         if group.len() < 2 && !(name in imported_names) {

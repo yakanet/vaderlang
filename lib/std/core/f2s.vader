@@ -7,9 +7,9 @@
 // implements Display`.
 //
 // Shares the heavy machinery with d2s (same `module "std/core"`): the
-// presentation layer (`render` → ECMAScript Number::toString + trailing `.0`),
+// presentation layer (`render` -> ECMAScript Number::toString + trailing `.0`),
 // `log10_pow2` / `log10_pow5` / `pow5bits`, and the `MASK32` constant all live
-// in `dtoa.vader`. f2s only adds the 32-bit core: a 32×64 `mul_shift_32` (no
+// in `dtoa.vader`. f2s only adds the 32-bit core: a 32x64 `mul_shift_32` (no
 // 128-bit multiply needed at single precision), the `f2d` shortest-digit loop,
 // and decoding via `f32.to_bits()`. The FLOAT power-of-5 tables are in the
 // generated `dtoa_tables.vader`.
@@ -22,8 +22,8 @@ module "std/core"
 
 FLOAT_MANTISSA_BITS     :: 23
 FLOAT_BIAS              :: 127
-// FLOAT_POW5_SPLIT is the f64 SPLIT table's high 64 bits (>> 64 → 61-bit), but
-// FLOAT_POW5_INV_SPLIT is the f64 INV table's high bits >> 2 (i.e. >> 66 → 59-bit,
+// FLOAT_POW5_SPLIT is the f64 SPLIT table's high 64 bits (>> 64 -> 61-bit), but
+// FLOAT_POW5_INV_SPLIT is the f64 INV table's high bits >> 2 (i.e. >> 66 -> 59-bit,
 // matching ryu's f2s_full_table.h), so the two bitcounts DIFFER.
 FLOAT_POW5_INV_BITCOUNT :: 59
 FLOAT_POW5_BITCOUNT     :: 61
@@ -193,7 +193,7 @@ f2d :: fn(ieee_mantissa: u32, ieee_exponent: u32) -> FloatDec32 {
 }
 
 // Shortest round-tripping decimal string for `x`. Drives `f32.to_string()`.
-// Reuses d2s's `render` presentation layer (digits + exponent → final string).
+// Reuses d2s's `render` presentation layer (digits + exponent -> final string).
 format_f32 :: fn(x: f32) -> string {
     bits :: x.to_bits()
     sign :: (bits >> 31) != 0

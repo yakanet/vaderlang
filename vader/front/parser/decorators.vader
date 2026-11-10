@@ -23,7 +23,7 @@ export DecoratorPlace :: enum {
 /// One decorator the compiler knows.
 export DecoratorSpec :: struct {
     name:   string
-    /// How it is written, its arguments included : `@target(.Os, …)`.
+    /// How it is written, its arguments included : `@target(.Os, ...)`.
     usage:  string
     /// Where it may be written.
     places: DecoratorPlace[]
@@ -92,7 +92,7 @@ export DECORATORS: DecoratorSpec[]: [
     },
     DecoratorSpec {
         .name   = "target",
-        .usage  = "@target, @target(.Os, …)",
+        .usage  = "@target, @target(.Os, ...)",
         .places = [.Declaration],
         .doc    = "Selects which body of a top-level fn the build uses. Bare, it names the declaration (signature, `export`, vaderdoc, optionally the general body); with a list, a body for those operating systems.",
     },
@@ -158,13 +158,13 @@ export DECORATORS: DecoratorSpec[]: [
     },
     DecoratorSpec {
         .name   = "partial",
-        .usage  = "@partial match …",
+        .usage  = "@partial match ...",
         .places = [.Match],
         .doc    = "Opts the `match` out of exhaustiveness checking (`T3013`), for a deliberate \"everything else does X\" `_` arm. Precede it with a `// @partial: <reason>` line.",
     },
     DecoratorSpec {
         .name   = "unreachable",
-        .usage  = "@unreachable match …",
+        .usage  = "@unreachable match ...",
         .places = [.Match],
         .doc    = "Opts the `match` out of exhaustiveness checking and asserts the uncovered variants never occur: one of them reaching the `match` traps at run time. Mutually exclusive with `@partial`.",
     },

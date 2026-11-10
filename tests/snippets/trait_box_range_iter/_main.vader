@@ -1,10 +1,10 @@
 // Trait-object boxing: a generic fn whose parameter is a trait type
 // (`it: Iterator<T>`) infers the trait's `T` from a concrete argument through
 // that argument's impl, then calls through the trait's vtable. Call shapes:
-//   - `Iterator<T>` from a `Range`               → `0..<5`
-//   - `Iterator<T>` from an array (via `into`)   → `[10, 20, 30]`
-//   - user `Greeter<T>` from a user struct       → `Hello {}`
-//   - user `Doubler<T>` from a primitive (i32)   → `7`
+//   - `Iterator<T>` from a `Range`               -> `0..<5`
+//   - `Iterator<T>` from an array (via `into`)   -> `[10, 20, 30]`
+//   - user `Greeter<T>` from a user struct       -> `Hello {}`
+//   - user `Doubler<T>` from a primitive (i32)   -> `7`
 // Result via exit code: 5 + 3 + 100 + 14 = 122.
 
 module "snippet"

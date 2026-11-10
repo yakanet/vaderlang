@@ -1,8 +1,8 @@
 // vader/midir/value_return/nullable: the `S | null` half of the value-return
 // pass.
 //
-// A `fn(…) -> S | null` whose every `return` builds `S` on the spot or hands
-// back `null` crosses as `(tag, field…)`, and each call site rebuilds the object
+// A `fn(...) -> S | null` whose every `return` builds `S` on the spot or hands
+// back `null` crosses as `(tag, field...)`, and each call site rebuilds the object
 // through a branch on the tag. `value_return.vader` owns the selection and the
 // call-site rewrite; this file owns what makes a function eligible and what its
 // returns and rebuild arms become.
@@ -15,7 +15,7 @@ import "vader/midir"
 
 // ---- the nullable struct case ---------------------------------------------
 //
-// `fn(…) -> S | null` crosses as `(tag, field…)`: tag 0 for the absent case, 1
+// `fn(...) -> S | null` crosses as `(tag, field...)`: tag 0 for the absent case, 1
 // otherwise. The caller rebuilds through a branch on the tag.
 //
 // A STRUCT needs a condition a tuple does not. A tuple has no observable
@@ -242,7 +242,7 @@ absent_arm :: fn(
     .span = span,
 }
 
-// `obj = S { field… }`, then on to the join. The fields skip index 0, the tag.
+// `obj = S { field... }`, then on to the join. The fields skip index 0, the tag.
 present_arm :: fn(
     ins: InstrCall, dst: LocalId, fields: LocalId[], struct_type: Type,
     id: BlockId, join: BlockId, span: Span,

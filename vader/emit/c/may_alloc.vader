@@ -65,9 +65,9 @@ fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bo
 imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
     imports.map((imp) -> intrinsic_may_collect(intrinsic_id_for(imp.mangled_name))).collect()
 
-// Whether an op can trigger a collection. Drives `may_alloc` → whether the fn
+// Whether an op can trigger a collection. Drives `may_alloc` -> whether the fn
 // gets a shadow-stack frame and its ref params / locals are rooted. A missing
-// allocating op means a GC inside it moves live refs the fn never re-roots →
+// allocating op means a GC inside it moves live refs the fn never re-roots ->
 // stale pointer (the `array.slice` CR-b bug). This is an EXHAUSTIVE `match` over
 // the closed `Bc.Op` union precisely so a new op can't be silently omitted :
 // T3013 forces every future variant to be classified here. Keep the arms in sync

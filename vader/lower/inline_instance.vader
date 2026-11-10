@@ -35,7 +35,7 @@ InlineInstance :: struct {
     /// The callee's id (its symbol's, or an impl member's minted one): while its
     /// body is inlined, the id sits in `LowerProjectCtx.inlining_callees`.
     callee_id:    i32
-    /// Original symbol id → this instance's clone.
+    /// Original symbol id -> this instance's clone.
     clones:       Map<i32, Symbol>
     /// Appended to every loop and jump label the instance lowers.
     label_suffix: string

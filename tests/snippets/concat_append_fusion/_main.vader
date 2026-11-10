@@ -1,9 +1,9 @@
-/// Consecutive `s = s + …` appends fuse into one `concat_N`.
+/// Consecutive `s = s + ...` appends fuse into one `concat_N`.
 ///
 /// `lower_block` calls `fuse_concat_tail` after each statement, so a run of k
 /// appends to the same local collapses left to right, and the merged operand
 /// list then goes through the adjacent-literal fold, so three literal appends
-/// land on `concat_2(s, "…")`, not `concat_4`. Read `lower.snapshot`: `fused`
+/// land on `concat_2(s, "...")`, not `concat_4`. Read `lower.snapshot`: `fused`
 /// must carry ONE assign, and each guard case must keep its separate ones.
 
 module "snippet"

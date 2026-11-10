@@ -1,7 +1,7 @@
 // Building a foreign struct (`shapes/Node`) while OMITTING a field whose default
 // (`id: i64 = DEFAULT_ID`) references a const in the struct's OWNING module.
 // The default's AST lives in `snippet/shapes`, so lowering it with the
-// construction site's context left `DEFAULT_ID` unresolved → the whole struct
+// construction site's context left `DEFAULT_ID` unresolved -> the whole struct
 // literal degraded to a drop. This is the compiler's own `simple_placeholder`
 // building `SimpleBinding` (omitting `.id`, default `UNASSIGNED_NODE_ID` from
 // vader/front/parser), which broke nested tuple destructuring. Guards the
@@ -13,7 +13,7 @@ import "std/console"
 import "snippet/shapes"
 
 main :: fn() -> i32 {
-    n :: Node { .name = "x" }       // .id omitted → default DEFAULT_ID (=99)
+    n :: Node { .name = "x" }       // .id omitted -> default DEFAULT_ID (=99)
     println("name=${n.name} id=${n.id}")
     return i32(n.id)
 }

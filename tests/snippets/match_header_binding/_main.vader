@@ -1,4 +1,4 @@
-// `match x :: e { … }` evaluates `e` once and names it for every arm and guard,
+// `match x :: e { ... }` evaluates `e` once and names it for every arm and guard,
 // each arm narrowing the name to what its pattern matched. The name lives only in
 // the match: past it, the same name is the outer binding again.
 

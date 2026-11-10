@@ -376,7 +376,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     }
     zone :: expect_byte(s, cursor, 'Z')
     if zone is TimeError { return zone }
-    // `Z` must be the final byte: reject trailing garbage (`…Z…`), which the
+    // `Z` must be the final byte: reject trailing garbage (`...Z...`), which the
     // per-field parse would otherwise silently ignore.
     if cursor + 1 != s.byte_len() {
         return TimeError { .msg = "iso8601: trailing characters after `Z`" }
@@ -400,14 +400,14 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
                 ms_part
     // An `Instant` is i64 nanoseconds since the epoch, so the representable
     // window is ~±292 years (≈ 1677..2262). Reject a date beyond it rather than
-    // letting the ms→ns multiply overflow into a silently-wrapped instant.
+    // letting the ms->ns multiply overflow into a silently-wrapped instant.
     if total_ms > MAX_INSTANT_MS || total_ms < -MAX_INSTANT_MS {
         return TimeError { .msg = "iso8601: instant out of representable range" }
     }
     return Instant(total_ms * 1_000_000)
 }
 
-// Largest millisecond magnitude whose nanosecond value (`× 1_000_000`) still
+// Largest millisecond magnitude whose nanosecond value (`x 1_000_000`) still
 // fits an i64, i.e. `i64.MAX / 1_000_000`. Bounds `parse_iso8601`. Typed i64 :
 // the value overflows the default i32 for a bare literal.
 MAX_INSTANT_MS: i64: 9_223_372_036_854
@@ -463,7 +463,7 @@ import "std/testing"
 }
 
 @test test_instant_display :: fn() -> void {
-    // `Display` drives `"${…}"` interpolation: an Instant renders as ISO 8601.
+    // `Display` drives `"${...}"` interpolation: an Instant renders as ISO 8601.
     assert_eq("${Instant(0)}", "1970-01-01T00:00:00.000Z")
 }
 
@@ -507,7 +507,7 @@ import "std/testing"
 
 @test test_iso8601_out_of_range :: fn() -> void {
     // Beyond the i64-ns window (~year 2262) : a TimeError, not a silently
-    // wrapped negative instant. (`9999-…` used to reformat as a 1816 date.)
+    // wrapped negative instant. (`9999-...` used to reformat as a 1816 date.)
     assert(parse_iso8601("9999-12-31T23:59:59Z") is TimeError, "far-future rejected")
     // A representable far-future instant (just inside ~2262) still parses.
     assert(parse_iso8601("2200-01-01T00:00:00Z") is Instant, "year 2200 parses")

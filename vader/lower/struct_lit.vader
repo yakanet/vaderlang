@@ -104,10 +104,10 @@ new_struct_lit :: fn(
     note_construction(ctx, type)
     // Reconcile the box's runtime type-index with the trait-impl vtable's receiver
     // key. `materialize_impl_for_instance` registers a generic impl's vtable row
-    // under the REF-ERASED self (`Ready<Boom>` → `Ready<Any>`, via
+    // under the REF-ERASED self (`Ready<Boom>` -> `Ready<Any>`, via
     // `keep_concrete_or_erase`) so every ref-arg instance shares one row ; a
     // NON-generic construction site would otherwise mint the CONCRETE tag
-    // (`Ready<Boom>`): identical layout, divergent tag → `vtable miss`. Inside a
+    // (`Ready<Boom>`): identical layout, divergent tag -> `vtable miss`. Inside a
     // generic fn body the carried subst already erases the lit's type to
     // `Ready<Any>` ; this generalises that same erasure to the non-generic site.
     // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
@@ -172,7 +172,7 @@ erase_generic_struct_tag :: fn(ctx: FnLowerCtx, t: Type) -> Type {
 lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> LoweredExpr {
     resolved :: enum_type_or_unwrap(ctx, type)
     // @partial: only EnumType carries variant indices; every other Type is a
-    // non-enum context here → stub (earlier diagnostics apply).
+    // non-enum context here -> stub (earlier diagnostics apply).
     @partial match resolved {
         is EnumType -> {
             index :: resolved.indices[expr.variant] ?? return unknown_variant(expr, resolved, type)
@@ -245,11 +245,11 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
     owner_typed :: ctx.project.evaluated.typed.modules[module_id] ?? return ctx
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
-    // bound to the concrete instance arg: MIXED (primitive → concrete so the
-    // array lands RAW, ref → `Any`), matching the instance's mixed field layout
+    // bound to the concrete instance arg: MIXED (primitive -> concrete so the
+    // array lands RAW, ref -> `Any`), matching the instance's mixed field layout
     // (`build_mixed_subst`). Without this the default lowers in the owner's
-    // ERASED view (`K = Any` → boxed array) while the construction + later usage
-    // are monomorphised (`K = i32` → raw): a box-vs-raw representation mismatch
+    // ERASED view (`K = Any` -> boxed array) while the construction + later usage
+    // are monomorphised (`K = i32` -> raw): a box-vs-raw representation mismatch
     // that silently corrupts the struct cross-module.
     own_args :: build_mixed_subst(ctx.project.impls, decl.type_params, args, owner_typed)
     merged :: merge_subst(ctx.subst, own_args)
@@ -329,7 +329,7 @@ literal_field_type :: fn(ctx: FnLowerCtx, st: StructType, field: StructField) ->
     ctx.types.apply(declared_field_type(ctx.typed, st.symbol, field.name))
 
 // Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
-// stdlib/core struct (Range, Field, …), ordering the
+// stdlib/core struct (Range, Field, ...), ordering the
 // provided already-lowered fields by the struct's DECLARATION order instead of
 // trusting the call site to hand-match it. midir consumes struct-lit fields
 // positionally (`build_struct_lit` / `InstrStructNew` ignore the `.name`

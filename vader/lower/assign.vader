@@ -377,7 +377,7 @@ try_lower_index_set_assign :: fn(
 ) -> LoweredStmt | null {
     target :: assign_target
     // @partial: only an `m[k]` (IndexExpr) LHS can be an IndexSet assign; every
-    // other Expr target → null (handled by the regular assign path).
+    // other Expr target -> null (handled by the regular assign path).
     @partial match target {
         is IndexExpr -> {
             target_type :: ctx.types.expr_type(target.target)

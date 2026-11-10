@@ -1,4 +1,4 @@
-// vader/midir/build: LoweredAST → CFG converter.
+// vader/midir/build: LoweredAST -> CFG converter.
 //
 // Walks each `LoweredFnDecl` in the
 // project and produces a `CFGFunction` : expressions become
@@ -9,7 +9,7 @@
 // structurer needs to recover WASM-style nesting at emit time.
 //
 // Strings are interned into a project-level pool reused verbatim by
-// the CFG → bytecode emitter ; const decls are inlined at every read
+// the CFG -> bytecode emitter ; const decls are inlined at every read
 // site, matching the existing bytecode emitter's policy.
 
 module "vader/midir"
@@ -29,17 +29,17 @@ import "std/abort"
 ProjectCtx :: struct {
     strings:      string[]
     string_index: Map<string, i32>
-    /// Const symbol id → accessor fn (fn-wrap bucket), forwarded from the
+    /// Const symbol id -> accessor fn (fn-wrap bucket), forwarded from the
     /// `LoweredProject` so `build_ident` can lower a const reference to a
     /// `call` on its synthetic `__const_<name>` fn.
     const_fn_wrap: Map<i32, ConstFnWrap>
-    /// Const symbol id → lowered value (inline bucket): `build_ident`
+    /// Const symbol id -> lowered value (inline bucket): `build_ident`
     /// re-builds it at each read site.
     const_inline:  Map<i32, LoweredExpr>
-    /// Const symbol id → the accessor that builds a const of the data pool again
+    /// Const symbol id -> the accessor that builds a const of the data pool again
     /// (`LoweredProject.const_fresh_wrap`).
     const_fresh_wrap: Map<i32, ConstFnWrap>
-    /// `@extern` fn symbol id → the indices of its CALLBACK parameters.
+    /// `@extern` fn symbol id -> the indices of its CALLBACK parameters.
     ///
     /// Read off the DECLARATION, not off the callee expression's recorded type:
     /// a UFCS call records the call's RESULT type on the callee ident, so asking

@@ -5,7 +5,7 @@
 // name can have several. Two constructs have that shape, and they are the same
 // shape:
 //
-//   - a bare `@target` declaration, whose bodies live under `@target(.Os, …)`;
+//   - a bare `@target` declaration, whose bodies live under `@target(.Os, ...)`;
 //   - a trait method, whose bodies live in each `implements` block (and the
 //     trait itself, whose implementations are those blocks).
 //
@@ -62,7 +62,7 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
                     }
                     // The bodies, not the declaration: jumping from a
                     // declaration to itself is the one answer the user already
-                    // has. A `@target(.Os, …)` is always a body (SPEC §17).
+                    // has. A `@target(.Os, ...)` is always a body (SPEC §17).
                     sel :: d.decorators.target_selector_count()
                     if sel == 0 {
                         continue

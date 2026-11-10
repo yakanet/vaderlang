@@ -39,7 +39,7 @@ infer_struct_lit :: fn(e: AST.StructLitExpr, typed: TypedProgram, diags: Diagnos
 }
 
 // T3105 on a generic struct written with some of its type arguments where nothing
-// infers the rest : a literal (`Pair<i32> { … }`), whose fields bind none once some
+// infers the rest : a literal (`Pair<i32> { ... }`), whose fields bind none once some
 // are written, or the owner of a static member (`Pair<f64>.make(1)`).
 reject_partial_type_args :: fn(
     name: AST.Expr, st: StructType, typed: TypedProgram, diags: Diagnostic[],
@@ -223,7 +223,7 @@ check_field :: fn(
     // A literal written without type arguments (`Box { .value = [4, 5] }`) binds
     // none of its struct's parameters, so its fields match them as a pattern,
     // except a free literal, which needs a type to land on and gets none
-    // (`Box { .value = 0 }` ; `Box<i32> { … }` gives it one).
+    // (`Box { .value = 0 }` ; `Box<i32> { ... }` gives it one).
     as_pattern :: leaves_type_args_unbound(st, decl) && !is_free_numeric(got)
     want :: if as_pattern { erase_type_params(expected) } else { expected }
     if is_assignable(got, want) {

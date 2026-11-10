@@ -8,8 +8,8 @@
 //   1. a synthesized `g$State` struct: every param + every spilled local
 //      (v1: spill-all) + a `state: i32` resume discriminant;
 //   2. a synthesized `<module>$<State>$Iterator$next` fn whose body is the
-//      resumable state machine `loop { if self.state == 0 { … } else if … }`
-//      (no `LoweredMatch` node → an `i32` if-chain), returning `T | Stop`;
+//      resumable state machine `loop { if self.state == 0 { ... } else if ... }`
+//      (no `LoweredMatch` node -> an `i32` if-chain), returning `T | Stop`;
 //   3. the rewritten `g` body: `return g$State { <params>, .state = 0 }`.
 //
 // The state struct + next fn are pushed to `project.synth_decls`, drained by
@@ -108,7 +108,7 @@ push_generator_decls :: fn(
 /// @param fn_ctx        the generator's fn-lowering context.
 /// @param fn_decl       the generator FnDecl (for its span).
 /// @param params        the generator's lowered params (become `g$State` fields).
-/// @param lowered_body  the body lowered in generator mode (yields → markers).
+/// @param lowered_body  the body lowered in generator mode (yields -> markers).
 /// @param return_type   the declared `Iterator<T>` return type (source of `T`).
 /// @return              the rewritten `g` body.
 lower_generator_fn :: fn(
@@ -149,7 +149,7 @@ lower_generator_fn :: fn(
         .states = [], .field_map = Map<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx,
     }
-    // Spill: params first, then every local (v1: spill-all) → `g$State` fields.
+    // Spill: params first, then every local (v1: spill-all) -> `g$State` fields.
     for p in params { gb_add_field(gb, p.symbol, p.type) }
     gb_collect_block(gb, lowered_body)
 

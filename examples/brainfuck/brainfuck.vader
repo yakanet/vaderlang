@@ -1,4 +1,4 @@
-// Brainfuck → Vader VM compiler.
+// Brainfuck -> Vader VM compiler.
 //
 // Reads a `.bf` source file, writes the program as `.virt` text (the bytecode's
 // textual form, with named labels for its loops), reads it back into a module

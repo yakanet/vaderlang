@@ -1,14 +1,14 @@
-// vader/front/typecheck/seq_lit: SeqLitExpr inference (`[e1, e2, …]`).
+// vader/front/typecheck/seq_lit: SeqLitExpr inference (`[e1, e2, ...]`).
 //
 // The parser doesn't commit to "array" or "tuple" ; the typechecker
 // decides via contextual disambiguation against `expected` :
 //
-//   - Tuple(T0..Tn-1)  → tuple, element-wise (arity must match)
-//   - Array<T>         → array, every element checked against T
-//   - Union(...)       → pick a Tuple variant whose arity matches,
+//   - Tuple(T0..Tn-1)  -> tuple, element-wise (arity must match)
+//   - Array<T>         -> array, every element checked against T
+//   - Union(...)       -> pick a Tuple variant whose arity matches,
 //                        otherwise the first Array variant ; recurse
 //   - Iterator<E>      -> array of E, which the slot converts
-//   - no expected      → default-if-free each element, then array
+//   - no expected      -> default-if-free each element, then array
 //                        when they unify (single post-dedup type),
 //                        tuple otherwise.
 
@@ -28,7 +28,7 @@ infer_seq_lit :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    // Union → pick the most appropriate variant, then recurse.
+    // Union -> pick the most appropriate variant, then recurse.
     if expected is UnionType {
         picked :: pick_seq_variant(expected, e.elements.len())
         if picked !is null {
@@ -185,7 +185,7 @@ infer_no_expected :: fn(e: AST.SeqLitExpr, typed: TypedProgram, diags: Diagnosti
     }
     widened :: default_each(elem_types)
     merged :: union_of(widened)
-    // Heterogeneous elements stay UnionType → treat as a tuple. Elements that
+    // Heterogeneous elements stay UnionType -> treat as a tuple. Elements that
     // all share one type are an array of it, even when that type is itself a
     // union : `[shape]` with `shape: A | B` is a `(A | B)[]`, not a 1-tuple.
     if merged is UnionType && !all_same_type(widened) {

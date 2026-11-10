@@ -34,7 +34,7 @@ WalkCtx :: struct {
     s: Skeleton
     typed: TypedProgram
     index: CalleeIndex
-    /// Symbol id → slot, for the parameters that hold references and the locals.
+    /// Symbol id -> slot, for the parameters that hold references and the locals.
     slots: Map<i32, i64> = Map<i32, i64> {}
     /// How many lambdas the walk is inside.
     lambda_depth: i32 = 0

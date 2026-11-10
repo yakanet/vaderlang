@@ -29,7 +29,7 @@ import "toolchain/span"
 // literal once was (a `LoweredIntLit` of that width carrying the codepoint) so
 // `bytes[i] == '/'` emits identically to the old `b'/'`. A char-typed literal
 // (no integer context) stays a `LoweredCharLit`. `ty` is already defaulted
-// (FreeChar → char).
+// (FreeChar -> char).
 lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
     if ty is RangeType {
         return LoweredIntLit { .span = e.span, .type = ty, .value = i64(e.value) }
@@ -75,7 +75,7 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // so the FieldExpr never resolves as a value field ; fold it like a
             // bare const reference instead, else the `alias` ident is unresolved
             // and the enclosing expression (a struct literal `.id = AST.UNASSIGNED_
-            // NODE_ID`, …) degrades to a drop.
+            // NODE_ID`, ...) degrades to a drop.
             ns_const :: try_lower_namespace_const(ctx, expr, type)
             if ns_const != null { return ns_const }
             if type is FnType {
@@ -91,8 +91,8 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // it degrades to a bogus field access on the import binding.
             ns_fn_value :: try_lower_namespace_fn_value(ctx, expr, type)
             if ns_fn_value != null { return ns_fn_value }
-            // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
-            // struct whose slots are named `_0`, `_1`, …: rewrite the
+            // Tuple `t.0` -> `_0` : tuple types are backed by an anonymous
+            // struct whose slots are named `_0`, `_1`, ...: rewrite the
             // numeric field so the dump shows `._0`.
             field_name :: if expr.is_numeric { "_${expr.field}" } else { expr.field }
             lowered_target :: lower_expr(ctx, expr.target)
@@ -294,7 +294,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // resolve through an import binding, so `resolved` wasn't the
             // Const symbol), so the read site keeps a bare `LoweredIdent`.
             // Without the decl in `project.modules`, `inline_consts` can't
-            // route it → `build_ident` emits `unreachable`. Self-guards :
+            // route it -> `build_ident` emits `unreachable`. Self-guards :
             // no-op unless `final_sym` is a stdlib Const.
             register_nongeneric_imported_const(ctx, final_sym)
             return LoweredIdent {
@@ -341,7 +341,7 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
 // module (`MANIFEST_FILENAME :: "vader.json"` referenced from its own module's
 // `find_project_root`, say) never lands in `comptime_value_by_symbol_id`.
 // The scalar-const fold in `lower_ident` then misses and the bare const ident
-// reaches `midir/build.vader::build_ident`, which has no const case → it emits
+// reaches `midir/build.vader::build_ident`, which has no const case -> it emits
 // `unreachable`, truncating the function. Recover by lowering the const decl's
 // value directly via `lower_const_value` (whose own bake-miss path lowers the
 // RHS), keyed off the const's OWNING module so cross-module refs work too.
@@ -526,7 +526,7 @@ resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 }
 
 declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
-    // Most idents (Fn, Const, ImportBinding, …) can't be narrowed:
+    // Most idents (Fn, Const, ImportBinding, ...) can't be narrowed:
     // bail before paying the `Span.hash()` + map probe on the hot path.
     match symbol.kind {
         .Param   -> {}

@@ -573,7 +573,7 @@ write_assign :: fn(out: StringBuilder, node: CAssign) -> void {
     out.append(";")
 }
 
-// `type d1, d2 = v, d3[n] = { … };`, without indentation or newline.
+// `type d1, d2 = v, d3[n] = { ... };`, without indentation or newline.
 write_declaration :: fn(out: StringBuilder, node: CDeclaration, depth: i32) -> void {
     out.append(node.type)
     out.append(" ")

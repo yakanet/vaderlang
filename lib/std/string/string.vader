@@ -157,7 +157,7 @@ string implements Contains<string> {
 /// function value: byte order, which is codepoint order in UTF-8.
 /// @param a  left string.
 /// @param b  right string.
-/// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.
+/// @return   `true` iff `a` strictly precedes `b` ; equal strings -> `false`.
 export compare_ascending :: fn(a: string, b: string) -> bool = a < b
 
 /// Case-insensitive ASCII variant of `compare_ascending`. Matches
@@ -422,14 +422,14 @@ export right_trim :: fn(s: string) -> string {
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
-// (`a..z`, `à..ö`, `ø..þ`, `ÿ`). `×`/`÷` (0xD7/0xF7) are excluded by the range
-// gaps ; `ß` has no single-codepoint uppercase and passes through. Scripts
-// beyond Latin-1 pass through unchanged: no full Unicode case tables.
+// (`a..z`, `à..ö`, `ø..þ`, `ÿ`). The multiplication and division signs (0xD7, 0xF7) fall in
+// the range gaps ; `ß` has no single-codepoint uppercase and passes through. Scripts beyond
+// Latin-1 pass through unchanged: no full Unicode case tables.
 to_upper_cp :: fn(cp: u32) -> u32 = match cp {
     0x61..=0x7A -> cp - 0x20   // a-z
     0xE0..=0xF6 -> cp - 0x20   // à-ö
     0xF8..=0xFE -> cp - 0x20   // ø-þ
-    0xFF        -> 0x178       // ÿ → Ÿ
+    0xFF        -> 0x178       // ÿ -> Ÿ
     _           -> cp
 }
 
@@ -438,7 +438,7 @@ to_lower_cp :: fn(cp: u32) -> u32 = match cp {
     0x41..=0x5A -> cp + 0x20   // A-Z
     0xC0..=0xD6 -> cp + 0x20   // À-Ö
     0xD8..=0xDE -> cp + 0x20   // Ø-Þ
-    0x178       -> 0xFF        // Ÿ → ÿ
+    0x178       -> 0xFF        // Ÿ -> ÿ
     _           -> cp
 }
 
@@ -684,7 +684,7 @@ escape_meaning :: fn(b: u8) -> string | null = match b {
 }
 
 /// Replace every codepoint that satisfies `pred` with `replacement`.
-/// Subsumes the regex pattern `replace(/[<class>]/g, "…")`.
+/// Subsumes the regex pattern `replace(/[<class>]/g, "...")`.
 /// @param s            source string.
 /// @param pred         predicate over each codepoint.
 /// @param replacement  string to substitute for each match.
@@ -709,7 +709,7 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 /// an empty array.
 ///
 /// @param s     source string.
-/// @param pred  predicate over each codepoint ; truthy → separator.
+/// @param pred  predicate over each codepoint ; truthy -> separator.
 /// @return      non-empty segments (in source order).
 /// @example
 ///   # import "std/char"
@@ -838,7 +838,7 @@ import "std/testing"
     assert_eq(to_lower("HÉLLO"), "héllo")
     assert_eq(to_upper("àéîõü ç"), "ÀÉÎÕÜ Ç")
     assert_eq(to_lower("ÀÉÎÕÜ Ç"), "àéîõü ç")
-    // ß has no single-codepoint uppercase → unchanged ; CJK passes through.
+    // ß has no single-codepoint uppercase -> unchanged ; CJK passes through.
     assert_eq(to_upper("ß"), "ß")
     assert_eq(to_upper("你好"), "你好")
 }
@@ -891,7 +891,7 @@ import "std/testing"
 }
 
 @test test_split_edge :: fn() -> void {
-    // Empty input → a single empty segment.
+    // Empty input -> a single empty segment.
     parts_empty :: split("", ",")
     assert_eq(parts_empty.len(), 1)
     assert_eq(parts_empty[0], "")
@@ -899,7 +899,7 @@ import "std/testing"
     parts_mid :: split("a,,b", ",")
     assert_eq(parts_mid.len(), 3)
     assert_eq(parts_mid[1], "")
-    // Empty separator → one segment per codepoint.
+    // Empty separator -> one segment per codepoint.
     parts_chars :: split("aé€", "")
     assert_eq(parts_chars.len(), 3)
     assert_eq(parts_chars[1], "é")
@@ -929,10 +929,10 @@ import "std/testing"
 @test test_join :: fn() -> void {
     // Separator goes between elements only.
     assert_eq(["a", "b", "c"].join(", "), "a, b, c")
-    // Empty array → empty string.
+    // Empty array -> empty string.
     empty: string[]: []
     assert_eq(empty.join(", "), "")
-    // Single element → no separator.
+    // Single element -> no separator.
     assert_eq(["solo"].join(", "), "solo")
     // Empty separator concatenates.
     assert_eq(["a", "b", "c"].join(""), "abc")

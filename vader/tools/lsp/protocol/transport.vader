@@ -4,7 +4,7 @@
 //
 //   Content-Length: <bytes>\r\n
 //   \r\n
-//   {…JSON body…}
+//   {...JSON body...}
 //
 // Other headers may appear before `\r\n\r\n` (notably `Content-Type`) ;
 // we read until the blank line, capture `Content-Length`, then read

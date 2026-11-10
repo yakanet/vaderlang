@@ -8,24 +8,24 @@ module "snippet"
 
 import "std/console"
 
-// dead : private fn, referenced nowhere → W0007.
+// dead : private fn, referenced nowhere -> W0007.
 stale_fn :: fn() -> i32 = 41
 
-// dead : private const, referenced nowhere → W0007.
+// dead : private const, referenced nowhere -> W0007.
 STALE_CONST :: 7
 
-// dead : private struct type, referenced nowhere → W0007.
+// dead : private struct type, referenced nowhere -> W0007.
 StaleType :: struct {
     x: i32
 }
 
-// live : private fn reached from `main` → not flagged.
+// live : private fn reached from `main` -> not flagged.
 greeting :: fn() -> string = "hi"
 
-// root : exported (public API), unused in-module → not flagged.
+// root : exported (public API), unused in-module -> not flagged.
 export public_api :: fn() -> i32 = 1
 
-// root : author opt-out for intentional dead code → not flagged.
+// root : author opt-out for intentional dead code -> not flagged.
 @allow_unused
 intentional :: fn() -> i32 = 2
 
@@ -34,6 +34,6 @@ main :: fn() -> i32 {
     return 0
 }
 
-// dead : private `@comptime` const → one W0007, on the const ; the
+// dead : private `@comptime` const -> one W0007, on the const ; the
 // `__comptime_STALE_TABLE` fn the parser makes for it is not reported.
 STALE_TABLE :: @comptime { 1 + 2 }

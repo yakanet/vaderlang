@@ -13,7 +13,7 @@
 //      exactly this shape: an ident of its lifted fn.
 //   2. CLOSURE: `let f = LoweredMakeClosure { fn_symbol: L, env: E }`, a lambda
 //      that captures (`x -> x*k`). The lifted fn `L` takes the env as its FIRST
-//      param (`L(env, args…)`), so we hoist the env (retype `let f = E`, `f` now
+//      param (`L(env, args...)`), so we hoist the env (retype `let f = E`, `f` now
 //      holds the env value) and rewrite `f(x)` -> `L(f, x)`.
 //
 // `vader/midir/build.vader::build_call` switches on `callee.symbol.kind == Fn`: a
@@ -24,7 +24,7 @@
 //
 // SCOPE: local to one fn body ; conservative escape check: any use of `f` other
 // than as a call callee (an argument, a struct field, a return, an assign target,
-// …) disqualifies it, as does a symbol bound more than once (`bound`). The dead
+// ...) disqualifies it, as does a symbol bound more than once (`bound`). The dead
 // named-fn `let f` is left for DCE.
 
 module "vader/lower/optimise"
@@ -59,7 +59,7 @@ devirt_body :: fn(body: LoweredBlock) -> void {
         .escaped = Set<i32> {}, .bound = Set<i32> {},
     }
     analyze_block(body, ctx)
-    // No candidate binding → nothing to rewrite. (An aliased-but-escaped candidate
+    // No candidate binding -> nothing to rewrite. (An aliased-but-escaped candidate
     // still lets `rewrite_block` run, but the per-lookup `escaped` guard skips it,
     // so the walk is a no-op: the `escaped` filter lives at the rewrite sites, not
     // in a pre-filtered copy of the maps.)
@@ -155,7 +155,7 @@ analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
         is LoweredIdent -> { ctx.escaped.add(e.symbol.id) }
         is LoweredCall -> {
             // Callee position: a bare-ident callee is the devirtualizable use, NOT
-            // an escape: skip it. A composite callee is a value → recurse.
+            // an escape: skip it. A composite callee is a value -> recurse.
             if !(e.callee is LoweredIdent) { analyze_expr(e.callee, ctx) }
             for a in e.args { analyze_expr(a, ctx) }
         }

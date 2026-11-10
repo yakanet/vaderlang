@@ -62,7 +62,7 @@ infer_field :: fn(
         note_callee(typed, e, FN_VALUE_CALLEE)
         return union_read
     }
-    // Built-in array methods (`len`/`push`/…) resolve as members of the
+    // Built-in array methods (`len`/`push`/...) resolve as members of the
     // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
     // `try_impl_method_ufcs`'s `[]`-keyed lookup + `impl_member_type`.
     candidate:= try_impl_method_ufcs(target_ty, e, expected, typed, diags)
@@ -488,7 +488,7 @@ try_static_member :: fn(
             typecheck_error(
                 .StaticMemberNotCalled,
                 e.field_span,
-                "write `${display_type(owner)}.${e.field}(…)`",
+                "write `${display_type(owner)}.${e.field}(...)`",
             ),
         )
         return TY_UNRESOLVED
@@ -696,7 +696,7 @@ try_free_fn_ufcs_dispatch :: fn(
     // LSP surfaces the `.into()` hint here too. The receiver decision goes through
     // `accepts_argument`, not `try_into`, so without this `arr.method()`
     // would miss the hint that `method(arr)` gets. Trait widening isn't an
-    // `.into()`, so (as in `try_into`) it's excluded : only the array→iterator
+    // `.into()`, so (as in `try_into`) it's excluded : only the array->iterator
     // blanket records.
     if converts_array_to_iterator(target_ty, first_param) {
         note_into(typed, e.target, target_ty, first_param)
@@ -997,7 +997,7 @@ ufcs_name_has_candidates :: fn(name: string, file: string, typed: TypedProgram) 
 // NAMESPACE ALIAS exports a free fn by that name whose first param accepts it.
 // An alias binds one name and qualifies the rest, so the fn is out of
 // unqualified scope in both call forms (`f(x)` is R2006, `x.f()` lands here):
-// SPEC §UFCS, "resolves … exactly as `foo(x)` would". Point at the qualified
+// SPEC §UFCS, "resolves ... exactly as `foo(x)` would". Point at the qualified
 // form instead of leaving the reader with a bare "no such field".
 //
 // Returns true when it reported, so the caller skips the generic diagnostic.
@@ -1024,7 +1024,7 @@ report_namespace_alias_method :: fn(
             typecheck_error(
                 .MethodOnlyBehindNamespaceAlias,
                 e.field_span,
-                "write `${alias.name}.${e.field}(${path_name(e.target, "…")})`",
+                "write `${alias.name}.${e.field}(${path_name(e.target, "...")})`",
             ),
         )
         return true
@@ -1120,7 +1120,7 @@ resolve_struct_field :: fn(
         }
         // A UFCS method by this name exists, but no overload's first param
         // accepts this union receiver: the common case being a value combinator
-        // (`or` / `map` / …) fed a union with more than one "unhappy" variant
+        // (`or` / `map` / ...) fed a union with more than one "unhappy" variant
         // (e.g. `T | Error | null` fits neither the `T | null` nor the `T | Error`
         // overload). Point at narrowing rather than at a bare missing member.
         if target_ty is UnionType && ufcs_name_has_candidates(e.field, e.span.start.file, typed) {
@@ -1492,8 +1492,8 @@ layout_clash :: fn(
 
 /// For a struct receiver, find a trait it implements whose method by
 /// the given name has a default (non-empty) body, and return the
-/// curried signature with `Self → struct_ty` and the trait's type
-/// parameters → the impl's recorded arguments.
+/// curried signature with `Self -> struct_ty` and the trait's type
+/// parameters -> the impl's recorded arguments.
 try_default_trait_method :: fn(
     target_ty: StructType,
     name: string,
@@ -1509,7 +1509,7 @@ try_default_trait_method :: fn(
             if m.name != name     { continue }
             if m.body is null     { continue }
             if !has_self_param(m) { continue }
-            // Substitute Self → struct, then trait type-params →
+            // Substitute Self -> struct, then trait type-params ->
             // recorded impl args, so a default naming the trait's `T`
             // reports the impl's argument instead.
             sub_self :: substitute_self(trait_member_type(trait_id, m, typed), target_ty)
@@ -1569,7 +1569,7 @@ pad_trait_default_args :: fn(
         return args
     }
     out: Type[]: [] * tps.len()
-    // final size is args + filled defaults, ≤ tps.len()
+    // final size is args + filled defaults, <= tps.len()
     out.push_all(args)
     for i in args.len()..<tps.len() {
         d :: tps[i].default ?? break
@@ -1759,7 +1759,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     return mk_fn_drop_self(substitute_fn_map(ft, bindings))
 }
 
-// Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when
+// Parse `0`, `1`, ... from a tuple `.N` field name. Returns -1 when
 // the name isn't a non-negative integer literal: `.foo` on a tuple
 // then falls through to T3009 via the bounds check.
 parse_tuple_index :: fn(s: string) -> i32 {
@@ -1851,7 +1851,7 @@ type_param_member_detail :: fn(tp: TypeParamType, field: string, typed: TypedPro
 
 /// Method names declared by a type parameter's bound trait(s): a single trait
 /// or an `A & B` chain. For LSP completion on a `t.<member>` receiver typed as
-/// that param (`t: T` where `T: Display` → `to_string`). Empty when the param is
+/// that param (`t: T` where `T: Display` -> `to_string`). Empty when the param is
 /// unbound or its bound doesn't resolve to a trait.
 export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram) -> string[] {
     bound :: typed.resolved.type_param_bounds[tp.symbol.id] ?? return []

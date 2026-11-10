@@ -2,7 +2,7 @@
 //
 // Where goto-`definition` jumps to a name's *binding*, typeDefinition jumps to
 // the declaration of the value's *type*. Cursor over a local, field or call
-// result → resolve its inferred `Type` from the typed-project cache, pull the
+// result -> resolve its inferred `Type` from the typed-project cache, pull the
 // declaring `Symbol` off the type (struct / enum / trait / type-param), and
 // return that symbol's `defined_at` span as a `Location`.
 //
@@ -68,8 +68,8 @@ export type_symbol :: fn(t: Type) -> Symbol | null {
 }
 
 // Resolve the single non-null member of a union to its symbol. `T | null`
-// (one non-null member) → `T`'s symbol ; a genuine multi-member sum type has
-// no single declaration to jump to → null.
+// (one non-null member) -> `T`'s symbol ; a genuine multi-member sum type has
+// no single declaration to jump to -> null.
 union_symbol :: fn(u: UnionType) -> Symbol | null {
     named: Type[]: []
     for v in u.variants {

@@ -105,9 +105,9 @@ export load_project :: fn(
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
-/// → current source text) before the disk for every module file. The LSP
+/// -> current source text) before the disk for every module file. The LSP
 /// passes its didOpen/didChange buffer so typed features (hover, diagnostics,
-/// …) reflect unsaved edits instead of the last-saved file ; the CLI calls
+/// ...) reflect unsaved edits instead of the last-saved file ; the CLI calls
 /// `load_project` (empty overlay, disk-only).
 ///
 /// Module discovery reads it too (`scan_folder`): an open document joins the
@@ -115,7 +115,7 @@ export load_project :: fn(
 /// declares.
 ///
 /// @param entry_path   the entry file's path.
-/// @param overlay      filesystem path → current source text ; consulted
+/// @param overlay      filesystem path -> current source text ; consulted
 ///                     before the disk, to discover modules and to parse them.
 /// @param project_root  the project the entry belongs to (`search_roots`),
 ///                      null for a file compiled on its own.
@@ -300,7 +300,7 @@ export SearchRoots :: struct {
 ///                            `vader.json` adds its `includePaths`, and it
 ///                            anchors the generated tree. Null for a file
 ///                            compiled on its own.
-/// @param overlay             path → text of the documents an editor holds
+/// @param overlay             path -> text of the documents an editor holds
 ///                            open, read before the disk ; empty outside the LSP.
 /// @param diags               R2020 / R2022 from scanning the entry's folder.
 /// @return                    the entry module and the ordered roots.
@@ -536,7 +536,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     }
 }
 
-// Read `path`'s source, consulting the in-memory `overlay` (filesystem path →
+// Read `path`'s source, consulting the in-memory `overlay` (filesystem path ->
 // current text) before the disk. The LSP populates the overlay from its
 // didChange buffer so unsaved edits are parsed ; an empty overlay falls
 // straight through to `read_file`. Returns "" when neither the overlay nor
@@ -587,7 +587,7 @@ parse_file :: fn(content: string, path: string, keep_docs: bool) -> ParsedSource
 // includePaths` entry joined onto it, then the cwd-relative library fallback.
 //
 // The bundled root outranks the project to RESERVE the namespaces `lib/` ships,
-// which are ordinary directory names (`std`, and in time `json`, `cli`, …).
+// which are ordinary directory names (`std`, and in time `json`, `cli`, ...).
 // Project-first, a project declaring `module "cli"` wins over the shipped `cli`,
 // and in a DRIVEN build, where the compiler's sources compile in the same unit,
 // `vader/tools/cli` would then be built against the user's module.

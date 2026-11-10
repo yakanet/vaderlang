@@ -2,7 +2,7 @@
 //
 // The body-walker (`body.vader`) fires R2006 (unresolved identifier) at
 // resolve time. Auto-imported `std/core` names (`Range`, `Display`,
-// `Iterator`, `Hash`, …) aren't in any per-module scope unless seeded
+// `Iterator`, `Hash`, ...) aren't in any per-module scope unless seeded
 // up-front: without this helper, every reference to `Hash` in a generic
 // bound would over-fire R2006.
 //
@@ -78,7 +78,7 @@ find_module_id :: fn(project: LoadedProject, name: string) -> string | null {
 /// import binding, the prelude) keeps its symbol.
 ///
 /// @param root            the file's root scope, filled in place.
-/// @param name_index      module-name → LoadedModule, from `module_index_by_name`
+/// @param name_index      module-name -> LoadedModule, from `module_index_by_name`
 ///                        (built once per project, so this stays O(1) per path).
 /// @param wildcard_paths  the file's wildcard imports (`FileImports.paths`).
 /// @param excludes        per-path names dropped by a `{ x as _, y as z }` modifier
@@ -127,7 +127,7 @@ export wildcard_exposes :: fn(sym: Symbol, dropped: string[] | null) -> bool {
 
 /// Names that two or more of `wildcard_paths`'s modules both export: the
 /// genuine collisions a bare `import "p1"` + `import "p2"` would create. Returns
-/// `name -> [module names]` for each such name (≥ 2 providers). The `base` /
+/// `name -> [module names]` for each such name (>= 2 providers). The `base` /
 /// core prelude is intentionally NOT considered: a core name always wins and is
 /// never ambiguous. Consumed by the body-walker, which fires R2031 only when an
 /// unqualified reference actually resolves to one of these ambiguous names.
@@ -199,7 +199,7 @@ exports_only_functions :: fn(
 }
 
 /// Index every loaded module by its declared name (`module "..."`) for O(1)
-/// import-path → module lookup. Built once per project: mirrors the
+/// import-path -> module lookup. Built once per project: mirrors the
 /// `module_name -> id` map `wire_imports` hoists, so a per-module
 /// `seed_wildcard_exports` doesn't re-scan `project.modules` each call.
 export module_index_by_name :: fn(project: LoadedProject) -> Map<string, LoadedModule> {

@@ -270,7 +270,7 @@ test_components_diamond_orders_the_join_first :: fn() -> void {
 
 @test
 test_components_nested_cycles :: fn() -> void {
-    // 0 → 1 → 2 → 0 and 2 → 3 → 4 → 3 : two cycles, the second reached from the
+    // 0 -> 1 -> 2 -> 0 and 2 -> 3 -> 4 -> 3 : two cycles, the second reached from the
     // first.
     g :: Graph { .successors = [[1], [2], [0, 3], [4], [3]] }
     assert_eq("${sorted_components(g)}", "[[3, 4], [0, 1, 2]]")
@@ -301,7 +301,7 @@ test_solve_propagates_to_callers :: fn() -> void {
 
 @test
 test_solve_settles_a_cycle :: fn() -> void {
-    // 0 ↔ 1, 1 → 2 marked : the whole cycle reaches it.
+    // 0 <-> 1, 1 -> 2 marked : the whole cycle reaches it.
     g :: Graph { .successors = [[1], [0, 2], []] }
     fact :: [false, false, true]
     unsettled :: solve_bottom_up(g, reachability_step(g, fact), 8)
@@ -321,7 +321,7 @@ test_solve_keeps_a_recursive_node_at_its_seed :: fn() -> void {
 
 @test
 test_solve_reachability_marks_every_caller_of_a_mark :: fn() -> void {
-    // 0 → 1 ↔ 2 → 3 marked, 4 alone.
+    // 0 -> 1 <-> 2 -> 3 marked, 4 alone.
     g :: Graph { .successors = [[1], [2], [1, 3], [], []] }
     fact :: [false, false, false, true, false]
     solve_reachability(g, fact)

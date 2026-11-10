@@ -139,7 +139,7 @@ extension_dot :: fn(fname: string) -> i64 | null = fname.last_index_of('.', 1)
 /// @param self  the path receiver.
 /// @return      the filename with its extension and dot removed, or the filename
 ///              unchanged when it has no extension: a dotfile keeps its full
-///              name (`.gitignore` → `.gitignore`), since its leading dot is not
+///              name (`.gitignore` -> `.gitignore`), since its leading dot is not
 ///              an extension separator.
 /// @example
 ///   "src/archive.tar.gz".to_path().name()  // "archive.tar"

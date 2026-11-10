@@ -8,7 +8,7 @@
 //
 // The value is pinned by the `# Baked` section, which reads the constants back
 // out of the module the compiler GENERATED. Nothing else can: the emitted C
-// keeps BOTH branches of an `if VADER_OS == …` in its atom table, so the folded
+// keeps BOTH branches of an `if VADER_OS == ...` in its atom table, so the folded
 // one is indistinguishable there: measured, after a first attempt at reading
 // the C reported all four literals for every target.
 

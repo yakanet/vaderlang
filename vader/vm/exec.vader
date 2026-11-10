@@ -75,7 +75,7 @@ NULL_VALUE :: NullVal {}
 /// bytecode the boxed path accepted.
 is_i32_tag :: fn(t: StackTag) = t == .I32 || t == .Char || t == .I64
 
-/// Integer→integer `convert`, straight on the stack columns. True when it applied.
+/// Integer->integer `convert`, straight on the stack columns. True when it applied.
 ///
 /// The boxed route allocates TWICE per execution (`peek_val` to read the operand,
 /// `push_val` to carry the result back) to move a word that never leaves its
@@ -238,8 +238,8 @@ DEBUG_MAX_DEPTH: i32: 5
 DEBUG_MAX_ELEMS: i64: 64
 
 // Render a frame's params + declared locals for the Variables view. Slots
-// `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
-// …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
+// `[0..params)` are params (no source names in `BcSignature` -> `arg0`, `arg1`,
+// ...) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
 // compiled `optimize = false` (no slot coalescing): the DAP compile's mode.
 project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[] {
     param_count :: fn_body.signature.params.len()
@@ -260,7 +260,7 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
 
     out: PauseVar[]: []
     // Params live the whole frame: always shown, named from the signature
-    // (`param_names`, empty on name-less paths → `arg<i>`).
+    // (`param_names`, empty on name-less paths -> `arg<i>`).
     for p in 0..<param_count {
         if p < slots.len() {
             out.push(project_var(param_display_name(fn_body.signature, p), slots[p], bc_mod, 0))
@@ -269,7 +269,7 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
     for k in 0..<fn_body.locals.len() {
         name :: fn_body.locals[k].name
         slot :: param_count + k
-        // Hide compiler-synthesised temps (`$…` / `__…` / `if_res`) and locals
+        // Hide compiler-synthesised temps (`$...` / `__...` / `if_res`) and locals
         // outside their live window at the current pc.
         if slot < slots.len() && is_source_local(name) && slot_in_scope(first, last, slot, at_pc) {
             out.push(project_var(name, slots[slot], bc_mod, 0))
@@ -338,7 +338,7 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
 /// @param functions       the running module's function table.
 /// @param at_pc           pc of the op doing the lookup.
 /// @param op_label        op-name prefix for the diagnostic message
-///                        (`"call.indirect"`, `"defer.pop_exec"`, …).
+///                        (`"call.indirect"`, `"defer.pop_exec"`, ...).
 /// @return                `null` on success, `Trap` if out of range.
 /// @error                 `function_index < 0` or `>= functions.len()`.
 validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
@@ -387,7 +387,7 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
     return null
 }
 
-/// Primitive kind ("string" / "char" / "i32" / …) of `types[type_id]`,
+/// Primitive kind ("string" / "char" / "i32" / ...) of `types[type_id]`,
 /// or "" when the entry isn't a `BcScalar`. Used by the virtual.call intrinsic
 /// fallback to rebuild a host mangle.
 primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
@@ -399,7 +399,7 @@ primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
 
 /// Build the host import mangle for an `@intrinsic` primitive impl member from
 /// the receiver kind + a `"<trait_key>.method"` vtable key, e.g.
-/// `("string", "std/core.Hash.hash")` → `"std_core$string$Hash$hash"`. The mangle
+/// `("string", "std/core.Hash.hash")` -> `"std_core$string$Hash$hash"`. The mangle
 /// grammar itself lives in `core/bytecode/intrinsic_manifest::primitive_member_mangle` ;
 /// this only splits the vtable key. Returns "" when the kind is empty or the
 /// key has no `.`.
@@ -556,7 +556,7 @@ entry_named :: fn(state: VmState, mangled: string) -> i32 | Trap {
 // `i16`), mirroring the truncation a native narrow-storage slot applies. The VM
 // stores every integer as a wide `I32Val` / `I64Val` with no width tag, and the
 // bytecode's arith ops are width-aliased to the I32/I64 family (`op_select.vader`),
-// so a sub-32-bit result (`u8 200 + 100` → 300) keeps the wide value. Native
+// so a sub-32-bit result (`u8 200 + 100` -> 300) keeps the wide value. Native
 // truncates for free via the C `uint8_t` field type ; this is the VM's
 // equivalent for a struct literal's fields (`build_struct`): the register engine
 // truncates slots and returns itself (`Narrow`). Non-narrow ValTypes return `v`
@@ -582,7 +582,7 @@ narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
 // `raw` cut to its low `bits` bits, sign-extended when `signed`.
 truncate_to_width :: fn(raw: i64, bits: i64, signed: bool) -> i32 {
     masked :: raw & ((1 << bits) - 1)
-    // Top bit set ⇒ sign-extend.
+    // Top bit set => sign-extend.
     out :: if signed && masked & (1 << (bits - 1)) != 0 { masked - (1 << bits) } else { masked }
     return i32(out)
 }
@@ -596,10 +596,10 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
     if s < np { return body.signature.params[s] }
     li :: s - np
     if li < body.locals.len() { return body.locals[li].val }
-    return .I32     // defensive : unknown slot ⇒ no masking
+    return .I32     // defensive : unknown slot => no masking
 }
 
-// ValType of a struct field's declared type (`BcField.type_index` → type table).
+// ValType of a struct field's declared type (`BcField.type_index` -> type table).
 // A non-primitive field returns `Ref` (never narrow), so `narrow_mask` no-ops.
 // Backs the `struct.new` narrow-field mask : a struct literal builds its fields
 // straight from the stack (`build_struct`) with no intervening narrow `local.set`.
@@ -703,7 +703,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     arg_base :: frame.sp - field_count
     fields: Value[]: []
     for field_index in 0..<field_count {
-        // Narrow-typed field ⇒ truncate to width, mirroring a C narrow struct
+        // Narrow-typed field => truncate to width, mirroring a C narrow struct
         // field ; the literal's field value comes straight off the stack with no
         // intervening narrow `local.set` to mask it (see narrow-int-width plan).
         fvt :: field_valtype(types, type_decl.fields[field_index].type_index)
@@ -844,7 +844,7 @@ store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Tra
 }
 
 /// Body of the `memory_copy` arm. Pops `dst, dst_off, src, src_off, n` and
-/// copies `n` bytes src→dst (raw byte regions). Bounds-checks both ends and
+/// copies `n` bytes src->dst (raw byte regions). Bounds-checks both ends and
 /// copies through a snapshot, so an overlapping self-copy stays well-defined
 /// in the oracle (native lowers to `memcpy` and the lowerer guarantees no
 /// overlap: the snapshot only hardens the VM reference impl).
@@ -1253,7 +1253,7 @@ apply_boxed :: fn(
             if len_unwrap is Trap { return len_unwrap }
             obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
             if obj_unwrap is Trap { return obj_unwrap }
-            // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the len.
+            // width 0 => checks `0 <= len <= bytes_len`, returns the len.
             n :: check_byte_range(i32(len_unwrap), 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
             if n is Trap { return n }
             push_val(frame, frame.sp - 2, StringVal(obj_unwrap.bytes[0..<n].bytes_to_string()))
@@ -1283,7 +1283,7 @@ apply_boxed :: fn(
             frame.pc = frame.pc + 1
         }
         is bc.F32ToBits -> {
-            // f32→u32 bits. The VM holds f32 in an F64Val (exact, since f32
+            // f32->u32 bits. The VM holds f32 in an F64Val (exact, since f32
             // widens losslessly), so narrow back to f32 before the cast; the
             // u32 result rides in an I32Val.
             fv :: read_f64(peek_val(frame, frame.sp - 1), frame.pc, "f32_to_bits")

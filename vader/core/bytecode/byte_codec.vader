@@ -1,7 +1,7 @@
-// vader/core/bytecode/byte_codec: little-endian byte ↔ integer codec.
+// vader/core/bytecode/byte_codec: little-endian byte <-> integer codec.
 //
 // The reference implementation of the Target ABI memory opcodes' byte
-// semantics (`load_i32` / `store_u8` / … in `vader/vm/exec.vader`) AND the
+// semantics (`load_i32` / `store_u8` / ... in `vader/vm/exec.vader`) AND the
 // decoder for the `.virt` data-pool hex blobs (`front/virt/virt_reader_bc.vader`).
 // Deliberately NOT stdlib : once the memory opcodes land, native-endian typed
 // access IS the opcode (a single per-target typed load), so a pure-Vader
@@ -19,7 +19,7 @@ module "vader/core/bytecode"
 ///
 /// @param bytes   the source byte array.
 /// @param offset  byte offset of the least-significant byte.
-/// @param width   number of bytes to read (1–8).
+/// @param width   number of bytes to read (1 to 8).
 /// @return        the decoded value, zero-extended into a u64.
 export read_le :: fn(bytes: u8[], offset: i64, width: i64) -> u64 {
     // Assemble most-significant byte first, so the shift amount is the
@@ -38,7 +38,7 @@ export read_le :: fn(bytes: u8[], offset: i64, width: i64) -> u64 {
 ///
 /// @param bytes   the destination byte array (mutated in place).
 /// @param offset  byte offset of the least-significant byte.
-/// @param width   number of bytes to write (1–8).
+/// @param width   number of bytes to write (1 to 8).
 /// @param value   the value whose low `width` bytes are stored.
 export write_le :: fn(bytes: u8[], offset: i64, width: i64, value: u64) -> void {
     // Peel the low byte and shift down by the constant 8 (free literal), so

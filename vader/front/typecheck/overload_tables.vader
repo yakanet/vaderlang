@@ -16,11 +16,11 @@ import "vader/support/target"
 // (`vader/tools/lsp/main_entry.vader` vs `vader/tools/lsp/main.vader` on `std/cli`).
 //
 // Only the forms that put names in UNQUALIFIED scope feed a table: bare
-// `import "p"`, `import "p" { … }` minus what its modifiers drop, the names a
+// `import "p"`, `import "p" { ... }` minus what its modifiers drop, the names a
 // modifier list REBINDS, and the always-in-scope `std/core` prelude. A namespace
 // alias (`P :: import "p"`) contributes nothing: it binds one name and
 // qualifies the rest, so `x.f()` must fail exactly where `f(x)` is R2006, the
-// divergence SPEC §UFCS rules out ("resolves … exactly as `foo(x)` would").
+// divergence SPEC §UFCS rules out ("resolves ... exactly as `foo(x)` would").
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram,
     wildcards: FileImports[],

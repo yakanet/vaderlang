@@ -12,7 +12,7 @@
 //
 // The nested array field is what makes the const materialise BOXED; a struct of
 // scalars alone does not reproduce. Found 2026-07-27 via `vader lsp
-// --stdlib-root=…`, where `command_specs` did `push_all` on a flag-spec const.
+// --stdlib-root=...`, where `command_specs` did `push_all` on a flag-spec const.
 //
 // `dst` keeps the elements of `ITEMS`, which a write could reach through their
 // nested arrays, so each use of `ITEMS` here reads a fresh table built by its

@@ -3,7 +3,7 @@
 // A distinct newtype can wrap a COMPOSITE backing (a struct or a tuple), not
 // just a primitive. It stays nominal, carrying its own trait impls (operator
 // overloads), while the STRUCTURAL ops forward to the backing:
-//   - struct-backed (`Color :: Rgb`): `Color { … }` construction, `c.r` field
+//   - struct-backed (`Color :: Rgb`): `Color { ... }` construction, `c.r` field
 //     access, and a nominal `Add` impl that blends two colors.
 //   - tuple-backed (`Coord :: [i32, i32]`): `[x, y]` literal, `p.0` / `p.1`
 //     positional access, `[x, y] :: p` destructure.
@@ -24,7 +24,7 @@ Rgb :: struct {
 }
 
 // `Color` is a distinct newtype over `Rgb` : it forwards field access to the
-// backing struct but owns its own `+` (channel-wise average → a blend).
+// backing struct but owns its own `+` (channel-wise average -> a blend).
 Color :: Rgb
 
 Color implements Add<Color, Color> {
@@ -49,7 +49,7 @@ Swatch :: [Color, i32]
 main :: fn() -> i32 {
     red  :: Color { .r = 200, .g = 0, .b = 0 }
     blue :: Color { .r = 0, .g = 0, .b = 200 }
-    mixed :: red + blue                       // Color::add → channel-wise blend
+    mixed :: red + blue                       // Color::add -> channel-wise blend
     println("${mixed.r} ${mixed.g} ${mixed.b}")   // 100 0 100
 
     p: Coord: [3, 4]

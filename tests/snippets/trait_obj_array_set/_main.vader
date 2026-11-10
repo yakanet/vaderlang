@@ -3,7 +3,7 @@
 // erased element (trait) tag. `emit_array_set` routes the value through the
 // same `coerce_expr(.. .Any)` a plain `.Any`-slot assignment uses, so a struct
 // impl boxes via its object header and a DISTINCT-PRIMITIVE impl via its own
-// type index: earlier the set stamped the trait tag → runtime vtable miss.
+// type index: earlier the set stamped the trait tag -> runtime vtable miss.
 
 module "snippet"
 

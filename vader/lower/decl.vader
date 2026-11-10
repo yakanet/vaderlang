@@ -141,7 +141,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, tra
     }
 }
 
-// FnDecl → `LoweredFnDecl`. Lowers the body via the shared `lower_block`
+// FnDecl -> `LoweredFnDecl`. Lowers the body via the shared `lower_block`
 // driver (`lower_fn_body`). Generic fns (`type_params.len() > 0`) are
 // skipped here: they're materialised per concrete instance by the mono
 // pass (`mono_fn.vader`) ; this path handles non-generic decls only.
@@ -248,7 +248,7 @@ lower_fn_body :: fn(
 /// the first capture onward. The inner read is a RAW `LoweredIdent` (built here,
 /// not via `lower_expr`) so it loads the ABI value rather than re-entering the
 /// cell path. An env holding the raw scalar instead is read back as a struct by
-/// the lifted body (`struct.get … expected struct, got i64`).
+/// the lifted body (`struct.get ... expected struct, got i64`).
 ///
 /// Shared by every fn-root body : `lower_fn_body` (top-level fns + generic
 /// instances + impl members) and `lower_lambda` (a lambda's own param can be
@@ -279,7 +279,7 @@ promote_cell_params :: fn(
     return prepend_stmts_to_block(prologue, block)
 }
 
-// StructDecl → `LoweredStructDecl` with resolved field types (the dump
+// StructDecl -> `LoweredStructDecl` with resolved field types (the dump
 // format includes the field list, so they're resolved eagerly here).
 lower_struct_decl :: fn(
     struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
@@ -301,7 +301,7 @@ lower_struct_decl :: fn(
     }
 }
 
-// ConstDecl → `LoweredConstDecl`. Lowers the value into the const's type, through
+// ConstDecl -> `LoweredConstDecl`. Lowers the value into the const's type, through
 // the `Into` the typecheck accepted on it, preferring the `@comptime`-baked value
 // when the evaluator folded the const (`lower_const_value` /
 // `lookup_comptime_value`) so downstream phases see the materialised literal.

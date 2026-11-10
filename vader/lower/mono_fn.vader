@@ -36,7 +36,7 @@ drain_generic_fn_instances :: fn(
     // each queued once (`fn_instances`).
     // Joint fixpoint over fn instances, erased generic-struct impl receivers
     // and impl member instances: lowering any of them can queue more of the
-    // others (`Map.contains` → `contains_key`), so the three drain
+    // others (`Map.contains` -> `contains_key`), so the three drain
     // until none holds work.
     for pending_instances(project_ctx) {
         for {
@@ -88,7 +88,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // are distinct bodies dispatching `key.hash()` / `key.equals()` on the
     // concrete key, and their call sites target the per-key mangle.
     // Collapsing them to the first-sorted `__i32__` instance routes every
-    // non-i32-keyed map's `at`/`set_at` into `i32$Hash$hash` → a string key
+    // non-i32-keyed map's `at`/`set_at` into `i32$Hash$hash` -> a string key
     // hits `i32.to_i64` and traps. They are registered once per `key`
     // (`fn_instances`) and carry a NULL `origin.symbol` (set in
     // `build_fn_instance_decl`), so the body-emit pass indexes them by mangle:
@@ -133,7 +133,7 @@ PendingFnInstance :: struct {
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
 
 // Lower a `generator` fn / impl member to its state-machine body, reached through
-// `lowered_fn_of`. Lowers the body in generator mode (yields → `LoweredYield`
+// `lowered_fn_of`. Lowers the body in generator mode (yields -> `LoweredYield`
 // markers) then synthesizes `<State>` + `Iterator::next` (`lower_generator_fn`).
 lower_generator_body :: fn(
     project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
@@ -167,7 +167,7 @@ build_fn_instance_decl :: fn(
     //   Mono: a body needing its instance's real types (`fn_needs_concrete_instances`)
     //            OR a bare type-param array return (the result's element kind
     //            must be concrete). Full-concrete subst.
-    //   Mixed, ≥1 arg `kept_type_argument` keeps: keep those concrete
+    //   Mixed, >=1 arg `kept_type_argument` keeps: keep those concrete
     //            (devirt + primops/atom-eq inline), erase
     //            the rest to `Any` via `build_mixed_subst`. Mangle-indexed.
     //   Erased, all-reference: uniform pointer like Java, symbol-id indexed + deduped.
@@ -196,7 +196,7 @@ build_fn_instance_decl :: fn(
     // A per-instance-concrete (`force_concrete`, e.g. trait-dispatching) free generic fn
     // carries a NULL origin symbol so the bytecode body-emit indexes it by
     // MANGLE, not by the shared source-fn symbol id. Every per-key instance
-    // (`get__string`, `get__i32`, …) reuses the one `get` symbol ; keeping a
+    // (`get__string`, `get__i32`, ...) reuses the one `get` symbol ; keeping a
     // non-null symbol makes `reserve_cfg_function` overwrite a single
     // `function_index_by_symbol_id` slot, so all instances but the last
     // ship with an EMPTY body. Mirrors `materialize_impl_for_instance`,
@@ -220,7 +220,7 @@ build_fn_instance_decl :: fn(
         .key          = inst.key,
         .fn_symbol_id = inst.fn_symbol.id,
         // `dispatches` gates "kept concrete per instance": the `Mono` flavor (a
-        // trait dispatch, a bare type-param array return, …) OR the `Mixed` one.
+        // trait dispatch, a bare type-param array return, ...) OR the `Mixed` one.
         // Both skip the erasure-dedupe collapse in `flush_generic_fn_instances`.
         .dispatches   = force_concrete,
         .decl         = decl,
@@ -260,7 +260,7 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //            or a range (shared, it would reach its representation's), or a bare
 //            type-param array return (the result array's element kind must be
 //            concrete).
-//   Mixed: `build_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
+//   Mixed: `build_mixed_subst` + `mixed_any_suffix`. >=1 arg `kept_type_argument`
 //            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
 //            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
 //   Erased: `build_erased_subst`, symbol-id indexed (flush keeps one body per fn).
@@ -341,7 +341,7 @@ materialize_nongeneric_imported_fns :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // The queue grows while it drains: lowering one stdlib body can harvest
-    // further non-generic stdlib fns it calls. The materialise↔surface
+    // further non-generic stdlib fns it calls. The materialise<->surface
     // fixpoint loop re-enters this fn after surfacing harvests further free
     // fns, and the queue holds only the entries no earlier pass emitted.
     for {
@@ -360,7 +360,7 @@ materialize_nongeneric_imported_fns :: fn(
         }
         // Drain any lambda/defer lifted fns this body spawned into the same
         // stdlib module (e.g. `strip_numeric_text`'s
-        // `replace_chars_where((c) -> c == '_', …)`), right after the fn.
+        // `replace_chars_where((c) -> c == '_', ...)`), right after the fn.
         drain_synth_since(project, fn_sym.module, project_ctx, synth_start)
     }
 }

@@ -1,12 +1,12 @@
 // vader/emit/bytecode/peephole: bytecode-level peepholes over an emitted
 // `BcFunction`.
 //
-// The `CFGProject` → `BytecodeModule` walk is `emit.vader`
+// The `CFGProject` -> `BytecodeModule` walk is `emit.vader`
 // (`emit_bytecode_from_cfg`) ; this is the post-emit rewrite layer it calls into,
 // one exported pass each:
-//   - `run_bc_peephole`: `set N ; get N` → `tee N`, bool-not folds.
-//   - `run_bc_return_lit_fold`: `<const> ; return` → `ReturnLit`.
-//   - `run_bc_const_fold_arith`: `<const> ; <const> ; <op>` → one const.
+//   - `run_bc_peephole`: `set N ; get N` -> `tee N`, bool-not folds.
+//   - `run_bc_return_lit_fold`: `<const> ; return` -> `ReturnLit`.
+//   - `run_bc_const_fold_arith`: `<const> ; <const> ; <op>` -> one const.
 //   - `propagate_const_single_use` / `drop_dead_stores`: local-slot cleanups.
 //   - `build_intrinsic_wrapper_body`: forwarder body for an intrinsic import.
 //
@@ -22,7 +22,7 @@ import "vader/core/bytecode"
 import "std/collections"
 
 
-/// Rule-5-only pass : `<Const> ; Return` → `ReturnLit { value }`. Used
+/// Rule-5-only pass : `<Const> ; Return` -> `ReturnLit { value }`. Used
 /// by the second peephole pass (after drop_dead_stores): re-running
 /// the full `run_bc_peephole` there would re-fold set+get pairs that
 /// drop_dead_stores' local-table compaction made adjacent, which the
@@ -237,10 +237,10 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: i64) -> Op | null {
 }
 
 /// Peephole over a fn's `body` :
-///   - Rule 1 : `LocalSet N ; LocalGet N` → `LocalTee N`.
-///   - Rule 2 : `<num>.<cmp> ; BoolNot` → `<num>.<inverse cmp>` (NYI).
-///   - Rule 3 : `BoolConst X ; BoolNot` → `BoolConst !X`.
-///   - Rule 4 : `BoolNot ; BoolNot` → ε.
+///   - Rule 1 : `LocalSet N ; LocalGet N` -> `LocalTee N`.
+///   - Rule 2 : `<num>.<cmp> ; BoolNot` -> `<num>.<inverse cmp>` (NYI).
+///   - Rule 3 : `BoolConst X ; BoolNot` -> `BoolConst !X`.
+///   - Rule 4 : `BoolNot ; BoolNot` -> ε.
 ///
 /// Branch-target safety holds because Vader's `br` / `br_if` use label-stack
 /// relative depths, and `mark_jump_targets` keeps any op a branch lands on from
@@ -263,7 +263,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     // not eligible. Skipping there would strand the slot's lone `local.get`
     // (the join read), keeping the slot live so `drop_dead_stores` can't
     // reclaim the per-level result-propagation tees: an O(N²) copy cascade,
-    // one chain per arm. Folding the `set ; get → tee` instead lets the get
+    // one chain per arm. Folding the `set ; get -> tee` instead lets the get
     // collapse and the dead tees drop. (Raw midir emits the moves as
     // `get ; set` pairs, no tees yet, so `tee_count` is 0 here: the
     // discriminant that actually fires is `set_count`.)
@@ -294,7 +294,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     for i < n {
         op :: body[i]
 
-        // Rule 1: `LocalSet N ; LocalGet N` → `LocalTee N`. Skip the
+        // Rule 1: `LocalSet N ; LocalGet N` -> `LocalTee N`. Skip the
         // fold when the preceding op is a const (`IntConst` etc.) AND the
         // slot is propagate-eligible (zero tees) : `propagate_const_single_use`
         // runs before this pass and has already inlined the const into the get
@@ -335,7 +335,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
             }
         }
 
-        // Return.lit fold: `<const>.const X ; Return` → `ReturnLit X`.
+        // Return.lit fold: `<const>.const X ; Return` -> `ReturnLit X`.
         // Branches don't target the collapsed Return op (terminator) so
         // depth-safety holds. Skipped on a scalarised return: `ReturnLit` carries
         // ONE literal and the fold would keep the last value and drop the rest.
@@ -591,7 +591,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     }
 
     // Rewrite the body : drop dead writes, renumber surviving accesses.
-    // Dead `local.tee` ops are dropped entirely: track an old→new PC
+    // Dead `local.tee` ops are dropped entirely: track an old->new PC
     // map so jump_table indices remap. Other ops keep a 1:1 mapping.
     out: Op[]: []
     body_len :: function.body.len()

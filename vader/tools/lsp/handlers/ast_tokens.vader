@@ -6,8 +6,8 @@
 // identifiers. Two phases :
 //
 //   1. Positional walk : attribute a role by AST position (callee of
-//      CallExpr → Function, TypeExpr slot → Type, decl name → matching
-//      kind, …). Catches declaration sites + structural roles.
+//      CallExpr -> Function, TypeExpr slot -> Type, decl name -> matching
+//      kind, ...). Catches declaration sites + structural roles.
 //   2. Resolver refinement : run `vader/front/resolver/body` to map every
 //      IdentExpr to its bound Symbol, then override Phase-1 tokens
 //      whose span matches a resolved ident with the symbol's actual
@@ -30,7 +30,7 @@ import "toolchain/span"
 // primitive is picked up automatically.
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in
-/// expression position (`i32(x)` cast, `i32.MAX` field access, …) we
+/// expression position (`i32(x)` cast, `i32.MAX` field access, ...) we
 /// paint it `Type` instead of the positional `Variable` default. Order
 /// doesn't matter: keep alphabetised for human scanning.
 is_primitive_type_name :: fn(name: string) -> bool =
@@ -114,7 +114,7 @@ token_type_of_symbol :: fn(k: SymbolKind) -> TokenType = match k {
 /// Modifier bitmask for a symbol, `0` for kinds carrying none.
 ///
 /// A module const is `static` + `readonly`, the pair clients resolve to their
-/// "constant" colour (LSP4IJ → `CONSTANT`); without it a `SCREAMING_SNAKE` const
+/// "constant" colour (LSP4IJ -> `CONSTANT`); without it a `SCREAMING_SNAKE` const
 /// read as a plain (and worse, reassignable) local.
 modifiers_of_symbol :: fn(sym: Symbol) -> i32 {
     if !is_frozen_const(sym) {
@@ -162,7 +162,7 @@ push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: strin
 }
 
 // Optional-arm helpers. Vader's `match` over a union doesn't auto-cover all
-// variants of an inner union (e.g. `match x : Expr | null { is Expr -> … }`
+// variants of an inner union (e.g. `match x : Expr | null { is Expr -> ... }`
 // doesn't fire: `is Expr` isn't a one-arm match on the underlying ~30
 // variants). We funnel `TypeExpr | null` / `Expr | null` / `Pattern | null`
 // through these helpers so each call site stays a single line and the null

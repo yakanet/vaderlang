@@ -37,7 +37,7 @@ export type_from_expr :: fn(
     expr: AST.Expr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     // @partial: only the type-shaped expr kinds below denote a type; every other
-    // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
+    // (value-position) Expr is illegal in a type slot -> T3002, handled by `_`.
     @partial match expr {
         is AST.IdentExpr -> {
             if names_int_base(expr, resolved) {
@@ -142,7 +142,7 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule) -> Type 
 // T3002 for a field chain in a type slot that names no namespace member ;
 // `why` follows the chain in the detail.
 no_member_type :: fn(e: AST.FieldExpr, why: string, diags: Diagnostic[]) -> Type {
-    diags.push(typecheck_error(.ExpectedKnownType, e.span, "`${path_name(e, "…")}` is no type${why}"))
+    diags.push(typecheck_error(.ExpectedKnownType, e.span, "`${path_name(e, "...")}` is no type${why}"))
     return TY_UNRESOLVED
 }
 
@@ -429,7 +429,7 @@ export is_value_only_type :: fn(t: Type) -> bool {
 ///              the declaration's own type replaces.
 type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
     // @partial: only the type-introducing kinds below map to a Type; every other
-    // SymbolKind (Fn, Local, Param, …) names a value, not a type → unresolved.
+    // SymbolKind (Fn, Local, Param, ...) names a value, not a type -> unresolved.
     @partial match sym.kind {
         .BuiltinType -> {
             builtin :: primitive_from_name(sym.name) ?? return TY_UNRESOLVED
@@ -517,7 +517,7 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.GenericInstExpr { return true }
     if e is AST.FnTypeExpr      { return true }
     if e is AST.ArrayTypeExpr   { return true }
-    // `Coord :: [i32, i32]`: a ≥ 2-element all-type bracketed list is a tuple
+    // `Coord :: [i32, i32]`: a >= 2-element all-type bracketed list is a tuple
     // type alias (1-tuples are forbidden).
     if e is AST.SeqLitExpr {
         if e.elements.len() < 2 {

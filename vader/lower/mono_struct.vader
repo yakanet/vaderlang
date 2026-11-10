@@ -68,7 +68,7 @@ has_type_param :: fn(t: Type) -> bool {
     }
 }
 
-/// Monomorphized struct mangle : `<module>$<Name>__<arg>__<arg>…`.
+/// Monomorphized struct mangle : `<module>$<Name>__<arg>__<arg>...`.
 /// The single source of the concrete-instance naming scheme: both
 /// `materialize_struct_instance` and `shape_mangle` build their name
 /// here so the closure pass dedups field-referenced shapes against
@@ -83,10 +83,10 @@ materialize_struct_instance :: fn(
     decl :: owner_typed.struct_decls[inst.symbol.id] ?? return []
     declared :: owner_typed.struct_fields[inst.symbol.id] ?? return []
     // Non-generic structs fall through safely : empty `type_params`
-    // ⇒ identity substs and `args_suffix([]) == ""`, so fields are
+    // => identity substs and `args_suffix([]) == ""`, so fields are
     // unchanged and the mangle is the bare `<module>$<Name>`. Lets the
     // closure pass materialise referenced stdlib structs
-    // (`StringBuilder`, `JsonObject`, …) whose bodies are never lowered.
+    // (`StringBuilder`, `JsonObject`, ...) whose bodies are never lowered.
     mangled :: mangle_struct_instance(
         owner_typed.resolved.display_path, inst.symbol.name, inst.args)
     // Idempotent: impl receivers and the shape closure can ask for the same
@@ -230,7 +230,7 @@ materialize_shape :: fn(
     project: LoweredProject,
 ) -> LoweredStructField[] {
     owner_typed :: typed.modules[sym.module] ?? return []
-    // Distinct→backing, as `queue_generic_impl_receiver` does: distinct ends at
+    // Distinct->backing, as `queue_generic_impl_receiver` does: distinct ends at
     // lowering.
     inst :: StructType { .symbol = sym, .args = strip_distinct_each(args) }
     return materialize_struct_instance(inst, owner_typed, project_ctx, project)
@@ -240,7 +240,7 @@ materialize_shape :: fn(
 ///
 /// A materialised impl member types its `self` with the receiver's struct, and
 /// the bytecode interner only ever upgrades a slot to `BcStruct` from a lowered
-/// struct DECL. Member without decl ⇒ `self` interns as a bare `ref` and the
+/// struct DECL. Member without decl => `self` interns as a bare `ref` and the
 /// first field access panics in `emit/bytecode/emit`: the whole bug class this closes.
 ///
 /// `close_over_field_shapes` would only catch the struct after the fact, by
@@ -270,7 +270,7 @@ materialize_impl_members_for :: fn(
 }
 
 // True when `entry`'s impl serves the struct `inst` instantiates : an impl on that
-// instance (`Box<i32> implements …`), or a generic impl of its declaration unless
+// instance (`Box<i32> implements ...`), or a generic impl of its declaration unless
 // one on the instance implements the same trait instance.
 impl_applies_to_instance :: fn(
     project_ctx: LowerProjectCtx, entry: ImplEntry, inst: StructType,
@@ -297,18 +297,18 @@ materialize_impl_for_instance :: fn(
 ) -> void {
     // Erasure : self type uses any-leaves args (Stack<Any> instead of
     // Stack<i32>) and the substitution carried into params / body maps
-    // T → Any. Concrete monos that share the same impl shape post-
+    // T -> Any. Concrete monos that share the same impl shape post-
     // erasure can then collapse to a single C-emit body. Mangled name
     // keeps the concrete args suffix (`__i32`) so identity tags stay
     // distinct.
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return
     subst :: build_impl_mixed_subst(project_ctx.impls, impl_entry, impl_typed, inst.args)
-    // A concrete-instantiation impl (`Wrapper<i32> implements …`) has no
+    // A concrete-instantiation impl (`Wrapper<i32> implements ...`) has no
     // type params, so the substitution is empty: keep the concrete
     // instance args (self stays `Wrapper<i32>`). Only a genuinely
-    // generic impl (`Repeat<T> implements …`) erases its args to `Any`
+    // generic impl (`Repeat<T> implements ...`) erases its args to `Any`
     // for the shared post-erasure C-emit body.
-    // Concrete-instantiation impl → keep args concrete ; generic impl → erase ref
+    // Concrete-instantiation impl -> keep args concrete ; generic impl -> erase ref
     // args to `Any` via the shared `build_mixed_args_list` kernel. The box runtime
     // tag (`erase_generic_struct_tag`) MUST route through the same kernel so a
     // generic-struct box interns to this exact receiver key (else `vtable miss`).
@@ -327,7 +327,7 @@ materialize_impl_for_instance :: fn(
     // Concrete-instantiation impls keep `erased_args == inst.args`, so their
     // suffix stays concrete. Generic impls use the STRUCTURE-FREE
     // `mixed_any_suffix` (one `__Any` per arg): `args_suffix(erased_args)`
-    // would leak inner shape (`Map<_, _[]>` → `at__Any__Any__`) and
+    // would leak inner shape (`Map<_, _[]>` -> `at__Any__Any__`) and
     // diverge from a sibling instance's `at__Any__Any`, breaking the
     // single-body dedupe.
     instance_suffix :: if is_empty_substitution(subst) {
@@ -358,7 +358,7 @@ materialize_impl_for_instance :: fn(
         // module iterating a range) is resolved by the for-in / default-method
         // lowering under the impl's owning module (see `build_ufcs_member`) ;
         // materialising it under the caller's module produced a mangle the call
-        // sites never reference (`std_collections$…next` vs `std_iter$…next`),
+        // sites never reference (`std_collections$...next` vs `std_iter$...next`),
         // dropping the call to the panic fallback. Co-locating with the impl keeps
         // the two in lock-step. No-op when owner == impl (the colocated case).
         mangled :: impl_member_name(

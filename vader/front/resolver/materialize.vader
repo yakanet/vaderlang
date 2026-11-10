@@ -15,7 +15,7 @@
 //      on the parser-fabricated synthetic FnDecl(s) from the trait's
 //      single required method.
 //
-// All three share the `Self → impl_.for_type` + trait type-param →
+// All three share the `Self -> impl_.for_type` + trait type-param ->
 // impl trait-arg substitution wired through `substitute.vader`.
 
 module "vader/front/resolver"

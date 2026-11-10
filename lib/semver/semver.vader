@@ -2,7 +2,7 @@
 //
 // Reference specs (locked in 2026-05-26) :
 //   - https://semver.org/spec/v2.0.0.html: version-string grammar +
-//     precedence rules §1–§12. Ranges are NOT part of this spec.
+//     precedence rules §1 to §12. Ranges are NOT part of this spec.
 //   - https://github.com/npm/node-semver: de-facto reference for the
 //     `^` / `~` / `||` / `-` / x-range syntax we adopt.
 //
@@ -506,7 +506,7 @@ I32_MAX :: 0x7FFF_FFFF
 
 // Exclusive upper-bound version (bump one component by 1, zero the rest, carry
 // the `-0` pre-release marker), or `null` when the component is already i32.MAX,
-// then the range has NO upper bound (matches everything ≥ its lower bound)
+// then the range has NO upper bound (matches everything >= its lower bound)
 // rather than wrapping to a negative version that nothing satisfies.
 bump_major :: fn(major: i32) -> Version | null = if major == I32_MAX { null } else { zero_pre(major + 1, 0, 0) }
 bump_minor :: fn(major: i32, minor: i32) -> Version | null = if minor == I32_MAX { null } else { zero_pre(major, minor + 1, 0) }
@@ -555,7 +555,7 @@ expand_tilde :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
 expand_xrange :: fn(p: PartialVersion) -> RangeTerm[] {
     lo :: partial_to_lower(p)
     if p.major < 0 {
-        // `*`: any release ≥ 0.0.0. No upper bound. Pre-release
+        // `*`: any release >= 0.0.0. No upper bound. Pre-release
         // filter then excludes pre-releases at match time.
         return [RangeTerm { .op = .Gte, .version = lo }]
     }
@@ -634,7 +634,7 @@ parse_token :: fn(t: string) -> RangeTerm[] | ParseError {
             is ParseError     -> { return ParseError { .msg = "tilde: ${p.message()}" } }
         }
     }
-    // Bare token : full M.N.P → equality ; partial / wildcard →
+    // Bare token : full M.N.P -> equality ; partial / wildcard ->
     // x-range expansion.
     match p :: parse_partial(t) {
         is PartialVersion -> {

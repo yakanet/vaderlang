@@ -13,7 +13,7 @@ import "toolchain/span"
 import "vader/lower/ir"
 
 // Preserve the `@<name>(args)` call shape. Comptime-foldable variants
-// (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
+// (`@size_of`, `@type_kind`, ...) get baked at evaluation time and reach
 // the lowerer as bound `@comptime const` references ; what remains is
 // the runtime-bound shape, which the bytecode emit consumes.
 lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
@@ -312,7 +312,7 @@ try_fold_fields :: fn(
             .reason = "@fields target struct decl not found",
         }
     }
-    // Build the type-param → arg substitution using the existing
+    // Build the type-param -> arg substitution using the existing
     // helper that the generic-instance materialiser uses.
     subst :: build_concrete_subst(decl.type_params, target_struct.args, ctx.typed)
     string_type :: TY_STRING

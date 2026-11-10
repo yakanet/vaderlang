@@ -155,9 +155,9 @@ lsp_severity :: fn(s: Severity) -> i32 = match s {
 import "std/testing"
 
 @test test_lsp_diag_tag :: fn() -> void {
-    assert_eq(lsp_diag_tag("W0007"), 1)   // dead private → Unnecessary (faded)
-    assert_eq(lsp_diag_tag("W0012"), 1)   // dead export → Unnecessary (faded)
-    assert_eq(lsp_diag_tag("W0001"), 2)   // deprecated → Deprecated (struck)
-    assert_eq(lsp_diag_tag("T3054"), 0)   // ordinary error → no tag
-    assert_eq(lsp_diag_tag("W0005"), 0)   // ordinary warning → no tag
+    assert_eq(lsp_diag_tag("W0007"), 1)   // dead private -> Unnecessary (faded)
+    assert_eq(lsp_diag_tag("W0012"), 1)   // dead export -> Unnecessary (faded)
+    assert_eq(lsp_diag_tag("W0001"), 2)   // deprecated -> Deprecated (struck)
+    assert_eq(lsp_diag_tag("T3054"), 0)   // ordinary error -> no tag
+    assert_eq(lsp_diag_tag("W0005"), 0)   // ordinary warning -> no tag
 }

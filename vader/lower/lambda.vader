@@ -172,7 +172,7 @@ next_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
 
 synth_env_param_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
     // Use the per-fn `uniq` counter so the name takes the
-    // `fresh_synthetic_symbol("env")` form (`__env_0`, `__env_1`, …).
+    // `fresh_synthetic_symbol("env")` form (`__env_0`, `__env_1`, ...).
     return fresh_synthetic_symbol(ctx, "env")
 }
 

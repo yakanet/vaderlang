@@ -168,7 +168,7 @@ reference_count :: fn(owner: TypedProgram, symbol: Symbol, at: Span) -> i64 {
 
 is_defer :: fn(s: AST.Stmt) -> bool = s is AST.DeferStmt
 
-// A `for … in <param>` over `symbol`, not an unrolled `@comptime for`, which
+// A `for ... in <param>` over `symbol`, not an unrolled `@comptime for`, which
 // would run its body once per element of a constant.
 loops_over :: fn(s: AST.Stmt, owner: TypedProgram, symbol: Symbol) -> bool {
     if s is AST.ForStmt {
@@ -408,7 +408,7 @@ assign_consumer_return :: fn(
     out.push(assign_consumed(consumer.result, consumer.result_type, value, stmt.span))
 }
 
-/// The chain a `for … in <iter>` in an inlined consumer drains: the consumed
+/// The chain a `for ... in <iter>` in an inlined consumer drains: the consumed
 /// argument's, when `iter` names the consumed parameter ; null otherwise.
 ///
 /// @param ctx   the fn-body context.

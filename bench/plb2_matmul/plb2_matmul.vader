@@ -1,5 +1,5 @@
 /// plb2 `matmul` (https://github.com/attractivechaos/plb2): multiply two
-/// 1500×1500 `f64` matrices with the i-k-j loop order, so the inner loop
+/// 1500x1500 `f64` matrices with the i-k-j loop order, so the inner loop
 /// streams one row of each operand.
 ///
 /// Ported from plb2's Go version: a matrix is one flat array indexed by

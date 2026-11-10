@@ -11,7 +11,7 @@
 /// offsets would land here and nowhere else.
 ///
 /// Every operation is additive, so the value stays bounded by
-/// `leaf count × MAX_LITERAL`: exact in an f64 mantissa, so the Bun-TS peer
+/// `leaf count x MAX_LITERAL`: exact in an f64 mantissa, so the Bun-TS peer
 /// needs no BigInt and the checksum stays cross-language comparable.
 ///
 /// Sized so the natively compiled binary runs in ~30-70 ms.

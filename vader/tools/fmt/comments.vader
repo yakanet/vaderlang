@@ -15,11 +15,11 @@ import "vader/front/lexer"
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form
 /// doc-comment.
 export CommentKind :: enum(u8) {
-    Line,     // `// …`, or the `#!` line opening the file
-    DocLine,  // `/// …`: VaderDoc form, which semantic tokens colours apart.
+    Line,     // `// ...`, or the `#!` line opening the file
+    DocLine,  // `/// ...`: VaderDoc form, which semantic tokens colours apart.
               //   The formatter treats them like `Line` for round-trip
               //   equality (text is verbatim).
-    Block,    // `/* … */` (may contain nested `/* … */`)
+    Block,    // `/* ... */` (may contain nested `/* ... */`)
 }
 
 /// One scanned comment, ready for replay by the printer.

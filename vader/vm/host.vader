@@ -160,7 +160,7 @@ export dispatch_import :: fn(
     // Served by `serve_import` (`reg_exec.vader`), which holds the type table.
     .DeepCopy -> {}
     .BytesToString -> {
-        // bytes→string : the native interns the bytes verbatim (no UTF-8
+        // bytes->string : the native interns the bytes verbatim (no UTF-8
         // validation): straight from the view a `s.bytes()` reads, else
         // gathered out of the boxed u8 slots.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
