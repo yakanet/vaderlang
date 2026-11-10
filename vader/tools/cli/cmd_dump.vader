@@ -306,8 +306,13 @@ run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | nu
 run_comptime_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
     project_root: string | null,
-) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
+) -> i32 = print_evaluated(
+    prepare_evaluated_project_with(file, include_path_flags, project_root, target),
+    module_filter,
+)
+
+// Print the comptime dump of `pipeline`, scoped to `module_filter`.
+print_evaluated :: fn(pipeline: EvaluatedPipeline, module_filter: string[]) -> i32 {
     scope :: dump_scope(module_filter, pipeline.loaded)
     println(dump_evaluated(pipeline.evaluated, scope))
     // The dump is Markdown, so its diagnostics are a Markdown section ; the
@@ -384,9 +389,15 @@ parse_dump_target :: fn(flag: string) -> Target | null | TargetParseError {
 run_bytecode_stage :: fn(
     file: Path, annotate: bool, include_path_flags: string[], target: Target | null,
     project_root: string | null,
-) -> i32 {
+) -> i32 =
     // The bytecode dump never renders `debug`, so skip populating it.
-    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, project_root, target)
+    print_bytecode(
+        prepare_cfg_bytecode_with(file, false, include_path_flags, project_root, target),
+        annotate,
+    )
+
+// Print the bytecode of `b`, each index-bearing op named when `annotate`.
+print_bytecode :: fn(b: CfgBytecode, annotate: bool) -> i32 {
     // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
     // skips lowering on a front-end error): print only the diagnostics, never
     // a bare `module` shell for code that was never compiled. Gate on
@@ -424,6 +435,11 @@ run_c_stage :: fn(
         file, line_directives, include_path_flags, project_root, target, false,
         proves_bounds(false),
     )
+    return print_c(b)
+}
+
+// Print the C of `b`, its diagnostics on stderr.
+print_c :: fn(b: CfgBytecode) -> i32 {
     // No C for a front-end-rejected program: print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {
@@ -522,12 +538,17 @@ run_lower_stage :: fn(
     project_root: string | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
+    return print_lowered(pipeline, lower_to_entry_from(pipeline), module_filter)
+}
+
+// Print the lowered tree `le` of `pipeline`, scoped to `module_filter`.
+print_lowered :: fn(pipeline: EvaluatedPipeline, le: LoweredEntry, module_filter: string[]) -> i32 {
+    scope :: dump_scope(module_filter, pipeline.loaded)
     // A front-end-rejected program is never lowered : print its diagnostics alone.
-    le :: lower_to_entry_from(pipeline)
     if !any_error_diag(le.pre_diags) {
-        println(dump_lowered(le.lowered, pipeline.typed, dump_scope(module_filter, pipeline.loaded)))
+        println(dump_lowered(le.lowered, pipeline.typed, scope))
     }
-    print_pipeline_diags(pipeline, le.lower_diags, dump_scope(module_filter, pipeline.loaded))
+    print_pipeline_diags(pipeline, le.lower_diags, scope)
     return 0
 }
 

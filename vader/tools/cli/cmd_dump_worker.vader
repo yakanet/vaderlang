@@ -1,0 +1,110 @@
+// vader/tools/cli/dump_worker: a process that dumps the stages of many files.
+//
+// Prototype of a test-runner worker: it reads one case per line on stdin and
+// writes the dumps `vader dump --stage=<S>` would print for it, without starting
+// a process per stage. A case line is `<path>\t<modules>\t<stages>`, the modules
+// and the stages each a comma list, the modules possibly empty. Before each
+// stage the worker writes a line `\u{1e}<stage>` and after it
+// `\u{1e}end <code> <micros>`, the exit code `vader dump` would have had and the
+// time the stage took; after the last one, a line `\u{1e}done <micros>`, the
+// time the case took.
+//
+// The stages from `evaluated-ast` on share one front end and one lowering per
+// case, which `vader dump` runs once per stage.
+//
+// Same module as `main.vader`: the stages are those of `cmd_dump.vader`.
+
+module "vader/tools/cli"
+
+import "std/console"
+import "std/io"
+import "std/path"
+import "std/string"
+import "std/time"
+import "vader/pipeline"
+import "vader/support/target"
+
+/// `vader dump-worker`: dump the stages of each case read on stdin, until stdin
+/// ends.
+///
+/// @return  0 once stdin has ended, 2 when the target does not parse.
+cmd_dump_worker :: fn() -> i32 {
+    target :: parse_dump_target("linux-x86_64")
+    if target is TargetParseError {
+        eprintln("vader dump-worker: ${target.reason}")
+        return 2
+    }
+    for {
+        line :: read_line()
+        if line is IOError {
+            return 0
+        }
+        if line != "" {
+            run_case(line.split("\t"), target)
+        }
+    }
+}
+
+// Dump the stages of the case `parts`, a case line split on its tabs.
+run_case :: fn(parts: string[], target: Target | null) -> void {
+    modules: string[]: if parts[1] == "" { [] } else { parts[1].split(",") }
+    input :: CaseInput { .file = Path(parts[0]), .target = target }
+    began :: monotonic()
+    for stage in parts[2].split(",") {
+        println("\u{1e}${stage}")
+        stage_began :: monotonic()
+        code :: run_worker_stage(stage, input, modules)
+        println("\u{1e}end ${code} ${stage_began.since().to_micros()}")
+    }
+    println("\u{1e}done ${began.since().to_micros()}")
+}
+
+// Run one stage as `vader dump --stage=<stage> --target=linux-x86_64` would, the
+// bytecode stage with `--annotate` as the snapshots take it.
+run_worker_stage :: fn(stage: string, input: CaseInput, modules: string[]) -> i32 = match stage {
+    "lexer"         -> run_lexer_stage(input.file)
+    "ast"           -> run_parser_stage(input.file)
+    "typed-ast"     -> run_typecheck_stage(input.file, modules, [], input.target, null)
+    "evaluated-ast" -> print_evaluated(input.front_end().pipeline, modules)
+    "lowered-ast"   -> print_lowered(input.front_end().pipeline, input.front_end().lowered, modules)
+    "bytecode"      -> print_bytecode(input.case_bytecode(false), true)
+    "c"             -> print_c(input.case_bytecode(proves_bounds(false)))
+    _               -> unknown_worker_stage(stage)
+}
+
+unknown_worker_stage :: fn(stage: string) -> i32 {
+    eprintln("vader dump-worker: unknown stage `${stage}`")
+    return 2
+}
+
+// ---- one front end per case -----------------------------------------------
+
+// The file of one case, and its front end once a stage has asked for it.
+CaseInput :: struct {
+    file: Path
+    target: Target | null
+    front: CaseFrontEnd | null = null
+}
+
+// What the stages from `evaluated-ast` on read.
+CaseFrontEnd :: struct {
+    pipeline: EvaluatedPipeline
+    lowered: LoweredEntry
+}
+
+// The front end and the lowering of `input`, run by the first stage that asks.
+front_end :: fn(input: CaseInput) -> CaseFrontEnd {
+    made :: input.front
+    if made != null {
+        return made
+    }
+    pipeline :: prepare_evaluated_project_with(input.file, [], null, input.target)
+    front :: CaseFrontEnd { .pipeline = pipeline, .lowered = lower_to_entry_from(pipeline) }
+    input.front = front
+    return front
+}
+
+// The bytecode of `input` from its shared lowering, as `vader dump` builds it for
+// the bytecode stage (`prove_bounds` false) and for the C stage.
+case_bytecode :: fn(input: CaseInput, prove_bounds: bool) -> CfgBytecode =
+    prepare_cfg_bytecode_from(input.front_end().lowered, input.file, false, false, prove_bounds)
