@@ -8,7 +8,6 @@
 module "vader/tools/doc"
 
 import "std/collections"
-import "std/iter"
 import "std/string"
 TTY :: import "std/tty"
 import "toolchain/span"

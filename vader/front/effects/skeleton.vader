@@ -20,7 +20,6 @@
 module "vader/front/effects"
 
 import "std/collections"
-import "std/iter"
 import "toolchain/span"
 import "vader/front/typecheck"
 

@@ -13,7 +13,6 @@
 module "vader/midir"
 
 import "std/collections"
-import "std/iter"
 import "vader/core/bytecode"
 import "vader/midir/select"
 
