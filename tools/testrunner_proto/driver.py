@@ -11,14 +11,22 @@
 # recorded as the harness records a failed run.
 #
 # Usage, from the repository root:
-#   python3 -I tools/testrunner_proto/driver.py <vader> <baseline|worker|both> <every-nth> <report.json> [k]
+#   python3 -I tools/testrunner_proto/driver.py <vader> <baseline|worker|both> <every-nth> <report.json>
+#       [k] [phases, comma list, `vm` included on request] [reverse]
+#
+# The `vm` phase runs the snippet's source as `vader run <path>` does, formatted
+# as `formatRun` in tests/snapshot.ts formats a run (a signal counts as a stop);
+# the baseline runs `vader run <path>`. tests/vader_vm.test.ts runs the pinned
+# `.virt` or a built image instead, so a few snapshots differ in both forms.
 
 import json
 import os
 import queue
 import resource
 import re
+import shutil
 import subprocess
+import tempfile
 import sys
 import threading
 import time
@@ -33,11 +41,20 @@ STAGES = [
     ("bytecode", "bytecode", "bytecode.snapshot.virt", False),
     ("emit_c", "c", "emit-c.snapshot.c", False),
 ]
+VM_STAGE = ("vm", "vm", "vm.snapshot", False)
 STOP_LINE = re.compile(r"^vader: (?:trap|panic): ", re.M)
+VM_STOP = re.compile(r"^vader vm: (.*?)(?: at pc=\d+)?$", re.M)
 CASE_TIMEOUT_S = 300
 
 
-def snippets(every):
+def vm_excluded(cfg, d):
+    vm = cfg.get("vm") or {}
+    if vm.get("skip") or (vm.get("skip_on") or {}).get(sys.platform):
+        return True
+    return any(f.startswith("helper") and f.endswith(".c") for f in os.listdir(d))
+
+
+def snippets(every, phases):
     root = "tests/snippets"
     names = sorted(
         n for n in os.listdir(root)
@@ -48,17 +65,15 @@ def snippets(every):
         if i % every:
             continue
         d = os.path.join(root, name)
-        cfg = {}
         p = os.path.join(d, "_config.json")
-        if os.path.exists(p):
-            try:
-                cfg = json.load(open(p))
-            except Exception:
-                cfg = {}
-        phases = cfg.get("phases")
-        stages = [s for s in STAGES if phases is None or s[0] in phases]
-        out.append({"name": name, "dir": d, "path": os.path.join(d, "_main.vader"),
-                    "stages": stages, "modules": cfg.get("modules") or []})
+        cfg = json.load(open(p)) if os.path.exists(p) else {}
+        allowed = cfg.get("phases")
+        stages = [s for s in STAGES if s[0] in phases and (allowed is None or s[0] in allowed)]
+        if "vm" in phases and os.path.exists(os.path.join(d, VM_STAGE[2])) and not vm_excluded(cfg, d):
+            stages.append(VM_STAGE)
+        if stages:
+            out.append({"name": name, "dir": d, "path": os.path.join(d, "_main.vader"),
+                        "stages": stages, "modules": cfg.get("modules") or []})
     return out
 
 
@@ -82,6 +97,19 @@ def canonical_exit(code, stderr):
     if code != 0 and (code < 0 or code >= 128 or STOP_LINE.search(stderr)):
         return 134
     return code
+
+
+def format_run(stdout, stderr, code):
+    shared = VM_STOP.sub(lambda m: "vader: " + m.group(1) if m.group(1).startswith("panic: ")
+                         else "vader: trap: " + m.group(1), stderr)
+    parts = []
+    if stdout:
+        parts.append("# stdout\n" + stdout)
+    if shared:
+        parts.append("# stderr\n" + shared)
+    stopped = STOP_LINE.search(shared) or code < 0
+    parts.append(f"# exit\n{134 if stopped else code}\n")
+    return "".join(parts)
 
 
 def failed_text(code, stderr, stdout):
@@ -131,6 +159,12 @@ def run_baseline(binary, cases, env, k):
 
     def body(case, _state):
         for stage in case["stages"]:
+            if stage is VM_STAGE:
+                p = subprocess.run([binary, "run", case["path"]], capture_output=True, env=env,
+                                   stdin=subprocess.DEVNULL, timeout=CASE_TIMEOUT_S)
+                texts[(case["name"], stage[0])] = format_run(
+                    p.stdout.decode("utf-8", "replace"), p.stderr.decode("utf-8", "replace"), p.returncode)
+                continue
             p = subprocess.run(dump_args(binary, stage, case), capture_output=True, env=env,
                                timeout=CASE_TIMEOUT_S)
             out = p.stdout.decode("utf-8", "replace")
@@ -146,7 +180,8 @@ def run_baseline(binary, cases, env, k):
 
 class Worker:
     def __init__(self, binary, env):
-        self.p = subprocess.Popen([binary, "dump-worker"], stdin=subprocess.PIPE,
+        self.capture = tempfile.mkdtemp(prefix="vader-worker-")
+        self.p = subprocess.Popen([binary, "dump-worker", self.capture], stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         self.err = bytearray()
         self.lock = threading.Lock()
@@ -197,9 +232,15 @@ class Worker:
                     continue
                 buf += raw[:i]
                 marker = raw[i + 1:].rstrip(b"\n").decode()
-                if marker.startswith("end "):
+                if marker == "stderr":
+                    vm_out = bytes(buf)
+                    buf = bytearray()
+                elif marker.startswith("end "):
                     code, micros = marker[4:].split(" ")
-                    results[current] = (bytes(buf), int(code))
+                    if current == "vm":
+                        results[current] = ((vm_out, bytes(buf)), int(code))
+                    else:
+                        results[current] = (bytes(buf), int(code))
                     stage_micros[current] = stage_micros.get(current, 0) + int(micros)
                     current = None
                     buf = bytearray()
@@ -231,6 +272,10 @@ def run_worker(binary, cases, env, k):
             by_dump = {s[1]: s for s in todo}
             for dump_stage, (out, code) in results.items():
                 stage = by_dump[dump_stage]
+                if stage is VM_STAGE:
+                    texts[(case["name"], stage[0])] = format_run(
+                        out[0].decode("utf-8", "replace"), out[1].decode("utf-8", "replace"), code)
+                    continue
                 text = out.decode("utf-8", "replace")
                 if code != 0:
                     text = failed_text(code, "", text)
@@ -260,6 +305,7 @@ def run_worker(binary, cases, env, k):
         if worker is not None:
             worker.p.stdin.close()
             worker.p.wait()
+            shutil.rmtree(worker.capture, ignore_errors=True)
 
     began = time.monotonic()
     pool(cases, k, body, finish_thread)
@@ -296,8 +342,11 @@ def cpu_seconds(who=resource.RUSAGE_CHILDREN):
 def main():
     binary, mode, every, report_path = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
     k = int(sys.argv[5]) if len(sys.argv) > 5 else 1
+    phases = sys.argv[6].split(",") if len(sys.argv) > 6 else [s[0] for s in STAGES]
     env = dict(os.environ)
-    cases = snippets(every)
+    cases = snippets(every, phases)
+    if len(sys.argv) > 7 and sys.argv[7] == "reverse":
+        cases.reverse()
     report = {"cases": len(cases), "stage_checks": sum(len(c["stages"]) for c in cases), "k": k}
     base = work = None
     if mode in ("baseline", "both"):

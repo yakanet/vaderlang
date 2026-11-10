@@ -78,7 +78,8 @@ cmd_dump :: fn(args: string[]) -> i32 {
     // rendered for THIS machine -- which is why the committed snapshots,
     // generated for `SNAPSHOT_TARGET`, disagreed with another host.
     target_arg :: parsed.string_flag("target", "")
-    target :: parse_dump_target(target_arg)
+    // Empty is this machine, which the pipeline spells `null`.
+    target :: if target_arg == "" { null } else { parse_target(target_arg) }
     if target is TargetParseError {
         eprintln("vader dump --target=${target_arg}: ${target.reason} `${target.fragment}`")
         return 2
@@ -373,18 +374,6 @@ run_ranges_stage :: fn(
 /// `vader/lower/ir/lowered_ast.vader`), so nothing here references the typecheck
 /// side-table maps that dominate the live set: returning this lets the caller
 /// run emit without those maps coexisting with the emitter's own tables.
-
-/// Parse a `--target=<os-arch>` flag for a dump stage. Empty means "this
-/// machine", which the pipeline spells `null`.
-///
-/// @param flag  the raw flag value.
-/// @return      the target, `null` for the host, or why it could not be parsed.
-parse_dump_target :: fn(flag: string) -> Target | null | TargetParseError {
-    if flag == "" {
-        return null
-    }
-    return parse_target(flag)
-}
 
 run_bytecode_stage :: fn(
     file: Path, annotate: bool, include_path_flags: string[], target: Target | null,

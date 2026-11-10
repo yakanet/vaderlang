@@ -47,7 +47,7 @@ main :: fn(argv: string[]) -> i32 {
         "fmt"                          -> cmd_fmt(action_args)
         "test"                         -> cmd_test(action_args)
         "dump"                         -> cmd_dump(action_args)
-        "dump-worker"                  -> cmd_dump_worker()
+        "dump-worker"                  -> cmd_dump_worker(action_args)
         "lsp"                          -> cmd_lsp(action_args)
         "dap"                          -> cmd_dap(action_args)
         "check"                        -> cmd_check(action_args)
