@@ -1064,17 +1064,68 @@ export UnaryExpr :: struct {
     operand: Expr
 }
 
-/// Which infix operator a `BinaryExpr` applies.
+/// Which infix operator a `BinaryExpr` applies. `binary_op_symbol` gives the
+/// spelling of each, the parser's table its precedence, and SPEC (§3
+/// *Operators*) what each one does. A compound assignment (`a += b`) carries the
+/// operator of its arithmetic (`Add`).
+///
+/// No variant stands for `!is`: the parser reads `x !is T` as a `Not`
+/// `UnaryExpr` around an `Is`.
 export BinaryOp :: enum(u8) {
-    Add, Sub, Mul, Div, Mod,
-    Shl, Shr, BitAnd, BitOr, BitXor,
-    And, Or,
-    Eq, Neq, Lt, Lte, Gt, Gte,
-    Is, In, NotIn,
-    /// `===` / `!==` : the same object, not an equal value.
-    Same, NotSame,
-    /// `+%` / `-%` / `*%` : integer arithmetic that wraps around its width.
-    AddWrap, SubWrap, MulWrap,
+    /// `a + b`, through `Add` on a user type.
+    Add,
+    /// `a - b`, through `Sub` on a user type.
+    Sub,
+    /// `a * b`, through `Mul` on a user type: `[0] * n` and `"ab" * 3` repeat.
+    Mul,
+    /// `a / b`.
+    Div,
+    /// `a % b`, the remainder.
+    Mod,
+    /// `a << b`.
+    Shl,
+    /// `a >> b`.
+    Shr,
+    /// `a & b`, bitwise.
+    BitAnd,
+    /// `a | b`, bitwise.
+    BitOr,
+    /// `a ^ b`, bitwise exclusive or.
+    BitXor,
+    /// `a && b`: `b` is evaluated, and sees `a` narrowed, only when `a` holds.
+    And,
+    /// `a || b`: `b` is evaluated, and sees `a` false, only when `a` does not hold.
+    Or,
+    /// `a == b`: equal values, through `Equals`.
+    Eq,
+    /// `a != b`, the negation of `Eq`.
+    Neq,
+    /// `a < b`, through `Comparable`, as are the three below.
+    Lt,
+    /// `a <= b`.
+    Lte,
+    /// `a > b`.
+    Gt,
+    /// `a >= b`.
+    Gte,
+    /// `x is T`: whether `x` holds a value of the type `T`, which narrows `x` where
+    /// it does. The right operand is a type.
+    Is,
+    /// `x in c`: `c.contains(x)`, through `Contains`. With a type on the right
+    /// (`h in Hour`), whether `x` is one of its values.
+    In,
+    /// `x !in c`, the negation of `In`.
+    NotIn,
+    /// `a === b`: the same object, not an equal value.
+    Same,
+    /// `a !== b`, the negation of `Same`.
+    NotSame,
+    /// `a +% b`: integer addition that wraps around its width.
+    AddWrap,
+    /// `a -% b`, wrapping as `AddWrap` does.
+    SubWrap,
+    /// `a *% b`, wrapping as `AddWrap` does.
+    MulWrap,
 }
 
 /// The operator as the source spells it, `"+"` for `Add` : what a diagnostic quotes
