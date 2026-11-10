@@ -1,0 +1,198 @@
+// vader/tools/dump/back_stages: the dump stages from the lowering on.
+//
+// Lowered tree, the same after dead-function elimination, control-flow graph,
+// range verdicts, bytecode, C, and the C prototypes of the `@extern`s. Each
+// renders its stage and its diagnostics to a `StageOutput` (`dump.vader`). A
+// program the front end rejected is never lowered: these stages then render its
+// diagnostics alone.
+
+module "vader/tools/dump"
+
+import "std/collections"
+import "toolchain/ast"
+import "vader/core/bytecode"
+import "vader/emit/bytecode"
+import "vader/emit/c"
+import "vader/emit/virt"
+import "vader/front/typecheck"
+import "vader/lower/dce"
+import "vader/lower/dump"
+import "vader/lower/ir"
+import "vader/midir"
+import "vader/midir/pipeline"
+import "vader/midir/ranges"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+import "vader/support/text"
+
+// The lowered tree of the modules in scope, then the diagnostics.
+lower_stage :: fn(input: DumpInput) -> StageOutput {
+    pipeline :: input.evaluated_pipeline()
+    le :: input.lowered_entry()
+    scope :: input.scope_of()
+    lowered := ""
+    if !any_error_diag(le.pre_diags) {
+        lowered = "${dump_lowered(le.lowered, pipeline.typed, scope)}\n"
+    }
+    return with_diags(lowered, pipeline_diags_in_scope(pipeline, le.lower_diags, scope))
+}
+
+// The lowered tree after dead-function elimination, as a run or a build sees it:
+// the roots are `main`, the `@export`s and the `@extern`s, the tests left out.
+dced_stage :: fn(input: DumpInput) -> StageOutput {
+    pipeline :: input.evaluated_pipeline()
+    le :: input.lowered_entry()
+    scope :: input.scope_of()
+    dced := ""
+    if !any_error_diag(le.pre_diags) {
+        pruned :: prune_unreachable_fns(le.lowered, false)
+        dced = "${dump_lowered(pruned, pipeline.typed, scope)}\n"
+    }
+    return with_diags(dced, pipeline_diags_in_scope(pipeline, le.lower_diags, scope))
+}
+
+// The control-flow graph of the modules in scope, without the string pool, then
+// the diagnostics.
+cfg_stage :: fn(input: DumpInput) -> StageOutput {
+    pipeline :: input.evaluated_pipeline()
+    le :: input.lowered_entry()
+    scope :: input.scope_of()
+    cfg := ""
+    cfg_diags: Diagnostic[]: []
+    if !any_error_diag(le.pre_diags) {
+        opts :: DumpCfgOptions { .scope = scope, .include_strings = false }
+        cfg = dump_cfg_project(build_cfg_project(le.lowered, cfg_diags), opts)
+    }
+    return with_diags(cfg, pipeline_diags_in_scope(pipeline, le.lower_diags + cfg_diags, scope))
+}
+
+// The range analysis's verdict on every array access and checked operation,
+// over the graph the bytecode emitter receives, pruned as a build prunes it.
+ranges_stage :: fn(input: DumpInput) -> StageOutput {
+    pipeline :: input.evaluated_pipeline()
+    le :: input.lowered_entry()
+    scope :: input.scope_of()
+    ranges := ""
+    cfg_diags: Diagnostic[]: []
+    if !any_error_diag(le.pre_diags) {
+        pruned :: prune_unreachable_fns(le.lowered, false)
+        ranges = dump_ranges_project(
+            build_optimised_cfg(pruned, CfgPassOptions {}, cfg_diags),
+            scope,
+        )
+    }
+    return with_diags(ranges, pipeline_diags_in_scope(pipeline, le.lower_diags + cfg_diags, scope))
+}
+
+// The bytecode, then its diagnostics.
+bytecode_stage :: fn(input: DumpInput) -> StageOutput {
+    // The bytecode dump never renders `debug`, so it is not populated.
+    b :: prepare_cfg_bytecode_from(input.lowered_entry(), input.file, false)
+    bytecode := ""
+    // Only the front-end diagnostics blank the dump: a lowering diagnostic still
+    // leaves runnable bytecode behind, which the VM-parity corpus runs.
+    if !any_error_diag(b.pre_diags) {
+        // `--annotate` appends `; <name>` after each index-bearing op. The dump
+        // stays readable back: a `;` comment is dropped before parsing.
+        if input.annotate {
+            bytecode = dump_bytecode_annotated(b.module, b.entry)
+        } else {
+            bytecode = dump_bytecode(b.module, b.entry)
+        }
+    }
+    return with_diags(bytecode, bytecode_diags(b))
+}
+
+// The C of a non-release build, its diagnostics on `err`: `out` is C source fed
+// straight to a compiler, which would read a `# Diagnostics` block as a
+// preprocessor directive.
+c_stage :: fn(input: DumpInput) -> StageOutput {
+    // The C carries a `#line` wherever the bytecode records a position, so
+    // `line_directives` is what populates `debug`.
+    b :: prepare_cfg_bytecode_from(
+        input.lowered_entry(),
+        input.file,
+        input.line_directives,
+        false,
+        proves_bounds(false),
+    )
+    diags :: diags_block(bytecode_diags(b))
+    if any_error_diag(b.pre_diags) {
+        return StageOutput { .out = diags }
+    }
+    // The entry is designated by name, so the `main()` shim calls the entry
+    // module's `main` when several modules declare one.
+    return StageOutput { .out = emit_c(b.module, native_c_options(b.entry)), .err = diags }
+}
+
+// Each `@extern` the modules in scope declare, as the C prototype it is called
+// through, the uncalled ones included.
+externs_stage :: fn(input: DumpInput) -> StageOutput {
+    pipeline :: input.evaluated_pipeline()
+    le :: input.lowered_entry()
+    scope :: input.scope_of()
+    externs := ""
+    back_end_diags: Diagnostic[]: []
+    if !any_error_diag(le.pre_diags) {
+        // The lowering prune keeps every `@extern` as a root; only the `optimize`
+        // passes of the emit drop the imports nothing calls.
+        pruned :: prune_unreachable_fns(le.lowered, false)
+        opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = false }
+        module :: cfg_to_bytecode(pruned, module_name_from_file(input.file), opts, back_end_diags)
+        imports :: imports_in_scope(module.imports, pruned, scope)
+        externs = dump_externs(imports, module.types, library_constants(pipeline.typed, pruned))
+    }
+    diags :: pipeline_diags_in_scope(pipeline, le.lower_diags + back_end_diags, scope)
+    return with_diags(externs, diags)
+}
+
+// The `CLibrary` constant each `@extern` of `lowered` names, by mangle. The
+// typecheck keys them by declaration, whose node id is unique in the project.
+library_constants :: fn(
+    typed: TypedProject,
+    lowered: LoweredProject,
+) -> Map<string, LibraryConstant> {
+    by_declaration :: Map<i64, LibraryConstant> {}
+    for [_, program] in typed.modules {
+        for [id, symbol] in program.extern_libraries {
+            by_declaration[id] = LibraryConstant {
+                .name = symbol.name,
+                .module = symbol.module_name,
+            }
+        }
+    }
+    constants :: Map<string, LibraryConstant> {}
+    for [_, m] in lowered.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl && d.origin.decl is FnDecl {
+                constants[d.mangled] = by_declaration[d.origin.decl.id] ?? continue
+            }
+        }
+    }
+    return constants
+}
+
+// The imports among `imports` that a module of `scope` declares.
+imports_in_scope :: fn(
+    imports: BcImport[],
+    lowered: LoweredProject,
+    scope: string[],
+) -> BcImport[] {
+    declared :: Set<string> {}
+    for [_, m] in lowered.modules {
+        if module_in_scope(m.display_path, scope) {
+            for d in m.decls {
+                if d is LoweredFnDecl {
+                    declared.add(d.mangled)
+                }
+            }
+        }
+    }
+    kept: BcImport[]: []
+    for imp in imports {
+        if imp.mangled_name in declared {
+            kept.push(imp)
+        }
+    }
+    return kept
+}

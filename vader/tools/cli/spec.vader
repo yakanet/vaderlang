@@ -233,9 +233,8 @@ BUILD_FLAGS: FlagSpec[]: [
     },
 ]
 
-// The IR stages. This array is the only list of them: `cmd_dump`
-// dispatches on the name, but what is *accepted* (and what an unknown stage
-// reports) comes from here.
+// The IR stages `vader dump` accepts, and what an unknown stage reports. Each
+// name needs its arm in `dump_stage` (`vader/tools/dump`), which renders it.
 DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "lexer", .help = "Token stream + diagnostics (text)" },
     ValueSpec { .name = "ast", .help = "Parser AST (JSON, spans elided)" },

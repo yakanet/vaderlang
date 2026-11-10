@@ -10,7 +10,7 @@
 // time the case took.
 //
 // The stages from `evaluated-ast` on share one front end and one lowering per
-// case, which `vader dump` runs once per stage.
+// case (`DumpInput`), which `vader dump` runs once per stage.
 //
 // The `vm` stage is a measurement shortcut, not the runner's design, which
 // redirects the program's streams inside the VM: it runs the case through
@@ -19,7 +19,7 @@
 // of the folder given as the worker's argument). Its text is the captured stdout,
 // a line `\u{1e}stderr`, then the captured stderr. POSIX only.
 //
-// Same module as `main.vader`: the stages are those of `cmd_dump.vader`.
+// Same module as `main.vader`: the stages are those of `vader/tools/dump`.
 
 module "vader/tools/cli"
 
@@ -31,8 +31,8 @@ import "std/option"
 import "std/path"
 import "std/string"
 import "std/time"
-import "vader/pipeline"
 import "vader/support/target"
+import "vader/tools/dump"
 Posix :: import "system/posix"
 
 /// `vader dump-worker <folder>`: dump the stages of each case read on stdin, until
@@ -57,16 +57,17 @@ cmd_dump_worker :: fn(args: string[]) -> i32 {
 // Dump the stages of the case `parts`, a case line split on its tabs.
 run_case :: fn(parts: string[], target: Target | null, capture: string) -> void {
     modules: string[]: if parts[1] == "" { [] } else { parts[1].split(",") }
-    input :: CaseInput {
+    input :: DumpInput {
         .file = Path(parts[0]),
+        .modules = modules,
         .target = target,
-        .capture = capture,
+        .annotate = true,
     }
     began :: monotonic()
     for stage in parts[2].split(",") {
         println("\u{1e}${stage}")
         stage_began :: monotonic()
-        code :: run_worker_stage(stage, input, modules)
+        code :: run_worker_stage(stage, input, capture)
         println("\u{1e}end ${code} ${stage_began.since().to_micros()}")
     }
     println("\u{1e}done ${began.since().to_micros()}")
@@ -74,55 +75,12 @@ run_case :: fn(parts: string[], target: Target | null, capture: string) -> void 
 
 // Run one stage as `vader dump --stage=<stage> --target=linux-x86_64` would, the
 // bytecode stage with `--annotate` as the snapshots take it.
-run_worker_stage :: fn(stage: string, input: CaseInput, modules: string[]) -> i32 = match stage {
-    "lexer"         -> run_lexer_stage(input.file)
-    "ast"           -> run_parser_stage(input.file)
-    "typed-ast"     -> run_typecheck_stage(input.file, modules, [], input.target, null)
-    "evaluated-ast" -> print_evaluated(input.front_end().pipeline, modules)
-    "lowered-ast"   -> print_lowered(input.front_end().pipeline, input.front_end().lowered, modules)
-    "bytecode"      -> print_bytecode(input.case_bytecode(false), true)
-    "c"             -> print_c(input.case_bytecode(proves_bounds(false)))
-    "vm"            -> run_captured(input)
-    _               -> unknown_worker_stage(stage)
-}
-
-unknown_worker_stage :: fn(stage: string) -> i32 {
-    eprintln("vader dump-worker: unknown stage `${stage}`")
-    return 2
-}
-
-// ---- one front end per case -----------------------------------------------
-
-// The file of one case, and its front end once a stage has asked for it.
-CaseInput :: struct {
-    file: Path
-    target: Target | null
-    capture: string
-    front: CaseFrontEnd | null = null
-}
-
-// What the stages from `evaluated-ast` on read.
-CaseFrontEnd :: struct {
-    pipeline: EvaluatedPipeline
-    lowered: LoweredEntry
-}
-
-// The front end and the lowering of `input`, run by the first stage that asks.
-front_end :: fn(input: CaseInput) -> CaseFrontEnd {
-    made :: input.front
-    if made != null {
-        return made
+run_worker_stage :: fn(stage: string, input: DumpInput, capture: string) -> i32 {
+    if stage == "vm" {
+        return run_captured(input.file, capture)
     }
-    pipeline :: prepare_evaluated_project_with(input.file, [], null, input.target)
-    front :: CaseFrontEnd { .pipeline = pipeline, .lowered = lower_to_entry_from(pipeline) }
-    input.front = front
-    return front
+    return print_stage(dump_stage(input, stage))
 }
-
-// The bytecode of `input` from its shared lowering, as `vader dump` builds it for
-// the bytecode stage (`prove_bounds` false) and for the C stage.
-case_bytecode :: fn(input: CaseInput, prove_bounds: bool) -> CfgBytecode =
-    prepare_cfg_bytecode_from(input.front_end().lowered, input.file, false, false, prove_bounds)
 
 // ---- a run inside the worker ----------------------------------------------
 
@@ -137,12 +95,12 @@ worker_dup :: fn(fd: i32) -> i32
 @extern(WORKER_UNISTD, "dup2")
 worker_dup2 :: fn(fd: i32, onto: i32) -> i32
 
-// Run `input` through `run_source` with descriptors 0, 1 and 2 swapped for the
+// Run `file` through `run_source` with descriptors 0, 1 and 2 swapped for the
 // run, then print what it wrote. Returns what `run_source` returns, which a
 // process would truncate to 8 bits.
-run_captured :: fn(input: CaseInput) -> i32 {
-    out_path :: "${input.capture}/out"
-    err_path :: "${input.capture}/err"
+run_captured :: fn(file: Path, capture: string) -> i32 {
+    out_path :: "${capture}/out"
+    err_path :: "${capture}/err"
     saved :: [worker_dup(0), worker_dup(1), worker_dup(2)]
     write_flags :: Posix.O_WRONLY | Posix.O_CREAT | Posix.O_TRUNC
     opened :: [
@@ -153,7 +111,7 @@ run_captured :: fn(input: CaseInput) -> i32 {
     for fd in 0..<3 {
         worker_dup2(opened[fd], fd)
     }
-    code :: run_source(input.file, [input.file.as_string()], null)
+    code :: run_source(file, [file.as_string()], null)
     for fd in 0..<3 {
         worker_dup2(saved[fd], fd)
         Posix.sys_close(saved[fd])

@@ -1,0 +1,178 @@
+// vader/tools/dump/dump: the stages of `vader dump`, each rendered to text.
+//
+// A stage renders the dump of one compiler stage and its diagnostics into a
+// `StageOutput`: `vader dump` prints it, the test runner compares it with a
+// snapshot. The front-end stages are in `front_stages.vader`, the stages from
+// the lowering on in `back_stages.vader`.
+//
+// The stages from `evaluated-ast` on read the evaluated pipeline and the
+// lowering of their `DumpInput`, which keeps them once computed: a series of
+// stages on one input pays the front end once, as long as the first stage that
+// lowers asked for the pipeline before. The bytecode and C stages read the
+// lowering alone and let the pipeline go.
+
+module "vader/tools/dump"
+
+import "std/fs"
+import "std/io"
+import "std/path"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+import "vader/support/target"
+
+/// The entry and the options a dump stage reads, as `vader dump` takes them.
+export DumpInput :: struct {
+    file: Path
+    /// The modules a module-scoped dump shows; empty shows the entry's subtree.
+    modules: string[] = []
+    /// Extra module search roots (`--include-paths`).
+    include_paths: string[] = []
+    /// The platform to compile for; this machine when null.
+    target: Target | null = null
+    /// The project the entry belongs to, null for a file on its own.
+    project_root: string | null = null
+    /// Name each index-bearing op of the bytecode dump (`--annotate`).
+    annotate: bool = false
+    /// Put a `#line` in the C dump wherever the bytecode records a position
+    /// (`--line-directives`).
+    line_directives: bool = false
+    @internal
+    pipeline: EvaluatedPipeline | null = null
+    @internal
+    lowering: LoweredEntry | null = null
+}
+
+/// What a stage printed, and the exit code of `vader dump` after it.
+export StageOutput :: struct {
+    out: string = ""
+    err: string = ""
+    code: i32 = 0
+}
+
+/// Render the stage `stage` of `input`.
+///
+/// @param input  the entry and the options. It keeps the evaluated pipeline and
+///               the lowering a stage computes, for the next stage run on it.
+/// @param stage  a stage name of `vader dump --stage`.
+/// @return       the dump and its diagnostics on `out`. The C stage, whose `out`
+///               must stay valid C, puts them on `err` when it emits C. `code` is 1
+///               for a source that cannot be read, 2 for a stage that does not run.
+export dump_stage :: fn(input: DumpInput, stage: string) -> StageOutput = match stage {
+    "lexer"         -> lexer_stage(input)
+    "ast"           -> parser_stage(input)
+    "resolved-ast"  -> resolver_stage(input)
+    "typed-ast"     -> typecheck_stage(input)
+    "callees"       -> callees_stage(input)
+    "effects"       -> effects_stage(input)
+    "evaluated-ast" -> comptime_stage(input)
+    "lowered-ast"   -> lower_stage(input)
+    "dced-ast"      -> dced_stage(input)
+    "cfg"           -> cfg_stage(input)
+    "ranges"        -> ranges_stage(input)
+    "bytecode"      -> bytecode_stage(input)
+    "c"             -> c_stage(input)
+    "externs"       -> externs_stage(input)
+    "targets"       -> targets_stage(input)
+    "wasm"          -> refused("vader dump: stage \"wasm\" not yet implemented")
+    // `vader dump` refuses a name outside its stage list before it gets here:
+    // from it, this arm is a listed stage with no arm above.
+    _               -> refused("vader dump: stage \"${stage}\" is declared but not wired")
+}
+
+refused :: fn(message: string) = StageOutput { .err = "${message}\n", .code = 2 }
+
+// ---- the front end of an input ---------------------------------------------
+
+// The evaluated pipeline of `input`, computed by the first stage that asks.
+evaluated_pipeline :: fn(input: DumpInput) -> EvaluatedPipeline {
+    kept :: input.pipeline
+    if kept != null {
+        return kept
+    }
+    pipeline :: front_end(input)
+    input.pipeline = pipeline
+    return pipeline
+}
+
+// The lowering of `input`, computed by the first stage that asks. A
+// front-end-rejected program is never lowered: its lowering is empty.
+lowered_entry :: fn(input: DumpInput) -> LoweredEntry {
+    kept :: input.lowering
+    if kept != null {
+        return kept
+    }
+    // Unless a stage kept it, the evaluated pipeline goes once lowered: its side
+    // tables would otherwise stay live at the peak of the bytecode tail. A stage
+    // that reads both asks for the pipeline first, so the lowering reuses it.
+    lowering :: lower_to_entry_from(input.pipeline ?? front_end(input))
+    input.lowering = lowering
+    return lowering
+}
+
+front_end :: fn(input: DumpInput) -> EvaluatedPipeline = prepare_evaluated_project_with(
+    input.file,
+    input.include_paths,
+    input.project_root,
+    input.target,
+)
+
+// The scope of a module-scoped dump of `input`: its `--module` list, else the
+// entry's subtree.
+scope_of :: fn(input: DumpInput) -> string[] =
+    dump_scope(input.modules, input.evaluated_pipeline().loaded)
+
+// The source of `input`, or the output of a stage that cannot read it.
+read_source :: fn(input: DumpInput) -> string | StageOutput {
+    source :: read_file_string(input.file.as_string())
+    if source is IOError {
+        return StageOutput {
+            .err = "vader: cannot read `${input.file.to_native()}`: ${source.message()}\n",
+            .code = 1,
+        }
+    }
+    return source
+}
+
+// ---- diagnostics ------------------------------------------------------------
+
+// A build shows the diagnostics of every module; a dump only those of the modules
+// under inspection. These helpers drop the diagnostics anchored outside them.
+
+filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
+    out: Diagnostic[]: []
+    for d in diags {
+        if d.primary.start.file in files {
+            out.push(d)
+        }
+    }
+    return out
+}
+
+// The diagnostics of the pipeline (loader, resolver, typecheck, comptime, in
+// that order) and then `extra`, kept to the files of `scope`.
+pipeline_diags_in_scope :: fn(
+    pipeline: EvaluatedPipeline,
+    extra: Diagnostic[],
+    scope: string[],
+) -> Diagnostic[] {
+    all :: gather_pipeline_diags(pipeline) + extra
+    return filter_diags_in_scope(all, in_scope_diag_files(pipeline.loaded, scope))
+}
+
+// The diagnostics of a bytecode or C dump, kept to the modules under inspection
+// through the file set `CfgBytecode.in_scope_files` holds.
+bytecode_diags :: fn(b: CfgBytecode) -> Diagnostic[] =
+    filter_diags_in_scope(b.pre_diags, b.in_scope_files)
+        + filter_diags_in_scope(b.lower_diags, b.in_scope_files)
+
+// `text`, then `diags` as one `# Diagnostics` block when there are any.
+with_diags :: fn(text: string, diags: Diagnostic[]) -> StageOutput {
+    if diags.len() == 0 {
+        return StageOutput { .out = text }
+    }
+    return StageOutput { .out = "${text}${diags_block(diags)}" }
+}
+
+// `diags` as one `# Diagnostics` block, empty when there are none.
+diags_block :: fn(diags: Diagnostic[]) -> string =
+    if diags.len() == 0 { "" } else { "${diags.dump_diagnostics()}\n" }
