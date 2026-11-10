@@ -70,6 +70,13 @@ jobs:
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
+      - name: "Temporary: time the LSP module's tests alone"
+        if: ${{ !cancelled() && runner.os == 'Linux' && hashFiles('build/vader') != '' }}
+        continue-on-error: true
+        timeout-minutes: 12
+        run: |
+          sudo apt-get install -y time
+          timeout -k 10 600 /usr/bin/time -v ./build/vader test vader/tools/lsp
       - name: Test
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:
