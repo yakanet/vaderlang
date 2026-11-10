@@ -444,10 +444,7 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
 // with no `$` (a lifted `__lambda_...` or `__defer_...`) lands under `""`, which
 // is one more module rather than a special case.
 module_stem_of :: fn(name: string) -> string {
-    at :: name.index_of('$', 0)
-    if at < 0 {
-        return ""
-    }
+    at :: name.index_of('$') ?? return ""
     return name.byte_slice(0, at)
 }
 

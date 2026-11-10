@@ -91,19 +91,13 @@ head_of :: fn(s: string) -> string = before_first(s, ' ')
 
 // The text of `s` before the first `c`, or all of it when `c` does not occur.
 before_first :: fn(s: string, c: char) -> string {
-    at :: s.index_of(c, 0)
-    if at < 0 {
-        return s
-    }
+    at :: s.index_of(c) ?? return s
     return s.byte_slice(0, at)
 }
 
 // The text of `s` after the first `c`, or nothing when `c` does not occur.
 after_first :: fn(s: string, c: char) -> string {
-    at :: s.index_of(c, 0)
-    if at < 0 {
-        return ""
-    }
+    at :: s.index_of(c) ?? return ""
     return s.byte_slice(at + 1, s.byte_len())
 }
 
@@ -133,8 +127,8 @@ parse_int_list :: fn(csv: string) -> i32[] {
 /// @return         `null` when a string was appended, else why it could not be.
 parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("string ")
-    first_quote :: after.index_of('"', 0)
-    if first_quote < 0 {
+    first_quote :: after.index_of('"')
+    if first_quote == null {
         return DirectiveError { .reason = "expected `string <index> \"…\"`, got no quoted text" }
     }
     body :: after.byte_slice(first_quote + 1, after.byte_len() - 1)
@@ -163,8 +157,6 @@ hex_to_bytes :: fn(s: string) -> u8[] {
     return out
 }
 
-/// Index of the last ASCII space in `s`, or `-1` if absent.
-last_index_of_space :: fn(s: string) -> i32 = i32(s.last_index_of(' ', 0))
 /// Read the mangled name from a `fn N MANGLED (PARAMS) -> RET` header:
 /// the second whitespace-token after the `fn ` prefix. Same tokenizing
 /// shape as `parse_import_decl`'s `parts[2]` lookup, so both header
@@ -242,8 +234,8 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 ///                 `parse_virt_bc` turns either into a `VirtParseError` rather
 ///                 than step over the line and shift every following pc.
 parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
-    dot :: head.index_of('.', 0)
-    if dot >= 0 {
+    dot :: head.index_of('.')
+    if dot != null {
         width :: head.byte_slice(0, dot)
 
         // Width gates : we only slice the suffix for the int / f64 width
@@ -275,7 +267,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
             // forward compatibility even though the emit doesn't produce it.
             if suffix.starts_with("to_") {
                 target :: suffix.trim_prefix("to_")
-                if is_numeric_name(target) || target == "char" { return parse_convert(cleaned) }
+                if is_numeric_name(target) || target == "char" { return parse_convert(cleaned, dot) }
             }
 
             if is_int {
@@ -571,9 +563,9 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 /// the top of the stack to the target's storage class.
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
+/// @param dot      the byte of the `.` after `<from>`, which the caller found.
 /// @return         the `Convert` op carrying the target tag.
-parse_convert :: fn(cleaned: string) -> Op {
-    dot :: cleaned.index_of('.', 0)
+parse_convert :: fn(cleaned: string, dot: i64) -> Op {
     prefix :: cleaned.byte_slice(0, dot)
     suffix :: cleaned.byte_slice(dot + 1 + 3, cleaned.byte_len())
     return Convert { .from_name = prefix, .target = convert_target_named(suffix) }
@@ -620,11 +612,8 @@ parse_f64_const :: fn(line: string) -> Op | null {
     if rest == "inf"  { return F64Const { .value = pos_inf.from_bits() } }
     if rest == "-inf" { return F64Const { .value = neg_inf.from_bits() } }
     if rest == "nan"  { return F64Const { .value = quiet_nan.from_bits() } }
-    sp :: last_index_of_space(rest)
-    if sp < 0 {
-        return null
-    }
-    bits :: parse_uint_in_base(rest.byte_slice(i64(sp) + 1, rest.byte_len()), 10)
+    sp :: rest.last_index_of(' ') ?? return null
+    bits :: parse_uint_in_base(rest.byte_slice(sp + 1, rest.byte_len()), 10)
     if bits is ParseError {
         return null
     }
@@ -683,10 +672,7 @@ parse_virtual_call :: fn(line: string) -> Op | null {
         return null
     }
     head :: halves[0]
-    space :: head.index_of(' ', 0)
-    if space < 0 {
-        return null
-    }
+    space :: head.index_of(' ') ?? return null
     parsed_pc :: parse_int_in_base(head.byte_slice(0, space).trim(), 10)
     if parsed_pc is ParseError {
         return null
@@ -779,8 +765,7 @@ parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
 /// @return        the parsed pair ; `null` on malformed input.
 parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | null {
     rest :: line.byte_slice(prefix.byte_len(), line.byte_len()).trim()
-    space :: rest.index_of(' ', 0)
-    if space < 0 { return null }
+    space :: rest.index_of(' ') ?? return null
     a :: parse_int_in_base(rest.byte_slice(0, space).trim(), 10)
     if a is ParseError { return null }
     b :: parse_int_in_base(rest.byte_slice(space + 1, rest.byte_len()).trim(), 10)
@@ -814,10 +799,8 @@ parse_union_field_set :: fn(line: string) -> Op | null {
 ///              (missing space, non-integer token, …).
 parse_local_field :: fn(line: string) -> Op | null {
     rest :: line.trim_prefix("local.field ").trim()
-    s1 :: rest.index_of(' ', 0)
-    if s1 < 0 { return null }
-    s2 :: rest.index_of(' ', s1 + 1)
-    if s2 < 0 { return null }
+    s1 :: rest.index_of(' ') ?? return null
+    s2 :: rest.index_of(' ', s1 + 1) ?? return null
     slot_str :: rest.byte_slice(0, s1).trim()
     type_str :: rest.byte_slice(s1 + 1, s2).trim()
     field_str :: rest.byte_slice(s2 + 1, rest.byte_len()).trim()
@@ -894,8 +877,7 @@ parse_array_reserve :: fn(line: string) -> Op | null {
 
 parse_data_const :: fn(line: string) -> Op | null {
     after :: line.trim_prefix("data.const ")
-    sp :: after.index_of(' ', 0)
-    if sp < 0 { return null }
+    sp :: after.index_of(' ') ?? return null
     pool_text :: after.byte_slice(0, sp)
     type_text :: after.byte_slice(sp + 1, after.byte_len()).trim()
     pool_parsed :: parse_int_in_base(pool_text, 10)

@@ -4003,7 +4003,7 @@ fn 63 std_string$trim_prefix (string,string) -> string
 end
 
 fn 64 std_string$split_first (string,string) -> any
-  local $call_2 i64
+  local $call_2 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 66   ; std_string$first_byte_offset
@@ -4023,7 +4023,7 @@ fn 65 std_string$starts_with (string,string) -> bool
   return
 end
 
-fn 66 std_string$first_byte_offset (string,string) -> i64
+fn 66 std_string$first_byte_offset (string,string) -> any
   local n i64
   local m i64
   local first u8
@@ -4037,13 +4037,15 @@ fn 66 std_string$first_byte_offset (string,string) -> i64
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit i64.const 0
+    i64.const 0
+    retag 3   ; i64
+    return
   end $L0
   local.get 3   ; m
   local.get 2   ; n
   i64.gt
   if $L1 void
-    return.lit i64.const -1
+    return.lit null.const
   end $L1
   local.get 1   ; arg 1
   i64.const 0
@@ -4074,6 +4076,7 @@ fn 66 std_string$first_byte_offset (string,string) -> i64
         call 69   ; std_string$matches_at
         if $L5 void
           local.get 5   ; i
+          retag 3   ; i64
           return
         end $L5
       end $L4
@@ -4084,41 +4087,46 @@ fn 66 std_string$first_byte_offset (string,string) -> i64
       br $L2
     end $L3
   end $L2
-  return.lit i64.const -1
+  return.lit null.const
 end
 
-fn 67 std_string$cut_at (string,i64,string) -> any
+fn 67 std_string$cut_at (string,any,string) -> any
+  local $cast_6 i64
   local $call_7 string
-  local $call_8 i64
-  local $call_10 i64
-  local $call_11 string
+  local $call_9 i64
+  local $call_12 string
   local.get 1   ; arg 1
-  i64.const 0
-  i64.lt
+  type_check 0   ; null
   if $L0 void
   else
+    local.get 1   ; arg 1
+    ref.cast 3   ; i64
+    local.set 3   ; $cast_6
     local.get 0   ; arg 0
     i64.const 0
-    local.get 1   ; arg 1
+    local.get 3   ; $cast_6
     call.import 2   ; std_core$byte_slice
-    local.set 3   ; $call_7
+    local.set 4   ; $call_7
+    local.get 1   ; arg 1
+    ref.cast 3   ; i64
+    local.set 3   ; $cast_6
     local.get 2   ; arg 2
     call.import 0   ; std_core$byte_len
-    local.set 4   ; $call_8
-    local.get 1   ; arg 1
-    local.get 4   ; $call_8
+    local.set 5   ; $call_9
+    local.get 3   ; $cast_6
+    local.get 5   ; $call_9
     i64.checked_add
-    local.set 4   ; $call_8
+    local.set 3   ; $cast_6
     local.get 0   ; arg 0
     call.import 0   ; std_core$byte_len
-    local.set 5   ; $call_10
+    local.set 5   ; $call_9
     local.get 0   ; arg 0
-    local.get 4   ; $call_8
-    local.get 5   ; $call_10
+    local.get 3   ; $cast_6
+    local.get 5   ; $call_9
     call.import 2   ; std_core$byte_slice
-    local.set 6   ; $call_11
-    local.get 3   ; $call_7
-    local.get 6   ; $call_11
+    local.set 6   ; $call_12
+    local.get 4   ; $call_7
+    local.get 6   ; $call_12
     struct.new 22   ; __Tuple_string_string_66940ed4
     return
   end $L0

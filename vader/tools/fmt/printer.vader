@@ -128,10 +128,7 @@ text_width :: fn(s: string) -> i64 = s.len()
 // The column after writing `text` from column `start` : a text that spans lines
 // ends on its last line, counted from column 0.
 end_column :: fn(start: i64, text: string) -> i64 {
-    newline :: last_index_of(text, '\n', 0)
-    if newline < 0 {
-        return start + text.text_width()
-    }
+    newline :: text.last_index_of('\n') ?? return start + text.text_width()
     return text.byte_slice(newline + 1, text.byte_len()).text_width()
 }
 

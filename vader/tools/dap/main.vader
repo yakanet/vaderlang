@@ -524,8 +524,7 @@ stop_line :: fn(message: string) -> string {
 // name (`snippet$main` → `main`), or the whole name when it carries no `$`.
 // Uses a char literal (not a `"$"` string: a bare `$` opens interpolation).
 display_fn_name :: fn(mangled: string) -> string {
-    idx :: last_index_of(mangled, '$', 0)
-    if idx < 0 { return mangled }
+    idx :: mangled.last_index_of('$') ?? return mangled
     return mangled.byte_slice(idx + 1, mangled.byte_len())
 }
 

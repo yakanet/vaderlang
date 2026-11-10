@@ -375,10 +375,7 @@ posix_or_null :: fn(path: string | null) -> string | null {
 /// @param folder  the folder its files sit in, `/`-separated.
 export entry_namespace :: fn(name: string, folder: string) -> IncludePath {
     alone :: IncludePath { .dir = folder, .prefix = name, .origin = .Build }
-    cut :: name.index_of('/', 0)
-    if cut < 0 {
-        return alone
-    }
+    cut :: name.index_of('/') ?? return alone
     trimmed :: folder.trim_suffix("/")
     if trimmed != name && !trimmed.ends_with("/${name}") {
         return alone

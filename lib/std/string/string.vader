@@ -16,15 +16,15 @@ export is_empty :: fn(s: string) -> bool = s.byte_len() == 0
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
 /// avoid shadowing it inside the impl body.
-byte_contains :: fn(s: string, sub: string) -> bool = first_byte_offset(s, sub) >= 0
+byte_contains :: fn(s: string, sub: string) -> bool = first_byte_offset(s, sub) != null
 
-// Byte offset of the first occurrence of `sub` in `s`, -1 when there is none.
+// Byte offset of the first occurrence of `sub` in `s`, null when there is none.
 // An empty `sub` occurs at 0.
-first_byte_offset :: fn(s: string, sub: string) -> i64 {
+first_byte_offset :: fn(s: string, sub: string) -> i64 | null {
     n :: s.byte_len()
     m :: sub.byte_len()
     if m == 0 { return 0 }
-    if m > n  { return -1 }
+    if m > n  { return null }
     first :: sub.byte_at(0)
     for i in 0..<n - m + 1 {
         // The first byte is compared here: `matches_at` is called only where it matches.
@@ -32,16 +32,16 @@ first_byte_offset :: fn(s: string, sub: string) -> i64 {
             return i
         }
     }
-    return -1
+    return null
 }
 
-// Byte offset of the last occurrence of `sub` in `s`, -1 when there is none.
+// Byte offset of the last occurrence of `sub` in `s`, null when there is none.
 // An empty `sub` occurs at the end of `s`.
-last_byte_offset :: fn(s: string, sub: string) -> i64 {
+last_byte_offset :: fn(s: string, sub: string) -> i64 | null {
     n :: s.byte_len()
     m :: sub.byte_len()
     if m == 0 { return n }
-    if m > n  { return -1 }
+    if m > n  { return null }
     first :: sub.byte_at(0)
     at := n - m
     for at >= 0 {
@@ -51,7 +51,7 @@ last_byte_offset :: fn(s: string, sub: string) -> i64 {
         }
         at -= 1
     }
-    return -1
+    return null
 }
 
 /// True when `sub` occurs in `s` at byte `offset`. False when `sub` would run past
@@ -195,18 +195,17 @@ is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
 /// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe: the byte
 /// cursor advances by each codepoint's encoded width), tracking the
-/// latest match. Returns `-1` when not found ; the signed `i64`
-/// return type lets callers branch on `result < 0` instead of folding
-/// "absent" into a zero offset.
+/// latest match.
+///
 /// @param s          source string.
 /// @param c          codepoint to find.
 /// @param min_index  earliest leading-byte position to keep as a
-///                   match (later matches still win). Pass `0` to
-///                   accept every position.
-/// @return           byte offset of the latest match, or `-1` if absent.
-export last_index_of :: fn(s: string, c: char, min_index: i64) -> i64 {
+///                   match (later matches still win); every position
+///                   by default.
+/// @return           byte offset of the latest match, null if absent.
+export last_index_of :: fn(s: string, c: char, min_index: i64 = 0) -> i64 | null {
     n :: s.byte_len()
-    last: i64 = -1
+    last: i64 | null = null
     i: i64 = 0
     for i < n {
         [cp, width] :: s.codepoint_at_byte(i)
@@ -219,13 +218,14 @@ export last_index_of :: fn(s: string, c: char, min_index: i64) -> i64 {
 /// Byte offset of the *first* occurrence of `c` in `s`, starting at
 /// the codepoint that begins at byte `from` (inclusive). UTF-8 safe,
 /// see `last_index_of` for the iteration model. `from` should align
-/// to a leading byte ; out-of-range values short-circuit to `-1`.
+/// to a leading byte ; out-of-range values short-circuit to null.
 ///
 /// @param s     source string.
 /// @param c     codepoint to find.
-/// @param from  earliest leading-byte position considered.
-/// @return      byte offset of the match, or `-1` if absent.
-export index_of :: fn(s: string, c: char, from: i64) -> i64 {
+/// @param from  earliest leading-byte position considered; the start by
+///              default.
+/// @return      byte offset of the match, null if absent.
+export index_of :: fn(s: string, c: char, from: i64 = 0) -> i64 | null {
     n :: s.byte_len()
     i := from
     for i < n {
@@ -233,7 +233,7 @@ export index_of :: fn(s: string, c: char, from: i64) -> i64 {
         if cp == c { return i }
         i += width
     }
-    return -1
+    return null
 }
 
 /// Split `s` on every occurrence of `sep`, returning the resulting
@@ -300,10 +300,10 @@ export split_first :: fn(s: string, sep: string) -> [string, string] | null =
 export split_last :: fn(s: string, sep: string) -> [string, string] | null =
     s.cut_at(last_byte_offset(s, sep), sep)
 
-// The two sides of the `sep` found at byte `at`, `null` when `at` is the -1 of a
-// search that found none.
-cut_at :: fn(s: string, at: i64, sep: string) -> [string, string] | null {
-    if at < 0 {
+// The two sides of the `sep` found at byte `at`, `null` when the search found
+// none.
+cut_at :: fn(s: string, at: i64 | null, sep: string) -> [string, string] | null {
+    if at == null {
         return null
     }
     return [s.byte_slice(0, at), s.byte_slice(at + sep.byte_len(), s.byte_len())]
@@ -384,7 +384,7 @@ export replace_all :: fn(s: string, old: string, new: string) -> string = s.spli
 /// @param s  string to search.
 /// @param c  codepoint to look for.
 /// @return   whether `c` appears in `s`.
-export contains_char :: fn(s: string, c: char) -> bool = s.index_of(c, 0) >= 0
+export contains_char :: fn(s: string, c: char) -> bool = s.index_of(c) != null
 
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised.
@@ -1046,8 +1046,15 @@ import "std/testing"
 }
 
 @test test_last_index_of :: fn() -> void {
-    assert_eq(last_index_of("a/b/c", '/', -1), 3)
-    assert_eq(last_index_of("none", '/', -1), -1)
+    assert(last_index_of("a/b/c", '/') == 3, "the last slash")
+    assert(last_index_of("a/b/c", '/', 4) == null, "no slash from byte 4 on")
+    assert(last_index_of("none", '/') == null, "no slash in `none`")
+}
+
+@test test_index_of_a_char :: fn() -> void {
+    assert(index_of("a/b/c", '/') == 1, "the first slash")
+    assert(index_of("a/b/c", '/', 2) == 3, "the first slash from byte 2")
+    assert(index_of("a/b", '/', 2) == null, "no slash from byte 2 on")
 }
 
 @test test_decode_escapes :: fn() -> void {

@@ -407,8 +407,7 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     if kind == "" { return "" }
     // `std/core.Display.to_string` : the method follows the LAST dot, a trait
     // key carries its own.
-    dot :: vtable_key.last_index_of('.', 0)
-    if dot < 0 { return "" }
+    dot :: vtable_key.last_index_of('.') ?? return ""
     trait_key :: vtable_key.byte_slice(0, dot)
     method :: vtable_key.byte_slice(dot + 1, vtable_key.byte_len())
     return bc.primitive_member_mangle(kind, trait_key_name(trait_key), method)

@@ -412,8 +412,8 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// @return         `null` when a type was appended, else why it could not be.
 parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | null {
     after_type :: cleaned.trim_prefix("type ").trim()
-    first_space :: after_type.index_of(' ', 0)
-    if first_space < 0 {
+    first_space :: after_type.index_of(' ')
+    if first_space == null {
         return DirectiveError {
             .reason = "expected `type <index> <kind> …`, got no kind after the index",
         }
@@ -463,20 +463,20 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
     return DirectiveError { .reason = "unrecognised type kind in `${rest}`" }
 }
 
-/// Byte offset of the ` as "` that introduces a mirrored C type, or -1.
+/// Byte offset of the ` as "` that introduces a mirrored C type, or null.
 ///
 /// Scanned by hand: `std/string` has no substring search, and the one place
 /// that needs it is this line format.
 ///
 /// @param s  the text between `struct ` and `{`.
-/// @return   the offset of the space starting ` as "`, or -1 when absent.
-find_mirror_marker :: fn(s: string) -> i64 {
+/// @return   the offset of the space starting ` as "`, or null when absent.
+find_mirror_marker :: fn(s: string) -> i64 | null {
     for i in 0..<s.byte_len() {
         if s.matches_at(i, " as \"") {
             return i
         }
     }
-    return -1
+    return null
 }
 
 /// Parse `struct NAME { f0:tid0, f1:tid1 }` into a `BcStruct`, recovering the
@@ -491,7 +491,7 @@ find_mirror_marker :: fn(s: string) -> i64 {
 /// @return      the parsed struct, or why the line could not be read.
 parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     after_struct :: rest.trim_prefix("struct ")
-    open :: after_struct.index_of('{', 0)
+    open :: after_struct.index_of('{')
     // `Name shared`: a struct tasks share, which a deep copy keeps. The marker
     // closes the text before `{`: a name holding a space is quoted.
     described :: before_first(after_struct, '{').trim()
@@ -504,31 +504,31 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     // `Name as "struct timespec"`: the mirrored C type, absent on an ordinary
     // struct. Split before unquoting: both halves are quoted independently.
     marker :: find_mirror_marker(raw_name)
-    c_name :: if marker < 0 {
+    c_name :: if marker == null {
         ""
     } else {
         tail :: raw_name.byte_slice(marker + 5, raw_name.byte_len())
-        end :: tail.index_of('"', 0)
-        if end < 0 { "" } else { tail.byte_slice(0, end) }
+        end :: tail.index_of('"')
+        if end == null { "" } else { tail.byte_slice(0, end) }
     }
-    bare :: if marker < 0 {
+    bare :: if marker == null {
         raw_name
     } else {
         raw_name.byte_slice(0, marker)
     }
     name :: unquote_name(bare)
     fields: BcField[]: []
-    if open >= 0 {
-        close :: after_struct.index_of('}', 0)
-        if close < 0 || close <= open + 1 {
+    if open != null {
+        close :: after_struct.index_of('}')
+        if close == null || close <= open + 1 {
             return DirectiveError { .reason = "struct `${name}`: field list is not closed by `}`" }
         }
         inner :: after_struct.byte_slice(open + 1, close).trim()
         if inner.byte_len() > 0 {
             for part in inner.split(",") {
                 pt :: part.trim()
-                colon :: pt.index_of(':', 0)
-                if colon < 0 {
+                colon :: pt.index_of(':')
+                if colon == null {
                     return DirectiveError {
                         .reason = "struct `${name}`: field `${pt}` has no `name:type` separator",
                     }
@@ -556,16 +556,16 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type: its slots are type indices,
 /// not ValType names) into a `BcFn`.
 parse_fn_type_bc :: fn(rest: string) -> BcFn {
-    open :: rest.index_of('(', 0)
-    close :: rest.index_of(')', 0)
-    params: i32[]: if open >= 0 && close >= 0 && close > open + 1 {
+    open :: rest.index_of('(')
+    close :: rest.index_of(')')
+    params: i32[]: if open != null && close != null && close > open + 1 {
         parse_int_list(rest.byte_slice(open + 1, close).trim())
     } else {
         []
     }
     return_type := 0
-    arrow :: rest.index_of('>', 0)
-    if arrow >= 0 {
+    arrow :: rest.index_of('>')
+    if arrow != null {
         ret_text :: rest.byte_slice(arrow + 1, rest.byte_len()).trim()
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is ParseError) { return_type = i32(parsed) }
@@ -584,7 +584,7 @@ parse_import_decl_bc :: fn(
     cleaned: string, imports: BcImport[], types: BcType[],
 ) -> DirectiveError | null {
     after :: cleaned.trim_prefix("import ")
-    open :: after.index_of('(', 0)
+    open :: after.index_of('(')
     head_part :: before_first(after, '(')
     parts :: head_part.trim().split(" ")
     is_extern := false
@@ -598,9 +598,14 @@ parse_import_decl_bc :: fn(
     // `<lib>:<symbol>` when the symbol comes from a named library, see
     // `emit/virt::write_imports`. A bare name means the default resolution scope.
     raw_name :: parts[name_i]
-    extern_name :: raw_name.byte_slice(raw_name.index_of(':', 0) + 1, raw_name.byte_len())
+    colon :: raw_name.index_of(':')
+    extern_name :: if colon == null {
+        raw_name
+    } else {
+        raw_name.byte_slice(colon + 1, raw_name.byte_len())
+    }
     mangled :: parts[name_i + 1]
-    sig: BcSignature: if open < 0 {
+    sig: BcSignature: if open == null {
         BcSignature {
             .params = [],
             .results = [.Void],
@@ -725,10 +730,7 @@ parse_import_decl_bc :: fn(
 // The library an import names by `<lib>:` before its symbol, or null for one
 // that names none. Its other fields follow as `library_*` attributes.
 read_library :: fn(raw_name: string) -> CLibrary | null {
-    colon :: raw_name.index_of(':', 0)
-    if colon < 0 {
-        return null
-    }
+    colon :: raw_name.index_of(':') ?? return null
     return CLibrary { .name = raw_name.byte_slice(0, colon) }
 }
 
@@ -747,8 +749,8 @@ read_library_attribute :: fn(library: CLibrary, attr: string) -> void {
 
 parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("impl ").trim()
-    space :: after.index_of(' ', 0)
-    if space < 0 {
+    space :: after.index_of(' ')
+    if space == null {
         return DirectiveError { .reason = "expected `impl <type-index> <trait>`, got `${after}`" }
     }
     type_id_text :: after.byte_slice(0, space).trim()
@@ -763,25 +765,25 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveE
 
 parse_vtable_decl_bc :: fn(cleaned: string, vtables: VtableRow[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("vtable ").trim()
-    last_space :: last_index_of_space(after)
-    if last_space < 0 {
+    last_space :: after.last_index_of(' ')
+    if last_space == null {
         return DirectiveError {
             .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`",
         }
     }
-    fn_text :: after.byte_slice(i64(last_space) + 1, after.byte_len()).trim()
+    fn_text :: after.byte_slice(last_space + 1, after.byte_len()).trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
     if fn_parsed is ParseError {
         return DirectiveError { .reason = "vtable: fn index \"${fn_text}\" is not a number" }
     }
-    head :: after.byte_slice(0, i64(last_space)).trim()
-    second_space :: last_index_of_space(head)
-    if second_space < 0 {
+    head :: after.byte_slice(0, last_space).trim()
+    second_space :: head.last_index_of(' ')
+    if second_space == null {
         return DirectiveError {
             .reason = "vtable: expected a key and a type index before the fn index, got `${head}`",
         }
     }
-    type_text :: head.byte_slice(i64(second_space) + 1, head.byte_len()).trim()
+    type_text :: head.byte_slice(second_space + 1, head.byte_len()).trim()
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError {
         return DirectiveError {
@@ -826,8 +828,8 @@ parse_data_decl_bc :: fn(
     cleaned: string, data_pool: BcDataEntry[], strings: string[],
 ) -> DirectiveError | null {
     after :: cleaned.trim_prefix("data ")
-    sp1 :: after.index_of(' ', 0)
-    if sp1 < 0 {
+    sp1 :: after.index_of(' ')
+    if sp1 == null {
         return DirectiveError {
             .reason = "expected `data <index> <kind> <payload>`, got `${after}`",
         }
@@ -1026,11 +1028,11 @@ tokenize_agg :: fn(s: string) -> string[] {
 /// (BcType indices) are reconstructed via `class_tag_of` : exact for
 /// scalar slots, `0` for ref/any (which `c_emit` doesn't tag).
 parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
-    open :: line.index_of('(', 0)
-    close :: line.index_of(')', 0)
+    open :: line.index_of('(')
+    close :: line.index_of(')')
     params: ValType[]: []
     param_types: i32[]: []
-    if open >= 0 && close >= 0 && close > open + 1 {
+    if open != null && close != null && close > open + 1 {
         inner :: line.byte_slice(open + 1, close)
         for p in inner.split(",") {
             v :: vt_or_void(p.trim())
@@ -1055,10 +1057,7 @@ parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
 // The results a line declares after its `->`; a single `Void` without one, as
 // the representation spells a call that leaves nothing.
 results_after_arrow :: fn(line: string) -> ValType[] {
-    arrow :: line.index_of('>', 0)
-    if arrow < 0 {
-        return [.Void]
-    }
+    arrow :: line.index_of('>') ?? return [.Void]
     return results_written(line.byte_slice(arrow + 1, line.byte_len()))
 }
 
@@ -1078,8 +1077,7 @@ results_written :: fn(text: string) -> ValType[] {
 
 parse_local_decl_bc :: fn(cleaned: string) -> BcLocal {
     after :: cleaned.trim_prefix("local ").trim()
-    sp :: after.index_of(' ', 0)
-    if sp < 0 { return BcLocal { .name = after, .val = .Void } }
+    sp :: after.index_of(' ') ?? return BcLocal { .name = after, .val = .Void }
     nm :: after.byte_slice(0, sp)
     vtn :: after.byte_slice(sp + 1, after.byte_len()).trim()
     return BcLocal { .name = nm, .val = vt_or_void(vtn) }

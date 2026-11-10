@@ -167,9 +167,9 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
 
         long :: a.starts_with("--")
         body :: a.byte_slice(if long { 2 } else { 1 }, a.byte_len())
-        eq :: body.index_of('=', 0)
-        name :: if eq < 0 { body } else { body.byte_slice(0, eq) }
-        inline_value :: if eq < 0 { "" } else { body.byte_slice(eq + 1, body.byte_len()) }
+        eq :: body.index_of('=')
+        name :: if eq == null { body } else { body.byte_slice(0, eq) }
+        inline_value :: if eq == null { "" } else { body.byte_slice(eq + 1, body.byte_len()) }
 
         spec :: find_spec(specs, name, long)
         if spec == null {
@@ -179,7 +179,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         }
 
         if spec.kind == .Bool {
-            if eq < 0 {
+            if eq == null {
                 flags[spec.name] = "true"
             } else if inline_value == "true" || inline_value == "false" {
                 flags[spec.name] = inline_value
@@ -192,7 +192,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
 
         // `Str` / `Int`: the value is inline after `=`, or the next token. The `=`
         // form is always available for a value the spaced form would refuse.
-        if eq >= 0 {
+        if eq != null {
             record_str_flag(spec, a, inline_value, flags, repeated, errors)
             i += 1
             continue

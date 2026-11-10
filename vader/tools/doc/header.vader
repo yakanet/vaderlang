@@ -56,8 +56,8 @@ header_end :: fn(file: SourceFile) -> i64 {
 // with.
 header_summary :: fn(header: string) -> string {
     text :: first_paragraph(header)
-    colon :: text.index_of(':', 0)
-    if colon < 0 || " " in text.byte_slice(0, colon) {
+    colon :: text.index_of(':')
+    if colon == null || " " in text.byte_slice(0, colon) {
         return text
     }
     return text.byte_slice(colon + 1, text.byte_len()).trim()

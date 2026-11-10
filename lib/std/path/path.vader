@@ -79,10 +79,7 @@ export is_absolute :: fn(self: Path) -> bool = self.as_string().str_starts_with(
 /// @return      the parent path.
 export parent :: fn(self: Path) -> Path {
     s :: string(self)
-    idx :: s.last_index_of('/', 0)
-    if idx < 0 {
-        return Path("")
-    }
+    idx :: s.last_index_of('/') ?? return Path("")
     if idx == 0 {
         // Root: keep the leading "/" so parent of "/foo" is "/".
         return Path("/")
@@ -96,10 +93,7 @@ export parent :: fn(self: Path) -> Path {
 /// @return      the filename string (no leading separator).
 export filename :: fn(self: Path) -> string {
     s :: string(self)
-    idx :: s.last_index_of('/', 0)
-    if idx < 0 {
-        return s
-    }
+    idx :: s.last_index_of('/') ?? return s
     return s.byte_slice(idx + 1, s.byte_len())
 }
 
@@ -126,13 +120,13 @@ export basename :: fn(self: Path) -> Basename =
     Basename { .name = self.name(), .extension = self.extension() }
 
 // Byte offset of the extension-separating dot inside a FILENAME (never a full
-// path), or -1 when there is none. The `min_index` of 1 is the whole subtlety: a
+// path), or null when there is none. The `min_index` of 1 is the whole subtlety: a
 // leading dot marks a hidden file rather than an extension, and it only means
 // that at the start of the filename, which is why callers must have narrowed to
 // `filename()` first. `last_index_of` returns a BYTE offset, so every caller
 // slices `bytes()` and not the codepoint-indexed `s[a..<b]`; mixing the two turns
 // `café.vader` into `ader`.
-extension_dot :: fn(fname: string) -> i64 = fname.last_index_of('.', 1)
+extension_dot :: fn(fname: string) -> i64 | null = fname.last_index_of('.', 1)
 
 /// The final segment without its extension.
 ///
@@ -150,10 +144,7 @@ extension_dot :: fn(fname: string) -> i64 = fname.last_index_of('.', 1)
 ///   "dir/.gitignore".to_path().name()      // ".gitignore"
 export name :: fn(self: Path) -> string {
     fname :: self.filename()
-    idx :: extension_dot(fname)
-    if idx < 0 {
-        return fname
-    }
+    idx :: extension_dot(fname) ?? return fname
     return fname.byte_slice(0, idx)
 }
 
@@ -172,10 +163,7 @@ export name :: fn(self: Path) -> string {
 ///   "dir/.gitignore".to_path().extension()      // ""
 export extension :: fn(self: Path) -> string {
     fname :: self.filename()
-    idx :: extension_dot(fname)
-    if idx < 0 {
-        return ""
-    }
+    idx :: extension_dot(fname) ?? return ""
     return fname.byte_slice(idx + 1, fname.byte_len())
 }
 
