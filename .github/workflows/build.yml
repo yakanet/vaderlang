@@ -70,17 +70,11 @@ jobs:
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
-      - name: "Temporary: sample the machine's load during the suite"
-        if: ${{ !cancelled() && runner.os == 'Linux' }}
-        run: nohup vmstat -t -w 10 > "$RUNNER_TEMP/vmstat.log" 2>&1 &
       - name: Test
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:
           VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
-      - name: "Temporary: the machine's load during the suite"
-        if: ${{ always() && runner.os == 'Linux' }}
-        run: cat "$RUNNER_TEMP/vmstat.log" || true
 
   # The site of the language (`site/`), with the API reference of the library
   # (`lib/`) and of the compiler (`vader/`) beside it, two sites `vader doc -o`

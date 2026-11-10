@@ -3,10 +3,10 @@
 // the runner walks the target directory, builds each entry through the
 // normal pipeline, and runs the discovered tests via the bytecode VM.
 //
-// One Bun test per top-level module (`lib/std/<name>` and `vader/<name>`)
-// rather than a single aggregated `vader test lib` call : the per-test
-// timeout budget then applies to one module instead of the full transitive
-// closure, and a failure names its module.
+// One Bun test per directory `findTestModules` yields (`lib/std/<name>`,
+// `vader/<name>`) rather than a single aggregated `vader test lib` call : the
+// timeout budget then covers the modules of one run instead of the whole tree,
+// and a failure names its directory.
 
 import { test, expect } from "bun:test";
 
@@ -15,9 +15,10 @@ import { test, expect } from "bun:test";
 // cannot compile the Target-ABI stdlib (the byte-Buffer StringBuilder, the
 // `std/core` `bytes` primitive, the memory opcodes), so this suite must spawn
 // the self-hosted binary, which is the snapshot/run oracle everywhere else.
-import { runCli } from "./cli-bin.ts";
+import { runCli, LONG_BUILD } from "./cli-bin.ts";
 import { findTestModules, listVaderFiles } from "./vader-sources.ts";
 import { readFileSync } from "fs";
+import { dirname } from "path";
 
 const TEST_DECORATORS_RE = /^@test\s/gm;
 
@@ -28,12 +29,18 @@ const TEST_DECORATORS_RE = /^@test\s/gm;
 // (compile + VM-run its @tests), far heavier than the former in-process TS CLI:
 // 30+ concurrent spawns starve the CPU and trip the per-run kill timer. Bun still
 // parallelises across test FILES, so this only serialises modules within this file.
-const MEASURE_BUDGET = 600_000;
 for (const dir of [...findTestModules("lib"), ...findTestModules("vader")]) {
+  const testCounts = listVaderFiles(dir).map(
+    (f) => [f, readFileSync(f, "utf8").match(TEST_DECORATORS_RE)?.length ?? 0] as const,
+  );
+  const declared = testCounts.reduce((sum, [, n]) => sum + n, 0);
+  // `findTestModules` stops at the first directory holding a `@test`, which folds
+  // the modules below it into this run, and `vader test` compiles them one after
+  // the other: one `LONG_BUILD` per module that declares a test.
+  const modules = new Set(testCounts.filter(([, n]) => n > 0).map(([f]) => dirname(f))).size;
+  const budget = LONG_BUILD * modules;
   test(`vader test ${dir}`, async () => {
-    const started = Date.now();
-    const { exit, stdout, stderr } = await runCli(["test", dir], undefined, MEASURE_BUDGET);
-    console.error(`[e2e-timing] ${new Date(started).toISOString()} ${dir}: ${Date.now() - started} ms, exit ${exit}`);
+    const { exit, stdout, stderr } = await runCli(["test", dir], undefined, budget);
     // Surface the subprocess output on failure. Asserting the exit code alone
     // made a red CI say only "expected 0, received 1" for a run of dozens of
     // module tests: the one that actually failed, and its trap message, were
@@ -44,9 +51,6 @@ for (const dir of [...findTestModules("lib"), ...findTestModules("vader")]) {
     // Every `@test` declared under the module ran : a subtree the runner skips
     // (a directory name it ignores, a module folded into another) shows here
     // instead of passing in silence.
-    const declared = listVaderFiles(dir)
-      .map((f) => readFileSync(f, "utf8").match(TEST_DECORATORS_RE)?.length ?? 0)
-      .reduce((a, b) => a + b, 0);
     expect(Number(/(\d+) tests \|/.exec(stdout)?.[1])).toBe(declared);
-  }, { timeout: MEASURE_BUDGET });
+  }, { timeout: budget });
 }
