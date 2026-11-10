@@ -105,8 +105,6 @@
     fn semver.parse_range  // semver$parse_range
     fn semver.parse_token  // semver$parse_token
     fn semver.partial_to_lower  // semver$partial_to_lower
-    fn semver.split_or  // semver$split_or
-    fn semver.split_ws  // semver$split_ws
     fn semver.term_satisfies  // semver$term_satisfies
     fn semver.validate_build  // semver$validate_build
     fn semver.validate_build_id  // semver$validate_build_id
@@ -139,6 +137,7 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.is_empty  // std_core$is_empty_1
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -150,6 +149,7 @@
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.parse_int  // std_string$parse_int
     fn std.string.split  // std_string$split
+    fn std.string.split_where  // std_string$split_where
     fn std.string.starts_with  // std_string$starts_with
     fn std.string.trim  // std_string$trim
     fn std.string.trim_prefix  // std_string$trim_prefix
@@ -157,6 +157,7 @@
   std/string_builder
     fn std.string_builder.StringBuilder.to_string  // std_string__builder$StringBuilder$std_core$Display$to_string
     fn std.string_builder.append  // std_string__builder$append
+    fn std.string_builder.append_char  // std_string__builder$append_char
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
   system/posix

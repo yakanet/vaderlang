@@ -200,7 +200,7 @@ export parse_range :: fn(s: string) -> VersionRange | ParseError {
         return wildcard_range()
     }
     out_clauses: RangeClause[]: []
-    for cstr in split_or(trimmed) {
+    for cstr in trimmed.split("||") {
         cl :: parse_clause(cstr.trim())
         match cl {
             is RangeClause -> { out_clauses.push(cl) }
@@ -391,52 +391,6 @@ compare_prerelease :: fn(a: string, b: string) -> i32 {
 }
 
 // ---- internal helpers : range parsing ------------------------------------
-
-// Split `s` on `||` (the OR operator). Adjacent `||` produces an
-// empty element ; the caller is expected to filter / trim.
-split_or :: fn(s: string) -> string[] {
-    out: string[]: []
-    n :: s.byte_len()
-    if n < 2 {
-        out.push(s)
-        return out
-    }
-    start: i64 = 0
-    for i in 0..<(n - 1) {
-        if s.byte_at(i) == '|' && s.byte_at(i + 1) == '|' {
-            out.push(s.byte_slice(start, i))
-            start = i + 2
-        }
-    }
-    out.push(s.byte_slice(start, n))
-    return out
-}
-
-// Split `s` on whitespace runs ; empty pieces are dropped (multi-space
-// collapses to a single separator: distinct from `std/string::split`
-// which preserves empty pieces).
-split_ws :: fn(s: string) -> string[] {
-    out: string[]: []
-    n :: s.byte_len()
-    start: i64 = 0
-    in_word := false
-    for i in 0..<n {
-        c :: char(u32(s.byte_at(i)))
-        if is_white_char(c) {
-            if in_word {
-                out.push(s.byte_slice(start, i))
-                in_word = false
-            }
-        } else {
-            if !in_word {
-                start = i
-                in_word = true
-            }
-        }
-    }
-    if in_word { out.push(s.byte_slice(start, n)) }
-    return out
-}
 
 // A partial version : missing components and `x` / `X` / `*` wildcards
 // surface as `-1`. The pre-release / build slots only carry data when
@@ -703,7 +657,7 @@ parse_token :: fn(t: string) -> RangeTerm[] | ParseError {
 // Tokens separated by whitespace ; `A B -` triggers hyphen-range
 // detection via a 3-token look-ahead.
 parse_clause :: fn(s: string) -> RangeClause | ParseError {
-    tokens :: split_ws(s)
+    tokens :: s.split_where(is_white_char)
     if tokens.len() == 0 {
         return ParseError { .msg = "empty clause" }
     }
