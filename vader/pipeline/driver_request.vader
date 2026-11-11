@@ -108,7 +108,7 @@ build_request_args :: fn(build: BuildRequest) -> string[] {
         args.push("${EMIT_FLAG}${build.emit}")
     }
     if build.target is Target {
-        args.push("${TARGET_FLAG}${display_target(build.target)}")
+        args.push("${TARGET_FLAG}${build.target}")
     }
     if build.out != "" {
         args.push("${OUT_FLAG}${build.out}")
@@ -240,7 +240,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
     assert_eq(received.build.cc, "")
     assert_eq(received.build.ldflags, "-L lib -lm")
     assert_eq(received.build.emit, "c")
-    assert_eq(display_target(received.build.target ?? host_target()), "linux-x86_64")
+    assert_eq((received.build.target ?? host_target()).to_string(), "linux-x86_64")
     assert(received.build.no_split, "`--no-split` crosses")
     assert(!received.build.verify, "`--verify` was not asked")
     assert_eq(received.build.include_paths.join(","), "a,b")

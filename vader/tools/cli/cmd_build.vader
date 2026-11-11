@@ -43,9 +43,9 @@ refuses_foreign_executable :: fn(target: Target, cc_flag: string) -> bool {
     if named_cc(cc_flag) != null {
         return false
     }
-    shown :: display_target(target)
+    shown :: target.to_string()
     eprintln("vader build --target=${shown}: `${default_cc()}` builds for "
-        + "`${display_target(host_target())}`; name a compiler for `${shown}` with `--cc` "
+        + "`${host_target()}`; name a compiler for `${shown}` with `--cc` "
         + "or `\$CC`, or write the C with `--emit=c`")
     return true
 }
@@ -108,8 +108,8 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
     if run && build_target != null && build_target != host_target() {
-        eprintln("vader ${RUN_COMMAND}: a program built for `${display_target(build_target)}` "
-            + "does not run on this `${display_target(host_target())}` machine")
+        eprintln("vader ${RUN_COMMAND}: a program built for `${build_target}` "
+            + "does not run on this `${host_target()}` machine")
         return 2
     }
 
@@ -405,7 +405,7 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
         gaps :: atom_universe_gaps(mods[i].module.strings, universe)
         if gaps.len() > 0 {
             eprintln("vader build: atom universe misses ${gaps.len()} literal(s) for "
-                + "${display_target(targets[i])}, first `${gaps[0]}`")
+                + "${targets[i]}, first `${gaps[0]}`")
             return 1
         }
         progs.push(
@@ -447,7 +447,7 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
     } else {
         for i in 0..<targets.len() {
-            target :: display_target(targets[i])
+            target :: targets[i].to_string()
             if ensure_target_dir(out, target) != 0 {
                 return 1
             }
@@ -467,7 +467,7 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
     } else {
         for i in 0..<targets.len() {
-            target :: display_target(targets[i])
+            target :: targets[i].to_string()
             if ensure_target_dir(out, target) != 0 {
                 return 1
             }
@@ -489,10 +489,10 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             // line. Masked today because every target's globals are identical,
             // so this branch never runs, and it would have surfaced as a
             // missing symbol at link time, far from the cause.
-            if ensure_target_dir(out, display_target(targets[i])) != 0 {
+            if ensure_target_dir(out, targets[i].to_string()) != 0 {
                 return 1
             }
-            if write_out(unit_path(out, display_target(targets[i]), GLOBALS_UNIT), progs[i].globals) != 0 {
+            if write_out(unit_path(out, targets[i].to_string(), GLOBALS_UNIT), progs[i].globals) != 0 {
                 return 1
             }
         }
@@ -510,10 +510,10 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
         }
         for i in 0..<targets.len() {
             text :: unit_named(progs[i], name) ?? continue
-            if ensure_target_dir(out, display_target(targets[i])) != 0 {
+            if ensure_target_dir(out, targets[i].to_string()) != 0 {
                 return 1
             }
-            if write_out(unit_path(out, display_target(targets[i]), name), text) != 0 {
+            if write_out(unit_path(out, targets[i].to_string(), name), text) != 0 {
                 return 1
             }
         }

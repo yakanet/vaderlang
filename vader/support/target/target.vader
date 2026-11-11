@@ -60,11 +60,8 @@ export Target :: struct {
 
 Target implements Equals -> self.os == other.os && self.arch == other.arch
 
-/// Render a target as `<os>-<arch>`: the form `--target=` accepts and
-/// `parse_target` round-trips.
-///
-/// @param t  the target.
-export display_target :: fn(t: Target) -> string = "${t.os.to_string()}-${t.arch.to_string()}"
+// `<os>-<arch>`: the form `--target=` accepts and `parse_target` round-trips.
+Target implements Display -> "${self.os}-${self.arch}"
 
 /// The target this machine IS: the default a build assumes when `--target=` is
 /// not given.
@@ -157,7 +154,7 @@ import "std/testing"
 
 @test test_display_round_trips :: fn() -> void {
     t :: Target { .os = .Darwin, .arch = .Arm64 }
-    assert_eq(display_target(t), "darwin-arm64")
+    assert_eq(t.to_string(), "darwin-arm64")
 }
 
 @test test_parse_target_reads_both_axes :: fn() -> void {

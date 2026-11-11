@@ -388,7 +388,7 @@ report_uncovered :: fn(
                     resolver_error(
                         .NoTargetBodyCoversTarget,
                         d.name_span,
-                        "`${d.name}` has no body for `${display_target(target)}` and no general body ; "
+                        "`${d.name}` has no body for `${target}` and no general body ; "
                             + "its `@target` bodies cover ${have}",
                     ),
                 )

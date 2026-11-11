@@ -65,7 +65,7 @@ export DRIVER_NOT_COMPILED_EXIT: i32: 3
 /// @param target   the platform built for, the host when null.
 /// @return         `<dir>/build/<debug|release>-<os>-<arch>`.
 export project_output_dir :: fn(dir: string, release: bool, target: Target | null) -> string =
-    dir.join_path("build/${profile_name(release)}-${display_target(target ?? host_target())}")
+    dir.join_path("build/${profile_name(release)}-${target ?? host_target()}")
 
 /// Where a project build writes the binary of one entry, before the linker adds
 /// a `.exe`: its name, in `project_output_dir`.
@@ -192,7 +192,7 @@ import "std/testing"
 test_project_output_dir_names_profile_and_target :: fn() -> void {
     linux :: Target { .os = .Linux, .arch = .X86_64 }
     assert_eq(project_output_dir("app", true, linux), "app/build/release-linux-x86_64")
-    host :: display_target(host_target())
+    host :: host_target().to_string()
     assert_eq(project_output_dir("app", false, null), "app/build/debug-${host}")
 }
 
