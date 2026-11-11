@@ -134,7 +134,8 @@ run_all :: fn(
     for problem in problems {
         events.send(RunError { .message = problem })
     }
-    reporter :: launch(() -> report(events, count, began))
+    println("testrunner: ${count} cases on ${k} workers")
+    reporter :: launch(() -> report(events))
     ticker :: launch(() -> tick(events))
     tasks: Task<void>[]: []
     for i in 0..<k {
@@ -149,8 +150,8 @@ run_all :: fn(
     if total is Cancelled {
         return 1
     }
-    print_tally(total, count, k, began.since().to_millis())
-    if total.failures.len() + total.crashes.len() + total.errors.len() > 0 {
+    print_tally(total, count, k, began.since())
+    if total.failed.len() > 0 {
         return 1
     }
     return 0

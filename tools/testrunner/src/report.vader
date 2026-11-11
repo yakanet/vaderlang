@@ -1,11 +1,12 @@
 // tools/testrunner/src/report: what the runner prints while the cases run, and
-// once they have.
+// once they have, in the form of `bun test`.
 //
 // The tasks of the pool tell one reporter task what happens (`Progress`), in the
-// order it happens: the reporter prints each failure, crash and error as it comes,
-// and, every `PROGRESS_SECONDS`, a line that says where the run stands and names
-// the cases running for longer than that. It alone writes the tally, which the
-// tasks share no other way.
+// order it happens. Each case gets one line when it ends: `(pass)` and the stages
+// it checked, or `(fail)` and below it, indented, what failed. Every
+// `PROGRESS_SECONDS`, a line names the cases running for longer than that, so
+// that a run that seems to stall says on what. The reporter alone writes the
+// tally, which the tasks share no other way.
 
 module "tools/testrunner/src"
 
@@ -16,11 +17,11 @@ import "std/string"
 import "std/task"
 import "std/time"
 
-// How often the reporter says where the run stands.
+// How often the reporter names the cases that run for long.
 PROGRESS_SECONDS: i64: 10
 
 // What a task of the pool tells the reporter.
-Progress :: CaseStarted | StageNoted | Crash | RunError | CaseEnded | Tick
+Progress :: CaseStarted | StageNoted | Crash | CaseError | RunError | CaseEnded | Tick
 
 CaseStarted :: struct {
     case: string
@@ -40,7 +41,13 @@ Crash :: struct {
     stderr: string
 }
 
-// A case that could not run, or a snippet the discovery could not read.
+// What a worker could not run of a case.
+CaseError :: struct {
+    case: string
+    message: string
+}
+
+// A problem of the discovery, which belongs to no case.
 RunError :: struct {
     message: string
 }
@@ -49,43 +56,67 @@ CaseEnded :: struct {
     case: string
 }
 
-// Time to say where the run stands.
+// Time to name the cases that run for long.
 Tick :: struct {}
 
-// What the run found. A failure, a crash and an error are kept as the line that
-// names them, which the tally prints again at the end.
+// What the run found.
 Tally :: struct {
-    ended: i64 = 0
     same: i64 = 0
     written: string[] = []
-    failures: string[] = []
-    crashes: string[] = []
-    errors: string[] = []
+    /// The stages that differ from their snapshot, have none, or failed.
+    failures: i64 = 0
+    crashes: i64 = 0
+    errors: i64 = 0
+    /// The line of each case that failed and of each problem of the discovery,
+    /// which the tally prints again at the end.
+    failed: string[] = []
+}
+
+// What the reporter knows of a case that runs.
+CaseRun :: struct {
+    began: Monotonic
+    /// The stages that passed, in the order they ended.
+    passed: string[] = []
+    /// What failed, each a label line and what shows it.
+    problems: string[] = []
 }
 
 // Take what the tasks tell on `events` until it is closed, and print it as it
-// comes: the tally of a run of `cases` cases, begun at `began`.
-report :: fn(events: Channel<Progress>, cases: i64, began: Monotonic) -> Tally {
+// comes: the tally of the run.
+report :: fn(events: Channel<Progress>) -> Tally {
     tally :: Tally {}
-    running :: Map<string, Monotonic> {}
+    running :: Map<string, CaseRun> {}
     for event in events {
         match event {
             is CaseStarted -> {
-                running[event.case] = monotonic()
+                running[event.case] = CaseRun { .began = monotonic() }
             }
-            is StageNoted  -> tally.note(event.case, event.report)
+            is StageNoted  -> tally.note(running.run_of(event.case), event.case, event.report)
             is Crash       -> {
-                tally.crashes.push(
-                    printed("crash: ${event.case}/${event.phase} exit ${event.exit}"),
-                )
-                print(event.stderr)
+                tally.crashes += 1
+                problem :: "crash: ${event.phase} exit ${event.exit}\n${event.stderr}"
+                running.run_of(event.case).problems.push(problem)
             }
-            is RunError    -> tally.errors.push(printed("error: ${event.message}"))
+            is CaseError   -> {
+                tally.errors += 1
+                running.run_of(event.case).problems.push("error: ${event.message}")
+            }
+            is RunError    -> {
+                tally.errors += 1
+                line :: "(error) ${event.message}"
+                tally.failed.push(line)
+                println(line)
+            }
             is CaseEnded   -> {
+                tally.print_case(event.case, running.run_of(event.case))
                 running.remove(event.case)
-                tally.ended += 1
             }
-            is Tick        -> println(progress_line(tally, cases, running, began))
+            is Tick        -> {
+                line :: long_running_line(running)
+                if line != null {
+                    println(line)
+                }
+            }
         }
     }
     return tally
@@ -99,68 +130,96 @@ tick :: fn(events: Channel<Progress>) -> void {
     }
 }
 
-note :: fn(tally: Tally, case: string, report: StageReport) -> void {
-    name :: "${case}/${report.phase}"
+// The run of `case`, begun now when nothing said it started.
+run_of :: fn(running: Map<string, CaseRun>, case: string) -> CaseRun =
+    running.get_or_put_with(case, () -> CaseRun { .began = monotonic() })
+
+note :: fn(tally: Tally, run: CaseRun, case: string, report: StageReport) -> void {
     match report.result {
-        .Same              -> { tally.same += 1 }
-        .Written           -> tally.written.push(name)
-        .Differ | .Missing -> {
-            tally.failures.push(printed("${failure_label(report.result)}: ${name}"))
-            print(report.detail ?? "")
+        .Same                        -> {
+            tally.same += 1
+            run.passed.push(report.phase)
+        }
+        .Written                     -> {
+            tally.written.push("${case}/${report.phase}")
+            run.passed.push(report.phase)
+        }
+        .Differ | .Missing | .Failed -> {
+            tally.failures += 1
+            label :: "${failure_label(report.result)}: ${report.phase}"
+            run.problems.push("${label}\n${report.detail ?? ""}")
         }
     }
 }
 
-failure_label :: fn(result: Verdict) -> string = if result == .Missing { "no snapshot" } else {
-    "!= snapshot"
+failure_label :: fn(result: Verdict) -> string = match result {
+    .Differ          -> "!= snapshot"
+    .Missing         -> "no snapshot"
+    .Failed          -> "failed"
+    .Same | .Written -> verdict_name(result)
 }
 
-// `line`, printed as it comes, for the tally to keep.
-printed :: fn(line: string) -> string {
-    println("  ${line}")
-    return line
+// Print the line of `case`, which ended, and below it what failed on it.
+print_case :: fn(tally: Tally, case: string, run: CaseRun) -> void {
+    took :: "[${run.began.since().format()}]"
+    if run.problems.len() == 0 {
+        println("(pass) ${case} > ${run.passed.join(", ")} ${took}")
+        return
+    }
+    line :: "(fail) ${case} ${took}"
+    tally.failed.push(line)
+    println(line)
+    for problem in run.problems {
+        println(indented(problem.trim_suffix("\n")))
+    }
 }
 
-// Where the run stands: the cases ended out of `cases`, what failed so far, and
-// the cases of `running` that started more than `PROGRESS_SECONDS` ago.
-progress_line :: fn(
-    tally: Tally,
-    cases: i64,
-    running: Map<string, Monotonic>,
-    began: Monotonic,
-) -> string {
-    failed :: tally.failures.len() + tally.crashes.len() + tally.errors.len()
-    line :: "  ... ${tally.ended}/${cases} cases in ${began.since().to_seconds()} s, "
-        + "${failed} failed, ${running.len()} running"
+// `text`, each of its lines indented by two spaces.
+indented :: fn(text: string) -> string = "  ${text.replace_all("\n", "\n  ")}"
+
+// The cases of `running` that started more than `PROGRESS_SECONDS` ago, with how
+// long they have run; null when none has.
+long_running_line :: fn(running: Map<string, CaseRun>) -> string | null {
     long: string[]: []
-    for case in running.keys() {
-        seconds :: (running[case] ?? began).since().to_seconds()
+    for [case, run] in running {
+        seconds :: run.began.since().to_seconds()
         if seconds >= PROGRESS_SECONDS {
             long.push("${case} (${seconds} s)")
         }
     }
     if long.len() == 0 {
-        return line
+        return null
     }
-    return "${line}, for long: ${long.join(", ")}"
+    return "  ... running for long: ${long.join(", ")}"
 }
 
-// Print the tally of a run of `cases` cases on `k` workers, which took `millis`:
-// the failures, crashes and errors again by name, the snapshots written, and the
-// counts.
-print_tally :: fn(total: Tally, cases: i64, k: i32, millis: i64) -> void {
-    for line in total.failures + total.crashes + total.errors {
-        println("  ${line}")
+// Print the tally of a run of `cases` cases on `k` workers, which took `took`:
+// the failed cases again, the snapshots written, and the counts.
+print_tally :: fn(total: Tally, cases: i64, k: i32, took: Duration) -> void {
+    if total.failed.len() > 0 {
+        println("")
+        println("${total.failed.len()} failed:")
+        for line in total.failed {
+            println(line)
+        }
     }
     for name in total.written {
-        println("  written: ${name}")
+        println("written: ${name}")
     }
-    checked :: total.same + total.written.len() + total.failures.len()
-    println("${cases} cases, ${checked} stages in ${millis} ms on ${k} workers")
-    println(
-        "same ${total.same}, written ${total.written.len()}, differ ${total.failures.len()}, "
-            + "crashes ${total.crashes.len()}, errors ${total.errors.len()}",
-    )
+    println("")
+    println(" ${total.same + total.written.len()} pass")
+    println(" ${total.failures} fail")
+    if total.written.len() > 0 {
+        println(" ${total.written.len()} written")
+    }
+    if total.crashes > 0 {
+        println(" ${total.crashes} crash")
+    }
+    if total.errors > 0 {
+        println(" ${total.errors} error")
+    }
+    stages :: total.same + total.written.len() + total.failures + total.crashes
+    println("Ran ${stages} stages across ${cases} cases on ${k} workers. [${took.format()}]")
 }
 
 // ---- tests ------------------------------------------------------------------
@@ -168,18 +227,23 @@ print_tally :: fn(total: Tally, cases: i64, k: i32, millis: i64) -> void {
 import "std/testing"
 
 @test
-test_progress_counts_the_ended_cases_and_the_failures :: fn() -> void {
-    tally :: Tally {
-        .ended = 3,
-        .failures = ["!= snapshot: hello/vm"],
-        .errors = ["broken: no stage"],
-    }
-    line :: progress_line(tally, 10, Map<string, Monotonic> {}, monotonic())
-    assert_eq(line, "  ... 3/10 cases in 0 s, 2 failed, 0 running")
+test_a_case_that_runs_for_long_is_named :: fn() -> void {
+    running :: Map<string, CaseRun> {}
+    running["quick"] = CaseRun { .began = monotonic() }
+    assert(long_running_line(running) == null, "no case runs for long")
+}
+
+@test
+test_what_failed_is_indented_below_its_case :: fn() -> void {
+    assert_eq(
+        indented("!= snapshot: vm\n--- a\n+++ actual"),
+        "  != snapshot: vm\n  --- a\n  +++ actual",
+    )
 }
 
 @test
 test_a_missing_snapshot_is_labelled_apart :: fn() -> void {
     assert_eq(failure_label(.Missing), "no snapshot")
     assert_eq(failure_label(.Differ), "!= snapshot")
+    assert_eq(failure_label(.Failed), "failed")
 }

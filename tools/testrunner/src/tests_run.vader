@@ -3,8 +3,9 @@
 //
 // The module is compiled and its tests run as `vader test` compiles and runs
 // them (`vader/tools/testing`), on the VM, each write of a test sent to the runner
-// as for the `vm` stage. The stage passes when every test passes. It fails too
-// when a test its files declare is not among those the compile finds: the module
+// as for the `vm` stage. The stage passes when every test passes, and fails,
+// naming each failing test, when one does not. A module that does not compile, or
+// a test its files declare and the compile does not find, is an error: the module
 // would otherwise pass on fewer tests than it holds.
 
 module "tools/testrunner/src"
@@ -55,17 +56,22 @@ check_tests :: fn(case: Case) -> StageReport | CaseFailure {
     for t in lowered.tests {
         failure :: state.run_test(t).failure
         if failure != null {
-            failed.push("    ${t.display}: ${failure}")
+            failed.push("  ${t.display}: ${failure}")
         }
     }
-    if failed.len() > 0 {
-        count :: "${failed.len()} of ${lowered.tests.len()} tests fail"
-        return tests_failure("${count}\n${failed.join("\n")}")
+    if failed.len() == 0 {
+        return StageReport {
+            .phase = TESTS_PHASE,
+            .result = .Same,
+            .duration_us = began.since().to_micros(),
+        }
     }
+    count :: "${failed.len()} of ${lowered.tests.len()} tests fail"
     return StageReport {
         .phase = TESTS_PHASE,
-        .result = .Same,
+        .result = .Failed,
         .duration_us = began.since().to_micros(),
+        .detail = "${count}\n${failed.join("\n")}",
     }
 }
 

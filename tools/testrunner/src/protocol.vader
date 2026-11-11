@@ -23,9 +23,11 @@
 // {"event": "done", "case": "hello", "duration_us": 61234}
 // ```
 //
-// A `result` is `same`, `differ`, `missing` (no snapshot file) or `written`
-// (under `--update`); `detail` shows a failure: the unified diff from the snapshot
-// to the text under `differ`, the whole text under `missing`. A worker whose
+// A `result` is `same`, `differ`, `missing` (no snapshot file), `written` (under
+// `--update`) or `failed` (a stage with no snapshot whose check failed, the
+// `tests` of a module); `detail` shows a failure: the unified diff from the
+// snapshot to the text under `differ`, the whole text under `missing`, what failed
+// under `failed`. A worker whose
 // stdout ends before `done` crashed on the first stage it did not report; the
 // `output` events of a program it was running are what that program wrote
 // before.
@@ -39,17 +41,20 @@ import "std/option"
 import "std/string"
 import "vader/support/target"
 
-// How the text of a stage compares with its snapshot.
-Verdict :: enum { Same, Differ, Missing, Written }
+// How the text of a stage compares with its snapshot, or, for a stage that has
+// none, whether its check failed.
+Verdict :: enum { Same, Differ, Missing, Written, Failed }
 
 // Whether a stage of this verdict fails the run.
-is_failure :: fn(verdict: Verdict) -> bool = verdict == .Differ || verdict == .Missing
+is_failure :: fn(verdict: Verdict) -> bool =
+    verdict == .Differ || verdict == .Missing || verdict == .Failed
 
 verdict_name :: fn(verdict: Verdict) -> string = match verdict {
     .Same    -> "same"
     .Differ  -> "differ"
     .Missing -> "missing"
     .Written -> "written"
+    .Failed  -> "failed"
 }
 
 verdict_named :: fn(name: string) -> Verdict | null = match name {
@@ -57,6 +62,7 @@ verdict_named :: fn(name: string) -> Verdict | null = match name {
     "differ"  -> .Differ
     "missing" -> .Missing
     "written" -> .Written
+    "failed"  -> .Failed
     _         -> null
 }
 
