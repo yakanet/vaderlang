@@ -1,0 +1,163 @@
+// tools/testrunner/src/rules: what the text of a stage must respect, whatever its
+// snapshot holds.
+//
+// A snapshot pins the output of the day, so a regression `--update` refreshes
+// matches its own snapshot from then on. The worker applies these rules to the
+// text of each dump stage before it compares or writes it: a stage that breaks
+// one fails and is not written. A crash of the compiler needs no rule here: it
+// ends the worker, and the runner reports the crash.
+
+module "tools/testrunner/src"
+
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/string"
+
+// What opens an error diagnostic in a dump, `error[T3001]`, as
+// `vader/support/diagnostics` renders one.
+ERROR_OPENING :: "error["
+
+// The locals the `fusion_*` snippets bind a chain to, so that it runs lazily.
+LAZY_LOCALS: string[]: ["it", "outer", "inner"]
+
+// Why the text `text` of the dump stage `stage` of `case` is wrong whatever its
+// snapshot holds, or null when it is not.
+stage_problem :: fn(case: Case, stage: Stage, text: string) -> string | null {
+    error :: compile_error_problem(case, text)
+    if error != null {
+        return error
+    }
+    return lazy_locals_problem(case, stage, text)
+}
+
+// Why the dump text `text` of `case` says the snippet does not compile: only a
+// `_diag_` snippet may record an error diagnostic.
+compile_error_problem :: fn(case: Case, text: string) -> string | null {
+    if case.name.starts_with("_diag_") {
+        return null
+    }
+    code :: first_error_code(text) ?? return null
+    return "the dump reports `${ERROR_OPENING}${code}]`: a snippet must compile, and a "
+        + "diagnostic is pinned under `tests/diag_corpus/`"
+}
+
+// The code of the first error diagnostic of `text`, `T3001` for
+// `error[T3001]`, which no letter, digit or `_` precedes.
+first_error_code :: fn(text: string) -> string | null {
+    // Most texts hold none: the search spares them the copies of `split`.
+    if !text.contains(ERROR_OPENING) {
+        return null
+    }
+    pieces :: text.split(ERROR_OPENING)
+    for i in 1..<pieces.len() {
+        before :: pieces[i - 1]
+        if before.byte_len() > 0 && is_word_byte(before.byte_at(before.byte_len() - 1)) {
+            continue
+        }
+        halves :: pieces[i].split_first("]") ?? continue
+        if is_diagnostic_code(halves.0) {
+            return halves.0
+        }
+    }
+    return null
+}
+
+// Whether `byte` may stand in a word: an ASCII letter or digit, or `_`.
+is_word_byte :: fn(byte: u8) -> bool =
+    byte in 'a'..='z' || byte in 'A'..='Z' || byte in '0'..='9' || byte == '_'
+
+// Whether `code` reads as a diagnostic code: an ASCII capital, then four digits.
+is_diagnostic_code :: fn(code: string) -> bool {
+    if code.byte_len() != 5 || code.byte_at(0) !in 'A'..='Z' {
+        return false
+    }
+    for i in 1..<5 {
+        if code.byte_at(i) !in '0'..='9' {
+            return false
+        }
+    }
+    return true
+}
+
+// Why the lowered text `lowered` of the `fusion_*` snippet `case` fused through
+// one of its lazy locals, or null. Each chain of such a snippet also runs through
+// a local bound first, the reference its fused form is compared with: a local
+// fused through vanishes from the lowered form, and both then agree on the wrong
+// answer.
+lazy_locals_problem :: fn(case: Case, stage: Stage, lowered: string) -> string | null {
+    if stage.phase != LOWER_PHASE || !case.name.starts_with("fusion_") {
+        return null
+    }
+    if lowered.starts_with(CLI_FAILED_PREFIX) {
+        return null
+    }
+    path :: "${case_dir(case.name)}/_main.vader"
+    source :: read_file_string(path)
+    if source is IOError {
+        return "`${path}`: ${source.msg}"
+    }
+    written :: lines_opening(source, " ::")
+    kept :: lines_opening(lowered, ": Iterator<")
+    if kept == written {
+        return null
+    }
+    return "${written} lazy locals written, ${kept} lowered to a state machine"
+}
+
+// How many lines of `text` open, past their indent, on a lazy local followed by
+// `after`.
+lines_opening :: fn(text: string, after: string) -> i64 {
+    openings :: LAZY_LOCALS.map((name) -> "${name}${after}").collect()
+    count: i64 = 0
+    for line in text.lines() {
+        stripped :: line.left_trim()
+        if openings.any_match((opening) -> stripped.starts_with(opening)) {
+            count += 1
+        }
+    }
+    return count
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+import "vader/support/diagnostics"
+
+@test
+test_an_error_diagnostic_breaks_a_feature_snippet :: fn() -> void {
+    text :: "# Diagnostics\n[_main.vader:1:1] error[T3001] type mismatch\n"
+    feature :: Case { .name = "feature", .phases = [], .modules = [] }
+    assert(stage_problem(feature, STAGES[0], text) != null, "an error in a feature snippet")
+    diag :: Case { .name = "_diag_x", .phases = [], .modules = [] }
+    assert(stage_problem(diag, STAGES[0], text) == null, "an error in a `_diag_` snippet")
+}
+
+@test
+test_a_rendered_error_reads_as_its_code :: fn() -> void {
+    at :: Position {
+        .file = "_main.vader",
+        .offset = 0,
+        .line = 1,
+        .column = 1,
+    }
+    error :: typecheck_error(.TypeMismatch, Span { .start = at, .end = at }, "")
+    assert_eq(first_error_code(dump_diagnostics([error])) ?? "", "T3001")
+}
+
+@test
+test_an_error_code_stands_on_its_own :: fn() -> void {
+    assert_eq(first_error_code("x\nerror[T3001] y") ?? "", "T3001")
+    assert(first_error_code("warning[W0007] x") == null, "a warning")
+    assert(first_error_code("my_error[T3001]") == null, "inside a word")
+    assert(first_error_code("error[t3001]") == null, "a lowercase letter")
+    assert(first_error_code("error[T301]") == null, "three digits")
+}
+
+@test
+test_a_lazy_local_counts_on_its_own_line :: fn() -> void {
+    source :: "    it :: xs.iter()\n    outer :: f()\n    item :: 3\n"
+    assert_eq(lines_opening(source, " ::"), 2)
+    assert_eq(lines_opening("  it: Iterator<i32> = f()\n", ": Iterator<"), 1)
+}

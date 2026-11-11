@@ -143,16 +143,21 @@ remove_tree :: fn(path: string) -> void {
 }
 
 // Render `stage` of `case`, the stage `dump` of `vader dump`, and compare it with
-// its snapshot, which `update` writes when it differs.
+// its snapshot, which `update` writes when it differs; or say which rule its text
+// breaks (`rules.vader`), and write nothing.
 check_stage :: fn(
     case: Case,
     stage: Stage,
     dump: string,
     input: DumpInput,
     update: bool,
-) -> StageReport {
+) -> StageReport | CaseFailure {
     began :: monotonic()
     actual :: snapshot_text(stage, input.dump_stage(dump))
+    broken :: stage_problem(case, stage, actual)
+    if broken != null {
+        return CaseFailure { .message = "${stage.phase}: ${broken}" }
+    }
     return report_of(case, stage, actual, update, began)
 }
 
@@ -247,8 +252,11 @@ ast_as_json :: fn(dump: string) -> string {
 
 nested :: fn(text: string) -> string = text.replace_all("\n", "\n  ")
 
+// What opens the text of a stage whose dump failed.
+CLI_FAILED_PREFIX :: "# vader CLI failed"
+
 failed_text :: fn(code: i32, stderr: string, stdout: string) -> string =
-    "# vader CLI failed (exit ${code})\n${stderr}${stdout}"
+    "${CLI_FAILED_PREFIX} (exit ${code})\n${stderr}${stdout}"
 
 // ---- tests ------------------------------------------------------------------
 

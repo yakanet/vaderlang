@@ -44,7 +44,7 @@ STAGES: Stage[]: [
         .snapshot = "comptime.snapshot.md",
     },
     Stage {
-        .phase = "lower",
+        .phase = LOWER_PHASE,
         .dump = "lowered-ast",
         .snapshot = "lower.snapshot",
     },
@@ -78,6 +78,9 @@ NATIVE_STAGE: Stage: Stage {
     .dump = null,
     .snapshot = VM_SNAPSHOT,
 }
+
+// The lowered form of a program.
+LOWER_PHASE :: "lower"
 
 // The C a native build compiles.
 C_PHASE    :: "emit_c"
@@ -214,15 +217,20 @@ host_platform :: fn() -> string = match host_target().os {
 }
 
 // The C files beside the snippet in `dir` that define the foreign symbols of its
-// `@extern` declarations, `helper*.c`, in name order.
+// `@extern` declarations, in name order.
 helper_c_files :: fn(dir: string) -> string[] {
     listed :: read_dir(dir)
     if listed is IOError {
         return []
     }
-    helpers :: listed.filter((name) -> name.starts_with("helper") && name.ends_with(".c"))
+    helpers :: listed.filter(is_helper_c)
     return sort(helpers.map((name) -> "${dir}/${name}").collect(), (a, b) -> a < b)
 }
+
+// Whether the file `name` of a snippet is a helper, `helper*.c`. Every other `.c`
+// there is an output, a build's or the C snapshot: taken for a helper, it would
+// skip the run of its snippet on the VM in silence.
+is_helper_c :: fn(name: string) -> bool = name.starts_with("helper") && name.ends_with(".c")
 
 // Whether the snippet in `dir` runs on the VM from the image a build links: its
 // `_config.json` says `"vm": { "from": "build" }`, or it has no bytecode snapshot.
@@ -243,6 +251,28 @@ test_a_skip_on_excludes_the_run_on_the_platforms_it_names :: fn() -> void {
     here :: RunConfig { .skipped_on = [host_platform()] }
     assert(excludes_this_host(here), "this host's platform")
     assert(!excludes_this_host(RunConfig { .skipped_on = ["plan9"] }), "another platform")
+}
+
+@test
+test_a_helper_is_named_helper :: fn() -> void {
+    assert(is_helper_c("helper.c"), "`helper.c`")
+    assert(is_helper_c("helper_math.c"), "`helper_math.c`")
+}
+
+@test
+test_the_outputs_beside_a_snippet_are_no_helpers :: fn() -> void {
+    outputs :: [
+        "native.c",
+        "_main.c",
+        "_main-_glue.c",
+        "_main-_root.c",
+        "_main-snippet.c",
+        "_main.split.g.c",
+        C_SNAPSHOT,
+    ]
+    for name in outputs {
+        assert(!is_helper_c(name), "`${name}`")
+    }
 }
 
 @test
