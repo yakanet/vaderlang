@@ -5,6 +5,7 @@
 
 module "vader/front/effects"
 
+import "std/iter"
 import "vader/support/diagnostics"
 
 /// The T3128 to T3134 errors of a checked project: each value two tasks race on,
@@ -29,3 +30,20 @@ task_code :: fn(k: TaskFaultKind) -> TypecheckCode = match k {
     .MainThreadInTask     -> .MainThreadFunctionInTask
     .UnknownFunctionValue -> .TaskRunsUnknownFunctionValue
 }
+
+// Every code `task_code` gives: an arm added there goes here too.
+TASK_CODES: TypecheckCode[]: [
+    .ValueWrittenWhileTaskUsesIt,
+    .ValueWrittenBySeveralTasks,
+    .CaptureReboundWhileTaskHoldsIt,
+    .ValueKeptPastExclusiveBlock,
+    .ExclusiveBlockParks,
+    .MainThreadFunctionInTask,
+    .TaskRunsUnknownFunctionValue,
+]
+
+/// Whether `d` is an error of the task check, one `task_diagnostics` reports.
+///
+/// @param d  any diagnostic.
+export is_task_diagnostic :: fn(d: Diagnostic) -> bool =
+    TASK_CODES.any_match((code) -> CodeInfo(code).id == d.code.id)
