@@ -1,0 +1,4 @@
+{
+    "entries": { "testrunner": "src/main.vader" },
+    "includePaths": ["../.."]
+}
