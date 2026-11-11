@@ -54,6 +54,7 @@ DESCRIPTION_FLAG :: "--description="
 ENTRY_FLAG :: "--entry="
 RELEASE_FLAG :: "--release"
 VERIFY_FLAG :: "--verify"
+VERIFY_BOUNDS_FLAG :: "--verify-bounds"
 NO_SPLIT_FLAG :: "--no-split"
 CC_FLAG :: "--cc="
 LDFLAGS_FLAG :: "--ldflags="
@@ -94,6 +95,9 @@ build_request_args :: fn(build: BuildRequest) -> string[] {
     }
     if build.verify {
         args.push(VERIFY_FLAG)
+    }
+    if build.verify_bounds {
+        args.push(VERIFY_BOUNDS_FLAG)
     }
     if build.no_split {
         args.push(NO_SPLIT_FLAG)
@@ -160,6 +164,8 @@ read_build_arg :: fn(build: BuildRequest, arg: string) -> void {
         build.release = true
     } else if arg == VERIFY_FLAG {
         build.verify = true
+    } else if arg == VERIFY_BOUNDS_FLAG {
+        build.verify_bounds = true
     } else if arg == NO_SPLIT_FLAG {
         build.no_split = true
     } else if arg.starts_with(CC_FLAG) {
@@ -225,6 +231,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
             .emit = "c",
             .target = Target { .os = .Linux, .arch = .X86_64 },
             .no_split = true,
+            .verify_bounds = true,
             .include_paths = ["a", "b"],
         },
     }
@@ -243,6 +250,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
     assert_eq((received.build.target ?? host_target()).to_string(), "linux-x86_64")
     assert(received.build.no_split, "`--no-split` crosses")
     assert(!received.build.verify, "`--verify` was not asked")
+    assert(received.build.verify_bounds, "the bounds verification crosses")
     assert_eq(received.build.include_paths.join(","), "a,b")
 }
 

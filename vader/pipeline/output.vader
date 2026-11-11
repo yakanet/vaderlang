@@ -25,6 +25,10 @@ export BuildRequest :: struct {
     release:       bool = false
     /// Run the IR verifiers between passes.
     verify:        bool = false
+    /// Keep the index check of each access the range analysis proves in bounds,
+    /// under a message of its own, so a wrong proof stops the run
+    /// (`$VADER_VERIFY_BOUNDS`).
+    verify_bounds: bool = false
     /// The C compiler, `""` for the default one.
     cc:            string = ""
     ldflags:       string = ""
@@ -59,6 +63,7 @@ export prepare_program :: fn(file: Path, request: BuildRequest) -> CfgBytecode =
         request.target,
         request.verify,
         marks_proven_bounds(request),
+        request.verify_bounds,
     )
 
 /// Carry an already-lowered entry to the bytecode of the artefact `request`
@@ -79,6 +84,7 @@ export prepare_program_from :: fn(
         wants_debug(request),
         request.verify,
         marks_proven_bounds(request),
+        request.verify_bounds,
     )
 
 // Whether the bytecode keeps its per-op debug table: a debug build's C keeps
@@ -87,9 +93,10 @@ wants_debug :: fn(request: BuildRequest) -> bool =
     request.emit != "bytecode-text" && !request.release
 
 // Whether the range analysis marks the accesses it proves in bounds, which only
-// the C of a native build uses.
+// the C of a native build uses: a `--release` build drops their check, and one
+// that verifies its proofs keeps it under a message of its own.
 marks_proven_bounds :: fn(request: BuildRequest) -> bool =
-    request.emit != "bytecode-text" && proves_bounds(request.release)
+    request.emit != "bytecode-text" && (request.release || request.verify_bounds)
 
 // The OS the binary is built for: the request's target, the host's without one.
 target_os :: fn(request: BuildRequest) = (request.target ?? host_target()).os

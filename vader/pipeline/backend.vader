@@ -13,7 +13,6 @@
 
 module "vader/pipeline"
 
-import "std/env"
 import "std/console"
 import "std/path"
 import "vader/support/diagnostics"
@@ -165,14 +164,6 @@ export cfg_to_bytecode :: fn(
     return module
 }
 
-// The environment variable of the bounds verification mode (`proves_bounds`).
-VERIFY_BOUNDS_VAR :: "VADER_VERIFY_BOUNDS"
-
-/// Whether `$VADER_VERIFY_BOUNDS` is set: a native build of any mode then marks
-/// the accesses the range analysis proves, and keeps their index check under a
-/// message of its own, so a wrong proof stops the run instead of reading out of
-/// bounds.
-export bounds_verification_enabled :: fn() -> bool = is_env_flag_on(VERIFY_BOUNDS_VAR)
 
 /// A lowered project plus what the caller still needs after the pipeline is
 /// released: the entry mangle, the diagnostics, and the file set for filtering.
@@ -265,6 +256,9 @@ export CfgBytecode :: struct {
     /// Entry-subtree file set for the dump diagnostic filter (see `LoweredEntry`).
     in_scope_files: string[]
     module:      BytecodeModule
+    /// The accesses proven in bounds keep their check, under a message of its
+    /// own (`BuildRequest.verify_bounds`): the C emit reads it.
+    verify_bounds: bool = false
 }
 
 /// Front end + lower + prune -> CFG -> bytecode, in one call.
@@ -278,10 +272,13 @@ export CfgBytecode :: struct {
 /// @param target              platform to build for ; this machine when null.
 /// @param verify              run the IR verifiers between passes (`--verify`).
 /// @param prove_bounds        mark the accesses the range analysis proves in
-///                            bounds (`proves_bounds`).
+///                            bounds.
+/// @param verify_bounds       keep the check of each access `prove_bounds`
+///                            marks (`CfgBytecode.verify_bounds`).
 export prepare_cfg_bytecode_with :: fn(
     file: Path, want_debug: bool, include_path_flags: string[], project_root: string | null,
     target: Target | null = null, verify: bool = false, prove_bounds: bool = false,
+    verify_bounds: bool = false,
 ) -> CfgBytecode =
     prepare_cfg_bytecode_from(
         lower_to_entry_with(file, include_path_flags, project_root, target, verify),
@@ -289,6 +286,7 @@ export prepare_cfg_bytecode_with :: fn(
         want_debug,
         verify,
         prove_bounds,
+        verify_bounds,
     )
 
 /// Carry an ALREADY-LOWERED entry through prune -> CFG -> bytecode.
@@ -301,11 +299,12 @@ export prepare_cfg_bytecode_with :: fn(
 /// @param want_debug  populate the per-op debug table (kept only when the C
 ///                    emit will keep `#line`).
 /// @param verify        run the IR verifiers between passes (`--verify`).
-/// @param prove_bounds  mark the accesses the range analysis proves in bounds
-///                      (`proves_bounds`).
+/// @param prove_bounds  mark the accesses the range analysis proves in bounds.
+/// @param verify_bounds keep the check of each access `prove_bounds` marks
+///                      (`CfgBytecode.verify_bounds`).
 export prepare_cfg_bytecode_from :: fn(
     le: LoweredEntry, file: Path, want_debug: bool, verify: bool = false,
-    prove_bounds: bool = false,
+    prove_bounds: bool = false, verify_bounds: bool = false,
 ) -> CfgBytecode {
     // profiling brackets: inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(.Prune)
@@ -332,5 +331,6 @@ export prepare_cfg_bytecode_from :: fn(
         .lower_diags = lower_diags,
         .in_scope_files = le.in_scope_files,
         .module      = module,
+        .verify_bounds = verify_bounds,
     }
 }

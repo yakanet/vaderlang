@@ -114,7 +114,8 @@ c_stage :: fn(input: DumpInput) -> StageOutput {
         input.file,
         input.line_directives,
         false,
-        proves_bounds(false),
+        input.verify_bounds,
+        input.verify_bounds,
     )
     diags :: diags_block(bytecode_diags(b))
     if any_error_diag(b.pre_diags) {
@@ -122,7 +123,7 @@ c_stage :: fn(input: DumpInput) -> StageOutput {
     }
     // The entry is designated by name, so the `main()` shim calls the entry
     // module's `main` when several modules declare one.
-    return StageOutput { .out = emit_c(b.module, native_c_options(b.entry)), .err = diags }
+    return StageOutput { .out = emit_c(b.module, native_c_options(b)), .err = diags }
 }
 
 // Each `@extern` the modules in scope declare, as the C prototype it is called

@@ -55,6 +55,14 @@ refuses_foreign_executable :: fn(target: Target, cc_flag: string) -> bool {
 parse_include_path_flag :: fn(raw: string) -> string[] =
     if raw == "" { [] } else { raw.split(",") }
 
+// The environment variable that asks a native build of any mode to keep the check
+// of each access the range analysis proves in bounds, under a message of its own,
+// so that a wrong proof stops the run (`BuildRequest.verify_bounds`). The
+// commands read it; the pipeline takes the answer as a parameter.
+VERIFY_BOUNDS_VAR :: "VADER_VERIFY_BOUNDS"
+
+bounds_verification_enabled :: fn() -> bool = is_env_flag_on(VERIFY_BOUNDS_VAR)
+
 cmd_build :: fn(args: string[]) -> i32 {
     parsed :: parse_action("build", args)
     if parsed is i32 {
@@ -118,6 +126,7 @@ cmd_build :: fn(args: string[]) -> i32 {
         .out = parsed.string_flag("out", ""),
         .release = parsed.bool_flag("release"),
         .verify = parsed.bool_flag("verify"),
+        .verify_bounds = bounds_verification_enabled(),
         .cc = cc_or_default(cc_flag),
         .ldflags = parsed.string_flag("ldflags", ""),
         .include_paths = parse_include_path_flag(parsed.string_flag("include-paths", "")),
@@ -412,7 +421,7 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
             emit_c_split(
                 rebase_types(mods[i].module, type_keys[i], type_universe),
                 CEmitOptions {
-                    ...native_c_options(mods[i].entry),
+                    ...native_c_options(mods[i]),
                     .atom_universe = universe,
                 },
                 header_name,

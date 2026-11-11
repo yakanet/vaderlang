@@ -1,6 +1,6 @@
 // vader/midir/ranges/mark: mark every array access the range analysis proves in bounds.
 //
-// A native build that proves bounds (`proves_bounds`, `vader/pipeline`) runs the
+// A native build that proves bounds (`marks_proven_bounds`, `vader/pipeline`) runs the
 // range analysis (`verdicts.vader`) on each function as the bytecode
 // emitter receives it, and marks `bounds_safe` every array access it proves. The
 // C emitter then drops that access's index check, or keeps it with a message of

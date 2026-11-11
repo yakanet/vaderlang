@@ -601,14 +601,14 @@ export linked_binary :: fn(base: string) -> string | null {
 ///             does not check, and emitting from a rejected program yields
 ///             something that links but is wrong.
 export c_source_of :: fn(cfg: CfgBytecode) -> string =
-    emit_c(cfg.module, native_c_options(cfg.entry))
+    emit_c(cfg.module, native_c_options(cfg))
 
 /// Emit C from an already-built bytecode module as a build that does not split
 /// it by module compiles it: one unit, plus one per `CLibrary` binding.
 ///
 /// @param cfg  bytecode plus the entry mangle it was built with.
 export c_units_of :: fn(cfg: CfgBytecode) -> CUnits =
-    emit_c_units(cfg.module, native_c_options(cfg.entry))
+    emit_c_units(cfg.module, native_c_options(cfg))
 
 /// Write `c` at `c_file` and each of its library units beside it, named as a
 /// split build names its units (`unit_path`).
@@ -633,20 +633,13 @@ export write_c_units :: fn(c_file: Path, c: CUnits) -> string[] | null {
     return files
 }
 
-/// Whether a native build marks the accesses the range analysis proves in
-/// bounds: a `--release` build drops their check, and `$VADER_VERIFY_BOUNDS`
-/// keeps it under a message of its own in any mode. Decided here, with
-/// `native_c_options`, so every native entry point agrees.
+/// The C emitter's options for a native build of the program `b`.
 ///
-/// @param release  the build is `--release`.
-export proves_bounds :: fn(release: bool) -> bool = release || bounds_verification_enabled()
-
-/// The C emitter's options for a native build of `entry`.
-///
-/// @param entry  the entry function's mangle.
-export native_c_options :: fn(entry: string) -> CEmitOptions = CEmitOptions {
-    .entry_mangled = entry,
-    .verify_bounds = bounds_verification_enabled(),
+/// @param b  the program: its entry function's mangle, and whether its proven
+///           accesses keep their check.
+export native_c_options :: fn(b: CfgBytecode) -> CEmitOptions = CEmitOptions {
+    .entry_mangled = b.entry,
+    .verify_bounds = b.verify_bounds,
 }
 
 // ---- tests ----------------------------------------------------------------

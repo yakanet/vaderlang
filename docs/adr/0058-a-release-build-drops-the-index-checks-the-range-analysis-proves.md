@@ -29,7 +29,7 @@ indexing.
 - **Only a `--release` native build elides.** The VM ignores `bounds_safe` and
   checks every access, so it would pay for nothing, and a debug build keeps its
   checks without paying for the analysis. The choice is made once for every
-  native entry point (`proves_bounds`, `native_c_options` in `vader/pipeline`):
+  native entry point (`marks_proven_bounds`, `native_c_options` in `vader/pipeline`):
   `vader build`, `dump --stage=c`, `--seed-targets` and a build driven by
   `build.vader`. The bootstrap's stage0 → stage1 step keeps its own debug
   pipeline: stage1 runs once, to build stage2.

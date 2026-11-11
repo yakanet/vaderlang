@@ -36,6 +36,9 @@ export DumpInput :: struct {
     /// Put a `#line` in the C dump wherever the bytecode records a position
     /// (`--line-directives`).
     line_directives: bool = false
+    /// Keep, in the C dump, the index check of each access the range analysis
+    /// proves in bounds, under a message of its own (`$VADER_VERIFY_BOUNDS`).
+    verify_bounds: bool = false
     @internal
     pipeline: EvaluatedPipeline | null = null
     @internal

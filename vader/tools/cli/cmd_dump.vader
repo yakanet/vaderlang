@@ -63,6 +63,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         .project_root = resolved.project_root,
         .annotate = annotate,
         .line_directives = line_directives,
+        .verify_bounds = bounds_verification_enabled(),
     }
     return print_stage(dump_stage(input, stage))
 }

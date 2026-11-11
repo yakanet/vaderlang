@@ -163,7 +163,7 @@ object_of :: fn(objects: Path, work: Path, unit: Path) -> string =
 
 // The split C of a prepared program, its TUs including `<out>.split.h`.
 split_program :: fn(b: CfgBytecode, out: Path) -> CProgram {
-    return emit_c_split(b.module, native_c_options(b.entry), split_header_name(out))
+    return emit_c_split(b.module, native_c_options(b), split_header_name(out))
 }
 
 /// The name a split program's units include their header by: its basename,
