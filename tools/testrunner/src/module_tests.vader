@@ -1,11 +1,12 @@
 // tools/testrunner/src/module_tests: the modules whose `@test` functions the
 // runner runs.
 //
-// One case per module of `lib/` and `vader/` that holds a test, its entry the one
-// `vader test` compiles for it: its folder, or its file when the module is one
-// file (`vader/tools/testing`). Its stage is `tests` (`tests_run.vader`). A file
-// that holds a test in a folder the loader does not walk belongs to no case: it
-// is reported, rather than its tests left out in silence.
+// One case per module of `lib/`, `vader/` and `tools/` that holds a test, its
+// entry the one `vader test` compiles for it: its folder, or its file when the
+// module is one file (`vader/tools/testing`). Its stage is `tests`
+// (`tests_run.vader`). A file that holds a test in a folder the loader does not
+// walk belongs to no case: it is reported, rather than its tests left out in
+// silence.
 
 module "tools/testrunner/src"
 
@@ -19,7 +20,7 @@ import "std/string"
 import "vader/tools/testing"
 
 // The folders whose modules' tests run.
-TEST_ROOTS: string[]: ["lib", "vader"]
+TEST_ROOTS: string[]: ["lib", "vader", "tools"]
 
 // The modules of `TEST_ROOTS` that hold a test, pushed on `found` in path order.
 find_module_tests :: fn(found: Discovery) -> void {

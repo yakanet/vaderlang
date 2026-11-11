@@ -1,6 +1,6 @@
 // tools/testrunner/src/main: check the snippets against their snapshots, the
 // stage dumps, the run on the VM and the native run; the diagnostics corpora; and
-// the `@test` functions of the modules of `lib/` and `vader/`.
+// the `@test` functions of the modules of `lib/`, `vader/` and `tools/`.
 //
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
