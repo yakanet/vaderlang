@@ -14,14 +14,9 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "cli"
-import "vader/front/virt"
 import "vader/pipeline"
 import "vader/support/diagnostics"
 import "vader/vm"
-
-
-
-
 
 // The one forwarding action: the CLI reads flags up to the path, and everything
 // after it is the executed program's argv: verbatim, uninspected, `-o` and
@@ -67,28 +62,7 @@ run_virt :: fn(path: Path, forward: string[]) -> i32 {
         eprintln("vader run: cannot read ${path.to_native()}")
         return 1
     }
-    module :: parse_virt_bc(source)
-    if module is VirtParseError {
-        eprintln(module.display_virt_parse_error("vader run", path.to_native()))
-        return 1
-    }
-    state :: prepare(module)
-    if state is VerifyError {
-        eprintln("vader run: ${display_verify_error(state)}")
-        return 1
-    }
-    problem :: attach_ffi_adapters(state, null, path)
-    if problem != null {
-        eprintln("vader run: ${problem}")
-        return 1
-    }
-    return match o :: exec(state, forward) {
-        is Ok   -> o.value
-        is Trap -> {
-            eprintln("vader vm: ${o.message}")
-            1
-        }
-    }
+    return run_virt_text(source, path, forward, null)
 }
 
 run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -> i32 {

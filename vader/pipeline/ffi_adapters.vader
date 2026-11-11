@@ -26,6 +26,7 @@ import "std/target"
 import "vader/core/bytecode"
 import "vader/emit/c"
 import "vader/front/resolver"
+VM :: import "vader/vm"
 
 /// Why the adapter library could not be built.
 export AdapterBuildError :: struct {
@@ -181,4 +182,41 @@ shared_library_extension :: fn() -> string = match current_os() {
     .Windows                  -> "dll"
     .Darwin                   -> "dylib"
     .Linux | .Wasi | .Browser -> "so"
+}
+
+/// Give `state` the adapters of its program, building them when it has any.
+///
+/// The library is kept under the `build/` of `project_root`, or of the folder of
+/// `entry` for a file on its own; a quoted `@c_header` resolves from that folder
+/// too.
+///
+/// @param state         the program, prepared to run.
+/// @param project_root  the project folder, or null for a file on its own.
+/// @param entry         the program's entry file.
+/// @return              null on success, else why the program cannot run on the
+///                      interpreter, worded to follow "vader <command>:".
+export attach_ffi_adapters :: fn(
+    state: VM.VmState,
+    project_root: string | null,
+    entry: Path,
+) -> string | null {
+    adapted :: VM.adapted_imports(state.bc)
+    if adapted.len() == 0 {
+        return null
+    }
+    entry_dir :: quote_include_dir(entry)
+    built :: build_ffi_adapters(
+        state.bc,
+        adapted,
+        project_root ?? entry_dir,
+        cc_or_default(""),
+        entry_dir,
+    )
+    if built is AdapterBuildError {
+        imp :: state.bc.imports[adapted[0]]
+        reason :: VM.adapter_reason(imp, state.bc.types) ?? ""
+        return "extern `${imp.extern_name}` is called through an adapter (${reason}), and the adapters "
+            + "${built.message}; or build the program with `vader build`"
+    }
+    return VM.attach_adapters(state, built, adapted)
 }

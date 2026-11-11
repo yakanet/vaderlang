@@ -1,0 +1,63 @@
+// vader/pipeline/run_virt: a `.virt` text bytecode module run on the VM, as
+// `vader run` runs one.
+//
+// `vader run` runs a `.virt` file on the process's own standard streams; a test
+// runner's worker runs one on the streams the VM serves
+// (`vader/vm/program_io.vader`), and records what the run of `vader run` says.
+
+module "vader/pipeline"
+
+import "std/console"
+import "std/path"
+import "vader/front/virt"
+VM :: import "vader/vm"
+
+/// Run the `.virt` text bytecode module `text` on the VM, with the adapters of
+/// its `@extern`s, as `vader run` runs the file at `path`.
+///
+/// @param text     the text of the module.
+/// @param path     the file it is read from: it names the module in messages, and
+///                 its folder is where the adapters are built.
+/// @param forward  the program's argv, its path not included.
+/// @param io       where the program's standard streams go, null for the
+///                 process's own.
+/// @return         the value its `main` returns, or 1 after writing on the
+///                 program's stderr why it could not run, or the trap it stopped on.
+export run_virt_text :: fn(
+    text: string,
+    path: Path,
+    forward: string[],
+    io: VM.ProgramIo | null,
+) -> i32 {
+    module :: parse_virt_bc(text)
+    if module is VirtParseError {
+        write_run_failure(io, module.display_virt_parse_error("vader run", path.to_native()))
+        return 1
+    }
+    state :: VM.prepare(module)
+    if state is VM.VerifyError {
+        write_run_failure(io, "vader run: ${VM.display_verify_error(state)}")
+        return 1
+    }
+    problem :: attach_ffi_adapters(state, null, path)
+    if problem != null {
+        write_run_failure(io, "vader run: ${problem}")
+        return 1
+    }
+    state.io = io
+    outcome :: VM.exec(state, forward)
+    if outcome is VM.Trap {
+        write_run_failure(io, "vader vm: ${outcome.message}")
+        return 1
+    }
+    return outcome.value
+}
+
+// Write the line `line` on the program's stderr, which `io` serves when it is set.
+write_run_failure :: fn(io: VM.ProgramIo | null, line: string) -> void {
+    if io == null {
+        eprintln(line)
+    } else {
+        io.write(.Stderr, "${line}\n")
+    }
+}
