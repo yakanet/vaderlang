@@ -12,20 +12,18 @@ module "tools/testrunner/src"
 
 import "json"
 import "std/console"
+import "std/diff"
 import "std/fs"
 import "std/io"
-import "std/option"
 import "std/path"
 import "std/string"
 import "std/time"
-import "vader/support/target"
 import "vader/tools/dump"
 
 // Run the cases read on stdin until it ends.
 //
 // @param update  write each snapshot that differs or is missing.
 run_worker :: fn(update: bool) -> i32 {
-    target :: parse_target(SNAPSHOT_TARGET).or_null()
     for {
         line :: read_line()
         if line is IOError {
@@ -41,16 +39,16 @@ run_worker :: fn(update: bool) -> i32 {
             print(done_record("", 0))
             continue
         }
-        run_request(case, target, update)
+        run_request(case, update)
     }
 }
 
-run_request :: fn(case: Case, target: Target | null, update: bool) -> void {
+run_request :: fn(case: Case, update: bool) -> void {
     began :: monotonic()
     input :: DumpInput {
         .file = Path("${case_dir(case.name)}/_main.vader"),
         .modules = case.modules,
-        .target = target,
+        .target = SNAPSHOT_TARGET,
         .annotate = true,
     }
     for phase in case.phases {
@@ -98,14 +96,32 @@ report_of :: fn(
     began: Monotonic,
 ) -> StageReport {
     path :: "${case_dir(case.name)}/${stage.snapshot}"
-    result :: verdict_of(read_file_string(path), actual, path, update)
-    failed :: result == .Differ || result == .Missing
+    expected :: read_file_string(path)
+    result :: verdict_of(expected, actual, path, update)
     return StageReport {
         .phase = stage.phase,
         .result = result,
         .duration_us = began.since().to_micros(),
-        .actual = if failed { actual } else { null },
+        .detail = failure_detail(result, expected, actual, path),
     }
+}
+
+// What shows a stage that fails: the unified diff from its snapshot, at `path`,
+// to its text, or the whole text when it has no snapshot. Null for one that does
+// not fail.
+failure_detail :: fn(
+    result: Verdict,
+    expected: string | IOError,
+    actual: string,
+    path: string,
+) -> string | null {
+    if result == .Missing {
+        return actual
+    }
+    if result != .Differ || expected is IOError {
+        return null
+    }
+    return "--- ${path}\n+++ actual\n${unified_diff(expected, actual)}"
 }
 
 verdict_of :: fn(
@@ -163,3 +179,29 @@ nested :: fn(text: string) -> string = text.replace_all("\n", "\n  ")
 
 failed_text :: fn(code: i32, stderr: string, stdout: string) -> string =
     "# vader CLI failed (exit ${code})\n${stderr}${stdout}"
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_differing_stage_shows_its_diff :: fn() -> void {
+    detail :: failure_detail(.Differ, "a\n", "b\n", "s/lexer.snapshot")
+    assert_eq(detail ?? "", "--- s/lexer.snapshot\n+++ actual\n@@ -1 +1 @@\n-a\n+b\n")
+}
+
+@test
+test_a_stage_without_snapshot_shows_its_text :: fn() -> void {
+    assert_eq(failure_detail(.Missing, "", "text\n", "s/vm.snapshot") ?? "", "text\n")
+}
+
+@test
+test_a_passing_stage_shows_nothing :: fn() -> void {
+    assert(failure_detail(.Same, "a\n", "a\n", "s/vm.snapshot") == null, "a stage that passes")
+}
+
+@test
+test_a_stage_compares_its_text_with_its_snapshot :: fn() -> void {
+    assert(verdict_of("a\n", "a\n", "unused", false) == .Same, "the same text")
+    assert(verdict_of("a\n", "b\n", "unused", false) == .Differ, "another text")
+}

@@ -79,7 +79,7 @@ BYTECODE_SNAPSHOT :: "bytecode.snapshot.virt"
 SNIPPETS :: "tests/snippets"
 
 // The target the snapshots are taken for, whatever the host.
-SNAPSHOT_TARGET :: "linux-x86_64"
+SNAPSHOT_TARGET :: Target { .os = .Linux, .arch = .X86_64 }
 
 // A snippet and the phases to check on it.
 Case :: struct {
@@ -236,4 +236,31 @@ read_config :: fn(dir: string) -> JsonValue | string {
         return "`_config.json`: ${parsed.msg} at byte ${parsed.pos}"
     }
     return "`_config.json` is not an object"
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/option"
+import "std/testing"
+
+json_of :: fn(text: string) -> JsonValue = parse(text).or_null() ?? JsonNull {}
+
+@test
+test_a_skip_excludes_the_run_everywhere :: fn() -> void {
+    assert(excludes_this_host(json_of("{\"skip\": \"why\"}")), "`skip`")
+}
+
+@test
+test_a_skip_on_excludes_the_run_on_the_platforms_it_names :: fn() -> void {
+    here :: json_of("{\"skip_on\": {\"${host_platform()}\": \"why\"}}")
+    assert(excludes_this_host(here), "this host's platform")
+    elsewhere :: json_of("{\"skip_on\": {\"plan9\": \"why\"}}")
+    assert(!excludes_this_host(elsewhere), "another platform")
+}
+
+@test
+test_a_case_checks_the_dumps_its_config_allows :: fn() -> void {
+    asked :: ["lexer", "parser", "vm"]
+    assert_eq(phases_of(json_of("{}"), asked).join(","), "lexer,parser")
+    assert_eq(phases_of(json_of("{\"phases\": [\"parser\"]}"), asked).join(","), "parser")
 }

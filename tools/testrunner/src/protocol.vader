@@ -17,17 +17,18 @@
 // ```
 // {"event": "stage", "case": "hello", "stage": "lexer", "result": "same", "duration_us": 812}
 // {"event": "stage", "case": "hello", "stage": "emit_c", "result": "differ", "duration_us": 53,
-//  "actual": "..."}
+//  "detail": "--- tests/snippets/hello/emit-c.snapshot.c\n+++ actual\n@@ -1 +1 @@\n..."}
 // {"event": "output", "case": "hello", "stream": "stdout", "text": "Hello\n"}
 // {"event": "error", "case": "hello", "message": "..."}
 // {"event": "done", "case": "hello", "duration_us": 61234}
 // ```
 //
 // A `result` is `same`, `differ`, `missing` (no snapshot file) or `written`
-// (under `--update`); `actual`, the text the snapshot should hold, comes with
-// `differ` and `missing` only. A worker whose stdout ends before `done` crashed
-// on the first stage it did not report; the `output` events of a program it was
-// running are what that program wrote before.
+// (under `--update`); `detail` shows a failure: the unified diff from the snapshot
+// to the text under `differ`, the whole text under `missing`. A worker whose
+// stdout ends before `done` crashed on the first stage it did not report; the
+// `output` events of a program it was running are what that program wrote
+// before.
 
 module "tools/testrunner/src"
 
@@ -59,8 +60,9 @@ StageReport :: struct {
     phase: string
     result: Verdict
     duration_us: i64
-    /// The text the snapshot should hold, when it does not.
-    actual: string | null = null
+    /// What shows a failure: the unified diff from the snapshot to the text when
+    /// they differ, the whole text when there is no snapshot.
+    detail: string | null = null
 }
 
 // A request the worker could not run, or a stage it does not know.
@@ -100,9 +102,9 @@ stage_record :: fn(case: string, report: StageReport) -> string {
     entries["stage"] = JsonString { .value = report.phase }
     entries["result"] = JsonString { .value = verdict_name(report.result) }
     entries["duration_us"] = JsonNumber { .value = f64(report.duration_us) }
-    actual :: report.actual
-    if actual != null {
-        entries["actual"] = JsonString { .value = actual }
+    detail :: report.detail
+    if detail != null {
+        entries["detail"] = JsonString { .value = detail }
     }
     return record(entries)
 }
@@ -167,7 +169,7 @@ read_event :: fn(line: string) -> Event | null {
             .phase = string_member(message, "stage") ?? return null,
             .result = verdict_named(string_member(message, "result") ?? "") ?? return null,
             .duration_us = micros_of(message),
-            .actual = string_member(message, "actual"),
+            .detail = string_member(message, "detail"),
         }
     }
     if event == "error" {
@@ -206,3 +208,57 @@ message_of :: fn(line: string) -> JsonValue | null {
 }
 
 micros_of :: fn(message: JsonValue) -> i64 = i64(number_member(message, "duration_us") ?? 0.0)
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+// The line a reader gets for `record`: the record without its line end.
+line_of :: fn(record: string) -> string = record.trim_suffix("\n")
+
+@test
+test_a_request_reads_back_as_its_case :: fn() -> void {
+    case :: Case {
+        .name = "hello",
+        .phases = ["lexer", "vm"],
+        .modules = ["helper"],
+        .vm_from_build = true,
+    }
+    sent :: request_record(case)
+    nothing :: Case { .name = "", .phases = [], .modules = [] }
+    assert_eq(request_record(read_request(line_of(sent)) ?? nothing), sent)
+}
+
+@test
+test_a_stage_event_reads_back_with_its_detail :: fn() -> void {
+    report :: StageReport {
+        .phase = "vm",
+        .result = .Differ,
+        .duration_us = 12,
+        .detail = "--- a\n+++ actual\n",
+    }
+    sent :: stage_record("hello", report)
+    back :: read_event(line_of(sent))
+    if back is StageReport {
+        assert_eq(stage_record("hello", back), sent)
+    } else {
+        assert(false, "a stage event reads back as a stage report")
+    }
+}
+
+@test
+test_an_output_event_keeps_its_stream :: fn() -> void {
+    back :: read_event(line_of(output_record("hello", .Stderr, "oops\n")))
+    if back is ProgramOutput {
+        assert(back.stream == .Stderr, "the stream written to")
+        assert_eq(back.text, "oops\n")
+    } else {
+        assert(false, "an output event reads back as a program's output")
+    }
+}
+
+@test
+test_a_line_that_is_no_event_reads_as_null :: fn() -> void {
+    assert(read_event("not json") == null, "a line that is not JSON")
+    assert(read_event("{\"event\": \"other\"}") == null, "an event the runner does not know")
+}

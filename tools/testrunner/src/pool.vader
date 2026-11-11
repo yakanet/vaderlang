@@ -1,11 +1,12 @@
 // tools/testrunner/src/pool: K workers, each driven by a task.
 //
-// Each task takes case indices from one channel and runs each case on its
-// worker, a `testrunner --worker` child it starts on first use. A worker that
-// dies, or overruns the deadline of a case, is replaced on the stages of the case
-// it had not reported, the one it stopped on counted as a crash. A worker that
-// dies running a program on a stop line has ended with the program, as the
-// process of `vader run` would: that is the program's run, compared as any other.
+// Each task takes case indices from one channel, runs each case on its worker, a
+// `testrunner --worker` child it starts on first use, and tells the reporter what
+// happens (`report.vader`). A worker that dies, or overruns the deadline of a
+// case, is replaced on the stages of the case it had not reported, the one it
+// stopped on counted as a crash. A worker that dies running a program on a stop
+// line has ended with the program, as the process of `vader run` would: that is
+// the program's run, compared as any other.
 
 module "tools/testrunner/src"
 
@@ -37,25 +38,6 @@ Reports :: struct {
     output: Streams = Streams {}
 }
 
-// A stage a worker stopped on.
-Crash :: struct {
-    case: string
-    phase: string
-    exit: i32
-    stderr: string
-}
-
-// What one task found over the cases it ran.
-Tally :: struct {
-    same: i64 = 0
-    written: string[] = []
-    /// `<case>/<phase>` of each stage whose text differs from its snapshot, or
-    /// has none.
-    failures: string[] = []
-    crashes: Crash[] = []
-    errors: string[] = []
-}
-
 // A task's worker, started on first use and after each crash.
 Slot :: struct {
     /// The argv a worker starts with.
@@ -65,29 +47,31 @@ Slot :: struct {
     worker: Worker | null = null
 }
 
-// Take indices of `cases` from `queue` until it is closed, and run each case on
-// the slot's worker.
-serve :: fn(slot: Slot, cases: Case[], queue: Channel<i64>) -> Tally {
-    tally :: Tally {}
+// Take indices of `cases` from `queue` until it is closed, run each case on the
+// slot's worker, and tell `events` what happens.
+serve :: fn(slot: Slot, cases: Case[], queue: Channel<i64>, events: Channel<Progress>) -> void {
     for i in queue {
-        run_case(slot, cases[i], tally)
+        run_case(slot, cases[i], events)
     }
     stop_worker(slot)
-    return tally
 }
 
 // Run the stages of `case`, on a new worker for those left after a crash.
-run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
+run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
+    events.send(CaseStarted { .case = case.name })
+    defer events.send(CaseEnded { .case = case.name })
     todo := case.phases
     for todo.len() > 0 {
         worker :: worker_of(slot) ?? return
         from :: worker.err.len()
         reports :: run_on(worker, Case { ...case, .phases = todo })
         for report in reports.stages {
-            tally.note(case.name, report)
+            // A copy: what a task sends is its receiver's to write, and `report` is
+            // still an element of this task's `reports` (T3129).
+            events.send(StageNoted { .case = case.name, .report = StageReport { ...report } })
         }
         for message in reports.errors {
-            tally.errors.push("${case.name}: ${message}")
+            events.send(RunError { .message = "${case.name}: ${message}" })
         }
         if reports.done {
             return
@@ -103,9 +87,9 @@ run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
         died :: worker.err[from..<worker.err.len()].bytes_to_string()
         ended :: if left[0] == VM_PHASE { program_end(slot, case, reports, died) } else { null }
         if ended != null {
-            tally.note(case.name, ended)
+            events.send(StageNoted { .case = case.name, .report = ended })
         } else {
-            tally.crashes.push(
+            events.send(
                 Crash {
                     .case = case.name,
                     .phase = left[0],
@@ -115,15 +99,6 @@ run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
             )
         }
         todo = left[1..<left.len()]
-    }
-}
-
-note :: fn(tally: Tally, case: string, report: StageReport) -> void {
-    match report.result {
-        .Same    -> { tally.same += 1 }
-        .Written -> tally.written.push("${case}/${report.phase}")
-        .Differ  -> tally.failures.push("${case}/${report.phase}")
-        .Missing -> tally.failures.push("${case}/${report.phase} (no snapshot)")
     }
 }
 

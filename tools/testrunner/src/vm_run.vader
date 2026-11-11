@@ -43,7 +43,7 @@ program_bytecode :: fn(case: Case) -> string | CaseFailure {
     if case.vm_from_build {
         return linked_image(file)
     }
-    if display_target(host_target()) == SNAPSHOT_TARGET {
+    if host_target() == SNAPSHOT_TARGET {
         pinned :: read_file_string("${case_dir(case.name)}/${BYTECODE_SNAPSHOT}")
         if pinned is IOError {
             return CaseFailure { .message = "`${BYTECODE_SNAPSHOT}`: ${pinned.msg}" }

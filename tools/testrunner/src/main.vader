@@ -3,8 +3,9 @@
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
 // the number of cores by default. It hands them the snippets of
-// `tests/snippets` one case at a time (`pool.vader`) and adds up what they
-// report (`protocol.vader`).
+// `tests/snippets` one case at a time (`pool.vader`), over JSON lines
+// (`protocol.vader`), and prints what they report as it comes, then the tally
+// (`report.vader`).
 //
 // The binary embeds the compiler from its sources, so it refuses to run when a
 // source under `vader/`, `lib/` or `tools/testrunner/` is newer than itself.
@@ -115,49 +116,30 @@ run_all :: fn(
     }
     queue.close()
     began :: monotonic()
-    tasks: Task<Tally>[]: []
+    events :: Channel<Progress> { .capacity = UNBOUNDED }
+    for problem in problems {
+        events.send(RunError { .message = problem })
+    }
+    reporter :: launch(() -> report(events, count, began))
+    ticker :: launch(() -> tick(events))
+    tasks: Task<void>[]: []
     for _ in 0..<k {
         slot :: Slot { .command = command, .update = update }
-        tasks.push(launch(() -> serve(slot, cases, queue)))
+        tasks.push(launch(() -> serve(slot, cases, queue, events)))
     }
-    total :: Tally {}
-    for result in join_all(tasks) {
-        if result is Tally {
-            total.same += result.same
-            total.written.push_all(result.written)
-            total.failures.push_all(result.failures)
-            total.crashes.push_all(result.crashes)
-            total.errors.push_all(result.errors)
-        }
+    join_all(tasks)
+    ticker.cancel()
+    ticker.join()
+    events.close()
+    total :: reporter.join()
+    if total is Cancelled {
+        return 1
     }
-    total.errors.push_all(problems)
     print_tally(total, count, k, began.since().to_millis())
     if total.failures.len() + total.crashes.len() + total.errors.len() > 0 {
         return 1
     }
     return 0
-}
-
-print_tally :: fn(total: Tally, cases: i64, k: i32, millis: i64) -> void {
-    for name in total.failures {
-        println("  != snapshot: ${name}")
-    }
-    for crash in total.crashes {
-        println("  crash: ${crash.case}/${crash.phase} exit ${crash.exit}")
-        print(crash.stderr)
-    }
-    for message in total.errors {
-        println("  error: ${message}")
-    }
-    for name in total.written {
-        println("  written: ${name}")
-    }
-    checked :: total.same + total.written.len() + total.failures.len()
-    println("${cases} cases, ${checked} stages in ${millis} ms on ${k} workers")
-    println(
-        "same ${total.same}, written ${total.written.len()}, differ ${total.failures.len()}, "
-            + "crashes ${total.crashes.len()}, errors ${total.errors.len()}",
-    )
 }
 
 // The argv of a worker: this binary, as a worker.
