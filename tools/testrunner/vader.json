@@ -1,4 +1,0 @@
-{
-    "entries": { "testrunner": "main.vader" },
-    "includePaths": ["../.."]
-}

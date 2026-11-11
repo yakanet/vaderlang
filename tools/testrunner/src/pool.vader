@@ -1,11 +1,11 @@
-// tools/testrunner/pool: K workers, each driven by a task.
+// tools/testrunner/src/pool: K workers, each driven by a task.
 //
 // Each task takes case indices from one channel and runs each case on its
 // worker, a `testrunner --worker` child it starts on first use. A worker that
 // dies, or overruns the deadline of a case, is replaced on the stages of the case
 // it had not reported, the one it stopped on counted as a crash.
 
-module "tools/testrunner"
+module "tools/testrunner/src"
 
 import "std/console"
 import "std/iter"

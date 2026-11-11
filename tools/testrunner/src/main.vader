@@ -1,4 +1,4 @@
-// tools/testrunner/main: check the stage dumps of the snippets against their snapshots.
+// tools/testrunner/src/main: check the stage dumps of the snippets against their snapshots.
 //
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
@@ -8,12 +8,12 @@
 //
 // The binary embeds the compiler from its sources, so it refuses to run when a
 // source under `vader/`, `lib/` or `tools/testrunner/` is newer than itself.
-// `vader build --release` in this folder builds it under `build/`. Run it from
-// the repository root:
+// `vader build --release` in `tools/testrunner` builds it. Run it from the
+// repository root:
 //
 //   testrunner [--update] [--jobs=N] [--phases=lexer,parser,...]
 
-module "tools/testrunner"
+module "tools/testrunner/src"
 
 import "cli"
 import "std/console"

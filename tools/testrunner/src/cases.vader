@@ -1,11 +1,11 @@
-// tools/testrunner/cases: the snippets and the stages checked on each.
+// tools/testrunner/src/cases: the snippets and the stages checked on each.
 //
 // A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
 // `_config.json` may name the phases its snapshots cover (`phases`) and the
 // modules the module-scoped dumps show (`modules`). A `_config.json` that is not
 // a JSON object is a problem, never a reason to run every phase.
 
-module "tools/testrunner"
+module "tools/testrunner/src"
 
 import "json"
 import "std/collections"

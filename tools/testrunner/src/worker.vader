@@ -1,4 +1,4 @@
-// tools/testrunner/worker: `testrunner --worker`, which runs the cases it reads.
+// tools/testrunner/src/worker: `testrunner --worker`, which runs the cases it reads.
 //
 // It reads one request per line on stdin, until stdin ends (`protocol.vader`).
 // Each stage of a case is rendered by `vader/tools/dump` as `vader dump
@@ -7,7 +7,7 @@
 // that differs is written. The stages of a case share one front end. Nothing but
 // the protocol goes to stdout.
 
-module "tools/testrunner"
+module "tools/testrunner/src"
 
 import "json"
 import "std/console"

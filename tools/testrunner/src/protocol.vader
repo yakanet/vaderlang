@@ -1,4 +1,4 @@
-// tools/testrunner/protocol: what the runner and its workers say to each other.
+// tools/testrunner/src/protocol: what the runner and its workers say to each other.
 //
 // Every message is an entry of a JSON text sequence (RFC 7464), as `vader test
 // --reporter=json` writes its events: a record separator (0x1E), one JSON
@@ -25,7 +25,7 @@
 // `differ` and `missing` only. A worker whose stdout ends before `done` crashed
 // on the first stage it did not report.
 
-module "tools/testrunner"
+module "tools/testrunner/src"
 
 import "json"
 import "std/collections"
