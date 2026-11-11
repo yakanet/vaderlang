@@ -1,15 +1,11 @@
 // tools/testrunner/src/cases: the snippets and the stages checked on each.
 //
 // A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
-// `_config.json` may name the phases its snapshots cover (`phases`), the modules
-// the module-scoped dumps show (`modules`), how its run on the VM is checked
-// (`vm`) and where its native run is not (`native`). A `_config.json` that is not
-// a JSON object is a problem, never a reason to run every phase.
+// `_config.json` (`config.vader`) may narrow the stages checked on it. A snippet
+// whose `_config.json` has a problem is reported, never checked.
 
 module "tools/testrunner/src"
 
-import "json"
-import "std/collections"
 import "std/fs"
 import "std/io"
 import "std/iter"
@@ -58,9 +54,9 @@ STAGES: Stage[]: [
         .snapshot = BYTECODE_SNAPSHOT,
     },
     Stage {
-        .phase = "emit_c",
+        .phase = C_PHASE,
         .dump = "c",
-        .snapshot = "emit-c.snapshot.c",
+        .snapshot = C_SNAPSHOT,
     },
     VM_STAGE,
     NATIVE_STAGE,
@@ -82,6 +78,10 @@ NATIVE_STAGE: Stage: Stage {
     .dump = null,
     .snapshot = VM_SNAPSHOT,
 }
+
+// The C a native build compiles.
+C_PHASE    :: "emit_c"
+C_SNAPSHOT :: "emit-c.snapshot.c"
 
 // The bytecode snapshot, which the VM runs on the host it is taken for.
 BYTECODE_SNAPSHOT :: "bytecode.snapshot.virt"
@@ -135,8 +135,10 @@ find_cases :: fn(phases: string[]) -> Discovery {
             continue
         }
         config :: read_config(dir)
-        if config is string {
-            found.problems.push("${name}: ${config}")
+        if config is ConfigProblems {
+            for message in config.messages {
+                found.problems.push("${dir}/${CONFIG_FILE}: ${message}")
+            }
             continue
         }
         kept :: phases_of(config, phases)
@@ -151,7 +153,7 @@ find_cases :: fn(phases: string[]) -> Discovery {
                 Case {
                     .name = name,
                     .phases = kept,
-                    .modules = strings_member(config, "modules"),
+                    .modules = config.modules,
                     .vm_from_build = vm_from_build(dir, config),
                 },
             )
@@ -162,29 +164,31 @@ find_cases :: fn(phases: string[]) -> Discovery {
 
 // The dump phases of `phases` the snippet's `config` lets run, in the order of
 // `STAGES`: all of them when it names none.
-phases_of :: fn(config: JsonValue, phases: string[]) -> string[] {
-    every :: member(config, "phases") == null
-    listed :: strings_member(config, "phases")
+phases_of :: fn(config: SnippetConfig, phases: string[]) -> string[] {
     kept: string[]: []
     for stage in STAGES {
-        allowed :: every || listed.contains(stage.phase)
-        if stage.dump != null && phases.contains(stage.phase) && allowed {
+        if stage.dump != null && phases.contains(stage.phase) && covers(config, stage.phase) {
             kept.push(stage.phase)
         }
     }
     return kept
 }
 
+// Whether the snapshots of a snippet whose config is `config` cover `phase`.
+covers :: fn(config: SnippetConfig, phase: string) -> bool {
+    listed :: config.phases ?? return true
+    return listed.contains(phase)
+}
+
 // Whether the run of the snippet in `dir` is checked on the VM, as
 // `tests/vader_vm.test.ts` decides: it has a run to check or a bytecode snapshot
 // to run, its `_config.json` does not exclude the run on this host, and it brings
 // no C of its own (`helper*.c`), which only a native binary links.
-runs_on_vm :: fn(dir: string, config: JsonValue) -> bool {
+runs_on_vm :: fn(dir: string, config: SnippetConfig) -> bool {
     if !exists("${dir}/${VM_SNAPSHOT}") && !exists("${dir}/${BYTECODE_SNAPSHOT}") {
         return false
     }
-    vm :: member(config, "vm")
-    if vm != null && excludes_this_host(vm) {
+    if excludes_this_host(config.vm) {
         return false
     }
     return helper_c_files(dir).len() == 0
@@ -193,23 +197,13 @@ runs_on_vm :: fn(dir: string, config: JsonValue) -> bool {
 // Whether the snippet in `dir` is built and run natively, as
 // `tests/parity-cemit.test.ts` decides: it has a run to compare with, and its
 // `_config.json` does not exclude the native run on this host.
-runs_natively :: fn(dir: string, config: JsonValue) -> bool {
-    if !exists("${dir}/${VM_SNAPSHOT}") {
-        return false
-    }
-    native :: member(config, "native")
-    return native == null || !excludes_this_host(native)
-}
+runs_natively :: fn(dir: string, config: SnippetConfig) -> bool =
+    exists("${dir}/${VM_SNAPSHOT}") && !excludes_this_host(config.native)
 
-// Whether the `vm` entry of a `_config.json` excludes the run here: everywhere
-// (`skip`), or on the host's platform (`skip_on`).
-excludes_this_host :: fn(vm: JsonValue) -> bool {
-    if member(vm, "skip") != null {
-        return true
-    }
-    skip_on :: member(vm, "skip_on") ?? return false
-    return member(skip_on, host_platform()) != null
-}
+// Whether `run` is not checked here: everywhere (`skip`), or on the host's
+// platform (`skip_on`).
+excludes_this_host :: fn(run: RunConfig) -> bool =
+    run.skipped || run.skipped_on.contains(host_platform())
 
 // The name `skip_on` gives the host's platform, Node's `process.platform`.
 host_platform :: fn() -> string = match host_target().os {
@@ -232,57 +226,28 @@ helper_c_files :: fn(dir: string) -> string[] {
 
 // Whether the snippet in `dir` runs on the VM from the image a build links: its
 // `_config.json` says `"vm": { "from": "build" }`, or it has no bytecode snapshot.
-vm_from_build :: fn(dir: string, config: JsonValue) -> bool {
-    vm :: member(config, "vm")
-    if vm != null && string_member(vm, "from") == "build" {
-        return true
-    }
-    return !exists("${dir}/${BYTECODE_SNAPSHOT}")
-}
-
-// The `_config.json` of the snippet in `dir`, an empty object when it has none,
-// or why it cannot be read as an object.
-read_config :: fn(dir: string) -> JsonValue | string {
-    text :: read_file_string("${dir}/_config.json")
-    if text is IOError {
-        if text.kind == .NotFound {
-            return JsonObject { .entries = Map<string, JsonValue> {} }
-        }
-        return "`_config.json`: ${text.msg}"
-    }
-    parsed :: parse(text)
-    if parsed is JsonObject {
-        return parsed
-    }
-    if parsed is JsonError {
-        return "`_config.json`: ${parsed.msg} at byte ${parsed.pos}"
-    }
-    return "`_config.json` is not an object"
-}
+vm_from_build :: fn(dir: string, config: SnippetConfig) -> bool =
+    config.vm.from_build || !exists("${dir}/${BYTECODE_SNAPSHOT}")
 
 // ---- tests ------------------------------------------------------------------
 
-import "std/option"
 import "std/testing"
-
-json_of :: fn(text: string) -> JsonValue = parse(text).or_null() ?? JsonNull {}
 
 @test
 test_a_skip_excludes_the_run_everywhere :: fn() -> void {
-    assert(excludes_this_host(json_of("{\"skip\": \"why\"}")), "`skip`")
+    assert(excludes_this_host(RunConfig { .skipped = true }), "`skip`")
 }
 
 @test
 test_a_skip_on_excludes_the_run_on_the_platforms_it_names :: fn() -> void {
-    here :: json_of("{\"skip_on\": {\"${host_platform()}\": \"why\"}}")
+    here :: RunConfig { .skipped_on = [host_platform()] }
     assert(excludes_this_host(here), "this host's platform")
-    elsewhere :: json_of("{\"skip_on\": {\"plan9\": \"why\"}}")
-    assert(!excludes_this_host(elsewhere), "another platform")
+    assert(!excludes_this_host(RunConfig { .skipped_on = ["plan9"] }), "another platform")
 }
 
 @test
 test_a_case_checks_the_dumps_its_config_allows :: fn() -> void {
     asked :: ["lexer", "parser", "vm"]
-    assert_eq(phases_of(json_of("{}"), asked).join(","), "lexer,parser")
-    assert_eq(phases_of(json_of("{\"phases\": [\"parser\"]}"), asked).join(","), "parser")
+    assert_eq(phases_of(SnippetConfig {}, asked).join(","), "lexer,parser")
+    assert_eq(phases_of(SnippetConfig { .phases = ["parser"] }, asked).join(","), "parser")
 }

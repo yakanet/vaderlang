@@ -1,0 +1,289 @@
+// tools/testrunner/src/config: the `_config.json` of a snippet, read and checked.
+//
+// Every key is optional, and a snippet without the file takes every default. The
+// file may name the phases its snapshots cover (`phases`), the modules the
+// module-scoped dumps show (`modules`), where its native run is not checked
+// (`native`) and where and from what its run on the VM is (`vm`). A file with a
+// problem is reported and its snippet is not checked: read as the defaults, a
+// mistyped phase would turn a check off in silence, or let `--update` write the
+// snapshots of phases the snippet does not keep.
+
+module "tools/testrunner/src"
+
+import "json"
+import "std/collections"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/string"
+
+// A snippet's `_config.json`.
+SnippetConfig :: struct {
+    /// The phases its snapshots cover, null for every phase.
+    phases: string[] | null = null
+    /// The modules the module-scoped dumps show, those under the entry module
+    /// when empty.
+    modules: string[] = []
+    native: RunConfig = RunConfig {}
+    vm: RunConfig = RunConfig {}
+}
+
+// What a `_config.json` says of a run of its snippet.
+RunConfig :: struct {
+    /// Not checked on any platform (`skip`).
+    skipped: bool = false
+    /// The platforms it is not checked on (`skip_on`), as Node's
+    /// `process.platform` names them.
+    skipped_on: string[] = []
+    /// It runs the image a build links from source (`"from": "build"`): the run
+    /// on the VM only.
+    from_build: bool = false
+}
+
+// What is wrong with a `_config.json`.
+ConfigProblems :: struct {
+    messages: string[]
+}
+
+CONFIG_FILE :: "_config.json"
+
+// The keys of a `_config.json`, and those each run takes.
+CONFIG_KEYS: string[]: ["phases", "modules", "native", "vm"]
+NATIVE_KEYS: string[]: ["skip", "skip_on"]
+VM_KEYS: string[]: ["skip", "skip_on", "from"]
+
+// The platforms `skip_on` may name: the names `host_platform` gives.
+PLATFORMS: string[]: ["darwin", "linux", "win32"]
+
+// The `_config.json` of the snippet in `dir`, or what is wrong with it.
+read_config :: fn(dir: string) -> SnippetConfig | ConfigProblems {
+    text :: read_file_string("${dir}/${CONFIG_FILE}")
+    if text is IOError {
+        if text.kind == .NotFound {
+            return SnippetConfig {}
+        }
+        return ConfigProblems { .messages = [text.msg] }
+    }
+    parsed :: parse(text)
+    if parsed is JsonError {
+        return ConfigProblems { .messages = ["not JSON (${parsed.msg} at byte ${parsed.pos})"] }
+    }
+    if parsed !is JsonObject {
+        return ConfigProblems { .messages = ["the config is not an object"] }
+    }
+    problems: string[]: []
+    config :: config_of(parsed, problems)
+    problems.push_all(file_problems(parsed, config, dir))
+    if problems.len() > 0 {
+        return ConfigProblems { .messages = problems }
+    }
+    return config
+}
+
+// The config `raw` says, its problems pushed on `problems`.
+config_of :: fn(raw: JsonObject, problems: string[]) -> SnippetConfig {
+    for key in unknown_keys(raw, CONFIG_KEYS) {
+        problems.push("unknown key `${key}`")
+    }
+    return SnippetConfig {
+        .phases = listed_phases(raw.entries["phases"], problems),
+        .modules = listed_modules(raw.entries["modules"], problems),
+        .native = run_of("native", raw.entries["native"], NATIVE_KEYS, problems),
+        .vm = run_of("vm", raw.entries["vm"], VM_KEYS, problems),
+    }
+}
+
+// The phases of the `phases` entry, `value`: null when the config has none.
+listed_phases :: fn(value: JsonValue | null, problems: string[]) -> string[] | null {
+    if value == null {
+        return null
+    }
+    known :: dumped_phases()
+    listed :: strings_of(value)
+    if listed == null || listed.any_match((phase) -> phase !in known) {
+        problems.push("`phases` lists the phases among ${known.join(", ")}")
+    }
+    return listed
+}
+
+// The phases a dump of `vader dump` renders, which a config may name.
+dumped_phases :: fn() -> string[] {
+    dumped :: STAGES.filter((stage) -> stage.dump != null)
+    return dumped.map((stage) -> stage.phase).collect()
+}
+
+// The modules of the `modules` entry, `value`: none when the config has none.
+listed_modules :: fn(value: JsonValue | null, problems: string[]) -> string[] {
+    if value == null {
+        return []
+    }
+    listed :: strings_of(value)
+    if listed == null {
+        problems.push("`modules` is a list of module paths")
+        return []
+    }
+    return listed
+}
+
+// What the entry `side` says of its run, `value`, which takes the keys `keys`.
+run_of :: fn(
+    side: string,
+    value: JsonValue | null,
+    keys: string[],
+    problems: string[],
+) -> RunConfig {
+    if value == null {
+        return RunConfig {}
+    }
+    if value !is JsonObject {
+        problems.push("`${side}` is an object")
+        return RunConfig {}
+    }
+    for key in unknown_keys(value, keys) {
+        problems.push("unknown key `${side}.${key}`")
+    }
+    skip :: value.entries["skip"]
+    skip_on :: value.entries["skip_on"]
+    from :: value.entries["from"]
+    if skip == null && skip_on == null && from == null {
+        problems.push("`${side}` says nothing")
+    }
+    if from != null && string_member(value, "from") != "build" {
+        problems.push(
+            "`${side}.from` is `\"build\"`, the only source besides the bytecode snapshot",
+        )
+    }
+    if skip != null && skip_on != null {
+        problems.push("`${side}.skip` already excludes every platform")
+    }
+    if skip != null {
+        check_reason("${side}.skip", skip, problems)
+    }
+    return RunConfig {
+        .skipped = skip != null,
+        .skipped_on = skipped_platforms(side, skip_on, problems),
+        .from_build = from != null,
+    }
+}
+
+// The platforms of the `skip_on` entry of the run `side`, `value`.
+skipped_platforms :: fn(side: string, value: JsonValue | null, problems: string[]) -> string[] {
+    if value == null {
+        return []
+    }
+    if value !is JsonObject || value.entries.len() == 0 {
+        problems.push("`${side}.skip_on` maps a platform to its reason")
+        return []
+    }
+    for [platform, reason] in value.entries {
+        if platform !in PLATFORMS {
+            problems.push("`${side}.skip_on`: unknown platform `${platform}`")
+        }
+        check_reason("${side}.skip_on.${platform}", reason, problems)
+    }
+    return value.entries.keys().collect()
+}
+
+// Push on `problems` that the entry at `path`, `value`, is no reason: a string
+// with more than blanks.
+check_reason :: fn(path: string, value: JsonValue, problems: string[]) -> void {
+    if value !is JsonString || value.value.trim().is_empty() {
+        problems.push("`${path}` is its reason, a non-empty string")
+    }
+}
+
+// Where the config `raw` reads as `config` and the files of the snippet in `dir`
+// disagree.
+file_problems :: fn(raw: JsonObject, config: SnippetConfig, dir: string) -> string[] {
+    out: string[]: []
+    phases :: config.phases
+    if phases != null && !phases.contains(C_PHASE) && exists("${dir}/${C_SNAPSHOT}") {
+        out.push("`phases` leaves out `${C_PHASE}`, so `${C_SNAPSHOT}` pins nothing: delete it")
+    }
+    if exists("${dir}/${VM_SNAPSHOT}") {
+        return out
+    }
+    for side in ["native", "vm"] {
+        if raw.entries[side] != null {
+            out.push("`${side}` describes a run, and no `${VM_SNAPSHOT}` records one")
+        }
+    }
+    return out
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+// The object `text` holds.
+object_of :: fn(text: string) -> JsonObject {
+    parsed :: parse(text)
+    if parsed is JsonObject {
+        return parsed
+    }
+    fail("not a JSON object: ${text}")
+    return JsonObject { .entries = Map<string, JsonValue> {} }
+}
+
+// The problems of the config `text`, its files left aside.
+problems_of :: fn(text: string) -> string[] {
+    problems: string[]: []
+    config_of(object_of(text), problems)
+    return problems
+}
+
+@test
+test_a_config_with_known_keys_has_no_problem :: fn() -> void {
+    text :: "{\"phases\": [\"lexer\"], \"modules\": [\"m\"], \"vm\": {\"from\": \"build\"}}"
+    assert_eq(problems_of(text).len(), 0)
+}
+
+@test
+test_a_config_names_an_unknown_key :: fn() -> void {
+    assert_eq(problems_of("{\"nativ\": {}}").join("|"), "unknown key `nativ`")
+    assert_eq(
+        problems_of("{\"native\": {\"from\": \"build\"}}").join("|"),
+        "unknown key `native.from`",
+    )
+}
+
+@test
+test_a_config_lists_known_phases :: fn() -> void {
+    known :: "lexer, parser, typecheck, comptime, lower, bytecode, emit_c"
+    expected :: "`phases` lists the phases among ${known}"
+    assert_eq(problems_of("{\"phases\": [\"lexr\"]}").join("|"), expected)
+    assert_eq(problems_of("{\"phases\": \"lexer\"}").join("|"), expected)
+}
+
+@test
+test_a_run_gives_its_reasons :: fn() -> void {
+    assert_eq(problems_of("{\"vm\": {}}").join("|"), "`vm` says nothing")
+    assert_eq(
+        problems_of("{\"vm\": {\"skip\": \" \"}}").join("|"),
+        "`vm.skip` is its reason, a non-empty string",
+    )
+    assert_eq(
+        problems_of("{\"native\": {\"skip_on\": {\"macos\": \"why\"}}}").join("|"),
+        "`native.skip_on`: unknown platform `macos`",
+    )
+}
+
+@test
+test_a_run_skipped_everywhere_names_no_platform :: fn() -> void {
+    text :: "{\"vm\": {\"skip\": \"why\", \"skip_on\": {\"linux\": \"why\"}}}"
+    assert_eq(problems_of(text).join("|"), "`vm.skip` already excludes every platform")
+}
+
+@test
+test_a_config_may_name_the_platform_of_this_host :: fn() -> void {
+    assert(host_platform() in PLATFORMS, "`${host_platform()}` is not in `PLATFORMS`")
+}
+
+@test
+test_a_run_needs_a_run_to_compare :: fn() -> void {
+    raw :: object_of("{\"native\": {\"skip\": \"why\"}}")
+    assert_eq(
+        file_problems(raw, SnippetConfig {}, "build/no-such-snippet").join("|"),
+        "`native` describes a run, and no `vm.snapshot` records one",
+    )
+}
