@@ -5,8 +5,9 @@
 // --target=linux-x86_64` renders it, the bytecode annotated, then turned into
 // the text the snapshot holds and compared with it; under `--update`, a snapshot
 // that differs is written. The stages of a case share one front end, its run on
-// the VM is the `vm` stage (`vm_run.vader`), and its native build and run the
-// `native` stage (`native_run.vader`). Each case has a folder of its own under
+// the VM is the `vm` stage (`vm_run.vader`), its native build and run the
+// `native` stage (`native_run.vader`), and the `@test` functions of a module the
+// `tests` stage (`tests_run.vader`). Each case has a folder of its own under
 // the worker's, kept when the case fails (`enter_case`). Nothing but the protocol
 // goes to stdout.
 
@@ -116,6 +117,9 @@ check_phase :: fn(
     }
     if phase == DIAGNOSTICS_PHASE {
         return check_diagnostics(case, input, ctx.update)
+    }
+    if phase == TESTS_PHASE {
+        return check_tests(case)
     }
     return check_run(case, ctx.update)
 }

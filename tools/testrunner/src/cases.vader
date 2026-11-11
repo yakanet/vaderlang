@@ -3,7 +3,8 @@
 // A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
 // `_config.json` (`config.vader`) may narrow the stages checked on it. A snippet
 // whose `_config.json` has a problem is reported, never checked. The fixtures of
-// the diagnostics corpora have a stage of their own (`fixtures.vader`).
+// the diagnostics corpora have a stage of their own (`fixtures.vader`), and so do
+// the modules that hold `@test` functions (`module_tests.vader`).
 
 module "tools/testrunner/src"
 
@@ -62,6 +63,7 @@ STAGES: Stage[]: [
     VM_STAGE,
     NATIVE_STAGE,
     DIAGNOSTICS_STAGE,
+    TESTS_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -89,6 +91,15 @@ DIAGNOSTICS_STAGE: Stage: Stage {
     .snapshot = "diagnostics.snapshot",
 }
 
+// The `@test` functions of a module (`tests_run.vader`), which pass or fail with
+// no snapshot to compare.
+TESTS_PHASE :: "tests"
+TESTS_STAGE: Stage: Stage {
+    .phase = TESTS_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+
 // The lowered form of a program.
 LOWER_PHASE :: "lower"
 
@@ -108,7 +119,8 @@ SNAPSHOT_TARGET :: Target { .os = .Linux, .arch = .X86_64 }
 Case :: struct {
     /// The folder under its corpus, the corpus named first for a fixture.
     name: string
-    /// The folder of its `_main.vader`.
+    /// The folder of its `_main.vader`; for the tests of a module, the entry
+    /// `vader test` compiles, the folder of the module or its one file.
     dir: string
     phases: string[]
     modules: string[] = []
@@ -139,9 +151,14 @@ Discovery :: struct {
     problems: string[] = []
 }
 
-// The snippets, then the fixtures, each with the phases of `phases` it runs.
+// The modules, the snippets, then the fixtures, each with the phases of `phases`
+// it runs. The modules come first: a module is compiled whole with what it
+// imports, the longest cases of a run, which a pool should not start last.
 find_cases :: fn(phases: string[]) -> Discovery {
     found :: Discovery {}
+    if phases.contains(TESTS_PHASE) {
+        find_module_tests(found)
+    }
     find_snippets(found, phases)
     if phases.contains(DIAGNOSTICS_PHASE) {
         find_fixtures(found)

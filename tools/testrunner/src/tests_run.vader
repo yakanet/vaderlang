@@ -1,0 +1,115 @@
+// tools/testrunner/src/tests_run: the `tests` stage of a module, its `@test`
+// functions run in the worker's own process.
+//
+// The module is compiled and its tests run as `vader test` compiles and runs
+// them (`vader/tools/testing`), on the VM, each write of a test sent to the runner
+// as for the `vm` stage. The stage passes when every test passes. It fails too
+// when a test its files declare is not among those the compile finds: the module
+// would otherwise pass on fewer tests than it holds.
+
+module "tools/testrunner/src"
+
+import "std/collections"
+import "std/console"
+import "std/iter"
+import "std/path"
+import "std/string"
+import "std/time"
+import "vader/support/diagnostics"
+import "vader/tools/testing"
+VM :: import "vader/vm"
+
+// The project the modules are compiled in: the repository, whose `vader.json`
+// puts `lib` among the include paths, as for `vader test` run at its root.
+REPOSITORY :: ""
+
+// Run the tests of the module of `case`, whose `dir` is the entry `vader test`
+// compiles: the stage passes when they all pass, else what failed.
+check_tests :: fn(case: Case) -> StageReport | CaseFailure {
+    began :: monotonic()
+    facts :: entry_files(case.dir.to_path()).map(file_facts).collect()
+    if facts.len() == 0 {
+        return tests_failure("no `.vader` file in `${case.dir}`")
+    }
+    entry :: TestEntry { .path = case.dir.to_path(), .module = facts[0].declared }
+    diagnostics: Diagnostic[]: []
+    lowered :: entry.lower_tests(REPOSITORY, diagnostics)
+    if lowered == null {
+        return does_not_compile(diagnostics)
+    }
+    unfound :: not_found(facts, lowered.tests)
+    if unfound.len() > 0 {
+        return tests_failure("declared, and not found by the compile: ${unfound.join(", ")}")
+    }
+    state :: lowered.compile_tests(lowered.tests, REPOSITORY, diagnostics)
+    if state == null {
+        return does_not_compile(diagnostics)
+    }
+    if state is ModuleRefused {
+        return tests_failure(state.message)
+    }
+    state.io = VM.ProgramIo {
+        .write = (stream, text) -> print(output_record(case.name, stream, text)),
+    }
+    failed: string[]: []
+    for t in lowered.tests {
+        failure :: state.run_test(t).failure
+        if failure != null {
+            failed.push("    ${t.display}: ${failure}")
+        }
+    }
+    if failed.len() > 0 {
+        count :: "${failed.len()} of ${lowered.tests.len()} tests fail"
+        return tests_failure("${count}\n${failed.join("\n")}")
+    }
+    return StageReport {
+        .phase = TESTS_PHASE,
+        .result = .Same,
+        .duration_us = began.since().to_micros(),
+    }
+}
+
+// The tests `facts` name that are not among `tests`, those the compile found.
+not_found :: fn(facts: FileFacts[], tests: DiscoveredTest[]) -> string[] {
+    found :: Set<string> {}
+    for t in tests {
+        found.add(t.display)
+    }
+    out: string[]: []
+    for f in facts {
+        for name in f.test_names {
+            if name !in found {
+                out.push(name)
+            }
+        }
+    }
+    return out
+}
+
+// The failure of a module whose compile reports the errors among `diagnostics`.
+does_not_compile :: fn(diagnostics: Diagnostic[]) -> CaseFailure {
+    errors :: diagnostics.filter((d) -> d.severity == .Error).collect()
+    return tests_failure("the module does not compile\n${errors.dump_diagnostics_with_file()}")
+}
+
+tests_failure :: fn(message: string) -> CaseFailure =
+    CaseFailure { .message = "${TESTS_PHASE}: ${message}" }
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_declared_test_the_compile_does_not_find_is_named :: fn() -> void {
+    facts :: [FileFacts { .declared = "m", .test_names = ["test_a", "test_b"] }]
+    found :: [
+        DiscoveredTest {
+            .mangled = "m.test_a",
+            .display = "test_a",
+            .module = "m",
+            .path = "m.vader".to_path(),
+            .line = 3,
+        },
+    ]
+    assert_eq(not_found(facts, found).join(" "), "test_b")
+}

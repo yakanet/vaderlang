@@ -1,0 +1,68 @@
+// tools/testrunner/src/module_tests: the modules whose `@test` functions the
+// runner runs.
+//
+// One case per module of `lib/` and `vader/` that holds a test, its entry the one
+// `vader test` compiles for it: its folder, or its file when the module is one
+// file (`vader/tools/testing`). Its stage is `tests` (`tests_run.vader`). A file
+// that holds a test in a folder the loader does not walk belongs to no case: it
+// is reported, rather than its tests left out in silence.
+
+module "tools/testrunner/src"
+
+import "std/collections"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "vader/tools/testing"
+
+// The folders whose modules' tests run.
+TEST_ROOTS: string[]: ["lib", "vader"]
+
+// The modules of `TEST_ROOTS` that hold a test, pushed on `found` in path order.
+find_module_tests :: fn(found: Discovery) -> void {
+    for root in TEST_ROOTS {
+        files :: discover_vader_files(root.to_path())
+        entries :: test_entries(root.to_path(), files, []).map((e) -> e.path.as_string())
+        for path in sort(entries.collect(), compare_ascending) {
+            found.cases.push(
+                Case {
+                    .name = path,
+                    .dir = path,
+                    .phases = [TESTS_PHASE],
+                },
+            )
+        }
+        unwalked :: unwalked_tests(root, files)
+        if unwalked is IOError {
+            found.problems.push("${root}: ${unwalked.msg}")
+            continue
+        }
+        for path in unwalked {
+            found.problems.push("${path}: holds a test, in a folder the loader does not walk")
+        }
+    }
+}
+
+// The `.vader` files under `root` that hold a test and are not among `walked`,
+// the files of the folders the loader walks; or why `root` cannot be read.
+unwalked_tests :: fn(root: string, walked: Path[]) -> string[] | IOError {
+    walker :: walk(root)
+    if walker is IOError {
+        return walker
+    }
+    known :: Set<string> {}
+    for path in walked {
+        known.add(path.as_string())
+    }
+    out: string[]: []
+    for entry in walker {
+        if entry.name.ends_with(".vader") && entry.path !in known
+            && file_facts(entry.path.to_path()).has_tests {
+            out.push(entry.path)
+        }
+    }
+    return out
+}

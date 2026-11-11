@@ -1,14 +1,14 @@
-// tools/testrunner/src/main: check the snippets against their snapshots: the
-// stage dumps, the run on the VM and the native run.
+// tools/testrunner/src/main: check the snippets against their snapshots, the
+// stage dumps, the run on the VM and the native run; the diagnostics corpora; and
+// the `@test` functions of the modules of `lib/` and `vader/`.
 //
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
 // the number of cores by default. Each worker runs its cases under a folder of
 // its own, `SCRATCH/<i>`, which keeps the files of a case that fails until the
-// next run. It hands them the snippets of
-// `tests/snippets` one case at a time (`pool.vader`), over JSON lines
-// (`protocol.vader`), and prints what they report as it comes, then the tally
-// (`report.vader`).
+// next run. It hands them the cases one at a time (`pool.vader`), over JSON
+// lines (`protocol.vader`), and prints what they report as it comes, then the
+// tally (`report.vader`).
 //
 // The binary embeds the compiler from its sources, so it refuses to run when a
 // source under `vader/`, `lib/` or `tools/testrunner/` is newer than itself.
