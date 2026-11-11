@@ -1,0 +1,428 @@
+// std/diff: the differences between two texts, line by line.
+//
+// `diff_lines` finds a shortest edit script between two sequences of lines with
+// Myers' algorithm ("An O(ND) Difference Algorithm and Its Variations", 1986), in
+// its linear-space form: it splits the problem where a shortest path through the
+// edit graph crosses the middle of its edits, and solves each half the same way,
+// so the memory it takes stays proportional to the lines compared, however far
+// apart they are. `unified_diff` renders the script as the hunks of a unified
+// diff.
+
+module "std/diff"
+
+import "std/iter"
+import "std/math"
+import "std/string"
+import "std/string_builder"
+
+// ---- the edit script --------------------------------------------------------
+
+/// What a line of an edit script is to the two texts it compares.
+export DiffOp :: enum {
+    /// A line of both.
+    Kept,
+    /// A line of the first that the second does not have.
+    Removed,
+    /// A line of the second that the first does not have.
+    Added,
+}
+
+/// One line of an edit script.
+export DiffLine :: struct {
+    op: DiffOp
+    text: string
+}
+
+/// Find a shortest edit script that turns the lines `before` into the lines
+/// `after`.
+///
+/// Each line of `before` and of `after` appears once, in order: a line both keep
+/// as `Kept`, the others as `Removed` or `Added`. Between two kept lines, the
+/// removals come before the additions.
+///
+/// @param before  the lines of the first text.
+/// @param after   the lines of the second.
+/// @return        the lines of both texts, in order, each marked as kept, removed
+///                or added.
+/// @example
+///   script :: diff_lines(["a", "b", "c"], ["a", "c", "d"])
+///   script.len()   // 4: `a` kept, `b` removed, `c` kept, `d` added
+export diff_lines :: fn(before: string[], after: string[]) -> DiffLine[] {
+    script: DiffLine[]: []
+    edit_into(script, before, after)
+    return grouped(script)
+}
+
+// Append to `script` a shortest edit script from `before` to `after`.
+edit_into :: fn(script: DiffLine[], before: string[], after: string[]) -> void {
+    head :: common_head(before, after)
+    tail :: common_tail(before[head..<before.len()], after[head..<after.len()])
+    script.push_lines(.Kept, before[0..<head])
+    before_middle :: before[head..<before.len() - tail]
+    after_middle :: after[head..<after.len() - tail]
+    split :: if before_middle.len() == 0 || after_middle.len() == 0 { null } else {
+        split_point(before_middle, after_middle)
+    }
+    if split == null {
+        script.push_lines(.Removed, before_middle)
+        script.push_lines(.Added, after_middle)
+    } else {
+        edit_into(script, before_middle[0..<split.0], after_middle[0..<split.1])
+        edit_into(
+            script,
+            before_middle[split.0..<before_middle.len()],
+            after_middle[split.1..<after_middle.len()],
+        )
+    }
+    script.push_lines(.Kept, before[before.len() - tail..<before.len()])
+}
+
+// How many lines `before` and `after` start with in common.
+common_head :: fn(before: string[], after: string[]) -> i64 {
+    n: i64 = 0
+    for n < before.len() && n < after.len() && before[n] == after[n] {
+        n += 1
+    }
+    return n
+}
+
+// How many lines `before` and `after` end with in common.
+common_tail :: fn(before: string[], after: string[]) -> i64 {
+    n: i64 = 0
+    for n < before.len() && n < after.len()
+        && before[before.len() - 1 - n] == after[after.len() - 1 - n] {
+        n += 1
+    }
+    return n
+}
+
+push_lines :: fn(script: DiffLine[], op: DiffOp, lines: string[]) -> void {
+    for line in lines {
+        script.push(DiffLine { .op = op, .text = line })
+    }
+}
+
+// Where a shortest path through the edit graph of `before` and `after` crosses
+// the middle of its edits: the end of the furthest forward path that a backward
+// path overlaps, each of about half the edits. `before` and `after` are not
+// empty, and differ in their first line and in their last. Null when no path
+// overlaps, which a shortest path rules out: the caller then removes every line
+// and adds every line.
+//
+// In the edit graph, x counts the lines of `before` and y those of `after`;
+// diagonal k holds the points where x - y == k. `forward[offset + k]` is the
+// furthest x a path of d edits from (0, 0) reaches on diagonal k, and
+// `backward[offset + k]` the same from the far corner, both texts read
+// backwards. A diagonal a path has left the graph on is not followed again.
+split_point :: fn(before: string[], after: string[]) -> [i64, i64] | null {
+    n :: before.len()
+    m :: after.len()
+    limit :: (n + m + 1) / 2
+    offset :: limit + 1
+    forward: i64[]: filled(2 * limit + 3, () -> -1)
+    backward: i64[]: filled(2 * limit + 3, () -> -1)
+    forward[offset + 1] = 0
+    backward[offset + 1] = 0
+    delta :: n - m
+    odd :: delta % 2 != 0
+    forward_low: i64 = 0
+    forward_high: i64 = 0
+    backward_low: i64 = 0
+    backward_high: i64 = 0
+    for d in 0..<limit {
+        k := forward_low - d
+        for k <= d - forward_high {
+            x := entry_x(forward, offset + k, k, d)
+            for x < n && x - k < m && before[x] == after[x - k] {
+                x += 1
+            }
+            forward[offset + k] = x
+            if x > n {
+                forward_high += 2
+            } else if x - k > m {
+                forward_low += 2
+            } else if odd {
+                mirror :: reached(backward, offset + delta - k)
+                if mirror != -1 && x >= n - mirror {
+                    return [x, x - k]
+                }
+            }
+            k += 2
+        }
+        k = backward_low - d
+        for k <= d - backward_high {
+            x := entry_x(backward, offset + k, k, d)
+            for x < n && x - k < m && before[n - 1 - x] == after[m - 1 - (x - k)] {
+                x += 1
+            }
+            backward[offset + k] = x
+            if x > n {
+                backward_high += 2
+            } else if x - k > m {
+                backward_low += 2
+            } else if !odd {
+                mirror :: reached(forward, offset + delta - k)
+                if mirror != -1 && mirror >= n - x {
+                    return [mirror, mirror - (delta - k)]
+                }
+            }
+            k += 2
+        }
+    }
+    return null
+}
+
+// The x a path of `d` edits enters diagonal `k` at, `reach[at]` being that
+// diagonal's slot: down from diagonal `k + 1`, or right from `k - 1`, whichever
+// went further on the previous edit.
+entry_x :: fn(reach: i64[], at: i64, k: i64, d: i64) -> i64 {
+    if k == -d || k != d && reach[at - 1] < reach[at + 1] {
+        return reach[at + 1]
+    }
+    return reach[at - 1] + 1
+}
+
+// The x `reach` holds at slot `at`, -1 for a diagonal no path has reached: the
+// diagonal a path from the other end mirrors may lie outside those this end
+// follows.
+reached :: fn(reach: i64[], at: i64) -> i64 {
+    if at < 0 || at >= reach.len() {
+        return -1
+    }
+    return reach[at]
+}
+
+// `script` with the removals of each run of changes ahead of its additions.
+grouped :: fn(script: DiffLine[]) -> DiffLine[] {
+    out: DiffLine[]: [] * script.len()
+    added: DiffLine[] = []
+    for line in script {
+        if line.op == .Added {
+            added.push(line)
+            continue
+        }
+        if line.op == .Kept {
+            out.push_all(added)
+            added = []
+        }
+        out.push(line)
+    }
+    out.push_all(added)
+    return out
+}
+
+// ---- unified diff -----------------------------------------------------------
+
+/// Render the differences between two texts as the hunks of a unified diff: each
+/// run of changes with up to `context` kept lines around it, under its
+/// `@@ -l,n +l,n @@` header.
+///
+/// A line is its text up to and with its `\n`. A last line without one is
+/// followed by `\ No newline at end of file`, so two texts that differ only
+/// there still show a difference. The hunks come without the `---` and `+++`
+/// lines that name the two texts.
+///
+/// @param before   the first text.
+/// @param after    the second.
+/// @param context  the kept lines shown on each side of a change.
+/// @return         the hunks, each of their lines ending in `\n`; empty when the
+///                 texts are equal.
+/// @example
+///   unified_diff("a\nb\nc\n", "a\nc\nd\n")   // "@@ -1,3 +1,3 @@\n a\n-b\n c\n+d\n"
+export unified_diff :: fn(before: string, after: string, context: i64 = 3) -> string {
+    script :: diff_lines(lines_of(before), lines_of(after))
+    out :: StringBuilder {}
+    // The line numbers in each text of the line the next hunk starts on.
+    before_line: i64 = 1
+    after_line: i64 = 1
+    done: i64 = 0
+    for hunk in hunks_of(script, context) {
+        lines :: script[hunk.0..<hunk.1]
+        // The lines between two hunks are kept, so both texts have them all.
+        before_line += hunk.0 - done
+        after_line += hunk.0 - done
+        before_count :: counted(lines, .Added)
+        after_count :: counted(lines, .Removed)
+        out.append("@@ -${hunk_range(before_line, before_count)} ")
+        out.append("+${hunk_range(after_line, after_count)} @@\n")
+        for line in lines {
+            out.write_line(line)
+        }
+        before_line += before_count
+        after_line += after_count
+        done = hunk.1
+    }
+    return out.to_string()
+}
+
+// The lines of `text`, each with its `\n`; the last one has none when `text`
+// does not end with one.
+lines_of :: fn(text: string) -> string[] {
+    parts :: text.split("\n")
+    lines: string[]: [] * parts.len()
+    for part in parts[0..<parts.len() - 1] {
+        lines.push("${part}\n")
+    }
+    last :: parts[parts.len() - 1]
+    if last != "" {
+        lines.push(last)
+    }
+    return lines
+}
+
+// The hunks of `script`, as ranges of its lines: each run of changes with up to
+// `context` kept lines on each side, two runs at most `2 * context` kept lines
+// apart sharing one hunk.
+hunks_of :: fn(script: DiffLine[], context: i64) -> [i64, i64][] {
+    hunks: [i64, i64][]: []
+    i: i64 = 0
+    // Where the previous hunk ends, which the next one may not start before.
+    previous_end: i64 = 0
+    for i < script.len() {
+        if script[i].op == .Kept {
+            i += 1
+            continue
+        }
+        end :: hunk_end(script, i, context)
+        hunks.push([max(i - context, previous_end), end])
+        previous_end = end
+        i = end
+    }
+    return hunks
+}
+
+// Where the hunk whose first change is at `first` ends: past its last change and
+// up to `context` kept lines after it.
+hunk_end :: fn(script: DiffLine[], first: i64, context: i64) -> i64 {
+    end := first
+    for end < script.len() {
+        if script[end].op != .Kept {
+            end += 1
+            continue
+        }
+        kept_end := end
+        for kept_end < script.len() && script[kept_end].op == .Kept {
+            kept_end += 1
+        }
+        if kept_end == script.len() || kept_end - end > 2 * context {
+            return min(end + context, script.len())
+        }
+        end = kept_end
+    }
+    return end
+}
+
+// How many lines of `lines` are in the text that `other` lines are not from.
+counted :: fn(lines: DiffLine[], other: DiffOp) -> i64 =
+    lines.filter((line) -> line.op != other).count()
+
+// The `l,n` of a hunk header for `count` lines from line `start`: `l` alone for
+// one line, and the line before the hunk for none, as `diff -u` writes them.
+hunk_range :: fn(start: i64, count: i64) -> string {
+    if count == 1 {
+        return "${start}"
+    }
+    if count == 0 {
+        return "${start - 1},0"
+    }
+    return "${start},${count}"
+}
+
+write_line :: fn(out: StringBuilder, line: DiffLine) -> void {
+    out.append(line_marker(line.op))
+    out.append(line.text)
+    if !line.text.ends_with("\n") {
+        out.append("\n\\ No newline at end of file\n")
+    }
+}
+
+line_marker :: fn(op: DiffOp) -> string = match op {
+    .Kept    -> " "
+    .Removed -> "-"
+    .Added   -> "+"
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+// The script as one line per entry: its marker, then its text.
+shown :: fn(script: DiffLine[]) -> string {
+    out :: StringBuilder {}
+    for line in script {
+        out.append("${line_marker(line.op)}${line.text};")
+    }
+    return out.to_string()
+}
+
+@test
+test_diff_of_equal_lines_keeps_them :: fn() -> void {
+    assert_eq(shown(diff_lines(["a", "b"], ["a", "b"])), " a; b;")
+}
+
+@test
+test_diff_against_nothing_removes_or_adds_everything :: fn() -> void {
+    none: string[]: []
+    assert_eq(shown(diff_lines(["a", "b"], none)), "-a;-b;")
+    assert_eq(shown(diff_lines(none, ["a"])), "+a;")
+}
+
+// How many lines of `script` are `op`.
+count_of :: fn(script: DiffLine[], op: DiffOp) -> i64 =
+    script.filter((line) -> line.op == op).count()
+
+@test
+test_diff_keeps_a_longest_common_subsequence :: fn() -> void {
+    // The example of Myers' paper: 5 edits, 4 lines kept.
+    script :: diff_lines(["a", "b", "c", "a", "b", "b", "a"], ["c", "b", "a", "b", "a", "c"])
+    assert_eq(count_of(script, .Kept), 4)
+    assert_eq(count_of(script, .Removed), 3)
+    assert_eq(count_of(script, .Added), 2)
+}
+
+@test
+test_diff_puts_removals_before_additions :: fn() -> void {
+    assert_eq(shown(diff_lines(["k", "a", "b", "k"], ["k", "x", "y", "k"])), " k;-a;-b;+x;+y; k;")
+}
+
+@test
+test_diff_of_two_long_unrelated_texts_removes_and_adds_all :: fn() -> void {
+    before: string[]: []
+    after: string[]: []
+    for i in 0..<1000 {
+        before.push("before ${i}")
+        after.push("after ${i}")
+    }
+    script :: diff_lines(before, after)
+    assert_eq(count_of(script, .Removed), 1000)
+    assert_eq(count_of(script, .Added), 1000)
+}
+
+@test
+test_unified_diff_of_equal_texts_is_empty :: fn() -> void {
+    assert_eq(unified_diff("a\nb\n", "a\nb\n"), "")
+}
+
+@test
+test_unified_diff_shows_context_around_a_change :: fn() -> void {
+    assert_eq(unified_diff("a\nb\nc\n", "a\nc\nd\n"), "@@ -1,3 +1,3 @@\n a\n-b\n c\n+d\n")
+}
+
+@test
+test_unified_diff_splits_distant_changes_into_hunks :: fn() -> void {
+    before :: "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n"
+    after :: "one\n2\n3\n4\n5\n6\n7\n8\n9\nten\n"
+    expected :: "@@ -1,2 +1,2 @@\n-1\n+one\n 2\n@@ -9,2 +9,2 @@\n 9\n-10\n+ten\n"
+    assert_eq(unified_diff(before, after, 1), expected)
+}
+
+@test
+test_unified_diff_counts_an_empty_side_from_the_line_before :: fn() -> void {
+    assert_eq(unified_diff("a\n", "a\nb\n", 0), "@@ -1,0 +2 @@\n+b\n")
+}
+
+@test
+test_unified_diff_marks_a_missing_final_newline :: fn() -> void {
+    expected :: "@@ -1 +1 @@\n-a\n+a\n\\ No newline at end of file\n"
+    assert_eq(unified_diff("a\n", "a"), expected)
+}
