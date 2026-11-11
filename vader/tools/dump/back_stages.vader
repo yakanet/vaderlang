@@ -34,7 +34,7 @@ lower_stage :: fn(input: DumpInput) -> StageOutput {
     if !any_error_diag(le.pre_diags) {
         lowered = "${dump_lowered(le.lowered, pipeline.typed, scope)}\n"
     }
-    return with_diags(lowered, pipeline_diags_in_scope(pipeline, le.lower_diags, scope))
+    return with_diags(lowered, input.lowered_diagnostics())
 }
 
 // The lowered tree after dead-function elimination, as a run or a build sees it:
@@ -48,7 +48,7 @@ dced_stage :: fn(input: DumpInput) -> StageOutput {
         pruned :: prune_unreachable_fns(le.lowered, false)
         dced = "${dump_lowered(pruned, pipeline.typed, scope)}\n"
     }
-    return with_diags(dced, pipeline_diags_in_scope(pipeline, le.lower_diags, scope))
+    return with_diags(dced, input.lowered_diagnostics())
 }
 
 // The control-flow graph of the modules in scope, without the string pool, then

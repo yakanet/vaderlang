@@ -138,6 +138,18 @@ read_source :: fn(input: DumpInput) -> string | StageOutput {
 
 // ---- diagnostics ------------------------------------------------------------
 
+/// The diagnostics the `lowered-ast` stage of `input` shows, as values: those of
+/// every phase of the front end, then of the lowering, kept to the modules of the
+/// dump.
+///
+/// @param input  the entry and the options; it keeps the pipeline and the
+///               lowering it computes, as `dump_stage` does.
+export lowered_diagnostics :: fn(input: DumpInput) -> Diagnostic[] {
+    // The pipeline first: the lowering then reuses it (`lowered_entry`).
+    pipeline :: input.evaluated_pipeline()
+    return pipeline_diags_in_scope(pipeline, input.lowered_entry().lower_diags, input.scope_of())
+}
+
 // A build shows the diagnostics of every module; a dump only those of the modules
 // under inspection. These helpers drop the diagnostics anchored outside them.
 

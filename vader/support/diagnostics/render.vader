@@ -39,10 +39,18 @@ export markdown_diagnostics :: fn(diags: Diagnostic[]) -> string {
     sb :: StringBuilder {}
     sb.append("\n# Diagnostics\n")
     for d in dedup_diagnostics(sort(diags, diag_less)) {
-        line :: StringBuilder {}
-        line.format_diagnostic(d, false, "")
-        sb.append("\n- ${code_span(line.to_string())}")
+        sb.append("\n- ${code_span(diagnostic_line(d))}")
     }
+    return sb.to_string()
+}
+
+/// Render `d` as `dump_diagnostics` writes its line, without its file:
+/// `[line:col] error[CODE] message: detail`.
+///
+/// @param d  the diagnostic to render.
+export diagnostic_line :: fn(d: Diagnostic) -> string {
+    sb :: StringBuilder {}
+    sb.format_diagnostic(d, false, "")
     return sb.to_string()
 }
 
