@@ -1,9 +1,10 @@
 // tools/testrunner/src/cases: the snippets and the stages checked on each.
 //
 // A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
-// `_config.json` may name the phases its snapshots cover (`phases`) and the
-// modules the module-scoped dumps show (`modules`). A `_config.json` that is not
-// a JSON object is a problem, never a reason to run every phase.
+// `_config.json` may name the phases its snapshots cover (`phases`), the modules
+// the module-scoped dumps show (`modules`) and how its run on the VM is checked
+// (`vm`). A `_config.json` that is not a JSON object is a problem, never a reason
+// to run every phase.
 
 module "tools/testrunner/src"
 
@@ -12,12 +13,15 @@ import "std/collections"
 import "std/fs"
 import "std/io"
 import "std/sort"
+import "std/string"
+import "vader/support/target"
 
 // One stage of a snippet: the phase the corpus names it by, the stage of
 // `vader dump` that renders it, and the snapshot file it is compared with.
 Stage :: struct {
     phase: string
-    dump: string
+    /// Null for the run on the VM, which no dump renders.
+    dump: string | null
     snapshot: string
 }
 
@@ -50,14 +54,27 @@ STAGES: Stage[]: [
     Stage {
         .phase = "bytecode",
         .dump = "bytecode",
-        .snapshot = "bytecode.snapshot.virt",
+        .snapshot = BYTECODE_SNAPSHOT,
     },
     Stage {
         .phase = "emit_c",
         .dump = "c",
         .snapshot = "emit-c.snapshot.c",
     },
+    VM_STAGE,
 ]
+
+// The run of a snippet on the VM, and what it is compared with.
+VM_PHASE    :: "vm"
+VM_SNAPSHOT :: "vm.snapshot"
+VM_STAGE: Stage: Stage {
+    .phase = VM_PHASE,
+    .dump = null,
+    .snapshot = VM_SNAPSHOT,
+}
+
+// The bytecode snapshot, which the VM runs on the host it is taken for.
+BYTECODE_SNAPSHOT :: "bytecode.snapshot.virt"
 
 SNIPPETS :: "tests/snippets"
 
@@ -69,6 +86,10 @@ Case :: struct {
     name: string
     phases: string[]
     modules: string[]
+    /// Whether its run on the VM runs the image `vader build --emit=bytecode-text`
+    /// links from source: its `_config.json` says so, or it has no bytecode
+    /// snapshot.
+    vm_from_build: bool = false
 }
 
 case_dir :: fn(name: string) -> string = "${SNIPPETS}/${name}"
@@ -109,12 +130,16 @@ find_cases :: fn(phases: string[]) -> Discovery {
             continue
         }
         kept :: phases_of(config, phases)
+        if phases.contains(VM_PHASE) && runs_on_vm(dir, config) {
+            kept.push(VM_PHASE)
+        }
         if kept.len() > 0 {
             found.cases.push(
                 Case {
                     .name = name,
                     .phases = kept,
                     .modules = strings_member(config, "modules"),
+                    .vm_from_build = vm_from_build(dir, config),
                 },
             )
         }
@@ -122,18 +147,75 @@ find_cases :: fn(phases: string[]) -> Discovery {
     return found
 }
 
-// The phases of `phases` the snippet's `config` lets run, in the order of
+// The dump phases of `phases` the snippet's `config` lets run, in the order of
 // `STAGES`: all of them when it names none.
 phases_of :: fn(config: JsonValue, phases: string[]) -> string[] {
     every :: member(config, "phases") == null
     listed :: strings_member(config, "phases")
     kept: string[]: []
     for stage in STAGES {
-        if phases.contains(stage.phase) && (every || listed.contains(stage.phase)) {
+        allowed :: every || listed.contains(stage.phase)
+        if stage.dump != null && phases.contains(stage.phase) && allowed {
             kept.push(stage.phase)
         }
     }
     return kept
+}
+
+// Whether the run of the snippet in `dir` is checked on the VM, as
+// `tests/vader_vm.test.ts` decides: it has a run to check or a bytecode snapshot
+// to run, its `_config.json` does not exclude the run on this host, and it brings
+// no C of its own (`helper*.c`), which only a native binary links.
+runs_on_vm :: fn(dir: string, config: JsonValue) -> bool {
+    if !exists("${dir}/${VM_SNAPSHOT}") && !exists("${dir}/${BYTECODE_SNAPSHOT}") {
+        return false
+    }
+    vm :: member(config, "vm")
+    if vm != null && excludes_this_host(vm) {
+        return false
+    }
+    return !has_helper_c(dir)
+}
+
+// Whether the `vm` entry of a `_config.json` excludes the run here: everywhere
+// (`skip`), or on the host's platform (`skip_on`).
+excludes_this_host :: fn(vm: JsonValue) -> bool {
+    if member(vm, "skip") != null {
+        return true
+    }
+    skip_on :: member(vm, "skip_on") ?? return false
+    return member(skip_on, host_platform()) != null
+}
+
+// The name `skip_on` gives the host's platform, Node's `process.platform`.
+host_platform :: fn() -> string = match host_target().os {
+    .Linux           -> "linux"
+    .Darwin          -> "darwin"
+    .Windows         -> "win32"
+    .Wasi | .Browser -> ""
+}
+
+has_helper_c :: fn(dir: string) -> bool {
+    listed :: read_dir(dir)
+    if listed is IOError {
+        return false
+    }
+    for name in listed {
+        if name.starts_with("helper") && name.ends_with(".c") {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether the snippet in `dir` runs on the VM from the image a build links: its
+// `_config.json` says `"vm": { "from": "build" }`, or it has no bytecode snapshot.
+vm_from_build :: fn(dir: string, config: JsonValue) -> bool {
+    vm :: member(config, "vm")
+    if vm != null && string_member(vm, "from") == "build" {
+        return true
+    }
+    return !exists("${dir}/${BYTECODE_SNAPSHOT}")
 }
 
 // The `_config.json` of the snippet in `dir`, an empty object when it has none,

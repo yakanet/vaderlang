@@ -3,7 +3,9 @@
 // Each task takes case indices from one channel and runs each case on its
 // worker, a `testrunner --worker` child it starts on first use. A worker that
 // dies, or overruns the deadline of a case, is replaced on the stages of the case
-// it had not reported, the one it stopped on counted as a crash.
+// it had not reported, the one it stopped on counted as a crash. A worker that
+// dies running a program on a stop line has ended with the program, as the
+// process of `vader run` would: that is the program's run, compared as any other.
 
 module "tools/testrunner/src"
 
@@ -11,6 +13,7 @@ import "std/console"
 import "std/iter"
 import "std/process"
 import "std/string"
+import "std/string_builder"
 import "std/task"
 import "std/time"
 
@@ -30,6 +33,8 @@ Reports :: struct {
     stages: StageReport[] = []
     errors: string[] = []
     done: bool = false
+    /// What the program the worker runs wrote.
+    output: Streams = Streams {}
 }
 
 // A stage a worker stopped on.
@@ -55,6 +60,8 @@ Tally :: struct {
 Slot :: struct {
     /// The argv a worker starts with.
     command: string[]
+    /// Write each snapshot that differs or is missing, as the workers do.
+    update: bool
     worker: Worker | null = null
 }
 
@@ -74,6 +81,7 @@ run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
     todo := case.phases
     for todo.len() > 0 {
         worker :: worker_of(slot) ?? return
+        from :: worker.err.len()
         reports :: run_on(worker, Case { ...case, .phases = todo })
         for report in reports.stages {
             tally.note(case.name, report)
@@ -92,14 +100,20 @@ run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
         if left.len() == 0 {
             return
         }
-        tally.crashes.push(
-            Crash {
-                .case = case.name,
-                .phase = left[0],
-                .exit = code,
-                .stderr = worker.err.bytes_to_string(),
-            },
-        )
+        died :: worker.err[from..<worker.err.len()].bytes_to_string()
+        ended :: if left[0] == VM_PHASE { program_end(slot, case, reports, died) } else { null }
+        if ended != null {
+            tally.note(case.name, ended)
+        } else {
+            tally.crashes.push(
+                Crash {
+                    .case = case.name,
+                    .phase = left[0],
+                    .exit = code,
+                    .stderr = worker.err.bytes_to_string(),
+                },
+            )
+        }
         todo = left[1..<left.len()]
     }
 }
@@ -111,6 +125,20 @@ note :: fn(tally: Tally, case: string, report: StageReport) -> void {
         .Differ  -> tally.failures.push("${case}/${report.phase}")
         .Missing -> tally.failures.push("${case}/${report.phase} (no snapshot)")
     }
+}
+
+// The `vm` stage of `case` when its worker died running the program, on the stop
+// line it wrote on its stderr (`died`, what it wrote there on this case): the
+// program's run, ended with its process. Null for a death without one, which the
+// program did not cause.
+program_end :: fn(slot: Slot, case: Case, reports: Reports, died: string) -> StageReport | null {
+    began :: monotonic()
+    stderr :: "${reports.output.stderr.to_string()}${died}"
+    if !has_stop_line(stderr) {
+        return null
+    }
+    actual :: run_text(reports.output.stdout.to_string(), stderr, STOPPED_EXIT)
+    return report_of(case, VM_STAGE, actual, slot.update, began)
 }
 
 // Send `case` to `worker` and read its reports until the end of the case or of
@@ -165,10 +193,11 @@ take_events :: fn(worker: Worker, from: i64, reports: Reports) -> void {
 
 add :: fn(reports: Reports, event: Event | null, line: string) -> void {
     match event {
-        is StageReport -> reports.stages.push(event)
-        is CaseFailure -> reports.errors.push(event.message)
-        is CaseDone    -> { reports.done = true }
-        is null        -> reports.errors.push("not an event: ${line}")
+        is StageReport   -> reports.stages.push(event)
+        is CaseFailure   -> reports.errors.push(event.message)
+        is CaseDone      -> { reports.done = true }
+        is ProgramOutput -> reports.output.keep(event.stream, event.text)
+        is null          -> reports.errors.push("not an event: ${line}")
     }
 }
 

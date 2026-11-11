@@ -1,0 +1,90 @@
+// tools/testrunner/src/vm_run: the `vm` stage of a case, its program run in the
+// worker's own process.
+//
+// The program is the one `tests/vader_vm.test.ts` runs: the image `vader build
+// --emit=bytecode-text` links from source when the case says so
+// (`Case.vm_from_build`), else its bytecode snapshot on the host that snapshot is
+// taken for, and the bytecode `vader dump` renders for this host on any other. It
+// runs as `vader run` runs a `.virt` file (`vader/pipeline/run_virt.vader`), with
+// its standard streams served by the VM (`vader/vm/program_io.vader`): each write
+// goes to the runner as it happens, so that a run its worker dies in has still
+// said what it wrote.
+
+module "tools/testrunner/src"
+
+import "std/console"
+import "std/fs"
+import "std/io"
+import "std/path"
+import "std/time"
+import "vader/emit/virt"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+import "vader/support/target"
+import "vader/tools/dump"
+VM :: import "vader/vm"
+
+// Run the program of `case` and compare the text of its run with its
+// `vm.snapshot`, which `update` writes when it differs; or say why there is no
+// program to run.
+check_run :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
+    began :: monotonic()
+    bytecode :: program_bytecode(case)
+    if bytecode is CaseFailure {
+        return bytecode
+    }
+    actual :: run_program(case.name, bytecode)
+    return report_of(case, VM_STAGE, actual, update, began)
+}
+
+// The `.virt` text of the program of `case`, or why there is none.
+program_bytecode :: fn(case: Case) -> string | CaseFailure {
+    file :: Path("${case_dir(case.name)}/_main.vader")
+    if case.vm_from_build {
+        return linked_image(file)
+    }
+    if display_target(host_target()) == SNAPSHOT_TARGET {
+        pinned :: read_file_string("${case_dir(case.name)}/${BYTECODE_SNAPSHOT}")
+        if pinned is IOError {
+            return CaseFailure { .message = "`${BYTECODE_SNAPSHOT}`: ${pinned.msg}" }
+        }
+        return pinned
+    }
+    // The snapshot holds the `@target` bodies of its own platform.
+    dumped :: DumpInput { .file = file }.dump_stage("bytecode")
+    if dumped.code != 0 {
+        return CaseFailure { .message = "no bytecode for this host: ${dumped.err}" }
+    }
+    return dumped.out
+}
+
+// The image `vader build --emit=bytecode-text` links for `file`, or why it does
+// not build.
+linked_image :: fn(file: Path) -> string | CaseFailure {
+    prepared :: prepare_program(file, BuildRequest { .emit = "bytecode-text" })
+    diagnostics :: prepared.pre_diags + prepared.lower_diags
+    if any_error_diag(diagnostics) {
+        return CaseFailure {
+            .message = "the program does not build:\n${diagnostics.dump_diagnostics_with_file()}",
+        }
+    }
+    problem :: entry_problem(prepared, file)
+    if problem != null {
+        return CaseFailure { .message = problem }
+    }
+    return dump_bytecode(prepared.module, prepared.entry)
+}
+
+// Run the `.virt` program `text` of the case named `case`, each write sent to the
+// runner: the text its run records.
+run_program :: fn(case: string, text: string) -> string {
+    streams :: Streams {}
+    write :: fn(stream: Stream, bytes: string) -> void {
+        streams.keep(stream, bytes)
+        print(output_record(case, stream, bytes))
+    }
+    path :: Path("${case_dir(case)}/${BYTECODE_SNAPSHOT}")
+    no_args: string[]: []
+    ran :: run_virt_text(text, path, no_args, VM.ProgramIo { .write = write })
+    return run_text(streams.stdout.to_string(), streams.stderr.to_string(), exit_status(ran))
+}

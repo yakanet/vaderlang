@@ -89,12 +89,18 @@ main :: fn(argv: string[]) -> i32 {
     command :: worker_command(update)
     k :: worker_count(parsed.int_flag("jobs", 0))
     found :: find_cases(phases)
-    return run_all(found.cases, found.problems, command, k)
+    return run_all(found.cases, found.problems, command, update, k)
 }
 
-// Run `cases` on `k` workers started with `command`, and print what they found
-// with the `problems` of the discovery.
-run_all :: fn(cases: Case[], problems: string[], command: string[], k: i32) -> i32 {
+// Run `cases` on `k` workers started with `command`, which `update` the snapshots
+// that differ, and print what they found with the `problems` of the discovery.
+run_all :: fn(
+    cases: Case[],
+    problems: string[],
+    command: string[],
+    update: bool,
+    k: i32,
+) -> i32 {
     // The workers inherit this environment, and a `VADER_HOME` moves the modules
     // of the toolchain in the dumps: the snapshots are taken without one.
     unset_env("VADER_HOME")
@@ -111,7 +117,7 @@ run_all :: fn(cases: Case[], problems: string[], command: string[], k: i32) -> i
     began :: monotonic()
     tasks: Task<Tally>[]: []
     for _ in 0..<k {
-        slot :: Slot { .command = command }
+        slot :: Slot { .command = command, .update = update }
         tasks.push(launch(() -> serve(slot, cases, queue)))
     }
     total :: Tally {}

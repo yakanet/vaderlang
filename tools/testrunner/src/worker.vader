@@ -4,8 +4,9 @@
 // Each stage of a case is rendered by `vader/tools/dump` as `vader dump
 // --target=linux-x86_64` renders it, the bytecode annotated, then turned into
 // the text the snapshot holds and compared with it; under `--update`, a snapshot
-// that differs is written. The stages of a case share one front end. Nothing but
-// the protocol goes to stdout.
+// that differs is written. The stages of a case share one front end, and its run
+// on the VM is the `vm` stage (`vm_run.vader`). Nothing but the protocol goes to
+// stdout.
 
 module "tools/testrunner/src"
 
@@ -58,19 +59,46 @@ run_request :: fn(case: Case, target: Target | null, update: bool) -> void {
             print(error_record(case.name, "no stage `${phase}`"))
             continue
         }
-        print(stage_record(case.name, check_stage(case, stage, input, update)))
+        dump :: stage.dump
+        if dump != null {
+            print(stage_record(case.name, check_stage(case, stage, dump, input, update)))
+            continue
+        }
+        ran :: check_run(case, update)
+        if ran is CaseFailure {
+            print(error_record(case.name, ran.message))
+        } else {
+            print(stage_record(case.name, ran))
+        }
     }
     print(done_record(case.name, began.since().to_micros()))
 }
 
-// Render `stage` of `case` and compare it with its snapshot, which `update`
-// writes when it differs.
-check_stage :: fn(case: Case, stage: Stage, input: DumpInput, update: bool) -> StageReport {
+// Render `stage` of `case`, the stage `dump` of `vader dump`, and compare it with
+// its snapshot, which `update` writes when it differs.
+check_stage :: fn(
+    case: Case,
+    stage: Stage,
+    dump: string,
+    input: DumpInput,
+    update: bool,
+) -> StageReport {
     began :: monotonic()
-    actual :: snapshot_text(stage, input.dump_stage(stage.dump))
+    actual :: snapshot_text(stage, input.dump_stage(dump))
+    return report_of(case, stage, actual, update, began)
+}
+
+// What `stage` of `case`, begun at `began`, reports for its text `actual`,
+// compared with its snapshot, which `update` writes when it differs.
+report_of :: fn(
+    case: Case,
+    stage: Stage,
+    actual: string,
+    update: bool,
+    began: Monotonic,
+) -> StageReport {
     path :: "${case_dir(case.name)}/${stage.snapshot}"
-    expected :: read_file_string(path)
-    result :: verdict_of(expected, actual, path, update)
+    result :: verdict_of(read_file_string(path), actual, path, update)
     failed :: result == .Differ || result == .Missing
     return StageReport {
         .phase = stage.phase,

@@ -1,0 +1,128 @@
+// tools/testrunner/src/run_text: the text the run of a program records in its
+// `vm.snapshot`.
+//
+// The text `formatRun` of `tests/snapshot.ts` writes, so that both harnesses
+// share the snapshots: the program's stdout and stderr, each under its header when
+// it is not empty, then its exit code. The stop line a run on the VM ends on reads
+// as a native run words it, and a run stopped that way records the exit of
+// SIGABRT. The worker forms it for a run that ends, and the runner for one whose
+// worker died with the program.
+
+module "tools/testrunner/src"
+
+import "std/char"
+import "std/console"
+import "std/iter"
+import "std/string"
+import "std/string_builder"
+
+// The exit a run stopped by a trap or a panic records: SIGABRT's, on POSIX.
+STOPPED_EXIT: i32: 134
+
+// What a program wrote on stdout and on stderr.
+Streams :: struct {
+    stdout: StringBuilder = StringBuilder {}
+    stderr: StringBuilder = StringBuilder {}
+}
+
+keep :: fn(streams: Streams, stream: Stream, text: string) -> void {
+    if stream == .Stdout {
+        streams.stdout.append(text)
+    } else {
+        streams.stderr.append(text)
+    }
+}
+
+// The text a run records.
+//
+// @param stdout  what the program wrote on stdout.
+// @param stderr  what it wrote on stderr, the VM's stop line included.
+// @param exit    its exit code, as its process reports it (`exit_status`).
+run_text :: fn(stdout: string, stderr: string, exit: i32) -> string {
+    shared :: native_stop(stderr)
+    out :: StringBuilder {}
+    if stdout != "" {
+        out.append("# stdout\n${stdout}")
+    }
+    if shared != "" {
+        out.append("# stderr\n${shared}")
+    }
+    code :: if has_stop_line(shared) { STOPPED_EXIT } else { exit }
+    out.append("# exit\n${code}\n")
+    return out.to_string()
+}
+
+// Whether `stderr` holds the line a run stopped by a trap or a panic ends on.
+has_stop_line :: fn(stderr: string) -> bool = stderr.lines().any_match(is_stop_line)
+
+is_stop_line :: fn(line: string) -> bool =
+    line.starts_with("vader: trap: ") || line.starts_with("vader: panic: ")
+
+// `stderr` with the VM's stop lines in native's words: `vader vm: panic: m` is
+// `vader: panic: m`, and any other `vader vm: m`, its ` at pc=N` dropped, is
+// `vader: trap: m`.
+native_stop :: fn(stderr: string) -> string {
+    lines: string[]: []
+    for line in stderr.split("\n") {
+        lines.push(native_line(line))
+    }
+    return lines.join("\n")
+}
+
+native_line :: fn(line: string) -> string {
+    if !line.starts_with("vader vm: ") {
+        return line
+    }
+    message :: without_pc(line.trim_prefix("vader vm: "))
+    if message.starts_with("panic: ") {
+        return "vader: ${message}"
+    }
+    return "vader: trap: ${message}"
+}
+
+// `message` without the ` at pc=N` it may end on.
+without_pc :: fn(message: string) -> string {
+    halves :: message.split_last(" at pc=") ?? return message
+    if halves.1 == "" || !halves.1.chars().all_match(is_digit) {
+        return message
+    }
+    return halves.0
+}
+
+// The exit code a process reports for a `main` that returns `value`: its low
+// byte on POSIX.
+@target
+exit_status :: fn(value: i32) -> i32 {
+    return value
+}
+
+@target(.Linux, .Darwin)
+exit_status :: fn(value: i32) -> i32 {
+    return value & 0xFF
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_run_records_its_streams_then_its_exit :: fn() -> void {
+    assert_eq(run_text("hi\n", "", 0), "# stdout\nhi\n# exit\n0\n")
+    assert_eq(run_text("", "oops\n", 2), "# stderr\noops\n# exit\n2\n")
+}
+
+@test
+test_a_vm_trap_reads_as_a_native_stop :: fn() -> void {
+    text :: run_text("", "vader vm: reached unreachable at pc=12\n", 1)
+    assert_eq(text, "# stderr\nvader: trap: reached unreachable\n# exit\n134\n")
+}
+
+@test
+test_a_vm_panic_keeps_its_word :: fn() -> void {
+    assert_eq(native_stop("vader vm: panic: boom\n"), "vader: panic: boom\n")
+}
+
+@test
+test_a_message_keeps_a_pc_it_does_not_end_on :: fn() -> void {
+    assert_eq(native_line("vader vm: at pc=x"), "vader: trap: at pc=x")
+}

@@ -6,16 +6,19 @@
 // worker:
 //
 // ```
-// {"case": "hello", "modules": [], "stages": ["lexer", "parser", "..."]}
+// {"case": "hello", "modules": [], "stages": ["lexer", "parser", "...", "vm"], "vm_from": "build"}
 // ```
 //
-// and the worker answers on its stdout with one `stage` event per stage of the
-// request, then `done`:
+// `vm_from` comes with a run on the VM of the image a build links. The worker
+// answers on its stdout with one `stage` event per stage of the request, then
+// `done`; a program it runs adds an `output` event for each of its writes, as it
+// writes:
 //
 // ```
 // {"event": "stage", "case": "hello", "stage": "lexer", "result": "same", "duration_us": 812}
 // {"event": "stage", "case": "hello", "stage": "emit_c", "result": "differ", "duration_us": 53,
 //  "actual": "..."}
+// {"event": "output", "case": "hello", "stream": "stdout", "text": "Hello\n"}
 // {"event": "error", "case": "hello", "message": "..."}
 // {"event": "done", "case": "hello", "duration_us": 61234}
 // ```
@@ -23,12 +26,14 @@
 // A `result` is `same`, `differ`, `missing` (no snapshot file) or `written`
 // (under `--update`); `actual`, the text the snapshot should hold, comes with
 // `differ` and `missing` only. A worker whose stdout ends before `done` crashed
-// on the first stage it did not report.
+// on the first stage it did not report; the `output` events of a program it was
+// running are what that program wrote before.
 
 module "tools/testrunner/src"
 
 import "json"
 import "std/collections"
+import "std/console"
 import "std/string"
 
 // How the text of a stage compares with its snapshot.
@@ -68,7 +73,13 @@ CaseDone :: struct {
     duration_us: i64
 }
 
-Event :: StageReport | CaseFailure | CaseDone
+// A write of the program a worker runs.
+ProgramOutput :: struct {
+    stream: Stream
+    text: string
+}
+
+Event :: StageReport | CaseFailure | CaseDone | ProgramOutput
 
 // ---- writing ----------------------------------------------------------------
 
@@ -78,6 +89,9 @@ request_record :: fn(case: Case) -> string {
     entries["case"] = JsonString { .value = case.name }
     entries["modules"] = json_strings(case.modules)
     entries["stages"] = json_strings(case.phases)
+    if case.vm_from_build {
+        entries["vm_from"] = JsonString { .value = "build" }
+    }
     return record(entries)
 }
 
@@ -96,6 +110,13 @@ stage_record :: fn(case: string, report: StageReport) -> string {
 error_record :: fn(case: string, message: string) -> string {
     entries :: event_entries("error", case)
     entries["message"] = JsonString { .value = message }
+    return record(entries)
+}
+
+output_record :: fn(case: string, stream: Stream, text: string) -> string {
+    entries :: event_entries("output", case)
+    entries["stream"] = JsonString { .value = stream_name(stream) }
+    entries["text"] = JsonString { .value = text }
     return record(entries)
 }
 
@@ -133,6 +154,7 @@ read_request :: fn(line: string) -> Case | null {
         .name = name,
         .phases = strings_member(message, "stages"),
         .modules = strings_member(message, "modules"),
+        .vm_from_build = string_member(message, "vm_from") == "build",
     }
 }
 
@@ -154,7 +176,24 @@ read_event :: fn(line: string) -> Event | null {
     if event == "done" {
         return CaseDone { .duration_us = micros_of(message) }
     }
+    if event == "output" {
+        return ProgramOutput {
+            .stream = stream_named(string_member(message, "stream") ?? "") ?? return null,
+            .text = string_member(message, "text") ?? "",
+        }
+    }
     return null
+}
+
+stream_name :: fn(stream: Stream) -> string = match stream {
+    .Stdout -> "stdout"
+    .Stderr -> "stderr"
+}
+
+stream_named :: fn(name: string) -> Stream | null = match name {
+    "stdout" -> .Stdout
+    "stderr" -> .Stderr
+    _        -> null
 }
 
 // The JSON object of a message line, its record separator dropped.
