@@ -71,8 +71,9 @@ jobs:
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
       - name: Snapshots, by the Vader test runner
-        if: ${{ !cancelled() && runner.os == 'Linux' && hashFiles('build/vader') != '' }}
+        if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         timeout-minutes: 20
+        shell: bash
         env:
           VADER_HOME: ${{ github.workspace }}
         run: |
