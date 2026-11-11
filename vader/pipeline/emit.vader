@@ -12,6 +12,7 @@ import "std/collections"
 import "std/env"
 import "std/console"
 import "std/fs"
+import "std/iter"
 import "std/io"
 import "std/path"
 import "std/string"
@@ -496,7 +497,8 @@ export cc_or_default :: fn(cc: string) -> string {
     return cc
 }
 
-/// Write `c` to `c/` beside `out` and link it into a native binary.
+/// Write `c` to `c/` beside `out` and link it into a native binary, saying
+/// nothing: the caller reports what came of it.
 ///
 /// The single link path: every caller that produces a native binary goes
 /// through here, so the flags cannot drift between them: release opts, the
@@ -514,8 +516,10 @@ export cc_or_default :: fn(cc: string) -> string {
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
 /// @param native        what the C libraries of the program add.
 /// @param os            the OS the binary is built for (`push_os_link_flags`).
-/// @return              0 on success, 1 when the C could not be written or `cc`
-///                      failed. `cc`'s own stderr is forwarded as-is.
+/// @return              the binary and its C.
+/// @error               `LinkFailure` when a library has no archive, the C could
+///                      not be written or `cc` failed, `cc`'s own stderr
+///                      included.
 export link_native :: fn(
     c: CUnits,
     out: Path,
@@ -526,45 +530,57 @@ export link_native :: fn(
     quote_dir: string,
     native: NativeFlags,
     os: Os,
-) -> i32 {
-    if report_missing_archives(native) {
-        return 1
+) -> NativeLink | LinkFailure {
+    if native.missing.len() > 0 {
+        return LinkFailure {
+            .reasons = native.missing.map((missing) -> missing_archive_message(missing)).collect(),
+        }
     }
-    stem :: intermediate_stem(out) ?? return 1
+    stem :: intermediate_stem(out) ?? return LinkFailure {}
     c_file :: "${stem}.c".to_path()
-    c_files :: write_c_units(c_file, c) ?? return 1
-    flavour :: cc_flavour(cc)
+    c_files :: write_c_units(c_file, c) ?? return LinkFailure {}
     argv :: cc_argv(
         cc,
         c_files,
         out,
         release,
-        flavour,
+        cc_flavour(cc),
         ldflags,
         runtime_root,
         quote_dir,
         native,
         os,
     )
+    kept :: "(generated C kept at ${c_file.to_native()})"
     res :: spawn(argv)
     if res is ProcessError {
-        eprintln("vader build: ${res.message()}")
-        eprint(res.stderr)
-        eprintln("(generated C kept at ${c_file.to_native()})")
-        return 1
+        return LinkFailure { .reasons = ["${res.message()}\n${res.stderr}${kept}"] }
     }
     if res.exit != 0 {
-        eprintln("vader build: ${cc} failed (exit ${res.exit})")
-        eprintln(res.stderr)
-        eprintln("(generated C kept at ${c_file.to_native()})")
-        return 1
+        failed :: "${cc} failed (exit ${res.exit})\n${res.stderr}\n${kept}"
+        return LinkFailure { .reasons = [failed] }
     }
-    // Report the file that EXISTS, not the `-o` we asked for: on Windows they
+    // Name the file that EXISTS, not the `-o` we asked for: on Windows they
     // differ, and naming one the user cannot find is worse than naming the
     // platform's own convention.
-    linked :: linked_binary(out.as_string()) ?? out.as_string()
-    eprintln("vader build: wrote ${linked.to_native()} (and ${c_file.to_native()})")
-    return 0
+    binary :: linked_binary(out.as_string()) ?? out.as_string()
+    return NativeLink { .binary = binary, .c_file = c_file }
+}
+
+/// A binary `link_native` linked, and the C it was linked from.
+export NativeLink :: struct {
+    /// The binary, as the linker named it (`linked_binary`).
+    binary: string
+    /// The main unit of the C, kept beside the binary.
+    c_file: Path
+}
+
+/// Why `link_native` linked nothing.
+export LinkFailure :: struct {
+    /// One message per problem, each worded to follow `vader build: `; empty
+    /// when what failed said it itself, a folder or a C file that could not be
+    /// written.
+    reasons: string[] = []
 }
 
 /// A linked executable as the LINKER named it, or null when none appeared.

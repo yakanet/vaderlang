@@ -133,7 +133,7 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
         if split {
             return build_native_split(b, file, out, resolved)
         }
-        return link_native(
+        linked :: link_native(
             emit_c_of(b),
             out,
             resolved.cc,
@@ -144,6 +144,16 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
             native_flags(b.module),
             target_os(resolved),
         )
+        if linked is LinkFailure {
+            for reason in linked.reasons {
+                eprintln("vader build: ${reason}")
+            }
+            return 1
+        }
+        eprintln(
+            "vader build: wrote ${linked.binary.to_native()} (and ${linked.c_file.to_native()})",
+        )
+        return 0
     }
     if resolved.emit == "c" {
         if split {
