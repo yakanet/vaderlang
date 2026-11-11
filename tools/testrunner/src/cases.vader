@@ -1,8 +1,9 @@
-// tools/testrunner/src/cases: the snippets and the stages checked on each.
+// tools/testrunner/src/cases: the cases of a run and the stages checked on each.
 //
 // A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
 // `_config.json` (`config.vader`) may narrow the stages checked on it. A snippet
-// whose `_config.json` has a problem is reported, never checked.
+// whose `_config.json` has a problem is reported, never checked. The fixtures of
+// the diagnostics corpora have a stage of their own (`fixtures.vader`).
 
 module "tools/testrunner/src"
 
@@ -60,6 +61,7 @@ STAGES: Stage[]: [
     },
     VM_STAGE,
     NATIVE_STAGE,
+    DIAGNOSTICS_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -79,6 +81,14 @@ NATIVE_STAGE: Stage: Stage {
     .snapshot = VM_SNAPSHOT,
 }
 
+// The diagnostics of a fixture (`diagnostics_run.vader`).
+DIAGNOSTICS_PHASE :: "diagnostics"
+DIAGNOSTICS_STAGE: Stage: Stage {
+    .phase = DIAGNOSTICS_PHASE,
+    .dump = null,
+    .snapshot = "diagnostics.snapshot",
+}
+
 // The lowered form of a program.
 LOWER_PHASE :: "lower"
 
@@ -94,18 +104,24 @@ SNIPPETS :: "tests/snippets"
 // The target the snapshots are taken for, whatever the host.
 SNAPSHOT_TARGET :: Target { .os = .Linux, .arch = .X86_64 }
 
-// A snippet and the phases to check on it.
+// A snippet or a fixture, and the phases to check on it.
 Case :: struct {
+    /// The folder under its corpus, the corpus named first for a fixture.
     name: string
+    /// The folder of its `_main.vader`.
+    dir: string
     phases: string[]
-    modules: string[]
+    modules: string[] = []
+    /// The platform it is compiled for.
+    target: Target = SNAPSHOT_TARGET
     /// Whether its run on the VM runs the image `vader build --emit=bytecode-text`
     /// links from source: its `_config.json` says so, or it has no bytecode
     /// snapshot.
     vm_from_build: bool = false
+    /// What the task check answers on it, `accepted` or its codes (`T3128 T3129`),
+    /// as the header of a fixture of the concurrency corpus says; null elsewhere.
+    expected_tasks: string | null = null
 }
-
-case_dir :: fn(name: string) -> string = "${SNIPPETS}/${name}"
 
 // The stage the corpus names `phase`, null for a name it does not know.
 stage_named :: fn(phase: string) -> Stage | null {
@@ -123,20 +139,37 @@ Discovery :: struct {
     problems: string[] = []
 }
 
-// The snippets under `SNIPPETS`, in name order, with the phases of `phases`
-// their `_config.json` lets run.
+// The snippets, then the fixtures, each with the phases of `phases` it runs.
 find_cases :: fn(phases: string[]) -> Discovery {
     found :: Discovery {}
-    listed :: read_dir(SNIPPETS)
-    if listed is IOError {
-        found.problems.push("${SNIPPETS}: ${listed.msg}")
-        return found
+    find_snippets(found, phases)
+    if phases.contains(DIAGNOSTICS_PHASE) {
+        find_fixtures(found)
     }
-    for name in sort(listed, (a, b) -> a < b) {
-        dir :: case_dir(name)
-        if !exists("${dir}/_main.vader") {
-            continue
-        }
+    return found
+}
+
+// The folders under `root` holding a `_main.vader`, in name order.
+case_folders :: fn(found: Discovery, root: string) -> string[] =
+    folders_where(found, root, (path) -> exists("${path}/_main.vader"))
+
+// The entries of `root` whose path `keep` takes, in name order; the problem of a
+// `root` that cannot be read goes to `found`.
+folders_where :: fn(found: Discovery, root: string, keep: fn(string) -> bool) -> string[] {
+    listed :: read_dir(root)
+    if listed is IOError {
+        found.problems.push("${root}: ${listed.msg}")
+        return []
+    }
+    kept :: listed.filter((name) -> keep("${root}/${name}"))
+    return sort(kept.collect(), (a, b) -> a < b)
+}
+
+// The snippets under `SNIPPETS`, with the phases of `phases` their `_config.json`
+// lets run.
+find_snippets :: fn(found: Discovery, phases: string[]) -> void {
+    for name in case_folders(found, SNIPPETS) {
+        dir :: "${SNIPPETS}/${name}"
         config :: read_config(dir)
         if config is ConfigProblems {
             for message in config.messages {
@@ -155,6 +188,7 @@ find_cases :: fn(phases: string[]) -> Discovery {
             found.cases.push(
                 Case {
                     .name = name,
+                    .dir = dir,
                     .phases = kept,
                     .modules = config.modules,
                     .vm_from_build = vm_from_build(dir, config),
@@ -162,7 +196,6 @@ find_cases :: fn(phases: string[]) -> Discovery {
             )
         }
     }
-    return found
 }
 
 // The dump phases of `phases` the snippet's `config` lets run, in the order of

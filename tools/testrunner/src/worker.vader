@@ -76,9 +76,9 @@ run_request :: fn(ctx: WorkerContext, case: Case) -> void {
         return
     }
     input :: DumpInput {
-        .file = Path("${case_dir(case.name)}/_main.vader"),
+        .file = Path("${case.dir}/_main.vader"),
         .modules = case.modules,
-        .target = SNAPSHOT_TARGET,
+        .target = case.target,
         .annotate = true,
     }
     failed := false
@@ -113,6 +113,9 @@ check_phase :: fn(
     }
     if phase == NATIVE_PHASE {
         return check_native(ctx, case, dir)
+    }
+    if phase == DIAGNOSTICS_PHASE {
+        return check_diagnostics(case, input, ctx.update)
     }
     return check_run(case, ctx.update)
 }
@@ -170,7 +173,7 @@ report_of :: fn(
     update: bool,
     began: Monotonic,
 ) -> StageReport {
-    path :: "${case_dir(case.name)}/${stage.snapshot}"
+    path :: "${case.dir}/${stage.snapshot}"
     expected :: read_file_string(path)
     result :: verdict_of(expected, actual, path, update)
     return StageReport {

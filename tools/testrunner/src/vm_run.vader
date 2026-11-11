@@ -33,18 +33,18 @@ check_run :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
     if bytecode is CaseFailure {
         return bytecode
     }
-    actual :: run_program(case.name, bytecode)
+    actual :: run_program(case, bytecode)
     return report_of(case, VM_STAGE, actual, update, began)
 }
 
 // The `.virt` text of the program of `case`, or why there is none.
 program_bytecode :: fn(case: Case) -> string | CaseFailure {
-    file :: Path("${case_dir(case.name)}/_main.vader")
+    file :: Path("${case.dir}/_main.vader")
     if case.vm_from_build {
         return linked_image(file)
     }
     if host_target() == SNAPSHOT_TARGET {
-        pinned :: read_file_string("${case_dir(case.name)}/${BYTECODE_SNAPSHOT}")
+        pinned :: read_file_string("${case.dir}/${BYTECODE_SNAPSHOT}")
         if pinned is IOError {
             return CaseFailure { .message = "`${BYTECODE_SNAPSHOT}`: ${pinned.msg}" }
         }
@@ -84,15 +84,15 @@ program_of :: fn(file: Path, request: BuildRequest) -> CfgBytecode | CaseFailure
     return prepared
 }
 
-// Run the `.virt` program `text` of the case named `case`, each write sent to the
-// runner: the text its run records.
-run_program :: fn(case: string, text: string) -> string {
+// Run the `.virt` program `text` of `case`, each write sent to the runner: the
+// text its run records.
+run_program :: fn(case: Case, text: string) -> string {
     streams :: Streams {}
     write :: fn(stream: Stream, bytes: string) -> void {
         streams.keep(stream, bytes)
-        print(output_record(case, stream, bytes))
+        print(output_record(case.name, stream, bytes))
     }
-    path :: Path("${case_dir(case)}/${BYTECODE_SNAPSHOT}")
+    path :: Path("${case.dir}/${BYTECODE_SNAPSHOT}")
     no_args: string[]: []
     ran :: run_virt_text(text, path, no_args, VM.ProgramIo { .write = write })
     return run_text(streams.stdout.to_string(), streams.stderr.to_string(), exit_status(ran))

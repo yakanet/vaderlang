@@ -35,7 +35,9 @@ module "tools/testrunner/src"
 import "json"
 import "std/collections"
 import "std/console"
+import "std/option"
 import "std/string"
+import "vader/support/target"
 
 // How the text of a stage compares with its snapshot.
 Verdict :: enum { Same, Differ, Missing, Written }
@@ -92,10 +94,16 @@ Event :: StageReport | CaseFailure | CaseDone | ProgramOutput
 request_record :: fn(case: Case) -> string {
     entries :: Map<string, JsonValue> {}
     entries["case"] = JsonString { .value = case.name }
+    entries["dir"] = JsonString { .value = case.dir }
     entries["modules"] = json_strings(case.modules)
     entries["stages"] = json_strings(case.phases)
+    entries["target"] = JsonString { .value = "${case.target}" }
     if case.vm_from_build {
         entries["vm_from"] = JsonString { .value = "build" }
+    }
+    expected :: case.expected_tasks
+    if expected != null {
+        entries["expect"] = JsonString { .value = expected }
     }
     return record(entries)
 }
@@ -155,11 +163,16 @@ record :: fn(entries: Map<string, JsonValue>) -> string =
 read_request :: fn(line: string) -> Case | null {
     message :: message_of(line) ?? return null
     name :: string_member(message, "case") ?? return null
+    named :: string_member(message, "target") ?? return null
+    target :: parse_target(named).or_null() ?? return null
     return Case {
         .name = name,
+        .dir = string_member(message, "dir") ?? return null,
         .phases = strings_member(message, "stages"),
         .modules = strings_member(message, "modules"),
+        .target = target,
         .vm_from_build = string_member(message, "vm_from") == "build",
+        .expected_tasks = string_member(message, "expect"),
     }
 }
 
@@ -222,13 +235,16 @@ line_of :: fn(record: string) -> string = record.trim_suffix("\n")
 @test
 test_a_request_reads_back_as_its_case :: fn() -> void {
     case :: Case {
-        .name = "hello",
+        .name = "concurrency_corpus/c01",
+        .dir = "tests/concurrency_corpus/c01",
         .phases = ["lexer", "vm"],
         .modules = ["helper"],
+        .target = Target { .os = .Darwin, .arch = .Arm64 },
         .vm_from_build = true,
+        .expected_tasks = "T3128 T3129",
     }
     sent :: request_record(case)
-    nothing :: Case { .name = "", .phases = [], .modules = [] }
+    nothing :: Case { .name = "", .dir = "", .phases = [] }
     assert_eq(request_record(read_request(line_of(sent)) ?? nothing), sent)
 }
 

@@ -12,7 +12,10 @@ module "tools/testrunner/src"
 import "std/fs"
 import "std/io"
 import "std/iter"
+import "std/sort"
 import "std/string"
+Effects :: import "vader/front/effects"
+import "vader/support/diagnostics"
 
 // What opens an error diagnostic in a dump, `error[T3001]`, as
 // `vader/support/diagnostics` renders one.
@@ -20,6 +23,9 @@ ERROR_OPENING :: "error["
 
 // The locals the `fusion_*` snippets bind a chain to, so that it runs lazily.
 LAZY_LOCALS: string[]: ["it", "outer", "inner"]
+
+// What a fixture's header says of a program the task check lets through.
+ACCEPTED :: "accepted"
 
 // Why the text `text` of the dump stage `stage` of `case` is wrong whatever its
 // snapshot holds, or null when it is not.
@@ -92,7 +98,7 @@ lazy_locals_problem :: fn(case: Case, stage: Stage, lowered: string) -> string |
     if lowered.starts_with(CLI_FAILED_PREFIX) {
         return null
     }
-    path :: "${case_dir(case.name)}/_main.vader"
+    path :: "${case.dir}/_main.vader"
     source :: read_file_string(path)
     if source is IOError {
         return "`${path}`: ${source.msg}"
@@ -103,6 +109,33 @@ lazy_locals_problem :: fn(case: Case, stage: Stage, lowered: string) -> string |
         return null
     }
     return "${written} lazy locals written, ${kept} lowered to a state machine"
+}
+
+// Why the task check answers otherwise on the `diagnostics` of `case` than the
+// header of its fixture says, or null; null too for a case with no such header.
+task_verdict_problem :: fn(case: Case, diagnostics: Diagnostic[]) -> string | null {
+    expected :: case.expected_tasks ?? return null
+    answered :: task_verdict(diagnostics)
+    if answered == expected {
+        return null
+    }
+    return "the task check answers `${answered}`, the header expects `${expected}`"
+}
+
+// What the task check answers in `diagnostics`, as a header writes it: its codes,
+// each once, in order, or `accepted`.
+task_verdict :: fn(diagnostics: Diagnostic[]) -> string {
+    codes: string[]: []
+    for d in diagnostics {
+        id :: d.code.id
+        if Effects.is_task_diagnostic(d) && id !in codes {
+            codes.push(id)
+        }
+    }
+    if codes.len() == 0 {
+        return ACCEPTED
+    }
+    return sort(codes, (a, b) -> a < b).join(" ")
 }
 
 // How many lines of `text` open, past their indent, on a lazy local followed by
@@ -123,26 +156,26 @@ lines_opening :: fn(text: string, after: string) -> i64 {
 
 import "std/testing"
 import "toolchain/span"
-import "vader/support/diagnostics"
+
+AT_START: Position: Position {
+    .file = "_main.vader",
+    .offset = 0,
+    .line = 1,
+    .column = 1,
+}
 
 @test
 test_an_error_diagnostic_breaks_a_feature_snippet :: fn() -> void {
     text :: "# Diagnostics\n[_main.vader:1:1] error[T3001] type mismatch\n"
-    feature :: Case { .name = "feature", .phases = [], .modules = [] }
+    feature :: Case { .name = "feature", .dir = "", .phases = [] }
     assert(stage_problem(feature, STAGES[0], text) != null, "an error in a feature snippet")
-    diag :: Case { .name = "_diag_x", .phases = [], .modules = [] }
+    diag :: Case { .name = "_diag_x", .dir = "", .phases = [] }
     assert(stage_problem(diag, STAGES[0], text) == null, "an error in a `_diag_` snippet")
 }
 
 @test
 test_a_rendered_error_reads_as_its_code :: fn() -> void {
-    at :: Position {
-        .file = "_main.vader",
-        .offset = 0,
-        .line = 1,
-        .column = 1,
-    }
-    error :: typecheck_error(.TypeMismatch, Span { .start = at, .end = at }, "")
+    error :: typecheck_error(.TypeMismatch, Span { .start = AT_START, .end = AT_START }, "")
     assert_eq(first_error_code(dump_diagnostics([error])) ?? "", "T3001")
 }
 
@@ -160,4 +193,25 @@ test_a_lazy_local_counts_on_its_own_line :: fn() -> void {
     source :: "    it :: xs.iter()\n    outer :: f()\n    item :: 3\n"
     assert_eq(lines_opening(source, " ::"), 2)
     assert_eq(lines_opening("  it: Iterator<i32> = f()\n", ": Iterator<"), 1)
+}
+
+@test
+test_the_task_check_answers_its_codes_in_order :: fn() -> void {
+    at :: Span { .start = AT_START, .end = AT_START }
+    found: Diagnostic[]: [
+        typecheck_error(.ValueWrittenBySeveralTasks, at, ""),
+        typecheck_error(.TypeMismatch, at, ""),
+        typecheck_error(.ValueWrittenWhileTaskUsesIt, at, ""),
+        typecheck_error(.ValueWrittenBySeveralTasks, at, ""),
+    ]
+    assert_eq(task_verdict(found), "T3128 T3129")
+    assert_eq(task_verdict([typecheck_error(.TypeMismatch, at, "")]), ACCEPTED)
+}
+
+@test
+test_a_fixture_without_a_header_has_no_verdict :: fn() -> void {
+    plain :: Case { .name = "diag_corpus/typecheck/x", .dir = "", .phases = [] }
+    assert(task_verdict_problem(plain, []) == null, "no header")
+    expecting :: Case { ...plain, .expected_tasks = "T3129" }
+    assert(task_verdict_problem(expecting, []) != null, "accepted where T3129 is expected")
 }

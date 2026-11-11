@@ -25,7 +25,7 @@ PROGRAM_TIMEOUT_SECONDS: i64: 60
 // with its `vm.snapshot`; or say why it does not build or run.
 check_native :: fn(ctx: WorkerContext, case: Case, dir: string) -> StageReport | CaseFailure {
     began :: monotonic()
-    file :: Path("${case_dir(case.name)}/_main.vader")
+    file :: Path("${case.dir}/_main.vader")
     prepared :: program_of(file, BuildRequest { .verify_bounds = true })
     if prepared is CaseFailure {
         return prepared
@@ -54,7 +54,7 @@ build_binary :: fn(
 ) -> string | CaseFailure {
     // A debug build, against the runtime `vader build` finds, the `helper*.c`
     // passed as `--ldflags` passes them.
-    helpers :: helper_c_files(case_dir(case.name)).join(" ")
+    helpers :: helper_c_files(case.dir).join(" ")
     linked :: link_native(
         c_units_of(prepared),
         Path("${dir}/_main"),

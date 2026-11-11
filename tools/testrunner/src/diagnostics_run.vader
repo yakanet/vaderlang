@@ -1,0 +1,43 @@
+// tools/testrunner/src/diagnostics_run: the `diagnostics` stage of a fixture.
+//
+// The errors and warnings of every phase of the front end and of the lowering,
+// kept to the modules of the fixture, one entry each as a dump renders its line
+// (a detail written over several lines stays one entry), in byte order so that
+// the order the passes walk the declarations in does not move the snapshot.
+
+module "tools/testrunner/src"
+
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "std/time"
+import "vader/support/diagnostics"
+import "vader/tools/dump"
+
+// What the snapshot of a fixture with no diagnostic holds.
+NO_DIAGNOSTICS :: "# (no diagnostics)\n"
+
+// Compare the diagnostics of `case`, read from `input`, with its snapshot, which
+// `update` writes when it differs; or say what the task check answered otherwise
+// than the header of the fixture, and write nothing.
+check_diagnostics :: fn(case: Case, input: DumpInput, update: bool) -> StageReport | CaseFailure {
+    began :: monotonic()
+    shown :: input.lowered_diagnostics().filter(is_error_or_warning).collect()
+    broken :: task_verdict_problem(case, shown)
+    if broken != null {
+        return CaseFailure { .message = "${DIAGNOSTICS_PHASE}: ${broken}" }
+    }
+    return report_of(case, DIAGNOSTICS_STAGE, diagnostics_text(shown), update, began)
+}
+
+// Whether `d` shows in a snapshot: an info or a hint does not.
+is_error_or_warning :: fn(d: Diagnostic) -> bool = d.severity == .Error || d.severity == .Warning
+
+// The text of the snapshot of `diagnostics`.
+diagnostics_text :: fn(diagnostics: Diagnostic[]) -> string {
+    lines :: dedup_diagnostics(diagnostics).map((d) -> diagnostic_line(d).right_trim()).collect()
+    if lines.len() == 0 {
+        return NO_DIAGNOSTICS
+    }
+    return "${sort(lines, (a, b) -> a < b).join("\n")}\n"
+}

@@ -1,0 +1,89 @@
+// tools/testrunner/src/fixtures: the fixtures of the diagnostics corpora.
+//
+// A fixture is a folder holding a `_main.vader` whose diagnostics, the lines of
+// every phase of the front end and of the lowering, are compared with its
+// `diagnostics.snapshot`. Those of `tests/diag_corpus` sit one bucket deep, by the
+// phase that reports their code. Those of `tests/concurrency_corpus` say in their
+// header what the task check answers (`// expect: accepted`, `// expect: T3128
+// T3129`), and may name the platform they are checked for (`// target:`).
+
+module "tools/testrunner/src"
+
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "vader/support/target"
+
+DIAG_CORPUS        :: "tests/diag_corpus"
+CONCURRENCY_CORPUS :: "tests/concurrency_corpus"
+
+// What opens the lines of a fixture's header the runner reads.
+EXPECT_OPENING :: "// expect: "
+TARGET_OPENING :: "// target: "
+
+// The fixtures of both corpora, pushed on `found`.
+find_fixtures :: fn(found: Discovery) -> void {
+    for bucket in folders_where(found, DIAG_CORPUS, is_dir) {
+        root :: "${DIAG_CORPUS}/${bucket}"
+        for name in case_folders(found, root) {
+            found.cases.push(fixture_case("diag_corpus/${bucket}/${name}", "${root}/${name}"))
+        }
+    }
+    for name in case_folders(found, CONCURRENCY_CORPUS) {
+        dir :: "${CONCURRENCY_CORPUS}/${name}"
+        case :: concurrency_case("concurrency_corpus/${name}", dir)
+        if case is string {
+            found.problems.push("${dir}/_main.vader: ${case}")
+            continue
+        }
+        found.cases.push(case)
+    }
+}
+
+// The fixture named `name` in `dir`, with its one phase.
+fixture_case :: fn(name: string, dir: string) -> Case = Case {
+    .name = name,
+    .dir = dir,
+    .phases = [DIAGNOSTICS_PHASE],
+}
+
+// The fixture of the concurrency corpus in `dir`, named `name`, as its header
+// describes it; or what is wrong with that header.
+concurrency_case :: fn(name: string, dir: string) -> Case | string {
+    source :: read_file_string("${dir}/_main.vader")
+    if source is IOError {
+        return source.msg
+    }
+    expected :: header_value(source, EXPECT_OPENING) ?? return "no `${EXPECT_OPENING}` line"
+    case :: Case { ...fixture_case(name, dir), .expected_tasks = expected }
+    named :: header_value(source, TARGET_OPENING) ?? return case
+    target :: parse_target(named)
+    if target is TargetParseError {
+        return "`${TARGET_OPENING}${named}`: ${target.reason}"
+    }
+    return Case { ...case, .target = target }
+}
+
+// What follows `opening` on the first line of `source` that opens with it,
+// trimmed; null when no line does.
+header_value :: fn(source: string, opening: string) -> string | null {
+    for line in source.lines() {
+        if line.starts_with(opening) {
+            return line.trim_prefix(opening).trim()
+        }
+    }
+    return null
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_header_line_gives_its_value :: fn() -> void {
+    source :: "// C01: a task\n//\n// expect: T3128 T3129 \nmodule \"snippet\"\n"
+    assert_eq(header_value(source, EXPECT_OPENING) ?? "", "T3128 T3129")
+    assert(header_value(source, TARGET_OPENING) == null, "no `// target:` line")
+}
