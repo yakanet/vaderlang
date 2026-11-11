@@ -628,7 +628,7 @@ export exec_entry :: fn(
     debug: DebugController | null,
 ) -> VmResult {
     ran :: run_entry(state, entry_index, host_argv, capture, is_comptime, debug)
-    return without_frames(after_main(ran, debug))
+    return without_frames(after_main(ran, state.io))
 }
 
 // `outcome`, a call past `MAX_FRAME_DEPTH` reduced to its trap.

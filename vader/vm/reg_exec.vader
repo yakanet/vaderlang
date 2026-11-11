@@ -1112,7 +1112,7 @@ serve_import :: fn(
     is_comptime: bool,
 ) -> HostCallResult {
     if info.is_extern {
-        return dispatch_extern(state, index, args, 0, origin, debug_controller(m))
+        return dispatch_extern(state, index, args, 0, origin)
     }
     id :: state.import_ids[index]
     // The walk of a copy reads the type table, which `dispatch_import` is not given.

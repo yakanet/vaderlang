@@ -9,9 +9,10 @@
 // transport (`read_frame` / `write_frame`): DAP shares LSP's `Content-Length`
 // framing, and supplies its own DAP-shaped encoders (see protocol.vader).
 //
-// Program-under-debug I/O is redirected to DAP `output` events through the
-// VM's `DebugController.output_sink` (vader/vm/debug.vader) : in stdio
-// transport a stray write to fd 1 would corrupt the protocol stream.
+// Program-under-debug output is redirected to DAP `output` events through the
+// VM's `ProgramIo` (vader/vm/program_io.vader), and its stdin is at its end: in
+// stdio transport a stray write to fd 1 would corrupt the protocol stream, and a
+// read of fd 0 would take its requests.
 //
 // Each thread of the program is a thread of the session: the entry's has id 1, a
 // task of number N has id N + 1. The VM runs nothing during a stop, so a stop is
@@ -26,6 +27,7 @@ module "vader/tools/dap"
 
 import "json"
 import "std/collections"
+import "std/console"
 import "std/iter"
 import "std/string"
 import "std/path"
@@ -147,10 +149,11 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: Map<string, Set
     }
     // Route every program write to an `output` event: stdout -> category
     // "stdout", stderr -> "stderr". Captures `seq_cell` by cell.
-    sink :: fn(stream: i32, text: string) -> void {
-        category :: if stream == 0 { "stdout" } else { "stderr" }
+    sink :: fn(stream: Stream, text: string) -> void {
+        category :: if stream == .Stdout { "stdout" } else { "stderr" }
         emit_output(seq_cell, category, text)
     }
+    state.io = ProgramIo { .write = sink }
     // On a stop the VM calls this : emit `stopped`, then drive the (blocking)
     // paused conversation until the client resumes, returning how (`StepMode`).
     // Captures `seq_cell` + `bps` by cell so mid-pause `setBreakpoints` reaches
@@ -166,7 +169,6 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: Map<string, Set
         answer_until_disconnect(seq_cell)
     }
     controller :: DebugController {
-        .output_sink   = sink,
         .breakpoints   = bps,
         .on_pause      = pause,
         .on_fatal_trap = fatal_trap,

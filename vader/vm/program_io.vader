@@ -1,0 +1,178 @@
+// vader/vm/program_io: the standard streams of a program, served by the VM for a
+// host that keeps its own.
+//
+// A debugger in stdio transport and a test runner's worker each talk to their
+// peer over the process's stdin and stdout: a program writing to stdout would
+// corrupt that conversation, and one reading stdin would take its messages. With
+// a `ProgramIo` on its `VmState`, the VM serves the three standard streams of the
+// program itself: a write to stdout or stderr goes to `ProgramIo.write`, and stdin
+// is at its end. Every other descriptor, a file or a pipe the program opened,
+// stays the system's.
+//
+// The streams are served at the system calls the library makes (`write`, `read`,
+// their Windows forms and `GetStdHandle`) and at the waits on stdin
+// (`guest_threads.vader`), so a program reaches them whatever function it calls.
+// Two calls still reach the host's own descriptors: `poll` on stdin
+// (`stdin_ready`), which waits for the host's peer, and the terminal probes
+// (`isatty`, `tcgetattr`), which describe the host's terminal.
+
+module "vader/vm"
+
+bc :: import "vader/core/bytecode"
+import "std/console"
+import "system/windows"
+
+/// Where the VM sends the standard streams of the program it runs, in place of
+/// the process's own descriptors.
+export ProgramIo :: struct {
+    /// Takes each write of the program to stdout or stderr, its bytes as they are.
+    write: fn(Stream, string) -> void
+}
+
+// The descriptors of the standard streams. Under a `ProgramIo`, a Windows handle
+// to one of them is its descriptor (`std_descriptor`).
+STDIN_DESCRIPTOR: i64: 0
+STDOUT_DESCRIPTOR: i64: 1
+STDERR_DESCRIPTOR: i64: 2
+
+/// Serve the import `info` when it reaches a standard stream of the program.
+///
+/// `write(fd, buf, count)` and `WriteFile(handle, buf, count, ...)` share their
+/// first three parameters, as `read` and `ReadFile` do, so both systems are served
+/// alike once `GetStdHandle` answers a descriptor.
+///
+/// @param io        where the program's streams go.
+/// @param info      the import called.
+/// @param stack     the operand stack.
+/// @param arg_base  index of the first argument.
+/// @param at_pc     program counter, for trap messages.
+/// @return          the call's result, or null for a call that reaches no standard
+///                  stream, which the system serves.
+serve_program_stream :: fn(
+    io: ProgramIo,
+    info: bc.BcImport,
+    stack: Value[],
+    arg_base: i64,
+    at_pc: i32,
+) -> HostCallResult | null {
+    symbol :: info.extern_name
+    if symbol == "GetStdHandle" {
+        which :: read_i64(stack[arg_base], at_pc, "GetStdHandle which")
+        if which is Trap {
+            return which
+        }
+        return HostOk { .value = I64Val(std_descriptor(i64(which))) }
+    }
+    writes :: symbol == "write" || symbol == "_write" || symbol == "WriteFile"
+    reads :: symbol == "read" || symbol == "_read" || symbol == "ReadFile"
+    if !writes && !reads {
+        return null
+    }
+    fd :: read_i64(stack[arg_base], at_pc, "descriptor")
+    if fd is Trap {
+        return fd
+    }
+    if reads {
+        if i64(fd) != STDIN_DESCRIPTOR {
+            return null
+        }
+        return serve_read(info, stack, arg_base, at_pc)
+    }
+    stream :: stream_of(i64(fd)) ?? return null
+    return serve_write(io, stream, info, stack, arg_base, at_pc)
+}
+
+/// Whether a wait on descriptor `fd` is one on the stdin the VM serves, which is
+/// at its end and so readable at once.
+///
+/// @param state  the program, whose `io` says whether the VM serves its streams.
+/// @param fd     the descriptor waited on.
+serves_stdin :: fn(state: VmState, fd: i64) -> bool = state.io != null && fd == STDIN_DESCRIPTOR
+
+// The descriptor `GetStdHandle` answers for the standard stream `which` selects.
+std_descriptor :: fn(which: i64) -> i64 {
+    if which == i64(STD_INPUT_HANDLE) {
+        return STDIN_DESCRIPTOR
+    }
+    if which == i64(STD_ERROR_HANDLE) {
+        return STDERR_DESCRIPTOR
+    }
+    return STDOUT_DESCRIPTOR
+}
+
+// The stream descriptor `fd` writes to, null for one that is not stdout or stderr.
+stream_of :: fn(fd: i64) -> Stream | null {
+    if fd == STDOUT_DESCRIPTOR {
+        return .Stdout
+    }
+    if fd == STDERR_DESCRIPTOR {
+        return .Stderr
+    }
+    return null
+}
+
+// A write to `stream`, handed to `io.write` and reported whole: `WriteFile`
+// answers a bool, `write` a byte count.
+serve_write :: fn(
+    io: ProgramIo,
+    stream: Stream,
+    info: bc.BcImport,
+    stack: Value[],
+    arg_base: i64,
+    at_pc: i32,
+) -> HostCallResult {
+    arr :: read_array(stack[arg_base + 1], at_pc, "write buf")
+    if arr is Trap {
+        return arr
+    }
+    count :: read_i64(stack[arg_base + 2], at_pc, "write count")
+    if count is Trap {
+        return count
+    }
+    if count < 0 || i64(count) > element_count(arr) {
+        return Trap { .message = "write at pc=${at_pc}: count ${i64(count)} exceeds the buffer" }
+    }
+    bs :: array_bytes(arr, i64(count), at_pc, "write byte")
+    if bs is Trap {
+        return bs
+    }
+    io.write(stream, bytes_to_string(bs))
+    if bc.bc_single_result(info.signature) == .Bool {
+        return HostOk { .value = BoolVal(true) }
+    }
+    return HostOk { .value = I64Val(i64(count)) }
+}
+
+// A read of stdin, which is at its end: `read` returns 0, and `ReadFile`
+// succeeds with a count of 0 in its fourth argument.
+serve_read :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32) -> HostCallResult {
+    if bc.bc_single_result(info.signature) != .Bool {
+        return HostOk { .value = I64Val(0) }
+    }
+    read :: read_array(stack[arg_base + 3], at_pc, "ReadFile count")
+    if read is Trap {
+        return read
+    }
+    if element_count(read) > 0 {
+        read.elements[0] = retyped_int(read.elements[0], 0)
+    }
+    return HostOk { .value = BoolVal(true) }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_only_stdout_and_stderr_are_program_streams :: fn() -> void {
+    assert(stream_of(STDOUT_DESCRIPTOR) == Stream.Stdout, "descriptor 1 is stdout")
+    assert(stream_of(STDERR_DESCRIPTOR) == Stream.Stderr, "descriptor 2 is stderr")
+    assert(stream_of(5) == null, "a file the program opened is the system's")
+}
+
+@test
+test_std_handles_are_the_descriptors :: fn() -> void {
+    assert_eq(std_descriptor(i64(STD_INPUT_HANDLE)), STDIN_DESCRIPTOR)
+    assert_eq(std_descriptor(i64(STD_OUTPUT_HANDLE)), STDOUT_DESCRIPTOR)
+    assert_eq(std_descriptor(i64(STD_ERROR_HANDLE)), STDERR_DESCRIPTOR)
+}

@@ -73,8 +73,8 @@ serve_thread_primitive :: fn(
     .SchedulerSleepFor      -> on_i64(args[0], origin, "sleep_for", (n) -> sleep_for(n))
     .SchedulerWatchReadable -> on_i64(args[0], origin, "watch_readable", (n) -> watch_readable(n))
     .SchedulerWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
-    .WaitReadable           -> on_i64(args[0], origin, "wait_readable", (n) -> wait_readable(n))
-    .WaitReadableFor        -> serve_wait_readable_for(args, origin)
+    .WaitReadable           -> serve_wait_readable(state, args[0], origin)
+    .WaitReadableFor        -> serve_wait_readable_for(state, args, origin)
     .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
     .SchedulerCurrent       -> HostOk { .value = I64Val(current_thread()) }
     .SchedulerIsCancelled   -> HostOk { .value = BoolVal(is_cancelled()) }
@@ -139,11 +139,28 @@ on_i64 :: fn(
     return void_result()
 }
 
-// Run the host's own `wait_readable_for` on the two `i64` the guest handed it.
-serve_wait_readable_for :: fn(args: Value[], origin: i32) -> HostCallResult {
+// Run the host's own `wait_readable` on the descriptor the guest handed it, unless
+// it is the stdin the VM serves, which is at its end and readable at once.
+serve_wait_readable :: fn(state: VmState, fd: Value, origin: i32) -> HostCallResult {
+    n :: read_i64(fd, origin, "wait_readable")
+    if n is Trap {
+        return n
+    }
+    if !serves_stdin(state, i64(n)) {
+        wait_readable(i64(n))
+    }
+    return void_result()
+}
+
+// Run the host's own `wait_readable_for` on the two `i64` the guest handed it,
+// unless it waits on the stdin the VM serves.
+serve_wait_readable_for :: fn(state: VmState, args: Value[], origin: i32) -> HostCallResult {
     fd :: read_i64(args[0], origin, "wait_readable_for")
     if fd is Trap {
         return fd
+    }
+    if serves_stdin(state, i64(fd)) {
+        return HostOk { .value = BoolVal(true) }
     }
     nanos :: read_i64(args[1], origin, "wait_readable_for")
     if nanos is Trap {
@@ -255,10 +272,10 @@ note_entry_thread :: fn(m: RegMachine) -> void {
 /// until their defers have run, those of the threads cancelled before included.
 ///
 /// @param announce  name each as a native program does when `main` returns.
-/// @param debug     the debugger driving the run, or `null`: its client reads the
-///                  names.
+/// @param io        where the program's stderr goes, which takes the names, or
+///                  `null` for the process's own.
 /// @return          the numbers of the threads this cancelled, the oldest first.
-finish_guest_threads :: fn(announce: bool, debug: DebugController | null) -> i64[] {
+finish_guest_threads :: fn(announce: bool, io: ProgramIo | null) -> i64[] {
     threads :: guest_threads()
     // The entry's frames have returned: a debugger stopping in a cancelled thread's
     // defers shows none.
@@ -280,7 +297,7 @@ finish_guest_threads :: fn(announce: bool, debug: DebugController | null) -> i64
         }
         numbers.push(guest.number)
         if announce {
-            announce_cancelled(guest.number, debug)
+            announce_cancelled(guest.number, io)
         }
     }
     for thread in handles {
@@ -299,12 +316,11 @@ number_of :: fn(threads: GuestThreads, thread: i64) -> i64 {
     return guest.number
 }
 
-// Name on stderr a thread `main`'s return cancels; a debugger's client reads that
-// stream from the session.
-announce_cancelled :: fn(number: i64, debug: DebugController | null) -> void {
+// Name on the program's stderr a thread `main`'s return cancels.
+announce_cancelled :: fn(number: i64, io: ProgramIo | null) -> void {
     line :: "vader: task #${number} still runs when main returns: cancelled"
-    if debug != null {
-        debug.output_sink(STDERR_STREAM, "${line}\n")
+    if io != null {
+        io.write(.Stderr, "${line}\n")
     } else {
         eprintln(line)
     }
@@ -314,12 +330,12 @@ announce_cancelled :: fn(number: i64, debug: DebugController | null) -> void {
 /// are named on stderr and cancelled, and an exit code of 0 becomes 1.
 ///
 /// @param outcome  what the run of `main` returned.
-/// @param debug    the debugger driving the run, or `null`.
+/// @param io       where the program's stderr goes, or `null` for the process's own.
 after_main :: fn(
     outcome: VmResult | StackOverflow,
-    debug: DebugController | null,
+    io: ProgramIo | null,
 ) -> VmResult | StackOverflow {
-    cancelled :: finish_guest_threads(true, debug)
+    cancelled :: finish_guest_threads(true, io)
     if cancelled.len() == 0 || outcome !is Ok || outcome.value != 0 {
         return outcome
     }

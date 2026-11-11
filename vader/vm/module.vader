@@ -60,6 +60,9 @@ export VmState :: struct {
     /// Whether `reg` carries the `Line` ops a debugger stops at (`prepare_debug`).
     @internal
     debuggable: bool
+    /// Where the program's standard streams go when the VM serves them itself
+    /// (`program_io.vader`); null for the process's own descriptors.
+    io: ProgramIo | null = null
 }
 
 /// Verify a `BytecodeModule` and wrap it in the runtime `VmState` `exec`

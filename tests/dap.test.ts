@@ -482,3 +482,36 @@ test("dap: a task cancelled when main returns is announced through the session",
   expect(written(frames, "stderr")).toContain("task #1 still runs when main returns");
   expect(frames.find((f) => f.event === "exited")?.body?.exitCode).toBe(1);
 }, { timeout: MEDIUM_BUILD });
+
+test("dap: a file the program writes is the system's, and its stdin is at its end", async () => {
+  // REASON: under the debugger the VM serves the program's standard streams, and
+  // only those: a write to a file it opened reaches the file, and a read of stdin
+  // must not take the session's own requests.
+  const source = [
+    `module "snippet"`,
+    ``,
+    `import "std/console"`,
+    `import "std/env"`,
+    `import "std/fs"`,
+    `import "std/io"`,
+    ``,
+    `main :: fn() -> i32 {`,
+    `    path :: "\${temp_dir()}/vader-dap-written-file.txt"`,
+    `    write_file(path, "kept in the file")`,
+    `    back :: read_file_string(path)`,
+    `    if back is string {`,
+    `        println("read back: \${back}")`,
+    `    }`,
+    `    remove(path)`,
+    `    line :: read_line()`,
+    `    println("stdin at its end: \${line is IOError}")`,
+    `    return 0`,
+    `}`,
+    ``,
+  ].join("\n");
+  const frames = await debugSource(source, [], []);
+  expect(written(frames, "stdout")).toContain("read back: kept in the file");
+  expect(written(frames, "stdout")).toContain("stdin at its end: true");
+  expect(written(frames, "stderr")).not.toContain("kept in the file");
+  expect(frames.find((f) => f.event === "exited")?.body?.exitCode).toBe(0);
+}, { timeout: MEDIUM_BUILD });

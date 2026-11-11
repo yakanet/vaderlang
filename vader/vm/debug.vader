@@ -89,22 +89,16 @@ export PauseCtx :: struct {
     threads:   PauseThread[]
 }
 
-// The `stream` of `DebugController.output_sink` that stands for stderr.
-STDERR_STREAM: i32: 1
-
 /// Runtime debug/session context, passed to `exec_entry` when the program runs
 /// under the DAP debugger ; `null` otherwise.
 ///
 /// `breakpoints` maps an absolute source file to its set of 1-based breakpoint
-/// lines. `output_sink` routes program writes to DAP `output` events (stdio
-/// transport can't let program output hit fd 1). `on_pause` is invoked when the
-/// VM stops (breakpoint or step): it runs the (blocking) DAP request loop until
-/// the client resumes, then returns the `StepMode` governing the next stop. Every
-/// thread of the program stops through the same controller.
+/// lines. `on_pause` is invoked when the VM stops (breakpoint or step): it runs
+/// the (blocking) DAP request loop until the client resumes, then returns the
+/// `StepMode` governing the next stop. Every thread of the program stops through
+/// the same controller. The program's output goes through the state's
+/// `ProgramIo`, which the session sets.
 export DebugController :: struct {
-    /// Program write hook. `stream` is `0` = stdout, `STDERR_STREAM` = stderr (the
-    /// VM's `.IoWrite` Stream tag) ; `text` is the raw payload.
-    output_sink: fn(i32, string) -> void
     /// Absolute file -> set of 1-based breakpoint lines. Shared (by shallow
     /// copy) with the DAP layer, so `setBreakpoints` updates reach the VM.
     breakpoints: Map<string, Set<i32>>
@@ -191,12 +185,10 @@ export step_should_stop :: fn(mode: StepMode, base_depth: i32, depth: i32) -> bo
 
 import "std/testing"
 
-no_sink :: fn(_s: i32, _t: string) -> void {}
 no_pause :: fn(_c: PauseCtx) -> StepMode = .Continue
 no_fatal_trap :: fn(_c: PauseCtx) -> void {}
 
 mk_controller :: fn(bps: Map<string, Set<i32>>) -> DebugController = DebugController {
-    .output_sink   = no_sink,
     .breakpoints   = bps,
     .on_pause      = no_pause,
     .on_fatal_trap = no_fatal_trap,
