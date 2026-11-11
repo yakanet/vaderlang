@@ -16,8 +16,8 @@ import "vader/front/resolver"
 import "vader/support/target"
 
 /// Where a driven build keeps the driver's own binary and C, relative to the
-/// project root. Under `build/`, so the ignore rule that covers a project's
-/// binaries covers its driver too.
+/// project root, one folder per profile (`driver_dir`). Under `build/`, so the
+/// ignore rule that covers a project's binaries covers its driver too.
 export DRIVER_ARTEFACT_DIR :: "build/driver"
 
 // Where a project keeps the adapter libraries of its interpreted runs
@@ -32,14 +32,25 @@ export DOC_DATA_DIR :: "build/doc"
 export DOC_LIBRARY_DATA_DIR :: "build/doc-lib"
 
 /// Stamp recording what the cached driver binary was built from, beside it in
-/// `DRIVER_ARTEFACT_DIR`: rewritten each time the driver is compiled.
+/// its `driver_dir`: rewritten each time the driver is compiled.
 export DRIVER_STAMP_FILENAME :: "driver.stamp"
 
-/// Where the stamp of the project `dir`'s driver sits.
+/// The folder of the project `dir`'s driver compiled in one profile. A debug
+/// and a release driver sit side by side, so that alternating the two kinds of
+/// build compiles neither again.
 ///
-/// @param dir  the project folder.
-export driver_stamp_path :: fn(dir: string) -> string =
-    dir.join_path(DRIVER_ARTEFACT_DIR).join_path(DRIVER_STAMP_FILENAME)
+/// @param dir      the project folder.
+/// @param release  whether the driver is optimised.
+/// @return         `<dir>/build/driver/<debug|release>`.
+export driver_dir :: fn(dir: string, release: bool) -> string =
+    dir.join_path(DRIVER_ARTEFACT_DIR).join_path(profile_name(release))
+
+/// Where the stamp of the project `dir`'s driver compiled in one profile sits.
+///
+/// @param dir      the project folder.
+/// @param release  whether the driver is optimised.
+export driver_stamp_path :: fn(dir: string, release: bool) -> string =
+    driver_dir(dir, release).join_path(DRIVER_STAMP_FILENAME)
 
 /// The exit code of `vader info --no-driver-build` for a project whose driver
 /// is not compiled, or compiled from another `build.vader` or compiler: nothing
@@ -183,4 +194,10 @@ test_project_output_dir_names_profile_and_target :: fn() -> void {
     assert_eq(project_output_dir("app", true, linux), "app/build/release-linux-x86_64")
     host :: display_target(host_target())
     assert_eq(project_output_dir("app", false, null), "app/build/debug-${host}")
+}
+
+@test
+test_driver_dir_names_the_profile :: fn() -> void {
+    assert_eq(driver_dir("app", false), "app/build/driver/debug")
+    assert_eq(driver_stamp_path("app", true), "app/build/driver/release/driver.stamp")
 }

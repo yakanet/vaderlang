@@ -252,7 +252,8 @@ A root of step 4 that starts with `$VADER_HOME` lies in the toolchain's folder, 
 A `vader.json` project is built by a driver compiled into `vader`: nothing is compiled before the project. A `build.vader` is compiled, then run:
 
 - compiled with the compiler's sources (*Toolchain*) and the command's `--cc` and `--ldflags`, for this machine whatever `--target` says;
-- kept as `build/driver/driver`, and compiled again when `build.vader` or the `vader` binary changes or `build/driver/` is deleted;
+- optimised for `vader build --release`, since the driver runs the compilation of the project; any other command takes the optimised driver when it is compiled, and a debug one otherwise, quicker to compile;
+- kept as `build/driver/release/driver` or `build/driver/debug/driver`, and compiled again when `build.vader` or the `vader` binary changes or `build/driver/` is deleted;
 - run as a child process, told where the toolchain is, and killed after ten minutes;
 - under `info`, `run`, `dump`, `lint` and `graph`, its output goes to stderr, leaving stdout to the command.
 

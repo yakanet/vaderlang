@@ -1,6 +1,6 @@
 # stdout
 observed 16 module(s), built nothing
 # stderr
-vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/build/driver/debug/driver
 # exit
 0

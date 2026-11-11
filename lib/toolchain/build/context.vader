@@ -147,7 +147,7 @@ export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 ///              contract is that the driver fills it in.
 export new_build_context :: fn(args: string[]) -> BuildContext {
     request :: parse_driver_request(args)
-    // The driver runs from its project's `build/driver/`: probing beside
+    // The driver runs from its project's `build/driver/<profile>/`: probing beside
     // itself, the loader would miss the toolchain the CLI names, its `lib/`,
     // its C runtime and a `$VADER_HOME/...` root included. Empty when the driver
     // was run by hand, which leaves that probe as it is.

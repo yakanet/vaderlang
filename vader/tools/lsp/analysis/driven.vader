@@ -113,11 +113,13 @@ export poll_descriptions :: fn(self: ServerState) -> void {
 }
 
 // What a description of the project `root` depends on: its `build.vader`, and
-// the stamp a compile of its driver rewrites. Either changing asks for another.
+// the stamps a compile of its driver rewrites, one per profile. Any of them
+// changing asks for another.
 description_key :: fn(root: string) -> string {
     driver :: modified_at(join_path(root, DRIVER_FILENAME))
-    compiled :: modified_at(driver_stamp_path(root))
-    return "${driver}:${compiled}"
+    debug :: modified_at(driver_stamp_path(root, false))
+    release :: modified_at(driver_stamp_path(root, true))
+    return "${driver}:${debug}:${release}"
 }
 
 // The modification time of `path`, 0 when it cannot be read.

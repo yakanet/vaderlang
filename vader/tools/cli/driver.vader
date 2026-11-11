@@ -210,24 +210,29 @@ driver_input_key :: fn(driver_path: string) -> string {
     return "${driver_hash}-${compiler_digest() ?? ""}"
 }
 
-/// True when the cached driver binary can be reused for `key`.
+/// True when the driver of the project `root` compiled in one profile can be
+/// reused for `key`.
 ///
 /// Both halves matter: the stamp says what the binary was built from, and the
 /// binary has to still be there: `build/` is a directory users delete.
 ///
-/// @param binary  the cached driver binary.
-/// @param stamp   the file recording its input key.
-/// @param key     the key of the current inputs.
-driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
-    if linked_binary(binary) == null {
+/// @param root     the project folder.
+/// @param release  whether the driver is the optimised one.
+/// @param key      the key of the current inputs (`driver_input_key`).
+driver_is_current :: fn(root: string, release: bool, key: string) -> bool {
+    if linked_binary(driver_binary_path(root, release)) == null {
         return false
     }
-    recorded :: read_file_string(stamp)
+    recorded :: read_file_string(driver_stamp_path(root, release))
     if recorded is IOError {
         return false
     }
     return recorded.trim() == key
 }
+
+// The driver binary of the project `root` compiled in one profile.
+driver_binary_path :: fn(root: string, release: bool) -> string =
+    join_path(driver_dir(root, release), "driver")
 
 // ---- the compiler's digest ------------------------------------------------
 
@@ -439,21 +444,17 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
         return 1
     }
 
-    // Artefacts go under `build/`, not the project root: a driven build should
-    // not litter the directory the user works in. `create_dir` makes the path
-    // rather than requiring it to exist.
-    artefacts :: join_path(root, DRIVER_ARTEFACT_DIR)
-    binary :: join_path(artefacts, "driver")
-    stamp  :: driver_stamp_path(root)
-    key    :: driver_input_key(driver)
+    key :: driver_input_key(driver)
+    release :: runs_release_driver(root, key, request)
+    binary :: driver_binary_path(root, release)
 
     // Compiling a driver compiles the WHOLE compiler (274k lines of C, 8.2 s)
     // and it produces the same binary every time its inputs are unchanged, which
     // for anyone iterating on their project is every build but the first.
-    if !driver_is_fresh(binary, stamp, key) {
+    if !driver_is_current(root, release, key) {
         cc :: cc_or_default(request.build.cc)
         ldflags :: request.build.ldflags
-        build_code :: rebuild_driver(command, root, artefacts, binary, stamp, key, cc, ldflags)
+        build_code :: rebuild_driver(command, root, release, key, cc, ldflags)
         if build_code != 0 {
             return build_code
         }
@@ -474,7 +475,7 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     // runaway driver kept spinning a core.
     // The toolchain root is the folder holding THIS executable, and therefore
     // its `lib/` and `runtime/c/`. The driver cannot work it out
-    // itself: it runs as `<project>/build/driver/driver`, so its own sidecar
+    // itself: it runs as `<project>/build/driver/<profile>/driver`, so its own sidecar
     // probe looks inside the project. Without this a driven build only resolves
     // `std/*` when the project happens to have a `lib/` beside it, which is
     // what the fixtures' symlinks were quietly providing.
@@ -523,24 +524,41 @@ relay_driver_output :: fn(request: DriverRequest, stdout: string, stderr: string
 }
 
 /// Whether the project `root`'s driver is compiled as it stands, from its
-/// `build.vader` and this compiler: what `run_build_driver` would run without
-/// compiling first.
+/// `build.vader` and this compiler: what `run_build_driver` would run to
+/// describe the project without compiling first.
 ///
 /// @param root  the project folder, holding a `build.vader`.
 export driver_is_compiled :: fn(root: string) -> bool {
     driver :: find_build_driver(root) ?? return false
-    binary :: join_path(join_path(root, DRIVER_ARTEFACT_DIR), "driver")
-    return driver_is_fresh(binary, driver_stamp_path(root), driver_input_key(driver))
+    key :: driver_input_key(driver)
+    release :: runs_release_driver(root, key, DriverRequest { .mode = .Describe })
+    return driver_is_current(root, release, key)
 }
 
-// Write the entry shim, compile the driver, record what it was built from.
+// Whether `request` runs the release driver. The driver runs the pipeline of the
+// project, so a release build has it optimised. Any other command takes the
+// release driver when it is compiled as it stands, and the debug one otherwise,
+// which costs less to compile than a small project ever earns back.
+runs_release_driver :: fn(root: string, key: string, request: DriverRequest) -> bool {
+    if request.mode == .Build && request.build.release {
+        return true
+    }
+    return driver_is_current(root, true, key)
+}
+
+// Write the entry shim, compile the driver in one profile, record what it was
+// built from.
 //
 // The shim is removed whether or not the build worked: leaving a generated file
 // behind after a failure is how a stale one gets compiled next time. The stamp is
 // written only on success, so a failed build never looks fresh.
 rebuild_driver :: fn(
-    command: string, root: string, artefacts: string, binary: string, stamp: string, key: string,
-    cc: string, ldflags: string,
+    command: string,
+    root: string,
+    release: bool,
+    key: string,
+    cc: string,
+    ldflags: string,
 ) -> i32 {
     entry :: driver_entry_path(root)
     written :: write_file(entry, render_driver_entry())
@@ -549,6 +567,10 @@ rebuild_driver :: fn(
             + written.msg)
         return 1
     }
+    // Artefacts go under `build/`, not the project root: a driven build should
+    // not litter the directory the user works in. `create_dir` makes the path
+    // rather than requiring it to exist.
+    artefacts :: driver_dir(root, release)
     made :: create_dir(artefacts)
     if made is IOError {
         eprintln("vader ${command}: cannot create ${artefacts.to_native()}: ${made.msg}")
@@ -567,7 +589,9 @@ rebuild_driver :: fn(
         .ldflags = ldflags,
         .include_paths = [compiler_source_root(root)],
         .cc_jobs = DRIVER_CC_JOBS,
+        .release = release,
     }
+    binary :: driver_binary_path(root, release)
     code :: build_driver_binary(command, Path(entry), Path(binary), request)
     remove_entry(entry)
     if code != 0 {
@@ -575,7 +599,7 @@ rebuild_driver :: fn(
     }
     // A stamp we cannot write is not fatal: it only costs the next build a
     // rebuild, which is what happens today anyway.
-    write_file(stamp, key)
+    write_file(driver_stamp_path(root, release), key)
     return 0
 }
 
@@ -722,4 +746,32 @@ test_ejected_driver_declares_what_the_manifest_does :: fn() -> void {
 @test
 test_string_literal_escapes_what_a_raw_literal_cannot_hold :: fn() -> void {
     assert_eq(string_literal("a\"\$b"), "\"a\\\"\\\$b\"")
+}
+
+@test
+test_only_a_release_build_compiles_the_release_driver :: fn() -> void {
+    root :: "/nonexistent-project-root"
+    release :: DriverRequest { .build = BuildRequest { .release = true } }
+    assert(runs_release_driver(root, "key", release), "a release build has its driver optimised")
+    assert(
+        !runs_release_driver(root, "key", DriverRequest {}),
+        "a debug build with no release driver compiles the debug one",
+    )
+    check :: DriverRequest { .mode = .Check, .build = BuildRequest { .release = true } }
+    assert(
+        !runs_release_driver(root, "key", check),
+        "`--release` optimises the driver of a build only",
+    )
+}
+
+@test
+test_a_current_release_driver_serves_every_command :: fn() -> void {
+    root :: join_path(temp_dir(), "vader_driver_probe_profiles")
+    create_dir(driver_dir(root, true))
+    write_file(driver_binary_path(root, true), "")
+    write_file(driver_stamp_path(root, true), "key\n")
+    describe :: DriverRequest { .mode = .Describe }
+    assert(runs_release_driver(root, "key", describe), "a current release driver is taken")
+    assert(!runs_release_driver(root, "other", describe), "a release driver of other inputs is not")
+    remove(root, RemoveOptions { .recursive = true })
 }

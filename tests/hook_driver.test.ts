@@ -221,7 +221,7 @@ function normalise(text: string, dir: string): string {
     // How the driver's own binary got linked is machine-dependent: the split
     // count follows the core count, and a single-unit build words the line
     // differently. What the expectation is about is that it was written at all.
-    .replace(/^(vader build: wrote <project>\/build\/driver\/driver).*$/gm, "$1")
+    .replace(/^(vader build: wrote <project>\/build\/driver\/\w+\/driver).*$/gm, "$1")
     // A program's split count depends on the host too: Windows adds a unit for
     // the standard library's `KERNEL32` shims.
     .replace(/\(split: \d+ objects/g, "(split: <n> objects");
@@ -396,7 +396,7 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   // land: the driver's own `import "toolchain/build"` (bundle `lib/toolchain/`), the
   // project's `std/*` (bundle `lib/std/`), and `vader_runtime.c` at the link step
   // (bundle `runtime/c/`). The project directory has NO symlinks: the driver
-  // runs as `<project>/build/driver/driver`, so every probe relative to ITSELF
+  // runs as `<project>/build/driver/debug/driver`, so every probe relative to ITSELF
   // looks inside the project and finds nothing.
   const bundle = stageBundle();
   staged.push(bundle);
@@ -558,7 +558,7 @@ test.concurrent("the driver produces a working binary", async () => {
   // build's output, and the corpus loop covers the project root staying clean:
   // neither can say the binary works.
   const { dir } = await drivenBuild("pascal_case_lint");
-  expect(existsSync(exePath(`${dir}/build/driver/driver`))).toBe(true);
+  expect(existsSync(exePath(`${dir}/build/driver/debug/driver`))).toBe(true);
 
   // The whole point of decision 13: a driver is a build system, not an observer.
   // It compiles the project and the result runs: even though the driver went on
@@ -576,7 +576,7 @@ test.concurrent("the front end runs ONCE for a driver that observes and builds",
   // meaningless.
   const { dir } = await drivenBuild("pascal_case_lint");
   const profiled = await runBinary(
-    exePath(`${dir}/build/driver/driver`), dir, { VADER_PROFILE: "1" });
+    exePath(`${dir}/build/driver/debug/driver`), dir, { VADER_PROFILE: "1" });
   // The profile has one row per pass; its last column counts the runs.
   const typecheck = profiled.stderr.match(/^\s+typecheck\s.*\s(\d+)\s*$/m);
   expect(Number(typecheck?.[1])).toBe(1);

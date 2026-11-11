@@ -1,5 +1,5 @@
 # stderr
-vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/build/driver/debug/driver
 
 # Diagnostics
 [build.vader:1:1] error[H6005] two entries share one name: `app` names `src/main.vader` already, and now `App` names `src/main.vader`
