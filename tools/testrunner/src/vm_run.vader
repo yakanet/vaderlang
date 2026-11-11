@@ -95,5 +95,5 @@ run_program :: fn(case: Case, text: string) -> string {
     path :: Path("${case.dir}/${BYTECODE_SNAPSHOT}")
     no_args: string[]: []
     ran :: run_virt_text(text, path, no_args, VM.ProgramIo { .write = write })
-    return run_text(streams.stdout.to_string(), streams.stderr.to_string(), exit_status(ran))
+    return run_text(streams.stdout.to_string(), streams.stderr.to_string(), ran)
 }

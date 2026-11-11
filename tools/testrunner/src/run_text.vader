@@ -37,7 +37,7 @@ keep :: fn(streams: Streams, stream: Stream, text: string) -> void {
 //
 // @param stdout  what the program wrote on stdout.
 // @param stderr  what it wrote on stderr, the VM's stop line included.
-// @param exit    its exit code, as its process reports it (`exit_status`).
+// @param exit    its exit code, as its process reports it.
 run_text :: fn(stdout: string, stderr: string, exit: i32) -> string {
     shared :: native_stop(stderr)
     out :: StringBuilder {}
@@ -47,7 +47,7 @@ run_text :: fn(stdout: string, stderr: string, exit: i32) -> string {
     if shared != "" {
         out.append("# stderr\n${shared}")
     }
-    code :: if has_stop_line(shared) { STOPPED_EXIT } else { exit }
+    code :: if has_stop_line(shared) { STOPPED_EXIT } else { exit_status(exit) }
     out.append("# exit\n${code}\n")
     return out.to_string()
 }
@@ -89,17 +89,10 @@ without_pc :: fn(message: string) -> string {
     return halves.0
 }
 
-// The exit code a process reports for a `main` that returns `value`: its low
-// byte on POSIX.
-@target
-exit_status :: fn(value: i32) -> i32 {
-    return value
-}
-
-@target(.Linux, .Darwin)
-exit_status :: fn(value: i32) -> i32 {
-    return value & 0xFF
-}
+// The exit code a snapshot records for a run that exited with `value`: its low
+// byte, what a POSIX process reports. A Windows process reports all 32 bits, and
+// the snapshots hold the same code on every OS.
+exit_status :: fn(value: i32) -> i32 = value & 0xFF
 
 // ---- tests ----------------------------------------------------------------
 
@@ -109,6 +102,11 @@ import "std/testing"
 test_a_run_records_its_streams_then_its_exit :: fn() -> void {
     assert_eq(run_text("hi\n", "", 0), "# stdout\nhi\n# exit\n0\n")
     assert_eq(run_text("", "oops\n", 2), "# stderr\noops\n# exit\n2\n")
+}
+
+@test
+test_a_run_records_the_low_byte_of_its_exit :: fn() -> void {
+    assert_eq(run_text("", "", 3542), "# exit\n214\n")
 }
 
 @test
