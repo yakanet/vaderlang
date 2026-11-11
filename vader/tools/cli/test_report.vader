@@ -197,7 +197,7 @@ milliseconds :: fn(took: Duration) -> JsonValue = json_number(f64(took.to_micros
 
 // The text of `event`: RS, the object on one line, a newline.
 event_text :: fn(event: Map<string, JsonValue>) -> string =
-    "\u{1E}${stringify(JsonObject { .entries = event })}\n"
+    sequence_entry(JsonObject { .entries = event })
 
 emit :: fn(event: Map<string, JsonValue>) -> void = print(event_text(event))
 
