@@ -87,11 +87,9 @@ export parse_manifest :: fn(text: string) -> Manifest {
         manifest.problems.push("it is not a JSON object")
         return manifest
     }
-    for [key, _] in parsed.entries {
-        if key !in MANIFEST_KEYS {
-            known :: MANIFEST_KEYS.join("`, `")
-            manifest.problems.push("unknown key `${key}`; the keys are `${known}`")
-        }
+    for key in unknown_keys(parsed, MANIFEST_KEYS) {
+        known :: MANIFEST_KEYS.join("`, `")
+        manifest.problems.push("unknown key `${key}`; the keys are `${known}`")
     }
     manifest.name = string_at(parsed, "name", manifest.problems)
     manifest.version = string_at(parsed, "version", manifest.problems)

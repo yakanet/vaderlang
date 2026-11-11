@@ -660,6 +660,42 @@ export strings_member :: fn(value: JsonValue, key: string) -> string[] {
     return out
 }
 
+/// The strings of `value`, an array of strings; null when `value` is another
+/// shape or holds an item of another shape, which `strings_member` leaves out.
+///
+/// @param value  the value to read.
+/// @example
+///   strings_of(JsonArray { .items = [JsonString { .value = "a" }] })   // ["a"]
+///   strings_of(JsonArray { .items = [JsonNull {}] })                   // null
+export strings_of :: fn(value: JsonValue) -> string[] | null {
+    if value !is JsonArray {
+        return null
+    }
+    out: string[]: []
+    for item in value.items {
+        if item !is JsonString {
+            return null
+        }
+        out.push(item.value)
+    }
+    return out
+}
+
+/// The keys of `value` that `known` does not list, in the order of the object:
+/// what a reader that takes only the keys `known` names would leave unread.
+///
+/// @param value  the object to check.
+/// @param known  the keys it may hold.
+export unknown_keys :: fn(value: JsonObject, known: string[]) -> string[] {
+    out: string[]: []
+    for key in value.entries.keys() {
+        if key !in known {
+            out.push(key)
+        }
+    }
+    return out
+}
+
 // ---- text sequences -------------------------------------------------------
 
 /// `value` as an entry of a JSON text sequence (RFC 7464): a record separator
@@ -897,6 +933,25 @@ parsed_value :: fn(src: string) -> JsonValue {
     assert_eq(strings_member(value, "tags").join(","), "a,b")
     assert_eq(strings_member(value, "name").len(), 0)
     assert_eq(strings_member(value, "absent").len(), 0)
+}
+
+@test test_strings_of_an_array_of_strings :: fn() -> void {
+    assert_eq((strings_of(parsed_value("[\"a\", \"b\"]")) ?? []).join(","), "a,b")
+    assert_eq((strings_of(parsed_value("[]")) ?? ["x"]).len(), 0)
+}
+
+@test test_strings_of_another_shape_is_null :: fn() -> void {
+    assert(strings_of(parsed_value("[\"a\", 1]")) == null, "an item of another shape")
+    assert(strings_of(parsed_value("\"a\"")) == null, "a string is no array")
+}
+
+@test test_unknown_keys_in_the_order_of_the_object :: fn() -> void {
+    value :: parsed_value("{\"b\": 1, \"name\": 2, \"a\": 3}")
+    if value is JsonObject {
+        assert_eq(unknown_keys(value, ["name"]).join(","), "b,a")
+    } else {
+        fail("not an object")
+    }
 }
 
 @test test_sequence_entry_frames_the_compact_text :: fn() -> void {
