@@ -76,11 +76,10 @@ jobs:
         timeout-minutes: 20
         run: |
           nproc
-          (cd tools/testrunner && ../../build/vader build --release)
+          time (cd tools/testrunner && ../../build/vader build --release)
           runner=$(ls tools/testrunner/build/release-*/testrunner)
-          time "$runner" ./build/vader 4 | head -40
-          time "$runner" ./build/vader 4 lexer,parser,typecheck,comptime,lower,bytecode,emit_c,vm | head -40
-          time "$runner" ./build/vader 1 | head -40
+          time "$runner" | tail -40
+          time "$runner" --jobs=1 | tail -40
       - name: Test
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:

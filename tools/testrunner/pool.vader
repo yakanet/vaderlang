@@ -1,0 +1,209 @@
+// tools/testrunner/pool: K workers, each driven by a task.
+//
+// Each task takes case indices from one channel and runs each case on its
+// worker, a `testrunner --worker` child it starts on first use. A worker that
+// dies, or overruns the deadline of a case, is replaced on the stages of the case
+// it had not reported, the one it stopped on counted as a crash.
+
+module "tools/testrunner"
+
+import "std/console"
+import "std/iter"
+import "std/process"
+import "std/string"
+import "std/task"
+import "std/time"
+
+// The longest a case may take before its worker is killed.
+CASE_TIMEOUT_SECONDS: i64: 300
+
+// A worker child, what it wrote on stderr since it started, and the start of an
+// event it has not finished writing.
+Worker :: struct {
+    child: ChildProcess
+    err: u8[] = []
+    pending: u8[] = []
+}
+
+// What a worker reported on one case.
+Reports :: struct {
+    stages: StageReport[] = []
+    errors: string[] = []
+    done: bool = false
+}
+
+// A stage a worker stopped on.
+Crash :: struct {
+    case: string
+    phase: string
+    exit: i32
+    stderr: string
+}
+
+// What one task found over the cases it ran.
+Tally :: struct {
+    same: i64 = 0
+    written: string[] = []
+    /// `<case>/<phase>` of each stage whose text differs from its snapshot, or
+    /// has none.
+    failures: string[] = []
+    crashes: Crash[] = []
+    errors: string[] = []
+}
+
+// A task's worker, started on first use and after each crash.
+Slot :: struct {
+    /// The argv a worker starts with.
+    command: string[]
+    worker: Worker | null = null
+}
+
+// Take indices of `cases` from `queue` until it is closed, and run each case on
+// the slot's worker.
+serve :: fn(slot: Slot, cases: Case[], queue: Channel<i64>) -> Tally {
+    tally :: Tally {}
+    for i in queue {
+        run_case(slot, cases[i], tally)
+    }
+    stop_worker(slot)
+    return tally
+}
+
+// Run the stages of `case`, on a new worker for those left after a crash.
+run_case :: fn(slot: Slot, case: Case, tally: Tally) -> void {
+    todo := case.phases
+    for todo.len() > 0 {
+        worker :: worker_of(slot) ?? return
+        reports :: run_on(worker, Case { ...case, .phases = todo })
+        for report in reports.stages {
+            tally.note(case.name, report)
+        }
+        for message in reports.errors {
+            tally.errors.push("${case.name}: ${message}")
+        }
+        if reports.done {
+            return
+        }
+        code :: exit_of(worker.child)
+        slot.worker = null
+        reported :: reports.stages.map((r) -> r.phase).collect()
+        left :: todo.filter((phase) -> !reported.contains(phase)).collect()
+        // Dead after its last stage, the worker crashed on none.
+        if left.len() == 0 {
+            return
+        }
+        tally.crashes.push(
+            Crash {
+                .case = case.name,
+                .phase = left[0],
+                .exit = code,
+                .stderr = worker.err.bytes_to_string(),
+            },
+        )
+        todo = left[1..<left.len()]
+    }
+}
+
+note :: fn(tally: Tally, case: string, report: StageReport) -> void {
+    match report.result {
+        .Same    -> { tally.same += 1 }
+        .Written -> tally.written.push("${case}/${report.phase}")
+        .Differ  -> tally.failures.push("${case}/${report.phase}")
+        .Missing -> tally.failures.push("${case}/${report.phase} (no snapshot)")
+    }
+}
+
+// Send `case` to `worker` and read its reports until the end of the case or of
+// the worker, or until `CASE_TIMEOUT_SECONDS` runs out, which kills it.
+run_on :: fn(worker: Worker, case: Case) -> Reports {
+    reports :: Reports {}
+    if worker.child.write_input(request_record(case).bytes()) != null {
+        return reports
+    }
+    // Bound before the test: the task analysis sees `timeout` join its task
+    // only then.
+    read :: launch(() -> read_case(worker, reports)).timeout(CASE_TIMEOUT_SECONDS.seconds())
+    if read is TimeoutError {
+        worker.child.kill()
+    }
+    return reports
+}
+
+// Read the events `worker` writes into `reports`, until the end of the case or
+// its own.
+read_case :: fn(worker: Worker, reports: Reports) -> void {
+    for !reports.done {
+        chunk :: worker.child.read_output()
+        worker.err.push_all(chunk.err)
+        from :: worker.pending.len()
+        worker.pending.push_all(chunk.out)
+        take_events(worker, from, reports)
+        if chunk.ended {
+            return
+        }
+    }
+}
+
+// Move the events `worker.pending` completes into `reports`, its bytes before
+// `from` known to hold no line end.
+take_events :: fn(worker: Worker, from: i64, reports: Reports) -> void {
+    pending :: worker.pending
+    start: i64 = 0
+    for i in from..<pending.len() {
+        if pending[i] == '\n' {
+            line :: pending[start..<i].bytes_to_string()
+            reports.add(read_event(line), line)
+            start = i + 1
+        }
+    }
+    if start > 0 {
+        rest: u8[]: []
+        rest.push_all(pending[start..<pending.len()])
+        worker.pending = rest
+    }
+}
+
+add :: fn(reports: Reports, event: Event | null, line: string) -> void {
+    match event {
+        is StageReport -> reports.stages.push(event)
+        is CaseFailure -> reports.errors.push(event.message)
+        is CaseDone    -> { reports.done = true }
+        is null        -> reports.errors.push("not an event: ${line}")
+    }
+}
+
+// The exit code of a worker that ended, -1 for a signal.
+exit_of :: fn(child: ChildProcess) -> i32 {
+    for {
+        ended :: child.poll()
+        if ended is ProcessResult {
+            return ended.exit
+        }
+        if ended is ProcessError {
+            return -1
+        }
+        child.read_output()
+    }
+}
+
+worker_of :: fn(slot: Slot) -> Worker | null {
+    current :: slot.worker
+    if current != null {
+        return current
+    }
+    child :: spawn_interactive(slot.command)
+    if child is ProcessError {
+        eprintln("testrunner: ${child.msg}")
+        return null
+    }
+    started :: Worker { .child = child }
+    slot.worker = started
+    return started
+}
+
+// Close the stdin of the slot's worker, which then exits, and wait for it.
+stop_worker :: fn(slot: Slot) -> void {
+    worker :: slot.worker ?? return
+    worker.child.close_input()
+    exit_of(worker.child)
+}

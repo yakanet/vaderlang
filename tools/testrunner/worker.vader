@@ -1,0 +1,137 @@
+// tools/testrunner/worker: `testrunner --worker`, which runs the cases it reads.
+//
+// It reads one request per line on stdin, until stdin ends (`protocol.vader`).
+// Each stage of a case is rendered by `vader/tools/dump` as `vader dump
+// --target=linux-x86_64` renders it, the bytecode annotated, then turned into
+// the text the snapshot holds and compared with it; under `--update`, a snapshot
+// that differs is written. The stages of a case share one front end. Nothing but
+// the protocol goes to stdout.
+
+module "tools/testrunner"
+
+import "json"
+import "std/console"
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/path"
+import "std/string"
+import "std/time"
+import "vader/support/target"
+import "vader/tools/dump"
+
+// Run the cases read on stdin until it ends.
+//
+// @param update  write each snapshot that differs or is missing.
+run_worker :: fn(update: bool) -> i32 {
+    target :: parse_target(SNAPSHOT_TARGET).or_null()
+    for {
+        line :: read_line()
+        if line is IOError {
+            return 0
+        }
+        if line == "" {
+            continue
+        }
+        case :: read_request(line)
+        if case == null {
+            // A runner waits for the `done` of what it sent.
+            print(error_record("", "not a request: ${line}"))
+            print(done_record("", 0))
+            continue
+        }
+        run_request(case, target, update)
+    }
+}
+
+run_request :: fn(case: Case, target: Target | null, update: bool) -> void {
+    began :: monotonic()
+    input :: DumpInput {
+        .file = Path("${case_dir(case.name)}/_main.vader"),
+        .modules = case.modules,
+        .target = target,
+        .annotate = true,
+    }
+    for phase in case.phases {
+        stage :: stage_named(phase)
+        if stage == null {
+            print(error_record(case.name, "no stage `${phase}`"))
+            continue
+        }
+        print(stage_record(case.name, check_stage(case, stage, input, update)))
+    }
+    print(done_record(case.name, began.since().to_micros()))
+}
+
+// Render `stage` of `case` and compare it with its snapshot, which `update`
+// writes when it differs.
+check_stage :: fn(case: Case, stage: Stage, input: DumpInput, update: bool) -> StageReport {
+    began :: monotonic()
+    actual :: snapshot_text(stage, input.dump_stage(stage.dump))
+    path :: "${case_dir(case.name)}/${stage.snapshot}"
+    expected :: read_file_string(path)
+    result :: verdict_of(expected, actual, path, update)
+    failed :: result == .Differ || result == .Missing
+    return StageReport {
+        .phase = stage.phase,
+        .result = result,
+        .duration_us = began.since().to_micros(),
+        .actual = if failed { actual } else { null },
+    }
+}
+
+verdict_of :: fn(
+    expected: string | IOError,
+    actual: string,
+    path: string,
+    update: bool,
+) -> Verdict {
+    if expected is string && expected == actual {
+        return .Same
+    }
+    if update && write_file(path, actual) == null {
+        return .Written
+    }
+    if expected is IOError {
+        return .Missing
+    }
+    return .Differ
+}
+
+// ---- the text of a snapshot -------------------------------------------------
+
+// The text the snapshot of `stage` holds for what the stage rendered: its
+// stdout, the JSON form for the parser, and the stderr ahead of a failure.
+snapshot_text :: fn(stage: Stage, output: StageOutput) -> string {
+    text :: if output.code == 0 { output.out } else {
+        failed_text(output.code, output.err, output.out)
+    }
+    if stage.phase == "parser" {
+        return ast_as_json(text)
+    }
+    return text
+}
+
+// The dump of the `ast` stage as the JSON the parser snapshot holds.
+ast_as_json :: fn(dump: string) -> string {
+    head :: "# AST\n"
+    if !dump.starts_with(head) {
+        return dump
+    }
+    body :: dump.trim_prefix(head)
+    halves :: body.split_first("\n# Diagnostics\n") ?? [body, ""]
+    lines: JsonValue[]: []
+    for line in halves.1.split("\n") {
+        if line != "" {
+            lines.push(JsonString { .value = line })
+        }
+    }
+    ast :: nested(halves.0.trim())
+    diagnostics :: nested(stringify(JsonArray { .items = lines }, 2))
+    return "{\n  \"ast\": ${ast},\n  \"diagnostics\": ${diagnostics}\n}\n"
+}
+
+nested :: fn(text: string) -> string = text.replace_all("\n", "\n  ")
+
+failed_text :: fn(code: i32, stderr: string, stdout: string) -> string =
+    "# vader CLI failed (exit ${code})\n${stderr}${stdout}"

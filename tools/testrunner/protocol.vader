@@ -1,0 +1,169 @@
+// tools/testrunner/protocol: what the runner and its workers say to each other.
+//
+// Every message is an entry of a JSON text sequence (RFC 7464), as `vader test
+// --reporter=json` writes its events: a record separator (0x1E), one JSON
+// object, a newline. The runner writes one request per case on the stdin of a
+// worker:
+//
+// ```
+// {"case": "hello", "modules": [], "stages": ["lexer", "parser", "..."]}
+// ```
+//
+// and the worker answers on its stdout with one `stage` event per stage of the
+// request, then `done`:
+//
+// ```
+// {"event": "stage", "case": "hello", "stage": "lexer", "result": "same", "duration_us": 812}
+// {"event": "stage", "case": "hello", "stage": "emit_c", "result": "differ", "duration_us": 53,
+//  "actual": "..."}
+// {"event": "error", "case": "hello", "message": "..."}
+// {"event": "done", "case": "hello", "duration_us": 61234}
+// ```
+//
+// A `result` is `same`, `differ`, `missing` (no snapshot file) or `written`
+// (under `--update`); `actual`, the text the snapshot should hold, comes with
+// `differ` and `missing` only. A worker whose stdout ends before `done` crashed
+// on the first stage it did not report.
+
+module "tools/testrunner"
+
+import "json"
+import "std/collections"
+import "std/string"
+
+// How the text of a stage compares with its snapshot.
+Verdict :: enum { Same, Differ, Missing, Written }
+
+verdict_name :: fn(verdict: Verdict) -> string = match verdict {
+    .Same    -> "same"
+    .Differ  -> "differ"
+    .Missing -> "missing"
+    .Written -> "written"
+}
+
+verdict_named :: fn(name: string) -> Verdict | null = match name {
+    "same"    -> .Same
+    "differ"  -> .Differ
+    "missing" -> .Missing
+    "written" -> .Written
+    _         -> null
+}
+
+// What a worker reports on one stage.
+StageReport :: struct {
+    phase: string
+    result: Verdict
+    duration_us: i64
+    /// The text the snapshot should hold, when it does not.
+    actual: string | null = null
+}
+
+// A request the worker could not run, or a stage it does not know.
+CaseFailure :: struct {
+    message: string
+}
+
+// The end of a case.
+CaseDone :: struct {
+    duration_us: i64
+}
+
+Event :: StageReport | CaseFailure | CaseDone
+
+// ---- writing ----------------------------------------------------------------
+
+// The request for `case`.
+request_record :: fn(case: Case) -> string {
+    entries :: Map<string, JsonValue> {}
+    entries["case"] = JsonString { .value = case.name }
+    entries["modules"] = json_strings(case.modules)
+    entries["stages"] = json_strings(case.phases)
+    return record(entries)
+}
+
+stage_record :: fn(case: string, report: StageReport) -> string {
+    entries :: event_entries("stage", case)
+    entries["stage"] = JsonString { .value = report.phase }
+    entries["result"] = JsonString { .value = verdict_name(report.result) }
+    entries["duration_us"] = JsonNumber { .value = f64(report.duration_us) }
+    actual :: report.actual
+    if actual != null {
+        entries["actual"] = JsonString { .value = actual }
+    }
+    return record(entries)
+}
+
+error_record :: fn(case: string, message: string) -> string {
+    entries :: event_entries("error", case)
+    entries["message"] = JsonString { .value = message }
+    return record(entries)
+}
+
+done_record :: fn(case: string, duration_us: i64) -> string {
+    entries :: event_entries("done", case)
+    entries["duration_us"] = JsonNumber { .value = f64(duration_us) }
+    return record(entries)
+}
+
+event_entries :: fn(event: string, case: string) -> Map<string, JsonValue> {
+    entries :: Map<string, JsonValue> {}
+    entries["event"] = JsonString { .value = event }
+    entries["case"] = JsonString { .value = case }
+    return entries
+}
+
+json_strings :: fn(values: string[]) -> JsonArray {
+    items: JsonValue[]: []
+    for value in values {
+        items.push(JsonString { .value = value })
+    }
+    return JsonArray { .items = items }
+}
+
+record :: fn(entries: Map<string, JsonValue>) -> string =
+    sequence_entry(JsonObject { .entries = entries })
+
+// ---- reading ----------------------------------------------------------------
+
+// The case a request line asks for, null for a line that is not one.
+read_request :: fn(line: string) -> Case | null {
+    message :: message_of(line) ?? return null
+    name :: string_member(message, "case") ?? return null
+    return Case {
+        .name = name,
+        .phases = strings_member(message, "stages"),
+        .modules = strings_member(message, "modules"),
+    }
+}
+
+// The event an event line holds, null for a line that is not one.
+read_event :: fn(line: string) -> Event | null {
+    message :: message_of(line) ?? return null
+    event :: string_member(message, "event") ?? return null
+    if event == "stage" {
+        return StageReport {
+            .phase = string_member(message, "stage") ?? return null,
+            .result = verdict_named(string_member(message, "result") ?? "") ?? return null,
+            .duration_us = micros_of(message),
+            .actual = string_member(message, "actual"),
+        }
+    }
+    if event == "error" {
+        return CaseFailure { .message = string_member(message, "message") ?? "" }
+    }
+    if event == "done" {
+        return CaseDone { .duration_us = micros_of(message) }
+    }
+    return null
+}
+
+// The JSON object of a message line, its record separator dropped.
+message_of :: fn(line: string) -> JsonValue | null {
+    parsed :: parse(line.trim_prefix("\u{1e}"))
+    if parsed is JsonObject {
+        return parsed
+    }
+    return null
+}
+
+micros_of :: fn(message: JsonValue) -> i64 = i64(number_member(message, "duration_us") ?? 0.0)

@@ -1,0 +1,157 @@
+// tools/testrunner/cases: the snippets and the stages checked on each.
+//
+// A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
+// `_config.json` may name the phases its snapshots cover (`phases`) and the
+// modules the module-scoped dumps show (`modules`). A `_config.json` that is not
+// a JSON object is a problem, never a reason to run every phase.
+
+module "tools/testrunner"
+
+import "json"
+import "std/collections"
+import "std/fs"
+import "std/io"
+import "std/sort"
+
+// One stage of a snippet: the phase the corpus names it by, the stage of
+// `vader dump` that renders it, and the snapshot file it is compared with.
+Stage :: struct {
+    phase: string
+    dump: string
+    snapshot: string
+}
+
+STAGES: Stage[]: [
+    Stage {
+        .phase = "lexer",
+        .dump = "lexer",
+        .snapshot = "lexer.snapshot",
+    },
+    Stage {
+        .phase = "parser",
+        .dump = "ast",
+        .snapshot = "parser.snapshot.json",
+    },
+    Stage {
+        .phase = "typecheck",
+        .dump = "typed-ast",
+        .snapshot = "typecheck.snapshot",
+    },
+    Stage {
+        .phase = "comptime",
+        .dump = "evaluated-ast",
+        .snapshot = "comptime.snapshot.md",
+    },
+    Stage {
+        .phase = "lower",
+        .dump = "lowered-ast",
+        .snapshot = "lower.snapshot",
+    },
+    Stage {
+        .phase = "bytecode",
+        .dump = "bytecode",
+        .snapshot = "bytecode.snapshot.virt",
+    },
+    Stage {
+        .phase = "emit_c",
+        .dump = "c",
+        .snapshot = "emit-c.snapshot.c",
+    },
+]
+
+SNIPPETS :: "tests/snippets"
+
+// The target the snapshots are taken for, whatever the host.
+SNAPSHOT_TARGET :: "linux-x86_64"
+
+// A snippet and the phases to check on it.
+Case :: struct {
+    name: string
+    phases: string[]
+    modules: string[]
+}
+
+case_dir :: fn(name: string) -> string = "${SNIPPETS}/${name}"
+
+// The stage the corpus names `phase`, null for a name it does not know.
+stage_named :: fn(phase: string) -> Stage | null {
+    for stage in STAGES {
+        if stage.phase == phase {
+            return stage
+        }
+    }
+    return null
+}
+
+// The snippets of a run, and the folders that could not be read as one.
+Discovery :: struct {
+    cases: Case[] = []
+    problems: string[] = []
+}
+
+// The snippets under `SNIPPETS`, in name order, with the phases of `phases`
+// their `_config.json` lets run.
+find_cases :: fn(phases: string[]) -> Discovery {
+    found :: Discovery {}
+    listed :: read_dir(SNIPPETS)
+    if listed is IOError {
+        found.problems.push("${SNIPPETS}: ${listed.msg}")
+        return found
+    }
+    for name in sort(listed, (a, b) -> a < b) {
+        dir :: case_dir(name)
+        if !exists("${dir}/_main.vader") {
+            continue
+        }
+        config :: read_config(dir)
+        if config is string {
+            found.problems.push("${name}: ${config}")
+            continue
+        }
+        kept :: phases_of(config, phases)
+        if kept.len() > 0 {
+            found.cases.push(
+                Case {
+                    .name = name,
+                    .phases = kept,
+                    .modules = strings_member(config, "modules"),
+                },
+            )
+        }
+    }
+    return found
+}
+
+// The phases of `phases` the snippet's `config` lets run, in the order of
+// `STAGES`: all of them when it names none.
+phases_of :: fn(config: JsonValue, phases: string[]) -> string[] {
+    every :: member(config, "phases") == null
+    listed :: strings_member(config, "phases")
+    kept: string[]: []
+    for stage in STAGES {
+        if phases.contains(stage.phase) && (every || listed.contains(stage.phase)) {
+            kept.push(stage.phase)
+        }
+    }
+    return kept
+}
+
+// The `_config.json` of the snippet in `dir`, an empty object when it has none,
+// or why it cannot be read as an object.
+read_config :: fn(dir: string) -> JsonValue | string {
+    text :: read_file_string("${dir}/_config.json")
+    if text is IOError {
+        if text.kind == .NotFound {
+            return JsonObject { .entries = Map<string, JsonValue> {} }
+        }
+        return "`_config.json`: ${text.msg}"
+    }
+    parsed :: parse(text)
+    if parsed is JsonObject {
+        return parsed
+    }
+    if parsed is JsonError {
+        return "`_config.json`: ${parsed.msg} at byte ${parsed.pos}"
+    }
+    return "`_config.json` is not an object"
+}
