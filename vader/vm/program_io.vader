@@ -90,11 +90,14 @@ serve_program_stream :: fn(
 serves_stdin :: fn(state: VmState, fd: i64) -> bool = state.io != null && fd == STDIN_DESCRIPTOR
 
 // The descriptor `GetStdHandle` answers for the standard stream `which` selects.
+// The selector is a `u32` the VM carries in an `i32`, so it reaches here
+// sign-extended: only its low 32 bits name the stream.
 std_descriptor :: fn(which: i64) -> i64 {
-    if which == i64(STD_INPUT_HANDLE) {
+    selector :: u32(which)
+    if selector == STD_INPUT_HANDLE {
         return STDIN_DESCRIPTOR
     }
-    if which == i64(STD_ERROR_HANDLE) {
+    if selector == STD_ERROR_HANDLE {
         return STDERR_DESCRIPTOR
     }
     return STDOUT_DESCRIPTOR
@@ -175,4 +178,10 @@ test_std_handles_are_the_descriptors :: fn() -> void {
     assert_eq(std_descriptor(i64(STD_INPUT_HANDLE)), STDIN_DESCRIPTOR)
     assert_eq(std_descriptor(i64(STD_OUTPUT_HANDLE)), STDOUT_DESCRIPTOR)
     assert_eq(std_descriptor(i64(STD_ERROR_HANDLE)), STDERR_DESCRIPTOR)
+}
+
+@test
+test_a_sign_extended_std_handle_is_its_descriptor :: fn() -> void {
+    assert_eq(std_descriptor(i64(i32(STD_INPUT_HANDLE))), STDIN_DESCRIPTOR)
+    assert_eq(std_descriptor(i64(i32(STD_ERROR_HANDLE))), STDERR_DESCRIPTOR)
 }
