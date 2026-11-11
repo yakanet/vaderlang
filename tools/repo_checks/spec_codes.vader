@@ -1,0 +1,161 @@
+// tools/repo_checks/spec_codes: SPEC.md names no diagnostic code, and each enum
+// of the registry holds the codes of its own family.
+//
+// SPEC.md describes the language for a reader: which code a rule fires is
+// recorded in `vader/support/diagnostics/codes.vader` and pinned by the
+// fixtures and snapshots.
+
+module "tools/repo_checks"
+
+import "std/iter"
+import "std/string"
+
+REGISTRY :: "vader/support/diagnostics/codes.vader"
+
+// What closes the header of an enum of the registry, `export LexerCode`
+// before it.
+ENUM_OPENING :: " :: enum(CodeInfo) {"
+
+// What the id of a code follows in its variant.
+ID_OPENING :: ".id = \""
+
+// An enum of the registry, and the letter its codes open with.
+Family :: struct {
+    enum_name: string
+    letter: string
+}
+
+FAMILIES: Family[]: [
+    Family { .enum_name = "LexerCode", .letter = "L" },
+    Family { .enum_name = "ParserCode", .letter = "P" },
+    Family { .enum_name = "ResolverCode", .letter = "R" },
+    Family { .enum_name = "TypecheckCode", .letter = "T" },
+    Family { .enum_name = "ComptimeCode", .letter = "C" },
+    Family { .enum_name = "LowerCode", .letter = "M" },
+    Family { .enum_name = "HookCode", .letter = "H" },
+    Family { .enum_name = "WarningCode", .letter = "W" },
+    Family { .enum_name = "InternalCode", .letter = "I" },
+]
+
+// A code of the registry, and the enum that declares it.
+RegisteredCode :: struct {
+    id: string
+    enum_name: string
+}
+
+// Every code the registry `text` declares.
+registry_codes :: fn(text: string) -> RegisteredCode[] {
+    out: RegisteredCode[]: []
+    current: string | null = null
+    for line in text.lines() {
+        header :: enum_header(line)
+        if header != null {
+            current = header
+            continue
+        }
+        if line == "}" {
+            current = null
+            continue
+        }
+        id :: code_id(line) ?? continue
+        if current != null {
+            out.push(RegisteredCode { .id = id, .enum_name = current })
+        }
+    }
+    return out
+}
+
+// The enum that `line` opens, `export LexerCode :: enum(CodeInfo) {`; null for
+// another line.
+enum_header :: fn(line: string) -> string | null {
+    if !line.starts_with("export ") || !line.ends_with(ENUM_OPENING) {
+        return null
+    }
+    name :: line.trim_prefix("export ").trim_suffix(ENUM_OPENING)
+    if name == "" || run_at(name, 0, is_word_byte) != name {
+        return null
+    }
+    return name
+}
+
+// The id of the code `line` declares, `.id = "T3001"`; null for another line.
+code_id :: fn(line: string) -> string | null {
+    halves :: line.split_first(ID_OPENING) ?? return null
+    rest :: halves.1
+    if rest.byte_len() < 6 || rest.byte_at(5) != '"' {
+        return null
+    }
+    first :: rest.byte_at(0)
+    if first < 'A' || first > 'Z' || !has_four_digits_at(rest, 1) {
+        return null
+    }
+    return rest.byte_slice(0, 5)
+}
+
+// Whether the four bytes of `text` from `at` on are digits.
+has_four_digits_at :: fn(text: string, at: i64) -> bool =
+    at + 4 <= text.byte_len() && (at..<at + 4).all_match((k) -> is_digit_byte(text.byte_at(k)))
+
+// The diagnostic codes `text` names: a letter of `letters` and four digits,
+// a word of its own.
+cited_codes :: fn(text: string, letters: string) -> string[] {
+    out: string[]: []
+    for i in 0..<text.byte_len() - 4 {
+        if letters.contains_char(char(text.byte_at(i))) && is_code_at(text, i) {
+            out.push(text.byte_slice(i, i + 5))
+        }
+    }
+    return out
+}
+
+// Whether four digits follow the letter at byte `at` of `text`, and no byte of
+// a word touches the five.
+is_code_at :: fn(text: string, at: i64) -> bool {
+    if at > 0 && is_word_byte(text.byte_at(at - 1)) {
+        return false
+    }
+    if !has_four_digits_at(text, at + 1) {
+        return false
+    }
+    return at + 5 == text.byte_len() || !is_word_byte(text.byte_at(at + 5))
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_every_registry_enum_holds_only_codes_of_its_own_family :: fn() -> void {
+    registry :: read_or_fail(REGISTRY) ?? return
+    codes :: registry_codes(registry)
+    assert(codes.len() > 0, "the registry declares codes")
+    families :: FAMILIES
+    misfiled: string[]: []
+    for code in codes {
+        family :: families.find((f) -> f.enum_name == code.enum_name)
+        if family == null || !code.id.starts_with(family.letter) {
+            misfiled.push("${code.id} in ${code.enum_name}")
+        }
+    }
+    assert_none(misfiled, "codes out of their family")
+}
+
+@test
+test_spec_names_no_diagnostic_code :: fn() -> void {
+    text :: read_or_fail(SPEC) ?? return
+    letters :: FAMILIES.map((f) -> f.letter).collect().join("")
+    assert_none(cited_codes(text, letters), "diagnostic codes in SPEC.md")
+}
+
+@test
+test_a_code_is_read_from_its_variant :: fn() -> void {
+    line :: "    Mismatch { .id = \"T3001\", .message = \"type mismatch\" },"
+    assert_eq(code_id(line) ?? "", "T3001")
+    assert_eq(enum_header("export LexerCode :: enum(CodeInfo) {") ?? "", "LexerCode")
+    assert(enum_header("export CodeInfo :: struct {") == null, "a struct opens no enum")
+}
+
+@test
+test_a_code_is_cited_as_a_word_of_its_own :: fn() -> void {
+    assert_eq(cited_codes("fires T3001, not XT3001 nor T30012", "T").join(","), "T3001")
+}

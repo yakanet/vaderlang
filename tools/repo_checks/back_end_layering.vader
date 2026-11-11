@@ -1,0 +1,106 @@
+// tools/repo_checks/back_end_layering: the back end, `core` and `support` import
+// nothing from the front end.
+//
+// The back end (`midir`, `emit`, the lowered IR) and the layers it stands on
+// (`core`, `support`) work from the lowered IR and the shared type and symbol
+// tables alone. Nothing in the compiler would notice an import that breaks this,
+// since the whole tree builds either way.
+//
+// Each checked tree may import only from the others and from the libraries, so a
+// leak through `vader/lower` or `vader/pipeline` fails here too, not only a
+// direct `vader/front` import.
+
+module "tools/repo_checks"
+
+import "std/iter"
+import "std/string"
+
+CHECKED_TREES: string[]: [
+    "vader/midir",
+    "vader/emit",
+    "vader/lower/ir",
+    "vader/core",
+    "vader/support",
+]
+
+// The libraries a checked tree may import, by the start of their path.
+LIBRARIES: string[]: ["std/", "toolchain/"]
+
+// What an import opens with, after its alias if it has one.
+IMPORT_OPENING :: "import \""
+
+LAYERING_SCOPE :: ScanScope {
+    .roots = CHECKED_TREES,
+    .files = [],
+    .skipped = [],
+    .extensions = [".vader"],
+}
+
+// The path the import that starts `line` names, `import "p"` or
+// `Alias :: import "p"`; null when no import starts it.
+imported_path :: fn(line: string) -> string | null {
+    if IMPORT_OPENING !in line {
+        return null
+    }
+    at :: import_start(line)
+    if !line.matches_at(at, IMPORT_OPENING) {
+        return null
+    }
+    start :: at + IMPORT_OPENING.byte_len()
+    close :: line.index_of('"', start) ?? return null
+    if close == start {
+        return null
+    }
+    return line.byte_slice(start, close)
+}
+
+// Where the import of `line` would open: after `Alias :: ` when an alias starts
+// the line.
+import_start :: fn(line: string) -> i64 {
+    alias :: run_at(line, 0, is_word_byte)
+    if alias != "" && line.matches_at(alias.byte_len(), " :: ") {
+        return alias.byte_len() + 4
+    }
+    return 0
+}
+
+// Push on `found` each import of `text`, the text of `file`, that a checked
+// tree may not make.
+check_imports :: fn(file: string, text: string, found: string[]) -> void {
+    for line in text.lines() {
+        path :: imported_path(line) ?? continue
+        if !is_allowed(path) {
+            found.push("${file}: ${path}")
+        }
+    }
+}
+
+// Whether a checked tree may import the module at `path`.
+is_allowed :: fn(path: string) -> bool =
+    LIBRARIES.any_match((l) -> path.starts_with(l))
+        || CHECKED_TREES.any_match((t) -> path == t || path.starts_with("${t}/"))
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_back_end_imports_nothing_from_the_front_end :: fn() -> void {
+    found :: findings_in(LAYERING_SCOPE, check_imports)
+    assert_none(found, "imports out of the back end's layers")
+}
+
+@test
+test_an_import_is_read_with_or_without_its_alias :: fn() -> void {
+    assert_eq(imported_path("import \"std/string\"") ?? "", "std/string")
+    assert_eq(imported_path("Lo :: import \"vader/lower\"") ?? "", "vader/lower")
+    assert(imported_path("// import \"vader/front\"") == null, "a comment imports nothing")
+}
+
+@test
+test_a_checked_tree_may_import_the_others_and_the_libraries :: fn() -> void {
+    assert(is_allowed("std/collections"), "a library")
+    assert(is_allowed("vader/core/bytecode"), "a module of a checked tree")
+    assert(!is_allowed("vader/front/typecheck"), "the front end")
+    assert(!is_allowed("vader/emitter"), "a tree that only starts like a checked one")
+}

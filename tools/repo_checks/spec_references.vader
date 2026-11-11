@@ -1,0 +1,283 @@
+// tools/repo_checks/spec_references: every section of SPEC.md a file cites
+// exists.
+//
+// A section is cited by its chapter and its title: `§4`, `§4 *Type inference*`,
+// `§4 *Representation*, *Range types*`, and inside SPEC, a section of the same
+// chapter as `(*Title*, below)` or `(*Title*, above)`. A title may stop at its
+// colon: `*Identity*` cites "Identity: `===` and `!==`". Renaming a heading must
+// update its citations: the compiler never reads them, and the site's build
+// checks only the ones it renders.
+//
+// History keeps the titles that were current when it was written, so
+// `docs/HISTORY.md` and the ADRs are not scanned.
+
+module "tools/repo_checks"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+
+REFERENCE_SCOPE :: ScanScope {
+    .roots = ["vader", "lib", "docs", "tests", "site/content"],
+    .files = ["SPEC.md", "TODO.md", "README.md"],
+    .skipped = ["docs/HISTORY.md", "docs/adr", "tests/snippets", "tests/diag_corpus"],
+    .extensions = [".vader", ".ts", ".md"],
+}
+
+// What opens a citation, its chapter right after.
+SECTION_SIGN :: "§"
+
+// What opens a citation of a section of the same chapter, inside SPEC.
+SAME_CHAPTER_OPENING :: "(*"
+
+// What may close one, from the `*` of its title on.
+SAME_CHAPTER_CLOSINGS: string[]: ["*, below)", "*, above)"]
+
+/// The headings of SPEC.md, as citations name them.
+SpecOutline :: struct {
+    /// The cited forms of the titles of each chapter, its own included, by
+    /// chapter number; `""` for a chapter with none.
+    titles: Map<string, Set<string>>
+    /// The chapter each line of SPEC.md belongs to, by line index.
+    chapter_of_line: string[]
+}
+
+/// A citation of a section of SPEC.md.
+Citation :: struct {
+    chapter: string
+    /// The titles cited after the chapter, as a reader sees them; none for `§4`.
+    titles: string[]
+    /// The citation as written.
+    text: string
+}
+
+// The outline of `spec`, the text of SPEC.md.
+spec_outline :: fn(spec: string) -> SpecOutline {
+    outline :: SpecOutline {
+        .titles = Map<string, Set<string>> {},
+        .chapter_of_line = [],
+    }
+    chapter := ""
+    fenced := false
+    for line in spec.lines() {
+        if line.left_trim().starts_with("```") {
+            fenced = !fenced
+        }
+        if !fenced {
+            chapter = outline.note_heading(chapter, line)
+        }
+        outline.chapter_of_line.push(chapter)
+    }
+    return outline
+}
+
+// Note in `outline` the heading `line` opens, if it opens one: the chapter of
+// `line`, which is `chapter`, that of the line before, unless `line` opens
+// another.
+note_heading :: fn(outline: SpecOutline, chapter: string, line: string) -> string {
+    opened :: chapter_heading(line)
+    if opened != null {
+        forms :: Set<string> {}
+        forms.add_all(cited_forms(opened.1))
+        outline.titles[opened.0] = forms
+        return opened.0
+    }
+    heading :: section_heading(line) ?? return chapter
+    titles :: outline.titles[chapter] ?? return chapter
+    titles.add_all(cited_forms(heading))
+    return chapter
+}
+
+// The number and the title of the chapter `line` opens, `## 4. Types`; the
+// number is `""` for a chapter that has none. Null for another line.
+chapter_heading :: fn(line: string) -> [string, string] | null {
+    if !line.starts_with("## ") {
+        return null
+    }
+    rest :: line.trim_prefix("## ")
+    number :: run_at(rest, 0, is_digit_byte)
+    after :: number.byte_len() + 2
+    if number != "" && rest.matches_at(number.byte_len(), ". ") && after < rest.byte_len() {
+        return [number, rest.byte_slice(after, rest.byte_len())]
+    }
+    if rest == "" {
+        return null
+    }
+    return ["", rest]
+}
+
+// The title of the section `line` opens, `### Title` to `###### Title`; null for
+// another line.
+section_heading :: fn(line: string) -> string | null {
+    marks :: run_at(line, 0, (b) -> b == '#')
+    level :: marks.byte_len()
+    if level < 3 || level > 6 || !line.matches_at(level, " ") || line.byte_len() == level + 1 {
+        return null
+    }
+    return line.byte_slice(level + 1, line.byte_len())
+}
+
+// The forms a heading is cited by: its plain title, and the part before its
+// colon.
+cited_forms :: fn(heading: string) -> string[] {
+    title :: plain(heading)
+    halves :: title.split_first(": ")
+    if halves == null {
+        return [title]
+    }
+    return [title, halves.0]
+}
+
+// A title as a reader sees it, the marks of its Markdown left out.
+plain :: fn(text: string) -> string = text.replace_all("`", "").replace_all("*", "").trim()
+
+// The citations of sections `line` holds, `§4 *Title*`.
+citations :: fn(line: string) -> Citation[] {
+    out: Citation[]: []
+    for piece in after_each(line, SECTION_SIGN) {
+        chapter :: run_at(piece, 0, is_digit_byte)
+        if chapter == "" {
+            continue
+        }
+        [titles, end] :: cited_titles(piece, chapter.byte_len())
+        out.push(
+            Citation {
+                .chapter = chapter,
+                .titles = titles,
+                .text = "${SECTION_SIGN}${piece.byte_slice(0, end)}",
+            },
+        )
+    }
+    return out
+}
+
+// The titles cited from byte `at` of `text` on, ` *A*` then `, *B*` and so on,
+// and the offset where the last one ends.
+cited_titles :: fn(text: string, at: i64) -> [string[], i64] {
+    titles: string[]: []
+    end := at
+    separator := " *"
+    for text.matches_at(end, separator) {
+        start :: end + separator.byte_len()
+        close :: title_end(text, start) ?? break
+        titles.push(plain(text.byte_slice(start, close)))
+        end = close + 1
+        separator = ", *"
+    }
+    return [titles, end]
+}
+
+// The offset of the `*` that closes the title opening at byte `at` of `text`;
+// null when none does. A title holds one byte at least, and a `*` inside code
+// (`` `a*b` ``) does not close it.
+title_end :: fn(text: string, at: i64) -> i64 | null {
+    i := at
+    for i < text.byte_len() {
+        b :: text.byte_at(i)
+        if b == '*' {
+            if i == at {
+                return null
+            }
+            return i
+        }
+        if b == '`' {
+            close :: text.index_of('`', i + 1) ?? return null
+            i = close + 1
+        } else {
+            i += 1
+        }
+    }
+    return null
+}
+
+// The citations of sections of the same chapter `line` holds,
+// `(*Title*, below)`, each its title and how it is written.
+same_chapter_citations :: fn(line: string) -> [string, string][] {
+    out: [string, string][]: []
+    for piece in after_each(line, SAME_CHAPTER_OPENING) {
+        close :: title_end(piece, 0) ?? continue
+        closing :: SAME_CHAPTER_CLOSINGS.find((c) -> piece.matches_at(close, c)) ?? continue
+        written :: "${SAME_CHAPTER_OPENING}${piece.byte_slice(0, close + closing.byte_len())}"
+        out.push([plain(piece.byte_slice(0, close)), written])
+    }
+    return out
+}
+
+// Whether the sections `citation` names exist in `outline`.
+cites_existing :: fn(outline: SpecOutline, citation: Citation) -> bool {
+    titles :: outline.titles[citation.chapter] ?? return false
+    return citation.titles.all_match((t) -> t in titles)
+}
+
+// Push on `found` each citation of `text`, the text of `file`, that names no
+// section of `outline`.
+check_citations :: fn(outline: SpecOutline, file: string, text: string, found: string[]) -> void {
+    is_spec :: file == SPEC
+    index := 0
+    for line in text.lines() {
+        for citation in citations(line) {
+            if !outline.cites_existing(citation) {
+                found.push("${file}:${index + 1}: ${citation.text}")
+            }
+        }
+        if is_spec {
+            for [title, written] in same_chapter_citations(line) {
+                chapter :: outline.titles[outline.chapter_of_line[index]]
+                if chapter == null || title !in chapter {
+                    found.push("${file}:${index + 1}: ${written}")
+                }
+            }
+        }
+        index += 1
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_every_section_a_file_cites_exists :: fn() -> void {
+    spec :: read_or_fail(SPEC) ?? return
+    outline :: spec_outline(spec)
+    check :: (file: string, text: string, found: string[]) -> check_citations(
+        outline,
+        file,
+        text,
+        found,
+    )
+    assert_none(findings_in(REFERENCE_SCOPE, check), "cited sections that SPEC.md does not have")
+}
+
+@test
+test_a_citation_names_its_chapter_then_its_titles :: fn() -> void {
+    found :: citations("see §4 *Type inference*, *Range types* and §12.")
+    assert_eq(found.len(), 2)
+    assert_eq(found[0].chapter, "4")
+    assert_eq(found[0].titles.join("|"), "Type inference|Range types")
+    assert_eq(found[0].text, "§4 *Type inference*, *Range types*")
+    assert_eq(found[1].titles.len(), 0)
+}
+
+@test
+test_a_star_inside_code_does_not_close_a_title :: fn() -> void {
+    found :: citations("§3 *`a*b` operands*")
+    assert_eq(found[0].titles.join("|"), "ab operands")
+}
+
+@test
+test_a_heading_is_cited_by_its_title_or_what_its_colon_opens :: fn() -> void {
+    assert_eq(cited_forms("Identity: `===` and `!==`").join("|"), "Identity: === and !==|Identity")
+    assert_eq(section_heading("### Casts") ?? "", "Casts")
+    assert(section_heading("####### Too deep") == null, "seven marks open no section")
+    opened :: chapter_heading("## 4. Types")
+    assert(opened != null && opened.0 == "4" && opened.1 == "Types", "a numbered chapter")
+}
+
+@test
+test_a_same_chapter_citation_is_read_inside_spec :: fn() -> void {
+    found :: same_chapter_citations("as (*Casts*, below) says, not (*Casts* alone)")
+    assert_eq(found.len(), 1)
+    assert_eq(found[0].0, "Casts")
+    assert_eq(found[0].1, "(*Casts*, below)")
+}

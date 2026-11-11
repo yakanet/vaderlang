@@ -1,0 +1,189 @@
+// tools/repo_checks/scan: what a check of the repository's text reads.
+//
+// The checks of this folder hold the text of the repository to rules nothing
+// else verifies: the compiler reads no comment, and the tree builds whatever a
+// document cites. They read the repository from the working directory, its
+// root, where `vader test` and the test runner start: every path here is
+// relative to that root.
+
+module "tools/repo_checks"
+
+import "std/char"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/string"
+
+SPEC :: "SPEC.md"
+
+// A folder of that name holds what a build wrote, which git ignores: all but the
+// library of the build contract, whose files git keeps nonetheless.
+BUILD_OUTPUT  :: "build"
+BUILD_LIBRARY :: "lib/toolchain/build"
+
+/// Where a scan of the repository's text looks.
+ScanScope :: struct {
+    /// The folders walked, those of them that exist.
+    roots: string[]
+    /// The files of the root read beside them, those of them that exist.
+    files: string[]
+    /// The files and folders left out, by their path from the root.
+    skipped: string[]
+    /// What the name of a file read ends with: `.vader`, `.md`.
+    extensions: string[]
+}
+
+// What `check` finds in each file `scope` reads, given its path and its text,
+// and every file or folder that cannot be read.
+findings_in :: fn(scope: ScanScope, check: fn(string, string, string[]) -> void) -> string[] {
+    found: string[]: []
+    files :: scanned_files(scope)
+    if files is IOError {
+        found.push(files.msg)
+        return found
+    }
+    for file in files {
+        text :: read_file_string(file)
+        if text is IOError {
+            found.push("${file}: ${text.msg}")
+            continue
+        }
+        check(file, text, found)
+    }
+    return found
+}
+
+// The files `scope` reads, or why a root cannot be walked. A snapshot is never
+// one: a run writes it, and it disappears with what it pins.
+scanned_files :: fn(scope: ScanScope) -> string[] | IOError {
+    out: string[]: []
+    for root in scope.roots {
+        if !exists(root) {
+            continue
+        }
+        options :: WalkOptions { .descend = (e) -> descends(e, scope) }
+        walker :: walk(root, options)
+        if walker is IOError {
+            return walker
+        }
+        for entry in walker {
+            if entry.kind == .File && is_scanned(entry, scope) {
+                out.push(entry.path)
+            }
+        }
+    }
+    for file in scope.files {
+        if exists(file) {
+            out.push(file)
+        }
+    }
+    return out
+}
+
+// Whether a scan of `scope` reads what `folder` holds.
+descends :: fn(folder: WalkEntry, scope: ScanScope) -> bool =
+    folder.path !in scope.skipped && (folder.name != BUILD_OUTPUT || folder.path == BUILD_LIBRARY)
+
+is_scanned :: fn(entry: WalkEntry, scope: ScanScope) -> bool =
+    ".snapshot" !in entry.name
+        && scope.extensions.any_match((e) -> entry.name.ends_with(e))
+        && entry.path !in scope.skipped
+
+// Whether `b` is a byte of a word: an ASCII letter or digit, or `_`.
+is_word_byte :: fn(b: u8) -> bool = b == '_' || is_alphanumeric(char(b))
+
+is_digit_byte :: fn(b: u8) -> bool = is_digit(char(b))
+
+// The bytes of `text` from `at` on that `keeps` takes, up to the first it does
+// not.
+run_at :: fn(text: string, at: i64, keeps: fn(u8) -> bool) -> string {
+    end := at
+    for end < text.byte_len() && keeps(text.byte_at(end)) {
+        end += 1
+    }
+    return text.byte_slice(at, end)
+}
+
+// What follows each `opening` in `text`, up to the next; none when `text` holds
+// none, the case of almost every line, which then costs no split.
+after_each :: fn(text: string, opening: string) -> string[] {
+    if opening !in text {
+        return []
+    }
+    pieces :: text.split(opening)
+    return pieces[1..<pieces.len()]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Fail the running test with `found`, the lines that break the rule `rule`,
+// unless there are none.
+assert_none :: fn(found: string[], rule: string) -> void {
+    if found.len() > 0 {
+        fail("${rule}:\n${found.join("\n")}")
+    }
+}
+
+// The text of `path`; null after failing the running test when it cannot be
+// read.
+read_or_fail :: fn(path: string) -> string | null {
+    text :: read_file_string(path)
+    if text is IOError {
+        fail("${path}: ${text.msg}")
+        return null
+    }
+    return text
+}
+
+// An entry of the walk, of kind `kind`, named `name`, at `path`.
+walk_entry :: fn(path: string, name: string, kind: EntryKind) -> WalkEntry = WalkEntry {
+    .path = path,
+    .relative = path,
+    .name = name,
+    .kind = kind,
+    .depth = 1,
+}
+
+@test
+test_a_word_stops_at_its_first_other_byte :: fn() -> void {
+    assert_eq(run_at("tests/snippets/hello_2/x", 15, is_word_byte), "hello_2")
+    assert_eq(run_at("a.b", 1, is_word_byte), "")
+    assert_eq(run_at("12. Title", 0, is_digit_byte), "12")
+}
+
+@test
+test_what_follows_each_opening_is_read :: fn() -> void {
+    assert_eq(after_each("a=1, b=2", "=").join("|"), "1, b|2")
+    assert_eq(after_each("none", "=").len(), 0)
+}
+
+@test
+test_a_snapshot_is_never_scanned :: fn() -> void {
+    scope :: ScanScope {
+        .roots = [],
+        .files = [],
+        .skipped = [],
+        .extensions = [".c"],
+    }
+    helper :: walk_entry("tests/helper.c", "helper.c", .File)
+    assert(is_scanned(helper, scope), "a scanned extension")
+    snapshot :: walk_entry("tests/emit-c.snapshot.c", "emit-c.snapshot.c", .File)
+    assert(!is_scanned(snapshot, scope), "a snapshot")
+}
+
+@test
+test_a_build_output_is_never_scanned :: fn() -> void {
+    scope :: ScanScope {
+        .roots = [],
+        .files = [],
+        .skipped = ["docs/adr"],
+        .extensions = [],
+    }
+    output :: walk_entry("examples/raycaster/build", "build", .Directory)
+    assert(!descends(output, scope), "a build wrote it")
+    library :: walk_entry(BUILD_LIBRARY, "build", .Directory)
+    assert(descends(library, scope), "git keeps the library of the build contract")
+    assert(!descends(walk_entry("docs/adr", "adr", .Directory), scope), "a skipped folder")
+}

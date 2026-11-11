@@ -1,0 +1,63 @@
+// tools/repo_checks/snippet_references: every snippet a file cites exists.
+//
+// A comment or a document that names `tests/snippets/<name>` sends its reader to
+// a snippet. Merging or renaming that snippet leaves the pointer dangling, and
+// nothing else notices: the compiler does not read comments and the runner only
+// looks at folders.
+//
+// History keeps the names that were current when it was written, so
+// `docs/HISTORY.md` and the ADRs are not scanned, nor the generated C of the
+// bootstrap seed, which cites no snippet.
+
+module "tools/repo_checks"
+
+import "std/fs"
+import "std/string"
+
+// What a citation of a snippet opens with, its name right after.
+SNIPPET_PATH :: "tests/snippets/"
+
+SNIPPET_SCOPE :: ScanScope {
+    .roots = ["vader", "lib", "runtime", "examples", "bootstrap", "docs", "tests"],
+    .files = ["TODO.md", "SPEC.md", "README.md"],
+    .skipped = ["docs/HISTORY.md", "docs/adr", "bootstrap/seed"],
+    .extensions = [".vader", ".ts", ".md", ".c", ".h", ".sh"],
+}
+
+// The snippets `text` cites, by name: `hello` for `tests/snippets/hello`.
+cited_snippets :: fn(text: string) -> string[] {
+    out: string[]: []
+    for piece in after_each(text, SNIPPET_PATH) {
+        name :: run_at(piece, 0, is_word_byte)
+        if name != "" {
+            out.push(name)
+        }
+    }
+    return out
+}
+
+// Push on `found` each snippet that `text`, the text of `file`, cites and that
+// does not exist.
+check_snippet_citations :: fn(file: string, text: string, found: string[]) -> void {
+    for name in cited_snippets(text) {
+        if !exists("${SNIPPET_PATH}${name}") {
+            found.push("${file}: ${SNIPPET_PATH}${name}")
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_every_snippet_a_file_cites_exists :: fn() -> void {
+    found :: findings_in(SNIPPET_SCOPE, check_snippet_citations)
+    assert_none(found, "cited snippets that do not exist")
+}
+
+@test
+test_a_snippet_is_cited_by_its_path :: fn() -> void {
+    text :: "see tests/snippets/hello/_main.vader and tests/snippets/<name>"
+    assert_eq(cited_snippets(text).join(","), "hello")
+}
