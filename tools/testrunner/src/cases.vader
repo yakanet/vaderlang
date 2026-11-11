@@ -2,9 +2,9 @@
 //
 // A snippet is a folder of `tests/snippets` holding a `_main.vader`. Its
 // `_config.json` may name the phases its snapshots cover (`phases`), the modules
-// the module-scoped dumps show (`modules`) and how its run on the VM is checked
-// (`vm`). A `_config.json` that is not a JSON object is a problem, never a reason
-// to run every phase.
+// the module-scoped dumps show (`modules`), how its run on the VM is checked
+// (`vm`) and where its native run is not (`native`). A `_config.json` that is not
+// a JSON object is a problem, never a reason to run every phase.
 
 module "tools/testrunner/src"
 
@@ -12,6 +12,7 @@ import "json"
 import "std/collections"
 import "std/fs"
 import "std/io"
+import "std/iter"
 import "std/sort"
 import "std/string"
 import "vader/support/target"
@@ -20,7 +21,7 @@ import "vader/support/target"
 // `vader dump` that renders it, and the snapshot file it is compared with.
 Stage :: struct {
     phase: string
-    /// Null for the run on the VM, which no dump renders.
+    /// Null for the runs of the program, which no dump renders.
     dump: string | null
     snapshot: string
 }
@@ -62,6 +63,7 @@ STAGES: Stage[]: [
         .snapshot = "emit-c.snapshot.c",
     },
     VM_STAGE,
+    NATIVE_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -69,6 +71,14 @@ VM_PHASE    :: "vm"
 VM_SNAPSHOT :: "vm.snapshot"
 VM_STAGE: Stage: Stage {
     .phase = VM_PHASE,
+    .dump = null,
+    .snapshot = VM_SNAPSHOT,
+}
+
+// The run of a snippet built natively, compared with its run on the VM.
+NATIVE_PHASE :: "native"
+NATIVE_STAGE: Stage: Stage {
+    .phase = NATIVE_PHASE,
     .dump = null,
     .snapshot = VM_SNAPSHOT,
 }
@@ -133,6 +143,9 @@ find_cases :: fn(phases: string[]) -> Discovery {
         if phases.contains(VM_PHASE) && runs_on_vm(dir, config) {
             kept.push(VM_PHASE)
         }
+        if phases.contains(NATIVE_PHASE) && runs_natively(dir, config) {
+            kept.push(NATIVE_PHASE)
+        }
         if kept.len() > 0 {
             found.cases.push(
                 Case {
@@ -174,7 +187,18 @@ runs_on_vm :: fn(dir: string, config: JsonValue) -> bool {
     if vm != null && excludes_this_host(vm) {
         return false
     }
-    return !has_helper_c(dir)
+    return helper_c_files(dir).len() == 0
+}
+
+// Whether the snippet in `dir` is built and run natively, as
+// `tests/parity-cemit.test.ts` decides: it has a run to compare with, and its
+// `_config.json` does not exclude the native run on this host.
+runs_natively :: fn(dir: string, config: JsonValue) -> bool {
+    if !exists("${dir}/${VM_SNAPSHOT}") {
+        return false
+    }
+    native :: member(config, "native")
+    return native == null || !excludes_this_host(native)
 }
 
 // Whether the `vm` entry of a `_config.json` excludes the run here: everywhere
@@ -195,17 +219,15 @@ host_platform :: fn() -> string = match host_target().os {
     .Wasi | .Browser -> ""
 }
 
-has_helper_c :: fn(dir: string) -> bool {
+// The C files beside the snippet in `dir` that define the foreign symbols of its
+// `@extern` declarations, `helper*.c`, in name order.
+helper_c_files :: fn(dir: string) -> string[] {
     listed :: read_dir(dir)
     if listed is IOError {
-        return false
+        return []
     }
-    for name in listed {
-        if name.starts_with("helper") && name.ends_with(".c") {
-            return true
-        }
-    }
-    return false
+    helpers :: listed.filter((name) -> name.starts_with("helper") && name.ends_with(".c"))
+    return sort(helpers.map((name) -> "${dir}/${name}").collect(), (a, b) -> a < b)
 }
 
 // Whether the snippet in `dir` runs on the VM from the image a build links: its

@@ -1,8 +1,11 @@
-// tools/testrunner/src/main: check the stage dumps of the snippets against their snapshots.
+// tools/testrunner/src/main: check the snippets against their snapshots: the
+// stage dumps, the run on the VM and the native run.
 //
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
-// the number of cores by default. It hands them the snippets of
+// the number of cores by default. Each worker runs its cases under a folder of
+// its own, `SCRATCH/<i>`, which keeps the files of a case that fails until the
+// next run. It hands them the snippets of
 // `tests/snippets` one case at a time (`pool.vader`), over JSON lines
 // (`protocol.vader`), and prints what they report as it comes, then the tally
 // (`report.vader`).
@@ -50,7 +53,15 @@ FLAGS: FlagSpec[]: [
         .help = "Check these phases only",
         .value_name = "a,b",
     },
+    FlagSpec {
+        .name = "scratch",
+        .help = "Run the cases under the folder DIR (a worker)",
+        .value_name = "DIR",
+    },
 ]
+
+// The folder the workers run the cases under, emptied at the start of a run.
+SCRATCH :: "build/testrunner"
 
 // The folders the binary is built from.
 SOURCES: string[]: ["vader", "lib", "tools/testrunner"]
@@ -69,7 +80,8 @@ main :: fn(argv: string[]) -> i32 {
     }
     update :: parsed.bool_flag("update")
     if parsed.bool_flag("worker") {
-        return run_worker(update)
+        scratch :: parsed.string_flag("scratch", "${current_working_directory()}/${SCRATCH}/worker")
+        return run_worker(update, scratch)
     }
     newer :: newer_source()
     if newer != null {
@@ -105,6 +117,8 @@ run_all :: fn(
     // The workers inherit this environment, and a `VADER_HOME` moves the modules
     // of the toolchain in the dumps: the snapshots are taken without one.
     unset_env("VADER_HOME")
+    remove_tree(SCRATCH)
+    scratch :: "${current_working_directory()}/${SCRATCH}"
     // Indices rather than the cases: a task that reads an array of a `Case` it
     // received is taken for one that writes it.
     // Counted before the tasks start: the task analysis does not see `join_all`
@@ -123,8 +137,8 @@ run_all :: fn(
     reporter :: launch(() -> report(events, count, began))
     ticker :: launch(() -> tick(events))
     tasks: Task<void>[]: []
-    for _ in 0..<k {
-        slot :: Slot { .command = command, .update = update }
+    for i in 0..<k {
+        slot :: Slot { .command = command + ["--scratch=${scratch}/${i}"], .update = update }
         tasks.push(launch(() -> serve(slot, cases, queue, events)))
     }
     join_all(tasks)

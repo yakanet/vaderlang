@@ -176,7 +176,7 @@ add :: fn(reports: Reports, event: Event | null, line: string) -> void {
     }
 }
 
-// The exit code of a worker that ended, -1 for a signal.
+// The exit code of a child that ended, -1 for a signal.
 exit_of :: fn(child: ChildProcess) -> i32 {
     for {
         ended :: child.poll()

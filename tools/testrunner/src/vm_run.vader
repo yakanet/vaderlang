@@ -61,7 +61,16 @@ program_bytecode :: fn(case: Case) -> string | CaseFailure {
 // The image `vader build --emit=bytecode-text` links for `file`, or why it does
 // not build.
 linked_image :: fn(file: Path) -> string | CaseFailure {
-    prepared :: prepare_program(file, BuildRequest { .emit = "bytecode-text" })
+    prepared :: program_of(file, BuildRequest { .emit = "bytecode-text" })
+    if prepared is CaseFailure {
+        return prepared
+    }
+    return dump_bytecode(prepared.module, prepared.entry)
+}
+
+// The program of `file`, prepared as `request` asks, or why it does not build.
+program_of :: fn(file: Path, request: BuildRequest) -> CfgBytecode | CaseFailure {
+    prepared :: prepare_program(file, request)
     diagnostics :: prepared.pre_diags + prepared.lower_diags
     if any_error_diag(diagnostics) {
         return CaseFailure {
@@ -72,7 +81,7 @@ linked_image :: fn(file: Path) -> string | CaseFailure {
     if problem != null {
         return CaseFailure { .message = problem }
     }
-    return dump_bytecode(prepared.module, prepared.entry)
+    return prepared
 }
 
 // Run the `.virt` program `text` of the case named `case`, each write sent to the

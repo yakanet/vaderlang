@@ -4,26 +4,50 @@
 // Each stage of a case is rendered by `vader/tools/dump` as `vader dump
 // --target=linux-x86_64` renders it, the bytecode annotated, then turned into
 // the text the snapshot holds and compared with it; under `--update`, a snapshot
-// that differs is written. The stages of a case share one front end, and its run
-// on the VM is the `vm` stage (`vm_run.vader`). Nothing but the protocol goes to
-// stdout.
+// that differs is written. The stages of a case share one front end, its run on
+// the VM is the `vm` stage (`vm_run.vader`), and its native build and run the
+// `native` stage (`native_run.vader`). Each case has a folder of its own under
+// the worker's, kept when the case fails (`enter_case`). Nothing but the protocol
+// goes to stdout.
 
 module "tools/testrunner/src"
 
 import "json"
 import "std/console"
 import "std/diff"
+import "std/env"
 import "std/fs"
 import "std/io"
 import "std/path"
 import "std/string"
 import "std/time"
+import "vader/pipeline"
 import "vader/tools/dump"
+
+// Where a program looks for its temporary folder: `TMPDIR` on POSIX, `TMP` then
+// `TEMP` on Windows.
+TEMP_VARIABLES: string[]: ["TMPDIR", "TMP", "TEMP"]
+
+// What the cases a worker runs share.
+WorkerContext :: struct {
+    /// Write each snapshot that differs or is missing.
+    update: bool
+    /// The folder each case gets its own folder under (`enter_case`).
+    scratch: string
+    /// The C compiler of the native builds.
+    cc: string
+}
 
 // Run the cases read on stdin until it ends.
 //
-// @param update  write each snapshot that differs or is missing.
-run_worker :: fn(update: bool) -> i32 {
+// @param update   write each snapshot that differs or is missing.
+// @param scratch  the folder each case gets its own folder under, absolute.
+run_worker :: fn(update: bool, scratch: string) -> i32 {
+    ctx :: WorkerContext {
+        .update = update,
+        .scratch = scratch,
+        .cc = cc_or_default(""),
+    }
     for {
         line :: read_line()
         if line is IOError {
@@ -39,37 +63,83 @@ run_worker :: fn(update: bool) -> i32 {
             print(done_record("", 0))
             continue
         }
-        run_request(case, update)
+        run_request(ctx, case)
     }
 }
 
-run_request :: fn(case: Case, update: bool) -> void {
+run_request :: fn(ctx: WorkerContext, case: Case) -> void {
     began :: monotonic()
+    dir :: enter_case(ctx, case)
+    if dir is CaseFailure {
+        print(error_record(case.name, dir.message))
+        print(done_record(case.name, began.since().to_micros()))
+        return
+    }
     input :: DumpInput {
         .file = Path("${case_dir(case.name)}/_main.vader"),
         .modules = case.modules,
         .target = SNAPSHOT_TARGET,
         .annotate = true,
     }
+    failed := false
     for phase in case.phases {
-        stage :: stage_named(phase)
-        if stage == null {
-            print(error_record(case.name, "no stage `${phase}`"))
-            continue
-        }
-        dump :: stage.dump
-        if dump != null {
-            print(stage_record(case.name, check_stage(case, stage, dump, input, update)))
-            continue
-        }
-        ran :: check_run(case, update)
-        if ran is CaseFailure {
-            print(error_record(case.name, ran.message))
+        checked :: check_phase(ctx, case, phase, input, dir)
+        if checked is CaseFailure {
+            print(error_record(case.name, checked.message))
+            failed = true
         } else {
-            print(stage_record(case.name, ran))
+            print(stage_record(case.name, checked))
+            failed = failed || is_failure(checked.result)
         }
     }
+    if !failed {
+        remove_tree(dir)
+    }
     print(done_record(case.name, began.since().to_micros()))
+}
+
+// Check the stage of `case` named `phase`, in the case's folder `dir`.
+check_phase :: fn(
+    ctx: WorkerContext,
+    case: Case,
+    phase: string,
+    input: DumpInput,
+    dir: string,
+) -> StageReport | CaseFailure {
+    stage :: stage_named(phase) ?? return CaseFailure { .message = "no stage `${phase}`" }
+    dump :: stage.dump
+    if dump != null {
+        return check_stage(case, stage, dump, input, ctx.update)
+    }
+    if phase == NATIVE_PHASE {
+        return check_native(ctx, case, dir)
+    }
+    return check_run(case, ctx.update)
+}
+
+// The folder of `case` under the worker's, made anew, with the temporary folder
+// its programs are given: on the VM, they read this process's environment, and
+// built natively, the child inherits it.
+enter_case :: fn(ctx: WorkerContext, case: Case) -> string | CaseFailure {
+    dir :: "${ctx.scratch}/${case.name}"
+    temp :: "${dir}/tmp"
+    remove_tree(dir)
+    made :: create_dir(temp)
+    if made is IOError {
+        return CaseFailure { .message = "`${temp}`: ${made.msg}" }
+    }
+    for name in TEMP_VARIABLES {
+        exported :: set_env(name, temp)
+        if exported is IOError {
+            return CaseFailure { .message = "`${name}`: ${exported.msg}" }
+        }
+    }
+    return dir
+}
+
+// Remove the folder at `path` and what it holds, when it exists.
+remove_tree :: fn(path: string) -> void {
+    remove(path, RemoveOptions { .recursive = true, .force = true })
 }
 
 // Render `stage` of `case`, the stage `dump` of `vader dump`, and compare it with

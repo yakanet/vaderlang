@@ -1,0 +1,118 @@
+// tools/testrunner/src/native_run: the `native` stage of a case, its program
+// built by `cc` and run as a process of its own.
+//
+// The stage `tests/parity-cemit.test.ts` checks: the program is built for this
+// host by the link of `vader build --no-split`, the proofs of the range analysis
+// verified, with the `helper*.c` of the snippet compiled in. It then runs under a
+// deadline, its stdin ended, and its run is compared with the `vm.snapshot` of the
+// `vm` stage, which this stage never writes. `cc` and the program run in the
+// worker's place in the pool: the worker waits for them.
+
+module "tools/testrunner/src"
+
+import "std/path"
+import "std/process"
+import "std/string"
+import "std/task"
+import "std/time"
+import "vader/pipeline"
+import "vader/support/target"
+
+// The longest a program built natively may run before it is killed.
+PROGRAM_TIMEOUT_SECONDS: i64: 60
+
+// Build the program of `case` in its folder `dir` and compare the text of its run
+// with its `vm.snapshot`; or say why it does not build or run.
+check_native :: fn(ctx: WorkerContext, case: Case, dir: string) -> StageReport | CaseFailure {
+    began :: monotonic()
+    file :: Path("${case_dir(case.name)}/_main.vader")
+    prepared :: program_of(file, BuildRequest { .verify_bounds = true })
+    if prepared is CaseFailure {
+        return prepared
+    }
+    binary :: build_binary(ctx, case, prepared, file, dir)
+    if binary is CaseFailure {
+        return binary
+    }
+    actual :: run_binary(binary)
+    if actual is CaseFailure {
+        return actual
+    }
+    report :: report_of(case, NATIVE_STAGE, actual, false, began)
+    detail :: report.detail ?? return report
+    return StageReport { ...report, .detail = "${detail}(the binary is kept: ${binary})\n" }
+}
+
+// The binary of `prepared`, the program of `case` read from `file`, linked in
+// `dir` as `vader build --no-split` links one; or why it was not.
+build_binary :: fn(
+    ctx: WorkerContext,
+    case: Case,
+    prepared: CfgBytecode,
+    file: Path,
+    dir: string,
+) -> string | CaseFailure {
+    // A debug build, against the runtime `vader build` finds, the `helper*.c`
+    // passed as `--ldflags` passes them.
+    helpers :: helper_c_files(case_dir(case.name)).join(" ")
+    linked :: link_native(
+        c_units_of(prepared),
+        Path("${dir}/_main"),
+        ctx.cc,
+        false,
+        helpers,
+        "",
+        quote_include_dir(file),
+        native_flags(prepared.module),
+        host_target().os,
+    )
+    if linked is NativeLink {
+        return linked.binary
+    }
+    if linked.reasons.len() == 0 {
+        return CaseFailure { .message = "the C could not be written in `${dir}`" }
+    }
+    return CaseFailure { .message = linked.reasons.join("\n") }
+}
+
+// What a program wrote on stdout and on stderr, as it came: bytes, since a chunk
+// may end inside a character.
+ProgramBytes :: struct {
+    out: u8[] = []
+    err: u8[] = []
+}
+
+// Run `binary`, its stdin ended, for at most `PROGRAM_TIMEOUT_SECONDS`: the text
+// its run records, or why it has none.
+run_binary :: fn(binary: string) -> string | CaseFailure {
+    // Not `spawn`: its child would share the worker's stdin, which carries the
+    // runner's requests.
+    child :: spawn_interactive([binary])
+    if child is ProcessError {
+        return CaseFailure { .message = child.msg }
+    }
+    child.close_input()
+    written :: ProgramBytes {}
+    // Bound before the test: the task analysis sees `timeout` join its task
+    // only then.
+    drained :: launch(() -> drain(child, written)).timeout(PROGRAM_TIMEOUT_SECONDS.seconds())
+    if drained is TimeoutError {
+        child.kill()
+        return CaseFailure {
+            .message = "`${binary}` ran for more than ${PROGRAM_TIMEOUT_SECONDS} s",
+        }
+    }
+    return run_text(written.out.bytes_to_string(), written.err.bytes_to_string(), exit_of(child))
+}
+
+// Take what `child` writes into `written`, until it ends.
+drain :: fn(child: ChildProcess, written: ProgramBytes) -> void {
+    for {
+        chunk :: child.read_output()
+        written.out.push_all(chunk.out)
+        written.err.push_all(chunk.err)
+        if chunk.ended {
+            return
+        }
+    }
+}

@@ -40,6 +40,9 @@ import "std/string"
 // How the text of a stage compares with its snapshot.
 Verdict :: enum { Same, Differ, Missing, Written }
 
+// Whether a stage of this verdict fails the run.
+is_failure :: fn(verdict: Verdict) -> bool = verdict == .Differ || verdict == .Missing
+
 verdict_name :: fn(verdict: Verdict) -> string = match verdict {
     .Same    -> "same"
     .Differ  -> "differ"
