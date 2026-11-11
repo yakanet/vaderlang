@@ -631,6 +631,26 @@ int32_t vader_overlapped_pipe(void* read_end, void* write_end) {
     return 1;
 }
 
+/* A pipe a child reads from: the read end is inheritable, the write end stays
+ * with this process. A write end the child inherited, or any child launched
+ * meanwhile, would keep the child from ever reading the end of its input. 0
+ * when it cannot be made. */
+VADER_HOST_EXPORT
+int32_t vader_input_pipe(void* read_end, void* write_end) {
+    SECURITY_ATTRIBUTES inherited = { sizeof inherited, NULL, TRUE };
+    HANDLE r;
+    HANDLE w;
+    if (!CreatePipe(&r, &w, &inherited, 0)) return 0;
+    if (!SetHandleInformation(w, HANDLE_FLAG_INHERIT, 0)) {
+        CloseHandle(r);
+        CloseHandle(w);
+        return 0;
+    }
+    ((HANDLE*) read_end)[0] = r;
+    ((HANDLE*) write_end)[0] = w;
+    return 1;
+}
+
 /* ---- library loader ------------------------------------------------------ */
 
 void* vader_ffi_open_path(const char* path) {

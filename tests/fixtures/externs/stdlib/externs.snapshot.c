@@ -151,6 +151,7 @@ int64_t vader_console_read(void* buf, int64_t max);  // system_windows$console_r
 const char* vader_environ_entry(int64_t index);  // system_windows$environment_entry
 void vader_find_data_attributes(const void* data, void* out);  // system_windows$find_data_attributes
 const char* vader_find_data_name(const void* data);  // system_windows$find_data_name
+bool vader_input_pipe(void* read_end, void* write_end);  // system_windows$create_input_pipe
 bool vader_overlapped_pipe(void* read_end, void* write_end);  // system_windows$create_watched_pipe
 void* vader_ptr_at(const void* base, int64_t i);  // system_windows$ptr_at
 bool vader_stdin_await_reader(int32_t timeout_ms);  // system_windows$await_stdin_reader

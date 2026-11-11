@@ -215,6 +215,8 @@ export ERROR_BROKEN_PIPE: u32: 109
 export ERROR_DISK_FULL: u32: 112
 export ERROR_DIR_NOT_EMPTY: u32: 145
 export ERROR_ALREADY_EXISTS: u32: 183
+/// A write to a pipe whose reader closed it.
+export ERROR_NO_DATA: u32: 232
 /// A directory was asked of a path that names a file.
 export ERROR_DIRECTORY: u32: 267
 
@@ -521,6 +523,14 @@ export await_stdin_reader :: fn(timeout_ms: i32) -> bool
 /// @param write_end  a one-word buffer receiving the write end.
 @extern(VADER_RUNTIME, "vader_overlapped_pipe")
 export create_watched_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[]) -> bool
+
+/// A pipe a child reads from: its read end is inheritable, its write end stays
+/// with this process and reaches no child.
+///
+/// @param read_end   a one-word buffer receiving the read end.
+/// @param write_end  a one-word buffer receiving the write end.
+@extern(VADER_RUNTIME, "vader_input_pipe")
+export create_input_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[]) -> bool
 
 /// `COORD`: a console cell position or size.
 ///

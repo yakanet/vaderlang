@@ -178,8 +178,6 @@ export spawn_start :: fn(argv: string[]) -> ChildProcess | ProcessError = launch
 /// stdin too: `write_input` feeds it, `close_input` ends it, `read_output` takes
 /// what the child writes as it comes.
 ///
-/// POSIX only for now: on Windows the launch fails.
-///
 /// @param argv  the command line; `argv[0]` is the program, looked up on `PATH`
 ///              when it names no folder.
 /// @return      the child, which `poll` follows and `kill` stops.
@@ -471,25 +469,34 @@ kill :: fn(child: ChildProcess) -> void {
 }
 
 // Close what this process holds of the pipes of `child`, which has ended.
+close_pipes :: fn(child: ChildProcess) -> void {
+    close_descriptor(child.out_pipe)
+    close_descriptor(child.err_pipe)
+    close_input(child)
+}
+
+// Close `pipe`, an end of a child's pipe this process holds.
 @target
-close_pipes :: fn(child: ChildProcess) -> void
+close_descriptor :: fn(pipe: Descriptor) -> void
 
 @target(.Linux, .Darwin)
-close_pipes :: fn(child: ChildProcess) -> void {
-    sys_close(fd_of(child.out_pipe))
-    sys_close(fd_of(child.err_pipe))
-    close_input(child)
+close_descriptor :: fn(pipe: Descriptor) -> void {
+    sys_close(fd_of(pipe))
+}
+
+@target(.Windows)
+close_descriptor :: fn(pipe: Descriptor) -> void {
+    close_handle(pipe_handle_of(pipe))
 }
 
 @target(.Windows)
 start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
-    if piped_input {
-        return null
-    }
     out_r: u64[]: [0]
     out_w: u64[]: [0]
     err_r: u64[]: [0]
     err_w: u64[]: [0]
+    in_r: u64[]: [0]
+    in_w: u64[]: [0]
     if !create_watched_pipe(out_r, out_w) {
         return null
     }
@@ -498,33 +505,50 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
         close_handle(ptr_at(out_w, 0))
         return null
     }
+    if piped_input && !create_input_pipe(in_r, in_w) {
+        for words in [out_r, out_w, err_r, err_w] {
+            close_handle(ptr_at(words, 0))
+        }
+        return null
+    }
     out_read  :: ptr_at(out_r, 0)
     out_write :: ptr_at(out_w, 0)
     err_read  :: ptr_at(err_r, 0)
     err_write :: ptr_at(err_w, 0)
-    si :: startup_with(get_std_handle(STD_INPUT_HANDLE), out_write, err_write)
+    input :: if piped_input { ptr_at(in_r, 0) } else { get_std_handle(STD_INPUT_HANDLE) }
+    si :: startup_with(input, out_write, err_write)
     pi :: ProcessInformation { .hProcess = out_write, .hThread = out_write,
                                .dwProcessId = 0, .dwThreadId = 0 }
     // `CreateProcessA` MODIFIES the command line in place, so it is lent as a
     // mutable NUL-terminated byte buffer rather than passed as a `string`.
     line :: command_line_bytes(argv)
     ok :: create_process(null, line, null, null, true, 0, null, null, si, pi)
-    // The parent drops the write ends whatever happened: while it holds one, the
-    // read end never reports EOF and the drain never finishes.
+    // The parent drops the child's ends whatever happened: while it holds a
+    // write end, the read end never reports EOF and the drain never finishes.
     close_handle(out_write)
     close_handle(err_write)
+    if piped_input {
+        close_handle(input)
+    }
     if !ok {
         close_handle(out_read)
         close_handle(err_read)
+        if piped_input {
+            close_handle(ptr_at(in_w, 0))
+        }
         return null
     }
     close_handle(pi.hThread)
-    return ChildProcess {
+    child :: ChildProcess {
         .program  = argv[0],
         .process  = ProcessHandle(pi.hProcess),
         .out_pipe = PipeHandle(out_read),
         .err_pipe = PipeHandle(err_read),
     }
+    if piped_input {
+        child.in_pipe = PipeHandle(ptr_at(in_w, 0))
+    }
+    return child
 }
 
 /// The `STARTUPINFOA` that hands a child these three standard handles.
@@ -707,12 +731,6 @@ poll_exit :: fn(child: ChildProcess) -> i32 {
 }
 
 @target(.Windows)
-close_pipes :: fn(child: ChildProcess) -> void {
-    close_handle(pipe_handle_of(child.out_pipe))
-    close_handle(pipe_handle_of(child.err_pipe))
-}
-
-@target(.Windows)
 kill :: fn(child: ChildProcess) -> void {
     if child.done {
         return
@@ -811,20 +829,16 @@ await_child :: fn(child: ChildProcess) -> void {
 /// @error        `ProcessError` when the child has no stdin pipe (another
 ///               launch, or `close_input`), reads no more input (it closed its
 ///               stdin, or ended), or the write fails.
-@target
-export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError
-
-@target(.Linux, .Darwin)
-write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError {
+export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError {
     pipe :: child.in_pipe ?? return ProcessError {
         .msg = "\"${child.program}\" has no stdin to write",
     }
     rest := data
     for rest.len() > 0 {
-        n :: sys_write(fd_of(pipe), rest, rest.len())
+        n :: write_some(pipe, rest)
         if n < 0 {
-            // The runtime catches SIGPIPE: a child that closed its stdin, or
-            // ended, answers EPIPE.
+            // A child that closed its stdin, or ended, answers EPIPE on POSIX,
+            // where the runtime catches SIGPIPE, and a broken pipe on Windows.
             failure :: last_io_error("writing to \"${child.program}\" failed")
             if failure.kind == .BrokenPipe {
                 return ProcessError { .msg = "\"${child.program}\" reads no more input" }
@@ -836,27 +850,32 @@ write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError {
     return null
 }
 
+// Write the start of `bytes` on `pipe`, blocking until some of it is written:
+// how many bytes, or -1 on a failure, whose error `last_io_error` gives.
+@target
+write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64
+
+@target(.Linux, .Darwin)
+write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 = sys_write(fd_of(pipe), bytes, bytes.len())
+
 @target(.Windows)
-write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError =
-    ProcessError { .msg = "\"${child.program}\" has no stdin to write" }
+write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 {
+    written: u32[]: [0]
+    if !write_file(pipe_handle_of(pipe), bytes, u32(bytes.len()), written, null) {
+        return -1
+    }
+    return i64(written[0])
+}
 
 /// Close the stdin of a child `spawn_interactive` launched: it reads the end of
 /// its input. Closing it again, or that of another child, does nothing.
 ///
 /// @param child  what `spawn_interactive` returned.
-@target
-export close_input :: fn(child: ChildProcess) -> void
-
-@target(.Linux, .Darwin)
-close_input :: fn(child: ChildProcess) -> void {
+export close_input :: fn(child: ChildProcess) -> void {
     pipe :: child.in_pipe ?? return
-    sys_close(fd_of(pipe))
+    close_descriptor(pipe)
     child.in_pipe = null
 }
-
-// No launch on Windows sets a stdin pipe.
-@target(.Windows)
-close_input :: fn(child: ChildProcess) -> void {}
 
 /// What a child wrote since the last `read_output`, and whether it has ended.
 export ChildOutput :: struct {
@@ -996,6 +1015,7 @@ cannot_launch :: fn(program: string) -> ProcessError =
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/string"
 import "std/task"
 import "std/testing"
 import "std/time"
@@ -1033,8 +1053,31 @@ test_a_killed_child_polls_as_ended_by_a_signal :: fn() -> void {
     }
 }
 
-// `cat` answers each line it reads with the same line. Windows launches no
-// interactive child yet.
+// `sort` answers once its input ends, on every system; that of Windows reads
+// lines that end with CRLF.
+@test
+test_an_interactive_child_reads_its_input_until_it_is_closed :: fn() -> void {
+    child :: spawn_interactive(["sort"])
+    if child is ProcessError {
+        fail("sort launches")
+        return
+    }
+    defer child.kill()
+    assert(child.write_input("b\r\na\r\n".bytes()) == null, "a running child takes its input")
+    child.close_input()
+    out: u8[]: []
+    for {
+        taken :: child.read_output()
+        out.push_all(taken.out)
+        if taken.ended {
+            break
+        }
+    }
+    assert_eq(out.bytes_to_string().replace_all("\r", ""), "a\nb\n")
+}
+
+// `cat` answers each line it reads with the same line; it and `sh` are POSIX
+// programs.
 
 @test
 test_an_interactive_child_answers_one_request_after_another :: fn() -> void {

@@ -160,6 +160,7 @@ win32_error_kind :: fn(e: u32) -> IOErrorKind {
     if e == ERROR_FILE_EXISTS    { return .AlreadyExists }
     if e == ERROR_ALREADY_EXISTS { return .AlreadyExists }
     if e == ERROR_BROKEN_PIPE    { return .BrokenPipe }
+    if e == ERROR_NO_DATA        { return .BrokenPipe }
     if e == ERROR_DISK_FULL      { return .NoSpace }
     if e == ERROR_DIR_NOT_EMPTY  { return .DirectoryNotEmpty }
     if e == ERROR_DIRECTORY      { return .NotADirectory }
