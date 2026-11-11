@@ -70,16 +70,12 @@ jobs:
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
-      - name: "Temporary: measure the Vader test runner on the snippets"
+      - name: Snapshots, by the Vader test runner
         if: ${{ !cancelled() && runner.os == 'Linux' && hashFiles('build/vader') != '' }}
-        continue-on-error: true
         timeout-minutes: 20
         run: |
-          nproc
-          time (cd tools/testrunner && ../../build/vader build --release)
-          runner=$(ls tools/testrunner/build/release-*/testrunner)
-          time "$runner" | tail -40
-          time "$runner" --jobs=1 | tail -40
+          (cd tools/testrunner && ../../build/vader build --release)
+          tools/testrunner/build/release-*/testrunner
       - name: Test
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:
