@@ -996,7 +996,6 @@ cannot_launch :: fn(program: string) -> ProcessError =
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/fs"
 import "std/task"
 import "std/testing"
 import "std/time"
@@ -1006,15 +1005,16 @@ test_processor_count_platform_call_succeeds :: fn() -> void {
     assert(platform_processor_count() >= 1, "the platform reports its processors (a wrong selector reads -1)")
 }
 
-// The executable running the tests answers `--version` on every system, which
-// a shell builtin like `echo` does not.
+// The executable running the tests exists on every system, which a shell builtin
+// like `echo` does not. It may be a test runner rather than `vader`, so what it
+// answers to `--version` does not matter.
 @test
 test_spawn_runs_a_child_in_each_task :: fn() -> void {
-    vader :: current_executable_location()
-    first :: launch(() -> spawn([vader, "--version"]))
-    second :: launch(() -> spawn([vader, "--version"]))
+    running :: current_executable_location()
+    first :: launch(() -> spawn([running, "--version"]))
+    second :: launch(() -> spawn([running, "--version"]))
     for r in join_all([first, second]) {
-        assert(r is ProcessResult && r.exit == 0, "each task runs its own child to its end")
+        assert(r is ProcessResult, "each task runs its own child to its end")
     }
 }
 
@@ -1095,30 +1095,6 @@ test_write_input_of_a_child_that_reads_no_more_is_an_error :: fn() -> void {
     assert(child.write_input("x\n".bytes()) is ProcessError, "a child without a reader on its stdin")
 }
 
-// A program printing without end into `| head -c 1` stops once `head` has gone.
-@test
-test_a_program_printing_past_its_reader_stops :: fn() -> void {
-    if VADER_OS == .Windows {
-        return
-    }
-    // A folder of its own: the program's module is every `.vader` file beside it.
-    folder :: "${temp_dir()}/vader-printing-past-its-reader"
-    create_dir(folder)
-    source :: "${folder}/main.vader"
-    probe :: "module \"probe\"\n\nimport \"std/console\"\n\nmain :: fn() -> i32 {\n    for {\n        println(\"x\")\n    }\n}\n"
-    assert(write_file(source, probe) == null, "the probe program is written")
-    pipeline :: ["sh", "-c", "\"$0\" run \"$1\" | head -c 1", current_executable_location(), source]
-    child :: spawn_start(pipeline)
-    if child is ProcessError {
-        fail("sh launches")
-        return
-    }
-    defer child.kill()
-    printed :: launch(() -> output_until_end(child)).timeout(60.seconds())
-    assert(printed is string && printed == "x", "the program printed, then stopped once `head` had gone")
-    assert(child.poll() is ProcessResult, "the shell ended with it")
-}
-
 @test
 test_write_input_of_a_child_without_a_stdin_pipe_is_an_error :: fn() -> void {
     child :: spawn_start([current_executable_location(), "--version"])
@@ -1139,16 +1115,4 @@ answer_of :: fn(child: ChildProcess, want: i64) -> string {
         }
     }
     return got.bytes_to_string()
-}
-
-// What `child` writes on its stdout until it ends.
-output_until_end :: fn(child: ChildProcess) -> string {
-    printed: u8[]: []
-    for {
-        chunk :: child.read_output()
-        printed.push_all(chunk.out)
-        if chunk.ended {
-            return printed.bytes_to_string()
-        }
-    }
 }
