@@ -73,6 +73,8 @@ jobs:
       - name: Snapshots, by the Vader test runner
         if: ${{ !cancelled() && runner.os == 'Linux' && hashFiles('build/vader') != '' }}
         timeout-minutes: 20
+        env:
+          VADER_HOME: ${{ github.workspace }}
         run: |
           (cd tools/testrunner && ../../build/vader build --release)
           tools/testrunner/build/release-*/testrunner
