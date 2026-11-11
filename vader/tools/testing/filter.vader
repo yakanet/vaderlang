@@ -1,0 +1,304 @@
+// vader/tools/testing/filter: which tests a `--filter` keeps.
+//
+// A test has three coordinates, its module, its file and its name, and a filter
+// holds a glob for one of them or for all three. Discovery asks a filter before
+// compiling a module (`may_hold`), on what the source says without parsing it;
+// the run asks it of each test the compile finds (`keeps`).
+
+module "vader/tools/testing"
+
+import "std/glob"
+import "std/iter"
+import "std/path"
+import "std/string"
+
+/// `--filter` without `:`: a test whose module, file or name matches is kept.
+export AnyCoordinateFilter :: struct {
+    glob: Glob
+}
+
+/// `--filter` with `:`: a test whose module, file and name all match is kept.
+export CoordinatesFilter :: struct {
+    module: Glob
+    file:   Glob
+    name:   Glob
+}
+
+/// One value of `--filter`, read (`parse_test_filter`).
+export TestFilter :: AnyCoordinateFilter | CoordinatesFilter
+
+// The filter's globs read module names as plain strings: `*` stands for any
+// module, `std/*` for every module below `std`.
+FILTER_GLOB :: GlobOptions { .pathname = false }
+
+/// A value of `--filter` that is no filter.
+export InvalidFilter :: struct {
+    /// The value, as written.
+    text:   string
+    /// Why one of its globs does not read.
+    reason: string
+}
+
+/// Read the values of `--filter`, a blank one standing for no filter.
+///
+/// @param texts  the values.
+/// @error        `InvalidFilter` for the first value that is no filter.
+export parse_test_filters :: fn(texts: string[]) -> TestFilter[] | InvalidFilter {
+    filters: TestFilter[]: []
+    for text in texts {
+        filter :: parse_test_filter(text)
+        if filter is GlobError {
+            return InvalidFilter { .text = text, .reason = filter.msg }
+        }
+        if filter != null {
+            filters.push(filter)
+        }
+    }
+    return filters
+}
+
+/// Read one value of `--filter`. The number of `:` no `\` quotes decides what
+/// its globs match: none, the module, the file or the name of a test, any of
+/// the three; one, `<module>:<file>`; two, `<module>:<file>:<name>`. A third
+/// `:` stays in the name glob, which then matches no test.
+///
+/// @param text  the value of `--filter`, `""` when absent.
+/// @return      null when there is no filter.
+/// @error       `GlobError` when a part is not a glob.
+export parse_test_filter :: fn(text: string) -> TestFilter | GlobError | null {
+    if text == "" {
+        return null
+    }
+    globs: Glob[]: []
+    for part in coordinate_parts(text) {
+        glob :: parse_glob(part, FILTER_GLOB)
+        if glob is GlobError {
+            return glob
+        }
+        globs.push(glob)
+    }
+    if globs.len() == 1 {
+        return AnyCoordinateFilter { .glob = globs[0] }
+    }
+    return CoordinatesFilter {
+        .module = globs[0],
+        .file = globs[1],
+        .name = globs[2],
+    }
+}
+
+// The globs a filter holds, cut on each `:` no `\` quotes: the whole text
+// without one, else the module, the file and the name, every name when only two
+// parts are written. Past three parts, the extra `:` stay in the name.
+coordinate_parts :: fn(text: string) -> string[] {
+    parts :: split_on_colons(text)
+    if parts.len() == 1 {
+        return parts
+    }
+    if parts.len() == 2 {
+        return [parts[0], parts[1], "*"]
+    }
+    return [parts[0], parts[1], parts[2..<parts.len()].join(":")]
+}
+
+// `text` cut on each `:` no `\` quotes. The `\` stay, for the glob to read.
+split_on_colons :: fn(text: string) -> string[] {
+    parts: string[]: []
+    bytes :: text.bytes()
+    start: i64 = 0
+    quoted := false
+    for i in 0..<text.byte_len() {
+        if quoted {
+            quoted = false
+        } else if bytes[i] == '\\' {
+            quoted = true
+        } else if bytes[i] == ':' {
+            parts.push(text.byte_slice(start, i))
+            start = i + 1
+        }
+    }
+    parts.push(text.byte_slice(start, text.byte_len()))
+    return parts
+}
+
+/// The `--filter` that keeps the test `t` alone: its module, file and name,
+/// each quoted so that its glob matches it as it is. `vader test --list` names a
+/// test so, and so does the `filter` of a report's events.
+///
+/// @param t  the test.
+export exact_filter :: fn(t: DiscoveredTest) -> string =
+    "${coordinate(t.module)}:${coordinate(t.file_name())}:${coordinate(t.display)}"
+
+// The glob that matches `text` alone in a filter, where a `:` cuts too.
+coordinate :: fn(text: string) -> string = escape_glob(text).replace_all(":", "\\:")
+
+/// Whether `filters` keep the test `t`: one of them does, or there is none.
+///
+/// @param filters  the values of `--filter`, read.
+/// @param t        a test a compile found.
+export keeps :: fn(filters: TestFilter[], t: DiscoveredTest) -> bool =
+    filters.len() == 0 || filters.any_match((filter) -> filter_keeps(filter, t))
+
+filter_keeps :: fn(filter: TestFilter, t: DiscoveredTest) -> bool = match filter {
+    is AnyCoordinateFilter -> filter.glob.matches(t.module) || filter.glob.matches(t.file_name())
+        || filter.glob.matches(t.display)
+    is CoordinatesFilter   -> filter.module.matches(t.module) && filter.file.matches(t.file_name())
+        && filter.name.matches(t.display)
+}
+
+// Whether the file `file` of `module` may hold a test `filters` keep, judged
+// before compiling it from `facts`: `keeps`, with the test names the file may
+// hold. A module that declares no name (`""`) is compiled, so that its compile
+// reports why.
+may_hold :: fn(filters: TestFilter[], module: string, file: Path, facts: FileFacts) -> bool {
+    if !facts.has_tests {
+        return false
+    }
+    if module == "" || filters.len() == 0 {
+        return true
+    }
+    name :: file.filename()
+    return filters.any_match((filter) -> filter_may_hold(filter, module, name, facts))
+}
+
+filter_may_hold :: fn(filter: TestFilter, module: string, name: string, facts: FileFacts) -> bool =
+    match filter {
+        is AnyCoordinateFilter -> filter.glob.matches(module) || filter.glob.matches(name)
+            || may_name(facts, filter.glob)
+        is CoordinatesFilter   -> filter.module.matches(module) && filter.file.matches(name)
+            && may_name(facts, filter.name)
+    }
+
+// Whether a test of the file `facts` describes may bear a name `glob` matches.
+may_name :: fn(facts: FileFacts, glob: Glob) -> bool =
+    !facts.names_complete || facts.test_names.any_match((name) -> glob.matches(name))
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A test `module:file:name`, for the filter tests.
+probe_test :: fn(module: string, file: string, name: string) -> DiscoveredTest = DiscoveredTest {
+    .mangled = name,
+    .display = name,
+    .module = module,
+    .path = file.to_path(),
+    .line = 1,
+}
+
+// The filters of the `--filter` values `texts`, which must be valid.
+probe_filters :: fn(texts: string[]) -> TestFilter[] {
+    filters :: parse_test_filters(texts)
+    if filters is InvalidFilter {
+        assert(false, "`${filters.text}` should read")
+        return []
+    }
+    return filters
+}
+
+// The filter `text` reads, which must be valid.
+probe_filter :: fn(text: string) -> TestFilter[] = probe_filters([text])
+
+@test
+test_filter_without_colon_matches_any_coordinate :: fn() -> void {
+    t :: probe_test("std/iter", "window.vader", "test_window_sizes")
+    assert(keeps(probe_filter("std/iter"), t), "the module")
+    assert(keeps(probe_filter("window.vader"), t), "the file")
+    assert(keeps(probe_filter("*window_s*"), t), "the name")
+    assert(!keeps(probe_filter("std/io"), t), "none of the three")
+}
+
+@test
+test_filter_with_one_colon_reads_module_and_file :: fn() -> void {
+    t :: probe_test("std/iter", "window.vader", "test_window_sizes")
+    assert(keeps(probe_filter("*:window.vader"), t), "any module, this file")
+    assert(keeps(probe_filter("std/*:*"), t), "a module below `std`, any file")
+    assert(!keeps(probe_filter("std/iter:chunk.vader"), t), "another file")
+    assert(!keeps(probe_filter("test_window_sizes:*"), t), "a name read as a module")
+}
+
+@test
+test_filter_with_two_colons_reads_the_name :: fn() -> void {
+    t :: probe_test("std/iter", "window.vader", "test_window_sizes")
+    assert(keeps(probe_filter("std/iter:window.vader:test_window_sizes"), t), "all three")
+    assert(!keeps(probe_filter("*:*:test_window"), t), "a name without a star is exact")
+    assert(!keeps(probe_filter("*:*:test_window_sizes:x"), t), "a third `:` matches no name")
+}
+
+@test
+test_no_filter_keeps_every_test :: fn() -> void {
+    assert_eq(probe_filter("").len(), 0)
+    assert(keeps([], probe_test("m", "f.vader", "t")), "every test")
+}
+
+@test
+test_filters_keep_a_test_one_of_them_keeps :: fn() -> void {
+    t :: probe_test("std/iter", "window.vader", "test_window_sizes")
+    assert(keeps(probe_filters(["std/io", "window.vader"]), t), "the second")
+    assert(!keeps(probe_filters(["std/io", "chunk.vader"]), t), "neither")
+}
+
+@test
+test_exact_filter_keeps_its_test_alone :: fn() -> void {
+    odd :: probe_test("m", "we:ird*[1].vader", "test_a")
+    assert_eq(exact_filter(odd), r"m:we\:ird\*\[1].vader:test_a")
+    exact :: probe_filter(exact_filter(odd))
+    assert(keeps(exact, odd), "its own test")
+    assert(!keeps(exact, probe_test("m", "weXird1.vader", "test_a")), "another file")
+    unnamed :: probe_test("", "f.vader", "test_b")
+    anonymous :: probe_filter(exact_filter(unnamed))
+    assert(keeps(anonymous, unnamed), "a module that declares no name")
+    assert(!keeps(anonymous, probe_test("m", "f.vader", "test_b")), "a named one")
+}
+
+@test
+test_filter_refuses_an_invalid_glob :: fn() -> void {
+    assert(parse_test_filter("std/iter:[z-a]") is GlobError, "a reversed range")
+}
+
+@test
+test_filter_leaves_out_a_module_it_cannot_keep :: fn() -> void {
+    group :: ["probe/a.vader".to_path(), "probe/b.vader".to_path()]
+    facts :: [
+        FileFacts {
+            .declared = "probe",
+            .has_tests = true,
+            .test_names = ["test_a"],
+        },
+        FileFacts { .declared = "probe" },
+    ]
+    assert_eq(group_representatives("probe", group, facts, probe_filter("other:*")).len(), 0)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("probe:a.vader")).len(), 1)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("*:c.vader")).len(), 0)
+    // `b.vader` holds no test.
+    assert_eq(group_representatives("probe", group, facts, probe_filter("probe:b.vader")).len(), 0)
+}
+
+@test
+test_filter_leaves_out_a_module_on_its_test_names :: fn() -> void {
+    group :: ["probe/a.vader".to_path()]
+    facts :: [
+        FileFacts {
+            .declared = "probe",
+            .has_tests = true,
+            .test_names = ["test_a"],
+        },
+    ]
+    assert_eq(group_representatives("probe", group, facts, probe_filter("test_a")).len(), 1)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("*:*:test_a")).len(), 1)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("other")).len(), 0)
+    assert_eq(group_representatives("probe", group, facts, probe_filter("*:*:other")).len(), 0)
+}
+
+@test
+test_filter_compiles_a_module_whose_test_names_are_incomplete :: fn() -> void {
+    group :: ["probe/a.vader".to_path()]
+    facts :: [
+        FileFacts {
+            .declared = "probe",
+            .has_tests = true,
+            .names_complete = false,
+        },
+    ]
+    assert_eq(group_representatives("probe", group, facts, probe_filter("other")).len(), 1)
+}

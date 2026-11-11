@@ -21,6 +21,7 @@ import "std/console"
 import "std/path"
 import "std/time"
 import "vader/front/resolver"
+import "vader/tools/testing"
 TTY :: import "std/tty"
 
 /// The form of the report, `--reporter`.

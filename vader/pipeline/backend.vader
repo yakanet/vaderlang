@@ -131,10 +131,18 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 /// @param lower  the lowering's and the back end's (`CfgBytecode.lower_diags`).
 export flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     all :: pre + lower
-    if all.len() > 0 {
-        eprintln(all.dump_diagnostics_with_file())
-    }
+    print_diagnostics(all)
     return !any_error_diag(all)
+}
+
+/// Print `diagnostics` to stderr, each with its file, as a build reports them;
+/// nothing when there are none.
+///
+/// @param diagnostics  what a compile reported.
+export print_diagnostics :: fn(diagnostics: Diagnostic[]) -> void {
+    if diagnostics.len() > 0 {
+        eprintln(diagnostics.dump_diagnostics_with_file())
+    }
 }
 
 /// CFG -> `BytecodeModule`: the optimise-and-emit tail every real emit path runs.

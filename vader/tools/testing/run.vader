@@ -1,0 +1,127 @@
+// vader/tools/testing/run: compile the tests of a module and run them on the VM.
+//
+// The module of an entry is lowered with its tests kept as roots (`lower_tests`),
+// which is all `vader test --list` needs, then compiled to bytecode with the tests
+// to run and prepared for the VM (`compile_tests`). Each test then runs alone on
+// that VM (`run_test`): a trap fails it, a return passes it. What a compile
+// reports goes to the caller, who prints it or shows its errors.
+
+module "vader/tools/testing"
+
+import "std/iter"
+import "std/time"
+import "vader/emit/bytecode"
+import "vader/lower/dce"
+import "vader/lower/ir"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+import "vader/vm"
+
+/// The tests of one entry, lowered: what a listing names, before anything is
+/// compiled to bytecode.
+export LoweredTests :: struct {
+    entry:   TestEntry
+    /// The lowered project, pruned of what neither its entry nor a test reaches.
+    project: LoweredProject
+    /// Every `@test` of the entry module.
+    tests:   DiscoveredTest[]
+}
+
+/// Why the VM cannot run the tests of a module that compiles: it refuses the
+/// bytecode, or the module calls C the interpreter cannot reach.
+export ModuleRefused :: struct {
+    /// Worded to follow `vader test:`.
+    message: string
+}
+
+/// The run of one test.
+export TestRun :: struct {
+    took:    Duration
+    /// The message of the trap that failed it, null when it passed.
+    failure: string | null = null
+}
+
+/// Lower the module of `entry` and find its tests.
+///
+/// @param entry         the module to compile (`test_entries`).
+/// @param project_root  the project of the run, null outside one.
+/// @param diagnostics   takes what the front end and the lowering report,
+///                      warnings included.
+/// @return              null when one of them is an error.
+export lower_tests :: fn(
+    entry: TestEntry,
+    project_root: string | null,
+    diagnostics: Diagnostic[],
+) -> LoweredTests | null {
+    lowered :: lower_to_entry(entry.path, project_root)
+    reported :: lowered.pre_diags + lowered.lower_diags
+    diagnostics.push_all(reported)
+    if any_error_diag(reported) {
+        return null
+    }
+    // `@test` fns survive this prune; the one of the emit keeps those
+    // `compile_tests` is given.
+    pruned :: prune_unreachable_fns(lowered.lowered, true)
+    return LoweredTests {
+        .entry = entry,
+        .project = pruned,
+        .tests = find_tests(pruned, entry.module),
+    }
+}
+
+/// Compile `tests`, tests of `lowered`, to bytecode, and prepare the VM that
+/// runs them.
+///
+/// @param lowered       the tests of a module, lowered (`lower_tests`).
+/// @param tests         those to run: the others are left out of the bytecode.
+/// @param project_root  as for `lower_tests`: its C is what the module's foreign
+///                      calls reach.
+/// @param diagnostics   takes what the back end reports.
+/// @return              null when one of `diagnostics` is an error.
+/// @error               `ModuleRefused` when the VM refuses the bytecode, or a
+///                      foreign call has no adapter it can reach.
+export compile_tests :: fn(
+    lowered: LoweredTests,
+    tests: DiscoveredTest[],
+    project_root: string | null,
+    diagnostics: Diagnostic[],
+) -> VmState | ModuleRefused | null {
+    // No `debug` table: the VM never reads it.
+    module :: cfg_to_bytecode(
+        lowered.project,
+        module_name_from_file(lowered.entry.path),
+        EmitOptions {
+            .optimize = true,
+            .keep_mangles = tests.map((t) -> t.mangled).collect(),
+            .want_debug = false,
+        },
+        diagnostics,
+    )
+    if any_error_diag(diagnostics) {
+        return null
+    }
+    state :: prepare(module)
+    if state is VerifyError {
+        return ModuleRefused { .message = display_verify_error(state) }
+    }
+    problem :: attach_ffi_adapters(state, project_root, lowered.entry.path)
+    if problem != null {
+        return ModuleRefused { .message = problem }
+    }
+    return state
+}
+
+/// Run `test` alone on `state`. The threads it leaves running are cancelled and
+/// fail it (`exec_fn`).
+///
+/// @param state  the VM `compile_tests` prepared with `test` among its tests.
+/// @param test   the test.
+export run_test :: fn(state: VmState, test: DiscoveredTest) -> TestRun {
+    began :: monotonic()
+    outcome :: exec_fn(state, test.mangled)
+    took :: began.since()
+    if outcome is Trap {
+        return TestRun { .took = took, .failure = outcome.message }
+    }
+    return TestRun { .took = took }
+}

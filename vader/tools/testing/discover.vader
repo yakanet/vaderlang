@@ -1,0 +1,380 @@
+// vader/tools/testing/discover: the modules of a tree that hold tests, and their
+// tests.
+//
+// A module's tests run only when it is the entry of a compile: only the entry
+// module is lowered with its bodies. So discovery picks ONE entry per module that
+// holds a test, its folder or its file, judged from the source without parsing it
+// (`file_facts`), and each compile names the tests of its entry (`find_tests`).
+
+module "vader/tools/testing"
+
+import "std/collections"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/string"
+import "toolchain/ast"
+import "vader/front/parser"
+import "vader/front/resolver"
+import "vader/lower/ir"
+import "vader/support/text"
+
+/// One discovered `@test` fn: its mangled name (the VM entry) and the name a
+/// report shows (the fn's source name).
+export DiscoveredTest :: struct {
+    mangled: string
+    display: string
+    /// The module that declares it, as its `module "..."` line names it.
+    module:  string
+    /// The file that declares it, as the compiler read it.
+    path:    Path
+    /// The line of its name, from 1.
+    line:    i32
+}
+
+/// One compile of a test run: the entry it lowers, and the module that entry
+/// declares. Only the entry module is lowered with its bodies, so every test the
+/// compile finds belongs to that module.
+export TestEntry :: struct {
+    path:   Path
+    /// The name its `module "..."` line declares, `""` when it declares none.
+    module: string
+}
+
+/// What test discovery needs from one file: the module it declares, whether it
+/// holds a test, and the names of its tests. Read once per file.
+export FileFacts :: struct {
+    declared:       string
+    /// Whether a line of the file opens with `@test`.
+    has_tests:      bool = false
+    /// The names of its tests, read from the source without parsing it.
+    test_names:     string[] = []
+    /// Whether `test_names` holds every test: false when a `@test` is followed
+    /// by no line that reads as `<name> :: ...`. `--filter` leaves a module out
+    /// on the names of its tests only when they are all known.
+    names_complete: bool = true
+}
+
+// The name of the file that declares `t`, without its folder.
+file_name :: fn(t: DiscoveredTest) -> string = t.path.filename()
+
+/// Every `.vader` file under `target`, in the folders the loader reads, or
+/// `target` itself when it is a single `.vader` file.
+///
+/// @param target  a folder, or a file.
+export discover_vader_files :: fn(target: Path) -> Path[] {
+    out: Path[]: []
+    if !exists(target.as_string()) {
+        return out
+    }
+    if is_dir(target.as_string()) {
+        walk_source_folders(target.as_string(), fn(_: string, files: string[]) {
+            for f in files {
+                out.push(f.to_path())
+            }
+        })
+    } else if target.extension() == "vader" {
+        out.push(target)
+    }
+    return out
+}
+
+/// The entries a test run compiles for `target`. A file named as the target runs
+/// as given: the loader takes its whole folder module as the entry, so the tests
+/// of its sibling files run with it, whatever the file itself holds.
+///
+/// @param target   the path the run was given.
+/// @param files    the `.vader` files under it (`discover_vader_files`).
+/// @param filters  `--filter`: a module they cannot keep a test of is left out.
+export test_entries :: fn(target: Path, files: Path[], filters: TestFilter[]) -> TestEntry[] {
+    if target.extension() == "vader" {
+        return files.map((f) -> TestEntry { .path = f, .module = file_facts(f).declared }).collect()
+    }
+    return pick_module_representatives(files, filters)
+}
+
+// One entry per module that holds a test. Only the entry module of a compile is
+// lowered with its bodies, so a module's tests run only when it is the entry:
+// none runs through a module that imports it.
+pick_module_representatives :: fn(files: Path[], filters: TestFilter[]) -> TestEntry[] {
+    by_dir :: Map<string, Path[]> {}
+    for f in files {
+        // `parent()` yields "" for a bare filename, which the grouping keys as ".".
+        parent_dir :: f.parent().as_string()
+        d :: if parent_dir == "" { "." } else { parent_dir }
+        by_dir.get_or_put_with(d, () -> []).push(f)
+    }
+    out: TestEntry[]: []
+    for [d, group] in by_dir {
+        for entry in group_representatives(d, group, group.map(file_facts).collect(), filters) {
+            out.push(entry)
+        }
+    }
+    return out
+}
+
+/// The entries for the files of one directory: the directory itself when they
+/// form one folder module that holds a test, else each file that holds one.
+///
+/// @param dir      the directory.
+/// @param group    its `.vader` files.
+/// @param facts    what each of them declares and holds, in the same order.
+/// @param filters  `--filter`: a module they cannot keep a test of is left out.
+group_representatives :: fn(
+    dir: string,
+    group: Path[],
+    facts: FileFacts[],
+    filters: TestFilter[] = [],
+) -> TestEntry[] {
+    if group.len() > 1 && is_folder_module(facts) {
+        module :: facts[0].declared
+        for i in 0..<group.len() {
+            if may_hold(filters, module, group[i], facts[i]) {
+                return [TestEntry { .path = dir.to_path(), .module = module }]
+            }
+        }
+        return []
+    }
+    out: TestEntry[]: []
+    for i in 0..<group.len() {
+        if may_hold(filters, facts[i].declared, group[i], facts[i]) {
+            out.push(TestEntry { .path = group[i], .module = facts[i].declared })
+        }
+    }
+    return out
+}
+
+/// The files a compile of `entry` takes for its module, as the loader takes them:
+/// the `.vader` files of a folder, in name order, or the file itself.
+///
+/// @param entry  the path of a `TestEntry`.
+export entry_files :: fn(entry: Path) -> Path[] {
+    folder :: entry.as_string()
+    if !is_dir(folder) {
+        return [entry]
+    }
+    listed :: read_dir(folder)
+    if listed is IOError {
+        return []
+    }
+    return source_files_in(folder, listed).map((f) -> f.to_path()).collect()
+}
+
+/// What the file `f` declares and the tests it holds. `declared` is `""` for a
+/// file that declares no module or cannot be read, which no folder module
+/// takes in. A file that cannot be read counts as holding a test, so that its
+/// compile reports why rather than the file being skipped in silence.
+///
+/// @param f  a `.vader` file.
+export file_facts :: fn(f: Path) -> FileFacts {
+    src :: read_file_string(f.as_string())
+    if src is IOError {
+        return FileFacts {
+            .declared = "",
+            .has_tests = true,
+            .names_complete = false,
+        }
+    }
+    header :: parse_module_header(src, f.as_string())
+    declared :: if header is ModuleHeader { header.name } else { "" }
+    return read_tests(declared, src)
+}
+
+// The facts of a file that declares `declared`, its tests read line by line: a
+// line that opens with `@test` marks one, which the rest of that line names, or
+// else the next line that is neither blank, a comment nor another decorator.
+read_tests :: fn(declared: string, src: string) -> FileFacts {
+    facts :: FileFacts { .declared = declared }
+    if !("@test" in src) {
+        return facts
+    }
+    // Whether a `@test` waits for the line that names its test.
+    pending := false
+    for line in src.split("\n") {
+        text :: line.trim()
+        if text.starts_with("@test") {
+            if pending {
+                facts.names_complete = false
+            }
+            facts.has_tests = true
+            rest :: text.trim_prefix("@test").trim()
+            pending = rest == "" || rest.starts_with("(") && rest.ends_with(")")
+            if !pending {
+                facts.note_test(rest)
+            }
+            continue
+        }
+        if !pending || text == "" || text.starts_with("//") || text.starts_with("@") {
+            continue
+        }
+        pending = false
+        facts.note_test(text)
+    }
+    if pending {
+        facts.names_complete = false
+    }
+    return facts
+}
+
+// Record the name the declaration `text` gives its test, or, when it reads as
+// none, that the file's names are incomplete.
+note_test :: fn(facts: FileFacts, text: string) -> void {
+    parts :: text.split("::")
+    name :: parts[0].trim().trim_prefix("export ").trim()
+    if parts.len() < 2 || name == "" || !name.bytes().all_match(is_ident_byte) {
+        facts.names_complete = false
+        return
+    }
+    facts.test_names.push(name)
+}
+
+// True when every file declares the SAME module: the language's own definition
+// of a folder module (a folder holds at most one module; mixed names are R2022).
+// A folder module is compiled once, as its directory: taking each of its files
+// for a module of its own would compile the whole folder once per file.
+is_folder_module :: fn(facts: FileFacts[]) -> bool {
+    if facts.len() == 0 {
+        return false
+    }
+    first :: facts[0].declared
+    if first == "" {
+        return false
+    }
+    for f in facts {
+        if f.declared != first {
+            return false
+        }
+    }
+    return true
+}
+
+/// Every `@test` fn of the entry module of a lowered project: a `LoweredFnDecl`
+/// with a body whose origin AST `FnDecl` carries a `@test` decorator. Its display
+/// name is the fn's source name (the rare `@test("custom")` string arg is not
+/// surfaced).
+///
+/// @param lp      the lowered project.
+/// @param module  the name the entry module declares.
+find_tests :: fn(lp: LoweredProject, module: string) -> DiscoveredTest[] {
+    out: DiscoveredTest[]: []
+    entry :: lp.modules[lp.entry] ?? return out
+    for d in entry.decls {
+        if d is LoweredFnDecl {
+            if d.body == null {
+                continue
+            }
+            ast :: d.origin.decl
+            if ast is FnDecl {
+                if decorators_have(ast.decorators, "test") {
+                    out.push(DiscoveredTest {
+                        .mangled = d.mangled,
+                        .display = ast.name,
+                        .module = module,
+                        .path = ast.span.start.file.to_path(),
+                        .line = ast.name_span.start.line,
+                    })
+                }
+            }
+        }
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/env"
+import "std/sort"
+import "std/testing"
+
+@test
+test_discovery_skips_the_folders_the_loader_skips :: fn() -> void {
+    root :: "${temp_dir()}/vader_test_discovery_probe"
+    for dir in ["build", "node_modules", "lib/build", "lib/target"] {
+        create_dir("${root}/${dir}")
+        write_file("${root}/${dir}/probe.vader", "")
+    }
+    found: string[]: []
+    for p in discover_vader_files(root.to_path()) {
+        found.push(p.as_string())
+    }
+    assert_eq(
+        sort(found, compare_ascending).join(" "),
+        "${root}/lib/build/probe.vader ${root}/lib/target/probe.vader",
+    )
+}
+
+@test test_same_declared_module_is_a_folder_module :: fn() -> void {
+    facts :: [
+        FileFacts { .declared = "probe" },
+        FileFacts { .declared = "probe" },
+    ]
+    assert(is_folder_module(facts), "files declaring one module are one folder module")
+}
+
+@test test_per_file_modules_are_not_a_folder_module :: fn() -> void {
+    facts :: [
+        FileFacts { .declared = "probe/entry" },
+        FileFacts { .declared = "probe/lib" },
+    ]
+    assert(!is_folder_module(facts), "different declared modules are not one module")
+}
+
+@test test_a_file_without_a_module_decl_is_not_a_folder_module :: fn() -> void {
+    // Conservative: an unreadable or header-less file means "treat each file
+    // separately" rather than silently collapsing the group.
+    facts :: [
+        FileFacts { .declared = "" },
+        FileFacts { .declared = "probe" },
+    ]
+    assert(!is_folder_module(facts), "a missing module decl blocks the collapse")
+}
+
+@test test_a_module_without_tests_gets_no_representative :: fn() -> void {
+    group :: ["probe/a.vader".to_path(), "probe/b.vader".to_path()]
+    facts :: [FileFacts { .declared = "probe" }, FileFacts { .declared = "probe" }]
+    assert_eq(group_representatives("probe", group, facts).len(), 0)
+}
+
+@test test_a_folder_module_with_a_test_is_its_folder :: fn() -> void {
+    group :: ["probe/a.vader".to_path(), "probe/b.vader".to_path()]
+    facts :: [
+        FileFacts { .declared = "probe" },
+        FileFacts { .declared = "probe", .has_tests = true },
+    ]
+    entries :: group_representatives("probe", group, facts)
+    assert_eq(entries.len(), 1)
+    assert_eq(entries[0].path.as_string(), "probe")
+}
+
+@test test_an_imported_per_file_module_keeps_its_own_entry :: fn() -> void {
+    // Its tests run only as an entry: lowering the importer reaches none of them.
+    group :: ["probe/entry.vader".to_path(), "probe/lib.vader".to_path()]
+    facts :: [
+        FileFacts { .declared = "probe/entry", .has_tests = true },
+        FileFacts { .declared = "probe/lib", .has_tests = true },
+    ]
+    assert_eq(group_representatives("probe", group, facts).len(), 2)
+}
+
+@test
+test_read_tests_reads_line_starts :: fn() -> void {
+    assert(read_tests("m", "x :: 1\n@test\nt :: fn() -> void {}").has_tests, "a decorator line")
+    assert(read_tests("m", "    @test t :: fn() -> void {}").has_tests, "an indented one")
+    assert(!read_tests("m", "// runs no `@test`\nx :: 1").has_tests, "a mention in a comment")
+}
+
+@test
+test_read_tests_names_each_test :: fn() -> void {
+    src :: "@test\n// why\n@target(linux)\n\nt_one :: fn() -> void {}\n@test t_two :: fn() {}\n"
+    facts :: read_tests("m", src)
+    assert_eq(facts.test_names.join(" "), "t_one t_two")
+    assert(facts.names_complete, "every test is named")
+}
+
+@test
+test_read_tests_flags_a_test_it_cannot_name :: fn() -> void {
+    assert(!read_tests("m", "@test\n[a, b] :: pair()").names_complete, "no name")
+    assert(!read_tests("m", "x :: 1\n@test").names_complete, "nothing after it")
+    assert(!read_tests("m", "@testing\nt :: fn() {}").names_complete, "another decorator")
+}
