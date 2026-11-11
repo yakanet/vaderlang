@@ -2,8 +2,8 @@
 //
 // It is compared with `./build/vader run` on the snippet's
 // `bytecode.snapshot.virt`, or on bytecode built from source when the snippet
-// has none or is listed in `VADER_SELF_EMIT`. The output goes through
-// `formatRun`, as the native run in `parity-cemit.test.ts` does.
+// has none or its `_config.json` says `"vm": { "from": "build" }`. The output
+// goes through `formatRun`, as the native run in `parity-cemit.test.ts` does.
 //
 // A snippet whose VM run is not checked says so in its `_config.json`, with its
 // reason (`"vm": { "skip" | "skip_on" }`); one with a `helper.c` is skipped, its
@@ -46,37 +46,14 @@ async function virtForHost(name: string, mainPath: string, pinned: string): Prom
   return out;
 }
 
-// Snippets whose `vm.snapshot` is checked against the bytecode image that
-// `vader build --emit=bytecode-text` links from source, rather than against the
-// committed `bytecode.snapshot.virt` (or, off the pinned host, `vader dump
-// --stage=bytecode`). The build driver's path to bytecode is the one a program
-// takes outside this suite, and nothing else here runs it; the list keeps a
-// spread of programs on it: trait dispatch, narrowing, closures, generics, std
+// A snippet whose `_config.json` says `"vm": { "from": "build" }` has its
+// `vm.snapshot` checked against the bytecode image that `vader build
+// --emit=bytecode-text` links from source, rather than against the committed
+// `bytecode.snapshot.virt` (or, off the pinned host, `vader dump --stage=bytecode`).
+// The build driver's path to bytecode is the one a program takes outside this
+// suite, and nothing else here runs it; the snippets that say so keep a spread
+// of programs on it: trait dispatch, narrowing, closures, generics, std
 // collections, comptime constants.
-const VADER_SELF_EMIT = new Set<string>([
-  "alias_union_in_array", "array_iter", "array_view_aliasing",
-  "chained_divergent_narrow", "char_literal_escapes", "closure_in_generic_fn",
-  "coerce_into", "comptime_const", "comptime_reads_a_file", "comptime_type_value",
-  "const_array_basic",
-  "const_fn_wrap", "const_imported_from_std", "custom_iter",
-  "custom_iter_generic", "enum_match", "enum_trait_self_return", "enum_typed",
-  "expr_bodied_fn", "expr_bodied_recursive_typed", "field_narrowing",
-  "for_range", "gc_survival", "generic_helper_chain",
-  "generic_struct", "generic_type_alias", "hello", "i64_const_width",
-  "if_is_field_after_narrow", "if_is_narrow", "if_null_narrow",
-  "if_without_else_stmt", "implicit_dot_variant", "in_range_element",
-  "interpolation", "intrinsic_field_access", "io_roundtrip", "is_union_runtime",
-  "iter_coerce_method_arg", "iterator_terminals", "json_basics", "lambda_no_fn",
-  "loop", "map_set_basics", "match_arm_narrows_scrutinee",
-  "match_literal_patterns", "match_partial", "match_struct_pattern_in_union",
-  "match_wildcard_narrow", "multiline_string", "namespace_member_forms",
-  "narrow_imported_map", "nullable_node_across_calls", "op_overload",
-  "parse_int_match", "self_ref_struct",
-  "struct_default_cross_module", "struct_defaults", "struct_spread",
-  "trait_box_range_iter", "trait_dispatch_bounded", "trait_virtual_dispatch",
-  "transitive_mono", "ufcs_union_receiver", "union_common_field",
-  "union_computed_u64",
-]);
 
 // Build `s` from source and run Vader's own bytecode, against `vm.snapshot`.
 // `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle needs
@@ -102,15 +79,12 @@ function testFromSource(s: Scenario): void {
 
 const scenarios = listSnippets("tests/snippets");
 
-// Every list here selects snippets by name and skips a name that matches none,
-// so a deleted or renamed snippet would leave a dangling entry behind in silence.
-test("vader-vm: name lists resolve to real snippets", () => {
+// `ANNOTATED_ROUNDTRIP` selects snippets by name and skips a name that matches
+// none, so a deleted or renamed snippet would leave a dangling entry behind in
+// silence.
+test("vader-vm: the annotated round-trip list names real snippets", () => {
   const known = new Set(scenarios.map((s) => s.name));
-  const listed = [
-    ...VADER_SELF_EMIT,
-    ...ANNOTATED_ROUNDTRIP,
-  ];
-  expect(listed.filter((name) => !known.has(name))).toEqual([]);
+  expect(ANNOTATED_ROUNDTRIP.filter((name) => !known.has(name))).toEqual([]);
 });
 
 for (const s of scenarios) {
@@ -119,8 +93,8 @@ for (const s of scenarios) {
     test.skip(`vader-vm: ${s.name} (${excluded})`, () => {});
     continue;
   }
-  // Run from the image `build --emit=bytecode-text` links (see `VADER_SELF_EMIT`).
-  if (VADER_SELF_EMIT.has(s.name)) {
+  // Run from the image `build --emit=bytecode-text` links (`"from": "build"`).
+  if (s.config.vm?.from === "build") {
     testFromSource(s);
     continue;
   }

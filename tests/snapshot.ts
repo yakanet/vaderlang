@@ -31,6 +31,14 @@ export interface RunExclusion {
   readonly skip_on?: Readonly<Record<string, string>>;
 }
 
+/** How a snippet's VM run is checked : its exclusions, and `from: "build"` for
+ *  a run of the image `vader build --emit=bytecode-text` links from source,
+ *  rather than of the committed `bytecode.snapshot.virt`. A snippet with no
+ *  `bytecode.snapshot.virt` runs from source all the same. */
+export interface VmRun extends RunExclusion {
+  readonly from?: "build";
+}
+
 /** A snippet's `_config.json`. Every key is optional ; a snippet without the file
  *  takes every default. */
 export interface TestConfig {
@@ -44,7 +52,7 @@ export interface TestConfig {
    *  every snippet whose `vm.snapshot` records a run. */
   readonly native?: RunExclusion;
   /** The VM run, compared with `vm.snapshot` (`vader_vm.test.ts`). */
-  readonly vm?: RunExclusion;
+  readonly vm?: VmRun;
 }
 
 /** The snippet at `dir`'s `_config.json`, and what is wrong with it. A config with
@@ -88,8 +96,8 @@ function configProblems(raw: unknown, dir: string): string[] {
   if (modules !== undefined && (!Array.isArray(modules) || modules.some((m) => typeof m !== "string"))) {
     out.push("`modules` is a list of module paths");
   }
-  for (const side of ["native", "vm"]) {
-    if (raw[side] !== undefined) out.push(...exclusionProblems(side, raw[side]));
+  for (const [side, keys] of Object.entries(RUN_KEYS)) {
+    if (raw[side] !== undefined) out.push(...runProblems(side, keys, raw[side]));
   }
   out.push(...fileProblems(raw, dir));
   return out;
@@ -105,22 +113,30 @@ function fileProblems(raw: Record<string, unknown>, dir: string): string[] {
   const runs = existsSync(join(dir, VM_SNAPSHOT));
   for (const side of ["native", "vm"]) {
     if (raw[side] !== undefined && !runs) {
-      out.push(`\`${side}\` excludes a run, and no \`${VM_SNAPSHOT}\` records one`);
+      out.push(`\`${side}\` describes a run, and no \`${VM_SNAPSHOT}\` records one`);
     }
   }
   return out;
 }
 
-// What is wrong with the run exclusion `value` under `side`.
-function exclusionProblems(side: string, value: unknown): string[] {
+// The keys each run of a snippet takes in its `_config.json`.
+const RUN_KEYS: Record<string, readonly string[]> = {
+  native: ["skip", "skip_on"],
+  vm: ["skip", "skip_on", "from"],
+};
+
+// What is wrong with what `value` says of the run under `side`, which takes `keys`.
+function runProblems(side: string, keys: readonly string[], value: unknown): string[] {
   if (!isRecord(value)) return [`\`${side}\` is an object`];
   const out: string[] = [];
   for (const key of Object.keys(value)) {
-    if (key !== "skip" && key !== "skip_on") out.push(`unknown key \`${side}.${key}\``);
+    if (!keys.includes(key)) out.push(`unknown key \`${side}.${key}\``);
   }
   const skip = value["skip"];
   const skipOn = value["skip_on"];
-  if (skip === undefined && skipOn === undefined) out.push(`\`${side}\` excludes nothing`);
+  const from = value["from"];
+  if (skip === undefined && skipOn === undefined && from === undefined) out.push(`\`${side}\` says nothing`);
+  if (from !== undefined && from !== "build") out.push(`\`${side}.from\` is \`"build"\`, the only source besides the bytecode snapshot`);
   if (skip !== undefined && skipOn !== undefined) out.push(`\`${side}.skip\` already excludes every platform`);
   if (skip !== undefined && !isReason(skip)) out.push(`\`${side}.skip\` is its reason, a non-empty string`);
   if (skipOn !== undefined) {
