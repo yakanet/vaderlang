@@ -8,6 +8,7 @@
 
 module "vader/tools/fmt"
 
+import "std/iter"
 import "std/string"
 import "std/string_builder"
 import "vader/support/diagnostics"
@@ -230,9 +231,14 @@ flush_remaining_comments :: fn(self: Printer) -> void {
 
 // Close a braced body at `span`: flush the comments left inside it (after its
 // last member), dedent, and write `}` on its own line.
-close_brace_after_comments :: fn(self: Printer, span: Span) -> void {
-    inner_trailing :: self.comments.has_before(span.end.offset)
-    self.flush_leading_comments(span.end.offset, span.end.line)
+close_brace_after_comments :: fn(self: Printer, span: Span) -> void =
+    self.close_after_comments(span.end, "}")
+
+// Close what ends at `end` with `close` on its own line, after the comments left
+// before it, one level out.
+close_after_comments :: fn(self: Printer, end: Position, close: string) -> void {
+    inner_trailing :: self.comments.has_before(end.offset)
+    self.flush_leading_comments(end.offset, end.line)
     self.depth = self.depth - 1
     // A flush ends on a newline, so only the indent is missing.
     if inner_trailing {
@@ -240,7 +246,7 @@ close_brace_after_comments :: fn(self: Printer, span: Span) -> void {
     } else {
         self.nl_indent()
     }
-    self.write("}")
+    self.write(close)
 }
 
 // Prefix of a trailing comment in the raw output, on a line of its own.
@@ -580,18 +586,39 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write("\"")
             // `import "p" {}`: an empty modifier list is just the bare wildcard;
             // normalise it away (this also silences W0011 on re-format).
-            if nn.names.len() > 0 { self.emit_import_name_block(nn.names, nn.trailing_comma) }
+            if nn.names.len() > 0 {
+                bounds :: ListBounds { .start = d.span.start.offset, .end = d.span.end }
+                self.emit_import_name_block(nn.names, nn.trailing_comma, bounds)
+            }
         }
     }
 }
 
-emit_import_name_block :: fn(self: Printer, names: p.ImportName[], trailing_comma: bool) -> void {
+emit_import_name_block :: fn(
+    self: Printer,
+    names: p.ImportName[],
+    trailing_comma: bool,
+    bounds: ListBounds = ListBounds {},
+) -> void {
     // Dart-style : a trailing comma forces one name per line ; otherwise keep
     // it single-line when it fits under the column budget. `flat` mode
     // (measuring) always renders single-line.
     inline :: self.flat
-        || (!trailing_comma && self.column + flat_import_block_width(self.source, names) <= i64(MAX_LINE))
-    self.emit_comma_list(names, " {", "}", true, inline, emit_import_name)
+        || (
+            !trailing_comma
+                && !self.holds_own_comment(bounds, names, span_of_import_name)
+                && self.column + flat_import_block_width(self.source, names) <= i64(MAX_LINE)
+        )
+    self.emit_comma_list(
+        names,
+        " {",
+        "}",
+        true,
+        inline,
+        emit_import_name,
+        span_of_import_name,
+        bounds,
+    )
 }
 
 // Flat width of an import modifier block rendered as ` { a, b as c }`,
@@ -626,7 +653,11 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
     self.write_name_padded(d.name)
     self.write(" :: fn")
     self.emit_type_params(d.type_params)
-    self.emit_fn_params(d.params, d.trailing_comma)
+    bounds :: ListBounds {
+        .start = d.name_span.end.offset,
+        .end = params_end(d.return_type, d.body, d.span.end),
+    }
+    self.emit_fn_params(d.params, d.trailing_comma, bounds)
     self.emit_type_expr_with_prefix(" -> ", d.return_type)
     self.emit_fn_body(d.body, d.is_expression_bodied)
 }
@@ -665,11 +696,20 @@ emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
     self.write(">")
 }
 
-emit_fn_params :: fn(self: Printer, params: p.FnParam[], trailing_comma: bool) -> void {
+emit_fn_params :: fn(
+    self: Printer,
+    params: p.FnParam[],
+    trailing_comma: bool,
+    bounds: ListBounds = ListBounds {},
+) -> void {
     inline :: self.flat
         || params.len() == 0
-        || (!trailing_comma && self.column + flat_params_width(self.source, params) <= i64(MAX_LINE))
-    self.emit_comma_list(params, "(", ")", false, inline, emit_fn_param)
+        || (
+            !trailing_comma
+                && !self.holds_own_comment(bounds, params, span_of_fn_param)
+                && self.column + flat_params_width(self.source, params) <= i64(MAX_LINE)
+        )
+    self.emit_comma_list(params, "(", ")", false, inline, emit_fn_param, span_of_fn_param, bounds)
 }
 
 // Flat width of a parameter list rendered as `(a: T, b: U)`, including the
@@ -782,7 +822,7 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     self.write(d.name)
     self.write(" :: enum")
     if d.header.len() > 0 {
-        self.emit_comma_list(d.header, "(", ")", false, true, emit_type_expr_item)
+        self.emit_inline_list(d.header, "(", ")", false, emit_type_expr_item)
     }
     if d.variants.len() == 0 {
         self.write(" {}")
@@ -876,7 +916,7 @@ variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
     data :: v.data ?? return 0
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
-    sub.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
+    sub.emit_inline_list(data, "{", "}", true, emit_struct_lit_item)
     return sub.finish().text_width()
 }
 
@@ -893,7 +933,7 @@ emit_enum_variant :: fn(self: Printer, v: p.EnumVariant, columns: EnumVariantCol
     data :: v.data
     if data !is null {
         self.write(" ")
-        self.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
+        self.emit_inline_list(data, "{", "}", true, emit_struct_lit_item)
     }
     value_span :: v.value_span
     if value_span is Span {
@@ -1006,7 +1046,7 @@ emit_impl_head :: fn(self: Printer, d: p.ImplDecl) -> void {
 emit_trait_ref :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.write_name(d.trait_name, d.trait_name_span)
     if d.trait_args.len() > 0 {
-        self.emit_comma_list(d.trait_args, "<", ">", false, true, emit_type_expr_item)
+        self.emit_inline_list(d.trait_args, "<", ">", false, emit_type_expr_item)
     }
 }
 
@@ -1607,14 +1647,64 @@ coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> i64 {
 }
 
 // Whether a delimited construct stays on one line : always in `flat` mode or when
-// empty, never with a source trailing comma, else when its flat form and the
+// empty, never with a source trailing comma or a line comment of its own
+// (`own_comment`, one line has no room for it), else when its flat form and the
 // `trailing` width after it fit within `MAX_LINE`.
-fits_inline :: fn(self: Printer, x: p.Expr, empty: bool, trailing_comma: bool) -> bool {
+fits_inline :: fn(
+    self: Printer,
+    x: p.Expr,
+    empty: bool,
+    trailing_comma: bool,
+    own_comment: bool,
+) -> bool {
     trailing :: self.trailing
     self.trailing = 0
     return self.flat
         || empty
-        || (!trailing_comma && self.fits(flat_printer(self.source, x), trailing))
+        || (!trailing_comma && !own_comment && self.fits(flat_printer(self.source, x), trailing))
+}
+
+// Where a list sits in the source: from `start`, the offset its own comments may
+// start at (its opening delimiter, or the end of the node right before it), to
+// `end`, its closing delimiter. The measuring printers hold no comment and pass
+// no bounds.
+ListBounds :: struct {
+    start: i64 = 0
+    end: Position | null = null
+}
+
+// Whether a line comment still to write sits in `bounds` outside each of `items`:
+// one the list holds itself. A comment inside an item is that item's to place,
+// and a block comment fits on the line of the list.
+holds_own_comment :: fn<T>(
+    self: Printer,
+    bounds: ListBounds,
+    items: T[],
+    span_of: fn(T) -> Span,
+) -> bool {
+    end :: bounds.end ?? return false
+    inside :: (offset: i64) -> items.any_match((it) -> span_of(it).holds_offset(offset))
+    return self.comments.holds_line_comment(bounds.start, end.offset, inside)
+}
+
+// Whether the byte at `offset` is in `span`.
+holds_offset :: fn(span: Span, offset: i64) -> bool =
+    span.start.offset <= offset && offset < span.end.offset
+
+// Where the parameters of a function end: before its return type, else before
+// its body, else at `fallback`, the end of the function.
+params_end :: fn(
+    return_type: p.TypeExpr | null,
+    body: p.BlockExpr | null,
+    fallback: Position,
+) -> Position {
+    if return_type != null {
+        return return_type.span.start
+    }
+    if body != null {
+        return body.span.start
+    }
+    return fallback
 }
 
 // Whether the flat rendering `flat` fits within `MAX_LINE` from the current
@@ -1779,12 +1869,15 @@ note_name :: fn(self: Printer, start: i64, node: Span | p.FieldExpr) -> void {
 }
 
 emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
-    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
+    // The arguments start after the callee: a comment in a receiver is not theirs.
+    bounds :: ListBounds { .start = x.callee.span.end.offset, .end = x.span.end }
+    holds :: self.holds_own_comment(bounds, x.args, (a) -> a.span)
+    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma, holds)
     self.emit_postfix_target(x.callee)
     if x.type_args.len() > 0 {
-        self.emit_comma_list(x.type_args, "<", ">", false, true, emit_type_expr_item)
+        self.emit_inline_list(x.type_args, "<", ">", false, emit_type_expr_item)
     }
-    self.emit_comma_list(x.args, "(", ")", false, inline, emit_call_arg)
+    self.emit_comma_list(x.args, "(", ")", false, inline, emit_call_arg, (a) -> a.span, bounds)
 }
 
 emit_call_arg :: fn(self: Printer, a: p.CallArg) -> void {
@@ -2414,15 +2507,21 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     // lambda with an explicit return type keep the `fn(p) -> T { ... }` form.
     if !x.is_expression_bodied && x.return_type is null && x.body.stmts.len() == 0
         && x.body.trailing != null {
-        self.emit_fn_params(x.params, x.trailing_comma)
+        self.emit_fn_params(x.params, x.trailing_comma, lambda_params_bounds(x))
         self.write(" -> ")
         self.emit_expr(x.body.trailing)
         return
     }
     self.write("fn")
-    self.emit_fn_params(x.params, x.trailing_comma)
+    self.emit_fn_params(x.params, x.trailing_comma, lambda_params_bounds(x))
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
     self.emit_fn_body(x.body, x.is_expression_bodied)
+}
+
+// Where the parameters of the lambda `x` sit.
+lambda_params_bounds :: fn(x: p.LambdaExpr) -> ListBounds {
+    end :: params_end(x.return_type, x.body, x.span.end)
+    return ListBounds { .start = x.span.start.offset, .end = end }
 }
 
 // ---- aggregates ----
@@ -2433,7 +2532,15 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
 // per line, each ending in a trailing comma. An empty list collapses to
 // `open`+`close`. `emit_item` renders a single element: pass the element's
 // dedicated emitter (`emit_call_arg`, `emit_fn_param`, ...). The caller writes
-// any prefix (callee, type name) and computes `inline` before calling.
+// any prefix (callee, type name) and computes `inline` before calling, and
+// never inlines a list a line comment of its own sits in (`holds_own_comment`).
+//
+// Exploded, each item follows the comments that lead it in the source, found
+// before the start of the span `span_of` gives it, and the comments left before
+// the end of `bounds`, the closing delimiter, are written above it. An empty list
+// that holds a comment is exploded around it. A comment from before the list
+// that nothing wrote yet is not the list's: while one is queued, the list writes
+// none, and they all go to the node after.
 emit_comma_list :: fn<T>(
     self: Printer,
     items: T[],
@@ -2441,33 +2548,82 @@ emit_comma_list :: fn<T>(
     close: string,
     inner_space: bool,
     inline: bool,
-    emit_item: fn(Printer, T) -> void
+    emit_item: fn(Printer, T) -> void,
+    span_of: fn(T) -> Span,
+    bounds: ListBounds,
+) -> void {
+    end :: bounds.end
+    if items.len() == 0 {
+        if end != null && self.holds_own_comment(bounds, items, span_of) {
+            self.write(open)
+            self.depth = self.depth + 1
+            self.close_after_comments(end, close)
+            return
+        }
+        self.emit_inline_list(items, open, close, inner_space, emit_item)
+        return
+    }
+    if inline {
+        self.emit_inline_list(items, open, close, inner_space, emit_item)
+        return
+    }
+    places_comments :: !self.comments.has_before(bounds.start)
+    self.write(open)
+    self.depth = self.depth + 1
+    for it in items {
+        self.newline()
+        if places_comments {
+            // Line 0: no blank line between a comment and its item, as a list
+            // keeps none between its items.
+            self.flush_leading_comments(span_of(it).start.offset, 0)
+        }
+        self.indent()
+        emit_item(self, it)
+        self.write(",")
+    }
+    if places_comments && end != null {
+        self.close_after_comments(end, close)
+        return
+    }
+    self.depth = self.depth - 1
+    self.nl_indent()
+    self.write(close)
+}
+
+// Emit `items` on one line between `open` and `close`, separated by `, `, with
+// an inner space on each side when `inner_space`: a list that never explodes,
+// as type arguments do.
+emit_inline_list :: fn<T>(
+    self: Printer,
+    items: T[],
+    open: string,
+    close: string,
+    inner_space: bool,
+    emit_item: fn(Printer, T) -> void,
 ) -> void {
     self.write(open)
     if items.len() == 0 {
         self.write(close)
         return
     }
-    if inline {
-        if inner_space { self.write(" ") }
-        for i in 0..<items.len() {
-            if i > 0 { self.write(", ") }
-            emit_item(self, items[i])
+    if inner_space {
+        self.write(" ")
+    }
+    for i in 0..<items.len() {
+        if i > 0 {
+            self.write(", ")
         }
-        if inner_space { self.write(" ") }
-        self.write(close)
-        return
+        emit_item(self, items[i])
     }
-    self.depth = self.depth + 1
-    for it in items {
-        self.nl_indent()
-        emit_item(self, it)
-        self.write(",")
+    if inner_space {
+        self.write(" ")
     }
-    self.depth = self.depth - 1
-    self.nl_indent()
     self.write(close)
 }
+
+span_of_fn_param :: fn(fp: p.FnParam) -> Span = fp.span
+
+span_of_import_name :: fn(n: p.ImportName) -> Span = n.span
 
 // Adapter so `emit_expr` (which accepts `Expr | null`) can be passed as an
 // `emit_comma_list` item emitter over a non-null `Expr` element.
@@ -2478,9 +2634,20 @@ emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
     // otherwise stay single-line iff it fits within `MAX_LINE` at the current
     // column. `flat` mode (measuring) always renders single-line. An empty
     // literal collapses to `Type {}`.
-    inline :: self.fits_inline(x, x.items.len() == 0, x.trailing_comma)
+    bounds :: ListBounds { .start = x.span.start.offset, .end = x.span.end }
+    holds :: self.holds_own_comment(bounds, x.items, (it) -> it.span)
+    inline :: self.fits_inline(x, x.items.len() == 0, x.trailing_comma, holds)
     self.emit_type_expr(x.type_name)
-    self.emit_comma_list(x.items, " {", "}", true, inline, emit_struct_lit_item)
+    self.emit_comma_list(
+        x.items,
+        " {",
+        "}",
+        true,
+        inline,
+        emit_struct_lit_item,
+        (it) -> it.span,
+        bounds,
+    )
 }
 
 emit_struct_lit_item :: fn(self: Printer, it: p.StructLitField | p.StructLitSpread) -> void {
@@ -2518,8 +2685,19 @@ flat_stmt_width :: fn(source: string, st: p.Stmt) -> i64 {
 }
 
 emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {
-    inline :: self.fits_inline(x, x.elements.len() == 0, x.trailing_comma)
-    self.emit_comma_list(x.elements, "[", "]", false, inline, emit_expr_item)
+    bounds :: ListBounds { .start = x.span.start.offset, .end = x.span.end }
+    holds :: self.holds_own_comment(bounds, x.elements, (e) -> e.span)
+    inline :: self.fits_inline(x, x.elements.len() == 0, x.trailing_comma, holds)
+    self.emit_comma_list(
+        x.elements,
+        "[",
+        "]",
+        false,
+        inline,
+        emit_expr_item,
+        (e) -> e.span,
+        bounds,
+    )
 }
 
 emit_range :: fn(self: Printer, x: p.RangeExpr) -> void {
@@ -2561,14 +2739,16 @@ emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
 
 emit_generic_inst :: fn(self: Printer, x: p.GenericInstExpr) -> void {
     self.emit_postfix_target(x.callee)
-    self.emit_comma_list(x.type_args, "<", ">", false, true, emit_type_expr_item)
+    self.emit_inline_list(x.type_args, "<", ">", false, emit_type_expr_item)
 }
 
 emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {
-    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
+    bounds :: ListBounds { .start = x.span.start.offset, .end = x.span.end }
+    holds :: self.holds_own_comment(bounds, x.args, (e) -> e.span)
+    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma, holds)
     self.write("@")
     self.write(x.name)
-    self.emit_comma_list(x.args, "(", ")", false, inline, emit_expr_item)
+    self.emit_comma_list(x.args, "(", ")", false, inline, emit_expr_item, (e) -> e.span, bounds)
 }
 
 emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {

@@ -66,7 +66,7 @@ export format_decl_head :: fn(source: string, d: p.Decl) -> NamedText {
             h.write(d.name)
             h.write(" :: enum")
             if d.header.len() > 0 {
-                h.emit_comma_list(d.header, "(", ")", false, true, emit_type_expr_item)
+                h.emit_inline_list(d.header, "(", ")", false, emit_type_expr_item)
             }
         }
         is p.TraitDecl -> {
@@ -126,7 +126,7 @@ export format_variant_head :: fn(source: string, v: p.EnumVariant) -> NamedText 
     data :: v.data
     if data !is null {
         h.write(" ")
-        h.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
+        h.emit_inline_list(data, "{", "}", true, emit_struct_lit_item)
     }
     value_span :: v.value_span
     if value_span is Span {
@@ -285,7 +285,8 @@ emit_fn_head :: fn(h: Printer, d: p.FnDecl, inline: bool) -> void {
     h.write(d.name)
     h.write(" :: fn")
     h.emit_type_params(d.type_params)
-    h.emit_comma_list(d.params, "(", ")", false, inline, emit_fn_param)
+    bounds :: ListBounds {}
+    h.emit_comma_list(d.params, "(", ")", false, inline, emit_fn_param, span_of_fn_param, bounds)
     h.emit_type_expr_with_prefix(" -> ", d.return_type)
 }
 

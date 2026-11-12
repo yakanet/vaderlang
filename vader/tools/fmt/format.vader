@@ -202,6 +202,88 @@ test_fmt_keeps_a_conditional_value_ending_a_block :: fn() -> void {
     fmt_leaves("module \"t\"\n\nf :: fn(k: i32) -> i32 {\n    j :: k + 1\n    if j > 0 { 1 } else { 2 }\n}\n")
 }
 
+@test
+test_fmt_keeps_the_comments_inside_an_exploded_list :: fn() -> void {
+    fmt_leaves(r"""
+        module "t"
+
+        g :: fn(
+            // the first
+            a: i32,
+            b: i32,
+        ) -> i32 = a + b
+
+        main :: fn() -> i32 {
+            p :: P {
+                .a = 1,
+                // the second
+                .b = 2,
+                .c = 3, // trailing
+            }
+            q :: g(
+                1,
+                // the second argument
+                [
+                    1,
+                    // last
+                ],
+            )
+            r :: h([
+                1,
+                // the second
+                2,
+            ])
+            return 0
+        }
+        """)
+}
+
+@test
+test_fmt_keeps_a_comment_after_the_last_item_of_a_list :: fn() -> void {
+    fmt_leaves(r"""
+        module "t"
+
+        import "p" {
+            a as b,
+            c as _, // drop c
+        }
+
+        f :: fn(
+            a: i32,
+            // reserved
+        ) -> void {
+            use(a)
+        }
+
+        out: i32[]: [
+            // filled below
+        ]
+        """)
+}
+
+@test
+test_fmt_leaves_a_list_on_its_line_when_the_comment_is_not_its_own :: fn() -> void {
+    // A comment in a receiver is not the arguments', and a block comment fits on
+    // the line of the list.
+    fmt_leaves(r"""
+        module "t"
+
+        f :: fn() -> void {
+            ys :: xs.filter(fn(x: i32) -> bool {
+                // even
+                return x % 2 == 0
+            }).map(double)
+            q :: g(a + b, (y) -> y)
+        }
+        """)
+}
+
+@test
+test_fmt_explodes_a_list_a_comment_sits_in :: fn() -> void {
+    exploded :: "    q :: g(\n        1,\n        // the second\n        2,\n    )\n"
+    fmt_keeps("f :: fn() -> void {\n    q :: g(1,\n        // the second\n        2)\n}", exploded)
+}
+
 // Formatting `source` must give it back unchanged.
 fmt_leaves :: fn(source: string) -> void {
     assert_eq(formatted(source), source)
