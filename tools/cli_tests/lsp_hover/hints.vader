@@ -104,6 +104,25 @@ test_an_inlay_hint_anchors_on_the_operator_whatever_the_spacing :: fn() -> void 
     assert_eq(hint_entry(found[0]), "i32 3:11")
 }
 
+INLAY_DECORATED_SOURCE :: r"""
+    module "demo"
+
+    @comptime
+    export LIMIT :: 10 * 4
+
+    main :: fn() -> i32 = LIMIT
+    """
+
+@test
+test_an_inlay_hint_of_a_decorated_constant_stays_on_its_operator :: fn() -> void {
+    document :: whole_document(INLAY_DECORATED_SOURCE)
+    results :: drive("hints_decorated", INLAY_DECORATED_SOURCE, [document])
+    hints :: array_at(results[0], [])
+    // `export LIMIT :: 10 * 4`, one line under its decorator: before the second
+    // `:`, at character 14.
+    assert_eq(labelled(starting_with(hints, "i32")).join(", "), "i32 3:14")
+}
+
 RETURN_HINT_SOURCE :: r"""
     module "demo"
 
