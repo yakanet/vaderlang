@@ -1,0 +1,198 @@
+// tools/cli_tests/rpc/rpc: the JSON-RPC the servers of the toolchain speak on
+// their standard streams, `vader lsp` and `vader dap`, as a test sends and reads
+// it.
+//
+// A message is a frame: a `Content-Length` header, a blank line, then that many
+// bytes of JSON. A test whose messages do not depend on the answers writes them
+// all at once and reads every frame the server sent once it ended (`exchange`);
+// one that answers the server as it goes opens a `Session`. A message is written
+// as the text of its JSON, a string the test interpolates (`quoted` escapes one
+// value), and read back as a `JsonValue`.
+
+module "tools/cli_tests/rpc"
+
+import "json"
+import "std/abort"
+import "std/iter"
+import "std/option"
+import "std/process"
+import "std/string"
+import "std/task"
+import "std/uri"
+import "tools/cli_tests/cli"
+
+/// The frame of `message`, the text of a JSON value.
+///
+/// @param message  the JSON of the message.
+export frame :: fn(message: string) -> string =
+    "Content-Length: ${message.byte_len()}\r\n\r\n${message}"
+
+/// `text` as a JSON string, quoted and escaped: what a message interpolates for
+/// a path, a URI or the text of a document.
+///
+/// @param text  the value.
+export quoted :: fn(text: string) -> string = stringify(JsonString { .value = text })
+
+/// The `file` URI of `path`, as the server spells it.
+///
+/// @param path  an absolute path.
+export file_uri :: fn(path: string) -> string = "${to_uri(path)}"
+
+// What ends the header of a frame.
+HEADER_END :: "\r\n\r\n"
+
+// What opens the line of a header that says how long the body is.
+LENGTH_FIELD :: "content-length:"
+
+/// The messages of the complete frames at the start of `text`, and what follows
+/// the last one: a frame that is still arriving.
+export Frames :: struct {
+    messages: JsonValue[]
+    rest: string
+}
+
+/// Split `text` into the messages of its complete frames. A frame whose body is
+/// no JSON, or whose header names no length, fails the test.
+///
+/// @param text  what a server wrote, from the start of a frame.
+export frames_of :: fn(text: string) -> Frames {
+    messages: JsonValue[]: []
+    rest := text
+    for {
+        parts :: rest.split_first(HEADER_END) ?? break
+        length :: body_length(parts.0)
+        if length == null {
+            panic("no `Content-Length` in the header `${parts.0}`")
+        }
+        if parts.1.byte_len() < length {
+            break
+        }
+        messages.push(parse(parts.1.byte_slice(0, length)).unwrap())
+        rest = parts.1.byte_slice(length, parts.1.byte_len())
+    }
+    return Frames { .messages = messages, .rest = rest }
+}
+
+// The length the header `header` gives the body; null when it names none.
+body_length :: fn(header: string) -> i64 | null {
+    for line in header.split("\r\n") {
+        if line.to_lower().starts_with(LENGTH_FIELD) {
+            value :: line.byte_slice(LENGTH_FIELD.byte_len(), line.byte_len()).trim()
+            parsed :: value.parse_int()
+            if parsed is i32 {
+                return i64(parsed)
+            }
+        }
+    }
+    return null
+}
+
+/// Run `vader` with `args`, every one of `messages` written to its stdin before
+/// it is closed, and give back the messages it sent, in order.
+///
+/// @param args      what follows `vader` on its command line: `lsp`, `dap`.
+/// @param messages  the JSON of each message, in the order it is sent.
+export exchange :: fn(args: string[], messages: string[]) -> JsonValue[] {
+    input :: messages.map(frame).collect().join("")
+    ran :: run_vader(args, RunOptions { .stdin = input }).unwrap()
+    return frames_of(ran.stdout).messages
+}
+
+/// A server of the toolchain spoken to one message at a time.
+export Session :: struct {
+    child: ChildProcess
+    /// Every message the server sent so far, in order.
+    messages: JsonValue[] = []
+    /// What the server wrote that is no whole frame yet.
+    @internal
+    pending: string = ""
+}
+
+/// Start `vader` with `args` as a server.
+///
+/// @param args     what follows `vader` on its command line: `lsp`, `dap`.
+/// @param options  where it runs and the changes to its environment.
+/// @error          `ProcessError` when it cannot be launched.
+export open_session :: fn(
+    args: string[],
+    options: RunOptions = RunOptions {},
+) -> Session | ProcessError {
+    child :: spawn_vader(args, options)
+    if child is ProcessError {
+        return child
+    }
+    return Session { .child = child }
+}
+
+/// Write `message` to the server.
+///
+/// @param message  the JSON of the message.
+export send :: fn(session: Session, message: string) -> void {
+    session.child.write_input(frame(message).bytes())
+}
+
+/// The first message from the position `from` of `session.messages` on that
+/// `wanted` takes, reading what the server writes until one comes; null when
+/// the server ends first, or writes nothing for `DEFAULT_TIMEOUT`.
+///
+/// @param wanted  what the message must be.
+/// @param from    the first position looked at: what came before is older than
+///                what the test waits for.
+export wait_for :: fn(
+    session: Session,
+    wanted: fn(JsonValue) -> bool,
+    from: i64 = 0,
+) -> JsonValue | null {
+    seen := from
+    for {
+        for seen < session.messages.len() {
+            message :: session.messages[seen]
+            if wanted(message) {
+                return message
+            }
+            seen += 1
+        }
+        if !read_more(session) {
+            return null
+        }
+    }
+}
+
+// Read what the server writes next into `session.messages`; false once it has
+// ended, or when it writes nothing for `DEFAULT_TIMEOUT`.
+read_more :: fn(session: Session) -> bool {
+    child :: session.child
+    taken :: launch(() -> child.read_output()).timeout(DEFAULT_TIMEOUT)
+    if taken is ChildOutput {
+        decoded :: frames_of(session.pending + taken.out.bytes_to_string())
+        session.messages.push_all(decoded.messages)
+        session.pending = decoded.rest
+        return !taken.ended || decoded.messages.len() > 0
+    }
+    return false
+}
+
+/// Read what the server writes until it ends, or stays silent for
+/// `DEFAULT_TIMEOUT`, then stop it: `session.messages` then holds all it sent.
+export finish :: fn(session: Session) -> void {
+    for read_more(session) {}
+    session.child.kill()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_frame_holds_the_length_of_its_body_in_bytes :: fn() -> void {
+    assert_eq(frame("{\"a\":\"é\"}"), "Content-Length: 10\r\n\r\n{\"a\":\"é\"}")
+}
+
+@test
+test_the_frames_of_a_text_keep_a_frame_still_arriving :: fn() -> void {
+    text :: frame("{\"id\":1}") + frame("[2]") + "Content-Length: 9\r\n\r\n{\"id\""
+    decoded :: frames_of(text)
+    assert_eq(decoded.messages.len(), 2)
+    assert_eq(stringify(decoded.messages[1]), "[2]")
+    assert_eq(decoded.rest, "Content-Length: 9\r\n\r\n{\"id\"")
+}

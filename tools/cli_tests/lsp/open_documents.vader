@@ -1,0 +1,225 @@
+// tools/cli_tests/lsp/open_documents: the server sees the documents an editor
+// holds open as it sees the disk.
+//
+// A document never saved belongs to the module of its folder, a file with no
+// `module` line is told so on itself, no request answers with another file's
+// data, a file changed outside the editor reaches the open documents once the
+// client reports it, an open document whose file is deleted leaves its module,
+// changes batched in one notification leave the document at the last one, and a
+// document is the same whichever way the client spells its URI. The session is
+// driven one message at a time: what the test sends next depends on what the
+// server answered.
+
+module "tools/cli_tests/lsp"
+
+import "json"
+import "std/fs"
+import "std/iter"
+import "std/option"
+import "std/string"
+import "std/uri"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/rpc"
+
+SIBLING :: "module \"demo\"\n\nANSWER :: 40 + 2\n"
+
+// A sibling that declares a typed constant: it has no hint of its own.
+TYPED_SIBLING :: "module \"demo\"\n\nANSWER: i64: 42\n"
+
+TWICE :: "module \"demo\"\n\nexport TWICE :: ANSWER * 2\n"
+
+WHOLE_FILE :: r"""{"start":{"line":0,"character":0},"end":{"line":100,"character":0}}"""
+
+// A fresh project `name` tells apart, holding each of `files`: its name, then its
+// text.
+project :: fn(name: string, files: [string, string][]) -> string {
+    dir :: scratch_dir("lsp_open_${name}")
+    for file in files {
+        write_file("${dir}/${file.0}", file.1)
+    }
+    return dir
+}
+
+// The parameters of a request on the document `uri`, with the members `more`
+// opens with a comma.
+on_document :: fn(uri: string, more: string = "") -> string =
+    """{"textDocument":{"uri":${quoted(uri)}}${more}}"""
+
+// The inlay hints of the whole document `uri`: the label and the line of each.
+hints_of :: fn(client: Client, uri: string) -> string {
+    hints :: request(client, "textDocument/inlayHint", on_document(uri, ",\"range\":${WHOLE_FILE}"))
+    shown: string[]: []
+    for hint in items_at(hints, []) {
+        label :: string_member(hint, "label") ?? ""
+        shown.push("${label}@${int_at(hint, ["position", "line"])}")
+    }
+    return shown.join(" ")
+}
+
+// The notification that the files `changes` name changed on the disk: the URI of
+// each, then its kind (1 created, 2 changed, 3 deleted).
+watched_changes :: fn(changes: [string, i32][]) -> string {
+    listed :: changes.map((c) -> """{"uri":${quoted(c.0)},"type":${c.1}}""").collect()
+    return notification("workspace/didChangeWatchedFiles", """{"changes":[${listed.join(",")}]}""")
+}
+
+// The diagnostics of `diagnostics` a resolver or a typecheck reports, as
+// `<code>@<line>`.
+error_places :: fn(diagnostics: JsonValue[]) -> string {
+    places: string[]: []
+    for d in errors(diagnostics) {
+        places.push("${code_of(d)}@${int_at(d, ["range", "start", "line"])}")
+    }
+    return places.join(" ")
+}
+
+// The `file` URI of `path` as VS Code spells it: every byte of a component but
+// the unreserved ones escaped, so that `+` reads `%2B`, which the server's own
+// URI keeps bare.
+editor_uri :: fn(path: string) -> string {
+    posix :: path.replace_all("\\", "/")
+    // A Windows drive path, `C:/...`, takes the `/` a URI path opens with.
+    rooted :: if posix.starts_with("/") { posix } else { "/${posix}" }
+    return "file://" + rooted.split("/").map(percent_encode).collect().join("/")
+}
+
+// Whether `message` answers the request `id`, the JSON of its id, with an error.
+refuses :: fn(message: JsonValue, id: string) -> bool =
+    stringify(member(message, "id") ?? JsonNull {}) == id && member(message, "error") != null
+
+// Whether `message` asks the client to register a capability.
+registers :: fn(message: JsonValue) -> bool =
+    string_member(message, "method") == "client/registerCapability"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_an_open_document_never_saved_belongs_to_the_module_of_its_folder :: fn() -> void {
+    dir :: project("unsaved", [["a.vader", TYPED_SIBLING]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/b.vader")
+    client.send(did_open(uri, TWICE))
+    assert_eq(error_places(diagnostics_of(client, uri)), "")
+    assert_eq(hints_of(client, uri), "i64@2")
+    close_client(client)
+}
+
+@test
+test_a_file_with_no_module_line_is_told_so_on_itself_and_shows_no_other_hints :: fn() -> void {
+    // Empty on the disk, as an editor creates a file before its first save.
+    dir :: project("no_module", [["a.vader", SIBLING], ["b.vader", ""]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/b.vader")
+    client.send(did_open(uri, "\nrun :: fn() -> void {}\n"))
+    assert_eq(error_places(coded(diagnostics_of(client, uri), "R2020")), "R2020@0")
+    assert_eq(hints_of(client, uri), "")
+    close_client(client)
+}
+
+@test
+test_the_server_asks_to_watch_files_only_when_the_client_can_register :: fn() -> void {
+    dir :: project("watch", [["a.vader", SIBLING]])
+    capabilities :: r"""{"workspace":{"didChangeWatchedFiles":{"dynamicRegistration":true}}}"""
+    watching :: start_client(dir, capabilities)
+    registration :: watching.awaited(registers, "registration")
+    registered :: items_at(registration, ["params", "registrations"])
+    assert_eq(registered.len(), 1)
+    assert_eq(string_member(registered[0], "method") ?? "", "workspace/didChangeWatchedFiles")
+    watchers :: items_at(registered[0], ["registerOptions", "watchers"])
+    patterns :: watchers.map((w) -> string_member(w, "globPattern") ?? "").collect()
+    assert_eq(patterns.join(" "), "**/*.vader **/vader.json")
+    // The client's answer is a response, not a request to refuse.
+    id :: stringify(member(registration, "id") ?? JsonNull {})
+    watching.send("""{"jsonrpc":"2.0","id":${id},"result":null}""")
+    close_client(watching)
+    assert_eq(watching.session.messages.filter((m) -> refuses(m, id)).count(), 0)
+    silent :: start_client(dir)
+    close_client(silent)
+    assert_eq(silent.session.messages.filter(registers).count(), 0)
+}
+
+@test
+test_a_sibling_written_outside_the_editor_reaches_the_open_document_once_reported :: fn() -> void {
+    dir :: project("sibling", [["a.vader", "module \"demo\"\n"], ["b.vader", ""]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/b.vader")
+    client.send(did_open(uri, TWICE))
+    assert("R2006" in codes(errors(diagnostics_of(client, uri))), "`ANSWER` unresolved")
+    write_file("${dir}/a.vader", SIBLING)
+    reported :: mark(client)
+    client.send(watched_changes([[file_uri("${dir}/a.vader"), 2]]))
+    assert_eq(error_places(diagnostics_of(client, uri, reported)), "")
+    close_client(client)
+}
+
+@test
+test_a_document_renamed_outside_the_editor_leaves_its_module_under_the_old_name :: fn() -> void {
+    dir :: project("renamed", [["old.vader", SIBLING]])
+    client :: start_client(dir)
+    old_uri :: file_uri("${dir}/old.vader")
+    new_uri :: file_uri("${dir}/new.vader")
+    client.send(did_open(old_uri, SIBLING))
+    assert_eq(error_places(diagnostics_of(client, old_uri)), "")
+    // As `git mv` reaches an editor that keeps the old document open: a deletion
+    // and a creation, and no didClose.
+    rename("${dir}/old.vader", "${dir}/new.vader").unwrap()
+    renamed :: mark(client)
+    client.send(watched_changes([[old_uri, 3], [new_uri, 1]]))
+    client.send(did_open(new_uri, SIBLING))
+    assert_eq(diagnostics_of(client, old_uri, renamed).len(), 0)
+    assert_eq(error_places(diagnostics_of(client, new_uri, renamed)), "")
+    close_client(client)
+}
+
+@test
+test_a_deletion_reported_for_a_file_still_on_the_disk_keeps_the_open_document :: fn() -> void {
+    // A save that renames a copy over the file can be reported as a deletion.
+    dir :: project("kept", [["a.vader", TYPED_SIBLING], ["b.vader", ""]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/b.vader")
+    client.send(did_open(uri, TWICE))
+    assert_eq(error_places(diagnostics_of(client, uri)), "")
+    client.send(watched_changes([[uri, 3]]))
+    assert_eq(hints_of(client, uri), "i64@2")
+    close_client(client)
+}
+
+@test
+test_changes_batched_in_one_notification_leave_the_document_at_the_last_one :: fn() -> void {
+    dir :: project("batched", [["a.vader", SIBLING]])
+    client :: start_client(dir)
+    uri :: file_uri("${dir}/b.vader")
+    client.send(did_open(uri, "module \"demo\"\n\nTWICE :: ANSWER * 2\n"))
+    assert_eq(error_places(diagnostics_of(client, uri)), "")
+    changed :: mark(client)
+    first :: quoted("module \"demo\"\n\nTWICE :: MISSING * 2\n")
+    last :: quoted("module \"demo\"\n\nTWICE :: ANSWER * 2\n\nTHRICE :: GONE * 3\n")
+    document :: """{"uri":${quoted(uri)},"version":2}"""
+    changes :: """[{"text":${first}},{"text":${last}}]"""
+    params :: """{"textDocument":${document},"contentChanges":${changes}}"""
+    client.send(notification("textDocument/didChange", params))
+    assert_eq(error_places(diagnostics_of(client, uri, changed)), "R2006@4")
+    close_client(client)
+}
+
+@test
+test_an_open_document_is_found_again_whichever_way_the_client_spells_its_uri :: fn() -> void {
+    // A folder whose name the server's URIs and VS Code's spell apart.
+    dir :: "${project("spelled", [])}/a+b c"
+    create_dir(dir)
+    write_file("${dir}/a.vader", "module \"demo\"\n")
+    write_file("${dir}/b.vader", "")
+    client :: start_client(dir)
+    // The sibling's declaration exists only in its unsaved text.
+    client.send(did_open(editor_uri("${dir}/a.vader"), SIBLING))
+    uri :: editor_uri("${dir}/b.vader")
+    client.send(did_open(uri, TWICE))
+    assert_eq(error_places(diagnostics_of(client, file_uri("${dir}/b.vader"))), "")
+    position :: r""","position":{"line":2,"character":17}"""
+    found :: request(client, "textDocument/definition", on_document(uri, position))
+    assert_eq(string_member(found, "uri") ?? "", file_uri("${dir}/a.vader"))
+    assert_eq(int_at(found, ["range", "start", "line"]), 2)
+    close_client(client)
+}

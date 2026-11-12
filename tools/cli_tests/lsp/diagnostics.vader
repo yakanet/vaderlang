@@ -1,0 +1,132 @@
+// tools/cli_tests/lsp/diagnostics: what the server publishes for a document it
+// is given, unasked: the lints of dead code, a private declaration (W0007) and
+// an export nothing reaches (W0012), scoped to the document and faded, what the
+// evaluation at compile time reports, and each diagnostic once.
+
+module "tools/cli_tests/lsp"
+
+import "json"
+import "std/fs"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/rpc"
+
+// The diagnostics of the last publication for `source`, opened as the document
+// `lint-me.vader` of a fresh project named after `name`.
+diagnostics_for :: fn(name: string, source: string) -> JsonValue[] {
+    dir :: scratch_dir("lsp_diagnostics_${name}")
+    file :: "${dir}/lint-me.vader"
+    write_file(file, source)
+    uri :: file_uri(file)
+    sent :: [initialize(1, dir), INITIALIZED, did_open(uri, source), SHUTDOWN, EXIT]
+    last: JsonValue[] = []
+    for message in exchange(server_args(), sent) {
+        if publishes_for(message, uri) {
+            last = items_at(message, ["params", "diagnostics"])
+        }
+    }
+    return last
+}
+
+// The codes of `diagnostics` the evaluation at compile time reports, sorted.
+comptime_codes :: fn(diagnostics: JsonValue[]) -> string {
+    found :: diagnostics.map(code_of).filter((c) -> c.starts_with("C")).collect()
+    return sort(found, compare_ascending).join(" ")
+}
+
+// Check that `diagnostic` is a warning rendered faded, naming `name`.
+assert_faded_warning :: fn(diagnostic: JsonValue, name: string) -> void {
+    message :: string_member(diagnostic, "message") ?? ""
+    assert(name in message, message)
+    assert_eq(number_member(diagnostic, "severity") ?? 0.0, 2.0)
+    assert_eq(stringify(member(diagnostic, "tags") ?? JsonNull {}), "[1]")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_server_publishes_w0012_on_an_export_nothing_reaches_faded :: fn() -> void {
+    // The message of `orphan` holds the word "used", hence the count.
+    source :: """
+        module "snippet"
+        export used :: fn() -> i32 = 1
+        export orphan :: fn() -> i32 = 2
+        main :: fn() -> i32 = used()
+        """
+    unused :: coded(diagnostics_for("w0012", source), "W0012")
+    assert_eq(unused.len(), 1)
+    assert_faded_warning(unused[0], "orphan")
+}
+
+@test
+test_the_server_publishes_no_w0012_when_every_export_is_reached :: fn() -> void {
+    source :: """
+        module "snippet"
+        export twice :: fn(n: i32) -> i32 = n * 2
+        main :: fn() -> i32 = twice(21)
+        """
+    assert_eq(coded(diagnostics_for("reached", source), "W0012").len(), 0)
+}
+
+@test
+test_the_server_publishes_w0007_on_an_unused_private_fn_faded :: fn() -> void {
+    source :: """
+        module "snippet"
+        helper :: fn() -> i32 = 3
+        main :: fn() -> i32 = 0
+        """
+    dead :: coded(diagnostics_for("w0007", source), "W0007")
+    assert_eq(dead.len(), 1)
+    assert_faded_warning(dead[0], "helper")
+}
+
+@test
+test_the_server_publishes_a_division_by_zero_and_a_cycle_at_compile_time :: fn() -> void {
+    source :: """
+        module "snippet"
+        @comptime
+        export BOOM :: 10 / 0
+        @comptime
+        export A: i32: B + 1
+        @comptime
+        export B: i32: A + 1
+        """
+    assert_eq(comptime_codes(diagnostics_for("comptime", source)), "C4005 C4009")
+}
+
+@test
+test_the_server_publishes_an_extern_claimed_twice_and_a_variadic_with_no_header :: fn() -> void {
+    source :: """
+        module "snippet"
+        @extern("abs")
+        c_abs :: fn(x: i32) -> i32
+        @extern("abs")
+        c_abs_again :: fn(x: i32) -> i32
+        @extern("snprintf")
+        format :: fn(out: u8[], size: usize, pattern: string, @c_variadic value: i32) -> i32
+        """
+    assert_eq(comptime_codes(diagnostics_for("externs", source)), "C4020 C4021")
+}
+
+@test
+test_the_server_publishes_each_diagnostic_once_as_the_command_prints_it :: fn() -> void {
+    // An `implements` naming an unknown type reports some of its spans twice.
+    source :: """
+        module "snippet"
+        Vector2 implements Add<Vector2> -> Vector2 { .x = self.x + other.x }
+        """
+    keys: string[]: []
+    for d in diagnostics_for("once", source) {
+        start :: ["range", "start"]
+        line :: int_at(d, start + ["line"])
+        column :: int_at(d, start + ["character"])
+        keys.push("${code_of(d)}@${line}:${column}")
+    }
+    assert(keys.len() > 0, "diagnostics")
+    unique :: keys.filter((key) -> keys.filter((other) -> other == key).count() == 1).count()
+    assert_eq(unique, keys.len())
+}

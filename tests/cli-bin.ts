@@ -20,50 +20,8 @@ export const exePath = (base: string) => `${base}${EXE_SUFFIX}`;
 
 export const CLI_BIN = exePath("build/vader");
 
-// The compiler the CLI would invoke on THIS host, mirroring
-// `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
-// half on the platform that most needs it, and did not even skip cleanly, since
-// `spawn` THROWS on a missing program rather than exiting non-zero.
-const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
-
-// This machine as `<os>-<arch>`, the spelling of `VADER_OS` and `VADER_ARCH`.
-export const HOST_TARGET = `${hostOs()}-${hostArch()}`;
-
-function hostOs(): string {
-  if (process.platform === "win32") return "windows";
-  return process.platform;
-}
-
-function hostArch(): string {
-  if (process.arch === "x64") return "x86_64";
-  return process.arch;
-}
-
-// The toolchain this checkout is: a test building a project outside the repo
-// points `$VADER_HOME` here, so the project finds `lib/` and `third_party/`.
-export const TOOLCHAIN_ENV = { VADER_HOME: resolve(import.meta.dir, "..") };
-
-/// Whether `HOST_CC` runs, for the tests whose native half needs a C toolchain.
-export async function haveCc(): Promise<boolean> {
-  try {
-    const proc = Bun.spawn([HOST_CC, "--version"], { stdout: "ignore", stderr: "ignore" });
-    return (await proc.exited) === 0;
-  } catch {
-    return false;
-  }
-}
-
-// Per-test timeout budgets shared across the CLI / VM / format suites.
+// The per-test timeout of the suite, see tests/setup.ts.
 export const MEDIUM_BUILD = 30_000;
-export const LONG_BUILD = 120_000;
-// For a test that compiles a driver. A driver compile pulls the whole `vader/`
-// closure at -O0: the same order of work as the CI step that builds the CLI from
-// the seed. Measured: 7 s locally, and 139-272 s per driven build on a Windows
-// runner (job log, run #224), the spread being the wait for a slot in
-// `hook_driver`'s four-deep gate. 300 s left the slowest of those 30 s from the
-// cap, which is a flake waiting to happen, hence twice that. This is a KILL
-// CEILING, not a target: raising it costs nothing until something hangs.
-export const HEAVY_BUILD = 600_000;
 
 // Newest mtime across the .vader sources the compiler is built from: `vader/`
 // and `lib/`.

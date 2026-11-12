@@ -1,0 +1,95 @@
+// tools/cli_tests/lsp/driven: the server reads the search roots a project's
+// `build.vader` declares.
+//
+// The server has the driver describe itself through `vader info --json`,
+// without waiting on it and without ever compiling it, and holds the document's
+// diagnostics back until the roots are known: the import of a module under a
+// root the driver declares never shows as unresolved. A build typed in a
+// terminal compiles the driver, as `vader info` does here.
+
+module "tools/cli_tests/lsp"
+
+import "json"
+import "std/fs"
+import "std/iter"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/rpc"
+
+// A driver that declares the search root `vendor`, and packages its build when
+// it builds, not when it describes itself.
+ROOTED_DRIVER :: r"""
+    module "build"
+
+    import "std/console"
+    import "toolchain/build"
+
+    build :: fn(args: string[]) -> i32 {
+        ctx :: new_build_context(args)
+        ctx.include_paths.push("vendor")
+        ctx.add_entry("app", "src/main.vader")
+        code :: ctx.emit_native()
+        if code == 0 && ctx.mode() == .Build {
+            println("packaged")
+        }
+        return code
+    }
+    """
+
+GREETED_MAIN :: r"""
+    module "src"
+
+    import "greet"
+    import "std/console"
+
+    main :: fn() -> i32 {
+        println(greeting())
+        return 0
+    }
+    """
+
+// What `vader info .` did in the project `dir`, its driver compiled first.
+described :: fn(dir: string) -> ProcessResult = vader_in(dir, ["info", "."], [], HEAVY_TIMEOUT)
+
+// The diagnostics of the next publication for `uri` from the position `from` on,
+// as JSON; none fails the test.
+published_from :: fn(client: Client, uri: string, from: i64) -> string =
+    diagnostics_of(client, uri, from).map((d) -> stringify(d)).collect().join("\n")
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_server_reads_the_search_roots_a_driver_declares :: fn() -> void {
+    dir :: scratch_dir("lsp_driven")
+    create_dir("${dir}/src")
+    create_dir("${dir}/vendor/greet")
+    write_file("${dir}/build.vader", ROOTED_DRIVER)
+    write_file("${dir}/src/main.vader", GREETED_MAIN)
+    write_file(
+        "${dir}/vendor/greet/greet.vader",
+        "module \"greet\"\n\nexport greeting :: fn() -> string = \"hi\"\n",
+    )
+    compiled :: described(dir)
+    assert_eq(compiled.exit, 0)
+    assert("packaged" !in compiled.stderr, compiled.stderr)
+    client :: start_client(dir, "{}", RunOptions { .cwd = dir, .env = toolchain_env() })
+    uri :: file_uri("${dir}/src/main.vader")
+    client.send(did_open(uri, GREETED_MAIN))
+    first :: published_from(client, uri, 0)
+    assert("R2001" !in first && "R2006" !in first, first)
+    // A saved `build.vader` that no longer declares the root, compiled again from
+    // a terminal: the project describes itself again, and the import no longer
+    // resolves.
+    after_first :: mark(client)
+    driver :: "${dir}/build.vader"
+    write_file(driver, ROOTED_DRIVER.replace_all("    ctx.include_paths.push(\"vendor\")\n", ""))
+    assert_eq(described(dir).exit, 0)
+    saved :: """{"textDocument":{"uri":${quoted(file_uri(driver))}}}"""
+    client.send(notification("textDocument/didSave", saved))
+    second :: published_from(client, uri, after_first)
+    assert("R2001" in second, second)
+    close_client(client)
+}

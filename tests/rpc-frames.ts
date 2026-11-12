@@ -7,7 +7,7 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 /** `message` as one frame. */
-export function encodeFrame(message: object): Uint8Array {
+function encodeFrame(message: object): Uint8Array {
   const body = encoder.encode(JSON.stringify(message));
   const header = encoder.encode(`Content-Length: ${body.byteLength}\r\n\r\n`);
   const out = new Uint8Array(header.byteLength + body.byteLength);
@@ -18,7 +18,7 @@ export function encodeFrame(message: object): Uint8Array {
 
 /** The complete frames at the start of `bytes`, decoded, and the bytes after
  *  the last one: a frame still arriving stays in `rest`. */
-export function decodeFrames(bytes: Uint8Array): { messages: any[]; rest: Uint8Array } {
+function decodeFrames(bytes: Uint8Array): { messages: any[]; rest: Uint8Array } {
   const messages: any[] = [];
   let cursor = 0;
   for (;;) {
@@ -43,19 +43,6 @@ function indexOfBlankLine(bytes: Uint8Array, from: number): number {
     if (bytes[i] === 0x0d && bytes[i + 1] === 0x0a && bytes[i + 2] === 0x0d && bytes[i + 3] === 0x0a) return i;
   }
   return -1;
-}
-
-/** The messages `stream` carries, each as soon as its frame is complete. */
-export async function* readFrames(stream: ReadableStream<Uint8Array>): AsyncGenerator<any> {
-  let pending: Uint8Array = new Uint8Array(0);
-  for await (const chunk of stream) {
-    const grown = new Uint8Array(pending.byteLength + chunk.byteLength);
-    grown.set(pending);
-    grown.set(chunk, pending.byteLength);
-    const { messages, rest } = decodeFrames(grown);
-    pending = rest;
-    yield* messages;
-  }
 }
 
 /** Run `vader <args>` with every one of `messages` on its input, and return the

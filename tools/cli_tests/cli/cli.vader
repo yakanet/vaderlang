@@ -111,6 +111,26 @@ export vader_in :: fn(
     return run_vader(args, options).unwrap()
 }
 
+/// Start `vader` with `args` as a child the test writes to and reads from as it
+/// goes: a server of the toolchain.
+///
+/// @param args     what follows `vader` on its command line.
+/// @param options  where it runs and the changes to its environment; its
+///                 `stdin`, `feed` and `timeout` are the test's to handle.
+/// @error          `ProcessError` when it cannot be launched.
+export spawn_vader :: fn(
+    args: string[],
+    options: RunOptions = RunOptions {},
+) -> ChildProcess | ProcessError = spawn_command([vader_binary()] + args, options)
+
+// Start `argv` where `options` says, its environment without `VADER_HOME` but
+// for the changes of `options`.
+spawn_command :: fn(argv: string[], options: RunOptions) -> ChildProcess | ProcessError {
+    changes: [string, string | null][]: [[HOME_VARIABLE, null]]
+    spawned :: SpawnOptions { .cwd = options.cwd, .env = changes + options.env }
+    return spawn_interactive(argv, spawned)
+}
+
 /// Run the command `argv`, a program the test built or one of the system.
 ///
 /// @param argv     the command line, the program first.
@@ -122,9 +142,7 @@ export run_command :: fn(
     argv: string[],
     options: RunOptions = RunOptions {},
 ) -> ProcessResult | ProcessError {
-    changes: [string, string | null][]: [[HOME_VARIABLE, null]]
-    spawned :: SpawnOptions { .cwd = options.cwd, .env = changes + options.env }
-    child :: spawn_interactive(argv, spawned)
+    child :: spawn_command(argv, options)
     if child is ProcessError {
         return child
     }

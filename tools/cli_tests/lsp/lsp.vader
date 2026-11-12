@@ -1,0 +1,145 @@
+// tools/cli_tests/lsp/lsp: `vader lsp`, the language server, spoken to over its
+// standard streams as an editor speaks to it.
+//
+// A session runs the server with the library of the repository searched first,
+// on a project the test writes in a fresh folder. A test that sends its messages
+// whatever the server answers writes them all at once (`exchange`); one that
+// waits for an answer before it sends the next drives a `Client`.
+
+module "tools/cli_tests/lsp"
+
+import "json"
+import "std/abort"
+import "std/iter"
+import "std/option"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/rpc"
+
+// The command line of the server.
+server_args :: fn() -> string[] = ["lsp", "--library-root=${toolchain_home()}/lib"]
+
+// The request that opens a session, of a client with `capabilities`, the JSON
+// of its capabilities, on the project in `dir`.
+initialize :: fn(id: i64, dir: string, capabilities: string = "{}") -> string {
+    params :: """{"rootUri":${quoted(file_uri(dir))},"capabilities":${capabilities}}"""
+    return """{"jsonrpc":"2.0","id":${id},"method":"initialize","params":${params}}"""
+}
+
+INITIALIZED :: r"""{"jsonrpc":"2.0","method":"initialized","params":{}}"""
+
+SHUTDOWN :: r"""{"jsonrpc":"2.0","id":999,"method":"shutdown","params":null}"""
+
+EXIT :: r"""{"jsonrpc":"2.0","method":"exit","params":null}"""
+
+// The notification of the client `method` with `params`, the JSON of its
+// parameters.
+notification :: fn(method: string, params: string) -> string =
+    """{"jsonrpc":"2.0","method":${quoted(method)},"params":${params}}"""
+
+// The notification that opens the document `uri`, holding `text`.
+did_open :: fn(uri: string, text: string) -> string {
+    document :: """{"uri":${quoted(uri)},"languageId":"vader","version":1,"text":${quoted(text)}}"""
+    return notification("textDocument/didOpen", """{"textDocument":${document}}""")
+}
+
+// Whether `message` publishes the diagnostics of the document `uri`.
+publishes_for :: fn(message: JsonValue, uri: string) -> bool =
+    string_member(message, "method") == "textDocument/publishDiagnostics"
+        && string_at(message, ["params", "uri"]) == uri
+
+// The code of the diagnostic `diagnostic`.
+code_of :: fn(diagnostic: JsonValue) -> string = string_member(diagnostic, "code") ?? ""
+
+// The integer at the end of `path` from `value`, a line or a column; -1 when
+// there is none.
+int_at :: fn(value: JsonValue, path: string[]) -> i64 = i64(number_at(value, path) ?? -1.0)
+
+// The diagnostics of `diagnostics` a resolver or a typecheck reports.
+errors :: fn(diagnostics: JsonValue[]) -> JsonValue[] =
+    diagnostics.filter((d) -> code_of(d).starts_with("R") || code_of(d).starts_with("T")).collect()
+
+// The diagnostics of `diagnostics` whose code is `code`.
+coded :: fn(diagnostics: JsonValue[], code: string) -> JsonValue[] =
+    diagnostics.filter((d) -> code_of(d) == code).collect()
+
+// The codes of `diagnostics`, in order.
+codes :: fn(diagnostics: JsonValue[]) -> string = diagnostics.map(code_of).collect().join(" ")
+
+// A client of one session: the ids it gives its requests.
+Client :: struct {
+    session: Session
+    next_id: i64 = 1
+}
+
+// A client whose capabilities are `capabilities`, the JSON of them, on the
+// project in `dir`, the session initialised. The server runs as `options` say.
+start_client :: fn(
+    dir: string,
+    capabilities: string = "{}",
+    options: RunOptions = RunOptions {},
+) -> Client {
+    client :: Client { .session = open_session(server_args(), options).unwrap() }
+    client.send(initialize(client.take_id(), dir, capabilities))
+    client.send(INITIALIZED)
+    return client
+}
+
+// Write `message`, its JSON, to the server of `client`.
+send :: fn(client: Client, message: string) -> void {
+    client.session.send(message)
+}
+
+take_id :: fn(client: Client) -> i64 {
+    id :: client.next_id
+    client.next_id += 1
+    return id
+}
+
+// The first message `wanted` takes from the position `from` of what the session
+// received on. None fails the test, saying that `what` did not come.
+awaited :: fn(
+    client: Client,
+    wanted: fn(JsonValue) -> bool,
+    what: string,
+    from: i64 = 0,
+) -> JsonValue {
+    found :: client.session.wait_for(wanted, from)
+    if found == null {
+        received :: client.session.messages.map((m) -> stringify(m)).collect().join("\n")
+        panic("no ${what}; received:\n${received}")
+    }
+    return found
+}
+
+// The result of the request `method` of `client`, with `params`, the JSON of its
+// parameters. No answer fails the test.
+request :: fn(client: Client, method: string, params: string) -> JsonValue {
+    id :: client.take_id()
+    head :: """{"jsonrpc":"2.0","id":${id},"method":${quoted(method)}"""
+    client.send("${head},\"params\":${params}}")
+    answer :: client.awaited((m) -> answers(m, id), "answer to `${method}`")
+    return member(answer, "result") ?? JsonNull {}
+}
+
+// Whether `message` is the answer to the request `id`.
+answers :: fn(message: JsonValue, id: i64) -> bool =
+    number_member(message, "id") == f64(id) && member(message, "method") == null
+
+// The diagnostics of the first publication for `uri` from the position `from` of
+// what the session received on. None fails the test.
+diagnostics_of :: fn(client: Client, uri: string, from: i64 = 0) -> JsonValue[] {
+    published :: client.awaited((m) -> publishes_for(m, uri), "diagnostics for `${uri}`", from)
+    return items_at(published, ["params", "diagnostics"])
+}
+
+// Shut the server of `client` down, and read all it sent.
+close_client :: fn(client: Client) -> void {
+    request(client, "shutdown", "null")
+    client.send(EXIT)
+    client.session.finish()
+}
+
+// The position, in what the session of `client` received, a wait passes as its
+// `from` to skip what came so far.
+mark :: fn(client: Client) -> i64 = client.session.messages.len()

@@ -727,6 +727,33 @@ export string_at :: fn(value: JsonValue, path: string[]) -> string | null {
     return null
 }
 
+/// The number at the end of `path` from `value`, as `member_at` follows it; null
+/// when there is none or when the value there is another shape.
+///
+/// @param value  the value to read, an object or any other shape.
+/// @param path   the keys to follow, the outermost first.
+export number_at :: fn(value: JsonValue, path: string[]) -> f64 | null {
+    found :: member_at(value, path)
+    if found is JsonNumber {
+        return found.value
+    }
+    return null
+}
+
+/// The items of the array at the end of `path` from `value`, as `member_at`
+/// follows it; none when there is no array there.
+///
+/// @param value  the value to read, an object or any other shape.
+/// @param path   the keys to follow, the outermost first: none reads `value`
+///               itself.
+export items_at :: fn(value: JsonValue, path: string[]) -> JsonValue[] {
+    found :: member_at(value, path)
+    if found is JsonArray {
+        return found.items
+    }
+    return []
+}
+
 // ---- text sequences -------------------------------------------------------
 
 /// `value` as an entry of a JSON text sequence (RFC 7464): a record separator
@@ -997,6 +1024,17 @@ test_member_at_follows_each_key :: fn() -> void {
     assert(member_at(parsed, ["a", "x", "c"]) == null, "a key missing on the way")
     assert(member_at(parsed, ["n", "c"]) == null, "a key under a number")
     assert(string_at(parsed, ["n"]) == null, "a number is no string")
+    assert_eq(number_at(parsed, ["n"]) ?? 0.0, 1.0)
+    assert(number_at(parsed, ["a", "b", "c"]) == null, "a string is no number")
+}
+
+@test
+test_items_at_gives_the_items_of_an_array_only :: fn() -> void {
+    value :: parsed_value(r"""{"list": [1, "two"], "n": 1}""")
+    assert_eq(items_at(value, ["list"]).len(), 2)
+    assert_eq(items_at(value, ["n"]).len(), 0)
+    assert_eq(items_at(value, ["missing"]).len(), 0)
+    assert_eq(items_at(parsed_value("[3]"), []).len(), 1)
 }
 
 @test test_sequence_entry_frames_the_compact_text :: fn() -> void {
