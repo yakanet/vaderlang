@@ -88,7 +88,7 @@ export DECORATORS: DecoratorSpec[]: [
         .name   = "allow_unused",
         .usage  = "@allow_unused",
         .places = [.Declaration],
-        .doc    = "Exempts a top-level declaration from the `W0007` dead-code lint, and keeps live whatever it references. Say why in a comment.",
+        .doc    = "Exempts a top-level declaration from the `W0007` dead-code lint, and keeps live whatever it references; on an import, exempts it from the `W0006` unused-import lint. Say why in a comment.",
     },
     DecoratorSpec {
         .name   = "target",

@@ -1,0 +1,331 @@
+// vader/front/dead_code/unused_imports: W0006, an import no name of its file
+// reaches.
+//
+// By names, as the dead-code lint reads them (`vader/front/reach`): an import
+// serves when the file writes a name it brings. That over-approximates (a name
+// written counts whoever provides it), so an unused import sharing a name with
+// another goes unreported, and one that serves is never reported.
+//
+// The impls of a module serve without being named: `x in c`, a conversion, a
+// `for` over an iterator, an operator. An import also serves when a site of its
+// file runs an impl its module declares, as the typecheck recorded it
+// (`CallSites`), even though any import that loads the module would do: the
+// file then says what it relies on.
+//
+// Last, an import that serves its file nothing may still be the one that loads
+// a module another file relies on. It is reported only when the project keeps
+// every module without it, or when none of those it would lose declares an
+// impl.
+
+module "vader/front/dead_code"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+import "vader/support/diagnostics"
+import "vader/front/reach"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+AST :: import "toolchain/ast"
+
+/// Report every import of `project` that brings its file no name and no impl,
+/// and loads none for another: W0006. A module loaded without its tests is
+/// skipped: an import its tests alone used is not unused in its source.
+///
+/// @param project  the loaded project.
+/// @param checked  its typed modules, for what each site runs.
+/// @param diags    sink for the W0006 warnings.
+export check_unused_imports :: fn(
+    project: LoadedProject,
+    checked: CheckResult,
+    diags: Diagnostic[],
+) -> void {
+    by_name :: Map<string, LoadedModule> {}
+    module_of_file :: Map<string, string> {}
+    for [_, loaded] in project.modules {
+        by_name[loaded.module.module_name] = loaded
+        for file in loaded.module.files {
+            module_of_file[file.path] = loaded.module.module_name
+        }
+    }
+    for [id, loaded] in project.modules {
+        if loaded.tests_removed {
+            continue
+        }
+        typed :: checked.all_modules[id]
+        for file in loaded.module.files {
+            // Walked for the first import no name serves: most files have none.
+            run: ImplsRun | null = null
+            names :: names_written(file.program.decls)
+            // A body another platform selects is source of this file too.
+            for body in loaded.discarded_bodies {
+                if body.span.start.file == file.path {
+                    add_names(body, names)
+                }
+            }
+            for d in file.program.decls {
+                if d !is AST.ImportDecl || AST.decorators_have(d.decorators, "allow_unused") {
+                    continue
+                }
+                // An import of a module that did not load has its own error.
+                imported :: by_name[d.path] ?? continue
+                if brings_a_name(d, imported, names) {
+                    continue
+                }
+                walked :: run ?? impls_run(file, typed, module_of_file)
+                run = walked
+                if walked.runs_an_impl_of(d.path, imported) || loads_an_impl(project, by_name, loaded, d.path) {
+                    continue
+                }
+                diags.push(warning(.UnusedImport, d.span, "`${d.path}`"))
+            }
+        }
+    }
+}
+
+// The names the declarations `decls` of one file write, its imports left out: a
+// name bound by an import is not a use of it.
+names_written :: fn(decls: AST.Decl[]) -> Set<string> {
+    written: string[]: []
+    for d in decls {
+        if d !is AST.ImportDecl {
+            collect_names(d, written)
+            // The trait of an impl is a name the walk does not meet as a node.
+            if d is AST.ImplDecl {
+                written.push(d.trait_name)
+            }
+        }
+    }
+    names :: Set<string> {}
+    for name in written {
+        names.add(name)
+    }
+    return names
+}
+
+// Add to `names` those the declaration `d` writes.
+add_names :: fn(d: AST.Decl, names: Set<string>) -> void {
+    written: string[]: []
+    collect_names(d, written)
+    for name in written {
+        names.add(name)
+    }
+}
+
+// The impls the sites of one file run.
+ImplsRun :: struct {
+    /// The modules declaring a function a site calls.
+    modules: Set<string> = Set<string> {}
+    /// The traits whose member a site reaches through a bound or a trait value:
+    /// which impl runs is settled later, so every impl of the trait counts.
+    trait_keys: string[] = []
+    /// A site calls a member an impl takes from its trait as it stands: the
+    /// declaration is the trait's, and does not say which impl.
+    inherited: bool = false
+}
+
+// What the sites of `file` run, as the typecheck of its module `typed` filed them.
+impls_run :: fn(
+    file: SourceFile,
+    typed: TypedProgram | null,
+    module_of_file: Map<string, string>,
+) -> ImplsRun {
+    run :: ImplsRun {}
+    if typed == null {
+        return run
+    }
+    // Every table is keyed by the id of an expression: the call, the operands'
+    // operator, the indexed value, the iterable, the interpolated value.
+    tables :: all_roles().map((role) -> sites_of(typed.call_sites, role)).collect()
+    for d in file.program.decls {
+        AST.inspect(d, (n) -> note_site(n, tables, module_of_file, run))
+    }
+    return run
+}
+
+// Note what the node `n` runs, when one of `tables` holds a site at it.
+note_site :: fn(
+    n: AST.Node,
+    tables: Map<i64, Callee>[],
+    module_of_file: Map<string, string>,
+    run: ImplsRun,
+) -> AST.Walk {
+    if n is AST.Expr {
+        for table in tables {
+            callee :: table[n.id] ?? continue
+            note_callee_run(callee, module_of_file, run)
+        }
+    }
+    return .Descend
+}
+
+note_callee_run :: fn(callee: Callee, module_of_file: Map<string, string>, run: ImplsRun) -> void {
+    match callee {
+        is DirectFn -> {
+            if callee.decl.materialized {
+                run.inherited = true
+            } else {
+                declaring :: module_of_file[callee.decl.span.start.file] ?? return
+                run.modules.add(declaring)
+            }
+        }
+        is BoundMember -> run.trait_keys.push(callee.trait_key)
+        is TraitMember -> run.trait_keys.push(callee.trait_key)
+        is EachOf -> {
+            for each in callee.callees {
+                note_callee_run(each, module_of_file, run)
+            }
+        }
+        is FnValue | Builtin | ErroneousCallee | UnsettledCallee -> {}
+    }
+}
+
+// Whether a site of the file runs, or may run, an impl the module `imported`,
+// imported as `path`, declares.
+runs_an_impl_of :: fn(run: ImplsRun, path: string, imported: LoadedModule) -> bool {
+    if path in run.modules {
+        return true
+    }
+    if !run.inherited && run.trait_keys.len() == 0 {
+        return false
+    }
+    for file in imported.module.files {
+        for d in file.program.decls {
+            if d !is AST.ImplDecl {
+                continue
+            }
+            // A key ends with the trait's own name, which an impl may write behind
+            // an alias (`Ns.Trait`).
+            written :: d.trait_name.split(".")
+            name :: written[written.len() - 1]
+            if run.inherited || run.trait_keys.any_match((key) -> key.ends_with(name)) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// Whether `names` holds a name the import `d` of the module `imported` brings:
+// its alias, a name it rebinds, or an export its wildcard exposes.
+brings_a_name :: fn(d: AST.ImportDecl, imported: LoadedModule, names: Set<string>) -> bool {
+    dropped: string[]: []
+    match binding :: d.binding {
+        is AST.NamedNamespaceImport -> {
+            return binding.name in names
+        }
+        is AST.DestructureImport -> {
+            for entry in binding.names {
+                dropped.push(entry.name)
+                alias :: entry.alias ?? continue
+                if alias != "_" && alias in names {
+                    return true
+                }
+            }
+        }
+        is AST.WildcardImport -> {}
+    }
+    for [_, symbol] in imported.collected.symbols {
+        if wildcard_exposes(symbol, dropped) && symbol.name in names {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether the import of `path` by one file of `importer` is what keeps loaded a
+// module that declares an impl.
+loads_an_impl :: fn(
+    project: LoadedProject,
+    by_name: Map<string, LoadedModule>,
+    importer: LoadedModule,
+    path: string,
+) -> bool {
+    // Another file of the module imports it too: the edge stays.
+    if importer.collected.import_paths.filter((edge) -> edge.path == path).count() > 1 {
+        return false
+    }
+    whole :: loaded_from(project, by_name, null, "")
+    without :: loaded_from(project, by_name, importer.module.module_name, path)
+    for name in whole {
+        if name in without {
+            continue
+        }
+        lost :: by_name[name] ?? continue
+        if declares_an_impl(lost) {
+            return true
+        }
+    }
+    return false
+}
+
+// The names of the modules a load reaches when `importer` does not import `path`
+// (every edge when `importer` is null). It starts from the entry, then from each
+// module the entry does not reach in the whole graph: the loader put those there
+// by itself, whatever is imported.
+loaded_from :: fn(
+    project: LoadedProject,
+    by_name: Map<string, LoadedModule>,
+    importer: string | null,
+    path: string,
+) -> Set<string> {
+    reached :: Set<string> {}
+    entry :: project.modules[project.entry] ?? return reached
+    walk_imports(by_name, entry.module.module_name, null, "", reached)
+    forced: string[]: []
+    for [name, _] in by_name {
+        if name !in reached {
+            forced.push(name)
+        }
+    }
+    if importer == null {
+        for name in forced {
+            reached.add(name)
+        }
+        return reached
+    }
+    cut :: Set<string> {}
+    walk_imports(by_name, entry.module.module_name, importer, path, cut)
+    for name in forced {
+        walk_imports(by_name, name, importer, path, cut)
+    }
+    return cut
+}
+
+// Add to `reached` the module `start` and those it imports, without the edge
+// from `importer` to `path`.
+walk_imports :: fn(
+    by_name: Map<string, LoadedModule>,
+    start: string,
+    importer: string | null,
+    path: string,
+    reached: Set<string>,
+) -> void {
+    work: string[]: [start]
+    cursor: i64 = 0
+    for cursor < work.len() {
+        name :: work[cursor]
+        cursor += 1
+        if !reached.add(name) {
+            continue
+        }
+        loaded :: by_name[name] ?? continue
+        for edge in loaded.collected.import_paths {
+            if name == importer && edge.path == path {
+                continue
+            }
+            work.push(edge.path)
+        }
+    }
+}
+
+declares_an_impl :: fn(loaded: LoadedModule) -> bool {
+    for file in loaded.module.files {
+        for d in file.program.decls {
+            if d is AST.ImplDecl {
+                return true
+            }
+        }
+    }
+    return false
+}

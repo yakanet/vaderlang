@@ -265,6 +265,7 @@ export WarningCode :: enum(CodeInfo) {
     UseOfDeprecated             { .id = "W0001", .message = "use of deprecated declaration" },
     UnreachableCode             { .id = "W0002", .message = "unreachable code" },
     WildcardOnClosedUnion       { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" },
+    UnusedImport                { .id = "W0006", .message = "import is never used in its file" },
     DeadCode                    { .id = "W0007", .message = "declaration is never used in its module" },
     LocalShadowsOuter           { .id = "W0008", .message = "local binding shadows an outer local or parameter of the same name" },
     LocalRedeclaration          { .id = "W0009", .message = "redeclaration of a name already bound in this block" },

@@ -44,6 +44,7 @@ export check_project :: fn(
 ) -> CheckedProject {
     result :: check_project_with_bodies(project, diags, dump_types)
     lint_dead_code(project, diags)
+    check_unused_imports(project, result, diags)
     effects :: Fx.summarise_effects(project, result)
     diags.push_all(Fx.widening_diagnostics(effects, result))
     diags.push_all(Fx.frozen_diagnostics(effects))

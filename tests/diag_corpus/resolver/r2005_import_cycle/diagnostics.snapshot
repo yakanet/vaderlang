@@ -1,1 +1,2 @@
 [3:1] error[R2005] import cycle detected: `snippet/b` imports `snippet/a`, closing an import cycle
+[3:1] warning[W0006] import is never used in its file: `snippet/a`

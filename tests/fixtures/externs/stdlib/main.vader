@@ -6,10 +6,16 @@
 
 module "main"
 
+// Imported to be loaded: nothing here names what they export.
+@allow_unused
 import "std/math"
+@allow_unused
 import "system/darwin"
+@allow_unused
 import "system/libc"
+@allow_unused
 import "system/posix"
+@allow_unused
 import "system/windows"
 
 main :: fn() -> i32 = 0

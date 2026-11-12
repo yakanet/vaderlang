@@ -1,1 +1,2 @@
 [11:16] error[R2007] unresolved type name: `Animal`
+[7:1] warning[W0006] import is never used in its file: `snippet/shapes`

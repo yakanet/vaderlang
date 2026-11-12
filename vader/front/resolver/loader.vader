@@ -88,6 +88,10 @@ export LoadedModule :: struct {
     /// Every `@target` declaration of the module as written, before selection
     /// merged each group into one: the targets of a group live there alone.
     target_decls: FnDecl[] = []
+    /// The module was loaded without its tests (`without_tests`): what is left of
+    /// its files is not what its author wrote, and a lint of the source does not
+    /// read it.
+    tests_removed: bool = false
 }
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
@@ -516,7 +520,8 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     if m.files.len() == 0 { return }
     read :: parse_module_files(ctx, m.files)
     if read.len() == 0 { return }
-    parsed :: if is_dependency(ctx, m) { without_tests(read, m.name) } else { read }
+    tests_removed :: is_dependency(ctx, m)
+    parsed :: if tests_removed { without_tests(read, m.name) } else { read }
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
@@ -530,6 +535,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     ctx.modules[m.folder] = LoadedModule {
         .discarded_bodies = dropped_bodies,
         .target_decls = target_declarations(parsed),
+        .tests_removed = tests_removed,
         .module = Module {
             .id           = m.folder,
             // Display path is the module's declared name (`module "..."`),

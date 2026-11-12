@@ -13,7 +13,6 @@ module "tools/cli_tests/comptime"
 
 import "std/fs"
 import "std/option"
-import "std/string"
 import "std/string_builder"
 import "tools/cli_tests/cli"
 
@@ -141,6 +140,8 @@ SQUARES :: r"""
     }
 
     export largest :: fn() -> i32 = SQUARES[3]
+
+    export how_many :: fn() -> i32 = 4
     """
 
 // A project whose `main` runs `body`, importing `squares` from a root the
@@ -213,10 +214,10 @@ test_a_comptime_value_of_a_library_is_computed_when_the_program_reads_it :: fn()
 
 @test
 test_a_comptime_value_of_a_library_nothing_reads_is_not_computed :: fn() -> void {
-    dir :: staged_with_a_library("library_unread", r"""println("no square")""")
+    dir :: staged_with_a_library("library_unread", r"""println("${how_many()} squares, none read")""")
     ran :: vader_in(dir, ["run", "."])
     assert_eq(ran.stderr, "")
-    assert_eq(ran.stdout, "no square\n")
+    assert_eq(ran.stdout, "4 squares, none read\n")
 }
 
 @test

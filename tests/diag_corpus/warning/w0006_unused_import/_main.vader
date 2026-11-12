@@ -1,0 +1,23 @@
+// W0006: an import serves its file by a name the file writes, or by an impl a
+// site of the file runs. `std/sort` and the alias `Maths` bring neither.
+// `std/string` is named nowhere, but the `for` walks the string through its
+// impl; `std/collections` serves the `in`; the last import says it is kept on
+// purpose.
+
+module "snippet"
+
+import "std/collections"
+import "std/console"
+import "std/sort"
+import "std/string"
+Maths :: import "std/math"
+@allow_unused
+import "std/path"
+
+main :: fn() -> i32 {
+    seen: Set<char>: Set<char> {}
+    for c in "été" {
+        println("${c} ${c in seen}")
+    }
+    return 0
+}

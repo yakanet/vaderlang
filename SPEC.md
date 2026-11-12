@@ -2999,6 +2999,17 @@ An alias names a module, not a value: `x :: str` and `f(str)` are errors. A memb
 
 There is no implicit binding of the path's last segment, and no `as` after the path.
 
+#### Unused imports
+
+The compiler warns about an import its file does not use. An import is used when:
+
+- the file writes a name it brings: an export of the module for a wildcard, the new name of a rename, the alias of a namespace import;
+- or the file runs an impl the module declares, without naming it: a `for` over a value, `x in c`, an operator, a conversion, an interpolated value, a member called on a value.
+
+An import that is the only one to load a module whose impls the program may run is not reported either.
+
+`@allow_unused` above an import keeps it without a warning (§12 *`@allow_unused`*).
+
 #### Resolution rules
 
 ```vader
@@ -3309,7 +3320,7 @@ Decorators are compiler instructions prefixed with `@`. They act at compile time
 | `@singleton` | top-level fn without parameters | Runs the body once and returns the same instance to every call (below) |
 | `@returns(cond)` | top-level fn returning `bool` | The function returns the value of `cond` (§3 *Declared guards*) |
 | `@ensures(cond)` | top-level fn | `cond` holds when the function returns (§3 *Declared postconditions*) |
-| `@allow_unused` | any top-level declaration | Exempts the declaration from the dead-code warning (below) |
+| `@allow_unused` | any top-level declaration, an import | Exempts the declaration from the dead-code warning, or the import from the unused-import warning (below) |
 
 ### `@intrinsic`
 
@@ -3375,6 +3386,8 @@ log().push("x")            // every later `log()` sees "x"
 ### `@allow_unused`
 
 `@allow_unused` exempts a private declaration from the dead-code warning. Use it for deliberate dead code: an API not wired yet, a helper kept for symmetry, a decoy in a test fixture. The declaration counts as reachable, and so does everything it uses.
+
+On an import, it exempts the import from the unused-import warning (§11 *Unused imports*): a module imported so that it is part of the program.
 
 ---
 

@@ -1,1 +1,2 @@
 [4:1] error[R2024] self-import: file imports its own module: `snippet`
+[4:1] warning[W0006] import is never used in its file: `snippet`
