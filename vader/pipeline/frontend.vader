@@ -35,6 +35,11 @@ export EvaluatedPipeline :: struct {
     resolver_diags:  Diagnostic[]
     typecheck_diags: Diagnostic[]
     comptime_diags:  Diagnostic[]
+    /// What the front end was asked: a `@comptime` value computed after it
+    /// (`bake_awaited_values`) may need the load done again under another view.
+    file:               Path
+    include_path_flags: string[]
+    view:               Selection | null
 }
 
 // Load, typecheck and evaluate `file`. The `--include-paths` search roots are
@@ -79,20 +84,64 @@ export prepare_evaluated_project_with :: fn(
     // comptime error (e.g. a C4009 `@comptime` dependency cycle) the staging
     // lower recurses on the un-baked cyclic consts and stack-overflows (SIGSEGV).
     // A broken program never reaches codegen, so there is nothing to bake.
+    //
+    // The values of the project are baked here, whether or not anything reads
+    // them: a command that stops after the front end reports their errors. Those
+    // of a dependency wait for the lowering to say which the program reads
+    // (`bake_awaited_values`) ; a project with deferred values of its own bakes
+    // every one, since one of its own may read one of a dependency.
     front_end_ok :: !any_error_diag(loaded.diags)
         && !any_error_diag(resolver_diags)
         && !any_error_diag(typecheck_diags)
-    if front_end_ok && !any_error_diag(comptime_diags) {
-        bake_deferred_values(file, include_path_flags, view, loaded, evaluated, comptime_diags)
+    if front_end_ok && !any_error_diag(comptime_diags) && project_defers_a_value(loaded, evaluated) {
+        bake_deferred_values(file, include_path_flags, view, loaded, evaluated, null, comptime_diags)
     }
     return EvaluatedPipeline {
-        .loaded          = loaded,
-        .typed           = evaluated.typed,
-        .evaluated       = evaluated,
-        .resolver_diags  = resolver_diags,
-        .typecheck_diags = typecheck_diags,
-        .comptime_diags  = comptime_diags,
+        .loaded             = loaded,
+        .typed              = evaluated.typed,
+        .evaluated          = evaluated,
+        .resolver_diags     = resolver_diags,
+        .typecheck_diags    = typecheck_diags,
+        .comptime_diags     = comptime_diags,
+        .file               = file,
+        .include_path_flags = include_path_flags,
+        .view               = view,
     }
+}
+
+// Whether a module of the project itself, not one the toolchain ships, declares a
+// `@comptime` value left to the VM.
+project_defers_a_value :: fn(loaded: LoadedProject, evaluated: EvaluatedProject) -> bool {
+    for decl in evaluated.vm_required {
+        owner :: loaded.modules[decl.module_id] ?? continue
+        if owner.module.origin == .Build {
+            return true
+        }
+    }
+    return false
+}
+
+/// Bake the `@comptime` values a lowering waits for (`Lowering.awaited`), which
+/// the front end left alone because no module of the project declares them.
+///
+/// Every deferred value of `owners` is baked, read or not: the values of a module
+/// are ordered among themselves.
+///
+/// @param pipeline  the evaluated project being lowered ; its errors land in
+///                  `comptime_diags`.
+/// @param owners    the modules declaring the awaited values.
+/// @error           C4002 when a value panics, C4016 when it calls a host a
+///                  `@comptime` evaluation may not.
+export bake_awaited_values :: fn(pipeline: EvaluatedPipeline, owners: string[]) -> void {
+    bake_deferred_values(
+        pipeline.file,
+        pipeline.include_path_flags,
+        pipeline.view,
+        pipeline.loaded,
+        pipeline.evaluated,
+        owners,
+        pipeline.comptime_diags,
+    )
 }
 
 // Bake the `@comptime` decls the tree-walk deferred to the VM
@@ -101,12 +150,14 @@ export prepare_evaluated_project_with :: fn(
 // run in a second front end that keeps the host's bodies and bakes the target's
 // constants (`HostBodies`), whose values are copied into this build. Its own
 // profile brackets sit beside this one's, never inside: the profiler pairs them.
+// `owners` are the modules whose values are baked, every module when null.
 bake_deferred_values :: fn(
     file: Path, include_path_flags: string[], view: Selection | null,
-    loaded: LoadedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
+    loaded: LoadedProject, evaluated: EvaluatedProject, owners: string[] | null,
+    diags: Diagnostic[],
 ) -> void {
     if evaluated.vm_required.len() == 0 || view !is Target || view.os == host_target().os {
-        bake_with_own_bodies(loaded, evaluated, diags)
+        bake_with_own_bodies(loaded, evaluated, owners, diags)
         return
     }
     host :: prepare_evaluated_project_with(
@@ -118,8 +169,13 @@ bake_deferred_values :: fn(
     // `@target` function.
     if any_error_diag(host.loaded.diags) || any_error_diag(host.resolver_diags)
         || any_error_diag(host.typecheck_diags) {
-        bake_with_own_bodies(loaded, evaluated, diags)
+        bake_with_own_bodies(loaded, evaluated, owners, diags)
         return
+    }
+    // The second front end baked what this one bakes unasked, the values of a
+    // project that defers some. Those asked for after it are baked here.
+    if owners != null && !any_error_diag(host.comptime_diags) {
+        bake_with_own_bodies(host.loaded, host.evaluated, owners, host.comptime_diags)
     }
     for d in host.comptime_diags {
         if d.severity == .Error {
@@ -129,11 +185,14 @@ bake_deferred_values :: fn(
     copy_baked_values(host.evaluated, evaluated, diags)
 }
 
-// Bake the deferred values of `evaluated` on the VM, with the bodies `loaded`
-// selected.
-bake_with_own_bodies :: fn(loaded: LoadedProject, evaluated: EvaluatedProject, diags: Diagnostic[]) -> void {
+// Bake the deferred values `owners` declare in `evaluated` on the VM, with the
+// bodies `loaded` selected.
+bake_with_own_bodies :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject, owners: string[] | null,
+    diags: Diagnostic[],
+) -> void {
     Prof.prof_begin(.Comptime)
-    resolve_vm_required_decls(loaded, evaluated.typed, evaluated, diags)
+    resolve_vm_required_decls(loaded, evaluated.typed, evaluated, owners, diags)
     Prof.prof_end(.Comptime)
 }
 

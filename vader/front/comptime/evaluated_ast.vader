@@ -17,7 +17,7 @@ import "toolchain/span"
 /// A `@comptime` decl the tree-walk evaluator deferred to the VM (it returned
 /// `vm_required` rather than a value). `evaluate_project` records these instead
 /// of erroring with C4001 ; the `vader/pipeline/comptime_vm` pass (run from
-/// `pipeline/frontend` and `bootstrap` between `evaluate_project` and `lower_project`)
+/// `pipeline/frontend`, before the lowering or between its two halves)
 /// stages the decl's callee to bytecode, executes it, bridges the result and
 /// injects it into the owning module's `comptime_decls`.
 ///

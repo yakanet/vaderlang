@@ -125,6 +125,43 @@ LAYERED_APP :: r"""
     }
     """
 
+// A module of a library whose `@comptime` value says when it is computed.
+SQUARES :: r"""
+    module "squares"
+
+    import "std/console"
+
+    export SQUARES :: @comptime {
+        println("computing the squares")
+        out: i32[]: []
+        for i in 0..<4 {
+            out.push(i * i)
+        }
+        return out
+    }
+
+    export largest :: fn() -> i32 = SQUARES[3]
+    """
+
+// A project whose `main` runs `body`, importing `squares` from a root the
+// toolchain would ship: what marks one is the file `std/io/io.vader` under it.
+staged_with_a_library :: fn(name: string, body: string) -> string {
+    dir :: scratch_dir("comptime_${name}")
+    create_dir("${dir}/vendor")
+    create_dir("${dir}/vendor/std")
+    create_dir("${dir}/vendor/std/io")
+    create_dir("${dir}/vendor/squares")
+    write_file("${dir}/vendor/std/io/io.vader", "module \"std/io\"\n")
+    write_file("${dir}/vendor/squares/squares.vader", SQUARES)
+    manifest :: r"""{"includePaths": ["vendor"], "entries": {"app": "main.vader"}}"""
+    write_file("${dir}/vader.json", manifest)
+    source :: StringBuilder {}
+    source.append("module \"app\"\n\nimport \"squares\"\nimport \"std/console\"\n\n")
+    source.append("main :: fn() -> i32 {\n    ${body}\n    return 0\n}\n")
+    write_file("${dir}/main.vader", source.to_string())
+    return dir
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -163,6 +200,23 @@ test_a_comptime_value_reading_another_runs_after_it_once_in_its_own_folder :: fn
     ran :: vader_in(dir, ["run", "."])
     assert_eq(ran.stderr, "")
     assert_eq(ran.stdout, "reading the icon\n6 9\n")
+}
+
+@test
+test_a_comptime_value_of_a_library_is_computed_when_the_program_reads_it :: fn() -> void {
+    // Read directly and through a function of the library: computed once.
+    dir :: staged_with_a_library("library_read", r"""println("${SQUARES[2]} ${largest()}")""")
+    ran :: vader_in(dir, ["run", "."])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.stdout, "computing the squares\n4 9\n")
+}
+
+@test
+test_a_comptime_value_of_a_library_nothing_reads_is_not_computed :: fn() -> void {
+    dir :: staged_with_a_library("library_unread", r"""println("no square")""")
+    ran :: vader_in(dir, ["run", "."])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.stdout, "no square\n")
 }
 
 @test

@@ -14,6 +14,7 @@
 module "vader/pipeline"
 
 import "std/console"
+import "std/iter"
 import "std/path"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
@@ -229,7 +230,6 @@ export lower_to_entry_with :: fn(
 /// @param verify    run the IR verifiers between passes (`--verify`).
 export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = false) -> LoweredEntry {
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
-    pre_diags :: gather_pipeline_diags(pipeline)
     // Don't lower a program the front end rejected : feeding the bytecode
     // emitter an ill-typed shape (e.g. a UFCS method on an unimported
     // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
@@ -237,12 +237,14 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     lower_diags: Diagnostic[]: []
     // profiling bracket: inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(.Lower)
-    lowered :: if any_error_diag(pre_diags) {
+    lowered :: if any_error_diag(gather_pipeline_diags(pipeline)) {
         new_lowered_project()
     } else {
-        lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+        lower_evaluated(pipeline, lower_diags)
     }
     Prof.prof_end(.Lower)
+    // Gathered once lowered: a value baked for the lowering reports there.
+    pre_diags :: gather_pipeline_diags(pipeline)
     if verify { verify_lowered(lowered, "lower_project", lower_diags) }
     return LoweredEntry {
         .lowered     = lowered,
@@ -251,6 +253,24 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
         .lower_diags = lower_diags,
         .in_scope_files = in_scope_diag_files(pipeline.loaded, dump_scope([], pipeline.loaded)),
     }
+}
+
+// Lower `pipeline`, baking between the two halves of the lowering the `@comptime`
+// values of a dependency the program reads. A value that fails leaves nothing to
+// lower: its error is in the pipeline's comptime diagnostics. Called inside the
+// `.Lower` profile bracket, which it leaves for the bake.
+lower_evaluated :: fn(pipeline: EvaluatedPipeline, diags: Diagnostic[]) -> LoweredProject {
+    lowering :: begin_lowering(pipeline.loaded, pipeline.typed, pipeline.evaluated, diags)
+    if lowering.awaited.len() > 0 {
+        owners :: lowering.awaited.map((constant) -> constant.module).distinct().collect()
+        Prof.prof_end(.Lower)
+        bake_awaited_values(pipeline, owners)
+        Prof.prof_begin(.Lower)
+        if any_error_diag(pipeline.comptime_diags) {
+            return new_lowered_project()
+        }
+    }
+    return finish_lowering(lowering, diags)
 }
 
 /// Result of `prepare_cfg_bytecode_with`: the canonical bytecode module plus

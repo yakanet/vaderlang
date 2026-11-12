@@ -39,7 +39,37 @@ import "vader/core/symbol"
 /// @return           the lowered project ready for downstream phases.
 export lower_project :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
-) -> LoweredProject = lower_project_impl(loaded, typed, evaluated, [], diags)
+) -> LoweredProject = finish_lowering(begin_lowering(loaded, typed, evaluated, diags), diags)
+
+/// A lowering stopped once everything the program reaches is lowered, before the
+/// passes that read the project whole.
+///
+/// It stops there for the constants of `awaited`: a `@comptime` constant the VM
+/// has not run yet is set aside when the program reads it, and nothing of its
+/// computation is lowered. The caller runs those between the two halves, and
+/// `finish_lowering` lowers each from its value.
+export Lowering :: struct {
+    /// The constants read with no value yet, in the order they were reached.
+    awaited: Symbol[]
+    @internal
+    ctx: LowerProjectCtx
+    @internal
+    project: LoweredProject
+    @internal
+    is_staging: bool
+}
+
+/// Lower everything the entry reaches, up to the constants that wait for a value.
+///
+/// @param loaded     the loaded project (for source decls per module).
+/// @param typed      the typed project (for side-tables).
+/// @param evaluated  the comptime engine's output.
+/// @param diags      diagnostics emitted by the lowerer (M5xxx codes).
+/// @return           the lowering to hand to `finish_lowering`, once the
+///                   constants of its `awaited` have their value.
+export begin_lowering :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
+) -> Lowering = begin_lowering_of(loaded, typed, evaluated, [], diags)
 
 /// VM-backed-comptime staging variant : lower ONLY the closure reachable from
 /// `eager_modules` (the modules owning `vm_required` @comptime consts) instead
@@ -55,12 +85,13 @@ export lower_project :: fn(
 export lower_project_staged :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
     eager_modules: string[], diags: Diagnostic[],
-) -> LoweredProject = lower_project_impl(loaded, typed, evaluated, eager_modules, diags)
+) -> LoweredProject =
+    finish_lowering(begin_lowering_of(loaded, typed, evaluated, eager_modules, diags), diags)
 
-lower_project_impl :: fn(
+begin_lowering_of :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject,
     eager_modules: string[], diags: Diagnostic[],
-) -> LoweredProject {
+) -> Lowering {
     // Staging mode narrows the eager (with-body) set from the single entry to
     // `eager_modules`; the whole-project generic-struct materialization is
     // skipped since the comptime callee closure (bigint kernels) needs none.
@@ -74,6 +105,11 @@ lower_project_impl :: fn(
     // const-baked lookups (`lookup_const_baked_value`) hit O(1) instead
     // of walking every loaded module's `comptime_decls` map per call.
     populate_comptime_value_index(project_ctx)
+    // The staging run is the one that computes the values: there a constant with
+    // none yet inlines its call, which is what makes its callee reachable.
+    if !is_staging {
+        mark_awaiting_values(project_ctx)
+    }
     // Build the project-wide impl registry: aggregate every module's
     // `T implements Trait { ... }` decls so downstream phases can query
     // by `(for_type, trait_name)`. Unblocks Display dispatch for
@@ -164,23 +200,37 @@ lower_project_impl :: fn(
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
         project.modules[module_id] = lowered_module
     }
-    // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
-    // recursive : a generic instance body calls stdlib fns (harvested into
-    // `nongeneric_imported_queue`), and a harvested stdlib body calls generic
-    // fns (registered into `fn_instance_queue`, e.g. `std/json::write_object`
-    // -> `Map.len`). Drain all the queues in ONE joint fixpoint until
-    // none holds work: a popped item leaves its queue, so re-entry only
-    // processes newly-registered work (`drain_generic_fn_instances` builds into
-    // `generic_collected` ; `surface_*` dedupes via `materialized_impl_keys`).
-    // A pre-fixpoint single generic pass would strand any instance a later
-    // stdlib-harvest round registers (a `len__...` callee left unresolved at
-    // emit). The generic instances are FLUSHED (sorted + erasure-deduped +
-    // pushed) once after convergence so emission order is a single
-    // deterministic sort.
-    // A step can queue work for one that ran before it in the round, and a set
-    // or `array_member_uses` that grows lets more members through to surfacing.
-    // They only grow, so their combined length says whether one did: loop until
-    // a round ends with every queue empty and that length unchanged.
+    drain_lowering_queues(project_ctx, project, diags)
+    return Lowering {
+        .awaited    = project_ctx.awaited_consts,
+        .ctx        = project_ctx,
+        .project    = project,
+        .is_staging = is_staging,
+    }
+}
+
+// Generic-fn instances + non-generic stdlib free fns are MUTUALLY
+// recursive : a generic instance body calls stdlib fns (harvested into
+// `nongeneric_imported_queue`), and a harvested stdlib body calls generic
+// fns (registered into `fn_instance_queue`, e.g. `std/json::write_object`
+// -> `Map.len`). Drain all the queues in ONE joint fixpoint until
+// none holds work: a popped item leaves its queue, so re-entry only
+// processes newly-registered work (`drain_generic_fn_instances` builds into
+// `generic_collected` ; `surface_*` dedupes via `materialized_impl_keys`).
+// A pre-fixpoint single generic pass would strand any instance a later
+// stdlib-harvest round registers (a `len__...` callee left unresolved at
+// emit). The generic instances are FLUSHED (sorted + erasure-deduped +
+// pushed) once after convergence so emission order is a single
+// deterministic sort.
+// A step can queue work for one that ran before it in the round, and a set
+// or `array_member_uses` that grows lets more members through to surfacing.
+// They only grow, so their combined length says whether one did: loop until
+// a round ends with every queue empty and that length unchanged.
+drain_lowering_queues :: fn(
+    project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    loaded :: project_ctx.loaded
+    typed :: project_ctx.typed
     gates_len: i64 = 0
     for {
         drain_generic_fn_instances(typed, project_ctx, project, diags)
@@ -197,8 +247,32 @@ lower_project_impl :: fn(
         }
         gates_len = round_gates_len
     }
+}
+
+/// Lower the constants `lowering` set aside, then run the passes that read the
+/// project whole.
+///
+/// A constant of `lowering.awaited` left without a value is lowered as its call,
+/// which the built program then runs at each read.
+///
+/// @param lowering  what `begin_lowering` returned.
+/// @param diags     diagnostics emitted by the lowerer (M5xxx codes).
+/// @return          the lowered project ready for downstream phases.
+export finish_lowering :: fn(lowering: Lowering, diags: Diagnostic[]) -> LoweredProject {
+    project_ctx :: lowering.ctx
+    typed :: project_ctx.typed
+    project :: lowering.project
+    is_staging :: lowering.is_staging
+    if lowering.awaited.len() > 0 {
+        populate_comptime_value_index(project_ctx)
+        project_ctx.awaiting_value.clear()
+        for const_sym in lowering.awaited {
+            project_ctx.nongeneric_imported_const_queue.push(const_sym)
+        }
+        drain_lowering_queues(project_ctx, project, diags)
+    }
     // INVARIANT : anything that can register a generic fn instance or harvest a
-    // non-generic stdlib fn MUST run inside the loop above: the flush is
+    // non-generic stdlib fn MUST run inside `drain_lowering_queues`: the flush is
     // one-shot, so a post-flush registration is stranded (the bug this closes).
     // `close_over_field_shapes` below only pushes struct decls (no body
     // lowering), so it registers nothing: keep it that way.

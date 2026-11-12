@@ -382,6 +382,10 @@ materialize_nongeneric_imported_consts :: fn(
     // re-lowering earlier entries.
     for {
         const_sym :: project_ctx.nongeneric_imported_const_queue.pop() ?? break
+        if const_sym.id in project_ctx.awaiting_value {
+            project_ctx.awaited_consts.push(const_sym)
+            continue
+        }
         module_typed :: typed.modules[const_sym.module] ?? continue
         const_decl :: module_typed.const_decls[const_sym.id] ?? continue
         synth_start :: project_ctx.synth_decls.len()

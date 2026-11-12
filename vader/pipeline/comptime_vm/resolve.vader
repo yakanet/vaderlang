@@ -4,9 +4,10 @@
 // The tree-walk (`vader/front/comptime`) cannot run a loop or a statement body: it
 // records such a decl in `evaluated.vm_required` instead. Running it takes lower,
 // midir, the bytecode emitter and the VM, all above the front end, so this stage
-// sits in the pipeline, between `evaluate_project` and `lower_project`, once the
-// `EvaluatedProject` is complete (mono + instances built). Layer by layer, until
-// no decl is pending (`evaluate_layer`), it:
+// sits in the pipeline, once the `EvaluatedProject` is complete (mono + instances
+// built): before the lowering for a decl of the project, and between its two
+// halves for a decl of a dependency the program reads (`pipeline/frontend`).
+// Layer by layer, until no decl is pending (`evaluate_layer`), it:
 //
 //   1. stages the modules owning the pending decls to bytecode (a throwaway
 //      lower -> cfg -> emit). A pending const is still un-baked, so `lower` inlines
@@ -16,8 +17,7 @@
 //      `ComptimeValue` (`bridge.vader`);
 //   3. injects it into the owning module's `comptime_decls`.
 //
-// The real `lower_project`, run afterwards by `lower_to_entry`, then sees the
-// baked value and lowers the constant from it.
+// The real lowering then sees the baked value and lowers the constant from it.
 
 module "vader/pipeline/comptime_vm"
 
@@ -39,8 +39,8 @@ import "vader/core/bytecode"
 Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
 
-/// Bake every VM-required `@comptime` decl into its module's `comptime_decls`.
-/// No-op when `evaluated.vm_required` is empty (the common case: most projects
+/// Bake the VM-required `@comptime` decls of `owners` into their module's
+/// `comptime_decls`. No-op when none is pending (the common case: most projects
 /// have no loop-bearing comptime const). Mutates `evaluated` in place.
 ///
 /// The decls run in layers: a decl whose value reads another one still waiting
@@ -51,18 +51,29 @@ Vm :: import "vader/vm"
 /// @param typed      the typed project (staging lower input).
 /// @param evaluated  the complete evaluated project ; its
 ///                   `modules[...].comptime_decls` are mutated.
+/// @param owners     the modules whose decls are baked ; every module when
+///                   null.
 /// @param diags      comptime diagnostics: a failed staging / VM run appends
 ///                   C4002 (panic) here ; the decl is left un-baked.
 /// @error            C4002 when the staged callee traps in the VM ; C4001 when
 ///                   its result `Value` can't be bridged (cf. `bridge.vader`).
 export resolve_vm_required_decls :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject,
+    owners: string[] | null, diags: Diagnostic[],
 ) -> void {
     home :: current_working_directory()
-    pending: Ct.VmRequiredDecl[] = evaluated.vm_required
+    pending: Ct.VmRequiredDecl[] = decls_of(evaluated.vm_required, owners)
     for pending.len() > 0 {
         pending = evaluate_layer(loaded, typed, evaluated, pending, home, diags)
     }
+}
+
+// The decls of `pending` a module of `owners` declares ; all of them when null.
+decls_of :: fn(pending: Ct.VmRequiredDecl[], owners: string[] | null) -> Ct.VmRequiredDecl[] {
+    if owners == null {
+        return pending
+    }
+    return pending.filter((decl) -> decl.module_id in owners).collect()
 }
 
 /// A pending decl staged for one layer.
@@ -90,7 +101,7 @@ evaluate_layer :: fn(
     diags: Diagnostic[],
 ) -> Ct.VmRequiredDecl[] {
     // Pass-1 staging : lower + emit the project with the pending consts still
-    // un-baked. Diagnostics are throwaway: the real pass-2 lower reports any
+    // un-baked. Diagnostics are throwaway: the real lowering reports any
     // genuine errors.
     stage_diags: Diagnostic[]: []
     cfg :: stage_to_cfg(loaded, typed, evaluated, pending, stage_diags)
@@ -348,7 +359,7 @@ baked_value :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl) -> Ct.C
 
 // Inject the bridged value into the owning module's `comptime_decls`, keyed by
 // the const's symbol id: exactly where the tree-walk would have put it. The
-// pass-2 lower's `lookup_const_baked_value` then reads it.
+// real lowering's `lookup_const_baked_value` then reads it.
 inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
     program :: evaluated.modules[vr.module_id]
     if program is Ct.EvaluatedProgram {

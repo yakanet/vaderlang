@@ -262,6 +262,11 @@ LowerProjectCtx :: struct {
     /// deterministic dump.
     nongeneric_imported_consts:      Set<i32>
     nongeneric_imported_const_queue: Queue<Symbol> = Queue<Symbol> {}
+    /// The `@comptime` constants the VM has not run yet, by symbol id
+    /// (`mark_awaiting_values`). One the program reads is not lowered: it goes to
+    /// `awaited_consts`, and `finish_lowering` lowers it once it has its value.
+    awaiting_value:                  Set<i32> = Set<i32> {}
+    awaited_consts:                  Symbol[] = []
 
     /// Erasure-dedupe of impl-member emissions: keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a

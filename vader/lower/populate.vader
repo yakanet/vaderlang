@@ -3,6 +3,7 @@
 
 module "vader/lower"
 
+import "std/collections"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 
@@ -27,6 +28,16 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
     for [_, ep] in project_ctx.evaluated.modules {
         for [symbol_id, v] in ep.comptime_decls {
             project_ctx.comptime_value_by_symbol_id[symbol_id] = v
+        }
+    }
+}
+
+// Record the `@comptime` constants left to the VM that it has not run. Called
+// once the index of values is built.
+mark_awaiting_values :: fn(project_ctx: LowerProjectCtx) -> void {
+    for decl in project_ctx.evaluated.vm_required {
+        if decl.symbol_id !in project_ctx.comptime_value_by_symbol_id {
+            project_ctx.awaiting_value.add(decl.symbol_id)
         }
     }
 }
