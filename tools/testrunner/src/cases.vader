@@ -64,6 +64,8 @@ STAGES: Stage[]: [
     NATIVE_STAGE,
     DIAGNOSTICS_STAGE,
     TESTS_STAGE,
+    TARGETS_STAGE,
+    EXTERNS_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -100,6 +102,23 @@ TESTS_STAGE: Stage: Stage {
     .snapshot = "",
 }
 
+// The bodies each target selects, in a fixture of `TARGET_CORPUS`
+// (`dump_fixtures.vader`), whose snapshot is named after its target.
+TARGETS_PHASE :: "targets"
+TARGETS_STAGE: Stage: Stage {
+    .phase = TARGETS_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+
+// The C prototype of each `@extern`, in a fixture of `EXTERNS_CORPUS`.
+EXTERNS_PHASE :: "externs"
+EXTERNS_STAGE: Stage: Stage {
+    .phase = EXTERNS_PHASE,
+    .dump = null,
+    .snapshot = "externs.snapshot.c",
+}
+
 // The lowered form of a program.
 LOWER_PHASE :: "lower"
 
@@ -112,6 +131,9 @@ BYTECODE_SNAPSHOT :: "bytecode.snapshot.virt"
 
 SNIPPETS :: "tests/snippets"
 
+// The entry of a snippet, and of a fixture of the diagnostics corpora.
+SNIPPET_ENTRY :: "_main.vader"
+
 // The target the snapshots are taken for, whatever the host.
 SNAPSHOT_TARGET :: Target { .os = .Linux, .arch = .X86_64 }
 
@@ -119,9 +141,14 @@ SNAPSHOT_TARGET :: Target { .os = .Linux, .arch = .X86_64 }
 Case :: struct {
     /// The folder under its corpus, the corpus named first for a fixture.
     name: string
-    /// The folder of its `_main.vader`; for the tests of a module, the entry
-    /// `vader test` compiles, the folder of the module or its one file.
+    /// The folder of its `entry`; for the tests of a module, the entry `vader
+    /// test` compiles, the folder of the module or its one file.
     dir: string
+    /// The file of `dir` its stages compile.
+    entry: string = SNIPPET_ENTRY
+    /// The snapshot of `dir` it checks when `dir` holds one per case, which then
+    /// names it in the report; null elsewhere.
+    snapshot: string | null = null
     phases: string[]
     modules: string[] = []
     /// The platform it is compiled for.
@@ -163,16 +190,36 @@ find_cases :: fn(phases: string[]) -> Discovery {
     if phases.contains(DIAGNOSTICS_PHASE) {
         find_fixtures(found)
     }
+    if phases.contains(TARGETS_PHASE) {
+        find_target_fixtures(found)
+    }
+    if phases.contains(EXTERNS_PHASE) {
+        find_extern_fixtures(found)
+    }
     return found
 }
 
 // The folders under `root` holding a `_main.vader`, in name order.
 case_folders :: fn(found: Discovery, root: string) -> string[] =
-    folders_where(found, root, (path) -> exists("${path}/_main.vader"))
+    entry_folders(found, root, SNIPPET_ENTRY)
+
+// The folders under `root` holding a file named `entry`, in name order.
+entry_folders :: fn(found: Discovery, root: string, entry: string) -> string[] =
+    entries_where(found, root, (path) -> exists("${path}/${entry}"))
+
+// The file of `case` its stages compile.
+entry_path :: fn(case: Case) -> string = "${case.dir}/${case.entry}"
+
+// The path the report names `case` by: the snapshot it checks when its folder
+// holds one per case, its folder otherwise.
+case_path :: fn(case: Case) -> string {
+    snapshot :: case.snapshot ?? return case.dir
+    return "${case.dir}/${snapshot}"
+}
 
 // The entries of `root` whose path `keep` takes, in name order; the problem of a
 // `root` that cannot be read goes to `found`.
-folders_where :: fn(found: Discovery, root: string, keep: fn(string) -> bool) -> string[] {
+entries_where :: fn(found: Discovery, root: string, keep: fn(string) -> bool) -> string[] {
     listed :: read_dir(root)
     if listed is IOError {
         found.problems.push("${root}: ${listed.msg}")

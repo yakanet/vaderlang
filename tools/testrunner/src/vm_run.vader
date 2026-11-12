@@ -39,7 +39,7 @@ check_run :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
 
 // The `.virt` text of the program of `case`, or why there is none.
 program_bytecode :: fn(case: Case) -> string | CaseFailure {
-    file :: Path("${case.dir}/_main.vader")
+    file :: Path(entry_path(case))
     if case.vm_from_build {
         return linked_image(file)
     }

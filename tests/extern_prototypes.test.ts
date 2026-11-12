@@ -43,7 +43,7 @@ const EXPECTED = [
 ].join("\n");
 
 test("every @extern is listed as the C prototype it is called through, called or not", async () => {
-  const r = await runCli(["dump", "--stage=externs", join(FIXTURES, "main.vader")], undefined, MEDIUM_BUILD);
+  const r = await runCli(["dump", "--stage=externs", join(FIXTURES, "shapes", "main.vader")], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout).toBe(EXPECTED);
 }, MEDIUM_BUILD);

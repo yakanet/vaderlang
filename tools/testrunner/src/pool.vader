@@ -57,10 +57,11 @@ serve :: fn(slot: Slot, cases: Case[], queue: Channel<i64>, events: Channel<Prog
 }
 
 // Run the stages of `case`, on a new worker for those left after a crash. The
-// reporter knows a case by its folder, which names it in full.
+// reporter knows a case by its path, which names it in full.
 run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
-    events.send(CaseStarted { .case = case.dir })
-    defer events.send(CaseEnded { .case = case.dir })
+    key :: case_path(case)
+    events.send(CaseStarted { .case = key })
+    defer events.send(CaseEnded { .case = key })
     todo := case.phases
     for todo.len() > 0 {
         worker :: worker_of(slot) ?? return
@@ -69,10 +70,10 @@ run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
         for report in reports.stages {
             // A copy: what a task sends is its receiver's to write, and `report` is
             // still an element of this task's `reports` (T3129).
-            events.send(StageNoted { .case = case.dir, .report = StageReport { ...report } })
+            events.send(StageNoted { .case = key, .report = StageReport { ...report } })
         }
         for message in reports.errors {
-            events.send(CaseError { .case = case.dir, .message = message })
+            events.send(CaseError { .case = key, .message = message })
         }
         if reports.done {
             return
@@ -88,11 +89,11 @@ run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
         died :: worker.err[from..<worker.err.len()].bytes_to_string()
         ended :: if left[0] == VM_PHASE { program_end(slot, case, reports, died) } else { null }
         if ended != null {
-            events.send(StageNoted { .case = case.dir, .report = ended })
+            events.send(StageNoted { .case = key, .report = ended })
         } else {
             events.send(
                 Crash {
-                    .case = case.dir,
+                    .case = key,
                     .phase = left[0],
                     .exit = code,
                     .stderr = worker.err.bytes_to_string(),

@@ -25,7 +25,7 @@ PROGRAM_TIMEOUT_SECONDS: i64: 60
 // with its `vm.snapshot`; or say why it does not build or run.
 check_native :: fn(ctx: WorkerContext, case: Case, dir: string) -> StageReport | CaseFailure {
     began :: monotonic()
-    file :: Path("${case.dir}/_main.vader")
+    file :: Path(entry_path(case))
     prepared :: program_of(file, BuildRequest { .verify_bounds = true })
     if prepared is CaseFailure {
         return prepared

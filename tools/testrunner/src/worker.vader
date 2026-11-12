@@ -77,7 +77,7 @@ run_request :: fn(ctx: WorkerContext, case: Case) -> void {
         return
     }
     input :: DumpInput {
-        .file = Path("${case.dir}/_main.vader"),
+        .file = Path(entry_path(case)),
         .modules = case.modules,
         .target = case.target,
         .annotate = true,
@@ -120,6 +120,12 @@ check_phase :: fn(
     }
     if phase == TESTS_PHASE {
         return check_tests(case)
+    }
+    if phase == TARGETS_PHASE {
+        return check_targets(case, input, ctx.update)
+    }
+    if phase == EXTERNS_PHASE {
+        return check_stage(case, stage, "externs", input, ctx.update)
     }
     return check_run(case, ctx.update)
 }

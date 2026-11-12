@@ -1,0 +1,72 @@
+// tools/repo_checks/extern_fixture: the fixture that lists the C prototypes of
+// the library imports every module of `lib/` that declares an `@extern`.
+//
+// The listing of `tests/fixtures/externs/stdlib` shows the `@extern` of the
+// modules its program imports: a module it does not import drops out of the
+// snapshot without failing it.
+
+module "tools/repo_checks"
+
+import "std/iter"
+import "std/path"
+import "std/string"
+
+EXTERN_FIXTURE :: "tests/fixtures/externs/stdlib/main.vader"
+
+// What opens the line of an `@extern` declaration, past its indent.
+EXTERN_OPENING :: "@extern("
+
+LIBRARY_SCOPE :: ScanScope {
+    .roots = ["lib"],
+    .files = [],
+    .skipped = [],
+    .extensions = [".vader"],
+}
+
+// Push on `found` the module of `file`, a file of `lib/` whose text is `text`,
+// when it declares an `@extern` that `fixture`, the text of the fixture, does
+// not import.
+check_imported :: fn(fixture: string, file: string, text: string, found: string[]) -> void {
+    if !declares_extern(text) {
+        return
+    }
+    module :: module_folder(file)
+    if "import \"${module}\"" !in fixture {
+        found.push("${file}: `${module}`")
+    }
+}
+
+// Whether a line of `text` opens with an `@extern`, past its indent.
+declares_extern :: fn(text: string) -> bool =
+    text.lines().any_match((l) -> l.left_trim().starts_with(EXTERN_OPENING))
+
+// The module a file of `lib/` belongs to: its folder, from `lib/`.
+module_folder :: fn(file: string) -> string =
+    to_posix(file).trim_prefix("lib/").to_path().parent().as_string()
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_extern_fixture_imports_every_module_with_an_extern :: fn() -> void {
+    fixture :: read_or_fail(EXTERN_FIXTURE) ?? return
+    check :: (file: string, text: string, found: string[]) -> check_imported(
+        fixture,
+        file,
+        text,
+        found,
+    )
+    assert_none(findings_in(LIBRARY_SCOPE, check), "modules the extern fixture does not import")
+}
+
+@test
+test_an_extern_opens_its_line :: fn() -> void {
+    assert(declares_extern("    @extern(LIBC, \"puts\")\nputs :: fn() -> i32\n"), "an indented one")
+    assert(!declares_extern("/// see `@extern(...)`\n"), "a mention in a comment")
+}
+
+@test
+test_a_file_of_the_library_belongs_to_its_folder :: fn() -> void {
+    assert_eq(module_folder("lib/system/posix/posix.vader"), "system/posix")
+}

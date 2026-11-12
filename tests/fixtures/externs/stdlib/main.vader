@@ -1,5 +1,8 @@
-// Every module of `lib/` that declares an `@extern`, imported for the listing
-// `tests/extern_prototypes.test.ts` keeps in `externs.snapshot.c`.
+// Every module of `lib/` that declares an `@extern`, imported for the listing of
+// their C prototypes that `externs.snapshot.c` keeps; `tools/repo_checks` checks
+// that none is missing.
+//
+// modules: std system
 
 module "main"
 

@@ -1,0 +1,131 @@
+// tools/testrunner/src/dump_fixtures: the fixtures of `tests/fixtures` that pin
+// one stage of `vader dump`.
+//
+// A fixture is a folder holding a `main.vader`, the entry of a program that may
+// span several files. Those of `tests/fixtures/target` pin which `@target` body
+// each target selects: one snapshot per target, named after it
+// (`windows-x86_64.snapshot`), holding the diagnostics of the program built for
+// that target, then the `targets` stage of the dump. Those of
+// `tests/fixtures/externs` pin the C prototype of each `@extern`, the `externs`
+// stage, in `externs.snapshot.c`; the modules it shows are named in the header of
+// the fixture (`// modules: std system`), those under the entry otherwise.
+
+module "tools/testrunner/src"
+
+import "std/char"
+import "std/env"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/string"
+import "std/time"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+import "vader/support/target"
+import "vader/tools/dump"
+
+TARGET_CORPUS  :: "tests/fixtures/target"
+EXTERNS_CORPUS :: "tests/fixtures/externs"
+
+// The entry of a fixture of `tests/fixtures`.
+FIXTURE_ENTRY :: "main.vader"
+
+// What the name of a snapshot of `TARGET_CORPUS` ends with, after its target.
+TARGET_SNAPSHOT_SUFFIX :: ".snapshot"
+
+// What opens the header line naming the modules an `externs` fixture shows.
+MODULES_OPENING :: "// modules: "
+
+// What the diagnostics of a target fixture with none show.
+NO_TARGET_DIAGNOSTICS :: "(none)"
+
+// The fixtures of `TARGET_CORPUS`, one case per snapshot, pushed on `found`.
+find_target_fixtures :: fn(found: Discovery) -> void {
+    for name in entry_folders(found, TARGET_CORPUS, FIXTURE_ENTRY) {
+        dir :: "${TARGET_CORPUS}/${name}"
+        snapshots :: entries_where(found, dir, (path) -> path.ends_with(TARGET_SNAPSHOT_SUFFIX))
+        if snapshots.len() == 0 {
+            found.problems.push("${dir}: no `<target>${TARGET_SNAPSHOT_SUFFIX}`")
+        }
+        for snapshot in snapshots {
+            label :: snapshot.trim_suffix(TARGET_SNAPSHOT_SUFFIX)
+            target :: parse_target(label)
+            if target is TargetParseError {
+                found.problems.push("${dir}/${snapshot}: ${target.reason}")
+                continue
+            }
+            found.cases.push(
+                Case {
+                    .name = "target/${name}/${label}",
+                    .dir = dir,
+                    .entry = FIXTURE_ENTRY,
+                    .snapshot = snapshot,
+                    .phases = [TARGETS_PHASE],
+                    .target = target,
+                },
+            )
+        }
+    }
+}
+
+// The fixtures of `EXTERNS_CORPUS`, pushed on `found`.
+find_extern_fixtures :: fn(found: Discovery) -> void {
+    for name in entry_folders(found, EXTERNS_CORPUS, FIXTURE_ENTRY) {
+        dir :: "${EXTERNS_CORPUS}/${name}"
+        source :: read_file_string("${dir}/${FIXTURE_ENTRY}")
+        if source is IOError {
+            found.problems.push("${dir}/${FIXTURE_ENTRY}: ${source.msg}")
+            continue
+        }
+        modules :: header_value(source, MODULES_OPENING) ?? ""
+        found.cases.push(
+            Case {
+                .name = "externs/${name}",
+                .dir = dir,
+                .entry = FIXTURE_ENTRY,
+                .phases = [EXTERNS_PHASE],
+                .modules = modules.split_where(is_white_char),
+            },
+        )
+    }
+}
+
+// Compare the `targets` text of `case`, read from `input`, with the snapshot of
+// its target, which `update` writes when it differs.
+check_targets :: fn(case: Case, input: DumpInput, update: bool) -> StageReport | CaseFailure {
+    began :: monotonic()
+    selected :: input.dump_stage("targets")
+    if selected.code != 0 {
+        return CaseFailure { .message = "${TARGETS_PHASE}: ${selected.err}" }
+    }
+    // Those of every module, as a build shows them: a library's body may be the
+    // one the target misses.
+    built :: prepare_program(input.file, BuildRequest { .emit = "c", .target = case.target })
+    diagnostics :: (built.pre_diags + built.lower_diags).filter(is_error_or_warning).collect()
+    stage :: Stage { ...TARGETS_STAGE, .snapshot = case.snapshot ?? "" }
+    return report_of(case, stage, targets_text(case.dir, diagnostics, selected.out), update, began)
+}
+
+// The text a snapshot of `TARGET_CORPUS` holds: the `diagnostics` of the fixture
+// in `dir`, then what its `targets` stage printed, with no path into `dir`.
+targets_text :: fn(dir: string, diagnostics: Diagnostic[], selected: string) -> string {
+    cwd :: to_posix(current_working_directory())
+    block :: dump_diagnostics_with_paths(diagnostics, cwd).trim_prefix("\n# Diagnostics").trim()
+    listed :: if block == "" { NO_TARGET_DIAGNOSTICS } else { block }
+    text :: "# Diagnostics\n${listed}\n\n${selected.trim()}\n"
+    return text.replace_all("${cwd}/${dir}/", "").replace_all("${dir}/", "")
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_target_text_names_its_files_from_the_fixture :: fn() -> void {
+    selected :: "# Baked\n(none)\n\n# Selected body\n"
+        + "main\$f <- tests/fixtures/target/x/main-windows.vader:3\n"
+    expected :: "# Diagnostics\n(none)\n\n# Baked\n(none)\n\n# Selected body\n"
+        + "main\$f <- main-windows.vader:3\n"
+    assert_eq(targets_text("tests/fixtures/target/x", [], selected), expected)
+}

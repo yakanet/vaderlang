@@ -25,7 +25,7 @@ TARGET_OPENING :: "// target: "
 
 // The fixtures of both corpora, pushed on `found`.
 find_fixtures :: fn(found: Discovery) -> void {
-    for bucket in folders_where(found, DIAG_CORPUS, is_dir) {
+    for bucket in entries_where(found, DIAG_CORPUS, is_dir) {
         root :: "${DIAG_CORPUS}/${bucket}"
         for name in case_folders(found, root) {
             found.cases.push(fixture_case("diag_corpus/${bucket}/${name}", "${root}/${name}"))
@@ -35,7 +35,7 @@ find_fixtures :: fn(found: Discovery) -> void {
         dir :: "${CONCURRENCY_CORPUS}/${name}"
         case :: concurrency_case("concurrency_corpus/${name}", dir)
         if case is string {
-            found.problems.push("${dir}/_main.vader: ${case}")
+            found.problems.push("${dir}/${SNIPPET_ENTRY}: ${case}")
             continue
         }
         found.cases.push(case)
@@ -52,7 +52,7 @@ fixture_case :: fn(name: string, dir: string) -> Case = Case {
 // The fixture of the concurrency corpus in `dir`, named `name`, as its header
 // describes it; or what is wrong with that header.
 concurrency_case :: fn(name: string, dir: string) -> Case | string {
-    source :: read_file_string("${dir}/_main.vader")
+    source :: read_file_string("${dir}/${SNIPPET_ENTRY}")
     if source is IOError {
         return source.msg
     }

@@ -101,6 +101,11 @@ request_record :: fn(case: Case) -> string {
     entries :: Map<string, JsonValue> {}
     entries["case"] = JsonString { .value = case.name }
     entries["dir"] = JsonString { .value = case.dir }
+    entries["entry"] = JsonString { .value = case.entry }
+    snapshot :: case.snapshot
+    if snapshot != null {
+        entries["snapshot"] = JsonString { .value = snapshot }
+    }
     entries["modules"] = json_strings(case.modules)
     entries["stages"] = json_strings(case.phases)
     entries["target"] = JsonString { .value = "${case.target}" }
@@ -174,6 +179,8 @@ read_request :: fn(line: string) -> Case | null {
     return Case {
         .name = name,
         .dir = string_member(message, "dir") ?? return null,
+        .entry = string_member(message, "entry") ?? return null,
+        .snapshot = string_member(message, "snapshot"),
         .phases = strings_member(message, "stages"),
         .modules = strings_member(message, "modules"),
         .target = target,
@@ -243,6 +250,8 @@ test_a_request_reads_back_as_its_case :: fn() -> void {
     case :: Case {
         .name = "concurrency_corpus/c01",
         .dir = "tests/concurrency_corpus/c01",
+        .entry = "main.vader",
+        .snapshot = "darwin-arm64.snapshot",
         .phases = ["lexer", "vm"],
         .modules = ["helper"],
         .target = Target { .os = .Darwin, .arch = .Arm64 },

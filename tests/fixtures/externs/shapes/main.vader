@@ -1,5 +1,13 @@
-// One `@extern` of each shape, called or not, for `vader dump --stage=externs`:
-// `tests/extern_prototypes.test.ts` says which line of the listing pins what.
+// One `@extern` of each shape, for `vader dump --stage=externs`, which lists each
+// as the C prototype it is called through (`externs.snapshot.c`).
+//
+// The program calls one of the nine: the listing holds the eight it never calls
+// too, which a native build drops. One line per shape: a scalar lent by address
+// (`const`), a lent array C writes (`void*`), a mirror lent and written, a lent
+// array whose elements `@c_type` names, a `@c_type` on a parameter and on the
+// result, a string with no header, a `string | null` result with no header
+// (`const char*`), and a variadic, whose variadic argument the comment names
+// after the mangle.
 
 module "main"
 

@@ -98,7 +98,7 @@ lazy_locals_problem :: fn(case: Case, stage: Stage, lowered: string) -> string |
     if lowered.starts_with(CLI_FAILED_PREFIX) {
         return null
     }
-    path :: "${case.dir}/_main.vader"
+    path :: entry_path(case)
     source :: read_file_string(path)
     if source is IOError {
         return "`${path}`: ${source.msg}"
