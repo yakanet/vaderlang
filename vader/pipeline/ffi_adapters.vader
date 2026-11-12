@@ -11,6 +11,11 @@
 // archives, the headers, the compiler that wrote the C), so an unchanged
 // program reuses its library, and a changed one never overwrites a library a
 // running program holds: Windows refuses to replace a loaded DLL.
+//
+// Two processes may build the library of one fingerprint at once. Each builds
+// in a folder of its own (`create_unique_dir`) and renames it to the
+// fingerprint's: the rename of the first puts a whole library in place, and the
+// others adopt it.
 
 module "vader/pipeline"
 
@@ -57,18 +62,21 @@ export build_ffi_adapters :: fn(
     rt :: runtime_or_probe("")
     flags :: adapter_flags(cc, native, rt, quote_dir)
     links :: adapter_links(module, adapted, native)
-    dir :: root.join_path(FFI_ADAPTER_DIR).join_path(fingerprint(units, flags, links, rt, quote_dir))
-    library :: dir.join_path("vader_adapters.${shared_library_extension()}")
-    built :: dir.join_path("built")
-    if exists(built) {
-        return library
+    file :: "vader_adapters.${shared_library_extension()}"
+    adapters :: root.join_path(FFI_ADAPTER_DIR)
+    print :: fingerprint(units, flags, links, rt, quote_dir)
+    kept :: adapters.join_path(print)
+    if exists(kept.join_path(BUILT_MARK)) {
+        return kept.join_path(file)
     }
-    made :: create_dir(dir)
-    if made is IOError {
+    dir :: create_unique_dir(adapters, "${print}.")
+    if dir is IOError {
         return AdapterBuildError {
-            .message = "cannot be written to `${dir.to_native()}`: ${made.message()}",
+            .message = "cannot be written under `${adapters.to_native()}`: ${dir.message()}",
         }
     }
+    library :: dir.join_path(file)
+    built :: dir.join_path(BUILT_MARK)
     // Kept out of the fingerprint: these flags refuse a library but never change
     // one, so the toolchain probe their spelling needs runs only when one compiles.
     argv :: flags + header_check_flags(cc_flavour(cc))
@@ -76,6 +84,7 @@ export build_ffi_adapters :: fn(
         source :: dir.join_path("${units.names[k]}.c")
         written :: write_file(source, units.units[k])
         if written is IOError {
+            discard(dir)
             return AdapterBuildError { .message = "cannot be written to `${source.to_native()}`: ${written.message()}" }
         }
         argv.push(source)
@@ -85,20 +94,54 @@ export build_ffi_adapters :: fn(
     argv.push(library)
     compiled :: spawn(argv)
     if compiled is ProcessError {
+        discard(dir)
         why :: "${compiled.message()}\n${compiled.stderr}".trim()
         return AdapterBuildError { .message = "need a C compiler, and `${cc}` did not run: ${why}" }
     }
+    // A library that does not compile keeps its folder: the message names it.
     if compiled.exit != 0 {
         _ :: remove(library)
         return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir.to_native()}`):\n${compiled.stderr}" }
     }
-    // Written last: a run cut short leaves a library that is not to be trusted.
     marked :: write_file(built, "")
     if marked is IOError {
+        discard(dir)
         return AdapterBuildError { .message = "cannot be written to `${built.to_native()}`: ${marked.message()}" }
     }
-    return library
+    // The rename is what publishes the library, whole. It fails when the folder
+    // is there already: another process published its own in the meantime, and
+    // this one's is dropped for it.
+    if publish(dir, kept) {
+        return kept.join_path(file)
+    }
+    discard(dir)
+    return AdapterBuildError { .message = "cannot be moved to `${kept.to_native()}`" }
 }
+
+// Give the folder `dir`, a library built whole, the name `kept`, or drop it for
+// the one another process put there first. False when neither holds.
+publish :: fn(dir: string, kept: string) -> bool {
+    if rename(dir, kept) == null {
+        return true
+    }
+    if exists(kept.join_path(BUILT_MARK)) {
+        discard(dir)
+        return true
+    }
+    // A folder published has its mark. One without is what a run cut short left
+    // when libraries were built in place: nothing holds it.
+    discard(kept)
+    return rename(dir, kept) == null
+}
+
+// Remove the folder `dir` and what it holds, if it is there.
+discard :: fn(dir: string) -> void {
+    _ :: remove(dir, RemoveOptions { .recursive = true, .force = true })
+}
+
+// The file whose presence says the library of its folder is whole: written once
+// the library is linked, before the folder takes its name.
+BUILT_MARK :: "built"
 
 // The command line of the adapter library, up to its sources.
 adapter_flags :: fn(cc: string, native: NativeFlags, rt: string, quote_dir: string) -> string[] {

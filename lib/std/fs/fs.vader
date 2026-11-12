@@ -5,8 +5,10 @@
 module "std/fs"
 
 import "std/io"
+import "std/numbers"
 import "std/path"
 import "std/target"
+import "std/time"
 import "system/posix"
 import "system/windows"
 
@@ -176,6 +178,65 @@ export create_dir :: fn(path: string) -> null | IOError {
         return IOError { .msg = "cannot create directory" }
     }
     return null
+}
+
+// Create one directory that was not there. False when the name is taken as well
+// as when it cannot be created: the caller tells the two apart.
+@target
+mkdir_new :: fn(path: string) -> bool
+
+@target(.Linux, .Darwin)
+mkdir_new :: fn(path: string) -> bool = sys_mkdir(path, 0o777) == 0
+
+@target(.Windows)
+mkdir_new :: fn(path: string) -> bool = create_directory(to_wide(path), null)
+
+// How many names `create_unique_dir` tries before it gives up.
+UNIQUE_DIR_ATTEMPTS :: 64
+
+/// Create a directory under `parent` that no one else has: its name is `prefix`
+/// and a number, and the directory is new.
+///
+/// What makes it the caller's alone is the creation, which fails on a name that
+/// exists, here or in another process: a name taken is left and another one is
+/// tried. The number only keeps that rare. It is not a secret: the name can be
+/// guessed, and permissions follow the process umask.
+///
+/// The caller removes the directory, or renames it once what it holds is whole.
+///
+/// @param parent  where the directory goes, created with its parents when
+///                missing.
+/// @param prefix  what its name starts with.
+/// @return        the path of the directory.
+/// @error         `IOError` when `parent` cannot be created or written to, or
+///                when every name tried was taken.
+/// @example
+///   # import "std/env"
+///   work :: create_unique_dir(temp_dir(), "build.")   // ".../build.9f3a61c20b5d7e44"
+export create_unique_dir :: fn(parent: string, prefix: string) -> string | IOError {
+    made :: create_dir(parent)
+    if made is IOError {
+        return made
+    }
+    seed :: u64(i64(monotonic()))
+    for attempt in 0..<UNIQUE_DIR_ATTEMPTS {
+        path :: "${parent}/${prefix}${scrambled(seed +% u64(attempt)).to_hex()}"
+        if mkdir_new(path) {
+            return path
+        }
+        if !exists(path) {
+            return IOError { .msg = "cannot create directory" }
+        }
+    }
+    return IOError { .msg = "no free name for a directory", .kind = .AlreadyExists }
+}
+
+// The bits of `n` spread over the word, so that two close readings of a clock
+// give names that share nothing.
+scrambled :: fn(n: u64) -> u64 {
+    mixed := (n ^ (n >> 30)) *% 0xBF58476D1CE4E5B9
+    mixed = (mixed ^ (mixed >> 27)) *% 0x94D049BB133111EB
+    return mixed ^ (mixed >> 31)
 }
 
 /// Read a file fully into a UTF-8 string: a thin text decode over
@@ -425,8 +486,34 @@ list_dir :: fn(path: string) -> ListedEntry[] | IOError {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/abort"
 import "std/env"
+import "std/string"
 import "std/testing"
+
+@test
+test_create_unique_dir_gives_a_new_directory_each_time :: fn() -> void {
+    parent :: "${temp_dir()}/vader_fs_unique"
+    remove(parent, RemoveOptions { .recursive = true, .force = true })
+    first :: create_unique_dir(parent, "work.")
+    second :: create_unique_dir(parent, "work.")
+    if first is IOError || second is IOError {
+        panic("no directory")
+    }
+    assert(first != second, "two names")
+    assert(is_dir(first) && is_dir(second), "two directories")
+    assert(first.starts_with("${parent}/work."), first)
+    remove(parent, RemoveOptions { .recursive = true, .force = true })
+}
+
+@test
+test_mkdir_new_refuses_a_name_that_exists :: fn() -> void {
+    dir :: "${temp_dir()}/vader_fs_taken"
+    remove(dir, RemoveOptions { .recursive = true, .force = true })
+    assert(mkdir_new(dir), "a new directory")
+    assert(!mkdir_new(dir), "a name taken")
+    remove(dir, RemoveOptions { .recursive = true, .force = true })
+}
 
 @test test_is_dir_separates_a_directory_from_a_file :: fn() -> void {
     file :: "${temp_dir()}/vader_is_dir_probe"

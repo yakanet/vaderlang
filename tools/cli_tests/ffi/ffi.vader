@@ -11,11 +11,13 @@ module "tools/cli_tests/ffi"
 
 import "std/fs"
 import "std/io"
+import "std/iter"
 import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
 import "std/target"
+import "std/task"
 import "tools/cli_tests/cli"
 
 // The two ways a native build assembles its C units.
@@ -261,6 +263,31 @@ test_a_struct_returned_by_value_crosses_under_vader_run :: fn() -> void {
     assert_eq(ran.exit, 0)
     assert_eq(ran.stdout, "quot=3\n")
     assert(exists("${dir}/build/ffi"), "the adapter is kept beside the program")
+}
+
+@test
+test_runs_started_together_share_one_adapter_library :: fn() -> void {
+    // Each run finds no library and builds one: all of them must end with the
+    // library of the first, and leave nothing of their own beside it. Windows
+    // refuses to replace a library a run has loaded.
+    if !has_cc() {
+        return
+    }
+    dir :: scratch_dir("ffi_runs_together")
+    copy_tree("${BY_VALUE}/result", dir)
+    options :: RunOptions { .timeout = LONG_TIMEOUT }
+    runs: Task<ProcessResult | ProcessError>[]: []
+    for _ in 0..<4 {
+        runs.push(launch(() -> run_vader(["run", "${dir}/_main.vader"], options)))
+    }
+    for ran in join_all(runs) {
+        finished :: ran.unwrap()
+        assert_eq(finished.stderr, "")
+        assert_eq(finished.stdout, "quot=3\n")
+    }
+    kept :: read_dir("${dir}/build/ffi").unwrap()
+    assert_eq(kept.len(), 1)
+    assert(exists("${dir}/build/ffi/${kept[0]}/built"), "a whole library")
 }
 
 @test

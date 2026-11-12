@@ -57,6 +57,10 @@ export ALL_PROCESSOR_GROUPS: u16 : 0xFFFF
 @extern(KERNEL32, "GetActiveProcessorCount")
 export get_active_processor_count :: fn(group: u16) -> u32
 
+/// `GetCurrentProcessId`. The id of the calling process; it cannot fail.
+@extern(KERNEL32, "GetCurrentProcessId")
+export get_current_process_id :: fn() -> u32
+
 /// `GetModuleFileNameW`. Writes the running module's path into `buf` and
 /// returns its length; 0 on failure, or `size` exactly when it was truncated.
 ///

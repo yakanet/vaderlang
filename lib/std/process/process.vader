@@ -166,6 +166,20 @@ platform_processor_count :: fn() -> i64 = sys_sysconf(SC_NPROCESSORS_ONLN)
 @target(.Windows)
 platform_processor_count :: fn() -> i64 = i64(get_active_processor_count(ALL_PROCESSOR_GROUPS))
 
+/// The id the system gave this process. No other process running on the machine
+/// has it; one on another machine, or in another container, may, and a later
+/// process takes it once this one has ended.
+export process_id :: fn() -> i64 = platform_process_id()
+
+@target
+platform_process_id :: fn() -> i64 = 0
+
+@target(.Linux, .Darwin)
+platform_process_id :: fn() -> i64 = i64(sys_getpid())
+
+@target(.Windows)
+platform_process_id :: fn() -> i64 = i64(get_current_process_id())
+
 /// Where a child starts, and what it inherits of this process's environment.
 export SpawnOptions :: struct {
     /// The working directory of the child; this process's when null.
@@ -1147,6 +1161,12 @@ import "std/string"
 import "std/task"
 import "std/testing"
 import "std/time"
+
+@test
+test_process_id_is_a_number_that_does_not_change :: fn() -> void {
+    assert(process_id() > 0, "an id")
+    assert_eq(process_id(), process_id())
+}
 
 @test
 test_processor_count_platform_call_succeeds :: fn() -> void {

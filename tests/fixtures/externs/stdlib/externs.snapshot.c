@@ -36,6 +36,7 @@ uint32_t GetActiveProcessorCount(uint16_t group);  // system_windows$get_active_
 bool GetConsoleMode(void* h, void* mode);  // system_windows$get_console_mode
 bool GetConsoleScreenBufferInfo(void* h, CONSOLE_SCREEN_BUFFER_INFO* info);  // system_windows$get_console_screen_buffer_info
 uint32_t GetCurrentDirectoryW(uint32_t size, void* buf);  // system_windows$get_current_directory
+uint32_t GetCurrentProcessId(void);  // system_windows$get_current_process_id
 uint32_t GetEnvironmentVariableW(const void* name, void* buf, uint32_t size);  // system_windows$get_environment_variable_w
 bool GetExitCodeProcess(void* h, void* code);  // system_windows$get_exit_code_process
 bool GetFileAttributesExW(const void* path, int32_t level, void* data);  // system_windows$get_file_attributes_ex
@@ -123,6 +124,7 @@ int32_t access(const char* path, int32_t mode);  // system_posix$sys_access
 int32_t chdir(const char* path);  // system_posix$sys_chdir
 int32_t close(int32_t fd);  // system_posix$sys_close
 void* getcwd(void* buf, int64_t size);  // system_posix$sys_getcwd
+int32_t getpid(void);  // system_posix$sys_getpid
 int32_t isatty(int32_t fd);  // system_posix$sys_isatty
 int64_t lseek(int32_t fd, int64_t offset, int32_t whence);  // system_posix$sys_lseek
 int32_t pipe(void* fds);  // system_posix$sys_pipe
