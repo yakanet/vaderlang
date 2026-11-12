@@ -189,13 +189,13 @@ long_running_line :: fn(running: Map<string, CaseRun>) -> string | null {
     for [case, run] in running {
         seconds :: run.began.since().to_seconds()
         if seconds >= PROGRESS_SECONDS {
-            long.push("${case} (${seconds} s)")
+            long.push("${case} for ${seconds} s")
         }
     }
     if long.len() == 0 {
         return null
     }
-    return "  ... running for long: ${long.join(", ")}"
+    return "(still running) ${long.join(", ")}"
 }
 
 // Print the tally of a run of `cases` cases on `k` workers, which took `took`:
