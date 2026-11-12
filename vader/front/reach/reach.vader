@@ -1,0 +1,109 @@
+// vader/front/reach/reach: what the declarations of a module reach by name.
+//
+// A reference counts by its name, never resolved to a symbol: the walk reads the
+// parsed tree alone, so it runs before the resolver as well as after it. It
+// over-approximates (a local shadowing a top-level name marks it reached), which
+// is the safe side for both its readers: the dead-code lints
+// (`vader/front/dead_code`) under-report, and the loader keeps a declaration it
+// could have dropped (`vader/front/resolver/dependency_tests.vader`).
+
+module "vader/front/reach"
+
+import "std/collections"
+import "std/iter"
+AST :: import "toolchain/ast"
+
+// ---- names ----------------------------------------------------------------
+
+/// Push every name `n` and the nodes under it reference.
+///
+/// A name is an identifier, or the field of a `recv.field` access, through which
+/// UFCS reaches a fn. Type positions, decorator arguments and interpolated parts
+/// are walked too.
+///
+/// @param n    the node to walk.
+/// @param out  receives the names, one per reference.
+export collect_names :: fn(n: AST.Node, out: string[]) -> void {
+    AST.inspect(n, (m) -> referenced_name(m, out))
+}
+
+// Only an identifier and a field access carry a name of their own ; every other
+// node is walked for its children.
+referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
+    if n is AST.IdentExpr {
+        out.push(n.name)
+    } else if n is AST.FieldExpr {
+        out.push(n.field)
+    }
+    return .Descend
+}
+
+// ---- roots ----------------------------------------------------------------
+
+/// Whether a declaration is reached from outside its module whatever its
+/// visibility.
+///
+/// It is when it is an entry point (`main`), wired to the host or to the test
+/// runner (`@test`, `@extern`, `@intrinsic`, `@export`), or exempted by its author
+/// (`@allow_unused`).
+///
+/// @param decorators  the decorators of the declaration.
+/// @param name        the name it declares.
+export is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
+    if name == "main" {
+        return true
+    }
+    for dec in decorators {
+        if dec.name == "test"         { return true }
+        if dec.name == "extern"       { return true }
+        if dec.name == "intrinsic"    { return true }
+        if dec.name == "export"       { return true }
+        if dec.name == "allow_unused" { return true }
+    }
+    return false
+}
+
+// ---- the graph ------------------------------------------------------------
+
+/// Add `refs` to the names `name` references. Overloads share a name, so their
+/// references merge.
+///
+/// @param edges  the names each name references.
+/// @param name   the referencing name.
+/// @param refs   what it references ; kept as the edge list when `name` is new.
+export register_refs :: fn(edges: Map<string, string[]>, name: string, refs: string[]) -> void {
+    current :: edges.put_absent(name, refs) ?? return
+    for r in refs {
+        current.push(r)
+    }
+}
+
+/// The names reached from the roots, through the references of each name
+/// reached.
+///
+/// @param root_names    the names reached to begin with.
+/// @param seed_refs     names referenced by a declaration with no name of its
+///                      own, reached as well.
+/// @param refs_by_name  the names each name references (`register_refs`).
+export bfs_reachable :: fn(
+    root_names: string[],
+    seed_refs: string[],
+    refs_by_name: Map<string, string[]>,
+) -> Set<string> {
+    reachable :: Set<string> {}
+    // `work` grows as names are discovered: the cursor re-reads its length.
+    work :: chain(root_names, seed_refs).collect()
+    cursor: i64 = 0
+    for cursor < work.len() {
+        n :: work[cursor]
+        cursor += 1
+        if !reachable.add(n) {
+            continue
+        }
+        nrefs :: refs_by_name[n] ?? continue
+        for r in nrefs {
+            work.push(r)
+        }
+    }
+    return reachable
+}

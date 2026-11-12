@@ -16,6 +16,9 @@
 // is flagged. Never on the default build: `vader lint` and the LSP's diagnostic
 // pass (`tools/lsp/analysis/diagnostics.vader`) are its only two callers.
 //
+// The walk itself (names, wired roots, the BFS) is `vader/front/reach`, which the
+// loader shares.
+//
 // Name-based by design: a reference counts by its name, never resolved to a
 // `Symbol.id`. Collecting names over the merged AST over-approximates uses (a
 // local shadowing a top-level name marks it used): the SAFE bias for a lint : we
@@ -30,6 +33,7 @@ import "std/collections"
 import "std/iter"
 import "std/string"
 import "vader/support/diagnostics"
+import "vader/front/reach"
 import "vader/front/resolver"
 AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
@@ -41,53 +45,9 @@ DeadDecl :: struct {
     name_span: Span
 }
 
-// ---- name collection ------------------------------------------------------
-
-// Push every name `n` and the nodes under it reference: an identifier, and the
-// field of a `recv.field` access, through which UFCS reaches a fn. `AST.inspect`
-// reaches every node, type positions, decorator arguments and interpolated parts
-// included, so only the nodes that carry a name need an arm.
-collect_names :: fn(n: AST.Node, out: string[]) -> void {
-    AST.inspect(n, (m) -> referenced_name(m, out))
-}
-
-// Only an identifier and a field access carry a name of their own ; every other
-// node is walked for its children.
-referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
-    if n is AST.IdentExpr {
-        out.push(n.name)
-    } else if n is AST.FieldExpr {
-        out.push(n.field)
-    }
-    return .Descend
-}
-
 // ---- root classification --------------------------------------------------
 
 is_public :: fn(v: AST.Visibility) = v == .Public
-
-/// A declaration pins liveness regardless of visibility when it is an entry point
-/// (`main`), host- or test-wired (`@test` / `@extern` / `@intrinsic` / `@export`),
-/// or explicitly exempted by the author (`@allow_unused`, for intentional dead
-/// code : an API not yet wired, a symmetry helper, a test fixture's deliberate
-/// decoy). The single root list shared by both name-reachability lints : W0007
-/// (`is_root_decl`) adds the public surface on top ; W0012 (`dead_exports`) uses
-/// this alone, so a project-dead PUBLIC fn stays flaggable.
-is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
-    if name == "main" {
-        return true
-    }
-    for dec in decorators {
-        if dec.name == "test"      { return true }
-        if dec.name == "extern"    { return true }
-        if dec.name == "intrinsic" { return true }
-        if dec.name == "export"    { return true }
-        if dec.name == "allow_unused" {
-            return true
-        }
-    }
-    return false
-}
 
 // A W0007 reachability root : the public surface (`export`), every wired-or-exempt
 // root, plus a build driver's entry. Never flagged, its refs kept live.
@@ -174,33 +134,6 @@ named_decl :: fn(
     }
 }
 
-// BFS over the name-edge graph from the seeded roots, returning the reachable
-// set. `work` grows as we discover referenced names ; the manual cursor loop
-// (not `0..<len`) re-reads the growing length. Shared by both lints.
-bfs_reachable :: fn(
-    root_names: string[],
-    seed_refs: string[],
-    refs_by_name: Map<string, string[]>,
-) -> Set<string> {
-    reachable :: Set<string> {}
-    work :: chain(root_names, seed_refs).collect()
-    cursor: i64 = 0
-    for cursor < work.len() {
-        n :: work[cursor]
-        cursor += 1
-        if !reachable.add(n) {
-            continue
-        }
-        nrefs :: refs_by_name[n]
-        if nrefs != null {
-            for r in nrefs {
-                work.push(r)
-            }
-        }
-    }
-    return reachable
-}
-
 // ---- entry ----------------------------------------------------------------
 
 /// Flag every private top-level declaration of `decls` that is never reached
@@ -249,15 +182,6 @@ export check_dead_code :: fn(
 // The `__comptime_NAME` fn behind a `NAME :: @comptime ...` const: its refs count,
 // but only the const, which the user wrote, is reported.
 is_comptime_helper :: fn(d: AST.Decl) -> bool = d is AST.FnDecl && d.comptime_synthetic
-
-// Append `refs` to the edge set for `name` (overloads share a name -> merge).
-register_refs :: fn(m: Map<string, string[]>, name: string, refs: string[]) -> void {
-    // A name met first takes `refs` itself.
-    cur :: m.put_absent(name, refs) ?? return
-    for r in refs {
-        cur.push(r)
-    }
-}
 
 // ---- unused-export (W0012) : project-wide dead exported fns ----------------
 //

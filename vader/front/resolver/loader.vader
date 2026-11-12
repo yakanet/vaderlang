@@ -505,8 +505,9 @@ walk_import_cycle :: fn(
 // the right span.
 ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     if m.files.len() == 0 { return }
-    parsed :: parse_module_files(ctx, m.files)
-    if parsed.len() == 0 { return }
+    read :: parse_module_files(ctx, m.files)
+    if read.len() == 0 { return }
+    parsed :: if is_dependency(m) { without_tests(read, m.name) } else { read }
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
@@ -536,6 +537,10 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
         .node_id_factory = ctx.node_factory,
     }
 }
+
+// Whether `m` is a module the program depends on rather than one of its own: one
+// the toolchain ships. Its tests are not loaded (`without_tests`).
+is_dependency :: fn(m: DiscoveredModule) -> bool = m.origin == .Toolchain
 
 // Read `path`'s source, consulting the in-memory `overlay` (filesystem path ->
 // current text) before the disk. The LSP populates the overlay from its

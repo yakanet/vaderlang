@@ -1,0 +1,230 @@
+// vader/front/resolver/dependency_tests: a module the program depends on is
+// loaded without its tests.
+//
+// The tests of a dependency are not the program's: nothing runs them in its
+// build, and every pass after the loader would still study them. They go here,
+// right after parsing, with the private declarations only they reach and the
+// impls of the types that go with them. What stays is what the module's own
+// surface reaches by name (`vader/front/reach`), so a declaration is kept when
+// in doubt.
+//
+// Imports stay: one that only a test needed is still loaded.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "vader/front/reach"
+AST :: import "toolchain/ast"
+
+/// The files of a module without the tests it declares.
+///
+/// Runs before target selection, on every body of a `@target` group: a helper
+/// reached from the body of another platform stays.
+///
+/// @param files        the module's parsed files.
+/// @param module_name  the module's declared name.
+/// @return             the files, holding the declarations the module's surface
+///                     reaches.
+export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFile[] {
+    private_types :: Set<string> {}
+    for f in files {
+        for d in f.program.decls {
+            if !AST.decl_is_public(d) && declares_type(d) {
+                private_types.add(declared_name(d) ?? continue)
+            }
+        }
+    }
+    refs_by_name :: Map<string, string[]> {}
+    root_names: string[]: []
+    seed_refs: string[]: []
+    for f in files {
+        for d in f.program.decls {
+            refs: string[]: []
+            collect_names(d, refs)
+            // The trait of an impl is a name the walk does not meet as a node.
+            if d is AST.ImplDecl {
+                refs.push(d.trait_name)
+            }
+            name :: declared_name(d)
+            if name != null {
+                register_refs(refs_by_name, name, refs)
+                if is_surface(d, name, module_name) {
+                    root_names.push(name)
+                }
+                continue
+            }
+            // An impl is reached through its type when the module alone can name
+            // that type, and from anywhere otherwise. An assert is always checked.
+            owner :: private_type_of(d, private_types)
+            if owner != null {
+                register_refs(refs_by_name, owner, refs)
+            } else {
+                seed_refs.push_all(refs)
+            }
+        }
+    }
+    reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
+    out: SourceFile[]: []
+    for f in files {
+        kept: AST.Decl[]: []
+        for d in f.program.decls {
+            if is_reached(d, reachable, private_types) {
+                kept.push(d)
+            }
+        }
+        out.push(SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } })
+    }
+    return out
+}
+
+// The name `d` declares, null for an impl, an assert or an import.
+declared_name :: fn(d: AST.Decl) -> string | null = match d {
+    is AST.FnDecl        -> d.name
+    is AST.StructDecl    -> d.name
+    is AST.EnumDecl      -> d.name
+    is AST.TraitDecl     -> d.name
+    is AST.TypeAliasDecl -> d.name
+    is AST.ConstDecl     -> d.name
+    is AST.ImplDecl | AST.AssertDecl | AST.ImportDecl -> null
+}
+
+declares_type :: fn(d: AST.Decl) -> bool =
+    d is AST.StructDecl || d is AST.EnumDecl || d is AST.TypeAliasDecl
+
+// Whether the named declaration `d` is reached from outside the module: exported,
+// an entry point, or wired to the host. A test is not.
+is_surface :: fn(d: AST.Decl, name: string, module_name: string) -> bool {
+    decorators :: AST.decl_decorators(d)
+    if AST.decorators_have(decorators, "test") {
+        return false
+    }
+    return AST.decl_is_public(d) || is_wired_root(decorators, name)
+        || module_name == DRIVER_MODULE && name == DRIVER_ENTRY
+}
+
+// The private type of the module the impl `d` is written for, null for an impl
+// of any other type and for a declaration that is not an impl.
+private_type_of :: fn(d: AST.Decl, private_types: Set<string>) -> string | null {
+    if d !is AST.ImplDecl {
+        return null
+    }
+    target :: d.for_type
+    if target is AST.IdentExpr && target.name in private_types {
+        return target.name
+    }
+    if target is AST.GenericInstExpr {
+        callee :: target.callee
+        if callee is AST.IdentExpr && callee.name in private_types {
+            return callee.name
+        }
+    }
+    return null
+}
+
+// Whether `d` stays: a named declaration that is reached, the surface included
+// since the walk starts from it, an impl whose private type is, and everything
+// else.
+is_reached :: fn(d: AST.Decl, reachable: Set<string>, private_types: Set<string>) -> bool {
+    name :: declared_name(d)
+    if name != null {
+        return name in reachable
+    }
+    owner :: private_type_of(d, private_types) ?? return true
+    return owner in reachable
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/iter"
+import "std/string"
+import "std/testing"
+import "vader/front/parser"
+
+// What is left of the one-file module `source`: the names it declares, an impl
+// as `Type:Trait`.
+left_of :: fn(source: string) -> string {
+    parsed :: parse_source(source, "t.vader")
+    files :: [SourceFile { .path = "t.vader", .content = source, .program = parsed.program }]
+    names: string[]: []
+    for d in without_tests(files, "t")[0].program.decls {
+        if d is AST.ImplDecl {
+            target :: d.for_type
+            if target is AST.IdentExpr {
+                names.push("${target.name}:${d.trait_name}")
+            }
+            continue
+        }
+        names.push(declared_name(d) ?? continue)
+    }
+    return names.join(" ")
+}
+
+@test
+test_without_tests_drops_a_test_and_what_only_it_reaches :: fn() -> void {
+    source :: r"""
+        module "t"
+
+        export double :: fn(x: i32) -> i32 = twice(x)
+
+        twice :: fn(x: i32) -> i32 = x * 2
+
+        expected :: fn() -> i32 = 4
+
+        @test
+        test_double :: fn() -> void {
+            assert_eq(double(2), expected())
+        }
+        """
+    assert_eq(left_of(source), "double twice")
+}
+
+@test
+test_without_tests_drops_the_impl_of_a_type_only_a_test_names :: fn() -> void {
+    source :: r"""
+        module "t"
+
+        export Shape :: trait {
+            area :: fn(self) -> i32
+        }
+
+        Unit :: struct {}
+
+        Unit implements Shape {
+            area :: fn(self) -> i32 = 1
+        }
+
+        Probe :: struct {}
+
+        Probe implements Shape {
+            area :: fn(self) -> i32 = 0
+        }
+
+        export unit :: fn() -> Shape = Unit {}
+
+        @test
+        test_probe :: fn() -> void {
+            assert_eq(Probe {}.area(), 0)
+        }
+        """
+    assert_eq(left_of(source), "Shape Unit Unit:Shape unit")
+}
+
+@test
+test_without_tests_keeps_what_an_impl_of_an_exported_type_reaches :: fn() -> void {
+    source :: r"""
+        module "t"
+
+        Named :: trait {
+            name :: fn(self) -> string
+        }
+
+        export Dog :: struct {}
+
+        Dog implements Named {
+            name :: fn(self) -> string = label()
+        }
+
+        label :: fn() -> string = "dog"
+        """
+    assert_eq(left_of(source), "Named Dog Dog:Named label")
+}
