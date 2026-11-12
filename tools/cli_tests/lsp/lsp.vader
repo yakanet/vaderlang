@@ -51,10 +51,6 @@ publishes_for :: fn(message: JsonValue, uri: string) -> bool =
 // The code of the diagnostic `diagnostic`.
 code_of :: fn(diagnostic: JsonValue) -> string = string_member(diagnostic, "code") ?? ""
 
-// The integer at the end of `path` from `value`, a line or a column; -1 when
-// there is none.
-int_at :: fn(value: JsonValue, path: string[]) -> i64 = i64(number_at(value, path) ?? -1.0)
-
 // The diagnostics of `diagnostics` a resolver or a typecheck reports.
 errors :: fn(diagnostics: JsonValue[]) -> JsonValue[] =
     diagnostics.filter((d) -> code_of(d).starts_with("R") || code_of(d).starts_with("T")).collect()

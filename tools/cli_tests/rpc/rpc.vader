@@ -73,6 +73,13 @@ export frames_of :: fn(text: string) -> Frames {
     return Frames { .messages = messages, .rest = rest }
 }
 
+/// The integer at the end of `path` from `value`, as `member_at` follows it: the
+/// line, the column or the id a message holds; -1 when there is none.
+///
+/// @param value  a message, or a value in one.
+/// @param path   the keys to follow, the outermost first.
+export int_at :: fn(value: JsonValue, path: string[]) -> i64 = i64(number_at(value, path) ?? -1.0)
+
 // The length the header `header` gives the body; null when it names none.
 body_length :: fn(header: string) -> i64 | null {
     for line in header.split("\r\n") {
@@ -90,12 +97,20 @@ body_length :: fn(header: string) -> i64 | null {
 /// Run `vader` with `args`, every one of `messages` written to its stdin before
 /// it is closed, and give back the messages it sent, in order.
 ///
+/// A server that cannot be launched or outlives its timeout fails the test, and
+/// so does one a signal ends, unless `aborts`.
+///
 /// @param args      what follows `vader` on its command line: `lsp`, `dap`.
 /// @param messages  the JSON of each message, in the order it is sent.
-export exchange :: fn(args: string[], messages: string[]) -> JsonValue[] {
+/// @param aborts    whether a signal ends the server once it has sent its
+///                  messages, as a trap in a task ends `vader dap`.
+export exchange :: fn(args: string[], messages: string[], aborts: bool = false) -> JsonValue[] {
     input :: messages.map(frame).collect().join("")
-    ran :: run_vader(args, RunOptions { .stdin = input }).unwrap()
-    return frames_of(ran.stdout).messages
+    ran :: run_vader(args, RunOptions { .stdin = input })
+    if ran is ProcessError && (!aborts || ran.stdout == "") {
+        panic(ran.msg)
+    }
+    return frames_of(ran_of(ran).stdout).messages
 }
 
 /// A server of the toolchain spoken to one message at a time.

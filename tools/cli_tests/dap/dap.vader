@@ -1,0 +1,561 @@
+// tools/cli_tests/dap/dap: `vader dap`, the debug adapter, spoken to over its
+// standard streams as an editor speaks to it.
+//
+// The adapter runs the program on the virtual machine and takes the requests in
+// the order they come, those it reads while the program is paused included: a
+// session writes every request up front, then reads what the adapter sent once
+// it ended. What the program writes rides on `output` events, never on the
+// adapter's own output, which carries the protocol.
+
+module "tools/cli_tests/dap"
+
+import "json"
+import "std/collections"
+import "std/iter"
+import "std/option"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/rpc"
+
+// ---- sessions -------------------------------------------------------------
+
+// The request numbered `seq`: `command`, with `arguments`, the JSON of its
+// arguments.
+request :: fn(seq: i64, command: string, arguments: string = "{}") -> string =
+    """{"seq":${seq},"type":"request","command":${quoted(command)},"arguments":${arguments}}"""
+
+// The arguments of a request on the thread `id`.
+on_thread :: fn(id: i64) -> string = """{"threadId":${id}}"""
+
+// The arguments of a request on the variables `reference`.
+variables_of :: fn(reference: i64) -> string = """{"variablesReference":${reference}}"""
+
+// The arguments of a hover over `expression` in the frame `frame`.
+hover :: fn(expression: string, frame: i64) -> string =
+    """{"expression":${quoted(expression)},"frameId":${frame},"context":"hover"}"""
+
+// What the adapter sent over a session on `source`, the program of a fresh
+// folder `name` tells apart, stopping at `lines`, with `during` sent once the
+// program runs: the command of each request, then the JSON of its arguments.
+// `aborts` when a signal ends the adapter once it has closed the session.
+debug :: fn(
+    name: string,
+    source: string,
+    lines: i64[],
+    during: [string, string][],
+    aborts: bool = false,
+) -> JsonValue[] {
+    program :: scratch_source("dap_${name}", source)
+    breakpoints :: lines.map((line) -> """{"line":${line}}""").collect().join(",")
+    placed :: """{"source":{"path":${quoted(program)}},"breakpoints":[${breakpoints}]}"""
+    sent :: [
+        request(1, "initialize", r"""{"adapterID":"vader"}"""),
+        request(2, "launch", """{"program":${quoted(program)}}"""),
+        request(3, "setBreakpoints", placed),
+        request(4, "configurationDone"),
+    ]
+    for step in during {
+        sent.push(request(sent.len() + 1, step.0, step.1))
+    }
+    sent.push(request(sent.len() + 1, "disconnect"))
+    return exchange(["dap"], sent, aborts)
+}
+
+// ---- reading a session ----------------------------------------------------
+
+// The JSON at the end of `path` from `value`; `null` when there is none.
+json_at :: fn(value: JsonValue, path: string[]) -> string =
+    stringify(member_at(value, path) ?? JsonNull {})
+
+// Whether the response `response` says its request succeeded.
+accepted :: fn(response: JsonValue) -> bool = json_at(response, ["success"]) == "true"
+
+// Whether `frame` is the response to a request `command`.
+responds_to :: fn(frame: JsonValue, command: string) -> bool =
+    string_member(frame, "type") == "response" && string_member(frame, "command") == command
+
+// The responses of `frames` to the requests `command`, in order.
+responses_to :: fn(frames: JsonValue[], command: string) -> JsonValue[] =
+    frames.filter((f) -> responds_to(f, command)).collect()
+
+// The first response of `frames` to a request `command`; a JSON null when none
+// came.
+response_to :: fn(frames: JsonValue[], command: string) -> JsonValue =
+    responses_to(frames, command).first() ?? JsonNull {}
+
+// The events of `frames` named `name`, in order.
+events_named :: fn(frames: JsonValue[], name: string) -> JsonValue[] =
+    frames.filter((f) -> string_member(f, "event") == name).collect()
+
+// The first event of `frames` named `name`; a JSON null when none came.
+event_named :: fn(frames: JsonValue[], name: string) -> JsonValue =
+    events_named(frames, name).first() ?? JsonNull {}
+
+// What the program wrote on its stream `category`: `stdout` or `stderr`.
+written :: fn(frames: JsonValue[], category: string) -> string {
+    out: string[]: []
+    for e in events_named(frames, "output") {
+        if body_text(e, "category") == category {
+            out.push(body_text(e, "output"))
+        }
+    }
+    return out.join("")
+}
+
+// The exit code the `exited` event of `frames` reports; -1 when none came.
+exit_code :: fn(frames: JsonValue[]) -> i64 =
+    int_at(event_named(frames, "exited"), ["body", "exitCode"])
+
+// The frames of the stack trace `response`, the innermost first.
+stack_of :: fn(response: JsonValue) -> JsonValue[] = items_at(response, ["body", "stackFrames"])
+
+// The variables the response `response` lists.
+variables_in :: fn(response: JsonValue) -> JsonValue[] = items_at(response, ["body", "variables"])
+
+// The names of `variables`, in order.
+names_of :: fn(variables: JsonValue[]) -> string[] =
+    variables.map(name_of).collect()
+
+// The variable `name` of `variables`; a JSON null when there is none.
+variable :: fn(variables: JsonValue[], name: string) -> JsonValue =
+    variables.filter((v) -> name_of(v) == name).collect().first() ?? JsonNull {}
+
+// The value the variable `name` of `variables` shows; "" when there is none.
+value_of :: fn(variables: JsonValue[], name: string) -> string =
+    string_member(variable(variables, name), "value") ?? ""
+
+// The text member `key` of the body of `frame`; "" when there is none.
+body_text :: fn(frame: JsonValue, key: string) -> string = string_at(frame, ["body", key]) ?? ""
+
+// The name of `value`, a frame, a thread or a variable; "" when it has none.
+name_of :: fn(value: JsonValue) -> string = string_member(value, "name") ?? ""
+
+// The outermost frame of `stack`; a JSON null when it is empty.
+outermost :: fn(stack: JsonValue[]) -> JsonValue = stack.last() ?? JsonNull {}
+
+// Why the `stopped` event `event` stopped the program, and on which thread, as
+// `<reason>@<thread>`.
+reason_and_thread :: fn(event: JsonValue) -> string =
+    "${body_text(event, "reason")}@${int_at(event, ["body", "threadId"])}"
+
+// The threads the first response to `threads` in `frames` lists.
+threads_in :: fn(frames: JsonValue[]) -> JsonValue[] =
+    items_at(response_to(frames, "threads"), ["body", "threads"])
+
+// The ids of the frames `stack`, in order.
+ids_of :: fn(stack: JsonValue[]) -> string[] = stack.map((f) -> "${int_at(f, ["id"])}").collect()
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+HELLO :: r"""
+    module "snippet"
+
+    import "std/console"
+
+    main :: fn() -> i32 {
+        println("hello")
+        println(42)
+        return 0
+    }
+    """
+
+// The line of `println(42)` in `HELLO`.
+HELLO_SECOND_PRINT :: 7
+
+@test
+test_a_session_runs_the_program_to_its_end_its_output_on_events :: fn() -> void {
+    // An editor sends its breakpoints between `initialized` and
+    // `configurationDone`, and runs the program only once each is answered.
+    // Line 1 holds no code: the breakpoint is answered, never hit.
+    frames :: debug("proof", HELLO, [1], [])
+    initialized :: response_to(frames, "initialize")
+    assert(accepted(initialized), "initialize")
+    assert_eq(json_at(initialized, ["body", "supportsConfigurationDoneRequest"]), "true")
+    for command in ["launch", "configurationDone", "disconnect"] {
+        assert(accepted(response_to(frames, command)), command)
+    }
+    placed :: response_to(frames, "setBreakpoints")
+    assert(accepted(placed), "setBreakpoints")
+    breakpoints :: items_at(placed, ["body", "breakpoints"])
+    assert_eq(breakpoints.len(), 1)
+    assert_eq(json_at(breakpoints[0], ["verified"]), "true")
+    for name in ["initialized", "exited", "terminated"] {
+        assert(events_named(frames, name).len() == 1, name)
+    }
+    assert_eq(written(frames, "stdout"), "hello\n42\n")
+    assert_eq(exit_code(frames), 0)
+}
+
+@test
+test_the_adapter_lists_the_one_thread_of_a_program_that_launches_none :: fn() -> void {
+    frames :: debug("threads", HELLO, [], [["threads", "{}"]])
+    threads :: response_to(frames, "threads")
+    assert(accepted(threads), "threads")
+    assert_eq(json_at(threads, ["body", "threads"]), r"""[{"id":1,"name":"main"}]""")
+}
+
+@test
+test_a_breakpoint_stops_the_program_and_continue_resumes_it :: fn() -> void {
+    frames :: debug(
+        "breakpoint",
+        HELLO,
+        [HELLO_SECOND_PRINT],
+        [["stackTrace", on_thread(1)], ["continue", on_thread(1)]],
+    )
+    assert_eq(body_text(event_named(frames, "stopped"), "reason"), "breakpoint")
+    trace :: response_to(frames, "stackTrace")
+    assert(accepted(trace), "stackTrace")
+    top :: stack_of(trace)[0]
+    assert_eq(int_at(top, ["line"]), HELLO_SECOND_PRINT)
+    assert_eq(name_of(top), "main")
+    assert_eq(events_named(frames, "terminated").len(), 1)
+    assert_eq(written(frames, "stdout"), "hello\n42\n")
+}
+
+// A program whose locals come one after the other.
+SLICES :: r"""
+    module "snippet"
+
+    import "std/console"
+
+    main :: fn() -> i32 {
+        arr: i32[]: [10, 20, 30, 40, 50]
+
+        // the middle of it
+        s1 :: arr[1..<4]
+        for v in s1 {
+            println("${v}")
+        }
+        s5 :: arr[4..<5]
+        println("${s5.len()}")
+        return 0
+    }
+    """
+
+// The line that declares `arr` in `SLICES`.
+SLICES_ARRAY :: 6
+
+@test
+test_a_step_over_moves_to_the_next_line_and_the_variables_show_the_source_locals :: fn() -> void {
+    // With one frame the scope is reference 1, and `arr`, the first local that
+    // expands, is given 2.
+    frames :: debug(
+        "step",
+        SLICES,
+        [SLICES_ARRAY],
+        [
+            ["stackTrace", on_thread(1)],
+            ["scopes", r"""{"frameId":1}"""],
+            ["variables", variables_of(1)],
+            ["next", on_thread(1)],
+            ["stackTrace", on_thread(1)],
+            ["variables", variables_of(1)],
+            ["variables", variables_of(2)],
+            ["evaluate", hover("arr", 1)],
+            ["evaluate", hover("no_such_var", 1)],
+            ["continue", on_thread(1)],
+        ],
+    )
+    stops :: events_named(frames, "stopped").map((s) -> body_text(s, "reason")).collect()
+    assert_eq(stops.join(" "), "breakpoint step")
+    traces :: responses_to(frames, "stackTrace")
+    assert_eq(int_at(stack_of(traces[0])[0], ["line"]), SLICES_ARRAY)
+    // The blank line and the comment hold no code.
+    assert_eq(int_at(stack_of(traces[1])[0], ["line"]), SLICES_ARRAY + 3)
+    listed :: responses_to(frames, "variables")
+    // Before its line runs, `arr` is in scope and holds nothing yet; after, the
+    // array, and the locals declared later are not in scope yet.
+    stepped :: variables_in(listed[1])
+    assert_eq(names_of(stepped).join(" "), "arr")
+    assert("10" in value_of(stepped, "arr"), value_of(stepped, "arr"))
+    assert(int_at(variable(stepped, "arr"), ["variablesReference"]) > 0, "`arr` expands")
+    for v in listed {
+        for name in names_of(variables_in(v)) {
+            assert(!name.starts_with("$") && !name.starts_with("__"), name)
+        }
+    }
+    assert_eq(value_of(variables_in(listed[2]), "[0]"), "10")
+    hovers :: responses_to(frames, "evaluate")
+    assert(accepted(hovers[0]), "the hover over `arr`")
+    assert("10" in body_text(hovers[0], "result"), body_text(hovers[0], "result"))
+    assert(!accepted(hovers[1]), "the hover over an unknown name")
+}
+
+@test
+test_a_trap_stops_the_program_on_the_exception_with_its_message :: fn() -> void {
+    source :: r"""
+        module "snippet"
+
+        main :: fn() -> i32 {
+            boom := 1
+            boom = boom / 0
+            return boom
+        }
+        """
+    frames :: debug("trap", source, [], [["stackTrace", on_thread(1)], ["continue", on_thread(1)]])
+    stopped :: event_named(frames, "stopped")
+    assert_eq(body_text(stopped, "reason"), "exception")
+    assert("zero" in body_text(stopped, "text"), body_text(stopped, "text"))
+    assert_eq(exit_code(frames), 1)
+    assert_eq(events_named(frames, "terminated").len(), 1)
+}
+
+@test
+test_the_variables_name_the_parameters_of_a_function_as_its_source_does :: fn() -> void {
+    source :: r"""
+        module "snippet"
+
+        import "std/console"
+
+        add :: fn(x: i32, y: i32) -> i32 {
+            sum :: x + y
+            return sum
+        }
+
+        main :: fn() -> i32 {
+            r :: add(3, 4)
+            println("${r}")
+            return 0
+        }
+        """
+    // Line 6 is the first statement of `add`: `sum` is not assigned yet.
+    frames :: debug(
+        "parameters",
+        source,
+        [6],
+        [["variables", variables_of(1)], ["continue", on_thread(1)]],
+    )
+    listed :: variables_in(response_to(frames, "variables"))
+    assert_eq(names_of(listed).join(" "), "x y")
+    assert_eq(value_of(listed, "x"), "3")
+    assert_eq(value_of(listed, "y"), "4")
+}
+
+// ---- tasks ----------------------------------------------------------------
+
+// A program whose main launches a task, then waits for it.
+TASKS :: r"""
+    module "snippet"
+
+    import "std/console"
+    import "std/task"
+
+    work :: fn() -> i32 {
+        answer :: 7
+        println("from the task")
+        return answer
+    }
+
+    main :: fn() -> i32 {
+        label :: "done"
+        t :: launch(work)
+        println("from main")
+        println("${t.join()}")
+        println(label)
+        return 0
+    }
+    """
+
+// The lines the tests stop at, in `TASKS`.
+TASK_LOCAL :: 7
+TASK_PRINT :: 8
+MAIN_PRINT :: 15
+MAIN_JOIN  :: 16
+
+@test
+test_what_a_task_writes_rides_on_output_events :: fn() -> void {
+    frames :: debug("task_output", TASKS, [], [])
+    assert("from the task" in written(frames, "stdout"), written(frames, "stdout"))
+    assert_eq(exit_code(frames), 0)
+}
+
+@test
+test_a_breakpoint_in_a_task_stops_that_thread_and_each_thread_shows_its_stack :: fn() -> void {
+    frames :: debug(
+        "task_stop",
+        TASKS,
+        [TASK_PRINT],
+        [
+            ["threads", "{}"],
+            ["stackTrace", on_thread(2)],
+            ["stackTrace", on_thread(1)],
+            ["stackTrace", on_thread(2)],
+            ["continue", on_thread(2)],
+        ],
+    )
+    stopped :: event_named(frames, "stopped")
+    assert_eq(body_text(stopped, "reason"), "breakpoint")
+    assert_eq(int_at(stopped, ["body", "threadId"]), 2)
+    assert_eq(json_at(stopped, ["body", "allThreadsStopped"]), "true")
+    named :: threads_in(frames).map((t) -> "${int_at(t, ["id"])} ${name_of(t)}").collect()
+    assert_eq(named.join(", "), "1 main, 2 task #1")
+    traces :: responses_to(frames, "stackTrace")
+    task :: stack_of(traces[0])
+    assert_eq(name_of(task[0]), "work")
+    assert_eq(int_at(task[0], ["line"]), TASK_PRINT)
+    // Main waits for the task inside `join`, which its own frames lead to.
+    main :: stack_of(traces[1])
+    assert_eq(name_of(outermost(main)), "main")
+    assert_eq(int_at(outermost(main), ["line"]), MAIN_JOIN)
+    // Asked twice, a stack names the same frames, and no two frames of a pause
+    // share an id.
+    assert_eq(ids_of(stack_of(traces[2])).join(" "), ids_of(task).join(" "))
+    every :: ids_of(task) + ids_of(main)
+    distinct :: Set<string> {}
+    distinct.add_all(every)
+    assert_eq(distinct.len(), every.len())
+    assert_eq(events_named(frames, "terminated").len(), 1)
+}
+
+@test
+test_the_frames_of_a_thread_that_did_not_stop_have_scopes_variables_and_hovers :: fn() -> void {
+    // Main parks at `t.join()` with `label` in scope. The requests are written
+    // before any answer, and main's frames are given their ids once asked for,
+    // so a first session reads the id a second one asks about.
+    stop: [string, string][]: [["stackTrace", on_thread(2)], ["stackTrace", on_thread(1)]]
+    resume: [string, string][]: [["continue", "{}"]]
+    first :: debug("parked_ids", TASKS, [TASK_PRINT], stop + resume)
+    main :: stack_of(responses_to(first, "stackTrace")[1])
+    frame :: int_at(outermost(main), ["id"])
+    asked: [string, string][]: [
+        ["scopes", """{"frameId":${frame}}"""],
+        ["evaluate", hover("label", frame)],
+        ["evaluate", hover("answer", frame)],
+        ["variables", variables_of(frame)],
+    ]
+    frames :: debug("parked", TASKS, [TASK_PRINT], stop + asked + resume)
+    scopes :: items_at(response_to(frames, "scopes"), ["body", "scopes"])
+    assert_eq(int_at(scopes[0], ["variablesReference"]), frame)
+    listed :: variables_in(response_to(frames, "variables"))
+    assert("done" in value_of(listed, "label"), value_of(listed, "label"))
+    hovers :: responses_to(frames, "evaluate")
+    assert("done" in body_text(hovers[0], "result"), body_text(hovers[0], "result"))
+    // `answer` is a local of the task, not of main.
+    assert(!accepted(hovers[1]), "the hover over a local of another thread")
+}
+
+@test
+test_a_task_that_has_not_begun_is_listed_with_an_empty_stack :: fn() -> void {
+    frames :: debug(
+        "unstarted",
+        TASKS,
+        [MAIN_PRINT],
+        [["threads", "{}"], ["stackTrace", on_thread(2)], ["continue", on_thread(1)]],
+    )
+    assert_eq(int_at(event_named(frames, "stopped"), ["body", "threadId"]), 1)
+    assert_eq(threads_in(frames).len(), 2)
+    trace :: response_to(frames, "stackTrace")
+    assert(accepted(trace), "stackTrace")
+    assert_eq(json_at(trace, ["body", "stackFrames"]), "[]")
+}
+
+@test
+test_a_step_stays_in_the_thread_that_took_it :: fn() -> void {
+    frames :: debug(
+        "task_step",
+        TASKS,
+        [TASK_LOCAL],
+        [["next", on_thread(2)], ["stackTrace", on_thread(2)], ["continue", on_thread(2)]],
+    )
+    stops :: events_named(frames, "stopped").map(reason_and_thread).collect()
+    assert_eq(stops.join(" "), "breakpoint@2 step@2")
+    assert_eq(int_at(stack_of(response_to(frames, "stackTrace"))[0], ["line"]), TASK_PRINT)
+}
+
+@test
+test_a_trap_in_a_task_stops_that_thread_then_closes_the_session :: fn() -> void {
+    source :: r"""
+        module "snippet"
+
+        import "std/console"
+        import "std/task"
+
+        divide :: fn(a: i32, b: i32) -> i32 = a / b
+
+        work :: fn() -> i32 = divide(1, 0)
+
+        main :: fn() -> i32 {
+            t :: launch(work)
+            println("${t.join()}")
+            return 0
+        }
+        """
+    // The trap ends the process, as it ends a native one, with the virtual
+    // machine still inside the task: the adapter closes the session first.
+    frames :: debug(
+        "task_trap",
+        source,
+        [],
+        [["threads", "{}"], ["stackTrace", on_thread(1)], ["continue", on_thread(2)]],
+        true,
+    )
+    stopped :: event_named(frames, "stopped")
+    assert_eq(body_text(stopped, "reason"), "exception")
+    assert_eq(int_at(stopped, ["body", "threadId"]), 2)
+    assert("zero" in body_text(stopped, "text"), body_text(stopped, "text"))
+    assert("zero" in written(frames, "stderr"), written(frames, "stderr"))
+    // The other threads can still be read at that stop.
+    assert_eq(threads_in(frames).len(), 2)
+    main :: stack_of(response_to(frames, "stackTrace"))
+    assert_eq(name_of(outermost(main)), "main")
+    assert_eq(exit_code(frames), 1)
+    assert_eq(events_named(frames, "terminated").len(), 1)
+    // The client's goodbye is still answered.
+    assert(accepted(response_to(frames, "disconnect")), "disconnect")
+}
+
+@test
+test_a_task_cancelled_when_main_returns_is_announced_through_the_session :: fn() -> void {
+    source :: r"""
+        module "snippet"
+
+        import "std/task"
+
+        work :: fn() -> i32 = 1
+
+        main :: fn() -> i32 {
+            launch(work)
+            return 0
+        }
+        """
+    frames :: debug("cancelled", source, [], [])
+    stderr :: written(frames, "stderr")
+    assert("task #1 still runs when main returns" in stderr, stderr)
+    assert_eq(exit_code(frames), 1)
+}
+
+@test
+test_a_file_the_program_writes_is_the_systems_and_its_stdin_is_at_its_end :: fn() -> void {
+    // Under the debugger the virtual machine serves the program's standard
+    // streams, and only those: a write to a file it opened reaches the file, and
+    // a read of stdin must not take the session's own requests.
+    source :: r"""
+        module "snippet"
+
+        import "std/console"
+        import "std/env"
+        import "std/fs"
+        import "std/io"
+
+        main :: fn() -> i32 {
+            path :: "${temp_dir()}/vader-dap-written-file.txt"
+            write_file(path, "kept in the file")
+            back :: read_file_string(path)
+            if back is string {
+                println("read back: ${back}")
+            }
+            remove(path)
+            line :: read_line()
+            println("stdin at its end: ${line is IOError}")
+            return 0
+        }
+        """
+    frames :: debug("files", source, [], [])
+    stdout :: written(frames, "stdout")
+    assert("read back: kept in the file" in stdout, stdout)
+    assert("stdin at its end: true" in stdout, stdout)
+    assert("kept in the file" !in written(frames, "stderr"), written(frames, "stderr"))
+    assert_eq(exit_code(frames), 0)
+}
