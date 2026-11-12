@@ -126,7 +126,7 @@ correctness.
 The CI runs `verify.sh --dist` on every push to `main` and every pull request:
 it is the build step of its Linux job
 ([ADR 0006](adr/0006-the-fixed-point-gate-runs-on-every-push.md)). That build
-runs before Bun or any package is set up, so it is also the check that a clone
+runs before any package is set up, so it is also the check that a clone
 with only a C compiler still builds. Each target builds the compiler once and
 tests that build ([ADR 0115](adr/0115-the-ci-builds-each-target-once.md)).
 
@@ -179,7 +179,9 @@ before the commit:
 
 ```sh
 bootstrap/seed.sh regenerate
-bun run build:cli && bun run test
+bootstrap/build.sh --dist
+(cd tools/testrunner && ../../build/vader build --release)
+tools/testrunner/build/release-<host>/testrunner --only-failures
 git add bootstrap/seed
 git commit -m 'chore(bootstrap): bump seed'
 ```

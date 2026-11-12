@@ -1,0 +1,344 @@
+// tools/cli_tests/lsp_definition/definition: where the language server sends a
+// click on a name: the declaration it names.
+//
+// Each test opens one document of a fresh project and writes every request
+// before it reads an answer (`drive` of `tools/cli_tests/lsp`).
+
+module "tools/cli_tests/lsp_definition"
+
+import "json"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+SOURCE :: r"""
+    import "std/io"
+
+    /// Doubles its argument.
+    double :: fn(x: i32) -> i32 {
+        return x * 2
+    }
+
+    /// A 2D point.
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    main :: fn() -> i32 {
+        p :: Point { .x = 1, .y = 2 }
+        y :: double(21)
+        return y
+    }
+
+    scan :: fn() -> i32 {
+        for i in 0..<3 {
+            for j in 0..<3 {
+                if j == 1 { break i }
+            }
+        }
+        return 0
+    }
+    """
+
+@test
+test_a_definition_and_a_hover_reach_a_fn_a_struct_and_a_loop :: fn() -> void {
+    results :: drive(
+        "definition_and_hover",
+        SOURCE,
+        [
+            ask("textDocument/definition", 15, 9),
+            ask("textDocument/hover", 15, 9),
+            ask("textDocument/definition", 14, 9),
+            ask("textDocument/hover", 14, 9),
+            ask("textDocument/definition", 16, 4),
+            ask("textDocument/hover", 0, 0),
+            ask("textDocument/definition", 22, 26),
+        ],
+    )
+    assert(is_in_document(results[0]), stringify(results[0]))
+    assert_eq(range_at(results[0], ["range"]), "3:0-3:6")
+    assert_eq(string_at(results[1], ["contents", "kind"]) ?? "", "markdown")
+    double_hover :: string_at(results[1], ["contents", "value"]) ?? ""
+    assert("```\ndouble :: fn(x: i32) -> i32\n```" in double_hover, double_hover)
+    assert("Doubles its argument." in double_hover, double_hover)
+    assert_eq(range_at(results[2], ["range"]), "8:0-8:5")
+    point_hover :: string_at(results[3], ["contents", "value"]) ?? ""
+    assert("```\nPoint :: struct {\n    x: i32\n    y: i32\n}\n```" in point_hover, point_hover)
+    assert("A 2D point." in point_hover, point_hover)
+    assert(results[4] is JsonNull, stringify(results[4]))
+    assert(results[5] is JsonNull, stringify(results[5]))
+    // `break i` names the loop it leaves by its variable.
+    loop :: range_at(results[6], ["range"])
+    assert(loop.starts_with("20:4-"), loop)
+}
+
+// The last segment of the `uri` of the location `value`; `(no answer)` for a null.
+file_name :: fn(value: JsonValue) -> string {
+    if value is JsonNull {
+        return "(no answer)"
+    }
+    return file_of(string_member(value, "uri") ?? "")
+}
+
+NON_ASCII_SOURCE :: r"""
+    greet :: fn(s: string) -> string = s
+
+    main :: fn() -> i32 {
+        return greet("café").len() + greet("z").len()
+    }
+    """
+
+// The cursor is a count of codepoints: the second `greet` sits after `café` on
+// the line, at character 33 but byte 34, and still resolves to the declaration.
+@test
+test_definition_resolves_past_a_multi_byte_char_on_the_line :: fn() -> void {
+    results :: drive(
+        "definition_non_ascii",
+        NON_ASCII_SOURCE,
+        [
+            ask("textDocument/definition", 3, 11),
+            ask("textDocument/definition", 3, 33),
+        ],
+    )
+    assert(is_in_document(results[0]), stringify(results[0]))
+    assert_eq(start_of(results[0]), "0:0")
+    assert_eq(range_at(results[1], ["range"]), "0:0-0:5")
+}
+
+@test
+test_an_empty_document_answers_null_to_a_definition_and_a_hover :: fn() -> void {
+    results :: drive(
+        "definition_empty_document",
+        "",
+        [
+            ask("textDocument/definition", 0, 0),
+            ask("textDocument/hover", 0, 0),
+        ],
+    )
+    assert(results[0] is JsonNull, stringify(results[0]))
+    assert(results[1] is JsonNull, stringify(results[1]))
+}
+
+BINDINGS_SOURCE :: r"""
+    import "std/console"
+
+    double :: fn(x: i32) -> i32 {
+        y :: x * 2
+        return y
+    }
+
+    main :: fn() -> i32 {
+        nums :: [1, 2, 3]
+        for n in nums {
+            println("${double(n)}")
+        }
+        return 0
+    }
+    """
+
+@test
+test_definition_jumps_to_a_fn_param :: fn() -> void {
+    results :: drive(
+        "definition_param",
+        BINDINGS_SOURCE,
+        [ask("textDocument/definition", 3, 9)],
+    )
+    // The param `x` is in the signature on line 2.
+    assert_eq(range_at(results[0], ["range"]), "2:13-2:14")
+}
+
+@test
+test_definition_jumps_to_a_local_binding :: fn() -> void {
+    results :: drive(
+        "definition_local",
+        BINDINGS_SOURCE,
+        [ask("textDocument/definition", 4, 11)],
+    )
+    assert_eq(range_at(results[0], ["range"]), "3:4-3:5")
+}
+
+GENERATOR_LOCAL_SOURCE :: r"""
+    module "main"
+
+    count_to :: fn(n: i64) -> Iterator<i64> {
+        for i in 0..<n {
+            yield i
+        }
+    }
+
+    main :: fn() -> i32 {
+        it :: count_to(3)
+        for x in it {
+            return i32(x)
+        }
+        return 0
+    }
+    """
+
+// The iterator a generator's call returns has no declaration of its own: its
+// type is defined by the generator.
+@test
+test_the_type_definition_of_a_generators_call_is_the_generator :: fn() -> void {
+    results :: drive(
+        "definition_generator_type",
+        GENERATOR_LOCAL_SOURCE,
+        [ask("textDocument/typeDefinition", 10, 13)],
+    )
+    assert_eq(range_at(results[0], ["range"]), "2:0-2:8")
+}
+
+@test
+test_definition_jumps_to_a_for_in_binding :: fn() -> void {
+    results :: drive(
+        "definition_for_in",
+        BINDINGS_SOURCE,
+        [ask("textDocument/definition", 10, 26)],
+    )
+    assert_eq(range_at(results[0], ["range"]), "9:8-9:9")
+}
+
+// A param is not visible past the body of its fn: a click on a literal
+// elsewhere finds nothing.
+@test
+test_a_param_definition_does_not_reach_outside_its_fn_body :: fn() -> void {
+    source :: r"""
+        double :: fn(x: i32) -> i32 {
+            return x * 2
+        }
+
+        main :: fn() -> i32 {
+            return 0
+        }
+        """
+    results :: drive(
+        "definition_param_scope",
+        source,
+        [ask("textDocument/definition", 5, 11)],
+    )
+    assert(results[0] is JsonNull, stringify(results[0]))
+}
+
+CROSSFILE_SOURCE :: r"""
+    import "std/console"
+    import "std/collections"
+
+    main :: fn() -> i32 {
+        println("hi")
+        eprintln("hello")
+        m :: Map(string, i32) { .buckets = [], .size = 0 }
+        return 0
+    }
+    """
+
+// The jump lands in the file of the origin, on a line below its first: the
+// stdlib evolves, so the line is not pinned.
+@test
+test_definition_follows_an_import_across_files_to_std_console :: fn() -> void {
+    results :: drive(
+        "definition_import_console",
+        CROSSFILE_SOURCE,
+        [ask("textDocument/definition", 4, 4)],
+    )
+    uri :: string_member(results[0], "uri") ?? ""
+    assert(uri.ends_with("std/console/console.vader"), stringify(results[0]))
+    assert(int_at(results[0], ["range", "start", "line"]) > 0, stringify(results[0]))
+}
+
+@test
+test_definition_follows_an_import_across_files_to_collections :: fn() -> void {
+    at :: position_of(CROSSFILE_SOURCE, "Map(", 1)
+    results :: drive(
+        "definition_import_collections",
+        CROSSFILE_SOURCE,
+        [ask("textDocument/definition", at.line, at.character)],
+    )
+    uri :: string_member(results[0], "uri") ?? ""
+    assert(uri.ends_with("std/collections/map.vader"), stringify(results[0]))
+    assert(int_at(results[0], ["range", "start", "line"]) > 0, stringify(results[0]))
+}
+
+// `Set` lives in `std/collections` but is not imported here: a click on it finds
+// nothing.
+@test
+test_a_name_that_is_not_imported_has_no_definition :: fn() -> void {
+    source :: r"""
+        main :: fn() -> i32 {
+            Set
+            return 0
+        }
+        """
+    at :: position_of(source, "Set", 1)
+    results :: drive(
+        "definition_not_imported",
+        source,
+        [ask("textDocument/definition", at.line, at.character)],
+    )
+    assert(results[0] is JsonNull, stringify(results[0]))
+}
+
+// A client that supports links gets a `LocationLink[]` instead of a `Location`.
+@test
+test_definition_answers_a_location_link_when_the_client_supports_it :: fn() -> void {
+    source :: r"""
+        double :: fn(x: i32) -> i32 {
+            return x * 2
+        }
+
+        main :: fn() -> i32 {
+            return double(21)
+        }
+        """
+    results :: drive(
+        "definition_location_link",
+        source,
+        [ask("textDocument/definition", 5, 11)],
+        Project {
+            .name = "link-support.vader",
+            .args = ["--library-root=${toolchain_home()}/lib"],
+            .capabilities = r"""{"textDocument":{"definition":{"linkSupport":true}}}""",
+        },
+    )
+    links :: items_at(results[0], [])
+    assert_eq(links.len(), 1)
+    link :: links[0]
+    assert(member(link, "originSelectionRange") != null, stringify(link))
+    assert(member(link, "targetRange") != null, stringify(link))
+    assert(
+        (string_member(link, "targetUri") ?? "").ends_with("link-support.vader"),
+        stringify(link),
+    )
+    // The origin covers the clicked `double`.
+    assert_eq(int_at(link, ["originSelectionRange", "start", "line"]), 5)
+    start :: int_at(link, ["originSelectionRange", "start", "character"])
+    end :: int_at(link, ["originSelectionRange", "end", "character"])
+    assert_eq(end - start, 6)
+    assert_eq(range_at(link, ["targetSelectionRange"]), "0:0-0:6")
+}
+
+// The sibling is open with lines its saved copy lacks: the jump lands on the
+// declaration where the editor shows it, not where the disk has it.
+@test
+test_definition_into_a_sibling_file_reads_its_unsaved_text :: fn() -> void {
+    source :: "module \"t\"\n\nmain :: fn() -> i32 = helper()\n"
+    saved: [string, string][]: [["helper.vader", "module \"t\"\n\nhelper :: fn() -> i32 = 0\n"]]
+    edited: [string, string][]: [
+        ["helper.vader", "module \"t\"\n\n\n\n\n\nhelper :: fn() -> i32 = 0\n"],
+    ]
+    results :: drive(
+        "definition_unsaved_sibling",
+        source,
+        [ask("textDocument/definition", 2, 23)],
+        Project { .files = saved, .opened = edited },
+    )
+    assert(
+        (string_member(results[0], "uri") ?? "").ends_with("helper.vader"),
+        stringify(results[0]),
+    )
+    assert_eq(int_at(results[0], ["range", "start", "line"]), 6)
+}

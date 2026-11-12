@@ -4,7 +4,7 @@
 #
 #   vwin sync [--clean]   push the tree onto the guest's NTFS at C:\vader
 #   vwin build [args]     sync, then bootstrap/build.ps1 -CC clang
-#   vwin test  [args]     sync, then bun run test --only-failures
+#   vwin test  [args]     sync, then the test runner with --only-failures
 #
 # Everything else is plain Vagrant, run from tools/windows-vm:
 #
@@ -80,9 +80,11 @@ cmd_build() {
     guest "Set-Location $GUEST_REPO; pwsh -NoProfile -File bootstrap/build.ps1 -CC clang $*"
 }
 
+# The runner as the CI runs it: built by the compiler `vwin build` left, with
+# `VADER_HOME` on the tree. `args` go to the runner (`--phases=...`).
 cmd_test() {
     cmd_sync
-    guest "Set-Location $GUEST_REPO; bun run test --only-failures $*"
+    guest "Set-Location $GUEST_REPO/tools/testrunner; ../../build/vader.exe build --release; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; Set-Location $GUEST_REPO; \$env:VADER_HOME = '$GUEST_REPO'; & (Get-Item tools/testrunner/build/release-*/testrunner.exe).FullName --only-failures $*"
 }
 
 case "${1:-}" in

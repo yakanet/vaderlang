@@ -1,21 +1,36 @@
 // Memory-leak audit for native snippets: Vader-emitted C variant.
 //
 // For each snippet under tests/snippets/, emit C with the Vader self-compiled
-// compiler (`./build/vader dump --stage=c`), build a native binary the same
-// way tests/native.test.ts does, then run it under macOS `leaks --atExit` and
-// collect a per-snippet leak summary. Unlike the historical flow, the C source
+// compiler (`./build/vader dump --stage=c`), build it with the runtime at -O0,
+// then run it under macOS `leaks --atExit` and collect a per-snippet leak
+// summary. Unlike the historical flow, the C source
 // now comes from the Vader `c_emit` pass + runtime (NOT the TS pipeline) so
 // this audit exercises the self-compiled compiler's own output.
 // Run with: bun tests/leaks_check.ts
 
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-
-import { EXE_SUFFIX, hermeticEnv } from "./cli-bin.ts";
-import { listSnippets } from "./snapshot.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
 const VADER_BIN = resolve(import.meta.dir, "../build/vader");
+
+// The compiler finds its library next to itself, never through an inherited
+// `VADER_HOME`.
+const COMPILER_ENV = { ...process.env, VADER_HOME: undefined };
+
+interface Snippet {
+  name: string;
+  dir: string;
+  mainPath: string;
+}
+
+// The snippets under `root`, sorted by name: each folder holding a `_main.vader`.
+function listSnippets(root: string): Snippet[] {
+  return readdirSync(root)
+    .sort()
+    .map((name) => ({ name, dir: join(root, name), mainPath: join(root, name, "_main.vader") }))
+    .filter((s) => existsSync(s.mainPath));
+}
 
 interface Result {
   name: string;
@@ -54,15 +69,15 @@ function parseLeaksOutput(text: string): { nodes: number; bytes: number; leakedN
   };
 }
 
-async function check(s: { name: string; dir: string; mainPath: string }): Promise<Result> {
+async function check(s: Snippet): Promise<Result> {
   const cFile = join(s.dir, "native.c");
-  const binFile = join(s.dir, `native${EXE_SUFFIX}`);
+  const binFile = join(s.dir, "native");
 
   // Emit C with the Vader self-compiled compiler (./build/vader), NOT the TS
   // pipeline. `dump --stage=c` writes the generated C source to stdout.
   const emitProc = Bun.spawn(
     [VADER_BIN, "dump", "--stage=c", s.mainPath],
-    { stdout: "pipe", stderr: "pipe", env: hermeticEnv() },
+    { stdout: "pipe", stderr: "pipe", env: COMPILER_ENV },
   );
   const cText = await new Response(emitProc.stdout).text();
   const emitErr = await new Response(emitProc.stderr).text();

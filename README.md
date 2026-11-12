@@ -252,8 +252,6 @@ Two editor plugins share one syntax grammar ([`editors/common/`](./editors/commo
 tools/testrunner/build/release-<host>/testrunner            # snippets, corpora, examples, driven projects and the @test of lib/, vader/, tools/
 tools/testrunner/build/release-<host>/testrunner --update   # refresh their snapshots after intentional output changes
 tools/testrunner/build/release-<host>/testrunner --only-failures   # print the cases that fail, not those that pass
-bun run test                               # the tests still in TypeScript: CLI, language servers, projects
-bun run test:update                        # refresh the snapshots those keep
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
 ```
 
@@ -262,10 +260,9 @@ bun run bench                              # measure + compare to bench/baseline
 [`tools/windows-vm/`](./tools/windows-vm/) holds a Vagrant definition for a headless **Windows 11 ARM64** guest, so the `_WIN32` paths can be built and tested from a macOS or Linux terminal without waiting on CI. It runs a real NT kernel, which is what makes it an oracle for the Windows-only surface: drive roots, path separators, CRLF stdio, pipes, process spawn.
 
 ```sh
-cd tools/windows-vm && vagrant up   # once: boots the guest, installs clang/bun/pwsh
+cd tools/windows-vm && vagrant up   # once: boots the guest, installs clang/gcc/pwsh
 bin/vwin build                      # push the tree, then the 3-stage bootstrap
-bin/vwin test                       # push the tree, then bun run test --only-failures
-bin/vwin test tests/lsp             # …scoped to a path
+bin/vwin test                       # push the tree, then the test runner with --only-failures
 ```
 
 Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses, see the directory's README for that distinction and the rest of the setup.

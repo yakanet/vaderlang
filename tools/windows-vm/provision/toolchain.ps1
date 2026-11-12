@@ -3,9 +3,8 @@
 # provision`.
 #
 # Every package is a pinned zip fetched straight from its upstream release, so a
-# reprovision is reproducible and no package manager sits in the loop. The Bun
-# pin tracks .github/workflows/build.yml so the local suite and CI run the same
-# runtime; llvm-mingw is the guest's NATIVE toolchain, because GCC has no usable
+# reprovision is reproducible and no package manager sits in the loop.
+# llvm-mingw is the guest's NATIVE toolchain, because GCC has no usable
 # aarch64-windows host build and bootstrap/build.ps1 already accepts `-CC clang`.
 # A mingw-w64 GCC is installed BESIDE it, x86_64 under Prism: CI builds with gcc,
 # and a guest that only had clang could not reproduce a gcc-only failure, which
@@ -29,8 +28,7 @@ $LLVM_MINGW_VERSION = '20260826'
 # suffices, like every other package here.
 $WINLIBS_VERSION = '11.2.0-14.0.0-9.0.0-ucrt-r7'
 $WINLIBS_ARCHIVE = 'winlibs-x86_64-posix-seh-gcc-11.2.0-mingw-w64ucrt-9.0.0-r7.zip'
-$BUN_VERSION        = '1.3.13'
-$PWSH_VERSION       = '7.6.5'
+$PWSH_VERSION    = '7.6.5'
 
 $root      = 'C:\vader-tools'
 $guestRepo = 'C:\vader'
@@ -47,12 +45,6 @@ $packages = @(
         url   = "https://github.com/brechtsanders/winlibs_mingw/releases/download/$WINLIBS_VERSION/$WINLIBS_ARCHIVE"
         bin   = 'bin'
         probe = 'gcc.exe'
-    },
-    @{
-        name  = 'bun'
-        url   = "https://github.com/oven-sh/bun/releases/download/bun-v$BUN_VERSION/bun-windows-aarch64.zip"
-        bin   = ''
-        probe = 'bun.exe'
     },
     @{
         name  = 'pwsh'
@@ -79,8 +71,8 @@ function Install-Package($package) {
     Remove-Item -Recurse -Force $staging, $destination -ErrorAction SilentlyContinue
     Expand-Archive -Path $archive -DestinationPath $staging -Force
 
-    # Upstream archives disagree on shape: llvm-mingw and bun wrap everything in
-    # a single versioned directory, PowerShell extracts flat. Unwrap the former
+    # Upstream archives disagree on shape: llvm-mingw wraps everything in a
+    # single versioned directory, PowerShell extracts flat. Unwrap the former
     # so the layout under $root is uniform.
     $entries = @(Get-ChildItem $staging)
     $payload = if ($entries.Count -eq 1 -and $entries[0].PSIsContainer) { $entries[0].FullName } else { $staging }
@@ -126,6 +118,5 @@ Write-Host ''
 Write-Host '==> toolchain ready'
 & clang --version | Select-Object -First 1
 & clang -dumpmachine
-Write-Host "bun  $(& bun --version)"
 Write-Host "pwsh $(& pwsh --version)"
 Write-Host "repo target: $guestRepo  (push it with ``vwin sync``)"

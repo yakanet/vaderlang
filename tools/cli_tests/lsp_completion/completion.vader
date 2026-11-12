@@ -1,0 +1,475 @@
+// tools/cli_tests/lsp_completion/completion: what the language server offers to
+// complete at the cursor: names in scope, members, decorators.
+//
+// Each test opens one document of a fresh project and asks for the completion at
+// one position (`drive` of `tools/cli_tests/lsp`). The answer is a list, the
+// labels of its items are what the tests read.
+
+module "tools/cli_tests/lsp_completion"
+
+import "json"
+import "std/iter"
+import "std/string"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// The completion request at `spot`.
+complete_at :: fn(spot: Spot) -> Query = ask_at("textDocument/completion", spot)
+
+// The labels of the items of the completion list `result`.
+labels_of :: fn(result: JsonValue) -> string[] {
+    items :: items_at(result, ["items"])
+    return items.map((item) -> string_member(item, "label") ?? "").collect()
+}
+
+// The item of the completion list `result` labelled `label`, a JSON null when
+// there is none.
+item_named :: fn(result: JsonValue, label: string) -> JsonValue {
+    named :: items_at(result, ["items"]).find((item) -> string_member(item, "label") == label)
+    return named ?? JsonNull {}
+}
+
+// The detail of the item labelled `label` in `result`.
+detail_of :: fn(result: JsonValue, label: string) -> string =
+    string_member(item_named(result, label), "detail") ?? "<none>"
+
+// Whether the completion list `result` offers `label`.
+offers :: fn(result: JsonValue, label: string) -> bool = labels_of(result).contains(label)
+
+// The failure message of an offer test: the labels the server gave.
+shown :: fn(result: JsonValue) -> string = labels_of(result).join(" ")
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A `module`-declared document so the typed project loads and the wildcard
+// exports of `std/console` reach completion.
+COMPLETION_SOURCE :: r"""
+    module "lsp_test"
+
+    import "std/console"
+
+    /// Doubles its argument.
+    double :: fn(x: i32) -> i32 {
+        return x * 2
+    }
+
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    main :: fn() -> i32 {
+        p :: Point { .x = 1, .y = 2 }
+        y :: double(21)
+        return y
+    }
+    """
+
+@test
+test_completion_lists_in_scope_names_and_keywords :: fn() -> void {
+    // Line 17 is `    return y`, inside the body of `main`.
+    results :: drive(
+        "scope_names",
+        COMPLETION_SOURCE,
+        [complete_at(Spot { .line = 17, .character = 4 })],
+    )
+    list :: results[0]
+    assert_eq(stringify(member_at(list, ["isIncomplete"]) ?? JsonNull {}), "false")
+    shown_labels :: shown(list)
+    for name in ["double", "Point", "main", "println", "p", "y", "return"] {
+        assert(offers(list, name), "${name} missing: ${shown_labels}")
+    }
+    // `double` is a function (CompletionItemKind.Function = 3).
+    assert_eq(int_at(item_named(list, "double"), ["kind"]), 3)
+}
+
+// A module-declared entry with two unannotated locals: completion shows their
+// inferred type as detail, resolved through the typed project.
+LOCAL_TYPE_SOURCE :: r"""
+    module "demo"
+
+    mk :: fn() -> i32 {
+        return 7
+    }
+
+    Box :: struct {
+        v: i32
+    }
+
+    main :: fn() -> i32 {
+        n :: mk()
+        b :: Box { .v = 1 }
+        return n
+    }
+    """
+
+@test
+test_completion_shows_a_locals_inferred_type_as_detail :: fn() -> void {
+    // Line 13 is `    return n`: `n` and `b` are visible.
+    results :: drive(
+        "local_type",
+        LOCAL_TYPE_SOURCE,
+        [complete_at(Spot { .line = 13, .character = 4 })],
+    )
+    list :: results[0]
+    assert(offers(list, "n"), shown(list))
+    assert(offers(list, "b"), shown(list))
+    // `n :: mk()` is the return type of the call, `b :: Box {...}` is `Box`.
+    assert_eq(detail_of(list, "n"), "i32")
+    assert_eq(detail_of(list, "b"), "Box")
+    // A function's detail is its signature without the `<name> :: ` prefix: the
+    // label already carries the name.
+    assert_eq(detail_of(list, "mk"), "fn() -> i32")
+}
+
+MEMBER_SOURCE :: r"""
+    module "lsp_test"
+
+    Greeter :: trait {
+        greet :: fn(self) -> i32
+    }
+
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    Point implements Greeter {
+        greet :: fn(self) -> i32 { return self.x }
+    }
+
+    main :: fn() -> i32 {
+        p :: Point { .x = 1, .y = 2 }
+        return p.x
+    }
+
+    magnitude :: fn(self: Point) -> i32 = self.x + self.y
+    """
+
+@test
+test_member_completion_lists_fields_and_methods :: fn() -> void {
+    // Line 17 is `    return p.x`: the dot is at character 12, so character 13 is
+    // a member access on `p`.
+    results :: drive(
+        "member_fields",
+        MEMBER_SOURCE,
+        [complete_at(Spot { .line = 17, .character = 13 })],
+    )
+    list :: results[0]
+    shown_labels :: shown(list)
+    // The fields of `Point`, its impl method, and a free fn reached by UFCS
+    // (`magnitude :: fn(self: Point)` is `p.magnitude()`).
+    for name in ["x", "y", "greet", "magnitude"] {
+        assert(offers(list, name), "${name} missing: ${shown_labels}")
+    }
+    // Member completion is scoped to the receiver: no top-level name or keyword.
+    assert(!offers(list, "main"), shown_labels)
+    assert(!offers(list, "return"), shown_labels)
+    // A field is CompletionItemKind.Field (5), a method Method (2).
+    assert_eq(int_at(item_named(list, "x"), ["kind"]), 5)
+    assert_eq(int_at(item_named(list, "greet"), ["kind"]), 2)
+}
+
+TRAILING_DOT_SOURCE :: r"""
+    module "lsp_test"
+
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    main :: fn() -> i32 {
+        p :: Point { .x = 1, .y = 2 }
+        p.
+        return 0
+    }
+    """
+
+@test
+test_member_completion_on_a_trailing_dot :: fn() -> void {
+    // Line 9 is `    p.`: character 6 is just past the dot, no member typed yet.
+    // The parser recovers `p.` into a field access whose target stays typed.
+    results :: drive(
+        "trailing_dot",
+        TRAILING_DOT_SOURCE,
+        [complete_at(Spot { .line = 9, .character = 6 })],
+    )
+    list :: results[0]
+    assert(offers(list, "x"), shown(list))
+    assert(offers(list, "y"), shown(list))
+    // Still scoped to the receiver: no keyword.
+    assert(!offers(list, "return"), shown(list))
+}
+
+NON_ASCII_MEMBER_SOURCE :: r"""
+    module "lsp_test"
+
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    pick :: fn(label: string, v: i32) -> i32 = v
+
+    main :: fn() -> i32 {
+        p :: Point { .x = 1, .y = 2 }
+        return pick("éé", p.x)
+    }
+    """
+
+@test
+test_member_completion_after_a_multi_byte_character :: fn() -> void {
+    // The receiver is found by its codepoint column, which a byte column
+    // overshoots. Line 11 is `    return pick("éé", p.x)`: the dot is at
+    // character 23, so character 24 completes a member of `p`.
+    results :: drive(
+        "multi_byte_member",
+        NON_ASCII_MEMBER_SOURCE,
+        [complete_at(Spot { .line = 11, .character = 24 })],
+    )
+    list :: results[0]
+    assert(offers(list, "x"), shown(list))
+    assert(offers(list, "y"), shown(list))
+}
+
+CROSS_MODULE_MEMBER_SOURCE :: r"""
+    module "demo"
+
+    import "demo/widget"
+
+    main :: fn() -> i32 {
+        w :: Widget { .width = 1, .height = 2 }
+        return w.width
+    }
+    """
+
+WIDGET_FIELDS :: r"""
+    module "demo/widget"
+
+    export Widget :: struct {
+        width: i32
+        height: i32
+    }
+    """
+
+@test
+test_member_completion_resolves_an_imported_structs_fields :: fn() -> void {
+    // The receiver's type is declared in an imported module: the field lookup
+    // goes through the project-wide struct registry, not the document's own.
+    // Line 6 is `    return w.width`: character 13 is just past the dot.
+    files: [string, string][]: [["widget/widget.vader", WIDGET_FIELDS]]
+    results :: drive(
+        "imported_member",
+        CROSS_MODULE_MEMBER_SOURCE,
+        [complete_at(Spot { .line = 6, .character = 13 })],
+        Project { .files = files },
+    )
+    list :: results[0]
+    assert(offers(list, "width"), shown(list))
+    assert(offers(list, "height"), shown(list))
+    // The field's resolved type rides along in `detail`.
+    assert_eq(detail_of(list, "width"), "i32")
+}
+
+WILDCARD_IMPORT_SOURCE :: r"""
+    module "demo"
+
+    import "demo/widget"
+
+    main :: fn() -> i32 {
+        w :: Widget { .width = 1, .height = 2 }
+        return w.width
+    }
+    """
+
+WIDGET_WITH_SPIN :: r"""
+    module "demo/widget"
+
+    /// Rotate the widget.
+    export spin :: fn() -> i32 = 1
+
+    export Widget :: struct {
+        width: i32
+        height: i32
+    }
+    """
+
+@test
+test_completion_offers_wildcard_imported_names :: fn() -> void {
+    // A bare `import "p"` binds no named entry: the exports are enumerated from
+    // the typed project. Line 6 is `    return w.width`, character 4 is before
+    // `return`, so no dot.
+    files: [string, string][]: [["widget/widget.vader", WIDGET_WITH_SPIN]]
+    results :: drive(
+        "wildcard_names",
+        WILDCARD_IMPORT_SOURCE,
+        [complete_at(Spot { .line = 6, .character = 4 })],
+        Project { .files = files },
+    )
+    list :: results[0]
+    // Both the wildcard-exposed fn and struct are in scope unqualified.
+    assert(offers(list, "spin"), shown(list))
+    assert(offers(list, "Widget"), shown(list))
+    // The struct fields are not module exports.
+    assert(!offers(list, "width"), shown(list))
+    // The provenance rides along in `detail`.
+    assert_eq(detail_of(list, "spin"), "import \"demo/widget\"")
+}
+
+NAMESPACE_MEMBER_SOURCE :: r"""
+    module "demo"
+
+    G :: import "demo/greeter"
+
+    main :: fn() -> i32 {
+        G.
+        return 0
+    }
+    """
+
+GREETER :: "module \"demo/greeter\"\n\nexport greet :: fn(name: string) -> string = name\n"
+
+@test
+test_member_completion_on_a_namespace_alias_lists_its_exports :: fn() -> void {
+    // Line 5 is `    G.`: character 6 is just past the dot on the alias.
+    files: [string, string][]: [["greeter/greeter.vader", GREETER]]
+    results :: drive(
+        "namespace_member",
+        NAMESPACE_MEMBER_SOURCE,
+        [complete_at(Spot { .line = 5, .character = 6 })],
+        Project { .files = files },
+    )
+    list :: results[0]
+    assert(offers(list, "greet"), shown(list))
+    // Not every imported free fn, as a UFCS receiver would give.
+    assert(!offers(list, "println"), shown(list))
+    assert(!offers(list, "eprint"), shown(list))
+}
+
+// A namespace member in a type position has no type of its own: the receiver
+// search must not keep the whole literal and offer its fields.
+NAMESPACE_TYPE_SOURCE :: r"""
+    module "demo"
+
+    G :: import "demo/greeter"
+
+    main :: fn() -> i32 {
+        b :: G.Badge { .size = 1 }
+        return b.size
+    }
+    """
+
+GREETER_WITH_BADGE :: r"""
+    module "demo/greeter"
+
+    export Badge :: struct { size: i32 }
+
+    export greet :: fn(name: string) -> string = name
+    """
+
+@test
+test_completion_after_a_namespace_alias_in_a_struct_literal_lists_its_exports :: fn() -> void {
+    files: [string, string][]: [["greeter/greeter.vader", GREETER_WITH_BADGE]]
+    results :: drive(
+        "namespace_type",
+        NAMESPACE_TYPE_SOURCE,
+        [complete_at(position_of(NAMESPACE_TYPE_SOURCE, "Badge {"))],
+        Project { .files = files },
+    )
+    list :: results[0]
+    assert(offers(list, "Badge"), shown(list))
+    assert(offers(list, "greet"), shown(list))
+    assert(!offers(list, "size"), shown(list))
+}
+
+// A built-in receiver's methods come from impls the prelude declares, an
+// `@intrinsic` one among them, whose members its trait declares.
+BUILTIN_RECEIVER_SOURCE :: r"""
+    module "lsptest"
+
+    main :: fn() -> i32 {
+        name :: "vader"
+        names: string[]: []
+        names.push(name)
+        return i32(name.hash() % 7) + i32(names.len())
+    }
+    """
+
+@test
+test_member_completion_lists_the_methods_of_a_built_in_receiver :: fn() -> void {
+    results :: drive(
+        "builtin_receiver",
+        BUILTIN_RECEIVER_SOURCE,
+        [
+            complete_at(position_of(BUILTIN_RECEIVER_SOURCE, "push(name)")),
+            complete_at(position_of(BUILTIN_RECEIVER_SOURCE, "hash()")),
+        ],
+    )
+    array :: results[0]
+    for name in ["push", "len", "clear", "into"] {
+        assert(offers(array, name), "${name} missing: ${shown(array)}")
+    }
+    // An `into` is keyed by the type it converts into too: it lists once, by name.
+    keyed :: labels_of(array).filter((label) -> ":" in label).collect()
+    assert_eq(keyed.join(" "), "")
+    text :: results[1]
+    for name in ["hash", "to_string", "byte_len"] {
+        assert(offers(text, name), "${name} missing: ${shown(text)}")
+    }
+}
+
+AT_SIGN_SOURCE :: r"""
+    module "lsptest"
+
+    @tes
+    check :: fn() -> void {}
+
+    main :: fn() -> i32 = 0
+    """
+
+@test
+test_completion_after_an_at_sign_offers_decorators_and_intrinsics_documented :: fn() -> void {
+    results :: drive(
+        "at_sign",
+        AT_SIGN_SOURCE,
+        [complete_at(position_of(AT_SIGN_SOURCE, "@tes", 4))],
+    )
+    list :: results[0]
+    test_item :: item_named(list, "test")
+    assert_eq(string_at(test_item, ["documentation", "kind"]) ?? "", "markdown")
+    test_docs :: string_at(test_item, ["documentation", "value"]) ?? ""
+    assert("vader test" in test_docs, test_docs)
+    size_of_item :: item_named(list, "size_of")
+    size_of_detail :: string_member(size_of_item, "detail") ?? ""
+    assert("size_of" in size_of_detail, size_of_detail)
+    size_of_docs :: string_at(size_of_item, ["documentation", "value"]) ?? ""
+    assert(size_of_docs.byte_len() > 0, "size_of has no documentation")
+}
+
+// The receiver is a generic parameter bounded by a trait: completion resolves
+// the bound and offers the trait's methods, not every free fn a type parameter
+// would match by UFCS.
+TYPEPARAM_BOUND_SOURCE :: r"""
+    module "lsp_test"
+
+    show :: fn<T: Display>(msg: T) -> void {
+        msg.
+    }
+
+    main :: fn() -> i32 { return 0 }
+    """
+
+@test
+test_member_completion_on_a_trait_bounded_generic_lists_the_bounds_methods :: fn() -> void {
+    // Line 3 is `    msg.`: character 8 is just past the dot.
+    results :: drive(
+        "typeparam_bound",
+        TYPEPARAM_BOUND_SOURCE,
+        [complete_at(Spot { .line = 3, .character = 8 })],
+    )
+    list :: results[0]
+    assert(offers(list, "to_string"), shown(list))
+    assert(!offers(list, "bytes_to_string"), shown(list))
+}

@@ -1,0 +1,376 @@
+// tools/cli_tests/lsp_hover/hints: what the language server writes into a document
+// without being asked where: inlay hints, and the hovers of the text bytecode.
+//
+// Each test opens one document of a fresh project and writes every request
+// before it reads an answer (`drive` of `tools/cli_tests/lsp`). The bytecode
+// tests open a `.virt` dump the compiler wrote.
+
+module "tools/cli_tests/lsp_hover"
+
+import "json"
+import "std/fs"
+import "std/abort"
+import "std/iter"
+import "std/option"
+import "std/sort"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// The inlay hint request over the whole of `text`.
+whole_document :: fn(text: string) -> Query = Query {
+    ...ask("textDocument/inlayHint", 0, 0),
+    .until = Spot { .line = text.split("\n").len(), .character = 0 },
+}
+
+// The `<label> <line>:<character>` of each of `hints`, sorted.
+labelled :: fn(hints: JsonValue[]) -> string[] {
+    entries :: hints.map((hint) -> hint_entry(hint)).collect()
+    return sort(entries, compare_ascending)
+}
+
+hint_entry :: fn(hint: JsonValue) -> string {
+    label :: string_at(hint, ["label"]) ?? ""
+    return "${label} ${position_at(hint, ["position"])}"
+}
+
+// The hints of `hints` whose label starts with `prefix`.
+starting_with :: fn(hints: JsonValue[], prefix: string) -> JsonValue[] =
+    hints.filter((hint) -> (string_at(hint, ["label"]) ?? "").starts_with(prefix)).collect()
+
+// Whether the boolean `key` of `hint` is true.
+flag :: fn(hint: JsonValue, key: string) -> bool {
+    value :: member(hint, key) ?? JsonNull {}
+    if value is JsonBool {
+        return value.value
+    }
+    return false
+}
+
+// Whether every one of `hints` pads on the right only.
+pads_right_only :: fn(hints: JsonValue[]) -> bool {
+    for hint in hints {
+        if !flag(hint, "paddingRight") || flag(hint, "paddingLeft") {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether every one of `hints` pads on the left only.
+pads_left_only :: fn(hints: JsonValue[]) -> bool {
+    for hint in hints {
+        if !flag(hint, "paddingLeft") || flag(hint, "paddingRight") {
+            return false
+        }
+    }
+    return true
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+INLAY_SPACING_SOURCE :: r"""
+    module "demo"
+
+    main :: fn() -> i32 {
+        n     ::   42
+        return n
+    }
+    """
+
+// The hint nests BETWEEN the two operator characters (`v :u32[]: ...`), so its
+// position must track the real operator, not a fixed distance before the value.
+// Here the operator is padded for vertical alignment AND followed by two spaces.
+@test
+test_an_inlay_hint_anchors_on_the_operator_whatever_the_spacing :: fn() -> void {
+    results :: drive(
+        "hints_spacing",
+        INLAY_SPACING_SOURCE,
+        [
+            Query {
+                ...ask("textDocument/inlayHint", 0, 0),
+                .until = Spot { .line = 6, .character = 0 },
+            },
+        ],
+    )
+    hints :: items_at(results[0], [])
+    // `    n     ::   42`: the first `:` sits at 1-based column 11, so the hint
+    // inserts before the second one at 0-based character 11.
+    found :: hints.filter((hint) -> string_at(hint, ["label"]) == "i32").collect()
+    assert(found.len() > 0, stringify(results[0]))
+    assert_eq(hint_entry(found[0]), "i32 3:11")
+}
+
+RETURN_HINT_SOURCE :: r"""
+    module "demo"
+
+    Shape :: trait {
+        area :: fn(self) -> i32
+    }
+
+    Square :: struct {
+        s: i32
+    }
+
+    Square implements Shape {
+        area :: fn(self) { self.s * self.s }
+    }
+
+    Tally :: struct {
+        n: i32 = 0
+    }
+
+    bump :: fn(t: Tally, x: i32) -> bool {
+        t.n += x
+        return true
+    }
+
+    twice :: fn(x: i32) = x * 2
+
+    apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+    each :: fn(f: fn(i32)) {
+        f(2)
+    }
+
+    remember :: fn(t: Tally) {
+        t.bump(1)
+    }
+
+    quiet :: fn(t: Tally) {
+        t.n += 1
+    }
+
+    main :: fn() -> i32 {
+        next :: (x: i32) -> x + 1
+        t :: Tally {}
+        t.remember()
+        t.quiet()
+        each((x: i32) -> t.bump(x))
+        return apply((x: i32) -> x * 3, next(twice(Square { .s = 3 }.area()))) + apply(fn(x: i32) = x * 4, 1)
+    }
+    """
+
+// A fn or lambda written without a return type shows the one it has, in front of
+// its `=`, `{` or `->`; a body that returns nothing and ends on a value gets that
+// value marked as discarded. A body ending on a statement gets nothing, and a
+// lambda bound without an annotation gets no return hint: the let hint already
+// shows its whole type.
+@test
+test_inlay_hints_show_implicit_return_types_and_discarded_values :: fn() -> void {
+    source :: RETURN_HINT_SOURCE
+    results :: drive("hints_returns", source, [whole_document(source)])
+    hints :: items_at(results[0], [])
+    returns :: starting_with(hints, "-> ")
+    discards :: starting_with(hints, "(discarded ")
+    // `area` on its `{`, `twice` before its `=`, the lambda arguments before their
+    // `->` and `=`.
+    expected_returns: string[]: [
+        "-> i32 ${display_spot(position_of(source, "{ self.s * self.s }"))}",
+        "-> i32 ${display_spot(position_of(source, "= x * 2"))}",
+        "-> i32 ${display_spot(position_of(source, "-> x * 3"))}",
+        "-> i32 ${display_spot(position_of(source, "= x * 4"))}",
+    ]
+    assert_eq(labelled(returns).join(", "), sort(expected_returns, compare_ascending).join(", "))
+    assert(pads_right_only(returns), stringify(results[0]))
+    // After the value, in a named fn and in a lambda handed to a slot that returns
+    // nothing; `each` ends on a call that returns nothing itself.
+    bump_one :: position_of(source, "t.bump(1)", "t.bump(1)".byte_len())
+    bump_x :: position_of(source, "t.bump(x))", "t.bump(x)".byte_len())
+    expected_discards: string[]: [
+        "(discarded bool) ${display_spot(bump_one)}",
+        "(discarded bool) ${display_spot(bump_x)}",
+    ]
+    assert_eq(labelled(discards).join(", "), sort(expected_discards, compare_ascending).join(", "))
+    assert(pads_left_only(discards), stringify(results[0]))
+}
+
+NESTED_RETURN_HINT_SOURCE :: r"""
+    module "demo"
+
+    apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+    maybe :: fn() -> i32 | null = null
+
+    inc :: (x: i32) -> x + 1
+
+    main :: fn() -> i32 {
+        return maybe() ?? apply((x: i32) -> x * 5, inc(1))
+    }
+    """
+
+// The hints reach every expression: a lambda inside a `??` fallback gets its
+// return hint. A lambda bound to a constant without an annotation gets none, as
+// under a `let`: the constant's hint already shows its whole type.
+@test
+test_inlay_hints_reach_a_lambda_in_a_fallback_not_one_bound_to_a_constant :: fn() -> void {
+    source :: NESTED_RETURN_HINT_SOURCE
+    results :: drive("hints_fallback", source, [whole_document(source)])
+    hints :: items_at(results[0], [])
+    returns :: starting_with(hints, "-> ")
+    assert_eq(
+        labelled(returns).join(", "),
+        "-> i32 ${display_spot(position_of(source, "-> x * 5"))}",
+    )
+    labels :: hints.map((hint) -> string_at(hint, ["label"]) ?? "").collect()
+    assert(labels.contains("fn(i32) -> i32"), labels.join(", "))
+}
+
+// ---- the text bytecode ----------------------------------------------------
+
+// Whether `c` can be part of an op name: lower case letters, digits, `_` and `.`,
+// the first of them never a digit or a dot.
+is_head_char :: fn(c: char, first: bool) -> bool {
+    if c in 'a'..='z' || c == '_' {
+        return true
+    }
+    return !first && (c in '0'..='9' || c == '.')
+}
+
+// Whether `word` reads as the name of an op.
+is_head :: fn(word: string) -> bool = word != "" && head_prefix(word) == word
+
+// The leading characters of `text` that can be part of an op name.
+head_prefix :: fn(text: string) -> string {
+    head: string = ""
+    first: bool = true
+    for c in text {
+        if !is_head_char(c, first) {
+            break
+        }
+        head = "${head}${c}"
+        first = false
+    }
+    return head
+}
+
+// The first word of `line`, blanks left out.
+first_word :: fn(line: string) -> string {
+    words :: line.split_where((c) -> c == ' ' || c == '\t' || c == '\r')
+    for word in words {
+        if word != "" {
+            return word
+        }
+    }
+    return ""
+}
+
+// The ops the bytecode snapshots of the snippets use: the first word of each line
+// that reads as one. A snapshot may close on its compile diagnostics, which do not.
+snapshot_heads :: fn() -> string[] {
+    root :: "tests/snippets"
+    heads: string[]: []
+    names :: read_dir(root).unwrap()
+    for name in names {
+        path :: "${root}/${name}/bytecode.snapshot.virt"
+        if !exists(path) {
+            continue
+        }
+        for line in read_file_string(path).unwrap().split("\n") {
+            word :: first_word(line)
+            if is_head(word) {
+                heads.push(word)
+            }
+        }
+    }
+    return heads
+}
+
+// The ops the bytecode printer spells out, one per arm.
+printed_heads :: fn() -> string[] {
+    printer :: read_file_string("vader/emit/virt/dump.vader").unwrap()
+    parts :: printer.split("-> out.append(\"")
+    heads: string[]: []
+    for i in 1..<parts.len() {
+        head :: head_prefix(parts[i])
+        if head != "" {
+            heads.push(head)
+        }
+    }
+    return heads
+}
+
+// `heads` sorted, each once.
+distinct_sorted :: fn(heads: string[]) -> string[] =
+    sort(heads.distinct().collect(), compare_ascending)
+
+// A `.virt` dump gets a hover over the first word of each line (every op and
+// directive must have an entry in `vader/front/virt/ops.md`) and nothing else from
+// the server. The heads come from the committed bytecode snapshots and from the
+// printer's arms, so an op no snippet uses is covered too.
+@test
+test_hover_documents_every_op_of_the_text_bytecode :: fn() -> void {
+    printed :: printed_heads()
+    assert(printed.len() > 100, "${printed.len()} ops printed")
+    ordered :: distinct_sorted(snapshot_heads() + printed)
+    source :: ordered.map((head) -> "  ${head}").collect().join("\n") + "\n"
+    queries: Query[]: []
+    for i in 0..<ordered.len() {
+        queries.push(ask("textDocument/hover", i, 3))
+    }
+    queries.push(ask("textDocument/semanticTokens/full", 0, 0))
+    results :: drive("hints_every_op", source, queries, Project { .name = "dump.virt" })
+    undocumented: string[]: []
+    for i in 0..<ordered.len() {
+        if results[i] is JsonNull {
+            undocumented.push(ordered[i])
+        }
+    }
+    assert_eq(undocumented.join(" "), "")
+    at :: ordered.index_of("local.get") ?? panic("no `local.get` among the ops")
+    shown :: string_at(results[at], ["contents", "value"]) ?? ""
+    assert("```\nlocal.get <slot>\n```" in shown, shown)
+    assert("Push the value of local `<slot>`." in shown, shown)
+    assert(results[ordered.len()] is JsonNull, stringify(results[ordered.len()]))
+}
+
+JSON_BASICS :: "tests/snippets/json_basics/_main.vader"
+
+// A plain dump writes bare table indices. Each op carrying one gets, as an inlay
+// hint after its last operand, the label `--annotate` writes as a `;` comment, so
+// the hints over the plain dump are exactly the annotated dump's comments.
+@test
+test_inlay_hints_over_a_plain_dump_name_what_annotate_names :: fn() -> void {
+    plain :: bytecode_dump(JSON_BASICS)
+    annotated :: bytecode_dump(JSON_BASICS, ["--annotate"]).split("\n")
+    plain_lines :: plain.split("\n")
+    assert_eq(annotated.len(), plain_lines.len())
+    expected: string[]: []
+    for i in 0..<annotated.len() {
+        marker :: annotated[i].split_first("   ; ")
+        if marker != null {
+            expected.push("${i}:${utf16_length(plain_lines[i])}:${marker.1}")
+        }
+    }
+    assert(expected.len() > 100, "${expected.len()} annotations")
+    results :: drive(
+        "hints_plain_dump",
+        plain,
+        [whole_document(plain)],
+        Project { .name = "dump.virt" },
+    )
+    shown :: items_at(results[0], []).map((hint) -> hint_shown(hint)).collect()
+    assert_eq(shown.join("\n"), expected.join("\n"))
+}
+
+// `<line>:<character>:<label>` of `hint`.
+hint_shown :: fn(hint: JsonValue) -> string {
+    line :: int_at(hint, ["position", "line"])
+    character :: int_at(hint, ["position", "character"])
+    return "${line}:${character}:${string_at(hint, ["label"]) ?? ""}"
+}
+
+@test
+test_an_annotated_dump_gets_no_inlay_hint :: fn() -> void {
+    annotated :: bytecode_dump(JSON_BASICS, ["--annotate"])
+    results :: drive(
+        "hints_annotated_dump",
+        annotated,
+        [whole_document(annotated)],
+        Project { .name = "dump.virt" },
+    )
+    assert_eq(items_at(results[0], []).len(), 0)
+}

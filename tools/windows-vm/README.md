@@ -44,7 +44,6 @@ means `vagrant destroy` first.
 | | version | why this one |
 |---|---|---|
 | `llvm-mingw` | 20260826 (ucrt-aarch64) | GCC has no usable aarch64-windows host build; `bootstrap/build.ps1` already takes `-CC clang` |
-| `bun` | 1.3.13 (windows-aarch64) | the exact pin in `.github/workflows/build.yml` |
 | `pwsh` | 7.6.5 (win-arm64) | CI runs `pwsh bootstrap/build.ps1`, so we do too |
 
 ## Daily use
@@ -67,7 +66,7 @@ covers and nothing else:
 ```sh
 bin/vwin sync            # push the working tree to C:\vader
 bin/vwin build           # sync, then bootstrap/build.ps1 -CC clang
-bin/vwin test tests/lsp  # sync, then bun run test --only-failures
+bin/vwin test            # sync, then the test runner with --only-failures
 ```
 
 ## Two decisions worth knowing

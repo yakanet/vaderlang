@@ -1,0 +1,612 @@
+// tools/cli_tests/lsp_edits/edits: what the language server changes in the code:
+// the references of a name, a rename, and the refactors it offers as code actions.
+//
+// Each test opens one document of a fresh project and writes every request
+// before it reads an answer (`drive` of `tools/cli_tests/lsp`).
+
+module "tools/cli_tests/lsp_edits"
+
+import "json"
+import "regex"
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "std/option"
+import "std/sort"
+import "std/string"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// The start of each of `items`, sorted.
+starts :: fn(items: JsonValue[]) -> string[] = sorted(items.map(start_of).collect())
+
+// `keys` sorted.
+sorted :: fn(keys: string[]) -> string[] = sort(keys, compare_ascending)
+
+// The positions `spots`, sorted as `starts` sorts them, apart by a space.
+spots_shown :: fn(spots: Spot[]) -> string = sorted(spots.map(display_spot).collect()).join(" ")
+
+// The last two segments of the URI `uri`: the folder and the file.
+tail_of :: fn(uri: string) -> string {
+    parts :: uri.split("/")
+    return "${parts[parts.len() - 2]}/${parts[parts.len() - 1]}"
+}
+
+// The files a workspace edit changes, as URIs.
+changed_files :: fn(edit: JsonValue) -> string[] {
+    changes :: member(edit, "changes") ?? panic("no `changes` in ${stringify(edit)}")
+    if changes is JsonObject {
+        return changes.entries.keys().collect()
+    }
+    panic("`changes` is no object: ${stringify(changes)}")
+}
+
+// The edits of a refactor that changes one file. A map's key order carries no
+// meaning, so the count of files is pinned before the first is read.
+sole_file_edits :: fn(edit: JsonValue) -> JsonValue[] {
+    files :: changed_files(edit)
+    assert_eq(files.len(), 1)
+    return items_at(edit, ["changes", files[0]])
+}
+
+// Every edit of a workspace edit, whatever the file.
+all_edits :: fn(edit: JsonValue) -> JsonValue[] {
+    out: JsonValue[]: []
+    for file in changed_files(edit) {
+        out.push_all(items_at(edit, ["changes", file]))
+    }
+    return out
+}
+
+// The code action of `actions` titled `title`; none fails the test.
+action_titled :: fn(actions: JsonValue, title: string) -> JsonValue {
+    titled :: items_at(actions, []).find((action) -> string_member(action, "title") == title)
+    return titled ?? panic("no code action titled `${title}` in ${stringify(actions)}")
+}
+
+// Whether `pattern`, a regular expression, matches somewhere in `text`.
+has_match :: fn(text: string, pattern: string) -> bool {
+    compiled :: compile(pattern).unwrap()
+    return compiled.find(text) != null
+}
+
+// The range of each of `edits` reads `name` in `source`.
+assert_names :: fn(source: string, edits: JsonValue[], name: string) -> void {
+    for edit in edits {
+        range :: member(edit, "range") ?? panic("no range in ${stringify(edit)}")
+        assert_eq(text_at(source, range), name)
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+NON_ASCII_MEMBER_SOURCE :: r"""
+    module "lsp_test"
+
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    pick :: fn(label: string, v: i32) -> i32 = v
+
+    main :: fn() -> i32 {
+        p :: Point { .x = 1, .y = 2 }
+        return pick("éé", p.x)
+    }
+    """
+
+// An astral character is two UTF-16 units but one codepoint: a position after it
+// on its line maps to a smaller column than its protocol character plus one.
+@test
+test_references_after_an_astral_character_on_the_line :: fn() -> void {
+    source :: NON_ASCII_MEMBER_SOURCE.replace("éé", "\u{1F600}")
+    // Line 11 is `    return pick("<emoji>", p.x)`; `p` is at UTF-16 character 22.
+    results :: drive(
+        "references_astral",
+        source,
+        [ask("textDocument/references", 11, 22)],
+    )
+    refs :: starts(items_at(results[0], []))
+    assert(refs.contains("11:22"), refs.join(" "))
+}
+
+CODE_ACTION_SOURCE :: r"""
+    module "lsp_test"
+
+    classify :: fn(x: i32) -> i32 {
+        return match x {
+            0 -> 1
+            _ -> 2
+        }
+    }
+    """
+
+@test
+test_code_action_converts_a_two_arm_match_to_if_else :: fn() -> void {
+    // The cursor is on the `match` keyword (line 3, character 11).
+    results :: drive(
+        "action_match_to_if",
+        CODE_ACTION_SOURCE,
+        [ask("textDocument/codeAction", 3, 11)],
+    )
+    assert(results[0] is JsonArray, stringify(results[0]))
+    converted :: action_titled(results[0], "Convert match to if")
+    assert_eq(string_member(converted, "kind") ?? "", "refactor.rewrite")
+    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
+    text :: string_member(edits[0], "newText") ?? ""
+    assert("if x == 0" in text, text)
+    assert("else" in text, text)
+}
+
+NULL_NARROW_SOURCE :: r"""
+    module "lsp_test"
+
+    Node :: struct { v: i32 }
+
+    describe :: fn(cell: Node | null) -> i32 {
+        match cell {
+            is null -> {
+                return 0
+            }
+            is Node -> {
+                return 1
+            }
+        }
+    }
+    """
+
+@test
+test_code_action_converts_a_two_is_arm_match_without_a_wildcard_to_if :: fn() -> void {
+    // The null-narrowing shape: `match cell { is null -> ... is Node -> ... }`,
+    // the cursor on the `match` keyword (line 5, character 4).
+    results :: drive(
+        "action_null_narrow_to_if",
+        NULL_NARROW_SOURCE,
+        [ask("textDocument/codeAction", 5, 4)],
+    )
+    converted :: action_titled(results[0], "Convert match to if")
+    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
+    text :: string_member(edits[0], "newText") ?? ""
+    assert("cell is null" in text, text)
+    assert("else" in text, text)
+}
+
+IF_TO_MATCH_SOURCE :: r"""
+    module "lsp_test"
+
+    pick :: fn(v: i32 | string) -> i32 {
+        if v is i32 {
+            return v
+        } else if v == "x" {
+            return 1
+        } else {
+            return 2
+        }
+    }
+    """
+
+@test
+test_code_action_converts_an_if_else_if_chain_to_match :: fn() -> void {
+    // The cursor is on the leading `if` (line 3, character 4).
+    results :: drive(
+        "action_if_to_match",
+        IF_TO_MATCH_SOURCE,
+        [ask("textDocument/codeAction", 3, 4)],
+    )
+    converted :: action_titled(results[0], "Convert if to match")
+    assert_eq(string_member(converted, "kind") ?? "", "refactor.rewrite")
+    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
+    text :: string_member(edits[0], "newText") ?? ""
+    assert("match v {" in text, text)
+    assert(has_match(text, r"is i32\s+->"), text)
+    // The `->` of the `_` arm may be padded to align with the longer arm's arrow.
+    assert(has_match(text, r"_\s+->"), text)
+}
+
+UFCS_SOURCE :: r"""
+    module "lsp_test"
+
+    dbl :: fn(x: i32) -> i32 {
+        return x * 2
+    }
+
+    main :: fn() -> i32 {
+        n :: 21
+        return dbl(n)
+    }
+    """
+
+@test
+test_code_action_converts_a_free_call_to_method_syntax :: fn() -> void {
+    // The cursor is on the `dbl(n)` call (line 8, character 11).
+    results :: drive(
+        "action_call_to_method",
+        UFCS_SOURCE,
+        [ask("textDocument/codeAction", 8, 11)],
+    )
+    converted :: action_titled(results[0], "Convert to method call")
+    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
+    text :: string_member(edits[0], "newText") ?? ""
+    assert("n.dbl()" in text, text)
+}
+
+// Find-usages and rename on an export reach the modules that import its module.
+// A folder whose file mentions the name but declares another module (a fixture's
+// `module "main"`) is no module an import reaches, and is left out.
+@test
+test_find_usages_and_rename_reach_the_modules_importing_the_declarations :: fn() -> void {
+    shapes :: "module \"shapes\"\n\nexport area :: fn(side: i32) -> i32 = side * side\n"
+    app :: "module \"app\"\n\nimport \"shapes\"\n\nmain :: fn() -> i32 = area(2) + area(3)\n"
+    files: [string, string][]: [
+        ["vader.json", "{ \"name\": \"usages\" }\n"],
+        ["app/app.vader", app],
+        ["fixtures/case/_main.vader", "module \"main\"\n\narea :: fn() -> i32 = 0\n"],
+    ]
+    results :: drive(
+        "find_usages_importers",
+        shapes,
+        [
+            ask("textDocument/references", 2, 8),
+            ask("textDocument/rename", 2, 8),
+        ],
+        Project { .name = "shapes/shapes.vader", .files = files },
+    )
+    where :: items_at(results[0], []).map(
+        (l) -> "${tail_of(string_member(l, "uri") ?? "")}:${start_of(l)}",
+    ).collect()
+    assert_eq(
+        sorted(where).join(" "),
+        "app/app.vader:4:22 app/app.vader:4:32 shapes/shapes.vader:2:7",
+    )
+    files_changed :: changed_files(results[1]).map(tail_of).collect()
+    assert_eq(sorted(files_changed).join(" "), "app/app.vader shapes/shapes.vader")
+}
+
+// The reference index is project-wide and flat, so a lookup by position alone
+// would match the first site anywhere covering that line and column: in a real
+// tree almost always another file. The query position is blank in the open file
+// and holds `bravo` in the sibling, so a lookup that ignores the file has only
+// the sibling's site to find.
+REF_OTHER_FILE_ONLY :: r"""
+    module "lsptest"
+
+
+    alpha :: fn() -> i32 = 1
+
+    main :: fn() -> i32 = alpha() + alpha()
+    """
+
+REF_SIBLING :: r"""
+    module "lsptest"
+
+    bravo :: fn() -> i32 = 2
+
+    use_bravo :: fn() -> i32 = bravo()
+    """
+
+@test
+test_references_stay_in_the_file_the_cursor_is_in :: fn() -> void {
+    files: [string, string][]: [["lsp-other.vader", REF_SIBLING]]
+    results :: drive(
+        "references_same_file",
+        REF_OTHER_FILE_ONLY,
+        [
+            // Line 3, column 3: blank here, inside `bravo` in the sibling.
+            ask("textDocument/references", 2, 2),
+            // `alpha`'s declaration: references still work.
+            ask("textDocument/references", 3, 2),
+        ],
+        Project { .files = files },
+    )
+    assert_eq(stringify(results[0]), "[]")
+    sites :: items_at(results[1], [])
+    assert_eq(sites.len(), 3)
+    for site in sites {
+        assert((string_member(site, "uri") ?? "").ends_with("/lsp-test.vader"), stringify(site))
+    }
+}
+
+// `rename` shares its lookup with `references`, and a wrong rename rewrites
+// another symbol across the project before anyone sees it. `prepareRename` is
+// what makes the editor offer the rename: on a blank position it must offer none.
+@test
+test_rename_stays_in_the_file_the_cursor_is_in :: fn() -> void {
+    files: [string, string][]: [["lsp-other.vader", REF_SIBLING]]
+    results :: drive(
+        "rename_same_file",
+        REF_OTHER_FILE_ONLY,
+        [
+            // Line 3, column 3: blank here, inside `bravo` in the sibling.
+            ask("textDocument/rename", 2, 2),
+            // `alpha`'s declaration, the positive half.
+            ask("textDocument/rename", 3, 2),
+            // The same blank position, asked whether a rename is possible at all.
+            ask("textDocument/prepareRename", 2, 2),
+        ],
+        Project { .files = files },
+    )
+    assert(results[0] is JsonNull, stringify(results[0]))
+    assert(results[2] is JsonNull, stringify(results[2]))
+    changed :: changed_files(results[1])
+    assert_eq(changed.len(), 1)
+    assert(changed[0].ends_with("lsp-test.vader"), changed[0])
+    // The declaration and two uses, the same three sites find-usages reports.
+    assert_eq(all_edits(results[1]).len(), 3)
+}
+
+// A function is found and renamed wherever a call runs it, whatever form the
+// call takes, and each overload and impl member has references of its own.
+CALL_FORMS_SOURCE :: r"""
+    module "lsptest"
+
+    import "std/console"
+
+    V :: struct { x: i32 }
+
+    V implements Add {
+        add :: fn(self, other: V) -> V = V { .x = self.x + other.x }
+    }
+
+    describe :: fn(self: V) -> string = "v"
+
+    describe :: fn(self: i32) -> string = "i"
+
+    twice :: fn(v: V) -> V = v.add(v) + v
+
+    main :: fn() -> i32 {
+        v :: V { .x = 1 }
+        println(v.describe())
+        println(describe(v))
+        println(2.describe())
+        return twice(v).x
+    }
+    """
+
+@test
+test_references_and_rename_follow_a_fn_through_every_call_form :: fn() -> void {
+    src :: CALL_FORMS_SOURCE
+    first_decl :: display_spot(position_of(src, "describe :: fn(self: V)"))
+    second_decl :: display_spot(position_of(src, "describe :: fn(self: i32)"))
+    method_form :: display_spot(position_of(src, "v.describe()", 2))
+    bare_call :: display_spot(position_of(src, "describe(v)"))
+    on_literal :: display_spot(position_of(src, "2.describe()", 2))
+    add_decl :: display_spot(position_of(src, "add :: fn"))
+    add_method :: display_spot(position_of(src, "v.add(v)", 2))
+    add_operator :: display_spot(position_of(src, "v.add(v) + v"))
+    results :: drive(
+        "references_call_forms",
+        src,
+        [
+            // From the method form `v.describe()`.
+            ask_at("textDocument/references", position_of(src, "v.describe()", 3)),
+            // From the second overload's declaration.
+            ask_at("textDocument/references", position_of(src, "describe :: fn(self: i32)")),
+            // Rename from the first overload's declaration.
+            ask_at("textDocument/rename", position_of(src, "describe :: fn(self: V)")),
+            // References of an impl member, from its declaration.
+            ask_at("textDocument/references", position_of(src, "add :: fn")),
+            // Renaming it, from a call.
+            ask_at("textDocument/prepareRename", position_of(src, "v.add(v)", 2)),
+        ],
+    )
+    // Each overload has its own calls.
+    assert_eq(
+        starts(items_at(results[0], [])).join(" "),
+        sorted([first_decl, method_form, bare_call]).join(" "),
+    )
+    assert_eq(
+        starts(items_at(results[1], [])).join(" "),
+        sorted([second_decl, on_literal]).join(" "),
+    )
+    renamed :: sole_file_edits(results[2])
+    assert_eq(
+        starts(renamed).join(" "),
+        sorted([first_decl, method_form, bare_call]).join(" "),
+    )
+    assert_names(src, renamed, "describe")
+    // `v.add(v) + v` runs `add` without naming it: a reference all the same.
+    assert_eq(
+        starts(items_at(results[3], [])).join(" "),
+        sorted([add_decl, add_method, add_operator]).join(" "),
+    )
+    // `Add` fixes the name: renaming one impl's member would leave the trait's.
+    assert(results[4] is JsonNull, stringify(results[4]))
+}
+
+// `U.dbl` names the fn whether it is called or handed on as a value.
+NAMESPACE_VALUE_SOURCE :: r"""
+    module "demo"
+
+    U :: import "demo/util"
+
+    apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+    main :: fn() -> i32 = U.dbl(3) + apply(U.dbl, 1)
+    """
+
+@test
+test_a_namespace_member_is_referenced_and_renamed_as_a_value_too :: fn() -> void {
+    src :: NAMESPACE_VALUE_SOURCE
+    files: [string, string][]: [
+        ["util/util.vader", "module \"demo/util\"\n\nexport dbl :: fn(x: i32) -> i32 = x * 2\n"],
+    ]
+    results :: drive(
+        "namespace_member_value",
+        src,
+        [
+            ask_at("textDocument/references", position_of(src, "U.dbl(3)", 2)),
+            ask_at("textDocument/rename", position_of(src, "U.dbl(3)", 2)),
+        ],
+        Project { .files = files },
+    )
+    sites :: items_at(results[0], [])
+    here :: sites.filter(is_in_document).collect()
+    assert_eq(
+        starts(here).join(" "),
+        spots_shown([position_of(src, "U.dbl(3)", 2), position_of(src, "U.dbl, 1", 2)]),
+    )
+    assert_eq(sites.len(), 3)
+    assert_eq(all_edits(results[1]).len(), 3)
+}
+
+// `g :: id` aliases a generic fn: the name `g` stays the local's, and `id` is
+// referenced once wherever it is named as a value.
+FN_ALIAS_SOURCE :: r"""
+    module "lsptest"
+
+    id :: fn<T>(x: T) -> T = x
+
+    apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+    main :: fn() -> i32 {
+        g :: id
+        return g(3) + apply(id, 1) + apply(g, 2)
+    }
+    """
+
+@test
+test_an_alias_of_a_generic_fn_keeps_its_own_name :: fn() -> void {
+    src :: FN_ALIAS_SOURCE
+    results :: drive(
+        "generic_fn_alias",
+        src,
+        [
+            ask_at("textDocument/rename", position_of(src, "g :: id")),
+            ask_at("textDocument/references", position_of(src, "id :: fn")),
+        ],
+    )
+    renamed :: sole_file_edits(results[0])
+    assert_eq(
+        starts(renamed).join(" "),
+        spots_shown(
+            [position_of(src, "g :: id"), position_of(src, "g(3)"), position_of(src, "g, 2")],
+        ),
+    )
+    assert_names(src, renamed, "g")
+    // Named: its declaration, the alias's value, and `apply(id, 1)` once.
+    named :: starts(items_at(results[1], []))
+    assert(named.contains(display_spot(position_of(src, "id :: fn"))), named.join(" "))
+    assert(named.contains(display_spot(position_of(src, "id\n"))), named.join(" "))
+    in_call :: named.filter((k) -> k == display_spot(position_of(src, "id, 1"))).collect()
+    assert_eq(in_call.len(), 1)
+}
+
+// Two impls inherit a trait default without a body of their own: the default's
+// body, checked in its trait, holds the references, once, and a call of an
+// inherited member reaches the default, not a namesake of another trait.
+INHERITED_DEFAULT_SOURCE :: r"""
+    module "lsptest"
+
+    V :: struct { x: i32 }
+
+    V implements Add {
+        add :: fn(self, other: V) -> V = V { .x = self.x + other.x }
+    }
+
+    Tripler :: trait {
+        twice :: fn(self) -> V
+    }
+
+    Doubler :: trait {
+        get :: fn(self) -> V
+        twice :: fn(self) -> V = self.get() + self.get()
+    }
+
+    W :: struct { v: V }
+
+    W implements Doubler {
+        get :: fn(self) -> V = self.v
+    }
+
+    X :: struct { v: V }
+
+    X implements Doubler {
+        get :: fn(self) -> V = self.v
+    }
+
+    main :: fn() -> i32 = W { .v = V { .x = 1 } }.twice().x + X { .v = V { .x = 2 } }.twice().x
+    """
+
+@test
+test_an_inherited_default_is_reached_in_its_trait :: fn() -> void {
+    src :: INHERITED_DEFAULT_SOURCE
+    default_decl :: position_of(src, "twice :: fn(self) -> V =")
+    first_call :: position_of(src, "twice().x + X")
+    second_call :: position_of(src, "2 } }.twice()", 6)
+    results :: drive(
+        "inherited_default",
+        src,
+        [
+            ask_at("textDocument/references", position_of(src, "add :: fn")),
+            ask_at("textDocument/references", default_decl),
+            ask_at("textDocument/definition", first_call),
+        ],
+    )
+    sites :: items_at(results[0], [])
+    // The declaration, and the `+` written in the trait's body, at the start of
+    // its expression: not one per impl.
+    assert_eq(
+        starts(sites).join(" "),
+        spots_shown([position_of(src, "self.get() + self.get()"), position_of(src, "add :: fn")]),
+    )
+    assert(is_in_document(sites[0]), stringify(sites[0]))
+    // The default's declaration, and the call of each impl's inherited member.
+    assert_eq(
+        starts(items_at(results[1], [])).join(" "),
+        spots_shown([default_decl, first_call, second_call]),
+    )
+    // The call's definition is `Doubler`'s default, not `Tripler`'s namesake.
+    assert_eq(start_of(results[2]), display_spot(default_decl))
+}
+
+// A parameter is declared by its name. Its `@param` tag is renamed with it.
+PARAM_SOURCE :: r"""
+    module "lsptest"
+
+    /// Sum the values, each times the factor.
+    ///
+    /// @param factor  the multiplier.
+    /// @param xs      the values.
+    scale :: fn(factor: i32, xs: i32[]) -> i32 {
+        total := 0
+        for x in xs {
+            total += x * factor
+        }
+        return total
+    }
+
+    main :: fn() -> i32 {
+        twice :: (n: i32) -> n * 2
+        return scale(2, [1, 2]) + twice(3)
+    }
+    """
+
+// The renamed `name` of `source` is written at the start of each of `needles`.
+assert_renamed :: fn(source: string, edit: JsonValue, name: string, needles: string[]) -> void {
+    edits :: sole_file_edits(edit)
+    expected :: needles.map((needle) -> display_spot(position_of(source, needle))).collect()
+    assert_eq(starts(edits).join(" "), sorted(expected).join(" "))
+    assert_names(source, edits, name)
+}
+
+@test
+test_a_parameter_is_renamed_and_hovered_from_its_declaration :: fn() -> void {
+    src :: PARAM_SOURCE
+    results :: drive(
+        "parameter_rename",
+        src,
+        [
+            ask_at("textDocument/rename", position_of(src, "factor: i32")),
+            ask_at("textDocument/rename", position_of(src, "xs: i32[]")),
+            ask_at("textDocument/rename", position_of(src, "n: i32)")),
+            ask_at("textDocument/hover", position_of(src, "factor: i32")),
+        ],
+    )
+    assert_renamed(src, results[0], "factor", ["factor  the", "factor: i32", "factor\n"])
+    assert_renamed(src, results[1], "xs", ["xs      the", "xs: i32[]", "xs {"])
+    assert_renamed(src, results[2], "n", ["n: i32)", "n * 2"])
+    assert_eq(string_at(results[3], ["contents", "value"]) ?? "", "```\nfactor: i32\n```")
+}

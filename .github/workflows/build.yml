@@ -18,9 +18,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Type-check the only first-party TypeScript left in the repo root: the Bun
-  # test runner and the benchmark programs (tests/ + bench/). It is the one
-  # place that needs `bun install`: the test steps run zero-dep.
+  # Type-check the only first-party TypeScript left in the repo root: the leak
+  # audit (tests/leaks_check.ts) and the benchmark programs (bench/). It is the
+  # one place that needs Bun: the test steps run on the compiler alone.
   typecheck:
     name: Typecheck harness
     runs-on: ubuntu-26.04
@@ -38,9 +38,9 @@ jobs:
       - name: Typecheck (tsc --noEmit over tests/ + bench/)
         run: bun run typecheck
 
-  # The bundle step stays first, before Bun or any package: it is also the
-  # check that a clone with only a C compiler builds (docs/BOOTSTRAP.md). The
-  # suite runs once the compiler exists, even when a later bundle step failed.
+  # The bundle step stays first, before any package: it is also the check that
+  # a clone with only a C compiler builds (docs/BOOTSTRAP.md). The suite runs
+  # once the compiler exists, even when a later bundle step failed.
   platforms:
     name: ${{ matrix.platform }}
     strategy:
@@ -56,16 +56,13 @@ jobs:
       - uses: ./.github/actions/bundle
         with:
           platform: ${{ matrix.platform }}
-      - uses: oven-sh/setup-bun@v2
-        if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
-        with:
-          bun-version: 1.3.13
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
       # The snippets and their snapshots, the diagnostics and target corpora,
       # the runs of the examples, the driven projects, and the `@test` functions
-      # of `lib/`, `vader/` and `tools/`; only the cases that fail are printed.
+      # of `lib/`, `vader/` and `tools/`, the command line, the language server
+      # and the debug adapter among them; only the cases that fail are printed.
       - name: Tests
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         timeout-minutes: 20
@@ -75,10 +72,6 @@ jobs:
         run: |
           (cd tools/testrunner && ../../build/vader build --release)
           tools/testrunner/build/release-*/testrunner --only-failures
-      # What the runner does not check yet: the language servers.
-      - name: Tests left to Bun
-        if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
-        run: bun run test --only-failures
 
   # The site of the language (`site/`), with the API reference of the library
   # (`lib/`) and of the compiler (`vader/`) beside it, two sites `vader doc -o`

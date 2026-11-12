@@ -1,0 +1,414 @@
+// tools/cli_tests/lsp_symbols/symbols: what the language server tells of a whole
+// project or document: hierarchies, symbols, links, lenses, implementations,
+// selections and the capabilities it announces.
+//
+// Each test opens one document of a fresh project and writes every request
+// before it reads an answer (`drive` of `tools/cli_tests/lsp`).
+
+module "tools/cli_tests/lsp_symbols"
+
+import "json"
+import "std/abort"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "tools/cli_tests/cli"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// The query `method` about `search`, for `workspace/symbol`.
+search_for :: fn(method: string, search: string) -> Query =
+    Query { ...ask(method, 0, 0), .search = search }
+
+// The `name` of each item of `items`.
+names_of :: fn(items: JsonValue[]) -> string[] =
+    items.map((item) -> string_member(item, "name") ?? "").collect()
+
+// The name and the kind of `item`, as `<name>:<kind>`.
+name_and_kind :: fn(item: JsonValue) -> string =
+    "${string_member(item, "name") ?? ""}:${int_at(item, ["kind"])}"
+
+// The target of the first link of `links` that starts on `line`; null when none does.
+target_at :: fn(links: JsonValue[], line: i64) -> string | null {
+    for link in links {
+        if int_at(link, ["range", "start", "line"]) == line {
+            return string_member(link, "target")
+        }
+    }
+    return null
+}
+
+// The text of `value` when it is a string, an empty text otherwise.
+text_of :: fn(value: JsonValue) -> string = if value is JsonString { value.value } else { "" }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The calls of a fn are the places that name it, grouped by the fn whose body
+// holds each call, the callees of a fn grouped by callee.
+CALLS_SOURCE :: r"""
+    module "lsptest"
+
+    helper :: fn(x: i32) -> i32 = x + 1
+
+    twice :: fn(x: i32) -> i32 = helper(helper(x))
+
+    main :: fn() -> i32 {
+        return twice(1) + helper(2)
+    }
+    """
+
+@test
+test_call_hierarchy_lists_a_fns_callers_and_callees :: fn() -> void {
+    results :: drive(
+        "call_hierarchy",
+        CALLS_SOURCE,
+        [
+            ask("textDocument/prepareCallHierarchy", 2, 0),
+            ask("callHierarchy/incomingCalls", 2, 0),
+            ask("callHierarchy/outgoingCalls", 4, 0),
+        ],
+    )
+    prepared :: items_at(results[0], [])
+    shown :: prepared.map(name_and_kind).collect()
+    assert_eq(shown.join(" "), "helper:12")
+    incoming :: items_at(results[1], []).map(
+        fn(call) {
+            from :: string_at(call, ["from", "name"]) ?? ""
+            ranges :: items_at(call, ["fromRanges"])
+            sites :: ranges.map((range) -> position_at(range, ["start"])).collect()
+            return "${from}@${sites.join(",")}"
+        },
+    ).collect()
+    assert_eq(incoming.join(" "), "twice@4:29,4:36 main@7:22")
+    outgoing :: items_at(results[2], []).map(
+        fn(call) {
+            to :: string_at(call, ["to", "name"]) ?? ""
+            return "${to}@${items_at(call, ["fromRanges"]).len()}"
+        },
+    ).collect()
+    assert_eq(outgoing.join(" "), "helper@2")
+}
+
+// The type hierarchy: a trait's subtypes are the types implementing it, a type's
+// supertypes the traits it implements, a union's subtypes its members.
+// `implementation` on a trait lists its `implements` blocks, on a trait method
+// the members implementing it.
+TYPES_SOURCE :: r"""
+    module "lsptest"
+
+    Shape :: trait {
+        area :: fn(self) -> i32
+    }
+
+    Square :: struct {
+        side: i32
+    }
+
+    Square implements Shape {
+        area :: fn(self) -> i32 = self.side * self.side
+    }
+
+    Disc :: struct {
+        r: i32
+    }
+
+    Disc implements Shape {
+        area :: fn(self) -> i32 = 3 * self.r * self.r
+    }
+
+    Figure :: Square | Disc
+
+    main :: fn() -> i32 = Square { .side = 2 }.area()
+    """
+
+@test
+test_type_hierarchy_and_trait_implementations :: fn() -> void {
+    results :: drive(
+        "type_hierarchy",
+        TYPES_SOURCE,
+        [
+            ask("textDocument/prepareTypeHierarchy", 2, 0),
+            ask("typeHierarchy/subtypes", 2, 0),
+            ask("typeHierarchy/supertypes", 6, 0),
+            ask("typeHierarchy/subtypes", 22, 0),
+            ask("textDocument/implementation", 2, 0),
+            ask("textDocument/implementation", 3, 4),
+        ],
+    )
+    prepared :: items_at(results[0], [])
+    shown :: prepared.map(name_and_kind).collect()
+    assert_eq(shown.join(" "), "Shape:11")
+    assert_eq(names_of(items_at(results[1], [])).join(" "), "Square Disc")
+    assert_eq(names_of(items_at(results[2], [])).join(" "), "Shape")
+    assert_eq(names_of(items_at(results[3], [])).join(" "), "Square Disc")
+    assert_eq(items_at(results[4], []).map(start_of).collect().join(" "), "10:0 18:0")
+    assert_eq(items_at(results[5], []).map(start_of).collect().join(" "), "11:4 19:4")
+}
+
+// `workspace/symbol` searches the declarations of every module of the workspace,
+// members included, the closest name first.
+@test
+test_workspace_symbols_find_declarations_by_name :: fn() -> void {
+    source :: r"""
+        module "lsptest"
+
+        export frobnicate :: fn() -> i32 = 1
+
+        Gizmo :: struct {
+            gizmo_size: i32
+        }
+
+        main :: fn() -> i32 = frobnicate()
+        """
+    results :: drive(
+        "workspace_symbols",
+        source,
+        [
+            search_for("workspace/symbol", "frobnic"),
+            search_for("workspace/symbol", "Gizmo"),
+            search_for("workspace/symbol", ""),
+        ],
+    )
+    first :: items_at(results[0], []).map(
+        fn(s) {
+            name :: string_member(s, "name") ?? ""
+            container :: string_member(s, "containerName") ?? ""
+            return "${name}:${int_at(s, ["kind"])}:${container}"
+        },
+    ).collect()
+    assert_eq(first.join(" "), "frobnicate:12:lsptest")
+    assert_eq(
+        position_at(items_at(results[0], [])[0], ["location", "range", "start"]),
+        "2:7",
+    )
+    gizmo :: items_at(results[1], [])
+    assert_eq(names_of(gizmo).join(" "), "Gizmo gizmo_size")
+    assert_eq(string_member(gizmo[1], "containerName") ?? "", "lsptest \u{203A} Gizmo")
+    assert_eq(stringify(results[2]), "[]")
+}
+
+// The legend indices of the token types the semantic tokens test decodes: the
+// legend the server announces holds each at its index.
+@test
+test_initialize_advertises_definition_and_hover_providers_and_the_token_legend :: fn() -> void {
+    params :: r"""{"rootUri":null,"capabilities":{}}"""
+    initialize_request :: """{"jsonrpc":"2.0","id":1,"method":"initialize","params":${params}}"""
+    messages :: exchange(server_args(), [initialize_request, SHUTDOWN, EXIT])
+    capabilities :: member_at(result_of(messages, 1), ["capabilities"]) ?? panic("no capabilities")
+    assert_eq(stringify(member(capabilities, "definitionProvider") ?? JsonNull {}), "true")
+    assert_eq(stringify(member(capabilities, "hoverProvider") ?? JsonNull {}), "true")
+    assert_eq(
+        stringify(member(capabilities, "codeLensProvider") ?? JsonNull {}),
+        r"""{"resolveProvider":false}""",
+    )
+    legend :: items_at(capabilities, ["semanticTokensProvider", "legend", "tokenTypes"])
+    assert_eq(stringify(legend[5]), "\"keyword\"")
+    assert_eq(stringify(legend[7]), "\"number\"")
+    assert_eq(stringify(legend[9]), "\"operator\"")
+}
+
+// Every namespace the library ships (`toolchain/*`, `json`, `regex` and the
+// rest, not only `std/` and `vader/`) resolves to a clickable import path. The
+// server finds a module where the loader would, so each import below lands in the
+// library root. The line numbers of the source are the assertion keys.
+@test
+test_document_link_resolves_an_import_to_every_shipped_namespace :: fn() -> void {
+    source :: r"""
+        module "t"
+
+        import "std/io"
+        AST :: import "toolchain/ast"
+        J :: import "json"
+        import "nosuchns/thing"
+
+        main :: fn() -> i32 = 0
+        """
+    results :: drive("document_link_namespaces", source, [ask("textDocument/documentLink", 0, 0)])
+    links :: items_at(results[0], [])
+    assert("/lib/std/io/" in (target_at(links, 2) ?? ""), stringify(results[0]))
+    // `toolchain/ast` is neither under `std/` nor under `vader/`.
+    assert("/lib/toolchain/ast/" in (target_at(links, 3) ?? ""), stringify(results[0]))
+    // A library that left `std/`.
+    assert("/lib/json/" in (target_at(links, 4) ?? ""), stringify(results[0]))
+    // A module that does not exist yields no link, not a path to nowhere.
+    assert(target_at(links, 5) == null, stringify(results[0]))
+}
+
+// The lens runs nothing on the server: the client runs `vader.runTest` with the
+// document URI, the folder of its project, then the test name, or no name for the
+// whole module.
+@test
+test_code_lens_runs_each_test_and_the_module_through_the_client_command :: fn() -> void {
+    source :: r"""
+        module "t"
+
+        main :: fn() -> i32 = 0
+
+        @test
+        test_one :: fn() -> void {}
+        """
+    files: [string, string][]: [["vader.json", "{ \"name\": \"lens\" }\n"]]
+    results :: drive(
+        "code_lens",
+        source,
+        [ask("textDocument/codeLens", 0, 0)],
+        Project { .name = "t/lsp-test.vader", .files = files },
+    )
+    lenses :: items_at(results[0], [])
+    shown :: lenses.map(
+        fn(l) {
+            line :: int_at(l, ["range", "start", "line"])
+            title :: string_at(l, ["command", "title"]) ?? ""
+            command :: string_at(l, ["command", "command"]) ?? ""
+            return "${line}:${title}:${command}"
+        },
+    ).collect()
+    assert_eq(shown.join("|"), "5:Run test:vader.runTest|0:Run module tests:vader.runTest")
+    arguments :: items_at(lenses[0], ["command", "arguments"])
+    assert_eq(arguments.len(), 3)
+    uri :: text_of(arguments[0])
+    folder :: text_of(arguments[1])
+    suffix :: "/t/lsp-test.vader"
+    assert(uri.ends_with(suffix), uri)
+    assert_eq(file_uri(folder), uri.byte_slice(0, uri.byte_len() - suffix.byte_len()))
+    assert_eq(text_of(arguments[2]), "test_one")
+    module_arguments :: items_at(lenses[1], ["command", "arguments"])
+    assert_eq(
+        stringify(JsonArray { .items = module_arguments }),
+        "[${quoted(uri)},${quoted(folder)}]",
+    )
+}
+
+// Since the library split, `json` / `cli` / `regex` / `semver` / `random` /
+// `crypto` / `base64` are ordinary top-level names a project may also declare,
+// and the compiler resolves such a name through the project root, which it
+// searches ahead of the library fallback: the editor agrees with the compiler.
+@test
+test_a_project_module_outranks_a_shipped_namespace_of_the_same_name :: fn() -> void {
+    source :: "module \"t\"\n\nimport \"json\"\n\nmain :: fn() -> i32 = 0\n"
+    files: [string, string][]: [
+        // The manifest is what makes the folder a project root at all.
+        ["vader.json", "{ \"name\": \"collide\" }\n"],
+        ["json/json.vader", "module \"json\"\n\nexport mine :: fn() -> i32 = 1\n"],
+    ]
+    results :: drive(
+        "project_outranks_namespace",
+        source,
+        [ask("textDocument/documentLink", 0, 0)],
+        Project { .files = files },
+    )
+    target :: target_at(items_at(results[0], []), 2) ?? ""
+    assert("/json/json.vader" in target, target)
+    assert(!("/lib/json/" in target), target)
+}
+
+// The flag is the server's include path: like a root the loader is handed, it
+// outranks the project's own, so the shipped `json` wins the collision above.
+@test
+test_the_library_root_is_searched_before_the_project :: fn() -> void {
+    source :: "module \"t\"\n\nimport \"json\"\n\nmain :: fn() -> i32 = 0\n"
+    files: [string, string][]: [
+        ["vader.json", "{ \"name\": \"collide\" }\n"],
+        ["json/json.vader", "module \"json\"\n\nexport mine :: fn() -> i32 = 1\n"],
+    ]
+    results :: drive(
+        "library_root_first",
+        source,
+        [ask("textDocument/documentLink", 0, 0)],
+        Project { .files = files, .args = ["--library-root=${toolchain_home()}/lib"] },
+    )
+    target :: target_at(items_at(results[0], []), 2) ?? ""
+    assert("/lib/json/" in target, target)
+}
+
+// `textDocument/implementation` over a `@target` group. The body for a platform
+// this machine does not build is still listed: selection runs at load time, so
+// the handler reads a second, unselected load. The group is split across two
+// files, the shape the model is written in: a handler that only walked the open
+// document would find nothing in a real project.
+TARGET_GROUP_SOURCE :: r"""
+    module "lsptest"
+
+    @target
+    export platform_tag :: fn() -> string
+
+    @target(.Darwin, .Linux)
+    platform_tag :: fn() -> string = "posix"
+
+    main :: fn() -> i32 = if platform_tag() == "" { 1 } else { 0 }
+    """
+
+TARGET_GROUP_WINDOWS :: r"""
+    module "lsptest"
+
+    @target(.Windows)
+    platform_tag :: fn() -> string = "win"
+    """
+
+@test
+test_implementation_lists_every_target_body_including_a_foreign_one :: fn() -> void {
+    files: [string, string][]: [["lsp-windows.vader", TARGET_GROUP_WINDOWS]]
+    results :: drive(
+        "implementation_target_group",
+        TARGET_GROUP_SOURCE,
+        [
+            // On the bare declaration's name: both bodies.
+            ask("textDocument/implementation", 3, 11),
+            // From a body's name: the same group.
+            ask("textDocument/implementation", 6, 2),
+            // On a name with no `@target` at all: null, not an empty array.
+            ask("textDocument/implementation", 8, 2),
+        ],
+        Project { .files = files },
+    )
+    assert(results[0] is JsonArray, stringify(results[0]))
+    bodies :: items_at(results[0], [])
+    assert_eq(bodies.len(), 2)
+    // The suite runs on every platform, so naming one platform's file would pass
+    // for the wrong reason: both files are represented, which means one of them
+    // was kept despite not being selected.
+    where :: bodies.map((b) -> file_of(string_member(b, "uri") ?? "")).collect()
+    assert_eq(sort(where, compare_ascending).join(" "), "lsp-test.vader lsp-windows.vader")
+    assert_eq(items_at(results[1], []).len(), 2)
+    assert(results[2] is JsonNull, stringify(results[2]))
+}
+
+// Extend Selection grows from the word under the cursor through each enclosing
+// expression and statement to the whole declaration, never twice the same range.
+SELECTION_SOURCE :: r"""
+    module "lsptest"
+
+    total :: fn(xs: i32[]) -> i32 {
+        sum := 0
+        for x in xs {
+            sum += x * 2
+        }
+        return sum
+    }
+    """
+
+@test
+test_the_selection_grows_from_the_word_to_its_declaration :: fn() -> void {
+    src :: SELECTION_SOURCE
+    results :: drive(
+        "selection_range",
+        src,
+        [ask_at("textDocument/selectionRange", position_of(src, "x * 2"))],
+    )
+    chain: string[]: []
+    level: JsonValue = items_at(results[0], [])[0]
+    for level is JsonObject {
+        chain.push(text_at(src, member(level, "range") ?? JsonNull {}))
+        level = member(level, "parent") ?? JsonNull {}
+    }
+    assert_eq(chain[0], "x")
+    assert(chain.contains("x * 2"), chain.join(" | "))
+    assert(chain.contains("sum += x * 2"), chain.join(" | "))
+    parts :: src.split_first("total ::") ?? panic("no `total ::` in the source")
+    assert_eq(chain[chain.len() - 1], "total ::${parts.1}".trim())
+    for i in 1..<chain.len() {
+        assert(chain[i].byte_len() > chain[i - 1].byte_len(), chain.join(" | "))
+    }
+}

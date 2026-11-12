@@ -1,5 +1,5 @@
 // tools/testrunner/src/report: what the runner prints while the cases run, and
-// once they have, in the form of `bun test`.
+// once they have.
 //
 // The tasks of the pool tell one reporter task what happens (`Progress`), in the
 // order it happens. Each case gets one line when it ends: `(pass)` and the stages

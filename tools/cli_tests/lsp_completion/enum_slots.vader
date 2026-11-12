@@ -1,0 +1,242 @@
+// tools/cli_tests/lsp_completion/enum_slots: what the language server offers after
+// a leading dot: the variants of the enum the slot expects, the keys of a struct
+// literal.
+//
+// There is no receiver before the dot, so the enum comes from the context: a
+// parameter default, a call argument, a return, a comparison. Without it the
+// editor would show buffer words.
+
+module "tools/cli_tests/lsp_completion"
+
+import "json"
+import "std/iter"
+import "std/string"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// The completion list the server gives for `source` at `line` and `character`.
+completion_in :: fn(name: string, source: string, line: i64, character: i64) -> JsonValue {
+    results :: drive(name, source, [ask("textDocument/completion", line, character)])
+    return results[0]
+}
+
+// Whether `list` offers every name of `names`, and the failing message when not.
+assert_offers :: fn(list: JsonValue, names: string[]) -> void {
+    for name in names {
+        assert(offers(list, name), "${name} missing: ${shown(list)}")
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+ENUM_DEFAULT_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    tint :: fn(c: Color = .) -> i32 = 0
+    """
+
+@test
+test_enum_completion_in_a_parameter_default :: fn() -> void {
+    // Line 4: the dot is at character 22, the cursor just past it.
+    list :: completion_in("enum_default", ENUM_DEFAULT_SOURCE, 4, 23)
+    assert_offers(list, ["Red", "Green", "Blue"])
+    // No keyword or buffer word.
+    assert(!offers(list, "tint"), shown(list))
+}
+
+ENUM_ARG_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    paint :: fn(c: Color) -> i32 = 0
+
+    main :: fn() -> i32 {
+        return paint(.)
+    }
+    """
+
+@test
+test_enum_completion_in_a_call_argument :: fn() -> void {
+    // Line 7: the dot is at character 17, the cursor at 18.
+    list :: completion_in("enum_arg", ENUM_ARG_SOURCE, 7, 18)
+    assert_offers(list, ["Red", "Green", "Blue"])
+}
+
+ENUM_UFCS_ARG_SOURCE :: r"""
+    module "lsp_test"
+
+    Canvas :: struct { w: i32 }
+
+    Color :: enum { Red, Green, Blue }
+
+    paint :: fn(self: Canvas, c: Color) -> i32 = 0
+
+    main :: fn() -> i32 {
+        canvas :: Canvas { .w = 1 }
+        return canvas.paint(.)
+    }
+    """
+
+@test
+test_enum_completion_in_a_ufcs_call_argument :: fn() -> void {
+    // On a UFCS call the receiver fills the first parameter, so the first
+    // written argument is the second parameter. Line 10: the dot is at
+    // character 24, the cursor at 25.
+    list :: completion_in("enum_ufcs_arg", ENUM_UFCS_ARG_SOURCE, 10, 25)
+    assert_offers(list, ["Red", "Blue"])
+}
+
+// The dot inside a struct literal is a field key (the byte before it is `{` or
+// `,`), not an enum literal or a member access.
+STRUCT_LIT_SOURCE :: r"""
+    module "lsp_test"
+
+    Point :: struct {
+        x: i32
+        y: i32
+    }
+
+    main :: fn() -> i32 {
+        p :: Point { . }
+        return 0
+    }
+    """
+
+@test
+test_completion_of_struct_literal_field_keys :: fn() -> void {
+    // Line 8: the dot is at character 17, the cursor at 18.
+    list :: completion_in("struct_keys", STRUCT_LIT_SOURCE, 8, 18)
+    assert_offers(list, ["x", "y"])
+    // The field's type rides in `detail`, as in member completion.
+    assert_eq(detail_of(list, "x"), "i32")
+    // No keyword or buffer word.
+    assert(!offers(list, "Point"), shown(list))
+}
+
+// A match-arm pattern: the expected type is the scrutinee's, and the dot is a
+// pattern, not an expression.
+MATCH_ARM_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    classify :: fn(c: Color) -> i32 {
+        match c {
+            .
+        }
+    }
+    """
+
+@test
+test_enum_completion_in_a_match_arm_pattern :: fn() -> void {
+    // Line 6: the dot is at character 8, the cursor at 9.
+    list :: completion_in("enum_pattern", MATCH_ARM_SOURCE, 6, 9)
+    assert_offers(list, ["Red", "Green", "Blue"])
+}
+
+// A `return` value: the expected type is the return type of the fn.
+RETURN_ENUM_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    pick :: fn() -> Color {
+        return .
+    }
+    """
+
+@test
+test_enum_completion_in_a_return_value :: fn() -> void {
+    // Line 5: the dot is at character 11, the cursor at 12.
+    list :: completion_in("enum_return", RETURN_ENUM_SOURCE, 5, 12)
+    assert_offers(list, ["Red", "Blue"])
+}
+
+// A typed local's value: the expected type is the annotation.
+TYPED_LOCAL_ENUM_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    main :: fn() -> i32 {
+        c: Color = .
+        return 0
+    }
+    """
+
+@test
+test_enum_completion_in_a_typed_local_value :: fn() -> void {
+    // Line 5: the dot is at character 15, the cursor at 16.
+    list :: completion_in("enum_typed_local", TYPED_LOCAL_ENUM_SOURCE, 5, 16)
+    assert_offers(list, ["Red", "Green"])
+}
+
+// A struct-literal field value: the expected type is the field's.
+STRUCT_FIELD_VALUE_ENUM_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    Pixel :: struct { c: Color }
+
+    main :: fn() -> i32 {
+        p :: Pixel { .c = . }
+        return 0
+    }
+    """
+
+@test
+test_enum_completion_in_a_struct_literal_field_value :: fn() -> void {
+    // Line 7: the value's dot is at character 22, the cursor at 23.
+    list :: completion_in("enum_field_value", STRUCT_FIELD_VALUE_ENUM_SOURCE, 7, 23)
+    assert_offers(list, ["Red", "Blue"])
+}
+
+// A match-arm body: the expected type is the result of the match.
+MATCH_BODY_ENUM_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+
+    rotate :: fn(c: Color) -> Color {
+        return match c {
+            _ -> .
+        }
+    }
+    """
+
+@test
+test_enum_completion_in_a_match_arm_body :: fn() -> void {
+    // Line 6: the dot is at character 13, the cursor at 14.
+    list :: completion_in("enum_arm_body", MATCH_BODY_ENUM_SOURCE, 6, 14)
+    assert_offers(list, ["Red", "Green"])
+}
+
+// A comparison operand: the expected type is the other operand's, even where the
+// statement expects another enum.
+COMPARISON_ENUM_SOURCE :: r"""
+    module "lsp_test"
+
+    Color :: enum { Red, Green, Blue }
+    Shade :: enum { Light, Dark }
+
+    shade_of :: fn(c: Color) -> Shade {
+        if c != . {
+            return .Light
+        }
+        return .Dark
+    }
+    """
+
+@test
+test_enum_completion_in_a_comparison_operand :: fn() -> void {
+    // Line 6: the dot is at character 12, the cursor at 13.
+    list :: completion_in("enum_comparison", COMPARISON_ENUM_SOURCE, 6, 13)
+    assert_offers(list, ["Red", "Blue"])
+    assert(!offers(list, "Light"), shown(list))
+}

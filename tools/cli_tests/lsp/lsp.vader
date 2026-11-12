@@ -10,35 +10,48 @@ module "tools/cli_tests/lsp"
 
 import "json"
 import "std/abort"
+import "std/fs"
 import "std/iter"
 import "std/option"
+import "std/path"
 import "std/string"
 import "tools/cli_tests/cli"
 import "tools/cli_tests/rpc"
 
-// The command line of the server.
-server_args :: fn() -> string[] = ["lsp", "--library-root=${toolchain_home()}/lib"]
+/// The command line of the server, the library of the repository searched first.
+export server_args :: fn() -> string[] = ["lsp", "--library-root=${toolchain_home()}/lib"]
 
-// The request that opens a session, of a client with `capabilities`, the JSON
-// of its capabilities, on the project in `dir`.
-initialize :: fn(id: i64, dir: string, capabilities: string = "{}") -> string {
+/// The request that opens a session on the project in `dir`.
+///
+/// @param id            the id of the request.
+/// @param dir           the folder of the project, its root.
+/// @param capabilities  the capabilities of the client, as JSON.
+export initialize :: fn(id: i64, dir: string, capabilities: string = "{}") -> string {
     params :: """{"rootUri":${quoted(file_uri(dir))},"capabilities":${capabilities}}"""
     return """{"jsonrpc":"2.0","id":${id},"method":"initialize","params":${params}}"""
 }
 
-INITIALIZED :: r"""{"jsonrpc":"2.0","method":"initialized","params":{}}"""
+/// The notification that the client is ready, after the answer to `initialize`.
+export INITIALIZED :: r"""{"jsonrpc":"2.0","method":"initialized","params":{}}"""
 
-SHUTDOWN :: r"""{"jsonrpc":"2.0","id":999,"method":"shutdown","params":null}"""
+/// The request that asks the server to stop, numbered 999.
+export SHUTDOWN :: r"""{"jsonrpc":"2.0","id":999,"method":"shutdown","params":null}"""
 
-EXIT :: r"""{"jsonrpc":"2.0","method":"exit","params":null}"""
+/// The notification that ends the session.
+export EXIT :: r"""{"jsonrpc":"2.0","method":"exit","params":null}"""
 
-// The notification of the client `method` with `params`, the JSON of its
-// parameters.
-notification :: fn(method: string, params: string) -> string =
+/// The notification `method` of the client.
+///
+/// @param method  the method, `textDocument/didSave` say.
+/// @param params  its parameters, as JSON.
+export notification :: fn(method: string, params: string) -> string =
     """{"jsonrpc":"2.0","method":${quoted(method)},"params":${params}}"""
 
-// The notification that opens the document `uri`, holding `text`.
-did_open :: fn(uri: string, text: string) -> string {
+/// The notification that opens the document `uri`.
+///
+/// @param uri   the URI of the document.
+/// @param text  what it holds in the editor.
+export did_open :: fn(uri: string, text: string) -> string {
     document :: """{"uri":${quoted(uri)},"languageId":"vader","version":1,"text":${quoted(text)}}"""
     return notification("textDocument/didOpen", """{"textDocument":${document}}""")
 }
@@ -61,6 +74,275 @@ coded :: fn(diagnostics: JsonValue[], code: string) -> JsonValue[] =
 
 // The codes of `diagnostics`, in order.
 codes :: fn(diagnostics: JsonValue[]) -> string = diagnostics.map(code_of).collect().join(" ")
+
+// ---- one document, every request at once ---------------------------------
+
+/// A position in a document, as the protocol counts it: zero-based, the
+/// character in UTF-16 code units.
+export Spot :: struct {
+    line: i64
+    character: i64
+}
+
+/// A request a test asks about the document it opens.
+export Query :: struct {
+    /// The method, `textDocument/hover` say.
+    method: string
+    /// Where it asks.
+    at: Spot = Spot { .line = 0, .character = 0 }
+    /// The end of the range it asks about, for `inlayHint` and `codeAction`;
+    /// the range is `at` alone when null.
+    until: Spot | null = null
+    /// The text `workspace/symbol` searches for.
+    search: string = ""
+}
+
+/// The query `method` at `line` and `character`.
+///
+/// @param method     the method, `textDocument/definition` say.
+/// @param line       the zero-based line asked about.
+/// @param character  the character asked about, in UTF-16 code units.
+export ask :: fn(method: string, line: i64, character: i64) -> Query =
+    ask_at(method, Spot { .line = line, .character = character })
+
+/// The query `method` at `spot`.
+///
+/// @param method  the method, `textDocument/references` say.
+/// @param spot    the position asked about, `position_of` a needle say.
+export ask_at :: fn(method: string, spot: Spot) -> Query = Query { .method = method, .at = spot }
+
+// The name of the document `drive` opens unless told another.
+DOCUMENT :: "lsp-test.vader"
+
+/// Whether the location `location` lies in the document `drive` opens by
+/// default.
+///
+/// @param location  a location the server answered, its `uri` read.
+export is_in_document :: fn(location: JsonValue) -> bool {
+    uri :: string_member(location, "uri") ?? ""
+    return uri.ends_with(DOCUMENT)
+}
+
+/// The last segment of `uri`: the name of its file.
+///
+/// @param uri  a `file` URI.
+export file_of :: fn(uri: string) -> string {
+    parts :: uri.split_last("/") ?? return uri
+    return parts.1
+}
+
+/// What a session runs on beside the document it opens.
+export Project :: struct {
+    /// The name of the document, relative to the project's folder.
+    name: string = DOCUMENT
+    /// The other files of the project on the disk: the path of each, relative to
+    /// the folder, then its text.
+    files: [string, string][] = []
+    /// The files open in the editor with a text the disk does not have, before
+    /// the document: the path of each, then that text.
+    opened: [string, string][] = []
+    /// What follows `lsp` on the command line of the server.
+    args: string[] = []
+    /// The capabilities of the client, as JSON.
+    capabilities: string = "{}"
+}
+
+/// The answer to each of `queries` about `source`, opened as the document of a
+/// fresh project `name` tells apart, in order: a JSON null where the server
+/// answered none. Every request is written before any answer is read, as the
+/// server takes them in order.
+///
+/// @param name     tells the folder of the project apart from the others.
+/// @param source   the text of the document, on the disk and open.
+/// @param queries  what the test asks, in order.
+/// @param project  the rest of the project, and how the server runs.
+/// @return         the `result` of each answer.
+export drive :: fn(
+    name: string,
+    source: string,
+    queries: Query[],
+    project: Project = Project {},
+) -> JsonValue[] {
+    dir :: scratch_dir("lsp_${name}")
+    file :: "${dir}/${project.name}"
+    document: [string, string][]: [[project.name, source]]
+    write_files(dir, document + project.files)
+    uri :: file_uri(file)
+    sent: string[]: [initialize(1, dir, project.capabilities), INITIALIZED]
+    for opened in project.opened {
+        sent.push(did_open(file_uri("${dir}/${opened.0}"), opened.1))
+    }
+    sent.push(did_open(uri, source))
+    for i in 0..<queries.len() {
+        sent.push(query_request(100 + i, uri, queries[i]))
+    }
+    sent.push(SHUTDOWN)
+    sent.push(EXIT)
+    answered :: exchange(["lsp"] + project.args, sent)
+    results: JsonValue[]: []
+    for i in 0..<queries.len() {
+        results.push(result_of(answered, 100 + i))
+    }
+    return results
+}
+
+/// Write each of `files` under `dir`, its folders made first: the path of each,
+/// relative to `dir`, then its text.
+///
+/// @param dir    the folder of the project.
+/// @param files  the files written.
+export write_files :: fn(dir: string, files: [string, string][]) -> void {
+    for file in files {
+        path :: "${dir}/${file.0}"
+        create_dir(to_path(path).parent().as_string())
+        write_file(path, file.1)
+    }
+}
+
+// The request `id` of `query` on the document `uri`. Every handler reads the
+// parameters it needs and ignores the others, so each request carries them all.
+query_request :: fn(id: i64, uri: string, query: Query) -> string {
+    at :: spot_json(query.at)
+    until :: query.until ?? query.at
+    range :: """{"start":${at},"end":${spot_json(until)}}"""
+    document :: """{"uri":${quoted(uri)}}"""
+    item :: """{"uri":${quoted(uri)},"selectionRange":{"start":${at},"end":${at}}}"""
+    params :: [
+        "\"textDocument\":${document}",
+        "\"position\":${at}",
+        "\"range\":${range}",
+        "\"context\":{\"diagnostics\":[]}",
+        "\"newName\":\"renamed\"",
+        "\"item\":${item}",
+        "\"query\":${quoted(query.search)}",
+        "\"positions\":[${at}]",
+    ]
+    head :: """{"jsonrpc":"2.0","id":${id},"method":${quoted(query.method)}"""
+    return "${head},\"params\":{${params.join(",")}}}"
+}
+
+// `spot` as JSON.
+spot_json :: fn(spot: Spot) -> string = """{"line":${spot.line},"character":${spot.character}}"""
+
+/// The `result` of the answer to the request `id` among `messages`; a JSON null
+/// when none came.
+///
+/// @param messages  what the server sent.
+/// @param id        the id of the request.
+export result_of :: fn(messages: JsonValue[], id: i64) -> JsonValue {
+    for message in messages {
+        if answers(message, id) {
+            return member(message, "result") ?? JsonNull {}
+        }
+    }
+    return JsonNull {}
+}
+
+/// The position of `needle` in `source`, `into` characters past its start, as
+/// the protocol counts it. A needle `source` does not hold fails the test.
+///
+/// @param source  the text searched.
+/// @param needle  the text looked for: its first occurrence.
+/// @param into    how many characters past its start, in codepoints.
+export position_of :: fn(source: string, needle: string, into: i64 = 0) -> Spot {
+    parts :: source.split_first(needle) ?? panic("no `${needle}` in the source")
+    lines :: (parts.0 + needle.byte_slice(0, prefix_bytes(needle, into))).split("\n")
+    return Spot { .line = lines.len() - 1, .character = utf16_length(lines[lines.len() - 1]) }
+}
+
+/// How many UTF-16 code units `text` takes: what the protocol counts a character
+/// in.
+///
+/// @param text  the text measured.
+export utf16_length :: fn(text: string) -> i64 {
+    units: i64 = 0
+    for c in text {
+        units += utf16_units(c)
+    }
+    return units
+}
+
+// The bytes of the first `count` codepoints of `text`.
+prefix_bytes :: fn(text: string, count: i64) -> i64 {
+    bytes: i64 = 0
+    taken: i64 = 0
+    for c in text {
+        if taken >= count {
+            break
+        }
+        bytes += codepoint_byte_len(c)
+        taken += 1
+    }
+    return bytes
+}
+
+// The UTF-16 code units of `c`: two past the basic plane.
+utf16_units :: fn(c: char) -> i64 = if u32(c) > 0xFFFF { 2 } else { 1 }
+
+/// The text of `source` the range `range` covers, as a message holds a range:
+/// `start` and `end`, each a line and a character in UTF-16 code units.
+///
+/// @param source  the text of the document.
+/// @param range   the range, a JSON object.
+export text_at :: fn(source: string, range: JsonValue) -> string =
+    source.byte_slice(offset_of(source, range, "start"), offset_of(source, range, "end"))
+
+// The byte offset in `source` of the end `end` of `range` names, `start` or `end`:
+// a line, and a character in UTF-16 code units.
+offset_of :: fn(source: string, range: JsonValue, end: string) -> i64 {
+    line :: int_at(range, [end, "line"])
+    character :: int_at(range, [end, "character"])
+    offset: i64 = 0
+    lines :: source.split("\n")
+    for i in 0..<line {
+        offset += lines[i].byte_len() + 1
+    }
+    units: i64 = 0
+    for c in lines[line] {
+        if units >= character {
+            break
+        }
+        units += utf16_units(c)
+        offset += codepoint_byte_len(c)
+    }
+    return offset
+}
+
+/// The position `spot` as the tests compare positions: `<line>:<character>`.
+///
+/// @param spot  the position shown.
+export display_spot :: fn(spot: Spot) -> string = "${spot.line}:${spot.character}"
+
+/// The position at `path` in `value`, as `<line>:<character>`; `-1` stands for a
+/// member the message lacks.
+///
+/// @param value  a message, or a part of one.
+/// @param path   the members leading to the position, `["range", "start"]` say.
+export position_at :: fn(value: JsonValue, path: string[]) -> string =
+    "${int_at(value, path + ["line"])}:${int_at(value, path + ["character"])}"
+
+/// The range at `path` in `value`, as `<line>:<character>-<line>:<character>`.
+///
+/// @param value  a message, or a part of one.
+/// @param path   the members leading to the range, `[]` for `value` itself.
+export range_at :: fn(value: JsonValue, path: string[]) -> string =
+    "${position_at(value, path + ["start"])}-${position_at(value, path + ["end"])}"
+
+/// Where the range of `item`, a location or a text edit, starts, as
+/// `<line>:<character>`.
+///
+/// @param item  the location or the edit.
+export start_of :: fn(item: JsonValue) -> string = position_at(item, ["range", "start"])
+
+/// The bytecode `vader dump` prints for `entry`; the test fails when the command
+/// does.
+///
+/// @param entry  the file dumped, relative to the repository.
+/// @param flags  the options given before it.
+export bytecode_dump :: fn(entry: string, flags: string[] = []) -> string {
+    argv :: ["dump", "--stage=bytecode"] + flags + [entry]
+    return succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap().stdout
+}
 
 // A client of one session: the ids it gives its requests.
 Client :: struct {

@@ -1,0 +1,546 @@
+// tools/cli_tests/lsp_hover/hover: what the language server shows when the
+// cursor rests on a name: hovers, signature help and semantic tokens.
+//
+// Each test opens one document of a fresh project and writes every request
+// before it reads an answer (`drive` of `tools/cli_tests/lsp`).
+
+module "tools/cli_tests/lsp_hover"
+
+import "json"
+import "std/string"
+import "tools/cli_tests/lsp"
+import "tools/cli_tests/rpc"
+
+// The Markdown of the hover `result`; empty when the server answered none.
+hover_value :: fn(result: JsonValue) -> string = string_at(result, ["contents", "value"]) ?? ""
+
+// The label of the first signature of the signature help `result`.
+signature_label :: fn(result: JsonValue) -> string {
+    signatures :: items_at(result, ["signatures"])
+    assert(signatures.len() > 0, stringify(result))
+    return string_at(signatures[0], ["label"]) ?? ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+WRAPPED_SOURCE :: r"""
+    Circle :: struct {
+        r: i32
+    }
+
+    Square :: struct {
+        s: i32
+    }
+
+    Shape :: Circle
+           | Square
+
+    area :: fn(
+        // the shape to measure
+        shape: Shape,
+        scale: i32 = 1,
+    ) -> i32 {
+        return scale
+    }
+
+    main :: fn() -> i32 {
+        s: Shape: Circle { .r = 1 }
+        return area(s)
+    }
+    """
+
+// A hover renders a declaration's head on one line, as `vader fmt` writes it: a
+// union alias continued on `|` lines, a parameter list wrapped across lines, its
+// comment and trailing comma dropped, a default value kept.
+@test
+test_hover_joins_a_signature_wrapped_across_lines :: fn() -> void {
+    results :: drive(
+        "hover_wrapped",
+        WRAPPED_SOURCE,
+        [
+            ask("textDocument/hover", 8, 0),
+            ask("textDocument/hover", 21, 11),
+        ],
+    )
+    assert_eq(results.len(), 2)
+    union :: hover_value(results[0])
+    assert("```\nShape :: Circle | Square\n```" in union, union)
+    call :: hover_value(results[1])
+    assert("```\narea :: fn(shape: Shape, scale: i32 = 1) -> i32\n```" in call, call)
+}
+
+QUICK_DOC_SOURCE :: r"""
+    module "lsptest"
+
+    /// A 2D point.
+    export Point :: struct {
+        x: i32
+        @internal
+        y: i32 = 0
+    }
+
+    /// Area of `p`.
+    ///
+    /// @param p      the point.
+    /// @param scale  how much to grow it.
+    /// @return       the product.
+    @allow_unused
+    area :: fn(p: Point, scale: i32, offset: i32, label: string) -> i32 = p.x * scale
+
+    main :: fn() -> i32 {
+        n :: @size_of(i32)
+        return 0
+    }
+    """
+
+// A hover reads like an IDE's quick documentation: the module, the declaration
+// with its decorators, `export` and members, a long parameter list one per line,
+// the vaderdoc tags as sections, the declaring file. `@name` documents the
+// decorator or the intrinsic.
+@test
+test_hover_renders_a_declaration_as_quick_documentation :: fn() -> void {
+    results :: drive(
+        "hover_quick_doc",
+        QUICK_DOC_SOURCE,
+        [
+            ask("textDocument/hover", 3, 8),
+            ask("textDocument/hover", 15, 1),
+            ask("textDocument/hover", 14, 2),
+            ask("textDocument/hover", 18, 11),
+        ],
+    )
+    // The struct, its fields listed.
+    point :: """
+        lsptest
+
+        ```
+        export Point :: struct {
+            x: i32
+            @internal y: i32 = 0
+        }
+        ```
+        """
+    assert_eq(hover_value(results[0]), "${point}\n---\n\nA 2D point.\n\n*lsp-test.vader*")
+    // A fn whose head is too long for one line, with tagged vaderdoc.
+    area :: hover_value(results[1])
+    head :: """
+        lsptest
+
+        ```
+        @allow_unused
+        area :: fn(
+            p: Point,
+            scale: i32,
+            offset: i32,
+            label: string,
+        ) -> i32
+        ```
+        """
+    assert(area.starts_with(head), area)
+    params :: """
+        **Params**
+        - `p`: the point.
+        - `scale`: how much to grow it.
+
+        **Returns** the product.
+        """
+    assert(params in area, area)
+    // A decorator.
+    decorator :: hover_value(results[2])
+    assert(decorator.starts_with("decorator\n\n```\n@allow_unused\n```"), decorator)
+    assert("W0007" in decorator, decorator)
+    // An intrinsic.
+    intrinsic :: hover_value(results[3])
+    assert(intrinsic.starts_with("intrinsic\n\n```\n@size_of(T: type) -> i64\n```"), intrinsic)
+}
+
+UFCS_GENERIC_SOURCE :: r"""
+    module "main"
+
+    Cfg :: struct {
+        n: i32
+    }
+
+    pick :: fn<T>(a: T, b: T) -> T = a
+
+    ORIGIN :: Cfg { .n = 0 }
+
+    main :: fn() -> i32 {
+        local :: Cfg { .n = 1 }
+        got :: local.pick(ORIGIN)
+        return got.n
+    }
+    """
+
+// A method-syntax call of a generic fn binds its type parameters with the
+// receiver AND the arguments, as the free call does. The hover shows that
+// binding, not the one the receiver alone gave: `local` and `ORIGIN` are both a
+// `Cfg`, and `T` binds to it.
+@test
+test_hover_on_a_generic_method_syntax_call_shows_the_calls_binding :: fn() -> void {
+    results :: drive(
+        "hover_ufcs_generic",
+        UFCS_GENERIC_SOURCE,
+        [ask("textDocument/hover", 12, 17)],
+    )
+    shown :: hover_value(results[0])
+    expected :: "```\npick :: fn<T>(a: T, b: T) -> T\n```\n\ncalled here as `fn(Cfg) -> Cfg`"
+    assert(expected in shown, shown)
+}
+
+BINDINGS_SOURCE :: r"""
+    import "std/console"
+
+    double :: fn(x: i32) -> i32 {
+        y :: x * 2
+        return y
+    }
+
+    main :: fn() -> i32 {
+        nums :: [1, 2, 3]
+        for n in nums {
+            println("${double(n)}")
+        }
+        return 0
+    }
+    """
+
+@test
+test_hover_on_a_fn_param_shows_its_type :: fn() -> void {
+    results :: drive(
+        "hover_param",
+        BINDINGS_SOURCE,
+        [ask("textDocument/hover", 3, 9)],
+    )
+    assert_eq(string_at(results[0], ["contents", "kind"]) ?? "", "markdown")
+    shown :: hover_value(results[0])
+    assert("```\nx: i32\n```" in shown, shown)
+}
+
+@test
+test_hover_on_a_local_shows_its_binding_form :: fn() -> void {
+    results :: drive(
+        "hover_local",
+        BINDINGS_SOURCE,
+        [ask("textDocument/hover", 4, 11)],
+    )
+    shown :: hover_value(results[0])
+    assert("```\ny :: x * 2\n```" in shown, shown)
+}
+
+GENERATOR_LOCAL_SOURCE :: r"""
+    module "main"
+
+    count_to :: fn(n: i64) -> Iterator<i64> {
+        for i in 0..<n {
+            yield i
+        }
+    }
+
+    main :: fn() -> i32 {
+        it :: count_to(3)
+        for x in it {
+            return i32(x)
+        }
+        return 0
+    }
+    """
+
+// A generator's call is shown as the `Iterator<T>` its source declares, never by
+// the name of the state the compiler builds for it.
+@test
+test_hover_on_a_generators_call_shows_the_iterator_it_declares :: fn() -> void {
+    results :: drive(
+        "hover_generator",
+        GENERATOR_LOCAL_SOURCE,
+        [ask("textDocument/hover", 9, 4)],
+    )
+    shown :: hover_value(results[0])
+    assert("it: Iterator<i64>" in shown, shown)
+    assert(!("genstate" in shown), shown)
+}
+
+CROSSFILE_SOURCE :: r"""
+    import "std/console"
+    import "std/collections"
+
+    main :: fn() -> i32 {
+        println("hi")
+        eprintln("hello")
+        m :: Map(string, i32) { .buckets = [], .size = 0 }
+        return 0
+    }
+    """
+
+@test
+test_hover_on_an_imported_symbol_surfaces_its_origin_signature :: fn() -> void {
+    results :: drive(
+        "hover_imported",
+        CROSSFILE_SOURCE,
+        [ask("textDocument/hover", 4, 4)],
+    )
+    assert_eq(string_at(results[0], ["contents", "kind"]) ?? "", "markdown")
+    shown :: hover_value(results[0])
+    assert("println" in shown, shown)
+    // The signature comes from the source declaration, not the importing file.
+    head :: "std/console\n\n```\nexport println :: fn<T: Display>(msg: T) -> void\n```"
+    assert(shown.starts_with(head), shown)
+    assert(shown.ends_with("*console.vader*"), shown)
+}
+
+WIDE_REACH_SOURCE :: r"""
+    module "lsptest"
+
+    apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+    scale :: fn(x: i32, factor: i32 = 3 * 2) -> i32 = x * factor
+
+    main :: fn() -> i32 = apply((x: i32) -> {
+        doubled :: x * 2
+        doubled + scale(1)
+    }, 4)
+    """
+
+// The text each selection range of the chain `result` covers, innermost first.
+selection_chain :: fn(source: string, result: JsonValue) -> string[] {
+    chain: string[]: []
+    ranges :: items_at(result, [])
+    if ranges.len() == 0 {
+        return chain
+    }
+    current: JsonValue | null = ranges[0]
+    for current != null {
+        range :: member(current, "range") ?? JsonNull {}
+        chain.push(text_at(source, range))
+        parent :: member(current, "parent")
+        current = parent
+    }
+    return chain
+}
+
+// The cursor finders read every expression a declaration holds: a binding in a
+// lambda passed as an argument, a parameter's default value.
+@test
+test_hover_and_selection_reach_a_lambda_argument_and_a_parameter_default :: fn() -> void {
+    source :: WIDE_REACH_SOURCE
+    results :: drive(
+        "hover_wide_reach",
+        source,
+        [
+            ask_at("textDocument/hover", position_of(source, "doubled ::")),
+            ask_at("textDocument/selectionRange", position_of(source, "3 * 2")),
+        ],
+    )
+    assert_eq(hover_value(results[0]), "```\ndoubled: i32\n```")
+    chain :: selection_chain(source, results[1])
+    assert(chain.len() > 0, stringify(results[1]))
+    assert_eq(chain[0], "3")
+    assert(chain.contains("3 * 2"), chain.join(" | "))
+}
+
+RANGE_LAST_SOURCE :: r"""
+    module "lsptest"
+
+    import "std/console"
+    import "std/iter"
+
+    main :: fn() -> i32 {
+        match v :: (10..=15).last() {
+            is i32  -> println(v)
+            is null -> println("none")
+        }
+        return 0
+    }
+    """
+
+// `last` is overloaded over `T[]` and `Iterator<T>`; a `Range` receiver resolves
+// to the `Iterator` one.
+@test
+test_hover_and_goto_def_follow_the_overload_typecheck_chose :: fn() -> void {
+    results :: drive(
+        "hover_overload",
+        RANGE_LAST_SOURCE,
+        [
+            ask("textDocument/hover", 6, 26),
+            ask("textDocument/definition", 6, 26),
+        ],
+    )
+    shown :: hover_value(results[0])
+    assert("last :: fn<T>(it: Iterator<T>) -> T | null" in shown, shown)
+    uri :: string_at(results[1], ["uri"]) ?? ""
+    assert(uri.ends_with("/iter.vader"), stringify(results[1]))
+}
+
+// A `match` header's binding hovers as the scrutinee's type, not as the
+// `match`'s `void`, and as the narrowed type inside an arm.
+@test
+test_a_match_headers_binding_hovers_as_its_scrutinee :: fn() -> void {
+    results :: drive(
+        "hover_match_header",
+        RANGE_LAST_SOURCE,
+        [
+            ask("textDocument/hover", 6, 10),
+            ask("textDocument/hover", 7, 27),
+        ],
+    )
+    header :: hover_value(results[0])
+    assert("```\nv: i32 | null\n```" in header, header)
+    arm :: hover_value(results[1])
+    assert("```\nv: i32\n```" in arm, arm)
+}
+
+NARROWED_LOCAL_SOURCE :: r"""
+    module "lsptest"
+
+    import "std/console"
+
+    value :: fn() -> i32 | string = 3
+
+    main :: fn() -> i32 {
+        n :: value()
+        if n is i32 {
+            println("${n}")
+        }
+        return 0
+    }
+    """
+
+// A binding an `if` tests hovers as the narrowed type inside the then-block, and
+// a use of it jumps back to the binding.
+@test
+test_a_name_an_if_narrows_hovers_as_the_narrowed_type :: fn() -> void {
+    results :: drive(
+        "hover_narrowed",
+        NARROWED_LOCAL_SOURCE,
+        [
+            ask("textDocument/hover", 9, 19),
+            ask("textDocument/definition", 9, 19),
+        ],
+    )
+    shown :: hover_value(results[0])
+    assert("```\nn: i32\n```" in shown, shown)
+    assert_eq(start_of(results[1]), "7:4")
+}
+
+SIGNATURE_SOURCE :: r"""
+    module "lsptest"
+
+    import "std/iter"
+
+    pick :: fn(a: i32) -> i32 = a
+    pick :: fn(s: string) -> i32 = 0
+
+    fill :: fn(xs: i32[], n: i32) -> i32 = n
+
+    main :: fn() -> i32 {
+        n :: pick("s")
+        total :: [1, 2, 3].fold(0, (acc: i32, x: i32) -> acc + x)
+        buf :: [0]
+        return n + total + fill( buf, 2)
+    }
+    """
+
+// Signature help shows the overload typecheck chose, and on a UFCS call counts
+// the receiver as the first parameter.
+@test
+test_signature_help_follows_the_chosen_overload_and_the_ufcs_receiver :: fn() -> void {
+    results :: drive(
+        "signature_overload",
+        SIGNATURE_SOURCE,
+        [
+            ask("textDocument/signatureHelp", 10, 15),
+            ask("textDocument/signatureHelp", 11, 33),
+        ],
+    )
+    assert_eq(signature_label(results[0]), "pick(s: string) -> i32")
+    assert_eq(int_at(results[0], ["activeParameter"]), 0)
+    assert_eq(
+        signature_label(results[1]),
+        "fold(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U",
+    )
+    assert_eq(int_at(results[1], ["activeParameter"]), 2)
+}
+
+METHOD_SIGNATURE_SOURCE :: r"""
+    module "lsptest"
+
+    Gauge :: struct { level: i32 }
+
+    Scaled :: trait {
+        scale :: fn(self, by: i32, offset: i32) -> i32
+    }
+
+    Gauge implements Scaled {
+        scale :: fn(self, by: i32, offset: i32) -> i32 = self.level * by + offset
+    }
+
+    main :: fn() -> i32 {
+        g :: Gauge { .level = 2 }
+        return g.scale(3, 4)
+    }
+    """
+
+// A method call shows the impl member it dispatches to, its receiver counted as
+// the first parameter.
+@test
+test_signature_help_on_a_trait_method_call :: fn() -> void {
+    results :: drive(
+        "signature_method",
+        METHOD_SIGNATURE_SOURCE,
+        [ask("textDocument/signatureHelp", 14, 22)],
+    )
+    assert_eq(signature_label(results[0]), "scale(self, by: i32, offset: i32) -> i32")
+    assert_eq(int_at(results[0], ["activeParameter"]), 2)
+}
+
+// A cursor in the gap before the first argument is on the first parameter.
+@test
+test_signature_help_before_the_first_argument :: fn() -> void {
+    results :: drive(
+        "signature_first",
+        SIGNATURE_SOURCE,
+        [ask("textDocument/signatureHelp", 13, 28)],
+    )
+    assert_eq(signature_label(results[0]), "fill(xs: i32[], n: i32) -> i32")
+    assert_eq(int_at(results[0], ["activeParameter"]), 0)
+}
+
+// The legend index of each kind of token the server colours.
+TOKEN_KEYWORD: i64: 5
+TOKEN_NUMBER: i64: 7
+TOKEN_OPERATOR: i64: 9
+
+// The server colours an open document. Each 5-tuple starts with a line relative
+// to the token before, and a column relative to it on the same line, absolute on
+// a new one.
+@test
+test_the_server_sends_the_semantic_tokens_of_an_open_document :: fn() -> void {
+    results :: drive(
+        "semantic_tokens",
+        "module \"t\"\n\nx :: 1\n",
+        [ask("textDocument/semanticTokens/full", 0, 0)],
+    )
+    data :: items_at(results[0], ["data"])
+    assert_eq(data.len() % 5, 0)
+    tokens: string[]: []
+    line: i64 = 0
+    column: i64 = 0
+    for i in 0..<data.len() / 5 {
+        delta_line :: i64(number_at(data[i * 5], []) ?? -1.0)
+        delta_column :: i64(number_at(data[i * 5 + 1], []) ?? -1.0)
+        length :: i64(number_at(data[i * 5 + 2], []) ?? -1.0)
+        kind :: i64(number_at(data[i * 5 + 3], []) ?? -1.0)
+        line += delta_line
+        if delta_line > 0 {
+            column = 0
+        }
+        column += delta_column
+        tokens.push("${line}:${column}:${length}:${kind}")
+    }
+    shown :: tokens.join(" ")
+    assert(tokens.contains("0:0:6:${TOKEN_KEYWORD}"), shown)
+    assert(tokens.contains("2:2:2:${TOKEN_OPERATOR}"), shown)
+    assert(tokens.contains("2:5:1:${TOKEN_NUMBER}"), shown)
+}
