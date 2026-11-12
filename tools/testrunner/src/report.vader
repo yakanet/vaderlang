@@ -3,7 +3,8 @@
 //
 // The tasks of the pool tell one reporter task what happens (`Progress`), in the
 // order it happens. Each case gets one line when it ends: `(pass)` and the stages
-// it checked, or `(fail)` and below it, indented, what failed. Every
+// it checked, unless only the failures are asked for, or `(fail)` and below it,
+// indented, what failed. Every
 // `PROGRESS_SECONDS`, a line names the cases running for longer than that, so
 // that a run that seems to stall says on what. The reporter alone writes the
 // tally, which the tasks share no other way.
@@ -82,8 +83,8 @@ CaseRun :: struct {
 }
 
 // Take what the tasks tell on `events` until it is closed, and print it as it
-// comes: the tally of the run.
-report :: fn(events: Channel<Progress>) -> Tally {
+// comes, the cases that pass left out when `only_failures`: the tally of the run.
+report :: fn(events: Channel<Progress>, only_failures: bool) -> Tally {
     tally :: Tally {}
     running :: Map<string, CaseRun> {}
     for event in events {
@@ -108,7 +109,7 @@ report :: fn(events: Channel<Progress>) -> Tally {
                 println(line)
             }
             is CaseEnded   -> {
-                tally.print_case(event.case, running.run_of(event.case))
+                tally.print_case(event.case, running.run_of(event.case), only_failures)
                 running.remove(event.case)
             }
             is Tick        -> {
@@ -159,11 +160,14 @@ failure_label :: fn(result: Verdict) -> string = match result {
     .Same | .Written -> verdict_name(result)
 }
 
-// Print the line of `case`, which ended, and below it what failed on it.
-print_case :: fn(tally: Tally, case: string, run: CaseRun) -> void {
+// Print the line of `case`, which ended, and below it what failed on it; nothing
+// for a case that passed when `only_failures`.
+print_case :: fn(tally: Tally, case: string, run: CaseRun, only_failures: bool) -> void {
     took :: "[${run.began.since().format()}]"
     if run.problems.len() == 0 {
-        println("(pass) ${case} > ${run.passed.join(", ")} ${took}")
+        if !only_failures {
+            println("(pass) ${case} > ${run.passed.join(", ")} ${took}")
+        }
         return
     }
     line :: "(fail) ${case} ${took}"

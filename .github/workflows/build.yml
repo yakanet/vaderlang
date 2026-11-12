@@ -72,7 +72,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
       # The snippets and their snapshots, the diagnostics and target corpora,
       # the runs of the examples, the driven projects, and the `@test` functions
-      # of `lib/`, `vader/` and `tools/`.
+      # of `lib/`, `vader/` and `tools/`; only the cases that fail are printed.
       - name: Tests
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         timeout-minutes: 20
@@ -81,7 +81,7 @@ jobs:
           VADER_HOME: ${{ github.workspace }}
         run: |
           (cd tools/testrunner && ../../build/vader build --release)
-          tools/testrunner/build/release-*/testrunner
+          tools/testrunner/build/release-*/testrunner --only-failures
       # What the runner does not check yet: the command line, the language
       # servers, and the tests of the build driver no fixture can carry.
       - name: Tests left to Bun

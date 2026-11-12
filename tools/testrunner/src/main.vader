@@ -20,7 +20,7 @@
 // `vader build --release` in `tools/testrunner` builds it. Run it from the
 // repository root:
 //
-//   testrunner [--update] [--jobs=N] [--phases=lexer,parser,...]
+//   testrunner [--update] [--only-failures] [--jobs=N] [--phases=lexer,parser,...]
 
 module "tools/testrunner/src"
 
@@ -45,6 +45,11 @@ FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "update",
         .help = "Write the snapshots that differ or are missing",
+        .kind = .Bool,
+    },
+    FlagSpec {
+        .name = "only-failures",
+        .help = "Print the cases that fail, not those that pass",
         .kind = .Bool,
     },
     FlagSpec {
@@ -118,16 +123,19 @@ main :: fn(argv: string[]) -> i32 {
             return 2
         }
     }
-    return run_all(found.cases, found.problems, command, update, k)
+    only_failures :: parsed.bool_flag("only-failures")
+    return run_all(found.cases, found.problems, command, update, only_failures, k)
 }
 
 // Run `cases` on `k` workers started with `command`, which `update` the snapshots
-// that differ, and print what they found with the `problems` of the discovery.
+// that differ, and print what they found with the `problems` of the discovery,
+// the cases that pass left out when `only_failures`.
 run_all :: fn(
     cases: Case[],
     problems: string[],
     command: string[],
     update: bool,
+    only_failures: bool,
     k: i32,
 ) -> i32 {
     // The workers inherit this environment, and a `VADER_HOME` moves the modules
@@ -151,7 +159,7 @@ run_all :: fn(
         events.send(RunError { .message = problem })
     }
     println("testrunner: ${count} cases on ${k} workers")
-    reporter :: launch(() -> report(events))
+    reporter :: launch(() -> report(events, only_failures))
     ticker :: launch(() -> tick(events))
     tasks: Task<void>[]: []
     for i in 0..<k {
