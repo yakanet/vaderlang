@@ -26,7 +26,7 @@ bool CloseHandle(void* h);  // system_windows$close_handle
 bool CopyFileW(const void* from, const void* to, bool fail_if_exists);  // system_windows$copy_file_w
 bool CreateDirectoryW(const void* path, void* security);  // system_windows$create_directory
 void* CreateFileW(const void* path, uint32_t access, uint32_t share, void* security, uint32_t disposition, uint32_t flags, void* template);  // system_windows$create_file_w
-bool CreateProcessA(void* application, void* command_line, void* proc_attrs, void* thread_attrs, bool inherit, uint32_t flags, void* environment, void* directory, STARTUPINFOA* startup, PROCESS_INFORMATION* info);  // system_windows$create_process
+bool CreateProcessW(void* application, void* command_line, void* proc_attrs, void* thread_attrs, bool inherit, uint32_t flags, void* environment, const void* directory, STARTUPINFOW* startup, PROCESS_INFORMATION* info);  // system_windows$create_process
 int32_t DeleteFileW(const void* path);  // system_windows$delete_file
 bool FindClose(void* handle);  // system_windows$find_close
 void* FindFirstFileW(const void* pattern, void* data);  // system_windows$find_first_file
@@ -103,11 +103,12 @@ int32_t getrusage(int32_t who, void* usage);  // system_posix$sys_getrusage
 
 /* SPAWN (system/posix): <signal.h>, <spawn.h>, <string.h>, <sys/wait.h> */
 int32_t kill(int32_t pid, int32_t sig);  // system_posix$sys_kill
+int32_t posix_spawn_file_actions_addchdir_np(void* actions, const char* path);  // system_posix$sys_spawn_actions_addchdir
 int32_t posix_spawn_file_actions_addclose(void* actions, int32_t fd);  // system_posix$sys_spawn_actions_addclose
 int32_t posix_spawn_file_actions_adddup2(void* actions, int32_t fd, int32_t newfd);  // system_posix$sys_spawn_actions_adddup2
 int32_t posix_spawn_file_actions_destroy(void* actions);  // system_posix$sys_spawn_actions_destroy
 int32_t posix_spawn_file_actions_init(void* actions);  // system_posix$sys_spawn_actions_init
-int32_t posix_spawnp(void* pid, const char* file, const void* actions, void* attrp, const void* argv, void* envp);  // system_posix$sys_posix_spawnp
+int32_t posix_spawnp(void* pid, const char* file, const void* actions, void* attrp, const void* argv, const void* envp);  // system_posix$sys_posix_spawnp
 void* strdup(const char* s);  // system_posix$sys_strdup
 int32_t waitpid(int32_t pid, void* status, int32_t options);  // system_posix$sys_waitpid
 
@@ -137,7 +138,6 @@ int64_t write(int32_t fd, const void* buf, int64_t count);  // system_posix$sys_
 int32_t vader_dirent_kind(void* ent);  // system_posix$dirent_kind
 const char* vader_dirent_name(void* ent);  // system_posix$dirent_name
 void vader_end_on_broken_pipe(void);  // system_posix$sys_end_on_broken_pipe
-void* vader_environ(void);  // system_posix$sys_environ
 const char* vader_environ_entry(int64_t index);  // system_posix$sys_environ_entry
 int32_t vader_fd_kind(int32_t fd);  // system_posix$sys_fd_kind
 int64_t vader_fd_size(int32_t fd);  // system_posix$sys_fd_size

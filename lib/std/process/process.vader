@@ -15,12 +15,13 @@
 // streams instead of having them captured, and the call blocks until it exits.
 //
 // Native-only: the child primitives sit on `posix_spawn` + pipes (POSIX)
-// and `CreateProcessA` + pipes (Windows). WASM has no spawn equivalent.
+// and `CreateProcessW` + pipes (Windows). WASM has no spawn equivalent.
 
 module "std/process"
 
 import "std/env"
 import "std/io"
+import "std/iter"
 import "std/numbers"
 import "std/runtime/scheduler"
 import "system/libc"
@@ -52,7 +53,7 @@ ProcessError implements Error {
 /// Outcome of a child that ran to completion. `exit` is the OS exit status ;
 /// `stdout` / `stderr` hold the full captured pipe contents.
 export ProcessResult :: struct {
-    exit:   i32
+    exit: i32
     stdout: string
     stderr: string
 }
@@ -78,35 +79,35 @@ export Process :: Pid | ProcessHandle
 export ChildProcess :: struct {
     /// `argv[0]`, which names the child in a `ProcessError`.
     @internal
-    program:   string
+    program: string
     /// Whether the child was reaped: `exit_code` holds its end.
     @internal
-    done:      bool  = false
+    done: bool = false
     /// The exit code, or `SIGNALED`.
     @internal
-    exit_code: i32   = 0
+    exit_code: i32 = 0
     /// What the child wrote on stdout so far.
     @internal
-    out:       u8[]  = []
+    out: u8[] = []
     /// What the child wrote on stderr so far.
     @internal
-    err:       u8[]  = []
+    err: u8[] = []
     @internal
-    process:   Process
+    process: Process
     /// The read end of the stdout pipe.
     @internal
-    out_pipe:  Descriptor
+    out_pipe: Descriptor
     /// The read end of the stderr pipe.
     @internal
-    err_pipe:  Descriptor
+    err_pipe: Descriptor
     /// The write end of the stdin pipe of a child `spawn_interactive` launched,
     /// until `close_input` or the child's end.
     @internal
-    in_pipe:   Descriptor | null = null
+    in_pipe: Descriptor | null = null
     @internal
-    out_eof:   bool  = false
+    out_eof: bool = false
     @internal
-    err_eof:   bool  = false
+    err_eof: bool = false
 }
 
 // On POSIX, every `Descriptor` is an `Fd` and every `Process` a `Pid`; on
@@ -165,32 +166,53 @@ platform_processor_count :: fn() -> i64 = sys_sysconf(SC_NPROCESSORS_ONLN)
 @target(.Windows)
 platform_processor_count :: fn() -> i64 = i64(get_active_processor_count(ALL_PROCESSOR_GROUPS))
 
+/// Where a child starts, and what it inherits of this process's environment.
+export SpawnOptions :: struct {
+    /// The working directory of the child; this process's when null.
+    cwd: string | null = null
+    /// Changes to the environment the child inherits, in order: a variable
+    /// takes the value given, or is left out for a null one. On Windows, where
+    /// the name of a variable has no case, a change reaches every spelling.
+    env: [string, string | null][] = []
+}
+
 /// Launch `argv` without waiting, its stdout and stderr captured.
 ///
-/// @param argv  the command line; `argv[0]` is the program, looked up on `PATH`
-///              when it names no folder.
-/// @return      the child, which `poll` follows and `kill` stops.
-/// @error       `ProcessError` when `argv` is empty or the program cannot be
-///              launched.
-export spawn_start :: fn(argv: string[]) -> ChildProcess | ProcessError = launch_child(argv, false)
+/// @param argv     the command line; `argv[0]` is the program, looked up on
+///                 `PATH` when it names no folder.
+/// @param options  where the child starts and the environment it sees.
+/// @return         the child, which `poll` follows and `kill` stops.
+/// @error          `ProcessError` when `argv` is empty or the program cannot be
+///                 launched, its working directory included.
+export spawn_start :: fn(
+    argv: string[],
+    options: SpawnOptions = SpawnOptions {},
+) -> ChildProcess | ProcessError = launch_child(argv, false, options)
 
 /// Launch `argv` without waiting, as `spawn_start` does, with a pipe on its
 /// stdin too: `write_input` feeds it, `close_input` ends it, `read_output` takes
 /// what the child writes as it comes.
 ///
-/// @param argv  the command line; `argv[0]` is the program, looked up on `PATH`
-///              when it names no folder.
-/// @return      the child, which `poll` follows and `kill` stops.
-/// @error       `ProcessError` when `argv` is empty or the program cannot be
-///              launched.
-export spawn_interactive :: fn(argv: string[]) -> ChildProcess | ProcessError =
-    launch_child(argv, true)
+/// @param argv     the command line; `argv[0]` is the program, looked up on
+///                 `PATH` when it names no folder.
+/// @param options  where the child starts and the environment it sees.
+/// @return         the child, which `poll` follows and `kill` stops.
+/// @error          `ProcessError` when `argv` is empty or the program cannot be
+///                 launched, its working directory included.
+export spawn_interactive :: fn(
+    argv: string[],
+    options: SpawnOptions = SpawnOptions {},
+) -> ChildProcess | ProcessError = launch_child(argv, true, options)
 
-launch_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | ProcessError {
+launch_child :: fn(
+    argv: string[],
+    piped_input: bool,
+    options: SpawnOptions,
+) -> ChildProcess | ProcessError {
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }
     }
-    child :: start_child(argv, piped_input) ?? return ProcessError {
+    child :: start_child(argv, piped_input, options) ?? return ProcessError {
         .msg = "spawn: failed to launch \"${argv[0]}\"",
     }
     return child
@@ -201,9 +223,30 @@ launch_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | ProcessE
 ///
 /// @param argv         the command line.
 /// @param piped_input  whether the child reads a pipe this process writes.
+/// @param options      where the child starts and the environment it sees.
 /// @return             the child, or null when it could not be launched.
 @target
-start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> ChildProcess | null
+
+// The `NAME=value` entries of the environment a child launched with `changes`
+// sees: this process's, each change applied in turn.
+child_environment :: fn(changes: [string, string | null][]) -> string[] {
+    vars := env_vars()
+    for [name, value] in changes {
+        vars = vars.filter((v) -> !same_variable(v.name, name)).collect()
+        if value != null {
+            vars.push(EnvVar { .name = name, .value = value })
+        }
+    }
+    return vars.map((v) -> "${v.name}=${v.value}").collect()
+}
+
+// Whether `a` and `b` name the same variable of the environment.
+@target
+same_variable :: fn(a: string, b: string) -> bool = a == b
+
+@target(.Windows)
+same_variable :: fn(a: string, b: string) -> bool = a.to_upper() == b.to_upper()
 
 /// Advance a launched child WITHOUT blocking: drain its pipes and reap it if it
 /// exited.
@@ -227,7 +270,7 @@ poll_exit :: fn(child: ChildProcess) -> i32
 export kill :: fn(child: ChildProcess) -> void
 
 @target(.Linux, .Darwin)
-start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> ChildProcess | null {
     out_fds: i32[]: [0, 0]
     err_fds: i32[]: [0, 0]
     in_fds: i32[]: [0, 0]
@@ -244,7 +287,7 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
         return null
     }
     actions: u8[]: [0] * SPAWN_ACTIONS_BYTES
-    if sys_spawn_actions_init(actions) != 0 {
+    if !init_actions(actions, options.cwd) {
         close_pair(out_fds)
         close_pair(err_fds)
         if piped_input {
@@ -267,12 +310,7 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
         sys_spawn_actions_adddup2(actions, in_fds[0], 0)
         sys_spawn_actions_addclose(actions, in_fds[0])
     }
-
-    words :: c_argv(argv)
-    pid: i32[]: [0]
-    rc :: sys_posix_spawnp(pid, argv[0], actions, null, words.vec, sys_environ())
-    sys_spawn_actions_destroy(actions)
-    free_c_argv(words)
+    pid :: spawn_with(argv, actions, options.env)
     // The parent holds the read ends only; the child owns the write ends now,
     // and leaving them open here would keep EOF from ever arriving.
     sys_close(out_fds[1])
@@ -280,7 +318,7 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
     if piped_input {
         sys_close(in_fds[0])
     }
-    if rc != 0 {
+    if pid == null {
         sys_close(out_fds[0])
         sys_close(err_fds[0])
         if piped_input {
@@ -289,8 +327,8 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
         return null
     }
     child :: ChildProcess {
-        .program  = argv[0],
-        .process  = Pid(pid[0]),
+        .program = argv[0],
+        .process = Pid(pid),
         .out_pipe = Fd(out_fds[0]),
         .err_pipe = Fd(err_fds[0]),
     }
@@ -305,7 +343,43 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
 /// `u64[]` that lends as the `char**`.
 CArgv :: struct {
     owned: CPointer[]
-    vec:   u64[]
+    vec: u64[]
+}
+
+/// Initialise the file actions `actions`, a move to `cwd` first when one is
+/// given; false when that fails, with nothing left to destroy.
+///
+/// @param actions  `SPAWN_ACTIONS_BYTES` of scratch.
+/// @param cwd      the working directory of the child; null for this process's.
+init_actions :: fn(actions: u8[], cwd: string | null) -> bool {
+    if sys_spawn_actions_init(actions) != 0 {
+        return false
+    }
+    if cwd != null && sys_spawn_actions_addchdir(actions, cwd) != 0 {
+        sys_spawn_actions_destroy(actions)
+        return false
+    }
+    return true
+}
+
+/// Launch `argv` under the file actions `actions`, then destroy them.
+///
+/// @param argv     the command line, the program looked up on `PATH`.
+/// @param actions  what `init_actions` set up.
+/// @param changes  what `SpawnOptions.env` changes.
+/// @return         the pid of the child; null when it did not start.
+spawn_with :: fn(argv: string[], actions: u8[], changes: [string, string | null][]) -> i32 | null {
+    words :: c_argv(argv)
+    environment :: c_argv(child_environment(changes))
+    pid: i32[]: [0]
+    rc :: sys_posix_spawnp(pid, argv[0], actions, null, words.vec, environment.vec)
+    sys_spawn_actions_destroy(actions)
+    free_c_argv(words)
+    free_c_argv(environment)
+    if rc != 0 {
+        return null
+    }
+    return pid[0]
 }
 
 /// Copy `argv` into C strings, freed by `free_c_argv` once the spawn returns.
@@ -443,7 +517,7 @@ reaped_code :: fn(status: i32) -> i32 {
 /// bits: `STATUS_ACCESS_VIOLATION` is 0xC0000005.
 ///
 /// @param code  what `GetExitCodeProcess` stored.
-is_crash_code :: fn(code: u32) -> bool = (code & 0xC000_0000) == 0xC000_0000
+is_crash_code :: fn(code: u32) -> bool = code & 0xC000_0000 == 0xC000_0000
 
 /// Mark `c` reaped: `code` recorded and both pipes drained.
 ///
@@ -490,7 +564,7 @@ close_descriptor :: fn(pipe: Descriptor) -> void {
 }
 
 @target(.Windows)
-start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
+start_child :: fn(argv: string[], piped_input: bool, options: SpawnOptions) -> ChildProcess | null {
     out_r: u64[]: [0]
     out_w: u64[]: [0]
     err_r: u64[]: [0]
@@ -511,18 +585,19 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
         }
         return null
     }
-    out_read  :: ptr_at(out_r, 0)
+    out_read :: ptr_at(out_r, 0)
     out_write :: ptr_at(out_w, 0)
-    err_read  :: ptr_at(err_r, 0)
+    err_read :: ptr_at(err_r, 0)
     err_write :: ptr_at(err_w, 0)
     input :: if piped_input { ptr_at(in_r, 0) } else { get_std_handle(STD_INPUT_HANDLE) }
     si :: startup_with(input, out_write, err_write)
-    pi :: ProcessInformation { .hProcess = out_write, .hThread = out_write,
-                               .dwProcessId = 0, .dwThreadId = 0 }
-    // `CreateProcessA` MODIFIES the command line in place, so it is lent as a
-    // mutable NUL-terminated byte buffer rather than passed as a `string`.
-    line :: command_line_bytes(argv)
-    ok :: create_process(null, line, null, null, true, 0, null, null, si, pi)
+    pi :: ProcessInformation {
+        .hProcess = out_write,
+        .hThread = out_write,
+        .dwProcessId = 0,
+        .dwThreadId = 0,
+    }
+    ok :: create_child(argv, options, si, pi)
     // The parent drops the child's ends whatever happened: while it holds a
     // write end, the read end never reports EOF and the drain never finishes.
     close_handle(out_write)
@@ -540,8 +615,8 @@ start_child :: fn(argv: string[], piped_input: bool) -> ChildProcess | null {
     }
     close_handle(pi.hThread)
     child :: ChildProcess {
-        .program  = argv[0],
-        .process  = ProcessHandle(pi.hProcess),
+        .program = argv[0],
+        .process = ProcessHandle(pi.hProcess),
         .out_pipe = PipeHandle(out_read),
         .err_pipe = PipeHandle(err_read),
     }
@@ -577,16 +652,38 @@ startup_with :: fn(input: Handle, output: Handle, error: Handle) -> StartupInfo 
     .hStdError = error,
 }
 
-/// Join `argv` into one command line, quoting what needs it, as a mutable
-/// NUL-terminated byte buffer.
+/// Launch `argv` with the handles of `si`, in the folder and the environment
+/// `options` give.
 ///
-/// `CreateProcessA` takes ONE string and writes into it, which is why this hands
-/// back bytes rather than a `string`: an atom is shared and interned, and the
-/// callee would be scribbling on it.
+/// @param argv     the command line, the program first.
+/// @param options  where the child starts and the environment it sees.
+/// @param si       the handles the child reads and writes.
+/// @param pi       filled with the handles and the ids of the child.
+/// @return         false when it did not start.
+create_child :: fn(
+    argv: string[],
+    options: SpawnOptions,
+    si: StartupInfo,
+    pi: ProcessInformation,
+) -> bool = create_process(
+    null,
+    command_line_wide(argv),
+    null,
+    null,
+    true,
+    CREATE_UNICODE_ENVIRONMENT,
+    environment_block(options.env),
+    to_wide(options.cwd ?? current_working_directory()),
+    si,
+    pi,
+)
+
+/// Join `argv` into one command line, quoting what needs it, as the
+/// NUL-terminated UTF-16 buffer `CreateProcessW` takes and writes into.
 ///
 /// @param argv  the words.
 /// @return      the command line, NUL-terminated.
-command_line_bytes :: fn(argv: string[]) -> u8[] {
+command_line_wide :: fn(argv: string[]) -> u16[] {
     out: u8[]: []
     for i in 0..<argv.len() {
         if i > 0 {
@@ -594,8 +691,24 @@ command_line_bytes :: fn(argv: string[]) -> u8[] {
         }
         push_quoted(argv[i].bytes(), out)
     }
-    out.push(0)
-    return out
+    return to_wide(out.bytes_to_string())
+}
+
+/// The environment a child launched with `changes` sees, as `CreateProcessW`
+/// takes it: each `NAME=value` NUL-terminated, then one more NUL.
+///
+/// @param changes  what `SpawnOptions.env` changes.
+environment_block :: fn(changes: [string, string | null][]) -> u16[] {
+    block: u16[]: []
+    for entry in child_environment(changes) {
+        block.push_all(to_wide(entry))
+    }
+    // An empty environment is the two NULs alone.
+    if block.len() == 0 {
+        block.push(0)
+    }
+    block.push(0)
+    return block
 }
 
 /// Append one argument, quoted and escaped the way `CommandLineToArgvW` reads
@@ -628,7 +741,7 @@ push_quoted :: fn(word: u8[], out: u8[]) -> void {
         if b == '"' {
             // The run escapes the quote, so it must survive as itself: double
             // it, then escape the quote with one more.
-            for _s in 0..<(slashes * 2 + 1) {
+            for _s in 0..<slashes * 2 + 1 {
                 out.push('\\')
             }
             slashes = 0
@@ -642,7 +755,7 @@ push_quoted :: fn(word: u8[], out: u8[]) -> void {
         out.push(b)
     }
     // A run at the END meets the closing quote we are about to add.
-    for _s in 0..<(slashes * 2) {
+    for _s in 0..<slashes * 2 {
         out.push('\\')
     }
     out.push('"')
@@ -783,13 +896,35 @@ export poll :: fn(child: ChildProcess) -> ProcessResult | ProcessError | null {
 ///   a :: launch(() -> spawn(["cc", "-c", "a.c"]))
 ///   b :: launch(() -> spawn(["cc", "-c", "b.c"]))
 ///   join_all([a, b])   // both compiles run at once
-export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
-    child :: spawn_start(argv)
+export spawn :: fn(
+    argv: string[],
+    options: SpawnOptions = SpawnOptions {},
+) -> ProcessResult | ProcessError {
+    child :: spawn_start(argv, options)
     if child is ProcessError {
         return child
     }
     // A cancelled task runs its defers: the child does not outlive the wait.
     defer child.kill()
+    return child.wait()
+}
+
+/// Wait until `child` ends, and give its exit code with what it wrote.
+///
+/// The calling task parks while the child runs, as in `spawn`.
+///
+/// @param child  what `spawn_start` or `spawn_interactive` returned.
+/// @return       the exit code, and what the child wrote since the last
+///               `read_output`.
+/// @error        `ProcessError` when a signal terminated it, `kill` included.
+/// @example
+///   child :: spawn_interactive(["sort"])
+///   if child is ChildProcess {
+///       child.write_input("b\na\n".bytes())
+///       child.close_input()
+///       sorted :: child.wait()   // its `stdout` is "a\nb\n"
+///   }
+export wait :: fn(child: ChildProcess) -> ProcessResult | ProcessError {
     for {
         finished :: child.poll()
         if finished != null {
@@ -880,9 +1015,9 @@ export close_input :: fn(child: ChildProcess) -> void {
 /// What a child wrote since the last `read_output`, and whether it has ended.
 export ChildOutput :: struct {
     /// Bytes from its stdout.
-    out:   u8[]
+    out: u8[]
     /// Bytes from its stderr.
-    err:   u8[]
+    err: u8[]
     /// Whether the child has ended: nothing follows these bytes, and `poll`
     /// gives its exit.
     ended: bool
@@ -913,8 +1048,8 @@ export read_output :: fn(child: ChildProcess) -> ChildOutput {
         await_child(child)
     }
     taken :: ChildOutput {
-        .out   = child.out,
-        .err   = child.err,
+        .out = child.out,
+        .err = child.err,
         .ended = child.done,
     }
     child.out = []
@@ -950,19 +1085,12 @@ run_attached :: fn(argv: string[]) -> i32 | ProcessError {
     }
     // No file action: the child keeps descriptors 0, 1 and 2 as they are here.
     actions: u8[]: [0] * SPAWN_ACTIONS_BYTES
-    if sys_spawn_actions_init(actions) != 0 {
+    if !init_actions(actions, null) {
         return cannot_launch(argv[0])
     }
-    words :: c_argv(argv)
-    pid: i32[]: [0]
-    rc :: sys_posix_spawnp(pid, argv[0], actions, null, words.vec, sys_environ())
-    sys_spawn_actions_destroy(actions)
-    free_c_argv(words)
-    if rc != 0 {
-        return cannot_launch(argv[0])
-    }
+    pid :: spawn_with(argv, actions, []) ?? return cannot_launch(argv[0])
     st: i32[]: [0]
-    if sys_waitpid(pid[0], st, 0) < 0 {
+    if sys_waitpid(pid, st, 0) < 0 {
         return ProcessError { .msg = "`${argv[0]}` could not be waited for" }
     }
     signal :: terminating_signal(st[0])
@@ -982,7 +1110,7 @@ run_attached :: fn(argv: string[]) -> i32 | ProcessError {
         get_std_handle(STD_OUTPUT_HANDLE),
         get_std_handle(STD_ERROR_HANDLE),
     )
-    // Filled by `CreateProcessA`.
+    // Filled by `CreateProcessW`.
     unset :: ptr_at([0], 0)
     pi :: ProcessInformation {
         .hProcess = unset,
@@ -990,7 +1118,7 @@ run_attached :: fn(argv: string[]) -> i32 | ProcessError {
         .dwProcessId = 0,
         .dwThreadId = 0,
     }
-    if !create_process(null, command_line_bytes(argv), null, null, true, 0, null, null, si, pi) {
+    if !create_child(argv, SpawnOptions {}, si, pi) {
         return cannot_launch(argv[0])
     }
     close_handle(pi.hThread)
@@ -1022,7 +1150,10 @@ import "std/time"
 
 @test
 test_processor_count_platform_call_succeeds :: fn() -> void {
-    assert(platform_processor_count() >= 1, "the platform reports its processors (a wrong selector reads -1)")
+    assert(
+        platform_processor_count() >= 1,
+        "the platform reports its processors (a wrong selector reads -1)",
+    )
 }
 
 // The executable running the tests exists on every system, which a shell builtin
@@ -1051,6 +1182,51 @@ test_a_killed_child_polls_as_ended_by_a_signal :: fn() -> void {
         child.kill()
         assert(child.poll() is ProcessError, "a killed child polls as ended by a signal")
     }
+}
+
+// A command line that prints the working directory it starts in.
+@target
+working_directory_command :: fn() -> string[] = ["pwd"]
+
+@target(.Windows)
+working_directory_command :: fn() -> string[] = ["cmd", "/c", "cd"]
+
+// A command line that prints its environment, one `NAME=value` a line.
+@target
+environment_command :: fn() -> string[] = ["env"]
+
+@target(.Windows)
+environment_command :: fn() -> string[] = ["cmd", "/c", "set"]
+
+// The last component of the folder a child prints: what a link on its way (the
+// temporary folder of macOS) leaves unchanged.
+last_component :: fn(path: string) -> string {
+    halves :: path.trim().replace_all("\\", "/").split_last("/") ?? return path.trim()
+    return halves.1
+}
+
+@test
+test_a_child_starts_in_the_folder_its_options_name :: fn() -> void {
+    folder :: temp_dir()
+    printed :: spawn(working_directory_command(), SpawnOptions { .cwd = folder })
+    if printed is ProcessError {
+        fail(printed.msg)
+        return
+    }
+    assert_eq(last_component(printed.stdout), last_component(folder))
+}
+
+@test
+test_a_child_sees_the_environment_its_options_change :: fn() -> void {
+    changes: [string, string | null][]: [["VADER_SPAWN_TEST", "set"], ["PATH", null]]
+    listed :: spawn(environment_command(), SpawnOptions { .env = changes })
+    if listed is ProcessError {
+        fail(listed.msg)
+        return
+    }
+    lines :: listed.stdout.lines().collect()
+    assert(lines.contains("VADER_SPAWN_TEST=set"), "a variable takes the value given")
+    assert(!lines.any_match((l) -> l.to_upper().starts_with("PATH=")), "a null value leaves it out")
 }
 
 // `sort` answers once its input ends, on every system; that of Windows reads
@@ -1135,7 +1311,10 @@ test_write_input_of_a_child_that_reads_no_more_is_an_error :: fn() -> void {
     }
     defer child.kill()
     assert_eq(answer_of(child, 7), "closed\n")
-    assert(child.write_input("x\n".bytes()) is ProcessError, "a child without a reader on its stdin")
+    assert(
+        child.write_input("x\n".bytes()) is ProcessError,
+        "a child without a reader on its stdin",
+    )
 }
 
 @test

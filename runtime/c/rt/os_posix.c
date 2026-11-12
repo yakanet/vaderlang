@@ -310,20 +310,6 @@ void vader_end_on_broken_pipe(void) {
     _exit(128 + SIGPIPE);
 }
 
-/* The process environment, as `posix_spawnp` wants it.
- *
- * `environ` is a VARIABLE, not a function, and the FFI calls functions, so this
- * is the accessor that names it. Passing NULL instead would hand the child an
- * EMPTY environment, which is not what a subprocess inherits and would strip
- * PATH from everything the build spawns.
- *
- * `VADER_HOST_EXPORT` for the reason at the accessors below: the interpreter
- * resolves it by name at run time. */
-VADER_HOST_EXPORT
-char** vader_environ(void) {
-    return environ;
-}
-
 /* The `index`-th `NAME=value` of `environ`, NULL past the last: the caller
  * stops there. A `setenv` may move the array, so it is read entry by entry,
  * never held. */

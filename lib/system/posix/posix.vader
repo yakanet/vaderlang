@@ -310,6 +310,14 @@ export sys_spawn_actions_destroy :: fn(@c_out actions: u8[]) -> i32
 @extern(SPAWN, "posix_spawn_file_actions_addclose")
 export sys_spawn_actions_addclose :: fn(@c_out actions: u8[], fd: i32) -> i32
 
+/// `posix_spawn_file_actions_addchdir_np(3)`: `chdir(path)` in the child, before
+/// it runs the program. glibc 2.29 and macOS 10.15 have it.
+///
+/// @param actions  the actions buffer.
+/// @param path     the working directory of the child.
+@extern(SPAWN, "posix_spawn_file_actions_addchdir_np")
+export sys_spawn_actions_addchdir :: fn(@c_out actions: u8[], path: string) -> i32
+
 /// `posix_spawn_file_actions_adddup2(3)`: `dup2(fd, newfd)` in the child.
 ///
 /// @param actions  the actions buffer.
@@ -325,11 +333,12 @@ export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32
 /// @param actions  the file actions, or an empty buffer for none.
 /// @param attrp    null: no spawn attributes are used.
 /// @param argv     a NULL-terminated vector of `char*`, as `i64` words.
-/// @param envp     `sys_environ()`.
+/// @param envp     the whole environment of the child, a NULL-terminated vector
+///                 of `NAME=value` `char*`, as `i64` words.
 /// @return         0 on success, an errno value otherwise.
 @extern(SPAWN, "posix_spawnp")
 export sys_posix_spawnp :: fn(@c_out pid: i32[], file: string, actions: u8[],
-                              attrp: CPointer | null, argv: u64[], envp: CPointer) -> i32
+                              attrp: CPointer | null, argv: u64[], envp: u64[]) -> i32
 
 /// `waitpid(2)`.
 ///
@@ -356,16 +365,6 @@ export sys_kill :: fn(pid: i32, sig: i32) -> i32
 /// @return   a `char*` the caller frees with `sys_free`.
 @extern(SPAWN, "strdup")
 export sys_strdup :: fn(s: string) -> CPointer
-
-/// The process environment, for `sys_posix_spawnp`.
-///
-/// `environ` is a VARIABLE and the FFI calls functions, so the runtime names it.
-/// Passing null instead gives the child an EMPTY environment: no `PATH`, which
-/// every spawned tool needs.
-///
-/// @return  the parent's `char**` environment.
-@extern(VADER_RUNTIME, "vader_environ")
-export sys_environ :: fn() -> CPointer
 
 /// The `index`-th `NAME=value` of the environment, null past the last.
 ///

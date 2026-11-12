@@ -597,7 +597,11 @@ export WAIT_OBJECT_0: u32 : 0
 /// `INFINITE`: a wait with no timeout.
 export INFINITE: u32 : 0xFFFF_FFFF
 
-/// `STARTUPINFOA`, mirrored for the members a redirected child needs.
+/// `CREATE_UNICODE_ENVIRONMENT`: the environment block `CreateProcessW` takes is
+/// UTF-16.
+export CREATE_UNICODE_ENVIRONMENT: u32 : 0x0400
+
+/// `STARTUPINFOW`, mirrored for the members a redirected child needs.
 ///
 /// EVERY member up to `hStdError`, in order, not a prefix of the useful ones:
 /// the interpreter lays a mirror out from its declared fields alone, at natural
@@ -606,9 +610,9 @@ export INFINITE: u32 : 0xFFFF_FFFF
 ///
 /// The reserved ones are machine words that stay zero, which is what
 /// `CreateProcess` expects of a plain console child. `cb` must be
-/// `sizeof(STARTUPINFOA)` (104 on x86_64) and is the one member the callee
+/// `sizeof(STARTUPINFOW)` (104 on x86_64) and is the one member the callee
 /// validates.
-@c_struct("STARTUPINFOA")
+@c_struct("STARTUPINFOW")
 export StartupInfo :: struct {
     cb:              u32
     lpReserved:      u64
@@ -649,27 +653,32 @@ export ProcessInformation :: struct {
 @extern(VADER_RUNTIME, "vader_ptr_at")
 export ptr_at :: fn(base: u64[], i: i64) -> Handle
 
-/// `CreateProcessA`. Launches `command_line`, inheriting the handles named in
-/// `startup`.
+/// `CreateProcessW`. Launches `command_line` in `directory`, with `environment`,
+/// inheriting the handles named in `startup`.
 ///
-/// The ANSI form: the argument vector is one command line by then, and the wide
-/// form would need it widened for nothing the child can see.
+/// The wide form, so that an argument, a variable or a folder outside the ANSI
+/// code page reaches the child as it is.
 ///
 /// @param application   null: the program is the first word of the line.
-/// @param command_line  the whole command line, which the callee MODIFIES.
+/// @param command_line  the whole command line, NUL-terminated UTF-16, which the
+///                      callee MODIFIES.
 /// @param proc_attrs    null.
 /// @param thread_attrs  null.
 /// @param inherit       true, so the child receives the pipe ends.
-/// @param flags         0.
-/// @param environment   null: inherit the parent's.
-/// @param directory     null: inherit the parent's.
+/// @param flags         `CREATE_UNICODE_ENVIRONMENT`.
+/// @param environment   the whole environment: each `NAME=value` NUL-terminated
+///                      UTF-16, then one more NUL. Lent as `@c_out` for the
+///                      `LPVOID` of the prototype, which is not `const`; the
+///                      callee only reads it.
+/// @param directory     the working directory of the child, NUL-terminated
+///                      UTF-16.
 /// @param startup       the redirected handles.
 /// @param info          filled with the child's handles and ids.
-@extern(KERNEL32, "CreateProcessA")
-export create_process :: fn(application: CPointer | null, @c_out command_line: u8[],
+@extern(KERNEL32, "CreateProcessW")
+export create_process :: fn(application: CPointer | null, @c_out command_line: u16[],
                             proc_attrs: CPointer | null, thread_attrs: CPointer | null,
                             inherit: bool, flags: u32,
-                            environment: CPointer | null, directory: CPointer | null,
+                            @c_out environment: u16[], directory: u16[],
                             @c_out startup: StartupInfo,
                             @c_out info: ProcessInformation) -> bool
 
