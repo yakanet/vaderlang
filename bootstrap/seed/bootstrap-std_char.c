@@ -1,15 +1,5 @@
 #include "bootstrap.split.h"
 
-bool std_char$is_alnum(uint32_t l0) {
-    bool t0;
-    t0 = std_char$is_alpha(l0);
-    if (t0) {
-        return true;
-    }
-    t0 = std_char$is_digit(l0);
-    return t0;
-}
-
 bool std_char$is_alpha(uint32_t l0) {
     bool l1;
     if ((97u <= l0)) {
@@ -26,6 +16,16 @@ bool std_char$is_alpha(uint32_t l0) {
         l1 = false;
     }
     return l1;
+}
+
+bool std_char$is_alphanumeric(uint32_t l0) {
+    bool t0;
+    t0 = std_char$is_alpha(l0);
+    if (t0) {
+        return true;
+    }
+    t0 = std_char$is_digit(l0);
+    return t0;
 }
 
 bool std_char$is_digit(uint32_t l0) {

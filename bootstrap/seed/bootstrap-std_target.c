@@ -3,16 +3,16 @@
 vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 3276u;
+        l1 = 3292u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 1669u;
+        l1 = 1676u;
     } else {
         if (!(l0 == INT32_C(2))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 3241u;
+        l1 = 3252u;
     }
     return l1;
 }
@@ -20,20 +20,20 @@ vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0) {
 vader_string_t std_target$Os$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 3254u;
+        l1 = 3264u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2405u;
+        l1 = 2420u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 1930u;
+        l1 = 1940u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 3240u;
+        l1 = 3251u;
     } else {
         if (!(l0 == INT32_C(4))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 1755u;
+        l1 = 1762u;
     }
     return l1;
 }

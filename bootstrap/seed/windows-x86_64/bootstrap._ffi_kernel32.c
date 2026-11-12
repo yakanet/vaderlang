@@ -119,6 +119,15 @@ bool vader_host_system_windows$find_close(void* a0) {
     return r;
 }
 
+uint32_t vader_host_system_windows$get_environment_variable_w(void* a0, void* a1, uint32_t a2) {
+    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
+    vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
+    vader_foreign_depth += 1;
+    uint32_t r = GetEnvironmentVariableW(s0.ptr, (void*) s1.ptr, a2);
+    vader_foreign_depth -= 1;
+    return r;
+}
+
 bool vader_host_system_windows$get_console_mode(void* a0, void* a1) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_foreign_depth += 1;

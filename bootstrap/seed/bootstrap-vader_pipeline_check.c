@@ -79,6 +79,7 @@ void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2) {
     vader_gc_top = &gc_frame;
     l3 = vader_front_typecheck$check_project_with_bodies(l0, l1, l2);
     vader_pipeline_check$lint_dead_code(l0, l1);
+    vader_front_dead__code$check_unused_imports(l0, l3, l1);
     l4 = vader_front_effects$summarise_effects(l0, l3);
     l5 = vader_front_effects$widening_diagnostics(l4, l3);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
@@ -89,7 +90,7 @@ void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2) {
     l5 = vader_front_effects$deep_copy_diagnostics(l4, l3);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check$CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1671u);
+    vader_obj_header_init(_a0_obj, 1690u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
