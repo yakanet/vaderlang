@@ -1,9 +1,9 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-// tests/snapshot: the run format and the snapshot comparison the Bun tests left
-// share. The snippet corpus itself is checked by the Vader test runner
-// (`tools/testrunner`).
+// tests/snapshot: the snapshot comparison the Bun tests left share, and the
+// list of the snippets. The snippet corpus itself is checked by the Vader test
+// runner (`tools/testrunner`).
 
 const MAIN_FILE = "_main.vader";
 
@@ -15,32 +15,6 @@ interface Scenario {
 }
 
 const UPDATE = process.env["UPDATE_SNAPSHOTS"] === "1";
-
-/** A run's output as a snapshot records it. A run stopped by a trap or a panic
- *  reads the same on both backends: the VM's `vader vm: <message>`, a trap's with
- *  ` at pc=N`, takes native's wording (`asNativeStop`), and the exit is 134, where
- *  the VM exits 1 and native aborts (134, 9 on Windows). */
-export function formatRun(stdout: string, stderr: string, exit: number): string {
-  const shared = asNativeStop(stderr);
-  const parts: string[] = [];
-  if (stdout.length > 0) parts.push("# stdout\n" + stdout);
-  if (shared.length > 0) parts.push("# stderr\n" + shared);
-  parts.push(`# exit\n${STOP_LINE.test(shared) ? STOPPED_EXIT : exit}\n`);
-  return parts.join("");
-}
-
-// The line a run stopped by a trap or a panic ends on, as native prints it.
-const STOP_LINE = /^vader: (?:trap|panic): /m;
-
-// The exit such a run records : SIGABRT's, on POSIX.
-const STOPPED_EXIT = 134;
-
-// `stderr` with the VM's stop line in native's wording: `vader vm: panic: m` is
-// `vader: panic: m`, any other `vader vm: m[ at pc=N]` a trap, `vader: trap: m`.
-function asNativeStop(stderr: string): string {
-  return stderr.replace(/^vader vm: (.*?)(?: at pc=\d+)?$/gm, (_line, message: string) =>
-    message.startsWith("panic: ") ? `vader: ${message}` : `vader: trap: ${message}`);
-}
 
 export function listSnippets(snippetsDir: string): Scenario[] {
   const out: Scenario[] = [];

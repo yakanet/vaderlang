@@ -47,5 +47,5 @@ is a part `rt/os_<target>.c` defining the `vader_os_*` list, the accessors
 This is a layout for the C runtime, not the target model TODO.md asks for: it
 does not say how the standard library marks a service unavailable on a target.
 
-`tests/runtime_parts.test.ts` parses a part named after an OS only on a host of
+`tools/repo_checks/runtime_parts.vader` parses a part named after an OS only on a host of
 that OS, the one where the unity includes it.

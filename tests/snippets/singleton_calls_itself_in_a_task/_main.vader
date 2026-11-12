@@ -1,6 +1,6 @@
 // A `@singleton` whose body calls it again, from the task that runs that body,
 // would wait for itself: the program stops instead, naming the singleton.
-// `tests/const_read_again.test.ts` checks the name on both backends.
+// `tools/cli_tests/native` checks the name on both backends.
 module "snippet"
 
 import "std/console"

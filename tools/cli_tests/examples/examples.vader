@@ -10,15 +10,12 @@
 
 module "tools/cli_tests/examples"
 
-import "std/env"
 import "std/fs"
-import "std/process"
-import "std/target"
+import "std/option"
 import "tools/cli_tests/cli"
 
 // The archive of raylib for this host, from the root of the repository.
-raylib_archive :: fn() -> string =
-    "third_party/raylib/lib/${current_os()}-${current_arch()}/libraylib.a"
+raylib_archive :: fn() -> string = "third_party/raylib/lib/${host_folder()}/libraylib.a"
 
 // ---- tests ----------------------------------------------------------------
 
@@ -30,16 +27,9 @@ assert_builds :: fn(name: string, flags: string[]) -> void {
     if !exists(raylib_archive()) {
         return
     }
-    out :: "${temp_dir()}/vader_windowed_${name}"
-    defer remove(out, RemoveOptions { .recursive = true, .force = true })
-    binary :: executable_path("${out}/${name}")
+    binary :: executable_path("${scratch_dir("windowed_${name}")}/${name}")
     argv :: ["build"] + flags + ["--out=${binary}", "examples/${name}"]
-    built :: run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })
-    if built is ProcessError {
-        fail(built.msg)
-        return
-    }
-    assert(built.exit == 0, "`vader build` exited with ${built.exit}:\n${built.stderr}")
+    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
 }
 
 @test

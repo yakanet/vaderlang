@@ -1,0 +1,195 @@
+// tools/cli_tests/run/run: `vader run`, as a user runs it.
+//
+// What the command does with the program it is given: which `main` it starts,
+// what it refuses, what it says of a lowering error, and how a program it runs
+// stops. A panic that runs the pending `defer`s is pinned on both backends by
+// the snippet `panic_runs_defers`; a failed run-time check is not, since the VM
+// and a native binary word its stop apart, so it is checked here.
+
+module "tools/cli_tests/run"
+
+import "std/fs"
+import "std/option"
+import "std/process"
+import "std/string"
+import "std/string_builder"
+import "std/target"
+import "tools/cli_tests/cli"
+
+// A diagnostics fixture whose program does not lower.
+LOWERING_ERROR :: "tests/diag_corpus/lower/m5001_string_iterator_not_imported/_main.vader"
+
+// A program whose run-time check fails, under a pending `defer`.
+OUT_OF_RANGE        :: "tests/fixtures/unwind/out_of_range.vader"
+OUT_OF_RANGE_STDOUT :: "7\ndefer of main\n"
+
+// A program that prints until its reader has gone.
+ENDLESS_PRINTER :: r"""
+    module "probe"
+
+    import "std/console"
+
+    main :: fn() -> i32 {
+        for {
+            println("x")
+        }
+    }
+    """
+
+// How many elements the large tables hold: an array literal pushes each on the
+// stack of the VM, and a copy of a `@comptime` table is built the same way.
+TABLE_ELEMENTS: i32: 200_000
+
+// What a program prints of its copy of a large table, its first element set.
+TABLE_PRINTED :: "${TABLE_ELEMENTS} -1 ${(TABLE_ELEMENTS - 1) * 3} 0\n"
+
+// A program copying a `@comptime` table of `TABLE_ELEMENTS` multiples of 3.
+comptime_table_program :: fn() -> string = """
+    module "main"
+
+    import "std/console"
+
+    multiples :: fn(n: i32) -> i32[] {
+        out: i32[]: [] * i64(n)
+        for i in 0..<n {
+            out.push(i * 3)
+        }
+        return out
+    }
+
+    TABLE: i32[]: @comptime multiples(${TABLE_ELEMENTS})
+
+    main :: fn() -> i32 {
+        copy :: TABLE
+        copy[0] = -1
+        println("\${copy.len()} \${copy[0]} \${copy[${TABLE_ELEMENTS - 1}]} \${TABLE[0]}")
+        return 0
+    }
+    """
+
+// A program writing the same multiples as an array literal.
+literal_table_program :: fn() -> string {
+    elements :: StringBuilder {}
+    for i in 0..<TABLE_ELEMENTS {
+        if i > 0 {
+            elements.append(", ")
+        }
+        elements.append("${i * 3}")
+    }
+    return """
+        module "main"
+
+        import "std/console"
+
+        main :: fn() -> i32 {
+            xs :: [${elements.to_string()}]
+            xs[0] = -1
+            println("\${xs.len()} \${xs[0]} \${xs[${TABLE_ELEMENTS - 1}]} 0")
+            return 0
+        }
+        """
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_run_stops_on_a_lowering_error_and_reports_it :: fn() -> void {
+    ran :: run_vader(["run", LOWERING_ERROR]).unwrap()
+    assert_eq(ran.exit, 1)
+    assert("error[M5001]" in ran.stderr, ran.stderr)
+    assert("reached unreachable" !in ran.stderr, ran.stderr)
+}
+
+@test
+test_run_picks_the_main_of_the_named_file :: fn() -> void {
+    // Two `main` in one folder-module: `alpha.vader`'s sorts first, and the
+    // signatures differ, so both stay. Each exits with its own code.
+    dir :: scratch_dir("run_entry")
+    write_file("${dir}/alpha.vader", "module \"scratch\"\nmain :: fn() -> i32 {\n    return 7\n}\n")
+    write_file(
+        "${dir}/zeta.vader",
+        "module \"scratch\"\nmain :: fn(argv: string[]) -> i32 {\n    return 9\n}\n",
+    )
+    assert_eq(run_vader(["run", "${dir}/zeta.vader"]).unwrap().exit, 9)
+    assert_eq(run_vader(["run", "${dir}/alpha.vader"]).unwrap().exit, 7)
+}
+
+@test
+test_run_and_build_refuse_a_module_with_no_main :: fn() -> void {
+    file :: "${scratch_dir("run_no_main")}/lib.vader"
+    write_file(file, "module \"scratch\"\nshout :: fn() -> i32 {\n    return 3\n}\n")
+    ran :: run_vader(["run", file]).unwrap()
+    assert_eq(ran.exit, 1)
+    assert("declares no `main`" in ran.stderr, ran.stderr)
+    built :: run_vader(["build", "--emit=c", "--out=-", file]).unwrap()
+    assert_eq(built.exit, 1)
+    assert_eq(built.stdout, "")
+    assert("declares no `main`" in built.stderr, built.stderr)
+}
+
+@test
+test_a_program_printing_past_its_reader_stops_once_it_has_gone :: fn() -> void {
+    // The pipeline is a `sh` one.
+    if current_os() == .Windows {
+        return
+    }
+    source :: "${scratch_dir("run_closed_pipe")}/main.vader"
+    write_file(source, ENDLESS_PRINTER)
+    pipeline :: ["/bin/sh", "-c", "\"\$0\" run \"\$1\" | head -c 1", vader_binary(), source]
+    ran :: run_command(pipeline, RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    assert_eq(ran.stdout, "x")
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_a_failed_check_runs_the_pending_defers_on_the_vm :: fn() -> void {
+    ran :: run_vader(["run", OUT_OF_RANGE]).unwrap()
+    assert_eq(ran.stdout, OUT_OF_RANGE_STDOUT)
+    assert(ran.exit != 0, "the run stops")
+}
+
+@test
+test_a_failed_check_runs_the_pending_defers_natively :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    binary :: executable_path("${scratch_dir("run_out_of_range")}/out_of_range")
+    argv :: ["build", "--out=${binary}", OUT_OF_RANGE]
+    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
+    ran :: run_command([binary])
+    if ran is ProcessResult {
+        assert(ran.exit != 0, "the binary stops")
+        assert_stopped_out_of_range(ran.stdout, ran.stderr)
+    } else {
+        // A signal stopped it: what it wrote rides in the error.
+        assert_stopped_out_of_range(ran.stdout, ran.stderr)
+    }
+}
+
+assert_stopped_out_of_range :: fn(stdout: string, stderr: string) -> void {
+    assert_eq(stdout, OUT_OF_RANGE_STDOUT)
+    assert("value out of range" in stderr, stderr)
+}
+
+@test
+test_vader_run_copies_a_large_comptime_table :: fn() -> void {
+    assert_prints_table("run_comptime_table", comptime_table_program())
+}
+
+@test
+test_vader_run_builds_a_large_array_literal :: fn() -> void {
+    assert_prints_table("run_literal_table", literal_table_program())
+}
+
+// Check that `vader run` of the program `source`, written to a fresh folder
+// named after `name`, prints `TABLE_PRINTED`.
+assert_prints_table :: fn(name: string, source: string) -> void {
+    file :: "${scratch_dir(name)}/main.vader"
+    write_file(file, source)
+    ran :: run_vader(["run", file], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.stdout, TABLE_PRINTED)
+    assert_eq(ran.exit, 0)
+}

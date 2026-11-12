@@ -1,8 +1,8 @@
 /* rt/internal.h: what the parts of the runtime share.
  *
  * Each part of rt/ includes this header first, and parses on its own against
- * it (tests/runtime_parts.test.ts): a part that reaches into another without a
- * declaration here fails that check. Declarations stay `static`, since the
+ * it (tools/repo_checks/runtime_parts.vader): a part that reaches into another
+ * without a declaration here fails that check. Declarations stay `static`, since the
  * parts end up in one translation unit (vader_runtime.c). */
 
 #ifndef VADER_RT_INTERNAL_H

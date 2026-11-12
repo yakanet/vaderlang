@@ -24,7 +24,7 @@ export const CLI_BIN = exePath("build/vader");
 // `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
 // half on the platform that most needs it, and did not even skip cleanly, since
 // `spawn` THROWS on a missing program rather than exiting non-zero.
-export const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
+const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
 
 // This machine as `<os>-<arch>`, the spelling of `VADER_OS` and `VADER_ARCH`.
 export const HOST_TARGET = `${hostOs()}-${hostArch()}`;

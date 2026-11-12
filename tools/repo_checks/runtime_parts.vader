@@ -1,0 +1,80 @@
+// tools/repo_checks/runtime_parts: each part of the C runtime parses on its own.
+//
+// The parts of `runtime/c/rt/` build as one translation unit, `vader_runtime.c`
+// including them in turn, so a part that reaches a static of an earlier one
+// compiles there with no declaration, and breaks the day the order of the
+// includes changes. Parsed alone, a part sees nothing but `rt/internal.h`: what
+// crosses between parts has to be declared there. A part named after an OS
+// (`os_posix.c`, `os_windows.c`) is parsed on a host of that OS only, the one
+// whose build includes it. A host with no C compiler checks nothing.
+
+module "tools/repo_checks"
+
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/option"
+import "std/process"
+import "std/sort"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+RUNTIME_PARTS :: "runtime/c/rt"
+
+// Whether this host's build includes the runtime part `name`.
+is_built_here :: fn(name: string) -> bool {
+    if name.ends_with("_windows.c") {
+        return current_os() == .Windows
+    }
+    if name.ends_with("_posix.c") {
+        return current_os() != .Windows
+    }
+    return true
+}
+
+// Why the runtime part at `path` does not parse on its own; null when it does.
+// An implicit declaration is only a warning to an older GCC, and it is what a
+// declaration missing from `rt/internal.h` produces.
+part_problem :: fn(path: string) -> string | null {
+    argv :: [host_cc(), "-std=c11", "-fsyntax-only", "-Werror=implicit-function-declaration", path]
+    parsed :: run_command(argv)
+    if parsed is ProcessError {
+        return "${path}: ${parsed.msg}"
+    }
+    if parsed.exit == 0 {
+        return null
+    }
+    return "${path}:\n${parsed.stderr}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_each_runtime_part_parses_on_its_own :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    listed :: read_dir(RUNTIME_PARTS).unwrap()
+    parts :: sort(
+        listed.filter((n) -> n.ends_with(".c") && is_built_here(n)).collect(),
+        compare_ascending,
+    )
+    assert(parts.len() > 0, "the runtime has parts")
+    problems: string[]: []
+    for part in parts {
+        problem :: part_problem("${RUNTIME_PARTS}/${part}")
+        if problem != null {
+            problems.push(problem)
+        }
+    }
+    assert_none(problems, "runtime parts that do not parse on their own")
+}
+
+@test
+test_a_part_named_after_an_os_is_built_on_that_os_only :: fn() -> void {
+    assert(is_built_here("arrays.c"), "a part of every host")
+    assert(is_built_here("os_windows.c") == (current_os() == .Windows), "the part of Windows")
+}

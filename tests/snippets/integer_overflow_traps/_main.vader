@@ -1,6 +1,6 @@
 // `+`, `-`, `*` and a unary `-` on an integer stop the run when the result leaves
 // its type, on the VM and from a debug build ; a release build wraps
-// (`tests/integer_overflow.test.ts`). Each type is checked at its own bounds: a
+// (`tools/cli_tests/native`). Each type is checked at its own bounds: a
 // `u8` stops past 255 although it computes on 32 bits. The method form checks as
 // the operator does. The values that must not fold come from `argv`.
 module "snippet"

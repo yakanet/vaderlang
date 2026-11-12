@@ -4,7 +4,7 @@
 // value runs code makes a task wait the same way, then computes its own value. A
 // singleton returning a task hands every caller that task to join. With `again`
 // on the command line the program reads `LOOP`, whose function reads it again
-// while computing it: `tests/const_read_again.test.ts` runs that case on both
+// while computing it: `tools/cli_tests/native` runs that case on both
 // backends.
 module "snippet"
 

@@ -3,7 +3,7 @@
 ; main: buffer.new a buffer, store_i32 42, call garbage() 64x to force minor
 ; collections that MOVE the rooted buffer, then load_i32 -> must still read 42.
 ; garbage()'s buffer is rooted only for its call -> dead/collectible on return.
-; Compiled via `vader build … --target=c/native` (see tests/membuf_gc.test.ts).
+; Built by `vader build --emit=executable --release` (see tools/cli_tests/native).
 module membuf
 type 0 scalar i32
 type 1 scalar void

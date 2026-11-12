@@ -1,6 +1,6 @@
 // tests/fixtures/unwind/out_of_range: a failed run-time check runs the pending
-// defers before the program stops, as a panic does. `tests/panic_unwind.test.ts`
-// runs it on both backends.
+// defers before the program stops, as a panic does. `tools/cli_tests/run` runs it
+// on both backends.
 
 module "main"
 

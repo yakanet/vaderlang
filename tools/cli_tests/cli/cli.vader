@@ -15,6 +15,7 @@ import "std/fs"
 import "std/io"
 import "std/process"
 import "std/string"
+import "std/target"
 import "std/task"
 import "std/time"
 
@@ -104,6 +105,37 @@ export run_command :: fn(
     }
     return ProcessError { .msg = "`${argv[0]}`: gave up after ${options.timeout.format()}" }
 }
+
+/// The run of a command that exited with 0; an error otherwise.
+///
+/// @param ran  what `run_command` or `run_vader` answered.
+/// @error      `ProcessError` when the command did not run to its end, or when
+///             it exited with another code, its stderr in the message.
+export succeeded :: fn(ran: ProcessResult | ProcessError) -> ProcessResult | ProcessError {
+    if ran is ProcessResult && ran.exit != 0 {
+        return ProcessError {
+            .msg = "exited with ${ran.exit}:\n${ran.stderr}",
+            .stdout = ran.stdout,
+            .stderr = ran.stderr,
+        }
+    }
+    return ran
+}
+
+/// A fresh, empty folder for a test, under the temporary folder: what a run
+/// before left there is removed first.
+///
+/// @param name  tells the folder apart from those of the other tests.
+export scratch_dir :: fn(name: string) -> string {
+    dir :: "${temp_dir()}/vader_cli_${name}"
+    remove(dir, RemoveOptions { .recursive = true, .force = true })
+    create_dir(dir)
+    return dir
+}
+
+/// The folder of this host in the `lib/` of a library that ships archives:
+/// `<os>-<arch>`, as `darwin-arm64`.
+export host_folder :: fn() -> string = "${current_os()}-${current_arch()}"
 
 /// The C compiler a native build runs on this host, as `vader build` picks it: a
 /// non-empty `CC`, else `gcc` on Windows and `cc` elsewhere.
@@ -196,6 +228,21 @@ test_a_command_reads_what_it_is_given_and_reports_its_exit :: fn() -> void {
     }
     assert_eq(ran.stdout.replace_all("\r", ""), "a\nb\n")
     assert_eq(ran.exit, 0)
+}
+
+@test
+test_a_ci_host_has_a_c_compiler :: fn() -> void {
+    // Without one, the tests of a native build check nothing, and pass.
+    if get_env("CI") == null {
+        return
+    }
+    assert(has_cc(), "`${host_cc()}` runs on this host")
+}
+
+@test
+test_a_failed_command_is_an_error_saying_its_exit :: fn() -> void {
+    failed :: succeeded(ProcessResult { .exit = 3, .stdout = "", .stderr = "no" })
+    assert(failed is ProcessError && failed.msg == "exited with 3:\nno", "the exit and the stderr")
 }
 
 @test

@@ -1,0 +1,333 @@
+// tools/cli_tests/native/native: what a program built natively does, where the
+// snippets cannot say it.
+//
+// The `native` stage of the test runner builds a snippet in debug mode only and
+// compares its run with the VM's. These build with `vader build`, in release
+// mode too, and check what only a native binary shows: the wrapping and the
+// checked arithmetic of each mode, and the symbols the binary holds. A host with
+// no C compiler checks nothing here.
+
+module "tools/cli_tests/native"
+
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/process"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+// A program whose wrapping operators wrap, and whose VM run is pinned.
+SIGNED_OVERFLOW :: "tests/snippets/signed_overflow_wraps"
+
+// A program that overflows an `i32` once it has printed its in-range results.
+INTEGER_OVERFLOW :: "tests/snippets/integer_overflow_traps"
+
+// A program stepping a `for` over a string.
+STRING_FOR :: r"""
+    module "snippet"
+
+    import "std/console"
+    import "std/string"
+
+    main :: fn() -> i32 {
+        n: u32 = 0
+        for c in "héllo" {
+            n += u32(c)
+        }
+        println(n)
+        return 0
+    }
+    """
+
+// ---- a check nothing reads ------------------------------------------------
+
+// A program whose run-time checks guard values nothing reads: the case named on
+// its command line prints `before`, fails its check, and prints `after` only if
+// the run goes on.
+UNREAD_CHECKS_PROGRAM :: "tests/snippets/unused_value_still_traps/_main.vader"
+
+// Each case, and what both backends say when it stops.
+UNREAD_CHECKS: [string, string][]: [
+    ["index", "out of bounds"],
+    ["divide", "i32.div by zero"],
+    ["remainder", "i32.mod by zero"],
+    ["add", "i32.add overflow"],
+    ["negate", "i32.neg overflow"],
+    ["loop", "out of bounds"],
+]
+
+// ---- a constant or a singleton reached again while it is computed ----------
+
+CONSTANT_READ_AGAIN :: "tests/snippets/const_read_again_by_its_function/_main.vader"
+// A program whose threads may share a constant guards it with a gate instead.
+GATED_CONSTANT :: "tests/snippets/singleton_and_constant_across_tasks/_main.vader"
+// A singleton its own body calls again stops the same way.
+SELFISH_SINGLETON :: "tests/snippets/singleton_calls_itself_in_a_task/_main.vader"
+
+LOOP_STOP    :: "constant `LOOP` read while its value is computed"
+SELFISH_STOP :: "singleton `selfish` called while it initialises"
+
+GATED_STDOUT :: "config starts\nconfig done\ncfg cfg cfg\npool starts\npool starts\npool done\n"
+    + "cancelled pool\nanswer computed\nanswer computed\n42 42\nwarming\n7 7\n"
+
+// ---- a byte buffer and a moving collection --------------------------------
+
+// A `.virt` written by hand: the multi-byte memory operations have no Vader
+// form. It roots a buffer, stores 42, allocates garbage in a callee until minor
+// collections move the buffer, and exits with what it reads back.
+MEMBUF :: "tests/fixtures/membuf_gc/membuf_gc.virt"
+
+// ---- building and running -------------------------------------------------
+
+// What a program wrote, and how it ended.
+Ran :: struct {
+    stdout: string
+    stderr: string
+    /// Its exit code; null when a signal ended it.
+    exit: i32 | null
+}
+
+// Build `source` with `flags` into a fresh folder named after `name`: the path
+// of the binary, or why it was not built.
+build_binary :: fn(name: string, flags: string[], source: string) -> string | ProcessError {
+    binary :: executable_path("${scratch_dir("native_${name}")}/${name}")
+    argv :: ["build"] + flags + ["--out=${binary}", source]
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+    if built is ProcessError {
+        return built
+    }
+    return binary
+}
+
+// What a run did: a signal that ended it rides in a `ProcessError`, with what it
+// wrote.
+ran_of :: fn(ran: ProcessResult | ProcessError) -> Ran {
+    if ran is ProcessResult {
+        return Ran {
+            .stdout = ran.stdout,
+            .stderr = ran.stderr,
+            .exit = ran.exit,
+        }
+    }
+    return Ran {
+        .stdout = ran.stdout,
+        .stderr = ran.stderr,
+        .exit = null,
+    }
+}
+
+// Build `source` with `flags` into a fresh folder named after `name`, run the
+// binary with `args`, and say what it did; or why it could not be built.
+build_and_run :: fn(
+    name: string,
+    flags: string[],
+    source: string,
+    args: string[] = [],
+) -> Ran | ProcessError {
+    binary :: build_binary(name, flags, source)
+    if binary is ProcessError {
+        return binary
+    }
+    return ran_of(run_command([binary] + args))
+}
+
+vm_run :: fn(program: string, args: string[] = []) -> Ran =
+    ran_of(run_vader(["run", program] + args, RunOptions { .timeout = LONG_TIMEOUT }))
+
+// The `# stdout` section of the `vm.snapshot` of the snippet in `dir`.
+vm_stdout :: fn(dir: string) -> string {
+    snapshot :: read_file_string("${dir}/vm.snapshot")
+    if snapshot is IOError {
+        return ""
+    }
+    after :: snapshot.split_first("# stdout\n") ?? return ""
+    section :: after.1.split_first("\n# ") ?? return after.1
+    return "${section.0}\n"
+}
+
+exited_cleanly :: fn(ran: Ran) -> bool {
+    exit :: ran.exit
+    return exit is i32 && exit == 0
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_release_build_wraps_the_wrapping_operators_as_the_vm_does :: fn() -> void {
+    // Without `-fwrapv`, clang at -O3 folds `x +% 1 > x` to `true`, and the
+    // loop of the snippet never ends.
+    if !has_cc() {
+        return
+    }
+    source :: "${SIGNED_OVERFLOW}/_main.vader"
+    ran :: build_and_run("signed_overflow", ["--release"], source).unwrap()
+    assert_eq(ran.stdout, vm_stdout(SIGNED_OVERFLOW))
+    assert(exited_cleanly(ran), ran.stderr)
+}
+
+@test
+test_a_debug_build_stops_on_an_integer_overflow_as_the_vm_does :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    ran :: build_and_run("overflow_debug", [], "${INTEGER_OVERFLOW}/_main.vader").unwrap()
+    assert_eq(ran.stdout, vm_stdout(INTEGER_OVERFLOW))
+    assert("i32.add overflow" in ran.stderr, ran.stderr)
+    assert(!exited_cleanly(ran), "the binary stops")
+}
+
+@test
+test_a_release_build_wraps_an_integer_overflow :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    source :: "${INTEGER_OVERFLOW}/_main.vader"
+    ran :: build_and_run("overflow_release", ["--release"], source).unwrap()
+    expected :: "${vm_stdout(INTEGER_OVERFLOW)}i32 past its maximum: -2147483648\n"
+    assert_eq(ran.stdout, expected)
+    assert(exited_cleanly(ran), ran.stderr)
+}
+
+@test
+test_a_for_over_a_string_steps_no_iterator :: fn() -> void {
+    // `string`'s `into` is a generator, which a `for` fuses into its loop: no
+    // `StringChars` is stepped, so its `next` is not even emitted. `nm` reads the
+    // symbols of the binary.
+    if current_os() == .Windows || !has_cc() {
+        return
+    }
+    source :: "${scratch_dir("native_string_for_source")}/main.vader"
+    write_file(source, STRING_FOR)
+    binary :: build_binary("string_for", [], source).unwrap()
+    // 104 + 233 + 108 + 108 + 111, the code points of "héllo".
+    assert_eq(succeeded(run_command([binary])).unwrap().stdout, "664\n")
+    symbols :: succeeded(run_command(["nm", binary])).unwrap()
+    assert("std_string_StringChars_Iterator_next" !in symbols.stdout, "no `next` of `StringChars`")
+}
+
+// Check that each case run by `run_case` stops after its first line, saying why,
+// but those `wraps` names, which run to their end.
+assert_each_check :: fn(run_case: fn(string) -> Ran, wraps: string[]) -> void {
+    for check in UNREAD_CHECKS {
+        ran :: run_case(check.0)
+        if wraps.contains(check.0) {
+            assert(ran.stdout == "before\nafter\n" && exited_cleanly(ran), "`${check.0}` runs on")
+        } else {
+            stopped :: ran.stdout == "before\n" && check.1 in ran.stderr && !exited_cleanly(ran)
+            assert(stopped, "`${check.0}` stops: ${ran.stdout}${ran.stderr}")
+        }
+    }
+}
+
+@test
+test_every_unread_check_stops_the_vm :: fn() -> void {
+    virt :: "${scratch_dir("native_unread")}/unread.virt"
+    argv :: ["build", "--emit=bytecode-text", "--out=${virt}", UNREAD_CHECKS_PROGRAM]
+    succeeded(run_vader(argv)).unwrap()
+    assert_each_check((name) -> vm_run(virt, [name]), [])
+}
+
+@test
+test_every_unread_check_stops_a_debug_build :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    binary :: build_binary("unread_debug", [], UNREAD_CHECKS_PROGRAM).unwrap()
+    assert_each_check((name) -> ran_of(run_command([binary, name])), [])
+}
+
+@test
+test_a_release_build_wraps_an_unread_overflow_and_stops_on_the_other_checks :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    binary :: build_binary("unread_release", ["--release"], UNREAD_CHECKS_PROGRAM).unwrap()
+    assert_each_check((name) -> ran_of(run_command([binary, name])), ["add", "negate"])
+}
+
+// Check that `ran` printed `stdout`, then stopped saying `message`. The VM's run
+// of a snippet drops the reason of an `unreachable`, so a snapshot cannot.
+assert_stopped :: fn(ran: Ran, stdout: string, message: string) -> void {
+    assert_eq(ran.stdout, stdout)
+    assert(message in ran.stderr, ran.stderr)
+    assert(!exited_cleanly(ran), "the run stops")
+}
+
+@test
+test_a_constant_read_again_by_its_function_stops_the_vm :: fn() -> void {
+    assert_stopped(vm_run(CONSTANT_READ_AGAIN, ["cycle"]), "42 42 126\n", LOOP_STOP)
+}
+
+@test
+test_a_constant_read_again_by_its_function_stops_a_native_build :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    ran :: build_and_run("read_again", [], CONSTANT_READ_AGAIN, ["cycle"]).unwrap()
+    assert_stopped(ran, "42 42 126\n", LOOP_STOP)
+}
+
+@test
+test_a_gated_constant_read_again_by_its_function_stops_the_vm :: fn() -> void {
+    assert_stopped(vm_run(GATED_CONSTANT, ["again"]), GATED_STDOUT, LOOP_STOP)
+}
+
+@test
+test_a_gated_constant_read_again_by_its_function_stops_a_native_build :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    ran :: build_and_run("gated_again", [], GATED_CONSTANT, ["again"]).unwrap()
+    assert_stopped(ran, GATED_STDOUT, LOOP_STOP)
+}
+
+@test
+test_a_singleton_called_again_by_its_own_body_stops_the_vm :: fn() -> void {
+    assert_stopped(vm_run(SELFISH_SINGLETON), "selfish starts\n", SELFISH_STOP)
+}
+
+@test
+test_a_singleton_called_again_by_its_own_body_stops_a_native_build :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    ran :: build_and_run("selfish", [], SELFISH_SINGLETON).unwrap()
+    assert_stopped(ran, "selfish starts\n", SELFISH_STOP)
+}
+
+@test
+test_a_byte_buffer_emits_the_helpers_of_its_abi :: fn() -> void {
+    // A buffer is a concrete heap reference, so it rides as a raw `void*`: the
+    // BUFFER sentinel of its header has the collector forward it.
+    out :: "${scratch_dir("native_membuf_c")}/membuf.c"
+    argv :: ["build", "--emit=c", "--release", "--out=${out}", MEMBUF]
+    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
+    c :: read_file_string(out).unwrap()
+    assert("(void*) vader_buffer_new(" in c, "the buffer is a raw reference")
+    assert("vader_buffer_store_i32(" in c, "a store helper")
+    assert("vader_buffer_load_i32(" in c, "a load helper")
+}
+
+@test
+test_a_byte_buffer_survives_a_moving_collection :: fn() -> void {
+    // A small young arena, every old object scanned: the garbage overflows the
+    // arena many times over, so collections move the rooted buffer, whose 42
+    // must read back through the forwarded reference.
+    if !has_cc() {
+        return
+    }
+    binary :: build_binary("membuf", ["--emit=executable", "--release"], MEMBUF).unwrap()
+    for kilobytes in [16, 32, 64, 128] {
+        options :: RunOptions {
+            .env = [["VADER_GC_YOUNG_BYTES", "${kilobytes * 1024}"], ["VADER_GC_SCAN_ALL_OLD", "1"]],
+        }
+        ran :: run_command([binary], options)
+        assert(
+            ran is ProcessResult && ran.exit == 42,
+            "the buffer survives a ${kilobytes} KB arena",
+        )
+    }
+}

@@ -1,0 +1,382 @@
+// tools/cli_tests/ffi/ffi: what crosses the FFI, built by `vader build` and run
+// by `vader run`.
+//
+// A declaration is checked against its C header only where a C compiler reads
+// both, which only a whole build shows: the split build (the default) and the
+// single-unit one assemble their units apart, and `vader run` compiles the
+// adapters of a struct crossing by value with `cc` too. A host with no C compiler
+// checks nothing here, and one with no `<spawn.h>` (Windows) skips what needs it.
+
+module "tools/cli_tests/ffi"
+
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/path"
+import "std/process"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+// The two ways a native build assembles its C units.
+BUILD_MODES: string[][]: [[], ["--no-split"]]
+
+// The programs of the fixtures that pass a struct by value.
+BY_VALUE :: "tests/fixtures/ffi_by_value"
+
+// A program calling a C library through a `CLibrary`, and what it prints.
+CLIBRARY :: "tests/fixtures/clibrary"
+GREETED  :: "hello from C: 42\nscaled: 3.0 -4.0\nunboxed: 7\n"
+
+// ---- headers ----------------------------------------------------------------
+
+// An `@extern` with no header beside another whose header declares the same
+// function otherwise: `int posix_spawnattr_getflags(const posix_spawnattr_t *,
+// short *)`, which only `<spawn.h>` declares.
+WITHOUT_HEADER :: r"""
+    module "main"
+
+    import "std/console"
+
+    @extern("posix_spawnattr_getflags")
+    get_flags :: fn(attributes: u8[], @c_out flags: i16[]) -> i32
+
+    @c_header("<spawn.h>")
+    @extern("posix_spawnattr_init")
+    init_attributes :: fn(@c_out attributes: u8[]) -> i32
+
+    main :: fn() -> i32 {
+        attributes: u8[]: [0] * 512
+        flags: i16[]: [7]
+        initialised :: init_attributes(attributes)
+        read :: get_flags(attributes, flags)
+        println("${initialised} ${read} ${flags[0]}")
+        return 0
+    }
+    """
+
+// A quoted `@c_header`, beside the entry.
+QUOTED_HEADER :: r"""
+    module "main"
+
+    import "std/console"
+
+    @c_header("\"my.h\"")
+    @extern("abs")
+    c_abs :: fn(x: i32) -> i32
+
+    main :: fn() -> i32 {
+        println("${c_abs(-7)}")
+        return 0
+    }
+    """
+
+// Build the program `source` with `flags` into `binary`, and run it: what it
+// printed, or why it was not built or did not run.
+built_output :: fn(source: string, flags: string[], binary: string) -> string | ProcessError {
+    argv :: ["build"] + flags + ["--out=${binary}", source]
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+    if built is ProcessError {
+        return built
+    }
+    ran :: succeeded(run_command([binary]))
+    if ran is ProcessError {
+        return ran
+    }
+    return ran.stdout
+}
+
+// ---- a pointer the header does not accept ---------------------------------
+
+FIRST_HEADER :: r"""
+    typedef struct { int value; } first_t;
+
+    static inline first_t first_cell(int *cells) {
+        first_t first = { cells[0] };
+        return first;
+    }
+    """
+
+// The program declaring `first_cell` with `parameter`, lending it an array of
+// `element`.
+first_cell_program :: fn(parameter: string, element: string) -> string = """
+    module "main"
+
+    import "std/console"
+
+    @c_struct("first_t")
+    First :: struct { value: i32 }
+
+    @c_header("first.h")
+    @extern("first_cell")
+    first_cell :: fn(${parameter}) -> First
+
+    main :: fn() -> i32 {
+        cells: ${element}[]: [7, 8]
+        println("\${first_cell(cells).value}")
+        return 0
+    }
+    """
+
+// What each path that compiles a call against its header answers on the program
+// declaring `first_cell` with `parameter`, lending an array of `element`: one
+// result per path, a split build, a single-unit one and `vader run`.
+first_cell_paths :: fn(name: string, parameter: string, element: string) -> (ProcessResult | ProcessError)[] {
+    root :: scratch_dir("ffi_${name}")
+    write_file("${root}/first.h", FIRST_HEADER)
+    entry :: "${root}/main.vader"
+    write_file(entry, first_cell_program(parameter, element))
+    binary :: executable_path("${root}/app")
+    long :: RunOptions { .timeout = LONG_TIMEOUT }
+    return [
+        run_vader(["build", "--out=${binary}", entry], long),
+        run_vader(["build", "--no-split", "--out=${binary}", entry], long),
+        run_vader(["run", entry], long),
+    ]
+}
+
+// Check that each of `answers` failed and said `said`.
+assert_each_refused :: fn(answers: (ProcessResult | ProcessError)[], said: string) -> void {
+    for answer in answers {
+        refused :: answer.unwrap()
+        assert(refused.exit != 0 && said in refused.stderr, refused.stderr)
+    }
+}
+
+// ---- CLibrary -------------------------------------------------------------
+
+// A copy of the `CLibrary` fixture, with its archive compiled for this host when
+// `with_archive`; or why it could not be made.
+stage_clibrary :: fn(name: string, with_archive: bool) -> string | ProcessError {
+    dir :: scratch_dir("ffi_${name}")
+    copied :: copy_tree(CLIBRARY, dir)
+    if copied is IOError {
+        return ProcessError { .msg = copied.msg }
+    }
+    if !with_archive {
+        return dir
+    }
+    greeter :: "${dir}/vendor/greeter"
+    lib :: "${greeter}/lib/${host_folder()}"
+    create_dir(lib)
+    object :: "${lib}/greeter.o"
+    compiled :: succeeded(
+        run_command(
+            [host_cc(), "-c", "-I", "${greeter}/include", "${greeter}/greeter.c", "-o", object],
+        ),
+    )
+    if compiled is ProcessError {
+        return compiled
+    }
+    archived :: succeeded(run_command(["ar", "rcs", "${lib}/libgreeter.a", object]))
+    if archived is ProcessError {
+        return archived
+    }
+    return dir
+}
+
+// How a test runs `vader` in the staged project `dir`.
+in_project :: fn(dir: string) = RunOptions {
+    .cwd = dir,
+    .env = toolchain_env(),
+    .timeout = LONG_TIMEOUT,
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_an_extern_with_no_header_compiles_beside_a_header_declaring_it_otherwise :: fn() -> void {
+    // `<spawn.h>` does not exist under Windows.
+    if current_os() == .Windows || !has_cc() {
+        return
+    }
+    dir :: scratch_dir("ffi_without_header")
+    entry :: "${dir}/main.vader"
+    write_file(entry, WITHOUT_HEADER)
+    for flags in BUILD_MODES {
+        assert_eq(built_output(entry, flags, executable_path("${dir}/app")).unwrap(), "0 0 0\n")
+    }
+}
+
+@test
+test_a_quoted_header_beside_the_entry_compiles_with_the_binary_elsewhere :: fn() -> void {
+    // A `vader.h` beside the entry must not stand in for the runtime's: the
+    // generated C includes it quoted, and `-iquote <runtime>` comes first.
+    if !has_cc() {
+        return
+    }
+    root :: scratch_dir("ffi_quoted_header")
+    create_dir("${root}/src")
+    create_dir("${root}/out")
+    write_file("${root}/src/my.h", "#include <stdlib.h>\n")
+    write_file("${root}/src/vader.h", "#error the runtime's vader.h was shadowed\n")
+    entry :: "${root}/src/main.vader"
+    write_file(entry, QUOTED_HEADER)
+    for flags in BUILD_MODES {
+        assert_eq(built_output(entry, flags, executable_path("${root}/out/app")).unwrap(), "7\n")
+    }
+}
+
+@test
+test_an_element_type_of_another_width_fails_every_path :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    answers :: first_cell_paths("pointer_width", "@c_type(\"short\") @c_out cells: i16[]", "i16")
+    assert_each_refused(answers, "incompatible pointer type")
+}
+
+@test
+test_an_array_lent_without_c_out_to_a_parameter_c_writes_fails_every_path :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    assert_each_refused(first_cell_paths("pointer_const", "cells: i32[]", "i32"), "discards")
+}
+
+@test
+test_a_parameter_the_header_accepts_passes_every_path :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    answers :: first_cell_paths("pointer_match", "@c_type(\"int\") @c_out cells: i32[]", "i32")
+    for answer in answers {
+        succeeded(answer).unwrap()
+    }
+}
+
+@test
+test_a_struct_returned_by_value_crosses_under_vader_run :: fn() -> void {
+    // The adapter is a library `vader run` compiles under the program's
+    // `build/ffi/`: the fixture is copied first, so it does not land in the tree.
+    if !has_cc() {
+        return
+    }
+    dir :: scratch_dir("ffi_by_value_result")
+    copy_tree("${BY_VALUE}/result", dir)
+    ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    assert_eq(ran.stdout, "quot=3\n")
+    assert(exists("${dir}/build/ffi"), "the adapter is kept beside the program")
+}
+
+@test
+test_an_adapter_that_does_not_link_stops_vader_run_and_names_the_extern :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: scratch_dir("ffi_by_value_argument")
+    copy_tree("${BY_VALUE}/argument", dir)
+    ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    assert_eq(ran.exit, 1)
+    said :: "extern `takes_div` is called through an adapter (argument 0 passes a struct by value)"
+    assert(said in ran.stderr, ran.stderr)
+    assert("build the program with `vader build`" in ran.stderr, ran.stderr)
+}
+
+@test
+test_without_a_c_compiler_vader_run_says_the_adapters_need_one :: fn() -> void {
+    dir :: scratch_dir("ffi_by_value_no_cc")
+    copy_tree("${BY_VALUE}/result", dir)
+    options :: RunOptions {
+        .env = [["CC", "${dir}/no-such-cc"]],
+        .timeout = LONG_TIMEOUT,
+    }
+    ran :: run_vader(["run", "${dir}/_main.vader"], options).unwrap()
+    assert_eq(ran.exit, 1)
+    said :: "extern `div` is called through an adapter (it returns a struct by value)"
+    assert(said in ran.stderr, ran.stderr)
+    assert("need a C compiler" in ran.stderr, ran.stderr)
+}
+
+@test
+test_a_clibrary_links_by_itself :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage_clibrary("clibrary_link", true).unwrap()
+    for flags in BUILD_MODES {
+        built :: run_vader(["build"] + flags + ["--out=${dir}/main", dir], in_project(dir))
+        succeeded(built).unwrap()
+        ran :: succeeded(run_command([executable_path("${dir}/main")], RunOptions { .cwd = dir }))
+        assert_eq(ran.unwrap().stdout, GREETED)
+    }
+}
+
+@test
+test_the_calls_of_a_clibrary_compile_in_a_unit_of_their_own :: fn() -> void {
+    // Two libraries' headers need not agree (`raylib.h` and `<windows.h>` do
+    // not), so a library's headers are included by its unit alone; every other
+    // unit reaches its shims through prototypes.
+    dir :: stage_clibrary("clibrary_units", false).unwrap()
+    split :: "${dir}/split/main"
+    succeeded(run_vader(["build", "--emit=c", "--out=${split}", dir], in_project(dir))).unwrap()
+    unit :: read_file_string("${split}-_ffi_greeter.c")
+    imports :: read_file_string("${split}.imports.h")
+    assert(unit is string && "#include \"greeter.h\"" in unit, "the unit of the library")
+    assert(
+        imports is string && "greeter.h" !in imports && "extern" in imports,
+        "the prototypes the other units reach it by",
+    )
+    single :: "${dir}/single/main.c"
+    mono :: run_vader(["build", "--emit=c", "--no-split", "--out=${single}", dir], in_project(dir))
+    succeeded(mono).unwrap()
+    whole :: read_file_string(single)
+    shims :: read_file_string("${dir}/single/main-_ffi_greeter.c")
+    assert(
+        whole is string && "greeter.h" !in whole,
+        "a single unit includes no header of the library",
+    )
+    assert(shims is string && "#include \"greeter.h\"" in shims, "but the unit of its shims does")
+    // One stream holds one unit, every shim in it.
+    stream :: succeeded(run_vader(["build", "--emit=c", "--out=-", dir], in_project(dir))).unwrap()
+    assert("#include \"greeter.h\"" in stream.stdout, "the stream includes the header")
+}
+
+@test
+test_a_virt_carries_the_library_to_a_native_build :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage_clibrary("clibrary_virt", true).unwrap()
+    virt :: "${dir}/main.virt"
+    dumped :: run_vader(["build", "--emit=bytecode-text", "--out=${virt}", dir], in_project(dir))
+    succeeded(dumped).unwrap()
+    succeeded(run_vader(["build", "--out=${dir}/from-virt", virt], in_project(dir))).unwrap()
+    ran :: run_command([executable_path("${dir}/from-virt")], RunOptions { .cwd = dir })
+    assert_eq(succeeded(ran).unwrap().stdout, GREETED)
+}
+
+@test
+test_a_missing_archive_stops_the_build_and_names_the_path :: fn() -> void {
+    dir :: stage_clibrary("clibrary_missing", false).unwrap()
+    built :: run_vader(["build", "--out=${dir}/main", dir], in_project(dir)).unwrap()
+    assert_eq(built.exit, 1)
+    assert("library `greeter` has no archive for this target" in built.stderr, built.stderr)
+    assert("lib/${host_folder()}/libgreeter.a" in to_posix(built.stderr), built.stderr)
+}
+
+@test
+test_the_interpreter_calls_a_library_shipped_as_archives_through_adapters :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage_clibrary("clibrary_run", true).unwrap()
+    ran :: run_vader(["run", dir], in_project(dir)).unwrap()
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    assert_eq(ran.stdout, GREETED)
+}
+
+@test
+test_the_interpreter_reports_a_missing_archive_and_names_the_extern :: fn() -> void {
+    dir :: stage_clibrary("clibrary_run_missing", false).unwrap()
+    ran :: run_vader(["run", dir], in_project(dir)).unwrap()
+    assert_eq(ran.exit, 1)
+    said :: "is called through an adapter (its binding `greeter` ships static archives"
+    assert(said in ran.stderr, ran.stderr)
+    assert("library `greeter` has no archive for this target" in ran.stderr, ran.stderr)
+}

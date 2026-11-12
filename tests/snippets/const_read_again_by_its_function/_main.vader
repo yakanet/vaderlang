@@ -2,7 +2,7 @@
 // which stops the program when that function reads the constant again. `CACHED`
 // reads itself on a branch its own computation does not take, which runs. With
 // `cycle` on the command line the program reads `LOOP`, whose function reads it
-// again: `tests/const_read_again.test.ts` runs that case on both backends.
+// again: `tools/cli_tests/native` runs that case on both backends.
 module "snippet"
 
 import "std/console"

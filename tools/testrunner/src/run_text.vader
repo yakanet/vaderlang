@@ -1,12 +1,11 @@
 // tools/testrunner/src/run_text: the text the run of a program records in its
 // `vm.snapshot`.
 //
-// The text `formatRun` of `tests/snapshot.ts` writes, so that both harnesses
-// share the snapshots: the program's stdout and stderr, each under its header when
-// it is not empty, then its exit code. The stop line a run on the VM ends on reads
-// as a native run words it, and a run stopped that way records the exit of
-// SIGABRT. The worker forms it for a run that ends, and the runner for one whose
-// worker died with the program.
+// The program's stdout and stderr, each under its header when it is not empty,
+// then its exit code. The stop line a run on the VM ends on reads as a native
+// run words it, and a run stopped that way records the exit of SIGABRT. The
+// worker forms it for a run that ends, and the runner for one whose worker died
+// with the program.
 
 module "tools/testrunner/src"
 
