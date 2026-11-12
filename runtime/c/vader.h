@@ -344,24 +344,70 @@ static inline void* vader_box_to_ref(vader_box_t b) {
  *     carries `mark == g_mark_value` (a per-major toggle in {1, 2}); a free slot
  *     carries `mark == 0`. Young objects don't use it. (The atom string-GC
  *     keeps its own mark bit on the atom table, unrelated to this one.)
- *   - `forward` is NULL for live objects in young from-space and non-NULL when
- *     a minor has copied the object, to young to-space or into the old slab
- *     (the GC walks forwards transparently when scanning roots). A forward does
- *     not outlive the collection that wrote it, except the one
- *     `vader_gc_force_tenure` leaves until the next minor (docs/adr/0107). For a
- *     FREE old slot it is repurposed as the size-class free-list link (old
- *     objects never forward: the old gen is non-moving). */
-typedef struct {
-    uint32_t type_index;
-    uint8_t  age;
-    uint8_t  mark;
-    uint16_t _reserved;
-    void*    forward;
-} vader_obj_header_t;
-
+ *   - `_reserved` holds flags: `VADER_OBJ_FLAG_FORWARDED` below, and those of an
+ *     array header or buffer.
+ *
+ * The header holds no forwarding pointer. An object a minor has copied, to
+ * young to-space or into the old slab, carries `VADER_OBJ_FLAG_FORWARDED`, and
+ * the word after its header holds the address of the copy IN PLACE OF what the
+ * object held there: read nothing else of a forwarded object, its copy has it.
+ * A forward does not outlive the collection that wrote it, except the one
+ * `vader_gc_force_tenure` leaves until the next minor (docs/adr/0107). A FREE
+ * old slot threads the free list of its size class through that same word (old
+ * objects never forward: the old gen is non-moving). Record: docs/adr/0133. */
 /* Every allocation is rounded up to this, so it is the strongest alignment a
  * Vader object's fields can rely on. */
 #define VADER_GC_ALIGN 8u
+
+typedef struct {
+    /* On the alignment of an allocation: a static object whose fields are all
+     * narrower would otherwise land off it, which the collector takes for
+     * stray bytes. */
+    _Alignas(VADER_GC_ALIGN) uint32_t type_index;
+    uint8_t  age;
+    uint8_t  mark;
+    uint16_t _reserved;
+} vader_obj_header_t;
+
+_Static_assert(sizeof(vader_obj_header_t) == 8u, "an object header is eight bytes");
+
+#define VADER_OBJ_FLAG_FORWARDED ((uint16_t) 0x8000u)
+
+/* The least an object takes: its header and the word a forward is written in. */
+#define VADER_OBJ_MIN_BYTES (sizeof(vader_obj_header_t) + sizeof(void*))
+
+/* The bytes an object of `declared` bytes takes. The allocator and every walk
+ * of the heap size an object through this, or they disagree on a struct with
+ * no field. */
+static inline size_t vader_obj_bytes(size_t declared) {
+    return declared < VADER_OBJ_MIN_BYTES ? VADER_OBJ_MIN_BYTES : declared;
+}
+
+/* The pointer in the word after the header of `obj`: the forward of a copied
+ * object, the next slot of a free one. */
+static inline void* vader_obj_link(const void* obj) {
+    void* link;
+    memcpy(&link, (const char*) obj + sizeof(vader_obj_header_t), sizeof(link));
+    return link;
+}
+
+static inline void vader_obj_set_link(void* obj, void* link) {
+    memcpy((char*) obj + sizeof(vader_obj_header_t), &link, sizeof(link));
+}
+
+/* The copy a collection made of `obj`, or NULL when it made none. */
+static inline void* vader_obj_forwarded_to(const void* obj) {
+    if ((((const vader_obj_header_t*) obj)->_reserved & VADER_OBJ_FLAG_FORWARDED) == 0u) return NULL;
+    return vader_obj_link(obj);
+}
+
+/* Forward `obj` to `to`, its copy. Last, once the copy is made: this writes
+ * over the first word `obj` held. */
+static inline void vader_obj_forward_to(void* obj, void* to) {
+    ((vader_obj_header_t*) obj)->_reserved |= VADER_OBJ_FLAG_FORWARDED;
+    vader_obj_set_link(obj, to);
+}
+
 
 /* ---- per-type allocation counter (VADER_ALLOC_BY_TYPE=1) -------------------
  * How many objects of each type a run actually allocates. The static report
@@ -385,14 +431,13 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     h->age        = 0;
     h->mark       = 0;
     h->_reserved  = 0;
-    h->forward    = NULL;
 }
 
 /* The initialisers of the static objects the C emitter declares. The emitter
  * names these and writes no member by position, so a layout changes here alone.
  * `VADER_STATIC_BUF_HEADER` opens the initialiser of a `VADER_ARRAY_STATIC_BUF`,
  * whose `.slots` follow it: it has no braces of its own. */
-#define VADER_STATIC_HEADER(tag) { (tag), 0u, 0u, 0u, NULL }
+#define VADER_STATIC_HEADER(tag) { (tag), 0u, 0u, 0u }
 #define VADER_STATIC_BUF_HEADER(element_tag, element_kind, count) \
     VADER_STATIC_HEADER(VADER_TYPE_INDEX_ARRAY_BUF), (count), (count), (element_tag), (element_kind)
 #define VADER_STATIC_ARRAY(type_index, count, buffer) \
@@ -495,6 +540,9 @@ typedef struct {
      * for slice views that share the parent's buf. */
     size_t                   offset;
     struct vader_array_buf*  buf;
+    /* Rounds the header up to `VADER_ARRAY_SLOT_ALIGN`: its buffer follows it
+     * in the one block of a new array. */
+    uint64_t                 _pad;
 } vader_array_t;
 
 /* Borrowed `const u8[]` byte-view accessors: the single home of the
@@ -594,7 +642,7 @@ static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag
     size_t                   length;                                             \
     uint32_t                 element_tag;                                        \
     uint8_t                  element_kind;                                       \
-    uint8_t                  _pad[11];
+    uint8_t                  _pad[3];
 
 /* The alignment of an array's slots: what a vectorised loop over them reads
  * without a misaligned access. */
@@ -707,7 +755,7 @@ static inline void vader_array_ref_store_box(vader_array_buf_t* buf, size_t slot
 
 /* Sentinel index stamped on a FREE old-gen slot by the mark-sweep collector
  * (rt/gc_heap.c). A freed slot also carries `mark == 0` and threads the class
- * free list through its `forward` field. The region walks key off `mark`, so
+ * free list through the word after its header. The region walks key off `mark`, so
  * none sizes a free slot: `vader_gc_obj_size` would trap on the sentinel. */
 #define VADER_TYPE_INDEX_FREE UINT32_C(0xFFFFFFFC)
 
@@ -895,14 +943,14 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
 vader_array_t* vader_array_reserve(uint32_t type_index, int64_t n, uint8_t element_kind, uint32_t element_tag);
 
 /* Walk a buf's forwarding chain to its final address: the single home of that
- * loop. Every buf resolver guards with `buf != NULL && buf->header.forward !=
+ * loop. Every buf resolver guards with `buf != NULL && vader_obj_forwarded_to(buf) !=
  * NULL` and delegates here (`vader_array_resolve_buf` and the grow path
  * `vader_array_detach`); callers must have made that check, so the first hop
  * always advances. The sibling `vader_array_resolve` walks the array HEADER's
  * chain, a different object, and keeps its own loop.
  *
  * Outside a collection the only forward alive is the one `vader_gc_force_tenure`
- * leaves (see the `forward` field).
+ * leaves (see `vader_obj_header_t`).
  *
  * Out-of-line : the body is reached on a vanishingly small fraction of the
  * resolving sites. `VADER_PURE` lets the compiler treat the call as clobbering
@@ -928,7 +976,7 @@ VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct
 /* Statement position only, never before an `else` : a bare `if` binds it. */
 #ifndef NDEBUG
 #define VADER_ARRAY_RESOLVE_BUF(a)                                           \
-    if ((a)->buf != NULL && (a)->buf->header.forward != NULL) {             \
+    if ((a)->buf != NULL && vader_obj_forwarded_to((a)->buf) != NULL) {     \
         vader_trap("stale array buffer: header points at a forwarded buf"); \
     }
 #else
@@ -947,7 +995,7 @@ VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct
 /* The resolving form, for the runtime's own sites that read `a->buf->slots`,
  * called before they can collect. */
 static inline void vader_array_resolve_buf(vader_array_t* a) {
-    if (a->buf != NULL && a->buf->header.forward != NULL) {
+    if (a->buf != NULL && vader_obj_forwarded_to(a->buf) != NULL) {
         a->buf = vader_array_buf_forward(a->buf);
     }
 }

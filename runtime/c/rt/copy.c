@@ -149,7 +149,7 @@ static void* vader_copy_ref(vader_copy_t* c, void* obj) {
     switch (info->kind) {
         case VADER_TYPE_KIND_STRUCT:
             if ((info->flags & VADER_TYPE_FLAG_SHARED) != 0u) return obj;
-            return vader_copy_raw(c, obj, info->size);
+            return vader_copy_raw(c, obj, vader_obj_bytes(info->size));
         case VADER_TYPE_KIND_ARRAY:
             return vader_copy_array(c, (vader_array_t*) obj);
         case VADER_TYPE_KIND_FN:

@@ -163,17 +163,22 @@ the hash and the order agree with a native build.
 
 ## Objects
 
-Every heap object starts with the same 16-byte header:
+Every heap object starts with the same 8-byte header:
 
 ```c
 typedef struct {
     uint32_t type_index;   /* index in the type table: the object's layout and its tag */
     uint8_t  age;          /* collections survived in the young generation */
     uint8_t  mark;         /* the old generation's mark */
-    uint16_t _reserved;    /* flags of an array header or buffer */
-    void*    forward;      /* where a collection moved the object */
+    uint16_t _reserved;    /* flags: forwarded, and those of an array header or buffer */
 } vader_obj_header_t;
 ```
+
+The header holds no forwarding pointer. A collection that copies an object sets
+its forwarded flag and writes the address of the copy in the word after the
+header, over what the object held there: its copy has it. An object is therefore
+at least 16 bytes
+([ADR 0133](adr/0133-an-object-header-is-eight-bytes.md)).
 
 Allocations are rounded up to 8 bytes. The C emitter writes a table,
 `vader_type_info_table`, with one row per type index: the kind of object (struct,
@@ -229,6 +234,7 @@ typedef struct {
     size_t                  capacity;
     size_t                  offset;
     struct vader_array_buf* buf;
+    uint64_t                _pad;
 } vader_array_t;
 
 typedef struct vader_array_buf {
@@ -237,12 +243,12 @@ typedef struct vader_array_buf {
     size_t             length;
     uint32_t           element_tag;
     uint8_t            element_kind;
-    uint8_t            _pad[11];
+    uint8_t            _pad[3];
     uint8_t            slots[];
 } vader_array_buf_t;
 ```
 
-The slots start 48 bytes into the buffer, and a buffer starts on a 16-byte
+The slots start 32 bytes into the buffer, and a buffer starts on a 16-byte
 boundary wherever it is created or promoted, so a vectorised loop over the slots
 reads no misaligned element. A young allocation off that boundary leaves an
 8-byte filler ahead of the buffer. A buffer the collector keeps in young space

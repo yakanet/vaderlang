@@ -73,9 +73,9 @@ emit_fn_addr :: fn(s: FnState, op: Bc.FnAddr) -> void {
     // `.Pointer`, NOT `.Ref`: the difference is a GC root. A `.Ref` temp lands
     // in the frame's `raw[]`, and `vader_gc_scan_raw` reads its pointee's header
     // without checking the pointee is on the heap. A function's address is in
-    // `.text`, so `hdr->forward` would be machine code (never NULL) and the
-    // collector would overwrite the slot. `fn.ref` gets away with `.Ref` because
-    // `vader_fn_static_N` carries a real object header whose `forward` IS NULL.
+    // `.text`, so its header would be machine code, forwarded flag included, and
+    // the collector would overwrite the slot. `fn.ref` gets away with `.Ref` because
+    // `vader_fn_static_N` carries a real object header, which is not forwarded.
     temporary :: new_temporary(s, .Pointer)
     assign(
         s,

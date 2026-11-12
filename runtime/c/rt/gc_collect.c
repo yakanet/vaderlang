@@ -142,12 +142,16 @@ static void vader_gc_mark_cstack_conservative(void) {
  * out-of-range index, so it never returns 0: the `bytes == 0` guards at the
  * call sites are unreachable and kept only as defence. */
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
+    /* The two kinds below keep their size in the word a forward takes: read it
+     * on the copy, which has the same. A struct's is in the table. */
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
-        vader_array_buf_t* buf = (vader_array_buf_t*) obj;
+        void* copy = vader_obj_forwarded_to(obj);
+        vader_array_buf_t* buf = (vader_array_buf_t*) (copy != NULL ? copy : obj);
         return sizeof(vader_array_buf_t) + buf->capacity * vader_array_element_size(buf->element_kind);
     }
     if (type_index == VADER_TYPE_INDEX_BUFFER) {
-        vader_buffer_t* b = (vader_buffer_t*) obj;
+        void* copy = vader_obj_forwarded_to(obj);
+        vader_buffer_t* b = (vader_buffer_t*) (copy != NULL ? copy : obj);
         return sizeof(vader_buffer_t) + b->byte_count;
     }
     /* A heap object the GC cannot size is a CODEGEN bug: the emitter stamped a
@@ -166,13 +170,12 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
         vader_trap("vader_gc: heap object whose type has no info entry, the "
                    "emitter stamped a header the collector cannot size");
     }
-    return info->size;
+    return vader_obj_bytes(info->size);
 }
 
-/* Place a copy of `obj` in `target` and return the new address. Updates the
- * source header's `forward` slot, clears the destination's so the freshly
- * copied object looks live (not yet forwarded) within this cycle. The caller
- * sets the destination's age. Returns NULL if `target` doesn't have room.
+/* Place a copy of `obj` in `target` and return the new address, then forward
+ * the source to it: the copy is made first, so it does not carry the flag. The
+ * caller sets the destination's age. Returns NULL if `target` doesn't have room.
  *
  * Never leaves a filler ahead of an array buffer, unlike its allocation: the
  * copies then take no more room than the from-space held, which the size of the
@@ -184,8 +187,7 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
     target->cur += aligned;
     memcpy(dst, obj, bytes);
     g_total_copied += bytes;
-    ((vader_obj_header_t*) obj)->forward = dst;
-    ((vader_obj_header_t*) dst)->forward = NULL;
+    vader_obj_forward_to(obj, dst);
     return dst;
 }
 
@@ -193,13 +195,12 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
  * it. Returns NULL when the old reservation is at its cap: the caller decides
  * what that means. The caller also PUBLISHES the copy: a collection gray-pushes
  * it, an out-of-cycle tenure marks its card. */
-static void* vader_gc_promote(void* obj, vader_obj_header_t* hdr, size_t bytes, uint8_t age) {
+static void* vader_gc_promote(void* obj, size_t bytes, uint8_t age) {
     void* dst = vader_old_alloc(bytes);
     if (dst == NULL) return NULL;
     memcpy(dst, obj, bytes);
-    hdr->forward = dst;                              /* source forwards to promoted */
+    vader_obj_forward_to(obj, dst);
     vader_obj_header_t* dh = (vader_obj_header_t*) dst;
-    dh->forward = NULL;                              /* the memcpy carried the source's */
     dh->age  = age;
     dh->mark = g_mark_value;                         /* live in the current old epoch */
     return dst;
@@ -220,7 +221,7 @@ static VADER_NOINLINE void* vader_gc_evacuate(void* obj, vader_obj_header_t* hdr
     if (hdr->age + 1u >= VADER_TENURE_AGE
         || (VADER_UNLIKELY(g_minor_promote_shared) && type_index == VADER_TYPE_INDEX_ARRAY_BUF
             && vader_array_buf_is_shared((vader_array_buf_t*) obj))) {
-        void* dst = vader_gc_promote(obj, hdr, bytes, (uint8_t)(hdr->age + 1u));
+        void* dst = vader_gc_promote(obj, bytes, (uint8_t)(hdr->age + 1u));
         if (dst != NULL) {
             g_total_copied += bytes;
             vader_gray_push((char*) dst);                /* scan its slots for young refs */
@@ -271,7 +272,8 @@ static inline void* vader_gc_forward(void* obj, uint32_t type_index) {
     if (!vader_in_young_from(obj)) return obj;
 
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-    if (hdr->forward != NULL) return hdr->forward;
+    void* copy = vader_obj_forwarded_to(obj);
+    if (copy != NULL) return copy;
     return vader_gc_evacuate(obj, hdr, type_index);
 }
 
@@ -374,7 +376,7 @@ static size_t vader_gc_scan_object(char* scan) {
     for (uint16_t i = 0; i < info->ref_count; i++) {
         vader_gc_scan_raw((void**) (scan + info->ref_offsets[i]));
     }
-    return vader_gc_align(info->size);
+    return vader_gc_align(vader_obj_bytes(info->size));
 }
 
 /* Forward every root cell of one thread: its shadow stack from `top`, then its
@@ -684,10 +686,11 @@ void vader_ffi_callback_first_escape(void) {
 static void* vader_gc_force_tenure(void* obj) {
     if (!vader_in_young_from(obj)) return obj;   /* old or immortal: already still */
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-    if (hdr->forward != NULL) return hdr->forward;
+    void* copy = vader_obj_forwarded_to(obj);
+    if (copy != NULL) return copy;
     size_t bytes = vader_gc_obj_size(obj, hdr->type_index);
     if (bytes == 0) return obj;
-    void* dst = vader_gc_promote(obj, hdr, bytes, VADER_TENURE_AGE);
+    void* dst = vader_gc_promote(obj, bytes, VADER_TENURE_AGE);
     if (dst == NULL) return obj;
     /* No cycle is running to trace the copy, so mark its card: the next minor
      * scans it for old->young edges. */

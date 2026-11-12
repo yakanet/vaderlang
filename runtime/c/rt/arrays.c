@@ -117,7 +117,8 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
  * a collection (docs/adr/0107): a helper that collects roots its arrays on the
  * shadow stack, which the collection rewrites, and reads them back from there. */
 static vader_array_t* vader_array_resolve(vader_array_t* a) {
-    while (a->header.forward != NULL) a = (vader_array_t*) a->header.forward;
+    void* to;
+    while ((to = vader_obj_forwarded_to(a)) != NULL) a = (vader_array_t*) to;
     return a;
 }
 
@@ -164,9 +165,8 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
  * `buf` is non-NULL and carries a live forward, so the first iteration always
  * advances; the loop then drains a chain longer than one link. */
 VADER_PURE VADER_NOINLINE vader_array_buf_t* vader_array_buf_forward(vader_array_buf_t* buf) {
-    while (buf->header.forward != NULL) {
-        buf = (vader_array_buf_t*) buf->header.forward;
-    }
+    void* to;
+    while ((to = vader_obj_forwarded_to(buf)) != NULL) buf = (vader_array_buf_t*) to;
     return buf;
 }
 
@@ -193,7 +193,7 @@ static vader_array_t* vader_array_detach(vader_array_t* a, size_t need, vader_bo
     vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, a->buf->element_tag);
     a = (vader_array_t*) a_box.payload.obj;
     vader_array_buf_t* old = a->buf;
-    if (old->header.forward != NULL) {
+    if (vader_obj_forwarded_to(old) != NULL) {
         old = vader_array_buf_forward(old);
     }
     if (a->length > 0) {

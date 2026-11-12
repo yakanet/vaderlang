@@ -17,8 +17,8 @@
  *   - the card table covers the fixed reservation once: no grow-time reslice.
  *
  * Small objects (<= VADER_OLD_SMALL_MAX) use 16 B size classes; each class owns
- * regions (bump-carved) + a free list threaded through freed slots' `forward`
- * field. Large objects get a one-object region each, whose pages go back on free
+ * regions (bump-carved) + a free list threaded through the word after a freed
+ * slot's header. Large objects get a one-object region each, whose pages go back on free
  * and kept for reuse in bins by size (`vader_old_large_bin`). Reclamation is
  * mark (toggle `g_mark_value`, trace from roots + young survivors via a gray
  * worklist) + sweep (rebuild the free lists from unmarked slots). See
@@ -37,11 +37,13 @@
 #define VADER_OLD_LARGE_SUBBINS  (1u << VADER_OLD_LARGE_SUB_LOG2)
 #define VADER_OLD_LARGE_BINS     ((64u - VADER_OLD_SMALL_MAX_LOG2) * VADER_OLD_LARGE_SUBBINS)
 #define VADER_OLD_LARGE_SCAN     32u   /* regions a large allocation inspects in its own bin */
+_Static_assert(VADER_OLD_CLASS_GRAN >= VADER_OBJ_MIN_BYTES,
+               "a free slot holds its header and the link of its free list");
 _Static_assert(VADER_OLD_CLASS_GRAN % VADER_ARRAY_SLOT_ALIGN == 0,
                "a promoted array buffer keeps its slots on the slot alignment");
 
 typedef struct {
-    char*               free_head;   /* free list: link via each slot's `forward` */
+    char*               free_head;   /* free list: link in the word after each slot's header */
     vader_old_region_t* current;     /* region we bump-allocate from */
 } vader_old_class_t;
 
@@ -304,7 +306,7 @@ static void* vader_old_alloc(size_t bytes) {
         vader_old_class_t* c = &g_old_classes[ci];
         if (c->free_head != NULL) {
             char* slot = c->free_head;
-            c->free_head = (char*) ((vader_obj_header_t*) slot)->forward;
+            c->free_head = (char*) vader_obj_link(slot);
             g_old_live_bytes += slot_size;
             return slot;
         }
@@ -405,7 +407,7 @@ static void vader_old_sweep(void) {
             } else {
                 h->mark = 0u;
                 h->type_index = VADER_TYPE_INDEX_FREE;
-                h->forward = c->free_head;
+                vader_obj_set_link(slot, c->free_head);
                 c->free_head = slot;
             }
         }
@@ -767,6 +769,7 @@ static VADER_NOINLINE void* vader_gc_alloc_slow(size_t bytes) {
  * fails it even for zero bytes. Kept out of line: link-time optimisation would
  * otherwise copy it into every allocation site. */
 VADER_NOINLINE void* vader_gc_alloc(size_t bytes) {
+    bytes = vader_obj_bytes(bytes);
     size_t aligned = vader_gc_align(bytes);
     if (VADER_LIKELY((uintptr_t) g_young.from.cur + aligned < (uintptr_t) g_alloc_limit)) {
         return vader_gc_alloc_young_unchecked(aligned);

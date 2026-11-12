@@ -166,10 +166,10 @@ static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
     if (pl_live) {
         const vader_obj_header_t* h = (const vader_obj_header_t*) payload;
         fprintf(stderr,
-            "  -> referent header: type_index = %u, age = %u, forward = %p\n"
+            "  -> referent header: type_index = %u, age = %u, forwarded to %p\n"
             "     => TAG-ONLY clobber: payload still references a live object;\n"
             "        the box tag SHOULD have been this referent's BcType index.\n",
-            h->type_index, (unsigned) h->age, h->forward);
+            h->type_index, (unsigned) h->age, vader_obj_forwarded_to(h));
     }
     vader_trap("VADER_GC_CHECK_BOX: box tag is not a valid type index");
 }
@@ -369,7 +369,7 @@ static void vader_gc_profile_dump(void) {
                 case VADER_TYPE_KIND_ARRAY:      kind_name = "ARRAY"; break;
                 case VADER_TYPE_KIND_FN:         kind_name = "FN"; break;
             }
-            obj_size = info->size;
+            obj_size = vader_obj_bytes(info->size);
         }
         fprintf(stderr, "  %-12u %-10s %-12zu %-12llu %llu\n",
                 ti, kind_name, obj_size,

@@ -8,8 +8,8 @@
 // in a local SLOT rather than a C expression temp. That slot is a GC root: a
 // fn-typed slot is a `ValType.Ref`, and `c_emit` puts every `Ref` slot in the
 // frame's `raw[]`, where `vader_gc_scan_raw` reads the pointee's object header
-// with no heap-membership check. A `.text` address has no header (its
-// `hdr->forward` is machine code, never NULL), so the collector would
+// with no heap-membership check. A `.text` address has no header (what
+// stands for its forwarded flag is machine code), so the collector would
 // overwrite the slot with garbage and the NEXT call would jump to it. `bump`
 // therefore forces a collection from INSIDE the foreign call, and the loop runs
 // the whole shape twice so a poisoned slot is used after it is clobbered.
