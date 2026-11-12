@@ -167,16 +167,14 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_std_core$Stop_t vader_data_0_e0 = { { 20u, 0u, 0u, 0u, NULL } };
+static const struct vader_struct_std_core$Stop_t vader_data_0_e0 = { VADER_STATIC_HEADER(20u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 20u, 0u,
+    VADER_STATIC_BUF_HEADER(20u, 0u, 1u),
     .slots = {
         { 20u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 57u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(57u, 1u, &vader_data_0_buf);
 
 static int64_t snippet$square(int32_t l0);
 static int64_t snippet$add(int64_t l0, int64_t l1);
@@ -251,7 +249,7 @@ static vader_box_t vader_fn_tramp_snippet$square(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$square = {
-    { 40u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$square, NULL,
+    VADER_STATIC_HEADER(40u), (void*) &vader_fn_tramp_snippet$square, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$add(void* env, vader_box_t a0, vader_box_t a1) {
@@ -260,7 +258,7 @@ static vader_box_t vader_fn_tramp_snippet$add(void* env, vader_box_t a0, vader_b
 }
 
 static vader_fn_t vader_fn_static_snippet$add = {
-    { 27u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$add, NULL,
+    VADER_STATIC_HEADER(27u), (void*) &vader_fn_tramp_snippet$add, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$odd(void* env, vader_box_t a0) {
@@ -269,7 +267,7 @@ static vader_box_t vader_fn_tramp_snippet$odd(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$odd = {
-    { 34u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$odd, NULL,
+    VADER_STATIC_HEADER(34u), (void*) &vader_fn_tramp_snippet$odd, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$tens(void* env, vader_box_t a0) {
@@ -278,7 +276,7 @@ static vader_box_t vader_fn_tramp_snippet$tens(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$tens = {
-    { 52u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$tens, NULL,
+    VADER_STATIC_HEADER(52u), (void*) &vader_fn_tramp_snippet$tens, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$fifties(void* env, vader_box_t a0) {
@@ -287,7 +285,7 @@ static vader_box_t vader_fn_tramp_snippet$fifties(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$fifties = {
-    { 52u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$fifties, NULL,
+    VADER_STATIC_HEADER(52u), (void*) &vader_fn_tramp_snippet$fifties, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$big_pair(void* env, vader_box_t a0) {
@@ -296,7 +294,7 @@ static vader_box_t vader_fn_tramp_snippet$big_pair(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$big_pair = {
-    { 54u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$big_pair, NULL,
+    VADER_STATIC_HEADER(54u), (void*) &vader_fn_tramp_snippet$big_pair, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_1(void* env, vader_box_t a0) {
@@ -305,7 +303,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_1(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_1 = {
-    { 48u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
+    VADER_STATIC_HEADER(48u), (void*) &vader_fn_tramp___lambda_snippet_1, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_4(void* env, vader_box_t a0) {
@@ -314,7 +312,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_4(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_4 = {
-    { 48u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_4, NULL,
+    VADER_STATIC_HEADER(48u), (void*) &vader_fn_tramp___lambda_snippet_4, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_5(void* env, vader_box_t a0) {
@@ -323,7 +321,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_5(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_5 = {
-    { 48u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_5, NULL,
+    VADER_STATIC_HEADER(48u), (void*) &vader_fn_tramp___lambda_snippet_5, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_7(void* env, vader_box_t a0) {
@@ -332,7 +330,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_7(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_7 = {
-    { 43u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_7, NULL,
+    VADER_STATIC_HEADER(43u), (void*) &vader_fn_tramp___lambda_snippet_7, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_10(void* env, vader_box_t a0) {
@@ -341,7 +339,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_10(void* env, vader_box_t a0)
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_10 = {
-    { 38u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_10, NULL,
+    VADER_STATIC_HEADER(38u), (void*) &vader_fn_tramp___lambda_snippet_10, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

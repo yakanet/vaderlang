@@ -30,17 +30,15 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet$Inner_t vader_data_0_e0 = {
-    { 2u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(7),
+    VADER_STATIC_HEADER(2u), (int32_t) UINT64_C(7),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 2u, 0u,
+    VADER_STATIC_BUF_HEADER(2u, 0u, 1u),
     .slots = {
         { 2u, 0u, { .obj = (void*) (struct vader_struct_snippet$Inner_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 3u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(3u, 1u, &vader_data_0_buf);
 static int32_t vader_global_0 = 0u;
 static int32_t vader_global_1 = 0u;
 static vader_gc_frame_t vader_global_frame = { NULL, 0u, 0u, NULL, NULL, 0u, NULL };
@@ -71,7 +69,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_0 = {
-    { 4u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
+    VADER_STATIC_HEADER(4u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

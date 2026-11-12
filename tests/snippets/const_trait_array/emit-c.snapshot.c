@@ -34,21 +34,19 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet$Circle_t vader_data_0_e0 = {
-    { 1u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(1),
+    VADER_STATIC_HEADER(1u), (int32_t) UINT64_C(1),
 };
 static const struct vader_struct_snippet$Square_t vader_data_0_e1 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(2),
+    VADER_STATIC_HEADER(3u), (int32_t) UINT64_C(2),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 12u, 0u,
+    VADER_STATIC_BUF_HEADER(12u, 0u, 2u),
     .slots = {
         { 1u, 0u, { .obj = (void*) (struct vader_struct_snippet$Circle_t*) &vader_data_0_e0 } },
         { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet$Square_t*) &vader_data_0_e1 } },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 11u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(11u, 2u, &vader_data_0_buf);
 
 static int32_t snippet$Circle$Shape$area(void* l0);
 static int32_t snippet$Square$Shape$area(void* l0);

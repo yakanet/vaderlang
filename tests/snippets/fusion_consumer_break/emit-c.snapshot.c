@@ -141,16 +141,14 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_std_core$Stop_t vader_data_0_e0 = { { 9u, 0u, 0u, 0u, NULL } };
+static const struct vader_struct_std_core$Stop_t vader_data_0_e0 = { VADER_STATIC_HEADER(9u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 9u, 0u,
+    VADER_STATIC_BUF_HEADER(9u, 0u, 1u),
     .slots = {
         { 9u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 33u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(33u, 1u, &vader_data_0_buf);
 
 static void* snippet$spread(int32_t l0);
 static bool snippet$over_ten(int32_t l0);
@@ -202,7 +200,7 @@ static vader_box_t vader_fn_tramp_snippet$spread(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$spread = {
-    { 20u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$spread, NULL,
+    VADER_STATIC_HEADER(20u), (void*) &vader_fn_tramp_snippet$spread, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$over_ten(void* env, vader_box_t a0) {
@@ -211,7 +209,7 @@ static vader_box_t vader_fn_tramp_snippet$over_ten(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$over_ten = {
-    { 22u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$over_ten, NULL,
+    VADER_STATIC_HEADER(22u), (void*) &vader_fn_tramp_snippet$over_ten, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$above_one(void* env, vader_box_t a0) {
@@ -220,7 +218,7 @@ static vader_box_t vader_fn_tramp_snippet$above_one(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$above_one = {
-    { 22u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$above_one, NULL,
+    VADER_STATIC_HEADER(22u), (void*) &vader_fn_tramp_snippet$above_one, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {

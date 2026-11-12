@@ -388,6 +388,16 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     h->forward    = NULL;
 }
 
+/* The initialisers of the static objects the C emitter declares. The emitter
+ * names these and writes no member by position, so a layout changes here alone.
+ * `VADER_STATIC_BUF_HEADER` opens the initialiser of a `VADER_ARRAY_STATIC_BUF`,
+ * whose `.slots` follow it: it has no braces of its own. */
+#define VADER_STATIC_HEADER(tag) { (tag), 0u, 0u, 0u, NULL }
+#define VADER_STATIC_BUF_HEADER(element_tag, element_kind, count) \
+    VADER_STATIC_HEADER(VADER_TYPE_INDEX_ARRAY_BUF), (count), (count), (element_tag), (element_kind)
+#define VADER_STATIC_ARRAY(type_index, count, buffer) \
+    { VADER_STATIC_HEADER(type_index), (count), (count), 0u, (vader_array_buf_t*) (buffer) }
+
 /* Raw `void*` -> box, for a `VADER_ARRAY_KIND_REF` slot read onto the
  * still-boxed expression stack: the tag comes from the referent's object
  * header (NULL -> null variant). `vader_box_to_ref` is the write side. */

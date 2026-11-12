@@ -70,7 +70,7 @@ static vader_box_t vader_fn_tramp_snippet$id__i32(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$id__i32 = {
-    { 13u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$id__i32, NULL,
+    VADER_STATIC_HEADER(13u), (void*) &vader_fn_tramp_snippet$id__i32, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$name_of__i32(void* env, vader_box_t a0) {
@@ -79,7 +79,7 @@ static vader_box_t vader_fn_tramp_snippet$name_of__i32(void* env, vader_box_t a0
 }
 
 static vader_fn_t vader_fn_static_snippet$name_of__i32 = {
-    { 1u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$name_of__i32, NULL,
+    VADER_STATIC_HEADER(1u), (void*) &vader_fn_tramp_snippet$name_of__i32, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

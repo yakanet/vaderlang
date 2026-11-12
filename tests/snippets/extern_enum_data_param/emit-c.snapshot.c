@@ -37,16 +37,16 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet_status$StatusInfo_t vader_data_0_e0 = {
-    { 10u, 0u, 0u, 0u, NULL }, 3u,
+    VADER_STATIC_HEADER(10u), 3u,
 };
 static const struct vader_struct_snippet_status$StatusInfo_t vader_data_0_e1 = {
-    { 10u, 0u, 0u, 0u, NULL }, 4u,
+    VADER_STATIC_HEADER(10u), 4u,
 };
 static const struct vader_struct_snippet_status$StatusInfo_t vader_data_0_e2 = {
-    { 10u, 0u, 0u, 0u, NULL }, 5u,
+    VADER_STATIC_HEADER(10u), 5u,
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 10u, 0u,
+    VADER_STATIC_BUF_HEADER(10u, 0u, 3u),
     .slots = {
         {
             10u, 0u,
@@ -62,18 +62,14 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_0_buf = {
         },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 12u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(12u, 3u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(int16_t, 3) vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 11u, 6u,
+    VADER_STATIC_BUF_HEADER(11u, 6u, 3u),
     .slots = {
         (int16_t) UINT64_C(200), (int16_t) UINT64_C(404), (int16_t) UINT64_C(18446744073709551198),
     },
 };
-static const vader_array_t vader_data_1 = {
-    { 13u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
-};
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(13u, 3u, &vader_data_1_buf);
 
 static int64_t snippet$labs_step(uint8_t l0);
 static int32_t snippet$apply(void* l0, uint8_t l1);
@@ -98,7 +94,7 @@ static vader_box_t vader_fn_tramp_snippet_status$abs_status(void* env, vader_box
 }
 
 static vader_fn_t vader_fn_static_snippet_status$abs_status = {
-    { 3u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet_status$abs_status, NULL,
+    VADER_STATIC_HEADER(3u), (void*) &vader_fn_tramp_snippet_status$abs_status, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

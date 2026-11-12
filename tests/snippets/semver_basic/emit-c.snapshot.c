@@ -263,7 +263,7 @@ static vader_box_t vader_fn_tramp_semver$validate_prerelease_id(void* env, vader
 }
 
 static vader_fn_t vader_fn_static_semver$validate_prerelease_id = {
-    { 22u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_semver$validate_prerelease_id, NULL,
+    VADER_STATIC_HEADER(22u), (void*) &vader_fn_tramp_semver$validate_prerelease_id, NULL,
 };
 
 static vader_box_t vader_fn_tramp_semver$validate_build_id(void* env, vader_box_t a0) {
@@ -272,7 +272,7 @@ static vader_box_t vader_fn_tramp_semver$validate_build_id(void* env, vader_box_
 }
 
 static vader_fn_t vader_fn_static_semver$validate_build_id = {
-    { 22u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_semver$validate_build_id, NULL,
+    VADER_STATIC_HEADER(22u), (void*) &vader_fn_tramp_semver$validate_build_id, NULL,
 };
 
 static vader_box_t vader_fn_tramp_std_char$is_white_char(void* env, vader_box_t a0) {
@@ -281,7 +281,7 @@ static vader_box_t vader_fn_tramp_std_char$is_white_char(void* env, vader_box_t 
 }
 
 static vader_fn_t vader_fn_static_std_char$is_white_char = {
-    { 34u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_char$is_white_char, NULL,
+    VADER_STATIC_HEADER(34u), (void*) &vader_fn_tramp_std_char$is_white_char, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

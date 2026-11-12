@@ -46,35 +46,31 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_snippet$Mon_t vader_data_0_e0 = {
-    { 6u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(4),
+    VADER_STATIC_HEADER(6u), (int32_t) UINT64_C(4),
 };
 static const struct vader_struct_snippet$Mon_t vader_data_0_e1 = {
-    { 6u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(5),
+    VADER_STATIC_HEADER(6u), (int32_t) UINT64_C(5),
 };
 static const struct vader_struct_snippet$Mon_t vader_data_0_e2 = {
-    { 6u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(6),
+    VADER_STATIC_HEADER(6u), (int32_t) UINT64_C(6),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 6u, 0u,
+    VADER_STATIC_BUF_HEADER(6u, 0u, 3u),
     .slots = {
         { 6u, 0u, { .obj = (void*) (struct vader_struct_snippet$Mon_t*) &vader_data_0_e0 } },
         { 6u, 0u, { .obj = (void*) (struct vader_struct_snippet$Mon_t*) &vader_data_0_e1 } },
         { 6u, 0u, { .obj = (void*) (struct vader_struct_snippet$Mon_t*) &vader_data_0_e2 } },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 5u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
-static const struct vader_struct_std_core$Stop_t vader_data_1_e0 = { { 11u, 0u, 0u, 0u, NULL } };
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(5u, 3u, &vader_data_0_buf);
+static const struct vader_struct_std_core$Stop_t vader_data_1_e0 = { VADER_STATIC_HEADER(11u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 11u, 0u,
+    VADER_STATIC_BUF_HEADER(11u, 0u, 1u),
     .slots = {
         { 11u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_1_e0 } },
     },
 };
-static const vader_array_t vader_data_1 = {
-    { 16u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
-};
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(16u, 1u, &vader_data_1_buf);
 
 static int32_t snippet$drain(vader_box_t l0);
 static vader_string_t snippet$show(void* l0);

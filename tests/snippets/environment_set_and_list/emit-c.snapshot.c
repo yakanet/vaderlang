@@ -174,7 +174,7 @@ static vader_box_t vader_fn_tramp_std_env$by_name(void* env, vader_box_t a0, vad
 }
 
 static vader_fn_t vader_fn_static_std_env$by_name = {
-    { 15u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_env$by_name, NULL,
+    VADER_STATIC_HEADER(15u), (void*) &vader_fn_tramp_std_env$by_name, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

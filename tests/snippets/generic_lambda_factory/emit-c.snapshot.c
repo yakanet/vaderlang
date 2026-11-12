@@ -44,7 +44,7 @@ static vader_box_t vader_fn_tramp_snippet$new_row(void* env) {
 }
 
 static vader_fn_t vader_fn_static_snippet$new_row = {
-    { 6u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$new_row, NULL,
+    VADER_STATIC_HEADER(6u), (void*) &vader_fn_tramp_snippet$new_row, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env) {
@@ -53,7 +53,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_0(void* env) {
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_0 = {
-    { 6u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
+    VADER_STATIC_HEADER(6u), (void*) &vader_fn_tramp___lambda_snippet_0, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

@@ -58,7 +58,7 @@ static vader_box_t vader_fn_tramp_snippet$mul(void* env, vader_box_t a0, vader_b
 }
 
 static vader_fn_t vader_fn_static_snippet$mul = {
-    { 5u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$mul, NULL,
+    VADER_STATIC_HEADER(5u), (void*) &vader_fn_tramp_snippet$mul, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$inc(void* env, vader_box_t a0) {
@@ -67,7 +67,7 @@ static vader_box_t vader_fn_tramp_snippet$inc(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$inc = {
-    { 2u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$inc, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp_snippet$inc, NULL,
 };
 
 static vader_box_t vader_fn_tramp_snippet$double(void* env, vader_box_t a0) {
@@ -76,7 +76,7 @@ static vader_box_t vader_fn_tramp_snippet$double(void* env, vader_box_t a0) {
 }
 
 static vader_fn_t vader_fn_static_snippet$double = {
-    { 2u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$double, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp_snippet$double, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

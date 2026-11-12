@@ -233,7 +233,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 17u, 4u,
+    VADER_STATIC_BUF_HEADER(17u, 4u, 684u),
     .slots = {
         (uint64_t) UINT64_C(1), (uint64_t) UINT64_C(2305843009213693952),
         (uint64_t) UINT64_C(11068046444225730970), (uint64_t) UINT64_C(1844674407370955161),
@@ -579,11 +579,9 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 54u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(54u, 684u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 17u, 4u,
+    VADER_STATIC_BUF_HEADER(17u, 4u, 652u),
     .slots = {
         (uint64_t) UINT64_C(0), (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(0),
         (uint64_t) UINT64_C(1441151880758558720), (uint64_t) UINT64_C(0),
@@ -913,11 +911,9 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_1 = {
-    { 54u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
-};
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(54u, 652u, &vader_data_1_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 55) vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 55u, 55u, 17u, 4u,
+    VADER_STATIC_BUF_HEADER(17u, 4u, 55u),
     .slots = {
         (uint64_t) UINT64_C(576460752303423489), (uint64_t) UINT64_C(461168601842738791),
         (uint64_t) UINT64_C(368934881474191033), (uint64_t) UINT64_C(295147905179352826),
@@ -949,11 +945,9 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 55) vader_data_2_buf = {
         (uint64_t) UINT64_C(441711766194596083),
     },
 };
-static const vader_array_t vader_data_2 = {
-    { 54u, 0u, 0u, 0u, NULL }, 55u, 55u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
-};
+static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(54u, 55u, &vader_data_2_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 47) vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 47u, 47u, 17u, 4u,
+    VADER_STATIC_BUF_HEADER(17u, 4u, 47u),
     .slots = {
         (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(1441151880758558720),
         (uint64_t) UINT64_C(1801439850948198400), (uint64_t) UINT64_C(2251799813685248000),
@@ -981,34 +975,28 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 47) vader_data_3_buf = {
         (uint64_t) UINT64_C(2019483917365790221),
     },
 };
-static const vader_array_t vader_data_3 = {
-    { 54u, 0u, 0u, 0u, NULL }, 47u, 47u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
-};
-static const struct vader_struct_std_core$Stop_t vader_data_4_e0 = { { 33u, 0u, 0u, 0u, NULL } };
+static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(54u, 47u, &vader_data_3_buf);
+static const struct vader_struct_std_core$Stop_t vader_data_4_e0 = { VADER_STATIC_HEADER(33u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_4_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 33u, 0u,
+    VADER_STATIC_BUF_HEADER(33u, 0u, 1u),
     .slots = {
         { 33u, 0u, { .obj = (void*) (struct vader_struct_std_core$Stop_t*) &vader_data_4_e0 } },
     },
 };
-static const vader_array_t vader_data_4 = {
-    { 60u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_4_buf,
-};
-static const struct vader_struct_std_task$Closed_t vader_data_5_e0 = { { 37u, 0u, 0u, 0u, NULL } };
+static const vader_array_t vader_data_4 = VADER_STATIC_ARRAY(60u, 1u, &vader_data_4_buf);
+static const struct vader_struct_std_task$Closed_t vader_data_5_e0 = { VADER_STATIC_HEADER(37u) };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_5_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 37u, 0u,
+    VADER_STATIC_BUF_HEADER(37u, 0u, 1u),
     .slots = {
         { 37u, 0u, { .obj = (void*) (struct vader_struct_std_task$Closed_t*) &vader_data_5_e0 } },
     },
 };
-static const vader_array_t vader_data_5 = {
-    { 61u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_5_buf,
-};
+static const vader_array_t vader_data_5 = VADER_STATIC_ARRAY(61u, 1u, &vader_data_5_buf);
 static const struct vader_struct_std_core$Cancelled_t vader_data_6_e0 = {
-    { 12u, 0u, 0u, 0u, NULL },
+    VADER_STATIC_HEADER(12u),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_6_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 12u, 0u,
+    VADER_STATIC_BUF_HEADER(12u, 0u, 1u),
     .slots = {
         {
             12u, 0u,
@@ -1016,9 +1004,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_6_buf = {
         },
     },
 };
-static const vader_array_t vader_data_6 = {
-    { 62u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_6_buf,
-};
+static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(62u, 1u, &vader_data_6_buf);
 static int32_t vader_global_0 = 0u;
 static void* vader_global_1 = 0u;
 static vader_box_t vader_global_2 = { 0u };
@@ -1149,7 +1135,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_7(void* env, vader_box_t a0) 
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_7 = {
-    { 41u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_7, NULL,
+    VADER_STATIC_HEADER(41u), (void*) &vader_fn_tramp___lambda_snippet_7, NULL,
 };
 
 static vader_box_t vader_fn_tramp_std_task$started$keep(void* env) {
@@ -1159,7 +1145,7 @@ static vader_box_t vader_fn_tramp_std_task$started$keep(void* env) {
 }
 
 static vader_fn_t vader_fn_static_std_task$started$keep = {
-    { 36u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_task$started$keep, NULL,
+    VADER_STATIC_HEADER(36u), (void*) &vader_fn_tramp_std_task$started$keep, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_0(void* env, vader_box_t a0) {

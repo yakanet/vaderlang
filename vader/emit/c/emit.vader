@@ -589,11 +589,11 @@ push_pool_array :: fn(
         .declarator = CDeclarator {
             .name = buffer,
             .value = initializer_list([
-                object_header(verbatim("VADER_TYPE_INDEX_ARRAY_BUF")),
-                unsigned(n),
-                unsigned(n),
-                unsigned(i64(array.element_tag)),
-                unsigned(i64(array_kind_index(kind))),
+                call("VADER_STATIC_BUF_HEADER", [
+                    unsigned(i64(array.element_tag)),
+                    unsigned(i64(array_kind_index(kind))),
+                    unsigned(n),
+                ]),
                 designated(".slots", initializer_list(slots)),
             ]),
         },
@@ -604,23 +604,20 @@ push_pool_array :: fn(
         .type = "vader_array_t",
         .declarator = CDeclarator {
             .name = array.name,
-            .value = initializer_list([
-                object_header(unsigned(i64(array.type_id))),
+            .value = call("VADER_STATIC_ARRAY", [
+                unsigned(i64(array.type_id)),
                 unsigned(n),
-                unsigned(n),
-                ZERO,
-                cast("vader_array_buf_t*", address_of(verbatim(buffer))),
+                address_of(verbatim(buffer)),
             ]),
         },
     })
 }
 
-/// `{ tag, 0u, 0u, 0u, NULL }`: the header of a static object.
+/// The header of a static object. The runtime's macro spells it: no layout is
+/// written here.
 ///
 /// @param tag  its type index.
-object_header :: fn(tag: CExpression) -> CExpression = initializer_list([
-    tag, ZERO, ZERO, ZERO, NULL_POINTER,
-])
+object_header :: fn(tag: CExpression) -> CExpression = call("VADER_STATIC_HEADER", [tag])
 
 // A PERMANENT GC frame rooting the global slots, installed as the base of the
 // frame chain by `main`. A global belongs to no other root set (the frame chain and

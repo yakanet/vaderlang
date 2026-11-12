@@ -121,7 +121,7 @@ static vader_box_t vader_fn_tramp_snippet$joiner$keep(void* env) {
 }
 
 static vader_fn_t vader_fn_static_snippet$joiner$keep = {
-    { 2u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet$joiner$keep, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp_snippet$joiner$keep, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_2(void* env) {
@@ -131,7 +131,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_2(void* env) {
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_2 = {
-    { 2u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
 };
 
 static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env) {
@@ -141,7 +141,7 @@ static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env) {
 }
 
 static vader_fn_t vader_fn_static___lambda_snippet_3 = {
-    { 2u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
+    VADER_STATIC_HEADER(2u), (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
 };
 
 static vader_box_t vader_fn_lift___lambda_snippet_0(void* env) {

@@ -101,28 +101,24 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 3) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 3u, 3u, 1u, 0u,
+    VADER_STATIC_BUF_HEADER(1u, 0u, 3u),
     .slots = {
         { 2u, 0u, { .i = (int64_t)(int32_t) (int32_t) UINT64_C(4) } },
         { 3u, 0u, { .s = 19u } },
         { 2u, 0u, { .i = (int64_t)(int32_t) (int32_t) UINT64_C(5) } },
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 21u, 0u, 0u, 0u, NULL }, 3u, 3u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(21u, 3u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 1u, 0u,
+    VADER_STATIC_BUF_HEADER(1u, 0u, 2u),
     .slots = {
         { 2u, 0u, { .i = (int64_t)(int32_t) (int32_t) UINT64_C(6) } },
         { 2u, 0u, { .i = (int64_t)(int32_t) (int32_t) UINT64_C(7) } },
     },
 };
-static const vader_array_t vader_data_1 = {
-    { 21u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
-};
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(21u, 2u, &vader_data_1_buf);
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 4) vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 4u, 4u, 4u, 0u,
+    VADER_STATIC_BUF_HEADER(4u, 0u, 4u),
     .slots = {
         { 7u, 0u, { .f = (double) (double) 1.5 } },
         { 5u, 0u, { .b = (uint8_t) UINT64_C(1) } },
@@ -130,64 +126,54 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 4) vader_data_2_buf = {
         { 3u, 0u, { .s = 20u } },
     },
 };
-static const vader_array_t vader_data_2 = {
-    { 22u, 0u, 0u, 0u, NULL }, 4u, 4u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
-};
+static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(22u, 4u, &vader_data_2_buf);
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 8u, 0u,
+    VADER_STATIC_BUF_HEADER(8u, 0u, 2u),
     .slots = {
         { 9u, 0u, { .i = (int64_t)(int32_t)(uint32_t) (uint8_t) UINT64_C(200) } },
         { 3u, 0u, { .s = 21u } },
     },
 };
-static const vader_array_t vader_data_3 = {
-    { 23u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
-};
+static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(23u, 2u, &vader_data_3_buf);
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_4_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 25u, 0u,
+    VADER_STATIC_BUF_HEADER(25u, 0u, 2u),
     .slots = {
         { 14u, 0u, { .i = (int64_t) (int64_t) UINT64_C(5000000000) } },
         { 3u, 0u, { .s = 22u } },
     },
 };
-static const vader_array_t vader_data_4 = {
-    { 24u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_4_buf,
-};
+static const vader_array_t vader_data_4 = VADER_STATIC_ARRAY(24u, 2u, &vader_data_4_buf);
 static const struct vader_struct_snippet$Circle_t vader_data_5_e0 = {
-    { 10u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(1),
+    VADER_STATIC_HEADER(10u), (int32_t) UINT64_C(1),
 };
 static const struct vader_struct_snippet$Square_t vader_data_5_e1 = {
-    { 11u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(2),
+    VADER_STATIC_HEADER(11u), (int32_t) UINT64_C(2),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_5_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 27u, 0u,
+    VADER_STATIC_BUF_HEADER(27u, 0u, 2u),
     .slots = {
         { 10u, 0u, { .obj = (void*) (struct vader_struct_snippet$Circle_t*) &vader_data_5_e0 } },
         { 11u, 0u, { .obj = (void*) (struct vader_struct_snippet$Square_t*) &vader_data_5_e1 } },
     },
 };
-static const vader_array_t vader_data_5 = {
-    { 26u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_5_buf,
-};
+static const vader_array_t vader_data_5 = VADER_STATIC_ARRAY(26u, 2u, &vader_data_5_buf);
 static const struct vader_struct_snippet$Holder_t vader_data_6_e0 = {
-    { 12u, 0u, 0u, 0u, NULL }, 23u,
+    VADER_STATIC_HEADER(12u), 23u,
     { 9u, 0u, { .i = (int64_t)(int32_t)(uint32_t) (uint8_t) UINT64_C(9) } },
 };
 static const struct vader_struct_snippet$Holder_t vader_data_6_e1 = {
-    { 12u, 0u, 0u, 0u, NULL }, 24u, { 3u, 0u, { .s = 25u } },
+    VADER_STATIC_HEADER(12u), 24u, { 3u, 0u, { .s = 25u } },
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_6_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 12u, 0u,
+    VADER_STATIC_BUF_HEADER(12u, 0u, 2u),
     .slots = {
         { 12u, 0u, { .obj = (void*) (struct vader_struct_snippet$Holder_t*) &vader_data_6_e0 } },
         { 12u, 0u, { .obj = (void*) (struct vader_struct_snippet$Holder_t*) &vader_data_6_e1 } },
     },
 };
-static const vader_array_t vader_data_6 = {
-    { 28u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_6_buf,
-};
+static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(28u, 2u, &vader_data_6_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_7_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 15u, 4u,
+    VADER_STATIC_BUF_HEADER(15u, 4u, 684u),
     .slots = {
         (uint64_t) UINT64_C(1), (uint64_t) UINT64_C(2305843009213693952),
         (uint64_t) UINT64_C(11068046444225730970), (uint64_t) UINT64_C(1844674407370955161),
@@ -533,11 +519,9 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_7_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_7 = {
-    { 20u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_7_buf,
-};
+static const vader_array_t vader_data_7 = VADER_STATIC_ARRAY(20u, 684u, &vader_data_7_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_8_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 15u, 4u,
+    VADER_STATIC_BUF_HEADER(15u, 4u, 652u),
     .slots = {
         (uint64_t) UINT64_C(0), (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(0),
         (uint64_t) UINT64_C(1441151880758558720), (uint64_t) UINT64_C(0),
@@ -867,9 +851,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_8_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_8 = {
-    { 20u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_8_buf,
-};
+static const vader_array_t vader_data_8 = VADER_STATIC_ARRAY(20u, 652u, &vader_data_8_buf);
 
 static vader_string_t snippet$cell(vader_box_t l0);
 static vader_string_t snippet$mixed(vader_box_t l0);

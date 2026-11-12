@@ -171,7 +171,7 @@ static vader_box_t vader_fn_tramp_std_uri$is_path_byte(void* env, vader_box_t a0
 }
 
 static vader_fn_t vader_fn_static_std_uri$is_path_byte = {
-    { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_uri$is_path_byte, NULL,
+    VADER_STATIC_HEADER(18u), (void*) &vader_fn_tramp_std_uri$is_path_byte, NULL,
 };
 
 static vader_box_t vader_fn_tramp_std_uri$is_query_byte(void* env, vader_box_t a0) {
@@ -180,7 +180,7 @@ static vader_box_t vader_fn_tramp_std_uri$is_query_byte(void* env, vader_box_t a
 }
 
 static vader_fn_t vader_fn_static_std_uri$is_query_byte = {
-    { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_uri$is_query_byte, NULL,
+    VADER_STATIC_HEADER(18u), (void*) &vader_fn_tramp_std_uri$is_query_byte, NULL,
 };
 
 static vader_box_t vader_fn_tramp_std_uri$is_userinfo_byte(void* env, vader_box_t a0) {
@@ -189,7 +189,7 @@ static vader_box_t vader_fn_tramp_std_uri$is_userinfo_byte(void* env, vader_box_
 }
 
 static vader_fn_t vader_fn_static_std_uri$is_userinfo_byte = {
-    { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_uri$is_userinfo_byte, NULL,
+    VADER_STATIC_HEADER(18u), (void*) &vader_fn_tramp_std_uri$is_userinfo_byte, NULL,
 };
 
 static vader_box_t vader_fn_tramp_std_uri$is_host_byte(void* env, vader_box_t a0) {
@@ -198,7 +198,7 @@ static vader_box_t vader_fn_tramp_std_uri$is_host_byte(void* env, vader_box_t a0
 }
 
 static vader_fn_t vader_fn_static_std_uri$is_host_byte = {
-    { 18u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_std_uri$is_host_byte, NULL,
+    VADER_STATIC_HEADER(18u), (void*) &vader_fn_tramp_std_uri$is_host_byte, NULL,
 };
 
 static const uint16_t vader_fn_ref_offsets[] = { offsetof(vader_fn_t, env) };

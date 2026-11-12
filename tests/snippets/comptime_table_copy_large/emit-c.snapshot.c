@@ -24,7 +24,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const VADER_ARRAY_STATIC_BUF(int32_t, 300) vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 300u, 300u, 2u, 7u,
+    VADER_STATIC_BUF_HEADER(2u, 7u, 300u),
     .slots = {
         (int32_t) UINT64_C(0), (int32_t) UINT64_C(1), (int32_t) UINT64_C(4), (int32_t) UINT64_C(9),
         (int32_t) UINT64_C(16), (int32_t) UINT64_C(25), (int32_t) UINT64_C(36),
@@ -128,9 +128,7 @@ static const VADER_ARRAY_STATIC_BUF(int32_t, 300) vader_data_0_buf = {
         (int32_t) UINT64_C(88804), (int32_t) UINT64_C(89401),
     },
 };
-static const vader_array_t vader_data_0 = {
-    { 1u, 0u, 0u, 0u, NULL }, 300u, 300u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(1u, 300u, &vader_data_0_buf);
 
 static void* __const_snippet$TABLE(void);
 static int32_t snippet$main(void);
