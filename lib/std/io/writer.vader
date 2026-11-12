@@ -1,0 +1,165 @@
+// std/io/writer: where bytes go, and the buffer that gathers small writes.
+//
+// `Writer` is the one method a destination of bytes has. `BufferedWriter` sits
+// on any of them and hands over `capacity` bytes at a time, so a text written
+// piece by piece reaches the destination in few writes.
+//
+// A writer has one task at a time. Several tasks that write one destination
+// send to the task that owns it, through a `Channel`.
+
+module "std/io"
+
+// ---- the trait ------------------------------------------------------------
+
+/// Where bytes go.
+///
+/// An impl hands back nothing it keeps: an error it stores is copied before it
+/// is returned.
+export Writer :: trait {
+    /// Write all of `content`, waiting as long as it takes. A string is written
+    /// as its UTF-8 bytes: an impl reads `content.bytes_of()`.
+    ///
+    /// @param content  what to write.
+    /// @error          `IOError` when the destination cannot take all of it.
+    ///                 Part of `content` may be written by then.
+    write :: fn(self, content: u8[] | string) -> null | IOError
+}
+
+/// The bytes `content` writes: a string's UTF-8 bytes, an array as it is.
+/// Nothing is copied.
+///
+/// @param content  what a `Writer` was given.
+export bytes_of :: fn(content: u8[] | string) -> u8[] =
+    if content is string { content.bytes() } else { content }
+
+// ---- the buffered writer --------------------------------------------------
+
+/// A writer that gathers what it is given and writes `sink` `capacity` bytes at
+/// a time.
+///
+/// Nothing writes what is still gathered when the program stops using it:
+/// `flush` does, and comes before the close of what `sink` writes to.
+///
+/// @example
+///   out :: BytesWriter {}
+///   writer :: BufferedWriter { .sink = out }
+///   writer.write("HTTP/1.1 200 OK\r\n")
+///   writer.write("\r\n")
+///   writer.flush()
+///   out.written.bytes_to_string()   // "HTTP/1.1 200 OK\r\n\r\n"
+export BufferedWriter :: struct {
+    /// What is written to.
+    sink: Writer
+    /// How many bytes are gathered before `sink` is written.
+    capacity: i64 = 8192
+    @internal
+    buffer: u8[] = []
+}
+
+BufferedWriter implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        bytes :: content.bytes_of()
+        if self.buffer.len() + bytes.len() > self.capacity {
+            flushed :: self.flush()
+            if flushed is IOError {
+                return flushed
+            }
+        }
+        // The buffer would only add a copy.
+        if bytes.len() >= self.capacity {
+            return self.sink.write(bytes)
+        }
+        self.buffer.push_all(bytes)
+        return null
+    }
+}
+
+/// Write to `sink` what `w` has gathered.
+///
+/// @error  `IOError` when `sink` cannot take it. What was gathered is dropped:
+///         part of it may be written.
+export flush :: fn(w: BufferedWriter) -> null | IOError {
+    if w.buffer.len() == 0 {
+        return null
+    }
+    failed :: w.sink.write(w.buffer)
+    w.buffer.clear()
+    return failed
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A sink that counts the writes it takes, so a test sees what was gathered.
+CountingWriter :: struct {
+    written: u8[] = []
+    writes: i64 = 0
+}
+
+CountingWriter implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        self.written.push_all(content.bytes_of())
+        self.writes += 1
+        return null
+    }
+}
+
+@test
+test_buffered_writer_gathers_small_writes :: fn() -> void {
+    sink :: CountingWriter {}
+    w :: BufferedWriter { .sink = sink, .capacity = 8 }
+    w.write("ab")
+    w.write("cd")
+    assert_eq(sink.writes, 0)
+    w.flush()
+    assert_eq(sink.writes, 1)
+    assert_eq(shown(sink.written), "abcd")
+}
+
+@test
+test_buffered_writer_writes_once_it_is_full :: fn() -> void {
+    sink :: CountingWriter {}
+    w :: BufferedWriter { .sink = sink, .capacity = 4 }
+    w.write("abc")
+    w.write("de")
+    assert_eq(shown(sink.written), "abc")
+    w.flush()
+    assert_eq(shown(sink.written), "abcde")
+}
+
+@test
+test_buffered_writer_passes_a_large_write_through_in_order :: fn() -> void {
+    sink :: CountingWriter {}
+    w :: BufferedWriter { .sink = sink, .capacity = 4 }
+    w.write("ab")
+    w.write("0123456789")
+    assert_eq(sink.writes, 2)
+    assert_eq(shown(sink.written), "ab0123456789")
+}
+
+@test
+test_buffered_writer_takes_bytes_and_text :: fn() -> void {
+    sink :: CountingWriter {}
+    w :: BufferedWriter { .sink = sink }
+    w.write("a${1 + 1}")
+    w.write(['b', 'c'])
+    w.flush()
+    assert_eq(shown(sink.written), "a2bc")
+}
+
+@test
+test_flush_of_nothing_writes_nothing :: fn() -> void {
+    sink :: CountingWriter {}
+    w :: BufferedWriter { .sink = sink }
+    assert(w.flush() == null, "nothing to write is no failure")
+    assert_eq(sink.writes, 0)
+}
+
+@test
+test_flush_reports_the_failure_of_its_sink :: fn() -> void {
+    w :: BufferedWriter { .sink = FailingWriter { .sink = BytesWriter {}, .calls = 0 } }
+    w.write("abc")
+    failed :: w.flush()
+    assert(failed is IOError, "the sink refused the write")
+}

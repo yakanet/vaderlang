@@ -185,7 +185,7 @@ export read_line :: fn() -> string | IOError {
     out: u8[]: []
     // One byte at a time: stdin is a stream, and reading ahead of the newline
     // would consume input the next caller expects to still be there.
-    for 0..<MAX_LINE {
+    for 0..<LINE_LIMIT_DEFAULT {
         b :: read_ready(1)
         if b is IOError {
             // The end of input after part of a line is a final line without its
@@ -208,10 +208,6 @@ export read_line :: fn() -> string | IOError {
     }
     return IOError { .msg = "line too long" }
 }
-
-/// Ceiling on `read_line`, so a peer that never sends a newline cannot make it
-/// spin forever.
-MAX_LINE: i64 : 1024 * 1024
 
 /// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops until `n`
 /// bytes are accumulated; end of input before `n` is an error. The bytes come as

@@ -1,0 +1,223 @@
+// std/io/memory: readers and writers that never leave the program.
+//
+// `BytesReader` and `BytesWriter` stand where a file or a socket would: to read
+// a text already in memory, to build an answer, to test a parser with no system
+// behind it. `FragmentedReader`, `FailingReader` and `FailingWriter` wrap a
+// stream to make it behave as a real one does on a bad day: bytes that come a
+// few at a time, a read or a write that fails.
+
+module "std/io"
+
+import "std/math"
+
+// ---- in memory ------------------------------------------------------------
+
+/// A reader over bytes already in memory.
+///
+/// @example
+///   reader :: BufferedReader { .source = BytesReader { .content = "GET / HTTP/1.1\r\n" } }
+///   reader.read_line()   // "GET / HTTP/1.1"
+export BytesReader :: struct {
+    /// What is read: an array, or the UTF-8 bytes of a string.
+    content: u8[] | string
+    @internal
+    position: i64 = 0
+}
+
+BytesReader implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if into.len() == 0 {
+            return 0
+        }
+        bytes :: self.content.bytes_of()
+        left :: bytes.len() - self.position
+        if left == 0 {
+            return null
+        }
+        count :: min(left, into.len())
+        bytes.copy_to(self.position, into, 0, count)
+        self.position += count
+        return count
+    }
+}
+
+/// A writer that keeps what it is given.
+///
+/// @example
+///   out :: BytesWriter {}
+///   out.write("status: ")
+///   out.write([50, 48, 48])
+///   out.written.bytes_to_string()   // "status: 200"
+export BytesWriter :: struct {
+    /// Every byte written so far, in order.
+    written: u8[] = []
+}
+
+BytesWriter implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        self.written.push_all(content.bytes_of())
+        return null
+    }
+}
+
+// ---- streams on a bad day -------------------------------------------------
+
+/// A reader that hands out what `source` holds at most `size` bytes at a time,
+/// as a socket does: what one read gave whole comes cut anywhere.
+///
+/// @example
+///   reader :: BufferedReader {
+///       .source = FragmentedReader { .source = BytesReader { .content = "a\r\nb" }, .size = 1 },
+///   }
+///   reader.read_line()   // "a"
+export FragmentedReader :: struct {
+    /// What is read.
+    source: Reader
+    /// The most bytes one read hands out, 1 at least.
+    size: i64
+}
+
+FragmentedReader implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError =
+        self.source.read(into[0..<min(into.len(), self.size)])
+}
+
+/// The failure a `FailingReader` and a `FailingWriter` report unless given one.
+STREAM_FAILED :: IOError { .msg = "the stream failed" }
+
+/// A reader that reads `source` `calls` times, then fails every read.
+export FailingReader :: struct {
+    /// What is read until then.
+    source: Reader
+    /// How many reads go through before the failure.
+    calls: i64
+    /// What a failed read reports.
+    failure: IOError = STREAM_FAILED
+    @internal
+    seen: i64 = 0
+}
+
+FailingReader implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if self.seen >= self.calls {
+            // A copy: an impl hands back nothing it keeps.
+            return IOError { ...self.failure }
+        }
+        self.seen += 1
+        return self.source.read(into)
+    }
+}
+
+/// A writer that writes `sink` `calls` times, then fails every write.
+export FailingWriter :: struct {
+    /// What is written until then.
+    sink: Writer
+    /// How many writes go through before the failure.
+    calls: i64
+    /// What a failed write reports.
+    failure: IOError = STREAM_FAILED
+    @internal
+    seen: i64 = 0
+}
+
+FailingWriter implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        if self.seen >= self.calls {
+            // A copy: an impl hands back nothing it keeps.
+            return IOError { ...self.failure }
+        }
+        self.seen += 1
+        return self.sink.write(content)
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// `assert_eq` takes neither a union nor an array: the tests of this module,
+// reader.vader and writer.vader included, compare what these two render.
+
+// What a read gave, as a text: the bytes as UTF-8, the end and a failure as
+// words no content spells.
+shown :: fn(got: string | u8[] | null | IOError) -> string = match got {
+    is string  -> got
+    is u8[]    -> got.bytes_to_string()
+    is IOError -> "<failed: ${got.kind}>"
+    is null    -> "<end>"
+}
+
+// How many bytes a read gave: -1 at the end, -2 for a failure.
+count_of :: fn(got: i64 | null | IOError) -> i64 = match got {
+    is i64     -> got
+    is IOError -> -2
+    is null    -> -1
+}
+
+@test
+test_bytes_reader_reads_an_array_to_its_end :: fn() -> void {
+    r :: BytesReader { .content = ['a', 'b', 'c'] }
+    into: u8[]: [0] * 2
+    assert_eq(count_of(r.read(into)), 2)
+    assert_eq(shown(into), "ab")
+    assert_eq(count_of(r.read(into)), 1)
+    assert_eq(shown(into), "cb")
+    assert(r.read(into) == null, "the end is null")
+    assert(r.read(into) == null, "and stays null")
+}
+
+@test
+test_bytes_reader_reads_the_bytes_of_a_string :: fn() -> void {
+    r :: BytesReader { .content = "hé" }
+    into: u8[]: [0] * 8
+    assert_eq(count_of(r.read(into)), 3)
+    assert_eq(shown(into[0..<3]), "hé")
+}
+
+@test
+test_bytes_reader_gives_zero_to_an_empty_array :: fn() -> void {
+    r :: BytesReader { .content = "" }
+    none: u8[]: []
+    assert_eq(count_of(r.read(none)), 0)
+}
+
+@test
+test_bytes_writer_keeps_text_and_bytes_in_order :: fn() -> void {
+    w :: BytesWriter {}
+    w.write("status: ")
+    w.write([50, 48, 48])
+    assert_eq(w.written.bytes_to_string(), "status: 200")
+}
+
+@test
+test_fragmented_reader_hands_out_its_size_at_most :: fn() -> void {
+    r :: FragmentedReader { .source = BytesReader { .content = "abcde" }, .size = 2 }
+    into: u8[]: [0] * 8
+    assert_eq(count_of(r.read(into)), 2)
+    assert_eq(count_of(r.read(into)), 2)
+    assert_eq(count_of(r.read(into)), 1)
+    assert(r.read(into) == null, "the end is null")
+}
+
+@test
+test_failing_reader_fails_after_its_calls :: fn() -> void {
+    r :: FailingReader { .source = BytesReader { .content = "abcd" }, .calls = 1 }
+    into: u8[]: [0] * 2
+    assert_eq(count_of(r.read(into)), 2)
+    failed :: r.read(into)
+    assert(failed is IOError, "the second read fails")
+}
+
+@test
+test_failing_writer_reports_the_failure_it_was_given :: fn() -> void {
+    kept :: BytesWriter {}
+    w :: FailingWriter {
+        .sink = kept,
+        .calls = 1,
+        .failure = IOError { .msg = "broken pipe", .kind = .BrokenPipe },
+    }
+    assert(w.write("ab") == null, "the first write goes through")
+    failed :: w.write("cd")
+    assert(failed is IOError && failed.kind == .BrokenPipe, "the second write fails as told")
+    assert_eq(shown(kept.written), "ab")
+}

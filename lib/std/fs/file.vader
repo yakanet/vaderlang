@@ -292,14 +292,6 @@ export write :: fn(f: File, content: u8[] | string) -> null | IOError {
     return null
 }
 
-// The bytes `content` writes: a string's UTF-8 bytes.
-bytes_of :: fn(content: u8[] | string) -> u8[] {
-    if content is string {
-        return content.bytes()
-    }
-    return content
-}
-
 /// Move the position to `offset` bytes from `from`.
 ///
 /// @param offset  the distance, negative to go back.
