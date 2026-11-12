@@ -2865,13 +2865,10 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
     // parse returned a bare IdentExpr (no postfix consumed) and an
     // `arrow` follows immediately. Multi-param / typed-param lambdas
     // go through the `(params) -> body` path in parse_prefix.
-    match left {
-        is IdentExpr -> {
-            if p.allows_bare_lambda() && p.check(.Arrow) {
-                left = p.parse_single_param_lambda_tail(left)
-            }
+    if left is IdentExpr {
+        if p.allows_bare_lambda() && p.check(.Arrow) {
+            left = p.parse_single_param_lambda_tail(left)
         }
-        _ -> {}
     }
 
     last_non_assoc_level := -1
