@@ -133,8 +133,9 @@ generated_report :: fn(
     if actual == "" && !exists("${case.dir}/${GENERATED_SNAPSHOT}") {
         return null
     }
-    stage :: Stage { ...HOOK_STAGE, .snapshot = GENERATED_SNAPSHOT }
-    return report_of(case, stage, actual, update, began)
+    // The case's snapshot outranks the stage's in `report_of`.
+    generated :: Case { ...case, .snapshot = GENERATED_SNAPSHOT }
+    return report_of(generated, HOOK_STAGE, actual, update, began)
 }
 
 // The modules generated in `project`, each under a `--- <path>` header, in path

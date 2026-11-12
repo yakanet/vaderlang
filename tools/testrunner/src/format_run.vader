@@ -4,7 +4,7 @@
 // Every file of a snippet and of each folder of `lib/` is held to two
 // properties: the output parses to the program the source parses to, spans
 // aside, and a second pass leaves it as it is. A stably wrong output passes the
-// second alone. A fixture of `FORMAT_CORPUS` also pins the output: its snapshot
+// second alone. The files of `NO_OP_FILES` are also left byte for byte. A fixture of `FORMAT_CORPUS` also pins the output: its snapshot
 // `<name>.snapshot` when it has one, the fixture itself otherwise, which `vader
 // fmt` then leaves as it is. Only there does a comment moved or dropped show,
 // since the AST holds none.
@@ -27,6 +27,10 @@ FORMAT_CORPUS :: "tests/fixtures/format"
 
 // The libraries the toolchain ships, one case per folder of sources.
 FORMAT_LIBRARIES :: "lib"
+
+// The files of `FORMAT_LIBRARIES` that `vader fmt` leaves byte for byte, a
+// comment moved or a line rewrapped included; to grow as the formatter does.
+NO_OP_FILES: string[]: ["lib/std/math/math.vader", "lib/std/runtime/runtime.vader"]
 
 // The fixtures of `FORMAT_CORPUS` and the folders of `FORMAT_LIBRARIES`, pushed
 // on `found`; the snippets take the stage with their others (`find_snippets`).
@@ -83,9 +87,15 @@ check_folder :: fn(case: Case) -> StageReport | CaseFailure {
     sources :: sort(listed.filter((name) -> name.ends_with(".vader")).collect(), (a, b) -> a < b)
     problems: string[]: []
     for name in sources {
-        formatted :: formatted_file("${case.dir}/${name}")
+        path :: "${case.dir}/${name}"
+        formatted :: formatted_file(path)
         if formatted is CaseFailure {
             problems.push(formatted.message)
+        } else if NO_OP_FILES.contains(path) {
+            source :: read_file_string(path)
+            if source is string && formatted != source {
+                problems.push(differs(path, "the file changes", source, formatted).message)
+            }
         }
     }
     if problems.len() > 0 {

@@ -29,10 +29,10 @@ ACCEPTED :: "accepted"
 
 // Why the text `text` of the dump stage `stage` of `case` is wrong whatever its
 // snapshot holds, or null when it is not. The rules are those of the stages of a
-// snippet, which a stage of the dump renders: a fixture of another corpus may
-// pin an error on purpose.
+// snippet, which a stage of the dump renders, and of an `externs` fixture: a
+// fixture of `STAGE_CORPORA` may pin an error on purpose.
 stage_problem :: fn(case: Case, stage: Stage, text: string) -> string | null {
-    if stage.dump == null {
+    if STAGE_CORPORA.any_match((corpus) -> corpus.phase == stage.phase) {
         return null
     }
     error :: compile_error_problem(case, text)
@@ -178,6 +178,8 @@ test_an_error_diagnostic_breaks_a_feature_snippet :: fn() -> void {
     assert(stage_problem(diag, STAGES[0], text) == null, "an error in a `_diag_` snippet")
     fixture :: Case { .name = "effects/frozen", .dir = "", .phases = [] }
     assert(stage_problem(fixture, EFFECTS_STAGE, text) == null, "an error a fixture pins")
+    externs :: Case { .name = "externs/shapes", .dir = "", .phases = [] }
+    assert(stage_problem(externs, EXTERNS_STAGE, text) != null, "an error in an externs fixture")
 }
 
 @test
