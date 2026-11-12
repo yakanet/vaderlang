@@ -1,0 +1,12 @@
+// tests/fixtures/format/trailing_comments_by_indent: a run of trailing comments
+// that share a column holds the lines of one indentation: a deeper or shallower
+// line starts another.
+
+module "trailing_comments_by_indent"
+
+f :: fn(n: i32) -> i32 {
+    if n > 0 { // positive
+        return n // as is
+    }
+    return 0 // otherwise
+}

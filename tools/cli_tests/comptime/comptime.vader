@@ -1,0 +1,177 @@
+// tools/cli_tests/comptime/comptime: a `@comptime` value is evaluated in the
+// folder of the file that declares it.
+//
+// A relative path it reads names a file beside that source, wherever the
+// compiler was started, and the compiler's working directory comes back after.
+// The source sits in `src/`, the compiler runs from the folder above, and the
+// path of the binary is relative: a working directory left in `src/` would put
+// it in the wrong place. The data holds what a text path would mangle (a NUL,
+// 0xFF, a byte the C emitter escapes before a hex digit, CR, LF, a quote, a
+// backslash), printed as numbers so that no comparison reads it as text.
+
+module "tools/cli_tests/comptime"
+
+import "std/fs"
+import "std/option"
+import "std/string"
+import "std/string_builder"
+import "tools/cli_tests/cli"
+
+DATA: u8[]: [0x00, 0xFF, 0x01, 0x61, 0x0D, 0x0A, 0x22, 0x5C]
+
+// A program that reads `data.bin` at compile time and prints its bytes.
+READER :: r"""
+    module "main"
+
+    import "std/abort"
+    import "std/console"
+    import "std/fs"
+    import "std/io"
+
+    DATA :: @comptime {
+        read :: read_file_bytes("data.bin", 1024)
+        if read is IOError {
+            panic("cannot read `data.bin`: ${read.message()}")
+        }
+        return read
+    }
+
+    main :: fn() -> i32 {
+        println("${DATA.len()} bytes")
+        for b in DATA {
+            println("${b}")
+        }
+        return 0
+    }
+    """
+
+// What the reader prints.
+expected_output :: fn() -> string {
+    out :: StringBuilder {}
+    out.append("${DATA.len()} bytes\n")
+    for b in DATA {
+        out.append("${b}\n")
+    }
+    return out.to_string()
+}
+
+// A folder holding the reader in `src/`, beside its data.
+staged_reader :: fn(name: string) -> string {
+    dir :: scratch_dir("comptime_${name}")
+    create_dir("${dir}/src")
+    write_file("${dir}/src/data.bin", DATA)
+    write_file("${dir}/src/main.vader", READER)
+    return dir
+}
+
+// A module whose `@comptime` value reads `icon.bin` beside it, and says so.
+ASSETS :: r"""
+    module "assets"
+
+    import "std/abort"
+    import "std/console"
+    import "std/fs"
+    import "std/io"
+
+    export ICON :: @comptime {
+        println("reading the icon")
+        read :: read_file_bytes("icon.bin")
+        if read is IOError {
+            panic("cannot read `icon.bin`: ${read.message()}")
+        }
+        return read
+    }
+    """
+
+// A program whose `@comptime` values read `ICON` directly, through a function and
+// through a call on a trait.
+LAYERED_APP :: r"""
+    module "app"
+
+    import "assets"
+    import "std/console"
+
+    ICON_SIZE :: @comptime ICON.len() * 2
+
+    Sized :: trait {
+        size :: fn(self) -> i64
+    }
+
+    Icon :: struct {}
+
+    Icon implements Sized {
+        size :: fn(self) -> i64 = ICON.len()
+    }
+
+    Empty :: struct {}
+
+    Empty implements Sized {
+        size :: fn(self) -> i64 = 0
+    }
+
+    total_size :: fn(items: Sized[]) -> i64 {
+        total: i64 = 0
+        for item in items {
+            total += item.size()
+        }
+        return total
+    }
+
+    TOTAL :: @comptime total_size([Icon {}, Empty {}]) + ICON_SIZE
+
+    main :: fn() -> i32 {
+        println("${ICON_SIZE} ${TOTAL}")
+        return 0
+    }
+    """
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_comptime_read_names_a_file_beside_its_source_on_the_vm :: fn() -> void {
+    ran :: vader_in(staged_reader("vm"), ["run", "src/main.vader"])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.stdout, expected_output())
+}
+
+@test
+test_a_comptime_read_names_a_file_beside_its_source_in_a_native_build :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: staged_reader("native")
+    built :: vader_in(dir, ["build", "--out=out/main", "src/main.vader"])
+    assert(built.exit == 0 && "error" !in built.stderr, built.stderr)
+    options :: RunOptions { .cwd = dir }
+    ran :: succeeded(run_command([executable_path("${dir}/out/main")], options)).unwrap()
+    assert_eq(ran.stdout, expected_output())
+}
+
+@test
+test_a_comptime_value_reading_another_runs_after_it_once_in_its_own_folder :: fn() -> void {
+    // The value read is evaluated once, in `assets/`, while its reader sits in
+    // `app/`: the line it prints at compile time says how many times it ran.
+    dir :: scratch_dir("comptime_layers")
+    create_dir("${dir}/app")
+    create_dir("${dir}/assets")
+    write_file("${dir}/assets/icon.bin", "abc")
+    write_file("${dir}/vader.json", r"""{"entries": {"app": "app/main.vader"}}""")
+    write_file("${dir}/assets/assets.vader", ASSETS)
+    write_file("${dir}/app/main.vader", LAYERED_APP)
+    ran :: vader_in(dir, ["run", "."])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.stdout, "reading the icon\n6 9\n")
+}
+
+@test
+test_a_comptime_read_runs_the_bodies_of_the_build_machine_for_another_os :: fn() -> void {
+    // The comptime VM runs on the build machine: the bodies of the target would
+    // call into a library this machine lacks, `kernel32` from a Mac.
+    dir :: staged_reader("other_os")
+    argv :: ["dump", "--stage=evaluated-ast", "--target=${other_platform()}", "src/main.vader"]
+    dumped :: vader_in(dir, argv)
+    baked :: "@comptime DATA = [0_u8, 255_u8, 1_u8, 97_u8, 13_u8, 10_u8, 34_u8, 92_u8]"
+    assert(baked in dumped.stdout, dumped.stdout)
+}

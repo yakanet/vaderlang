@@ -1,0 +1,14 @@
+// tests/fixtures/format/struct_pattern_field: a field of a struct pattern is
+// written `field: <expr>`: with `=`, the pattern no longer parses.
+
+module "struct_pattern_field"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+classify :: fn(pt: Point) -> i32 = match pt {
+    is Point { x: 0 } -> 1
+    _                 -> 2
+}

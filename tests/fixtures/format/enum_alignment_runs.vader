@@ -1,0 +1,20 @@
+// tests/fixtures/format/enum_alignment_runs: a blank line or a comment line
+// between variants starts a new run of aligned ones, and stays.
+
+module "enum_alignment_runs"
+
+Priority :: enum {
+    Low    = 10,
+    Medium,
+    High   = 20,
+
+    // A new run after the blank line.
+    Critical     = 30,
+    VeryCritical,
+}
+
+Adjacent :: enum {
+    A = 1,
+    // A comment line ends the run without adding a blank line.
+    Bee = 2,
+}

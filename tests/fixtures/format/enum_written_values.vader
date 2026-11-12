@@ -1,0 +1,10 @@
+// tests/fixtures/format/enum_written_values: the value of a variant keeps its
+// spelling: `0x8892` stays in hexadecimal.
+
+module "enum_written_values"
+
+Target :: enum(i32) {
+    Array        = 0x8892,
+    ElementArray = 0x8893,
+    Invalid      = -1,
+}

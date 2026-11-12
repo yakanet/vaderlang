@@ -1,0 +1,12 @@
+// tests/fixtures/format/trailing_comments_struct: the trailing comments of
+// struct fields share one column, and a comment on a line of its own stays
+// there.
+
+module "trailing_comments_struct"
+
+Pair :: struct {
+    a: i32 // the a
+    b: i32 // the b
+    // a leading comment stays on its own line
+    c: i32
+}

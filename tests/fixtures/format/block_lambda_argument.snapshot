@@ -1,0 +1,19 @@
+// tests/fixtures/format/block_lambda_argument: a block lambda, unlike a text
+// block, counts whole toward the fit of its call: its lines move with the
+// layout, and past 100 columns the call explodes.
+
+module "block_lambda_argument"
+
+apply :: fn(n: i32, f: fn(i32) -> i32) -> i32 = f(n)
+
+g :: fn() -> i32 {
+    return apply(
+        1,
+        fn(x: i32) -> i32 {
+            first :: x + 1
+            second :: first * 2
+            third :: second - 3
+            return third * first
+        },
+    )
+}

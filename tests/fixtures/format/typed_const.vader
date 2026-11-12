@@ -1,0 +1,7 @@
+// tests/fixtures/format/typed_const: a typed constant `NAME: T: value` keeps
+// its two single colons: `NAME: T :: value` does not parse.
+
+module "typed_const"
+
+MASK: u64: 0xFFFFFFFF
+NAMES: string[]: ["a", "b"]

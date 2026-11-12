@@ -1,0 +1,10 @@
+// tests/fixtures/format/match_arrows_aligned: the heads of the arms of a
+// `match` pad to the widest, which lines up their arrows.
+
+module "match_arrows_aligned"
+
+k :: fn(t: Type) -> string = match t {
+    is PrimitiveType -> t.name
+    is StructType    -> "s"
+    _                -> "?"
+}

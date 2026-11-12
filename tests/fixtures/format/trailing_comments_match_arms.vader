@@ -1,0 +1,10 @@
+// tests/fixtures/format/trailing_comments_match_arms: the trailing comments of
+// aligned `match` arms share one column, past the widest arm.
+
+module "trailing_comments_match_arms"
+
+f :: fn(cp: u32) -> u32 = match cp {
+    0x61..=0x7A -> cp - 0x20 // a-z
+    0xFF        -> 0x178     // y
+    _           -> cp
+}

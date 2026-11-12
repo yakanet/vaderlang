@@ -1,0 +1,166 @@
+// tools/testrunner/src/format_run: the `format` stage, what `vader fmt` makes of
+// a source.
+//
+// Every file of a snippet and of each folder of `lib/` is held to two
+// properties: the output parses to the program the source parses to, spans
+// aside, and a second pass leaves it as it is. A stably wrong output passes the
+// second alone. A fixture of `FORMAT_CORPUS` also pins the output: its snapshot
+// `<name>.snapshot` when it has one, the fixture itself otherwise, which `vader
+// fmt` then leaves as it is. Only there does a comment moved or dropped show,
+// since the AST holds none.
+
+module "tools/testrunner/src"
+
+import "std/diff"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "std/time"
+import "vader/front/parser"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
+import "vader/tools/fmt"
+
+FORMAT_CORPUS :: "tests/fixtures/format"
+
+// The libraries the toolchain ships, one case per folder of sources.
+FORMAT_LIBRARIES :: "lib"
+
+// The fixtures of `FORMAT_CORPUS` and the folders of `FORMAT_LIBRARIES`, pushed
+// on `found`; the snippets take the stage with their others (`find_snippets`).
+find_format_cases :: fn(found: Discovery) -> void {
+    for name in entries_where(found, FORMAT_CORPUS, (path) -> path.ends_with(".vader")) {
+        stem :: name.trim_suffix(".vader")
+        snapshot :: "${stem}.snapshot"
+        pinned :: if exists("${FORMAT_CORPUS}/${snapshot}") { snapshot } else { name }
+        found.cases.push(
+            Case {
+                .name = "${FORMAT_PHASE}/${stem}",
+                .dir = FORMAT_CORPUS,
+                .entry = name,
+                .snapshot = pinned,
+                .phases = [FORMAT_PHASE],
+            },
+        )
+    }
+    walk_source_folders(
+        FORMAT_LIBRARIES,
+        (folder, _) -> found.cases.push(
+            Case {
+                .name = "${FORMAT_PHASE}/${folder}",
+                .dir = folder,
+                .phases = [FORMAT_PHASE],
+            },
+        ),
+    )
+}
+
+// Check what `vader fmt` makes of the files of `case`, a fixture when it names a
+// snapshot, a folder otherwise.
+check_format :: fn(case: Case, update: bool) -> StageReport | CaseFailure =
+    if case.snapshot != null { check_fixture(case, update) } else { check_folder(case) }
+
+// Check what `vader fmt` makes of the entry of `case` against its snapshot,
+// which `update` writes when it differs.
+check_fixture :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
+    began :: monotonic()
+    formatted :: formatted_file(entry_path(case))
+    if formatted is CaseFailure {
+        return formatted
+    }
+    return report_of(case, FORMAT_STAGE, formatted, update, began)
+}
+
+// Check what `vader fmt` makes of every `.vader` file of the folder of `case`.
+check_folder :: fn(case: Case) -> StageReport | CaseFailure {
+    began :: monotonic()
+    listed :: read_dir(case.dir)
+    if listed is IOError {
+        return format_failure("`${case.dir}`: ${listed.msg}")
+    }
+    sources :: sort(listed.filter((name) -> name.ends_with(".vader")).collect(), (a, b) -> a < b)
+    problems: string[]: []
+    for name in sources {
+        formatted :: formatted_file("${case.dir}/${name}")
+        if formatted is CaseFailure {
+            problems.push(formatted.message)
+        }
+    }
+    if problems.len() > 0 {
+        return CaseFailure { .message = problems.join("\n") }
+    }
+    return StageReport {
+        .phase = FORMAT_PHASE,
+        .result = .Same,
+        .duration_us = began.since().to_micros(),
+    }
+}
+
+// What `vader fmt` makes of the file at `path`, or what keeps it from the stage.
+formatted_file :: fn(path: string) -> string | CaseFailure {
+    source :: read_file_string(path)
+    if source is IOError {
+        return format_failure("`${path}`: ${source.msg}")
+    }
+    return formatted_text(source, path)
+}
+
+// What `vader fmt` makes of `source`, read from `path`; or which of the
+// properties of the stage it breaks, and how.
+formatted_text :: fn(source: string, path: string) -> string | CaseFailure {
+    first :: format_source(source, path)
+    if first is ParseFailure {
+        return unparsed(path, "the source", first)
+    }
+    again :: format_source(first.output, path)
+    if again is ParseFailure {
+        return unparsed(path, "the output", again)
+    }
+    before :: syntax_of(source, path)
+    after :: syntax_of(first.output, path)
+    if after != before {
+        return differs(path, "the output is another program", before, after)
+    }
+    if again.output != first.output {
+        return differs(path, "a second pass changes the output", first.output, again.output)
+    }
+    return first.output
+}
+
+// The failure of `path` that `what` names, shown by the diff from `from` to `to`.
+differs :: fn(path: string, what: string, from: string, to: string) -> CaseFailure =
+    format_failure("`${path}`: ${what}\n${unified_diff(from, to)}")
+
+// The AST of `source`, spans aside, as the `ast` stage of `vader dump` shows it.
+syntax_of :: fn(source: string, path: string) -> string =
+    dump_program(parse_source(source, path).program)
+
+unparsed :: fn(path: string, what: string, failure: ParseFailure) -> CaseFailure {
+    diagnostics :: failure.diagnostics.dump_diagnostics_with_file()
+    return format_failure("`${path}`: ${what} does not parse\n${diagnostics}")
+}
+
+format_failure :: fn(message: string) -> CaseFailure =
+    CaseFailure { .message = "${FORMAT_PHASE}: ${message}" }
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_formatted_text_is_the_canonical_one :: fn() -> void {
+    formatted :: formatted_text("module \"m\"\nx::1\n", "m.vader")
+    if formatted is CaseFailure {
+        fail(formatted.message)
+        return
+    }
+    assert_eq(formatted, "module \"m\"\nx :: 1\n")
+}
+
+@test
+test_a_source_that_does_not_parse_has_no_formatted_text :: fn() -> void {
+    formatted :: formatted_text("module \"m\"\nx :: (\n", "m.vader")
+    assert(formatted is CaseFailure, "a source that does not parse")
+}

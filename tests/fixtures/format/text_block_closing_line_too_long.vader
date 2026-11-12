@@ -1,0 +1,15 @@
+// tests/fixtures/format/text_block_closing_line_too_long: what follows the
+// closing delimiter of a text block counts toward the fit: past 100 columns,
+// the call explodes.
+
+module "text_block_closing_line_too_long"
+
+pair :: fn(a: string, b: string) -> string = a + b
+
+a_long_argument_whose_name_pushes_the_closing_line_of_the_call_past_the_one_hundred_columns :: "b"
+
+f :: fn() -> string {
+    return pair("""
+        a
+        """, a_long_argument_whose_name_pushes_the_closing_line_of_the_call_past_the_one_hundred_columns)
+}

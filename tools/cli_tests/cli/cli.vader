@@ -13,6 +13,7 @@ module "tools/cli_tests/cli"
 import "std/env"
 import "std/fs"
 import "std/io"
+import "std/option"
 import "std/process"
 import "std/string"
 import "std/target"
@@ -75,6 +76,19 @@ export run_vader :: fn(
     args: string[],
     options: RunOptions = RunOptions {},
 ) -> ProcessResult | ProcessError = run_command([vader_binary()] + args, options)
+
+/// Run `vader` with `args` in `dir`, against the toolchain of the repository
+/// (`toolchain_env`), as a project outside it is built; a command that cannot be
+/// run fails the test.
+///
+/// @param dir   the working directory of the command.
+/// @param args  what follows `vader` on its command line.
+/// @param env   changes to its environment, on top of `toolchain_env`.
+/// @return      what it wrote and its exit code.
+export vader_in :: fn(dir: string, args: string[], env: [string, string | null][] = []) -> ProcessResult {
+    options :: RunOptions { .cwd = dir, .env = toolchain_env() + env }
+    return run_vader(args, options).unwrap()
+}
 
 /// Run the command `argv`, a program the test built or one of the system.
 ///
@@ -145,6 +159,15 @@ export scratch_source :: fn(name: string, source: string) -> string {
 /// The folder of this host in the `lib/` of a library that ships archives:
 /// `<os>-<arch>`, as `darwin-arm64`.
 export host_folder :: fn() -> string = "${current_os()}-${current_arch()}"
+
+/// A platform other than this host's, whose executables a native build here
+/// cannot run.
+export other_platform :: fn() -> string {
+    if current_os() == .Windows {
+        return "linux-x86_64"
+    }
+    return "windows-x86_64"
+}
 
 // ---- what the command is given --------------------------------------------
 

@@ -1,0 +1,18 @@
+// tests/fixtures/format/comptime_const_with_helper: a decorated `@comptime`
+// constant whose value the parser hands to a helper (a call with arguments, a
+// struct literal) keeps its decorator where it is.
+
+module "comptime_const_with_helper"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+scaled :: fn(n: i32) -> i32 = n * 2
+
+@comptime
+ORIGIN :: Point { .x = 0, .y = 0 }
+
+@comptime
+TWICE: i64: scaled(21)

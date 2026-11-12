@@ -255,7 +255,6 @@ tools/testrunner/build/release-<host>/testrunner --only-failures   # print the c
 bun run test                               # the tests still in TypeScript: CLI, language servers, projects
 bun run test:update                        # refresh the snapshots those keep
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
-RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter end-to-end (slow, ~2 min)
 ```
 
 ### Running the suite on Windows

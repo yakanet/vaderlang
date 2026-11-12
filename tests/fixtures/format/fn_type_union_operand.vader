@@ -1,0 +1,10 @@
+// tests/fixtures/format/fn_type_union_operand: a fn type operand of a union
+// keeps its parentheses: `-> T` takes the `| U` that follows it, so `fn() ->
+// void | null` returns `void | null`.
+
+module "fn_type_union_operand"
+
+S :: struct {
+    a: (fn(string, string) -> void) | null
+    c: i32 | (fn() -> void) | string
+}

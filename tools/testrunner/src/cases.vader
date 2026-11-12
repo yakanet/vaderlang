@@ -72,6 +72,7 @@ STAGES: Stage[]: [
     EXAMPLE_STAGE,
     NATIVE_EXAMPLE_STAGE,
     HOOK_STAGE,
+    FORMAT_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -171,6 +172,14 @@ HOOK_STAGE: Stage: Stage {
     .snapshot = "build.snapshot",
 }
 
+// What `vader fmt` makes of a source (`format_run.vader`).
+FORMAT_PHASE :: "format"
+FORMAT_STAGE: Stage: Stage {
+    .phase = FORMAT_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+
 // The lowered form of a program.
 LOWER_PHASE :: "lower"
 
@@ -259,6 +268,9 @@ find_cases :: fn(phases: string[]) -> Discovery {
             find_stage_fixtures(found, corpus)
         }
     }
+    if phases.contains(FORMAT_PHASE) {
+        find_format_cases(found)
+    }
     return found
 }
 
@@ -310,6 +322,9 @@ find_snippets :: fn(found: Discovery, phases: string[]) -> void {
         }
         if phases.contains(NATIVE_PHASE) && runs_natively(dir, config) {
             kept.push(NATIVE_PHASE)
+        }
+        if phases.contains(FORMAT_PHASE) {
+            kept.push(FORMAT_PHASE)
         }
         if kept.len() > 0 {
             found.cases.push(

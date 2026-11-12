@@ -1,0 +1,10 @@
+// tests/fixtures/format/local_typed_const: a local typed constant `name: T:
+// value` stays immutable: `name: T = value` would make it a mutable local.
+
+module "local_typed_const"
+
+f :: fn() -> u64 {
+    a: u64: 14757395258967641293
+    b: i32 = 2
+    return a + u64(b)
+}

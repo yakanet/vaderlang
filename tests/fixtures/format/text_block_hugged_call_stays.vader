@@ -1,0 +1,24 @@
+// tests/fixtures/format/text_block_hugged_call_stays: a call hugs its text
+// block: only the line a multi-line string opens on and the line it closes on
+// count toward the fit.
+
+module "text_block_hugged_call_stays"
+
+emit :: fn(parts: string[], n: i32) -> void {
+    parts.push("""
+        block ${n}
+          local.get 0
+          local.get 1
+          array.get 1
+          i32.const 0
+          i32.eq
+          br_if 0
+        end
+        """)
+    match n {
+        0 -> parts.push("""
+                zero
+            """)
+        _ -> parts.push("one")
+    }
+}

@@ -1,0 +1,10 @@
+// tests/fixtures/format/comment_above_enum_variant: the comment above a variant
+// stays above it, not after the `}` of the enum.
+
+module "comment_above_enum_variant"
+
+Kind :: enum(u8) {
+    Alpha,
+    // Doc for Beta.
+    Beta,
+}

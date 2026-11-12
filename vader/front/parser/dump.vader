@@ -280,7 +280,7 @@ write_fn_param :: fn(sb: StringBuilder, p: FnParam, level: i32) -> void {
     sb.entry(false, level + 1, "variadic")
     sb.write_bool(p.variadic)
     // Emitted only when set, so every existing fixture's dump is unchanged.
-    // Load-bearing beyond inspection: `tests/formatter.test.ts`
+    // Load-bearing beyond inspection: the `format` stage of the test runner
     // compares this dump before and after formatting, so a decorator missing
     // HERE is a decorator the formatter may silently drop with nothing failing.
     if p.decorators.len() > 0 {

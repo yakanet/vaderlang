@@ -1,0 +1,10 @@
+// tests/fixtures/format/postfix_receiver_parens: a range, binary or unary
+// receiver of `.method`, `[index]` or a call keeps its parentheses: it binds
+// looser than the postfix, and `0..<3.count()` calls `count` on `3`.
+
+module "postfix_receiver_parens"
+
+r :: fn() -> i64 = (0..<3).count()
+b :: fn(x: i32, y: i32) -> i32 = (x + y).abs()
+u :: fn(x: i32) -> i32 = (-x).abs()
+i :: fn(x: i32, y: i32) -> i32[] = (x + y)[0..<2]

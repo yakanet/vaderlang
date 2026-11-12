@@ -1,0 +1,13 @@
+// tests/fixtures/format/comment_above_trailing_match: the comment above the
+// expression that ends a block, a `match` that is the whole body of a fn, stays
+// above it, neither at the end of the block nor in an arm.
+
+module "comment_above_trailing_match"
+
+classify :: fn(x: i32) -> i32 {
+    // Leading comment before the match.
+    match x {
+        0 -> 1
+        _ -> 2
+    }
+}

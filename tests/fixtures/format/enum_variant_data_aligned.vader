@@ -1,0 +1,16 @@
+// tests/fixtures/format/enum_variant_data_aligned: across the variants of an
+// enum on adjacent lines, the data blocks start in one column, and the `=` in
+// another.
+
+module "enum_variant_data_aligned"
+
+Info :: struct {
+    label: string
+    retry: bool = false
+}
+
+Level :: enum(Info) {
+    Error   { .label = "error" }                  = 1,
+    Warning { .label = "warning", .retry = true },
+    Notice  { .label = "notice" },
+}

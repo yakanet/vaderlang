@@ -10,10 +10,7 @@
 module "tools/cli_tests/build_run"
 
 import "std/fs"
-import "std/option"
-import "std/process"
 import "std/string"
-import "std/target"
 import "tools/cli_tests/cli"
 
 // A program that prints `says`, each of its arguments on a line, a line on its
@@ -41,20 +38,6 @@ staged :: fn(name: string, source: string) -> string {
     dir :: scratch_dir("build_run_${name}")
     write_file("${dir}/main.vader", source)
     return dir
-}
-
-// What `vader` with `args` did in `dir`, against the toolchain of the repository.
-vader_in :: fn(dir: string, args: string[], env: [string, string | null][] = []) -> ProcessResult {
-    options :: RunOptions { .cwd = dir, .env = toolchain_env() + env }
-    return run_vader(args, options).unwrap()
-}
-
-// A platform other than this one, which a native build of this host cannot run.
-other_platform :: fn() -> string {
-    if current_os() == .Windows {
-        return "linux-x86_64"
-    }
-    return "windows-x86_64"
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -8,9 +8,11 @@
 // the VM is the `vm` stage (`vm_run.vader`), its native build and run the
 // `native` stage (`native_run.vader`), the `@test` functions of a module the
 // `tests` stage (`tests_run.vader`), the runs of an example its two stages
-// (`examples.vader`), and the build of a driven project the `hook` stage
-// (`hook_fixtures.vader`). Each case has a folder of its own under the worker's, kept
-// when the case fails (`enter_case`). Nothing but the protocol goes to stdout.
+// (`examples.vader`), the build of a driven project the `hook` stage
+// (`hook_fixtures.vader`), and what `vader fmt` makes of a source the `format`
+// stage (`format_run.vader`). Each case has a folder of its own under the
+// worker's, kept when the case fails (`enter_case`). Nothing but the protocol
+// goes to stdout.
 
 module "tools/testrunner/src"
 
@@ -133,6 +135,9 @@ check_phase :: fn(
     }
     if phase == HOOK_PHASE {
         return check_hook(case, dir, ctx.update)
+    }
+    if phase == FORMAT_PHASE {
+        return check_format(case, ctx.update)
     }
     return check_run(case, ctx.update)
 }

@@ -1,0 +1,12 @@
+// tests/fixtures/format/match_arrows_past_the_cap: an arm whose head is wider
+// than the alignment cap pads none: each arrow stays one space after its head.
+
+module "match_arrows_past_the_cap"
+
+f :: fn(x: T) -> i32 {
+    match x {
+        is A -> 1
+        is SomeVeryLongVariantNameThatExceedsTheAlignmentCapWidthOnItsOwnHere -> 2
+        is B -> 3
+    }
+}

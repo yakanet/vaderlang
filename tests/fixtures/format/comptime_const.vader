@@ -1,0 +1,10 @@
+// tests/fixtures/format/comptime_const: a `@comptime` constant, typed or not,
+// comes back as written: the helper fn the parser makes of its value stays out
+// of the output.
+
+module "comptime_const"
+
+build_table :: fn() -> i32[] = [1, 2, 3]
+
+TABLE_TYPED: i32[]: @comptime { return build_table() }
+TABLE_UNTYPED :: @comptime build_table()

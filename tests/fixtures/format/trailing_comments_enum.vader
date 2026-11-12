@@ -1,0 +1,10 @@
+// tests/fixtures/format/trailing_comments_enum: the `//` comments after the
+// variants of an enum share one column, one space past the longest variant.
+
+module "trailing_comments_enum"
+
+Code :: enum(u8) {
+    First,  // X0001
+    Second, // X0002
+    Third,  // X0003
+}

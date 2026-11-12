@@ -1,0 +1,23 @@
+// tests/fixtures/format/nested_generic_impl: a nested generic in an impl,
+// `Into<Iterator<T>>`, closes each `<` once, though the lexer reads the two `>`
+// as one token.
+
+module "nested_generic_impl"
+
+Iterator :: trait<T> {
+    next :: fn(self) -> T | null
+}
+
+Into :: trait<Target> {
+    into :: fn(self) -> Target
+}
+
+Wrap :: struct<T> {
+    inner: T
+}
+
+Wrap<T> implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
+        return self.inner
+    }
+}

@@ -1,0 +1,10 @@
+// tests/fixtures/format/expression_bodied_fn_literal: a function literal
+// written `= expr` comes back as one, neither a block nor an arrow lambda.
+
+module "expression_bodied_fn_literal"
+
+outer :: fn(n: i32) -> i32 {
+    double :: fn(y: i32) -> i32 = y * 2
+    halve :: fn(y: i32) = y / 2
+    return double(n) + halve(n)
+}

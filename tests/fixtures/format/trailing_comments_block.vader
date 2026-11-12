@@ -1,0 +1,9 @@
+// tests/fixtures/format/trailing_comments_block: the `//` comments after the
+// statements of a block share one column, one space past the longest statement.
+
+module "trailing_comments_block"
+
+f :: fn() -> i32 {
+    x :: 1   // one
+    return x // done
+}

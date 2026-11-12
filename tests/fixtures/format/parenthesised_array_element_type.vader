@@ -1,0 +1,15 @@
+// tests/fixtures/format/parenthesised_array_element_type: the operand of the
+// type postfix `[]` keeps its parentheses: without them, `(fn(i64) -> i64)[]`
+// is a fn that returns an array.
+
+module "parenthesised_array_element_type"
+
+apply_all :: fn(fns: (fn(i64) -> i64)[], seed: i64) -> i64 = seed
+
+boxed :: fn() -> (fn(i64) -> i64)[] = []
+
+ranged :: fn() -> i32 {
+    a :: (0..<3)[]
+    b :: (1 + 1)[]
+    return i32(a.len() + b.len())
+}
