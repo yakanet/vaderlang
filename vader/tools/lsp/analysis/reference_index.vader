@@ -27,7 +27,6 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
-import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "vader/front/typecheck"

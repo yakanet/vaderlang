@@ -26,7 +26,6 @@
 
 module "vader/tools/lsp/actions"
 
-import "vader/tools/fmt"
 AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"
 import "toolchain/span"

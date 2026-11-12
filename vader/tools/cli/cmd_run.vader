@@ -13,9 +13,7 @@ import "std/fs"
 import "std/io"
 import "std/path"
 import "std/string"
-import "cli"
 import "vader/pipeline"
-import "vader/support/diagnostics"
 import "vader/vm"
 
 // The one forwarding action: the CLI reads flags up to the path, and everything

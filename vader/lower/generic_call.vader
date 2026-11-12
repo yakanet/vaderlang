@@ -8,7 +8,6 @@ import "std/string_builder"
 import "vader/lower/ir"
 
 import "toolchain/ast"
-import "vader/support/diagnostics"
 import "vader/front/typecheck"
 import "vader/core/symbol"
 import "vader/core/types"

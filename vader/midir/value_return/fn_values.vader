@@ -14,7 +14,6 @@ module "vader/midir/value_return"
 
 import "std/collections"
 import "vader/core/mono"
-import "vader/core/types"
 import "vader/core/symbol"
 import "vader/midir"
 

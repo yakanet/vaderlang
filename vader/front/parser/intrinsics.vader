@@ -6,8 +6,6 @@
 
 module "vader/front/parser"
 
-import "toolchain/ast"
-
 /// What an intrinsic does with one of its arguments.
 export IntrinsicArgKind :: enum(u8) {
     /// A type expression, parsed as one and never run.

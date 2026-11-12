@@ -257,7 +257,6 @@ site_position :: fn(span: Span) -> string =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "toolchain/ast"
 import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/support/diagnostics"

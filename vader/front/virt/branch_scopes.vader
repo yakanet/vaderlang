@@ -10,8 +10,6 @@
 
 module "vader/front/virt"
 
-import "vader/core/bytecode"
-
 /// One scope opened by `block` / `loop` / `if` / `else`. `label` is the tag a
 /// `br <label>` matches against the scope ; `is_loop` distinguishes back-edges
 /// (loop) from forward-edges (block / if / else) ; `opener_pc` is the pc of the

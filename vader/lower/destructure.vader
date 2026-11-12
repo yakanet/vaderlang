@@ -4,7 +4,6 @@
 module "vader/lower"
 
 import "toolchain/ast"
-import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"

@@ -7,7 +7,6 @@
 
 module "vader/lower/dump"
 
-import "std/numbers"
 import "std/string"
 import "std/string_builder"
 import "vader/core/types"

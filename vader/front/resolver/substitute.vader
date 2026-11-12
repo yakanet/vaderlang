@@ -14,7 +14,6 @@
 module "vader/front/resolver"
 
 import "std/collections"
-import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 

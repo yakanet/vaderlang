@@ -9,7 +9,6 @@
 module "vader/midir"
 
 import "std/string_builder"
-import "vader/core/symbol"
 import "vader/core/types"
 import "vader/lower/ir"
 import "vader/support/text"

@@ -109,5 +109,5 @@
   expr 36:5     IdentExpr      :: fn(T) -> void
   expr 36:69    UnaryExpr      :: bool
   expr 36:73    IdentExpr      :: IOError
-  expr 405:60   StructLitExpr  :: RemoveOptions
-  expr 63:32    StructLitExpr  :: MetadataOptions
+  expr 404:60   StructLitExpr  :: RemoveOptions
+  expr 62:32    StructLitExpr  :: MetadataOptions

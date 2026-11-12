@@ -10,7 +10,6 @@ module "vader/front/comptime"
 
 AST :: import "toolchain/ast"
 import "vader/front/typecheck"
-import "vader/support/diagnostics"
 
 /// Hard ceiling on the evaluator's nesting depth. A cyclic / non-terminating
 /// comptime expression (e.g. a const whose value resolves back to itself) would

@@ -18,11 +18,9 @@
 module "vader/lower"
 
 import "std/collections"
-import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "toolchain/span"
 import "vader/lower/ir"
 

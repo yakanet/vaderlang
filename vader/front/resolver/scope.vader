@@ -10,7 +10,6 @@ module "vader/front/resolver"
 
 import "std/collections"
 import "vader/core/symbol"
-import "vader/support/diagnostics"
 
 /// LIFO stack of binding frames: innermost at the end, root at index 0.
 export Scope :: struct {
@@ -96,7 +95,6 @@ export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
 import "toolchain/span"
 
 @test

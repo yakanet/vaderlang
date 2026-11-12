@@ -7,7 +7,6 @@ import "std/collections"
 import "vader/lower/ir"
 
 import "toolchain/ast"
-import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"

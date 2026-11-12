@@ -15,7 +15,6 @@ module "vader/front/resolver"
 import "std/collections"
 import "std/string"
 import "vader/core/symbol"
-import "vader/front/parser"
 import "vader/support/target"
 
 /// Build the seed of std/core's exports once per project. Returns an empty map

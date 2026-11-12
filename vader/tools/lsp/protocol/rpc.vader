@@ -13,7 +13,6 @@
 
 module "vader/tools/lsp/protocol"
 
-import "std/string_builder"
 import "json"
 import "std/collections"
 

@@ -13,7 +13,6 @@
 module "vader/midir"
 
 import "vader/core/mono"
-import "vader/support/diagnostics"
 import "vader/core/types"
 import "vader/core/symbol"
 import "vader/lower/ir"

@@ -25,7 +25,6 @@ module "vader/tools/cli"
 
 import "std/console"
 import "std/path"
-import "std/string"
 import "cli"
 import "vader/pipeline"
 import "vader/support/target"

@@ -8,7 +8,6 @@
 
 module "vader/front/resolver"
 
-import "vader/support/diagnostics"
 import "toolchain/span"
 
 /// A resolved module : its declared name, its folder, and its `.vader` file

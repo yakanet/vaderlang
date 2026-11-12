@@ -12,7 +12,6 @@ module "tools/testrunner/src"
 import "std/fs"
 import "std/io"
 import "std/iter"
-import "std/sort"
 import "std/string"
 import "vader/support/target"
 

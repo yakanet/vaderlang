@@ -17,7 +17,6 @@ import "json"
 import "std/collections"
 import "std/option"
 import "std/uri"
-import "vader/support/diagnostics"
 import "toolchain/span"
 
 // ---- range geometry -------------------------------------------------------
@@ -203,7 +202,6 @@ export range_field :: fn(params: JsonValue, bound: string, key: string) -> i32 =
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/target"
 import "std/testing"
 
 @test

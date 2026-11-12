@@ -19,8 +19,6 @@ raylib_archive :: fn() -> string = "third_party/raylib/lib/${host_folder()}/libr
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing"
-
 // Check that the windowed program of the example `name`, which `flags` pick,
 // builds natively, when this host has raylib to link it with.
 assert_builds :: fn(name: string, flags: string[]) -> void {

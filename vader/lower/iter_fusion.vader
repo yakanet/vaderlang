@@ -10,7 +10,6 @@
 module "vader/lower"
 
 import "std/abort"
-import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"

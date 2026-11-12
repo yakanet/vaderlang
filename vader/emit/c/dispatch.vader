@@ -22,7 +22,6 @@
 module "vader/emit/c"
 
 import "std/collections"
-import "std/sort"
 import "std/string"
 import "vader/core/bytecode"
 import "vader/emit/c/ast"

@@ -215,8 +215,6 @@ indexed_decl :: fn(ctx: PurityCtx, symbol: Symbol) -> LoweredFnDecl | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/support/diagnostics"
-AST :: import "toolchain/ast"
 import "toolchain/span"
 
 // Minimal fixtures. `is_pure_fn` reads only `fd.mangled` + `fd.body` and, via

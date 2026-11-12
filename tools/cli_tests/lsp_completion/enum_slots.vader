@@ -9,10 +9,7 @@
 module "tools/cli_tests/lsp_completion"
 
 import "json"
-import "std/iter"
-import "std/string"
 import "tools/cli_tests/lsp"
-import "tools/cli_tests/rpc"
 
 // The completion list the server gives for `source` at `line` and `character`.
 completion_in :: fn(name: string, source: string, line: i64, character: i64) -> JsonValue {

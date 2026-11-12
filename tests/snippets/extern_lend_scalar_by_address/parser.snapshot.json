@@ -15,14 +15,6 @@
         "decorators": []
       },
       {
-        "kind": "ImportDecl",
-        "path": "std/ffi",
-        "binding": {
-          "kind": "wildcard"
-        },
-        "decorators": []
-      },
-      {
         "kind": "FnDecl",
         "name": "copy_f64",
         "visibility": "private",

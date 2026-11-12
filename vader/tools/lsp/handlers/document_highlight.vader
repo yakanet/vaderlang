@@ -17,8 +17,6 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "vader/front/lexer"
-import "vader/support/diagnostics"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 import "toolchain/span"

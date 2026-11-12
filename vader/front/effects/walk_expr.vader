@@ -8,7 +8,6 @@
 module "vader/front/effects"
 
 import "std/collections"
-import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"
 

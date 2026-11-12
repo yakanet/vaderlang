@@ -8,7 +8,6 @@
 module "vader/midir/ranges"
 
 import "vader/core/types"
-import "vader/midir"
 import "vader/support/integer"
 
 // ---- intervals ------------------------------------------------------------

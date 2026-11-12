@@ -9,7 +9,6 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/iter"
 import "std/string"
-AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
 

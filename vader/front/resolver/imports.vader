@@ -9,8 +9,6 @@
 
 module "vader/front/resolver"
 
-import "std/collections"
-
 export ImportInfo :: struct {
     path:          string
     imported_name: string | null
@@ -25,5 +23,4 @@ export ImportInfo :: struct {
     binding_span:  Span
 }
 
-import "vader/support/diagnostics"
 import "toolchain/span"

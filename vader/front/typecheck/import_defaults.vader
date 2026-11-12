@@ -27,7 +27,6 @@ import "std/collections"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/types"
-import "vader/front/resolver"
 
 /// Publish the resolutions for every identifier inside `fd`'s default values.
 ///

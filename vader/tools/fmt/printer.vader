@@ -11,7 +11,6 @@ module "vader/tools/fmt"
 import "std/iter"
 import "std/string"
 import "std/string_builder"
-import "vader/support/diagnostics"
 p :: import "toolchain/ast"
 import "toolchain/span"
 

@@ -8,12 +8,10 @@ import "vader/core/mono"
 import "vader/lower/ir"
 
 import "toolchain/ast"
-import "vader/support/diagnostics"
 import "vader/support/text"
 import "vader/front/typecheck"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "toolchain/span"
 
 UfcsMember :: struct {

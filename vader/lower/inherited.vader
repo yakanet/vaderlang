@@ -13,7 +13,6 @@ import "std/iter"
 AST :: import "toolchain/ast"
 import "vader/core/mono"
 import "vader/core/types"
-import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/lower/ir"
 

@@ -7,7 +7,6 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
-import "vader/core/symbol"
 import "vader/core/types"
 import "vader/support/diagnostics"
 

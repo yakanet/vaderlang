@@ -4,7 +4,6 @@
 module "vader/lower"
 
 import "std/collections"
-import "std/math"
 import "std/string_builder"
 
 import "toolchain/ast"
@@ -12,7 +11,6 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "vader/front/comptime"
-import "vader/core/symbol"
 
 // A substitution of exactly `bindings`, their unions laid out (`laid_out_unions`).
 substitution_of :: fn(bindings: Map<i32, Type>) -> Substitution {

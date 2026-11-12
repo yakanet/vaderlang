@@ -20,10 +20,8 @@
 module "vader/lower"
 
 import "std/collections"
-import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/mono"
-import "vader/core/symbol"
 import "vader/core/types"
 import "vader/lower/ir"
 

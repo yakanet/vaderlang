@@ -14,7 +14,6 @@ import "std/iter"
 import "std/option"
 import "std/sort"
 import "std/string"
-import "tools/cli_tests/cli"
 import "tools/cli_tests/lsp"
 import "tools/cli_tests/rpc"
 

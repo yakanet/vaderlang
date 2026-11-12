@@ -11,10 +11,8 @@ module "vader/tools/cli"
 import "std/console"
 import "std/path"
 import "cli"
-import "vader/front/parser"
 import "vader/front/resolver"
 import "vader/front/dead_code"
-import "vader/pipeline"
 import "vader/support/diagnostics"
 
 /// `vader lint <file>`: project-wide hygiene lints kept OUT of the default

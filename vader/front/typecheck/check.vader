@@ -57,7 +57,6 @@ export check_module :: fn(
 
 import "std/testing"
 import "vader/core/symbol"
-import "vader/core/types"
 
 run_check :: fn(src: string) -> CheckResult {
     parsed :: parse_source(src, "t.vader")

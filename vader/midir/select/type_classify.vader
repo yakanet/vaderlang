@@ -11,7 +11,6 @@ import "std/string"
 import "vader/core/bytecode"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/support/diagnostics"
 import "vader/support/integer"
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`

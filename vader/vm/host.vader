@@ -10,8 +10,6 @@ module "vader/vm"
 
 bc :: import "vader/core/bytecode"
 
-import "std/env"
-import "std/tty"
 import "std/process"
 import "std/math"
 import "std/string"

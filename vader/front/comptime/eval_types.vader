@@ -5,7 +5,6 @@ module "vader/front/comptime"
 import "std/collections"
 import "vader/core/symbol"
 import "vader/support/diagnostics"
-import "vader/front/parser"
 import "vader/front/typecheck"
 import "toolchain/span"
 

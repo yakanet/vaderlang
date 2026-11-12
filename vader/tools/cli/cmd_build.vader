@@ -28,7 +28,6 @@ import "vader/front/virt"
 import "vader/vm"
 import "vader/pipeline"
 Build :: import "toolchain/build"
-import "vader/support/diagnostics"
 import "vader/emit/c"
 import "std/sort"
 

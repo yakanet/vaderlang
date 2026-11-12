@@ -39,7 +39,6 @@
 module "vader/lower"
 
 import "std/collections"
-AST :: import "toolchain/ast"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"

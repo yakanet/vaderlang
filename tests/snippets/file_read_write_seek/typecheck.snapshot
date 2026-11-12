@@ -108,7 +108,7 @@
   expr 38:26    IdentExpr      :: string
   expr 38:9     CallExpr       :: void
   expr 38:9     IdentExpr      :: fn(T) -> void
-  expr 405:60   StructLitExpr  :: RemoveOptions
+  expr 404:60   StructLitExpr  :: RemoveOptions
   expr 40:13    StringLitExpr  :: string
   expr 40:23    CallExpr       :: string
   expr 40:23    IdentExpr      :: fn(IOError | null) -> string

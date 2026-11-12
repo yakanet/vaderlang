@@ -1,7 +1,6 @@
 module "snippet"
 
 import "std/console"
-import "std/ffi"
 
 // A scalar lent by address (`@c_address`): `memcpy` copies the bytes C finds
 // behind the address into an array, which shows what crossed, on both engines.

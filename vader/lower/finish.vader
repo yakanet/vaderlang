@@ -3,7 +3,6 @@
 
 module "vader/lower"
 
-import "vader/core/symbol"
 import "vader/lower/ir"
 
 // One `LoweredVtableEntry` per surviving impl member: the slot its `MonoEntry`

@@ -7,7 +7,6 @@ module "std/numbers"
 
 import "std/string"
 import "std/char"
-import "std/math"
 import "std/string_builder"
 
 /// True for an ASCII hex digit: `0`..`9`, `a`..`f`, `A`..`F`.

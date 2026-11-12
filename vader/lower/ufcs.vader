@@ -6,7 +6,6 @@
 
 module "vader/lower"
 
-import "std/abort"
 import "std/collections"
 import "vader/lower/ir"
 

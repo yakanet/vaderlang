@@ -8,7 +8,6 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "vader/support/diagnostics"
-import "vader/core/types"
 import "vader/core/symbol"
 import "vader/front/resolver"
 import "vader/front/typecheck"

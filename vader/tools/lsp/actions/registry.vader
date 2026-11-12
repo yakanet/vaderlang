@@ -17,7 +17,6 @@
 module "vader/tools/lsp/actions"
 
 import "std/string"
-import "vader/support/diagnostics"
 import "vader/tools/fmt"
 import "vader/tools/lsp/protocol"
 AST :: import "toolchain/ast"
