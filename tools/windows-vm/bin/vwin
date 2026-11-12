@@ -80,11 +80,13 @@ cmd_build() {
     guest "Set-Location $GUEST_REPO; pwsh -NoProfile -File bootstrap/build.ps1 -CC clang $*"
 }
 
-# The runner as the CI runs it: built by the compiler `vwin build` left, with
-# `VADER_HOME` on the tree. `args` go to the runner (`--phases=...`).
+# The runner as the CI runs it: built by the compiler `vwin build` left, and
+# `VADER_HOME` on the tree for its build and its run. `args` go to the runner
+# (`--phases=...`). No quote in the command: `vagrant ssh -c` rewrites a `'`
+# the POSIX way, which PowerShell does not read.
 cmd_test() {
     cmd_sync
-    guest "Set-Location $GUEST_REPO/tools/testrunner; ../../build/vader.exe build --release; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; Set-Location $GUEST_REPO; \$env:VADER_HOME = '$GUEST_REPO'; & (Get-Item tools/testrunner/build/release-*/testrunner.exe).FullName --only-failures $*"
+    guest "Set-Item env:VADER_HOME $GUEST_REPO; Set-Location $GUEST_REPO/tools/testrunner; ../../build/vader.exe build --release; if (\$LASTEXITCODE -ne 0) { exit \$LASTEXITCODE }; Set-Location $GUEST_REPO; & (Get-Item tools/testrunner/build/release-*/testrunner.exe).FullName --only-failures $*"
 }
 
 case "${1:-}" in
