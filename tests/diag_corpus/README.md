@@ -6,13 +6,11 @@ The positive snippets under `tests/snippets/` carry their diagnostics
 inside the per-stage snapshots already; this corpus exists for the error
 paths those never reach.
 
-Driven by `tests/diagnostics-corpus.test.ts`, which dumps the native
-compiler at the `lowered-ast` stage: the point where every front-end
-diagnostic has accumulated (lexer → parser → resolver → typecheck →
-comptime), and snapshots every emitted `[span] severity[CODE] message` line
-per fixture, so a changed wording shows in the diff as a changed code does.
-**The self-hosted compiler is the oracle.** The former TS↔Vader
-set-parity was dropped when the TypeScript reference was removed.
+Driven by the `diagnostics` stage of the test runner (`tools/testrunner`):
+the diagnostics of every phase of the front end and of the lowering, kept to
+the fixture's modules, one `[span] severity[CODE] message` line each in the
+snapshot, so a changed wording shows in the diff as a changed code does.
+**The self-hosted compiler is the oracle.**
 
 ## Layout
 
@@ -21,8 +19,7 @@ tests/diag_corpus/<bucket>/<code>_<short-label>/_main.vader
                                                /diagnostics.snapshot
 ```
 
-`listSnippets` from `tests/snapshot.ts` is reused, so the directory shape
-matches `tests/snippets/`. Buckets are the emitting phase: `lexer`,
+The directory shape matches `tests/snippets/`. Buckets are the emitting phase: `lexer`,
 `parser`, `resolver`, `typecheck`, `comptime`, `lower`, `warning`.
 
 A fixture may carry extra files next to `_main.vader` (`lib.vader`,
@@ -38,7 +35,8 @@ divergence visible instead of hidden.
 ## Adding a fixture
 
 Every newly allocated diagnostic code gets one. Write the smallest `_main.vader` that trips the code, run
-`UPDATE_SNAPSHOTS=1 bun run test`, and **read the generated snapshot**:
+`tools/testrunner/build/release-<host>/testrunner --update --phases=diagnostics`
+from the root of the repository, and **read the generated snapshot**:
 if it contains a code you didn't intend, an earlier phase fired first and
 the fixture is testing something else.
 

@@ -248,8 +248,11 @@ Two editor plugins share one syntax grammar ([`editors/common/`](./editors/commo
 ## Development
 
 ```sh
-bun run test                               # full test suite (snapshots + CLI; wires up --parallel)
-bun run test:update                        # refresh snapshots after intentional output changes
+(cd tools/testrunner && ../../build/vader build --release)   # the test runner, once per change of the sources
+tools/testrunner/build/release-<host>/testrunner            # snippets, corpora and the @test of lib/, vader/, tools/
+tools/testrunner/build/release-<host>/testrunner --update   # refresh their snapshots after intentional output changes
+bun run test                               # the tests still in TypeScript: CLI, language servers, projects, examples
+bun run test:update                        # refresh the snapshots those keep
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
 RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter end-to-end (slow, ~2 min)
 ```
@@ -267,7 +270,7 @@ bin/vwin test tests/lsp             # …scoped to a path
 
 Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses, see the directory's README for that distinction and the rest of the setup.
 
-Snapshot tests live under `tests/snippets/<name>/` (a `_main.vader` + one `*.snapshot` per stage); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`M5`/`H6`/`I7`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+Snapshot tests live under `tests/snippets/<name>/` (a `_main.vader` + one `*.snapshot` per stage); the runner's `--update` regenerates them, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`M5`/`H6`/`I7`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ### Releasing
 

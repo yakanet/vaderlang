@@ -4,7 +4,8 @@
 // stdout even though the program aborts. A failed run-time check
 // (tests/fixtures/unwind/out_of_range.vader) runs them too.
 //
-// The VM side is also pinned by that snippet's `vm.snapshot` (vader_vm.test.ts);
+// The VM side is also pinned by that snippet's `vm.snapshot` (the `vm` stage of
+// the test runner);
 // this file adds the NATIVE assertion, which the C-emit parity suite cannot
 // make: it compares stderr and the exit code verbatim, and a VM trap and a
 // native abort differ in both. It also re-checks the VM stdout explicitly so

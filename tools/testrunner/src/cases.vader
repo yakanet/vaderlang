@@ -280,10 +280,10 @@ covers :: fn(config: SnippetConfig, phase: string) -> bool {
     return listed.contains(phase)
 }
 
-// Whether the run of the snippet in `dir` is checked on the VM, as
-// `tests/vader_vm.test.ts` decides: it has a run to check or a bytecode snapshot
-// to run, its `_config.json` does not exclude the run on this host, and it brings
-// no C of its own (`helper*.c`), which only a native binary links.
+// Whether the run of the snippet in `dir` is checked on the VM: it has a run to
+// check or a bytecode snapshot to run, its `_config.json` does not exclude the
+// run on this host, and it brings no C of its own (`helper*.c`), which only a
+// native binary links.
 runs_on_vm :: fn(dir: string, config: SnippetConfig) -> bool {
     if !exists("${dir}/${VM_SNAPSHOT}") && !exists("${dir}/${BYTECODE_SNAPSHOT}") {
         return false
@@ -294,9 +294,8 @@ runs_on_vm :: fn(dir: string, config: SnippetConfig) -> bool {
     return helper_c_files(dir).len() == 0
 }
 
-// Whether the snippet in `dir` is built and run natively, as
-// `tests/parity-cemit.test.ts` decides: it has a run to compare with, and its
-// `_config.json` does not exclude the native run on this host.
+// Whether the snippet in `dir` is built and run natively: it has a run to compare
+// with, and its `_config.json` does not exclude the native run on this host.
 runs_natively :: fn(dir: string, config: SnippetConfig) -> bool =
     exists("${dir}/${VM_SNAPSHOT}") && !excludes_this_host(config.native)
 

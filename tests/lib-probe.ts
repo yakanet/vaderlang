@@ -13,8 +13,8 @@
 // walks `vader/` and `lib/` to decide whether `build/vader` is stale, and a file
 // created under `lib/` is indistinguishable from an edited source. So the probe
 // declared the binary stale for every other test FILE, and under `--parallel`
-// that is 14 workers, one of which was loading `snapshot.test.ts`. The run went
-// from 3402 tests to 909, with one unnamed failure and no hint of the cause.
+// that is 14 workers, each loading a test file. The run went from 3402 tests to
+// 909, with one unnamed failure and no hint of the cause.
 //
 // Staging in /tmp works because the cwd-relative `lib` is one of the roots the
 // loader assembles, and it holds the library marker there, so it is tagged

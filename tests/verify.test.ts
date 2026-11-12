@@ -26,7 +26,7 @@ ensureCliBuilt();
 
 // The self-host case compiles ~105k lines of Vader, an order of magnitude past
 // anything else in the suite, and under `--parallel` it exceeds the per-test
-// budget on a loaded machine. Same bargain `parity-broad` takes.
+// budget on a loaded machine.
 const RUN_SELF_HOST = process.env["RUN_VERIFY_SELFHOST"] === "1";
 
 // `--out` into a scratch dir: the sweep runs on every example, and `--out=-`

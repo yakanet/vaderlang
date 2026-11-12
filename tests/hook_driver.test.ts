@@ -7,7 +7,7 @@
 // directory the CLI is run *inside*, since the driver is discovered relative to
 // the invocation directory.
 //
-// CORPUS-DRIVEN, in the shape of `snapshot.test.ts`: what a fixture asserts lives
+// CORPUS-DRIVEN, in the shape of the snippet corpus: what a fixture asserts lives
 // BESIDE it, not in this file.
 //
 //   <fixture>/build.vader          the driver under test

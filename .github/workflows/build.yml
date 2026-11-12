@@ -70,7 +70,9 @@ jobs:
       - name: Install X11's development package (raylib links -lX11)
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
-      - name: Snapshots, by the Vader test runner
+      # The snippets and their snapshots, the diagnostics and target corpora,
+      # and the `@test` functions of `lib/`, `vader/` and `tools/`.
+      - name: Tests
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         timeout-minutes: 20
         shell: bash
@@ -79,7 +81,9 @@ jobs:
         run: |
           (cd tools/testrunner && ../../build/vader build --release)
           tools/testrunner/build/release-*/testrunner
-      - name: Test
+      # What the runner does not check yet: the command line, the language
+      # servers, the driven projects and the examples.
+      - name: Tests left to Bun
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:
           VADER_TEST_GATE: ${{ inputs.gate }}

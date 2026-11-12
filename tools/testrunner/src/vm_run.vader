@@ -1,14 +1,13 @@
 // tools/testrunner/src/vm_run: the `vm` stage of a case, its program run in the
 // worker's own process.
 //
-// The program is the one `tests/vader_vm.test.ts` runs: the image `vader build
-// --emit=bytecode-text` links from source when the case says so
-// (`Case.vm_from_build`), else its bytecode snapshot on the host that snapshot is
-// taken for, and the bytecode `vader dump` renders for this host on any other. It
-// runs as `vader run` runs a `.virt` file (`vader/pipeline/run_virt.vader`), with
-// its standard streams served by the VM (`vader/vm/program_io.vader`): each write
-// goes to the runner as it happens, so that a run its worker dies in has still
-// said what it wrote.
+// The program is the image `vader build --emit=bytecode-text` links from source
+// when the case says so (`Case.vm_from_build`), else its bytecode snapshot on the
+// host that snapshot is taken for, and the bytecode `vader dump` renders for this
+// host on any other. It runs as `vader run` runs a `.virt` file
+// (`vader/pipeline/run_virt.vader`), with its standard streams served by the VM
+// (`vader/vm/program_io.vader`): each write goes to the runner as it happens, so
+// that a run its worker dies in has still said what it wrote.
 
 module "tools/testrunner/src"
 

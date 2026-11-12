@@ -1,11 +1,11 @@
 // tools/testrunner/src/native_run: the `native` stage of a case, its program
 // built by `cc` and run as a process of its own.
 //
-// The stage `tests/parity-cemit.test.ts` checks: the program is built for this
-// host by the link of `vader build --no-split`, the proofs of the range analysis
-// verified, with the `helper*.c` of the snippet compiled in. It then runs under a
-// deadline, its stdin ended, and its run is compared with the `vm.snapshot` of the
-// `vm` stage, which this stage never writes. `cc` and the program run in the
+// The program is built for this host by the link of `vader build --no-split`, the
+// proofs of the range analysis verified, with the `helper*.c` of the snippet
+// compiled in. It then runs under a deadline, its stdin ended, and its run is
+// compared with the `vm.snapshot` of the `vm` stage, which this stage never
+// writes. `cc` and the program run in the
 // worker's place in the pool: the worker waits for them.
 
 module "tools/testrunner/src"

@@ -6,8 +6,8 @@
 // "Identity: `===` and `!==`"). The other pages of the site cite the specification
 // the same way (`reference`, `resolve_references`). A link to a file of the
 // repository leads to its source. One that names nothing stops the build:
-// `tests/spec_references.test.ts` checks the citations of the whole repository,
-// this the links the site writes.
+// `tools/repo_checks/spec_references.vader` checks the citations of the whole
+// repository, this the links the site writes.
 
 import fs from 'node:fs';
 import path from 'node:path';
