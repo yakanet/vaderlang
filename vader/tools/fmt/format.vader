@@ -263,8 +263,7 @@ test_fmt_keeps_a_comment_after_the_last_item_of_a_list :: fn() -> void {
 
 @test
 test_fmt_leaves_a_list_on_its_line_when_the_comment_is_not_its_own :: fn() -> void {
-    // A comment in a receiver is not the arguments', and a block comment fits on
-    // the line of the list.
+    // A comment in a receiver is not the arguments'.
     fmt_leaves(r"""
         module "t"
 
@@ -282,6 +281,21 @@ test_fmt_leaves_a_list_on_its_line_when_the_comment_is_not_its_own :: fn() -> vo
 test_fmt_explodes_a_list_a_comment_sits_in :: fn() -> void {
     exploded :: "    q :: g(\n        1,\n        // the second\n        2,\n    )\n"
     fmt_keeps("f :: fn() -> void {\n    q :: g(1,\n        // the second\n        2)\n}", exploded)
+    block :: "    r :: g(\n        1,\n        /* inline */\n        2,\n    )\n"
+    fmt_keeps("f :: fn() -> void {\n    r :: g(1, /* inline */ 2)\n}", block)
+}
+
+@test
+test_fmt_leaves_a_comment_before_an_expression_body_to_the_body :: fn() -> void {
+    // The parameters end at their `)`: what follows `=` or `->` is the body's.
+    fmt_leaves(r"""
+        module "t"
+
+        g :: fn(a: i32) =
+            // explain g
+            a + 1
+        """)
+    fmt_keeps("h :: (x: i32) ->\n    // c\n    x + 1", "h :: (x: i32) -> x + 1")
 }
 
 // Formatting `source` must give it back unchanged.

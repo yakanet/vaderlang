@@ -118,9 +118,9 @@ export has_before :: fn(self: CommentMap, before: i64) -> bool {
     return c.offset < before
 }
 
-// Whether a line comment still queued starts in `[start, end)` at an offset
-// `inside` does not take. Consumes nothing.
-holds_line_comment :: fn(
+// Whether a comment still queued starts in `[start, end)` at an offset `inside`
+// does not take. Consumes nothing.
+holds_comment :: fn(
     self: CommentMap,
     start: i64,
     end: i64,
@@ -131,11 +131,22 @@ holds_line_comment :: fn(
         if c.offset >= end {
             return false
         }
-        if c.offset >= start && c.kind != .Block && !inside(c.offset) {
+        if c.offset >= start && !inside(c.offset) {
             return true
         }
     }
     return false
+}
+
+// The offset past the comment still queued that starts at `offset`; null when
+// none does.
+comment_end_at :: fn(self: CommentMap, offset: i64) -> i64 | null {
+    for i in self.cursor..<self.comments.len() {
+        c :: self.comments[i]
+        if c.offset == offset { return c.end_offset }
+        if c.offset > offset  { return null }
+    }
+    return null
 }
 
 /// Source line of the first comment still queued, when it starts before

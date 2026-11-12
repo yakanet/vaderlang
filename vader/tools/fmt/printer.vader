@@ -655,7 +655,7 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
     self.emit_type_params(d.type_params)
     bounds :: ListBounds {
         .start = d.name_span.end.offset,
-        .end = params_end(d.return_type, d.body, d.span.end),
+        .end = self.params_close(d.params, d.name_span.end.offset),
     }
     self.emit_fn_params(d.params, d.trailing_comma, bounds)
     self.emit_type_expr_with_prefix(" -> ", d.return_type)
@@ -1647,8 +1647,8 @@ coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> i64 {
 }
 
 // Whether a delimited construct stays on one line : always in `flat` mode or when
-// empty, never with a source trailing comma or a line comment of its own
-// (`own_comment`, one line has no room for it), else when its flat form and the
+// empty, never with a source trailing comma or a comment of its own
+// (`own_comment`, one line writes none), else when its flat form and the
 // `trailing` width after it fit within `MAX_LINE`.
 fits_inline :: fn(
     self: Printer,
@@ -1673,9 +1673,9 @@ ListBounds :: struct {
     end: Position | null = null
 }
 
-// Whether a line comment still to write sits in `bounds` outside each of `items`:
-// one the list holds itself. A comment inside an item is that item's to place,
-// and a block comment fits on the line of the list.
+// Whether a comment still to write sits in `bounds` outside each of `items`: one
+// the list holds itself. A comment inside an item is that item's to place. A
+// list written on one line writes no comment, a block one included.
 holds_own_comment :: fn<T>(
     self: Printer,
     bounds: ListBounds,
@@ -1684,27 +1684,44 @@ holds_own_comment :: fn<T>(
 ) -> bool {
     end :: bounds.end ?? return false
     inside :: (offset: i64) -> items.any_match((it) -> span_of(it).holds_offset(offset))
-    return self.comments.holds_line_comment(bounds.start, end.offset, inside)
+    return self.comments.holds_comment(bounds.start, end.offset, inside)
 }
 
 // Whether the byte at `offset` is in `span`.
 holds_offset :: fn(span: Span, offset: i64) -> bool =
     span.start.offset <= offset && offset < span.end.offset
 
-// Where the parameters of a function end: before its return type, else before
-// its body, else at `fallback`, the end of the function.
-params_end :: fn(
-    return_type: p.TypeExpr | null,
-    body: p.BlockExpr | null,
-    fallback: Position,
-) -> Position {
-    if return_type != null {
-        return return_type.span.start
+// The `)` that closes the parameters `params` of a function or a lambda whose
+// head starts at `from`: the first one after the last parameter, or after the
+// first `(` from `from` when there is none, past blanks, a trailing comma and
+// comments. Not the start of what follows: a comment between `=` and an
+// expression body is the body's. Null when the source holds anything else.
+params_close :: fn(self: Printer, params: p.FnParam[], from: i64) -> Position | null {
+    src :: self.source.bytes()
+    at: i64 = from
+    if params.len() > 0 {
+        at = params[params.len() - 1].span.end.offset
+    } else {
+        for at < src.len() && src[at] != '(' {
+            at = self.comments.comment_end_at(at) ?? at + 1
+        }
+        at += 1
     }
-    if body != null {
-        return body.span.start
+    for at < src.len() {
+        b :: src[at]
+        if b == ')' {
+            // Line 0: no blank line kept before the delimiter, as in a list.
+            return Position { .file = "", .offset = at, .line = 0, .column = 0 }
+        }
+        if b == '/' {
+            at = self.comments.comment_end_at(at) ?? return null
+        } else if b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == ',' {
+            at += 1
+        } else {
+            return null
+        }
     }
-    return fallback
+    return null
 }
 
 // Whether the flat rendering `flat` fits within `MAX_LINE` from the current
@@ -2507,20 +2524,20 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     // lambda with an explicit return type keep the `fn(p) -> T { ... }` form.
     if !x.is_expression_bodied && x.return_type is null && x.body.stmts.len() == 0
         && x.body.trailing != null {
-        self.emit_fn_params(x.params, x.trailing_comma, lambda_params_bounds(x))
+        self.emit_fn_params(x.params, x.trailing_comma, self.lambda_params_bounds(x))
         self.write(" -> ")
         self.emit_expr(x.body.trailing)
         return
     }
     self.write("fn")
-    self.emit_fn_params(x.params, x.trailing_comma, lambda_params_bounds(x))
+    self.emit_fn_params(x.params, x.trailing_comma, self.lambda_params_bounds(x))
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
     self.emit_fn_body(x.body, x.is_expression_bodied)
 }
 
 // Where the parameters of the lambda `x` sit.
-lambda_params_bounds :: fn(x: p.LambdaExpr) -> ListBounds {
-    end :: params_end(x.return_type, x.body, x.span.end)
+lambda_params_bounds :: fn(self: Printer, x: p.LambdaExpr) -> ListBounds {
+    end :: self.params_close(x.params, x.span.start.offset)
     return ListBounds { .start = x.span.start.offset, .end = end }
 }
 
@@ -2533,7 +2550,7 @@ lambda_params_bounds :: fn(x: p.LambdaExpr) -> ListBounds {
 // `open`+`close`. `emit_item` renders a single element: pass the element's
 // dedicated emitter (`emit_call_arg`, `emit_fn_param`, ...). The caller writes
 // any prefix (callee, type name) and computes `inline` before calling, and
-// never inlines a list a line comment of its own sits in (`holds_own_comment`).
+// never inlines a list a comment of its own sits in (`holds_own_comment`).
 //
 // Exploded, each item follows the comments that lead it in the source, found
 // before the start of the span `span_of` gives it, and the comments left before
