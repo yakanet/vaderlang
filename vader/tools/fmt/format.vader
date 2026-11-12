@@ -2,6 +2,7 @@
 
 module "vader/tools/fmt"
 
+import "std/string"
 import "vader/front/parser"
 import "vader/support/diagnostics"
 
@@ -39,13 +40,16 @@ export Formatted :: struct {
 ///       is ParseFailure -> for d in r.diagnostics { eprintln(d.render()) }
 ///   }
 export format_source :: fn(source: string, path: string) -> FormatResult {
-    pr :: parse_source_with_docs(source, path)
+    // A byte order mark is no program text, and the output has none: the spans
+    // the printer reads its comments by are those of the text after it.
+    text :: source.trim_prefix("\u{FEFF}")
+    pr :: parse_source_with_docs(text, path)
     if pr.errors.len() > 0 {
         // Don't format files with parse errors: round-trip parity cannot
         // hold when the AST is partial.
         return ParseFailure { .diagnostics = pr.errors }
     }
-    pp :: new_printer(source, comments_of(source, pr.comments))
+    pp :: new_printer(text, comments_of(text, pr.comments))
     output :: pp.emit_program(pr.program)
     return Formatted { .output = output }
 }
@@ -61,6 +65,14 @@ test_fmt_keeps_a_negation_of_a_number :: fn() -> void {
     fmt_keeps("b :: -(5).abs()", "-(5.abs())")
     fmt_keeps("c :: -(5.0).to_string()", "-(5.0.to_string())")
     fmt_keeps("d :: -5.abs()", "-5.abs()")
+}
+
+@test
+test_fmt_keeps_the_comptime_of_a_loop :: fn() -> void {
+    // Without it, the loop runs at run time over what it unrolled at compile time.
+    fmt_leaves(
+        "module \"t\"\n\nf :: fn() -> void {\n    @comptime for f in @fields(Pair) {\n        g(f)\n    }\n}\n",
+    )
 }
 
 @test
@@ -138,6 +150,13 @@ test_fmt_keeps_the_blank_line_after_a_shebang :: fn() -> void {
 test_fmt_keeps_a_shebang_after_a_byte_order_mark :: fn() -> void {
     shebang :: "#!/usr/bin/env vader\nmodule \"t\"\n"
     assert_eq(formatted("\u{FEFF}${shebang}"), shebang)
+}
+
+@test
+test_fmt_drops_the_byte_order_mark_before_a_comment :: fn() -> void {
+    // A mark that opens the file is no program text: the lexer skips it.
+    header :: "// Header.\n\nmodule \"t\"\n"
+    assert_eq(formatted("\u{FEFF}${header}"), header)
 }
 
 @test

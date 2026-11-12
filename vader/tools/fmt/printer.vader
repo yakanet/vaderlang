@@ -1390,6 +1390,9 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
             self.write(": ")
         }
     }
+    if s.is_comptime {
+        self.write("@comptime ")
+    }
     self.write("for")
     match form :: s.form {
         is p.InfiniteFor -> {}
