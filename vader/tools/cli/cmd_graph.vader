@@ -121,7 +121,8 @@ collect_graph :: fn(loaded: LoadedProject, include_all: bool) -> GraphNode[] {
         // files, so a path can repeat, hence `seen`.
         seen :: Set<string> {}
         imports: string[]: []
-        for target in module.collected.import_paths {
+        for edge in module.collected.import_paths {
+            target :: edge.path
             if target == name || !kept.contains(target) || !seen.add(target) {
                 continue
             }

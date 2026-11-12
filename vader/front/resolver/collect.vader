@@ -34,13 +34,21 @@ export CollectedModule :: struct {
     imports:      Map<i32, ImportInfo>
     /// Raw `import "path"` entries in source order: the loader uses
     /// these to walk the module graph transitively.
-    import_paths: string[]
+    import_paths: ImportPath[]
     /// Import surface, ONE ENTRY PER FILE of the module. Imports are
     /// file-scoped (SPEC §"Modules": "names bound in one file of a multi-file
     /// module are not visible in sibling files"), so `merge_collected` appends
     /// an entry rather than unioning them: a sibling file's imports must not
     /// bind this one.
     files: FileImports[]
+}
+
+/// One `import "path"` of a module, as its file writes it.
+export ImportPath :: struct {
+    path: string
+    /// The import declaration: an error about this edge of the module graph
+    /// points there.
+    span: Span
 }
 
 /// One file's imports : the wildcard paths its `import "p"` / `import "p" { ... }`
@@ -238,7 +246,7 @@ collect_import :: fn(
     if d.path == "" {
         diags.push(resolver_error(.EmptyImportPath, d.span, ""))
     } else {
-        self.import_paths.push(d.path)
+        self.import_paths.push(ImportPath { .path = d.path, .span = d.span })
         // Don't dispatch on the (string | null) result here: its sole
         // role is to fire the loader-side diagnostics ; the actual
         // binding still lands in `imports` for the wire pass.

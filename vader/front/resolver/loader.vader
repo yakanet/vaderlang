@@ -448,8 +448,8 @@ drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
         if has_module(ctx.modules, id) { continue }
         ingest_module(ctx, m)
         ingested :: ctx.modules[id] ?? continue
-        for raw in ingested.collected.import_paths {
-            dep :: ctx.index[raw] ?? continue
+        for edge in ingested.collected.import_paths {
+            dep :: ctx.index[edge.path] ?? continue
             if !has_module(ctx.modules, dep.folder) {
                 queue.push(dep)
             }
@@ -481,15 +481,16 @@ walk_import_cycle :: fn(
     state[id] = 1
     lm :: modules[id]
     if lm is LoadedModule {
-        for raw in lm.collected.import_paths {
-            target :: index[raw]
-            if target is DiscoveredModule {
+        for edge in lm.collected.import_paths {
+            target :: index[edge.path]
+            // A module that imports itself is R2024's, reported as it is collected.
+            if target is DiscoveredModule && target.folder != id {
                 st :: state[target.folder]
                 if st == null {
                     walk_import_cycle(target.folder, modules, index, state, diags)
                 } else if st == 1 {
-                    diags.push(resolver_error(.ImportCycle, zero_span(lm.module.display_path),
-                        "`${lm.module.display_path}` imports `${raw}`, closing an import cycle"))
+                    diags.push(resolver_error(.ImportCycle, edge.span,
+                        "`${lm.module.display_path}` imports `${edge.path}`, closing an import cycle"))
                 }
             }
         }
@@ -779,7 +780,7 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
     for [id, info] in src.imports {
         dst.imports[id] = info
     }
-    for p in src.import_paths { dst.import_paths.push(p) }
+    dst.import_paths.push_all(src.import_paths)
     // APPENDED, not unioned : each entry stays attached to the file that wrote
     // those imports, because imports are file-scoped (SPEC §"Modules"). Merging
     // them would let one file's `{ x as _ }` silence a sibling's plain wildcard

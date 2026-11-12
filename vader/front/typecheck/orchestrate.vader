@@ -370,8 +370,8 @@ collect_direct_imports :: fn(
         id_by_name[lm.module.module_name] = id
     }
     seen :: Map<string, bool> {}
-    for raw in entry_loaded.collected.import_paths {
-        target_id :: id_by_name[raw] ?? continue
+    for edge in entry_loaded.collected.import_paths {
+        target_id :: id_by_name[edge.path] ?? continue
         if target_id == project.entry { continue }
         if seen[target_id] !is null   { continue }
         seen[target_id] = true

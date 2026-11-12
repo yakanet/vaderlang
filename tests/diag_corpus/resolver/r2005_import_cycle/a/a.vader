@@ -1,0 +1,5 @@
+module "snippet/a"
+
+import "snippet/b"
+
+export ping :: fn() -> i32 = pong()

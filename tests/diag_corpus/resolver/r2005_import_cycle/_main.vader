@@ -1,0 +1,7 @@
+// `snippet/a` imports `snippet/b`, which imports `snippet/a` back: the import
+// that closes the cycle is R2005.
+module "snippet"
+
+import "snippet/a"
+
+main :: fn() -> i32 = ping()
