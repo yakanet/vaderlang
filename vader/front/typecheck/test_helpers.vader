@@ -4,7 +4,11 @@ module "vader/front/typecheck"
 
 import "std/string_builder"
 AST :: import "toolchain/ast"
+import "vader/core/symbol"
 import "vader/core/types"
+import "vader/front/parser"
+import "vader/front/resolver"
+import "vader/support/diagnostics"
 import "vader/support/integer"
 
 // ---- a source without `std/core` ------------------------------------------
@@ -33,4 +37,27 @@ first_fn_decl :: fn(decls: AST.Decl[]) -> AST.FnDecl | null {
         }
     }
     return null
+}
+
+// ---- a checked test program -----------------------------------------------
+
+/// A checked test source, and the program it was checked from. The typed tables
+/// are keyed by span, so a node to look up in them comes from `program`: the
+/// integers `with_integers` puts first shift every line of the test's source.
+CheckedSrc :: struct {
+    program: AST.Program
+    typed: TypedProgram
+}
+
+/// `src` after `with_integers`, parsed, resolved and checked as module `t`.
+///
+/// @param src  a test source. The check leaves function bodies to the test,
+///             which calls the `infer_*` it exercises on a node of `program`.
+check_test_module :: fn(src: string) -> CheckedSrc {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    factory :: SymbolFactory {}
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[]: []
+    result :: check_module(parsed.program, rm, diags)
+    return CheckedSrc { .program = parsed.program, .typed = result.typed }
 }

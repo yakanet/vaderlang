@@ -115,24 +115,6 @@ lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
-import "vader/support/diagnostics"
-
-// Test harness: bundles parse + resolve + check. Returns the parsed
-// program and the populated typed program ; tests reach into both.
-CheckedSrc :: struct {
-    program: AST.Program
-    typed:   TypedProgram
-}
-
-check_test_module :: fn(src: string) -> CheckedSrc {
-    parsed :: parse_source(with_integers(src), "t.vader")
-    factory :: SymbolFactory {}
-    rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, diags)
-    return CheckedSrc { .program = parsed.program, .typed = result.typed }
-}
 
 // Look up the type of the first IdentExpr whose name matches `target`
 // inside the first decl's body.

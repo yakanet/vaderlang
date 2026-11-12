@@ -56,7 +56,6 @@ export TypecheckCode :: enum(CodeInfo) {
     MemberDoesNotExist           { .id = "T3009", .message = "member does not exist on this type" },
     InvalidCast                  { .id = "T3010", .message = "invalid cast" },
     NonExhaustiveMatch           { .id = "T3013", .message = "non-exhaustive match" },
-    UnreachableMatchArm          { .id = "T3014", .message = "unreachable match arm" },
     BreakContinueOutsideLoop     { .id = "T3015", .message = "`break` / `continue` only allowed inside a loop" },
     OperatorNotDefined           { .id = "T3017", .message = "operator not defined for these operand types" },
     InterpolationRequiresDisplay { .id = "T3018", .message = "string interpolation expression must implement `Display`" },
@@ -234,7 +233,6 @@ export ResolverCode :: enum(CodeInfo) {
 export ComptimeCode :: enum(CodeInfo) {
     CannotEvaluate              { .id = "C4001", .message = "expression cannot be evaluated at compile time" },
     EvaluationPanic             { .id = "C4002", .message = "comptime evaluation panicked" },
-    NotCallable                 { .id = "C4003", .message = "function is not callable in comptime context" },
     DivisionByZero              { .id = "C4005", .message = "comptime division by zero" },
     TypeMismatch                { .id = "C4007", .message = "comptime value has incompatible type" },
     DependencyCycle             { .id = "C4009", .message = "comptime evaluation depends on itself" },

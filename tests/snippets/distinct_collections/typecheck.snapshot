@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/distinct_collections
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         sum_ids              :: fn(UserId[]) -> i32
+  FnDecl         unwrap_or            :: fn(null | UserId, i32) -> i32
+  ConstDecl      UserId               :: type
+  expr 10:15    IdentExpr      :: UserId[]
+  expr 11:17    BinaryExpr     :: i32
+  expr 11:17    IdentExpr      :: i32
+  expr 11:25    CallExpr       :: i32
+  expr 11:25    IdentExpr      :: type
+  expr 11:29    CallExpr       :: i64
+  expr 11:29    IdentExpr      :: type
+  expr 11:33    IdentExpr      :: UserId
+  expr 11:9     IdentExpr      :: i32
+  expr 13:12    IdentExpr      :: i32
+  expr 17:5     IfExpr         :: void
+  expr 17:8     BinaryExpr     :: bool
+  expr 17:8     IdentExpr      :: null | UserId
+  expr 18:16    IdentExpr      :: i32
+  expr 20:12    CallExpr       :: i32
+  expr 20:12    IdentExpr      :: type
+  expr 20:16    CallExpr       :: i64
+  expr 20:16    IdentExpr      :: type
+  expr 20:20    IdentExpr      :: UserId
+  expr 24:20    SeqLitExpr     :: UserId[]
+  expr 24:21    CallExpr       :: UserId
+  expr 24:21    IdentExpr      :: type
+  expr 24:33    CallExpr       :: UserId
+  expr 24:33    IdentExpr      :: type
+  expr 25:16    CallExpr       :: i32
+  expr 25:16    IdentExpr      :: fn(null | UserId, i32) -> i32
+  expr 25:26    CallExpr       :: UserId
+  expr 25:26    IdentExpr      :: type
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    CallExpr       :: i32
+  expr 26:12    IdentExpr      :: fn(UserId[]) -> i32
+  expr 26:20    IdentExpr      :: UserId[]
+  expr 26:27    IdentExpr      :: i32

@@ -466,61 +466,45 @@ left_by_complement :: fn(current: Type, else_ty: Type) -> Type | null {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/iter"
 import "std/testing"
-import "vader/front/parser"
-import "vader/front/resolver"
-import "vader/core/symbol"
-import "toolchain/span"
 
-first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
-    parsed :: parse_source(with_integers(src), "t.vader")
-    last :: parsed.program.decls[parsed.program.decls.len() - 1]
-    match last {
-        is AST.FnDecl -> {
-            match b :: last.body {
-                is null          -> {}
-                is AST.BlockExpr -> {
-                    hit :: AST.find_expr(b, (e) -> e is AST.IfExpr)
-                    if hit is AST.IfExpr { return hit }
-                }
+// The type `infer_if` gives, with no expected type, the first `if` in the body
+// of the last function of `src`.
+infer_first_if :: fn(src: string, diags: Diagnostic[]) -> Type {
+    checked :: check_test_module(src)
+    last :: checked.program.decls[checked.program.decls.len() - 1]
+    if last is AST.FnDecl {
+        body :: last.body
+        if body is AST.BlockExpr {
+            hit :: AST.find_expr(body, (e) -> e is AST.IfExpr)
+            if hit is AST.IfExpr {
+                return infer_if(hit, null, checked.typed, diags, null)
             }
         }
-        _ -> {}
     }
-    return null
+    assert(false, "expected an `if` in the last function")
+    return TY_UNRESOLVED
 }
 
 @test
 test_if_both_branches_int_returns_int :: fn() -> void {
-    src :: "f :: fn(c: bool) -> i32 { return if c { 1 } else { 2 } }"
-    typed :: run_check(src).typed
-    ifx :: first_if_in_last_fn(src)
-    if ifx is null { assert(false, "expected an if expr") return }
+    src :: "f :: fn(c: bool, a: i32, b: i32) -> i32 { return if c { a } else { b } }"
     diags: Diagnostic[]: []
-    ty :: infer_if(ifx, TY_I32, typed, diags, null)
-    assert_eq(display_type(ty), "i32")
+    assert_eq(display_type(infer_first_if(src, diags)), "i32")
+    assert_eq(diags.len(), 0)
 }
 
 @test
 test_if_without_else_yields_union_with_void :: fn() -> void {
-    src :: "f :: fn(c: bool) -> void { if c { 1 } }"
-    typed :: run_check(src).typed
-    ifx :: first_if_in_last_fn(src)
-    if ifx is null { assert(false, "expected an if expr") return }
     diags: Diagnostic[]: []
-    ty :: infer_if(ifx, null, typed, diags, null)
+    ty :: infer_first_if("f :: fn(c: bool) -> void { if c { 1 } }", diags)
     assert_eq(display_type(ty), "void | {integer}")
 }
 
 @test
 test_if_cond_not_bool_emits_T3019 :: fn() -> void {
-    src :: "f :: fn() -> i32 { return if 1 { 1 } else { 2 } }"
-    typed :: run_check(src).typed
-    ifx :: first_if_in_last_fn(src)
-    if ifx is null { assert(false, "expected an if expr") return }
     diags: Diagnostic[]: []
-    infer_if(ifx, null, typed, diags, null)
-    found := false
-    for d in diags { if d.code.id == "T3019" { found = true } }
-    assert(found, "expected T3019 on non-bool cond")
+    infer_first_if("f :: fn() -> i32 { return if 1 { 1 } else { 2 } }", diags)
+    assert(diags.any_match((d) -> d.code.id == "T3019"), "expected T3019 on a non-bool condition")
 }
