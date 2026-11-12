@@ -10,9 +10,12 @@
 // stage, in `externs.snapshot.c`; the modules it shows are named in the header of
 // the fixture (`// modules: std system`), those under the entry otherwise.
 //
-// A fixture of `tests/fixtures/callee` is one file, which pins what the
-// typecheck settled each of its sites to invoke, the `callees` stage, in the
-// snapshot named after it (`sites.vader`, `sites.snapshot`).
+// The corpora of `STAGE_CORPORA` pin one stage each, named after the stage of
+// the dump: what the typecheck settled each site to invoke (`callees`), the
+// verdict of the range analysis on each access (`ranges`), what each function
+// does with what it is lent (`effects`). A fixture there is a file, or a folder
+// holding a file of its name and no `vader.json`; its snapshot sits beside that
+// file, named after it (`sites.vader`, `sites.snapshot`).
 
 module "tools/testrunner/src"
 
@@ -31,7 +34,18 @@ import "vader/tools/dump"
 
 TARGET_CORPUS  :: "tests/fixtures/target"
 EXTERNS_CORPUS :: "tests/fixtures/externs"
-CALLEES_CORPUS :: "tests/fixtures/callee"
+
+// A corpus whose fixtures each pin the stage of the dump `phase` names.
+StageCorpus :: struct {
+    root: string
+    phase: string
+}
+
+STAGE_CORPORA: StageCorpus[]: [
+    StageCorpus { .root = "tests/fixtures/callee", .phase = CALLEES_PHASE },
+    StageCorpus { .root = "tests/fixtures/range", .phase = RANGES_PHASE },
+    StageCorpus { .root = "tests/fixtures/effect", .phase = EFFECTS_PHASE },
+]
 
 // The entry of a fixture of `tests/fixtures`.
 FIXTURE_ENTRY :: "main.vader"
@@ -96,20 +110,45 @@ find_extern_fixtures :: fn(found: Discovery) -> void {
     }
 }
 
-// The fixtures of `CALLEES_CORPUS`, pushed on `found`.
-find_callee_fixtures :: fn(found: Discovery) -> void {
-    for file in entries_where(found, CALLEES_CORPUS, (path) -> path.ends_with(".vader")) {
-        stem :: file.trim_suffix(".vader")
+// Whether `phase` is checked by the stage of the dump of its name.
+is_dump_named :: fn(phase: string) -> bool {
+    if phase == EXTERNS_PHASE {
+        return true
+    }
+    for corpus in STAGE_CORPORA {
+        if corpus.phase == phase {
+            return true
+        }
+    }
+    return false
+}
+
+// The fixtures of `corpus`, pushed on `found`.
+find_stage_fixtures :: fn(found: Discovery, corpus: StageCorpus) -> void {
+    for name in entries_where(found, corpus.root, (path) -> is_stage_fixture(path)) {
+        stem :: name.trim_suffix(".vader")
+        dir :: if name.ends_with(".vader") { corpus.root } else { "${corpus.root}/${name}" }
         found.cases.push(
             Case {
-                .name = "callees/${stem}",
-                .dir = CALLEES_CORPUS,
-                .entry = file,
+                .name = "${corpus.phase}/${stem}",
+                .dir = dir,
+                .entry = "${stem}.vader",
                 .snapshot = "${stem}.snapshot",
-                .phases = [CALLEES_PHASE],
+                .phases = [corpus.phase],
             },
         )
     }
+}
+
+// Whether the entry at `path` of a corpus of `STAGE_CORPORA` is a fixture: a
+// `.vader` file, or a folder holding a file of its name and no manifest, which
+// makes a project the dump does not read.
+is_stage_fixture :: fn(path: string) -> bool {
+    if path.ends_with(".vader") {
+        return true
+    }
+    name :: Path(path).filename()
+    return exists("${path}/${name}.vader") && !exists("${path}/vader.json")
 }
 
 // Compare the `targets` text of `case`, read from `input`, with the snapshot of

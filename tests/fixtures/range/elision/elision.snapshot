@@ -1,0 +1,17 @@
+# ranges
+
+## elision
+
+fn elision$proven_access
+  13:9 total + $idx_8 -> unproven
+  13:18 xs[i] -> proven
+
+fn elision$unproven_access
+  19:51 xs[i] -> unproven
+
+fn elision$proven_by_an_access
+  24:14 xs[lo] -> unproven
+  24:14 $idx_3 + $idx_4 -> unproven
+  24:23 xs[hi] -> unproven
+  26:9 total + $idx_9 -> unproven
+  26:18 xs[k] -> proven

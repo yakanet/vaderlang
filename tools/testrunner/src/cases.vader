@@ -67,6 +67,8 @@ STAGES: Stage[]: [
     TARGETS_STAGE,
     EXTERNS_STAGE,
     CALLEES_STAGE,
+    RANGES_STAGE,
+    EFFECTS_STAGE,
     EXAMPLE_STAGE,
     NATIVE_EXAMPLE_STAGE,
     HOOK_STAGE,
@@ -123,11 +125,23 @@ EXTERNS_STAGE: Stage: Stage {
     .snapshot = "externs.snapshot.c",
 }
 
-// What the typecheck settled each site to invoke, in a fixture of
-// `CALLEES_CORPUS`, whose snapshot is named after it.
+// The stages a corpus of `STAGE_CORPORA` pins (`dump_fixtures.vader`), each
+// named after the stage of the dump it renders, a fixture naming its snapshot.
 CALLEES_PHASE :: "callees"
 CALLEES_STAGE: Stage: Stage {
     .phase = CALLEES_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+RANGES_PHASE  :: "ranges"
+RANGES_STAGE: Stage: Stage {
+    .phase = RANGES_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+EFFECTS_PHASE :: "effects"
+EFFECTS_STAGE: Stage: Stage {
+    .phase = EFFECTS_PHASE,
     .dump = null,
     .snapshot = "",
 }
@@ -240,8 +254,10 @@ find_cases :: fn(phases: string[]) -> Discovery {
     if phases.contains(EXTERNS_PHASE) {
         find_extern_fixtures(found)
     }
-    if phases.contains(CALLEES_PHASE) {
-        find_callee_fixtures(found)
+    for corpus in STAGE_CORPORA {
+        if phases.contains(corpus.phase) {
+            find_stage_fixtures(found, corpus)
+        }
     }
     return found
 }

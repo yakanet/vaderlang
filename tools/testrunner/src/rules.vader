@@ -28,8 +28,13 @@ LAZY_LOCALS: string[]: ["it", "outer", "inner"]
 ACCEPTED :: "accepted"
 
 // Why the text `text` of the dump stage `stage` of `case` is wrong whatever its
-// snapshot holds, or null when it is not.
+// snapshot holds, or null when it is not. The rules are those of the stages of a
+// snippet, which a stage of the dump renders: a fixture of another corpus may
+// pin an error on purpose.
 stage_problem :: fn(case: Case, stage: Stage, text: string) -> string | null {
+    if stage.dump == null {
+        return null
+    }
     error :: compile_error_problem(case, text)
     if error != null {
         return error
@@ -171,6 +176,8 @@ test_an_error_diagnostic_breaks_a_feature_snippet :: fn() -> void {
     assert(stage_problem(feature, STAGES[0], text) != null, "an error in a feature snippet")
     diag :: Case { .name = "_diag_x", .dir = "", .phases = [] }
     assert(stage_problem(diag, STAGES[0], text) == null, "an error in a `_diag_` snippet")
+    fixture :: Case { .name = "effects/frozen", .dir = "", .phases = [] }
+    assert(stage_problem(fixture, EFFECTS_STAGE, text) == null, "an error a fixture pins")
 }
 
 @test

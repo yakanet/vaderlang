@@ -1,0 +1,100 @@
+# ranges
+
+## verdicts
+
+fn verdicts$indexed_loop
+  13:9 total + $idx_8 -> unproven
+  13:18 xs[i] -> proven
+
+fn verdicts$early_exit
+  23:12 xs[$k_5] -> proven
+  23:12 $idx_6 + $idx_8 -> unproven
+  23:20 xs[$k_7] -> proven
+
+fn verdicts$counter_below_bound
+  30:9 i + $k_4 -> proven
+
+fn verdicts$push_keeps_length
+  40:9 total + $idx_9 -> unproven
+  40:18 xs[i] -> proven
+
+fn verdicts$println_keeps_length
+  50:9 total + $idx_9 -> unproven
+  50:18 xs[i] -> proven
+
+fn verdicts$call_keeps_length
+  60:9 total + $idx_9 -> unproven
+  60:18 xs[i] -> proven
+
+fn verdicts$callee_shortens
+  74:9 total + $idx_9 -> unproven
+  74:18 xs[i] -> unproven
+
+fn verdicts$recursive_callee_keeps_length
+  88:9 total + $idx_9 -> unproven
+  88:18 xs[i] -> proven
+
+fn verdicts$virtual_call_keeps_length
+  119:9 total + $idx_10 -> unproven
+  119:18 xs[i] -> proven
+
+fn verdicts$indirect_call_drops_length
+  134:9 total + $idx_10 -> unproven
+  134:18 xs[i] -> unproven
+
+fn verdicts$guarded_decrement
+  145:16 n - $k_3 -> proven
+
+fn verdicts$unguarded_decrement
+  151:51 n - $k_1 -> unproven
+
+fn verdicts$always_overflows
+  156:16 x + $k_3 -> certain fault
+
+fn verdicts$impossible_branch
+  164:16 xs[n] -> unreachable
+
+fn verdicts$negative_index
+  172:12 xs[i] -> certain fault
+
+fn verdicts$last_element
+  177:47 xs[$sub_checked_3] -> unproven
+  177:50 $len_1 - $k_2 -> unproven
+
+fn verdicts$guarded_last
+  183:16 xs[$sub_checked_6] -> proven
+  183:19 $len_4 - $k_5 -> proven
+
+fn verdicts$behind_access
+  191:14 xs[i] -> unproven
+  193:16 first + $idx_8 -> unproven
+  193:24 xs[j] -> proven
+
+fn verdicts$scan_between
+  201:14 xs[lo] -> unproven
+  201:14 $idx_3 + $idx_4 -> unproven
+  201:23 xs[hi] -> unproven
+  203:9 total + $idx_9 -> unproven
+  203:18 xs[k] -> proven
+
+fn verdicts$bump
+  211:5 xs[i] -> unproven
+  211:5 xs[i] = -> unproven
+  211:5 $idx_2 + $k_3 -> unproven
+
+fn verdicts$foreach_element
+  217:5 __for_arr_0[__for_i_2] -> proven
+  218:9 total + x -> unproven
+
+fn verdicts$fused_map_element
+  226:14 __fuse_arr_0[__fuse_i_2] -> proven
+  227:9 total + y -> unproven
+
+fn verdicts$double
+  232:31 x + x -> unproven
+
+fn verdicts$fused_chain_elements
+  237:14 __fuse_arr_0[__fuse_i_3] -> proven
+  237:23 __fuse_arr_1[__fuse_i_5] -> proven
+  238:9 total + z -> unproven
+  238:9 total + z -> unproven

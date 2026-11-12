@@ -1,7 +1,7 @@
 // tests/fixtures/effect/imported: constants and singletons another module
 // declares.
 //
-// `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
+// `tools/cli_tests/effects` reads the `# frozen` section of `vader dump
 // --stage=effects` on this project, then runs it. A constant reached through a
 // namespace alias, or renamed by its import, is a use like a bare one: `hands_out`
 // returns `L.CFG` and `limits` returns `CAPS`, each a copy. A singleton's instance

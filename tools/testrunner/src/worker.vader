@@ -125,8 +125,7 @@ check_phase :: fn(
     if phase == TARGETS_PHASE {
         return check_targets(case, input, ctx.update)
     }
-    if phase == EXTERNS_PHASE || phase == CALLEES_PHASE {
-        // Each is named after the stage of the dump it renders.
+    if is_dump_named(phase) {
         return check_stage(case, stage, phase, input, ctx.update)
     }
     if phase == EXAMPLE_PHASE || phase == NATIVE_EXAMPLE_PHASE {

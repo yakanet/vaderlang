@@ -1,5 +1,5 @@
 // tests/fixtures/range/elision/elision: which index checks a build keeps, read
-// from the emitted C by `tests/range_analysis.test.ts`.
+// from the emitted C by `tools/cli_tests/ranges`.
 
 module "elision"
 

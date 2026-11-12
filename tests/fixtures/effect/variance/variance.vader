@@ -1,6 +1,6 @@
 // tests/fixtures/effect/variance: one call per verdict on a widened array.
 //
-// `tests/effect_summary.test.ts` reads the `# variance` section of `vader dump
+// `variance.snapshot` holds the `# variance` section of `vader dump
 // --stage=effects` on this file. Each call of `calls` hands a `Circle[]` (or a
 // `Circle[][]`) to a parameter whose element is `Circle | null`: the typecheck
 // accepts it, and the summary says whether the callee could put a `null` into

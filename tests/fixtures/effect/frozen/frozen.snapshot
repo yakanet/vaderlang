@@ -1,0 +1,110 @@
+# effects
+
+## frozen
+fn writes_a_field 26:8
+  none
+fn pushes_onto_a_table 30:8
+  none
+fn bump 34:8
+  assigned c.n
+fn bumps_a_constant 38:8
+  none
+fn lends_to_a_callback 42:8
+  none
+fn binds_a_constant 46:8
+  none
+fn binds_an_untouched_constant 51:8
+  none
+fn stores_a_constant 56:8
+  none
+fn returns_a_constant 58:8
+  none
+fn reads_a_constant 60:8
+  none
+fn binds_a_view 62:8
+  none
+fn iterates_a_table 67:8
+  none
+fn stores_an_untouched_constant 79:8
+  none
+fn writes_a_copy 82:8
+  none
+fn hands_back 88:8
+  returned c
+fn bumps_what_a_call_returns 90:8
+  none
+fn set 94:8
+  assigned c.n
+fn fill 99:8
+  assigned c.n
+fn fills_a_constant 106:8
+  none
+fn clear 119:8
+  assigned n.kids[]...
+fn clears_a_constant 126:8
+  none
+fn writes_a_view 132:8
+  none
+fn keeps_a_view 141:8
+  none
+fn hands_a_view 143:8
+  none
+fn grows_a_handed_view 145:8
+  none
+fn writes_a_copy_of_a_view 150:8
+  none
+fn view_or_failure 160:8
+  none
+fn keeps_a_failure 169:8
+  resized out
+
+# frozen
+  frozen 27:5 write fault CFG
+    assigned CFG.n frozen 27:5
+  frozen 31:5 call fault TABLE
+    resized TABLE by `push` frozen 31:5
+  frozen 39:10 call fault CFG
+    via `bump` (`c`) frozen 39:5
+    assigned c.n frozen 35:5
+  frozen 43:7 unknown call CFG
+  frozen 47:5 binding shared CFG
+  frozen 52:5 binding shared UNTOUCHED
+  frozen 56:62 copy CFG
+  frozen 58:44 copy CFG
+  frozen 69:9 binding shared TABLE
+  frozen 80:36 copy elided UNTOUCHED
+  frozen 83:5 copy CFG
+  frozen 91:21 call fault CFG
+    via `bump` (`c`) frozen 91:5
+    assigned c.n frozen 35:5
+  frozen 107:10 call fault CFG
+    via `fill` (`c`) frozen 107:5
+    via `set` (`c`) frozen 103:5
+    assigned c.n frozen 95:5
+  frozen 127:11 call fault TREE
+    via `clear` (`n`) frozen 127:5
+    assigned n.kids[]... frozen 121:9
+  frozen 133:5 write fault bytes()
+    assigned bs[] frozen 134:5
+  frozen 141:62 view kept bytes()
+  frozen 143:48 view returned bytes()
+  frozen 146:5 call fault hands_a_view()
+    resized hands_a_view() by `push` frozen 146:5
+  frozen 164:12 view returned bytes()
+write fault: 2, call fault: 6, unknown call: 1, copy: 3, copy elided: 1, binding shared: 3, copy unread: 0, view kept: 1, view returned: 2
+
+# variance
+covariant: 0, breaks: 0, unknown callee: 0
+
+functions: 271, unsettled: 0
+
+# Diagnostics
+[27:5] error[T3070] a frozen value cannot be modified: `CFG` is a module constant, and `CFG.n` is assigned ; a name bound to it holds a copy to modify
+[31:5] error[T3072] a frozen value cannot be lent to a function that modifies it: `TABLE` is a module constant, and `push` modifies it (`TABLE` grows) ; a name bound to it holds a copy to modify
+[39:10] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `bump` modifies it (`c.n` is assigned) ; a name bound to it holds a copy to modify
+[91:21] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `bump` modifies it (`c.n` is assigned) ; a name bound to it holds a copy to modify
+[107:10] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `fill` modifies it through `set` (`c.n` is assigned) ; a name bound to it holds a copy to modify
+[127:11] error[T3072] a frozen value cannot be lent to a function that modifies it: `TREE` is a module constant, and `clear` modifies it (`n.kids[]...` is assigned) ; a name bound to it holds a copy to modify
+[133:5] error[T3070] a frozen value cannot be modified: `bytes()` returns a view of a string's bytes, and `bs[]` is assigned ; `.clone()` makes a copy to modify
+[141:62] error[T3071] a view of a string's bytes cannot be kept: `bytes()` returns a view of a string's bytes ; `.clone()` makes a copy to keep
+[146:5] error[T3072] a frozen value cannot be lent to a function that modifies it: `hands_a_view()` returns a view of a string's bytes, and `push` modifies it (`hands_a_view()` grows) ; `.clone()` makes a copy to modify

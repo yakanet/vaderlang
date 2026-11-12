@@ -1,13 +1,7 @@
-// tests/vader-sources: shared questions about a tree of `.vader` sources: the
-// compiler's entry, the `.vader` files under a folder.
+// tests/vader-sources: the `.vader` files under a folder.
 
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-
-const ROOT = join(import.meta.dir, "..");
-
-/** The compiler's own entry, the program every whole-compiler suite runs on. */
-export const COMPILER_ENTRY = join(ROOT, "vader", "tools", "cli", "main.vader");
 
 /** Every `.vader` file under `dir`, recursively, in `readdir` order. `dir` may
  *  also BE a `.vader` file, in which case the answer is just that file, which is

@@ -1,0 +1,145 @@
+// tools/cli_tests/lint/lint: `vader lint`, the lint of the exports nothing
+// reaches (W0012).
+//
+// The engine that finds what a name reaches is shared with the lint of private
+// declarations (W0007), tested in `vader/front/dead_code`; this drives the
+// project-wide half through the command. Which exports are the project's own is
+// decided by where a module comes from, not by its name: a probe of it stages a
+// library root of its own, holding a namespace that is not `std/`, and runs the
+// command from the folder above it, which makes that `lib/` the root.
+
+module "tools/cli_tests/lint"
+
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+DEAD  :: "tests/fixtures/lint/dead_export/_main.vader"
+CLEAN :: "tests/fixtures/lint/all_reached/_main.vader"
+
+// A program of the project that calls into the namespace `lintprobe`, and an
+// export of its own nothing reaches.
+PROBED_APP :: r"""
+    module "app"
+
+    import "std/console"
+    import "lintprobe"
+
+    /// Reached by nothing, and the project's own: in its scope.
+    export never_used_in_app :: fn() -> i32 = 2
+
+    main :: fn() -> i32 {
+        println("${never_used_in_probe()}")
+        return 0
+    }
+    """
+
+// A program whose export `build` nothing reaches, in a module that is no driver.
+STRAY_BUILD :: r"""
+    module "app"
+
+    import "std/console"
+
+    /// Reached by nothing, and no driver entry: `app` is not `build`.
+    export build :: fn(args: string[]) -> i32 = 7
+
+    main :: fn() -> i32 {
+        println("x")
+        return 0
+    }
+    """
+
+// What `ran` wrote, its stdout then its stderr.
+said_by :: fn(ran: ProcessResult) -> string = "${ran.stdout}\n${ran.stderr}"
+
+// How many W0012 `ran` reported.
+unused_exports :: fn(ran: ProcessResult) -> i64 = said_by(ran).split("W0012").len() - 1
+
+// A fresh folder whose `lib/` holds `std/` and `system/`, copied from the
+// repository, and the namespace `lintprobe`, which ships an export nothing
+// reaches; or why it could not be made.
+staged_library_root :: fn(name: string) -> string | IOError {
+    dir :: scratch_dir("lint_${name}")
+    create_dir("${dir}/lib")
+    for namespace in ["std", "system"] {
+        copied :: copy_tree("lib/${namespace}", "${dir}/lib/${namespace}")
+        if copied is IOError {
+            return copied
+        }
+    }
+    create_dir("${dir}/lib/lintprobe")
+    write_file(
+        "${dir}/lib/lintprobe/lintprobe.vader",
+        "module \"lintprobe\"\n\n/// Reached by nothing, and shipped: out of a project's scope.\n"
+            + "export never_used_in_probe :: fn() -> i32 = 1\n",
+    )
+    return dir
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_lint_flags_an_export_nothing_reaches :: fn() -> void {
+    // `reached` is called by `main`; a private declaration is W0007's.
+    ran :: run_vader(["lint", DEAD]).unwrap()
+    output :: said_by(ran)
+    assert_eq(unused_exports(ran), 1)
+    assert("orphan" in output, output)
+    assert("private_dead" !in output, output)
+    assert_eq(ran.exit, 1)
+}
+
+@test
+test_lint_is_silent_when_every_export_is_reached :: fn() -> void {
+    ran :: run_vader(["lint", CLEAN]).unwrap()
+    assert_eq(unused_exports(ran), 0)
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_a_build_never_runs_the_lint_of_the_exports :: fn() -> void {
+    // An export nothing reaches is no error.
+    ran :: run_vader(["build", "--emit=c", "--out=-", DEAD]).unwrap()
+    assert_eq(unused_exports(ran), 0)
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_lint_with_no_file_is_a_usage_error :: fn() -> void {
+    ran :: run_vader(["lint"]).unwrap()
+    assert("expected a file" in ran.stderr, ran.stderr)
+    assert_eq(ran.exit, 1)
+}
+
+@test
+test_lint_scopes_the_exports_by_where_a_module_comes_from :: fn() -> void {
+    dir :: staged_library_root("provenance").unwrap()
+    write_file("${dir}/app.vader", PROBED_APP)
+    relative :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }).unwrap()
+    said :: said_by(relative)
+    assert("never_used_in_app" in said && "never_used_in_probe" !in said, said)
+    // By its absolute path, from elsewhere, the folder is the project its
+    // `vader.json` describes, and its `lib/` an absolute root: the two agree.
+    manifest :: r"""{"name": "p", "includePaths": ["lib"], "entries": {"app": "app.vader"}}"""
+    write_file("${dir}/vader.json", manifest)
+    absolute :: run_vader(["lint", dir]).unwrap()
+    said_absolute :: said_by(absolute)
+    assert("never_used_in_app" in said_absolute, said_absolute)
+    assert("never_used_in_probe" !in said_absolute, said_absolute)
+    assert("eprintln" !in said_absolute, said_absolute)
+}
+
+@test
+test_lint_flags_an_export_named_build_outside_a_driver :: fn() -> void {
+    // The walk of the project merges the declarations of every module: an entry
+    // `build` is rooted in the `build` module only.
+    dir :: staged_library_root("stray_build").unwrap()
+    write_file("${dir}/app.vader", STRAY_BUILD)
+    ran :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }).unwrap()
+    assert("`build` is never used" in said_by(ran), said_by(ran))
+}

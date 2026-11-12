@@ -1,0 +1,77 @@
+// tools/cli_tests/effects/effects: what the effect summary concludes, where no
+// snapshot of a fixture shows it.
+//
+// The fixtures of `tests/fixtures/effect` pin the `effects` stage of the dump,
+// one snapshot each, in a family of the test runner. These check the errors a
+// build reports from it, a project whose modules reach each other's constants,
+// and the table of the intrinsics on the compiler itself.
+
+module "tools/cli_tests/effects"
+
+import "regex"
+import "std/iter"
+import "std/option"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// A program whose uses of frozen values fault, and keep views of a string.
+FROZEN :: "tests/fixtures/effect/frozen/frozen.vader"
+
+// A project: `app` reaches its sibling `lib` through the folder its `vader.json`
+// makes the project, not through the folder above its own.
+IMPORTED :: "tests/fixtures/effect/imported"
+
+// The code of an error of the typecheck, as a build renders it.
+ERROR_CODE :: r"error\[(T30\d\d)\]"
+
+// The codes of the typecheck errors `stderr` reports, in order.
+error_codes :: fn(stderr: string) -> string {
+    found :: compile(ERROR_CODE).unwrap().find_all(stderr)
+    return found.map((m) -> m.groups[1]).collect().join(" ")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_faults_and_the_kept_views_are_errors :: fn() -> void {
+    // The detail names what modifies the value. A copy of a view is the
+    // program's own.
+    checked :: run_vader(["check", FROZEN]).unwrap()
+    assert(checked.exit != 0, "the program is refused")
+    assert_eq(error_codes(checked.stderr), "T3070 T3072 T3072 T3072 T3072 T3072 T3070 T3071 T3072")
+    said :: "`CFG` is a module constant, and `fill` modifies it through `set` (`c.n` is assigned)"
+    assert(said in checked.stderr, checked.stderr)
+    view :: "`bytes()` returns a view of a string's bytes, and `bs[]` is assigned"
+    assert(view in checked.stderr, checked.stderr)
+}
+
+@test
+test_the_frozen_checks_see_the_constants_and_singletons_of_another_module :: fn() -> void {
+    // A constant reached through a namespace alias or renamed by its import is
+    // used as a bare one. A singleton's instance is no constant: a name bound to
+    // it shares the instance, which the run shows.
+    dumped :: run_vader(["dump", "--stage=effects", IMPORTED]).unwrap()
+    assert_eq(dumped.exit, 0)
+    assert("# Diagnostics" !in dumped.stdout, dumped.stdout)
+    frozen :: dumped.stdout.split_first("# frozen\n") ?? ["", ""]
+    sites :: frozen.1.split_first("\n\n") ?? ["", ""]
+    expected :: "  app 22:30 copy CFG\n  app 24:27 copy CAPS\nwrite fault: 0, call fault: 0, "
+        + "unknown call: 0, copy: 2, copy elided: 0, binding shared: 0, copy unread: 0, "
+        + "view kept: 0, view returned: 0"
+    assert_eq(sites.0, expected)
+    ran :: run_vader(["run", IMPORTED]).unwrap()
+    assert_eq(ran.exit, 0)
+    assert_eq(ran.stdout, "1\n2\n3\n2\n")
+}
+
+@test
+test_every_intrinsic_of_the_tree_has_an_entry_in_the_effect_table :: fn() -> void {
+    // The compiler loads every module of the tree that declares an intrinsic.
+    argv :: ["dump", "--stage=effects", "--module=vader/front/effects", COMPILER_ENTRY]
+    dumped :: run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    assert_eq(dumped.exit, 0)
+    assert("unsettled: 0" in dumped.stdout, "every intrinsic settled")
+    assert("unknown intrinsic:" !in dumped.stdout, "no intrinsic unknown")
+}

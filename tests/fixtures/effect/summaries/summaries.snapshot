@@ -1,0 +1,100 @@
+# effects
+
+## summaries
+fn origin 20:8
+  none
+fn reads_only 24:8
+  none
+fn sets_field 26:8
+  assigned p.x
+fn sets_nested_field 30:8
+  assigned h.inner.x
+fn sets_element 34:8
+  assigned xs[]
+  stored p
+fn sets_element_field 38:8
+  assigned xs[].x
+fn pushes 42:8
+  resized xs
+  stored p
+fn clears 46:8
+  shrunk xs
+fn through_local 52:8
+  resized h.items
+fn through_loop 57:8
+  assigned xs[].x
+fn through_narrowing 63:8
+  assigned s.x
+fn through_alias 69:8
+  shrunk s.items
+fn items_of 76:8
+  returned s.items
+fn returns_param 85:8
+  returned p
+fn returns_field 87:8
+  returned h.inner
+fn writes_what_a_callee_returns 89:8
+  assigned h.inner.x
+fn stores_in_struct 93:8
+  stored p
+fn captures 95:8
+  none
+fn hands_out_its_capture 97:8
+  stored p
+fn copies_with_spread 99:8
+  stored h.items
+fn calls_a_writer 103:8
+  assigned p.x
+fn calls_a_function_value 107:8
+  handed p
+fn writes_then_recurses 111:8
+  shrunk xs
+fn recurses_back 117:8
+  shrunk xs
+fn bump 127:5
+  assigned self.x
+fn bump 133:5
+  shrunk self.items
+fn through_a_trait_value 138:8
+  assigned b.x
+  shrunk b.items
+fn through_a_bound 142:8
+  assigned t.x
+  shrunk t.items
+fn into_a_map 146:8
+  assigned m.ekeys[]
+  assigned m.evals[]
+  assigned m.grow_at
+  assigned m.index
+  assigned m.index[]
+  assigned m.mask
+  assigned m.size
+  assigned m.tombs
+  resized m.ekeys
+  resized m.evals
+  stored p
+fn concatenates 152:8
+  stored a[]
+  stored b[]
+fn bumps_an_entry 154:8
+  assigned m.evals[].x
+fn next 164:5
+  assigned self.n
+fn drains 173:8
+  assigned it.n
+fn yields_points 183:8
+  returned xs[] at <item>
+fn writes_what_it_pulls 189:8
+  assigned xs[].x
+fn reads_what_it_pulls 195:8
+  none
+fn fills 212:8
+  assigned d...
+
+# frozen
+write fault: 0, call fault: 0, unknown call: 0, copy: 0, copy elided: 0, binding shared: 0, copy unread: 0, view kept: 0, view returned: 0
+
+# variance
+covariant: 0, breaks: 0, unknown callee: 0
+
+functions: 358, unsettled: 0

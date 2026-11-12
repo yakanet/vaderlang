@@ -1,0 +1,55 @@
+# effects
+
+## variance
+fn counts 26:8
+  none
+fn keeps 36:8
+  stored xs
+fn returns 38:8
+  returned xs
+fn keeps_an_element 40:8
+  stored xs[]
+fn lends_to_a_callback 42:8
+  handed xs
+fn tests_each 46:8
+  none
+fn counts_rows 48:8
+  none
+fn keeps_a_row 56:8
+  stored rows[]
+fn pushes_null 58:8
+  resized xs
+fn drops_last 62:8
+  shrunk xs
+fn calls 66:8
+  resized circles
+  shrunk circles
+  stored circles
+  stored circles[]
+  handed circles
+  stored rows[]
+
+# frozen
+write fault: 0, call fault: 0, unknown call: 0, copy: 0, copy elided: 0, binding shared: 0, copy unread: 0, view kept: 0, view returned: 0
+
+# variance
+  variance 67:17 depth 1 covariant
+  variance 68:16 depth 1 breaks: stored argument
+  variance 69:18 depth 1 breaks: returned argument
+  variance 70:27 depth 1 covariant
+  variance 71:25 depth 1 breaks: handed argument
+  variance 72:21 depth 1 covariant
+  variance 73:22 depth 2 covariant
+  variance 74:22 depth 2 breaks: stored argument[]
+  variance 75:5 depth 1 breaks: resized argument
+  variance 76:5 depth 1 covariant
+covariant: 5, breaks: 5, unknown callee: 0
+
+functions: 427, unsettled: 0
+
+# Diagnostics
+[68:16] error[T3102] array argument cannot be widened: `keeps` may keep `xs`
+[69:18] error[T3102] array argument cannot be widened: `returns` may return `xs`
+[71:25] error[T3102] array argument cannot be widened: `lends_to_a_callback` may hand `xs` to a function value
+[74:22] error[T3102] array argument cannot be widened: `keeps_a_row` may keep `rows[]`
+[75:5] error[T3102] array argument cannot be widened: `pushes_null` may grow `xs`

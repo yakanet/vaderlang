@@ -1,8 +1,8 @@
 // tests/fixtures/effect/frozen: one function per outcome of the frozen checks.
 //
-// `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
-// --stage=effects` on this file, and the errors the faults and the kept views
-// are.
+// `frozen.snapshot` holds the `effects` stage of `vader dump` on this file;
+// `tools/cli_tests/effects` checks that a build reports each fault and each kept
+// view as an error.
 
 module "frozen"
 
