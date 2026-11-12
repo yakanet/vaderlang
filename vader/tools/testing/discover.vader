@@ -183,7 +183,8 @@ export file_facts :: fn(f: Path) -> FileFacts {
 
 // The facts of a file that declares `declared`, its tests read line by line: a
 // line that opens with `@test` marks one, which the rest of that line names, or
-// else the next line that is neither blank, a comment nor another decorator.
+// else the next line that is neither blank, a comment nor another decorator. The
+// lines inside a text block (`"""`) declare nothing.
 read_tests :: fn(declared: string, src: string) -> FileFacts {
     facts :: FileFacts { .declared = declared }
     if !("@test" in src) {
@@ -191,8 +192,16 @@ read_tests :: fn(declared: string, src: string) -> FileFacts {
     }
     // Whether a `@test` waits for the line that names its test.
     pending := false
+    in_text := false
     for line in src.split("\n") {
         text :: line.trim()
+        // An odd count of `"""` opens a text block, or closes it.
+        toggles :: !text.starts_with("//") && text.split("\"\"\"").len() % 2 == 0
+        if in_text {
+            in_text = !toggles
+            continue
+        }
+        in_text = toggles
         if text.starts_with("@test") {
             if pending {
                 facts.names_complete = false
@@ -369,6 +378,15 @@ test_read_tests_names_each_test :: fn() -> void {
     src :: "@test\n// why\n@target(linux)\n\nt_one :: fn() -> void {}\n@test t_two :: fn() {}\n"
     facts :: read_tests("m", src)
     assert_eq(facts.test_names.join(" "), "t_one t_two")
+    assert(facts.names_complete, "every test is named")
+}
+
+@test
+test_read_tests_skips_the_lines_of_a_text_block :: fn() -> void {
+    one_line :: "a :: \"\"\"@test\"\"\"\n"
+    block :: "b :: r\"\"\"\n    @test\n    t :: fn() {}\n    \"\"\"\n"
+    facts :: read_tests("m", "${one_line}${block}@test\nu :: fn() {}\n")
+    assert_eq(facts.test_names.join(" "), "u")
     assert(facts.names_complete, "every test is named")
 }
 
