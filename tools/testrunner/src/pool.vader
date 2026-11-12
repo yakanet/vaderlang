@@ -34,6 +34,8 @@ Reports :: struct {
     stages: StageReport[] = []
     errors: string[] = []
     done: bool = false
+    /// The case ran past `CASE_TIMEOUT_SECONDS`, and its worker was killed.
+    timed_out: bool = false
     /// What the program the worker runs wrote.
     output: Streams = Streams {}
 }
@@ -87,7 +89,9 @@ run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
             return
         }
         died :: worker.err[from..<worker.err.len()].bytes_to_string()
-        ended :: if left[0] == VM_PHASE { program_end(slot, case, reports, died) } else { null }
+        // A worker killed past the deadline did not end with its program.
+        with_program :: left[0] == VM_PHASE && !reports.timed_out
+        ended :: if with_program { program_end(slot, case, reports, died) } else { null }
         if ended != null {
             events.send(StageNoted { .case = key, .report = ended })
         } else {
@@ -97,6 +101,7 @@ run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
                     .phase = left[0],
                     .exit = code,
                     .stderr = worker.err.bytes_to_string(),
+                    .timed_out = reports.timed_out,
                 },
             )
         }
@@ -130,6 +135,7 @@ run_on :: fn(worker: Worker, case: Case) -> Reports {
     read :: launch(() -> read_case(worker, reports)).timeout(CASE_TIMEOUT_SECONDS.seconds())
     if read is TimeoutError {
         worker.child.kill()
+        reports.timed_out = true
     }
     return reports
 }

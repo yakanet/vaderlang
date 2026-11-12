@@ -40,6 +40,8 @@ Crash :: struct {
     phase: string
     exit: i32
     stderr: string
+    /// The worker was killed for running past `CASE_TIMEOUT_SECONDS`.
+    timed_out: bool = false
 }
 
 // What a worker could not run of a case.
@@ -95,8 +97,7 @@ report :: fn(events: Channel<Progress>, only_failures: bool) -> Tally {
             is StageNoted  -> tally.note(running.run_of(event.case), event.case, event.report)
             is Crash       -> {
                 tally.crashes += 1
-                problem :: "crash: ${event.phase} exit ${event.exit}\n${event.stderr}"
-                running.run_of(event.case).problems.push(problem)
+                running.run_of(event.case).problems.push(crash_problem(event))
             }
             is CaseError   -> {
                 tally.errors += 1
@@ -226,6 +227,14 @@ print_tally :: fn(total: Tally, cases: i64, k: i32, took: Duration) -> void {
     println("Ran ${stages} stages across ${cases} cases on ${k} workers. [${took.format()}]")
 }
 
+// Why the worker of a case stopped on a stage, and what it wrote on its stderr.
+crash_problem :: fn(crash: Crash) -> string {
+    if crash.timed_out {
+        return "timed out: ${crash.phase}, killed after ${CASE_TIMEOUT_SECONDS} s\n${crash.stderr}"
+    }
+    return "crash: ${crash.phase} exit ${crash.exit}\n${crash.stderr}"
+}
+
 // ---- tests ------------------------------------------------------------------
 
 import "std/testing"
@@ -250,4 +259,17 @@ test_a_missing_snapshot_is_labelled_apart :: fn() -> void {
     assert_eq(failure_label(.Missing), "no snapshot")
     assert_eq(failure_label(.Differ), "!= snapshot")
     assert_eq(failure_label(.Failed), "failed")
+}
+
+@test
+test_a_case_past_its_deadline_reads_as_timed_out :: fn() -> void {
+    crash :: Crash {
+        .case = "tools/x",
+        .phase = "tests",
+        .exit = 137,
+        .stderr = "",
+    }
+    assert_eq(crash_problem(crash), "crash: tests exit 137\n")
+    late :: Crash { ...crash, .timed_out = true }
+    assert_eq(crash_problem(late), "timed out: tests, killed after ${CASE_TIMEOUT_SECONDS} s\n")
 }
