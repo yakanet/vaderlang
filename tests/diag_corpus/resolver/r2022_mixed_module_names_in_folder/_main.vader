@@ -1,0 +1,5 @@
+// `zz.vader` sits in this folder but declares another module: every file of a
+// folder declares the same one (R2022).
+module "snippet"
+
+main :: fn() -> i32 = 0

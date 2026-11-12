@@ -1,0 +1,1 @@
+[1:8] error[R2022] files in the same folder declare different module names: `other_snippet` declared here, but `snippet` was declared earlier in this folder

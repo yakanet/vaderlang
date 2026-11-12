@@ -1,0 +1,6 @@
+// `a` is given by position, then again by name: T3025.
+module "snippet"
+
+f :: fn(a: i32, b: i32 = 0) -> i32 = a + b
+
+main :: fn() -> i32 = f(1, a = 2)

@@ -1,0 +1,12 @@
+// A `.Variant` takes its enum from the slot it goes into: a local with no type
+// gives it none, and an `i32` slot no enum (T3028 both times).
+module "snippet"
+
+Color :: enum { Red, Green }
+
+main :: fn() -> i32 {
+    known: Color: .Red
+    unknown :: .Red
+    count: i32: .Green
+    return count
+}

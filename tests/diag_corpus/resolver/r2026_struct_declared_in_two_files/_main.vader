@@ -1,0 +1,10 @@
+// `other.vader`, a file of the same module, declares a second `Point`: only
+// functions may share a name across the files of a module (R2026).
+module "snippet"
+
+Point :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    return p.x
+}

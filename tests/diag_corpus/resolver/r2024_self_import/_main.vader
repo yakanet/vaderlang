@@ -1,0 +1,6 @@
+// A file that imports its own module: R2024.
+module "snippet"
+
+import "snippet"
+
+main :: fn() -> i32 = 0

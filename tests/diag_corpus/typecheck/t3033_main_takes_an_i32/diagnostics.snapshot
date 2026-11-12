@@ -1,0 +1,1 @@
+[5:1] error[T3033] invalid `main` signature: main takes either no parameters or a single `string[]` argument

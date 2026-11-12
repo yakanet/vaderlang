@@ -1,0 +1,6 @@
+// `std/core` is the prelude, already in scope: importing it is R2028.
+module "snippet"
+
+import "std/core"
+
+main :: fn() -> i32 = 0

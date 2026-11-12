@@ -1,0 +1,8 @@
+// `<` on two bools: the comptime evaluator refuses to order them (C4007), and
+// the type checker reports the same operands on its own (T3043).
+module "snippet"
+
+@comptime
+export BAD :: true < false
+
+main :: fn() -> i32 = 0

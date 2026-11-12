@@ -1,0 +1,5 @@
+// `main` takes no parameter or the command-line arguments as one `string[]`:
+// T3033.
+module "snippet"
+
+main :: fn(code: i32) -> i32 = code

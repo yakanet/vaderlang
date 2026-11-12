@@ -1,0 +1,7 @@
+// `\u{D800}` names a UTF-16 surrogate, which is no Unicode scalar value: L0009.
+module "snippet"
+
+main :: fn() -> i32 {
+    s :: "\u{D800}"
+    return 0
+}

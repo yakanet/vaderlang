@@ -1,0 +1,4 @@
+// `main` returns the exit code, an `i32`: T3033.
+module "snippet"
+
+main :: fn() -> void {}

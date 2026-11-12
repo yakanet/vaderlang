@@ -1,0 +1,1 @@
+[7:15] error[M5010] `@comptime for` cannot be unrolled: `@comptime for` requires a compile-time-known array literal

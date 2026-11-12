@@ -1,0 +1,3 @@
+module "snippet"
+
+Point :: struct { y: i32 }

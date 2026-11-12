@@ -1,0 +1,13 @@
+// `@field_index` reads its field name as a string literal: a name held in a
+// constant cannot be evaluated at compile time (C4011).
+module "snippet"
+
+Point :: struct { x: i32 }
+
+@comptime
+NAME :: "x"
+
+@comptime
+export INDEX :: @field_index(Point, NAME)
+
+main :: fn() -> i32 = 0

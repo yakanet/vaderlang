@@ -1204,7 +1204,7 @@ is_extern_abi_element :: fn(t: Type) -> bool {
 }
 
 // `main` must return i32 and either take no params or a single
-// `[string]` arg: emitters wire the entry point assuming both.
+// `string[]` arg: emitters wire the entry point assuming both.
 check_main_signature :: fn(
     decl: AST.FnDecl,
     params: Type[],
@@ -1230,7 +1230,7 @@ check_main_signature :: fn(
         typecheck_error(
             .InvalidMainSignature,
             decl.span,
-            "main takes either no parameters or a single `[string]` argument",
+            "main takes either no parameters or a single `string[]` argument",
         ),
     )
 }

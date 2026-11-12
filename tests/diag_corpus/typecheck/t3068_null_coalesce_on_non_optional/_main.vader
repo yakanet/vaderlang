@@ -1,0 +1,7 @@
+// `x` is an `i32`, never null, so the fallback of `??` is unreachable: T3068.
+module "snippet"
+
+main :: fn() -> i32 {
+    x: i32: 1
+    return x ?? 2
+}

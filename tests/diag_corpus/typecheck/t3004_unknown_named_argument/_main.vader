@@ -1,0 +1,6 @@
+// `f` has no parameter named `b`: T3004.
+module "snippet"
+
+f :: fn(a: i32) -> i32 = a
+
+main :: fn() -> i32 = f(1, b = 2)

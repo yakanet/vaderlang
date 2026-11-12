@@ -91,8 +91,8 @@ export EmitCtx :: struct {
     null_tag: i32
     /// BcType index of the `string` primitive, or `-1` when absent.
     string_tag: i32
-    /// BcType index of the `[string]` array (element == `string_tag`), or
-    /// `-1` when absent. Used by the `main(argv: [string])` shim.
+    /// BcType index of the `string[]` array (element == `string_tag`), or
+    /// `-1` when absent. Used by the `main(argv: string[])` shim.
     string_array_tag: i32
     /// Per function of `module.functions`, whether it may trigger a GC
     /// allocation (transitively), so whether a call to it is a safepoint. A
@@ -1374,11 +1374,11 @@ push_offset_list :: fn(members: CExpression[], prefix: string, offsets: string[]
 
 /// `int main(...)` shim. No `is_main` fn -> the `return 0;` stub. Otherwise
 /// a signature-aware entry : `vader_atom`/`vader_gc` init, optional
-/// `[string]` argv construction, and the call to the user `main`, whose exit
+/// `string[]` argv construction, and the call to the user `main`, whose exit
 /// code `vader_scheduler_exit` returns once the threads still running are
 /// cancelled (`return vader_scheduler_exit((int) main())` for an `i32` result,
 /// `main(); return vader_scheduler_exit(0);` for `void`). T3033 guarantees the
-/// signature is `()` or `([string])`.
+/// signature is `()` or `(string[])`.
 emit_main :: fn(ctx: EmitCtx, printer: CPrinter, entry_mangled: string) -> void {
     signature :: CSignature {
         .result = "int",
@@ -1433,7 +1433,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
         array_tag :: ctx.string_array_tag
         if string_tag < 0 || array_tag < 0 {
             body.push_all(unused_arguments)
-            body.push(trap("main(argv): missing [string] type"))
+            body.push(trap("main(argv): missing string[] type"))
             body.push(CReturn { .value = number(1) })
             return body
         }
@@ -1446,7 +1446,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
                 unsigned(i64(string_tag)),
             ],
         )
-        // The entry's `argv: [string]` param is a concrete array -> a raw `void*`
+        // The entry's `argv: string[]` param is a concrete array -> a raw `void*`
         // (`.Ref`) ; pass the array pointer directly. (`.Any` would box.)
         if function.signature.params[0] == .Ref {
             body.push(declaration("void*", "__args", cast("void*", argv)))
@@ -1510,7 +1510,7 @@ string_primitive_tag :: fn(types: BcType[]) -> i32 {
     return -1
 }
 
-/// BcType index of the `[string]` array (element type == `str_idx`), or
+/// BcType index of the `string[]` array (element type == `str_idx`), or
 /// `-1` when absent. Called once by `new_ctx` (cached in
 /// `EmitCtx.string_array_tag`).
 string_array_tag :: fn(types: BcType[], str_idx: i32) -> i32 {

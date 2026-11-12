@@ -1,0 +1,2 @@
+[10:17] error[T3028] cannot infer enum type from context: `.Green` expects an enum-typed slot, got i32
+[9:16] error[T3028] cannot infer enum type from context: cannot infer enum type for `.Red` without context

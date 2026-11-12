@@ -1,0 +1,13 @@
+// A `@comptime for` unrolls over an array literal it can see: a parameter's
+// array is only known at run time (M5010).
+module "snippet"
+
+count :: fn(xs: i32[]) -> i32 {
+    n := 0
+    @comptime for x in xs {
+        n += 1
+    }
+    return n
+}
+
+main :: fn() -> i32 = count([1, 2])

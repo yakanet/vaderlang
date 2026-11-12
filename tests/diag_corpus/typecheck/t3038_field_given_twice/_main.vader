@@ -1,0 +1,9 @@
+// A struct literal that gives `x` twice: T3038.
+module "snippet"
+
+Point :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .x = 2 }
+    return p.x
+}

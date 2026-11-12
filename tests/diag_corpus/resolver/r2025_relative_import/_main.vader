@@ -1,0 +1,7 @@
+// An import path is a module path: `./` and `../` are not part of the
+// language (R2025).
+module "snippet"
+
+import "./other"
+
+main :: fn() -> i32 = 0
