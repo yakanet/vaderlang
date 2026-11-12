@@ -1,0 +1,209 @@
+// tools/cli_tests/cli/cli: the `vader` command, as a test of the repository runs
+// it.
+//
+// A test of the command line, and a stage of the test runner that drives it, run
+// the `vader` the repository builds (`build/vader`), from the root of the
+// repository. The command sees the environment of the process that runs the
+// test, but for `VADER_HOME`: it outranks every other way the command finds its
+// library, so one exported in a shell would run the tests against another `lib/`.
+// A test that wants one names it (`toolchain_home`).
+
+module "tools/cli_tests/cli"
+
+import "std/env"
+import "std/fs"
+import "std/io"
+import "std/process"
+import "std/string"
+import "std/task"
+import "std/time"
+
+/// How a test runs a command.
+export RunOptions :: struct {
+    /// The working directory of the command; the test's when null.
+    cwd: string | null = null
+    /// Changes to its environment, made once `VADER_HOME` is left out.
+    env: [string, string | null][] = []
+    /// What it reads on its stdin, which is closed after; nothing when null.
+    stdin: string | null = null
+    /// How long the test waits for it before it kills it.
+    timeout: Duration = DEFAULT_TIMEOUT
+}
+
+/// The wait for a command, by default: a check or a build of a small program.
+export DEFAULT_TIMEOUT: Duration: Duration(30_000_000_000)
+
+/// The wait for a command that builds a large program, the compiler included.
+export LONG_TIMEOUT: Duration: Duration(120_000_000_000)
+
+/// The wait for a driven build, which compiles its driver first.
+export HEAVY_TIMEOUT: Duration: Duration(600_000_000_000)
+
+// Where the command finds its library when nothing else says.
+HOME_VARIABLE :: "VADER_HOME"
+
+/// The `vader` the repository builds, absolute: a command that runs in another
+/// folder finds it all the same.
+export vader_binary :: fn() -> string = "${toolchain_home()}/${executable_path("build/vader")}"
+
+/// The root of the repository, the toolchain a test points `VADER_HOME` at when
+/// it builds a project outside it.
+export toolchain_home :: fn() -> string = current_working_directory()
+
+/// The path of the executable a linker writes for `base`: `.exe` on Windows.
+///
+/// @param base  the path without the suffix.
+@target
+export executable_path :: fn(base: string) -> string = base
+
+@target(.Windows)
+executable_path :: fn(base: string) -> string = "${base}.exe"
+
+/// Run `vader` with `args`.
+///
+/// @param args     what follows `vader` on its command line.
+/// @param options  where it runs, what it reads and how long it may take.
+/// @return         what it wrote and its exit code.
+/// @error          `ProcessError` when it cannot be launched, a signal ends it
+///                 or it outlives `options.timeout`.
+export run_vader :: fn(
+    args: string[],
+    options: RunOptions = RunOptions {},
+) -> ProcessResult | ProcessError = run_command([vader_binary()] + args, options)
+
+/// Run the command `argv`, a program the test built or one of the system.
+///
+/// @param argv     the command line, the program first.
+/// @param options  where it runs, what it reads and how long it may take.
+/// @return         what it wrote and its exit code.
+/// @error          `ProcessError` when it cannot be launched, a signal ends it
+///                 or it outlives `options.timeout`.
+export run_command :: fn(
+    argv: string[],
+    options: RunOptions = RunOptions {},
+) -> ProcessResult | ProcessError {
+    changes: [string, string | null][]: [[HOME_VARIABLE, null]]
+    spawned :: SpawnOptions { .cwd = options.cwd, .env = changes + options.env }
+    child :: spawn_interactive(argv, spawned)
+    if child is ProcessError {
+        return child
+    }
+    defer child.kill()
+    input :: options.stdin
+    if input != null {
+        child.write_input(input.bytes())
+    }
+    child.close_input()
+    ended :: launch(() -> child.wait()).timeout(options.timeout)
+    if ended is ProcessResult || ended is ProcessError {
+        return ended
+    }
+    return ProcessError { .msg = "`${argv[0]}`: gave up after ${options.timeout.format()}" }
+}
+
+/// The C compiler a native build runs on this host, as `vader build` picks it: a
+/// non-empty `CC`, else `gcc` on Windows and `cc` elsewhere.
+///
+/// The rule is `default_cc` of `vader/pipeline`, not imported from there: the
+/// import would compile the compiler into every test of the command line.
+export host_cc :: fn() -> string {
+    named :: get_env("CC") ?? ""
+    if named != "" {
+        return named
+    }
+    return default_host_cc()
+}
+
+@target
+default_host_cc :: fn() -> string = "cc"
+
+@target(.Windows)
+default_host_cc :: fn() -> string = "gcc"
+
+/// Whether the C compiler of this host runs: a test of a native build has
+/// nothing to check without one.
+export has_cc :: fn() -> bool {
+    probed :: run_command([host_cc(), "--version"])
+    return probed is ProcessResult && probed.exit == 0
+}
+
+// How `build/vader` is built from the sources.
+REBUILD :: "build it with `bash bootstrap/build.sh`"
+
+// The folders `vader` is built from.
+SOURCES: string[]: ["vader", "lib"]
+
+/// Why `vader` cannot be run as the repository's: it is missing, or older than
+/// one of its sources; null when it can.
+export stale_vader :: fn() -> string | null {
+    if !exists(vader_binary()) {
+        return "`build/vader` is missing: ${REBUILD}"
+    }
+    newer :: newer_source(vader_binary(), SOURCES) ?? return null
+    return "`build/vader` is older than `${newer}`: ${REBUILD}"
+}
+
+/// The first `.vader` file under `roots` modified after the file at `binary`.
+///
+/// @param binary  a program built from what `roots` hold.
+/// @param roots   the folders it is built from, those of them that exist.
+/// @return        the path of that file; null when none is newer, or when
+///                `binary` cannot be read.
+export newer_source :: fn(binary: string, roots: string[]) -> string | null {
+    built :: modification_time(binary)
+    if built is IOError {
+        return null
+    }
+    for root in roots {
+        walker :: walk(root)
+        if walker is IOError {
+            continue
+        }
+        for entry in walker {
+            if !entry.name.ends_with(".vader") {
+                continue
+            }
+            changed :: modification_time(entry.path)
+            if changed is i64 && changed > built {
+                return entry.path
+            }
+        }
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_vader_of_the_repository_is_found_from_any_folder :: fn() -> void {
+    assert(vader_binary().ends_with(executable_path("/build/vader")), "the path of the build")
+    assert(vader_binary().starts_with(toolchain_home()), "an absolute path")
+}
+
+@test
+test_a_command_reads_what_it_is_given_and_reports_its_exit :: fn() -> void {
+    // `sort` of Windows reads lines that end with CRLF.
+    ran :: run_command(["sort"], RunOptions { .stdin = "b\r\na\r\n" })
+    if ran is ProcessError {
+        fail(ran.msg)
+        return
+    }
+    assert_eq(ran.stdout.replace_all("\r", ""), "a\nb\n")
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_a_command_that_outlives_its_timeout_is_given_up :: fn() -> void {
+    waits :: RunOptions { .timeout = 200.millis() }
+    ran :: run_command(sleep_command(), waits)
+    assert(ran is ProcessError && "gave up" in ran.msg, "a command given up")
+}
+
+// A command that runs for longer than a test waits.
+@target
+sleep_command :: fn() -> string[] = ["sleep", "5"]
+
+@target(.Windows)
+sleep_command :: fn() -> string[] = ["ping", "-n", "6", "127.0.0.1"]

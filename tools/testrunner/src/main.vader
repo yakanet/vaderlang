@@ -11,7 +11,8 @@
 // tally (`report.vader`).
 //
 // The binary embeds the compiler from its sources, so it refuses to run when a
-// source under `vader/`, `lib/` or `tools/testrunner/` is newer than itself.
+// source under `vader/`, `lib/`, `tools/testrunner/` or `tools/cli_tests/` is
+// newer than itself.
 // `vader build --release` in `tools/testrunner` builds it. Run it from the
 // repository root:
 //
@@ -29,6 +30,7 @@ import "std/process"
 import "std/string"
 import "std/task"
 import "std/time"
+import "tools/cli_tests/cli"
 
 FLAGS: FlagSpec[]: [
     FlagSpec {
@@ -64,7 +66,7 @@ FLAGS: FlagSpec[]: [
 SCRATCH :: "build/testrunner"
 
 // The folders the binary is built from.
-SOURCES: string[]: ["vader", "lib", "tools/testrunner"]
+SOURCES: string[]: ["vader", "lib", "tools/testrunner", "tools/cli_tests"]
 
 main :: fn(argv: string[]) -> i32 {
     parsed :: parse(argv[1..<argv.len()], FLAGS)
@@ -83,7 +85,7 @@ main :: fn(argv: string[]) -> i32 {
         scratch :: parsed.string_flag("scratch", "${current_working_directory()}/${SCRATCH}/worker")
         return run_worker(update, scratch)
     }
-    newer :: newer_source()
+    newer :: newer_source(current_executable_location(), SOURCES)
     if newer != null {
         eprintln("testrunner: `${newer}` is newer than this binary: rebuild it with")
         eprintln("  (cd tools/testrunner && ../../build/vader build --release)")
@@ -167,27 +169,3 @@ worker_command :: fn(update: bool) -> string[] {
 }
 
 worker_count :: fn(asked: i32) -> i32 = if asked > 0 { asked } else { processor_count() }
-
-// A `.vader` file of `SOURCES` modified after this binary, null when none is.
-newer_source :: fn() -> string | null {
-    built :: modification_time(current_executable_location())
-    if built is IOError {
-        return null
-    }
-    for root in SOURCES {
-        walker :: walk(root)
-        if walker is IOError {
-            continue
-        }
-        for entry in walker {
-            if !entry.name.ends_with(".vader") {
-                continue
-            }
-            changed :: modification_time(entry.path)
-            if changed is i64 && changed > built {
-                return entry.path
-            }
-        }
-    }
-    return null
-}
