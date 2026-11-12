@@ -365,12 +365,9 @@ copy_content :: fn(from: string, to: string) -> null | IOError {
 copy_chunks :: fn(input: File, output: File) -> null | IOError {
     chunk: u8[]: [0] * READ_CHUNK
     for {
-        n :: system_read(input.handle, chunk, READ_CHUNK)
+        n :: input.read(chunk) ?? return null
         if n is IOError {
             return n
-        }
-        if n == 0 {
-            return null
         }
         written :: output.write(chunk[0..<n])
         if written is IOError {

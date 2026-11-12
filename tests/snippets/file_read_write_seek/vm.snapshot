@@ -8,6 +8,7 @@ line: onE
 line: two
 line: three
 error: none
+at the end: true
 close: none
 close again: none
 read after close: BadHandle

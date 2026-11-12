@@ -8,7 +8,7 @@
           std.console.println<string>(concat_2("create failed: ", IOError(w).msg))
           return 1
       }
-      std.fs.write(File(w), "one\r\ntwo\nthree")
+      std.fs.File.write(File(w), "one\r\ntwo\nthree")
       std.fs.close(File(w))
       f: File | IOError = std.fs.open(path, OpenOptions {
           .read = true,
@@ -17,65 +17,63 @@
           .create = false,
           .truncate = false,
           .create_new = false,
-          .buffer_size = i64(4),
       })
       if f is IOError {
           std.console.println<string>(concat_2("open failed: ", IOError(f).msg))
           return 1
       }
-      first: IOError | u8[] = std.fs.read(File(f), i64(2))
-      if first is u8[] {
-          std.console.println<string>(concat_2("read: ", std.core.bytes_to_string(u8[](first))))
+      first: u8[] = @array.repeat([u8(0)] :u8[], 2)
+      if std.fs.File.read(File(f), first) is i64 {
+          std.console.println<string>(concat_2("read: ", std.core.bytes_to_string(first)))
       }
       std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
-      std.fs.write(File(f), "E")
+      std.fs.File.write(File(f), "E")
       std.console.println<string>(concat_2("after the write: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
       std.console.println<string>(concat_2("end: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(2)))))
       std.console.println<string>(concat_2("size: ", snippet.position(std.fs.size(File(f)))))
       std.fs.seek(File(f), i64(0), SeekFrom(0))
+      reader: BufferedReader = BufferedReader {
+          .source = File(f),
+          .capacity = i64(4),
+          .error = null,
+          .buffer = [] :u8[],
+          .next = i64(0),
+          .filled = i64(0),
+      }
       {
-          f: File = File(f)
-          $exit$i12: {
-              head: u8[] = [] :u8[]
+          r: BufferedReader = reader
+          max: i64 = 1048576
+          $exit$i10: {
               for {
-                  if f.next == f.filled {
-                      got: i64 | IOError = std.fs.refill(f)
-                      if got is IOError {
-                          f.error = IOError(got)
-                          break $exit$i12
-                      }
-                      if i64(got) == i64(0) {
+                  line: IOError | string = {
+                      __coalesce_0: IOError | null | string = std.io.read_line(r, max)
+                      if __coalesce_0 is null {
                           break
-                      }
+                          @unreachable("`??` fallback diverges")
+                      } else {
+                          (IOError | string)(__coalesce_0)
+                      } :IOError | string
                   }
-                  unread: u8[] = f.buffer[f.next..<f.filled]
-                  newline: i64 | null = std.core.index_of<u8>(unread, u8(10))
-                  if newline is null {
-                      @array.push_all(head, unread)
-                      f.next = f.filled
-                      continue
+                  if line is IOError {
+                      r.error = IOError(line)
+                      break $exit$i10
                   }
-                  f.next = f.next + (i64(newline) + i64(1))
-                  if @array.len(head) == i64(0) {
-                      line: string = std.fs.line_of(unread[i64(0)..<i64(newline)])
-                      std.console.println<string>(concat_2("line: ", line))
-                  } else {
-                      @array.push_all(head, unread[i64(0)..<i64(newline)])
-                      line: string = std.fs.line_of(head)
-                      std.console.println<string>(concat_2("line: ", line))
-                      head = [] :u8[]
-                  }
-              }
-              if @array.len(head) > i64(0) {
-                  line: string = std.core.bytes_to_string(head)
+                  line: string = string(line)
                   std.console.println<string>(concat_2("line: ", line))
               }
           }
       }
-      std.console.println<string>(concat_2("error: ", snippet.outcome(File(f).error)))
+      std.console.println<string>(concat_2("error: ", snippet.outcome(reader.error)))
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(17))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "at the end: ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, std.io.read_line(reader, i64(1048576)) is null)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
       std.console.println<string>(concat_2("close: ", snippet.outcome(std.fs.close(File(f)))))
       std.console.println<string>(concat_2("close again: ", snippet.outcome(std.fs.close(File(f)))))
-      after: IOError | u8[] = std.fs.read(File(f), i64(1))
+      after: i64 | IOError | null = std.fs.File.read(File(f), first)
       if after is IOError {
           std.console.println<string>(concat_2("read after close: ", std.io.IOErrorKind.to_string(IOError(after).kind)))
       }
@@ -86,7 +84,6 @@
           .create = false,
           .truncate = false,
           .create_new = false,
-          .buffer_size = i64(65536),
       })
       if missing is IOError {
           std.console.println<string>(concat_2("missing: ", std.io.IOErrorKind.to_string(IOError(missing).kind)))
@@ -98,7 +95,6 @@
           .create = false,
           .truncate = false,
           .create_new = false,
-          .buffer_size = i64(65536),
       })
       if directory is IOError {
           std.console.println<string>(concat_2("directory: ", std.io.IOErrorKind.to_string(IOError(directory).kind)))
@@ -154,7 +150,6 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.clone<u8>  // std_core$clone__u8
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<u8>  // std_core$index_of__u8
     fn std.core.write_bool  // std_core$write_bool
@@ -170,27 +165,22 @@
     const FILE_CLOSED: IOError  data pool #0, element 0
     const NUL_IN_PATH: IOError  data pool #1, element 0
     fn __defer_std_fs_0
+    fn std.fs.File.read  // std_fs$File$std_io$Reader$read
+    fn std.fs.File.write  // std_fs$File$std_io$Writer$write
     fn std.fs.access_mode  // std_fs$access_mode
-    fn std.fs.bytes_of  // std_fs$bytes_of
     fn std.fs.close  // std_fs$close
     fn std.fs.create  // std_fs$create
     fn std.fs.fd_of  // std_fs$fd_of
-    fn std.fs.give_back  // std_fs$give_back
     fn std.fs.has_nul  // std_fs$has_nul
     fn std.fs.invalid_options  // std_fs$invalid_options
     fn std.fs.is_a_directory  // std_fs$is_a_directory
     fn std.fs.kind_of  // std_fs$kind_of
     fn std.fs.kind_of_dirent  // std_fs$kind_of_dirent
-    fn std.fs.line_of  // std_fs$line_of
     fn std.fs.link_flag  // std_fs$link_flag
     fn std.fs.list_dir  // std_fs$list_dir
-    fn std.fs.move  // std_fs$move
     fn std.fs.open  // std_fs$open
     fn std.fs.open_flags  // std_fs$open_flags
-    fn std.fs.read  // std_fs$read
     fn std.fs.read_dir  // std_fs$read_dir
-    fn std.fs.read_past_buffer  // std_fs$read_past_buffer
-    fn std.fs.refill  // std_fs$refill
     fn std.fs.refusal_of  // std_fs$refusal_of
     fn std.fs.remove  // std_fs$remove
     fn std.fs.remove_directory  // std_fs$remove_directory
@@ -198,7 +188,6 @@
     fn std.fs.size  // std_fs$size
     fn std.fs.stat_cells  // std_fs$stat_cells
     fn std.fs.system_close  // std_fs$system_close
-    fn std.fs.system_offset  // std_fs$system_offset
     fn std.fs.system_open  // std_fs$system_open
     fn std.fs.system_read  // std_fs$system_read
     fn std.fs.system_remove  // std_fs$system_remove
@@ -207,19 +196,26 @@
     fn std.fs.system_size  // std_fs$system_size
     fn std.fs.system_write  // std_fs$system_write
     fn std.fs.whence_of  // std_fs$whence_of
-    fn std.fs.write  // std_fs$write
     struct __defer_env_std_fs_1
     struct std.fs.File  // std_fs$File
     struct std.fs.ListedEntry  // std_fs$ListedEntry
     struct std.fs.OpenOptions  // std_fs$OpenOptions
     struct std.fs.RemoveOptions  // std_fs$RemoveOptions
   std/io
+    fn std.io.BufferedReader.read  // std_io$BufferedReader$Reader$read
     fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
+    fn std.io.bytes_of  // std_io$bytes_of
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.failure_unless  // std_io$failure_unless
     fn std.io.last_io_error  // std_io$last_io_error
+    fn std.io.line_break_of  // std_io$line_break_of
+    fn std.io.read_line  // std_io$read_line
+    fn std.io.refill  // std_io$refill
+    fn std.io.reserve  // std_io$reserve
+    fn std.io.take_through  // std_io$take_through
+    struct std.io.BufferedReader  // std_io$BufferedReader
     struct std.io.IOError  // std_io$IOError
   std/math
     fn std.math.min<i64>  // std_math$min__i64

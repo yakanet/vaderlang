@@ -1,14 +1,14 @@
 // std/fs/file: a file held open, read, written and sought in place.
 //
-// A `File` reads through a buffer of its own and writes straight through, so a
-// write fails at the call that made it. What it holds of the system is a
-// descriptor on POSIX and a handle on Windows; only the `system_*` primitives at
-// the end of this file name either.
+// A `File` reads and writes straight through: it is a `Reader` and a `Writer`
+// of `std/io` with one position, and a buffer is a `BufferedReader` or a
+// `BufferedWriter` set on it. What it holds of the system is a descriptor on
+// POSIX and a handle on Windows; only the `system_*` primitives at the end of
+// this file name either.
 
 module "std/fs"
 
 import "std/io"
-import "std/iter"
 import "std/math"
 import "std/target"
 import "system/posix"
@@ -31,8 +31,6 @@ export OpenOptions :: struct {
     /// Create the file, and fail with `.AlreadyExists` when one is there. Needs
     /// `write` or `append`.
     create_new:  bool = false
-    /// The bytes a read asks the system for at once, at least 1.
-    buffer_size: i64  = READ_CHUNK
 }
 
 /// Where `seek` counts an offset from.
@@ -42,28 +40,21 @@ export SeekFrom :: enum {
     End
 }
 
-/// A file `open` holds open. Reads, writes and `seek` move one position
-/// through it.
+/// A file `open` holds open: a `Reader` and a `Writer`. Reads, writes and `seek`
+/// move one position through it, and each one asks the system. Under `append`,
+/// a write lands at the end of the file wherever the position stands.
+///
+/// Read it by lines, or in small pieces, through a `BufferedReader`. The reader
+/// reads ahead, so the position of the file is then past what the reader has
+/// handed out: seek and write a file that nothing buffers.
 ///
 /// Close it with `close`, most often by `defer`: a `File` dropped open keeps its
 /// system handle until the process ends.
 export File :: struct {
-    /// What ended a `lines` loop early, null while nothing did.
-    error:    IOError | null = null
     @internal
-    handle:   Fd | Handle
-    /// What was read ahead of the caller: `buffer[next..<filled]` is unread.
+    handle: Fd | Handle
     @internal
-    buffer:   u8[] = []
-    @internal
-    next:     i64 = 0
-    @internal
-    filled:   i64 = 0
-    /// The size `buffer` takes at the first read that needs it.
-    @internal
-    capacity: i64
-    @internal
-    closed:   bool = false
+    closed: bool = false
 }
 
 /// Open the file at `path` as `options` say: for reading alone by default.
@@ -75,10 +66,12 @@ export File :: struct {
 ///                 `create_new`, `.IsADirectory` for a directory, and
 ///                 `.InvalidInput` for options that contradict each other.
 /// @example
+///   # import "std/console"
+///   # import "std/io"
 ///   f :: open("notes.txt")
 ///   if f is File {
 ///       defer f.close()
-///       for line in f.lines() {
+///       for line in BufferedReader { .source = f }.lines() {
 ///           println(line)
 ///       }
 ///   }
@@ -91,7 +84,7 @@ export open :: fn(path: string, options: OpenOptions = OpenOptions {}) -> File |
     if handle is IOError {
         return handle
     }
-    return File { .handle = handle, .capacity = options.buffer_size }
+    return File { .handle = handle }
 }
 
 /// Open the file at `path` for writing alone, created when it is missing and
@@ -124,9 +117,6 @@ refusal_of :: fn(path: string, options: OpenOptions) -> IOError | null {
     if options.truncate && options.append {
         return invalid_options("truncate with append")
     }
-    if options.buffer_size < 1 {
-        return invalid_options("buffer size below 1")
-    }
     return null
 }
 
@@ -141,155 +131,48 @@ invalid_options :: fn(why: string) = IOError {
     .kind = .InvalidInput,
 }
 
-// ---- reading --------------------------------------------------------------
+// ---- reading, writing and seeking -----------------------------------------
 
-/// Read at most `max` bytes from the position, which moves past them.
-///
-/// Fewer than `max` is not the end of the file: a read stops where what was
-/// read ahead stops, or where the system's answer does. Only an empty array is.
-///
-/// @param max  the most bytes wanted.
-/// @return     the bytes read, empty at the end of the file.
-/// @error      `IOError` when the system cannot read, or `f` is closed.
-export read :: fn(f: File, max: i64) -> u8[] | IOError {
-    if f.closed {
-        return FILE_CLOSED
-    }
-    if max < 0 {
-        return IOError { .msg = "negative read size", .kind = .InvalidInput }
-    }
-    if max == 0 {
-        return []
-    }
-    if f.next == f.filled {
-        if max >= f.capacity {
-            return read_past_buffer(f, max)
+File implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if self.closed {
+            return FILE_CLOSED
         }
-        got :: refill(f)
-        if got is IOError {
-            return got
+        if into.len() == 0 {
+            return 0
         }
+        count :: system_read(self.handle, into, into.len())
+        if count is IOError {
+            return count
+        }
+        if count == 0 {
+            return null
+        }
+        return count
     }
-    end :: min(f.filled, f.next + max)
-    // A copy: the next refill writes over the buffer.
-    out :: f.buffer[f.next..<end].clone()
-    f.next = end
-    return out
 }
 
-/// Lazily yield the lines of `f` from its position, cut as `std/string`'s
-/// `lines` cuts them: on `\n`, a `\r` right before it left out, and no empty line
-/// after a final break.
-///
-/// A read that fails ends the loop as the end of the file would: `f.error` then
-/// holds why.
-///
-/// @return  a lazy `Iterator<string>`, one read per buffer the lines fill.
-export lines :: fn(f: File) -> Iterator<string> {
-    // The start of a line whose break a later read brings.
-    head: u8[] = []
-    for {
-        if f.next == f.filled {
-            got :: refill(f)
-            if got is IOError {
-                f.error = got
-                return
+File implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        if self.closed {
+            return FILE_CLOSED
+        }
+        bytes :: content.bytes_of()
+        done: i64 = 0
+        for done < bytes.len() {
+            n :: system_write(self.handle, bytes[done..<bytes.len()])
+            if n is IOError {
+                return n
             }
-            if got == 0 {
-                break
+            // A write the system took none of, without saying why, would
+            // otherwise be asked again forever.
+            if n == 0 {
+                return IOError { .msg = "write failed: nothing written" }
             }
+            done += n
         }
-        unread :: f.buffer[f.next..<f.filled]
-        newline :: unread.index_of('\n')
-        if newline == null {
-            head.push_all(unread)
-            f.next = f.filled
-            continue
-        }
-        f.next += newline + 1
-        if head.len() == 0 {
-            yield line_of(unread[0..<newline])
-        } else {
-            head.push_all(unread[0..<newline])
-            yield line_of(head)
-            head = []
-        }
+        return null
     }
-    if head.len() > 0 {
-        yield head.bytes_to_string()
-    }
-}
-
-// A read of `max` bytes, at least the buffer's size, while the buffer is
-// empty: straight into the array returned, since the buffer would only add a
-// copy.
-read_past_buffer :: fn(f: File, max: i64) -> u8[] | IOError {
-    into: u8[]: [0] * max
-    n :: system_read(f.handle, into, max)
-    if n is IOError {
-        return n
-    }
-    return into[0..<n]
-}
-
-// The line `bytes` hold up to a `\n`, the `\r` of a `\r\n` break left out.
-line_of :: fn(bytes: u8[]) -> string {
-    n :: bytes.len()
-    if n > 0 && bytes[n - 1] == '\r' {
-        return bytes[0..<n - 1].bytes_to_string()
-    }
-    return bytes.bytes_to_string()
-}
-
-// Read ahead once the caller has taken all that was: the bytes the system
-// gave, 0 at the end of the file.
-refill :: fn(f: File) -> i64 | IOError {
-    if f.closed {
-        return FILE_CLOSED
-    }
-    if f.buffer.len() == 0 {
-        f.buffer = [0] * f.capacity
-    }
-    n :: system_read(f.handle, f.buffer, f.capacity)
-    if n is IOError {
-        return n
-    }
-    f.next = 0
-    f.filled = n
-    return n
-}
-
-// ---- writing and seeking --------------------------------------------------
-
-/// Write all of `content` at the position, which moves past it; at the end of
-/// the file under `append`. A string is written as its UTF-8 bytes.
-///
-/// @param content  what to write.
-/// @error          `IOError` when the system cannot write all of it, or `f` is
-///                 closed. Part of `content` may be written by then.
-export write :: fn(f: File, content: u8[] | string) -> null | IOError {
-    if f.closed {
-        return FILE_CLOSED
-    }
-    bytes :: content.bytes_of()
-    rewound :: f.give_back()
-    if rewound is IOError {
-        return rewound
-    }
-    done: i64 = 0
-    for done < bytes.len() {
-        n :: system_write(f.handle, bytes[done..<bytes.len()])
-        if n is IOError {
-            return n
-        }
-        // A write the system took none of, without saying why, would
-        // otherwise be asked again forever.
-        if n == 0 {
-            return IOError { .msg = "write failed: nothing written" }
-        }
-        done += n
-    }
-    return null
 }
 
 /// Move the position to `offset` bytes from `from`.
@@ -303,45 +186,11 @@ export seek :: fn(f: File, offset: i64, from: SeekFrom) -> i64 | IOError {
     if f.closed {
         return FILE_CLOSED
     }
-    return move(f, offset, from)
-}
-
-// Hand what was read ahead back to the system before a write, so that the
-// write lands at the caller's position.
-give_back :: fn(f: File) -> null | IOError {
-    if f.next == f.filled {
-        return null
-    }
-    position :: move(f, 0, .Current)
-    if position is IOError {
-        return position
-    }
-    return null
-}
-
-// Move the system's position to the caller's `offset` from `from`, and drop
-// what was read ahead; kept when the move fails, since nothing moved.
-move :: fn(f: File, offset: i64, from: SeekFrom) -> i64 | IOError {
-    position :: system_seek(f.handle, system_offset(f, offset, from), from)
-    if position is IOError {
-        return position
-    }
-    f.next = 0
-    f.filled = 0
-    return position
-}
-
-// `offset` as the system counts it: from `.Current`, the system stands at the
-// end of what was read ahead, past the caller.
-system_offset :: fn(f: File, offset: i64, from: SeekFrom) -> i64 {
-    if from == .Current {
-        return offset - (f.filled - f.next)
-    }
-    return offset
+    return system_seek(f.handle, offset, from)
 }
 
 /// The size of the file in bytes, every write included: a `File` writes straight
-/// through, so nothing waits in a buffer.
+/// through, so nothing waits to be written.
 ///
 /// @error  `IOError` when the file has no size (a pipe, a device), or `f` is
 ///         closed.
@@ -366,9 +215,6 @@ export close :: fn(f: File) -> null | IOError {
         return null
     }
     f.closed = true
-    f.buffer = []
-    f.next = 0
-    f.filled = 0
     return system_close(f.handle)
 }
 
@@ -617,6 +463,7 @@ handle_of :: fn(handle: Fd | Handle) -> Handle = @unreachable match handle {
 // ---- tests ----------------------------------------------------------------
 
 import "std/env"
+import "std/iter"
 import "std/string"
 import "std/testing"
 
@@ -628,27 +475,24 @@ probe_file :: fn(name: string, content: string) -> string {
     return path
 }
 
-// The number a call answered, -1 when it failed.
-number_of :: fn(answer: i64 | IOError) -> i64 {
-    if answer is IOError {
-        return -1
-    }
-    return answer
+// The number a call answered: -1 at the end of the file, -2 for a failure.
+number_of :: fn(answer: i64 | null | IOError) -> i64 = match answer {
+    is i64     -> answer
+    is IOError -> -2
+    is null    -> -1
 }
 
 // What `f` reads from its position to its end, `chunk` bytes at a time.
 read_rest :: fn(f: File, chunk: i64) -> string {
     out: u8[]: []
+    into: u8[]: [0] * chunk
     for {
-        got :: f.read(chunk)
+        got :: f.read(into) ?? return out.bytes_to_string()
         if got is IOError {
             assert(false, "the read succeeds")
             return ""
         }
-        if got.len() == 0 {
-            return out.bytes_to_string()
-        }
-        out.push_all(got)
+        out.push_all(into[0..<got])
     }
 }
 
@@ -704,11 +548,11 @@ test_create_then_read_back :: fn() -> void {
 }
 
 @test
-test_read_crosses_buffers_of_any_size :: fn() -> void {
-    path :: probe_file("small_buffer", "abcdefghij")
+test_read_takes_the_room_it_is_given :: fn() -> void {
+    path :: probe_file("rooms", "abcdefghij")
     defer remove(path)
     for chunk in [1, 3, 4, 5, 100] {
-        f :: open(path, OpenOptions { .buffer_size = 4 })
+        f :: open(path)
         if f is IOError {
             assert(false, "the file opens")
             return
@@ -719,7 +563,24 @@ test_read_crosses_buffers_of_any_size :: fn() -> void {
 }
 
 @test
-test_seek_counts_from_what_the_caller_read :: fn() -> void {
+test_read_gives_zero_to_an_empty_array_and_null_at_the_end :: fn() -> void {
+    path :: probe_file("end", "ab")
+    defer remove(path)
+    f :: open(path)
+    if f is IOError {
+        assert(false, "the file opens")
+        return
+    }
+    defer f.close()
+    none: u8[]: []
+    assert_eq(number_of(f.read(none)), 0)
+    assert_eq(read_rest(f, 8), "ab")
+    into: u8[]: [0] * 8
+    assert(f.read(into) == null, "the end is null")
+}
+
+@test
+test_seek_counts_from_the_position :: fn() -> void {
     path :: probe_file("seek", "0123456789")
     defer remove(path)
     f :: open(path)
@@ -728,8 +589,9 @@ test_seek_counts_from_what_the_caller_read :: fn() -> void {
         return
     }
     defer f.close()
-    first :: f.read(2)
-    assert(first is u8[] && first.bytes_to_string() == "01", "two bytes, the rest read ahead")
+    into: u8[]: [0] * 2
+    assert_eq(number_of(f.read(into)), 2)
+    assert_eq(into.bytes_to_string(), "01")
     assert_eq(number_of(f.seek(0, .Current)), 2)
     assert_eq(number_of(f.seek(3, .Current)), 5)
     assert_eq(read_rest(f, 10), "56789")
@@ -748,7 +610,8 @@ test_a_write_after_a_read_lands_at_the_position :: fn() -> void {
         assert(false, "the file opens")
         return
     }
-    f.read(3)
+    into: u8[]: [0] * 3
+    f.read(into)
     assert(f.write("abc") !is IOError, "the write")
     f.close()
     back :: read_file_string(path)
@@ -784,26 +647,27 @@ test_create_new_refuses_an_existing_file :: fn() -> void {
 }
 
 @test
-test_lines_cut_as_string_lines_does :: fn() -> void {
+test_a_buffered_reader_reads_its_lines :: fn() -> void {
     text :: "one\r\ntwo\n\nlonger than the buffer\nlast\r"
     path :: probe_file("lines", text)
     defer remove(path)
-    f :: open(path, OpenOptions { .buffer_size = 4 })
+    f :: open(path)
     if f is IOError {
         assert(false, "the file opens")
         return
     }
     defer f.close()
+    reader :: BufferedReader { .source = f, .capacity = 4 }
     read: string[]: []
-    for line in f.lines() {
+    for line in reader.lines() {
         read.push(line)
     }
-    assert(f.error !is IOError, "no read failed")
+    assert(reader.error !is IOError, "no read failed")
     assert(read.content_equals(text.lines().collect()), "the lines of the string")
 }
 
 @test
-test_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
+test_the_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
     path :: probe_file("lines_closed", "a\nb\n")
     defer remove(path)
     f :: open(path)
@@ -812,12 +676,33 @@ test_lines_of_a_closed_file_end_on_its_error :: fn() -> void {
         return
     }
     f.close()
+    reader :: BufferedReader { .source = f }
     count: i64 = 0
-    for line in f.lines() {
+    for line in reader.lines() {
         count += 1
     }
     assert_eq(count, 0)
-    assert(f.error is IOError && f.error.kind == .BadHandle, "the loop says why")
+    failure :: reader.error
+    assert(failure is IOError && failure.kind == .BadHandle, "the loop says why")
+}
+
+@test
+test_a_buffered_writer_reaches_the_file_at_its_flush :: fn() -> void {
+    path :: "${temp_dir()}/vader_file_buffered_writer"
+    f :: path.create()
+    if f is IOError {
+        assert(false, "the file is created")
+        return
+    }
+    defer path.remove()
+    writer :: BufferedWriter { .sink = f }
+    writer.write("status: ")
+    writer.write([50, 48, 48])
+    assert_eq(number_of(f.size()), 0)
+    assert(writer.flush() !is IOError, "the flush")
+    f.close()
+    back :: read_file_string(path)
+    assert(back is string && back == "status: 200", "written at the flush")
 }
 
 @test
@@ -850,6 +735,7 @@ test_close_twice_and_read_after :: fn() -> void {
     }
     assert(f.close() !is IOError, "the first close")
     assert(f.close() !is IOError, "a second does nothing")
-    after :: f.read(1)
+    into: u8[]: [0]
+    after :: f.read(into)
     assert(after is IOError && after.kind == .BadHandle, "a read after close fails")
 }

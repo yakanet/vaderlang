@@ -257,14 +257,6 @@
                             "kind": "BoolLitExpr",
                             "value": true
                           }
-                        },
-                        {
-                          "kind": "field",
-                          "name": "buffer_size",
-                          "value": {
-                            "kind": "IntLitExpr",
-                            "value": "4n"
-                          }
                         }
                       ]
                     },
@@ -348,27 +340,29 @@
                 "kind": "SimpleBinding",
                 "name": "first"
               },
-              "type": null,
+              "type": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "u8"
+                }
+              },
               "value": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "FieldExpr",
-                  "target": {
-                    "kind": "IdentExpr",
-                    "name": "f"
-                  },
-                  "field": "read"
-                },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
+                "kind": "BinaryExpr",
+                "op": "mul",
+                "left": {
+                  "kind": "SeqLitExpr",
+                  "elements": [
+                    {
                       "kind": "IntLitExpr",
-                      "value": "2n"
-                    },
-                    "spread": false
-                  }
-                ]
+                      "value": "0n"
+                    }
+                  ]
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "2n"
+                }
               }
             },
             {
@@ -379,15 +373,29 @@
                   "kind": "BinaryExpr",
                   "op": "is",
                   "left": {
-                    "kind": "IdentExpr",
-                    "name": "first"
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "f"
+                      },
+                      "field": "read"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "IdentExpr",
+                          "name": "first"
+                        },
+                        "spread": false
+                      }
+                    ]
                   },
                   "right": {
-                    "kind": "ArrayTypeExpr",
-                    "element": {
-                      "kind": "IdentExpr",
-                      "name": "u8"
-                    }
+                    "kind": "IdentExpr",
+                    "name": "i64"
                   }
                 },
                 "then": {
@@ -759,6 +767,40 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "reader"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "BufferedReader"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "source",
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "f"
+                    }
+                  },
+                  {
+                    "kind": "field",
+                    "name": "capacity",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "4n"
+                    }
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ForStmt",
               "label": null,
               "form": {
@@ -770,7 +812,7 @@
                     "kind": "FieldExpr",
                     "target": {
                       "kind": "IdentExpr",
-                      "name": "f"
+                      "name": "reader"
                     },
                     "field": "lines"
                   },
@@ -845,13 +887,60 @@
                                   "kind": "FieldExpr",
                                   "target": {
                                     "kind": "IdentExpr",
-                                    "name": "f"
+                                    "name": "reader"
                                   },
                                   "field": "error"
                                 },
                                 "spread": false
                               }
                             ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "at the end: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "eq",
+                            "left": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "reader"
+                                },
+                                "field": "read_line"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "NullLitExpr"
+                            }
                           }
                         }
                       ]
@@ -989,8 +1078,8 @@
                   {
                     "name": null,
                     "value": {
-                      "kind": "IntLitExpr",
-                      "value": "1n"
+                      "kind": "IdentExpr",
+                      "name": "first"
                     },
                     "spread": false
                   }

@@ -157,15 +157,14 @@
     const NUL_IN_PATH: IOError  data pool #0, element 0
     fn __defer_std_fs_0
     fn std.fs.EntryKind.to_string  // std_fs$EntryKind$std_core$Display$to_string
+    fn std.fs.File.write  // std_fs$File$std_io$Writer$write
     fn std.fs.access_mode  // std_fs$access_mode
     fn std.fs.by_name_descending  // std_fs$by_name_descending
-    fn std.fs.bytes_of  // std_fs$bytes_of
     fn std.fs.close  // std_fs$close
     fn std.fs.create  // std_fs$create
     fn std.fs.create_dir  // std_fs$create_dir
     fn std.fs.every_directory  // std_fs$every_directory
     fn std.fs.fd_of  // std_fs$fd_of
-    fn std.fs.give_back  // std_fs$give_back
     fn std.fs.glob_files  // std_fs$glob_files
     fn std.fs.has_nul  // std_fs$has_nul
     fn std.fs.invalid_options  // std_fs$invalid_options
@@ -176,7 +175,6 @@
     fn std.fs.link_flag  // std_fs$link_flag
     fn std.fs.list_dir  // std_fs$list_dir
     fn std.fs.mkdir_one  // std_fs$mkdir_one
-    fn std.fs.move  // std_fs$move
     fn std.fs.open  // std_fs$open
     fn std.fs.open_flags  // std_fs$open_flags
     fn std.fs.push_entries  // std_fs$push_entries
@@ -186,15 +184,11 @@
     fn std.fs.remove_directory  // std_fs$remove_directory
     fn std.fs.stat_cells  // std_fs$stat_cells
     fn std.fs.system_close  // std_fs$system_close
-    fn std.fs.system_offset  // std_fs$system_offset
     fn std.fs.system_open  // std_fs$system_open
     fn std.fs.system_remove  // std_fs$system_remove
     fn std.fs.system_remove_directory  // std_fs$system_remove_directory
-    fn std.fs.system_seek  // std_fs$system_seek
     fn std.fs.system_write  // std_fs$system_write
     fn std.fs.walk  // std_fs$walk
-    fn std.fs.whence_of  // std_fs$whence_of
-    fn std.fs.write  // std_fs$write
     fn std.fs.write_file  // std_fs$write_file
     struct __defer_env_std_fs_1
     struct std.fs.File  // std_fs$File
@@ -232,6 +226,7 @@
     struct std.glob.GlobStar  // std_glob$GlobStar
   std/io
     fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
+    fn std.io.bytes_of  // std_io$bytes_of
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind

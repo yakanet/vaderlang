@@ -5,9 +5,9 @@ import "std/env"
 import "std/fs"
 import "std/io"
 
-// A `File` read through a four-byte buffer, sought, written after a read, then
-// read by lines: each step prints what the file holds by then, so the native
-// run and the interpreter compare byte for byte.
+// A `File` read, sought, written after a read, then read by lines through a
+// four-byte `BufferedReader`: each step prints what the file holds by then, so
+// the native run and the interpreter compare byte for byte.
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_snippet_file_read_write_seek"
     w :: create(path)
@@ -18,13 +18,13 @@ main :: fn() -> i32 {
     w.write("one\r\ntwo\nthree")
     w.close()
 
-    f :: open(path, OpenOptions { .write = true, .buffer_size = 4 })
+    f :: open(path, OpenOptions { .write = true })
     if f is IOError {
         println("open failed: ${f.msg}")
         return 1
     }
-    first :: f.read(2)
-    if first is u8[] {
+    first: u8[]: [0] * 2
+    if f.read(first) is i64 {
         println("read: ${first.bytes_to_string()}")
     }
     println("position: ${position(f.seek(0, .Current))}")
@@ -33,13 +33,15 @@ main :: fn() -> i32 {
     println("end: ${position(f.seek(0, .End))}")
     println("size: ${position(f.size())}")
     f.seek(0, .Start)
-    for line in f.lines() {
+    reader :: BufferedReader { .source = f, .capacity = 4 }
+    for line in reader.lines() {
         println("line: ${line}")
     }
-    println("error: ${outcome(f.error)}")
+    println("error: ${outcome(reader.error)}")
+    println("at the end: ${reader.read_line() == null}")
     println("close: ${outcome(f.close())}")
     println("close again: ${outcome(f.close())}")
-    after :: f.read(1)
+    after :: f.read(first)
     if after is IOError {
         println("read after close: ${after.kind}")
     }

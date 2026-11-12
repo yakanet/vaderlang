@@ -62,4 +62,4 @@
   expr 39:12    IdentExpr      :: string
   expr 39:5     CallExpr       :: IOError | null
   expr 39:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
-  expr 408:60   StructLitExpr  :: RemoveOptions
+  expr 405:60   StructLitExpr  :: RemoveOptions
