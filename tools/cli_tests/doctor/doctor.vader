@@ -1,0 +1,197 @@
+// tools/cli_tests/doctor/doctor: `vader doctor` says whether a project can be
+// built here, and which probe found each piece of the toolchain.
+//
+// Its checks are pieces of the command, tested where they are written
+// (`vader/tools/cli/cmd_doctor.vader`); what only a run shows is the report the
+// command prints, its JSON shape, and what it says of the environment it is
+// given. A test reads a check by its `name`, the stable key: its summary is prose.
+
+module "tools/cli_tests/doctor"
+
+import "json"
+import "std/fs"
+import "std/option"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// The statuses a check reports.
+STATUSES: string[]: ["ok", "warn", "fail"]
+
+// What `vader doctor --json` reported, and how it ended.
+Report :: struct {
+    report: JsonValue
+    exit: i32
+    stderr: string
+}
+
+// What `vader doctor --json` with `args` reported, run in `cwd` with the changes
+// `env` to its environment.
+doctor_json :: fn(
+    env: [string, string | null][] = [],
+    cwd: string | null = null,
+    args: string[] = [],
+) -> Report {
+    options :: RunOptions { .cwd = cwd, .env = env }
+    ran :: run_vader(["doctor", "--json"] + args, options).unwrap()
+    return Report {
+        .report = parse(ran.stdout).unwrap(),
+        .exit = ran.exit,
+        .stderr = ran.stderr,
+    }
+}
+
+// Whether `report` says the toolchain is sound; null when it says nothing.
+is_ok :: fn(report: JsonValue) -> bool | null {
+    ok :: member(report, "ok")
+    if ok is JsonBool {
+        return ok.value
+    }
+    return null
+}
+
+// The checks of `report`.
+checks_of :: fn(report: JsonValue) -> JsonValue[] {
+    checks :: member(report, "checks")
+    if checks is JsonArray {
+        return checks.items
+    }
+    return []
+}
+
+// The check named `name` in `report`; null JSON when there is none.
+check_named :: fn(report: JsonValue, name: string) -> JsonValue {
+    for check in checks_of(report) {
+        if string_member(check, "name") == name {
+            return check
+        }
+    }
+    return JsonNull {}
+}
+
+// What the check `name` of `report` says in its `field`; empty when it says
+// nothing there.
+said :: fn(report: JsonValue, name: string, field: string) -> string =
+    string_member(check_named(report, name), field) ?? ""
+
+// The names of the checks of `report`.
+check_names :: fn(report: JsonValue) -> string[] {
+    names: string[]: []
+    for check in checks_of(report) {
+        names.push(string_member(check, "name") ?? "")
+    }
+    return names
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_doctor_reports_a_working_toolchain_and_its_json_has_the_documented_shape :: fn() -> void {
+    // From the root of a checkout, every piece is in place, the C compiler too.
+    if !has_cc() {
+        return
+    }
+    text :: run_vader(["doctor"]).unwrap()
+    assert_eq(text.exit, 0)
+    assert("library-root" in text.stdout && "all clear" in text.stdout, text.stdout)
+    json :: doctor_json()
+    assert_eq(json.exit, 0)
+    assert(is_ok(json.report) == true, "the toolchain is sound")
+    names :: check_names(json.report)
+    for name in ["cc", "library-root", "runtime-c"] {
+        assert(names.contains(name), "a check `${name}`")
+    }
+    for check in checks_of(json.report) {
+        name :: string_member(check, "name") ?? ""
+        assert(STATUSES.contains(string_member(check, "status") ?? ""), "the status of `${name}`")
+        assert(string_member(check, "summary") != null, "the summary of `${name}`")
+        assert(string_member(check, "detail") != null, "the detail of `${name}`")
+    }
+}
+
+@test
+test_a_failed_check_exits_with_1_and_says_which_one :: fn() -> void {
+    json :: doctor_json([], null, ["--cc=definitely-not-a-compiler"])
+    assert_eq(json.exit, 1)
+    assert(is_ok(json.report) == false, "the toolchain is not sound")
+    assert_eq(said(json.report, "cc", "status"), "fail")
+    assert("definitely-not-a-compiler" in said(json.report, "cc", "detail"), "the compiler named")
+}
+
+@test
+test_a_gc_size_with_a_suffix_sizes_the_heap_in_mib_and_doctor_reports_it :: fn() -> void {
+    // The profile printed at exit gives the old reservation, which
+    // `VADER_GC_OLD_MAX` sets: `512M` is 512 MB, not 512 bytes.
+    env: [string, string | null][]: [["VADER_GC_OLD_MAX", "512M"], ["VADER_GC_PROFILE", "1"]]
+    json :: doctor_json(env)
+    assert("reservation 512 MB" in json.stderr, json.stderr)
+    assert_eq(said(json.report, "vader_gc_old_max", "status"), "ok")
+    assert_eq(said(json.report, "vader_gc_old_max", "detail"), "VADER_GC_OLD_MAX=512M")
+}
+
+@test
+test_doctor_reports_the_virtual_clock_on_at_0_where_a_gc_toggle_is_off :: fn() -> void {
+    env: [string, string | null][]: [["VADER_VIRTUAL_CLOCK", "0"], ["VADER_GC_POISON", "0"]]
+    names :: check_names(doctor_json(env).report)
+    assert(names.contains("vader_virtual_clock"), "the virtual clock")
+    assert(!names.contains("vader_gc_poison"), "no GC poison")
+}
+
+@test
+test_a_gc_setting_the_runtime_cannot_read_whole_stops_the_program_at_start :: fn() -> void {
+    // It aborts, and a signal ends it on POSIX: what it wrote rides in the error.
+    options :: RunOptions { .env = [["VADER_GC_OLD_MAX", "512X"]] }
+    ran :: run_vader(["--version"], options)
+    assert(ran is ProcessError || ran.exit != 0, "the program stops")
+    stderr :: if ran is ProcessResult { ran.stderr } else { ran.stderr }
+    assert("VADER_GC_OLD_MAX=512X: expected a positive byte size" in stderr, stderr)
+}
+
+@test
+test_a_stale_vader_home_is_ignored_and_doctor_says_so :: fn() -> void {
+    // A value left by a moved install must not stop every command: the build
+    // goes the ordinary way, and only the report says the variable was ignored.
+    workspace :: scratch_dir("doctor_stale_home")
+    json :: doctor_json([["VADER_HOME", workspace]])
+    assert_eq(json.exit, 0)
+    assert_eq(said(json.report, "toolchain-home", "status"), "warn")
+    assert(workspace in said(json.report, "toolchain-home", "detail"), "the variable named")
+    assert_eq(said(json.report, "library-root", "status"), "ok")
+    assert("VADER_HOME" !in said(json.report, "library-root", "summary"), "found otherwise")
+}
+
+@test
+test_a_vader_home_that_only_starts_the_path_of_the_root_is_not_credited :: fn() -> void {
+    // The report asks the resolver which probe answered: with the variable at
+    // `.../pro` and the sources at `.../proj`, a comparison of the text would
+    // credit the variable.
+    workspace :: scratch_dir("doctor_prefix_home")
+    project :: "${workspace}/proj"
+    create_dir(project)
+    create_dir("${project}/vader")
+    create_dir("${project}/vader/pipeline")
+    json :: doctor_json([["VADER_HOME", "${workspace}/pro"]], project)
+    assert_eq(said(json.report, "compiler-sources", "status"), "ok")
+    assert("VADER_HOME" !in said(json.report, "compiler-sources", "summary"), "found otherwise")
+    assert_eq(said(json.report, "toolchain-home", "status"), "warn")
+}
+
+@test
+test_vader_home_points_the_command_at_a_toolchain_that_is_not_beside_it :: fn() -> void {
+    // A project in a folder with no toolchain in sight runs all the same, and the
+    // doctor says which probe answered.
+    workspace :: scratch_dir("doctor_elsewhere")
+    created :: run_vader(["new", "elsewhere"], RunOptions { .cwd = workspace }).unwrap()
+    assert_eq(created.exit, 0)
+    project :: "${workspace}/elsewhere"
+    options :: RunOptions { .cwd = project, .env = toolchain_env() }
+    ran :: run_vader(["run", "src/main.vader"], options).unwrap()
+    assert_eq(ran.exit, 0)
+    assert("hello from elsewhere" in ran.stdout, ran.stdout)
+    json :: doctor_json(toolchain_env(), project)
+    assert_eq(json.exit, 0)
+    assert_eq(said(json.report, "toolchain-home", "status"), "ok")
+    assert("VADER_HOME" in said(json.report, "library-root", "summary"), "found by the variable")
+}

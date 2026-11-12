@@ -125,8 +125,9 @@ check_phase :: fn(
     if phase == TARGETS_PHASE {
         return check_targets(case, input, ctx.update)
     }
-    if phase == EXTERNS_PHASE {
-        return check_stage(case, stage, "externs", input, ctx.update)
+    if phase == EXTERNS_PHASE || phase == CALLEES_PHASE {
+        // Each is named after the stage of the dump it renders.
+        return check_stage(case, stage, phase, input, ctx.update)
     }
     if phase == EXAMPLE_PHASE || phase == NATIVE_EXAMPLE_PHASE {
         return check_example(case, stage, dir, ctx.update)
@@ -182,7 +183,8 @@ check_stage :: fn(
 }
 
 // What `stage` of `case`, begun at `began`, reports for its text `actual`,
-// compared with its snapshot, which `update` writes when it differs.
+// compared with its snapshot, which `update` writes when it differs: the one the
+// case names, the stage's otherwise.
 report_of :: fn(
     case: Case,
     stage: Stage,
@@ -190,7 +192,7 @@ report_of :: fn(
     update: bool,
     began: Monotonic,
 ) -> StageReport {
-    path :: "${case.dir}/${stage.snapshot}"
+    path :: "${case.dir}/${case.snapshot ?? stage.snapshot}"
     expected :: read_file_string(path)
     result :: verdict_of(expected, actual, path, update)
     return StageReport {

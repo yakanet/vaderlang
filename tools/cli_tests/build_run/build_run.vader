@@ -1,0 +1,118 @@
+// tools/cli_tests/build_run/build_run: `vader build --run` builds, then runs the
+// program on the command's own standard streams, hands it what follows the path,
+// and exits with its code; and a build for another platform asks for its C
+// compiler.
+//
+// The test reads the streams through pipes: what it reads is what the program
+// wrote to the streams it inherited from the command. The builds of a project
+// folder are tested with the other project commands.
+
+module "tools/cli_tests/build_run"
+
+import "std/fs"
+import "std/option"
+import "std/process"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+// A program that prints `says`, each of its arguments on a line, a line on its
+// stderr, and exits with `code`.
+program :: fn(says: string, code: i32) -> string = """
+    module "main"
+
+    import "std/console"
+
+    main :: fn(argv: string[]) -> i32 {
+        println("${says}")
+        for i in 1..<argv.len() {
+            println(argv[i])
+        }
+        eprintln("${says} on stderr")
+        return ${code}
+    }
+    """
+
+// A program that does not type-check.
+ILL_TYPED :: "module \"main\"\n\nmain :: fn() -> i32 {\n    return \"no\"\n}\n"
+
+// A fresh folder named after `name`, holding `source` as its `main.vader`.
+staged :: fn(name: string, source: string) -> string {
+    dir :: scratch_dir("build_run_${name}")
+    write_file("${dir}/main.vader", source)
+    return dir
+}
+
+// What `vader` with `args` did in `dir`, against the toolchain of the repository.
+vader_in :: fn(dir: string, args: string[], env: [string, string | null][] = []) -> ProcessResult {
+    options :: RunOptions { .cwd = dir, .env = toolchain_env() + env }
+    return run_vader(args, options).unwrap()
+}
+
+// A platform other than this one, which a native build of this host cannot run.
+other_platform :: fn() -> string {
+    if current_os() == .Windows {
+        return "linux-x86_64"
+    }
+    return "windows-x86_64"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_file_built_runs_with_what_follows_its_path_and_exits_with_its_code :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: staged("arguments", program("app", 7))
+    ran :: vader_in(dir, ["build", "--run", "main.vader", "--verbose", "two words"])
+    assert_eq(ran.stdout, "app\n--verbose\ntwo words\n")
+    assert("app on stderr" in ran.stderr, ran.stderr)
+    assert_eq(ran.exit, 7)
+}
+
+@test
+test_a_build_that_fails_runs_nothing :: fn() -> void {
+    ran :: vader_in(staged("failed", ILL_TYPED), ["build", "--run", "main.vader"])
+    assert_eq(ran.stdout, "")
+    assert("error[" in ran.stderr, ran.stderr)
+    assert_eq(ran.exit, 1)
+}
+
+@test
+test_an_executable_for_another_platform_needs_a_c_compiler_for_it :: fn() -> void {
+    // `CC` emptied: a host that exports one, as the CI of Windows does, would
+    // pass the check.
+    dir :: staged("cross", program("app", 0))
+    no_cc: [string, string | null][]: [["CC", ""]]
+    for target in [other_platform(), "browser-wasm32"] {
+        cross :: vader_in(dir, ["build", "--target=${target}", "main.vader"], no_cc)
+        assert(cross.exit == 2, "`${target}` exits with 2: ${cross.stderr}")
+        said :: "name a compiler for `${target}` with `--cc`"
+        assert(said in cross.stderr, cross.stderr)
+    }
+    // The C needs no compiler, whatever the target.
+    argv :: [
+        "build",
+        "--emit=c",
+        "--target=${other_platform()}",
+        "--out=${dir}/main.c",
+        "main.vader",
+    ]
+    emitted :: vader_in(dir, argv, no_cc)
+    assert(emitted.exit == 0, emitted.stderr)
+}
+
+@test
+test_run_refuses_a_build_that_makes_no_program_for_this_host :: fn() -> void {
+    dir :: staged("nothing_to_run", program("app", 0))
+    c :: vader_in(dir, ["build", "--run", "--emit=c", "main.vader"])
+    assert_eq(c.exit, 2)
+    assert("`--emit=c` produces no program to run" in c.stderr, c.stderr)
+    cross :: vader_in(dir, ["build", "--run", "--target=${other_platform()}", "main.vader"])
+    assert_eq(cross.exit, 2)
+    said :: "a program built for `${other_platform()}` does not run on this"
+    assert(said in cross.stderr, cross.stderr)
+}

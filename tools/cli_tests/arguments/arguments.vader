@@ -1,0 +1,136 @@
+// tools/cli_tests/arguments/arguments: where the command line of `vader` stops
+// reading options, and how strict it is before that.
+//
+// One rule: the options of an action come before its first positional argument,
+// and what follows belongs to whatever the action hands it to. That is what lets
+// the command refuse a token it does not know: `vader run` can, though the
+// program may read options of its own, and `vader build --releaze` is a typo
+// reported, not a debug build. The parser's own tests are in `lib/std/cli`.
+
+module "tools/cli_tests/arguments"
+
+import "std/option"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// A program that does nothing.
+TRIVIAL :: "module \"scratch\"\nmain :: fn() -> i32 {\n    return 0\n}\n"
+
+// A program that prints each of its arguments on a line.
+ECHO_ARGUMENTS :: r"""
+    module "scratch"
+
+    import "std/console"
+
+    main :: fn(argv: string[]) -> i32 {
+        for i in 1..<argv.len() {
+            println(argv[i])
+        }
+        return 0
+    }
+    """
+
+// What `vader` with `args` wrote and how it ended.
+vader :: fn(args: string[]) -> ProcessResult = run_vader(args).unwrap()
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_an_unknown_flag_is_refused_and_a_known_one_works :: fn() -> void {
+    file :: scratch_source("arguments_unknown_flag", TRIVIAL)
+    build :: vader(["build", "--releaze", "--emit=c", "--out=-", file])
+    assert(build.exit != 0 && "unknown flag --releaze" in build.stderr, build.stderr)
+    dump :: vader(["dump", "--stagee=lexer", file])
+    assert(dump.exit != 0 && "unknown flag --stagee" in dump.stderr, dump.stderr)
+    assert_eq(vader(["build", "--release", "--emit=c", "--out=-", file]).exit, 0)
+    assert_eq(vader(["dump", "--stage=lexer", file]).exit, 0)
+}
+
+@test
+test_a_single_dash_token_is_refused_not_taken_for_a_file :: fn() -> void {
+    // `-q` is no flag of `build`; a single-dash token taken for a positional
+    // argument would be dropped in silence.
+    file :: scratch_source("arguments_single_dash", TRIVIAL)
+    build :: vader(["build", "-q", "--emit=c", "--out=-", file])
+    assert(build.exit != 0 && "unknown flag -q" in build.stderr, build.stderr)
+}
+
+@test
+test_an_option_written_after_the_file_says_so :: fn() -> void {
+    // The option is left to the tail, which `build` does not read: the message
+    // names the likely cause, not an argument too many.
+    file :: scratch_source("arguments_late_option", TRIVIAL)
+    build :: vader(["build", file, "--release", "--emit=c", "--out=-"])
+    assert(build.exit != 0, "an option after the file")
+    assert("options must come before the path" in build.stderr, build.stderr)
+}
+
+@test
+test_an_unknown_value_names_the_accepted_ones :: fn() -> void {
+    // The values of `--stage` are one array of `vader/tools/cli/spec.vader`,
+    // which drives the check, this message and the help alike.
+    dump :: vader(["dump", "--stage=nope", scratch_source("arguments_unknown_value", TRIVIAL)])
+    assert(dump.exit != 0, "an unknown value")
+    assert("unknown value \"nope\"" in dump.stderr && "bytecode" in dump.stderr, dump.stderr)
+}
+
+@test
+test_an_alias_and_a_value_after_a_space_are_the_same_flag :: fn() -> void {
+    file :: scratch_source("arguments_alias", TRIVIAL)
+    spelled :: vader(["dump", "--stage=lexer", file])
+    aliased :: vader(["dump", "-s", "lexer", file])
+    spaced :: vader(["dump", "--stage", "lexer", file])
+    assert_eq(aliased.exit, 0)
+    assert_eq(aliased.stdout, spelled.stdout)
+    assert_eq(spaced.stdout, spelled.stdout)
+}
+
+@test
+test_run_hands_on_everything_past_the_path_flags_included :: fn() -> void {
+    // `--allow-env` is a flag of the command itself, and it still reaches the
+    // program: past the path, the command reads nothing.
+    file :: scratch_source("arguments_run_forwards", ECHO_ARGUMENTS)
+    ran :: vader(["run", file, "--allow-env", "-o", "out.txt", "extra"])
+    assert_eq(ran.exit, 0)
+    assert_eq(ran.stdout, "--allow-env\n-o\nout.txt\nextra\n")
+}
+
+@test
+test_help_on_an_action_prints_its_options :: fn() -> void {
+    // Asking for help succeeds: it is no usage error.
+    flag :: vader(["build", "--help"])
+    assert_eq(flag.exit, 0)
+    assert("vader build [path]" in flag.stdout, flag.stdout)
+    assert("-o, --out=<path>" in flag.stdout, flag.stdout)
+    assert_eq(vader(["build", "-h"]).stdout, flag.stdout)
+    assert_eq(vader(["help", "build"]).stdout, flag.stdout)
+    // A typo beside `--help` gets the help: that is what was asked for.
+    typo :: vader(["build", "--nope", "--help"])
+    assert_eq(typo.exit, 0)
+    assert("vader build [path]" in typo.stdout, typo.stdout)
+}
+
+@test
+test_help_past_the_path_of_a_run_belongs_to_the_program :: fn() -> void {
+    ran :: vader(["run", scratch_source("arguments_run_help", ECHO_ARGUMENTS), "--help"])
+    assert_eq(ran.exit, 0)
+    assert_eq(ran.stdout.trim(), "--help")
+}
+
+@test
+test_the_help_of_each_action_is_its_own :: fn() -> void {
+    overview :: vader(["help"])
+    assert_eq(overview.exit, 0)
+    assert("ACTIONS:" in overview.stdout && "build [path]" in overview.stdout, overview.stdout)
+    // The overview points at the help of an action instead of holding its flags.
+    assert("--ldflags" !in overview.stdout, overview.stdout)
+    action :: vader(["help", "build"])
+    assert_eq(action.exit, 0)
+    assert("-o, --out=<path>" in action.stdout, action.stdout)
+    // The default a flag declares is shown, not described in prose.
+    assert("(default: \$CC, else cc (gcc on Windows))" in action.stdout, action.stdout)
+    assert(vader(["help", "nope"]).exit != 0, "the help of no action")
+}

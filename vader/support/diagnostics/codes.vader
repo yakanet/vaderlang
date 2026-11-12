@@ -311,7 +311,7 @@ export HookCode :: enum(CodeInfo) {
 ///
 /// The family takes the same no-fixture exception `H6xxx` takes: the
 /// `diag_corpus` harness provokes a diagnostic by compiling a source file,
-/// and no source file reaches these. `tests/verify.test.ts` pins them.
+/// and no source file reaches these. `tools/cli_tests/verify` pins them.
 export InternalCode :: enum(CodeInfo) {
     StrayCoroutineMarker  { .id = "I7001", .message = "a transient coroutine marker survived lowering" },
     UnresolvedFnReference { .id = "I7002", .message = "function reference resolves to no emitted function" },

@@ -135,8 +135,7 @@ test_a_program_printing_past_its_reader_stops_once_it_has_gone :: fn() -> void {
     if current_os() == .Windows {
         return
     }
-    source :: "${scratch_dir("run_closed_pipe")}/main.vader"
-    write_file(source, ENDLESS_PRINTER)
+    source :: scratch_source("run_closed_pipe", ENDLESS_PRINTER)
     pipeline :: ["/bin/sh", "-c", "\"\$0\" run \"\$1\" | head -c 1", vader_binary(), source]
     ran :: run_command(pipeline, RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
     assert_eq(ran.stdout, "x")
@@ -186,9 +185,7 @@ test_vader_run_builds_a_large_array_literal :: fn() -> void {
 // Check that `vader run` of the program `source`, written to a fresh folder
 // named after `name`, prints `TABLE_PRINTED`.
 assert_prints_table :: fn(name: string, source: string) -> void {
-    file :: "${scratch_dir(name)}/main.vader"
-    write_file(file, source)
-    ran :: run_vader(["run", file], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    ran :: run_vader(["run", scratch_source(name, source)], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
     assert_eq(ran.stderr, "")
     assert_eq(ran.stdout, TABLE_PRINTED)
     assert_eq(ran.exit, 0)

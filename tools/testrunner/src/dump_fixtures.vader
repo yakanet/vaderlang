@@ -9,6 +9,10 @@
 // `tests/fixtures/externs` pin the C prototype of each `@extern`, the `externs`
 // stage, in `externs.snapshot.c`; the modules it shows are named in the header of
 // the fixture (`// modules: std system`), those under the entry otherwise.
+//
+// A fixture of `tests/fixtures/callee` is one file, which pins what the
+// typecheck settled each of its sites to invoke, the `callees` stage, in the
+// snapshot named after it (`sites.vader`, `sites.snapshot`).
 
 module "tools/testrunner/src"
 
@@ -27,6 +31,7 @@ import "vader/tools/dump"
 
 TARGET_CORPUS  :: "tests/fixtures/target"
 EXTERNS_CORPUS :: "tests/fixtures/externs"
+CALLEES_CORPUS :: "tests/fixtures/callee"
 
 // The entry of a fixture of `tests/fixtures`.
 FIXTURE_ENTRY :: "main.vader"
@@ -91,6 +96,22 @@ find_extern_fixtures :: fn(found: Discovery) -> void {
     }
 }
 
+// The fixtures of `CALLEES_CORPUS`, pushed on `found`.
+find_callee_fixtures :: fn(found: Discovery) -> void {
+    for file in entries_where(found, CALLEES_CORPUS, (path) -> path.ends_with(".vader")) {
+        stem :: file.trim_suffix(".vader")
+        found.cases.push(
+            Case {
+                .name = "callees/${stem}",
+                .dir = CALLEES_CORPUS,
+                .entry = file,
+                .snapshot = "${stem}.snapshot",
+                .phases = [CALLEES_PHASE],
+            },
+        )
+    }
+}
+
 // Compare the `targets` text of `case`, read from `input`, with the snapshot of
 // its target, which `update` writes when it differs.
 check_targets :: fn(case: Case, input: DumpInput, update: bool) -> StageReport | CaseFailure {
@@ -103,8 +124,8 @@ check_targets :: fn(case: Case, input: DumpInput, update: bool) -> StageReport |
     // one the target misses.
     built :: prepare_program(input.file, BuildRequest { .emit = "c", .target = case.target })
     diagnostics :: (built.pre_diags + built.lower_diags).filter(is_error_or_warning).collect()
-    stage :: Stage { ...TARGETS_STAGE, .snapshot = case.snapshot ?? "" }
-    return report_of(case, stage, targets_text(case.dir, diagnostics, selected.out), update, began)
+    text :: targets_text(case.dir, diagnostics, selected.out)
+    return report_of(case, TARGETS_STAGE, text, update, began)
 }
 
 // The text a snapshot of `TARGET_CORPUS` holds: the `diagnostics` of the fixture

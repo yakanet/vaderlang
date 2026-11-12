@@ -1,0 +1,194 @@
+// tools/cli_tests/verify/verify: the self-checks of the compiler, `--verify` and
+// `VADER_VERIFY_CALLEES`, on the programs the repository ships.
+//
+// `I7xxx` reports a malformed IR, a compiler bug that no program can provoke, so
+// the family has no fixture under `tests/diag_corpus` and is pinned here. `build`
+// is the only action that carries `--verify`: a dump keeps the diagnostics of the
+// entry module only, and would report clean whatever the verifiers found.
+//
+// The callee verifier lists each site where the lowering chose another callee
+// than the one the typecheck recorded, as `<recorded> / <lowered>  [position]`.
+// On the fixture `tests/fixtures/callee/sites.vader`, the list is exact. On the
+// compiler itself, each disagreement is of a kind `EXPLAINED` gives the reason
+// of: a new kind fails until it is explained there, or fixed.
+
+module "tools/cli_tests/verify"
+
+import "json"
+import "regex"
+import "std/collections"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/option"
+import "std/process"
+import "std/sort"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// What opens a finding of an IR verifier.
+VERIFIER_FINDING :: "error[I7"
+
+// The fixture whose sites the callee verifier lists.
+CALLEE_SITES :: "tests/fixtures/callee/sites.vader"
+
+// The environment that turns the callee verifier on.
+VERIFY_CALLEES: [string, string | null][]: [["VADER_VERIFY_CALLEES", "1"]]
+
+// A line of the report of the callee verifier: how many sites, then the
+// disagreement they share.
+REPORTED_LINE :: r"^    \d+ x (.*)$"
+
+// Each kind of disagreement the compiler is known to hold, with its reason.
+EXPLAINED: [string, string][]: [
+    [
+        r"fn mul( \(per instance\))? / no call array\.(repeat|reserve)",
+        "`[x] * n` emitted as the `array.repeat` intrinsic, `[] * n` as `array.reserve`",
+    ],
+    [r".* / no call fused chain", "a generator, or a generator `into`, fused into the loop"],
+    [r"fn compare / no call primitive", "`char` ordering compared as a primitive"],
+    [r"fn contains / no call bounds", "`x in lo..hi` over a literal range compared in place"],
+    [r"fn \w+ / virtual std_core\$Iterator\.next", "a generator's state erased to `Iterator`"],
+]
+
+// What an example is built as: one `--entry=` per entry of a project, as
+// `vader info` lists them (one `--out` serves one entry), nothing for a single
+// file or a project that names no entry.
+entry_flags :: fn(input: string) -> string[][] {
+    if !is_dir(input) {
+        return [[]]
+    }
+    info :: succeeded(run_vader(["info", "--json", input])).unwrap()
+    entries :: member(parse(info.stdout).unwrap(), "entries")
+    if entries is JsonObject && entries.entries.len() > 0 {
+        names :: sort(entries.entries.keys().collect(), compare_ascending)
+        return names.map((name) -> ["--entry=${name}"]).collect()
+    }
+    return [[]]
+}
+
+// The examples the repository ships, as a command is handed them.
+example_inputs :: fn() -> string[] {
+    names :: sort(read_dir(EXAMPLES).unwrap(), compare_ascending)
+    return names.filter((name) -> is_dir("${EXAMPLES}/${name}")).map(example_input).collect()
+}
+
+// Build `entry` with `--verify` and `flags` to bytecode text in `out`; or why it
+// did not build.
+build_verified :: fn(
+    entry: string,
+    out: string,
+    flags: string[] = [],
+) -> ProcessResult | ProcessError {
+    argv :: ["build", "--emit=bytecode-text", "--out=${out}", "--verify"] + flags + [entry]
+    return succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+}
+
+// The disagreements the report of the callee verifier lists in `stderr`.
+disagreements :: fn(stderr: string) -> string[] {
+    line :: compile(REPORTED_LINE).unwrap()
+    listed: string[]: []
+    for text in stderr.split("\n") {
+        found :: line.find(text) ?? continue
+        listed.push(found.groups[1])
+    }
+    return listed
+}
+
+// Whether `disagreement`, its position left out, is of a kind of `EXPLAINED`.
+is_explained :: fn(disagreement: string) -> bool {
+    for kind in EXPLAINED {
+        if compile(kind.0).unwrap().matches(disagreement) {
+            return true
+        }
+    }
+    return false
+}
+
+// `disagreement` without the position that closes it.
+without_position :: fn(disagreement: string) -> string {
+    split :: disagreement.split_first("  [") ?? return disagreement
+    return split.0
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_verify_finds_nothing_in_the_examples :: fn() -> void {
+    // They are the programs the repository ships as correct: a finding means a
+    // check is wrong, not the example. A finding fails the build.
+    out :: "${scratch_dir("verify_examples")}/out.virt"
+    for input in example_inputs() {
+        for flags in entry_flags(input) {
+            built :: build_verified(input, out, flags)
+            if built is ProcessError {
+                fail("`${input}` ${flags.join(" ")}: ${built.msg}")
+                return
+            }
+            assert(VERIFIER_FINDING !in built.stdout + built.stderr, built.stderr)
+        }
+    }
+}
+
+@test
+test_verify_changes_nothing_about_the_emitted_bytecode :: fn() -> void {
+    // The verifiers only read the IR: one that changed it would measure its own
+    // effect.
+    dir :: scratch_dir("verify_same_bytecode")
+    entry :: example_input("mandelbrot")
+    plain :: "${dir}/plain.virt"
+    argv :: ["build", "--emit=bytecode-text", "--out=${plain}", entry]
+    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
+    build_verified(entry, "${dir}/checked.virt").unwrap()
+    emitted :: read_file_string(plain).unwrap()
+    // An empty emission would make the two equal for the wrong reason.
+    assert(emitted.byte_len() > 10_000, "the bytecode of the example")
+    assert(read_file_string("${dir}/checked.virt").unwrap() == emitted, "the same bytecode")
+}
+
+@test
+test_verify_finds_nothing_in_the_compiler :: fn() -> void {
+    built :: build_verified(COMPILER_ENTRY, "${scratch_dir("verify_compiler")}/self.virt")
+    assert(VERIFIER_FINDING !in built.unwrap().stderr, "no finding in the compiler")
+}
+
+@test
+test_the_callee_verifier_lists_the_sites_of_the_fixture_the_lowering_gets_wrong :: fn() -> void {
+    options :: RunOptions { .env = VERIFY_CALLEES }
+    dumped :: run_vader(["dump", "--stage=lowered-ast", CALLEE_SITES], options)
+    report :: succeeded(dumped).unwrap()
+    listed :: disagreements(report.stderr)
+    own :: listed.filter((line) -> "[${CALLEE_SITES}:" in line).collect()
+    // The generators are fused into the loop: their `next` runs in place, and a
+    // string's `into` is one.
+    expected: string[]: [
+        "virtual std_core\$Iterator.next / no call fused chain  [${CALLEE_SITES}:154:14]",
+        "fn evens / no call fused chain  [${CALLEE_SITES}:297:14]",
+        "fn into / no call fused chain  [${CALLEE_SITES}:305:14]",
+    ]
+    assert_eq(own.join("\n"), expected.join("\n"))
+}
+
+@test
+test_every_disagreement_on_the_compiler_is_an_explained_one :: fn() -> void {
+    out :: "${scratch_dir("verify_callees")}/self.c"
+    options :: RunOptions { .env = VERIFY_CALLEES, .timeout = LONG_TIMEOUT }
+    built :: succeeded(run_vader(["build", "--emit=c", "--out=${out}", COMPILER_ENTRY], options))
+    report :: built.unwrap()
+    assert("[VADER_VERIFY_CALLEES]" in report.stderr, "the report of the verifier")
+    kinds :: disagreements(report.stderr).map(without_position)
+    unexplained :: kinds.filter((kind) -> !is_explained(kind)).collect()
+    assert_eq(unexplained.join("\n"), "")
+}
+
+@test
+test_a_disagreement_is_read_from_its_line_and_its_kind_without_its_position :: fn() -> void {
+    stderr :: "[VADER_VERIFY_CALLEES] 2 sites\n    2 x fn evens / no call fused chain  [a.vader:3:4]\n"
+    listed :: disagreements(stderr)
+    assert_eq(listed.join("\n"), "fn evens / no call fused chain  [a.vader:3:4]")
+    assert_eq(without_position(listed[0]), "fn evens / no call fused chain")
+    assert(is_explained(without_position(listed[0])), "a fused generator")
+    assert(!is_explained("fn shout / fn whisper"), "a kind no reason explains")
+}

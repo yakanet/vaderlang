@@ -133,9 +133,37 @@ export scratch_dir :: fn(name: string) -> string {
     return dir
 }
 
+/// The `main.vader` of a fresh folder for a test, holding `source`.
+///
+/// @param name  tells the folder apart from those of the other tests.
+export scratch_source :: fn(name: string, source: string) -> string {
+    file :: "${scratch_dir(name)}/main.vader"
+    write_file(file, source)
+    return file
+}
+
 /// The folder of this host in the `lib/` of a library that ships archives:
 /// `<os>-<arch>`, as `darwin-arm64`.
 export host_folder :: fn() -> string = "${current_os()}-${current_arch()}"
+
+// ---- what the command is given --------------------------------------------
+
+/// The entry of the compiler, the broadest program of the tree: every lowering,
+/// every kind of generic, and a body for each target.
+export COMPILER_ENTRY :: "vader/tools/cli/main.vader"
+
+/// The folder of the examples the repository ships, one folder each.
+export EXAMPLES :: "examples"
+
+/// What a command is given to work on the example `name`: its folder when a
+/// `vader.json` makes it a project, its entry otherwise.
+export example_input :: fn(name: string) -> string {
+    dir :: "${EXAMPLES}/${name}"
+    if exists("${dir}/vader.json") {
+        return dir
+    }
+    return "${dir}/${name}.vader"
+}
 
 /// The C compiler a native build runs on this host, as `vader build` picks it: a
 /// non-empty `CC`, else `gcc` on Windows and `cc` elsewhere.

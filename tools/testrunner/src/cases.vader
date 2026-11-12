@@ -66,6 +66,7 @@ STAGES: Stage[]: [
     TESTS_STAGE,
     TARGETS_STAGE,
     EXTERNS_STAGE,
+    CALLEES_STAGE,
     EXAMPLE_STAGE,
     NATIVE_EXAMPLE_STAGE,
     HOOK_STAGE,
@@ -120,6 +121,15 @@ EXTERNS_STAGE: Stage: Stage {
     .phase = EXTERNS_PHASE,
     .dump = null,
     .snapshot = "externs.snapshot.c",
+}
+
+// What the typecheck settled each site to invoke, in a fixture of
+// `CALLEES_CORPUS`, whose snapshot is named after it.
+CALLEES_PHASE :: "callees"
+CALLEES_STAGE: Stage: Stage {
+    .phase = CALLEES_PHASE,
+    .dump = null,
+    .snapshot = "",
 }
 
 // The run of an example by `vader run` (`examples.vader`), compared with the
@@ -229,6 +239,9 @@ find_cases :: fn(phases: string[]) -> Discovery {
     }
     if phases.contains(EXTERNS_PHASE) {
         find_extern_fixtures(found)
+    }
+    if phases.contains(CALLEES_PHASE) {
+        find_callee_fixtures(found)
     }
     return found
 }

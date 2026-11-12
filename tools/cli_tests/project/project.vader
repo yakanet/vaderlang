@@ -1,0 +1,299 @@
+// tools/cli_tests/project/project: `vader build`, `build --run`, `run`, `check`,
+// `info` and `eject` given a project folder, and `vader run` given a file of the
+// project `--project` names.
+//
+// A folder is described by its `build.vader` or by the `entries` of its
+// `vader.json`, never by both, and the binaries of a project go to
+// `build/<profile>-<target>/`. A driven project has fixtures of its own, in
+// `tests/fixtures/hook`; these stage a project with a manifest.
+
+module "tools/cli_tests/project"
+
+import "json"
+import "std/fs"
+import "std/option"
+import "std/path"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// A manifest naming the two programs of a staged project, and its asset.
+TWO_ENTRIES :: r"""{"entries": {"app": "src/main.vader", "tool": "tool.vader"}, "assets": ["data"]}"""
+
+// A program of `module` that prints `says`.
+program :: fn(module: string, says: string) -> string = """
+    module "${module}"
+
+    import "std/console"
+
+    main :: fn() -> i32 {
+        println("${says}")
+        return 0
+    }
+    """
+
+// A project of two programs, `app` and `tool`, each printing its name, and an
+// asset `data/greeting.txt`, in a fresh folder named after `name`; `manifest` is
+// its `vader.json`, which it has none of when null.
+stage :: fn(name: string, manifest: string | null) -> string {
+    dir :: scratch_dir("project_${name}")
+    create_dir("${dir}/src")
+    create_dir("${dir}/data")
+    write_file("${dir}/src/main.vader", program("src", "app"))
+    write_file("${dir}/tool.vader", program("tool", "tool"))
+    write_file("${dir}/data/greeting.txt", "hello\n")
+    if manifest != null {
+        write_file("${dir}/vader.json", manifest)
+    }
+    return dir
+}
+
+// What `vader` with `args` did, run in `cwd`, against the toolchain of the
+// repository.
+vader :: fn(args: string[], cwd: string | null = null) -> ProcessResult {
+    options :: RunOptions { .cwd = cwd, .env = toolchain_env() }
+    return run_vader(args, options).unwrap()
+}
+
+// The folder a build of this host's `profile` writes the binaries of `dir` to.
+output_of :: fn(dir: string, profile: string) -> string = "${dir}/build/${profile}-${host_folder()}"
+
+// The entry named `name` among those `vader info --json` resolved; null JSON
+// when there is none.
+resolved_entry :: fn(described: JsonValue, name: string) -> JsonValue {
+    entries :: member_at(described, ["resolved", "entries"])
+    if entries is JsonArray {
+        for entry in entries.items {
+            if string_member(entry, "name") == name {
+                return entry
+            }
+        }
+    }
+    return JsonNull {}
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_project_folder_builds_every_entry_into_its_build_folder :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage("every_entry", TWO_ENTRIES)
+    built :: vader(["build", dir])
+    assert(built.exit == 0 && "error" !in built.stderr, built.stderr)
+    out :: output_of(dir, "debug")
+    assert(exists(executable_path("${out}/app")), "the binary of `app`")
+    assert(exists(executable_path("${out}/tool")), "the binary of `tool`")
+    // The C units sit in `c/` beside the binaries, their objects in `obj/`.
+    assert(exists("${out}/c/app.split.h"), "a C unit in `c/`")
+    assert(exists("${out}/obj/app.split.runtime.o"), "an object in `obj/`")
+    assert(!exists("${out}/c/app.split.runtime.o"), "no object in `c/`")
+    // An asset folder is copied with what it holds.
+    assert(exists("${out}/data/greeting.txt"), "the asset")
+}
+
+@test
+test_entry_builds_one_entry_and_out_needs_exactly_one :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage("one_entry", TWO_ENTRIES)
+    both :: vader(["build", "--out=${dir}/x", dir])
+    assert(both.exit == 1 && "vader.json:1:1] error[H6011]" in both.stderr, both.stderr)
+    one :: vader(["build", "--entry=tool", "--out=${dir}/out/tool", dir])
+    assert(one.exit == 0, one.stderr)
+    assert(exists(executable_path("${dir}/out/tool")), "the binary named")
+    assert(exists("${dir}/out/data/greeting.txt"), "the asset beside it")
+    assert(!exists("${dir}/build"), "no build folder")
+    unknown :: vader(["build", "--entry=nope", dir])
+    assert(unknown.exit == 1 && "declares no entry `nope`" in unknown.stderr, unknown.stderr)
+}
+
+@test
+test_run_takes_one_entry_and_check_takes_them_all :: fn() -> void {
+    dir :: stage("run_one", TWO_ENTRIES)
+    ambiguous :: vader(["run", dir])
+    assert_eq(ambiguous.exit, 2)
+    assert("`vader run` works on one program" in ambiguous.stderr, ambiguous.stderr)
+    ran :: vader(["run", "--entry=tool", dir])
+    assert_eq(ran.exit, 0)
+    assert_eq(ran.stdout, "tool\n")
+    assert_eq(vader(["check", dir]).exit, 0)
+}
+
+@test
+test_build_run_runs_the_one_entry_or_the_one_entry_names :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage("build_run", TWO_ENTRIES)
+    ambiguous :: vader(["build", "--run", dir])
+    assert_eq(ambiguous.exit, 2)
+    assert("`vader build --run` works on one program" in ambiguous.stderr, ambiguous.stderr)
+    ran :: vader(["build", "--run", "--entry=tool", "--release", dir])
+    assert_eq(ran.stdout, "tool\n")
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_project_runs_one_file_of_a_project_with_its_search_roots :: fn() -> void {
+    manifest :: r"""{"includePaths": ["libs"], "entries": {"app": "src/main.vader"}}"""
+    dir :: stage("search_roots", manifest)
+    create_dir("${dir}/libs")
+    create_dir("${dir}/libs/greet")
+    write_file(
+        "${dir}/libs/greet/greet.vader",
+        "module \"greet\"\n\n/// The word the program prints.\nexport word :: fn() -> string = \"greeted\"\n",
+    )
+    file :: "${dir}/src/main.vader"
+    write_file(
+        file,
+        r"""
+        module "src"
+
+        import "greet"
+        import "std/console"
+
+        main :: fn() -> i32 {
+            println(word())
+            return 0
+        }
+        """,
+    )
+    alone :: vader(["run", file])
+    assert_eq(alone.exit, 1)
+    assert("module not found: `greet`" in alone.stdout + alone.stderr, alone.stderr)
+    within :: vader(["run", "--project=${dir}", file])
+    assert_eq(within.stderr, "")
+    assert_eq(within.exit, 0)
+    assert_eq(within.stdout, "greeted\n")
+    folder :: vader(["run", "--project=${dir}", dir])
+    assert_eq(folder.exit, 2)
+    assert("`--project` names the project of a file" in folder.stderr, folder.stderr)
+}
+
+@test
+test_info_describes_a_project_folder_and_builds_nothing :: fn() -> void {
+    dir :: stage("info", TWO_ENTRIES)
+    text :: vader(["info", dir])
+    assert_eq(text.exit, 0)
+    printed :: to_posix(text.stdout)
+    assert("(vader.json)" in printed, printed)
+    assert("entry    tool -> ${to_posix(dir)}/tool.vader\n" in printed, printed)
+    assert("asset    data -> ${to_posix(dir)}/data\n" in printed, printed)
+    json :: succeeded(run_vader(["info", "--json", dir])).unwrap()
+    described :: parse(json.stdout).unwrap()
+    assert_eq(string_member(described, "kind") ?? "", "manifest")
+    assert_eq(string_at(described, ["entries", "app"]) ?? "", "src/main.vader")
+    assert_eq(string_at(described, ["entries", "tool"]) ?? "", "tool.vader")
+    assert_eq(strings_member(described, "assets").join(","), "data")
+    assert_eq(strings_member(described, "includePaths").len(), 0)
+    tool :: resolved_entry(described, "tool")
+    assert_eq(to_posix(string_member(tool, "path") ?? ""), "${to_posix(dir)}/tool.vader")
+    assert_eq(string_member(tool, "status") ?? "", "found")
+    release :: to_posix(string_at(described, ["resolved", "output", "release"]) ?? "")
+    assert_eq(release, to_posix(output_of(dir, "release")))
+    assert(!exists("${dir}/build"), "no build folder")
+    file :: vader(["info", "${dir}/tool.vader"])
+    assert(file.exit == 1 && "is a file; name a project folder" in file.stderr, file.stderr)
+    missing :: vader(["info", "${dir}/nope"])
+    assert(missing.exit == 1 && "does not exist" in missing.stderr, missing.stderr)
+}
+
+@test
+test_eject_writes_the_driver_a_manifest_stands_for :: fn() -> void {
+    manifest :: r"""
+        {"includePaths": ["$VADER_HOME/third_party"], "entries": {"app": "src/main.vader"}, "assets": ["data"]}
+        """
+    dir :: stage("eject", manifest.trim())
+    remove("${dir}/tool.vader")
+    assert_eq(vader(["eject", "--preserve-manifest", dir]).exit, 0)
+    driver :: read_file_string("${dir}/build.vader").unwrap()
+    assert(r"""ctx.include_paths.push(r"$VADER_HOME/third_party")""" in driver, driver)
+    assert("ctx.add_entry(\"app\", \"src/main.vader\")" in driver, driver)
+    assert("ctx.add_asset(\"data\")" in driver, driver)
+    assert(exists("${dir}/vader.json"), "the manifest kept")
+    // The manifest kept is the user's to remove: until then the folder holds both.
+    both :: vader(["eject", dir])
+    assert(both.exit == 1, "a folder with both")
+    assert("holds both a `build.vader` and a `vader.json`" in both.stderr, both.stderr)
+    remove("${dir}/build.vader")
+    assert_eq(vader(["eject", dir]).exit, 0)
+    assert(!exists("${dir}/vader.json"), "the manifest removed")
+    again :: vader(["eject", dir])
+    assert(again.exit == 1, "a project already driven")
+    assert("is already built by its `build.vader`" in again.stderr, again.stderr)
+}
+
+@test
+test_eject_asks_to_move_the_sources_out_of_the_root_first :: fn() -> void {
+    dir :: stage("eject_root", TWO_ENTRIES)
+    ejected :: vader(["eject", dir])
+    assert_eq(ejected.exit, 1)
+    assert("move the sources at the root" in ejected.stderr, ejected.stderr)
+    assert("(`tool.vader`)" in ejected.stderr, ejected.stderr)
+    assert(!exists("${dir}/build.vader"), "no driver written")
+    assert(exists("${dir}/vader.json"), "the manifest kept")
+}
+
+@test
+test_no_argument_builds_the_current_folder :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage("current_folder", r"""{"entries": {"app": "src/main.vader"}}""")
+    built :: vader(["build"], dir)
+    assert(built.exit == 0, built.stderr)
+    assert(exists(executable_path("${output_of(dir, "debug")}/app")), "the binary of `app`")
+}
+
+@test
+test_a_folder_that_does_not_say_what_to_build_is_refused :: fn() -> void {
+    refusals: [string, string | null, string][]: [
+        ["bare", null, "holds neither a `build.vader` nor a `vader.json`"],
+        ["no_entry", r"""{"name": "p"}""", "declares no entry"],
+        [
+            "malformed",
+            r"""{"entries": {"app": 42}}""",
+            "entry `app` is not the path of its entry file",
+        ],
+        [
+            "misspelt",
+            r"""{"entries": {"app": "src/main.vader"}, "asset": ["data"]}""",
+            "unknown key `asset`",
+        ],
+    ]
+    for refusal in refusals {
+        built :: vader(["build", stage(refusal.0, refusal.1)])
+        assert(built.exit == 1 && refusal.2 in built.stderr, "`${refusal.0}`: ${built.stderr}")
+    }
+    both :: stage("both", TWO_ENTRIES)
+    write_file("${both}/build.vader", "module \"build\"\n")
+    twice :: vader(["build", both])
+    assert(twice.exit == 1, "a folder with both")
+    assert("holds both a `build.vader` and a `vader.json`" in twice.stderr, twice.stderr)
+}
+
+@test
+test_an_asset_outside_the_project_is_refused :: fn() -> void {
+    manifest :: r"""{"entries": {"app": "src/main.vader"}, "assets": ["../elsewhere"]}"""
+    built :: vader(["build", stage("asset_outside", manifest)])
+    assert_eq(built.exit, 1)
+    assert("asset `../elsewhere` is not inside the project" in built.stderr, built.stderr)
+}
+
+@test
+test_a_file_builds_as_it_is_with_its_c_and_objects_beside_the_binary :: fn() -> void {
+    if !has_cc() {
+        return
+    }
+    dir :: stage("file", TWO_ENTRIES)
+    built :: vader(["build", "${dir}/tool.vader"])
+    assert(built.exit == 0, built.stderr)
+    assert(exists(executable_path("${dir}/tool")), "the binary beside the file")
+    assert(exists("${dir}/c") && exists("${dir}/obj"), "its C and its objects")
+    assert(!exists("${dir}/tool-_root.c"), "no C unit beside the file")
+}

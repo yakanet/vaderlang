@@ -18,7 +18,6 @@ import "std/string"
 import "std/time"
 import "tools/cli_tests/cli"
 
-EXAMPLES          :: "examples"
 EXAMPLE_SNAPSHOTS :: "tests/fixtures/examples"
 
 // How an example runs, past `vader run` or `vader build`.
@@ -65,16 +64,6 @@ find_examples :: fn(found: Discovery, phases: string[]) -> void {
     }
 }
 
-// What a command is given to work on the example `name`: its folder when a
-// `vader.json` makes it a project, its entry otherwise.
-example_input :: fn(name: string) -> string {
-    dir :: "${EXAMPLES}/${name}"
-    if exists("${dir}/vader.json") {
-        return dir
-    }
-    return "${dir}/${name}.vader"
-}
-
 // Run the example of `case` on the VM, or build it natively in the folder
 // `scratch` and run the binary, and compare what it printed with its snapshot;
 // `update` writes the snapshot of the run on the VM when it differs.
@@ -92,9 +81,8 @@ check_example :: fn(
     if ran is CaseFailure {
         return CaseFailure { .message = "${stage.phase}: ${ran.message}" }
     }
-    checked :: Stage { ...stage, .snapshot = case.snapshot ?? "" }
     actual :: run_text(ran.stdout, ran.stderr, ran.exit)
-    report :: report_of(case, checked, actual, update && !native, began)
+    report :: report_of(case, stage, actual, update && !native, began)
     if !is_failure(report.result) && ran.exit != 0 {
         return CaseFailure { .message = "${stage.phase}: `${name}` exited with ${ran.exit}" }
     }

@@ -1,0 +1,100 @@
+// tools/cli_tests/new/new: `vader new` writes a project that runs, and builds.
+//
+// The templates and the rules of a target are tested where they are written
+// (`vader/tools/cli/cmd_new.vader`); what only a run shows is the files reaching
+// the compiler. A scaffolded project finds `lib/` and `runtime/c/` through
+// `$VADER_HOME`, as one outside a `dist/` bundle does.
+
+module "tools/cli_tests/new"
+
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// What `vader` with `args` did, run in `cwd` with the changes `env` to its
+// environment.
+vader :: fn(args: string[], cwd: string, env: [string, string | null][] = []) -> ProcessResult {
+    options :: RunOptions { .cwd = cwd, .env = env }
+    return run_vader(args, options).unwrap()
+}
+
+// Whether each of `files` exists under `dir`.
+holds :: fn(dir: string, files: string[]) -> bool {
+    for file in files {
+        if !exists("${dir}/${file}") {
+            return false
+        }
+    }
+    return true
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_new_writes_a_project_that_runs_and_builds :: fn() -> void {
+    workspace :: scratch_dir("new_runs")
+    created :: vader(["new", "my-app"], workspace)
+    assert_eq(created.exit, 0)
+    // The report is part of what is made: it says how to run the project.
+    assert("vader run ." in created.stdout, created.stdout)
+    project :: "${workspace}/my-app"
+    assert(holds(project, ["vader.json", "src/main.vader", ".gitignore"]), "the three files")
+    // The manifest carries the name of the folder, and the entry declares the
+    // module its folder is called.
+    manifest :: read_file_string("${project}/vader.json").unwrap()
+    assert("\"name\": \"my-app\"" in manifest, manifest)
+    entry :: read_file_string("${project}/src/main.vader").unwrap()
+    assert("module \"src\"" in entry, entry)
+    ran :: vader(["run", "."], project, toolchain_env())
+    assert_eq(ran.exit, 0)
+    assert("hello from my-app" in ran.stdout, ran.stdout)
+    if !has_cc() {
+        return
+    }
+    built :: vader(["build"], project, toolchain_env())
+    assert(built.exit == 0, built.stderr)
+    binary :: executable_path("${project}/build/debug-${host_folder()}/my-app")
+    assert(exists(binary), "the binary of the project")
+}
+
+@test
+test_new_refuses_a_folder_it_is_named_that_holds_something_but_not_its_own :: fn() -> void {
+    workspace :: scratch_dir("new_modes")
+    // Writing into a folder named by mistake cannot be undone.
+    create_dir("${workspace}/taken")
+    write_file("${workspace}/taken/notes.md", "")
+    named :: vader(["new", "taken"], workspace)
+    assert(named.exit == 1 && "not empty" in named.stderr, named.stderr)
+    // In place, a folder that holds work started is the common case.
+    write_file("${workspace}/started.vader", "")
+    assert_eq(vader(["new"], workspace).exit, 0)
+    assert(exists("${workspace}/vader.json"), "the manifest written in place")
+    // Only a manifest there stops it, and the message says why.
+    again :: vader(["new"], workspace)
+    assert(again.exit == 1 && "already a project" in again.stderr, again.stderr)
+}
+
+@test
+test_each_build_shape_writes_what_it_says_and_only_that :: fn() -> void {
+    // A driver stands for the build instead of the manifest: the shapes exclude
+    // each other.
+    workspace :: scratch_dir("new_shapes")
+    shapes: [string, string[], string[]][]: [
+        ["none", [], ["vader.json", "build.vader"]],
+        ["manifest", ["vader.json"], ["build.vader"]],
+        ["driver", ["build.vader"], ["vader.json"]],
+    ]
+    for shape in shapes {
+        assert_eq(vader(["new", "--build=${shape.0}", shape.0], workspace).exit, 0)
+        dir :: "${workspace}/${shape.0}"
+        assert(holds(dir, ["src/main.vader", ".gitignore"] + shape.1), "what `${shape.0}` writes")
+        for absent in shape.2 {
+            assert(!exists("${dir}/${absent}"), "`${shape.0}` writes no `${absent}`")
+        }
+    }
+}

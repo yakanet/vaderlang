@@ -199,8 +199,7 @@ test_a_for_over_a_string_steps_no_iterator :: fn() -> void {
     if current_os() == .Windows || !has_cc() {
         return
     }
-    source :: "${scratch_dir("native_string_for_source")}/main.vader"
-    write_file(source, STRING_FOR)
+    source :: scratch_source("native_string_for_source", STRING_FOR)
     binary :: build_binary("string_for", [], source).unwrap()
     // 104 + 233 + 108 + 108 + 111, the code points of "héllo".
     assert_eq(succeeded(run_command([binary])).unwrap().stdout, "664\n")
