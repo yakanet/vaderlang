@@ -68,4 +68,4 @@
   expr 36:36    IdentExpr      :: IOError
   expr 36:9     CallExpr       :: void
   expr 36:9     IdentExpr      :: fn(T) -> void
-  expr 376:60   StructLitExpr  :: RemoveOptions
+  expr 408:60   StructLitExpr  :: RemoveOptions

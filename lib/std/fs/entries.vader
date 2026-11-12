@@ -262,6 +262,38 @@ export copy :: fn(from: string, to: string) -> null | IOError {
     return from.system_copy(to)
 }
 
+/// Copy the file or the directory at `from` to `to`, a directory with all it
+/// holds: each file as `copy` copies it, a directory made where none exists.
+///
+/// A link is followed: the copy holds what it points to.
+///
+/// @param from  the file or directory to copy.
+/// @param to    the name of the copy.
+/// @error       `IOError` when an entry cannot be read, made or written; what
+///              was copied before it stays.
+/// @example
+///   copy_tree("assets", "build/assets")
+export copy_tree :: fn(from: string, to: string) -> null | IOError {
+    if !is_dir(from) {
+        return from.copy(to)
+    }
+    made :: create_dir(to)
+    if made is IOError {
+        return made
+    }
+    names :: read_dir(from)
+    if names is IOError {
+        return names
+    }
+    for name in names {
+        copied :: copy_tree("${from}/${name}", "${to}/${name}")
+        if copied is IOError {
+            return copied
+        }
+    }
+    return null
+}
+
 // Whether `from` and `to` both exist and name one file.
 is_same_file :: fn(from: string, to: string) -> bool {
     source :: real_path(from)
@@ -571,6 +603,29 @@ test_copy_onto_itself_is_refused :: fn() -> void {
     assert(refused is IOError && refused.kind == .InvalidInput, "a copy onto itself is refused")
     back :: read_file_string(file)
     assert(back is string && back == "kept", "and the file is untouched")
+}
+
+@test
+test_copy_tree_copies_a_directory_and_what_it_holds :: fn() -> void {
+    dir :: probe_dir("copy_tree")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    create_dir("${dir}/from/inner/empty")
+    write_file("${dir}/from/a.txt", "a")
+    write_file("${dir}/from/inner/b.txt", "b")
+    assert("${dir}/from".copy_tree("${dir}/to") !is IOError, "copied")
+    a :: read_file_string("${dir}/to/a.txt")
+    b :: read_file_string("${dir}/to/inner/b.txt")
+    assert(a is string && a == "a", "a file at the top")
+    assert(b is string && b == "b", "a file in a directory")
+    assert(is_dir("${dir}/to/inner/empty"), "an empty directory")
+}
+
+@test
+test_copy_tree_of_a_missing_path_is_an_error :: fn() -> void {
+    dir :: probe_dir("copy_tree_missing")
+    defer dir.remove(RemoveOptions { .recursive = true })
+    missing :: "${dir}/absent".copy_tree("${dir}/to")
+    assert(missing is IOError, "nothing to copy")
 }
 
 @test

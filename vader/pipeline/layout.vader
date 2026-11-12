@@ -128,7 +128,7 @@ export copy_assets :: fn(dir: string, assets: string[], into: string) -> bool {
             return false
         }
         target :: join_path(into, asset)
-        if !ensure_dir(folder_of(Path(target))) || !copy_tree(source, target) {
+        if !ensure_dir(folder_of(Path(target))) || !refresh_copy(source, target) {
             return false
         }
     }
@@ -138,7 +138,7 @@ export copy_assets :: fn(dir: string, assets: string[], into: string) -> bool {
 // Copy the file or folder `source` to `target`, whose folder exists. A copy at
 // least as recent as its file is left alone. False after saying what could not
 // be copied.
-copy_tree :: fn(source: string, target: string) -> bool {
+refresh_copy :: fn(source: string, target: string) -> bool {
     if is_dir(source) {
         if !ensure_dir(target) {
             return false
@@ -149,7 +149,7 @@ copy_tree :: fn(source: string, target: string) -> bool {
             return false
         }
         for name in names {
-            if !copy_tree(join_path(source, name), join_path(target, name)) {
+            if !refresh_copy(join_path(source, name), join_path(target, name)) {
                 return false
             }
         }
