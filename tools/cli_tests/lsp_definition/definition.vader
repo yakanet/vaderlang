@@ -304,7 +304,7 @@ test_definition_answers_a_location_link_when_the_client_supports_it :: fn() -> v
             .capabilities = r"""{"textDocument":{"definition":{"linkSupport":true}}}""",
         },
     )
-    links :: items_at(results[0], [])
+    links :: array_at(results[0], [])
     assert_eq(links.len(), 1)
     link :: links[0]
     assert(member(link, "originSelectionRange") != null, stringify(link))

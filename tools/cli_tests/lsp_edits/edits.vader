@@ -46,21 +46,21 @@ changed_files :: fn(edit: JsonValue) -> string[] {
 sole_file_edits :: fn(edit: JsonValue) -> JsonValue[] {
     files :: changed_files(edit)
     assert_eq(files.len(), 1)
-    return items_at(edit, ["changes", files[0]])
+    return array_at(edit, ["changes", files[0]])
 }
 
 // Every edit of a workspace edit, whatever the file.
 all_edits :: fn(edit: JsonValue) -> JsonValue[] {
     out: JsonValue[]: []
     for file in changed_files(edit) {
-        out.push_all(items_at(edit, ["changes", file]))
+        out.push_all(array_at(edit, ["changes", file]))
     }
     return out
 }
 
 // The code action of `actions` titled `title`; none fails the test.
 action_titled :: fn(actions: JsonValue, title: string) -> JsonValue {
-    titled :: items_at(actions, []).find((action) -> string_member(action, "title") == title)
+    titled :: array_at(actions, []).find((action) -> string_member(action, "title") == title)
     return titled ?? panic("no code action titled `${title}` in ${stringify(actions)}")
 }
 
@@ -109,7 +109,7 @@ test_references_after_an_astral_character_on_the_line :: fn() -> void {
         source,
         [ask("textDocument/references", 11, 22)],
     )
-    refs :: starts(items_at(results[0], []))
+    refs :: starts(array_at(results[0], []))
     assert(refs.contains("11:22"), refs.join(" "))
 }
 
@@ -254,7 +254,7 @@ test_find_usages_and_rename_reach_the_modules_importing_the_declarations :: fn()
         ],
         Project { .name = "shapes/shapes.vader", .files = files },
     )
-    where :: items_at(results[0], []).map(
+    where :: array_at(results[0], []).map(
         (l) -> "${tail_of(string_member(l, "uri") ?? "")}:${start_of(l)}",
     ).collect()
     assert_eq(
@@ -302,7 +302,7 @@ test_references_stay_in_the_file_the_cursor_is_in :: fn() -> void {
         Project { .files = files },
     )
     assert_eq(stringify(results[0]), "[]")
-    sites :: items_at(results[1], [])
+    sites :: array_at(results[1], [])
     assert_eq(sites.len(), 3)
     for site in sites {
         assert((string_member(site, "uri") ?? "").ends_with("/lsp-test.vader"), stringify(site))
@@ -394,11 +394,11 @@ test_references_and_rename_follow_a_fn_through_every_call_form :: fn() -> void {
     )
     // Each overload has its own calls.
     assert_eq(
-        starts(items_at(results[0], [])).join(" "),
+        starts(array_at(results[0], [])).join(" "),
         sorted([first_decl, method_form, bare_call]).join(" "),
     )
     assert_eq(
-        starts(items_at(results[1], [])).join(" "),
+        starts(array_at(results[1], [])).join(" "),
         sorted([second_decl, on_literal]).join(" "),
     )
     renamed :: sole_file_edits(results[2])
@@ -409,7 +409,7 @@ test_references_and_rename_follow_a_fn_through_every_call_form :: fn() -> void {
     assert_names(src, renamed, "describe")
     // `v.add(v) + v` runs `add` without naming it: a reference all the same.
     assert_eq(
-        starts(items_at(results[3], [])).join(" "),
+        starts(array_at(results[3], [])).join(" "),
         sorted([add_decl, add_method, add_operator]).join(" "),
     )
     // `Add` fixes the name: renaming one impl's member would leave the trait's.
@@ -442,7 +442,7 @@ test_a_namespace_member_is_referenced_and_renamed_as_a_value_too :: fn() -> void
         ],
         Project { .files = files },
     )
-    sites :: items_at(results[0], [])
+    sites :: array_at(results[0], [])
     here :: sites.filter(is_in_document).collect()
     assert_eq(
         starts(here).join(" "),
@@ -487,7 +487,7 @@ test_an_alias_of_a_generic_fn_keeps_its_own_name :: fn() -> void {
     )
     assert_names(src, renamed, "g")
     // Named: its declaration, the alias's value, and `apply(id, 1)` once.
-    named :: starts(items_at(results[1], []))
+    named :: starts(array_at(results[1], []))
     assert(named.contains(display_spot(position_of(src, "id :: fn"))), named.join(" "))
     assert(named.contains(display_spot(position_of(src, "id\n"))), named.join(" "))
     in_call :: named.filter((k) -> k == display_spot(position_of(src, "id, 1"))).collect()
@@ -545,7 +545,7 @@ test_an_inherited_default_is_reached_in_its_trait :: fn() -> void {
             ask_at("textDocument/definition", first_call),
         ],
     )
-    sites :: items_at(results[0], [])
+    sites :: array_at(results[0], [])
     // The declaration, and the `+` written in the trait's body, at the start of
     // its expression: not one per impl.
     assert_eq(
@@ -555,7 +555,7 @@ test_an_inherited_default_is_reached_in_its_trait :: fn() -> void {
     assert(is_in_document(sites[0]), stringify(sites[0]))
     // The default's declaration, and the call of each impl's inherited member.
     assert_eq(
-        starts(items_at(results[1], [])).join(" "),
+        starts(array_at(results[1], [])).join(" "),
         spots_shown([default_decl, first_call, second_call]),
     )
     // The call's definition is `Doubler`'s default, not `Tripler`'s namesake.

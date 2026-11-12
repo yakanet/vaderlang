@@ -107,10 +107,10 @@ exit_code :: fn(frames: JsonValue[]) -> i64 =
     int_at(event_named(frames, "exited"), ["body", "exitCode"])
 
 // The frames of the stack trace `response`, the innermost first.
-stack_of :: fn(response: JsonValue) -> JsonValue[] = items_at(response, ["body", "stackFrames"])
+stack_of :: fn(response: JsonValue) -> JsonValue[] = array_at(response, ["body", "stackFrames"])
 
 // The variables the response `response` lists.
-variables_in :: fn(response: JsonValue) -> JsonValue[] = items_at(response, ["body", "variables"])
+variables_in :: fn(response: JsonValue) -> JsonValue[] = array_at(response, ["body", "variables"])
 
 // The names of `variables`, in order.
 names_of :: fn(variables: JsonValue[]) -> string[] =
@@ -140,7 +140,7 @@ reason_and_thread :: fn(event: JsonValue) -> string =
 
 // The threads the first response to `threads` in `frames` lists.
 threads_in :: fn(frames: JsonValue[]) -> JsonValue[] =
-    items_at(response_to(frames, "threads"), ["body", "threads"])
+    array_at(response_to(frames, "threads"), ["body", "threads"])
 
 // The ids of the frames `stack`, in order.
 ids_of :: fn(stack: JsonValue[]) -> string[] = stack.map((f) -> "${int_at(f, ["id"])}").collect()
@@ -178,7 +178,7 @@ test_a_session_runs_the_program_to_its_end_its_output_on_events :: fn() -> void 
     }
     placed :: response_to(frames, "setBreakpoints")
     assert(accepted(placed), "setBreakpoints")
-    breakpoints :: items_at(placed, ["body", "breakpoints"])
+    breakpoints :: array_at(placed, ["body", "breakpoints"])
     assert_eq(breakpoints.len(), 1)
     assert_eq(json_at(breakpoints[0], ["verified"]), "true")
     for name in ["initialized", "exited", "terminated"] {
@@ -426,7 +426,7 @@ test_the_frames_of_a_thread_that_did_not_stop_have_scopes_variables_and_hovers :
         ["variables", variables_of(frame)],
     ]
     frames :: debug("parked", TASKS, [TASK_PRINT], stop + asked + resume)
-    scopes :: items_at(response_to(frames, "scopes"), ["body", "scopes"])
+    scopes :: array_at(response_to(frames, "scopes"), ["body", "scopes"])
     assert_eq(int_at(scopes[0], ["variablesReference"]), frame)
     listed :: variables_in(response_to(frames, "variables"))
     assert("done" in value_of(listed, "label"), value_of(listed, "label"))

@@ -70,22 +70,22 @@ test_call_hierarchy_lists_a_fns_callers_and_callees :: fn() -> void {
             ask("callHierarchy/outgoingCalls", 4, 0),
         ],
     )
-    prepared :: items_at(results[0], [])
+    prepared :: array_at(results[0], [])
     shown :: prepared.map(name_and_kind).collect()
     assert_eq(shown.join(" "), "helper:12")
-    incoming :: items_at(results[1], []).map(
+    incoming :: array_at(results[1], []).map(
         fn(call) {
             from :: string_at(call, ["from", "name"]) ?? ""
-            ranges :: items_at(call, ["fromRanges"])
+            ranges :: array_at(call, ["fromRanges"])
             sites :: ranges.map((range) -> position_at(range, ["start"])).collect()
             return "${from}@${sites.join(",")}"
         },
     ).collect()
     assert_eq(incoming.join(" "), "twice@4:29,4:36 main@7:22")
-    outgoing :: items_at(results[2], []).map(
+    outgoing :: array_at(results[2], []).map(
         fn(call) {
             to :: string_at(call, ["to", "name"]) ?? ""
-            return "${to}@${items_at(call, ["fromRanges"]).len()}"
+            return "${to}@${array_at(call, ["fromRanges"]).len()}"
         },
     ).collect()
     assert_eq(outgoing.join(" "), "helper@2")
@@ -137,14 +137,14 @@ test_type_hierarchy_and_trait_implementations :: fn() -> void {
             ask("textDocument/implementation", 3, 4),
         ],
     )
-    prepared :: items_at(results[0], [])
+    prepared :: array_at(results[0], [])
     shown :: prepared.map(name_and_kind).collect()
     assert_eq(shown.join(" "), "Shape:11")
-    assert_eq(names_of(items_at(results[1], [])).join(" "), "Square Disc")
-    assert_eq(names_of(items_at(results[2], [])).join(" "), "Shape")
-    assert_eq(names_of(items_at(results[3], [])).join(" "), "Square Disc")
-    assert_eq(items_at(results[4], []).map(start_of).collect().join(" "), "10:0 18:0")
-    assert_eq(items_at(results[5], []).map(start_of).collect().join(" "), "11:4 19:4")
+    assert_eq(names_of(array_at(results[1], [])).join(" "), "Square Disc")
+    assert_eq(names_of(array_at(results[2], [])).join(" "), "Shape")
+    assert_eq(names_of(array_at(results[3], [])).join(" "), "Square Disc")
+    assert_eq(array_at(results[4], []).map(start_of).collect().join(" "), "10:0 18:0")
+    assert_eq(array_at(results[5], []).map(start_of).collect().join(" "), "11:4 19:4")
 }
 
 // `workspace/symbol` searches the declarations of every module of the workspace,
@@ -171,7 +171,7 @@ test_workspace_symbols_find_declarations_by_name :: fn() -> void {
             search_for("workspace/symbol", ""),
         ],
     )
-    first :: items_at(results[0], []).map(
+    first :: array_at(results[0], []).map(
         fn(s) {
             name :: string_member(s, "name") ?? ""
             container :: string_member(s, "containerName") ?? ""
@@ -180,10 +180,10 @@ test_workspace_symbols_find_declarations_by_name :: fn() -> void {
     ).collect()
     assert_eq(first.join(" "), "frobnicate:12:lsptest")
     assert_eq(
-        position_at(items_at(results[0], [])[0], ["location", "range", "start"]),
+        position_at(array_at(results[0], [])[0], ["location", "range", "start"]),
         "2:7",
     )
-    gizmo :: items_at(results[1], [])
+    gizmo :: array_at(results[1], [])
     assert_eq(names_of(gizmo).join(" "), "Gizmo gizmo_size")
     assert_eq(string_member(gizmo[1], "containerName") ?? "", "lsptest \u{203A} Gizmo")
     assert_eq(stringify(results[2]), "[]")
@@ -203,7 +203,7 @@ test_initialize_advertises_definition_and_hover_providers_and_the_token_legend :
         stringify(member(capabilities, "codeLensProvider") ?? JsonNull {}),
         r"""{"resolveProvider":false}""",
     )
-    legend :: items_at(capabilities, ["semanticTokensProvider", "legend", "tokenTypes"])
+    legend :: array_at(capabilities, ["semanticTokensProvider", "legend", "tokenTypes"])
     assert_eq(stringify(legend[5]), "\"keyword\"")
     assert_eq(stringify(legend[7]), "\"number\"")
     assert_eq(stringify(legend[9]), "\"operator\"")
@@ -226,7 +226,7 @@ test_document_link_resolves_an_import_to_every_shipped_namespace :: fn() -> void
         main :: fn() -> i32 = 0
         """
     results :: drive("document_link_namespaces", source, [ask("textDocument/documentLink", 0, 0)])
-    links :: items_at(results[0], [])
+    links :: array_at(results[0], [])
     assert("/lib/std/io/" in (target_at(links, 2) ?? ""), stringify(results[0]))
     // `toolchain/ast` is neither under `std/` nor under `vader/`.
     assert("/lib/toolchain/ast/" in (target_at(links, 3) ?? ""), stringify(results[0]))
@@ -256,7 +256,7 @@ test_code_lens_runs_each_test_and_the_module_through_the_client_command :: fn() 
         [ask("textDocument/codeLens", 0, 0)],
         Project { .name = "t/lsp-test.vader", .files = files },
     )
-    lenses :: items_at(results[0], [])
+    lenses :: array_at(results[0], [])
     shown :: lenses.map(
         fn(l) {
             line :: int_at(l, ["range", "start", "line"])
@@ -266,7 +266,7 @@ test_code_lens_runs_each_test_and_the_module_through_the_client_command :: fn() 
         },
     ).collect()
     assert_eq(shown.join("|"), "5:Run test:vader.runTest|0:Run module tests:vader.runTest")
-    arguments :: items_at(lenses[0], ["command", "arguments"])
+    arguments :: array_at(lenses[0], ["command", "arguments"])
     assert_eq(arguments.len(), 3)
     uri :: text_of(arguments[0])
     folder :: text_of(arguments[1])
@@ -274,7 +274,7 @@ test_code_lens_runs_each_test_and_the_module_through_the_client_command :: fn() 
     assert(uri.ends_with(suffix), uri)
     assert_eq(file_uri(folder), uri.byte_slice(0, uri.byte_len() - suffix.byte_len()))
     assert_eq(text_of(arguments[2]), "test_one")
-    module_arguments :: items_at(lenses[1], ["command", "arguments"])
+    module_arguments :: array_at(lenses[1], ["command", "arguments"])
     assert_eq(
         stringify(JsonArray { .items = module_arguments }),
         "[${quoted(uri)},${quoted(folder)}]",
@@ -299,7 +299,7 @@ test_a_project_module_outranks_a_shipped_namespace_of_the_same_name :: fn() -> v
         [ask("textDocument/documentLink", 0, 0)],
         Project { .files = files },
     )
-    target :: target_at(items_at(results[0], []), 2) ?? ""
+    target :: target_at(array_at(results[0], []), 2) ?? ""
     assert("/json/json.vader" in target, target)
     assert(!("/lib/json/" in target), target)
 }
@@ -319,7 +319,7 @@ test_the_library_root_is_searched_before_the_project :: fn() -> void {
         [ask("textDocument/documentLink", 0, 0)],
         Project { .files = files, .args = ["--library-root=${toolchain_home()}/lib"] },
     )
-    target :: target_at(items_at(results[0], []), 2) ?? ""
+    target :: target_at(array_at(results[0], []), 2) ?? ""
     assert("/lib/json/" in target, target)
 }
 
@@ -364,14 +364,14 @@ test_implementation_lists_every_target_body_including_a_foreign_one :: fn() -> v
         Project { .files = files },
     )
     assert(results[0] is JsonArray, stringify(results[0]))
-    bodies :: items_at(results[0], [])
+    bodies :: array_at(results[0], [])
     assert_eq(bodies.len(), 2)
     // The suite runs on every platform, so naming one platform's file would pass
     // for the wrong reason: both files are represented, which means one of them
     // was kept despite not being selected.
     where :: bodies.map((b) -> file_of(string_member(b, "uri") ?? "")).collect()
     assert_eq(sort(where, compare_ascending).join(" "), "lsp-test.vader lsp-windows.vader")
-    assert_eq(items_at(results[1], []).len(), 2)
+    assert_eq(array_at(results[1], []).len(), 2)
     assert(results[2] is JsonNull, stringify(results[2]))
 }
 
@@ -398,7 +398,7 @@ test_the_selection_grows_from_the_word_to_its_declaration :: fn() -> void {
         [ask_at("textDocument/selectionRange", position_of(src, "x * 2"))],
     )
     chain: string[]: []
-    level: JsonValue = items_at(results[0], [])[0]
+    level: JsonValue = array_at(results[0], [])[0]
     for level is JsonObject {
         chain.push(text_at(src, member(level, "range") ?? JsonNull {}))
         level = member(level, "parent") ?? JsonNull {}

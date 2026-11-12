@@ -96,7 +96,7 @@ test_an_inlay_hint_anchors_on_the_operator_whatever_the_spacing :: fn() -> void 
             },
         ],
     )
-    hints :: items_at(results[0], [])
+    hints :: array_at(results[0], [])
     // `    n     ::   42`: the first `:` sits at 1-based column 11, so the hint
     // inserts before the second one at 0-based character 11.
     found :: hints.filter((hint) -> string_at(hint, ["label"]) == "i32").collect()
@@ -163,7 +163,7 @@ RETURN_HINT_SOURCE :: r"""
 test_inlay_hints_show_implicit_return_types_and_discarded_values :: fn() -> void {
     source :: RETURN_HINT_SOURCE
     results :: drive("hints_returns", source, [whole_document(source)])
-    hints :: items_at(results[0], [])
+    hints :: array_at(results[0], [])
     returns :: starting_with(hints, "-> ")
     discards :: starting_with(hints, "(discarded ")
     // `area` on its `{`, `twice` before its `=`, the lambda arguments before their
@@ -209,7 +209,7 @@ NESTED_RETURN_HINT_SOURCE :: r"""
 test_inlay_hints_reach_a_lambda_in_a_fallback_not_one_bound_to_a_constant :: fn() -> void {
     source :: NESTED_RETURN_HINT_SOURCE
     results :: drive("hints_fallback", source, [whole_document(source)])
-    hints :: items_at(results[0], [])
+    hints :: array_at(results[0], [])
     returns :: starting_with(hints, "-> ")
     assert_eq(
         labelled(returns).join(", "),
@@ -352,7 +352,7 @@ test_inlay_hints_over_a_plain_dump_name_what_annotate_names :: fn() -> void {
         [whole_document(plain)],
         Project { .name = "dump.virt" },
     )
-    shown :: items_at(results[0], []).map((hint) -> hint_shown(hint)).collect()
+    shown :: array_at(results[0], []).map((hint) -> hint_shown(hint)).collect()
     assert_eq(shown.join("\n"), expected.join("\n"))
 }
 
@@ -372,5 +372,5 @@ test_an_annotated_dump_gets_no_inlay_hint :: fn() -> void {
         [whole_document(annotated)],
         Project { .name = "dump.virt" },
     )
-    assert_eq(items_at(results[0], []).len(), 0)
+    assert_eq(array_at(results[0], []).len(), 0)
 }

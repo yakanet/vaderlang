@@ -18,14 +18,14 @@ complete_at :: fn(spot: Spot) -> Query = ask_at("textDocument/completion", spot)
 
 // The labels of the items of the completion list `result`.
 labels_of :: fn(result: JsonValue) -> string[] {
-    items :: items_at(result, ["items"])
+    items :: array_at(result, ["items"])
     return items.map((item) -> string_member(item, "label") ?? "").collect()
 }
 
 // The item of the completion list `result` labelled `label`, a JSON null when
 // there is none.
 item_named :: fn(result: JsonValue, label: string) -> JsonValue {
-    named :: items_at(result, ["items"]).find((item) -> string_member(item, "label") == label)
+    named :: array_at(result, ["items"]).find((item) -> string_member(item, "label") == label)
     return named ?? JsonNull {}
 }
 

@@ -56,7 +56,7 @@ test_a_match_headers_binding_is_declared_renamed_and_hovered_at_its_name :: fn()
     if changes is JsonObject {
         files :: changes.entries.keys().collect()
         assert_eq(files.len(), 1)
-        edits :: items_at(changes, [files[0]])
+        edits :: array_at(changes, [files[0]])
         // The declaration and one use, every range covering the name itself.
         assert_eq(edits.len(), 2)
         for edit in edits {

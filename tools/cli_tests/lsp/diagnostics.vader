@@ -24,7 +24,7 @@ diagnostics_for :: fn(name: string, source: string) -> JsonValue[] {
     last: JsonValue[] = []
     for message in exchange(server_args(), sent) {
         if publishes_for(message, uri) {
-            last = items_at(message, ["params", "diagnostics"])
+            last = array_at(message, ["params", "diagnostics"])
         }
     }
     return last

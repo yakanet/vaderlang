@@ -74,11 +74,29 @@ export frames_of :: fn(text: string) -> Frames {
 }
 
 /// The integer at the end of `path` from `value`, as `member_at` follows it: the
-/// line, the column or the id a message holds; -1 when there is none.
+/// line, the column or the id a message holds. A test reads what the message
+/// must hold, so none fails the test.
 ///
 /// @param value  a message, or a value in one.
 /// @param path   the keys to follow, the outermost first.
-export int_at :: fn(value: JsonValue, path: string[]) -> i64 = i64(number_at(value, path) ?? -1.0)
+export int_at :: fn(value: JsonValue, path: string[]) -> i64 {
+    found :: number_at(value, path) ?? panic(missing("number", value, path))
+    return i64(found)
+}
+
+/// The items of the array at the end of `path` from `value`, as `member_at`
+/// follows it. A test reads what the message must hold, so none fails the test;
+/// a result the protocol allows to be null reads through `items_at`.
+///
+/// @param value  a message, or a value in one.
+/// @param path   the keys to follow, the outermost first: none reads `value`
+///               itself.
+export array_at :: fn(value: JsonValue, path: string[]) -> JsonValue[] =
+    items_at(value, path) ?? panic(missing("array", value, path))
+
+// Why a test stops: no `shape` at `path` in `value`.
+missing :: fn(shape: string, value: JsonValue, path: string[]) -> string =
+    "no ${shape} at `${path.join(".")}` in ${stringify(value)}"
 
 // The length the header `header` gives the body; null when it names none.
 body_length :: fn(header: string) -> i64 | null {

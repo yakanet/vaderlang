@@ -408,7 +408,7 @@ answers :: fn(message: JsonValue, id: i64) -> bool =
 // what the session received on. None fails the test.
 diagnostics_of :: fn(client: Client, uri: string, from: i64 = 0) -> JsonValue[] {
     published :: client.awaited((m) -> publishes_for(m, uri), "diagnostics for `${uri}`", from)
-    return items_at(published, ["params", "diagnostics"])
+    return array_at(published, ["params", "diagnostics"])
 }
 
 // Shut the server of `client` down, and read all it sent.

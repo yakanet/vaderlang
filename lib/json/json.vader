@@ -741,17 +741,17 @@ export number_at :: fn(value: JsonValue, path: string[]) -> f64 | null {
 }
 
 /// The items of the array at the end of `path` from `value`, as `member_at`
-/// follows it; none when there is no array there.
+/// follows it; null when there is none or when the value there is another shape.
 ///
 /// @param value  the value to read, an object or any other shape.
 /// @param path   the keys to follow, the outermost first: none reads `value`
 ///               itself.
-export items_at :: fn(value: JsonValue, path: string[]) -> JsonValue[] {
+export items_at :: fn(value: JsonValue, path: string[]) -> JsonValue[] | null {
     found :: member_at(value, path)
     if found is JsonArray {
         return found.items
     }
-    return []
+    return null
 }
 
 // ---- text sequences -------------------------------------------------------
@@ -1031,10 +1031,10 @@ test_member_at_follows_each_key :: fn() -> void {
 @test
 test_items_at_gives_the_items_of_an_array_only :: fn() -> void {
     value :: parsed_value(r"""{"list": [1, "two"], "n": 1}""")
-    assert_eq(items_at(value, ["list"]).len(), 2)
-    assert_eq(items_at(value, ["n"]).len(), 0)
-    assert_eq(items_at(value, ["missing"]).len(), 0)
-    assert_eq(items_at(parsed_value("[3]"), []).len(), 1)
+    assert_eq((items_at(value, ["list"]) ?? []).len(), 2)
+    assert(items_at(value, ["n"]) == null, "a number is no array")
+    assert(items_at(value, ["missing"]) == null, "a missing key")
+    assert_eq((items_at(parsed_value("[3]"), []) ?? []).len(), 1)
 }
 
 @test test_sequence_entry_frames_the_compact_text :: fn() -> void {
