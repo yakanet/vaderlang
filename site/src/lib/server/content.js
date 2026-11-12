@@ -177,9 +177,9 @@ export function showcase() {
 }
 
 /**
- * What the example `name` printed when the test suite last ran it, from the
- * snapshot `formatRun` (`tests/snapshot.ts`) writes; "" for one that prints
- * nothing there or that the suite does not run (it opens a window).
+ * What the example `name` printed when the test runner last ran it, from the
+ * snapshot it writes (`tools/testrunner/src/examples.vader`); "" for one that
+ * prints nothing there or that the runner does not run (it opens a window).
  * @param {string} name
  */
 function example_output(name) {

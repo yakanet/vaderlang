@@ -1,0 +1,53 @@
+// tools/cli_tests/examples/examples: the examples that open a window build
+// natively, as the projects their `vader.json` describe, against the archive
+// `third_party/raylib` ships for this host.
+//
+// They are not run: they open a window. On a host with no archive in
+// `third_party/raylib/lib/`, there is nothing to link them with, and the tests
+// check nothing. On Linux the link needs the development package of X11
+// (`third_party/raylib/README.md`). The examples that run with no window are
+// stages of the test runner (`tools/testrunner/src/examples.vader`).
+
+module "tools/cli_tests/examples"
+
+import "std/env"
+import "std/fs"
+import "std/process"
+import "std/target"
+import "tools/cli_tests/cli"
+
+// The archive of raylib for this host, from the root of the repository.
+raylib_archive :: fn() -> string =
+    "third_party/raylib/lib/${current_os()}-${current_arch()}/libraylib.a"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Check that the windowed program of the example `name`, which `flags` pick,
+// builds natively, when this host has raylib to link it with.
+assert_builds :: fn(name: string, flags: string[]) -> void {
+    if !exists(raylib_archive()) {
+        return
+    }
+    out :: "${temp_dir()}/vader_windowed_${name}"
+    defer remove(out, RemoveOptions { .recursive = true, .force = true })
+    binary :: executable_path("${out}/${name}")
+    argv :: ["build"] + flags + ["--out=${binary}", "examples/${name}"]
+    built :: run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })
+    if built is ProcessError {
+        fail(built.msg)
+        return
+    }
+    assert(built.exit == 0, "`vader build` exited with ${built.exit}:\n${built.stderr}")
+}
+
+@test
+test_the_sprite_example_builds_natively :: fn() -> void {
+    assert_builds("raylib_sprite", [])
+}
+
+@test
+test_the_windowed_raycaster_builds_natively :: fn() -> void {
+    assert_builds("raycaster", ["--entry=raycaster"])
+}

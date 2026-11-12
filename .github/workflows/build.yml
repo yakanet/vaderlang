@@ -71,7 +71,8 @@ jobs:
         if: ${{ !cancelled() && runner.os == 'Linux' }}
         run: sudo apt-get update && sudo apt-get install -y libx11-dev
       # The snippets and their snapshots, the diagnostics and target corpora,
-      # and the `@test` functions of `lib/`, `vader/` and `tools/`.
+      # the runs of the examples, and the `@test` functions of `lib/`, `vader/`
+      # and `tools/`.
       - name: Tests
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         timeout-minutes: 20
@@ -82,7 +83,7 @@ jobs:
           (cd tools/testrunner && ../../build/vader build --release)
           tools/testrunner/build/release-*/testrunner
       # What the runner does not check yet: the command line, the language
-      # servers, the driven projects and the examples.
+      # servers and the driven projects.
       - name: Tests left to Bun
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
         env:

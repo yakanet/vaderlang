@@ -66,6 +66,8 @@ STAGES: Stage[]: [
     TESTS_STAGE,
     TARGETS_STAGE,
     EXTERNS_STAGE,
+    EXAMPLE_STAGE,
+    NATIVE_EXAMPLE_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -117,6 +119,23 @@ EXTERNS_STAGE: Stage: Stage {
     .phase = EXTERNS_PHASE,
     .dump = null,
     .snapshot = "externs.snapshot.c",
+}
+
+// The run of an example by `vader run` (`examples.vader`), compared with the
+// snapshot of its case.
+EXAMPLE_PHASE :: "example"
+EXAMPLE_STAGE: Stage: Stage {
+    .phase = EXAMPLE_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+
+// The run of an example built natively, compared with the same snapshot.
+NATIVE_EXAMPLE_PHASE :: "example_native"
+NATIVE_EXAMPLE_STAGE: Stage: Stage {
+    .phase = NATIVE_EXAMPLE_PHASE,
+    .dump = null,
+    .snapshot = "",
 }
 
 // The lowered form of a program.
@@ -178,14 +197,16 @@ Discovery :: struct {
     problems: string[] = []
 }
 
-// The modules, the snippets, then the fixtures, each with the phases of `phases`
-// it runs. The modules come first: a module is compiled whole with what it
-// imports, the longest cases of a run, which a pool should not start last.
+// The modules, the examples, the snippets, then the fixtures, each with the
+// phases of `phases` it runs. The modules and the examples come first: a module
+// is compiled whole with what it imports, and an example by a `vader` of its
+// own, the longest cases of a run, which a pool should not start last.
 find_cases :: fn(phases: string[]) -> Discovery {
     found :: Discovery {}
     if phases.contains(TESTS_PHASE) {
         find_module_tests(found)
     }
+    find_examples(found, phases)
     find_snippets(found, phases)
     if phases.contains(DIAGNOSTICS_PHASE) {
         find_fixtures(found)

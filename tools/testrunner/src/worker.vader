@@ -6,10 +6,10 @@
 // the text the snapshot holds and compared with it; under `--update`, a snapshot
 // that differs is written. The stages of a case share one front end, its run on
 // the VM is the `vm` stage (`vm_run.vader`), its native build and run the
-// `native` stage (`native_run.vader`), and the `@test` functions of a module the
-// `tests` stage (`tests_run.vader`). Each case has a folder of its own under
-// the worker's, kept when the case fails (`enter_case`). Nothing but the protocol
-// goes to stdout.
+// `native` stage (`native_run.vader`), the `@test` functions of a module the
+// `tests` stage (`tests_run.vader`), and the runs of an example its two stages
+// (`examples.vader`). Each case has a folder of its own under the worker's, kept
+// when the case fails (`enter_case`). Nothing but the protocol goes to stdout.
 
 module "tools/testrunner/src"
 
@@ -126,6 +126,9 @@ check_phase :: fn(
     }
     if phase == EXTERNS_PHASE {
         return check_stage(case, stage, "externs", input, ctx.update)
+    }
+    if phase == EXAMPLE_PHASE || phase == NATIVE_EXAMPLE_PHASE {
+        return check_example(case, stage, dir, ctx.update)
     }
     return check_run(case, ctx.update)
 }

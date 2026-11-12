@@ -1,0 +1,136 @@
+// tools/testrunner/src/examples: every example of `examples/` runs, and prints
+// what it printed before.
+//
+// The `example` stage runs `vader run` on an example from the root of the
+// repository, as a user would, and compares what it printed with
+// `tests/fixtures/examples/<name>.run.snapshot`, which `--update` writes. The
+// `example_native` stage builds the example natively, runs the binary, and
+// compares what it printed with the same snapshot, which it never writes. Both
+// run the `vader` the repository builds (`tools/cli_tests/cli`), which the runner
+// checks is current before it starts. An example that opens a window has no run
+// here.
+
+module "tools/testrunner/src"
+
+import "std/fs"
+import "std/process"
+import "std/string"
+import "std/time"
+import "tools/cli_tests/cli"
+
+EXAMPLES          :: "examples"
+EXAMPLE_SNAPSHOTS :: "tests/fixtures/examples"
+
+// How an example runs, past `vader run` or `vader build`.
+ExampleRun :: struct {
+    /// The flags before its path: the entry of a project that has several.
+    flags: string[] = []
+    /// What its program reads on its command line, after its path.
+    args: string[] = []
+    /// Whether it is built natively and run too.
+    native: bool = false
+}
+
+// How the example `name` runs; null for one that opens a window.
+example_run :: fn(name: string) -> ExampleRun | null = match name {
+    // A program to run, named from the root of the repository.
+    "brainfuck"     -> ExampleRun { .args = ["examples/brainfuck/programs/hello.bf"] }
+    // The entry that draws the views of the game with no window.
+    "raycaster"     -> ExampleRun { .flags = ["--entry=frames"], .native = true }
+    "raylib_sprite" -> null
+    _               -> ExampleRun {}
+}
+
+// The examples, with the phases of `phases` each runs, pushed on `found`.
+find_examples :: fn(found: Discovery, phases: string[]) -> void {
+    for name in entries_where(found, EXAMPLES, is_dir) {
+        run :: example_run(name) ?? continue
+        kept: string[]: []
+        if phases.contains(EXAMPLE_PHASE) {
+            kept.push(EXAMPLE_PHASE)
+        }
+        if run.native && phases.contains(NATIVE_EXAMPLE_PHASE) {
+            kept.push(NATIVE_EXAMPLE_PHASE)
+        }
+        if kept.len() > 0 {
+            found.cases.push(
+                Case {
+                    .name = "${EXAMPLES}/${name}",
+                    .dir = EXAMPLE_SNAPSHOTS,
+                    .snapshot = "${name}.run.snapshot",
+                    .phases = kept,
+                },
+            )
+        }
+    }
+}
+
+// What a command is given to work on the example `name`: its folder when a
+// `vader.json` makes it a project, its entry otherwise.
+example_input :: fn(name: string) -> string {
+    dir :: "${EXAMPLES}/${name}"
+    if exists("${dir}/vader.json") {
+        return dir
+    }
+    return "${dir}/${name}.vader"
+}
+
+// Run the example of `case` on the VM, or build it natively in the folder
+// `scratch` and run the binary, and compare what it printed with its snapshot;
+// `update` writes the snapshot of the run on the VM when it differs.
+check_example :: fn(
+    case: Case,
+    stage: Stage,
+    scratch: string,
+    update: bool,
+) -> StageReport | CaseFailure {
+    began :: monotonic()
+    name :: case.name.trim_prefix("${EXAMPLES}/")
+    run :: example_run(name) ?? return CaseFailure { .message = "`${name}` has no run" }
+    native :: stage.phase == NATIVE_EXAMPLE_PHASE
+    ran :: if native { native_example_run(name, run, scratch) } else { vm_example_run(name, run) }
+    if ran is CaseFailure {
+        return CaseFailure { .message = "${stage.phase}: ${ran.message}" }
+    }
+    checked :: Stage { ...stage, .snapshot = case.snapshot ?? "" }
+    actual :: run_text(ran.stdout, ran.stderr, ran.exit)
+    report :: report_of(case, checked, actual, update && !native, began)
+    if !is_failure(report.result) && ran.exit != 0 {
+        return CaseFailure { .message = "${stage.phase}: `${name}` exited with ${ran.exit}" }
+    }
+    return report
+}
+
+// What `vader run` prints for the example `name`.
+vm_example_run :: fn(name: string, run: ExampleRun) -> ProcessResult | CaseFailure {
+    argv :: ["run"] + run.flags + [example_input(name)] + run.args
+    return ran_or_failure(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+}
+
+// What the example `name` prints, built natively into `scratch`.
+native_example_run :: fn(
+    name: string,
+    run: ExampleRun,
+    scratch: string,
+) -> ProcessResult | CaseFailure {
+    binary :: executable_path("${scratch}/${name}")
+    argv :: ["build"] + run.flags + ["--out=${binary}", example_input(name)]
+    built :: ran_or_failure(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+    if built is CaseFailure {
+        return built
+    }
+    if built.exit != 0 {
+        return CaseFailure {
+            .message = "`vader build` exited with ${built.exit}:\n${built.stderr}",
+        }
+    }
+    return ran_or_failure(run_command([binary] + run.args))
+}
+
+// The run `ran`, or the failure of a case whose command did not run to its end.
+ran_or_failure :: fn(ran: ProcessResult | ProcessError) -> ProcessResult | CaseFailure {
+    if ran is ProcessError {
+        return CaseFailure { .message = ran.msg }
+    }
+    return ran
+}

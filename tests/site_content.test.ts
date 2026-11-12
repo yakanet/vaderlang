@@ -6,8 +6,8 @@
 // blank lines between them, is its output, compared exactly. A line of the
 // program that opens with `# ` (or a lone `#`) is compiled but not shown, as in
 // vaderdoc's `@example`: the site's own rule decides (`hidden_lines.js`). The examples
-// of the repository have their own test (`examples_run.test.ts`), whose
-// snapshots the site shows. The programs run on the virtual clock, so what one
+// of the repository are run by the test runner (`tools/testrunner/src/examples.vader`),
+// whose snapshots the site shows. The programs run on the virtual clock, so what one
 // prints depends on the order of its sleeps, not on how loaded the machine is.
 
 import { expect, test } from "bun:test";

@@ -1,6 +1,7 @@
 // tools/testrunner/src/main: check the snippets against their snapshots, the
-// stage dumps, the run on the VM and the native run; the diagnostics corpora; and
-// the `@test` functions of the modules of `lib/`, `vader/` and `tools/`.
+// stage dumps, the run on the VM and the native run; the diagnostics corpora and
+// the target and extern fixtures; the runs of the examples; and the `@test`
+// functions of the modules of `lib/`, `vader/` and `tools/`.
 //
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
@@ -12,7 +13,8 @@
 //
 // The binary embeds the compiler from its sources, so it refuses to run when a
 // source under `vader/`, `lib/`, `tools/testrunner/` or `tools/cli_tests/` is
-// newer than itself.
+// newer than itself. The examples and the tests of the command line run
+// `build/vader`, so it refuses to run them when that is older than its sources.
 // `vader build --release` in `tools/testrunner` builds it. Run it from the
 // repository root:
 //
@@ -68,6 +70,9 @@ SCRATCH :: "build/testrunner"
 // The folders the binary is built from.
 SOURCES: string[]: ["vader", "lib", "tools/testrunner", "tools/cli_tests"]
 
+// The folder of the tests of the command line.
+CLI_TESTS :: "tools/cli_tests/"
+
 main :: fn(argv: string[]) -> i32 {
     parsed :: parse(argv[1..<argv.len()], FLAGS)
     for problem in parsed.errors {
@@ -104,6 +109,13 @@ main :: fn(argv: string[]) -> i32 {
     command :: worker_command(update)
     k :: worker_count(parsed.int_flag("jobs", 0))
     found :: find_cases(phases)
+    if found.cases.any_match(runs_vader) {
+        stale :: stale_vader()
+        if stale != null {
+            eprintln("testrunner: ${stale}")
+            return 2
+        }
+    }
     return run_all(found.cases, found.problems, command, update, k)
 }
 
@@ -158,6 +170,13 @@ run_all :: fn(
     }
     return 0
 }
+
+// Whether `case` runs the `vader` the repository builds: the runs of an example,
+// and the tests of the command line.
+runs_vader :: fn(case: Case) -> bool =
+    case.phases.contains(EXAMPLE_PHASE)
+        || case.phases.contains(NATIVE_EXAMPLE_PHASE)
+        || case.dir.starts_with(CLI_TESTS)
 
 // The argv of a worker: this binary, as a worker.
 worker_command :: fn(update: bool) -> string[] {
