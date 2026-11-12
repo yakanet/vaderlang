@@ -195,13 +195,14 @@ read_tests :: fn(declared: string, src: string) -> FileFacts {
     in_text := false
     for line in src.split("\n") {
         text :: line.trim()
-        // An odd count of `"""` opens a text block, or closes it.
-        toggles :: !text.starts_with("//") && text.split("\"\"\"").len() % 2 == 0
+        // An odd count of `"""` opens a text block, or closes it: in a block, a
+        // `//` is text, and outside one, a comment line opens none.
+        toggles :: "\"\"\"" in text && text.split("\"\"\"").len() % 2 == 0
         if in_text {
             in_text = !toggles
             continue
         }
-        in_text = toggles
+        in_text = toggles && !text.starts_with("//")
         if text.starts_with("@test") {
             if pending {
                 facts.names_complete = false
@@ -385,7 +386,8 @@ test_read_tests_names_each_test :: fn() -> void {
 test_read_tests_skips_the_lines_of_a_text_block :: fn() -> void {
     one_line :: "a :: \"\"\"@test\"\"\"\n"
     block :: "b :: r\"\"\"\n    @test\n    t :: fn() {}\n    \"\"\"\n"
-    facts :: read_tests("m", "${one_line}${block}@test\nu :: fn() {}\n")
+    closed_by_comment :: "c :: r\"\"\"\n    // tail\"\"\"\n"
+    facts :: read_tests("m", "${one_line}${block}${closed_by_comment}@test\nu :: fn() {}\n")
     assert_eq(facts.test_names.join(" "), "u")
     assert(facts.names_complete, "every test is named")
 }
