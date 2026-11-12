@@ -292,6 +292,7 @@ test_addition :: fn() {
 - A test passes when it returns, and fails when it stops the program: a failed assertion, a `panic`, a run-time check (SPEC §2 *Run-time checks*).
 - `std/testing`, not in the prelude, provides `assert`, `assert_eq`, `assert_ne`, `assert_close` and other assertions.
 - Each module is compiled with its own imports, in the working directory's project: a test can fail where the program builds, when an impl it needs comes from a module only another module imports.
+- A project its `build.vader` describes is read without running its driver: a search root the driver adds (`ctx.include_paths`) is not searched, and a module only that root holds is not found.
 - Each test reports how long it ran, and the summary how long the command took.
 - It exits with 0 when every test passes, 1 when one fails or the filter is not a glob, 2 when the path holds no `.vader` file, no test, or none the filter keeps.
 

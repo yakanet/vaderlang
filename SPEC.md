@@ -3180,6 +3180,8 @@ build :: fn(args: string[]) -> i32 {
 }
 ```
 
+A folder holds at most one module (§11 *Granularity and location*), so the folder of a driver holds no other source: a file beside it that declares another module is an error. The project's sources go in a subfolder, `src/` above.
+
 #### What a driver declares
 
 A driver describes in code what a `vader.json` declares:
