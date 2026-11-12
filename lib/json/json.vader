@@ -696,6 +696,37 @@ export unknown_keys :: fn(value: JsonObject, known: string[]) -> string[] {
     return out
 }
 
+/// The value at the end of `path` from `value`, each key naming a member of the
+/// object before it; null when one of them is missing or names no object.
+///
+/// @param value  the value to read, an object or any other shape.
+/// @param path   the keys to follow, the outermost first.
+/// @example
+///   # import "std/option"
+///   # config :: parse(r"""{"build": {"out": "dist"}}""").or_null() ?? JsonNull {}
+///   member_at(config, ["build", "out"])    // the string "dist"
+///   member_at(config, ["build", "mode"])   // null
+export member_at :: fn(value: JsonValue, path: string[]) -> JsonValue | null {
+    current: JsonValue = value
+    for key in path {
+        current = member(current, key) ?? return null
+    }
+    return current
+}
+
+/// The string at the end of `path` from `value`, as `member_at` follows it; null
+/// when there is none or when the value there is another shape.
+///
+/// @param value  the value to read, an object or any other shape.
+/// @param path   the keys to follow, the outermost first.
+export string_at :: fn(value: JsonValue, path: string[]) -> string | null {
+    found :: member_at(value, path)
+    if found is JsonString {
+        return found.value
+    }
+    return null
+}
+
 // ---- text sequences -------------------------------------------------------
 
 /// `value` as an entry of a JSON text sequence (RFC 7464): a record separator
@@ -952,6 +983,20 @@ parsed_value :: fn(src: string) -> JsonValue {
     } else {
         fail("not an object")
     }
+}
+
+@test
+test_member_at_follows_each_key :: fn() -> void {
+    parsed :: parse(r"""{"a": {"b": {"c": "deep"}}, "n": 1}""")
+    if parsed is JsonError {
+        fail(parsed.msg)
+        return
+    }
+    assert_eq(string_at(parsed, ["a", "b", "c"]) ?? "", "deep")
+    assert(member_at(parsed, []) is JsonObject, "no key is the value itself")
+    assert(member_at(parsed, ["a", "x", "c"]) == null, "a key missing on the way")
+    assert(member_at(parsed, ["n", "c"]) == null, "a key under a number")
+    assert(string_at(parsed, ["n"]) == null, "a number is no string")
 }
 
 @test test_sequence_entry_frames_the_compact_text :: fn() -> void {
