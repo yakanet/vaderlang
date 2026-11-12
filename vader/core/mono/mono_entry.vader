@@ -97,6 +97,7 @@ export stub_decl_for :: fn(symbol: Symbol) -> Decl {
         .visibility = .Private,
         .type_params = [],
         .params = [],
+        .params_span = empty_span(),
         .return_type = null,
         .body = null,
         .decorators = [],

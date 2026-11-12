@@ -397,6 +397,10 @@ export FnDecl :: struct {
     visibility:            Visibility
     type_params:           TypeParam[]
     params:                FnParam[]
+    /// From the `(` to the `)` of the parameters, both included. A declaration
+    /// the compiler makes, which has none, carries a span near its own or an
+    /// empty one.
+    params_span:           Span
     return_type:           TypeExpr | null
     body:                  BlockExpr | null
     decorators:            Decorator[]
@@ -1268,6 +1272,9 @@ export LambdaExpr :: struct {
     span:        Span
     id:          i64 = UNASSIGNED_NODE_ID
     params:      FnParam[]
+    /// From the `(` to the `)` of the parameters, both included; the parameter
+    /// itself for `x -> e`, which writes none.
+    params_span: Span
     return_type: TypeExpr | null
     body:        BlockExpr
     /// True when the source wrote a trailing comma after the last parameter.

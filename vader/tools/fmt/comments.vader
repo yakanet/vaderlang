@@ -138,17 +138,6 @@ holds_comment :: fn(
     return false
 }
 
-// The offset past the comment still queued that starts at `offset`; null when
-// none does.
-comment_end_at :: fn(self: CommentMap, offset: i64) -> i64 | null {
-    for i in self.cursor..<self.comments.len() {
-        c :: self.comments[i]
-        if c.offset == offset { return c.end_offset }
-        if c.offset > offset  { return null }
-    }
-    return null
-}
-
 /// Source line of the first comment still queued, when it starts before
 /// `before` ; null otherwise. Consumes nothing.
 ///

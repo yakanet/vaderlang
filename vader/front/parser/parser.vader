@@ -1063,6 +1063,7 @@ parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
         .visibility           = .Public,
         .type_params          = [],
         .params               = [],
+        .params_span          = arrow_tok.span,
         .return_type          = null,
         .body                 = body,
         .decorators           = [],
@@ -1081,6 +1082,7 @@ parse_sam_block_member :: fn(p: Parser) -> FnDecl {
         .visibility           = .Public,
         .type_params          = [],
         .params               = [],
+        .params_span          = block.span,
         .return_type          = null,
         .body                 = block,
         .decorators           = [],
@@ -1117,6 +1119,7 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
         .visibility           = visibility,
         .type_params          = type_params,
         .params               = sig.params,
+        .params_span          = sig.span,
         .return_type          = return_type,
         .body                 = tail.body,
         .decorators           = decorators,
@@ -1185,6 +1188,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
         .visibility           = visibility,
         .type_params          = type_params,
         .params               = sig.params,
+        .params_span          = sig.span,
         .return_type          = return_type,
         .body                 = tail.body,
         .decorators           = decorators,
@@ -1198,6 +1202,8 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
 
 FnSignature :: struct {
     params:         FnParam[]
+    /// From the `(` to the `)`, both included.
+    span:           Span
     trailing_comma: bool = false
 }
 
@@ -1213,7 +1219,7 @@ CommaList :: struct<T> {
 parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
     params: FnParam[]: []
     trailing := false
-    p.expect(.LParen, "`(` after function name")
+    open :: p.expect(.LParen, "`(` after function name")
     p.skip_newlines()
     if !p.check(.RParen) {
         first := true
@@ -1275,8 +1281,12 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             })
         }
     }
-    p.expect(.RParen, "`)` to close parameter list")
-    return FnSignature { .params = params, .trailing_comma = trailing }
+    close :: p.expect(.RParen, "`)` to close parameter list")
+    return FnSignature {
+        .params         = params,
+        .span           = p.span_of(open, close),
+        .trailing_comma = trailing,
+    }
 }
 
 parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> StructDecl {
@@ -1616,6 +1626,7 @@ through_comptime_helper :: fn(
         .visibility           = .Private,
         .type_params          = [],
         .params               = [],
+        .params_span          = marker,
         .return_type          = ty,
         .body                 = body,
         .decorators           = [],
@@ -3545,6 +3556,7 @@ parse_lambda_without_fn :: fn(p: Parser) -> LambdaExpr {
     return LambdaExpr {
         .span        = Span { .start = start.span.start, .end = body.span.end },
         .params      = sig.params,
+        .params_span = sig.span,
         .return_type = null,
         .body        = body,
         .trailing_comma = sig.trailing_comma,
@@ -3570,6 +3582,7 @@ parse_single_param_lambda_tail :: fn(p: Parser, param_ident: IdentExpr) -> Lambd
     return LambdaExpr {
         .span        = Span { .start = param_ident.span.start, .end = body.span.end },
         .params      = [param],
+        .params_span = param_ident.span,
         .return_type = null,
         .body        = body,
     }
@@ -3810,6 +3823,7 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr {
     return LambdaExpr {
         .span        = Span { .start = start.span.start, .end = body.span.end },
         .params      = sig.params,
+        .params_span = sig.span,
         .return_type = return_type,
         .body        = body,
         .trailing_comma = sig.trailing_comma,

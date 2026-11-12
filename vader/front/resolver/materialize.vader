@@ -242,6 +242,7 @@ synth_signature :: fn(
         .visibility = .Public,
         .type_params = [],
         .params = params,
+        .params_span = method.params_span,
         .return_type = substitute_opt_type(method.return_type, subst),
         .body = null,
         .decorators = decorators,

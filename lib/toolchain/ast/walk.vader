@@ -497,6 +497,7 @@ lambda_of :: fn(param_type: Expr, body: Expr) -> LambdaExpr {
     return LambdaExpr {
         .span = empty_span(),
         .params = [param],
+        .params_span = empty_span(),
         .return_type = null,
         .body = empty_block(body),
     }

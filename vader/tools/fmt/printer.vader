@@ -653,11 +653,7 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
     self.write_name_padded(d.name)
     self.write(" :: fn")
     self.emit_type_params(d.type_params)
-    bounds :: ListBounds {
-        .start = d.name_span.end.offset,
-        .end = self.params_close(d.params, d.name_span.end.offset),
-    }
-    self.emit_fn_params(d.params, d.trailing_comma, bounds)
+    self.emit_fn_params(d.params, d.trailing_comma, self.params_bounds(d.params_span))
     self.emit_type_expr_with_prefix(" -> ", d.return_type)
     self.emit_fn_body(d.body, d.is_expression_bodied)
 }
@@ -1691,37 +1687,18 @@ holds_own_comment :: fn<T>(
 holds_offset :: fn(span: Span, offset: i64) -> bool =
     span.start.offset <= offset && offset < span.end.offset
 
-// The `)` that closes the parameters `params` of a function or a lambda whose
-// head starts at `from`: the first one after the last parameter, or after the
-// first `(` from `from` when there is none, past blanks, a trailing comma and
-// comments. Not the start of what follows: a comment between `=` and an
-// expression body is the body's. Null when the source holds anything else.
-params_close :: fn(self: Printer, params: p.FnParam[], from: i64) -> Position | null {
-    src :: self.source.bytes()
-    at: i64 = from
-    if params.len() > 0 {
-        at = params[params.len() - 1].span.end.offset
-    } else {
-        for at < src.len() && src[at] != '(' {
-            at = self.comments.comment_end_at(at) ?? at + 1
-        }
-        at += 1
+// The bounds of the parameter list whose `(` and `)` the span `params` covers.
+// A lambda `x -> e` writes no parentheses: its list has no closing delimiter.
+params_bounds :: fn(self: Printer, params: Span) -> ListBounds {
+    close :: params.end.offset - 1
+    if close < 0 || self.source.byte_at(close) != ')' {
+        return ListBounds { .start = params.start.offset }
     }
-    for at < src.len() {
-        b :: src[at]
-        if b == ')' {
-            // Line 0: no blank line kept before the delimiter, as in a list.
-            return Position { .file = "", .offset = at, .line = 0, .column = 0 }
-        }
-        if b == '/' {
-            at = self.comments.comment_end_at(at) ?? return null
-        } else if b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == ',' {
-            at += 1
-        } else {
-            return null
-        }
+    // Line 0: no blank line kept before the delimiter, as in a list.
+    return ListBounds {
+        .start = params.start.offset,
+        .end   = Position { .file = "", .offset = close, .line = 0, .column = 0 },
     }
-    return null
 }
 
 // Whether the flat rendering `flat` fits within `MAX_LINE` from the current
@@ -2524,21 +2501,15 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     // lambda with an explicit return type keep the `fn(p) -> T { ... }` form.
     if !x.is_expression_bodied && x.return_type is null && x.body.stmts.len() == 0
         && x.body.trailing != null {
-        self.emit_fn_params(x.params, x.trailing_comma, self.lambda_params_bounds(x))
+        self.emit_fn_params(x.params, x.trailing_comma, self.params_bounds(x.params_span))
         self.write(" ->")
         self.emit_expression_body(x.body.trailing)
         return
     }
     self.write("fn")
-    self.emit_fn_params(x.params, x.trailing_comma, self.lambda_params_bounds(x))
+    self.emit_fn_params(x.params, x.trailing_comma, self.params_bounds(x.params_span))
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
     self.emit_fn_body(x.body, x.is_expression_bodied)
-}
-
-// Where the parameters of the lambda `x` sit.
-lambda_params_bounds :: fn(self: Printer, x: p.LambdaExpr) -> ListBounds {
-    end :: self.params_close(x.params, x.span.start.offset)
-    return ListBounds { .start = x.span.start.offset, .end = end }
 }
 
 // ---- aggregates ----
