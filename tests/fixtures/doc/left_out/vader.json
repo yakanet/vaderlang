@@ -1,1 +1,6 @@
-{ "name": "left_out", "entries": { "main": "apps/app/app.vader" } }
+{
+  "name": "left_out",
+  "entries": {
+    "main": "apps/app/app.vader"
+  }
+}

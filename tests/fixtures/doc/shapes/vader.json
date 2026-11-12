@@ -1,1 +1,6 @@
-{ "name": "shapes", "entries": { "main": "main.vader" } }
+{
+  "name": "shapes",
+  "entries": {
+    "main": "main.vader"
+  }
+}
