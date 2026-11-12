@@ -249,9 +249,9 @@ Two editor plugins share one syntax grammar ([`editors/common/`](./editors/commo
 
 ```sh
 (cd tools/testrunner && ../../build/vader build --release)   # the test runner, once per change of the sources
-tools/testrunner/build/release-<host>/testrunner            # snippets, corpora and the @test of lib/, vader/, tools/
+tools/testrunner/build/release-<host>/testrunner            # snippets, corpora, examples, driven projects and the @test of lib/, vader/, tools/
 tools/testrunner/build/release-<host>/testrunner --update   # refresh their snapshots after intentional output changes
-bun run test                               # the tests still in TypeScript: CLI, language servers, projects, examples
+bun run test                               # the tests still in TypeScript: CLI, language servers, projects
 bun run test:update                        # refresh the snapshots those keep
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
 RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter end-to-end (slow, ~2 min)

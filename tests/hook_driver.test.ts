@@ -1,50 +1,31 @@
 // tests/hook_driver: end-to-end coverage for the build driver, `vader build`
 // with no file argument, finding and running a project's own `build.vader`.
 //
-// A driven project is a whole-project shape, not a pipeline-stage snapshot, so
-// it belongs beside `fixtures/lint/` rather than in `snippets/`, hence a corpus
-// of its own under `tests/fixtures/hook/`. Each fixture is a real project
-// directory the CLI is run *inside*, since the driver is discovered relative to
-// the invocation directory.
-//
-// CORPUS-DRIVEN, in the shape of the snippet corpus: what a fixture asserts lives
-// BESIDE it, not in this file.
-//
-//   <fixture>/build.vader          the driver under test
-//   <fixture>/src/*.vader          the project, and its `@test` fns
-//   <fixture>/build.snapshot       the driven build's output + exit status
-//   <fixture>/generated.snapshot   the text the driver GENERATED, where it does
-//
-// The `@test` half is what makes generated code provable in Vader instead of by
-// string-matching a binary's stdout from TypeScript: once `build/generated/`
-// exists it becomes a MERGE ROOT for the resolver
-// (`vader/front/resolver/module.vader::GENERATED_ROOT_DIR`), so a hand-written test
-// calls generated functions like any other: in both shapes, an imported
-// generated module and one that joined the entry module. Run `vader test src`
-// WITHOUT building first and the same test fails `R2006`, which is what makes the
-// ordering a proof rather than a convention.
+// The corpus of `tests/fixtures/hook/` (one driven build per fixture, its output
+// and generated text against `build.snapshot` and `generated.snapshot`, then the
+// fixture's own `@test` fns) is a stage of the test runner
+// (`tools/testrunner/src/hook_fixtures.vader`). What is left here does not fit
+// that shape: each test says why. Each fixture is a real project directory the
+// CLI is run *inside*, since the driver is discovered relative to the invocation
+// directory.
 //
 // The driver compiles itself before running, so these are the slowest tests in
 // the suite by a wide margin: budget accordingly rather than trimming coverage.
 //
 // Every test here is `test.concurrent`, and that is not a per-test call: Bun
 // overlaps a RUN of adjacent concurrent tests, so one plain `test` left between
-// two of them is a barrier that serialises the whole file again. With the driver
-// builds overlapping instead of queueing, the file goes from 57 s to 18 s
-// locally. Two consequences, both load bearing: every run goes through `gated()`
-// below, and every budget is `HEAVY_BUILD`: a test's wall clock now includes its
-// wait for a slot.
+// two of them is a barrier that serialises the whole file again. Two
+// consequences, both load bearing: every run goes through `gated()` below, and
+// every budget is `HEAVY_BUILD`: a test's wall clock now includes its wait for a
+// slot.
 
 import { test, expect, afterAll } from "bun:test";
-import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, existsSync, realpathSync } from "node:fs";
+import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mkdtempSync, existsSync } from "node:fs";
 import { withStagedLibraryRoot } from "./lib-probe.ts";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, HOST_TARGET, exePath, hermeticEnv, spawnCapture } from "./cli-bin.ts";
+import { ensureCliBuilt, CLI_BIN, HEAVY_BUILD, HOST_TARGET, exePath, hermeticEnv, spawnCapture } from "./cli-bin.ts";
 import type { CliResult, SpawnOptions } from "./cli-bin.ts";
-import { formatRun, snapshotEquals } from "./snapshot.ts";
-import { snapshotDiff } from "./diff.ts";
-import { containsTestFn } from "./vader-sources.ts";
 import { pathToUri } from "./lsp-uri.ts";
 import { encodeFrame, readFrames } from "./rpc-frames.ts";
 
@@ -69,7 +50,7 @@ const REPO = resolve(".");
 
 // The toolchain a staged project builds against. `hermeticEnv` clears
 // `$VADER_HOME` for the rest of the suite: an exported one would silently run
-// the corpus against a different `lib/`, and applies `extra` last, so this wins
+// these tests against a different `lib/`, and applies `extra` last, so this wins
 // where it is passed and nowhere else.
 const TOOLCHAIN_ENV = { VADER_HOME: REPO };
 
@@ -162,15 +143,15 @@ function runBinary(bin: string, cwd: string, env?: Record<string, string>) {
   return spawnCapture([], { bin, cwd, env, timeoutMs: HEAVY_BUILD });
 }
 
-// ---- the corpus ------------------------------------------------------------
+// ---- the shared builds -----------------------------------------------------
 
 interface Built extends CliResult {
   readonly dir: string;
 }
 
-// One driven build per fixture, started lazily and shared: the corpus test
-// asserts on its output, and a hand-written test below can await the same build
-// by name instead of paying a second whole-compiler compile.
+// One driven build per fixture, started lazily and shared: a test below awaits
+// the build of a fixture by name instead of paying a second whole-compiler
+// compile.
 //
 // ⚠️ Everything awaiting a shared build only READS the staged tree. A test that
 // WRITES there stages privately (the stale-sweep one does): otherwise the
@@ -191,42 +172,6 @@ function drivenBuild(name: string): Promise<Built> {
   return pending;
 }
 
-// Neither the staged directory nor a generated filename can appear in a committed
-// expectation: the first is a fresh `mkdtemp` per run, the second carries a
-// content hash. `realpathSync` too: macOS reports `/private/var/…` for the
-// `/var/…` that `mkdtemp` handed back, and the CLI prints the resolved form.
-function normalise(text: string, dir: string): string {
-  // One spelling before any matching. Windows prints `\`, and `mkdtemp` hands
-  // back a MIX (`C:\…\Temp/vader-hook-x`), so converting both sides first is
-  // what keeps the substitution from missing entirely and leaving a
-  // machine-specific path in a committed expectation.
-  const slash = (p: string) => p.replaceAll("\\", "/");
-  // Longest path FIRST: macOS hands back `/var/folders/…` and reports
-  // `/private/var/folders/…`, so replacing the short form first would leave
-  // `/private<project>` behind.
-  const real = slash(realpathSync(dir));
-  let out = slash(text).replaceAll(real, "<project>");
-  out = out.replaceAll(slash(dir), "<project>");
-  // A project's binaries go to `build/<profile>-<host>/`, and the host differs
-  // between the machines that run this.
-  out = out.replaceAll(HOST_TARGET, "<host>");
-  if (EXE_SUFFIX !== "") {
-    // The LINKER names the binary, so a `wrote <project>/hello` line reads
-    // `hello.exe` on Windows. One spelling in the expectation, and a no-op off
-    // Windows since the suffix is empty there.
-    out = out.replaceAll(EXE_SUFFIX, "");
-  }
-  return out
-    .replace(/_[0-9a-f]{8,}\.vader/g, "_<hash>.vader")
-    // How the driver's own binary got linked is machine-dependent: the split
-    // count follows the core count, and a single-unit build words the line
-    // differently. What the expectation is about is that it was written at all.
-    .replace(/^(vader build: wrote <project>\/build\/driver\/\w+\/driver).*$/gm, "$1")
-    // A program's split count depends on the host too: Windows adds a unit for
-    // the standard library's `KERNEL32` shims.
-    .replace(/\(split: \d+ objects/g, "(split: <n> objects");
-}
-
 // Where a driven debug build writes a project's binaries.
 const BINARIES = `build/debug-${HOST_TARGET}`;
 
@@ -234,110 +179,11 @@ const BINARIES = `build/debug-${HOST_TARGET}`;
 // `vader/front/resolver/module.vader::GENERATED_ROOT_DIR`, which the resolver reads.
 const GENERATED = "build/generated";
 
-// A generated tree as one text blob: sorted `--- <relpath>` headers plus each
-// file's contents. Names carry a content hash, so a changed generator shows up
-// twice over: in the name and in the body.
-function readGeneratedTree(root: string): string {
-  const base = join(root, GENERATED);
-  if (!existsSync(base)) {
-    return "";
-  }
-  return (readdirSync(base, { recursive: true }) as string[])
-    .filter(p => p.endsWith(".vader"))
-    .map(p => p.replaceAll("\\", "/"))
-    .sort()
-    .map(p => `--- ${p}\n${readFileSync(join(base, p), "utf8")}`)
-    .join("");
-}
-
-// What the driver GENERATED, pinned as text beside the fixture rather than as
-// files inside it: nothing that comes out of a build belongs in git, and
-// `build/generated/` is build output. The snapshot keeps what mattered anyway:
-// the generator's own text, reviewable in a diff instead of only its stdout.
-//
-// The cost, stated because it will bite the next reader: an editor flags the
-// fixtures' calls into generated code as unresolved. Resolving them needs the
-// tree ON DISK (the resolver treats `build/generated/` as a merge root when it
-// exists), and it only ever exists inside a staged build.
-//
-// Only for a build that SUCCEEDED: a failed build's tree is whatever its last
-// round happened to write (`generation_never_settles`), which is noise. And only
-// where there is something to say: an empty expectation in the fixtures that
-// generate nothing would be eight files saying nothing.
-function expectGeneratedTree(fixture: string, dir: string): void {
-  const actual = readGeneratedTree(dir);
-  const snapName = "generated.snapshot";
-  if (actual === "" && !existsSync(join(fixture, snapName))) {
-    return;
-  }
-  const snap = snapshotEquals(fixture, snapName, actual);
-  if (!snap.ok) {
-    throw new Error(
-      `Generated text differs from ${snap.snapPath}\n` +
-      `Run with UPDATE_SNAPSHOTS=1 to refresh, and READ the diff: this is the ` +
-      `generator's own output.\n\n` +
-      snapshotDiff(snap.snapPath, snap.expected, actual),
-    );
-  }
-}
-
-// Does the fixture's own source assert anything? A fixture with no `@test` is a
-// diagnostic case: its build fails, so there is no program to run tests in.
-function declaresTests(fixture: string): boolean {
-  const src = join(fixture, "src");
-  return existsSync(src) && containsTestFn(src);
-}
-
-const fixtures = readdirSync(FIXTURES, { withFileTypes: true })
-  .filter(e => e.isDirectory())
-  .map(e => e.name)
-  .sort();
-
-test.concurrent("hook fixtures: at least one discovered", () => {
-  expect(fixtures.length).toBeGreaterThan(0);
-});
-
-for (const name of fixtures) {
-  test.concurrent(`driven build: ${name}`, async () => {
-    const b = await drivenBuild(name);
-    const actual = normalise(formatRun(b.stdout, b.stderr, b.exit), b.dir);
-    const snap = snapshotEquals(`${FIXTURES}/${name}`, "build.snapshot", actual);
-    if (!snap.ok) {
-      throw new Error(
-        `Snapshot mismatch: ${name} (${snap.snapPath})\n` +
-        `Run with UPDATE_SNAPSHOTS=1 to refresh.\n\n` +
-        snapshotDiff(snap.snapPath, snap.expected, actual),
-      );
-    }
-    if (b.exit === 0) {
-      expectGeneratedTree(`${FIXTURES}/${name}`, b.dir);
-    }
-    // Universal to every driven build, so it belongs here rather than in one
-    // hand-written test: artefacts go under `build/`, and the generated entry
-    // shim is UNLINKED rather than blanked: a leftover `.vader` declaring
-    // nothing would break the next run.
-    expect(existsSync(`${b.dir}/vader_build_entry.vader`)).toBe(false);
-    expect(existsSync(`${b.dir}/vader_build_driver`)).toBe(false);
-    // The fixture's own `@test` fns are what prove the GENERATED code correct.
-    // They run after the build on purpose: without `build/generated/` they fail
-    // `R2006`, so a green run says the generated declarations were really there.
-    if (declaresTests(`${FIXTURES}/${name}`)) {
-      const t = await run(["test", "src"], { cwd: b.dir, env: TOOLCHAIN_ENV });
-      if (t.exit !== 0) {
-        throw new Error(
-          `${name}: \`vader test src\` failed after the driven build: the ` +
-          `fixture's own @test fns are what assert the generated code.\n` +
-          `${t.stdout}${t.stderr}`,
-        );
-      }
-    }
-  }, HEAVY_BUILD);
-}
-
 // ---- what a corpus entry cannot carry --------------------------------------
 
-// Everything below is hand-written, each for a stated reason. A corpus entry is
-// one `vader build` in a clean project, its output compared to a committed
+// Everything below is hand-written, each for a stated reason. A corpus entry, a
+// case of the test runner (`tools/testrunner/src/hook_fixtures.vader`), is one
+// `vader build` in a clean project, its output compared to a committed
 // expectation, and the project's own tests run afterwards. These are the
 // properties that do not fit that shape.
 
@@ -405,8 +251,8 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   copyFixture(JSON_DERIVE, dir);
   // The canary: NO toolchain beside this project, so everything the build needs
   // has to come from the bundle. Stated as absences rather than as a directory
-  // listing: the fixture also holds its committed expectation, and a listing
-  // would then depend on whether the corpus test had written it yet.
+  // listing: the fixture also holds its committed expectations, which a listing
+  // would have to follow.
   for (const beside of TOOLCHAIN_LINKS) {
     expect(existsSync(`${dir}/${beside}`)).toBe(false);
   }
@@ -526,7 +372,7 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
 }, HEAVY_BUILD);
 
 test.concurrent("a driven build sweeps the previous build's generated modules", async () => {
-  // REASON: the only TWO-BUILD property in the corpus. Generated names are
+  // REASON: a TWO-BUILD property, which a corpus entry cannot hold. Generated names are
   // content hashes, so a module whose text CHANGED leaves its old file in the
   // same folder, where it still compiles, declaring the same symbol twice
   // (T3053, fatal). A clean project can never exhibit that state: a fresh build
@@ -555,8 +401,8 @@ test.concurrent("a driven build sweeps the previous build's generated modules", 
 
 test.concurrent("the driver produces a working binary", async () => {
   // REASON: it RUNS what the build produced. A committed expectation covers the
-  // build's output, and the corpus loop covers the project root staying clean:
-  // neither can say the binary works.
+  // build's output, and the `hook` stage of the test runner the project root
+  // staying clean: neither can say the binary works.
   const { dir } = await drivenBuild("pascal_case_lint");
   expect(existsSync(exePath(`${dir}/build/driver/debug/driver`))).toBe(true);
 
@@ -854,8 +700,8 @@ test.concurrent("--no-hooks runs no driver, whatever the action", async () => {
 // It lives here rather than beside the other `vader new` tests for two reasons
 // this file's header already states: every driven build goes through `gated()`
 // and is `test.concurrent`, or it becomes a barrier that serialises the run; and
-// this is the corpus that would notice the scaffolded template drifting from the
-// `toolchain/build` contract, since it is the only place that compiles drivers.
+// a driver scaffolded by `vader new` is compiled nowhere else, so this is the test
+// that notices the template drifting from the `toolchain/build` contract.
 test.concurrent("driven build: a project scaffolded by `vader new`, then ejected", async () => {
   // `vader new --build=driver` and `vader eject` write their driver through one
   // renderer, so one driver build covers both. The scaffolded `vader.json` gains

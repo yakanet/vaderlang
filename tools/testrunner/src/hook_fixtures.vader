@@ -1,0 +1,268 @@
+// tools/testrunner/src/hook_fixtures: the projects of `tests/fixtures/hook`,
+// built by the driver their `build.vader` declares.
+//
+// A fixture is a whole project, built as a user builds one: `vader build` with no
+// file, run inside it, which finds the driver beside it. Its `hook` stage copies
+// the fixture to the folder of its case, with no `build/`, builds it there with
+// `VADER_HOME` at the repository, and compares what the build printed with
+// `build.snapshot`, once the paths and the host are taken out of it. A build
+// that succeeds has its generated modules compared with `generated.snapshot`,
+// and the `@test` functions of `src/` then run on the built project: they call
+// the generated code, so they fail to resolve where the build generated nothing.
+// The entry and the driver a build writes beside the project must be gone after
+// it.
+
+module "tools/testrunner/src"
+
+import "regex"
+import "std/abort"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "std/time"
+import "tools/cli_tests/cli"
+import "vader/support/target"
+import "vader/tools/testing"
+
+HOOK_CORPUS :: "tests/fixtures/hook"
+
+// The modules a driven build generates, under its project.
+GENERATED :: "build/generated"
+
+GENERATED_SNAPSHOT :: "generated.snapshot"
+
+// What the path of the project reads as in a snapshot.
+PROJECT :: "<project>"
+
+// What opens the line saying where a build wrote its driver.
+DRIVER_LINE :: "vader build: wrote <project>/build/driver/"
+
+// What a build writes beside its project for the time it runs.
+BUILD_LEFTOVERS: string[]: ["vader_build_entry.vader", "vader_build_driver"]
+
+// The fixtures of `HOOK_CORPUS`, pushed on `found`.
+find_hook_fixtures :: fn(found: Discovery) -> void {
+    for name in entries_where(found, HOOK_CORPUS, is_dir) {
+        found.cases.push(
+            Case {
+                .name = "hook/${name}",
+                .dir = "${HOOK_CORPUS}/${name}",
+                .phases = [HOOK_PHASE],
+            },
+        )
+    }
+}
+
+// Build the fixture of `case` in its folder `dir`, and compare what the build
+// printed and generated with its snapshots, which `update` writes when they
+// differ; then run the `@test` functions of its `src/`.
+check_hook :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
+    began :: monotonic()
+    project :: "${dir}/project"
+    staged :: stage_project(case.dir, project)
+    if staged is IOError {
+        return hook_failure("`${project}`: ${staged.msg}")
+    }
+    options :: RunOptions {
+        .cwd = project,
+        .env = toolchain_env(),
+        .timeout = HEAVY_TIMEOUT,
+    }
+    built :: ran_or_failure(run_vader(["build"], options))
+    if built is CaseFailure {
+        return hook_failure(built.message)
+    }
+    actual :: normalised(run_text(built.stdout, built.stderr, built.exit), project)
+    report :: report_of(case, HOOK_STAGE, actual, update, began)
+    for name in BUILD_LEFTOVERS {
+        if exists("${project}/${name}") {
+            return hook_failure("the build left `${name}` behind")
+        }
+    }
+    if is_failure(report.result) || built.exit != 0 {
+        return report
+    }
+    generated :: generated_report(case, project, update, began)
+    if generated != null && is_failure(generated.result) {
+        return generated
+    }
+    failed :: tests_failure(case.dir, options)
+    if failed != null {
+        return failed
+    }
+    // A snapshot written shows in the report, whichever it is.
+    if generated != null && generated.result == .Written {
+        return generated
+    }
+    return report
+}
+
+hook_failure :: fn(message: string) = CaseFailure { .message = "${HOOK_PHASE}: ${message}" }
+
+// Why the `@test` functions of the fixture in `fixture` fail on its built copy,
+// which `options` runs in; null when they pass, or when it declares none.
+tests_failure :: fn(fixture: string, options: RunOptions) -> CaseFailure | null {
+    if !declares_tests("${fixture}/src") {
+        return null
+    }
+    tested :: ran_or_failure(run_vader(["test", "src"], options))
+    if tested is CaseFailure {
+        return hook_failure(tested.message)
+    }
+    if tested.exit == 0 {
+        return null
+    }
+    return hook_failure(
+        "`vader test src` failed after the build:\n${tested.stdout}${tested.stderr}",
+    )
+}
+
+// Copy the fixture in `fixture` to `project`, but for what a build left in it.
+stage_project :: fn(fixture: string, project: string) -> null | IOError {
+    copied :: copy_tree(fixture, project)
+    if copied is IOError {
+        return copied
+    }
+    return remove("${project}/build", RemoveOptions { .recursive = true, .force = true })
+}
+
+// What the build of `project` generated, compared with the snapshot of `case`;
+// null when it generated nothing and the fixture pins nothing.
+generated_report :: fn(
+    case: Case,
+    project: string,
+    update: bool,
+    began: Monotonic,
+) -> StageReport | null {
+    actual :: generated_text(project)
+    if actual == "" && !exists("${case.dir}/${GENERATED_SNAPSHOT}") {
+        return null
+    }
+    stage :: Stage { ...HOOK_STAGE, .snapshot = GENERATED_SNAPSHOT }
+    return report_of(case, stage, actual, update, began)
+}
+
+// The modules generated in `project`, each under a `--- <path>` header, in path
+// order: a changed generator shows in the hash of a name and in its text.
+generated_text :: fn(project: string) -> string {
+    root :: "${project}/${GENERATED}"
+    walker :: walk(root)
+    if walker is IOError {
+        return ""
+    }
+    paths: string[]: []
+    for entry in walker {
+        if entry.name.ends_with(".vader") {
+            paths.push(entry.relative)
+        }
+    }
+    out :: StringBuilder {}
+    for path in sort(paths, compare_ascending) {
+        text :: read_file_string("${root}/${path}")
+        if text is string {
+            out.append("--- ${path}\n${text}")
+        } else {
+            out.append("--- ${path}\n(${text.msg})\n")
+        }
+    }
+    return out.to_string()
+}
+
+// Whether a file under `src` declares a `@test`.
+declares_tests :: fn(src: string) -> bool {
+    walker :: walk(src)
+    if walker is IOError {
+        return false
+    }
+    for entry in walker {
+        if entry.name.ends_with(".vader") && file_facts(entry.path.to_path()).has_tests {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- the text of a build ----------------------------------------------------
+
+// `text`, printed by a build of the project in `dir`, with nothing that moves
+// from one run or one host to the next: the path of the project, the host, the
+// suffix of an executable, the hash in the name of a generated module, the
+// number of units a build was split into, and how the driver was linked.
+normalised :: fn(text: string, dir: string) -> string {
+    placed :: without_project(slashes(text), dir).replace_all("${host_target()}", "<host>")
+    hashed :: replace_matches(without_executable_suffix(placed), HASHED_NAME, "_<hash>.vader")
+    split :: replace_matches(hashed, SPLIT_COUNT, "(split: <n> objects")
+    return split.split("\n").map(driver_line).collect().join("\n")
+}
+
+// The hash in the name of a generated module, and the number of units a build
+// was split into.
+HASHED_NAME :: r"_[0-9a-f]{8,}\.vader"
+SPLIT_COUNT :: r"\(split: \d+ objects"
+
+slashes :: fn(text: string) -> string = text.replace_all("\\", "/")
+
+// `text` with `PROJECT` for the path of the project in `dir`, its real path
+// first: macOS reports `/private/var/...` for a `/var/...`.
+without_project :: fn(text: string, dir: string) -> string {
+    real :: real_path(dir)
+    resolved :: if real is string { text.replace_all(to_posix(real), PROJECT) } else { text }
+    return resolved.replace_all(to_posix(dir), PROJECT)
+}
+
+// `text` with no `.exe`: the linker names a binary after its host.
+without_executable_suffix :: fn(text: string) -> string {
+    suffix :: executable_path("")
+    if suffix == "" {
+        return text
+    }
+    return text.replace_all(suffix, "")
+}
+
+// `text` with each match of `pattern`, a constant of this file, replaced by
+// `with`.
+replace_matches :: fn(text: string, pattern: string, with: string) -> string {
+    compiled :: compile(pattern)
+    if compiled is RegexError {
+        panic("`${pattern}`: ${compiled.msg}")
+    }
+    return compiled.replace_all(text, with)
+}
+
+// `line`, cut after the name of the driver when it says where a build wrote one:
+// how it was linked depends on the host.
+driver_line :: fn(line: string) -> string {
+    if !line.starts_with(DRIVER_LINE) {
+        return line
+    }
+    halves :: line.trim_prefix(DRIVER_LINE).split_first("/driver") ?? return line
+    return "${DRIVER_LINE}${halves.0}/driver"
+}
+
+// ---- tests ------------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_build_text_names_no_path_of_its_project :: fn() -> void {
+    text :: "vader build: wrote /tmp/p/build/debug-${host_target()}/app (split: 12 objects)\n"
+    assert_eq(
+        normalised(text, "/tmp/p"),
+        "vader build: wrote <project>/build/debug-<host>/app (split: <n> objects)\n",
+    )
+}
+
+@test
+test_a_build_text_names_no_hash_of_a_generated_module :: fn() -> void {
+    assert_eq(normalised("src/point_0123abcd9f.vader\n", "/tmp/p"), "src/point_<hash>.vader\n")
+}
+
+@test
+test_a_build_text_keeps_the_name_of_its_driver_only :: fn() -> void {
+    text :: "vader build: wrote /tmp/p/build/driver/debug/driver (split: 71 objects compiled)"
+    assert_eq(normalised(text, "/tmp/p"), "vader build: wrote <project>/build/driver/debug/driver")
+}

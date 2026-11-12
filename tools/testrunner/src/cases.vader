@@ -68,6 +68,7 @@ STAGES: Stage[]: [
     EXTERNS_STAGE,
     EXAMPLE_STAGE,
     NATIVE_EXAMPLE_STAGE,
+    HOOK_STAGE,
 ]
 
 // The run of a snippet on the VM, and what it is compared with.
@@ -138,6 +139,14 @@ NATIVE_EXAMPLE_STAGE: Stage: Stage {
     .snapshot = "",
 }
 
+// The build of a fixture of `HOOK_CORPUS` by its driver (`hook_fixtures.vader`).
+HOOK_PHASE :: "hook"
+HOOK_STAGE: Stage: Stage {
+    .phase = HOOK_PHASE,
+    .dump = null,
+    .snapshot = "build.snapshot",
+}
+
 // The lowered form of a program.
 LOWER_PHASE :: "lower"
 
@@ -197,14 +206,18 @@ Discovery :: struct {
     problems: string[] = []
 }
 
-// The modules, the examples, the snippets, then the fixtures, each with the
-// phases of `phases` it runs. The modules and the examples come first: a module
-// is compiled whole with what it imports, and an example by a `vader` of its
-// own, the longest cases of a run, which a pool should not start last.
+// The modules, the driven projects, the examples, the snippets, then the
+// fixtures, each with the phases of `phases` it runs. The first three come
+// first: a module is compiled whole with what it imports, a project by its
+// driver, and an example by a `vader` of its own, the longest cases of a run,
+// which a pool should not start last.
 find_cases :: fn(phases: string[]) -> Discovery {
     found :: Discovery {}
     if phases.contains(TESTS_PHASE) {
         find_module_tests(found)
+    }
+    if phases.contains(HOOK_PHASE) {
+        find_hook_fixtures(found)
     }
     find_examples(found, phases)
     find_snippets(found, phases)

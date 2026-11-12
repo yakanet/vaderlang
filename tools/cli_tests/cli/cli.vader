@@ -31,13 +31,13 @@ export RunOptions :: struct {
 }
 
 /// The wait for a command, by default: a check or a build of a small program.
-export DEFAULT_TIMEOUT: Duration: Duration(30_000_000_000)
+export DEFAULT_TIMEOUT :: 30.seconds()
 
 /// The wait for a command that builds a large program, the compiler included.
-export LONG_TIMEOUT: Duration: Duration(120_000_000_000)
+export LONG_TIMEOUT :: 120.seconds()
 
 /// The wait for a driven build, which compiles its driver first.
-export HEAVY_TIMEOUT: Duration: Duration(600_000_000_000)
+export HEAVY_TIMEOUT :: 600.seconds()
 
 // Where the command finds its library when nothing else says.
 HOME_VARIABLE :: "VADER_HOME"
@@ -49,6 +49,10 @@ export vader_binary :: fn() -> string = "${toolchain_home()}/${executable_path("
 /// The root of the repository, the toolchain a test points `VADER_HOME` at when
 /// it builds a project outside it.
 export toolchain_home :: fn() -> string = current_working_directory()
+
+/// The change to the environment of a command that points it at the toolchain
+/// of the repository: what a project outside it builds against.
+export toolchain_env :: fn() -> [string, string | null][] = [[HOME_VARIABLE, toolchain_home()]]
 
 /// The path of the executable a linker writes for `base`: `.exe` on Windows.
 ///

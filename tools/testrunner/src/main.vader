@@ -1,7 +1,8 @@
 // tools/testrunner/src/main: check the snippets against their snapshots, the
 // stage dumps, the run on the VM and the native run; the diagnostics corpora and
-// the target and extern fixtures; the runs of the examples; and the `@test`
-// functions of the modules of `lib/`, `vader/` and `tools/`.
+// the target and extern fixtures; the driven projects; the runs of the
+// examples; and the `@test` functions of the modules of `lib/`, `vader/` and
+// `tools/`.
 //
 // The runner drives K workers, each a `testrunner --worker` child of the same
 // binary that compiles the cases in its own process (`worker.vader`), K being
@@ -13,8 +14,9 @@
 //
 // The binary embeds the compiler from its sources, so it refuses to run when a
 // source under `vader/`, `lib/`, `tools/testrunner/` or `tools/cli_tests/` is
-// newer than itself. The examples and the tests of the command line run
-// `build/vader`, so it refuses to run them when that is older than its sources.
+// newer than itself. The examples, the driven projects and the tests of the
+// command line run `build/vader`, so it refuses to run them when that is older
+// than its sources.
 // `vader build --release` in `tools/testrunner` builds it. Run it from the
 // repository root:
 //
@@ -171,11 +173,13 @@ run_all :: fn(
     return 0
 }
 
+// The phases that run the `vader` the repository builds.
+VADER_PHASES: string[]: [EXAMPLE_PHASE, NATIVE_EXAMPLE_PHASE, HOOK_PHASE]
+
 // Whether `case` runs the `vader` the repository builds: the runs of an example,
-// and the tests of the command line.
+// the driven projects, and the tests of the command line.
 runs_vader :: fn(case: Case) -> bool =
-    case.phases.contains(EXAMPLE_PHASE)
-        || case.phases.contains(NATIVE_EXAMPLE_PHASE)
+    case.phases.any_match((phase) -> VADER_PHASES.contains(phase))
         || case.dir.starts_with(CLI_TESTS)
 
 // The argv of a worker: this binary, as a worker.

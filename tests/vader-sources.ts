@@ -1,10 +1,7 @@
-// tests/vader-sources: shared questions about a tree of `.vader` sources.
-//
-// Small on purpose. It exists because two suites ask the same question and the
-// second one got it wrong when it asked alone: `hook_driver` searched for the
-// substring `@test`, which `std/testing`'s own doc-comment defeats.
+// tests/vader-sources: shared questions about a tree of `.vader` sources: the
+// compiler's entry, the examples, the `.vader` files under a folder.
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..");
@@ -31,12 +28,6 @@ export const exampleInput = (name: string): string => {
   return exampleEntry(name);
 };
 
-// Anchor on `^@test\s` rather than a substring search : `std/testing` itself
-// only mentions `@test` in its module-level doc-comment, which would otherwise
-// look like a test-bearing module to the walker. Decorators are always at
-// column 0 (no Vader file uses indented `@test`).
-const TEST_DECORATOR_RE = /^@test\s/m;
-
 /** Every `.vader` file under `dir`, recursively, in `readdir` order. `dir` may
  *  also BE a `.vader` file, in which case the answer is just that file, which is
  *  what an import path resolving to a file-form module needs.
@@ -58,9 +49,4 @@ export function listVaderFiles(dir: string): string[] {
     else if (ent.name.endsWith(".vader")) out.push(p);
   }
   return out;
-}
-
-/** True when any `.vader` file under `dir` declares a `@test` fn. */
-export function containsTestFn(dir: string): boolean {
-  return listVaderFiles(dir).some((p) => TEST_DECORATOR_RE.test(readFileSync(p, "utf8")));
 }
