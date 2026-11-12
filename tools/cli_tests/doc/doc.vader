@@ -1,0 +1,426 @@
+// tools/cli_tests/doc/doc: `vader doc`, the data of the API documentation.
+//
+// `shapes` is a project with two modules under `shapes/`, each over two files,
+// beside a `main` the path leaves out; the data `vader doc shapes` writes for it
+// is the snapshot of the `doc` family of the test runner. These run the command
+// on copies of it: from elsewhere, through links, again on data up to date,
+// after a change, on projects it refuses, and to search the data. `left_out`
+// holds a `json` module, which the toolchain's own `json` shadows.
+
+module "tools/cli_tests/doc"
+
+import "json"
+import "std/env"
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/process"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+FIXTURES :: "tests/fixtures/doc"
+
+// A copy of the fixture `name` in a fresh folder that `label` tells apart: the
+// command writes into the `build/` of its project.
+staged :: fn(name: string, label: string) -> string =
+    staged_copy("${FIXTURES}/${name}", "doc_${label}")
+
+// What `vader doc shapes` did in the copy `dir`.
+doc_shapes :: fn(dir: string) -> ProcessResult = vader_in(dir, ["doc", "shapes"])
+
+// A copy the searches that change nothing share: the first one writes its data,
+// which the others find up to date.
+@singleton
+searched :: fn() -> string = staged("shapes", "searched")
+
+// What `vader doc --search=<query>` did in the copy `dir`: the project's modules
+// and the toolchain's library.
+search :: fn(dir: string, query: string) -> ProcessResult =
+    vader_in(dir, ["doc", "--search=${query}"])
+
+// The JSON of `file`, under the data the command wrote for the project in `dir`.
+data_of :: fn(dir: string, file: string) -> JsonValue =
+    parse(read_file_string("${dir}/build/doc/${file}").unwrap()).unwrap()
+
+// The member `field` of each object of the array `key` of `value`.
+fields_of :: fn(value: JsonValue, key: string, field: string) -> string[] {
+    out: string[]: []
+    found :: member(value, key)
+    if found is JsonArray {
+        for item in found.items {
+            out.push(string_member(item, field) ?? "")
+        }
+    }
+    return out
+}
+
+// The files of every module of the index of the project in `dir`, in order.
+indexed_files :: fn(dir: string) -> string[] {
+    out: string[]: []
+    modules :: member(data_of(dir, "index.json"), "modules")
+    if modules is JsonArray {
+        for module in modules.items {
+            out.push_all(strings_member(module, "files"))
+        }
+    }
+    return out
+}
+
+// The paths of the modules of the index of the project in `dir`.
+indexed_modules :: fn(dir: string) -> string[] =
+    fields_of(data_of(dir, "index.json"), "modules", "path")
+
+// The names of the declarations of the data of the module `file` of `dir`.
+declared :: fn(dir: string, file: string) -> string[] =
+    fields_of(data_of(dir, "modules/shapes/${file}"), "decls", "name")
+
+// Make a symbolic link at `link` to `target`. Windows grants one only to a
+// privileged user: the tests that make one do not run there.
+link_to :: fn(target: string, link: string) -> void {
+    succeeded(run_command(["ln", "-s", target, link])).unwrap()
+}
+
+// `path`, `/`-separated, as the command names it on this host.
+native :: fn(path: string) -> string =
+    if current_os() == .Windows { path.replace_all("/", "\\") } else { path }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_doc_reads_the_project_project_names_as_if_it_ran_there :: fn() -> void {
+    // Run from elsewhere, `--project` gives the folder the path is read from,
+    // the data is written to and the files are named from.
+    dir :: staged("shapes", "project")
+    ran :: vader_in(temp_dir(), ["doc", "--project=${dir}"])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    expected :: [
+        "main.vader",
+        "shapes/geometry/area.vader",
+        "shapes/geometry/geometry.vader",
+        "shapes/text/pin.vader",
+        "shapes/text/text.vader",
+    ]
+    assert_eq(indexed_files(dir).join(" "), expected.join(" "))
+}
+
+@test
+test_doc_names_a_module_another_folder_shadows_and_leaves_it_out :: fn() -> void {
+    // What a run leaves out follows from what its stamp covers: the stamp keeps
+    // it, and a run on data still up to date says it again.
+    dir :: staged("left_out", "left_out")
+    shadowed :: "`json` (`${native("apps/json")}`) is shadowed by the module of "
+    for status in ["modules written", "is up to date"] {
+        ran :: vader_in(dir, ["doc", "apps"])
+        assert_eq(ran.exit, 0)
+        assert(shadowed in ran.stderr, ran.stderr)
+        assert(status in ran.stdout, ran.stdout)
+    }
+    assert_eq(indexed_modules(dir).join(" "), "apps/app")
+}
+
+@test
+test_doc_reads_a_path_through_a_symbolic_link_as_the_folder_it_leads_to :: fn() -> void {
+    // The working directory comes back from the system with its links
+    // resolved, a path on the command line keeps them: both name the same
+    // modules, none shadowed by itself.
+    if current_os() == .Windows {
+        return
+    }
+    dir :: staged("shapes", "link_path")
+    links :: scratch_dir("doc_links")
+    link_to(dir, "${links}/project")
+    ran :: vader_in(dir, ["doc", "${links}/project/shapes"])
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    assert_eq(indexed_modules(dir).join(" "), "shapes/geometry shapes/text")
+}
+
+@test
+test_doc_documents_once_a_folder_a_symbolic_link_reaches_twice :: fn() -> void {
+    if current_os() == .Windows {
+        return
+    }
+    dir :: staged("shapes", "link_twice")
+    link_to("${dir}/shapes/geometry", "${dir}/shapes/again")
+    ran :: doc_shapes(dir)
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    assert_eq(indexed_modules(dir).join(" "), "shapes/geometry shapes/text")
+}
+
+@test
+test_doc_leaves_data_that_is_up_to_date_alone :: fn() -> void {
+    // The stamp holds what the data was written from, the files the load read:
+    // a module no load reaches changes nothing.
+    dir :: staged("shapes", "up_to_date")
+    assert("modules written" in doc_shapes(dir).stdout, "a first run writes")
+    assert("is up to date" in doc_shapes(dir).stdout, "a second run writes nothing")
+    create_dir("${dir}/notes")
+    write_file("${dir}/notes/notes.vader", "module \"notes\"\n")
+    again :: doc_shapes(dir)
+    assert_eq(again.exit, 0)
+    assert("is up to date" in again.stdout, again.stdout)
+}
+
+@test
+test_doc_writes_the_data_again_when_what_the_load_read_changes :: fn() -> void {
+    // A file the load read changes, or one joins a folder it read.
+    dir :: staged("shapes", "changed")
+    doc_shapes(dir)
+    area :: "${dir}/shapes/geometry/area.vader"
+    write_file(area, read_file_string(area).unwrap() + "\n/// One.\nexport ONE :: 1\n")
+    assert("modules written" in doc_shapes(dir).stdout, "a changed file")
+    zero :: "module \"shapes/geometry\"\n\n/// Zero.\nexport ZERO :: 0\n"
+    write_file("${dir}/shapes/geometry/zero.vader", zero)
+    assert("modules written" in doc_shapes(dir).stdout, "a file joins a folder")
+    names :: declared(dir, "geometry.json")
+    assert(names.contains("ONE") && names.contains("ZERO"), names.join(" "))
+}
+
+@test
+test_doc_writes_the_data_again_when_a_root_appears_or_a_generated_file_changes :: fn() -> void {
+    // The roots the load searches are part of what the data comes from: the
+    // generated tree appearing is one more, whose files join the module they
+    // declare.
+    dir :: staged("shapes", "generated")
+    doc_shapes(dir)
+    generated :: "${dir}/build/generated/shapes/geometry"
+    create_dir(generated)
+    gen :: "${generated}/gen.vader"
+    write_file(gen, "module \"shapes/geometry\"\n\n/// One, generated.\nexport GEN_ONE :: 1\n")
+    assert("modules written" in doc_shapes(dir).stdout, "a root appears")
+    write_file(gen, "module \"shapes/geometry\"\n\n/// Two, generated.\nexport GEN_TWO :: 2\n")
+    assert("modules written" in doc_shapes(dir).stdout, "a generated file changes")
+    names :: declared(dir, "geometry.json")
+    assert(names.contains("GEN_TWO") && !names.contains("GEN_ONE"), names.join(" "))
+}
+
+@test
+test_doc_asks_which_entry_to_start_from_when_the_project_declares_two :: fn() -> void {
+    // The load starts from the project's entry, as `vader lint` takes it.
+    dir :: staged("shapes", "two_entries")
+    manifest :: r"""{ "name": "shapes", "entries": { "a": "main.vader", "b": "main.vader" } }"""
+    write_file("${dir}/vader.json", manifest)
+    both :: doc_shapes(dir)
+    assert_eq(both.exit, 2)
+    assert("choose one with `--entry=<name>`" in both.stderr, both.stderr)
+    chosen :: vader_in(dir, ["doc", "--entry=b", "shapes"])
+    assert_eq(chosen.stderr, "")
+    assert_eq(chosen.exit, 0)
+}
+
+@test
+test_doc_refuses_a_project_its_build_vader_describes_for_now :: fn() -> void {
+    dir :: staged("shapes", "driven")
+    remove("${dir}/vader.json")
+    write_file("${dir}/build.vader", "module \"build\"\n")
+    ran :: doc_shapes(dir)
+    assert_eq(ran.exit, 1)
+    assert("which `vader doc` does not run yet" in ran.stderr, ran.stderr)
+}
+
+@test
+test_doc_shows_a_type_error_of_a_module_it_documents_and_writes_its_data :: fn() -> void {
+    // A documented module is type-checked as a build checks it, and written
+    // with no stamp, so that the next run shows the errors again.
+    dir :: staged("shapes", "type_error")
+    file :: "${dir}/shapes/text/text.vader"
+    broken :: "\nexport broken :: fn() -> i32 = \"not a number\"\n"
+    write_file(file, read_file_string(file).unwrap() + broken)
+    ran :: doc_shapes(dir)
+    assert_eq(ran.exit, 0)
+    assert("error[T3020]" in ran.stderr, ran.stderr)
+    assert(!exists("${dir}/build/doc/stamp"), "no stamp")
+    assert(declared(dir, "text.json").contains("broken"), "the data of `broken`")
+}
+
+@test
+test_doc_says_that_a_folder_without_a_project_documents_nothing :: fn() -> void {
+    // Without a project, only the toolchain's roots are read.
+    dir :: staged("shapes", "no_project")
+    remove("${dir}/vader.json")
+    ran :: doc_shapes(dir)
+    assert_eq(ran.exit, 1)
+    assert("the working directory holds no project" in ran.stderr, ran.stderr)
+}
+
+@test
+test_doc_refuses_a_path_that_holds_no_module :: fn() -> void {
+    ran :: vader_in(staged("shapes", "nowhere"), ["doc", "nowhere"])
+    assert_eq(ran.exit, 2)
+    assert("`nowhere` does not exist" in ran.stderr, ran.stderr)
+}
+
+@test
+test_doc_search_shows_a_declaration_it_names_in_full :: fn() -> void {
+    ran :: search(searched(), "distance")
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    expected :: """
+        module shapes/geometry  shapes/geometry/geometry.vader:28:8
+
+        export distance :: fn(a: Point, b: Point) -> f64
+            The distance between `a` and `b`. Always positive or zero.
+
+            Parameters:
+              a  the first point.
+              b  the second point, possibly `a` itself.
+            Returns:
+              the distance, in the unit of the points.
+            Example:
+              distance(o, Point { .x = 3.0, .y = 4.0 })   // 5.0
+        """
+    assert_eq(ran.stdout, expected)
+}
+
+@test
+test_doc_search_shows_the_header_of_a_module_then_a_line_per_export :: fn() -> void {
+    ran :: search(searched(), "geometry")
+    assert_eq(ran.exit, 0)
+    header :: "module shapes/geometry\n\n"
+        + "shapes/geometry: the `vader doc` fixture's main module, over two files.\n"
+    assert(ran.stdout.starts_with(header), ran.stdout)
+    assert("\nexport distance :: fn(a: Point, b: Point) -> f64\n" in ran.stdout, ran.stdout)
+    assert("\nexport twice :: fn(n: i32) -> i32\n" in ran.stdout, ran.stdout)
+    assert("Parameters:" !in ran.stdout, ran.stdout)
+}
+
+@test
+test_doc_search_shows_a_member_its_type_names :: fn() -> void {
+    // A lower-case letter of the query matches either case: `point` names
+    // `Point`.
+    ran :: search(searched(), "point.x")
+    assert_eq(ran.exit, 0)
+    expected :: "module shapes/geometry  shapes/geometry/geometry.vader:12:5\n\n"
+        + "x: f64\n    The abscissa.\n"
+    assert_eq(ran.stdout, expected)
+}
+
+@test
+test_doc_search_shows_every_overload_of_a_name :: fn() -> void {
+    ran :: search(searched(), "scaled")
+    assert_eq(ran.exit, 0)
+    assert("export scaled :: fn(p: Point, k: f64) -> Point\n" in ran.stdout, ran.stdout)
+    assert("export scaled :: fn(p: Point, k: i32) -> Point\n" in ran.stdout, ran.stdout)
+    assert_eq(ran.stdout.split("module shapes/geometry  ").len() - 1, 2)
+}
+
+@test
+test_doc_search_reaches_the_library_of_the_toolchain_from_a_project :: fn() -> void {
+    ran :: search(searched(), "fs.read_file_bytes")
+    assert_eq(ran.stderr, "")
+    assert_eq(ran.exit, 0)
+    assert(ran.stdout.starts_with("module std/fs  "), ran.stdout)
+    assert("\nexport read_file_bytes :: fn(" in ran.stdout, ran.stdout)
+}
+
+@test
+test_doc_search_names_the_platforms_of_a_target_group :: fn() -> void {
+    ran :: search(searched(), "separator")
+    assert_eq(ran.exit, 0)
+    assert("\nexport separator :: fn() -> string\n" in ran.stdout, ran.stdout)
+    assert("\n    Platforms: darwin, linux, windows\n" in ran.stdout, ran.stdout)
+}
+
+@test
+test_doc_search_names_the_file_of_a_declaration_from_the_working_directory :: fn() -> void {
+    // `<file>:<line>:<column>`, which the terminal of an editor opens.
+    dir :: searched()
+    ran :: vader_in("${dir}/shapes/text", ["doc", "--project=${dir}", "--search=pin"])
+    assert_eq(ran.exit, 0)
+    assert(ran.stdout.starts_with("module shapes/text  pin.vader:8:8\n"), ran.stdout)
+}
+
+@test
+test_doc_search_lists_the_names_that_contain_a_query_that_names_nothing :: fn() -> void {
+    ran :: search(searched(), "read_fi")
+    assert_eq(ran.exit, 0)
+    opening :: "nothing is named `read_fi`; names that contain `read_fi`:\n"
+    assert(ran.stdout.starts_with(opening), ran.stdout)
+    assert("\n  std/fs.read_file_bytes " in ran.stdout, ran.stdout)
+    assert("\n  std/fs.read_file_string " in ran.stdout, ran.stdout)
+}
+
+@test
+test_doc_search_lists_the_modules_that_contain_a_query_that_names_nothing :: fn() -> void {
+    ran :: search(searched(), "geom")
+    assert_eq(ran.exit, 0)
+    assert("\n  shapes/geometry " in ran.stdout, ran.stdout)
+}
+
+@test
+test_doc_search_fails_on_a_query_no_name_contains :: fn() -> void {
+    ran :: search(searched(), "zzz")
+    assert_eq(ran.exit, 1)
+    assert_eq(ran.stdout, "nothing is named `zzz`, and no name contains `zzz`\n")
+}
+
+@test
+test_doc_search_refuses_an_empty_query :: fn() -> void {
+    ran :: search(searched(), "")
+    assert_eq(ran.exit, 2)
+    assert("`--search` expects a query" in ran.stderr, ran.stderr)
+}
+
+@test
+test_doc_search_finds_what_a_file_gained_since_the_last_search :: fn() -> void {
+    // The data is brought up to date before it is searched.
+    dir :: staged("shapes", "search_fresh")
+    assert_eq(search(dir, "freshly_added").exit, 1)
+    area :: "${dir}/shapes/geometry/area.vader"
+    added :: "\n/// Added after the first search.\nexport FRESHLY_ADDED :: 1\n"
+    write_file(area, read_file_string(area).unwrap() + added)
+    ran :: search(dir, "freshly_added")
+    assert_eq(ran.exit, 0)
+    assert("\nexport FRESHLY_ADDED :: 1" in ran.stdout, ran.stdout)
+    assert("\n    Added after the first search.\n" in ran.stdout, ran.stdout)
+}
+
+// `vader doc -o` and `--open`: building the site itself needs Node.js and its
+// packages, so the `site` job of the CI runs it; these pin what is refused
+// before.
+
+@test
+test_doc_o_refuses_a_folder_no_site_wrote_before_it_writes_any_data :: fn() -> void {
+    dir :: staged("shapes", "taken")
+    create_dir("${dir}/taken")
+    write_file("${dir}/taken/keep.txt", "")
+    ran :: vader_in(dir, ["doc", "-o", "taken", "shapes"])
+    assert_eq(ran.exit, 2)
+    assert("`taken` holds files no site wrote" in ran.stderr, ran.stderr)
+    assert(exists("${dir}/taken/keep.txt"), "the folder is kept")
+    assert(!exists("${dir}/build/doc"), "no data written")
+}
+
+@test
+test_doc_o_and_open_say_they_need_node_when_none_is_on_the_path :: fn() -> void {
+    for flag in ["-o=site", "--open"] {
+        dir :: staged("shapes", "no_node")
+        // A cache of its own: one where the packages are installed already would
+        // skip the check, and the site would be copied into the user's.
+        env: [string, string | null][]: [
+            ["PATH", "${dir}/no-bin"],
+            ["HOME", dir],
+            ["LOCALAPPDATA", dir],
+            ["XDG_CACHE_HOME", "${dir}/cache"],
+        ]
+        ran :: vader_in(dir, ["doc", flag, "shapes"], env)
+        assert_eq(ran.exit, 2)
+        assert("the site needs Node.js >=22.17.0 on the `PATH`" in ran.stderr, ran.stderr)
+        assert(exists("${dir}/build/doc/index.json"), "the data is written first")
+    }
+}
+
+@test
+test_doc_search_goes_with_neither_o_nor_open :: fn() -> void {
+    dir :: staged("shapes", "search_site")
+    for flag in ["-o=site", "--open"] {
+        ran :: vader_in(dir, ["doc", flag, "--search=point"])
+        assert_eq(ran.exit, 2)
+        assert("`--search` goes with neither `-o` nor `--open`" in ran.stderr, ran.stderr)
+    }
+}

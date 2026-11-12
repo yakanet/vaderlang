@@ -14,6 +14,7 @@ import "std/env"
 import "std/fs"
 import "std/io"
 import "std/option"
+import "std/path"
 import "std/process"
 import "std/string"
 import "std/target"
@@ -28,8 +29,18 @@ export RunOptions :: struct {
     env: [string, string | null][] = []
     /// What it reads on its stdin, which is closed after; nothing when null.
     stdin: string | null = null
+    /// A line its stdin holds once its stdout shows a cue, which a program that
+    /// waits for its input at a given point needs; null for none.
+    feed: Feed | null = null
     /// How long the test waits for it before it kills it.
     timeout: Duration = DEFAULT_TIMEOUT
+}
+
+/// A line a command reads on its stdin, written once its stdout holds `cue`:
+/// what it printed then is what it did before it waited for the line.
+export Feed :: struct {
+    cue: string
+    line: string
 }
 
 /// The wait for a command, by default: a check or a build of a small program.
@@ -81,12 +92,22 @@ export run_vader :: fn(
 /// (`toolchain_env`), as a project outside it is built; a command that cannot be
 /// run fails the test.
 ///
-/// @param dir   the working directory of the command.
-/// @param args  what follows `vader` on its command line.
-/// @param env   changes to its environment, on top of `toolchain_env`.
-/// @return      what it wrote and its exit code.
-export vader_in :: fn(dir: string, args: string[], env: [string, string | null][] = []) -> ProcessResult {
-    options :: RunOptions { .cwd = dir, .env = toolchain_env() + env }
+/// @param dir      the working directory of the command.
+/// @param args     what follows `vader` on its command line.
+/// @param env      changes to its environment, on top of `toolchain_env`.
+/// @param timeout  how long the test waits for it.
+/// @return         what it wrote and its exit code.
+export vader_in :: fn(
+    dir: string,
+    args: string[],
+    env: [string, string | null][] = [],
+    timeout: Duration = DEFAULT_TIMEOUT,
+) -> ProcessResult {
+    options :: RunOptions {
+        .cwd = dir,
+        .env = toolchain_env() + env,
+        .timeout = timeout,
+    }
     return run_vader(args, options).unwrap()
 }
 
@@ -112,12 +133,51 @@ export run_command :: fn(
     if input != null {
         child.write_input(input.bytes())
     }
-    child.close_input()
-    ended :: launch(() -> child.wait()).timeout(options.timeout)
+    feed :: options.feed
+    if feed == null {
+        child.close_input()
+    }
+    ended :: launch(() -> fed_and_waited(child, feed)).timeout(options.timeout)
     if ended is ProcessResult || ended is ProcessError {
         return ended
     }
     return ProcessError { .msg = "`${argv[0]}`: gave up after ${options.timeout.format()}" }
+}
+
+// Wait for `child` to end, writing the line of `feed` to its stdin, then closing
+// it, once its stdout holds the cue.
+fed_and_waited :: fn(child: ChildProcess, feed: Feed | null) -> ProcessResult | ProcessError {
+    if feed == null {
+        return child.wait()
+    }
+    out: u8[]: []
+    err: u8[]: []
+    for feed.cue !in out.bytes_to_string() {
+        taken :: child.read_output()
+        out.push_all(taken.out)
+        err.push_all(taken.err)
+        if taken.ended {
+            break
+        }
+    }
+    child.write_input(feed.line.bytes())
+    child.close_input()
+    ended :: child.wait()
+    // What `read_output` took is no longer in what the wait answers.
+    before :: out.bytes_to_string()
+    errors :: err.bytes_to_string()
+    if ended is ProcessError {
+        return ProcessError {
+            ...ended,
+            .stdout = before + ended.stdout,
+            .stderr = errors + ended.stderr,
+        }
+    }
+    return ProcessResult {
+        ...ended,
+        .stdout = before + ended.stdout,
+        .stderr = errors + ended.stderr,
+    }
 }
 
 /// The run of a command that exited with 0; an error otherwise.
@@ -144,6 +204,96 @@ export scratch_dir :: fn(name: string) -> string {
     dir :: "${temp_dir()}/vader_cli_${name}"
     remove(dir, RemoveOptions { .recursive = true, .force = true })
     create_dir(dir)
+    return dir
+}
+
+/// Copy the folder `from` to `to`, without the `build/` a command run in `from`
+/// would have left there: what runs on the copy starts from the sources alone.
+///
+/// @param from  the folder copied, a fixture.
+/// @param to    where the copy goes, a path that does not exist yet.
+/// @error       `IOError` when a file cannot be copied.
+export copy_sources :: fn(from: string, to: string) -> null | IOError {
+    copied :: copy_tree(from, to)
+    if copied is IOError {
+        return copied
+    }
+    return remove("${to}/build", RemoveOptions { .recursive = true, .force = true })
+}
+
+/// A copy of the folder `from` in a fresh folder for a test (`copy_sources`). A
+/// copy that fails fails the test.
+///
+/// @param from  the folder copied, a fixture.
+/// @param name  tells the folder apart from those of the other tests.
+/// @return      the copy.
+export staged_copy :: fn(from: string, name: string) -> string {
+    dir :: "${scratch_dir(name)}/${Path(from).filename()}"
+    copy_sources(from, dir).unwrap()
+    return dir
+}
+
+/// What a program wrote, and how it ended.
+export Ran :: struct {
+    stdout: string
+    stderr: string
+    /// Its exit code; null when a signal ended it.
+    exit: i32 | null
+}
+
+/// What a run did: a signal that ended it rides in a `ProcessError`, with what
+/// it wrote.
+///
+/// @param ran  what `run_command` or `run_vader` answered.
+export ran_of :: fn(ran: ProcessResult | ProcessError) -> Ran {
+    if ran is ProcessResult {
+        return Ran {
+            .stdout = ran.stdout,
+            .stderr = ran.stderr,
+            .exit = ran.exit,
+        }
+    }
+    return Ran {
+        .stdout = ran.stdout,
+        .stderr = ran.stderr,
+        .exit = null,
+    }
+}
+
+/// Build `source` with `flags` into a fresh folder `name`, the binary named
+/// after it.
+///
+/// @param name    tells the folder apart from those of the other tests.
+/// @param flags   what `vader build` takes before the source.
+/// @param source  the program built.
+/// @return        the path of the binary.
+/// @error         `ProcessError` when the build fails, its stderr in the message.
+export build_binary :: fn(name: string, flags: string[], source: string) -> string | ProcessError {
+    binary :: executable_path("${scratch_dir(name)}/${name}")
+    argv :: ["build"] + flags + ["--out=${binary}", source]
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+    if built is ProcessError {
+        return built
+    }
+    return binary
+}
+
+/// A fresh folder whose `lib/` holds `std/` and `system/`, copied from the
+/// repository, beside the namespace `namespace`, whose one file holds `source`:
+/// a library root of its own, which a command run in the folder searches. A
+/// copy that fails fails the test.
+///
+/// @param name       tells the folder apart from those of the other tests.
+/// @param namespace  the namespace staged beside the copies.
+/// @param source     the text of `lib/<namespace>/<namespace>.vader`.
+/// @return           the folder.
+export staged_library_root :: fn(name: string, namespace: string, source: string) -> string {
+    dir :: scratch_dir(name)
+    create_dir("${dir}/lib/${namespace}")
+    write_file("${dir}/lib/${namespace}/${namespace}.vader", source)
+    for copied in ["std", "system"] {
+        copy_tree("lib/${copied}", "${dir}/lib/${copied}").unwrap()
+    }
     return dir
 }
 

@@ -1,0 +1,196 @@
+// tools/cli_tests/site/site: every program the site shows runs, and prints what
+// the site says it prints.
+//
+// The pages of `site/content/` are Markdown. Each ```vader block is a whole
+// program, run on the VM; a ```text block right after one, with nothing but
+// blank lines between them, is its output, compared exactly. A line of the
+// program that a lone `#` or `# ` opens is compiled but not shown, as in the
+// `@example` of a vaderdoc (`compiled_example_line`). The programs run on the
+// virtual clock, so what one prints depends on the order of its sleeps, not on
+// the load of the machine.
+
+module "tools/cli_tests/site"
+
+import "std/char"
+import "std/fs"
+import "std/io"
+import "std/iter"
+import "std/option"
+import "std/sort"
+import "std/string"
+import "toolchain/ast"
+import "tools/cli_tests/cli"
+
+CONTENT :: "site/content"
+
+// What opens and closes a fenced block of a page.
+FENCE :: "```"
+
+// A fenced block of a page.
+Block :: struct {
+    /// The word after the opening fence, as `vader` or `text`; "" for none.
+    language: string
+    body: string
+    /// The line of the page the block opens on, from 1.
+    line: i64
+    /// Whether only blank lines part it from the block before.
+    adjacent: bool
+}
+
+// A program a page shows.
+Program :: struct {
+    /// The page and the line the program opens on: `learn/2-types.md:12`.
+    place: string
+    source: string
+    /// What the page says it prints; null when it says nothing.
+    output: string | null
+}
+
+// The fenced blocks of `text`, in order; one that is never closed is none.
+blocks_of :: fn(text: string) -> Block[] {
+    lines :: text.split("\n")
+    out: Block[]: []
+    adjacent := false
+    i: i64 = 0
+    for i < lines.len() {
+        language :: fence_language(lines[i])
+        if language == null {
+            if lines[i].trim() != "" {
+                adjacent = false
+            }
+            i += 1
+            continue
+        }
+        opened :: i
+        body: string[]: []
+        i += 1
+        for i < lines.len() && lines[i] != FENCE {
+            body.push(lines[i])
+            i += 1
+        }
+        if i == lines.len() {
+            break
+        }
+        out.push(
+            Block {
+                .language = language,
+                .body = body.join("\n"),
+                .line = opened + 1,
+                .adjacent = adjacent,
+            },
+        )
+        adjacent = true
+        i += 1
+    }
+    return out
+}
+
+// The language the opening fence `line` names, "" for none; null when `line`
+// opens no block.
+fence_language :: fn(line: string) -> string | null {
+    if !line.starts_with(FENCE) {
+        return null
+    }
+    language :: line.trim_prefix(FENCE)
+    if language.chars().all_match((c) -> c.is_alphanumeric() || c == '_') {
+        return language
+    }
+    return null
+}
+
+// The programs of the page `page` of `CONTENT`, whose text is `text`.
+programs_of :: fn(page: string, text: string) -> Program[] {
+    blocks :: blocks_of(text)
+    out: Program[]: []
+    for i in 0..<blocks.len() {
+        if blocks[i].language == "vader" {
+            out.push(
+                Program {
+                    .place = "${page}:${blocks[i].line}",
+                    .source = blocks[i].body,
+                    .output = output_after(blocks, i + 1),
+                },
+            )
+        }
+    }
+    return out
+}
+
+// What the block at `next` of `blocks` says the program before it prints: a
+// `text` block right after it; null for any other.
+output_after :: fn(blocks: Block[], next: i64) -> string | null {
+    if next < blocks.len() && blocks[next].language == "text" && blocks[next].adjacent {
+        return blocks[next].body
+    }
+    return null
+}
+
+// The programs of every page of `CONTENT`, the pages in name order.
+site_programs :: fn() -> Program[] {
+    pages: string[]: []
+    for entry in walk(CONTENT).unwrap() {
+        if entry.name.ends_with(".md") {
+            pages.push(entry.relative)
+        }
+    }
+    out: Program[]: []
+    for page in sort(pages, compare_ascending) {
+        out.push_all(programs_of(page, read_file_string("${CONTENT}/${page}").unwrap()))
+    }
+    return out
+}
+
+// `source` as it is compiled: its hidden lines without their mark.
+compiled :: fn(source: string) -> string =
+    source.split("\n").map(compiled_example_line).collect().join("\n") + "\n"
+
+// What is wrong with the run of `program`, the `index`-th of the site; null
+// when nothing is.
+run_problem :: fn(program: Program, index: i64) -> string | null {
+    file :: scratch_source("site_${index}", compiled(program.source))
+    options :: RunOptions { .env = [["VADER_VIRTUAL_CLOCK", "1"]] }
+    ran :: run_vader(["run", file], options).unwrap()
+    if ran.exit != 0 || ran.stderr != "" {
+        return "${program.place}: exit ${ran.exit}\n${ran.stderr}"
+    }
+    expected :: program.output ?? return null
+    printed :: ran.stdout.right_trim()
+    if printed != expected {
+        return "${program.place}: expected\n${expected}\ngot\n${printed}"
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_text_block_right_after_a_program_is_its_output :: fn() -> void {
+    page :: "Intro.\n\n```vader\nmain\n```\n\n```text\n1\n```\n\nNext.\n\n```text\n2\n```\n"
+    programs :: programs_of("p.md", page)
+    assert_eq(programs.len(), 1)
+    assert_eq(programs[0].place, "p.md:3")
+    assert_eq(programs[0].source, "main")
+    assert_eq(programs[0].output ?? "none", "1")
+}
+
+@test
+test_a_text_block_after_prose_is_no_output :: fn() -> void {
+    page :: "```vader\nmain\n```\n\nSo it prints:\n\n```text\n1\n```\n"
+    assert_eq(programs_of("p.md", page)[0].output ?? "none", "none")
+}
+
+@test
+test_every_program_of_the_site_runs_and_prints_what_the_site_says :: fn() -> void {
+    programs :: site_programs()
+    assert(programs.len() > 0, "the site shows programs")
+    problems: string[]: []
+    for i in 0..<programs.len() {
+        problem :: run_problem(programs[i], i)
+        if problem != null {
+            problems.push(problem)
+        }
+    }
+    assert(problems.len() == 0, problems.join("\n\n"))
+}

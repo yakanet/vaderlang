@@ -255,6 +255,20 @@ doc_param :: fn(payload: string) -> DocParam {
     }
 }
 
+/// A line of an example as it is compiled: a hidden one, which a lone `#` or
+/// `# ` opens past its indentation, without that mark; any other as it is.
+///
+/// @param line  a line of an example, its indentation included.
+/// @example
+///   compiled_example_line("    # import \"std/io\"")   // "    import \"std/io\""
+///   compiled_example_line("    println(1)")           // "    println(1)"
+export compiled_example_line :: fn(line: string) -> string {
+    if is_hidden_example_line(line) {
+        return unmarked(line)
+    }
+    return line
+}
+
 // Whether the example line `line` is hidden: a lone `#`, or `# ` and code, past
 // its indentation. The site's tour reads its examples by the same rule
 // (`site/src/lib/server/hidden_lines.js`).
@@ -382,4 +396,12 @@ test_doc_param_name_is_the_identifier :: fn() -> void {
     assert_eq(doc_param_name("x: the first"), "x")
     assert_eq(doc_param_name("café ok"), "café")
     assert_eq(doc_param_name("(x)"), "")
+}
+
+@test
+test_a_compiled_example_line_drops_the_mark_of_a_hidden_one :: fn() -> void {
+    assert_eq(compiled_example_line("  # import \"std/io\""), "  import \"std/io\"")
+    assert_eq(compiled_example_line("  #"), "  ")
+    assert_eq(compiled_example_line("  #[x] stays"), "  #[x] stays")
+    assert_eq(compiled_example_line("println(1)"), "println(1)")
 }

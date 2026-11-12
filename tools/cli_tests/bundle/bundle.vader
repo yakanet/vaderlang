@@ -1,0 +1,126 @@
+// tools/cli_tests/bundle/bundle: a `dist/` bundle, the toolchain as an install
+// lays it out, driving builds and holding its namespaces.
+//
+// A bundle is a layout, not a project: the binary at its root, then one library
+// root `lib/`, the compiler's sources under `src/vader/` and `runtime/c/` beside
+// them. `$VADER_HOME` cannot stand in for it, since the shape on disk is what
+// these check: the binary is copied, never linked, as the toolchain is found from
+// where the binary is, and a link would lead back to the repository.
+
+module "tools/cli_tests/bundle"
+
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/path"
+import "std/process"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+// What the trim of a `dist/` bundle leaves out of `vader/`, one folder a line.
+DIST_EXCLUDE :: "bootstrap/dist-exclude.txt"
+
+// A bundle staged in a fresh folder `name` tells apart, laid out as `dist/` is:
+// every namespace of `lib/`, the folders of `vader/` the trim keeps, and
+// `runtime/c/`. A copy that fails fails the test.
+staged_bundle :: fn(name: string) -> string {
+    dir :: scratch_dir(name)
+    binary :: "${dir}/${Path(vader_binary()).filename()}"
+    copy(vader_binary(), binary).unwrap()
+    // A copied arm64 binary is no longer signed, and macOS kills it.
+    if current_os() == .Darwin {
+        succeeded(run_command(["codesign", "-s", "-", binary])).unwrap()
+    }
+    for namespace in read_dir("lib").unwrap() {
+        copy_tree("lib/${namespace}", "${dir}/lib/${namespace}").unwrap()
+    }
+    trimmed :: excluded_folders()
+    for folder in read_dir("vader").unwrap() {
+        if !trimmed.contains(folder) {
+            copy_tree("vader/${folder}", "${dir}/src/vader/${folder}").unwrap()
+        }
+    }
+    copy_tree("runtime/c", "${dir}/runtime/c").unwrap()
+    return dir
+}
+
+// The folders of `vader/` a bundle leaves out.
+excluded_folders :: fn() -> string[] {
+    out: string[]: []
+    for line in read_file_string(DIST_EXCLUDE).unwrap().split("\n") {
+        folder :: line.trim()
+        if folder != "" && !folder.starts_with("#") {
+            out.push(folder)
+        }
+    }
+    return out
+}
+
+// What the `vader` of the bundle in `bundle` did with `args`, run in `dir`.
+bundled :: fn(bundle: string, dir: string, args: string[]) -> ProcessResult {
+    binary :: "${bundle}/${Path(vader_binary()).filename()}"
+    options :: RunOptions { .cwd = dir, .timeout = HEAVY_TIMEOUT }
+    return run_command([binary] + args, options).unwrap()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_bundle_drives_a_build_with_nothing_beside_the_project :: fn() -> void {
+    // Three lookups land in the bundle: the driver's `import "toolchain/build"`,
+    // the project's `std/*`, and the C of the runtime at the link. The driver
+    // runs from the project's `build/`, so a probe relative to itself finds
+    // nothing.
+    bundle :: staged_bundle("bundle_driven")
+    dir :: staged_copy("tests/fixtures/hook/json_derive", "bundle_project")
+    for beside in ["lib", "runtime", "vader"] {
+        assert(!exists("${dir}/${beside}"), "no `${beside}` beside the project")
+    }
+    built :: bundled(bundle, dir, ["build"])
+    assert("R2001" !in built.stderr && "error[" !in built.stderr, built.stderr)
+    assert_eq(built.exit, 0)
+    binary :: executable_path("${dir}/build/debug-${host_folder()}/app")
+    ran :: run_command([binary], RunOptions { .cwd = dir }).unwrap()
+    assert("\"home\":{\"city\":\"Lyon\",\"zip\":69001}" in ran.stdout, ran.stdout)
+}
+
+@test
+test_a_bundled_namespace_outranks_a_project_module_of_the_same_name :: fn() -> void {
+    // The namespaces of `lib/` are ordinary folder names, and the roots are
+    // searched first match first: a project declaring the module of one of them
+    // must not win over the one shipped, which the compiler's own sources build
+    // against in a driven build. Only the bundled root comes before the project.
+    bundle :: staged_bundle("bundle_namespace")
+    create_dir("${bundle}/lib/reserved")
+    write_file(
+        "${bundle}/lib/reserved/reserved.vader",
+        "module \"reserved\"\n\nexport who :: fn() -> i32 = 1\n",
+    )
+    // The manifest makes the folder a search root: a file on its own searches
+    // only its folder.
+    dir :: scratch_dir("bundle_clash")
+    manifest :: r"""{ "name": "reserved-clash", "entries": { "app": "app.vader" } }"""
+    write_file("${dir}/vader.json", manifest)
+    create_dir("${dir}/reserved")
+    write_file(
+        "${dir}/reserved/reserved.vader",
+        "module \"reserved\"\n\nexport who :: fn() -> i32 = 999\n",
+    )
+    app :: """
+        module "app"
+
+        import "std/console"
+        import "reserved"
+
+        main :: fn() -> i32 {
+            println("who=\${who()}")
+            return 0
+        }
+        """
+    write_file("${dir}/app.vader", app)
+    ran :: bundled(bundle, dir, ["run", "."])
+    assert("who=1" in ran.stdout && "who=999" !in ran.stdout, ran.stdout)
+}

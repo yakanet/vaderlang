@@ -63,7 +63,7 @@ find_hook_fixtures :: fn(found: Discovery) -> void {
 check_hook :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
     project :: "${dir}/project"
-    staged :: stage_project(case.dir, project)
+    staged :: copy_sources(case.dir, project)
     if staged is IOError {
         return hook_failure("`${project}`: ${staged.msg}")
     }
@@ -121,15 +121,6 @@ tests_failure :: fn(fixture: string, options: RunOptions) -> CaseFailure | null 
     )
 }
 
-// Copy the fixture in `fixture` to `project`, but for what a build left in it.
-stage_project :: fn(fixture: string, project: string) -> null | IOError {
-    copied :: copy_tree(fixture, project)
-    if copied is IOError {
-        return copied
-    }
-    return remove("${project}/build", RemoveOptions { .recursive = true, .force = true })
-}
-
 // What the build of `project` generated, compared with the snapshot of `case`;
 // null when it generated nothing and the fixture pins nothing.
 generated_report :: fn(
@@ -148,15 +139,19 @@ generated_report :: fn(
 
 // The modules generated in `project`, each under a `--- <path>` header, in path
 // order: a changed generator shows in the hash of a name and in its text.
-generated_text :: fn(project: string) -> string {
-    root :: "${project}/${GENERATED}"
+generated_text :: fn(project: string) -> string =
+    tree_text("${project}/${GENERATED}", (entry) -> entry.name.ends_with(".vader"))
+
+// The files under `root` that `keep` takes, each under a `--- <path>` header, the
+// path relative to `root`, in path order; "" when `root` cannot be read.
+tree_text :: fn(root: string, keep: fn(WalkEntry) -> bool) -> string {
     walker :: walk(root)
     if walker is IOError {
         return ""
     }
     paths: string[]: []
     for entry in walker {
-        if entry.name.ends_with(".vader") {
+        if entry.kind == .File && keep(entry) {
             paths.push(entry.relative)
         }
     }

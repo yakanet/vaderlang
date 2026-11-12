@@ -182,10 +182,11 @@ run_all :: fn(
 }
 
 // The phases that run the `vader` the repository builds.
-VADER_PHASES: string[]: [EXAMPLE_PHASE, NATIVE_EXAMPLE_PHASE, HOOK_PHASE]
+VADER_PHASES: string[]: [EXAMPLE_PHASE, NATIVE_EXAMPLE_PHASE, HOOK_PHASE, DOC_PHASE]
 
 // Whether `case` runs the `vader` the repository builds: the runs of an example,
-// the driven projects, and the tests of the command line.
+// the driven projects, the data of the documentation, and the tests of the
+// command line.
 runs_vader :: fn(case: Case) -> bool =
     case.phases.any_match((phase) -> VADER_PHASES.contains(phase))
         || case.dir.starts_with(CLI_TESTS)

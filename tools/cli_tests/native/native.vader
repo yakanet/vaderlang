@@ -80,43 +80,6 @@ MEMBUF :: "tests/fixtures/membuf_gc/membuf_gc.virt"
 
 // ---- building and running -------------------------------------------------
 
-// What a program wrote, and how it ended.
-Ran :: struct {
-    stdout: string
-    stderr: string
-    /// Its exit code; null when a signal ended it.
-    exit: i32 | null
-}
-
-// Build `source` with `flags` into a fresh folder named after `name`: the path
-// of the binary, or why it was not built.
-build_binary :: fn(name: string, flags: string[], source: string) -> string | ProcessError {
-    binary :: executable_path("${scratch_dir("native_${name}")}/${name}")
-    argv :: ["build"] + flags + ["--out=${binary}", source]
-    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
-    if built is ProcessError {
-        return built
-    }
-    return binary
-}
-
-// What a run did: a signal that ended it rides in a `ProcessError`, with what it
-// wrote.
-ran_of :: fn(ran: ProcessResult | ProcessError) -> Ran {
-    if ran is ProcessResult {
-        return Ran {
-            .stdout = ran.stdout,
-            .stderr = ran.stderr,
-            .exit = ran.exit,
-        }
-    }
-    return Ran {
-        .stdout = ran.stdout,
-        .stderr = ran.stderr,
-        .exit = null,
-    }
-}
-
 // Build `source` with `flags` into a fresh folder named after `name`, run the
 // binary with `args`, and say what it did; or why it could not be built.
 build_and_run :: fn(

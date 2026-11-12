@@ -1,0 +1,358 @@
+// tools/cli_tests/threads/threads: virtual threads, built natively in debug and
+// in release, and on the VM.
+//
+// The fixture `tests/fixtures/virtual_threads/main.vader` holds one program per
+// case, which `THREADS_CASE` names: it is built once per profile, and run once
+// per case; on the VM, each case is a `vader run` of it. Every run poisons what
+// the collector frees, so a semi-space a parked frame still points into reads as
+// garbage instead of as its old contents.
+
+module "tools/cli_tests/threads"
+
+import "std/fs"
+import "std/option"
+import "std/process"
+import "std/string"
+import "std/target"
+import "tools/cli_tests/cli"
+
+FIXTURE :: "tests/fixtures/virtual_threads/main.vader"
+
+// A module whose first test leaves a thread parked.
+TESTS_FIXTURE :: "tests/fixtures/test_cmd/threads/threads.vader"
+
+// Where the fixture runs.
+Engine :: enum {
+    Debug,
+    Release,
+    Vm,
+}
+
+ENGINES: Engine[]: [.Debug, .Release, .Vm]
+
+// What the stress modes of the collector check, each on a run of its own. The
+// VM runs the compile before the program under the mode too, which takes minutes
+// under the first two.
+GC_MODES: string[]: [
+    "",
+    "VADER_GC_STRESS",
+    "VADER_GC_STRESS_MAJOR",
+    "VADER_GC_STRESS_SWITCH",
+    "VADER_GC_CHECK_BOX",
+    "VADER_GC_NO_CSTACK_SCAN",
+]
+VM_GC_MODES: string[]: [
+    "",
+    "VADER_GC_STRESS_SWITCH",
+    "VADER_GC_CHECK_BOX",
+    "VADER_GC_NO_CSTACK_SCAN",
+]
+
+// The name of `engine` in a message.
+engine_name :: fn(engine: Engine) -> string = match engine {
+    .Debug   -> "debug"
+    .Release -> "release"
+    .Vm      -> "the VM"
+}
+
+// The fixture built natively with `flags`, named after `profile`; null without a
+// C compiler.
+built :: fn(profile: string, flags: string[]) -> string | null {
+    if !has_cc() {
+        return null
+    }
+    return build_binary("threads_${profile}", flags, FIXTURE).unwrap()
+}
+
+@singleton
+debug_build :: fn() -> string | null = built("debug", [])
+
+@singleton
+release_build :: fn() -> string | null = built("release", ["--release"])
+
+// What the case `name` did on `engine`, with the changes `env` to its
+// environment and the line `feed` on its stdin; null when `engine` cannot run
+// here.
+run_case :: fn(
+    engine: Engine,
+    name: string,
+    env: [string, string | null][] = [],
+    feed: Feed | null = null,
+) -> Ran | null {
+    changes: [string, string | null][]: [["THREADS_CASE", name], ["VADER_GC_POISON", "1"]]
+    options :: RunOptions {
+        .env = changes + env,
+        .feed = feed,
+        .timeout = LONG_TIMEOUT,
+    }
+    if engine == .Vm {
+        return ran_of(run_vader(["run", FIXTURE], options))
+    }
+    binary :: native_build(engine) ?? return null
+    return ran_of(run_command([binary], options))
+}
+
+// The native build `engine` runs; null without a C compiler.
+native_build :: fn(engine: Engine) -> string | null {
+    if engine == .Release {
+        return release_build()
+    }
+    return debug_build()
+}
+
+// Check that the case `name` ends well on every engine and prints `stdout`, its
+// environment changed by `env` and its stdin fed by `feed`.
+expect_clean :: fn(
+    name: string,
+    stdout: string,
+    env: [string, string | null][] = [],
+    feed: Feed | null = null,
+) -> void {
+    for engine in ENGINES {
+        ran :: run_case(engine, name, env, feed) ?? continue
+        said :: "`${name}` on ${engine_name(engine)}: exit ${ran.exit}\n${ran.stderr}"
+        assert(ran.exit == 0 && ran.stderr == "", said)
+        assert_eq(ran.stdout, stdout)
+    }
+}
+
+// Check that the case `name` stops with an error on every engine, having printed
+// `stdout`, with `said` in its stderr.
+expect_stop :: fn(name: string, stdout: string, said: string) -> void {
+    for engine in ENGINES {
+        ran :: run_case(engine, name) ?? continue
+        assert(ran.exit != 0, "`${name}` on ${engine_name(engine)} exits with an error")
+        assert_eq(ran.stdout, stdout)
+        assert(said in ran.stderr, "`${name}` on ${engine_name(engine)}: ${ran.stderr}")
+    }
+}
+
+// Check that main returning cancels the threads of the case `name` on every
+// engine: it exits with 1, having printed `stdout`, and names them in `stderr`.
+expect_cancelled_at_exit :: fn(name: string, stdout: string, stderr: string) -> void {
+    for engine in ENGINES {
+        ran :: run_case(engine, name) ?? continue
+        assert_eq(ran.exit ?? -1, 1)
+        assert_eq(ran.stdout, stdout)
+        assert_eq(ran.stderr, stderr)
+    }
+}
+
+// The cases that end well: what each shows, its name in the fixture, and what it
+// prints.
+CLEAN_CASES: [string, string, string][]: [
+    ["the ready threads run in turn", "take_turns", "a0\nb0\nc0\na1\nb1\nc1\njoined\n"],
+    ["a wake does not end a sleep", "real_sleep", "slept at least 20 ms\n"],
+    [
+        "a cancelled thread runs its defers",
+        "cancel_parked",
+        "defer of the parked thread\njoined\n",
+    ],
+    [
+        "a thread cancelled before it ran runs its entry, which knows",
+        "cancel_unstarted",
+        "cancelled before it ran\nmain returns\n",
+    ],
+    [
+        "a thread that cancels itself does not come back",
+        "cancel_self",
+        "defer of the thread\njoined\n",
+    ],
+    [
+        "a cancelled thread cancels the threads it launched, whose defers run first",
+        "cancel_cascades",
+        "defer of the launched\ndefer of the launcher\njoined\n",
+    ],
+    [
+        "a cancelled thread ends the threads it launched before they started",
+        "cascade_unstarted",
+        "joined\n",
+    ],
+    [
+        "the defer of a cancelled thread may park",
+        "cancel_defer_parks",
+        "defer starts\nmain between\ndefer ends\njoined\n",
+    ],
+    [
+        "the stacks freed during a sleep are taken again",
+        "bursts",
+        "three bursts of 200 threads\n",
+    ],
+    [
+        "main returning waits for a thread it cancelled, and names nothing",
+        "exit_after_cancel",
+        "main returns\ndefer of the cancelled thread\n",
+    ],
+    [
+        "main returning names none of the threads a thread it cancelled launched",
+        "exit_after_cascade",
+        "main returns\ndefer of the launched\ndefer of the launcher\n",
+    ],
+]
+
+// The line the cases that read stdin are given once a thread ticked twice.
+HELLO_AFTER_TWO_TICKS :: Feed { .cue = "tick 2\n", .line = "hello\n" }
+
+// What the case `parked_roots` prints when every parked frame stays rooted.
+PARKED_ROOTS :: """
+    thread-0 ok
+    defer of thread-0
+    thread-1 ok
+    defer of thread-1
+    thread-2 ok
+    defer of thread-2
+    garbage 2000800000
+    """
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_parked_threads_stay_rooted_under_every_mode_of_the_collector :: fn() -> void {
+    // Their shadow-stack frames, stack objects, atoms and pending defers.
+    for engine in ENGINES {
+        modes :: if engine == .Vm { VM_GC_MODES } else { GC_MODES }
+        for mode in modes {
+            env: [string, string | null][]: if mode == "" { [] } else { [[mode, "1"]] }
+            ran :: run_case(engine, "parked_roots", env) ?? continue
+            assert(ran.stderr == "", "${engine_name(engine)} under `${mode}`: ${ran.stderr}")
+            assert_eq(ran.stdout, PARKED_ROOTS)
+            assert_eq(ran.exit ?? -1, 0)
+        }
+    }
+}
+
+@test
+test_a_thread_past_the_end_of_its_stack_stops :: fn() -> void {
+    expect_stop("overflow", "depth 1000: 3893\n", "")
+}
+
+@test
+test_each_thread_runs_its_own_defers_when_it_panics :: fn() -> void {
+    expect_stop(
+        "two_panics",
+        "defer of first, before the yield\ndefer of second\n",
+        "panic: second",
+    )
+}
+
+@test
+test_a_switch_inside_a_call_to_c_stops_the_program :: fn() -> void {
+    // Native only: the VM hands no Vader function to C.
+    for engine in [Engine.Debug, Engine.Release] {
+        ran :: run_case(engine, "switch_in_callback") ?? continue
+        assert(ran.exit != 0, "${engine_name(engine)} exits with an error")
+        assert_eq(ran.stdout, "back from qsort\n")
+        assert("a switch inside a call to C" in ran.stderr, ran.stderr)
+    }
+}
+
+@test
+test_the_cases_that_end_well_print_what_they_show :: fn() -> void {
+    for case in CLEAN_CASES {
+        expect_clean(case.1, case.2)
+    }
+}
+
+@test
+test_a_thread_runs_while_another_waits_for_stdin :: fn() -> void {
+    expect_clean("stdin_parks", "tick 0\ntick 1\ntick 2\nread hello\n", [], HELLO_AFTER_TWO_TICKS)
+}
+
+@test
+test_a_thread_runs_while_another_polls_stdin :: fn() -> void {
+    printed :: "tick 0\na first poll gives up\ntick 1\ntick 2\na second poll finds the line\n"
+        + "read hello\n"
+    expect_clean("stdin_polls", printed, [], HELLO_AFTER_TWO_TICKS)
+}
+
+@test
+test_a_poll_of_stdin_given_up_beside_a_thread_leaves_the_next_one_its_deadline :: fn() -> void {
+    feed :: Feed { .cue = "a poll alone gives up\n", .line = "done\n" }
+    printed :: "a poll beside a thread gives up\na poll alone gives up\nread done\n"
+    expect_clean("stdin_polls_alone", printed, [], feed)
+}
+
+@test
+test_a_wait_for_a_child_drains_its_pipes_as_they_fill :: fn() -> void {
+    expect_clean("spawn_drains", "the child wrote 100000 bytes and exited with 0\n")
+}
+
+@test
+test_a_watch_follows_a_pipe_the_runtime_made_and_polls_an_anonymous_one :: fn() -> void {
+    // Windows only: the pipes of the other systems are all polled alike.
+    if current_os() != .Windows {
+        return
+    }
+    printed :: "a watched pipe wakes its reader at once: true\nan anonymous pipe is polled: true\n"
+    expect_clean("pipe_watches", printed)
+}
+
+@test
+test_under_the_virtual_clock_the_shortest_sleep_ends_first :: fn() -> void {
+    expect_clean(
+        "sleep_order",
+        "slept 10 ms\nslept 20 ms\nslept 30 ms\n",
+        [["VADER_VIRTUAL_CLOCK", "1"]],
+    )
+}
+
+@test
+test_under_the_virtual_clock_sleeps_that_end_together_end_in_the_order_they_began :: fn() -> void {
+    expect_clean("sleep_ties", "a woke\nb woke\nc woke\n", [["VADER_VIRTUAL_CLOCK", "1"]])
+}
+
+@test
+test_the_main_thread_cannot_be_cancelled :: fn() -> void {
+    expect_stop("cancel_main", "", "the main thread cannot be cancelled")
+}
+
+@test
+test_a_deadlock_stops_the_program_and_names_the_threads :: fn() -> void {
+    said :: "a deadlock, every task waits and nothing will wake one: main, task #1\n"
+    expect_stop("deadlock", "", said)
+}
+
+@test
+test_main_returning_cancels_the_threads_still_running :: fn() -> void {
+    expect_cancelled_at_exit(
+        "exit_with_live_thread",
+        "main returns\ndefer of the forgotten thread\n",
+        "vader: task #1 still runs when main returns: cancelled\n",
+    )
+}
+
+@test
+test_main_returning_names_the_threads_still_running_in_the_order_they_started :: fn() -> void {
+    expect_cancelled_at_exit(
+        "exit_names_in_order",
+        "the first thread ends\nmain returns\n",
+        "vader: task #2 still runs when main returns: cancelled\n"
+            + "vader: task #3 still runs when main returns: cancelled\n",
+    )
+}
+
+@test
+test_main_returning_names_a_thread_a_defer_of_a_cancelled_thread_launched :: fn() -> void {
+    expect_cancelled_at_exit(
+        "exit_defer_launches",
+        "main returns\ndefer of the launched\n",
+        "vader: task #2 still runs when main returns: cancelled\n",
+    )
+}
+
+@test
+test_a_test_that_leaves_a_thread_fails_and_the_thread_ends_before_the_next :: fn() -> void {
+    // One that cancels its thread passes.
+    ran :: run_vader(["test", TESTS_FIXTURE], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    for said in [
+        "FAIL test_leaves_a_thread",
+        "task #1 still running when the test returns: cancelled",
+        "ok test_after_the_left_thread",
+        "ok test_cancels_its_thread",
+    ] {
+        assert(said in ran.stdout, "`${said}` in ${ran.stdout}")
+    }
+    assert_eq(ran.exit, 1)
+}

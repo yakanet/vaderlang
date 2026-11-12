@@ -72,6 +72,7 @@ STAGES: Stage[]: [
     EXAMPLE_STAGE,
     NATIVE_EXAMPLE_STAGE,
     HOOK_STAGE,
+    DOC_STAGE,
     FORMAT_STAGE,
 ]
 
@@ -172,6 +173,14 @@ HOOK_STAGE: Stage: Stage {
     .snapshot = "build.snapshot",
 }
 
+// The data `vader doc` writes for a fixture of `DOC_CORPUS` (`doc_fixtures.vader`).
+DOC_PHASE :: "doc"
+DOC_STAGE: Stage: Stage {
+    .phase = DOC_PHASE,
+    .dump = null,
+    .snapshot = "",
+}
+
 // What `vader fmt` makes of a source (`format_run.vader`).
 FORMAT_PHASE :: "format"
 FORMAT_STAGE: Stage: Stage {
@@ -267,6 +276,9 @@ find_cases :: fn(phases: string[]) -> Discovery {
         if phases.contains(corpus.phase) {
             find_stage_fixtures(found, corpus)
         }
+    }
+    if phases.contains(DOC_PHASE) {
+        find_doc_fixtures(found)
     }
     if phases.contains(FORMAT_PHASE) {
         find_format_cases(found)

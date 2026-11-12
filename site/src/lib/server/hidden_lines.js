@@ -1,7 +1,7 @@
 // The lines of a Vader example that set it up without being shown: a lone `#`,
 // or `# ` and code, past the indentation. vaderdoc's `@example` reads them the
-// same way (`lib/toolchain/ast/vaderdoc.vader`). `tests/site_content.test.ts`
-// imports this file to compile what the site shows: it imports nothing.
+// same way (`compiled_example_line` in `lib/toolchain/ast/vaderdoc.vader`), and
+// `tools/cli_tests/site` compiles what the site shows by it.
 
 const HIDDEN = /^([ \t]*)#(?: |$)/;
 
@@ -20,13 +20,3 @@ export function shown_code(code) {
 		.replace(/^(?:[ \t]*\n)+/, '')
 		.trimEnd();
 }
-
-/**
- * `code` as it is compiled: its hidden lines without their mark.
- * @param {string} code
- */
-export const compiled_code = (code) =>
-	code
-		.split('\n')
-		.map((line) => line.replace(HIDDEN, '$1'))
-		.join('\n');

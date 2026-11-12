@@ -146,8 +146,8 @@ export compiler_source_home :: fn() -> string {
 /// closure needs. It used to be `vader/hooks` (the contract itself) which broke
 /// the moment that moved out to `toolchain/build`: both probes then missed and the
 /// function fell through to `root`, which a CHECKOUT masks (the repo root does
-/// hold `vader/`) and a BUNDLE does not. The dist-bundle case of
-/// `tests/hook_driver.test.ts` is what catches it.
+/// hold `vader/`) and a BUNDLE does not. The dist-bundle test of
+/// `tools/cli_tests/bundle` is what catches it.
 ///
 /// @param root  invocation directory, used as the checkout fallback.
 /// @return      a directory under which `vader/pipeline/` is expected to resolve.

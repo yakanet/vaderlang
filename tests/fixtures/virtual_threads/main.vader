@@ -2,8 +2,8 @@
 // end of their stack, through a panic, inside a call to C, asleep, waiting for
 // stdin or a child, cancelled with the threads they launched, before they start
 // or not, deadlocked, and alive when `main` returns.
-// `tests/virtual_threads.test.ts` builds it once and runs each case, which
-// `THREADS_CASE` names.
+// `tools/cli_tests/threads` builds it once per profile and runs each case,
+// which `THREADS_CASE` names.
 
 module "main"
 

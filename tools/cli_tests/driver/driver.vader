@@ -1,0 +1,282 @@
+// tools/cli_tests/driver/driver: the build driver, `vader build` with no file,
+// finding and running a project's own `build.vader`, where no fixture of the
+// `hook` family of the test runner reaches.
+//
+// A fixture there is one `vader build` in a clean project, its output compared
+// with a snapshot, then the project's own tests. These run what the build
+// produced, profile the driver, take a driven project through the other
+// commands, build twice, and bypass the driver. A driven build compiles its
+// driver, the compiler included, before it runs it: each takes seconds, and a
+// build these tests share is made once.
+
+module "tools/cli_tests/driver"
+
+import "json"
+import "std/char"
+import "std/fs"
+import "std/io"
+import "std/option"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+FIXTURES :: "tests/fixtures/hook"
+
+// Where a driven debug build writes the binaries of the project in `dir`.
+binaries :: fn(dir: string) -> string = "${dir}/build/debug-${host_folder()}"
+
+// The driver a build of the project in `dir` compiled.
+driver_of :: fn(dir: string) -> string = executable_path("${dir}/build/driver/debug/driver")
+
+// What `vader` with `args` did in the project `dir`, against the toolchain of the
+// repository, with the wait a build of its driver takes.
+driven :: fn(dir: string, args: string[]) -> ProcessResult =
+    vader_in(dir, args, [], HEAVY_TIMEOUT)
+
+// What the program `binary` did, run in `dir` with the changes `env` to its
+// environment.
+ran_in :: fn(dir: string, binary: string, env: [string, string | null][] = []) -> ProcessResult =
+    run_command([binary], RunOptions { .cwd = dir, .env = env }).unwrap()
+
+// The fixture `pascal_case_lint` built by its driver, which reports a rule the
+// project breaks, and builds it all the same.
+@singleton
+linted :: fn() -> string {
+    dir :: staged_copy("${FIXTURES}/pascal_case_lint", "driver_linted")
+    driven(dir, ["build"])
+    return dir
+}
+
+// The last column of the row of the pass `pass` in the profile `stderr` holds:
+// the number of times it ran; null without the row.
+runs_of :: fn(stderr: string, pass: string) -> string | null {
+    for line in stderr.split("\n") {
+        columns :: line.split_where(is_white_char)
+        if columns.len() > 1 && columns[0] == pass {
+            return columns[columns.len() - 1]
+        }
+    }
+    return null
+}
+
+// A driver that adds the entry `src/main.vader`, then panics when it builds.
+DRIVER_THAT_PANICS :: r"""
+    module "build"
+
+    import "std/abort"
+    import "toolchain/build"
+
+    build :: fn(args: string[]) -> i32 {
+        ctx :: new_build_context(args)
+        ctx.add_entry("app", "src/main.vader")
+        if ctx.mode() == .Build {
+            panic("the house rules file is missing")
+        }
+        return ctx.emit_native()
+    }
+    """
+
+// A driver that panics in any mode, and the entry beside it.
+DRIVER_IN_ANY_MODE :: r"""
+    module "build"
+
+    import "std/abort"
+
+    build :: fn(args: string[]) -> i32 {
+        panic("the driver ran")
+    }
+    """
+
+ENTRY_ON_ITS_OWN :: r"""
+    module "src"
+
+    import "std/console"
+
+    main :: fn() -> i32 {
+        println("ran on its own")
+        return 0
+    }
+    """
+
+// A folder with `driver` as its `build.vader` and `entry` as its
+// `src/main.vader`, which `name` tells apart.
+driven_project :: fn(name: string, driver: string, entry: string) -> string {
+    dir :: scratch_dir(name)
+    create_dir("${dir}/src")
+    write_file("${dir}/build.vader", driver)
+    write_file("${dir}/src/main.vader", entry)
+    return dir
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_the_driver_produces_a_working_binary :: fn() -> void {
+    // A driver is a build system, not an observer: the program it built runs,
+    // though the driver went on to report a rule the project breaks.
+    dir :: linted()
+    assert(exists(driver_of(dir)), "the driver of the build")
+    ran :: ran_in(dir, executable_path("${binaries(dir)}/hello"))
+    assert("hello" in ran.stdout, ran.stdout)
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_the_front_end_runs_once_for_a_driver_that_observes_and_builds :: fn() -> void {
+    // The profile of the driver's own process: one of `vader build` would also
+    // hold the compiler's pass over the driver.
+    dir :: linted()
+    profiled :: ran_in(dir, driver_of(dir), [["VADER_PROFILE", "1"]])
+    assert_eq(runs_of(profiled.stderr, "typecheck") ?? "no row", "1")
+}
+
+@test
+test_info_check_run_build_run_and_the_build_flags_take_a_driven_project :: fn() -> void {
+    // `info` has the driver describe itself and compiles nothing; `check` lowers
+    // and links nothing; `run` lets the driver generate, then runs the entry on
+    // the VM, which reads what was generated and the root the driver set; `build
+    // --run` has it describe its entries to find the one to run.
+    dir :: staged_copy("${FIXTURES}/generate_module", "driver_modes")
+    driver :: "${dir}/build.vader"
+    entry :: "ctx.add_entry(\"app\", \"src/main.vader\")"
+    rooted :: read_file_string(driver).unwrap().replace_all(
+        entry,
+        "${entry}\n    ctx.include_paths.push(\"extra\")",
+    )
+    write_file(driver, rooted)
+    main :: "${dir}/src/main.vader"
+    imports :: read_file_string(main).unwrap().replace_all(
+        "import \"gen/describe\"",
+        "import \"gen/describe\"\nimport \"greet\"",
+    )
+    greeted :: imports.replace_all("\${describe(p)}\")", "\${describe(p)} / \${greeting()}\")")
+    write_file(main, greeted)
+    create_dir("${dir}/extra/greet")
+    write_file(
+        "${dir}/extra/greet/greet.vader",
+        "module \"greet\"\n\nexport greeting :: fn() -> string = \"hi\"\n",
+    )
+    // Asked not to compile the driver, `info` describes nothing until it is.
+    uncompiled :: driven(dir, ["info", "--json", "--no-driver-build", "."])
+    assert_eq(uncompiled.exit, 3)
+    assert("is not compiled as it stands" in uncompiled.stderr, uncompiled.stderr)
+    // The driver prints its own counters to stderr, leaving stdout to the JSON.
+    info :: driven(dir, ["info", "--json", "."])
+    assert_eq(info.exit, 0)
+    described :: parse(info.stdout).unwrap()
+    assert_eq(string_member(described, "kind") ?? "", "driver")
+    assert_eq(strings_member(described, "includePaths").join(" "), "extra")
+    entries :: member(described, "entries") ?? JsonNull {}
+    assert_eq(stringify(entries), r"""{"app":"src/main.vader"}""")
+    assert(!exists("${dir}/build/generated"), "`info` generates nothing")
+    checked :: driven(dir, ["check", "."])
+    assert(checked.exit == 0 && "error[" !in checked.stderr, checked.stderr)
+    assert(!exists(executable_path("${binaries(dir)}/app")), "`check` links nothing")
+    ran :: driven(dir, ["run", "."])
+    assert(ran.exit == 0 && "error[" !in ran.stderr, ran.stderr)
+    assert("Point(x, y) /" in ran.stdout && "/ hi" in ran.stdout, ran.stdout)
+    // `--emit=c` writes the split C where the binary would go, and links nothing.
+    emitted :: driven(dir, ["build", "--emit=c", "."])
+    assert(emitted.exit == 0 && "error[" !in emitted.stderr, emitted.stderr)
+    assert(exists("${binaries(dir)}/app.split.h"), "the split C")
+    assert(!exists(executable_path("${binaries(dir)}/app")), "`--emit=c` links nothing")
+    built_and_ran :: driven(dir, ["build", "--run", "."])
+    assert(built_and_ran.exit == 0 && "error[" !in built_and_ran.stderr, built_and_ran.stderr)
+    said :: "Point(x, y) / Point = 1 + 2 / hi\n"
+    assert(said in built_and_ran.stdout, built_and_ran.stdout)
+}
+
+@test
+test_info_describes_a_driver_that_adds_no_entry :: fn() -> void {
+    // `info` reports a project as declared: the missing entry a build reports as
+    // H6003 is a line of the report.
+    dir :: staged_copy("${FIXTURES}/no_entry_added", "driver_no_entry")
+    ran :: driven(dir, ["info", "."])
+    assert("error[" !in ran.stderr, ran.stderr)
+    assert("entry    none" in ran.stdout, ran.stdout)
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_a_driven_build_sweeps_the_generated_modules_of_the_build_before :: fn() -> void {
+    // Generated names are content hashes: a module whose text changed leaves its
+    // old file in the same folder, where it still compiles and declares the same
+    // symbol twice. A clean build never shows that state, so a leftover is planted.
+    dir :: staged_copy("${FIXTURES}/generate_module", "driver_sweep")
+    generated :: "${dir}/build/generated/gen/describe"
+    create_dir(generated)
+    stale :: "${generated}/describe_deadbeefdeadbeef.vader"
+    write_file(
+        stale,
+        "// Generated by `vader build`: do not edit.\n\nmodule \"gen/describe\"\n\n"
+            + "export describe_Point :: fn() -> string = \"STALE\"\n",
+    )
+    built :: driven(dir, ["build"])
+    assert(built.exit == 0 && "error[" !in built.stderr, built.stderr)
+    assert(!exists(stale), "the leftover is swept")
+    assert_eq(read_dir(generated).unwrap().len(), 1)
+    ran :: ran_in(dir, executable_path("${binaries(dir)}/app"))
+    assert("Point(x, y) /" in ran.stdout && "STALE" !in ran.stdout, ran.stdout)
+}
+
+@test
+test_a_driver_that_panics_still_says_why :: fn() -> void {
+    // A panic ends the driver, by a signal on POSIX: what it wrote before is the
+    // only clue the user gets.
+    entry :: "module \"src\"\n\nmain :: fn() -> i32 {\n    return 0\n}\n"
+    dir :: driven_project("driver_panics", DRIVER_THAT_PANICS, entry)
+    ran :: driven(dir, ["build"])
+    assert("the house rules file is missing" in ran.stderr, ran.stderr)
+    assert(ran.exit != 0, "the build fails")
+}
+
+@test
+test_a_named_file_bypasses_the_driver_and_says_so :: fn() -> void {
+    // The path `bootstrap/build.sh` takes to compile the compiler, so it wins;
+    // dropping the rules of a project in silence would make them untrustworthy.
+    dir :: staged_copy("${FIXTURES}/pascal_case_lint", "driver_named_file")
+    ran :: driven(dir, ["build", "--emit=c", "--out=-", "src/main.vader"])
+    assert("not applied" in ran.stderr, ran.stderr)
+    assert_eq(ran.exit, 0)
+}
+
+@test
+test_no_hooks_silences_that_and_skips_the_driver_entirely :: fn() -> void {
+    dir :: staged_copy("${FIXTURES}/pascal_case_lint", "driver_no_hooks")
+    quiet :: driven(dir, ["build", "--emit=c", "--out=-", "--no-hooks", "src/main.vader"])
+    assert("not applied" !in quiet.stderr, quiet.stderr)
+    // With no file either, the folder then describes no build.
+    bare :: driven(dir, ["build", "--no-hooks"])
+    assert("`--no-hooks` ignores" in bare.stderr, bare.stderr)
+    assert_eq(bare.exit, 1)
+}
+
+@test
+test_no_hooks_runs_no_driver_whatever_the_action :: fn() -> void {
+    // The driver panics in any mode: its message on stderr says one ran. A folder
+    // only its driver describes is no project once the driver is ignored.
+    dir :: driven_project("driver_any_action", DRIVER_IN_ANY_MODE, ENTRY_ON_ITS_OWN)
+    actions: string[][]: [
+        ["build"],
+        ["check"],
+        ["run"],
+        ["dump", "--stage=ast"],
+        ["graph"],
+        ["lint"],
+        ["info"],
+        ["doc"],
+    ]
+    for action in actions {
+        ran :: driven(dir, action + ["--no-hooks", "."])
+        said :: "${action[0]}: ${ran.stderr}"
+        assert("the driver ran" !in ran.stderr && "`--no-hooks` ignores" in ran.stderr, said)
+        assert_eq(ran.exit, 1)
+    }
+    // A file run within the project compiles without the driver preparing it.
+    file :: driven(dir, ["run", "--no-hooks", "--project", ".", "src/main.vader"])
+    assert("the driver ran" !in file.stderr, file.stderr)
+    assert("ran on its own" in file.stdout, file.stdout)
+    assert_eq(file.exit, 0)
+}

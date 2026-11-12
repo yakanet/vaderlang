@@ -1,4 +1,5 @@
-// tools/cli_tests/new/new: `vader new` writes a project that runs, and builds.
+// tools/cli_tests/new/new: `vader new` writes a project that runs, and builds,
+// and so does the driver `vader eject` writes for it.
 //
 // The templates and the rules of a target are tested where they are written
 // (`vader/tools/cli/cmd_new.vader`); what only a run shows is the files reaching
@@ -7,6 +8,7 @@
 
 module "tools/cli_tests/new"
 
+import "json"
 import "std/fs"
 import "std/io"
 import "std/option"
@@ -19,6 +21,17 @@ import "tools/cli_tests/cli"
 vader :: fn(args: string[], cwd: string, env: [string, string | null][] = []) -> ProcessResult {
     options :: RunOptions { .cwd = cwd, .env = env }
     return run_vader(args, options).unwrap()
+}
+
+// The members of a project's description `info --json` printed in `stdout` that
+// the manifest declares: its search roots, its entries and its assets.
+declared :: fn(stdout: string) -> string {
+    described :: parse(stdout).unwrap()
+    out: string[]: []
+    for key in ["includePaths", "entries", "assets"] {
+        out.push("${key}: ${stringify(member(described, key) ?? JsonNull {})}")
+    }
+    return out.join("\n")
 }
 
 // Whether each of `files` exists under `dir`.
@@ -97,4 +110,56 @@ test_each_build_shape_writes_what_it_says_and_only_that :: fn() -> void {
             assert(!exists("${dir}/${absent}"), "`${shape.0}` writes no `${absent}`")
         }
     }
+}
+
+@test
+test_a_manifest_ejected_into_a_driver_declares_builds_and_runs_as_it :: fn() -> void {
+    // `vader new --build=driver` and `vader eject` write their driver through one
+    // renderer, so one build of an ejected driver covers both: nothing else
+    // compiles that template against the contract of `toolchain/build`. The
+    // manifest gains a search root and an asset first, which the driver must
+    // declare as the file did.
+    workspace :: scratch_dir("new_ejected")
+    assert_eq(vader(["new", "--build=manifest", "scaffolded"], workspace).exit, 0)
+    project :: "${workspace}/scaffolded"
+    manifest_path :: "${project}/vader.json"
+    manifest :: read_file_string(manifest_path).unwrap()
+    rooted :: manifest.replace_all("\"includePaths\": []", "\"includePaths\": [\"vendor\"]")
+    widened :: rooted.replace_all("\"assets\": []", "\"assets\": [\"data\"]")
+    assert("\"vendor\"" in widened && "\"data\"" in widened, widened)
+    write_file(manifest_path, widened)
+    create_dir("${project}/vendor/greet")
+    write_file(
+        "${project}/vendor/greet/greet.vader",
+        "module \"greet\"\n\nexport greeting :: fn() -> string = \"hi\"\n",
+    )
+    create_dir("${project}/data")
+    write_file("${project}/data/note.txt", "note\n")
+    main :: "${project}/src/main.vader"
+    imports :: read_file_string(main).unwrap().replace_all(
+        "import \"std/console\"",
+        "import \"greet\"\nimport \"std/console\"",
+    )
+    greeted :: imports.replace_all(
+        "println(\"hello from scaffolded\")",
+        "println(\"hello from scaffolded, \${greeting()}\")",
+    )
+    write_file(main, greeted)
+    before :: vader_in(project, ["info", "--json", "."], [], HEAVY_TIMEOUT)
+    assert_eq(before.exit, 0)
+    assert_eq(vader_in(project, ["eject", "."], [], HEAVY_TIMEOUT).exit, 0)
+    assert(!exists(manifest_path), "the manifest is gone")
+    // The ejected driver, run to describe itself, says what the file said.
+    after :: vader_in(project, ["info", "--json", "."], [], HEAVY_TIMEOUT)
+    assert_eq(after.exit, 0)
+    assert_eq(declared(after.stdout), declared(before.stdout))
+    built :: vader_in(project, ["build"], [], HEAVY_TIMEOUT)
+    assert(built.exit == 0 && "error[" !in built.stderr, built.stderr)
+    // The binary is named after the project: the entry of the scaffold carries its
+    // name.
+    binaries :: "${project}/build/debug-${host_folder()}"
+    ran :: run_command([executable_path("${binaries}/scaffolded")]).unwrap()
+    assert_eq(ran.exit, 0)
+    assert("hello from scaffolded, hi" in ran.stdout, ran.stdout)
+    assert(exists("${binaries}/data/note.txt"), "the asset beside the binary")
 }

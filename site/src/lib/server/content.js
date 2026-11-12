@@ -8,7 +8,7 @@
 // to the specification, `§N` or `§N *Title*`, links to that chapter or heading,
 // and one that names nothing stops the build.
 //
-// Every Vader block of the content runs in `tests/site_content.test.ts`, and the
+// Every Vader block of the content runs in `tools/cli_tests/site`, and the
 // `text` block right after one is what it prints.
 
 import fs from 'node:fs';

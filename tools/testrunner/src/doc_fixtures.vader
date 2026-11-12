@@ -1,0 +1,72 @@
+// tools/testrunner/src/doc_fixtures: the data `vader doc` writes for the
+// projects of `tests/fixtures/doc`.
+//
+// A fixture is a project folder `<name>` with a snapshot `<name>.snapshot` beside
+// it; one without a snapshot is staged by the tests of the command
+// (`tools/cli_tests/doc`). Its `doc` stage copies the fixture to the folder of
+// its case, with no `build/`, runs `vader doc <name>` there with `VADER_HOME` at
+// the repository, and compares every file the command wrote under `build/doc/`
+// with the snapshot, but for the `stamp`, which must be there and holds the
+// absolute folders of the copy.
+
+module "tools/testrunner/src"
+
+import "std/fs"
+import "std/io"
+import "std/string"
+import "std/time"
+import "tools/cli_tests/cli"
+
+DOC_CORPUS :: "tests/fixtures/doc"
+
+// Where `vader doc` writes the data of a project, under it.
+DOC_DATA :: "build/doc"
+
+// The file of `DOC_DATA` that says what the data was written from.
+DOC_STAMP :: "stamp"
+
+// The fixtures of `DOC_CORPUS` that have a snapshot, pushed on `found`.
+find_doc_fixtures :: fn(found: Discovery) -> void {
+    for name in entries_where(found, DOC_CORPUS, is_dir) {
+        snapshot :: "${name}.snapshot"
+        if exists("${DOC_CORPUS}/${snapshot}") {
+            found.cases.push(
+                Case {
+                    .name = "${DOC_PHASE}/${name}",
+                    .dir = DOC_CORPUS,
+                    .entry = name,
+                    .snapshot = snapshot,
+                    .phases = [DOC_PHASE],
+                },
+            )
+        }
+    }
+}
+
+// Run `vader doc` on a copy of the fixture of `case` in its folder `dir`, and
+// compare the data it writes with its snapshot, which `update` writes when it
+// differs.
+check_doc :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
+    began :: monotonic()
+    project :: "${dir}/project"
+    staged :: copy_sources(entry_path(case), project)
+    if staged is IOError {
+        return doc_failure("`${project}`: ${staged.msg}")
+    }
+    options :: RunOptions { .cwd = project, .env = toolchain_env() }
+    ran :: ran_or_failure(run_vader(["doc", case.entry], options))
+    if ran is CaseFailure {
+        return doc_failure(ran.message)
+    }
+    if ran.exit != 0 || ran.stderr != "" {
+        return doc_failure("`vader doc ${case.entry}` exited ${ran.exit}\n${ran.stderr}")
+    }
+    if !exists("${project}/${DOC_DATA}/${DOC_STAMP}") {
+        return doc_failure("no `${DOC_STAMP}` beside the data")
+    }
+    data :: tree_text("${project}/${DOC_DATA}", (entry) -> entry.relative != DOC_STAMP)
+    return report_of(case, DOC_STAGE, data, update, began)
+}
+
+doc_failure :: fn(message: string) -> CaseFailure =
+    CaseFailure { .message = "${DOC_PHASE}: ${message}" }

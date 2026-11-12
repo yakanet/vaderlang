@@ -1,0 +1,62 @@
+// tools/cli_tests/library/library: a library the toolchain ships cannot import
+// the compiler.
+//
+// `lib/` holds what the toolchain ships, and none of it may depend on what
+// interprets Vader, or a program importing a library would drag the compiler
+// into its run time; `toolchain/build` alone may, since a driver links the
+// compiler by design (R2034). Stating it takes a file under a library root,
+// which no fixture of a corpus can be: each test stages a root of its own, and
+// runs the command from the folder above it, which makes that `lib/` the root.
+
+module "tools/cli_tests/library"
+
+import "std/fs"
+import "std/option"
+import "std/string"
+import "tools/cli_tests/cli"
+
+// A library module of the namespace `name` that imports the compiler.
+importing_the_compiler :: fn(name: string) -> string =
+    "module \"${name}\"\n\nimport \"vader/front/lexer\"\n\nexport peek :: fn() -> i32 = 1\n"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_shipped_library_cannot_import_the_compiler :: fn() -> void {
+    // R2034 is checked before the module is looked for: it fires whether or not
+    // `vader/front/lexer` resolves from here, the rule being about the attempt.
+    dir :: staged_library_root(
+        "library_imports",
+        "r2034probe",
+        importing_the_compiler("r2034probe"),
+    )
+    app :: """
+        module "app"
+
+        import "std/console"
+        import "r2034probe"
+
+        main :: fn() -> i32 {
+            println("\${peek()}")
+            return 0
+        }
+        """
+    write_file("${dir}/app.vader", app)
+    ran :: run_vader(["run", "app.vader"], RunOptions { .cwd = dir }).unwrap()
+    assert("R2034" in ran.stderr, ran.stderr)
+    assert("only `toolchain/build` may" in ran.stderr, ran.stderr)
+}
+
+@test
+test_a_library_module_compiled_as_the_entry_is_no_library :: fn() -> void {
+    // Being a library is how a build reaches a module, not where it sits: a file
+    // named on the command line is the caller's own code. The R2001 shows the
+    // import was seen, after the point where R2034 would have fired.
+    dir :: staged_library_root("library_entry", "entryprobe", importing_the_compiler("entryprobe"))
+    options :: RunOptions { .cwd = dir }
+    ran :: run_vader(["build", "lib/entryprobe/entryprobe.vader"], options).unwrap()
+    assert("R2001" in ran.stderr, ran.stderr)
+    assert("R2034" !in ran.stderr, ran.stderr)
+}

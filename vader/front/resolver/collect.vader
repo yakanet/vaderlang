@@ -377,8 +377,9 @@ diagnose_import_path :: fn(
     // And the rule is about the ATTEMPT, so R2034 must fire on an import of
     // `vader/*` that does not resolve from where the library sits, which means
     // this check STAYS ABOVE the module-not-found lookup below. Move it under and
-    // R2034 silently becomes R2001; `hook_driver.test.ts` pins that with a probe
-    // importing `vader/front/lexer` from a staged root where it cannot resolve.
+    // R2034 silently becomes R2001; `tools/cli_tests/library` pins that with a
+    // probe importing `vader/front/lexer` from a staged root where it cannot
+    // resolve.
     if raw_path.starts_with("vader/")
         && !from_module_name.starts_with("vader/")
         && from_module_name != DRIVER_CONTRACT_MODULE

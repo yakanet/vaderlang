@@ -7,13 +7,6 @@ name: CI
 
 on:
   workflow_dispatch:
-    inputs:
-      # Measurement only (TODO.md, "CI review"): empty leaves the default of 4,
-      # see `tests/hook_driver.test.ts::gateSize`.
-      gate:
-        description: 'VADER_TEST_GATE, concurrent driver builds in hook_driver (empty = 4)'
-        required: false
-        default: ''
   push:
     branches: [main]
   pull_request:
@@ -82,12 +75,9 @@ jobs:
         run: |
           (cd tools/testrunner && ../../build/vader build --release)
           tools/testrunner/build/release-*/testrunner --only-failures
-      # What the runner does not check yet: the command line, the language
-      # servers, and the tests of the build driver no fixture can carry.
+      # What the runner does not check yet: the language servers.
       - name: Tests left to Bun
         if: ${{ !cancelled() && runner.os != 'macOS' && hashFiles('build/vader', 'build/vader.exe') != '' }}
-        env:
-          VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
 
   # The site of the language (`site/`), with the API reference of the library

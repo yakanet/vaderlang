@@ -11,7 +11,6 @@
 module "tools/cli_tests/lint"
 
 import "std/fs"
-import "std/io"
 import "std/option"
 import "std/process"
 import "std/string"
@@ -60,24 +59,13 @@ unused_exports :: fn(ran: ProcessResult) -> i64 = said_by(ran).split("W0012").le
 
 // A fresh folder whose `lib/` holds `std/` and `system/`, copied from the
 // repository, and the namespace `lintprobe`, which ships an export nothing
-// reaches; or why it could not be made.
-staged_library_root :: fn(name: string) -> string | IOError {
-    dir :: scratch_dir("lint_${name}")
-    create_dir("${dir}/lib")
-    for namespace in ["std", "system"] {
-        copied :: copy_tree("lib/${namespace}", "${dir}/lib/${namespace}")
-        if copied is IOError {
-            return copied
-        }
-    }
-    create_dir("${dir}/lib/lintprobe")
-    write_file(
-        "${dir}/lib/lintprobe/lintprobe.vader",
-        "module \"lintprobe\"\n\n/// Reached by nothing, and shipped: out of a project's scope.\n"
-            + "export never_used_in_probe :: fn() -> i32 = 1\n",
-    )
-    return dir
-}
+// reaches.
+staged_lint_root :: fn(name: string) -> string = staged_library_root(
+    "lint_${name}",
+    "lintprobe",
+    "module \"lintprobe\"\n\n/// Reached by nothing, and shipped: out of a project's scope.\n"
+        + "export never_used_in_probe :: fn() -> i32 = 1\n",
+)
 
 // ---- tests ----------------------------------------------------------------
 
@@ -118,7 +106,7 @@ test_lint_with_no_file_is_a_usage_error :: fn() -> void {
 
 @test
 test_lint_scopes_the_exports_by_where_a_module_comes_from :: fn() -> void {
-    dir :: staged_library_root("provenance").unwrap()
+    dir :: staged_lint_root("provenance")
     write_file("${dir}/app.vader", PROBED_APP)
     relative :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }).unwrap()
     said :: said_by(relative)
@@ -138,7 +126,7 @@ test_lint_scopes_the_exports_by_where_a_module_comes_from :: fn() -> void {
 test_lint_flags_an_export_named_build_outside_a_driver :: fn() -> void {
     // The walk of the project merges the declarations of every module: an entry
     // `build` is rooted in the `build` module only.
-    dir :: staged_library_root("stray_build").unwrap()
+    dir :: staged_lint_root("stray_build")
     write_file("${dir}/app.vader", STRAY_BUILD)
     ran :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }).unwrap()
     assert("`build` is never used" in said_by(ran), said_by(ran))
