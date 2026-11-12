@@ -8,6 +8,8 @@
 
 module "vader/front/parser"
 
+import "std/collections"
+
 /// Where a decorator is written.
 export DecoratorPlace :: enum {
     /// Above a declaration.
@@ -185,13 +187,16 @@ export DECORATORS: DecoratorSpec[]: [
 /// The decorator named `name`, or null when the compiler knows none.
 ///
 /// @param name  the decorator's name, without the `@`.
-export decorator_spec :: fn(name: string) -> DecoratorSpec | null {
+export decorator_spec :: fn(name: string) -> DecoratorSpec | null = specs_by_name()[name]
+
+// Built once: reading `DECORATORS` copies the table.
+@singleton
+specs_by_name :: fn() -> Map<string, DecoratorSpec> {
+    by_name :: Map<string, DecoratorSpec> {}
     for d in DECORATORS {
-        if d.name == name {
-            return d
-        }
+        by_name[d.name] = d
     }
-    return null
+    return by_name
 }
 
 /// Whether the decorator `name` may be written at `place`.
