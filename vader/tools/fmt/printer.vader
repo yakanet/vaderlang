@@ -2525,8 +2525,8 @@ emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     if !x.is_expression_bodied && x.return_type is null && x.body.stmts.len() == 0
         && x.body.trailing != null {
         self.emit_fn_params(x.params, x.trailing_comma, self.lambda_params_bounds(x))
-        self.write(" -> ")
-        self.emit_expr(x.body.trailing)
+        self.write(" ->")
+        self.emit_expression_body(x.body.trailing)
         return
     }
     self.write("fn")

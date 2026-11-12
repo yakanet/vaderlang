@@ -294,8 +294,15 @@ test_fmt_leaves_a_comment_before_an_expression_body_to_the_body :: fn() -> void 
         g :: fn(a: i32) =
             // explain g
             a + 1
+
+        h :: (x: i32) ->
+            // explain h
+            x + 1
+
+        twice :: fn(xs: i32[]) -> i32[] = xs.map((x) ->
+            // doubled
+            x * 2).collect()
         """)
-    fmt_keeps("h :: (x: i32) ->\n    // c\n    x + 1", "h :: (x: i32) -> x + 1")
 }
 
 // Formatting `source` must give it back unchanged.
