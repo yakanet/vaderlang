@@ -45,10 +45,11 @@ export EvaluatedPipeline :: struct {
 // Load, typecheck and evaluate `file`. The `--include-paths` search roots are
 // threaded to the loader, beside the project the entry belongs to, null for a
 // file compiled on its own (`search_roots`). `view` is what the load selects on:
-// a build target, or null for this machine.
+// a build target, or null for this machine. `under_test` loads the entry to run
+// its tests, and every other module without its own.
 export prepare_evaluated_project_with :: fn(
     file: Path, include_path_flags: string[], project_root: string | null,
-    view: Selection | null = null,
+    view: Selection | null = null, under_test: bool = false,
 ) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
     // prepare_cfg_bytecode_with / the C emit of `output.vader`). `prof_begin` / `prof_end` are
@@ -59,7 +60,7 @@ export prepare_evaluated_project_with :: fn(
     // never read the clock when off and never touch the emitted output. See
     // vader/support/profile.
     Prof.prof_begin(.Load)
-    loaded :: load_project(file.as_string(), include_path_flags, project_root, view)
+    loaded :: load_project(file.as_string(), include_path_flags, project_root, view, under_test)
     Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []
     Prof.prof_begin(.Typecheck)

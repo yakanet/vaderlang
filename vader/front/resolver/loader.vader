@@ -96,12 +96,15 @@ export LoadedModule :: struct {
 ///
 /// @param project_root  the project the entry belongs to (`search_roots`),
 ///                      null for a file compiled on its own.
+/// @param under_test    the entry is loaded to run its tests: every other module
+///                      is loaded without its own, the project's included.
 export load_project :: fn(
     entry_path: string, include_path_flags: string[], project_root: string | null,
-    selection: Selection | null = null,
+    selection: Selection | null = null, under_test: bool = false,
 ) -> LoadedProject {
     return load_project_with_overlay(
-        entry_path, Map<string, string> {}, include_path_flags, project_root, selection)
+        entry_path, Map<string, string> {}, include_path_flags, project_root, selection,
+        under_test = under_test)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -127,11 +130,13 @@ export load_project :: fn(
 /// @param keep_docs    parse with the vaderdoc of every declaration
 ///                     (`parse_source_with_docs`), for a reader of the docs ; a
 ///                     build leaves it off and pays nothing for them.
+/// @param under_test   the entry is loaded to run its tests: every other module
+///                     is loaded without its own, the project's included.
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: Map<string, string>,
     include_path_flags: string[], project_root: string | null,
     selection: Selection | null = null, extra_seeds: string[] = [],
-    keep_docs: bool = false,
+    keep_docs: bool = false, under_test: bool = false,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // Windows hands the entry path with `\` separators ; the resolver keeps `/`
@@ -192,6 +197,7 @@ export load_project_with_overlay :: fn(
                 .node_factory = new_node_id_factory(),
                 .selected_target = effective_target,
                 .keep_docs = keep_docs,
+                .tested = if under_test { entry_module.folder } else { null },
             }
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
@@ -407,6 +413,9 @@ LoadState :: struct {
     /// DISABLED and let every `@target` body through to the type checker.
     selected_target: Target | null
     keep_docs: bool
+    /// The folder of the module loaded to run its tests, null in any other load.
+    /// NO default, for the reason `selected_target` has none.
+    tested: string | null
 }
 
 // The module `name` resolves to from the roots of the load `ctx`.
@@ -507,7 +516,7 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     if m.files.len() == 0 { return }
     read :: parse_module_files(ctx, m.files)
     if read.len() == 0 { return }
-    parsed :: if is_dependency(m) { without_tests(read, m.name) } else { read }
+    parsed :: if is_dependency(ctx, m) { without_tests(read, m.name) } else { read }
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.
@@ -538,9 +547,11 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     }
 }
 
-// Whether `m` is a module the program depends on rather than one of its own: one
-// the toolchain ships. Its tests are not loaded (`without_tests`).
-is_dependency :: fn(m: DiscoveredModule) -> bool = m.origin == .Toolchain
+// Whether the tests of `m` are no business of this load (`without_tests`): those
+// of a module the toolchain ships, and in a load that runs the tests of one
+// module, those of every other.
+is_dependency :: fn(ctx: LoadState, m: DiscoveredModule) -> bool =
+    m.origin == .Toolchain || ctx.tested != null && m.folder != ctx.tested
 
 // Read `path`'s source, consulting the in-memory `overlay` (filesystem path ->
 // current text) before the disk. The LSP populates the overlay from its

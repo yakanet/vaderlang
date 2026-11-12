@@ -53,7 +53,7 @@ export lower_tests :: fn(
     project_root: string | null,
     diagnostics: Diagnostic[],
 ) -> LoweredTests | null {
-    lowered :: lower_to_entry(entry.path, project_root)
+    lowered :: lower_to_entry_with(entry.path, [], project_root, under_test = true)
     reported :: lowered.pre_diags + lowered.lower_diags
     diagnostics.push_all(reported)
     if any_error_diag(reported) {

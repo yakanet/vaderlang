@@ -9,6 +9,7 @@
 module "tools/cli_tests/test"
 
 import "json"
+import "std/fs"
 import "std/iter"
 import "std/option"
 import "std/path"
@@ -103,6 +104,53 @@ test_list_with_the_json_report_gives_the_module_and_its_tests :: fn() -> void {
     assert_eq(number_member(read.events[1], "line") ?? 0.0, 10.0)
     assert_eq(string_member(read.events[2], "test") ?? "", "test_fails")
     assert_eq(number_member(read.events[2], "line") ?? 0.0, 15.0)
+}
+
+@test
+test_a_module_is_tested_without_the_tests_of_the_modules_it_imports :: fn() -> void {
+    // The test of `helper` does not compile: it stops the run of `helper`, and
+    // is not loaded for the run of `app`.
+    dir :: scratch_dir("test_other_modules")
+    create_dir("${dir}/app")
+    create_dir("${dir}/helper")
+    write_file("${dir}/vader.json", r"""{"entries": {"app": "app/app.vader"}}""")
+    write_file(
+        "${dir}/helper/helper.vader",
+        r"""
+        module "helper"
+
+        export one :: fn() -> i32 = 1
+
+        import "std/testing"
+
+        @test
+        test_one :: fn() -> void {
+            wrong: i32: "text"
+            assert_eq(one(), wrong)
+        }
+        """,
+    )
+    write_file(
+        "${dir}/app/app.vader",
+        r"""
+        module "app"
+
+        import "helper"
+
+        main :: fn() -> i32 = one()
+
+        import "std/testing"
+
+        @test
+        test_main :: fn() -> void {
+            assert_eq(main(), 1)
+        }
+        """,
+    )
+    own :: vader_in(dir, ["test", "app"])
+    assert(own.exit == 0 && "1 pass" in own.stdout, own.stdout + own.stderr)
+    other :: vader_in(dir, ["test", "helper"])
+    assert(other.exit == 1 && "T3001" in other.stdout + other.stderr, other.stdout + other.stderr)
 }
 
 @test

@@ -211,12 +211,14 @@ export lower_to_entry :: fn(file: Path, project_root: string | null) -> LoweredE
 ///                            on its own (`search_roots`).
 /// @param target              platform to lower for ; this machine when null.
 /// @param verify              run the IR verifiers between passes (`--verify`).
+/// @param under_test          the entry is lowered to run its tests: every other
+///                            module is loaded without its own.
 export lower_to_entry_with :: fn(
     file: Path, include_path_flags: string[], project_root: string | null,
-    target: Target | null = null, verify: bool = false,
+    target: Target | null = null, verify: bool = false, under_test: bool = false,
 ) -> LoweredEntry =
     lower_to_entry_from(
-        prepare_evaluated_project_with(file, include_path_flags, project_root, target),
+        prepare_evaluated_project_with(file, include_path_flags, project_root, target, under_test),
         verify,
     )
 
