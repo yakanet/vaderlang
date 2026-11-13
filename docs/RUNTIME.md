@@ -230,11 +230,9 @@ outgrows the buffer allocates a larger one and points the header at it.
 ```c
 typedef struct {
     vader_obj_header_t      header;
-    size_t                  length;
-    size_t                  capacity;
+    uint64_t                length_capacity;   /* capacity << 32 | length */
     size_t                  offset;
     struct vader_array_buf* buf;
-    uint64_t                _pad;
 } vader_array_t;
 
 typedef struct vader_array_buf {
@@ -289,9 +287,15 @@ held; the buffer's `length` is only that bound
 ([ADR 0122](adr/0122-an-array-writes-in-place-only-into-room-no-other-header-sees.md)).
 
 **The bytes of a string**, `s.bytes()`, are a header with no buffer, flagged
-*borrowed*, that reads the string's interned bytes in place; its `capacity` field
-holds the string's atom id and the `u8` tag. The
+*borrowed*, that reads the string's interned bytes in place; its capacity
+holds the string's atom id. The
 language forbids writing it (SPEC §5, *Frozen values*).
+
+A header is 32 bytes: the length and the capacity share one word, the length in
+its low half, and are read and written through accessors of the runtime. An
+array holds at most 2^32 - 1 elements; a larger one traps where its buffer would
+be sized. The type table gives the tag of an element for each array type
+([ADR 0134](adr/0134-an-array-header-is-32-bytes.md)).
 
 An index is checked against `length` before every access; a release build drops
 the checks the range analysis proves useless

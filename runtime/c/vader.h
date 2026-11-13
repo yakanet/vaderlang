@@ -441,7 +441,7 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
 #define VADER_STATIC_BUF_HEADER(element_tag, element_kind, count) \
     VADER_STATIC_HEADER(VADER_TYPE_INDEX_ARRAY_BUF), (count), (count), (element_tag), (element_kind)
 #define VADER_STATIC_ARRAY(type_index, count, buffer) \
-    { VADER_STATIC_HEADER(type_index), (count), (count), 0u, (vader_array_buf_t*) (buffer) }
+    { VADER_STATIC_HEADER(type_index), VADER_ARRAY_EXTENT(count, count), 0u, (vader_array_buf_t*) (buffer) }
 
 /* Raw `void*` -> box, for a `VADER_ARRAY_KIND_REF` slot read onto the
  * still-boxed expression stack: the tag comes from the referent's object
@@ -503,7 +503,7 @@ static inline size_t vader_array_element_size(uint8_t kind) {
  * `vader_array_t`. Set on the read-only `const u8[]` views returned by
  * `vader_string_bytes_view` : the header aliases an interned string's bytes
  * instead of owning a GC-backed `buf` (which is NULL). On a borrowed view
- * `capacity` is repurposed to carry `(element_tag << 32) | owner_atom_id`: the
+ * `capacity` is repurposed to carry the id of the owner atom: the
  * view is never grown in place (modifying it is T3072, and the runtime traps on
  * one that gets through), so `capacity` is otherwise dead. The open-coded c-emit
  * reads (`vader_array_read_u8`) / `_slice` honour the flag ;
@@ -531,49 +531,69 @@ struct vader_array_buf;
  * and a header that shrinks over a shared buffer sets `capacity = length`: the
  * next push of either copies into a buffer of its own. `buf->length` is then
  * only the bound of the slots the GC scans, at least `offset + length` of
- * every header over the buffer. Records: docs/adr/0108 and 0122. */
+ * every header over the buffer. Records: docs/adr/0108 and 0122.
+ *
+ * Every word of the header is 64 bits wide, so a write to an element, whatever
+ * its type, is no write to the header: the C compiler keeps the length in a
+ * register across a loop that stores elements. The length and the capacity
+ * share one word for that, and go through the accessors below, in the emitted
+ * C as in the runtime. `offset` keeps
+ * its place beside `buf`: an element read loads the two as one pair. Record:
+ * docs/adr/0134. */
 typedef struct {
     vader_obj_header_t       header;
-    size_t                   length;
-    size_t                   capacity;
+    /* `capacity << 32 | length`. */
+    uint64_t                 length_capacity;
     /* First buf slot this array exposes. Zero for fresh arrays ; non-zero
      * for slice views that share the parent's buf. */
     size_t                   offset;
     struct vader_array_buf*  buf;
-    /* Rounds the header up to `VADER_ARRAY_SLOT_ALIGN`: its buffer follows it
-     * in the one block of a new array. */
-    uint64_t                 _pad;
 } vader_array_t;
 
-/* The length, the room and the first slot of an array: what the emitted C
- * reads and writes them by, so their place in the header is this file's alone. */
+/* The most elements an array holds: what half a word can say. */
+#define VADER_ARRAY_MAX_LENGTH ((size_t) UINT32_MAX)
+
+/* The word of a length and a capacity: a macro, for a static array has it in
+ * its initialiser. */
+#define VADER_ARRAY_EXTENT(length, capacity) \
+    (((uint64_t) (capacity) << 32) | (uint64_t) (length))
+
 static inline size_t vader_array_length(const vader_array_t* a) {
-    return a->length;
-}
-static inline void vader_array_set_length(vader_array_t* a, size_t length) {
-    a->length = length;
+    return (size_t) (uint32_t) a->length_capacity;
 }
 static inline size_t vader_array_capacity(const vader_array_t* a) {
-    return a->capacity;
+    return (size_t) (a->length_capacity >> 32);
 }
 static inline size_t vader_array_offset(const vader_array_t* a) {
     return a->offset;
 }
+/* Both at once. The caller holds them under `VADER_ARRAY_MAX_LENGTH`, as it
+ * does for the two setters below. */
+static inline void vader_array_set_extent(vader_array_t* a, size_t length, size_t capacity) {
+    a->length_capacity = VADER_ARRAY_EXTENT(length, capacity);
+}
+static inline void vader_array_set_length(vader_array_t* a, size_t length) {
+    vader_array_set_extent(a, length, vader_array_capacity(a));
+}
+static inline void vader_array_set_capacity(vader_array_t* a, size_t capacity) {
+    vader_array_set_extent(a, vader_array_length(a), capacity);
+}
+/* One element more, for a caller that found room: under the capacity the low
+ * half takes the one without a carry. */
+static inline void vader_array_bump_length(vader_array_t* a) {
+    a->length_capacity += 1;
+}
 
 /* Borrowed `const u8[]` byte-view accessors: the single home of the
- * VADER_ARRAY_FLAG_BORROWED representation. On a borrowed view `capacity`
- * packs `(element_tag << 32) | owner_atom_id` (see VADER_ARRAY_FLAG_BORROWED
- * above) ; reading goes through `vader_atom_data(owner)`. Keeping the bit
- * layout here means `vader_array_read_u8` / `_slice` / the GC mark never
- * open-code the casts. */
+ * VADER_ARRAY_FLAG_BORROWED representation. On a borrowed view the capacity
+ * holds the id of the owner atom (see VADER_ARRAY_FLAG_BORROWED above) ;
+ * reading goes through `vader_atom_data(owner)`. The tag of an element is the
+ * one its array type gives (`vader_type_info_t.element_tag`). */
 static inline bool vader_array_is_borrowed(const vader_array_t* a) {
     return (a->header._reserved & VADER_ARRAY_FLAG_BORROWED) != 0;
 }
 static inline vader_atom_t vader_array_borrowed_owner(const vader_array_t* a) {
-    return (vader_atom_t) (uint32_t) a->capacity;
-}
-static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
-    return (uint32_t) (a->capacity >> 32);
+    return (vader_atom_t) vader_array_capacity(a);
 }
 /* Dynamic foreign calls, for the VM only, see runtime/c/rt/ffi.c for the
  * contract and the ABI restrictions. Declared here because the emitted C calls
@@ -628,10 +648,10 @@ static inline void vader_ffi_callback_escape(void) {
     if (VADER_UNLIKELY(!vader_ffi_callback_escaped)) vader_ffi_callback_first_escape();
 }
 
-/* Flag `a` as a borrowed view over `owner`'s bytes, packing the element tag. */
-static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag, vader_atom_t owner) {
+/* Flag `a` as a borrowed view over `length` bytes of `owner`. */
+static inline void vader_array_make_borrowed(vader_array_t* a, vader_atom_t owner, size_t length) {
     a->header._reserved = VADER_ARRAY_FLAG_BORROWED;
-    a->capacity = ((uint64_t) elem_tag << 32) | (uint64_t) (uint32_t) owner;
+    vader_array_set_extent(a, length, owner);
 }
 
 /* `capacity` / `length` are the buffer's own: the GC scans it with no
@@ -698,19 +718,17 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
 }
 
 /* Read a `u8` array element as a box: borrowed-aware. A `bytes()` view
- * (VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) reads the owner atom's bytes with
- * its RUNTIME borrowed tag ; a real `u8[]` reads its slots and boxes with the
- * static `elem_tag`. `slot` is the caller-resolved absolute index (`a->offset +
- * i`) ; the c-emit site resolves the buffer anew (a collection may have moved
- * it) and checks the bounds (`emit_slot_array_local`) before this call. */
+ * (VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) reads the owner atom's bytes, a
+ * real `u8[]` its slots ; both box with the static `elem_tag`. `slot` is the
+ * caller-resolved absolute index (`a->offset + i`) ; the c-emit site resolves
+ * the buffer anew (a collection may have moved it) and checks the bounds (`emit_slot_array_local`) before this call. */
 static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uint32_t elem_tag) {
     vader_box_t out;
     out._pad = 0;
+    out.tag = elem_tag;
     if (vader_array_is_borrowed(a)) {
-        out.tag = vader_array_borrowed_tag(a);
         out.payload.i = ((const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a)))[slot];
     } else {
-        out.tag = elem_tag;
         out.payload.i = ((const uint8_t*) a->buf->slots)[slot];
     }
     return out;
@@ -998,7 +1016,7 @@ VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct
 #define VADER_ARRAY_RESOLVE_BUF(a)
 #endif
 #define VADER_ARRAY_CHECK_INDEX_OR_TRAP(a, i, message) \
-    if ((size_t) (i) >= (a)->length) { vader_trap(message); }
+    if ((size_t) (i) >= vader_array_length(a)) { vader_trap(message); }
 #define VADER_ARRAY_CHECK_INDEX(a, i) \
     VADER_ARRAY_CHECK_INDEX_OR_TRAP(a, i, "array index out of bounds")
 
@@ -1074,11 +1092,12 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {                              \
         vader_trap("cannot push to a borrowed `const u8[]` byte view");             \
     }                                                                              \
-    if (a->length < a->capacity) {                                                 \
+    size_t n = vader_array_length(a);                                              \
+    if (n < vader_array_capacity(a)) {                                             \
         VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
-        ((ctype*) a->buf->slots)[a->length] = (ctype) v;                            \
-        a->length += 1;                                                             \
-        a->buf->length = a->length;                                                 \
+        ((ctype*) a->buf->slots)[n] = (ctype) v;                                    \
+        vader_array_bump_length(a);                                                \
+        a->buf->length = n + 1;                                                    \
     } else {                                                                       \
         vader_array_push_slow(a, box_fn(a->buf->element_tag, v));                   \
     }
@@ -1257,7 +1276,7 @@ extern uintptr_t  vader_old_end;
  * buffer's own kind decides the store. */
 static inline bool vader_array_ref_push_in_place(const vader_array_t* a, const vader_array_buf_t* buf) {
     uint8_t kind = buf->element_kind;
-    return a->length < a->capacity
+    return vader_array_length(a) < vader_array_capacity(a)
         && (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF);
 }
 
@@ -1273,9 +1292,9 @@ static inline void vader_array_push_box(vader_array_t* a, vader_box_t v, bool ma
         vader_array_push_slow(a, v);
         return;
     }
-    size_t n = a->length;
+    size_t n = vader_array_length(a);
     vader_array_ref_store_box(buf, n, v);
-    a->length = n + 1;
+    vader_array_bump_length(a);
     buf->length = n + 1;
     if (may_hold_ref) {
         VADER_WRITE_BARRIER(buf);
@@ -1303,9 +1322,9 @@ static inline void vader_array_push_ref(vader_array_t* a, void* obj) {
         vader_array_push_ref_slow(a, obj);
         return;
     }
-    size_t n = a->length;
+    size_t n = vader_array_length(a);
     vader_array_ref_store(buf, n, obj);
-    a->length = n + 1;
+    vader_array_bump_length(a);
     buf->length = n + 1;
     VADER_WRITE_BARRIER(buf);
 }

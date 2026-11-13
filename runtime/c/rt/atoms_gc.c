@@ -143,8 +143,8 @@ static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx) {
             vader_atom_mark(*sp);
         }
         /* Borrowed `const u8[]` byte view (`vader_string_bytes_view`) : the array
-         * header carries no string field, but its `capacity` low 32 bits hold the
-         * owner atom id whose interned bytes the view aliases. Mark it so the
+         * header carries no string field, but its capacity holds the id of the
+         * owner atom whose interned bytes the view aliases. Mark it so the
          * bytes aren't swept under us. */
         if (info->kind == VADER_TYPE_KIND_ARRAY) {
             vader_array_t* arr = (vader_array_t*) scan;

@@ -59,7 +59,7 @@ emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
 /// `typed_array_fill_for(kind)` + the kind :
 ///   - Boxed -> an inline box-slot read.
 ///   - `u8` -> the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
-///     `buf == NULL`, reads the atom table with the runtime borrowed tag ; a real
+///     `buf == NULL`, reads the bytes of the atom that owns it ; a real
 ///     `u8[]` reads its slots). It is `static inline`, so no `vader_*` symbol is
 ///     added and the read inlines at -O3.
 ///   - any other sub-word width -> an inline typed read, pushed in its storage

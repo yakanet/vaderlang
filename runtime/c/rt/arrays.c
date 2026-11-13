@@ -3,17 +3,15 @@
 
 #include "internal.h"
 
-/* `sizeof(vader_array_buf_t) + capacity * element_size(kind)` without silent
- * integer overflow. With user-controllable `capacity` (e.g. via
- * `array.push` reaching into the gigabytes), the multiplication can wrap
- * `size_t` and produce an under-allocation followed by an OOB write. Trap
- * before the alloc with a clear message instead. */
+/* `sizeof(vader_array_buf_t) + capacity * element_size(kind)`, and the one
+ * place that refuses a capacity an array header cannot say: every buffer an
+ * array is created with or grows into is sized here. Under that bound the
+ * product fits a `size_t`. */
 static size_t vader_array_buf_bytes(size_t capacity, uint8_t element_kind) {
-    size_t per_slot = vader_array_element_size(element_kind);
-    if (per_slot > 0 && capacity > (SIZE_MAX - sizeof(vader_array_buf_t)) / per_slot) {
-        vader_trap("vader_array: capacity overflows size_t");
+    if (capacity > VADER_ARRAY_MAX_LENGTH) {
+        vader_trap("vader_array: more elements than an array holds");
     }
-    return sizeof(vader_array_buf_t) + capacity * per_slot;
+    return sizeof(vader_array_buf_t) + capacity * vader_array_element_size(element_kind);
 }
 
 /* Allocate a fresh array buffer of `capacity` slots with the ARRAY_BUF
@@ -73,9 +71,9 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
      * valid for both the owning, view, and borrowed cases). */
     size_t lo = vader_count_or_zero(lo_bound);
     size_t hi = vader_count_or_zero(hi_bound);
-    if (lo > a->length) lo = a->length;
+    if (lo > vader_array_length(a)) lo = vader_array_length(a);
     if (hi < lo)        hi = lo;
-    if (hi > a->length) hi = a->length;
+    if (hi > vader_array_length(a)) hi = vader_array_length(a);
     size_t len = hi - lo;
     vader_array_resolve_buf(a);
     /* Root the parent array across the alloc: a collection inside
@@ -85,13 +83,10 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
     vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
     VADER_GC_POP_FRAME(frame);
     vader_obj_header_init(view, a->header.type_index);
-    view->length = len;
     view->offset = a->offset + lo;
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
-        /* Another borrowed view over the same owner atom: `capacity` carries
-         * (element_tag << 32) | owner verbatim, `buf` stays NULL. */
-        view->capacity = a->capacity;
-        view->header._reserved = VADER_ARRAY_FLAG_BORROWED;
+        /* Another borrowed view over the same owner atom: `buf` stays NULL. */
+        vader_array_make_borrowed(view, vader_array_borrowed_owner(a), len);
         view->buf = NULL;
         return view;
     }
@@ -107,8 +102,8 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
     if (young || vader_in_old(a->buf)) {
         vader_array_buf_mark_shared(a->buf);
     }
-    view->capacity = len;
-    view->buf      = a->buf;
+    vader_array_set_extent(view, len, len);
+    view->buf = a->buf;
     return view;
 }
 
@@ -127,14 +122,14 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
     vader_slice_t s = { NULL, 0 };
     if (a == NULL) return s;
     a = vader_array_resolve(a);
-    if (a->length == 0) return s;
+    if (vader_array_length(a) == 0) return s;
 
     if (vader_array_is_borrowed(a)) {
         /* A borrowed view is always a BYTE view over an interned atom, so
          * `offset` and `length` are already byte quantities. */
         const uint8_t* src = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a));
         s.ptr = src + a->offset;
-        s.len = a->length;
+        s.len = vader_array_length(a);
         return s;
     }
 
@@ -156,7 +151,7 @@ vader_slice_t vader_array_bytes(vader_array_t* a) {
     }
     size_t esz = vader_array_element_size(a->buf->element_kind);
     s.ptr = (const uint8_t*) a->buf->slots + a->offset * esz;
-    s.len = a->length * esz;
+    s.len = vader_array_length(a) * esz;
     return s;
 }
 
@@ -188,7 +183,8 @@ static vader_array_t* vader_array_detach(vader_array_t* a, size_t need, vader_bo
     vader_box_t* roots[2] = { &a_box, keep };
     vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
     vader_gc_top = &frame;
-    size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
+    size_t cap = vader_array_capacity(a) == 0 ? 4 : vader_array_capacity(a) * 2;
+    if (cap > VADER_ARRAY_MAX_LENGTH) cap = VADER_ARRAY_MAX_LENGTH;
     if (cap < need) cap = need;
     vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, a->buf->element_tag);
     a = (vader_array_t*) a_box.payload.obj;
@@ -196,12 +192,12 @@ static vader_array_t* vader_array_detach(vader_array_t* a, size_t need, vader_bo
     if (vader_obj_forwarded_to(old) != NULL) {
         old = vader_array_buf_forward(old);
     }
-    if (a->length > 0) {
-        memcpy(fresh->slots, old->slots + a->offset * elem_size, a->length * elem_size);
+    if (vader_array_length(a) > 0) {
+        memcpy(fresh->slots, old->slots + a->offset * elem_size, vader_array_length(a) * elem_size);
     }
-    fresh->length = a->length;
+    fresh->length = vader_array_length(a);
     a->buf      = fresh;
-    a->capacity = cap;
+    vader_array_set_capacity(a, cap);
     a->offset   = 0;
     /* `a` may be old while `fresh` is young: mark the card holding `a`. */
     VADER_WRITE_BARRIER(a);
@@ -214,12 +210,13 @@ void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
         /* Defensive : T3072 refuses to modify a view of a string's bytes. */
         vader_trap("cannot push to a borrowed `const u8[]` byte view");
     }
-    if (a->length >= a->capacity) {
-        a = vader_array_detach(a, a->length + 1, &v);
+    if (vader_array_length(a) >= vader_array_capacity(a)) {
+        a = vader_array_detach(a, vader_array_length(a) + 1, &v);
     }
-    vader_array_store_slot(a->buf, a->length, v);
-    a->length += 1;
-    a->buf->length = a->length;
+    size_t n = vader_array_length(a);
+    vader_array_store_slot(a->buf, n, v);
+    vader_array_bump_length(a);
+    a->buf->length = n + 1;
     VADER_WRITE_BARRIER(a->buf);
 }
 
@@ -248,15 +245,11 @@ static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, 
     if (capacity < length) capacity = length;
     size_t struct_bytes = vader_gc_align(sizeof(vader_array_t));
     size_t buf_bytes    = vader_array_buf_bytes(capacity, element_kind);
-    if (struct_bytes > SIZE_MAX - buf_bytes) {
-        vader_trap("vader_array: total alloc size overflows size_t");
-    }
     char* block = (char*) vader_gc_alloc_slot_aligned(struct_bytes + buf_bytes);
     vader_array_t* a = (vader_array_t*) block;
     vader_array_buf_t* buf = (vader_array_buf_t*) (block + struct_bytes);
     vader_obj_header_init(a, type_index);
-    a->length   = length;
-    a->capacity = capacity;
+    vader_array_set_extent(a, length, capacity);
     a->offset   = 0;
     a->buf      = buf;
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
@@ -281,7 +274,7 @@ static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, u
     const uint8_t* data;
     if (vader_array_is_borrowed(src)) {
         kind = VADER_ARRAY_KIND_U8;          /* borrowed views are const u8[] */
-        tag  = vader_array_borrowed_tag(src);
+        tag  = vader_type_info_table[src->header.type_index].element_tag;
         esz  = 1;
         data = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(src)) + (src->offset + extra);
     } else {
@@ -311,9 +304,9 @@ vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
     size_t n = vader_count_or_zero(times);
     src = vader_array_resolve(src);
     uint32_t type_index = src->header.type_index;
-    size_t src_len = src->length;
-    if (src_len != 0 && n > SIZE_MAX / src_len) {
-        vader_trap("vader_array: repeat length overflows size_t");
+    size_t src_len = vader_array_length(src);
+    if (src_len != 0 && n > VADER_ARRAY_MAX_LENGTH / src_len) {
+        vader_trap("vader_array: more elements than an array holds");
     }
     size_t out_len = src_len * n;
     size_t cap = out_len;
@@ -411,11 +404,10 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
     }
     dst = vader_array_resolve(dst);
     src = vader_array_resolve(src);
-    size_t add = src->length;
+    size_t add = vader_array_length(src);
     if (add == 0) return;
-    size_t need = dst->length + add;
-    if (need < dst->length) vader_trap("vader_array: push_all length overflows size_t");
-    if (need > dst->capacity) {
+    size_t need = vader_array_length(dst) + add;
+    if (need > vader_array_capacity(dst)) {
         vader_box_t s_box = vader_box_obj(src->header.type_index, src);
         dst = vader_array_detach(dst, need, &s_box);
         src = (vader_array_t*) s_box.payload.obj;
@@ -424,8 +416,9 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
      * relocation. No safepoint from here to return, so the pointers are stable. */
     uint8_t kind; uint32_t tag; size_t esz;
     const uint8_t* src_data = vader_array_src_region(src, 0, &kind, &tag, &esz);
+    size_t base = vader_array_length(dst);
     if (kind == dst->buf->element_kind) {
-        uint8_t* dst_data = dst->buf->slots + dst->length * esz;
+        uint8_t* dst_data = dst->buf->slots + base * esz;
         memcpy(dst_data, src_data, add * esz);
     } else {
         /* The two arrays store their elements differently, so a memcpy would
@@ -441,11 +434,11 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
          * still holds. */
         for (size_t i = 0; i < add; i++) {
             vader_box_t v = vader_array_src_slot(src, src_data, tag, src->offset, i);
-            vader_array_store_slot(dst->buf, dst->length + i, v);
+            vader_array_store_slot(dst->buf, base + i, v);
         }
     }
-    dst->length += add;
-    dst->buf->length = dst->length;
+    vader_array_set_length(dst, need);
+    dst->buf->length = need;
     if (dst->buf->element_kind == VADER_ARRAY_KIND_BOXED ||
         dst->buf->element_kind == VADER_ARRAY_KIND_REF) {
         VADER_WRITE_BARRIER(dst->buf);
@@ -467,10 +460,10 @@ void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, 
     }
     src = vader_array_resolve(src);
     dst = vader_array_resolve(dst);
-    if (src_start > src->length || len > src->length - src_start) {
+    if (src_start > vader_array_length(src) || len > vader_array_length(src) - src_start) {
         vader_trap("vader_array_copy: source range out of bounds");
     }
-    if (dst_start > dst->length || len > dst->length - dst_start) {
+    if (dst_start > vader_array_length(dst) || len > vader_array_length(dst) - dst_start) {
         vader_trap("vader_array_copy: destination range out of bounds (dst must already be long enough)");
     }
     vader_array_resolve_buf(dst);
@@ -505,15 +498,15 @@ void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, 
     }
 }
 
-/* After `a->length` dropped. A buffer only `a` sees follows it, so a collection
+/* After the length of `a` dropped. A buffer only `a` sees follows it, so a collection
  * frees what the dropped slots held. A shared one keeps its scan bound, since a
  * view may still read those slots, and `a` gives up its room instead: its next
  * push copies rather than overwrite them. See `vader_array_t`. */
 static void vader_array_after_shrink(vader_array_t* a) {
     if (vader_array_buf_is_shared(a->buf)) {
-        a->capacity = a->length;
+        vader_array_set_capacity(a, vader_array_length(a));
     } else {
-        a->buf->length = a->offset + a->length;
+        a->buf->length = a->offset + vader_array_length(a);
     }
 }
 
@@ -527,11 +520,12 @@ vader_box_t vader_array_remove_last(vader_array_t* a) {
         vader_trap("cannot remove_last from a borrowed `const u8[]` byte view");
     }
     a = vader_array_resolve(a);
-    if (a->length == 0) return vader_box_null();
+    if (vader_array_length(a) == 0) return vader_box_null();
     vader_array_resolve_buf(a);
     vader_array_buf_t* buf = a->buf;
-    vader_box_t out = vader_array_load_slot(buf, a->offset + a->length - 1);
-    a->length -= 1;
+    size_t last = vader_array_length(a) - 1;
+    vader_box_t out = vader_array_load_slot(buf, a->offset + last);
+    vader_array_set_length(a, last);
     vader_array_after_shrink(a);
     return out;
 }
@@ -544,6 +538,6 @@ void vader_array_clear(vader_array_t* a) {
     }
     a = vader_array_resolve(a);
     vader_array_resolve_buf(a);
-    a->length = 0;
+    vader_array_set_length(a, 0);
     vader_array_after_shrink(a);
 }

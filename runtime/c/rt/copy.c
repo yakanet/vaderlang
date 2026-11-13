@@ -111,7 +111,7 @@ static void* vader_copy_array(vader_copy_t* c, vader_array_t* a) {
     uint32_t tag;
     size_t element_size;
     const uint8_t* data = vader_array_src_region(a, 0, &kind, &tag, &element_size);
-    size_t length = a->length;
+    size_t length = vader_array_length(a);
     size_t capacity = length;
     if (capacity < 4u) capacity = 4u;
     size_t buf_bytes = vader_array_buf_bytes(capacity, kind);
@@ -124,8 +124,7 @@ static void* vader_copy_array(vader_copy_t* c, vader_array_t* a) {
     if (length > 0u) memcpy(buf->slots, data, length * element_size);
     vader_array_t* copy = (vader_array_t*) vader_copy_carve(sizeof(vader_array_t));
     vader_copy_header(copy, a->header.type_index);
-    copy->length = length;
-    copy->capacity = capacity;
+    vader_array_set_extent(copy, length, capacity);
     copy->offset = 0;
     copy->buf = buf;
     vader_copy_note(c, source, copy);

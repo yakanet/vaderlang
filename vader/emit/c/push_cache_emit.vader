@@ -180,7 +180,7 @@ pc_local :: fn(n: i32, name: string) -> CExpression = verbatim("_pc${n}_${name}"
 pc_header :: fn(n: i32, path: string) -> CExpression =
     CMember { .base = pc_local(n, "hdr"), .member = path, .arrow = true }
 
-// The capacity, or 0 on a borrowed view, whose `capacity` packs its owner.
+// The capacity, or 0 on a borrowed view, whose capacity holds its owner.
 pc_capacity :: fn(n: i32) -> CExpression = CConditional {
     .condition = call("vader_array_is_borrowed", [pc_local(n, "hdr")]),
     .then_value = cast("size_t", verbatim("0")),
