@@ -276,13 +276,17 @@ export HttpErrorKind :: enum {
     Incomplete,
     /// The source or the destination failed: `HttpError.cause` says how.
     Transport,
+    /// The source or the destination was given an instant to be done by, and
+    /// was not: `HttpError.cause` is its failure.
+    TimedOut,
 }
 
 /// A message that could not be read or written.
 export HttpError :: struct {
     kind: HttpErrorKind
     msg: string
-    /// The failure of the `Reader` or the `Writer`, for `.Transport`.
+    /// The failure of the `Reader` or the `Writer`, for `.Transport` and
+    /// `.TimedOut`.
     cause: IOError | null = null
 }
 
@@ -301,6 +305,7 @@ export status_of :: fn(error: HttpError) -> Status | null = match error.kind {
     .MethodNotImplemented    -> STATUS_NOT_IMPLEMENTED
     .CodingNotImplemented    -> STATUS_NOT_IMPLEMENTED
     .VersionNotSupported     -> STATUS_HTTP_VERSION_NOT_SUPPORTED
+    .TimedOut                -> STATUS_REQUEST_TIMEOUT
     .Transport               -> null
 }
 
@@ -386,5 +391,6 @@ test_status_of_answers_each_kind_of_failure :: fn() -> void {
     assert_eq(answer_to(.MethodNotImplemented), 501)
     assert_eq(answer_to(.CodingNotImplemented), 501)
     assert_eq(answer_to(.VersionNotSupported), 505)
+    assert_eq(answer_to(.TimedOut), 408)
     assert_eq(answer_to(.Transport), 0)
 }

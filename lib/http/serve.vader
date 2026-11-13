@@ -22,12 +22,25 @@ import "std/net"
 import "std/task"
 import "std/time"
 
+// ---- what a caller sets ---------------------------------------------------
+
+/// How `serve` serves its connections.
+export ServeOptions :: struct {
+    /// How much of a request is read before it is refused.
+    limits: Limits = Limits {}
+    /// How long a client may take at each step.
+    timeouts: Timeouts = Timeouts {}
+}
+
 // ---- serving a listener ---------------------------------------------------
 
 /// Serve the connections made to `listener`, each in a task of its own, until
 /// no further one is accepted.
 ///
-/// A connection is served as `serve_connection` serves one, then closed.
+/// A connection is served as `serve_connection` serves one, then closed. Its
+/// client is held to `options.timeouts`: one that sends the head of a request
+/// too slowly is answered `408`, and a connection that stays silent, or whose
+/// client stops reading, is closed.
 ///
 /// `handler` runs in the task of a connection, and several connections are
 /// served at a time: what it keeps from one request to the next goes in a
@@ -42,7 +55,8 @@ import "std/time"
 ///
 /// @param listener  where the connections arrive.
 /// @param handler   what answers a request, with a final response.
-/// @param limits    how much of a request is read before it is refused.
+/// @param options   how much of a request is read, and how long its client
+///                  may take.
 /// @return          why no further connection was accepted: the listener was
 ///                  closed, or the system refused.
 /// @example
@@ -54,7 +68,7 @@ import "std/time"
 export serve :: fn(
     listener: TcpListener,
     handler: fn(Request) -> Response,
-    limits: Limits = Limits {},
+    options: ServeOptions = ServeOptions {},
 ) -> IOError {
     serving: Connection[]: []
     defer cut(serving)
@@ -65,10 +79,13 @@ export serve :: fn(
             return stream
         }
         serving.remove_where((connection) -> connection.task.is_ready())
+        // A connection keeps its options for as long as it is served: each is
+        // handed a copy, which no other task holds.
+        own :: options.deep_copy()
         serving.push(
             Connection {
                 .stream = stream,
-                .task = launch(() -> serve_stream(stream, handler, limits)),
+                .task = launch(() -> serve_stream(stream, handler, own)),
             },
         )
     }
@@ -101,9 +118,31 @@ Connection :: struct {
 }
 
 // Serve the connection `stream` to its end, and close it.
-serve_stream :: fn(stream: TcpStream, handler: fn(Request) -> Response, limits: Limits) -> void {
+serve_stream :: fn(
+    stream: TcpStream,
+    handler: fn(Request) -> Response,
+    options: ServeOptions,
+) -> void {
     defer stream.close()
-    serve_connection(stream, stream, handler, limits)
+    pace :: Pace { .deadlines = stream, .timeouts = options.timeouts }
+    serve_paced(stream, stream, handler, options.limits, pace)
+}
+
+TcpStream implements Deadlines {
+    read_within :: fn(self, timeout: Duration | null) -> void {
+        self.read_by(instant_in(timeout))
+    }
+    write_within :: fn(self, timeout: Duration | null) -> void {
+        self.write_by(instant_in(timeout))
+    }
+}
+
+// The instant `timeout` from now; null for no timeout.
+instant_in :: fn(timeout: Duration | null) -> Monotonic | null {
+    if timeout == null {
+        return null
+    }
+    return monotonic() + timeout
 }
 
 // Cancel the connections of `serving` still served, and wait until each is
@@ -314,7 +353,7 @@ test_a_connection_cut_before_it_was_served_is_closed :: fn() -> void {
         [
             Connection {
                 .stream = accepted,
-                .task = launch(() -> serve_stream(accepted, naming, Limits {})),
+                .task = launch(() -> serve_stream(accepted, naming, ServeOptions {})),
             },
         ],
     )
@@ -342,4 +381,85 @@ test_a_process_out_of_descriptors_is_waited_for :: fn() -> void {
     assert_eq(asked[0], 4)
     // Three waits, of 5, 10 and 20 ms.
     assert(began.since() >= 35.millis(), "each failure is waited out, longer each time")
+}
+
+@test
+test_a_connection_kept_idle_too_long_is_closed :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    options :: ServeOptions { .timeouts = Timeouts { .idle = 50.millis() } }
+    server :: launch(() -> serve(listener, naming, options))
+    stream :: calling(address) ?? return
+    stream.write(get("/a"))
+    assert_eq(some_of(stream, named("/a").byte_len()), named("/a"))
+    began :: monotonic()
+    // Nothing more is asked: the server ends the connection, with no answer.
+    assert_eq(rest_of(stream), "")
+    assert(began.since() >= 40.millis(), "the connection was kept for its time")
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_head_sent_too_slowly_is_answered_408 :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    options :: ServeOptions { .timeouts = Timeouts { .head = 50.millis() } }
+    server :: launch(() -> serve(listener, naming, options))
+    stream :: calling(address) ?? return
+    stream.write("GET /a HTTP/1.1\r\nHo")
+    assert_eq(
+        rest_of(stream),
+        "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+    )
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_client_that_never_speaks_is_let_go :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    options :: ServeOptions { .timeouts = Timeouts { .head = 50.millis() } }
+    server :: launch(() -> serve(listener, naming, options))
+    stream :: calling(address) ?? return
+    assert_eq(rest_of(stream), "")
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_client_that_stops_reading_is_let_go :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    // A response with no end, to a client that reads none of it.
+    endless :: fn(request: Request) -> Response = Response { .body = Endless {} }
+    options :: ServeOptions { .timeouts = Timeouts { .write = 50.millis() } }
+    stream :: calling(address) ?? return
+    stream.write(get("/a"))
+    accepted :: listener.accept()
+    if accepted is IOError {
+        return assert(false, "no connection: ${accepted.msg}")
+    }
+    pace :: Pace { .deadlines = accepted, .timeouts = options.timeouts }
+    end :: serve_paced(accepted, accepted, endless, options.limits, pace)
+    assert(end.reason == .TimedOut, "the response stopped at a write nobody took")
+    accepted.close()
+    stream.close()
+    listener.close()
+}
+
+// A body that never ends.
+Endless :: struct {}
+
+Endless implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        for i in 0..<into.len() {
+            into[i] = 'x'
+        }
+        return into.len()
+    }
 }

@@ -58,12 +58,11 @@ loopback address, against 0.35 ms once either cause was removed.
 ## Consequences
 
 The stop is abrupt: an exchange under way is cut where it is. Letting the
-exchanges under way finish, within a delay, comes with the deadlines of a
-connection, which nothing bounds yet: a connection that sends nothing is
-served for as long as it stays open.
+exchanges under way finish, within a delay, is not done yet.
 
 A server kept out of descriptors by clients that hold their connections and
-send nothing waits for as long as they stay: the same deadlines end that.
+send nothing waits for as long as they stay: the timeouts of 0140 are what
+ends that.
 
 Linux reports through `accept` the failures of the network a new connection
 met (`ENETDOWN`, `EPROTO` and six more): they still end the server.

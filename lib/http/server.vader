@@ -37,12 +37,17 @@ export EndReason :: enum {
     UnreadBody,
     /// The connection failed, or a body being copied to it did.
     Failed,
+    /// The client took longer than `Timeouts` allows. A request whose head
+    /// was begun and not finished was answered `408`; a connection with
+    /// nothing asked on it got no answer.
+    TimedOut,
 }
 
 /// How `serve_connection` ended.
 export ConnectionEnd :: struct {
     reason: EndReason
-    /// What went wrong, for `.BadRequest`, `.BadResponse` and `.Failed`.
+    /// What went wrong, for `.BadRequest`, `.BadResponse` and `.Failed`, and
+    /// for a `.TimedOut` that left a message unfinished.
     error: HttpError | null = null
 }
 
@@ -59,6 +64,9 @@ export ConnectionEnd :: struct {
 ///
 /// Nothing is read or written once this returns: closing what `reader` and
 /// `writer` stand on is the caller's.
+///
+/// No step is given a limit of time: a `Reader` waits for as long as its
+/// source does. `serve` holds a TCP connection to `Timeouts`.
 ///
 /// @param reader   where the connection is read. Nothing else reads it.
 /// @param writer   where the connection is written. What it is given must go
@@ -81,14 +89,33 @@ export serve_connection :: fn(
     writer: Writer,
     handler: fn(Request) -> Response,
     limits: Limits = Limits {},
+) -> ConnectionEnd = serve_paced(reader, writer, handler, limits, null)
+
+// Serve a connection as `serve_connection` does, each step held to the
+// timeouts of `pace` when there is one.
+serve_paced :: fn(
+    reader: Reader,
+    writer: Writer,
+    handler: fn(Request) -> Response,
+    limits: Limits,
+    pace: Pace | null,
 ) -> ConnectionEnd {
     source :: BufferedReader { .source = reader }
-    wire :: Wire { .sink = writer }
+    wire :: Wire { .sink = writer, .pace = pace }
+    first := true
     for {
+        if pace != null {
+            ending :: await_request(source, pace, first)
+            if ending != null {
+                return ending
+            }
+        }
+        first = false
         request :: read_request(source, limits) ?? return ConnectionEnd { .reason = .ClientDone }
         if request is HttpError {
             return refuse(wire, request)
         }
+        request.exchange.pace = pace
         request.bind_body(wire)
         // The handler is given a copy. What it changes of its request, the
         // method, a field or the body, changes nothing of how the exchange
@@ -104,6 +131,33 @@ export serve_connection :: fn(
     }
 }
 
+// Wait for the first byte of the next request, then give its head its time.
+// Null once a request is there to read, why the connection ends otherwise.
+//
+// The first request of a connection has the time of a head from the start.
+// The next ones are waited for as long as a connection is kept idle, and get
+// the time of a head from their first byte. A wait that ends with no byte
+// received is answered nothing: there is no request to answer.
+await_request :: fn(source: BufferedReader, pace: Pace, first: bool) -> ConnectionEnd | null {
+    waited :: if first { pace.timeouts.head } else { pace.timeouts.idle }
+    pace.deadlines.read_within(waited)
+    next :: source.peek(1)
+    if next is IOError {
+        failure :: transport(next)
+        if failure.kind == .TimedOut {
+            return ConnectionEnd { .reason = .TimedOut }
+        }
+        return ConnectionEnd { .reason = .Failed, .error = failure }
+    }
+    if next == null {
+        return ConnectionEnd { .reason = .ClientDone }
+    }
+    if !first {
+        pace.deadlines.read_within(pace.timeouts.head)
+    }
+    return null
+}
+
 // Answer a request that could not be read with the status of `error`, when
 // there is one to answer with. No further request is read: where it would
 // start is not known.
@@ -111,13 +165,16 @@ refuse :: fn(writer: Writer, error: HttpError) -> ConnectionEnd {
     status :: status_of(error) ?? return ConnectionEnd { .reason = .Failed, .error = error }
     // The client may be gone already: the connection ends the same.
     write_response(writer, Response { .status = status }, null)
+    if error.kind == .TimedOut {
+        return ConnectionEnd { .reason = .TimedOut, .error = error }
+    }
     return ConnectionEnd { .reason = .BadRequest, .error = error }
 }
 
 // Write `response` to `request` and settle the exchange: null when the
 // connection may carry another, why it ends otherwise.
 answer :: fn(
-    writer: Writer,
+    writer: Wire,
     request: Request,
     response: Response,
     limits: Limits,
@@ -134,8 +191,20 @@ answer :: fn(
     out :: CountingWriter { .sink = writer }
     written :: write_response(out, returned, request)
     if written is HttpError {
+        // The client stalled when it is the body of its request, or a write to
+        // it, that ran out of time. A source of the handler's own that did is
+        // a failure as another.
+        stalled :: request.exchange.stalled || writer.timed_out()
         if out.count == 0 {
+            // Nothing was written: the body of the request, which the
+            // response was to carry, is what did not come.
+            if stalled {
+                return refuse(writer, written)
+            }
             return apologise(writer, request, written)
+        }
+        if stalled {
+            return ConnectionEnd { .reason = .TimedOut, .error = written }
         }
         return ConnectionEnd { .reason = failure_of(written), .error = written }
     }
@@ -144,6 +213,13 @@ answer :: fn(
     }
     if !persists(request, returned) {
         return ConnectionEnd { .reason = .Closed }
+    }
+    // What is left of the body is read past within the time of one read of
+    // it, in all: a client is not waited for byte after byte.
+    pace :: request.exchange.pace
+    if pace != null {
+        request.exchange.pace = null
+        pace.deadlines.read_within(pace.timeouts.body)
     }
     if !drain(request.body, limits) {
         return ConnectionEnd { .reason = .UnreadBody }
@@ -164,7 +240,7 @@ apologise :: fn(writer: Writer, request: Request, error: HttpError) -> Connectio
 
 // What a response that failed part of the way ends its connection as.
 failure_of :: fn(error: HttpError) -> EndReason {
-    if error.kind == .Transport {
+    if error.kind == .Transport || error.kind == .TimedOut {
         return .Failed
     }
     return .BadResponse
@@ -172,10 +248,12 @@ failure_of :: fn(error: HttpError) -> EndReason {
 
 // The connection as the loop writes it. Once a write failed, none is tried
 // again: what a failed write left on the connection is not known, and nothing
-// may follow it.
+// may follow it. Each write is given its time, when the connection has a
+// limit of time.
 Wire :: struct {
     sink: Writer
     failure: IOError | null = null
+    pace: Pace | null = null
 }
 
 Wire implements Writer {
@@ -184,6 +262,10 @@ Wire implements Writer {
         if failure != null {
             return IOError { ...failure }
         }
+        pace :: self.pace
+        if pace != null {
+            pace.deadlines.write_within(pace.timeouts.write)
+        }
         written :: self.sink.write(content)
         if written is IOError {
             // A copy is kept: a writer hands back nothing it keeps.
@@ -191,6 +273,12 @@ Wire implements Writer {
         }
         return written
     }
+}
+
+// Whether a write of the connection ran out of time.
+timed_out :: fn(wire: Wire) -> bool {
+    failure :: wire.failure
+    return failure != null && failure.kind == .TimedOut
 }
 
 // A writer that counts what it is asked to write, sent or not.

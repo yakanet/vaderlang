@@ -91,8 +91,16 @@ malformed :: fn(msg: string) -> HttpError = HttpError { .kind = .Malformed, .msg
 
 incomplete :: fn(msg: string) -> HttpError = HttpError { .kind = .Incomplete, .msg = msg }
 
+// The failure of a message whose reader or writer failed with `cause`.
 transport :: fn(cause: IOError) -> HttpError = HttpError {
-    .kind = .Transport,
+    .kind = transport_kind(cause),
     .msg = cause.msg,
     .cause = cause,
+}
+
+transport_kind :: fn(cause: IOError) -> HttpErrorKind {
+    if cause.kind == .TimedOut {
+        return .TimedOut
+    }
+    return .Transport
 }

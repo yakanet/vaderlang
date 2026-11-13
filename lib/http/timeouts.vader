@@ -1,0 +1,296 @@
+// http/timeouts: how long a client may take, and how a connection is held to
+// it.
+//
+// A connection that sends nothing costs a task and a socket for as long as it
+// stays, and one that sends a byte now and then is never done. The loop of a
+// connection (server.vader) gives each step an instant to be over by: the
+// head of a request, the wait between two requests, each read of a body, each
+// write of a response. What reads and writes the connection fails once the
+// instant has come, and the connection ends.
+//
+// The instants are set through `Deadlines`, which a transport that can end a
+// parked call implements: a TCP stream does (serve.vader). A `Reader` and a
+// `Writer` that cannot are served with no limit of time.
+// docs/adr/0140-a-connection-is-held-to-instants-not-to-delays.md has the
+// reasons.
+
+module "http"
+
+import "std/time"
+
+// ---- what a caller sets ---------------------------------------------------
+
+/// How long the client of a connection may take at each step, null for no
+/// limit at that step.
+export Timeouts :: struct {
+    /// To send the whole head of a request: for the first of a connection,
+    /// from the moment it is served; for the next ones, from their first
+    /// byte.
+    head: Duration | null = 60.seconds()
+    /// To start a request after the response to the one before: how long a
+    /// connection is kept with nothing asked on it.
+    idle: Duration | null = 75.seconds()
+    /// To send more of the body of a request, each time some is waited for.
+    body: Duration | null = 60.seconds()
+    /// To take more of a response, each time some is written.
+    write: Duration | null = 60.seconds()
+}
+
+// ---- how the loop applies it ----------------------------------------------
+
+// A transport whose reads and writes can be given a time to fail after.
+Deadlines :: trait {
+    // Have the reads fail once `timeout` has passed from now, as `.TimedOut`:
+    // the one parked then, and those made after. Null lifts the limit.
+    read_within :: fn(self, timeout: Duration | null) -> void
+    // Have the writes fail as `read_within` does the reads.
+    write_within :: fn(self, timeout: Duration | null) -> void
+}
+
+// The timeouts of a connection and what applies them.
+Pace :: struct {
+    deadlines: Deadlines
+    timeouts: Timeouts
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/io"
+import "std/string"
+import "std/testing"
+
+// Deadlines that note each time they are given, in seconds.
+NotedDeadlines :: struct {
+    noted: string[] = []
+}
+
+NotedDeadlines implements Deadlines {
+    read_within :: fn(self, timeout: Duration | null) -> void {
+        self.noted.push("read ${seconds_of(timeout)}")
+    }
+    write_within :: fn(self, timeout: Duration | null) -> void {
+        self.noted.push("write ${seconds_of(timeout)}")
+    }
+}
+
+// What `deadlines` noted, a step given again at once counted for one.
+steps :: fn(deadlines: NotedDeadlines) -> string {
+    kept: string[]: []
+    for step in deadlines.noted {
+        last :: kept.last()
+        if last == null || last != step {
+            kept.push(step)
+        }
+    }
+    return kept.join(", ")
+}
+
+// `timeout` in seconds; `none` for no timeout.
+seconds_of :: fn(timeout: Duration | null) -> string {
+    if timeout == null {
+        return "none"
+    }
+    return "${timeout.to_seconds()}"
+}
+
+// A source that holds `content`, then waits past its deadline: every read
+// after the last byte fails as timed out.
+StallingReader :: struct {
+    content: BytesReader
+}
+
+StallingReader implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        got :: self.content.read(into)
+        if got == null {
+            return IOError { .msg = "timed out", .kind = .TimedOut }
+        }
+        return got
+    }
+}
+
+// What a connection that sends `wire`, then nothing, comes to under the
+// default timeouts.
+stalled_after :: fn(wire: string, handler: fn(Request) -> Response) -> Served {
+    out :: BytesWriter {}
+    source :: StallingReader { .content = BytesReader { .content = wire } }
+    pace :: Pace { .deadlines = NotedDeadlines {}, .timeouts = Timeouts {} }
+    end :: serve_paced(source, out, handler, Limits {}, pace)
+    return Served { .end = end, .written = out.written.bytes_to_string() }
+}
+
+REQUEST_TIMEOUT :: "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+
+@test
+test_each_step_of_a_connection_is_given_its_time :: fn() -> void {
+    deadlines :: NotedDeadlines {}
+    timeouts :: Timeouts {
+        .head = 10.seconds(),
+        .idle = 20.seconds(),
+        .body = 30.seconds(),
+        .write = 40.seconds(),
+    }
+    out :: BytesWriter {}
+    end :: serve_paced(
+        BytesReader { .content = posting("/a", "hello") + GET_NEXT },
+        out,
+        fn(request: Request) -> Response = new_response(STATUS_OK, text_of(request.body)),
+        Limits {},
+        Pace { .deadlines = deadlines, .timeouts = timeouts },
+    )
+    assert(end.reason == .ClientDone, "both requests were served")
+    expected :: [
+        // The first request: its head, its body, the response, what is left
+        // of the body.
+        "read 10",
+        "read 30",
+        "write 40",
+        "read 30",
+        // The second: the wait for it, then the same.
+        "read 20",
+        "read 10",
+        "read 30",
+        "write 40",
+        "read 30",
+        // The wait for a third, which never comes.
+        "read 20",
+    ]
+    assert_eq(deadlines.steps(), expected.join(", "))
+}
+
+@test
+test_a_step_with_no_timeout_has_no_deadline :: fn() -> void {
+    deadlines :: NotedDeadlines {}
+    timeouts :: Timeouts {
+        .head = null,
+        .idle = null,
+        .body = null,
+        .write = null,
+    }
+    serve_paced(
+        BytesReader { .content = GET_NEXT },
+        BytesWriter {},
+        fn(request: Request) -> Response = Response {},
+        Limits {},
+        Pace { .deadlines = deadlines, .timeouts = timeouts },
+    )
+    assert_eq(deadlines.steps(), "read none, write none, read none")
+}
+
+@test
+test_a_body_nobody_read_is_read_past_within_one_wait :: fn() -> void {
+    deadlines :: NotedDeadlines {}
+    // The body comes a byte at a time: read past in five reads, and more.
+    source :: FragmentedReader {
+        .source = BytesReader { .content = posting("/a", "hello") },
+        .size = 1,
+    }
+    serve_paced(
+        source,
+        BytesWriter {},
+        fn(request: Request) -> Response = Response {},
+        Limits {},
+        Pace { .deadlines = deadlines, .timeouts = Timeouts { .body = 30.seconds() } },
+    )
+    waits: i64 = 0
+    for step in deadlines.noted {
+        if step == "read 30" {
+            waits += 1
+        }
+    }
+    // One instant for all of it: a client is not given a wait per byte.
+    assert_eq(waits, 1)
+}
+
+@test
+test_a_connection_that_asks_nothing_in_time_is_answered_nothing :: fn() -> void {
+    ignoring :: fn(request: Request) -> Response = Response {}
+    silent :: stalled_after("", ignoring)
+    assert(silent.end.reason == .TimedOut, "no request came")
+    assert_eq(silent.written, "")
+    idle :: stalled_after(GET_NEXT, ignoring)
+    assert(idle.end.reason == .TimedOut, "no second request came")
+    assert_eq(idle.written, EMPTY_OK)
+}
+
+@test
+test_a_head_not_finished_in_time_is_answered_408 :: fn() -> void {
+    targets: string[]: []
+    late :: stalled_after(
+        "GET /a HTTP/1.1\r\nHo",
+        fn(request: Request) -> Response {
+            targets.push(request.target)
+            return Response {}
+        },
+    )
+    assert(late.end.reason == .TimedOut, "the head was begun and not finished")
+    assert_eq(late.written, REQUEST_TIMEOUT)
+    assert_eq(targets.len(), 0)
+}
+
+@test
+test_a_body_not_sent_in_time_ends_its_connection :: fn() -> void {
+    cut_short :: "POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 10\r\n\r\n"
+    echoing :: fn(request: Request) -> Response = Response { .body = request.body }
+    // Nothing of the response had gone out: the request is the one answered.
+    unsent :: stalled_after(cut_short, echoing)
+    assert(unsent.end.reason == .TimedOut, "no byte of the body came")
+    assert_eq(unsent.written, REQUEST_TIMEOUT)
+    // Some had: the connection ends where it is.
+    partly :: stalled_after(cut_short + "hel", echoing)
+    assert(partly.end.reason == .TimedOut, "the body stopped half way")
+    assert(
+        partly.written.starts_with("HTTP/1.1 200 OK\r\n") && partly.written.ends_with("hel\r\n"),
+        "what was read went out, and nothing after: `${partly.written.shown()}`",
+    )
+    // A body nobody reads is not waited for either.
+    unread :: stalled_after(cut_short + "hel", fn(request: Request) -> Response = Response {})
+    assert(unread.end.reason == .UnreadBody, "the rest of the body never came")
+    assert_eq(unread.written, EMPTY_OK)
+}
+
+@test
+test_a_handler_is_told_its_body_timed_out :: fn() -> void {
+    seen: string[]: []
+    stalled_after(
+        "POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 10\r\n\r\nhel",
+        fn(request: Request) -> Response {
+            buffer: u8[]: [0] * 16
+            for {
+                got :: request.body.read(buffer)
+                if got is IOError {
+                    seen.push("${got.kind}")
+                    break
+                }
+                if got == null {
+                    break
+                }
+                seen.push(buffer[0..<got].bytes_to_string())
+            }
+            return Response {}
+        },
+    )
+    assert_eq(seen.join(" "), "hel TimedOut")
+}
+
+@test
+test_a_source_of_the_handler_that_times_out_is_no_fault_of_the_client :: fn() -> void {
+    // The body of the response waits on something of the handler's own, an
+    // upstream say, which runs out of time: the client did nothing wrong.
+    stalling :: fn(content: string) -> StallingReader =
+        StallingReader { .content = BytesReader { .content = content } }
+    unsent :: stalled_after(
+        GET_NEXT,
+        fn(request: Request) -> Response = Response { .body = stalling("") },
+    )
+    assert(unsent.end.reason == .BadResponse, "the response could not be written")
+    assert(
+        unsent.written.starts_with("HTTP/1.1 500 "),
+        "and is apologised for: `${unsent.written.shown()}`",
+    )
+    partly :: stalled_after(
+        GET_NEXT,
+        fn(request: Request) -> Response = Response { .body = stalling("abc") },
+    )
+    assert(partly.end.reason == .Failed, "a response cut short by its own source")
+}

@@ -88,6 +88,11 @@ Exchange :: struct {
     // The connection moved on, or ended. What its reader holds from now on
     // belongs to another message.
     over: bool = false
+    // What gives each read of the body its time; null for a connection with
+    // no limit of time, and once the body is only read past.
+    pace: Pace | null = null
+    // A read of the body ran out of time: the client is the one that stalled.
+    stalled: bool = false
 }
 
 // What the client reads as leave to send its content.
@@ -153,6 +158,7 @@ ExchangeBody implements Reader {
         if got is IOError {
             // A copy is kept: a reader hands back nothing it keeps.
             self.failure = IOError { ...got }
+            self.exchange.stalled = got.kind == .TimedOut
         }
         return got
     }
@@ -169,6 +175,10 @@ read_once :: fn(body: ExchangeBody, into: u8[]) -> i64 | null | IOError {
             return written
         }
         body.exchange.continue_on = null
+    }
+    pace :: body.exchange.pace
+    if pace != null {
+        pace.deadlines.read_within(pace.timeouts.body)
     }
     return body.body.read(into)
 }
