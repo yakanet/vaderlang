@@ -53,11 +53,9 @@ review: `lib/http` is an endpoint of HTTP/1.1. So are the records whose text
 says nothing of the input, and what a server does with time and connections,
 which belongs with the server.
 
-One class is still open. `read_request` reads whatever follows the last head:
-a body nobody read is taken for the next request (CVE-2026-34441,
-CVE-2022-21826), and the same holds of a response on a connection a client
-uses again. `persists` and `drain` close it only for a caller that remembers
-to call them. It is to be closed by construction, in a record of its own.
+One class was open when this record was written: what reads a message keeps
+no memory of its connection, so a body nobody read was taken for the next
+request (CVE-2026-34441, CVE-2022-21826). 0138 closes it.
 
 ## The review
 

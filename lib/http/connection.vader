@@ -5,6 +5,9 @@
 // 9.3). What is here tells whether it does, reads past a body nobody read, and
 // answers the client that holds its content back until told to send it (RFC
 // 9110, section 10.1.1).
+//
+// None of it is exported: what serves a connection (server.vader) calls it
+// between two messages, so that no caller has to remember to.
 
 module "http"
 
@@ -12,27 +15,17 @@ import "std/io"
 
 // ---- persistence ----------------------------------------------------------
 
-/// Whether the connection carries another exchange after `response` to
-/// `request`.
-///
-/// It does not when either message says `close`, when either is of HTTP/1.0
-/// and does not say `keep-alive`, when the response ends with the connection
-/// or turns it into something else than HTTP, and when the request waited for
-/// a `100 Continue` that never came: its content may follow, or not.
-///
-/// A server asks once the response is written, a client once it is read. The
-/// body each was handed is then read to its end, as `drain` does, before the
-/// next message.
-///
-/// @param request   the request of the exchange; null for one a server could
-///                  not read.
-/// @param response  its final response.
-/// @example
-///   request :: Request { .method = .Get, .target = "/" }
-///   persists(request, Response {})   // true
-///   request.headers.set("Connection", "close")
-///   persists(request, Response {})   // false
-export persists :: fn(request: Request | null, response: Response) -> bool {
+// Whether the connection carries another exchange after the final `response`
+// to `request`, null for a request that could not be read.
+//
+// It does not when either message says `close`, when either is of HTTP/1.0
+// and does not say `keep-alive`, when the response ends with the connection
+// or turns it into something else than HTTP, and when the request waited for
+// a `100 Continue` that never came: its content may follow, or not.
+//
+// The rule of the RFC bears on the message received. It is asked of both
+// here: each end then concludes what the other will.
+persists :: fn(request: Request | null, response: Response) -> bool {
     if request == null || response.ends_with_connection {
         return false
     }
@@ -56,20 +49,14 @@ lasts :: fn(version: HttpVersion, headers: Headers) -> bool {
     return version == .Http11 || headers.lists(CONNECTION, KEEP_ALIVE)
 }
 
-/// Read `body` to its end and drop what is read, so that the next message of
-/// its connection is found whole.
-///
-/// Ask `persists` first: the body of a request that was never told to send its
-/// content is not one to wait for.
-///
-/// @param body    the body of the message last read: of the request for a
-///                server, of the response for a client.
-/// @param limits  `unread_body` is how much is read past: a peer that sends
-///                without end is not read without end.
-/// @return        whether the end was reached. When it was not, more was left
-///                than is read past or the body failed: the connection carries
-///                no further message.
-export drain :: fn(body: Reader, limits: Limits = Limits {}) -> bool {
+// Read `body` to its end and drop what is read, so that the next message of
+// its connection is found whole; `limits.unread_body` is how much is read
+// past. False when the end was not reached, more being left or the body
+// failing: the connection carries no further message.
+//
+// `persists` is asked first: the body of a request that was never told to
+// send its content is not one to wait for.
+drain :: fn(body: Reader, limits: Limits = Limits {}) -> bool {
     chunk: u8[]: [0] * COPY_CHUNK
     left: i64 = limits.unread_body
     for {
@@ -80,14 +67,15 @@ export drain :: fn(body: Reader, limits: Limits = Limits {}) -> bool {
         if got == null {
             return true
         }
+        // A source that reads nothing has no end to wait for.
         left -= got
-        if left < 0 {
+        if got < 1 || left < 0 {
             return false
         }
     }
 }
 
-// ---- the client that waits to be told to send -----------------------------
+// ---- the body of a request, while it is served ----------------------------
 
 // How far a request has been answered on its connection.
 Exchange :: struct {
@@ -97,44 +85,30 @@ Exchange :: struct {
     // The final response went out. Any response written after it would be
     // read as the start of the one to the next request.
     answered: bool = false
+    // The connection moved on, or ended. What its reader holds from now on
+    // belongs to another message.
+    over: bool = false
 }
 
 // What the client reads as leave to send its content.
 CONTINUE_RESPONSE :: "HTTP/1.1 100 Continue\r\n\r\n"
 
-/// Have the client of `request` told to send its content when the body of
-/// `request` is first read, if it waits for that.
-///
-/// A client may send `Expect: 100-continue` and hold the content of its
-/// request back until the server answers `100 Continue`, or a final response
-/// that spares it the sending. After this call, the first read of
-/// `request.body` writes that `100 Continue` on `writer`. A request that waits
-/// for nothing is left as it is: one of HTTP/1.0, or one that carries no
-/// content.
-///
-/// A request answered before its body was read gets no `100 Continue`:
-/// `write_response` says the connection closes, `persists` that it does, and a
-/// read of the body from then on fails.
-///
-/// @param request  a request `read_request` returned, its body not read yet.
-/// @param writer   where the connection is written. What it is given must go
-///                 out at once and not be gathered: the client waits for it.
-/// @example
-///   # import "std/io"
-///   # text :: "PUT /f HTTP/1.1\r\nHost: h\r\nContent-Length: 2\r\nExpect: 100-continue\r\n\r\nhi"
-///   # request :: read_request(BufferedReader { .source = BytesReader { .content = text } })
-///   out :: BytesWriter {}
-///   if request is Request {
-///       request.continue_on_read(out)
-///       request.body.read([0] * 2)
-///       out.written.bytes_to_string()   // "HTTP/1.1 100 Continue\r\n\r\n"
-///   }
-export continue_on_read :: fn(request: Request, writer: Writer) -> void {
-    if !awaits_continue(request) {
-        return
+// Tie the body of `request`, not read yet, to its exchange on the connection
+// `writer` writes.
+//
+// A client may send `Expect: 100-continue` and hold the content of its
+// request back until the server answers `100 Continue`, or a final response
+// that spares it the sending. The first read of the body writes that `100
+// Continue`; a request answered before its body was read gets none, and its
+// body fails from then on. So does the body of an exchange that is over.
+//
+// What `writer` is given must go out at once and not be gathered: the client
+// waits for it.
+bind_body :: fn(request: Request, writer: Writer) -> void {
+    if awaits_continue(request) {
+        request.exchange.continue_on = writer
     }
-    request.exchange.continue_on = writer
-    request.body = AwaitedBody { .body = request.body, .exchange = request.exchange }
+    request.body = ExchangeBody { .body = request.body, .exchange = request.exchange }
 }
 
 // Whether the client of `request` holds its content back: an HTTP/1.1 request
@@ -156,28 +130,47 @@ awaits_continue :: fn(request: Request) -> bool {
     return length is i64 && length > 0
 }
 
-// The body of a request whose client waits for `100 Continue`: the first read
-// writes it, then reads `body`.
-AwaitedBody :: struct {
+// The body of a request as its handler holds it: read while the exchange
+// lasts, and never after. A read that failed is the last that could succeed:
+// a handler that passes over the failure does not make the body whole, and
+// what reads past the body must find it broken.
+ExchangeBody :: struct {
     body: Reader
     exchange: Exchange
+    failure: IOError | null = null
 }
 
-AwaitedBody implements Reader {
+ExchangeBody implements Reader {
     read :: fn(self, into: u8[]) -> i64 | null | IOError {
-        writer :: self.exchange.continue_on
-        if writer != null {
-            if self.exchange.answered {
-                return IOError { .msg = "the content of the request was never asked for" }
-            }
-            written :: writer.write(CONTINUE_RESPONSE)
-            if written is IOError {
-                return written
-            }
-            self.exchange.continue_on = null
+        if self.exchange.over {
+            return IOError { .msg = "the body of a request is read while it is served, not after" }
         }
-        return self.body.read(into)
+        failure :: self.failure
+        if failure != null {
+            return IOError { ...failure }
+        }
+        got :: self.read_once(into)
+        if got is IOError {
+            // A copy is kept: a reader hands back nothing it keeps.
+            self.failure = IOError { ...got }
+        }
+        return got
     }
+}
+
+read_once :: fn(body: ExchangeBody, into: u8[]) -> i64 | null | IOError {
+    writer :: body.exchange.continue_on
+    if writer != null {
+        if body.exchange.answered {
+            return IOError { .msg = "the content of the request was never asked for" }
+        }
+        written :: writer.write(CONTINUE_RESPONSE)
+        if written is IOError {
+            return written
+        }
+        body.exchange.continue_on = null
+    }
+    return body.body.read(into)
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -367,7 +360,7 @@ test_a_client_that_waits_is_told_to_send_when_its_body_is_read :: fn() -> void {
     for size in CUTS {
         out :: BytesWriter {}
         request :: request_of(cut(EXPECTING, size))
-        request.continue_on_read(out)
+        request.bind_body(out)
         assert_eq(out.written.len(), 0)
         assert_eq(text_of(request.body), "hi")
         assert_eq(out.written.bytes_to_string(), "HTTP/1.1 100 Continue\r\n\r\n")
@@ -381,11 +374,11 @@ test_a_client_that_waits_is_told_to_send_when_its_body_is_read :: fn() -> void {
 }
 
 // What is written to a client by the time the body of the request `text` is
-// read, when `continue_on_read` had charge of it.
+// read, when `bind_body` tied it to its exchange.
 written_on_read :: fn(text: string) -> string {
     out :: BytesWriter {}
     request :: request_of(whole(text))
-    request.continue_on_read(out)
+    request.bind_body(out)
     text_of(request.body)
     return out.written.bytes_to_string()
 }
@@ -431,7 +424,7 @@ test_a_request_that_holds_nothing_back_is_told_nothing :: fn() -> void {
 test_a_request_answered_before_its_body_was_read_ends_the_connection :: fn() -> void {
     out :: BytesWriter {}
     request :: request_of(whole(EXPECTING))
-    request.continue_on_read(out)
+    request.bind_body(out)
     refused :: new_response(STATUS_FORBIDDEN, "no")
     assert(write_response(out, refused, request) == null, "the response is written")
     wire :: "HTTP/1.1 403 Forbidden\r\nContent-Length: 2\r\nConnection: close\r\n\r\nno"
@@ -447,7 +440,7 @@ test_a_request_answered_before_its_body_was_read_ends_the_connection :: fn() -> 
 test_a_body_copied_into_its_response_is_asked_for_before_the_response :: fn() -> void {
     out :: BytesWriter {}
     request :: request_of(whole(EXPECTING))
-    request.continue_on_read(out)
+    request.bind_body(out)
     echo :: Response { .body = request.body }
     echo.headers.set("Content-Length", "2")
     assert(write_response(out, echo, request) == null, "the response is written")
@@ -462,7 +455,7 @@ test_a_body_copied_into_its_response_is_asked_for_before_the_response :: fn() ->
 test_a_100_written_by_hand_is_not_written_again :: fn() -> void {
     out :: BytesWriter {}
     request :: request_of(whole(EXPECTING))
-    request.continue_on_read(out)
+    request.bind_body(out)
     written :: write_response(out, Response { .status = STATUS_CONTINUE }, request)
     assert(written == null, "the interim response is written")
     assert_eq(text_of(request.body), "hi")
@@ -487,7 +480,7 @@ test_a_request_is_answered_once :: fn() -> void {
 @test
 test_a_client_that_is_gone_fails_the_read_of_the_body :: fn() -> void {
     request :: request_of(whole(EXPECTING))
-    request.continue_on_read(FailingWriter { .sink = BytesWriter {}, .calls = 0 })
+    request.bind_body(FailingWriter { .sink = BytesWriter {}, .calls = 0 })
     buffer: u8[]: [0] * 8
     assert(request.body.read(buffer) is IOError, "the 100 could not be written")
 }

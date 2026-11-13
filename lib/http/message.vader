@@ -293,7 +293,7 @@ HttpError implements Error {
 /// The status a server answers a request it could not read with; null when
 /// there is no one to answer, the connection having failed.
 ///
-/// @param error  what `read_request` returned.
+/// @param error  why a request could not be read.
 export status_of :: fn(error: HttpError) -> Status | null = match error.kind {
     .Malformed | .Incomplete -> STATUS_BAD_REQUEST
     .TargetTooLong           -> STATUS_URI_TOO_LONG
@@ -321,8 +321,8 @@ export Limits :: struct {
     /// what they carry: a body is not made to cost many times its content to
     /// read.
     chunk_extensions: i64 = 4096
-    /// The most bytes of a body nobody read that `drain` reads past to keep
-    /// the connection.
+    /// The most bytes of a request body its handler left unread that are read
+    /// past to keep the connection.
     unread_body: i64 = 65536
 }
 

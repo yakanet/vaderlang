@@ -6,8 +6,9 @@
 //
 // The head goes out in one write. A body whose length the fields declare is
 // copied as it is read. One that declares none goes in chunks as it is read,
-// to a peer that reads chunks; to an HTTP/1.0 peer it is read whole first, to
-// count it.
+// to a peer that reads chunks. To a peer that reads none, a response is
+// written as it is read and ends with its connection; a request, which has no
+// such end, is read whole first, to count it.
 //
 // A body is first read before its head is written. A body that fails at once
 // leaves nothing on the wire, and the body of a request that answers `100
@@ -23,33 +24,21 @@ import "std/string_builder"
 
 // ---- requests -------------------------------------------------------------
 
-/// Write `request` on `writer`.
-///
-/// With a `Content-Length` field, that many bytes of `request.body` are copied
-/// as they are read. With none, the body goes in chunks, each read of it one
-/// chunk; an HTTP/1.0 request, which has no chunks, has its body read to its
-/// end and counted. An empty body is declared empty when the method gives a
-/// body a meaning, and not mentioned otherwise.
-///
-/// The framing is this function's: a `Transfer-Encoding` field in `request` is
-/// refused.
-///
-/// @param writer   where the connection is written.
-/// @param request  what to write; its body is read.
-/// @error          `HttpError`: `.Malformed` for a request no server would read
-///                 as it was meant (a target or a field with a line break, an
-///                 HTTP/1.1 request that names its host not once, one that
-///                 expects `100-continue` and carries nothing), `.Incomplete`
-///                 for a body shorter than the length declared, `.Transport`
-///                 when the body cannot be read or `writer` fails.
-/// @example
-///   # import "std/io"
-///   out :: BytesWriter {}
-///   request :: Request { .method = .Get, .target = "/" }
-///   request.headers.set("Host", "example.org")
-///   write_request(out, request)
-///   out.written.bytes_to_string()   // "GET / HTTP/1.1\r\nHost: example.org\r\n\r\n"
-export write_request :: fn(writer: Writer, request: Request) -> null | HttpError {
+// Write `request` on `writer`; its body is read.
+//
+// With a `Content-Length` field, that many bytes of `request.body` are copied
+// as they are read. With none, the body goes in chunks, each read of it one
+// chunk; an HTTP/1.0 request, which has no chunks, has its body read to its
+// end and counted. An empty body is declared empty when the method gives a
+// body a meaning, and not mentioned otherwise.
+//
+// The framing is this function's: a `Transfer-Encoding` field in `request` is
+// refused. `.Malformed` for a request no server would read as it was meant (a
+// target or a field with a line break, an HTTP/1.1 request that names its host
+// not once, one that expects `100-continue` and carries nothing), `.Incomplete`
+// for a body shorter than the length declared, `.Transport` when the body
+// cannot be read or `writer` fails.
+write_request :: fn(writer: Writer, request: Request) -> null | HttpError {
     if !is_target(request.target.bytes()) {
         return malformed("the request target is empty or holds a byte no URI has")
     }
@@ -82,35 +71,24 @@ expects_content :: fn(method: Method) -> bool =
 
 // ---- responses ------------------------------------------------------------
 
-/// Write `response` on `writer`, in answer to `request`.
-///
-/// The body is framed as `write_request` frames one, an empty one always
-/// declared; it goes in chunks only to a request of HTTP/1.1. A response that
-/// carries no content has none written: one to a `HEAD` request and a `304`
-/// keep the fields that describe what a `GET` would have carried, an interim
-/// response and a `204` lose their `Content-Length`.
-///
-/// A final response says what becomes of the connection: `Connection: close`
-/// is added when `persists` would say it ends, and `Connection: keep-alive`
-/// for the HTTP/1.0 client that asked for it.
-///
-/// @param writer    where the connection is written.
-/// @param response  what to write; its body is read, unless the response
-///                  carries none.
-/// @param request   the request answered; null for one that could not be
-///                  read, whose client is taken to read no chunks and whose
-///                  connection ends.
-/// @error           `HttpError`, as `write_request` reports them, and
-///                  `.Malformed` for a status outside 100 to 599, for an
-///                  interim response to an HTTP/1.0 request, and for any
-///                  response to a request that has its final one.
-/// @example
-///   # import "std/io"
-///   # request :: Request { .method = .Get, .target = "/" }
-///   out :: BytesWriter {}
-///   write_response(out, new_response(STATUS_OK, "hi"), request)
-///   out.written.bytes_to_string()   // "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi"
-export write_response :: fn(
+// Write `response` on `writer`, in answer to `request`; null for a request
+// that could not be read, whose client is taken to read no chunks and whose
+// connection ends. The body of `response` is read, unless it carries none.
+//
+// The body is framed as `write_request` frames one, an empty one always
+// declared; it goes in chunks only to a request of HTTP/1.1. A response that
+// carries no content has none written: one to a `HEAD` request and a `304`
+// keep the fields that describe what a `GET` would have carried, an interim
+// response and a `204` lose their `Content-Length`.
+//
+// A final response says what becomes of the connection: `Connection: close`
+// is added when `persists` would say it ends, and `Connection: keep-alive`
+// for the HTTP/1.0 client that asked for it.
+//
+// Fails as `write_request` does, and as `.Malformed` for a status outside 100
+// to 599, for an interim response to an HTTP/1.0 request, and for any response
+// to a request that has its final one.
+write_response :: fn(
     writer: Writer,
     response: Response,
     request: Request | null,
@@ -286,9 +264,9 @@ write_framed :: fn(
     // The first read tells an empty body, which needs no chunk, from one that
     // has bytes.
     chunk: u8[]: [0] * COPY_CHUNK
-    first :: body.read(chunk)
-    if first is IOError {
-        return transport(first)
+    first :: read_some(body, chunk)
+    if first is HttpError {
+        return first
     }
     if first == null {
         if framing.content_awaited {
@@ -307,16 +285,54 @@ write_framed :: fn(
         }
         return write_chunks(writer, body, chunk, first)
     }
+    answer :: framing.answer
+    if answer != null {
+        return write_to_the_end(writer, head, body, chunk, first, answer)
+    }
     content :: gathered(body, chunk[0..<first])
     if content is HttpError {
         return content
     }
     head.append("${CONTENT_LENGTH}: ${content.len()}\r\n")
-    started :: send_head(writer, head, framing.answer)
+    started :: send_head(writer, head, null)
     if started is HttpError {
         return started
     }
     return sent(writer.write(content))
+}
+
+// End the head `head` and write it, then `body` as it is read, `chunk`
+// holding the `first` bytes already read of it. Nothing says where the
+// response ends but the end of its connection, which its head announces: a
+// body of any length is held in no memory.
+write_to_the_end :: fn(
+    writer: Writer,
+    head: StringBuilder,
+    body: Reader,
+    chunk: u8[],
+    first: i64,
+    answer: Answer,
+) -> null | HttpError {
+    answer.response.ends_with_connection = true
+    started :: send_head(writer, head, answer)
+    if started is HttpError {
+        return started
+    }
+    got: i64 = first
+    for {
+        written :: sent(writer.write(chunk[0..<got]))
+        if written is HttpError {
+            return written
+        }
+        next :: read_some(body, chunk)
+        if next is HttpError {
+            return next
+        }
+        if next == null {
+            return null
+        }
+        got = next
+    }
 }
 
 nothing_to_wait_for :: fn() -> HttpError =
@@ -337,9 +353,9 @@ write_chunks :: fn(writer: Writer, body: Reader, chunk: u8[], first: i64) -> nul
         if written is HttpError {
             return written
         }
-        next :: body.read(chunk)
-        if next is IOError {
-            return transport(next)
+        next :: read_some(body, chunk)
+        if next is HttpError {
+            return next
         }
         if next == null {
             return sent(writer.write("0\r\n\r\n"))
@@ -367,9 +383,9 @@ write_counted :: fn(
     left: i64 = length
     head_sent := false
     for left > 0 {
-        got :: body.read(chunk[0..<min(COPY_CHUNK, left)])
-        if got is IOError {
-            return transport(got)
+        got :: read_some(body, chunk[0..<min(COPY_CHUNK, left)])
+        if got is HttpError {
+            return got
         }
         if got == null {
             return incomplete("the body ended ${left} bytes before the length it declares")
@@ -395,15 +411,32 @@ gathered :: fn(body: Reader, first: u8[]) -> u8[] | HttpError {
     content: u8[]: first.clone()
     chunk: u8[]: [0] * COPY_CHUNK
     for {
-        got :: body.read(chunk)
-        if got is IOError {
-            return transport(got)
+        got :: read_some(body, chunk)
+        if got is HttpError {
+            return got
         }
         if got == null {
             return content
         }
         content.push_all(chunk[0..<got])
     }
+}
+
+// What a read of `body` into `into`, which has room, came to. A reader that
+// says it read nothing, or more than it had room for, is not believed: the
+// message would be framed around bytes that are not there.
+read_some :: fn(body: Reader, into: u8[]) -> i64 | null | HttpError {
+    got :: body.read(into)
+    if got is IOError {
+        return transport(got)
+    }
+    if got == null {
+        return null
+    }
+    if got < 1 || got > into.len() {
+        return malformed("a body says it read ${got} bytes into room for ${into.len()}")
+    }
+    return got
 }
 
 // What a write of the connection came to.
@@ -508,9 +541,8 @@ test_an_http_1_0_peer_is_sent_no_chunk :: fn() -> void {
     old :: Request { .method = .Get, .target = "/", .version = .Http10 }
     answered :: response_wire(Response { .body = BytesReader { .content = "late" } }, old)
     assert(
-        answered is string
-            && answered == "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\nlate",
-        "a response to HTTP/1.0 is counted",
+        answered is string && answered == "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\nlate",
+        "a response to HTTP/1.0 ends with its connection",
     )
 }
 

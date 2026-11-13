@@ -86,10 +86,18 @@ ChunkedBody :: struct {
     // counts, the one digit of the last chunk aside.
     padding: i64 = 0
     done: bool = false
+    // What failed a read. A body that failed is at no end: what is left on
+    // `source` is not known to open a chunk, so every later read fails the
+    // same.
+    failure: IOError | null = null
 }
 
 ChunkedBody implements Reader {
     read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        failure :: self.failure
+        if failure != null {
+            return IOError { ...failure }
+        }
         if self.done {
             return null
         }
@@ -99,7 +107,7 @@ ChunkedBody implements Reader {
         if self.left == 0 {
             size :: self.open_chunk()
             if size is IOError {
-                return size
+                return self.failed(size)
             }
             if size == 0 {
                 self.done = true
@@ -109,15 +117,22 @@ ChunkedBody implements Reader {
         }
         got :: self.source.read(into[0..<min(into.len(), self.left)])
         if got is IOError {
-            return got
+            return self.failed(got)
         }
         if got == null {
-            return ended_early("in the middle of a chunk")
+            return self.failed(ended_early("in the middle of a chunk"))
         }
         self.left -= got
         self.data_ended = self.left == 0
         return got
     }
+}
+
+// Have every read of `body` from now on fail as `error`, which is returned.
+failed :: fn(body: ChunkedBody, error: IOError) -> IOError {
+    // A copy is kept: a reader hands back nothing it keeps.
+    body.failure = IOError { ...error }
+    return error
 }
 
 // Read up to the data of the next chunk and give its size; 0 for the last
@@ -391,6 +406,19 @@ test_a_chunk_that_is_no_chunk_fails_the_read :: fn() -> void {
         "a trailer that is no field",
     )
     assert(chunked_failure("5\r\nhello\r\n0\r\n\r\n") == null, "a body that is whole")
+}
+
+@test
+test_a_chunked_body_that_failed_fails_again :: fn() -> void {
+    request :: request_of(whole(CHUNKED_HEAD + "zz\r\n0\r\n\r\n"))
+    buffer: u8[]: [0] * 8
+    first :: request.body.read(buffer)
+    assert(first is IOError && first.kind == .InvalidInput, "a chunk with no size")
+    again :: request.body.read(buffer)
+    assert(
+        again is IOError && again.kind == .InvalidInput,
+        "what follows the failure opens no chunk",
+    )
 }
 
 @test

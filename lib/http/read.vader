@@ -5,6 +5,9 @@
 // a start line), this one is not. Two readers that disagree on where a message
 // ends are what request smuggling is made of.
 //
+// These functions keep no memory of the connection they read: what serves one
+// (server.vader) calls them, and nothing else may.
+//
 // A message is read as bytes. Its head becomes strings; its body stays on the
 // reader, behind a `Reader` that stops where the message does.
 
@@ -15,24 +18,11 @@ import "std/uri"
 
 // ---- requests -------------------------------------------------------------
 
-/// Read the next request of a connection.
-///
-/// The request returned has its head read and its body still on `reader`: read
-/// `body` to its end before asking for the next request.
-///
-/// @param reader  where the connection is read.
-/// @param limits  how much is read before the request is refused.
-/// @return        the request, and `null` when the source ended before its
-///                first byte: the client is done with the connection.
-/// @error         `HttpError`, whose `status_of` is what to answer.
-/// @example
-///   # import "std/io"
-///   text :: "GET /hello HTTP/1.1\r\nHost: example.org\r\n\r\n"
-///   request :: read_request(BufferedReader { .source = BytesReader { .content = text } })
-///   if request is Request {
-///       request.target   // "/hello"
-///   }
-export read_request :: fn(
+// Read the next request of a connection: its head is read, its body is still
+// on `reader`, to be read to its end before the next request is asked for.
+// Null when the source ended before the first byte of a request: the client is
+// done with the connection. `status_of` an `HttpError` is what to answer.
+read_request :: fn(
     reader: BufferedReader,
     limits: Limits = Limits {},
 ) -> Request | null | HttpError {
@@ -123,31 +113,14 @@ parse_request_line :: fn(line: u8[]) -> RequestLine | HttpError {
 
 // ---- responses ------------------------------------------------------------
 
-/// Read the next response to `request`.
-///
-/// The response returned has its head read and its body still on `reader`. A
-/// response that says nothing of its length is read to the end of the
-/// connection.
-///
-/// An interim response is returned as any other: while `is_interim` holds of
-/// its status, the final one is still to read.
-///
-/// @param reader   where the connection is read.
-/// @param request  the request answered: a response to `HEAD` carries no
-///                 content, whatever its fields say.
-/// @param limits   how much is read before the response is refused.
-/// @error          `HttpError`, `.Incomplete` when the source ended before the
-///                 response did.
-/// @example
-///   # import "std/io"
-///   # request :: Request { .method = .Get, .target = "/" }
-///   text :: "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi"
-///   reader :: BufferedReader { .source = BytesReader { .content = text } }
-///   response :: read_response(reader, request)
-///   if response is Response {
-///       u16(response.status)   // 200
-///   }
-export read_response :: fn(
+// Read the next response to `request`: its head is read, its body is still on
+// `reader`. A response to `HEAD` carries no content, whatever its fields say;
+// one that says nothing of its length is read to the end of the connection.
+// `.Incomplete` when the source ended before the response did.
+//
+// An interim response is returned as any other: while `is_interim` holds of
+// its status, the final one is still to read.
+read_response :: fn(
     reader: BufferedReader,
     request: Request,
     limits: Limits = Limits {},

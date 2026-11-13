@@ -43,6 +43,16 @@ export fields :: fn(headers: Headers) -> Iterator<Header> {
     }
 }
 
+// Fields equal to `headers` that share nothing with them: a change to either,
+// a line of it included, leaves the other as it was.
+copied :: fn(headers: Headers) -> Headers {
+    lines: Header[]: []
+    for line in headers.lines {
+        lines.push(Header { ...line })
+    }
+    return Headers { .lines = lines }
+}
+
 /// How many field lines `headers` holds.
 ///
 /// @param headers  the fields to count.

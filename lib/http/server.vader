@@ -1,0 +1,900 @@
+// http/server: one connection served, from its first request to its end.
+//
+// What reads and writes a message (read.vader, write.vader) keeps no memory of
+// its connection. Left to a caller, the order of the calls is what tells one
+// message from the next: a body nobody read is taken for a request, a body
+// kept is read out of the request after it, a response goes to the wrong
+// request. So the loop is here and nowhere else. It owns the reader, pairs
+// each response with its request, and moves on only once the body of the
+// request is at its end; whatever it cannot settle ends the connection.
+// docs/adr/0138-the-library-owns-the-loop-of-a-connection.md has the reasons.
+
+module "http"
+
+import "std/io"
+
+// ---- the end of a connection ----------------------------------------------
+
+/// Why a connection stopped being served.
+export EndReason :: enum {
+    /// The client sent no further request.
+    ClientDone,
+    /// An exchange ended the connection: one of its messages said `close`,
+    /// or was of HTTP/1.0 and did not ask to keep it, or the request waited
+    /// for a `100 Continue` its handler never had sent.
+    Closed,
+    /// The response opened a tunnel: what follows is not HTTP.
+    LeftHttp,
+    /// A request could not be read. It was answered with the status of
+    /// `ConnectionEnd.error`.
+    BadRequest,
+    /// The response of a handler could not be written as it was. When none of
+    /// it had gone out, a `500` was answered in its place.
+    BadResponse,
+    /// The body of a request was left unread, and was too long to read past
+    /// or failed.
+    UnreadBody,
+    /// The connection failed, or a body being copied to it did.
+    Failed,
+}
+
+/// How `serve_connection` ended.
+export ConnectionEnd :: struct {
+    reason: EndReason
+    /// What went wrong, for `.BadRequest`, `.BadResponse` and `.Failed`.
+    error: HttpError | null = null
+}
+
+// ---- serving --------------------------------------------------------------
+
+/// Serve the requests of one connection, one after the other, until it ends.
+///
+/// Each request read is handed to `handler`, and what it returns is written
+/// as the response. Between two requests the body of the first is read to its
+/// end, up to `limits.unread_body`: a handler need not read what it has no
+/// use for. A request body is read while its request is served, and fails
+/// after. A client that waits for `100 Continue` is told to go on when the
+/// body is first read.
+///
+/// Nothing is read or written once this returns: closing what `reader` and
+/// `writer` stand on is the caller's.
+///
+/// @param reader   where the connection is read. Nothing else reads it.
+/// @param writer   where the connection is written. What it is given must go
+///                 out at once and not be gathered: a client may wait for it.
+/// @param handler  what answers a request, with a final response.
+/// @param limits   how much of a request is read before it is refused.
+/// @return         why the connection is served no more.
+/// @example
+///   # import "std/io"
+///   wire :: "GET /hello HTTP/1.1\r\nHost: example.org\r\n\r\n"
+///   out :: BytesWriter {}
+///   serve_connection(
+///       BytesReader { .content = wire },
+///       out,
+///       request -> new_response(STATUS_OK, "you asked for ${request.target}"),
+///   )
+///   out.written.bytes_to_string()   // "HTTP/1.1 200 OK\r\nContent-Length: 20\r\n\r\nyou asked for /hello"
+export serve_connection :: fn(
+    reader: Reader,
+    writer: Writer,
+    handler: fn(Request) -> Response,
+    limits: Limits = Limits {},
+) -> ConnectionEnd {
+    source :: BufferedReader { .source = reader }
+    wire :: Wire { .sink = writer }
+    for {
+        request :: read_request(source, limits) ?? return ConnectionEnd { .reason = .ClientDone }
+        if request is HttpError {
+            return refuse(wire, request)
+        }
+        request.bind_body(wire)
+        // The handler is given a copy. What it changes of its request, the
+        // method, a field or the body, changes nothing of how the exchange
+        // is framed and settled.
+        handed :: Request { ...request, .headers = request.headers.copied() }
+        ending :: answer(wire, request, handler(handed), limits)
+        // Whatever the exchange came to, its body is read no more: the bytes
+        // after it are another request's, or nobody's.
+        request.exchange.over = true
+        if ending != null {
+            return ending
+        }
+    }
+}
+
+// Answer a request that could not be read with the status of `error`, when
+// there is one to answer with. No further request is read: where it would
+// start is not known.
+refuse :: fn(writer: Writer, error: HttpError) -> ConnectionEnd {
+    status :: status_of(error) ?? return ConnectionEnd { .reason = .Failed, .error = error }
+    // The client may be gone already: the connection ends the same.
+    write_response(writer, Response { .status = status }, null)
+    return ConnectionEnd { .reason = .BadRequest, .error = error }
+}
+
+// Write `response` to `request` and settle the exchange: null when the
+// connection may carry another, why it ends otherwise.
+answer :: fn(
+    writer: Writer,
+    request: Request,
+    response: Response,
+    limits: Limits,
+) -> ConnectionEnd | null {
+    // The response is written and judged as it was returned. Its body is
+    // code of the handler, run while the head goes out: what it then changes
+    // of its own response must not part what was written from what is settled.
+    returned :: Response { ...response, .headers = response.headers.copied() }
+    // An interim response would leave the request with no final one, and the
+    // next response would be read as this request's.
+    if is_interim(returned.status) {
+        return apologise(writer, request, malformed("a handler answers with a final response"))
+    }
+    out :: CountingWriter { .sink = writer }
+    written :: write_response(out, returned, request)
+    if written is HttpError {
+        if out.count == 0 {
+            return apologise(writer, request, written)
+        }
+        return ConnectionEnd { .reason = failure_of(written), .error = written }
+    }
+    if opens_tunnel(request.method, returned.status) {
+        return ConnectionEnd { .reason = .LeftHttp }
+    }
+    if !persists(request, returned) {
+        return ConnectionEnd { .reason = .Closed }
+    }
+    if !drain(request.body, limits) {
+        return ConnectionEnd { .reason = .UnreadBody }
+    }
+    return null
+}
+
+// Answer `500` to a request whose response could not be written, no byte of
+// it having gone out, and end the connection.
+apologise :: fn(writer: Writer, request: Request, error: HttpError) -> ConnectionEnd {
+    apology :: Response { .status = STATUS_INTERNAL_SERVER_ERROR }
+    apology.headers.set(CONNECTION, CLOSE)
+    if write_response(writer, apology, request) is HttpError {
+        return ConnectionEnd { .reason = .Failed, .error = error }
+    }
+    return ConnectionEnd { .reason = .BadResponse, .error = error }
+}
+
+// What a response that failed part of the way ends its connection as.
+failure_of :: fn(error: HttpError) -> EndReason {
+    if error.kind == .Transport {
+        return .Failed
+    }
+    return .BadResponse
+}
+
+// The connection as the loop writes it. Once a write failed, none is tried
+// again: what a failed write left on the connection is not known, and nothing
+// may follow it.
+Wire :: struct {
+    sink: Writer
+    failure: IOError | null = null
+}
+
+Wire implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        failure :: self.failure
+        if failure != null {
+            return IOError { ...failure }
+        }
+        written :: self.sink.write(content)
+        if written is IOError {
+            // A copy is kept: a writer hands back nothing it keeps.
+            self.failure = IOError { ...written }
+        }
+        return written
+    }
+}
+
+// A writer that counts what it is asked to write, sent or not.
+CountingWriter :: struct {
+    sink: Writer
+    count: i64 = 0
+}
+
+CountingWriter implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        self.count += content.bytes_of().len()
+        return self.sink.write(content)
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/numbers"
+import "std/string"
+import "std/testing"
+
+// What serving a connection came to, and what was written on it.
+Served :: struct {
+    end: ConnectionEnd
+    written: string
+}
+
+// Serve `wire`, read `size` bytes at a time, with `handler`.
+served :: fn(
+    wire: string,
+    handler: fn(Request) -> Response,
+    size: i64 = 4096,
+    limits: Limits = Limits {},
+) -> Served {
+    out :: BytesWriter {}
+    source :: FragmentedReader { .source = BytesReader { .content = wire }, .size = size }
+    end :: serve_connection(source, out, handler, limits)
+    return Served { .end = end, .written = out.written.bytes_to_string() }
+}
+
+// A body that reads as a request would, to whoever takes it for one.
+SMUGGLED :: "GET /smuggled HTTP/1.1\r\nHost: h\r\n\r\n"
+
+GET_NEXT :: "GET /next HTTP/1.1\r\nHost: h\r\n\r\n"
+
+// A request for `target` that carries `body`, its length declared.
+posting :: fn(target: string, body: string) -> string =
+    "POST ${target} HTTP/1.1\r\nHost: h\r\nContent-Length: ${body.byte_len()}\r\n\r\n${body}"
+
+// A response with no content, as `serve_connection` writes it to a request
+// that asks nothing of the connection.
+EMPTY_OK :: "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"
+
+@test
+test_requests_are_served_in_turn :: fn() -> void {
+    targets: string[]: []
+    wire :: "GET /a HTTP/1.1\r\nHost: h\r\n\r\n" + posting("/b", "hello") + GET_NEXT
+    for size in CUTS {
+        targets.clear()
+        result :: served(
+            wire,
+            fn(request) {
+                targets.push(request.target)
+                return new_response(STATUS_OK, text_of(request.body))
+            },
+            size,
+        )
+        assert(result.end.reason == .ClientDone, "the client ends the connection, cut by ${size}")
+        assert_eq(targets.join(" "), "/a /b /next")
+        assert_eq(
+            result.written,
+            EMPTY_OK + "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello" + EMPTY_OK,
+        )
+    }
+}
+
+@test
+test_a_body_nobody_read_is_no_request :: fn() -> void {
+    targets: string[]: []
+    chunked :: "POST /b HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n"
+        + "${u64(SMUGGLED.byte_len()).to_hex()}\r\n${SMUGGLED}\r\n0\r\n\r\n"
+    for size in CUTS {
+        targets.clear()
+        result :: served(
+            posting("/a", SMUGGLED) + chunked + GET_NEXT,
+            fn(request) {
+                targets.push(request.target)
+                return Response {}
+            },
+            size,
+        )
+        assert_eq(targets.join(" "), "/a /b /next")
+        assert_eq(result.written, EMPTY_OK + EMPTY_OK + EMPTY_OK)
+        assert(result.end.reason == .ClientDone, "every request was served, cut by ${size}")
+    }
+}
+
+@test
+test_a_body_too_long_to_read_past_ends_the_connection :: fn() -> void {
+    targets: string[]: []
+    result :: served(
+        posting("/a", SMUGGLED) + GET_NEXT,
+        fn(request) {
+            targets.push(request.target)
+            return Response {}
+        },
+        4096,
+        Limits { .unread_body = 8 },
+    )
+    assert_eq(targets.join(" "), "/a")
+    assert_eq(result.written, EMPTY_OK)
+    assert(result.end.reason == .UnreadBody, "the connection ends on the body left")
+}
+
+@test
+test_a_body_that_fails_ends_the_connection :: fn() -> void {
+    ignoring :: fn(request: Request) -> Response = Response {}
+    broken :: served(
+        "POST /a HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\nzz\r\n" + GET_NEXT,
+        ignoring,
+    )
+    assert(broken.end.reason == .UnreadBody, "a chunk with no size")
+    assert_eq(broken.written, EMPTY_OK)
+    short :: served(
+        "POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 500\r\n\r\n" + GET_NEXT,
+        ignoring,
+    )
+    assert(short.end.reason == .UnreadBody, "a body the connection ended in")
+    assert_eq(short.written, EMPTY_OK)
+}
+
+@test
+test_a_body_is_read_while_its_request_is_served_and_not_after :: fn() -> void {
+    kept: Reader[]: []
+    late: string[]: []
+    result :: served(
+        posting("/a", "first") + posting("/b", "second"),
+        fn(request) {
+            for body in kept {
+                late.push(text_of(body))
+            }
+            kept.push(request.body)
+            return Response {}
+        },
+    )
+    assert(result.end.reason == .ClientDone, "both requests are served")
+    assert_eq(late.len(), 1)
+    assert(late[0].starts_with("error: "), "the body of the first request, read during the second")
+    for body in kept {
+        assert(text_of(body).starts_with("error: "), "a body read after the connection ended")
+    }
+}
+
+@test
+test_a_request_that_cannot_be_read_is_answered_and_is_the_last :: fn() -> void {
+    targets: string[]: []
+    result :: served(
+        "GET /a HTTP/1.1\nHost: h\n\n" + GET_NEXT,
+        fn(request) {
+            targets.push(request.target)
+            return Response {}
+        },
+    )
+    assert_eq(targets.len(), 0)
+    assert_eq(
+        result.written,
+        "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+    )
+    assert(result.end.reason == .BadRequest, "the connection ends on the request")
+    error :: result.end.error
+    assert(error != null && error.kind == .Malformed, "with why it could not be read")
+}
+
+@test
+test_a_connection_that_fails_is_written_nothing :: fn() -> void {
+    out :: BytesWriter {}
+    source :: FailingReader { .source = BytesReader { .content = "GET / HT" }, .calls = 1 }
+    end :: serve_connection(source, out, (request) -> Response {})
+    assert(end.reason == .Failed, "a source that fails")
+    assert_eq(out.written.len(), 0)
+    gone :: serve_connection(
+        BytesReader { .content = GET_NEXT + GET_NEXT },
+        FailingWriter { .sink = BytesWriter {}, .calls = 0 },
+        (request) -> Response {},
+    )
+    assert(gone.reason == .Failed, "a client that is gone")
+}
+
+@test
+test_a_response_that_cannot_be_written_is_a_500_and_the_last :: fn() -> void {
+    apology :: "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\nContent-Length: 0\r\n\r\n"
+    injected :: served(
+        GET_NEXT + GET_NEXT,
+        fn(request) {
+            response :: Response {}
+            response.headers.add("X-Note", "a\r\nSet-Cookie: x=1")
+            return response
+        },
+    )
+    assert_eq(injected.written, apology)
+    assert(injected.end.reason == .BadResponse, "a field that would open a line")
+    interim :: served(GET_NEXT + GET_NEXT, (request) -> Response { .status = STATUS_CONTINUE })
+    assert_eq(interim.written, apology)
+    assert(interim.end.reason == .BadResponse, "an interim response for a final one")
+    failing :: served(
+        GET_NEXT + GET_NEXT,
+        (request) -> Response {
+            .body = FailingReader { .source = BytesReader { .content = "" }, .calls = 0 },
+        },
+    )
+    assert_eq(failing.written, apology)
+    assert(failing.end.reason == .BadResponse, "a body that fails at once")
+}
+
+@test
+test_a_response_cut_short_is_followed_by_nothing :: fn() -> void {
+    result :: served(
+        GET_NEXT + GET_NEXT,
+        fn(request) {
+            response :: Response {
+                .body = FragmentedReader { .source = BytesReader { .content = "abc" }, .size = 2 },
+            }
+            response.headers.set("Content-Length", "10")
+            return response
+        },
+    )
+    assert_eq(result.written, "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\nabc")
+    assert(result.end.reason == .BadResponse, "a body shorter than it declares")
+}
+
+@test
+test_a_response_goes_to_the_request_it_answers :: fn() -> void {
+    wire :: "PUT /a HTTP/1.1\r\nHost: h\r\nContent-Length: 2\r\nExpect: 100-continue\r\n\r\nhi"
+        + "HEAD /b HTTP/1.1\r\nHost: h\r\n\r\n"
+        + GET_NEXT
+    for size in CUTS {
+        result :: served(
+            wire,
+            (request) -> new_response(STATUS_OK, "${request.target} ${text_of(request.body)}"),
+            size,
+        )
+        assert_eq(
+            result.written,
+            "HTTP/1.1 100 Continue\r\n\r\n"
+                + "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\n/a hi"
+                + "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\n"
+                + "HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\n/next ",
+        )
+    }
+}
+
+@test
+test_content_held_back_and_never_asked_for_ends_the_connection :: fn() -> void {
+    wire :: "PUT /a HTTP/1.1\r\nHost: h\r\nContent-Length: ${SMUGGLED.byte_len()}\r\n"
+        + "Expect: 100-continue\r\n\r\n${SMUGGLED}"
+    result :: served(wire, (request) -> Response { .status = STATUS_FORBIDDEN })
+    assert_eq(
+        result.written,
+        "HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+    )
+    assert(result.end.reason == .Closed, "content that may follow or not")
+}
+
+@test
+test_a_tunnel_is_the_end_of_what_is_served :: fn() -> void {
+    targets: string[]: []
+    result :: served(
+        "CONNECT example.org:443 HTTP/1.1\r\nHost: example.org:443\r\n\r\n" + GET_NEXT,
+        fn(request) {
+            targets.push(request.target)
+            return Response {}
+        },
+    )
+    assert_eq(targets.join(" "), "example.org:443")
+    assert_eq(result.written, "HTTP/1.1 200 OK\r\n\r\n")
+    assert(result.end.reason == .LeftHttp, "what follows is no request")
+}
+
+@test
+test_a_connection_asked_to_close_serves_no_further_request :: fn() -> void {
+    targets: string[]: []
+    seeing :: fn(request: Request) -> Response {
+        targets.push(request.target)
+        return Response {}
+    }
+    closing :: served("GET /a HTTP/1.1\r\nHost: h\r\nConnection: close\r\n\r\n" + GET_NEXT, seeing)
+    assert(closing.end.reason == .Closed, "the request closes")
+    old :: served("GET /b HTTP/1.0\r\n\r\n" + GET_NEXT, seeing)
+    assert(old.end.reason == .Closed, "HTTP/1.0 keeps no connection")
+    kept :: served("GET /c HTTP/1.0\r\nConnection: keep-alive\r\n\r\n" + GET_NEXT, seeing)
+    assert(kept.end.reason == .ClientDone, "unless asked to")
+    assert_eq(targets.join(" "), "/a /b /c /next")
+    assert_eq(
+        kept.written,
+        "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: keep-alive\r\n\r\n" + EMPTY_OK,
+    )
+}
+
+@test
+test_a_request_a_handler_rewrites_is_answered_as_it_was_sent :: fn() -> void {
+    wire :: "HEAD /a HTTP/1.1\r\nHost: h\r\nConnection: close\r\n\r\n" + GET_NEXT
+    result :: served(
+        wire,
+        fn(request) {
+            request.method = .Get
+            request.headers.remove("Connection")
+            return new_response(STATUS_OK, "a body no HEAD is sent")
+        },
+    )
+    assert_eq(
+        result.written,
+        "HTTP/1.1 200 OK\r\nContent-Length: 22\r\nConnection: close\r\n\r\n",
+    )
+    assert(result.end.reason == .Closed, "the request asked to close, whatever became of it")
+}
+
+@test
+test_a_body_that_failed_once_is_at_no_end :: fn() -> void {
+    targets: string[]: []
+    swallowing :: fn(request: Request) -> Response {
+        targets.push(request.target)
+        buffer: u8[]: [0] * 8
+        request.body.read(buffer)
+        return Response {}
+    }
+    head :: "POST /a HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n"
+    size :: served(head + "zz\r\n0\r\n\r\n" + GET_NEXT, swallowing)
+    assert(
+        size.end.reason == .UnreadBody,
+        "a chunk with no size, then what reads as the last chunk",
+    )
+    after :: served(
+        head + "1\r\naXX0\r\n\r\n" + GET_NEXT,
+        fn(request) {
+            targets.push(request.target)
+            text_of(request.body)
+            return Response {}
+        },
+    )
+    assert(after.end.reason == .UnreadBody, "no line break after the data of a chunk")
+    assert_eq(targets.join(" "), "/a /a")
+}
+
+// A reader that says it read `claimed` bytes, whatever room it was given.
+LyingReader :: struct {
+    claimed: i64
+}
+
+LyingReader implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError = self.claimed
+}
+
+@test
+test_a_reader_that_breaks_its_word_writes_no_message :: fn() -> void {
+    apology :: "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\nContent-Length: 0\r\n\r\n"
+    for claimed in [0, -1, 9000] {
+        chunked :: served(
+            GET_NEXT + GET_NEXT,
+            (request) -> Response { .body = LyingReader { .claimed = claimed } },
+        )
+        assert_eq(chunked.written, apology)
+        assert(chunked.end.reason == .BadResponse, "${claimed} bytes read, no length declared")
+    }
+    for claimed in [0, -1, 100] {
+        counted :: served(
+            GET_NEXT + GET_NEXT,
+            fn(request) {
+                response :: Response { .body = LyingReader { .claimed = claimed } }
+                response.headers.set("Content-Length", "5")
+                return response
+            },
+        )
+        assert_eq(counted.written, apology)
+        assert(counted.end.reason == .BadResponse, "${claimed} bytes read into room for five")
+    }
+}
+
+@test
+test_reading_past_a_body_takes_a_source_at_its_word_no_more :: fn() -> void {
+    assert(!drain(LyingReader { .claimed = 0 }), "a source that reads nothing, and has no end")
+}
+
+@test
+test_a_response_of_no_known_length_is_not_held_for_a_client_with_no_chunks :: fn() -> void {
+    old :: "GET /a HTTP/1.0\r\nConnection: keep-alive\r\n\r\n" + GET_NEXT
+    whole_body :: served(old, (request) -> Response { .body = BytesReader { .content = "late" } })
+    assert_eq(whole_body.written, "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\nlate")
+    assert(whole_body.end.reason == .Closed, "the response ends with the connection")
+    failing :: served(
+        old,
+        (request) -> Response {
+            .body = FailingReader {
+                .source = FragmentedReader {
+                    .source = BytesReader { .content = "abcdef" },
+                    .size = 2,
+                },
+                .calls = 2,
+            },
+        },
+    )
+    assert_eq(failing.written, "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\nabcd")
+    assert(failing.end.reason == .Failed, "what was read went out before the body failed")
+}
+
+// A writer that fails its write of index `fails_at`, and takes the others.
+FlakyWriter :: struct {
+    sink: BytesWriter
+    fails_at: i64
+    writes: i64 = 0
+}
+
+FlakyWriter implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        self.writes += 1
+        if self.writes - 1 == self.fails_at {
+            return IOError { .msg = "the write failed" }
+        }
+        return self.sink.write(content)
+    }
+}
+
+@test
+test_nothing_is_written_after_a_write_that_failed :: fn() -> void {
+    wire :: "PUT /a HTTP/1.1\r\nHost: h\r\nContent-Length: 2\r\nExpect: 100-continue\r\n\r\nhi"
+        + GET_NEXT
+    reading :: fn(request: Request) -> Response = new_response(STATUS_OK, text_of(request.body))
+    for fails_at in 0..<3 {
+        steady :: BytesWriter {}
+        serve_connection(BytesReader { .content = wire }, steady, reading)
+        flaky :: FlakyWriter { .sink = BytesWriter {}, .fails_at = fails_at }
+        end :: serve_connection(BytesReader { .content = wire }, flaky, reading)
+        got :: flaky.sink.written.bytes_to_string()
+        assert(
+            steady.written.bytes_to_string().starts_with(got),
+            "after the write of index ${fails_at} failed, `${got.shown()}` was written",
+        )
+        assert(end.reason != .ClientDone, "the connection ends on the write of index ${fails_at}")
+    }
+}
+
+// A body that changes the response it is the body of, as it is read.
+TurningBody :: struct {
+    response: Response | null = null
+    content: BytesReader
+}
+
+TurningBody implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        response :: self.response
+        if response != null {
+            response.status = STATUS_CONTINUE
+            response.headers.remove("Content-Length")
+            response.headers.set("Connection", "keep-alive")
+        }
+        return self.content.read(into)
+    }
+}
+
+@test
+test_a_response_is_written_as_it_was_returned :: fn() -> void {
+    targets: string[]: []
+    wire :: "PUT /a HTTP/1.1\r\nHost: h\r\nContent-Length: ${GET_NEXT.byte_len()}\r\n"
+        + "Expect: 100-continue\r\n\r\n${GET_NEXT}"
+    result :: served(
+        wire,
+        fn(request) {
+            targets.push(request.target)
+            body :: TurningBody { .content = BytesReader { .content = "done" } }
+            response :: Response { .body = body }
+            response.headers.set("Content-Length", "4")
+            body.response = response
+            return response
+        },
+    )
+    assert_eq(targets.join(" "), "/a")
+    assert_eq(
+        result.written,
+        "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nConnection: close\r\n\r\ndone",
+    )
+    assert(result.end.reason == .Closed, "content held back and never asked for")
+}
+
+// ---- whatever a handler does ----------------------------------------------
+
+// What a handler does with a request and its body.
+@displayable
+Behaviour :: enum {
+    ReadsNothing,
+    ReadsPart,
+    ReadsAll,
+    Echoes,
+    WritesBadField,
+    DeclaresTooLong,
+    FailsToRead,
+    AnswersInterim,
+    RewritesRequest,
+}
+
+// How a request carries its body, and what it asks of the connection.
+@displayable
+Shape :: enum {
+    NoBody,
+    Length,
+    Chunks,
+    Expects,
+    TooLongToSkip,
+    CutShort,
+    BadChunk,
+    BadChunkThenLastChunk,
+    Closes,
+    Http10,
+    Http10KeepAlive,
+}
+
+// The request of index `index` on a connection, shaped as `shape`. Its
+// target is its index; its body, when it has one, reads as a request.
+framed :: fn(shape: Shape, index: i64) -> string {
+    length :: SMUGGLED.byte_len()
+    head :: "POST /${index} HTTP/1.1\r\nHost: h\r\n"
+    return match shape {
+        .NoBody                -> "GET /${index} HTTP/1.1\r\nHost: h\r\n\r\n"
+        .Length                -> "${head}Content-Length: ${length}\r\n\r\n${SMUGGLED}"
+        .Chunks                -> "${head}Transfer-Encoding: chunked\r\n\r\n"
+            + "${u64(length).to_hex()}\r\n${SMUGGLED}\r\n0\r\n\r\n"
+        .Expects               -> "${head}Content-Length: ${length}\r\nExpect: 100-continue\r\n\r\n${SMUGGLED}"
+        .TooLongToSkip         -> "${head}Content-Length: ${length * 8}\r\n\r\n${SMUGGLED * 8}"
+        .CutShort              -> "${head}Content-Length: ${length + 400}\r\n\r\n${SMUGGLED}"
+        .BadChunk              -> "${head}Transfer-Encoding: chunked\r\n\r\nzz\r\n${SMUGGLED}"
+        .BadChunkThenLastChunk -> "${head}Transfer-Encoding: chunked\r\n\r\nzz\r\n0\r\n\r\n"
+        .Closes                -> "${head}Connection: close\r\nContent-Length: ${length}\r\n\r\n${SMUGGLED}"
+        .Http10                -> "POST /${index} HTTP/1.0\r\nContent-Length: ${length}\r\n\r\n${SMUGGLED}"
+        .Http10KeepAlive       -> "POST /${index} HTTP/1.0\r\nConnection: keep-alive\r\n"
+            + "Content-Length: ${length}\r\n\r\n${SMUGGLED}"
+    }
+}
+
+// Whether a connection of requests shaped as `shape` ends with its first: the
+// body is broken, or the request says so.
+ends_with_its_first :: fn(shape: Shape) -> bool = match shape {
+    .CutShort | .BadChunk | .BadChunkThenLastChunk | .Closes | .Http10 -> true
+    .NoBody | .Length | .Chunks | .Expects | .TooLongToSkip | .Http10KeepAlive -> false
+}
+
+// A handler that behaves one way, and what it saw.
+Script :: struct {
+    behaviour: Behaviour
+    targets: string[] = []
+    // The bodies of the requests before, kept past their exchange.
+    kept: Reader[] = []
+    // The bytes those bodies gave when read after their exchange.
+    stale: i64 = 0
+}
+
+handle :: fn(script: Script, request: Request) -> Response {
+    script.targets.push(request.target)
+    buffer: u8[]: [0] * 16
+    for body in script.kept {
+        got :: body.read(buffer)
+        if got is i64 {
+            script.stale += got
+        }
+    }
+    script.kept.push(request.body)
+    return match script.behaviour {
+        .ReadsNothing    -> new_response(STATUS_OK, "ok")
+        .ReadsPart       -> partly_read(request, buffer)
+        .ReadsAll        -> new_response(STATUS_OK, text_of(request.body))
+        .Echoes          -> Response { .body = request.body }
+        .WritesBadField  -> with_bad_field()
+        .DeclaresTooLong -> too_long()
+        .FailsToRead     -> Response {
+            .body = FailingReader { .source = BytesReader { .content = "abc" }, .calls = 1 },
+        }
+        .AnswersInterim  -> Response { .status = Status(103) }
+        .RewritesRequest -> rewritten(request)
+    }
+}
+
+// Change of `request` all that tells how its exchange is framed, as a
+// handler that takes it for its own may.
+rewritten :: fn(request: Request) -> Response {
+    request.method = .Head
+    request.version = .Http10
+    request.body = BytesReader { .content = "" }
+    request.headers.remove("Connection")
+    request.headers.remove("Expect")
+    request.headers.set("Content-Length", "0")
+    for line in request.headers.fields() {
+        line.value = "0"
+    }
+    return new_response(STATUS_OK, "ok")
+}
+
+partly_read :: fn(request: Request, buffer: u8[]) -> Response {
+    request.body.read(buffer[0..<1])
+    return new_response(STATUS_OK, "ok")
+}
+
+with_bad_field :: fn() -> Response {
+    response :: new_response(STATUS_OK, "ok")
+    response.headers.add("X Y", "1")
+    return response
+}
+
+too_long :: fn() -> Response {
+    response :: Response { .body = BytesReader { .content = "abc" } }
+    response.headers.set("Content-Length", "10")
+    return response
+}
+
+// How many whole final responses `written` holds, null when it holds a byte
+// that is part of none. The last may be cut short when `may_be_cut`: a
+// response that failed part of the way.
+whole_responses :: fn(written: string, may_be_cut: bool) -> i64 | null {
+    reader :: whole(written)
+    count: i64 = 0
+    for {
+        left :: reader.peek(1)
+        if left is IOError {
+            return null
+        }
+        if left == null {
+            return count
+        }
+        response :: read_response(reader, asking(.Post))
+        if response is HttpError {
+            return cut_or_null(count, may_be_cut)
+        }
+        content :: BufferedReader { .source = response.body }.read_to_end(1024 * 1024)
+        if content is IOError {
+            return cut_or_null(count, may_be_cut)
+        }
+        if !is_interim(response.status) {
+            count += 1
+        }
+    }
+}
+
+cut_or_null :: fn(count: i64, may_be_cut: bool) -> i64 | null {
+    if may_be_cut {
+        return count
+    }
+    return null
+}
+
+BEHAVIOURS: Behaviour[]: [
+    .ReadsNothing,
+    .ReadsPart,
+    .ReadsAll,
+    .Echoes,
+    .WritesBadField,
+    .DeclaresTooLong,
+    .FailsToRead,
+    .AnswersInterim,
+    .RewritesRequest,
+]
+
+SHAPES: Shape[]: [
+    .NoBody,
+    .Length,
+    .Chunks,
+    .Expects,
+    .TooLongToSkip,
+    .CutShort,
+    .BadChunk,
+    .BadChunkThenLastChunk,
+    .Closes,
+    .Http10,
+    .Http10KeepAlive,
+]
+
+@test
+test_whatever_a_handler_does_a_body_is_never_a_request :: fn() -> void {
+    limits :: Limits { .unread_body = 128 }
+    for shape in SHAPES {
+        wire :: framed(shape, 0) + framed(shape, 1) + framed(shape, 2)
+        for behaviour in BEHAVIOURS {
+            for size in CUTS {
+                script :: Script { .behaviour = behaviour }
+                result :: served(wire, (request) -> script.handle(request), size, limits)
+                case :: "${shape} served by ${behaviour}, cut by ${size}"
+                for index in 0..<script.targets.len() {
+                    assert(
+                        script.targets[index] == "/${index}",
+                        "`${script.targets[index]}` taken for a request: ${case}",
+                    )
+                }
+                if ends_with_its_first(shape) {
+                    assert(script.targets.len() == 1, "a request served after the end: ${case}")
+                }
+                assert(script.stale == 0, "a body is read after its exchange: ${case}")
+                reason :: result.end.reason
+                cut :: reason == .BadResponse || reason == .Failed
+                responses :: whole_responses(result.written, cut)
+                assert(responses != null, "bytes that are part of no response: ${case}")
+                if responses != null && !cut {
+                    assert(
+                        responses == script.targets.len(),
+                        "${responses} responses to ${script.targets.len()} requests: ${case}",
+                    )
+                }
+                if reason == .ClientDone {
+                    assert(script.targets.len() == 3, "a request is lost: ${case}")
+                }
+            }
+        }
+    }
+}

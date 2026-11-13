@@ -391,7 +391,7 @@ test_an_interim_response_takes_the_place_of_no_final_one :: fn() -> void {
     reader :: whole(text)
     out :: BytesWriter {}
     first :: request_of(reader)
-    first.continue_on_read(out)
+    first.bind_body(out)
     assert_eq(text_of(first.body), "hi")
     assert(write_response(out, new_response(STATUS_OK, "done"), first) == null, "the first")
     second :: request_of(reader)
