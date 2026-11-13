@@ -157,13 +157,20 @@ export reason_phrase :: fn(status: Status) -> string = match u16(status) {
     _   -> ""
 }
 
+/// Whether `status` is that of an interim response: one that tells how a
+/// request goes on, and that the final response follows on the same
+/// connection.
+///
+/// @param status  the status of a response.
+export is_interim :: fn(status: Status) -> bool = u16(status) < 200
+
 /// Whether a response with `status` carries no content whatever its fields
 /// say: an interim response, `204` and `304` (RFC 9112, section 6.3).
 ///
 /// @param status  the status of a response.
 export has_no_content :: fn(status: Status) -> bool {
     code :: u16(status)
-    return code < 200 || code == 204 || code == 304
+    return is_interim(status) || code == 204 || code == 304
 }
 
 // ---- messages -------------------------------------------------------------
@@ -185,6 +192,9 @@ export Request :: struct {
     /// What the request carries. It is read once, and before the next message
     /// of its connection.
     body: Reader = BytesReader { .content = "" }
+    /// How far the request has been answered.
+    @internal
+    exchange: Exchange = Exchange {}
 }
 
 /// What a server answers.
@@ -198,6 +208,10 @@ export Response :: struct {
     headers: Headers = Headers {}
     /// What the response carries, read as the body of a `Request` is.
     body: Reader = BytesReader { .content = "" }
+    /// Whether the response read says nothing of where it ends: its body is
+    /// all that its connection still carries.
+    @internal
+    ends_with_connection: bool = false
 }
 
 /// A request that carries `content`, whose length it declares.
@@ -231,6 +245,16 @@ CONTENT_LENGTH    :: "Content-Length"
 TRANSFER_ENCODING :: "Transfer-Encoding"
 CHUNKED           :: "chunked"
 HOST              :: "Host"
+
+// The field that says what becomes of the connection, and its two options.
+CONNECTION :: "Connection"
+CLOSE      :: "close"
+KEEP_ALIVE :: "keep-alive"
+
+// The field a client holds its content back with, and the one expectation
+// there is.
+EXPECT           :: "Expect"
+EXPECTS_CONTINUE :: "100-continue"
 
 // ---- errors ---------------------------------------------------------------
 
@@ -293,6 +317,9 @@ export Limits :: struct {
     field_count: i64 = 100
     /// The longest line that opens a chunk: its size and its extensions.
     chunk_line: i64 = 4096
+    /// The most bytes of a body nobody read that `drain` reads past to keep
+    /// the connection.
+    unread_body: i64 = 65536
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -336,6 +363,8 @@ test_a_status_with_no_content_is_interim_or_204_or_304 :: fn() -> void {
     assert(has_no_content(STATUS_NO_CONTENT), "204 carries nothing")
     assert(has_no_content(STATUS_NOT_MODIFIED), "304 carries nothing")
     assert(!has_no_content(STATUS_OK), "200 may carry content")
+    assert(is_interim(STATUS_SWITCHING_PROTOCOLS), "101 is interim")
+    assert(!is_interim(STATUS_NO_CONTENT), "204 is final")
 }
 
 // The code `status_of` answers a failure of `kind` with, 0 for none.

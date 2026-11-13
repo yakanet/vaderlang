@@ -123,28 +123,33 @@ parse_request_line :: fn(line: u8[]) -> RequestLine | HttpError {
 
 // ---- responses ------------------------------------------------------------
 
-/// Read the response to a request.
+/// Read the next response to `request`.
 ///
 /// The response returned has its head read and its body still on `reader`. A
 /// response that says nothing of its length is read to the end of the
 /// connection.
 ///
-/// @param reader          where the connection is read.
-/// @param request_method  the method of the request answered: a response to
-///                        `HEAD` carries no content, whatever its fields say.
-/// @param limits          how much is read before the response is refused.
-/// @error                 `HttpError`, `.Incomplete` when the source ended
-///                        before the response did.
+/// An interim response is returned as any other: while `is_interim` holds of
+/// its status, the final one is still to read.
+///
+/// @param reader   where the connection is read.
+/// @param request  the request answered: a response to `HEAD` carries no
+///                 content, whatever its fields say.
+/// @param limits   how much is read before the response is refused.
+/// @error          `HttpError`, `.Incomplete` when the source ended before the
+///                 response did.
 /// @example
 ///   # import "std/io"
+///   # request :: Request { .method = .Get, .target = "/" }
 ///   text :: "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi"
-///   response :: read_response(BufferedReader { .source = BytesReader { .content = text } })
+///   reader :: BufferedReader { .source = BytesReader { .content = text } }
+///   response :: read_response(reader, request)
 ///   if response is Response {
 ///       u16(response.status)   // 200
 ///   }
 export read_response :: fn(
     reader: BufferedReader,
-    request_method: Method = .Get,
+    request: Request,
     limits: Limits = Limits {},
 ) -> Response | HttpError {
     line :: read_head_line(reader, limits.start_line, .Malformed)
@@ -162,15 +167,18 @@ export read_response :: fn(
     if headers is HttpError {
         return headers
     }
-    if is_bodiless(request_method, start.status) {
+    if is_bodiless(request.method, start.status) {
         return start.response(headers, LengthBody { .source = reader, .left = 0 })
     }
     body :: declared_body(reader, start.version, false, headers, limits)
     if body is HttpError {
         return body
     }
+    if body != null {
+        return start.response(headers, body)
+    }
     // With no length declared, the response ends where the connection does.
-    return start.response(headers, body ?? reader)
+    return Response { ...start.response(headers, reader), .ends_with_connection = true }
 }
 
 // What a status line says, its reason phrase left out: a client acts on the
@@ -216,14 +224,14 @@ parse_status_line :: fn(line: u8[]) -> StatusLine | HttpError {
 }
 
 // Whether a response carries no content whatever its fields say (RFC 9112,
-// section 6.3, rules 1 and 2). A successful answer to `CONNECT` opens a tunnel:
-// what follows it is no message of HTTP.
-is_bodiless :: fn(request_method: Method, status: Status) -> bool {
-    if request_method == .Head || has_no_content(status) {
-        return true
-    }
-    return request_method == .Connect && u16(status) >= 200 && u16(status) < 300
-}
+// section 6.3, rules 1 and 2).
+is_bodiless :: fn(request_method: Method, status: Status) -> bool =
+    request_method == .Head || has_no_content(status) || opens_tunnel(request_method, status)
+
+// Whether a response is the successful answer to `CONNECT`: what follows it on
+// the connection is a tunnel, and no message of HTTP.
+opens_tunnel :: fn(request_method: Method, status: Status) -> bool =
+    request_method == .Connect && u16(status) >= 200 && u16(status) < 300
 
 // ---- the head -------------------------------------------------------------
 
@@ -394,9 +402,22 @@ request_fails :: fn(text: string, kind: HttpErrorKind) -> bool {
     return request is HttpError && request.kind == kind
 }
 
+// The next request of `reader`; the test fails when there is none.
+request_of :: fn(reader: BufferedReader) -> Request {
+    request :: read_request(reader)
+    if request is Request {
+        return request
+    }
+    assert(false, "the text of the test is no request")
+    return asking()
+}
+
+// A request for `/` by `method`, for the responses of a test to answer.
+asking :: fn(method: Method = .Get) -> Request = Request { .method = method, .target = "/" }
+
 // Whether reading `text` as a response fails as `kind`.
 response_fails :: fn(text: string, kind: HttpErrorKind) -> bool {
-    response :: read_response(whole(text))
+    response :: read_response(whole(text), asking())
     return response is HttpError && response.kind == kind
 }
 
@@ -629,7 +650,7 @@ test_a_source_that_fails_is_reported_with_its_cause :: fn() -> void {
 test_a_response_is_read_however_it_is_cut :: fn() -> void {
     text :: "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\nContent-Length: 7\r\n\r\nnothing"
     for size in CUTS {
-        response :: read_response(cut(text, size))
+        response :: read_response(cut(text, size), asking())
         if response !is Response {
             return assert(false, "no response, cut by ${size}")
         }
@@ -641,7 +662,7 @@ test_a_response_is_read_however_it_is_cut :: fn() -> void {
 
 @test
 test_a_status_line_is_a_version_a_code_and_a_space :: fn() -> void {
-    bare :: read_response(whole("HTTP/1.1 204 \r\n\r\n"))
+    bare :: read_response(whole("HTTP/1.1 204 \r\n\r\n"), asking())
     assert(bare is Response && u16(bare.status) == 204, "no reason phrase")
     assert(response_fails("HTTP/1.1 204\r\n\r\n", .Malformed), "no space after the code")
     assert(response_fails("HTTP/1.1 20x OK\r\n\r\n", .Malformed), "a code no number")
@@ -656,17 +677,17 @@ test_a_response_with_no_content_leaves_the_next_one_whole :: fn() -> void {
     text :: "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHTTP/1.1 304 Not Modified\r\nContent-Length: 9\r\n\r\n"
         + "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok"
     reader :: whole(text)
-    to_head :: read_response(reader, .Head)
+    to_head :: read_response(reader, asking(.Head))
     if to_head !is Response {
         return assert(false, "no response to HEAD")
     }
     assert_eq(text_of(to_head.body), "")
-    unchanged :: read_response(reader)
+    unchanged :: read_response(reader, asking())
     if unchanged !is Response {
         return assert(false, "no 304")
     }
     assert_eq(text_of(unchanged.body), "")
-    last :: read_response(reader)
+    last :: read_response(reader, asking())
     if last !is Response {
         return assert(false, "no last response")
     }
@@ -676,7 +697,7 @@ test_a_response_with_no_content_leaves_the_next_one_whole :: fn() -> void {
 @test
 test_a_response_with_no_length_ends_with_the_connection :: fn() -> void {
     for size in CUTS {
-        response :: read_response(cut("HTTP/1.0 200 OK\r\n\r\nall that is left", size))
+        response :: read_response(cut("HTTP/1.0 200 OK\r\n\r\nall that is left", size), asking())
         if response !is Response {
             return assert(false, "no response, cut by ${size}")
         }
@@ -688,6 +709,7 @@ test_a_response_with_no_length_ends_with_the_connection :: fn() -> void {
 test_a_folded_field_of_a_response_is_joined_with_a_space :: fn() -> void {
     response :: read_response(
         whole("HTTP/1.1 200 OK\r\nX-Long: one\r\n \t two\r\nContent-Length: 0\r\n\r\n"),
+        asking(),
     )
     if response !is Response {
         return assert(false, "no response")

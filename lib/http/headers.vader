@@ -75,6 +75,64 @@ export get_all :: fn(headers: Headers, name: string) -> string[] {
     return values
 }
 
+/// Whether a field named `name` lists `member`: the value of such a field is
+/// members a comma apart (RFC 9110, section 5.6.1), compared here without
+/// regard to case. A comma between double quotes parts nothing.
+///
+/// @param headers  the fields to search.
+/// @param name     the name of a field whose value is a list, in any case.
+/// @param member   the member looked for, in any case.
+/// @example
+///   headers :: Headers {}
+///   headers.add("Connection", "keep-alive, Upgrade")
+///   headers.lists("connection", "upgrade")   // true
+export lists :: fn(headers: Headers, name: string, member: string) -> bool {
+    wanted :: member.bytes()
+    for line in headers.lines {
+        if same_field_name(line.name, name) && has_member(line.value.bytes(), wanted) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether one of the members of the list `value` is `wanted`, whatever its
+// case.
+has_member :: fn(value: u8[], wanted: u8[]) -> bool {
+    start: i64 = 0
+    for start <= value.len() {
+        end :: member_end(value, start)
+        if same_bytes(trimmed(value[start..<end]), wanted) {
+            return true
+        }
+        start = end + 1
+    }
+    return false
+}
+
+// Where the member of `value` that starts at `from` ends: at the next comma
+// outside a quoted string, in which a backslash takes the byte after it as it
+// is, or where `value` does.
+member_end :: fn(value: u8[], from: i64) -> i64 {
+    quoted := false
+    at: i64 = from
+    for at < value.len() {
+        b :: value[at]
+        if quoted && b == '\\' {
+            at += 2
+            continue
+        }
+        if b == '"' {
+            quoted = !quoted
+        }
+        if b == ',' && !quoted {
+            return at
+        }
+        at += 1
+    }
+    return value.len()
+}
+
 /// Add a field after the ones already there, those named `name` included.
 ///
 /// @param headers  the fields to add to.
@@ -114,9 +172,10 @@ export remove :: fn(headers: Headers, name: string) -> void {
 ///
 /// @param a  a field name.
 /// @param b  another.
-export same_field_name :: fn(a: string, b: string) -> bool {
-    left :: a.bytes()
-    right :: b.bytes()
+export same_field_name :: fn(a: string, b: string) -> bool = same_bytes(a.bytes(), b.bytes())
+
+// Whether `left` and `right` differ at most by the case of their ASCII letters.
+same_bytes :: fn(left: u8[], right: u8[]) -> bool {
     if left.len() != right.len() {
         return false
     }
@@ -176,6 +235,29 @@ test_headers_remove_leaves_the_other_names :: fn() -> void {
     headers.remove("accept")
     assert_eq(headers.count(), 1)
     assert_eq(headers.get("Host") ?? "", "example.org")
+}
+
+@test
+test_headers_list_a_member_on_any_line_in_any_case :: fn() -> void {
+    headers :: Headers {}
+    headers.add("Connection", "keep-alive ,\tUpgrade")
+    headers.add("connection", "CLOSE")
+    assert(headers.lists("Connection", "upgrade"), "a member between a comma and a tab")
+    assert(headers.lists("Connection", "close"), "a member of a second line")
+    assert(!headers.lists("Connection", "keep"), "the start of a member is not that member")
+    assert(!headers.lists("Upgrade", "close"), "another field lists nothing")
+}
+
+@test
+test_headers_list_no_member_out_of_a_quoted_string :: fn() -> void {
+    headers :: Headers {}
+    headers.add("Expect", "note=\"a, 100-continue, b\"")
+    assert(!headers.lists("Expect", "100-continue"), "a comma between quotes parts nothing")
+    headers.add("Expect", "note=\"a \\\", 100-continue, b\", 100-continue")
+    assert(headers.lists("Expect", "100-continue"), "a quote after a backslash closes nothing")
+    empty :: Headers {}
+    empty.add("Connection", ", ,close,")
+    assert(empty.lists("Connection", "close"), "empty members are passed over")
 }
 
 @test

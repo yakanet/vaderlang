@@ -443,13 +443,16 @@ test_a_transfer_coding_goes_with_no_length_and_no_http_1_0 :: fn() -> void {
 test_a_chunked_response_is_read_as_a_request_is :: fn() -> void {
     text :: "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n0\r\n\r\n"
     for size in CUTS {
-        response :: read_response(cut(text, size))
+        response :: read_response(cut(text, size), asking())
         if response !is Response {
             return assert(false, "no response, cut by ${size}")
         }
         assert_eq(text_of(response.body), "abc")
     }
-    other :: read_response(whole("HTTP/1.1 200 OK\r\nTransfer-Encoding: gzip\r\n\r\n"))
+    other :: read_response(
+        whole("HTTP/1.1 200 OK\r\nTransfer-Encoding: gzip\r\n\r\n"),
+        asking(),
+    )
     assert(
         other is HttpError && other.kind == .CodingNotImplemented,
         "a response in a coding not implemented",
