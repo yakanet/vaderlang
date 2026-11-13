@@ -81,6 +81,10 @@ ChunkedBody :: struct {
     // Whether the data of a chunk was handed out whole, its line break still
     // on `source`.
     data_ended: bool = false
+    // The bytes the lines that opened the chunks took beyond the data of
+    // their chunk. The digits of a size are never more than the bytes it
+    // counts, the one digit of the last chunk aside.
+    padding: i64 = 0
     done: bool = false
 }
 
@@ -137,7 +141,14 @@ open_chunk :: fn(body: ChunkedBody) -> i64 | IOError {
         return ended_early("before its last chunk")
     }
     size :: chunk_size(line)
-    if size is IOError || size > 0 {
+    if size is IOError {
+        return size
+    }
+    body.padding += max(0, line.len() - max(size, 1))
+    if body.padding > body.limits.chunk_extensions {
+        return bad_chunk("the chunks spend more on their extensions than they carry")
+    }
+    if size > 0 {
         return size
     }
     trailers :: read_fields(body.source, body.limits, false)

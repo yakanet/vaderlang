@@ -317,6 +317,10 @@ export Limits :: struct {
     field_count: i64 = 100
     /// The longest line that opens a chunk: its size and its extensions.
     chunk_line: i64 = 4096
+    /// The most bytes the chunks of one body spend on their extensions beyond
+    /// what they carry: a body is not made to cost many times its content to
+    /// read.
+    chunk_extensions: i64 = 4096
     /// The most bytes of a body nobody read that `drain` reads past to keep
     /// the connection.
     unread_body: i64 = 65536

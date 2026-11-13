@@ -1,0 +1,417 @@
+// http/hardening: the inputs that broke other HTTP/1.1 implementations.
+//
+// Each test replays a message that a server, a proxy or a parser once read
+// otherwise than its neighbours did, or wrote without checking, and shows
+// that this module refuses it or frames it the one way the RFC gives. Which
+// published flaw each test answers is in
+// docs/adr/0137-an-http-message-is-read-strictly.md.
+//
+// Nothing here is implementation: the rules live in read.vader, body.vader,
+// chunked.vader, write.vader and connection.vader.
+
+module "http"
+
+import "std/io"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/numbers"
+import "std/string"
+import "std/testing"
+
+// `text` with its line breaks spelled out, for the message of an assertion.
+shown :: fn(text: string) -> string = text.replace_all("\r", "<CR>").replace_all("\n", "<LF>")
+
+// A request to `h` whose head holds `fields`, each ended as given, and whose
+// body is `body`.
+with_fields :: fn(fields: string, body: string = "") -> string =
+    "POST / HTTP/1.1\r\nHost: h\r\n${fields}\r\n${body}"
+
+// Whether a request with the field lines `fields` is refused as malformed.
+fields_refused :: fn(fields: string) -> bool = request_fails(with_fields(fields), .Malformed)
+
+// ---- where a line ends ----------------------------------------------------
+
+@test
+test_a_line_feed_alone_hides_no_field :: fn() -> void {
+    assert(
+        fields_refused("X: a\nTransfer-Encoding: chunked\r\n"),
+        "a line feed alone before a transfer coding",
+    )
+    assert(
+        fields_refused("Content-Length: 5\nContent-Length: 0\r\n"),
+        "a line feed alone between two lengths",
+    )
+    assert(
+        request_fails(
+            "GET / HTTP/1.1\r\nHost: h\r\n\nGET /x HTTP/1.1\r\nHost: h\r\n\r\n",
+            .Malformed,
+        ),
+        "a line feed alone as the empty line",
+    )
+}
+
+@test
+test_a_carriage_return_alone_ends_no_line :: fn() -> void {
+    assert(
+        fields_refused("X: a\rTransfer-Encoding: chunked\r\n"),
+        "a carriage return alone before a transfer coding",
+    )
+    assert(
+        request_fails(
+            "GET / HTTP/1.1\r\nHost: h\r\n\rXGET /x HTTP/1.1\r\nHost: h\r\n\r\n",
+            .Malformed,
+        ),
+        "a carriage return and another byte as the empty line",
+    )
+    assert(
+        request_fails(
+            "GET / HTTP/1.1\r\nHost: h\r\r\rGET /x HTTP/1.1\r\nHost: h\r\n\r\n",
+            .Malformed,
+        ),
+        "three carriage returns as the end of the head",
+    )
+}
+
+// ---- what a field line is -------------------------------------------------
+
+@test
+test_whitespace_before_a_colon_names_no_field :: fn() -> void {
+    assert(fields_refused("Transfer-Encoding : chunked\r\n"), "a transfer coding")
+    assert(fields_refused("Content-Length : 5\r\n"), "a length")
+    assert(fields_refused("Content-Length\t: 5\r\n"), "a tab")
+}
+
+@test
+test_whitespace_before_a_name_continues_no_field :: fn() -> void {
+    assert(
+        fields_refused(" Transfer-Encoding: chunked\r\nContent-Length: 5\r\n"),
+        "a space before a transfer coding, and a length after it",
+    )
+    assert(fields_refused("Transfer-Encoding:\r\n chunked\r\n"), "a transfer coding on two lines")
+    assert(fields_refused("Content-Length: 1\r\n 3\r\n"), "a length on two lines")
+    assert(
+        request_fails("GET / HTTP/1.1\r\n Host: h\r\n\r\n", .Malformed),
+        "spaces before the first field",
+    )
+}
+
+@test
+test_a_control_byte_is_part_of_no_name_and_no_value :: fn() -> void {
+    assert(fields_refused("\u{1}Transfer-Encoding: chunked\r\n"), "a control byte before a name")
+    assert(fields_refused("Transfer-Encoding\u{0}: chunked\r\n"), "a NUL after a name")
+    assert(fields_refused("Content-Length\u{b}: 5\r\n"), "a vertical tab after a name")
+    assert(fields_refused("Transfer-Encoding:\u{b}chunked\r\n"), "a vertical tab before a value")
+    assert(fields_refused("Transfer-Encoding: chunked\u{c}\r\n"), "a form feed after a value")
+    assert(fields_refused("X(Y): 1\r\n"), "a delimiter in a name")
+    assert(fields_refused("Content Length: 5\r\n"), "a space for a hyphen in a name")
+}
+
+@test
+test_a_long_field_name_is_kept_whole :: fn() -> void {
+    long :: "x" * 300
+    request :: request_of(whole(with_fields("${long}: 1\r\n")))
+    assert_eq(request.headers.get(long) ?? "", "1")
+    assert(request.headers.get("x" * 255) == null, "no shorter name stands for it")
+}
+
+// ---- how long the body is -------------------------------------------------
+
+@test
+test_a_content_length_is_digits_and_nothing_else :: fn() -> void {
+    for value in ["+5", "-5", "0x5", "1 3", "5,", "", "\u{665}"] {
+        assert(fields_refused("Content-Length: ${value}\r\n"), "`${value}` is no length")
+    }
+}
+
+@test
+test_two_content_lengths_that_differ_frame_nothing :: fn() -> void {
+    smuggled :: "GET /x HTTP/1.1\r\nHost: h\r\n\r\n"
+    assert(
+        request_fails(
+            with_fields("Content-Length: 0\r\nContent-Length: ${smuggled.byte_len()}\r\n", smuggled),
+            .Malformed,
+        ),
+        "the first of two lengths is not the one",
+    )
+    assert(
+        request_fails(
+            with_fields("Content-Length: ${smuggled.byte_len()}\r\nContent-Length: 0\r\n", smuggled),
+            .Malformed,
+        ),
+        "nor the last",
+    )
+}
+
+@test
+test_a_transfer_coding_and_a_length_frame_nothing :: fn() -> void {
+    assert(
+        fields_refused("Transfer-Encoding: chunked\r\nContent-Length: 5\r\n"),
+        "a coding, then a length",
+    )
+    assert(
+        fields_refused("Content-Length: 0\r\nTransfer-Encoding: chunked\r\n"),
+        "a length of zero, then a coding",
+    )
+    assert(
+        request_fails(
+            "POST / HTTP/1.0\r\nTransfer-Encoding: chunked\r\nContent-Length: 5\r\n\r\n0\r\n\r\n",
+            .Malformed,
+        ),
+        "both in HTTP/1.0",
+    )
+    assert(
+        request_fails("POST / HTTP/1.0\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n", .Malformed),
+        "a coding alone in HTTP/1.0",
+    )
+}
+
+@test
+test_chunked_is_the_last_coding_of_a_request_or_none_is :: fn() -> void {
+    assert(codings_fail("chunked\r\nTransfer-Encoding: gzip", .Malformed), "chunked, then gzip")
+    assert(codings_fail("chunked, xchunked", .Malformed), "chunked, then a look-alike")
+    assert(codings_fail("chunked\r\nTransfer-Encoding: chunked", .Malformed), "chunked twice")
+    assert(codings_fail("gzip", .Malformed), "no chunked at all")
+    assert(codings_fail("identity", .Malformed), "identity")
+    assert(codings_fail("xchunked", .Malformed), "a look-alike alone")
+    assert(codings_fail("chunked abc", .Malformed), "two words")
+    assert(codings_fail("\"chunked\"", .Malformed), "chunked between quotes")
+    assert(codings_fail("chunked;q=1", .Malformed), "chunked with a parameter")
+    assert(codings_fail("identity, chunked", .CodingNotImplemented), "a coding under chunked")
+    assert(
+        response_fails(
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nTransfer-Encoding: chunked\r\n\r\n",
+            .Malformed,
+        ),
+        "chunked twice in a response",
+    )
+    assert(
+        response_fails("HTTP/1.1 200 OK\r\nTransfer-Encoding: \"chunked\"\r\n\r\n", .Malformed),
+        "chunked between quotes in a response",
+    )
+    assert(
+        response_fails(
+            "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked, gzip\r\n\r\n",
+            .CodingNotImplemented,
+        ),
+        "chunked first and not last in a response",
+    )
+}
+
+@test
+test_a_request_carries_its_body_whatever_its_method :: fn() -> void {
+    smuggled :: "GET /smuggled HTTP/1.1\r\nHost: h\r\n\r\n"
+    text :: "HEAD /a HTTP/1.1\r\nHost: h\r\nContent-Length: ${smuggled.byte_len()}\r\n\r\n${smuggled}"
+        + "HEAD /b HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n"
+        + "${u64(smuggled.byte_len()).to_hex()}\r\n${smuggled}\r\n0\r\n\r\n"
+        + "GET /c HTTP/1.1\r\nHost: h\r\n\r\n"
+    for size in CUTS {
+        reader :: cut(text, size)
+        first :: request_of(reader)
+        assert_eq(first.target, "/a")
+        assert(drain(first.body), "the body of a HEAD with a length, cut by ${size}")
+        second :: request_of(reader)
+        assert_eq(second.target, "/b")
+        assert(drain(second.body), "the body of a HEAD in chunks, cut by ${size}")
+        assert_eq(request_of(reader).target, "/c")
+    }
+}
+
+// ---- chunks ---------------------------------------------------------------
+
+@test
+test_a_line_feed_alone_ends_nothing_in_a_chunked_body :: fn() -> void {
+    smuggled :: "GET /x HTTP/1.1\r\nHost: h\r\n\r\n"
+    invalid :: IOErrorKind.InvalidInput
+    assert(chunked_failure("5\nhello\r\n0\r\n\r\n") == invalid, "after a size")
+    assert(chunked_failure("5;a\nhello\r\n0\r\n\r\n") == invalid, "after an extension")
+    assert(chunked_failure("2;\n0\r\n\r\n${smuggled}") == invalid, "after an empty extension")
+    assert(chunked_failure("5\r\nhello\n0\r\n\r\n") == invalid, "after the data")
+    assert(chunked_failure("5\r\nhello\r\n0\r\n\n") == invalid, "after the last chunk")
+    assert(chunked_failure("5\r\nhello\r\n0\r\nX: y\n\r\n") == invalid, "after a trailer field")
+    assert(chunked_failure("5\r\rhello\r\n0\r\n\r\n") == invalid, "a carriage return alone")
+}
+
+@test
+test_a_chunk_size_is_hexadecimal_digits_and_nothing_else :: fn() -> void {
+    invalid :: IOErrorKind.InvalidInput
+    for size in ["0x5", "+5", "-5", " 5", "5 ", "5\t", "5\u{0}", "5\u{b}", "5_0", "5h"] {
+        assert(chunked_failure("${size}\r\nhello\r\n0\r\n\r\n") == invalid, "`${size}` is no size")
+    }
+}
+
+@test
+test_a_chunk_size_too_large_wraps_to_no_other_size :: fn() -> void {
+    invalid :: IOErrorKind.InvalidInput
+    assert(chunked_failure("FFFFFFFFFFFFFFFFF\r\n") == invalid, "17 digits")
+    assert(
+        chunked_failure("10000000000000005\r\nhello\r\n0\r\n\r\n") == invalid,
+        "5 in the low 64 bits",
+    )
+    assert(
+        chunked_failure("100000005\r\nhello\r\n0\r\n\r\n") == IOErrorKind.EndOfInput,
+        "5 in the low 32 bits is four gibibytes, which never come",
+    )
+    assert(chunked_failure("8000000000000000\r\n") == invalid, "the sign bit")
+}
+
+@test
+test_a_quoted_string_of_an_extension_ends_on_its_line :: fn() -> void {
+    smuggled :: "GET /smuggled HTTP/1.1\r\nHost: h\r\n\r\n"
+    assert(
+        chunked_failure("1;ext=\"val\r\nX\r\n0\r\n\r\n${smuggled}") == IOErrorKind.InvalidInput,
+        "a quote left open",
+    )
+    assert(
+        chunked_failure("1;ext=\"a\\\r\nX\r\n0\r\n\r\n") == IOErrorKind.InvalidInput,
+        "a backslash at the end of the line",
+    )
+    assert(chunked_failure("1;ext=\"a;b\\\"c\"\r\nX\r\n0\r\n\r\n") == null, "a quote that closes")
+}
+
+@test
+test_chunk_extensions_cost_a_body_no_more_than_it_carries :: fn() -> void {
+    padded :: "1;${"x" * 2000}\r\nX\r\n" * 3
+    assert(
+        chunked_failure("${padded}0\r\n\r\n") == IOErrorKind.InvalidInput,
+        "three bytes that take six kilobytes to send",
+    )
+    plain :: "1\r\nX\r\n" * 5000
+    assert(chunked_failure("${plain}0\r\n\r\n") == null, "any number of chunks of one byte")
+    data :: "0123456789abcdef" * 8
+    signed :: "80;chunk-signature=${"0123456789abcdef" * 4}\r\n${data}\r\n" * 200
+    assert(
+        chunked_failure("${signed}0\r\n\r\n") == null,
+        "an extension shorter than its chunk, on every chunk",
+    )
+    none :: Limits { .chunk_extensions = 0 }
+    assert(chunked_failure("5\r\nhello\r\n0\r\n\r\n", none) == null, "no extension at all")
+    assert(
+        chunked_failure("5;a=bcd\r\nhello\r\n0\r\n\r\n", none) == IOErrorKind.InvalidInput,
+        "an extension when none is allowed",
+    )
+    assert(
+        chunked_failure("000005\r\nhello\r\n0\r\n\r\n", none) == IOErrorKind.InvalidInput,
+        "zeros before a size are padding too",
+    )
+}
+
+@test
+test_trailer_fields_are_no_fields_of_the_request :: fn() -> void {
+    request :: request_of(
+        whole(
+            with_fields(
+                "Transfer-Encoding: chunked\r\n",
+                "0\r\nX-Admin: yes\r\nContent-Length: 30\r\nHost: other\r\n\r\n",
+            ),
+        ),
+    )
+    assert(drain(request.body), "the trailer fields are read")
+    assert(request.headers.get("X-Admin") == null, "and add no field")
+    assert(request.headers.get("Content-Length") == null, "nor a length")
+    assert_eq(request.headers.get("Host") ?? "", "h")
+}
+
+@test
+test_trailer_fields_are_bounded_and_checked_as_fields_are :: fn() -> void {
+    smuggled :: "GET /x HTTP/1.1\r\nHost: h\r\n\r\n"
+    limits :: Limits { .fields = 64 }
+    long :: "0\r\nX: 0123456789012345678901234567890123456789012345678901234567890123456789\r\n\r\n"
+    assert(
+        chunked_failure(long + smuggled, limits) == IOErrorKind.InvalidInput,
+        "a trailer field longer than the fields may be",
+    )
+    assert(
+        chunked_failure("0\r\nX : y\r\n\r\n${smuggled}") == IOErrorKind.InvalidInput,
+        "a trailer field that is no field",
+    )
+    assert(
+        chunked_failure("0\r\nX: y\r\n z\r\n\r\n${smuggled}") == IOErrorKind.InvalidInput,
+        "a trailer field on two lines",
+    )
+}
+
+// ---- what is written ------------------------------------------------------
+
+// A response with one field `name: value`.
+response_with :: fn(name: string, value: string, status: Status = STATUS_OK) -> Response {
+    response :: Response { .status = status }
+    response.headers.add(name, value)
+    return response
+}
+
+@test
+test_a_response_field_cannot_open_a_line :: fn() -> void {
+    malformed :: HttpErrorKind.Malformed
+    for value in ["a\r\nSet-Cookie: x=1", "a\nSet-Cookie: x=1", "a\rSet-Cookie: x=1", "a\u{0}b"] {
+        assert(
+            response_wire(response_with("Location", value), asking()) == malformed,
+            "the value `${value.shown()}` is written",
+        )
+    }
+    for name in ["X\r\nSet-Cookie", "X\nY", "X Y", "X:Y", ""] {
+        assert(
+            response_wire(response_with(name, "1"), asking()) == malformed,
+            "the name `${name.shown()}` is written",
+        )
+    }
+    assert(
+        response_wire(response_with("Link", "</a>\rX: y", Status(103)), asking()) == malformed,
+        "a carriage return in a field of an interim response",
+    )
+}
+
+@test
+test_a_message_is_written_with_one_length :: fn() -> void {
+    twice :: request_for(.Post, "/")
+    twice.headers.add("Content-Length", "2")
+    twice.headers.add("content-length", "4")
+    assert(
+        request_wire(twice) == HttpErrorKind.Malformed,
+        "two lengths whose names differ by their case",
+    )
+}
+
+@test
+test_a_request_target_cannot_open_a_line :: fn() -> void {
+    for target in ["/a\r\nX: y", "/a\nX: y", "/a\rX: y", "/a HTTP/1.1\r\nHost: evil", "/a\tb"] {
+        assert(
+            request_wire(request_for(.Get, target)) == HttpErrorKind.Malformed,
+            "the target `${target.shown()}` is written",
+        )
+    }
+}
+
+// ---- one response a request -----------------------------------------------
+
+@test
+test_an_interim_response_takes_the_place_of_no_final_one :: fn() -> void {
+    text :: "PUT /a HTTP/1.1\r\nHost: h\r\nContent-Length: 2\r\nExpect: 100-continue\r\n\r\nhi"
+        + "HEAD /b HTTP/1.1\r\nHost: h\r\n\r\n"
+    reader :: whole(text)
+    out :: BytesWriter {}
+    first :: request_of(reader)
+    first.continue_on_read(out)
+    assert_eq(text_of(first.body), "hi")
+    assert(write_response(out, new_response(STATUS_OK, "done"), first) == null, "the first")
+    second :: request_of(reader)
+    assert(write_response(out, new_response(STATUS_OK, "head"), second) == null, "the second")
+    assert_eq(
+        out.written.bytes_to_string(),
+        "HTTP/1.1 100 Continue\r\n\r\n"
+            + "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
+            + "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n",
+    )
+}
+
+@test
+test_a_body_that_fails_ends_its_connection :: fn() -> void {
+    text :: with_fields("Transfer-Encoding: chunked\r\n", "5\r\nhel")
+        + "GET /x HTTP/1.1\r\nHost: h\r\n\r\n"
+    request :: request_of(whole(text))
+    assert(!drain(request.body), "a body cut short is not read past")
+    wrong :: request_of(
+        whole(with_fields("Transfer-Encoding: chunked\r\n", "5\nhello\r\n0\r\n\r\n")),
+    )
+    assert(!drain(wrong.body), "nor one that is malformed")
+}
