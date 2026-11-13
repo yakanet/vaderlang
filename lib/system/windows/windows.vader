@@ -858,6 +858,13 @@ export WINSOCK_SOCK_STREAM: i32: 1
 /// `SD_SEND`, the side `shutdown` ends: what this end sends.
 export SD_SEND: i32: 1
 
+/// `IPPROTO_TCP`, the level of the options of TCP.
+export WINSOCK_IPPROTO_TCP: i32: 6
+
+/// `TCP_NODELAY`: a short write goes at once, the one before acknowledged or
+/// not.
+export WINSOCK_TCP_NODELAY: i32: 1
+
 /// The Winsock codes `std/io` classifies.
 export WSAEINTR: u32: 10004
 /// The call has nothing to take and the socket does not wait.
@@ -958,6 +965,38 @@ export winsock_shutdown :: fn(socket: SocketHandle, how: i32) -> i32
 /// @param socket  the socket to give back.
 @extern(WS2_32, "closesocket")
 export close_socket :: fn(socket: SocketHandle) -> i32
+
+/// `setsockopt` for an option that is an `int`. Zero on success.
+///
+/// @param socket  the socket.
+/// @param level   `WINSOCK_IPPROTO_TCP`.
+/// @param name    the option, `WINSOCK_TCP_NODELAY` say.
+/// @param value   the four bytes of the value, the lowest first.
+/// @param length  4, the bytes of `value`.
+@extern(WS2_32, "setsockopt")
+export winsock_set_option :: fn(
+    socket: SocketHandle,
+    level: i32,
+    name: i32,
+    value: u8[],
+    length: i32,
+) -> i32
+
+/// `getsockopt` for an option that is an `int`. Zero on success.
+///
+/// @param socket  the socket.
+/// @param level   `WINSOCK_IPPROTO_TCP`.
+/// @param name    the option, `WINSOCK_TCP_NODELAY` say.
+/// @param value   receives the four bytes of the value, the lowest first.
+/// @param length  one cell: 4 on the way in, the bytes written on the way out.
+@extern(WS2_32, "getsockopt")
+export winsock_get_option :: fn(
+    socket: SocketHandle,
+    level: i32,
+    name: i32,
+    @c_out value: u8[],
+    @c_out length: i32[],
+) -> i32
 
 /// `getsockname`. Zero on success.
 ///

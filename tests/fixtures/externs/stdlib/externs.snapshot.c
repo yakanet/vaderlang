@@ -182,8 +182,10 @@ int32_t closesocket(uint64_t socket);  // system_windows$close_socket
 int32_t connect(uint64_t socket, const void* address, int32_t length);  // system_windows$winsock_connect
 int32_t getpeername(uint64_t socket, void* address, void* length);  // system_windows$winsock_peer_name
 int32_t getsockname(uint64_t socket, void* address, void* length);  // system_windows$winsock_local_name
+int32_t getsockopt(uint64_t socket, int32_t level, int32_t name, void* value, void* length);  // system_windows$winsock_get_option
 int32_t listen(uint64_t socket, int32_t backlog);  // system_windows$winsock_listen
 int32_t recv(uint64_t socket, void* into, int32_t length, int32_t flags);  // system_windows$winsock_receive
 int32_t send(uint64_t socket, const void* bytes, int32_t length, int32_t flags);  // system_windows$winsock_send
+int32_t setsockopt(uint64_t socket, int32_t level, int32_t name, const void* value, int32_t length);  // system_windows$winsock_set_option
 int32_t shutdown(uint64_t socket, int32_t how);  // system_windows$winsock_shutdown
 uint64_t socket(int32_t family, int32_t kind, int32_t protocol);  // system_windows$winsock_socket

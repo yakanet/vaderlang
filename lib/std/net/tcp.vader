@@ -76,6 +76,7 @@ export accept :: fn(listener: TcpListener) -> TcpStream | IOError {
     if socket is IOError {
         return socket
     }
+    send_at_once(socket)
     return TcpStream { .socket = socket, .closed = AtomicBool {} }
 }
 
@@ -105,6 +106,9 @@ export close :: fn(listener: TcpListener) -> null | IOError {
 
 /// One end of a TCP connection: a `Reader` of what the other end sends and a
 /// `Writer` of what it receives.
+///
+/// Each write goes to the other end as it is made, held back for none before
+/// it: what is written in two calls may travel as two packets.
 export TcpStream :: struct {
     @internal
     socket: Socket
@@ -128,6 +132,7 @@ export connect :: fn(address: SocketAddress) -> TcpStream | IOError {
     if socket is IOError {
         return socket
     }
+    send_at_once(socket)
     return TcpStream { .socket = socket, .closed = AtomicBool {} }
 }
 
@@ -359,6 +364,29 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
         return abandoning(handle, io_error_of(outcome, "cannot connect to ${address}"))
     }
     return handle
+}
+
+// Have the connection `socket` send each write as it is made: the system
+// would else hold a short one until the other end acknowledged the one before,
+// which it may take its time to do. A refusal is not looked at: a connection
+// the other end already dropped refuses, and the first read or write tells.
+@target
+send_at_once :: fn(socket: Socket) -> void
+
+@target(.Linux, .Darwin)
+send_at_once :: fn(socket: Socket) -> void {
+    sys_setsockopt(fd_of(socket), IPPROTO_TCP, TCP_NODELAY, [1], 4)
+}
+
+@target(.Windows)
+send_at_once :: fn(socket: Socket) -> void {
+    winsock_set_option(
+        handle_of(socket),
+        WINSOCK_IPPROTO_TCP,
+        WINSOCK_TCP_NODELAY,
+        [1, 0, 0, 0],
+        4,
+    )
 }
 
 // Some bytes of the connection `socket` into `into`, parking until there are
@@ -859,6 +887,41 @@ test_one_task_connects_accepts_and_reads :: fn() -> void {
         return assert(false, "nothing read")
     }
     assert_eq(bytes_to_string(buffer[0..<got]), "ping")
+    client.close()
+    server.close()
+    listener.close()
+}
+
+// Whether the connection `socket` sends each write as it is made.
+@target
+sends_at_once :: fn(socket: Socket) -> bool
+
+@target(.Linux, .Darwin)
+sends_at_once :: fn(socket: Socket) -> bool {
+    value: i32[]: [0]
+    return sys_getsockopt(fd_of(socket), IPPROTO_TCP, TCP_NODELAY, value, [4]) == 0
+        && value[0] != 0
+}
+
+@target(.Windows)
+sends_at_once :: fn(socket: Socket) -> bool {
+    value: u8[]: [0] * 4
+    stream :: handle_of(socket)
+    return winsock_get_option(stream, WINSOCK_IPPROTO_TCP, WINSOCK_TCP_NODELAY, value, [4]) == 0
+        && value[0] != 0
+}
+
+@test
+test_a_stream_holds_no_write_back :: fn() -> void {
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    client :: connection_to(address) ?? return
+    server :: listener.accept()
+    if server is IOError {
+        return assert(false, "no connection: ${server.msg}")
+    }
+    assert(sends_at_once(client.socket), "the end that connected")
+    assert(sends_at_once(server.socket), "the end that accepted")
     client.close()
     server.close()
     listener.close()

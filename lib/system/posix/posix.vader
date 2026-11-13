@@ -754,6 +754,13 @@ export SO_REUSEADDR: i32: if VADER_OS == .Darwin { 4 } else { 2 }
 /// not portable: 0x1007 on Darwin, 4 on Linux.
 export SO_ERROR: i32: if VADER_OS == .Darwin { 0x1007 } else { 4 }
 
+/// `IPPROTO_TCP`, the level of the options of TCP. 6 on both systems.
+export IPPROTO_TCP: i32: 6
+
+/// `TCP_NODELAY`: a short write goes at once, the one before acknowledged or
+/// not. 1 on both systems.
+export TCP_NODELAY: i32: 1
+
 /// `F_GETFL`, the `fcntl(2)` command that reads the flags of an open file. 3 on
 /// both systems.
 export F_GETFL: i32: 3
@@ -833,7 +840,7 @@ export sys_getpeername :: fn(fd: i32, @c_out address: u8[], @c_out length: u32[]
 /// `errno` set.
 ///
 /// @param fd      the socket.
-/// @param level   `SOL_SOCKET`.
+/// @param level   `SOL_SOCKET`, or `IPPROTO_TCP`.
 /// @param name    the option, `SO_REUSEADDR` say.
 /// @param value   one cell holding the value.
 /// @param length  4, the size of the cell.
@@ -844,7 +851,7 @@ export sys_setsockopt :: fn(fd: i32, level: i32, name: i32, value: i32[], length
 /// `errno` set.
 ///
 /// @param fd      the socket.
-/// @param level   `SOL_SOCKET`.
+/// @param level   `SOL_SOCKET`, or `IPPROTO_TCP`.
 /// @param name    the option, `SO_ERROR` say.
 /// @param value   one cell the call fills.
 /// @param length  one cell: 4 on the way in, the bytes written on the way out.
