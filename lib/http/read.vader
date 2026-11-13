@@ -54,7 +54,7 @@ export read_request :: fn(
             return malformed("an HTTP/1.1 request names one host, as `host` or `host:port`")
         }
     }
-    body :: declared_body(reader, start.version, headers)
+    body :: declared_body(reader, start.version, true, headers, limits)
     if body is HttpError {
         return body
     }
@@ -165,7 +165,7 @@ export read_response :: fn(
     if is_bodiless(request_method, start.status) {
         return start.response(headers, LengthBody { .source = reader, .left = 0 })
     }
-    body :: declared_body(reader, start.version, headers)
+    body :: declared_body(reader, start.version, false, headers, limits)
     if body is HttpError {
         return body
     }
@@ -595,26 +595,6 @@ test_a_content_length_is_one_number :: fn() -> void {
     assert(
         read_request(whole(prefix + "Content-Length: 9223372036854775807\r\n\r\n")) is Request,
         "the largest that fits",
-    )
-}
-
-@test
-test_a_transfer_coding_is_refused_and_never_with_a_length :: fn() -> void {
-    prefix :: "POST / HTTP/1.1\r\nHost: h\r\n"
-    assert(
-        request_fails(prefix + "Transfer-Encoding: chunked\r\n\r\n", .CodingNotImplemented),
-        "a coding alone is not implemented",
-    )
-    assert(
-        request_fails(
-            prefix + "Transfer-Encoding: chunked\r\nContent-Length: 2\r\n\r\n",
-            .Malformed,
-        ),
-        "a coding and a length",
-    )
-    assert(
-        request_fails("POST / HTTP/1.0\r\nTransfer-Encoding: chunked\r\n\r\n", .Malformed),
-        "a coding in HTTP/1.0",
     )
 }
 

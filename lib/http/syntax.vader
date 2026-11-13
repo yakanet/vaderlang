@@ -13,6 +13,9 @@ import "std/uri"
 
 is_digit_byte :: fn(b: u8) -> bool = b >= '0' && b <= '9'
 
+is_hex_byte :: fn(b: u8) -> bool =
+    is_digit_byte(b) || b >= 'a' && b <= 'f' || b >= 'A' && b <= 'F'
+
 is_blank :: fn(b: u8) -> bool = b == ' ' || b == '\t'
 
 // `tchar` of RFC 9110: a letter, a digit, or one of the marks no delimiter

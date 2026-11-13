@@ -14,25 +14,31 @@ import "std/string"
 // ---- what the fields declare ----------------------------------------------
 
 // The body the fields declare, null when they declare none (RFC 9112, section
-// 6.3, rules 3 to 6). A transfer coding and a length together, or a coding in
-// an HTTP/1.0 message, are refused: two recipients may frame them two ways.
+// 6.3, rules 3 to 6): chunks, or a length. A transfer coding and a length
+// together, or a coding in an HTTP/1.0 message, are refused: two recipients
+// may frame them two ways. `is_request` tells which side a list of codings
+// that does not end with chunked is refused as.
 declared_body :: fn(
     reader: BufferedReader,
     version: HttpVersion,
+    is_request: bool,
     headers: Headers,
+    limits: Limits,
 ) -> Reader | null | HttpError {
     lengths :: headers.get_all(CONTENT_LENGTH)
-    if headers.get(TRANSFER_ENCODING) != null {
+    codings :: headers.get_all(TRANSFER_ENCODING)
+    if codings.len() > 0 {
         if version == .Http10 {
             return malformed("an HTTP/1.0 message has no transfer coding")
         }
         if lengths.len() > 0 {
             return malformed("a transfer coding and a content length together")
         }
-        return HttpError {
-            .kind = .CodingNotImplemented,
-            .msg = "transfer codings are not implemented",
+        refused :: only_chunked(codings, is_request)
+        if refused is HttpError {
+            return refused
         }
+        return ChunkedBody { .source = reader, .limits = limits }
     }
     if lengths.len() == 0 {
         return null

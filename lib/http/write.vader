@@ -5,13 +5,15 @@
 // let through is how one message is made to read as two.
 //
 // The head goes out in one write. A body whose length the fields declare is
-// copied as it is read; one that declares none is read whole first, to count
-// it.
+// copied as it is read. One that declares none goes in chunks as it is read,
+// to a peer that reads chunks; to an HTTP/1.0 peer it is read whole first, to
+// count it.
 
 module "http"
 
 import "std/io"
 import "std/math"
+import "std/numbers"
 import "std/string_builder"
 
 // ---- requests -------------------------------------------------------------
@@ -19,8 +21,13 @@ import "std/string_builder"
 /// Write `request` on `writer`.
 ///
 /// With a `Content-Length` field, that many bytes of `request.body` are copied
-/// as they are read. With none, the body is read to its end and its length
-/// declared, unless it is empty and the method gives a body no meaning.
+/// as they are read. With none, the body goes in chunks, each read of it one
+/// chunk; an HTTP/1.0 request, which has no chunks, has its body read to its
+/// end and counted. An empty body is declared empty when the method gives a
+/// body a meaning, and not mentioned otherwise.
+///
+/// The framing is this function's: a `Transfer-Encoding` field in `request` is
+/// refused.
 ///
 /// @param writer   where the connection is written.
 /// @param request  what to write; its body is read.
@@ -54,28 +61,34 @@ export write_request :: fn(writer: Writer, request: Request) -> null | HttpError
         head,
         request.headers,
         request.body,
-        expects_content(request.method),
+        Framing {
+            .declares_empty = expects_content(request.method),
+            .chunks = request.version == .Http11,
+        },
     )
 }
 
 // Whether a request of `method` says how long its content is even when it has
 // none: a server may wait for the length of what such a request carries.
 expects_content :: fn(method: Method) -> bool =
-    method == .Post || method == .Put || method == .Patch
+    method == .Post || method == .Put || method == .Patch || method == .Query
 
 // ---- responses ------------------------------------------------------------
 
 /// Write `response` on `writer`.
 ///
-/// The body is framed as `write_request` frames one, its length always
-/// declared. A response that carries no content has none written: one to a
-/// `HEAD` request and a `304` keep the fields that describe what a `GET` would
-/// have carried, an interim response and a `204` lose their `Content-Length`.
+/// The body is framed as `write_request` frames one, an empty one always
+/// declared; it goes in chunks only to a request of HTTP/1.1. A response that
+/// carries no content has none written: one to a `HEAD` request and a `304`
+/// keep the fields that describe what a `GET` would have carried, an interim
+/// response and a `204` lose their `Content-Length`.
 ///
-/// @param writer          where the connection is written.
-/// @param response        what to write; its body is read, unless the response
-///                        carries none.
-/// @param request_method  the method of the request answered.
+/// @param writer           where the connection is written.
+/// @param response         what to write; its body is read, unless the
+///                         response carries none.
+/// @param request_method   the method of the request answered.
+/// @param request_version  the version of the request answered: an HTTP/1.0
+///                         client reads no chunks.
 /// @error                 `HttpError`, as `write_request` reports them, and
 ///                        `.Malformed` for a status outside 100 to 599.
 /// @example
@@ -87,6 +100,7 @@ export write_response :: fn(
     writer: Writer,
     response: Response,
     request_method: Method = .Get,
+    request_version: HttpVersion = .Http11,
 ) -> null | HttpError {
     code :: u16(response.status)
     if code < 100 || code > 599 {
@@ -108,7 +122,16 @@ export write_response :: fn(
         head.append("\r\n")
         return sent(writer.write(head.to_string()))
     }
-    return write_framed(writer, head, response.headers, response.body, true)
+    return write_framed(
+        writer,
+        head,
+        response.headers,
+        response.body,
+        Framing {
+            .declares_empty = true,
+            .chunks = response.version == .Http11 && request_version == .Http11,
+        },
+    )
 }
 
 // ---- the head and the body ------------------------------------------------
@@ -119,7 +142,7 @@ append_fields :: fn(head: StringBuilder, headers: Headers, without_length: bool)
     if headers.get(TRANSFER_ENCODING) != null {
         return HttpError {
             .kind = .CodingNotImplemented,
-            .msg = "transfer codings are not implemented",
+            .msg = "the transfer coding of a message is chosen when it is written",
         }
     }
     for line in headers.lines {
@@ -137,15 +160,22 @@ append_fields :: fn(head: StringBuilder, headers: Headers, without_length: bool)
     return null
 }
 
+// How a body whose length no field declares is written.
+Framing :: struct {
+    // Whether an empty body is declared, as a length of zero.
+    declares_empty: bool
+    // Whether the peer reads chunks.
+    chunks: bool
+}
+
 // End the head `head` and write it, then `body`: as many bytes of it as
-// `headers` declare, else all of it, its length declared when it has bytes or
-// `declares` says so.
+// `headers` declare, else all of it, as `framing` says.
 write_framed :: fn(
     writer: Writer,
     head: StringBuilder,
     headers: Headers,
     body: Reader,
-    declares: bool,
+    framing: Framing,
 ) -> null | HttpError {
     lengths :: headers.get_all(CONTENT_LENGTH)
     if lengths.len() > 1 {
@@ -165,19 +195,64 @@ write_framed :: fn(
         }
         return copy_exactly(writer, body, length)
     }
-    content :: gathered(body)
+    // The first read tells an empty body, which needs no chunk, from one that
+    // has bytes.
+    chunk: u8[]: [0] * COPY_CHUNK
+    first :: body.read(chunk)
+    if first is IOError {
+        return transport(first)
+    }
+    if first == null {
+        if framing.declares_empty {
+            head.append("${CONTENT_LENGTH}: 0\r\n")
+        }
+        head.append("\r\n")
+        return sent(writer.write(head.to_string()))
+    }
+    if framing.chunks {
+        head.append("${TRANSFER_ENCODING}: ${CHUNKED}\r\n\r\n")
+        written :: sent(writer.write(head.to_string()))
+        if written is HttpError {
+            return written
+        }
+        return write_chunks(writer, body, chunk, first)
+    }
+    content :: gathered(body, chunk[0..<first])
     if content is HttpError {
         return content
     }
-    if content.len() > 0 || declares {
-        head.append("${CONTENT_LENGTH}: ${content.len()}\r\n")
-    }
-    head.append("\r\n")
+    head.append("${CONTENT_LENGTH}: ${content.len()}\r\n\r\n")
     written :: sent(writer.write(head.to_string()))
-    if written is HttpError || content.len() == 0 {
+    if written is HttpError {
         return written
     }
     return sent(writer.write(content))
+}
+
+// Write `body` as chunks, each read of it one chunk, then the chunk of size
+// zero and the empty line that end a chunked body. `chunk` holds the `first`
+// bytes already read. A chunk goes out in one write, its size, its data and
+// its line break together.
+write_chunks :: fn(writer: Writer, body: Reader, chunk: u8[], first: i64) -> null | HttpError {
+    got: i64 = first
+    for {
+        frame: u8[]: []
+        frame.push_all("${u64(got).to_hex()}\r\n".bytes())
+        frame.push_all(chunk[0..<got])
+        frame.push_all("\r\n".bytes())
+        written :: sent(writer.write(frame))
+        if written is HttpError {
+            return written
+        }
+        next :: body.read(chunk)
+        if next is IOError {
+            return transport(next)
+        }
+        if next == null {
+            return sent(writer.write("0\r\n\r\n"))
+        }
+        got = next
+    }
 }
 
 // How many bytes of a body go from its reader to the writer at a time.
@@ -204,9 +279,9 @@ copy_exactly :: fn(writer: Writer, body: Reader, length: i64) -> null | HttpErro
     return null
 }
 
-// All of `body`, read to its end.
-gathered :: fn(body: Reader) -> u8[] | HttpError {
-    content: u8[]: []
+// All of `body`, read to its end, after the bytes `first` already read of it.
+gathered :: fn(body: Reader, first: u8[]) -> u8[] | HttpError {
+    content: u8[]: first.clone()
     chunk: u8[]: [0] * COPY_CHUNK
     for {
         got :: body.read(chunk)
@@ -270,6 +345,12 @@ test_a_request_with_no_body_is_its_head_alone :: fn() -> void {
 
 @test
 test_a_request_that_expects_content_declares_an_empty_one :: fn() -> void {
+    asked :: request_wire(request_for(.Query, "/search"))
+    assert(
+        asked is string
+            && asked == "QUERY /search HTTP/1.1\r\nHost: example.org\r\nContent-Length: 0\r\n\r\n",
+        "an empty QUERY",
+    )
     wire :: request_wire(request_for(.Post, "/submit"))
     assert(
         wire is string && wire == "POST /submit HTTP/1.1\r\nHost: example.org\r\nContent-Length: 0\r\n\r\n",
@@ -278,14 +359,67 @@ test_a_request_that_expects_content_declares_an_empty_one :: fn() -> void {
 }
 
 @test
-test_a_body_of_unknown_length_is_counted :: fn() -> void {
+test_a_body_of_unknown_length_goes_in_chunks :: fn() -> void {
     request :: request_for(.Put, "/file")
-    request.body = FragmentedReader { .source = BytesReader { .content = "0123456789" }, .size = 3 }
+    request.body = FragmentedReader { .source = BytesReader { .content = "0123456789" }, .size = 4 }
     wire :: request_wire(request)
     assert(
-        wire is string && wire == "PUT /file HTTP/1.1\r\nHost: example.org\r\nContent-Length: 10\r\n\r\n0123456789",
-        "a body read to its end",
+        wire is string
+            && wire == "PUT /file HTTP/1.1\r\nHost: example.org\r\nTransfer-Encoding: chunked\r\n\r\n"
+                + "4\r\n0123\r\n4\r\n4567\r\n2\r\n89\r\n0\r\n\r\n",
+        "one chunk a read, then the chunk of size zero",
     )
+}
+
+@test
+test_the_size_of_a_chunk_is_written_in_hexadecimal :: fn() -> void {
+    response :: Response { .body = BytesReader { .content = "abcdefghijklmnopqrstuvwxyz" } }
+    wire :: response_wire(response)
+    assert(
+        wire is string
+            && wire == "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"
+                + "1a\r\nabcdefghijklmnopqrstuvwxyz\r\n0\r\n\r\n",
+        "26 bytes are 1a",
+    )
+}
+
+@test
+test_an_http_1_0_peer_is_sent_no_chunk :: fn() -> void {
+    request :: Request { .method = .Post, .target = "/", .version = .Http10 }
+    request.body = FragmentedReader { .source = BytesReader { .content = "0123456789" }, .size = 4 }
+    sent_request :: request_wire(request)
+    assert(
+        sent_request is string
+            && sent_request == "POST / HTTP/1.0\r\nContent-Length: 10\r\n\r\n0123456789",
+        "an HTTP/1.0 request is counted",
+    )
+    out :: BytesWriter {}
+    response :: Response { .body = BytesReader { .content = "late" } }
+    assert(write_response(out, response, .Get, .Http10) == null, "the response is written")
+    assert_eq(
+        out.written.bytes_to_string(),
+        "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nlate",
+    )
+}
+
+@test
+test_chunks_written_read_back_as_the_body :: fn() -> void {
+    request :: request_for(.Query, "/search")
+    request.headers.set("Content-Type", "text/plain")
+    request.body = FragmentedReader {
+        .source = BytesReader { .content = "name = vader" },
+        .size = 5,
+    }
+    out :: BytesWriter {}
+    assert(write_request(out, request) == null, "the request is written")
+    for size in CUTS {
+        back :: read_request(cut(out.written.bytes_to_string(), size))
+        if back !is Request {
+            return assert(false, "the request does not read back, cut by ${size}")
+        }
+        assert(back.method == .Query, "the method, cut by ${size}")
+        assert_eq(text_of(back.body), "name = vader")
+    }
 }
 
 @test

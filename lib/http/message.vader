@@ -12,8 +12,8 @@ import "std/io"
 
 // ---- methods --------------------------------------------------------------
 
-/// The methods of RFC 9110, and `PATCH` (RFC 5789). A request with any other
-/// method is one this library does not implement.
+/// The methods of RFC 9110, `PATCH` (RFC 5789) and `QUERY` (RFC 10008). A
+/// request with any other method is one this library does not implement.
 export Method :: enum {
     Get,
     Head,
@@ -24,6 +24,9 @@ export Method :: enum {
     Options,
     Trace,
     Patch,
+    /// A `GET` that carries what it asks in its content: safe, and repeated
+    /// without harm.
+    Query,
 }
 
 Method implements Display {
@@ -38,6 +41,7 @@ Method implements Display {
         .Options -> "OPTIONS"
         .Trace   -> "TRACE"
         .Patch   -> "PATCH"
+        .Query   -> "QUERY"
     }
 }
 
@@ -55,6 +59,7 @@ export method_named :: fn(token: string) -> Method | null = match token {
     "OPTIONS" -> .Options
     "TRACE"   -> .Trace
     "PATCH"   -> .Patch
+    "QUERY"   -> .Query
     _         -> null
 }
 
@@ -224,6 +229,7 @@ export new_response :: fn(status: Status, content: u8[] | string) -> Response {
 // server by.
 CONTENT_LENGTH    :: "Content-Length"
 TRANSFER_ENCODING :: "Transfer-Encoding"
+CHUNKED           :: "chunked"
 HOST              :: "Host"
 
 // ---- errors ---------------------------------------------------------------
@@ -240,7 +246,7 @@ export HttpErrorKind :: enum {
     MethodNotImplemented,
     /// The message is of a major version other than 1.
     VersionNotSupported,
-    /// The body is framed by a transfer coding this module does not read.
+    /// The body is framed by a transfer coding other than chunked.
     CodingNotImplemented,
     /// The source ended in the middle of the message.
     Incomplete,
@@ -285,6 +291,8 @@ export Limits :: struct {
     fields: i64 = 65536
     /// The most field lines.
     field_count: i64 = 100
+    /// The longest line that opens a chunk: its size and its extensions.
+    chunk_line: i64 = 4096
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -303,6 +311,7 @@ test_method_named_reads_what_a_method_writes :: fn() -> void {
         Method.Options,
         Method.Trace,
         Method.Patch,
+        Method.Query,
     ] {
         assert(method_named("${method}") == method, "${method} names itself")
     }
