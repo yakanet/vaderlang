@@ -96,7 +96,7 @@ write fault: 2, call fault: 6, unknown call: 1, copy: 3, copy elided: 1, binding
 # variance
 covariant: 0, breaks: 0, unknown callee: 0
 
-functions: 216, unsettled: 0
+functions: 211, unsettled: 0
 
 # Diagnostics
 [27:5] error[T3070] a frozen value cannot be modified: `CFG` is a module constant, and `CFG.n` is assigned ; a name bound to it holds a copy to modify

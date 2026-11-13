@@ -97,4 +97,4 @@ write fault: 0, call fault: 0, unknown call: 0, copy: 0, copy elided: 0, binding
 # variance
 covariant: 0, breaks: 0, unknown callee: 0
 
-functions: 268, unsettled: 0
+functions: 263, unsettled: 0

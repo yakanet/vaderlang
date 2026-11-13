@@ -234,20 +234,6 @@ export load_project_with_overlay :: fn(
                 }
             }
             drain_load_queue(ctx, queue)
-            // Force-load `std/string_builder`: the lowerer resolves
-            // `StringBuilder {}` + `append`/`to_string` for `${sb}` interpolation,
-            // a dependency no source import makes visible. DCE'd when unused.
-            //
-            // It MUST come after the natural BFS, not be seeded early, so module
-            // load order (and thus symbol-id assignment) stays identical to a
-            // build that never asked for it. Seeding it early strands `build_stmt`
-            // in bootstrap.vader.
-            string_builder :: resolve_in(ctx, "std/string_builder")
-            if string_builder is DiscoveredModule {
-                if !has_module(modules, string_builder.folder) {
-                    drain_load_queue(ctx, [string_builder])
-                }
-            }
             extra_queue: DiscoveredModule[]: []
             for seed in extra_seeds {
                 found :: resolve_in(ctx, seed) ?? continue
@@ -482,9 +468,9 @@ load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
 }
 
 // BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
-// module, then enqueue its imports. Shared by the entry BFS and the
-// `std/string_builder` force-load, so the force-load runs as a separate pass
-// without diverging from the ingestion logic.
+// module, then enqueue its imports. Shared by the entry BFS and the loads that
+// follow it (the extra seeds, the target modules), which run as separate
+// passes without diverging from the ingestion logic.
 drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
     cursor: i64 = 0
     for cursor < queue.len() {
