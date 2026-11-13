@@ -4,11 +4,16 @@
 // token, a value or a target with a line break in it, are refused. A line break
 // let through is how one message is made to read as two.
 //
-// The head goes out in one write. A body whose length the fields declare is
-// copied as it is read. One that declares none goes in chunks as it is read,
-// to a peer that reads chunks. To a peer that reads none, a response is
-// written as it is read and ends with its connection; a request has no such
-// end, and is refused. No body is ever held whole to be counted.
+// The head goes out in one write, with the first bytes read of the body: a
+// message whose body is read at once is one write, and one packet where it
+// fits. What is read after goes as it is read, held back for nothing: a
+// client may wait for it.
+//
+// A body whose length the fields declare is copied as it is read. One that
+// declares none goes in chunks as it is read, to a peer that reads chunks. To
+// a peer that reads none, a response is written as it is read and ends with
+// its connection; a request has no such end, and is refused. No body is ever
+// held whole to be counted.
 //
 // A body is first read before its head is written. A body that fails at once
 // leaves nothing on the wire, and the body of a request that answers `100
@@ -149,14 +154,20 @@ Answer :: struct {
     response: Response
 }
 
-// End `head` and write it. The head of a response first settles what its
-// request is owed.
-send_head :: fn(writer: Writer, head: StringBuilder, answer: Answer | null) -> null | HttpError {
+// End `head` and write it, `content` after it in the same write: the first
+// bytes of the body, which a write of their own would send in a packet of
+// their own. The head of a response first settles what its request is owed.
+send_head :: fn(
+    writer: Writer,
+    head: StringBuilder,
+    answer: Answer | null,
+    content: u8[] = [],
+) -> null | HttpError {
     if answer != null {
         settle(head, answer)
     }
     head.append("\r\n")
-    return sent(writer.write(head.to_string()))
+    return sent(writer.write(head.to_string().bytes() + content))
 }
 
 // What the head of a response owes its request as it goes out: a final one
@@ -279,11 +290,11 @@ write_framed :: fn(
     }
     if framing.chunks {
         head.append("${TRANSFER_ENCODING}: ${CHUNKED}\r\n")
-        started :: send_head(writer, head, framing.answer)
+        started :: send_head(writer, head, framing.answer, chunk_of(chunk[0..<first]))
         if started is HttpError {
             return started
         }
-        return write_chunks(writer, body, chunk, first)
+        return write_chunks(writer, body, chunk)
     }
     answer :: framing.answer
     if answer != null {
@@ -292,10 +303,10 @@ write_framed :: fn(
     return malformed("an HTTP/1.0 request declares the length of its content")
 }
 
-// End the head `head` and write it, then `body` as it is read, `chunk`
-// holding the `first` bytes already read of it. Nothing says where the
-// response ends but the end of its connection, which its head announces: a
-// body of any length is held in no memory.
+// End the head `head` and write it with the `first` bytes already read of
+// `body`, which `chunk` holds, then the rest as it is read. Nothing says where
+// the response ends but the end of its connection, which its head announces:
+// a body of any length is held in no memory.
 write_to_the_end :: fn(
     writer: Writer,
     head: StringBuilder,
@@ -305,61 +316,56 @@ write_to_the_end :: fn(
     answer: Answer,
 ) -> null | HttpError {
     answer.response.ends_with_connection = true
-    started :: send_head(writer, head, answer)
+    started :: send_head(writer, head, answer, chunk[0..<first])
     if started is HttpError {
         return started
     }
-    got: i64 = first
     for {
+        got :: read_some(body, chunk)
+        if got is HttpError {
+            return got
+        }
+        if got == null {
+            return null
+        }
         written :: sent(writer.write(chunk[0..<got]))
         if written is HttpError {
             return written
         }
-        next :: read_some(body, chunk)
-        if next is HttpError {
-            return next
-        }
-        if next == null {
-            return null
-        }
-        got = next
     }
 }
 
 nothing_to_wait_for :: fn() -> HttpError =
     malformed("a request that carries nothing expects no `100 Continue`")
 
-// Write `body` as chunks, each read of it one chunk, then the chunk of size
-// zero and the empty line that end a chunked body. `chunk` holds the `first`
-// bytes already read. A chunk goes out in one write, its size, its data and
-// its line break together.
-write_chunks :: fn(writer: Writer, body: Reader, chunk: u8[], first: i64) -> null | HttpError {
-    got: i64 = first
+// Write what is left of `body` as chunks, each read of it one chunk, then the
+// chunk of size zero and the empty line that end a chunked body. `chunk` is
+// the room the body is read into. A chunk goes out in one write.
+write_chunks :: fn(writer: Writer, body: Reader, chunk: u8[]) -> null | HttpError {
     for {
-        frame: u8[]: []
-        frame.push_all("${u64(got).to_hex()}\r\n".bytes())
-        frame.push_all(chunk[0..<got])
-        frame.push_all("\r\n".bytes())
-        written :: sent(writer.write(frame))
+        got :: read_some(body, chunk)
+        if got is HttpError {
+            return got
+        }
+        if got == null {
+            return sent(writer.write("0\r\n\r\n"))
+        }
+        written :: sent(writer.write(chunk_of(chunk[0..<got])))
         if written is HttpError {
             return written
         }
-        next :: read_some(body, chunk)
-        if next is HttpError {
-            return next
-        }
-        if next == null {
-            return sent(writer.write("0\r\n\r\n"))
-        }
-        got = next
     }
 }
+
+// `data` as one chunk: its size, its bytes and its line break.
+chunk_of :: fn(data: u8[]) -> u8[] =
+    "${u64(data.len()).to_hex()}\r\n".bytes() + data + "\r\n".bytes()
 
 // How many bytes of a body go from its reader to the writer at a time.
 COPY_CHUNK: i64: 8192
 
-// End the head `head` and write it, then `length` bytes of `body` as they are
-// read. The head waits for the first read of the body.
+// End the head `head` and write it with the first bytes read of `body`, then
+// the rest of its `length` bytes as they are read.
 write_counted :: fn(
     writer: Writer,
     head: StringBuilder,
@@ -372,7 +378,6 @@ write_counted :: fn(
     }
     chunk: u8[]: [0] * COPY_CHUNK
     left: i64 = length
-    head_sent := false
     for left > 0 {
         got :: read_some(body, chunk[0..<min(COPY_CHUNK, left)])
         if got is HttpError {
@@ -381,14 +386,12 @@ write_counted :: fn(
         if got == null {
             return incomplete("the body ended ${left} bytes before the length it declares")
         }
-        if !head_sent {
-            started :: send_head(writer, head, answer)
-            if started is HttpError {
-                return started
-            }
-            head_sent = true
+        piece :: chunk[0..<got]
+        written :: if left == length {
+            send_head(writer, head, answer, piece)
+        } else {
+            sent(writer.write(piece))
         }
-        written :: sent(writer.write(chunk[0..<got]))
         if written is HttpError {
             return written
         }
@@ -424,6 +427,7 @@ sent :: fn(written: null | IOError) -> null | HttpError {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/string"
 import "std/testing"
 
 // What writing `request` puts on the wire, or the kind of its failure.
@@ -529,6 +533,69 @@ test_an_http_1_0_peer_is_sent_no_chunk :: fn() -> void {
     assert(
         answered is string && answered == "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\nlate",
         "a response to HTTP/1.0 ends with its connection",
+    )
+}
+
+// A writer that keeps each write apart.
+WriteLog :: struct {
+    writes: string[] = []
+}
+
+WriteLog implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        self.writes.push(content.bytes_of().bytes_to_string())
+        return null
+    }
+}
+
+// The writes `response` is made of, in answer to `request`, a bar between two.
+response_writes :: fn(response: Response, request: Request) -> string {
+    log :: WriteLog {}
+    if write_response(log, response, request) != null {
+        return "not written"
+    }
+    return log.writes.join(" | ").shown()
+}
+
+@test
+test_a_head_goes_out_with_the_first_bytes_of_its_body :: fn() -> void {
+    assert_eq(
+        response_writes(new_response(STATUS_OK, "hello"), request_for(.Get, "/")),
+        "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello".shown(),
+    )
+    assert_eq(
+        response_writes(
+            Response { .body = BytesReader { .content = "hello" } },
+            request_for(.Get, "/"),
+        ),
+        "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nhello\r\n | 0\r\n\r\n".shown(),
+    )
+    old :: Request { .method = .Get, .target = "/", .version = .Http10 }
+    assert_eq(
+        response_writes(Response { .body = BytesReader { .content = "hello" } }, old),
+        "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\nhello".shown(),
+    )
+    posted :: new_request(.Post, "/", "hello")
+    posted.headers.set("Host", "example.org")
+    log :: WriteLog {}
+    assert(write_request(log, posted) == null, "the request is written")
+    assert_eq(log.writes.len(), 1)
+}
+
+@test
+test_what_a_body_gives_later_goes_as_it_is_read :: fn() -> void {
+    slow :: new_response(STATUS_OK, "hello")
+    slow.body = FragmentedReader { .source = slow.body, .size = 2 }
+    assert_eq(
+        response_writes(slow, request_for(.Get, "/")),
+        "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhe | ll | o".shown(),
+    )
+    chunked :: Response {
+        .body = FragmentedReader { .source = BytesReader { .content = "hello" }, .size = 4 },
+    }
+    assert_eq(
+        response_writes(chunked, request_for(.Get, "/")),
+        "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n4\r\nhell\r\n | 1\r\no\r\n | 0\r\n\r\n".shown(),
     )
 }
 
