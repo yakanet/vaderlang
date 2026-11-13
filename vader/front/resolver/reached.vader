@@ -56,12 +56,17 @@ Reached :: struct {
 /// @return                 what is left of each unit, in the order of `units`.
 only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reached[] {
     dependency_types :: Set<string> {}
+    // The names that reach a declaration of a trimmed module. Any other name a
+    // declaration writes leads nowhere, and is not kept: a program writes far
+    // more names than its dependencies declare.
+    leading :: Set<string> {}
     for unit in units {
         if !unit.trimmed {
             continue
         }
         for f in unit.files {
             for d in f.program.decls {
+                add_leading_names(d, leading)
                 if declares_type(d) {
                     dependency_types.add(declared_name(d) ?? continue)
                 }
@@ -70,19 +75,34 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
     }
     refs_by_name :: Map<string, string[]> {}
     root_names: string[]: []
+    seeded :: Set<string> {}
     seed_refs: string[]: []
-    seed_refs.push_all(compiler_called)
+    for name in compiler_called {
+        if seeded.add(name) {
+            seed_refs.push(name)
+        }
+    }
     for unit in units {
         for f in unit.files {
             for d in f.program.decls {
                 if unit.trimmed && is_test(d) {
                     continue
                 }
-                refs :: names_written_by(d)
+                written :: names_written_by(d)
                 key :: reach_key(d, dependency_types)
                 if !unit.trimmed || key == null {
-                    seed_refs.push_all(refs)
+                    for name in written {
+                        if name in leading && seeded.add(name) {
+                            seed_refs.push(name)
+                        }
+                    }
                     continue
+                }
+                refs: string[]: []
+                for name in written {
+                    if name in leading {
+                        refs.push(name)
+                    }
                 }
                 register_refs(refs_by_name, key, refs)
                 if d is AST.TraitDecl {
@@ -124,6 +144,22 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         out.push(left)
     }
     return out
+}
+
+// Add to `leading` the names that reach the declaration `d` of a trimmed
+// module: its own, the trait of an impl, the members of a trait.
+add_leading_names :: fn(d: AST.Decl, leading: Set<string>) -> void {
+    if d is AST.ImplDecl {
+        leading.add(d.trait_name)
+        return
+    }
+    name :: declared_name(d) ?? return
+    leading.add(name)
+    if d is AST.TraitDecl {
+        for member in d.members {
+            leading.add(member.name)
+        }
+    }
 }
 
 // Every name `d` writes, the ones the walk of the tree does not meet as a node
