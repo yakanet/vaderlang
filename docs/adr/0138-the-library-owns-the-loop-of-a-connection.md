@@ -61,7 +61,8 @@ itself: the published cases are servers that forgot one call.
 - **No body is held whole to be counted.** A response of no declared length
   goes in chunks; to a client that reads none it is written as it is read and
   ends with its connection. A handler that streams costs no memory, whoever
-  asks.
+  asks. A request has no such end: one of no declared length, to a peer that
+  reads no chunks, is refused before a byte goes out.
 - **Nothing exported reads or writes a message outside the loop.** The
   functions of the first design are private to the module.
 

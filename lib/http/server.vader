@@ -304,6 +304,31 @@ test_a_body_too_long_to_read_past_ends_the_connection :: fn() -> void {
     assert(result.end.reason == .UnreadBody, "the connection ends on the body left")
 }
 
+// A request that declares no length has no content (RFC 9112, section 6.3):
+// what follows it belongs to no body, so nothing is there to read past.
+@test
+test_a_request_of_no_declared_length_has_no_body_to_read_past :: fn() -> void {
+    seen: string[]: []
+    noting :: fn(request: Request) -> Response {
+        seen.push("${request.target}[${text_of(request.body)}]")
+        return Response {}
+    }
+    for size in CUTS {
+        seen.clear()
+        old :: served("POST /a HTTP/1.0\r\n\r\n" + SMUGGLED, noting, size)
+        assert_eq(seen.join(" "), "/a[]")
+        assert(old.end.reason == .Closed, "what follows a last request is never read")
+        seen.clear()
+        stray :: served("POST /a HTTP/1.1\r\nHost: h\r\n\r\nhello", noting, size)
+        assert_eq(seen.join(" "), "/a[]")
+        assert(stray.end.reason == .BadRequest, "what follows is read as a request, and is none")
+        seen.clear()
+        next :: served("POST /a HTTP/1.1\r\nHost: h\r\n\r\n" + GET_NEXT, noting, size)
+        assert_eq(seen.join(" "), "/a[] /next[]")
+        assert(next.end.reason == .ClientDone, "or is one, and is served as one")
+    }
+}
+
 @test
 test_a_body_that_fails_ends_the_connection :: fn() -> void {
     ignoring :: fn(request: Request) -> Response = Response {}

@@ -7,8 +7,8 @@
 // The head goes out in one write. A body whose length the fields declare is
 // copied as it is read. One that declares none goes in chunks as it is read,
 // to a peer that reads chunks. To a peer that reads none, a response is
-// written as it is read and ends with its connection; a request, which has no
-// such end, is read whole first, to count it.
+// written as it is read and ends with its connection; a request has no such
+// end, and is refused. No body is ever held whole to be counted.
 //
 // A body is first read before its head is written. A body that fails at once
 // leaves nothing on the wire, and the body of a request that answers `100
@@ -28,9 +28,9 @@ import "std/string_builder"
 //
 // With a `Content-Length` field, that many bytes of `request.body` are copied
 // as they are read. With none, the body goes in chunks, each read of it one
-// chunk; an HTTP/1.0 request, which has no chunks, has its body read to its
-// end and counted. An empty body is declared empty when the method gives a
-// body a meaning, and not mentioned otherwise.
+// chunk; an HTTP/1.0 request, which has no chunks, is refused when its body
+// is not empty. An empty body is declared empty when the method gives a body
+// a meaning, and not mentioned otherwise.
 //
 // The framing is this function's: a `Transfer-Encoding` field in `request` is
 // refused. `.Malformed` for a request no server would read as it was meant (a
@@ -289,16 +289,7 @@ write_framed :: fn(
     if answer != null {
         return write_to_the_end(writer, head, body, chunk, first, answer)
     }
-    content :: gathered(body, chunk[0..<first])
-    if content is HttpError {
-        return content
-    }
-    head.append("${CONTENT_LENGTH}: ${content.len()}\r\n")
-    started :: send_head(writer, head, null)
-    if started is HttpError {
-        return started
-    }
-    return sent(writer.write(content))
+    return malformed("an HTTP/1.0 request declares the length of its content")
 }
 
 // End the head `head` and write it, then `body` as it is read, `chunk`
@@ -404,22 +395,6 @@ write_counted :: fn(
         left -= got
     }
     return null
-}
-
-// All of `body`, read to its end, after the bytes `first` already read of it.
-gathered :: fn(body: Reader, first: u8[]) -> u8[] | HttpError {
-    content: u8[]: first.clone()
-    chunk: u8[]: [0] * COPY_CHUNK
-    for {
-        got :: read_some(body, chunk)
-        if got is HttpError {
-            return got
-        }
-        if got == null {
-            return content
-        }
-        content.push_all(chunk[0..<got])
-    }
 }
 
 // What a read of `body` into `into`, which has room, came to. A reader that
@@ -532,11 +507,22 @@ test_the_size_of_a_chunk_is_written_in_hexadecimal :: fn() -> void {
 test_an_http_1_0_peer_is_sent_no_chunk :: fn() -> void {
     request :: Request { .method = .Post, .target = "/", .version = .Http10 }
     request.body = FragmentedReader { .source = BytesReader { .content = "0123456789" }, .size = 4 }
-    sent_request :: request_wire(request)
+    assert(
+        request_wire(request) == HttpErrorKind.Malformed,
+        "an HTTP/1.0 request of no declared length is not held whole to be counted",
+    )
+    declared :: new_request(.Post, "/", "0123456789")
+    declared.version = .Http10
+    sent_request :: request_wire(declared)
     assert(
         sent_request is string
             && sent_request == "POST / HTTP/1.0\r\nContent-Length: 10\r\n\r\n0123456789",
-        "an HTTP/1.0 request is counted",
+        "one that declares its length goes as it is",
+    )
+    empty :: request_wire(Request { .method = .Post, .target = "/", .version = .Http10 })
+    assert(
+        empty is string && empty == "POST / HTTP/1.0\r\nContent-Length: 0\r\n\r\n",
+        "nor is one with no content refused",
     )
     old :: Request { .method = .Get, .target = "/", .version = .Http10 }
     answered :: response_wire(Response { .body = BytesReader { .content = "late" } }, old)
