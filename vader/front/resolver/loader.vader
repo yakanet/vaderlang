@@ -227,11 +227,11 @@ export load_project_with_overlay :: fn(
             entry_resolved :: resolve_in(ctx, entry_module.name) ?? entry_module
             queue: DiscoveredModule[]: [entry_resolved]
             core :: resolve_in(ctx, "std/core")
-            match core {
-                is DiscoveredModule -> {
-                    if core.folder != entry_module.folder { queue.push(core) }
+            if core is DiscoveredModule {
+                ctx.prelude = core.folder
+                if core.folder != entry_module.folder {
+                    queue.push(core)
                 }
-                _ -> {}
             }
             drain_load_queue(ctx, queue)
             // Force-load `std/string_builder`: the lowerer resolves
@@ -243,13 +243,10 @@ export load_project_with_overlay :: fn(
             // build that never asked for it. Seeding it early strands `build_stmt`
             // in bootstrap.vader.
             string_builder :: resolve_in(ctx, "std/string_builder")
-            match string_builder {
-                is DiscoveredModule -> {
-                    if !has_module(modules, string_builder.folder) {
-                        drain_load_queue(ctx, [string_builder])
-                    }
+            if string_builder is DiscoveredModule {
+                if !has_module(modules, string_builder.folder) {
+                    drain_load_queue(ctx, [string_builder])
                 }
-                _ -> {}
             }
             extra_queue: DiscoveredModule[]: []
             for seed in extra_seeds {
@@ -441,6 +438,10 @@ LoadState :: struct {
     only_reached: bool
     /// The modules read so far whose symbols are still to mint.
     deferred: DeferredModule[] = []
+    /// The folder of the prelude, null in a load with no standard library. The
+    /// compiler reads its declarations by itself, with no source that writes
+    /// their name, so `only_reached` never trims it.
+    prelude: string | null = null
 }
 
 // A module read and not yet collected: what `ingest_module` knew of it.
@@ -453,14 +454,6 @@ DeferredModule :: struct {
     trimmed: bool = false
     lost_impl_traits: string[] = []
 }
-
-// The modules the compiler reads declarations of by itself, with no source that
-// writes their name: the prelude, what an interpolation and a baked constant
-// are lowered to, and the scheduler a program with tasks starts. They are never
-// trimmed.
-STUDIED_WHOLE :: [
-    "std/core", "std/string_builder", "std/target", BAKED_MODULE, "std/runtime/scheduler",
-]
 
 // The module `name` resolves to from the roots of the load `ctx`.
 resolve_in :: fn(ctx: LoadState, name: string) -> DiscoveredModule | null =
@@ -643,10 +636,10 @@ collect_deferred :: fn(ctx: LoadState) -> void {
     }
     units: ReachUnit[]: []
     for read in ctx.deferred {
-        trimmed :: is_dependency(ctx, read.found) && !(read.found.name in STUDIED_WHOLE)
+        trimmed :: is_dependency(ctx, read.found) && read.found.folder != ctx.prelude
         units.push(ReachUnit { .files = read.sources, .trimmed = trimmed })
     }
-    reached :: only_reached(units)
+    reached :: only_reached(units, GATE_FUNCTIONS)
     for i in 0..<ctx.deferred.len() {
         read :: ctx.deferred[i]
         kept :: DeferredModule {

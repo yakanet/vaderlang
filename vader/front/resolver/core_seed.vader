@@ -61,6 +61,18 @@ export find_core_module_id :: fn(project: LoadedProject) -> string | null =
 export find_scheduler_module_id :: fn(project: LoadedProject) -> string | null =
     find_module_id(project, "std/runtime/scheduler")
 
+/// The function that hands a constant built once its gate, by its name in the
+/// scheduler.
+export GATE_OR_NEW :: "gate_or_new"
+
+/// The function that builds a constant under its gate, by its name in the
+/// scheduler.
+export RUN_GATED :: "run_gated"
+
+/// The functions the compiler calls with no source that writes their name: a
+/// load that keeps only what is reached keeps them.
+export GATE_FUNCTIONS :: [GATE_OR_NEW, RUN_GATED]
+
 // The id of the loaded module declared as `name`.
 find_module_id :: fn(project: LoadedProject, name: string) -> string | null {
     for [id, loaded] in project.modules {

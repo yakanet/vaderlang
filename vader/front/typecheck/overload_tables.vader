@@ -205,8 +205,8 @@ resolver_imports :: fn(targets: ImportTargetTable) -> Map<i32, Symbol> {
 scheduler_gate_runtime :: fn(project: LoadedProject) -> GateRuntime | null {
     id :: find_scheduler_module_id(project) ?? return null
     loaded :: project.modules[id] ?? return null
-    gate_or_new :: loaded.collected.symbols["gate_or_new"] ?? return null
-    run_gated :: loaded.collected.symbols["run_gated"] ?? return null
+    gate_or_new :: loaded.collected.symbols[GATE_OR_NEW] ?? return null
+    run_gated :: loaded.collected.symbols[RUN_GATED] ?? return null
     return GateRuntime { .gate_or_new = gate_or_new, .run_gated = run_gated }
 }
 

@@ -22,9 +22,8 @@
 // - a name an import rebinds (`import "p" { x as y }`) is reached as written;
 // - a declaration the host calls by its name (`@export`) stays.
 //
-// The compiler itself names declarations of a few modules, with no source to
-// write them: those modules are never trimmed (`loader.vader`,
-// `STUDIED_WHOLE`).
+// The compiler itself names declarations with no source to write them: the
+// prelude is never trimmed, and the caller gives the names it calls elsewhere.
 
 module "vader/front/resolver"
 
@@ -50,9 +49,11 @@ Reached :: struct {
 /// The files of each module, a trimmed one holding only the declarations the
 /// others reach.
 ///
-/// @param units  every module of the load.
-/// @return       what is left of each unit, in the order of `units`.
-only_reached :: fn(units: ReachUnit[]) -> Reached[] {
+/// @param units            every module of the load.
+/// @param compiler_called  the names the compiler calls by itself, reached
+///                         whatever the sources write.
+/// @return                 what is left of each unit, in the order of `units`.
+only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reached[] {
     dependency_types :: Set<string> {}
     for unit in units {
         if !unit.trimmed {
@@ -69,6 +70,7 @@ only_reached :: fn(units: ReachUnit[]) -> Reached[] {
     refs_by_name :: Map<string, string[]> {}
     root_names: string[]: []
     seed_refs: string[]: []
+    seed_refs.push_all(compiler_called)
     for unit in units {
         for f in unit.files {
             for d in f.program.decls {
