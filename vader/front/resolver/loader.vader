@@ -540,7 +540,9 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     read :: parse_module_files(ctx, m.files)
     if read.len() == 0 { return }
     tests_removed :: is_dependency(ctx, m)
-    parsed :: if tests_removed { without_tests(read, m.name) } else { read }
+    // A module `only_reached` trims loses its tests there.
+    trimmed_later :: ctx.only_reached && m.folder != ctx.prelude
+    parsed :: if tests_removed && !trimmed_later { without_tests(read, m.name) } else { read }
     // Target selection happens HERE: after parsing, before collection. Every
     // pass downstream then sees one declaration per name and needs to know
     // nothing about targets: a losing body does not reach them at all.

@@ -20,7 +20,8 @@
 // - a trait is reached by the name of any of its members, since `x.area()`
 //   writes `area` and never `Shape`;
 // - a name an import rebinds (`import "p" { x as y }`) is reached as written;
-// - a declaration the host calls by its name (`@export`) stays.
+// - a declaration the host calls by its name (`@export`) stays;
+// - a test goes, with what only it reaches.
 //
 // The compiler itself names declarations with no source to write them: the
 // prelude is never trimmed, and the caller gives the names it calls elsewhere.
@@ -74,6 +75,9 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
     for unit in units {
         for f in unit.files {
             for d in f.program.decls {
+                if unit.trimmed && is_test(d) {
+                    continue
+                }
                 refs :: names_written_by(d)
                 key :: reach_key(d, dependency_types)
                 if !unit.trimmed || key == null {
@@ -104,6 +108,9 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
             kept: AST.Decl[]: []
             for d in f.program.decls {
                 key :: reach_key(d, dependency_types)
+                if is_test(d) {
+                    continue
+                }
                 if key == null || key in reachable {
                     kept.push(d)
                 } else if d is AST.ImplDecl {
@@ -137,6 +144,10 @@ names_written_by :: fn(d: AST.Decl) -> string[] {
     }
     return refs
 }
+
+// Whether `d` is a test: the tests of a trimmed module are not the program's,
+// whatever writes their name.
+is_test :: fn(d: AST.Decl) -> bool = AST.decorators_have(AST.decl_decorators(d), "test")
 
 // The name that reaches `d` in a trimmed module, null for a declaration that
 // always stays: an import, an assert, an impl with neither a type of a
