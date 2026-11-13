@@ -53,7 +53,7 @@ export loopback :: fn(port: u16) -> SocketAddress =
 ///
 /// @param port  the port, 0 for one the system picks.
 export loopback_v6 :: fn(port: u16) -> SocketAddress {
-    octets: u8[]: IPV6_BYTES.filled(() -> 0)
+    octets: u8[]: [0] * IPV6_BYTES
     octets[IPV6_BYTES - 1] = 1
     return SocketAddress { .ip = Ipv6 { .octets = octets }, .port = port }
 }

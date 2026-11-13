@@ -16,7 +16,8 @@ import "std/task"
 
 // Send back what `stream` sends until it ends; the bytes sent back.
 echo :: fn(stream: TcpStream) -> i64 {
-    buffer: u8[]: 1024.filled(() -> 0)
+    defer stream.close()
+    buffer: u8[]: [0] * 1024
     total: i64 = 0
     for {
         got :: stream.read(buffer)
@@ -26,7 +27,6 @@ echo :: fn(stream: TcpStream) -> i64 {
         stream.write(buffer[0..<got])
         total += got
     }
-    stream.close()
     return total
 }
 

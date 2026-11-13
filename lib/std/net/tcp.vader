@@ -387,7 +387,7 @@ system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError
 
 @target(.Linux, .Darwin)
 system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError {
-    encoded: u8[]: SOCKADDR_IN6_BYTES.filled(() -> 0)
+    encoded: u8[]: [0] * SOCKADDR_IN6_BYTES
     length: u32[]: [u32(SOCKADDR_IN6_BYTES)]
     read :: if peer {
         sys_getpeername(fd_of(socket), encoded, length)
@@ -490,7 +490,7 @@ has_sockets :: fn() -> bool = VADER_OS != .Windows
 
 // Send back what `stream` sends until it ends; the bytes sent back.
 echo :: fn(stream: TcpStream) -> i64 {
-    buffer: u8[]: 64.filled(() -> 0)
+    buffer: u8[]: [0] * 64
     total: i64 = 0
     for {
         got :: stream.read(buffer)
@@ -626,7 +626,7 @@ test_connections_are_served_at_the_same_time :: fn() -> void {
 
 // Write `count` bytes on `stream`, then say nothing more comes.
 send_bytes :: fn(stream: TcpStream, count: i64) -> void {
-    payload: u8[]: count.filled(() -> 'x')
+    payload: u8[]: ['x'] * count
     stream.write(payload)
     stream.close_write()
 }
@@ -644,7 +644,7 @@ test_a_write_larger_than_the_socket_holds_goes_through :: fn() -> void {
     // this end still writes, and this end to read while the server writes back.
     size: i64: 4 * 1024 * 1024
     sender :: launch(() -> send_bytes(stream, size))
-    buffer: u8[]: 65536.filled(() -> 0)
+    buffer: u8[]: [0] * 65536
     received: i64 = 0
     for {
         got :: stream.read(buffer)
@@ -717,14 +717,14 @@ test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
     stream :: connection_to(address) ?? return
     stream.close()
     assert(stream.write("late") is IOError, "a write after close")
-    assert(stream.read(8.filled(() -> 0)) is IOError, "a read after close")
+    assert(stream.read([0] * 8) is IOError, "a read after close")
     assert(stream.close() == null, "a second close does nothing")
     listener.close()
 }
 
 // What a read of `stream` answers once something ends it.
 read_outcome :: fn(stream: TcpStream) -> string {
-    got :: stream.read(8.filled(() -> 0))
+    got :: stream.read([0] * 8)
     if got is IOError {
         return got.msg
     }
