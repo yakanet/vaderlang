@@ -1,0 +1,229 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      request: string = "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
+      reader: BufferedReader = BufferedReader {
+          .source = FragmentedReader { .source = BytesReader { .content = request, .position = i64(0) }, .size = i64(3) },
+          .capacity = i64(16),
+          .error = null,
+          .buffer = [] :u8[],
+          .next = i64(0),
+          .filled = i64(0),
+      }
+      std.console.println<string>(concat_2("start: ", snippet.line_text(std.io.read_line(reader, i64(1048576)))))
+      std.console.println<string>(concat_2("header: ", snippet.bytes_text(std.io.read_until(reader, u8(58), i64(64)))))
+      std.console.println<string>(concat_3("next: [", snippet.bytes_text(std.io.peek(reader, i64(1))), "]"))
+      std.console.println<string>(concat_3("value: [", snippet.line_text(std.io.read_line(reader, i64(1048576))), "]"))
+      std.console.println<string>(concat_3("blank: [", snippet.line_text(std.io.read_line(reader, i64(1048576))), "]"))
+      std.console.println<string>(concat_2("body: ", snippet.bytes_text(std.io.read_exact(reader, i64(5)))))
+      std.console.println<string>(concat_3("rest: [", snippet.bytes_text(std.io.read_to_end(reader, i64(64))), "]"))
+      std.console.println<string>(concat_2("at the end: ", snippet.line_text(std.io.read_line(reader, i64(1048576)))))
+      std.console.println<string>(concat_2("past the end: ", snippet.bytes_text(std.io.read_exact(reader, i64(1)))))
+      long: BufferedReader = BufferedReader {
+          .source = BytesReader { .content = "a body past its limit", .position = i64(0) },
+          .capacity = i64(8192),
+          .error = null,
+          .buffer = [] :u8[],
+          .next = i64(0),
+          .filled = i64(0),
+      }
+      std.console.println<string>(concat_2("too long: ", snippet.bytes_text(std.io.read_to_end(long, i64(4)))))
+      answer: BytesWriter = BytesWriter { .written = [] :u8[] }
+      writer: BufferedWriter = BufferedWriter {
+          .sink = answer,
+          .capacity = i64(16),
+          .buffer = [] :u8[],
+      }
+      std.io.BufferedWriter.write(writer, "HTTP/1.1 ")
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(43))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "gathered, not written: ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(answer.written))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.BufferedWriter.write(writer, "204 No Content\r\n")
+      std.console.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(52))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "a write the buffer cannot hold: ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(answer.written))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.io.BufferedWriter.write(writer, [u8(13), u8(10)] :u8[])
+      std.console.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "before the flush: ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(answer.written))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.flush(writer)
+      std.console.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(37))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "after the flush: ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(answer.written))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      written: BufferedReader = BufferedReader {
+          .source = BytesReader { .content = answer.written, .position = i64(0) },
+          .capacity = i64(8192),
+          .error = null,
+          .buffer = [] :u8[],
+          .next = i64(0),
+          .filled = i64(0),
+      }
+      {
+          r: BufferedReader = written
+          max: i64 = 1048576
+          $exit$i26: {
+              for {
+                  line: IOError | string = {
+                      __coalesce_0: IOError | null | string = std.io.read_line(r, max)
+                      if __coalesce_0 is null {
+                          break
+                          @unreachable("`??` fallback diverges")
+                      } else {
+                          (IOError | string)(__coalesce_0)
+                      } :IOError | string
+                  }
+                  if line is IOError {
+                      r.error = IOError(line)
+                      break $exit$i26
+                  }
+                  line: string = string(line)
+                  std.console.println<string>(concat_3("answer: [", line, "]"))
+              }
+          }
+      }
+      broken: BufferedReader = BufferedReader {
+          .source = FailingReader {
+              .source = FragmentedReader { .source = BytesReader { .content = "one\ntwo\n", .position = i64(0) }, .size = i64(4) },
+              .calls = i64(1),
+              .failure = std.io.STREAM_FAILED,
+              .seen = i64(0),
+          },
+          .capacity = i64(8192),
+          .error = null,
+          .buffer = [] :u8[],
+          .next = i64(0),
+          .filled = i64(0),
+      }
+      std.console.println<string>(concat_2("before the failure: ", snippet.line_text(std.io.read_line(broken, i64(1048576)))))
+      std.console.println<string>(concat_2("the failure: ", snippet.line_text(std.io.read_line(broken, i64(1048576)))))
+      refused: BufferedWriter = BufferedWriter {
+          .sink = FailingWriter {
+              .sink = BytesWriter { .written = [] :u8[] },
+              .calls = i64(0),
+              .failure = IOError {
+                  .msg = "the peer left",
+                  .kind = IOErrorKind(8),
+                  .code = 0,
+              },
+              .seen = i64(0),
+          },
+          .capacity = i64(8192),
+          .buffer = [] :u8[],
+      }
+      std.console.println<string>(concat_2("gathered: ", snippet.outcome(std.io.BufferedWriter.write(refused, "late"))))
+      std.console.println<string>(concat_2("flushed: ", snippet.outcome(std.io.flush(refused))))
+      return 0
+  }
+  snippet.line_text :: fn(line: IOError | null | string) -> string {  // snippet$line_text
+      if line is string {
+          return string(line)
+      }
+      return snippet.outcome((IOError | null)(line))
+  }
+  snippet.bytes_text :: fn(bytes: IOError | null | u8[]) -> string {  // snippet$bytes_text
+      if bytes is u8[] {
+          return std.core.bytes_to_string(u8[](bytes))
+      }
+      return snippet.outcome((IOError | null)(bytes))
+  }
+  snippet.outcome :: fn(result: IOError | null) -> string {  // snippet$outcome
+      if result is IOError {
+          return concat_3(std.io.IOErrorKind.to_string(IOError(result).kind), ": ", IOError(result).msg)
+      }
+      return "nothing"
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.clone<u8>  // std_core$clone__u8
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.index_of<u8>  // std_core$index_of__u8
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    const STREAM_FAILED: IOError  data pool #0, element 0
+    fn std.io.BufferedReader.read  // std_io$BufferedReader$Reader$read
+    fn std.io.BufferedWriter.write  // std_io$BufferedWriter$Writer$write
+    fn std.io.BytesReader.read  // std_io$BytesReader$Reader$read
+    fn std.io.BytesWriter.write  // std_io$BytesWriter$Writer$write
+    fn std.io.FailingReader.read  // std_io$FailingReader$Reader$read
+    fn std.io.FailingWriter.write  // std_io$FailingWriter$Writer$write
+    fn std.io.FragmentedReader.read  // std_io$FragmentedReader$Reader$read
+    fn std.io.IOErrorKind.to_string  // std_io$IOErrorKind$std_core$Display$to_string
+    fn std.io.bytes_of  // std_io$bytes_of
+    fn std.io.compact  // std_io$compact
+    fn std.io.flush  // std_io$flush
+    fn std.io.line_break_of  // std_io$line_break_of
+    fn std.io.peek  // std_io$peek
+    fn std.io.read_exact  // std_io$read_exact
+    fn std.io.read_line  // std_io$read_line
+    fn std.io.read_to_end  // std_io$read_to_end
+    fn std.io.read_until  // std_io$read_until
+    fn std.io.refill  // std_io$refill
+    fn std.io.reserve  // std_io$reserve
+    fn std.io.take_through  // std_io$take_through
+    struct std.io.BufferedReader  // std_io$BufferedReader
+    struct std.io.BufferedWriter  // std_io$BufferedWriter
+    struct std.io.BytesReader  // std_io$BytesReader
+    struct std.io.BytesWriter  // std_io$BytesWriter
+    struct std.io.FailingReader  // std_io$FailingReader
+    struct std.io.FailingWriter  // std_io$FailingWriter
+    struct std.io.FragmentedReader  // std_io$FragmentedReader
+    struct std.io.IOError  // std_io$IOError
+  std/math
+    fn std.math.min<i64>  // std_math$min__i64
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

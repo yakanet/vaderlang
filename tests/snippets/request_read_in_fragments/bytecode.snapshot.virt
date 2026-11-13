@@ -1,0 +1,2267 @@
+module _main
+type 0 scalar null
+type 1 scalar i32
+type 2 union 3,0,4
+type 3 struct std_io$IOError { msg:4,kind:7,code:1 }
+type 4 scalar string
+type 5 union 3,0,6
+type 6 array 7
+type 7 scalar u8
+type 8 union 3,0
+type 9 struct std_core$Buffer {  }
+type 10 scalar i64
+type 11 union 10,0
+type 12 scalar bool
+type 13 scalar void
+type 14 struct std_io$BufferedReader { source:24,capacity:10,error:8,buffer:6,next:10,filled:10 }
+type 15 union 3,6
+type 16 struct std_io$BufferedWriter { sink:25,capacity:10,buffer:6 }
+type 17 union 10,3,0
+type 18 struct std_io$BytesReader { content:20,position:10 }
+type 19 struct std_io$BytesWriter { written:6 }
+type 20 union 4,6
+type 21 struct std_io$FragmentedReader { source:24,size:10 }
+type 22 struct std_io$FailingReader { source:24,calls:10,failure:3,seen:10 }
+type 23 struct std_io$FailingWriter { sink:25,calls:10,failure:3,seen:10 }
+type 24 ref std_io$Reader
+type 25 ref std_io$Writer
+type 26 array 3
+string 0 "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
+string 1 "start: "
+string 2 "header: "
+string 3 "next: ["
+string 4 "]"
+string 5 "value: ["
+string 6 "blank: ["
+string 7 "body: "
+string 8 "rest: ["
+string 9 "at the end: "
+string 10 "past the end: "
+string 11 "a body past its limit"
+string 12 "too long: "
+string 13 "HTTP/1.1 "
+string 14 "gathered, not written: "
+string 15 "204 No Content\r\n"
+string 16 "a write the buffer cannot hold: "
+string 17 "before the flush: "
+string 18 "after the flush: "
+string 19 "answer: ["
+string 20 "one\ntwo\n"
+string 21 "before the failure: "
+string 22 "the failure: "
+string 23 "the peer left"
+string 24 "gathered: "
+string 25 "late"
+string 26 "flushed: "
+string 27 ": "
+string 28 "nothing"
+string 29 "\n"
+string 30 "cannot look "
+string 31 " bytes ahead with a buffer of "
+string 32 "negative read size"
+string 33 "end of input after "
+string 34 " of "
+string 35 " bytes"
+string 36 "more than "
+string 37 " bytes to the end"
+string 38 " bytes before the delimiter"
+string 39 "Other"
+string 40 "NotFound"
+string 41 "PermissionDenied"
+string 42 "Interrupted"
+string 43 "AlreadyExists"
+string 44 "NotADirectory"
+string 45 "IsADirectory"
+string 46 "WouldBlock"
+string 47 "BrokenPipe"
+string 48 "NoSpace"
+string 49 "InvalidInput"
+string 50 "DirectoryNotEmpty"
+string 51 "BadHandle"
+string 52 "EndOfInput"
+string 53 "the stream failed"
+data 0 structs 3 3 1 strref 53 u8 00 i32 00000000
+import 0 byte_len std_core$byte_len result_type=10 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes_to_string std_core$bytes_to_string result_type=4 param_types=6 param_c_out= param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=6 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=1,6,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=13 () -> void
+impl 9 std_core$ByteAccess
+impl 18 std_io$Reader
+impl 19 std_io$Writer
+impl 21 std_io$Reader
+impl 22 std_io$Reader
+impl 23 std_io$Writer
+impl 14 std_io$Reader
+impl 16 std_io$Writer
+impl 3 std_core$Error
+vtable std_io$Reader.read 18 27
+vtable std_io$Reader.read 21 29
+vtable std_io$Reader.read 22 30
+vtable std_io$Reader.read 14 32
+vtable std_io$Writer.write 19 28
+vtable std_io$Writer.write 23 31
+vtable std_io$Writer.write 16 33
+export main 0
+
+fn 0 snippet$main () -> i32
+  local $struct_5 ref
+  local $arr_8 ref
+  local $call_16 string
+  local __buf_0 ref
+  local __off_1 i64
+  local $len_95 i64
+  local line any
+  local __coalesce_0 any
+  string.const 0   ; "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
+  retag 4   ; string
+  i64.const 0
+  struct.new 18   ; std_io$BytesReader
+  i64.const 3
+  struct.new 21   ; std_io$FragmentedReader
+  local.set 0   ; $struct_5
+  array.new 6 0   ; u8[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 16
+  null.const
+  local.get 1   ; $arr_8
+  i64.const 0
+  i64.const 0
+  struct.new 14   ; std_io$BufferedReader
+  local.tee 0   ; $struct_5
+  i64.const 1048576
+  call 15   ; std_io$read_line
+  call 1   ; snippet$line_text
+  local.set 2   ; $call_16
+  string.const 1   ; "start: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i32.const 58
+  i64.const 64
+  call 16   ; std_io$read_until
+  call 2   ; snippet$bytes_text
+  local.set 2   ; $call_16
+  string.const 2   ; "header: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 1
+  call 17   ; std_io$peek
+  call 2   ; snippet$bytes_text
+  local.set 2   ; $call_16
+  string.const 3   ; "next: ["
+  local.get 2   ; $call_16
+  string.const 4   ; "]"
+  call 5   ; concat_3
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 1048576
+  call 15   ; std_io$read_line
+  call 1   ; snippet$line_text
+  local.set 2   ; $call_16
+  string.const 5   ; "value: ["
+  local.get 2   ; $call_16
+  string.const 4   ; "]"
+  call 5   ; concat_3
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 1048576
+  call 15   ; std_io$read_line
+  call 1   ; snippet$line_text
+  local.set 2   ; $call_16
+  string.const 6   ; "blank: ["
+  local.get 2   ; $call_16
+  string.const 4   ; "]"
+  call 5   ; concat_3
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 5
+  call 18   ; std_io$read_exact
+  call 2   ; snippet$bytes_text
+  local.set 2   ; $call_16
+  string.const 7   ; "body: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 64
+  call 19   ; std_io$read_to_end
+  call 2   ; snippet$bytes_text
+  local.set 2   ; $call_16
+  string.const 8   ; "rest: ["
+  local.get 2   ; $call_16
+  string.const 4   ; "]"
+  call 5   ; concat_3
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 1048576
+  call 15   ; std_io$read_line
+  call 1   ; snippet$line_text
+  local.set 2   ; $call_16
+  string.const 9   ; "at the end: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 1
+  call 18   ; std_io$read_exact
+  call 2   ; snippet$bytes_text
+  local.set 2   ; $call_16
+  string.const 10   ; "past the end: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  string.const 11   ; "a body past its limit"
+  retag 4   ; string
+  i64.const 0
+  struct.new 18   ; std_io$BytesReader
+  local.set 0   ; $struct_5
+  array.new 6 0   ; u8[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 8192
+  null.const
+  local.get 1   ; $arr_8
+  i64.const 0
+  i64.const 0
+  struct.new 14   ; std_io$BufferedReader
+  i64.const 4
+  call 19   ; std_io$read_to_end
+  call 2   ; snippet$bytes_text
+  local.set 2   ; $call_16
+  string.const 12   ; "too long: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  array.new 6 0   ; u8[]
+  struct.new 19   ; std_io$BytesWriter
+  local.set 0   ; $struct_5
+  array.new 6 0   ; u8[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 16
+  local.get 1   ; $arr_8
+  struct.new 16   ; std_io$BufferedWriter
+  local.tee 1   ; $arr_8
+  string.const 13   ; "HTTP/1.1 "
+  retag 4   ; string
+  call 33   ; std_io$BufferedWriter$Writer$write
+  drop
+  i64.const 43
+  buffer.new
+  local.set 3   ; __buf_0
+  i64.const 0
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  string.const 14   ; "gathered, not written: "
+  call 7   ; std_core$write_string_at
+  local.set 4   ; __off_1
+  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  array.len
+  local.set 5   ; $len_95
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  local.get 5   ; $len_95
+  call 8   ; std_core$write_int
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 14   ; std_console$println__string
+  local.get 1   ; $arr_8
+  string.const 15   ; "204 No Content\r\n"
+  retag 4   ; string
+  call 33   ; std_io$BufferedWriter$Writer$write
+  drop
+  i64.const 52
+  buffer.new
+  local.set 3   ; __buf_0
+  i64.const 0
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  string.const 16   ; "a write the buffer cannot hold: "
+  call 7   ; std_core$write_string_at
+  local.set 4   ; __off_1
+  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  array.len
+  local.set 5   ; $len_95
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  local.get 5   ; $len_95
+  call 8   ; std_core$write_int
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 14   ; std_console$println__string
+  i32.const 13
+  i32.const 10
+  array.new 6 2   ; u8[]
+  local.set 3   ; __buf_0
+  local.get 1   ; $arr_8
+  local.get 3   ; __buf_0
+  call 33   ; std_io$BufferedWriter$Writer$write
+  drop
+  i64.const 38
+  buffer.new
+  local.set 3   ; __buf_0
+  i64.const 0
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  string.const 17   ; "before the flush: "
+  call 7   ; std_core$write_string_at
+  local.set 4   ; __off_1
+  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  array.len
+  local.set 5   ; $len_95
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  local.get 5   ; $len_95
+  call 8   ; std_core$write_int
+  local.set 4   ; __off_1
+  local.get 3   ; __buf_0
+  local.get 4   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 14   ; std_console$println__string
+  local.get 1   ; $arr_8
+  call 20   ; std_io$flush
+  drop
+  i64.const 37
+  buffer.new
+  local.set 1   ; $arr_8
+  i64.const 0
+  local.set 4   ; __off_1
+  local.get 1   ; $arr_8
+  local.get 4   ; __off_1
+  string.const 18   ; "after the flush: "
+  call 7   ; std_core$write_string_at
+  local.set 4   ; __off_1
+  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  array.len
+  local.set 5   ; $len_95
+  local.get 1   ; $arr_8
+  local.get 4   ; __off_1
+  local.get 5   ; $len_95
+  call 8   ; std_core$write_int
+  local.set 4   ; __off_1
+  local.get 1   ; $arr_8
+  local.get 4   ; __off_1
+  call 6   ; std_core$finish_buffer
+  call 14   ; std_console$println__string
+  local.field 0 19 0   ; $struct_5 std_io$BytesWriter.written
+  i64.const 0
+  struct.new 18   ; std_io$BytesReader
+  local.set 0   ; $struct_5
+  array.new 6 0   ; u8[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 8192
+  null.const
+  local.get 1   ; $arr_8
+  i64.const 0
+  i64.const 0
+  struct.new 14   ; std_io$BufferedReader
+  local.set 0   ; $struct_5
+  block $L0 void
+    loop $L1 void
+      local.get 0   ; $struct_5
+      i64.const 1048576
+      call 15   ; std_io$read_line
+      local.tee 7   ; __coalesce_0
+      type_check 0   ; null
+      if $L2 void
+      else
+        local.get 7   ; __coalesce_0
+        local.tee 6   ; line
+        type_check 3   ; std_io$IOError
+        if $L3 void
+          local.get 6   ; line
+          ref.cast 3   ; std_io$IOError
+          local.set 1   ; $arr_8
+          local.get 0   ; $struct_5
+          local.get 1   ; $arr_8
+          struct.set 14 2   ; std_io$BufferedReader.error
+          br $L0
+        end $L3
+        local.get 6   ; line
+        ref.cast 4   ; string
+        local.set 2   ; $call_16
+        string.const 19   ; "answer: ["
+        local.get 2   ; $call_16
+        string.const 4   ; "]"
+        call 5   ; concat_3
+        call 14   ; std_console$println__string
+        br $L1
+      end $L2
+    end $L1
+  end $L0
+  string.const 20   ; "one\ntwo\n"
+  retag 4   ; string
+  i64.const 0
+  struct.new 18   ; std_io$BytesReader
+  i64.const 4
+  struct.new 21   ; std_io$FragmentedReader
+  local.set 0   ; $struct_5
+  data.const 0 26   ; pool[0] std_io$IOError[]
+  i64.const 0
+  array.get 26   ; std_io$IOError[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 1
+  local.get 1   ; $arr_8
+  i64.const 0
+  struct.new 22   ; std_io$FailingReader
+  local.set 0   ; $struct_5
+  array.new 6 0   ; u8[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 8192
+  null.const
+  local.get 1   ; $arr_8
+  i64.const 0
+  i64.const 0
+  struct.new 14   ; std_io$BufferedReader
+  local.tee 0   ; $struct_5
+  i64.const 1048576
+  call 15   ; std_io$read_line
+  call 1   ; snippet$line_text
+  local.set 2   ; $call_16
+  string.const 21   ; "before the failure: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  i64.const 1048576
+  call 15   ; std_io$read_line
+  call 1   ; snippet$line_text
+  local.set 2   ; $call_16
+  string.const 22   ; "the failure: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  array.new 6 0   ; u8[]
+  struct.new 19   ; std_io$BytesWriter
+  local.set 0   ; $struct_5
+  string.const 23   ; "the peer left"
+  i32.const 8
+  i32.const 0
+  struct.new 3   ; std_io$IOError
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 0
+  local.get 1   ; $arr_8
+  i64.const 0
+  struct.new 23   ; std_io$FailingWriter
+  local.set 0   ; $struct_5
+  array.new 6 0   ; u8[]
+  local.set 1   ; $arr_8
+  local.get 0   ; $struct_5
+  i64.const 8192
+  local.get 1   ; $arr_8
+  struct.new 16   ; std_io$BufferedWriter
+  local.tee 0   ; $struct_5
+  string.const 25   ; "late"
+  retag 4   ; string
+  call 33   ; std_io$BufferedWriter$Writer$write
+  call 3   ; snippet$outcome
+  local.set 2   ; $call_16
+  string.const 24   ; "gathered: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  local.get 0   ; $struct_5
+  call 20   ; std_io$flush
+  call 3   ; snippet$outcome
+  local.set 2   ; $call_16
+  string.const 26   ; "flushed: "
+  local.get 2   ; $call_16
+  call 4   ; concat_2
+  call 14   ; std_console$println__string
+  return.lit i32.const 0
+end
+
+fn 1 snippet$line_text (any) -> string
+  local.get 0   ; arg 0
+  type_check 4   ; string
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    call 3   ; snippet$outcome
+    return
+  end $L0
+  local.get 0   ; arg 0
+  ref.cast 4   ; string
+  return
+end
+
+fn 2 snippet$bytes_text (any) -> string
+  local.get 0   ; arg 0
+  type_check 6   ; u8[]
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    call 3   ; snippet$outcome
+    return
+  end $L0
+  local.get 0   ; arg 0
+  ref.cast 6   ; u8[]
+  call.import 1   ; std_core$bytes_to_string
+  return
+end
+
+fn 3 snippet$outcome (any) -> string
+  local $call_4 string
+  local $field_7 string
+  local.get 0   ; arg 0
+  type_check 3   ; std_io$IOError
+  if $L0 void
+  else
+    return.lit string.const 28   ; "nothing"
+  end $L0
+  local.get 0   ; arg 0
+  ref.cast 3   ; std_io$IOError
+  struct.get 3 1   ; std_io$IOError.kind
+  call 26   ; std_io$IOErrorKind$std_core$Display$to_string
+  local.set 1   ; $call_4
+  local.get 0   ; arg 0
+  ref.cast 3   ; std_io$IOError
+  struct.get 3 0   ; std_io$IOError.msg
+  ref.cast 4   ; string
+  local.set 2   ; $field_7
+  local.get 1   ; $call_4
+  string.const 27   ; ": "
+  local.get 2   ; $field_7
+  call 5   ; concat_3
+  return
+end
+
+fn 4 concat_2 (string,string) -> string
+  local c0 i64
+  local $call_4 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 5 concat_3 (string,string,string) -> string
+  local c0 i64
+  local $call_5 i64
+  local $call_8 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 3   ; c0
+  local.get 4   ; $call_5
+  i64.add
+  local.set 4   ; $call_5
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 5   ; $call_8
+  local.get 4   ; $call_5
+  local.get 5   ; $call_8
+  i64.add
+  local.tee 5   ; $call_8
+  buffer.new
+  local.tee 6   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 3   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 4   ; $call_5
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 5   ; $call_8
+  buffer_to_string
+  return
+end
+
+fn 6 std_core$finish_buffer (ref,i64) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 7 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 8 std_core$write_int (ref,i64,i64) -> i64
+  local neg bool
+  local ndigits i64
+  local m i64
+  local $cast_36 u8
+  local $add_checked_37 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    store_u8
+    local.get 1   ; arg 1
+    i64.const 1
+    i64.checked_add
+    return
+  end $L0
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.lt
+  local.set 3   ; neg
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2   ; arg 2
+    i64.checked_neg
+    local.set 2   ; arg 2
+  end $L1
+  i64.const 0
+  local.set 4   ; ndigits
+  local.get 2   ; arg 2
+  local.set 5   ; m
+  loop $L2 void
+    local.get 5   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_add
+      local.set 4   ; ndigits
+      local.get 5   ; m
+      i64.const 10
+      i64.div
+      local.set 5   ; m
+      br $L2
+    end $L3
+  end $L2
+  local.get 3   ; neg
+  if $L4 void
+    local.get 4   ; ndigits
+    i64.const 1
+    i64.checked_add
+    local.set 5   ; m
+  else
+    local.get 4   ; ndigits
+    local.set 5   ; m
+  end $L4
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  local.set 4   ; ndigits
+  loop $L5 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_sub
+      local.set 4   ; ndigits
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.rem
+      i64.checked_neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 6   ; $cast_36
+      i32.const 48
+      local.get 6   ; $cast_36
+      u8.checked_add
+      local.set 7   ; $add_checked_37
+      local.get 0   ; arg 0
+      local.get 4   ; ndigits
+      local.get 7   ; $add_checked_37
+      store_u8
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.div
+      local.set 2   ; arg 2
+      br $L5
+    end $L6
+  end $L5
+  local.get 3   ; neg
+  if $L7 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 45
+    store_u8
+    local.get 1   ; arg 1
+    local.get 5   ; m
+    i64.checked_add
+    return
+  end $L7
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  return
+end
+
+fn 9 std_core$index_of__u8 (ref,u8) -> any
+  local i i64
+  local __for_hi_0 i64
+  i64.const 0
+  local.set 2   ; i
+  local.get 0   ; arg 0
+  array.len
+  local.set 3   ; __for_hi_0
+  loop $L0 void
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
+    i64.lt
+    if $L1 void
+      local.get 0   ; arg 0
+      local.get 2   ; i
+      array.get 6   ; u8[]
+      ref.cast 7   ; u8
+      local.get 1   ; arg 1
+      i32.eq
+      if $L2 void
+        local.get 2   ; i
+        retag 10   ; i64
+        return
+      end $L2
+      local.get 2   ; i
+      i64.const 1
+      i64.add
+      local.set 2   ; i
+      br $L0
+    end $L1
+  end $L0
+  return.lit null.const
+end
+
+fn 10 std_core$clone__u8 (ref) -> ref
+  local out ref
+  local.get 0   ; arg 0
+  array.len
+  array.reserve 6   ; u8[]
+  local.tee 1   ; out
+  local.get 0   ; arg 0
+  array.push_all
+  local.get 1   ; out
+  return
+end
+
+fn 11 std_console$write (u8,string) -> void
+  local buf ref
+  local sent i64
+  local $len_7 i64
+  local $len_9 i64
+  local chunk ref
+  local $len_12 i64
+  local n i32
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 12   ; std_console$write_text
+  if $L0 void
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 2   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L1 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_7
+    local.get 3   ; sent
+    local.get 4   ; $len_7
+    i64.ge
+    if $L2 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_9
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_9
+      array.slice 6   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_12
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_12
+      call 13   ; std_console$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_17
+      local.get 3   ; sent
+      local.get 9   ; $cast_17
+      i64.checked_add
+      local.set 3   ; sent
+      br $L1
+    end $L2
+  end $L1
+  return
+end
+
+fn 12 std_console$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 13 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 3   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 4   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 5   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
+  i64.to_i32
+  return
+end
+
+fn 14 std_console$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 29   ; "\n"
+  call 4   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 11   ; std_console$write
+  return
+end
+
+fn 15 std_io$read_line (ref,i64) -> any
+  local line any
+  local $cast_11 ref
+  local $len_14 i64
+  local $call_16 i64
+  local.get 0   ; arg 0
+  i32.const 10
+  local.get 1   ; arg 1
+  call 21   ; std_io$take_through
+  local.tee 2   ; line
+  type_check 0   ; null
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.get 2   ; line
+  type_check 3   ; std_io$IOError
+  if $L1 void
+  else
+    local.get 2   ; line
+    ref.cast 6   ; u8[]
+    local.set 3   ; $cast_11
+    local.get 2   ; line
+    ref.cast 6   ; u8[]
+    array.len
+    local.set 4   ; $len_14
+    local.get 2   ; line
+    ref.cast 6   ; u8[]
+    call 22   ; std_io$line_break_of
+    local.set 5   ; $call_16
+    local.get 4   ; $len_14
+    local.get 5   ; $call_16
+    i64.checked_sub
+    local.set 4   ; $len_14
+    local.get 3   ; $cast_11
+    i64.const 0
+    local.get 4   ; $len_14
+    array.slice 6   ; u8[]
+    call.import 1   ; std_core$bytes_to_string
+    retag 4   ; string
+    return
+  end $L1
+  local.get 2   ; line
+  ref.cast 3   ; std_io$IOError
+  return
+end
+
+fn 16 std_io$read_until (ref,u8,i64) -> any
+  local run any
+  local count i64
+  local end i64
+  local $cast_15 ref
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call 21   ; std_io$take_through
+  local.tee 3   ; run
+  type_check 0   ; null
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.get 3   ; run
+  type_check 3   ; std_io$IOError
+  if $L1 void
+    local.get 3   ; run
+    ref.cast 3   ; std_io$IOError
+    return
+  end $L1
+  local.get 3   ; run
+  ref.cast 6   ; u8[]
+  array.len
+  local.set 4   ; count
+  local.get 3   ; run
+  ref.cast 6   ; u8[]
+  local.set 6   ; $cast_15
+  local.get 4   ; count
+  i64.const 1
+  i64.checked_sub
+  local.set 5   ; end
+  local.get 6   ; $cast_15
+  local.get 5   ; end
+  array.get 6   ; u8[]
+  ref.cast 7   ; u8
+  local.get 1   ; arg 1
+  i32.eq
+  if $L2 void
+    local.get 4   ; count
+    i64.const 1
+    i64.checked_sub
+    local.set 5   ; end
+  else
+    local.get 4   ; count
+    local.set 5   ; end
+  end $L2
+  local.get 3   ; run
+  ref.cast 6   ; u8[]
+  i64.const 0
+  local.get 5   ; end
+  array.slice 6   ; u8[]
+  call 10   ; std_core$clone__u8
+  return
+end
+
+fn 17 std_io$peek (ref,i64) -> any
+  local or_res bool
+  local $field_6 i64
+  local __buf_0 ref
+  local $field_18 i64
+  local got any
+  local $field_33 any
+  local $field_35 i64
+  local $field_36 i64
+  local __coalesce_2 any
+  local $field_44 i64
+  local $cast_45 i64
+  local $add_checked_46 i64
+  local.get 1   ; arg 1
+  i64.const 0
+  i64.lt
+  if $L0 void
+    bool.const true
+    local.set 2   ; or_res
+  else
+    local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
+    ref.cast 10   ; i64
+    local.set 3   ; $field_6
+    local.get 1   ; arg 1
+    local.get 3   ; $field_6
+    i64.gt
+    local.set 2   ; or_res
+  end $L0
+  local.get 2   ; or_res
+  if $L1 void
+    i64.const 82
+    buffer.new
+    local.set 4   ; __buf_0
+    i64.const 0
+    local.set 3   ; $field_6
+    local.get 4   ; __buf_0
+    local.get 3   ; $field_6
+    string.const 30   ; "cannot look "
+    call 7   ; std_core$write_string_at
+    local.set 3   ; $field_6
+    local.get 4   ; __buf_0
+    local.get 3   ; $field_6
+    local.get 1   ; arg 1
+    call 8   ; std_core$write_int
+    local.set 3   ; $field_6
+    local.get 4   ; __buf_0
+    local.get 3   ; $field_6
+    string.const 31   ; " bytes ahead with a buffer of "
+    call 7   ; std_core$write_string_at
+    local.set 3   ; $field_6
+    local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
+    ref.cast 10   ; i64
+    local.set 5   ; $field_18
+    local.get 4   ; __buf_0
+    local.get 3   ; $field_6
+    local.get 5   ; $field_18
+    call 8   ; std_core$write_int
+    local.set 3   ; $field_6
+    local.get 4   ; __buf_0
+    local.get 3   ; $field_6
+    call 6   ; std_core$finish_buffer
+    i32.const 10
+    i32.const 0
+    struct.new 3   ; std_io$IOError
+    return
+  end $L1
+  local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+  ref.cast 10   ; i64
+  local.set 3   ; $field_6
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 5   ; $field_18
+  local.get 3   ; $field_6
+  local.get 5   ; $field_18
+  i64.checked_sub
+  local.get 1   ; arg 1
+  i64.lt
+  if $L2 void
+    local.get 0   ; arg 0
+    call 23   ; std_io$compact
+  end $L2
+  block $L3 void
+    loop $L4 void
+      local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+      ref.cast 10   ; i64
+      local.set 3   ; $field_6
+      local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+      ref.cast 10   ; i64
+      local.set 5   ; $field_18
+      local.get 3   ; $field_6
+      local.get 5   ; $field_18
+      i64.checked_sub
+      local.get 1   ; arg 1
+      i64.lt
+      if $L5 void
+        local.field 0 14 0   ; arg 0 std_io$BufferedReader.source
+        local.set 7   ; $field_33
+        local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+        local.set 4   ; __buf_0
+        local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+        ref.cast 10   ; i64
+        local.set 8   ; $field_35
+        local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
+        ref.cast 10   ; i64
+        local.set 9   ; $field_36
+        local.get 4   ; __buf_0
+        local.get 8   ; $field_35
+        local.get 9   ; $field_36
+        array.slice 6   ; u8[]
+        local.get 7   ; $field_33
+        virtual.call 2 std_io$Reader.read -> any
+        local.tee 10   ; __coalesce_2
+        type_check 0   ; null
+        br_if $L3
+        local.get 10   ; __coalesce_2
+        local.tee 6   ; got
+        type_check 3   ; std_io$IOError
+        if $L6 void
+          local.get 6   ; got
+          ref.cast 3   ; std_io$IOError
+          return
+        end $L6
+        local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+        ref.cast 10   ; i64
+        local.set 11   ; $field_44
+        local.get 6   ; got
+        ref.cast 10   ; i64
+        local.set 12   ; $cast_45
+        local.get 11   ; $field_44
+        local.get 12   ; $cast_45
+        i64.checked_add
+        local.set 13   ; $add_checked_46
+        local.get 0   ; arg 0
+        local.get 13   ; $add_checked_46
+        struct.set 14 5   ; std_io$BufferedReader.filled
+        br $L4
+      end $L5
+    end $L4
+  end $L3
+  local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+  ref.cast 10   ; i64
+  local.set 3   ; $field_6
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 5   ; $field_18
+  local.get 3   ; $field_6
+  local.get 5   ; $field_18
+  i64.checked_sub
+  local.tee 3   ; $field_6
+  i64.const 0
+  i64.eq
+  if $L7 void
+    local.get 1   ; arg 1
+    i64.const 0
+    i64.gt
+    if $L8 void
+      return.lit null.const
+    end $L8
+  end $L7
+  local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+  local.set 4   ; __buf_0
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 5   ; $field_18
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 8   ; $field_35
+  local.get 3   ; $field_6
+  local.get 1   ; arg 1
+  call 35   ; std_math$min__i64
+  local.set 3   ; $field_6
+  local.get 8   ; $field_35
+  local.get 3   ; $field_6
+  i64.checked_add
+  local.set 3   ; $field_6
+  local.get 4   ; __buf_0
+  local.get 5   ; $field_18
+  local.get 3   ; $field_6
+  array.slice 6   ; u8[]
+  call 10   ; std_core$clone__u8
+  return
+end
+
+fn 18 std_io$read_exact (ref,i64) -> any
+  local out ref
+  local done i64
+  local $slice_15 ref
+  local got any
+  local __buf_0 ref
+  local __off_1 i64
+  local $cast_39 i64
+  local.get 1   ; arg 1
+  i64.const 0
+  i64.lt
+  if $L0 void
+    string.const 32   ; "negative read size"
+    i32.const 10
+    i32.const 0
+    struct.new 3   ; std_io$IOError
+    return
+  end $L0
+  i32.const 0
+  array.new 6 1   ; u8[]
+  local.get 1   ; arg 1
+  array.repeat
+  local.set 2   ; out
+  i64.const 0
+  local.set 3   ; done
+  loop $L1 void
+    local.get 3   ; done
+    local.get 1   ; arg 1
+    i64.lt
+    if $L2 void
+      local.get 2   ; out
+      local.get 3   ; done
+      local.get 1   ; arg 1
+      array.slice 6   ; u8[]
+      local.set 4   ; $slice_15
+      local.get 0   ; arg 0
+      local.get 4   ; $slice_15
+      call 32   ; std_io$BufferedReader$Reader$read
+      local.tee 5   ; got
+      type_check 3   ; std_io$IOError
+      if $L3 void
+        local.get 5   ; got
+        ref.cast 3   ; std_io$IOError
+        return
+      end $L3
+      local.get 5   ; got
+      type_check 0   ; null
+      if $L4 void
+        i64.const 69
+        buffer.new
+        local.set 6   ; __buf_0
+        i64.const 0
+        local.set 7   ; __off_1
+        local.get 6   ; __buf_0
+        local.get 7   ; __off_1
+        string.const 33   ; "end of input after "
+        call 7   ; std_core$write_string_at
+        local.set 7   ; __off_1
+        local.get 6   ; __buf_0
+        local.get 7   ; __off_1
+        local.get 3   ; done
+        call 8   ; std_core$write_int
+        local.set 7   ; __off_1
+        local.get 6   ; __buf_0
+        local.get 7   ; __off_1
+        string.const 34   ; " of "
+        call 7   ; std_core$write_string_at
+        local.set 7   ; __off_1
+        local.get 6   ; __buf_0
+        local.get 7   ; __off_1
+        local.get 1   ; arg 1
+        call 8   ; std_core$write_int
+        local.set 7   ; __off_1
+        local.get 6   ; __buf_0
+        local.get 7   ; __off_1
+        string.const 35   ; " bytes"
+        call 7   ; std_core$write_string_at
+        local.set 7   ; __off_1
+        local.get 6   ; __buf_0
+        local.get 7   ; __off_1
+        call 6   ; std_core$finish_buffer
+        i32.const 13
+        i32.const 0
+        struct.new 3   ; std_io$IOError
+        return
+      end $L4
+      local.get 5   ; got
+      ref.cast 10   ; i64
+      local.set 8   ; $cast_39
+      local.get 3   ; done
+      local.get 8   ; $cast_39
+      i64.checked_add
+      local.set 3   ; done
+      br $L1
+    end $L2
+  end $L1
+  local.get 2   ; out
+  return
+end
+
+fn 19 std_io$read_to_end (ref,i64) -> any
+  local out ref
+  local $field_4 i64
+  local $field_5 i64
+  local got any
+  local __coalesce_0 any
+  local $field_14 ref
+  local $field_15 i64
+  local $field_16 i64
+  local unread ref
+  local $len_19 i64
+  local $len_20 i64
+  local __buf_1 ref
+  local __off_2 i64
+  local $field_37 i64
+  array.new 6 0   ; u8[]
+  local.set 2   ; out
+  loop $L0 void
+    local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+    ref.cast 10   ; i64
+    local.set 3   ; $field_4
+    local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+    ref.cast 10   ; i64
+    local.set 4   ; $field_5
+    local.get 3   ; $field_4
+    local.get 4   ; $field_5
+    i64.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      call 24   ; std_io$refill
+      local.tee 6   ; __coalesce_0
+      type_check 0   ; null
+      if $L2 void
+        local.get 2   ; out
+        return
+      end $L2
+      local.get 6   ; __coalesce_0
+      local.tee 5   ; got
+      type_check 3   ; std_io$IOError
+      if $L3 void
+        local.get 5   ; got
+        ref.cast 3   ; std_io$IOError
+        return
+      end $L3
+    end $L1
+    local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+    local.set 7   ; $field_14
+    local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+    ref.cast 10   ; i64
+    local.set 8   ; $field_15
+    local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+    ref.cast 10   ; i64
+    local.set 9   ; $field_16
+    local.get 7   ; $field_14
+    local.get 8   ; $field_15
+    local.get 9   ; $field_16
+    array.slice 6   ; u8[]
+    local.set 10   ; unread
+    local.get 2   ; out
+    array.len
+    local.set 11   ; $len_19
+    local.get 10   ; unread
+    array.len
+    local.set 12   ; $len_20
+    local.get 11   ; $len_19
+    local.get 12   ; $len_20
+    i64.checked_add
+    local.get 1   ; arg 1
+    i64.gt
+    if $L4 void
+      i64.const 47
+      buffer.new
+      local.set 13   ; __buf_1
+      i64.const 0
+      local.set 14   ; __off_2
+      local.get 13   ; __buf_1
+      local.get 14   ; __off_2
+      string.const 36   ; "more than "
+      call 7   ; std_core$write_string_at
+      local.set 14   ; __off_2
+      local.get 13   ; __buf_1
+      local.get 14   ; __off_2
+      local.get 1   ; arg 1
+      call 8   ; std_core$write_int
+      local.set 14   ; __off_2
+      local.get 13   ; __buf_1
+      local.get 14   ; __off_2
+      string.const 37   ; " bytes to the end"
+      call 7   ; std_core$write_string_at
+      local.set 14   ; __off_2
+      local.get 13   ; __buf_1
+      local.get 14   ; __off_2
+      call 6   ; std_core$finish_buffer
+      i32.const 10
+      i32.const 0
+      struct.new 3   ; std_io$IOError
+      return
+    end $L4
+    local.get 2   ; out
+    local.get 10   ; unread
+    array.push_all
+    local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+    ref.cast 10   ; i64
+    local.set 15   ; $field_37
+    local.get 0   ; arg 0
+    local.get 15   ; $field_37
+    struct.set 14 4   ; std_io$BufferedReader.next
+    br $L0
+  end $L0
+end
+
+fn 20 std_io$flush (ref) -> any
+  local $field_6 any
+  local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+  else
+    local.field 0 16 0   ; arg 0 std_io$BufferedWriter.sink
+    local.set 1   ; $field_6
+    local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
+    local.get 1   ; $field_6
+    virtual.call 2 std_io$Writer.write -> any
+    local.set 1   ; $field_6
+    local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
+    array.clear
+    local.get 1   ; $field_6
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 21 std_io$take_through (ref,u8,i64) -> any
+  local run ref
+  local $field_5 i64
+  local $field_6 i64
+  local got any
+  local $field_18 ref
+  local $field_19 i64
+  local $field_20 i64
+  local unread ref
+  local at any
+  local taken i64
+  local __coalesce_0 any
+  local __buf_1 ref
+  local __off_2 i64
+  local $field_48 i64
+  local $add_checked_50 i64
+  local $add_checked_51 i64
+  local $add_checked_57 i64
+  local $add_checked_61 i64
+  local $slice_62 ref
+  local $field_63 i64
+  array.new 6 0   ; u8[]
+  local.set 3   ; run
+  loop $L0 void
+    local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+    ref.cast 10   ; i64
+    local.set 4   ; $field_5
+    local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+    ref.cast 10   ; i64
+    local.set 5   ; $field_6
+    local.get 4   ; $field_5
+    local.get 5   ; $field_6
+    i64.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      call 24   ; std_io$refill
+      local.tee 6   ; got
+      type_check 3   ; std_io$IOError
+      if $L2 void
+        local.get 6   ; got
+        ref.cast 3   ; std_io$IOError
+        return
+      end $L2
+      local.get 6   ; got
+      type_check 0   ; null
+      if $L3 void
+        local.get 3   ; run
+        array.len
+        i64.const 0
+        i64.eq
+        if $L4 void
+        else
+          local.get 3   ; run
+          return
+        end $L4
+        return.lit null.const
+      end $L3
+    end $L1
+    local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+    local.set 7   ; $field_18
+    local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+    ref.cast 10   ; i64
+    local.set 8   ; $field_19
+    local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+    ref.cast 10   ; i64
+    local.set 9   ; $field_20
+    local.get 7   ; $field_18
+    local.get 8   ; $field_19
+    local.get 9   ; $field_20
+    array.slice 6   ; u8[]
+    local.tee 10   ; unread
+    local.get 1   ; arg 1
+    call 9   ; std_core$index_of__u8
+    local.tee 11   ; at
+    local.tee 13   ; __coalesce_0
+    type_check 0   ; null
+    if $L5 void
+      local.get 10   ; unread
+      array.len
+      local.set 12   ; taken
+    else
+      local.get 13   ; __coalesce_0
+      ref.cast 10   ; i64
+      local.set 12   ; taken
+    end $L5
+    local.get 3   ; run
+    array.len
+    local.get 12   ; taken
+    i64.checked_add
+    local.get 2   ; arg 2
+    i64.gt
+    if $L6 void
+      i64.const 57
+      buffer.new
+      local.set 14   ; __buf_1
+      i64.const 0
+      local.set 15   ; __off_2
+      local.get 14   ; __buf_1
+      local.get 15   ; __off_2
+      string.const 36   ; "more than "
+      call 7   ; std_core$write_string_at
+      local.set 15   ; __off_2
+      local.get 14   ; __buf_1
+      local.get 15   ; __off_2
+      local.get 2   ; arg 2
+      call 8   ; std_core$write_int
+      local.set 15   ; __off_2
+      local.get 14   ; __buf_1
+      local.get 15   ; __off_2
+      string.const 38   ; " bytes before the delimiter"
+      call 7   ; std_core$write_string_at
+      local.set 15   ; __off_2
+      local.get 14   ; __buf_1
+      local.get 15   ; __off_2
+      call 6   ; std_core$finish_buffer
+      i32.const 10
+      i32.const 0
+      struct.new 3   ; std_io$IOError
+      return
+    end $L6
+    local.get 11   ; at
+    type_check 0   ; null
+    if $L7 void
+      local.get 3   ; run
+      local.get 10   ; unread
+      array.push_all
+      local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+      ref.cast 10   ; i64
+      local.set 22   ; $field_63
+      local.get 0   ; arg 0
+      local.get 22   ; $field_63
+      struct.set 14 4   ; std_io$BufferedReader.next
+      br $L0
+    end $L7
+    local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+    ref.cast 10   ; i64
+    local.set 16   ; $field_48
+    local.get 12   ; taken
+    i64.const 1
+    i64.checked_add
+    local.set 17   ; $add_checked_50
+    local.get 16   ; $field_48
+    local.get 17   ; $add_checked_50
+    i64.checked_add
+    local.set 18   ; $add_checked_51
+    local.get 0   ; arg 0
+    local.get 18   ; $add_checked_51
+    struct.set 14 4   ; std_io$BufferedReader.next
+    local.get 3   ; run
+    array.len
+    i64.const 0
+    i64.eq
+    if $L8 void
+    else
+      local.get 12   ; taken
+      i64.const 1
+      i64.checked_add
+      local.set 20   ; $add_checked_61
+      local.get 10   ; unread
+      i64.const 0
+      local.get 20   ; $add_checked_61
+      array.slice 6   ; u8[]
+      local.set 21   ; $slice_62
+      local.get 3   ; run
+      local.get 21   ; $slice_62
+      array.push_all
+      local.get 3   ; run
+      return
+    end $L8
+    local.get 12   ; taken
+    i64.const 1
+    i64.checked_add
+    local.set 19   ; $add_checked_57
+    local.get 10   ; unread
+    i64.const 0
+    local.get 19   ; $add_checked_57
+    array.slice 6   ; u8[]
+    return
+  end $L0
+end
+
+fn 22 std_io$line_break_of (ref) -> i64
+  local count i64
+  local $sub_checked_6 i64
+  local.get 0   ; arg 0
+  array.len
+  local.tee 1   ; count
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit i64.const 0
+  end $L0
+  local.get 1   ; count
+  i64.const 1
+  i64.checked_sub
+  local.set 2   ; $sub_checked_6
+  local.get 0   ; arg 0
+  local.get 2   ; $sub_checked_6
+  array.get 6   ; u8[]
+  ref.cast 7   ; u8
+  i32.const 10
+  i32.ne
+  if $L1 void
+    return.lit i64.const 0
+  end $L1
+  local.get 1   ; count
+  i64.const 1
+  i64.gt
+  if $L2 void
+    local.get 1   ; count
+    i64.const 2
+    i64.checked_sub
+    local.set 1   ; count
+    local.get 0   ; arg 0
+    local.get 1   ; count
+    array.get 6   ; u8[]
+    ref.cast 7   ; u8
+    i32.const 13
+    i32.eq
+    if $L3 void
+      return.lit i64.const 2
+    end $L3
+    return.lit i64.const 1
+  end $L2
+  return.lit i64.const 1
+end
+
+fn 23 std_io$compact (ref) -> void
+  local $field_1 i64
+  local $field_2 i64
+  local $field_5 ref
+  local $field_7 ref
+  local.get 0   ; arg 0
+  call 25   ; std_io$reserve
+  local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+  ref.cast 10   ; i64
+  local.set 1   ; $field_1
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 2   ; $field_2
+  local.get 1   ; $field_1
+  local.get 2   ; $field_2
+  i64.checked_sub
+  local.set 1   ; $field_1
+  local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+  local.set 3   ; $field_5
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 2   ; $field_2
+  local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+  local.set 4   ; $field_7
+  local.get 3   ; $field_5
+  local.get 2   ; $field_2
+  local.get 4   ; $field_7
+  i64.const 0
+  local.get 1   ; $field_1
+  array.copy
+  local.get 0   ; arg 0
+  i64.const 0
+  struct.set 14 4   ; std_io$BufferedReader.next
+  local.get 0   ; arg 0
+  local.get 1   ; $field_1
+  struct.set 14 5   ; std_io$BufferedReader.filled
+  return
+end
+
+fn 24 std_io$refill (ref) -> any
+  local got any
+  local __coalesce_0 any
+  local $cast_12 i64
+  local.get 0   ; arg 0
+  call 25   ; std_io$reserve
+  local.field 0 14 0   ; arg 0 std_io$BufferedReader.source
+  local.set 1   ; got
+  local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+  local.get 1   ; got
+  virtual.call 2 std_io$Reader.read -> any
+  local.tee 2   ; __coalesce_0
+  type_check 0   ; null
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.get 2   ; __coalesce_0
+  local.tee 1   ; got
+  type_check 3   ; std_io$IOError
+  if $L1 void
+  else
+    local.get 0   ; arg 0
+    i64.const 0
+    struct.set 14 4   ; std_io$BufferedReader.next
+    local.get 1   ; got
+    ref.cast 10   ; i64
+    local.set 3   ; $cast_12
+    local.get 0   ; arg 0
+    local.get 3   ; $cast_12
+    struct.set 14 5   ; std_io$BufferedReader.filled
+    local.get 1   ; got
+    ref.cast 10   ; i64
+    retag 10   ; i64
+    return
+  end $L1
+  local.get 1   ; got
+  ref.cast 3   ; std_io$IOError
+  return
+end
+
+fn 25 std_io$reserve (ref) -> void
+  local $arr_6 ref
+  local $field_7 i64
+  local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i32.const 0
+    array.new 6 1   ; u8[]
+    local.set 1   ; $arr_6
+    local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
+    ref.cast 10   ; i64
+    local.set 2   ; $field_7
+    local.get 1   ; $arr_6
+    local.get 2   ; $field_7
+    array.repeat
+    local.set 1   ; $arr_6
+    local.get 0   ; arg 0
+    local.get 1   ; $arr_6
+    struct.set 14 3   ; std_io$BufferedReader.buffer
+    return
+  end $L0
+  return
+end
+
+fn 26 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+  local if_res string
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 39   ; "Other"
+    local.tee 1   ; if_res
+    return
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 40   ; "NotFound"
+    local.set 1   ; if_res
+  else
+    local.get 0   ; arg 0
+    i32.const 2
+    i32.eq
+    if $L2 void
+      string.const 41   ; "PermissionDenied"
+      local.set 1   ; if_res
+    else
+      local.get 0   ; arg 0
+      i32.const 3
+      i32.eq
+      if $L3 void
+        string.const 42   ; "Interrupted"
+        local.set 1   ; if_res
+      else
+        local.get 0   ; arg 0
+        i32.const 4
+        i32.eq
+        if $L4 void
+          string.const 43   ; "AlreadyExists"
+          local.set 1   ; if_res
+        else
+          local.get 0   ; arg 0
+          i32.const 5
+          i32.eq
+          if $L5 void
+            string.const 44   ; "NotADirectory"
+            local.set 1   ; if_res
+          else
+            local.get 0   ; arg 0
+            i32.const 6
+            i32.eq
+            if $L6 void
+              string.const 45   ; "IsADirectory"
+              local.set 1   ; if_res
+            else
+              local.get 0   ; arg 0
+              i32.const 7
+              i32.eq
+              if $L7 void
+                string.const 46   ; "WouldBlock"
+                local.set 1   ; if_res
+              else
+                local.get 0   ; arg 0
+                i32.const 8
+                i32.eq
+                if $L8 void
+                  string.const 47   ; "BrokenPipe"
+                  local.set 1   ; if_res
+                else
+                  local.get 0   ; arg 0
+                  i32.const 9
+                  i32.eq
+                  if $L9 void
+                    string.const 48   ; "NoSpace"
+                    local.set 1   ; if_res
+                  else
+                    local.get 0   ; arg 0
+                    i32.const 10
+                    i32.eq
+                    if $L10 void
+                      string.const 49   ; "InvalidInput"
+                      local.set 1   ; if_res
+                    else
+                      local.get 0   ; arg 0
+                      i32.const 11
+                      i32.eq
+                      if $L11 void
+                        string.const 50   ; "DirectoryNotEmpty"
+                        local.set 1   ; if_res
+                      else
+                        local.get 0   ; arg 0
+                        i32.const 12
+                        i32.eq
+                        if $L12 void
+                          string.const 51   ; "BadHandle"
+                          local.set 1   ; if_res
+                        else
+                          local.get 0   ; arg 0
+                          i32.const 13
+                          i32.eq
+                          if $L13 void
+                          else
+                            unreachable
+                          end $L13
+                          string.const 52   ; "EndOfInput"
+                          local.set 1   ; if_res
+                        end $L12
+                      end $L11
+                    end $L10
+                  end $L9
+                end $L8
+              end $L7
+            end $L6
+          end $L5
+        end $L4
+      end $L3
+    end $L2
+  end $L1
+  local.get 1   ; if_res
+  return
+end
+
+fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
+  local bytes ref
+  local $len_9 i64
+  local $field_10 i64
+  local.get 1   ; arg 1
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i64.const 0
+    retag 10   ; i64
+    return
+  end $L0
+  local.field 0 18 0   ; arg 0 std_io$BytesReader.content
+  call 34   ; std_io$bytes_of
+  local.tee 2   ; bytes
+  array.len
+  local.set 3   ; $len_9
+  local.field 0 18 1   ; arg 0 std_io$BytesReader.position
+  ref.cast 10   ; i64
+  local.set 4   ; $field_10
+  local.get 3   ; $len_9
+  local.get 4   ; $field_10
+  i64.checked_sub
+  local.tee 3   ; $len_9
+  i64.const 0
+  i64.eq
+  if $L1 void
+  else
+    local.get 1   ; arg 1
+    array.len
+    local.set 4   ; $field_10
+    local.get 3   ; $len_9
+    local.get 4   ; $field_10
+    call 35   ; std_math$min__i64
+    local.set 3   ; $len_9
+    local.field 0 18 1   ; arg 0 std_io$BytesReader.position
+    ref.cast 10   ; i64
+    local.set 4   ; $field_10
+    local.get 2   ; bytes
+    local.get 4   ; $field_10
+    local.get 1   ; arg 1
+    i64.const 0
+    local.get 3   ; $len_9
+    array.copy
+    local.field 0 18 1   ; arg 0 std_io$BytesReader.position
+    ref.cast 10   ; i64
+    local.get 3   ; $len_9
+    i64.checked_add
+    local.set 4   ; $field_10
+    local.get 0   ; arg 0
+    local.get 4   ; $field_10
+    struct.set 18 1   ; std_io$BytesReader.position
+    local.get 3   ; $len_9
+    retag 10   ; i64
+    return
+  end $L1
+  return.lit null.const
+end
+
+fn 28 std_io$BytesWriter$Writer$write (ref,any) -> any
+  local $field_2 ref
+  local $call_3 ref
+  local.field 0 19 0   ; arg 0 std_io$BytesWriter.written
+  local.set 2   ; $field_2
+  local.get 1   ; arg 1
+  call 34   ; std_io$bytes_of
+  local.set 3   ; $call_3
+  local.get 2   ; $field_2
+  local.get 3   ; $call_3
+  array.push_all
+  return.lit null.const
+end
+
+fn 29 std_io$FragmentedReader$Reader$read (ref,ref) -> any
+  local $field_2 any
+  local $len_4 i64
+  local $field_5 i64
+  local.field 0 21 0   ; arg 0 std_io$FragmentedReader.source
+  local.set 2   ; $field_2
+  local.get 1   ; arg 1
+  array.len
+  local.set 3   ; $len_4
+  local.field 0 21 1   ; arg 0 std_io$FragmentedReader.size
+  ref.cast 10   ; i64
+  local.set 4   ; $field_5
+  local.get 3   ; $len_4
+  local.get 4   ; $field_5
+  call 35   ; std_math$min__i64
+  local.set 3   ; $len_4
+  local.get 1   ; arg 1
+  i64.const 0
+  local.get 3   ; $len_4
+  array.slice 6   ; u8[]
+  local.get 2   ; $field_2
+  virtual.call 2 std_io$Reader.read -> any
+  return
+end
+
+fn 30 std_io$FailingReader$Reader$read (ref,ref) -> any
+  local $field_2 i64
+  local $field_3 i64
+  local __spread_0 ref
+  local $field_7 string
+  local $field_8 u8
+  local $field_9 i32
+  local $field_14 any
+  local.field 0 22 3   ; arg 0 std_io$FailingReader.seen
+  ref.cast 10   ; i64
+  local.set 2   ; $field_2
+  local.field 0 22 1   ; arg 0 std_io$FailingReader.calls
+  ref.cast 10   ; i64
+  local.set 3   ; $field_3
+  local.get 2   ; $field_2
+  local.get 3   ; $field_3
+  i64.ge
+  if $L0 void
+  else
+    local.field 0 22 3   ; arg 0 std_io$FailingReader.seen
+    ref.cast 10   ; i64
+    i64.const 1
+    i64.checked_add
+    local.set 2   ; $field_2
+    local.get 0   ; arg 0
+    local.get 2   ; $field_2
+    struct.set 22 3   ; std_io$FailingReader.seen
+    local.field 0 22 0   ; arg 0 std_io$FailingReader.source
+    local.set 8   ; $field_14
+    local.get 1   ; arg 1
+    local.get 8   ; $field_14
+    virtual.call 2 std_io$Reader.read -> any
+    return
+  end $L0
+  local.field 0 22 2   ; arg 0 std_io$FailingReader.failure
+  local.set 4   ; __spread_0
+  local.field 4 3 0   ; __spread_0 std_io$IOError.msg
+  ref.cast 4   ; string
+  local.set 5   ; $field_7
+  local.field 4 3 1   ; __spread_0 std_io$IOError.kind
+  local.set 6   ; $field_8
+  local.field 4 3 2   ; __spread_0 std_io$IOError.code
+  ref.cast 1   ; i32
+  local.set 7   ; $field_9
+  local.get 5   ; $field_7
+  local.get 6   ; $field_8
+  local.get 7   ; $field_9
+  struct.new 3   ; std_io$IOError
+  return
+end
+
+fn 31 std_io$FailingWriter$Writer$write (ref,any) -> any
+  local $field_2 i64
+  local $field_3 i64
+  local __spread_0 ref
+  local $field_7 string
+  local $field_8 u8
+  local $field_9 i32
+  local $field_14 any
+  local.field 0 23 3   ; arg 0 std_io$FailingWriter.seen
+  ref.cast 10   ; i64
+  local.set 2   ; $field_2
+  local.field 0 23 1   ; arg 0 std_io$FailingWriter.calls
+  ref.cast 10   ; i64
+  local.set 3   ; $field_3
+  local.get 2   ; $field_2
+  local.get 3   ; $field_3
+  i64.ge
+  if $L0 void
+  else
+    local.field 0 23 3   ; arg 0 std_io$FailingWriter.seen
+    ref.cast 10   ; i64
+    i64.const 1
+    i64.checked_add
+    local.set 2   ; $field_2
+    local.get 0   ; arg 0
+    local.get 2   ; $field_2
+    struct.set 23 3   ; std_io$FailingWriter.seen
+    local.field 0 23 0   ; arg 0 std_io$FailingWriter.sink
+    local.set 8   ; $field_14
+    local.get 1   ; arg 1
+    local.get 8   ; $field_14
+    virtual.call 2 std_io$Writer.write -> any
+    return
+  end $L0
+  local.field 0 23 2   ; arg 0 std_io$FailingWriter.failure
+  local.set 4   ; __spread_0
+  local.field 4 3 0   ; __spread_0 std_io$IOError.msg
+  ref.cast 4   ; string
+  local.set 5   ; $field_7
+  local.field 4 3 1   ; __spread_0 std_io$IOError.kind
+  local.set 6   ; $field_8
+  local.field 4 3 2   ; __spread_0 std_io$IOError.code
+  ref.cast 1   ; i32
+  local.set 7   ; $field_9
+  local.get 5   ; $field_7
+  local.get 6   ; $field_8
+  local.get 7   ; $field_9
+  struct.new 3   ; std_io$IOError
+  return
+end
+
+fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
+  local $field_6 i64
+  local $field_7 i64
+  local $field_12 any
+  local __coalesce_0 any
+  local $field_28 ref
+  local.get 1   ; arg 1
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i64.const 0
+    retag 10   ; i64
+    return
+  end $L0
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 2   ; $field_6
+  local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+  ref.cast 10   ; i64
+  local.set 3   ; $field_7
+  local.get 2   ; $field_6
+  local.get 3   ; $field_7
+  i64.eq
+  if $L1 void
+    local.get 1   ; arg 1
+    array.len
+    local.set 2   ; $field_6
+    local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
+    ref.cast 10   ; i64
+    local.set 3   ; $field_7
+    local.get 2   ; $field_6
+    local.get 3   ; $field_7
+    i64.ge
+    if $L2 void
+      local.field 0 14 0   ; arg 0 std_io$BufferedReader.source
+      local.set 4   ; $field_12
+      local.get 1   ; arg 1
+      local.get 4   ; $field_12
+      virtual.call 2 std_io$Reader.read -> any
+      return
+    end $L2
+    local.get 0   ; arg 0
+    call 24   ; std_io$refill
+    local.tee 5   ; __coalesce_0
+    type_check 0   ; null
+    if $L3 void
+      return.lit null.const
+    end $L3
+    local.get 5   ; __coalesce_0
+    local.tee 4   ; $field_12
+    type_check 3   ; std_io$IOError
+    if $L4 void
+      local.get 4   ; $field_12
+      ref.cast 3   ; std_io$IOError
+      return
+    end $L4
+  end $L1
+  local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
+  ref.cast 10   ; i64
+  local.set 2   ; $field_6
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 3   ; $field_7
+  local.get 2   ; $field_6
+  local.get 3   ; $field_7
+  i64.checked_sub
+  local.set 2   ; $field_6
+  local.get 1   ; arg 1
+  array.len
+  local.set 3   ; $field_7
+  local.get 2   ; $field_6
+  local.get 3   ; $field_7
+  call 35   ; std_math$min__i64
+  local.set 2   ; $field_6
+  local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
+  local.set 6   ; $field_28
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.set 3   ; $field_7
+  local.get 6   ; $field_28
+  local.get 3   ; $field_7
+  local.get 1   ; arg 1
+  i64.const 0
+  local.get 2   ; $field_6
+  array.copy
+  local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
+  ref.cast 10   ; i64
+  local.get 2   ; $field_6
+  i64.checked_add
+  local.set 3   ; $field_7
+  local.get 0   ; arg 0
+  local.get 3   ; $field_7
+  struct.set 14 4   ; std_io$BufferedReader.next
+  local.get 2   ; $field_6
+  retag 10   ; i64
+  return
+end
+
+fn 33 std_io$BufferedWriter$Writer$write (ref,any) -> any
+  local bytes ref
+  local $len_5 i64
+  local $len_6 i64
+  local flushed any
+  local.get 1   ; arg 1
+  call 34   ; std_io$bytes_of
+  local.set 2   ; bytes
+  local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
+  array.len
+  local.set 3   ; $len_5
+  local.get 2   ; bytes
+  array.len
+  local.set 4   ; $len_6
+  local.get 3   ; $len_5
+  local.get 4   ; $len_6
+  i64.checked_add
+  local.set 3   ; $len_5
+  local.field 0 16 1   ; arg 0 std_io$BufferedWriter.capacity
+  ref.cast 10   ; i64
+  local.set 4   ; $len_6
+  local.get 3   ; $len_5
+  local.get 4   ; $len_6
+  i64.gt
+  if $L0 void
+    local.get 0   ; arg 0
+    call 20   ; std_io$flush
+    local.tee 5   ; flushed
+    type_check 3   ; std_io$IOError
+    if $L1 void
+      local.get 5   ; flushed
+      ref.cast 3   ; std_io$IOError
+      return
+    end $L1
+  end $L0
+  local.get 2   ; bytes
+  array.len
+  local.set 3   ; $len_5
+  local.field 0 16 1   ; arg 0 std_io$BufferedWriter.capacity
+  ref.cast 10   ; i64
+  local.set 4   ; $len_6
+  local.get 3   ; $len_5
+  local.get 4   ; $len_6
+  i64.ge
+  if $L2 void
+  else
+    local.field 0 16 2   ; arg 0 std_io$BufferedWriter.buffer
+    local.get 2   ; bytes
+    array.push_all
+    return.lit null.const
+  end $L2
+  local.field 0 16 0   ; arg 0 std_io$BufferedWriter.sink
+  local.set 5   ; flushed
+  local.get 2   ; bytes
+  local.get 5   ; flushed
+  virtual.call 2 std_io$Writer.write -> any
+  return
+end
+
+fn 34 std_io$bytes_of (any) -> ref
+  local.get 0   ; arg 0
+  type_check 4   ; string
+  if $L0 void
+    local.get 0   ; arg 0
+    ref.cast 4   ; string
+    call.import 2   ; std_core$bytes
+    return
+  end $L0
+  local.get 0   ; arg 0
+  ref.cast 6   ; u8[]
+  return
+end
+
+fn 35 std_math$min__i64 (i64,i64) -> i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i64.lt
+  if $L0 void
+    local.get 0   ; arg 0
+    return
+  end $L0
+  local.get 1   ; arg 1
+  return
+end

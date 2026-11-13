@@ -1,0 +1,23 @@
+# stdout
+start: POST /notes HTTP/1.1
+header: Content-Length
+next: [ ]
+value: [ 5]
+blank: []
+body: hello
+rest: [ and more]
+at the end: nothing
+past the end: EndOfInput: end of input after 0 of 1 bytes
+too long: InvalidInput: more than 4 bytes to the end
+gathered, not written: 0
+a write the buffer cannot hold: 25
+before the flush: 25
+after the flush: 27
+answer: [HTTP/1.1 204 No Content]
+answer: []
+before the failure: one
+the failure: Other: the stream failed
+gathered: nothing
+flushed: BrokenPipe: the peer left
+# exit
+0

@@ -1,0 +1,87 @@
+module "snippet"
+
+import "std/console"
+import "std/io"
+
+// A request read from a stream that hands out three bytes at a time, through a
+// `BufferedReader` smaller than its lines, then an answer gathered by a
+// `BufferedWriter`, then a stream that fails: no file and no socket, so the
+// native run and the interpreter compare byte for byte.
+main :: fn() -> i32 {
+    request :: "POST /notes HTTP/1.1\r\nContent-Length: 5\r\n\r\nhello and more"
+    reader :: BufferedReader {
+        .source = FragmentedReader { .source = BytesReader { .content = request }, .size = 3 },
+        .capacity = 16,
+    }
+    println("start: ${line_text(reader.read_line())}")
+    println("header: ${bytes_text(reader.read_until(':', 64))}")
+    println("next: [${bytes_text(reader.peek(1))}]")
+    println("value: [${line_text(reader.read_line())}]")
+    println("blank: [${line_text(reader.read_line())}]")
+    println("body: ${bytes_text(reader.read_exact(5))}")
+    println("rest: [${bytes_text(reader.read_to_end(64))}]")
+    println("at the end: ${line_text(reader.read_line())}")
+    println("past the end: ${bytes_text(reader.read_exact(1))}")
+
+    long :: BufferedReader { .source = BytesReader { .content = "a body past its limit" } }
+    println("too long: ${bytes_text(long.read_to_end(4))}")
+
+    answer :: BytesWriter {}
+    writer :: BufferedWriter { .sink = answer, .capacity = 16 }
+    writer.write("HTTP/1.1 ")
+    println("gathered, not written: ${answer.written.len()}")
+    writer.write("204 No Content\r\n")
+    println("a write the buffer cannot hold: ${answer.written.len()}")
+    writer.write([13, 10])
+    println("before the flush: ${answer.written.len()}")
+    writer.flush()
+    println("after the flush: ${answer.written.len()}")
+    written :: BufferedReader { .source = BytesReader { .content = answer.written } }
+    for line in written.lines() {
+        println("answer: [${line}]")
+    }
+
+    broken :: BufferedReader {
+        .source = FailingReader {
+            .source = FragmentedReader {
+                .source = BytesReader { .content = "one\ntwo\n" },
+                .size = 4,
+            },
+            .calls = 1,
+        },
+    }
+    println("before the failure: ${line_text(broken.read_line())}")
+    println("the failure: ${line_text(broken.read_line())}")
+
+    refused :: BufferedWriter {
+        .sink = FailingWriter {
+            .sink = BytesWriter {},
+            .calls = 0,
+            .failure = IOError { .msg = "the peer left", .kind = .BrokenPipe },
+        },
+    }
+    println("gathered: ${outcome(refused.write("late"))}")
+    println("flushed: ${outcome(refused.flush())}")
+    return 0
+}
+
+line_text :: fn(line: string | null | IOError) -> string {
+    if line is string {
+        return line
+    }
+    return outcome(line)
+}
+
+bytes_text :: fn(bytes: u8[] | null | IOError) -> string {
+    if bytes is u8[] {
+        return bytes.bytes_to_string()
+    }
+    return outcome(bytes)
+}
+
+outcome :: fn(result: null | IOError) -> string {
+    if result is IOError {
+        return "${result.kind}: ${result.msg}"
+    }
+    return "nothing"
+}
