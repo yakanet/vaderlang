@@ -48,17 +48,17 @@ bool vader_support_text$module_in_scope(vader_string_t l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
     l2 = l1;
-    l3 = ((vader_array_t*) l2)->length;
+    l3 = vader_array_length(((vader_array_t*) l2));
     l4 = INT64_C(0);
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
+        t0 = vader_array_box_slots(_a0_slotarr->buf)[vader_array_offset(_a0_slotarr) + (size_t) l4];
         l5 = t0.payload.s;
         if (l0 == l5) {
             { vader_gc_top = gc_frame.prev; return true; }
         }
-        l6 = concat_2(l5, 484u);
+        l6 = concat_2(l5, 483u);
         t1 = std_string$starts_with(l0, l6);
         if (t1) {
             { vader_gc_top = gc_frame.prev; return true; }

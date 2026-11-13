@@ -79,14 +79,14 @@ void* toolchain_span$empty_span(void) {
     vader_gc_top = &gc_frame;
     vader_struct_toolchain_span$Position_t* _a0_obj = (vader_struct_toolchain_span$Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Position_t));
     vader_obj_header_init(_a0_obj, 969u);
-    _a0_obj->f_file = 563u;
+    _a0_obj->f_file = 562u;
     _a0_obj->f_offset = INT64_C(0);
     _a0_obj->f_line = INT32_C(1);
     _a0_obj->f_column = INT32_C(1);
     l0 = (void*) _a0_obj;
     vader_struct_toolchain_span$Position_t* _a1_obj = (vader_struct_toolchain_span$Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span$Position_t));
     vader_obj_header_init(_a1_obj, 969u);
-    _a1_obj->f_file = 563u;
+    _a1_obj->f_file = 562u;
     _a1_obj->f_offset = INT64_C(1);
     _a1_obj->f_line = INT32_C(1);
     _a1_obj->f_column = INT32_C(2);
@@ -131,7 +131,7 @@ bool toolchain_span$has_source_position(void* l0) {
         return false;
     }
     t0 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_file;
-    if (!(t0 == 563u)) {
+    if (!(t0 == 562u)) {
         t1 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_line;
         return (t1 > INT32_C(0));
     }
@@ -155,11 +155,11 @@ vader_string_t toolchain_span$source_position(void* l0) {
     l3 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l2));
     l2 = INT64_C(0);
     l2 = std_core$write_string_at(l3, l2, l1);
-    l2 = std_core$write_string_at(l3, l2, 506u);
+    l2 = std_core$write_string_at(l3, l2, 505u);
     t0 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_line;
     l4 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l3, l2, l4);
-    l2 = std_core$write_string_at(l3, l2, 506u);
+    l2 = std_core$write_string_at(l3, l2, 505u);
     t0 = ((vader_struct_toolchain_span$Position_t*) ((vader_struct_toolchain_span$Span_t*) l0)->f_start)->f_column;
     l4 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l3, l2, l4);

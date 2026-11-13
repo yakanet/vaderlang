@@ -33,12 +33,12 @@ static void* vader_pipeline_check$assemble_typed_project(void* l0) {
     t0 = std_collections$is_empty__string__Any(((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_all_modules);
     if (t0) {
         l9 = ((vader_struct_vader_front_typecheck$CheckResult_t*) l2)->f_others;
-        l6 = ((vader_array_t*) l9)->length;
+        l6 = vader_array_length(((vader_array_t*) l9));
         l7 = INT64_C(0);
         while ((l7 < l6)) {
             vader_array_t* _a0_slotarr = ((vader_array_t*) l9);
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-            l10 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l7);
+            l10 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l7);
             l11 = ((vader_struct_vader_front_typecheck$TypedProject_t*) l1)->f_modules;
             l8 = ((vader_struct_vader_front_resolver$ResolvedModule_t*) ((vader_struct_vader_front_typecheck$TypedProgram_t*) l10)->f_resolved)->f_path;
             std_collections$Map$std_core$IndexSet$set_at__string__Any(l11, l8, vader_ref_box(l10));
@@ -55,12 +55,12 @@ static void* vader_pipeline_check$assemble_typed_project(void* l0) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
-        t1 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l6];
+        t1 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l6];
         l4 = t1.payload.s;
         vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
-        l2 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
+        l2 = vader_array_ref_load_obj(_a2_slotarr->buf, vader_array_offset(_a2_slotarr) + (size_t) l6);
         l8 = l4;
         l9 = l2;
         std_collections$Map$std_core$IndexSet$set_at__string__Any(((vader_struct_vader_front_typecheck$TypedProject_t*) l1)->f_modules, l8, vader_ref_box(l9));
@@ -144,12 +144,12 @@ static void vader_pipeline_check$lint_dead_code(void* l0, void* l1) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l7)
-        t1 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l7];
+        t1 = vader_array_box_slots(_a0_slotarr->buf)[vader_array_offset(_a0_slotarr) + (size_t) l7];
         l3 = t1.payload.s;
         vader_array_t* _a1_slotarr = ((vader_array_t*) l6);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l7)
-        l2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l7);
+        l2 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) l7);
         l9 = l3;
         l10 = l2;
         l11 = ((vader_struct_vader_front_resolver$LoadedProject_t*) l0)->f_entry;

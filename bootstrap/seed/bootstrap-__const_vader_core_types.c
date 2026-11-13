@@ -24,8 +24,8 @@ void* __const_vader_core_types$CHAR_VALUES(void) {
     _a1_obj->f_hi_past = (uint64_t) 0;
     l1 = (void*) _a1_obj;
     vader_array_t* _a2_arr = vader_array_new(361u, 2u, 13u, 1698u);
-    ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = l1;
-    ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = l0;
+    ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l1;
+    ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     t0 = (void*) _a2_arr;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

@@ -20,11 +20,11 @@ vader_string_t std_env$current_executable_location(void) {
     };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(30u, 1u, 2u, 505u);
-    ((uint16_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint16_t) INT32_C(0);
+    ((uint16_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint16_t) INT32_C(0);
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(4096));
     l0 = (void*) _a1_arr;
-    t1 = ((vader_array_t*) l0)->length;
+    t1 = vader_array_length(((vader_array_t*) l0));
     t2 = ((int32_t) (int64_t) t1);
     l1 = (uint32_t) (int32_t) t2;
     l1 = vader_host_system_windows$get_module_file_name(vader_box_obj(0u, NULL), l0, l1);
@@ -32,7 +32,7 @@ vader_string_t std_env$current_executable_location(void) {
         l2 = true;
     } else {
         l3 = ((int64_t) (uint32_t) l1);
-        l4 = ((vader_array_t*) l0)->length;
+        l4 = vader_array_length(((vader_array_t*) l0));
         l2 = (l3 >= l4);
     }
     if (!(l2)) {
@@ -41,7 +41,7 @@ vader_string_t std_env$current_executable_location(void) {
         t4 = std_path$to_posix(t3);
         { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return 433u; }
+    { vader_gc_top = gc_frame.prev; return 432u; }
 }
 
 vader_string_t std_env$current_working_directory(void) {
@@ -61,17 +61,17 @@ vader_string_t std_env$current_working_directory(void) {
     };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(30u, 1u, 2u, 505u);
-    ((uint16_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint16_t) INT32_C(0);
+    ((uint16_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint16_t) INT32_C(0);
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(4096));
     l0 = (void*) _a1_arr;
-    t1 = ((vader_array_t*) l0)->length;
+    t1 = vader_array_length(((vader_array_t*) l0));
     l1 = vader_host_system_windows$get_current_directory((uint32_t) (int32_t) ((int32_t) (int64_t) t1), l0);
     if (l1 == INT32_C(0)) {
         l2 = true;
     } else {
         l3 = ((int64_t) (uint32_t) l1);
-        l4 = ((vader_array_t*) l0)->length;
+        l4 = vader_array_length(((vader_array_t*) l0));
         l2 = (l3 >= l4);
     }
     if (!(l2)) {
@@ -80,7 +80,7 @@ vader_string_t std_env$current_working_directory(void) {
         t3 = std_path$to_posix(t2);
         { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return 433u; }
+    { vader_gc_top = gc_frame.prev; return 432u; }
 }
 
 vader_box_t std_env$get_env(vader_string_t l0) {
@@ -105,7 +105,7 @@ vader_box_t std_env$get_env(vader_string_t l0) {
         l3 = vader_host_system_windows$get_environment_variable_w(l1, l2, (uint32_t) 0);
         if (!(l3 == INT32_C(0))) {
             vader_array_t* _a1_arr = vader_array_new(30u, 1u, 2u, 505u);
-            ((uint16_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (uint16_t) INT32_C(0);
+            ((uint16_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 0u] = (uint16_t) INT32_C(0);
             l4 = (void*) _a1_arr;
             l5 = ((int64_t) (uint32_t) l3);
             vader_array_t* _a2_arr = vader_array_repeat((vader_array_t*) l4, (int64_t) l5);
@@ -165,6 +165,6 @@ vader_box_t std_env$set_current_working_directory(vader_string_t l0) {
     if (!(t1 == INT32_C(0))) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    t0 = std_io$last_io_error(1841u);
+    t0 = std_io$last_io_error(1840u);
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }

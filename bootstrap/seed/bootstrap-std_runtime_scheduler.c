@@ -62,12 +62,12 @@ void std_runtime_scheduler$let_go(void* l0) {
     int64_t t0;
     ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_held = false;
     l1 = ((vader_struct_std_runtime_scheduler$InitGate_t*) l0)->f_waiters;
-    l2 = ((vader_array_t*) l1)->length;
+    l2 = vader_array_length(((vader_array_t*) l1));
     l3 = INT64_C(0);
     while ((l3 < l2)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
+        t0 = ((int64_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l3];
         vader_host_std_runtime_scheduler$wake(t0);
         l3 = (l3 + INT64_C(1));
     }

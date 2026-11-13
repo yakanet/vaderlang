@@ -57,14 +57,14 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
     };
     vader_gc_top = &gc_frame;
     if (l0 == INT64_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 497u; }
+        { vader_gc_top = gc_frame.prev; return 496u; }
     }
     vader_array_t* _a0_arr = vader_array_new(25u, 0u, 11u, 498u);
     l3 = (void*) _a0_arr;
     l4 = l0;
     vader_array_t* _pc10_hdr = (vader_array_t*) l3;
-    size_t _pc10_len = _pc10_hdr->length;
-    size_t _pc10_cap = vader_array_is_borrowed(_pc10_hdr) ? (size_t) 0 : _pc10_hdr->capacity;
+    size_t _pc10_len = vader_array_length(_pc10_hdr);
+    size_t _pc10_cap = vader_array_is_borrowed(_pc10_hdr) ? (size_t) 0 : vader_array_capacity(_pc10_hdr);
     void* _pc10_slots = _pc10_hdr->buf->slots;
     for (;;) {
         if ((l4 > INT64_C(0))) {
@@ -74,20 +74,20 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
                 ((int32_t*) _pc10_slots)[_pc10_len] = (int32_t) ((int32_t) (uint32_t) l5);
                 _pc10_len += 1;
             } else {
-                _pc10_hdr->length = _pc10_len;
+                vader_array_set_length(_pc10_hdr, _pc10_len);
                 if (_pc10_hdr->buf->length < _pc10_len) {
                     _pc10_hdr->buf->length = _pc10_len;
                 }
                 vader_array_push_i32((vader_array_t*) l3, (int32_t) (uint32_t) l5);
                 _pc10_hdr = (vader_array_t*) l3;
-                _pc10_len = _pc10_hdr->length;
-                _pc10_cap = vader_array_is_borrowed(_pc10_hdr) ? (size_t) 0 : _pc10_hdr->capacity;
+                _pc10_len = vader_array_length(_pc10_hdr);
+                _pc10_cap = vader_array_is_borrowed(_pc10_hdr) ? (size_t) 0 : vader_array_capacity(_pc10_hdr);
                 _pc10_slots = _pc10_hdr->buf->slots;
             }
             l4 = vader_div_u64(l4, l1);
             continue;
         }
-        _pc10_hdr->length = _pc10_len;
+        vader_array_set_length(_pc10_hdr, _pc10_len);
         if (_pc10_hdr->buf->length < _pc10_len) {
             _pc10_hdr->buf->length = _pc10_len;
         }
@@ -99,7 +99,7 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
     vader_obj_header_init(_a2_obj, 876u);
     _a2_obj->f_parts = t1;
     l6 = (void*) _a2_obj;
-    l7 = ((vader_array_t*) l3)->length;
+    l7 = vader_array_length(((vader_array_t*) l3));
     l8 = INT64_C(0);
     while ((l8 < l7)) {
         t2 = vader_chk_sub(i64, l7, INT64_C(1));
@@ -107,7 +107,7 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
         vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l9)
-        t3 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l9];
+        t3 = ((int32_t*) _a3_slotarr->buf->slots)[vader_array_offset(_a3_slotarr) + (size_t) l9];
         l5 = (uint32_t) (int32_t) t3;
         std_string__builder$append_char(l6, l5);
         l8 = (l8 + INT64_C(1));
@@ -273,7 +273,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
     if (t0) {
         vader_struct_std_string$ParseError_t* _a0_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
         vader_obj_header_init(_a0_obj, 875u);
-        _a0_obj->f_msg = 2007u;
+        _a0_obj->f_msg = 2005u;
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
@@ -294,7 +294,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
                 if (l11.tag == 0u) {
                     vader_struct_std_string$ParseError_t* _a1_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                     vader_obj_header_init(_a1_obj, 875u);
-                    _a1_obj->f_msg = 2345u;
+                    _a1_obj->f_msg = 2343u;
                     t1 = (void*) _a1_obj;
                     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
                 }
@@ -302,7 +302,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
                 if ((l10 >= l1)) {
                     vader_struct_std_string$ParseError_t* _a2_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                     vader_obj_header_init(_a2_obj, 875u);
-                    _a2_obj->f_msg = 2345u;
+                    _a2_obj->f_msg = 2343u;
                     t1 = (void*) _a2_obj;
                     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
                 }
@@ -319,7 +319,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
                 if (l12) {
                     vader_struct_std_string$ParseError_t* _a3_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                     vader_obj_header_init(_a3_obj, 875u);
-                    _a3_obj->f_msg = 2611u;
+                    _a3_obj->f_msg = 2608u;
                     t1 = (void*) _a3_obj;
                     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
                 }
@@ -350,7 +350,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
             if (l20.tag == 0u) {
                 vader_struct_std_string$ParseError_t* _a4_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a4_obj, 875u);
-                _a4_obj->f_msg = 2345u;
+                _a4_obj->f_msg = 2343u;
                 t1 = (void*) _a4_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -358,7 +358,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
             if ((l19 >= l1)) {
                 vader_struct_std_string$ParseError_t* _a5_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a5_obj, 875u);
-                _a5_obj->f_msg = 2345u;
+                _a5_obj->f_msg = 2343u;
                 t1 = (void*) _a5_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -375,7 +375,7 @@ vader_box_t std_numbers$parse_uint_in_base(vader_string_t l0, int32_t l1) {
             if (l21) {
                 vader_struct_std_string$ParseError_t* _a6_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
                 vader_obj_header_init(_a6_obj, 875u);
-                _a6_obj->f_msg = 2611u;
+                _a6_obj->f_msg = 2608u;
                 t1 = (void*) _a6_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
@@ -411,7 +411,7 @@ vader_string_t std_numbers$strip_numeric_text(vader_string_t l0, int32_t l1) {
     }
     l3 = vader_host_std_core$byte_len(l0);
     l4 = vader_host_std_core$byte_slice(l0, l2, l3);
-    t0 = std_string$string$std_core$Contains$contains(l4, 1048u);
+    t0 = std_string$string$std_core$Contains$contains(l4, 1047u);
     if (!(t0)) {
         { vader_string_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
     }

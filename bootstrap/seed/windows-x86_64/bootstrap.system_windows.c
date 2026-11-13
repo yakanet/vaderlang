@@ -37,7 +37,7 @@ void* system_windows$to_wide(vader_string_t l0) {
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a2_arr = vader_array_new(30u, 1u, 2u, 505u);
-    ((uint16_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (uint16_t) INT32_C(0);
+    ((uint16_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = (uint16_t) INT32_C(0);
     l1 = (void*) _a2_arr;
     l3 = ((int64_t) (int32_t) l2);
     vader_array_t* _a3_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l3);
@@ -69,7 +69,7 @@ static void* system_windows$wide_to_utf8(void* l0, int32_t l1) {
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a2_arr = vader_array_new(29u, 1u, 1u, 504u);
-    ((uint8_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (uint8_t) INT32_C(0);
+    ((uint8_t*) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = (uint8_t) INT32_C(0);
     l2 = (void*) _a2_arr;
     l4 = ((int64_t) (int32_t) l3);
     vader_array_t* _a3_arr = vader_array_repeat((vader_array_t*) l2, (int64_t) l4);

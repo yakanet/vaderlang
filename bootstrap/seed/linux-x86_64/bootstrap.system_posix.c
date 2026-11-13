@@ -13,13 +13,13 @@ vader_string_t system_posix$up_to_nul(void* l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = ((vader_array_t*) l0)->length;
+    l1 = vader_array_length(((vader_array_t*) l0));
     l2 = INT64_C(0);
-    l3 = ((vader_array_t*) l0)->length;
+    l3 = vader_array_length(((vader_array_t*) l0));
     while ((l2 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l2, 504u);
+        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 504u);
         t1 = ((uint8_t) t0.payload.i);
         if (t1 == INT32_C(0)) {
             l1 = l2;
