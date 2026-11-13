@@ -461,7 +461,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(20u, 684u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(24u, 684u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(5u, 4u, 652u),
     .slots = {
@@ -793,7 +793,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(20u, 652u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(24u, 652u, &vader_data_1_buf);
 static const struct vader_struct_std_numbers$DecimalDigits_t vader_data_2_e0 = {
     VADER_STATIC_HEADER(17u), 13u, (int64_t) UINT64_C(1),
 };
@@ -940,26 +940,26 @@ const vader_type_info_t vader_type_info_table[27] = {
         .string_count = 1,
     },
     [19] = { .slot_size = 16 },
-    [20] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
-    },
-    [21] = { .slot_size = 16 },
-    [22] = {
+    [20] = { .slot_size = 16 },
+    [21] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_string_string_66940ed4_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_string_string_66940ed4_t, f__0), offsetof(vader_struct___Tuple_string_string_66940ed4_t, f__1) },
         .string_count = 2,
     },
-    [23] = {
+    [22] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_string__builder$StringBuilder_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string__builder$StringBuilder_t, f_parts) },
         .ref_count = 1,
     },
-    [24] = {
+    [23] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+    },
+    [24] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
     [25] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -2631,10 +2631,10 @@ static vader_string_t std_numbers$digits_in_base(uint64_t l0, uint64_t l1, bool 
         }
         break;
     }
-    vader_array_t* _a1_arr = vader_array_new(24u, 0u, 0u, 2u);
+    vader_array_t* _a1_arr = vader_array_new(23u, 0u, 0u, 2u);
     t1 = (void*) _a1_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a2_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a2_obj, 23u);
+    vader_obj_header_init(_a2_obj, 22u);
     _a2_obj->f_parts = t1;
     l6 = (void*) _a2_obj;
     l7 = vader_array_length(((vader_array_t*) l3));
@@ -2701,10 +2701,10 @@ static vader_string_t std_numbers$grouped(vader_string_t l0, vader_string_t l1, 
     if (l4 == INT64_C(0)) {
         l4 = l2;
     }
-    vader_array_t* _a0_arr = vader_array_new(24u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(23u, 0u, 0u, 2u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 23u);
+    vader_obj_header_init(_a1_obj, 22u);
     _a1_obj->f_parts = t0;
     l5 = (void*) _a1_obj;
     l6 = vader_host_std_core$byte_slice(l0, INT64_C(0), l4);
@@ -2780,10 +2780,10 @@ static void* std_numbers$round_at(void* l0, int64_t l1) {
                 l3 = vader_chk_sub(i64, l3, INT64_C(1));
             }
             if (!((l3 < INT64_C(0)))) {
-                vader_array_t* _a3_arr = vader_array_new(24u, 0u, 0u, 2u);
+                vader_array_t* _a3_arr = vader_array_new(23u, 0u, 0u, 2u);
                 t3 = (void*) _a3_arr;
                 vader_struct_std_string__builder$StringBuilder_t* _a4_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-                vader_obj_header_init(_a4_obj, 23u);
+                vader_obj_header_init(_a4_obj, 22u);
                 _a4_obj->f_parts = t3;
                 l5 = (void*) _a4_obj;
                 t0 = ((vader_struct_std_numbers$DecimalDigits_t*) l0)->f_digits;
@@ -2844,7 +2844,7 @@ static void* std_numbers$digits_of(vader_string_t l0, int64_t l1) {
     l3 = std_string$split_first(l0, 18u);
     if (l3.tag == 0u) {
         vader_struct___Tuple_string_string_66940ed4_t* _a1_obj = &_a0_storage;
-        vader_obj_header_init(_a1_obj, 22u);
+        vader_obj_header_init(_a1_obj, 21u);
         _a1_obj->f__0 = l0;
         _a1_obj->f__1 = 0u;
         l2 = (void*) _a1_obj;
@@ -3194,10 +3194,10 @@ static vader_string_t std_string$pad_start(vader_string_t l0, int64_t l1, uint32
     if ((l3 >= l1)) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(24u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(23u, 0u, 0u, 2u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 23u);
+    vader_obj_header_init(_a1_obj, 22u);
     _a1_obj->f_parts = t0;
     l4 = (void*) _a1_obj;
     while ((l3 < l1)) {
@@ -3295,7 +3295,7 @@ static vader_box_t std_string$cut_at(vader_string_t l0, vader_box_t l1, vader_st
         l5 = vader_host_std_core$byte_len(l0);
         l6 = vader_host_std_core$byte_slice(l0, l3, l5);
         vader_struct___Tuple_string_string_66940ed4_t* _a0_obj = (vader_struct___Tuple_string_string_66940ed4_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_string_string_66940ed4_t));
-        vader_obj_header_init(_a0_obj, 22u);
+        vader_obj_header_init(_a0_obj, 21u);
         _a0_obj->f__0 = l4;
         _a0_obj->f__1 = l6;
         t0 = (void*) _a0_obj;
@@ -3319,10 +3319,10 @@ static vader_string_t std_string$pad_end(vader_string_t l0, int64_t l1, uint32_t
     if ((l3 >= l1)) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(24u, 0u, 0u, 2u);
+    vader_array_t* _a0_arr = vader_array_new(23u, 0u, 0u, 2u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 23u);
+    vader_obj_header_init(_a1_obj, 22u);
     _a1_obj->f_parts = t0;
     l4 = (void*) _a1_obj;
     std_string__builder$append(l4, l0);

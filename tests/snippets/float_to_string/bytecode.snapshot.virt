@@ -12,8 +12,8 @@ type 9 scalar i64
 type 10 scalar u8
 type 11 array 10
 type 12 scalar void
-type 13 array 4
-type 14 array 3
+type 13 array 3
+type 14 array 4
 string 0 "pi = "
 string 1 ", sci = "
 string 2 " "
@@ -62,7 +62,7 @@ fn 0 snippet$main () -> i32
   f64.const 1.7976931348623157e+308 9218868437227405311
   f64.const -0.0 9223372036854775808
   f64.const -2.5 13836183955189006336
-  array.new 14 21   ; f64[]
+  array.new 13 21   ; f64[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -482,11 +482,11 @@ fn 6 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 13   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 13   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -596,11 +596,11 @@ fn 6 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 13   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 13   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

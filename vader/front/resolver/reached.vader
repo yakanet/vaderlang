@@ -1,0 +1,305 @@
+// vader/front/resolver/reached: a load keeps of its dependencies what the
+// program reaches.
+//
+// A program pays for every declaration of every module it loads: each is
+// resolved, typed and summarised whether or not anything calls it. Here, once
+// every module is parsed and before any symbol is minted, the declarations of a
+// dependency that no name leads to are dropped, and no later pass ever sees
+// them.
+//
+// The walk is the one of `vader/front/reach`, across modules: a reference counts
+// by its name, never resolved. Everything the program's own modules write is
+// reached; a declaration of a dependency is reached when a reached declaration
+// writes its name. Two declarations of one name in two modules are reached
+// together, so the walk keeps too much and never too little.
+//
+// What a name does not lead to is reached by a rule of its own:
+//
+// - an impl has no name. It follows its type when a dependency declares that
+//   type, its trait otherwise (`i32 implements Shape`, `T[] implements Shape`);
+// - a trait is reached by the name of any of its members, since `x.area()`
+//   writes `area` and never `Shape`;
+// - a name an import rebinds (`import "p" { x as y }`) is reached as written;
+// - a declaration the host calls by its name (`@export`) stays.
+//
+// The compiler itself names declarations of a few modules, with no source to
+// write them: those modules are never trimmed (`loader.vader`,
+// `STUDIED_WHOLE`).
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "vader/front/reach"
+AST :: import "toolchain/ast"
+
+/// One parsed module, as `only_reached` reads it.
+ReachUnit :: struct {
+    files: SourceFile[]
+    /// Whether the module loses the declarations nothing reaches: a dependency.
+    /// A module that is not trimmed is reached whole.
+    trimmed: bool
+}
+
+/// What `only_reached` leaves of one module.
+Reached :: struct {
+    files: SourceFile[]
+    /// The trait of each impl that went with what nothing reaches, as written.
+    lost_impl_traits: string[] = []
+}
+
+/// The files of each module, a trimmed one holding only the declarations the
+/// others reach.
+///
+/// @param units  every module of the load.
+/// @return       what is left of each unit, in the order of `units`.
+only_reached :: fn(units: ReachUnit[]) -> Reached[] {
+    dependency_types :: Set<string> {}
+    for unit in units {
+        if !unit.trimmed {
+            continue
+        }
+        for f in unit.files {
+            for d in f.program.decls {
+                if declares_type(d) {
+                    dependency_types.add(declared_name(d) ?? continue)
+                }
+            }
+        }
+    }
+    refs_by_name :: Map<string, string[]> {}
+    root_names: string[]: []
+    seed_refs: string[]: []
+    for unit in units {
+        for f in unit.files {
+            for d in f.program.decls {
+                refs :: names_written_by(d)
+                key :: reach_key(d, dependency_types)
+                if !unit.trimmed || key == null {
+                    seed_refs.push_all(refs)
+                    continue
+                }
+                register_refs(refs_by_name, key, refs)
+                if d is AST.TraitDecl {
+                    for member in d.members {
+                        register_refs(refs_by_name, member.name, [d.name])
+                    }
+                }
+                if AST.decorators_have(AST.decl_decorators(d), "export") {
+                    root_names.push(key)
+                }
+            }
+        }
+    }
+    reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
+    out: Reached[]: []
+    for unit in units {
+        if !unit.trimmed {
+            out.push(Reached { .files = unit.files })
+            continue
+        }
+        left :: Reached { .files = [] }
+        for f in unit.files {
+            kept: AST.Decl[]: []
+            for d in f.program.decls {
+                key :: reach_key(d, dependency_types)
+                if key == null || key in reachable {
+                    kept.push(d)
+                } else if d is AST.ImplDecl {
+                    left.lost_impl_traits.push(d.trait_name)
+                }
+            }
+            left.files.push(
+                SourceFile { ...f, .program = AST.Program { ...f.program, .decls = kept } },
+            )
+        }
+        out.push(left)
+    }
+    return out
+}
+
+// Every name `d` writes, the ones the walk of the tree does not meet as a node
+// included: the trait of an impl, and the source name an import rebinds.
+names_written_by :: fn(d: AST.Decl) -> string[] {
+    refs: string[]: []
+    collect_names(d, refs)
+    if d is AST.ImplDecl {
+        refs.push(d.trait_name)
+    }
+    if d is AST.ImportDecl {
+        binding :: d.binding
+        if binding is AST.DestructureImport {
+            for imported in binding.names {
+                refs.push(imported.name)
+            }
+        }
+    }
+    return refs
+}
+
+// The name that reaches `d` in a trimmed module, null for a declaration that
+// always stays: an import, an assert, an impl with neither a type of a
+// dependency nor a trait.
+reach_key :: fn(d: AST.Decl, dependency_types: Set<string>) -> string | null {
+    if d !is AST.ImplDecl {
+        return declared_name(d)
+    }
+    owner :: type_head_name(d.for_type)
+    if owner != null && owner in dependency_types {
+        return owner
+    }
+    if d.trait_name == "" {
+        return null
+    }
+    return d.trait_name
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+import "vader/front/parser"
+
+// A one-file module from its source.
+unit_of :: fn(source: string, trimmed: bool) -> ReachUnit {
+    parsed :: parse_source(source, "t.vader")
+    file :: SourceFile { .path = "t.vader", .content = source, .program = parsed.program }
+    return ReachUnit { .files = [file], .trimmed = trimmed }
+}
+
+// What `only_reached` leaves of the dependency `library` loaded by `program`:
+// the names it declares, an impl as `Type:Trait`.
+reached_by :: fn(program: string, library: string) -> string {
+    left :: only_reached([unit_of(program, false), unit_of(library, true)])
+    names: string[]: []
+    for d in left[1].files[0].program.decls {
+        if d is AST.ImplDecl {
+            names.push("${type_head_name(d.for_type) ?? "_"}:${d.trait_name}")
+            continue
+        }
+        names.push(declared_name(d) ?? continue)
+    }
+    return names.join(" ")
+}
+
+@test
+test_only_reached_keeps_what_a_name_leads_to :: fn() -> void {
+    library :: r"""
+        module "lib"
+
+        export shown :: fn(x: i32) -> i32 = helper(x)
+
+        helper :: fn(x: i32) -> i32 = x * LIMIT
+
+        LIMIT :: 2
+
+        export unused :: fn(x: i32) -> i32 = other(x)
+
+        other :: fn(x: i32) -> i32 = x
+    """
+    program :: r"""
+        module "main"
+
+        import "lib"
+
+        main :: fn() -> i32 = shown(1)
+    """
+    assert_eq(reached_by(program, library), "shown helper LIMIT")
+}
+
+@test
+test_only_reached_keeps_an_impl_with_its_type :: fn() -> void {
+    library :: r"""
+        module "lib"
+
+        export Circle :: struct {
+            radius: f64
+        }
+
+        export Square :: struct {
+            side: f64
+        }
+
+        export Shape :: trait {
+            area :: fn(self) -> f64
+        }
+
+        Circle implements Shape {
+            area :: fn(self) -> f64 = self.radius
+        }
+
+        Square implements Shape {
+            area :: fn(self) -> f64 = self.side
+        }
+    """
+    program :: r"""
+        module "main"
+
+        import "lib"
+
+        main :: fn() -> f64 = (Circle { .radius = 1.0 }).area()
+    """
+    assert_eq(reached_by(program, library), "Circle Shape Circle:Shape")
+}
+
+@test
+test_only_reached_keeps_an_impl_of_a_built_in_type_with_its_trait :: fn() -> void {
+    library :: r"""
+        module "lib"
+
+        export Doubled :: trait {
+            doubled :: fn(self) -> i32
+        }
+
+        export Halved :: trait {
+            halved :: fn(self) -> i32
+        }
+
+        i32 implements Doubled {
+            doubled :: fn(self) -> i32 = self * 2
+        }
+
+        i32 implements Halved {
+            halved :: fn(self) -> i32 = self / 2
+        }
+    """
+    program :: r"""
+        module "main"
+
+        import "lib"
+
+        main :: fn() -> i32 = 4.doubled()
+    """
+    assert_eq(reached_by(program, library), "Doubled i32:Doubled")
+}
+
+@test
+test_only_reached_keeps_the_name_an_import_rebinds :: fn() -> void {
+    library :: r"""
+        module "lib"
+
+        export first :: fn() -> i32 = 1
+
+        export second :: fn() -> i32 = 2
+    """
+    program :: r"""
+        module "main"
+
+        import "lib" { first as one }
+
+        main :: fn() -> i32 = one()
+    """
+    assert_eq(reached_by(program, library), "first")
+}
+
+@test
+test_only_reached_leaves_whole_a_module_that_is_not_trimmed :: fn() -> void {
+    source :: r"""
+        module "main"
+
+        main :: fn() -> i32 = 0
+
+        unused :: fn() -> i32 = 1
+    """
+    left :: only_reached([unit_of(source, false)])
+    assert_eq(left[0].files[0].program.decls.len(), 2)
+}

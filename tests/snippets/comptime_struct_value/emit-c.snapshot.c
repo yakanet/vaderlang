@@ -141,7 +141,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
         { 8u, 0u, { .obj = (void*) (struct vader_struct_snippet$Card_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(29u, 1u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(28u, 1u, &vader_data_0_buf);
 static const struct vader_struct_snippet$Label_t vader_data_1_e0 = {
     VADER_STATIC_HEADER(6u), 24u, (uint8_t) UINT64_C(1),
 };
@@ -155,7 +155,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_1_buf = {
         { 6u, 0u, { .obj = (void*) (struct vader_struct_snippet$Label_t*) &vader_data_1_e1 } },
     },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(30u, 2u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(29u, 2u, &vader_data_1_buf);
 static const struct vader_struct_snippet$Slot_t vader_data_2_e0 = {
     VADER_STATIC_HEADER(12u),
     { 7u, 0u, { .i = (int64_t)(int32_t)(uint32_t) (uint8_t) UINT64_C(7) } }, 26u,
@@ -166,7 +166,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_2_buf = {
         { 12u, 0u, { .obj = (void*) (struct vader_struct_snippet$Slot_t*) &vader_data_2_e0 } },
     },
 };
-static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(31u, 1u, &vader_data_2_buf);
+static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(30u, 1u, &vader_data_2_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_3_buf = {
     VADER_STATIC_BUF_HEADER(11u, 4u, 684u),
     .slots = {
@@ -514,7 +514,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_3_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(28u, 684u, &vader_data_3_buf);
+static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(31u, 684u, &vader_data_3_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_4_buf = {
     VADER_STATIC_BUF_HEADER(11u, 4u, 652u),
     .slots = {
@@ -846,7 +846,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_4_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_4 = VADER_STATIC_ARRAY(28u, 652u, &vader_data_4_buf);
+static const vader_array_t vader_data_4 = VADER_STATIC_ARRAY(31u, 652u, &vader_data_4_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 55) vader_data_5_buf = {
     VADER_STATIC_BUF_HEADER(11u, 4u, 55u),
     .slots = {
@@ -880,7 +880,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 55) vader_data_5_buf = {
         (uint64_t) UINT64_C(441711766194596083),
     },
 };
-static const vader_array_t vader_data_5 = VADER_STATIC_ARRAY(28u, 55u, &vader_data_5_buf);
+static const vader_array_t vader_data_5 = VADER_STATIC_ARRAY(31u, 55u, &vader_data_5_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 47) vader_data_6_buf = {
     VADER_STATIC_BUF_HEADER(11u, 4u, 47u),
     .slots = {
@@ -910,7 +910,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 47) vader_data_6_buf = {
         (uint64_t) UINT64_C(2019483917365790221),
     },
 };
-static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(28u, 47u, &vader_data_6_buf);
+static const vader_array_t vader_data_6 = VADER_STATIC_ARRAY(31u, 47u, &vader_data_6_buf);
 
 static vader_string_t snippet$show(vader_box_t l0);
 static int32_t snippet$main(void);
@@ -1046,19 +1046,19 @@ const vader_type_info_t vader_type_info_table[32] = {
     },
     [28] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
     [29] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
     },
     [30] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
     },
     [31] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
     },
 };
 const size_t vader_type_info_count = 32;

@@ -19,15 +19,15 @@ type 16 array 9
 type 17 struct std_core$Dec64 { mantissa:15,exp:2 }
 type 18 struct __Tuple_u64_u64_u64_2d035edd { _0:15,_1:15,_2:15 }
 type 19 scalar void
-type 20 array 15
-type 21 array 1
-type 22 array 4
-type 23 array 8
-type 24 array 25
-type 25 union 14,3
-type 26 array 27
-type 27 union 10,11
-type 28 array 12
+type 20 array 1
+type 21 array 4
+type 22 array 8
+type 23 array 24
+type 24 union 14,3
+type 25 array 26
+type 26 union 10,11
+type 27 array 12
+type 28 array 15
 string 0 "i32 "
 string 1 "string "
 string 2 "f64 "
@@ -242,7 +242,7 @@ fn 3 snippet$main () -> i32
   local __buf_22 ref
   local __off_23 i64
   local $cast_109 i64
-  data.const 0 21   ; pool[0] union[]
+  data.const 0 20   ; pool[0] union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -255,7 +255,7 @@ fn 3 snippet$main () -> i32
     if $L1 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 21   ; union[]
+      array.get 20   ; union[]
       call 0   ; snippet$cell
       call 36   ; std_console$println__string
       local.get 2   ; __for_i_2
@@ -265,7 +265,7 @@ fn 3 snippet$main () -> i32
       br $L0
     end $L1
   end $L0
-  data.const 1 21   ; pool[1] union[]
+  data.const 1 20   ; pool[1] union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -278,7 +278,7 @@ fn 3 snippet$main () -> i32
     if $L3 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 21   ; union[]
+      array.get 20   ; union[]
       call 0   ; snippet$cell
       call 36   ; std_console$println__string
       local.get 2   ; __for_i_2
@@ -292,7 +292,7 @@ fn 3 snippet$main () -> i32
   retag 2   ; i32
   call 0   ; snippet$cell
   call 36   ; std_console$println__string
-  data.const 2 22   ; pool[2] union[]
+  data.const 2 21   ; pool[2] union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -305,7 +305,7 @@ fn 3 snippet$main () -> i32
     if $L5 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 22   ; union[]
+      array.get 21   ; union[]
       call 1   ; snippet$mixed
       call 36   ; std_console$println__string
       local.get 2   ; __for_i_2
@@ -315,7 +315,7 @@ fn 3 snippet$main () -> i32
       br $L4
     end $L5
   end $L4
-  data.const 3 23   ; pool[3] union[]
+  data.const 3 22   ; pool[3] union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -328,7 +328,7 @@ fn 3 snippet$main () -> i32
     if $L7 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 23   ; union[]
+      array.get 22   ; union[]
       call 2   ; snippet$small
       call 36   ; std_console$println__string
       local.get 2   ; __for_i_2
@@ -338,7 +338,7 @@ fn 3 snippet$main () -> i32
       br $L6
     end $L7
   end $L6
-  data.const 4 24   ; pool[4] union[]
+  data.const 4 23   ; pool[4] union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -351,7 +351,7 @@ fn 3 snippet$main () -> i32
     if $L9 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 24   ; union[]
+      array.get 23   ; union[]
       local.tee 3   ; w
       type_check 14   ; i64
       if $L10 void
@@ -395,7 +395,7 @@ fn 3 snippet$main () -> i32
       br $L8
     end $L9
   end $L8
-  data.const 5 26   ; pool[5] union[]
+  data.const 5 25   ; pool[5] union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -408,7 +408,7 @@ fn 3 snippet$main () -> i32
     if $L12 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 26   ; union[]
+      array.get 25   ; union[]
       local.tee 3   ; w
       type_check 10   ; snippet$Circle
       if $L13 void
@@ -473,7 +473,7 @@ fn 3 snippet$main () -> i32
       br $L11
     end $L12
   end $L11
-  data.const 6 28   ; pool[6] snippet$Holder[]
+  data.const 6 27   ; pool[6] snippet$Holder[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -486,7 +486,7 @@ fn 3 snippet$main () -> i32
     if $L15 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 28   ; snippet$Holder[]
+      array.get 27   ; snippet$Holder[]
       local.set 5   ; __buf_15
       local.field 5 12 0   ; __buf_15 snippet$Holder.label
       ref.cast 3   ; string
@@ -1199,11 +1199,11 @@ fn 15 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 7 20   ; pool[7] u64[]
+    data.const 7 28   ; pool[7] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 7 20   ; pool[7] u64[]
+    data.const 7 28   ; pool[7] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1313,11 +1313,11 @@ fn 15 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 8 20   ; pool[8] u64[]
+    data.const 8 28   ; pool[8] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 8 20   ; pool[8] u64[]
+    data.const 8 28   ; pool[8] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

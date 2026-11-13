@@ -28,8 +28,8 @@ type 25 struct __Tuple_u64_u64_u64_2d035edd { _0:12,_1:12,_2:12 }
 type 26 scalar void
 type 27 struct std_core$Range__i32 { start:2,end:2,inclusive:18,done:18,cursor:2 }
 type 28 struct std_core$__gen_state_std_core_0 { s0:8,s1:11,s2:11,state:2 }
-type 29 array 12
-type 30 ref std_core$Iterator
+type 29 ref std_core$Iterator
+type 30 array 12
 string 0 " m"
 string 1 "display "
 string 2 "meters "
@@ -2158,11 +2158,11 @@ fn 39 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 29   ; pool[0] u64[]
+    data.const 0 30   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 29   ; pool[0] u64[]
+    data.const 0 30   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2272,11 +2272,11 @@ fn 39 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 29   ; pool[1] u64[]
+    data.const 1 30   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 29   ; pool[1] u64[]
+    data.const 1 30   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2682,7 +2682,7 @@ end
 
 fn 43 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 2 29   ; pool[2] u64[]
+  data.const 2 30   ; pool[2] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -2714,7 +2714,7 @@ end
 
 fn 46 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 3 29   ; pool[3] u64[]
+  data.const 3 30   ; pool[3] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4

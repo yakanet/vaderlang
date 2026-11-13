@@ -27,10 +27,10 @@ type 24 struct std_core$FloatDec32 { mantissa:20,exp:3 }
 type 25 struct std_core$Dec64 { mantissa:11,exp:3 }
 type 26 struct __Tuple_u64_u64_u64_2d035edd { _0:11,_1:11,_2:11 }
 type 27 scalar void
-type 28 array 11
-type 29 array 8
-type 30 array 6
-type 31 array 12
+type 28 array 8
+type 29 array 6
+type 30 array 12
+type 31 array 11
 string 0 "card "
 string 1 " "
 string 2 "either "
@@ -105,9 +105,9 @@ fn 1 snippet$main () -> i32
   local $cast_34 u64
   local $field_67 i64
   local __p_9 u8
-  data.const 0 29   ; pool[0] snippet$Card[]
+  data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 29   ; snippet$Card[]
+  array.get 28   ; snippet$Card[]
   struct.get 8 0   ; snippet$Card.label
   struct.get 6 0   ; snippet$Label.text
   ref.cast 2   ; string
@@ -136,9 +136,9 @@ fn 1 snippet$main () -> i32
   string.const 1   ; " "
   call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
-  data.const 0 29   ; pool[0] snippet$Card[]
+  data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 29   ; snippet$Card[]
+  array.get 28   ; snippet$Card[]
   struct.get 8 0   ; snippet$Card.label
   struct.get 6 1   ; snippet$Label.hue
   i32.const 2
@@ -154,9 +154,9 @@ fn 1 snippet$main () -> i32
   string.const 1   ; " "
   call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
-  data.const 0 29   ; pool[0] snippet$Card[]
+  data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 29   ; snippet$Card[]
+  array.get 28   ; snippet$Card[]
   struct.get 8 1   ; snippet$Card.weights
   i32.const 2
   array.get 9   ; u8[]
@@ -173,9 +173,9 @@ fn 1 snippet$main () -> i32
   string.const 1   ; " "
   call 7   ; std_core$write_string_at
   local.set 1   ; $call_7
-  data.const 0 29   ; pool[0] snippet$Card[]
+  data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 29   ; snippet$Card[]
+  array.get 28   ; snippet$Card[]
   struct.get 8 3   ; snippet$Card.big
   ref.cast 11   ; u64
   local.set 4   ; $cast_34
@@ -188,15 +188,15 @@ fn 1 snippet$main () -> i32
   local.get 1   ; $call_7
   call 6   ; std_core$finish_buffer
   call 59   ; std_console$println__string
-  data.const 0 29   ; pool[0] snippet$Card[]
+  data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 29   ; snippet$Card[]
+  array.get 28   ; snippet$Card[]
   struct.get 8 2   ; snippet$Card.either
   type_check 2   ; string
   if $L0 void
-    data.const 0 29   ; pool[0] snippet$Card[]
+    data.const 0 28   ; pool[0] snippet$Card[]
     i64.const 0
-    array.get 29   ; snippet$Card[]
+    array.get 28   ; snippet$Card[]
     struct.get 8 2   ; snippet$Card.either
     ref.cast 2   ; string
     local.set 0   ; __p_0
@@ -235,12 +235,12 @@ fn 1 snippet$main () -> i32
     call 6   ; std_core$finish_buffer
     call 59   ; std_console$println__string
   end $L1
-  data.const 1 30   ; pool[1] snippet$Label[]
+  data.const 1 29   ; pool[1] snippet$Label[]
   array.len
   local.set 1   ; $call_7
-  data.const 1 30   ; pool[1] snippet$Label[]
+  data.const 1 29   ; pool[1] snippet$Label[]
   i32.const 1
-  array.get 30   ; snippet$Label[]
+  array.get 29   ; snippet$Label[]
   struct.get 6 0   ; snippet$Label.text
   ref.cast 2   ; string
   local.tee 0   ; __p_0
@@ -278,9 +278,9 @@ fn 1 snippet$main () -> i32
   string.const 1   ; " "
   call 7   ; std_core$write_string_at
   local.set 5   ; $field_67
-  data.const 1 30   ; pool[1] snippet$Label[]
+  data.const 1 29   ; pool[1] snippet$Label[]
   i32.const 0
-  array.get 30   ; snippet$Label[]
+  array.get 29   ; snippet$Label[]
   struct.get 6 1   ; snippet$Label.hue
   i32.const 1
   i32.eq
@@ -298,22 +298,22 @@ fn 1 snippet$main () -> i32
   struct.new 5   ; snippet$Box__string
   call 0   ; snippet$show
   call 59   ; std_console$println__string
-  data.const 2 31   ; pool[2] snippet$Slot[]
+  data.const 2 30   ; pool[2] snippet$Slot[]
   i64.const 0
-  array.get 31   ; snippet$Slot[]
+  array.get 30   ; snippet$Slot[]
   struct.get 12 0   ; snippet$Slot.hour
   type_check 0   ; null
   if $L2 void
   else
-    data.const 2 31   ; pool[2] snippet$Slot[]
+    data.const 2 30   ; pool[2] snippet$Slot[]
     i64.const 0
-    array.get 31   ; snippet$Slot[]
+    array.get 30   ; snippet$Slot[]
     struct.get 12 0   ; snippet$Slot.hour
     ref.cast 7   ; u8
     local.set 6   ; __p_9
-    data.const 2 31   ; pool[2] snippet$Slot[]
+    data.const 2 30   ; pool[2] snippet$Slot[]
     i64.const 0
-    array.get 31   ; snippet$Slot[]
+    array.get 30   ; snippet$Slot[]
     struct.get 12 1   ; snippet$Slot.note
     ref.cast 2   ; string
     local.tee 0   ; __p_0
@@ -2125,11 +2125,11 @@ fn 32 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 3 28   ; pool[3] u64[]
+    data.const 3 31   ; pool[3] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 3 28   ; pool[3] u64[]
+    data.const 3 31   ; pool[3] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2239,11 +2239,11 @@ fn 32 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 4 28   ; pool[4] u64[]
+    data.const 4 31   ; pool[4] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 4 28   ; pool[4] u64[]
+    data.const 4 31   ; pool[4] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2649,7 +2649,7 @@ end
 
 fn 36 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 5 28   ; pool[5] u64[]
+  data.const 5 31   ; pool[5] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -2681,7 +2681,7 @@ end
 
 fn 39 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 6 28   ; pool[6] u64[]
+  data.const 6 31   ; pool[6] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4

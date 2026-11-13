@@ -218,12 +218,3 @@
     struct std.io.IOError  // std_io$IOError
   std/math
     fn std.math.min<i64>  // std_math$min__i64
-  system/posix
-    struct system.posix.Pollfd  // system_posix$Pollfd
-    struct system.posix.Winsize  // system_posix$Winsize
-  system/windows
-    struct system.windows.Coord  // system_windows$Coord
-    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
-    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
-    struct system.windows.SmallRect  // system_windows$SmallRect
-    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -12,8 +12,8 @@ type 9 scalar u8
 type 10 scalar bool
 type 11 array 9
 type 12 scalar void
-type 13 array 2
-type 14 array 1
+type 13 array 1
+type 14 array 2
 string 0 " "
 string 1 "\n"
 data 0 structs 1 1 1 i32 03000000
@@ -59,20 +59,20 @@ fn 2 snippet$main () -> i32
   local __fuse_len_0 i64
   local __fuse_i_1 i64
   local x i32
-  data.const 0 14   ; pool[0] snippet$Point[]
+  data.const 0 13   ; pool[0] snippet$Point[]
   i64.const 0
-  array.get 14   ; snippet$Point[]
+  array.get 13   ; snippet$Point[]
   local.set 0   ; $idx_2
   i32.const 4
   struct.new 1   ; snippet$Point
   local.set 1   ; $struct_4
   local.get 0   ; $idx_2
   local.get 1   ; $struct_4
-  array.new 14 2   ; snippet$Point[]
+  array.new 13 2   ; snippet$Point[]
   local.tee 0   ; $idx_2
   local.tee 2   ; __fuse_arr_0
   array.len
-  array.reserve 13   ; i32[]
+  array.reserve 14   ; i32[]
   local.set 3   ; out
   local.get 2   ; __fuse_arr_0
   array.len
@@ -86,7 +86,7 @@ fn 2 snippet$main () -> i32
     if $L1 void
       local.get 2   ; __fuse_arr_0
       local.get 5   ; __fuse_i_1
-      array.get 14   ; snippet$Point[]
+      array.get 13   ; snippet$Point[]
       call 1   ; snippet$double
       local.set 6   ; x
       local.get 3   ; out
@@ -120,9 +120,9 @@ fn 2 snippet$main () -> i32
   string.const 0   ; " "
   call 7   ; std_core$write_string_at
   local.set 4   ; __fuse_len_0
-  data.const 0 14   ; pool[0] snippet$Point[]
+  data.const 0 13   ; pool[0] snippet$Point[]
   i64.const 0
-  array.get 14   ; snippet$Point[]
+  array.get 13   ; snippet$Point[]
   call 0   ; snippet$through_param
   i32.to_i64
   local.set 5   ; __fuse_i_1

@@ -23,11 +23,11 @@ type 20 ref std_core$Iterator
 type 21 struct snippet_halves$$genstate_upto { s0:14,s1:14,state:1 }
 type 22 union 14,7
 type 23 array 10
-type 24 array 13
-type 25 ref $genstate_upto_1
+type 24 ref $genstate_upto_1
+type 25 ref $genstate_upto
 type 26 ref $genstate_upto
-type 27 ref $genstate_upto
-type 28 array 7
+type 27 array 7
+type 28 array 13
 string 0 ""
 string 1 "fused "
 string 2 "ab"
@@ -546,9 +546,9 @@ fn 3 snippet$$genstate_upto$Iterator$next (ref) -> any
           i32.eq
           if $L7 void
           else
-            data.const 2 28   ; pool[2] std_core$Stop[]
+            data.const 2 27   ; pool[2] std_core$Stop[]
             i64.const 0
-            array.get 28   ; std_core$Stop[]
+            array.get 27   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -721,9 +721,9 @@ fn 4 snippet$$genstate_upto_1$Iterator$next (ref) -> any
           i32.eq
           if $L7 void
           else
-            data.const 2 28   ; pool[2] std_core$Stop[]
+            data.const 2 27   ; pool[2] std_core$Stop[]
             i64.const 0
-            array.get 28   ; std_core$Stop[]
+            array.get 27   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -1217,11 +1217,11 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 24   ; pool[0] u64[]
+    data.const 0 28   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 24   ; pool[0] u64[]
+    data.const 0 28   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1331,11 +1331,11 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 24   ; pool[1] u64[]
+    data.const 1 28   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 24   ; pool[1] u64[]
+    data.const 1 28   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2610,9 +2610,9 @@ fn 33 snippet_halves$$genstate_upto$Iterator$next (ref) -> any
         i32.eq
         if $L6 void
         else
-          data.const 2 28   ; pool[2] std_core$Stop[]
+          data.const 2 27   ; pool[2] std_core$Stop[]
           i64.const 0
-          array.get 28   ; std_core$Stop[]
+          array.get 27   ; std_core$Stop[]
           return
         end $L6
         local.get 0   ; arg 0

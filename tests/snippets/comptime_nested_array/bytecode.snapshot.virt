@@ -25,11 +25,11 @@ type 22 struct std_core$FloatDec32 { mantissa:17,exp:6 }
 type 23 struct std_core$Dec64 { mantissa:12,exp:6 }
 type 24 struct __Tuple_u64_u64_u64_2d035edd { _0:12,_1:12,_2:12 }
 type 25 scalar void
-type 26 array 12
-type 27 array 7
-type 28 array 13
-type 29 array 30
-type 30 union 9,2
+type 26 array 7
+type 27 array 13
+type 28 array 29
+type 29 union 9,2
+type 30 array 12
 string 0 "null"
 string 1 "string"
 string 2 "array "
@@ -142,27 +142,27 @@ fn 2 snippet$main () -> i32
   local $call_25 i64
   local __buf_2 ref
   local m any
-  data.const 0 27   ; pool[0] snippet$Card[]
+  data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 27   ; snippet$Card[]
+  array.get 26   ; snippet$Card[]
   struct.get 7 0   ; snippet$Card.weights
   call 0   ; snippet$show
   call 59   ; std_console$println__string
-  data.const 0 27   ; pool[0] snippet$Card[]
+  data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 27   ; snippet$Card[]
+  array.get 26   ; snippet$Card[]
   struct.get 7 0   ; snippet$Card.weights
   call 1   ; snippet$kind
   call 59   ; std_console$println__string
-  data.const 0 27   ; pool[0] snippet$Card[]
+  data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 27   ; snippet$Card[]
+  array.get 26   ; snippet$Card[]
   struct.get 7 1   ; snippet$Card.rows
   array.len
   local.set 0   ; __p_0
-  data.const 0 27   ; pool[0] snippet$Card[]
+  data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 27   ; snippet$Card[]
+  array.get 26   ; snippet$Card[]
   struct.get 7 1   ; snippet$Card.rows
   i32.const 2
   array.get 8   ; i32[][]
@@ -201,24 +201,24 @@ fn 2 snippet$main () -> i32
   local.get 2   ; $call_25
   call 4   ; std_core$finish_buffer
   call 59   ; std_console$println__string
-  data.const 0 27   ; pool[0] snippet$Card[]
+  data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 27   ; snippet$Card[]
+  array.get 26   ; snippet$Card[]
   struct.get 7 2   ; snippet$Card.either
   call 1   ; snippet$kind
   call 59   ; std_console$println__string
-  data.const 0 27   ; pool[0] snippet$Card[]
+  data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 27   ; snippet$Card[]
+  array.get 26   ; snippet$Card[]
   struct.get 7 2   ; snippet$Card.either
   call 0   ; snippet$show
   call 59   ; std_console$println__string
-  data.const 1 28   ; pool[1] string[][]
+  data.const 1 27   ; pool[1] string[][]
   array.len
   local.set 0   ; __p_0
-  data.const 1 28   ; pool[1] string[][]
+  data.const 1 27   ; pool[1] string[][]
   i32.const 1
-  array.get 28   ; string[][]
+  array.get 27   ; string[][]
   call 0   ; snippet$show
   local.tee 1   ; __p_1
   call.import 0   ; std_core$byte_len
@@ -254,7 +254,7 @@ fn 2 snippet$main () -> i32
   local.get 2   ; $call_25
   call 4   ; std_core$finish_buffer
   call 59   ; std_console$println__string
-  data.const 2 29   ; pool[2] union[]
+  data.const 2 28   ; pool[2] union[]
   local.tee 3   ; __buf_2
   array.len
   local.set 0   ; __p_0
@@ -267,7 +267,7 @@ fn 2 snippet$main () -> i32
     if $L1 void
       local.get 3   ; __buf_2
       local.get 2   ; $call_25
-      array.get 29   ; union[]
+      array.get 28   ; union[]
       local.tee 4   ; m
       type_check 2   ; string
       if $L2 void
@@ -2279,11 +2279,11 @@ fn 32 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 3 26   ; pool[3] u64[]
+    data.const 3 30   ; pool[3] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 3 26   ; pool[3] u64[]
+    data.const 3 30   ; pool[3] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2393,11 +2393,11 @@ fn 32 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 4 26   ; pool[4] u64[]
+    data.const 4 30   ; pool[4] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 4 26   ; pool[4] u64[]
+    data.const 4 30   ; pool[4] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2803,7 +2803,7 @@ end
 
 fn 36 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 5 26   ; pool[5] u64[]
+  data.const 5 30   ; pool[5] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -2835,7 +2835,7 @@ end
 
 fn 39 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 6 26   ; pool[6] u64[]
+  data.const 6 30   ; pool[6] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4

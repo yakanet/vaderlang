@@ -61,7 +61,7 @@ lint_dead_code :: fn(project: LoadedProject, diags: Diagnostic[]) -> void {
     entry :: project.modules[project.entry] ?? return
     lint_module(entry, diags)
     for [id, loaded] in project.modules {
-        if id != project.entry {
+        if id != project.entry && !loaded.trimmed {
             lint_module(loaded, diags)
         }
     }

@@ -422,7 +422,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(19u, 684u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(21u, 684u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(11u, 4u, 652u),
     .slots = {
@@ -754,7 +754,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(19u, 652u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(21u, 652u, &vader_data_1_buf);
 
 static vader_string_t snippet$Square$Named$name(void* l0);
 static vader_string_t snippet$describe(vader_box_t l0);
@@ -859,13 +859,13 @@ const vader_type_info_t vader_type_info_table[22] = {
     },
     [19] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
-    },
-    [20] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
-    [21] = { .slot_size = 16 },
+    [20] = { .slot_size = 16 },
+    [21] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
+    },
 };
 const size_t vader_type_info_count = 22;
 
@@ -1030,7 +1030,7 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a1_obj, 1u);
     _a1_obj->f_side = INT32_C(1);
     l1 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(20u, 4u, 0u, 3u);
+    vader_array_t* _a2_arr = vader_array_new(19u, 4u, 0u, 3u);
     vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 3u] = vader_box_f64(12u, 1.5);
     vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 2u] = vader_box_i32(4u, INT32_C(41));
     vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 1u] = vader_ref_box(l1);
@@ -1052,7 +1052,7 @@ static int32_t snippet$main(void) {
         t3 = ((vader_fn_erased_sig_0_t) _a4_fnobj->code)(_a4_fnobj->env);
         t0 = t3.payload.s;
         std_console$println__string(t0);
-        if ((l4.tag == 21u) || (l4.tag == 1u)) {
+        if ((l4.tag == 20u) || (l4.tag == 1u)) {
             t0 = snippet$Named$name$$dispatch(l4);
             std_console$println__string(t0);
         }

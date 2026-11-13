@@ -13,8 +13,8 @@ type 10 scalar i64
 type 11 scalar u8
 type 12 array 11
 type 13 scalar void
-type 14 array 5
-type 15 array 1
+type 14 array 1
+type 15 array 5
 string 0 " C"
 string 1 "offline"
 string 2 "nan"
@@ -63,7 +63,7 @@ fn 1 snippet$main () -> i32
   retag 2   ; f64
   string.const 1   ; "offline"
   retag 3   ; string
-  array.new 15 2   ; union[]
+  array.new 14 2   ; union[]
   local.tee 0   ; __for_arr_0
   array.len
   local.set 1   ; __for_len_1
@@ -76,7 +76,7 @@ fn 1 snippet$main () -> i32
     if $L1 void
       local.get 0   ; __for_arr_0
       local.get 2   ; __for_i_2
-      array.get 15   ; union[]
+      array.get 14   ; union[]
       call 0   ; snippet$describe
       call 27   ; std_console$println__string
       local.get 2   ; __for_i_2
@@ -329,11 +329,11 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 14   ; pool[0] u64[]
+    data.const 0 15   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 14   ; pool[0] u64[]
+    data.const 0 15   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -443,11 +443,11 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 14   ; pool[1] u64[]
+    data.const 1 15   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 14   ; pool[1] u64[]
+    data.const 1 15   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

@@ -450,7 +450,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(32u, 684u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(33u, 684u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(20u, 4u, 652u),
     .slots = {
@@ -782,7 +782,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(32u, 652u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(33u, 652u, &vader_data_1_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 55) vader_data_2_buf = {
     VADER_STATIC_BUF_HEADER(20u, 4u, 55u),
     .slots = {
@@ -816,7 +816,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 55) vader_data_2_buf = {
         (uint64_t) UINT64_C(441711766194596083),
     },
 };
-static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(32u, 55u, &vader_data_2_buf);
+static const vader_array_t vader_data_2 = VADER_STATIC_ARRAY(33u, 55u, &vader_data_2_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 47) vader_data_3_buf = {
     VADER_STATIC_BUF_HEADER(20u, 4u, 47u),
     .slots = {
@@ -846,7 +846,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 47) vader_data_3_buf = {
         (uint64_t) UINT64_C(2019483917365790221),
     },
 };
-static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(32u, 47u, &vader_data_3_buf);
+static const vader_array_t vader_data_3 = VADER_STATIC_ARRAY(33u, 47u, &vader_data_3_buf);
 
 static vader_string_t snippet$Word$Poke$poke(void* l0);
 static vader_string_t snippet$show(vader_box_t l0);
@@ -996,11 +996,11 @@ const vader_type_info_t vader_type_info_table[34] = {
     },
     [32] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 20u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
     [33] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 20u,
     },
 };
 const size_t vader_type_info_count = 34;
@@ -1163,7 +1163,7 @@ static int32_t snippet$main(void) {
     ((double*) _a10_arr->buf->slots)[vader_array_offset(_a10_arr) + 1u] = (double) 3.5;
     ((double*) _a10_arr->buf->slots)[vader_array_offset(_a10_arr) + 0u] = (double) 2.5;
     l1 = (void*) _a10_arr;
-    vader_array_t* _a11_arr = vader_array_new(33u, 2u, 0u, 3u);
+    vader_array_t* _a11_arr = vader_array_new(32u, 2u, 0u, 3u);
     vader_array_box_slots(_a11_arr->buf)[vader_array_offset(_a11_arr) + 1u] = vader_ref_box(l1);
     vader_array_box_slots(_a11_arr->buf)[vader_array_offset(_a11_arr) + 0u] = vader_ref_box(l0);
     l0 = (void*) _a11_arr;

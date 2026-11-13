@@ -53,12 +53,12 @@ type 50 array 51
 type 51 struct std_task$Waiter { thread:3,group:52,index:3 }
 type 52 union 53,0
 type 53 struct std_task$Group { ended:31,taken:3 }
-type 54 array 17
-type 55 struct std_string__builder$StringBuilder { parts:6 }
-type 56 union 57,0
-type 57 struct std_runtime_scheduler$InitGate { held:23,owner:3,waiters:31 }
-type 58 struct __defer_env_std_runtime_scheduler_1 { cap_0:57 }
-type 59 struct __defer_env_std_runtime_scheduler_3 { cap_0:57,cap_1:3 }
+type 54 struct std_string__builder$StringBuilder { parts:6 }
+type 55 union 56,0
+type 56 struct std_runtime_scheduler$InitGate { held:23,owner:3,waiters:31 }
+type 57 struct __defer_env_std_runtime_scheduler_1 { cap_0:56 }
+type 58 struct __defer_env_std_runtime_scheduler_3 { cap_0:56,cap_1:3 }
+type 59 array 17
 type 60 array 33
 type 61 array 37
 type 62 array 12
@@ -97,7 +97,7 @@ data 5 structs 37 0 1
 data 6 structs 12 0 1
 global 0 4 started.state
 global 1 35 started.instance
-global 2 56 started.gate
+global 2 55 started.gate
 import 0 byte_len std_core$byte_len result_type=3 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=27 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=27 param_types=2 param_c_out= param_by_address= (string) -> ref
@@ -115,7 +115,7 @@ impl 12 std_core$Display
 impl 13 std_core$Iterator
 impl 10 std_core$Display
 impl 37 std_core$Display
-impl 55 std_core$Display
+impl 54 std_core$Display
 impl 10 std_core$Equals
 impl 12 std_core$Error
 impl 49 std_core$Peek
@@ -136,7 +136,7 @@ vtable std_core$Display.to_string 25 25
 vtable std_core$Display.to_string 26 26
 vtable std_core$Display.to_string 10 66
 vtable std_core$Display.to_string 37 74
-vtable std_core$Display.to_string 55 103
+vtable std_core$Display.to_string 54 103
 export main 1
 
 fn 0 snippet$work (ref,string) -> i64
@@ -2149,11 +2149,11 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 54   ; pool[0] u64[]
+    data.const 0 59   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 54   ; pool[0] u64[]
+    data.const 0 59   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2263,11 +2263,11 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 54   ; pool[1] u64[]
+    data.const 1 59   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 54   ; pool[1] u64[]
+    data.const 1 59   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2673,7 +2673,7 @@ end
 
 fn 38 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 2 54   ; pool[2] u64[]
+  data.const 2 59   ; pool[2] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -2705,7 +2705,7 @@ end
 
 fn 41 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 3 54   ; pool[3] u64[]
+  data.const 3 59   ; pool[3] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -3718,7 +3718,7 @@ fn 64 std_string$join (ref,string) -> string
   local __for_hi_0 i64
   local $idx_12 string
   array.new 6 0   ; string[]
-  struct.new 55   ; std_string__builder$StringBuilder
+  struct.new 54   ; std_string__builder$StringBuilder
   local.set 2   ; sb
   i64.const 0
   local.set 3   ; i
@@ -4758,7 +4758,7 @@ fn 101 std_collections$is_empty__i64 (ref) -> bool
 end
 
 fn 102 std_string__builder$append (ref,string) -> void
-  local.field 0 55 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 54 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 2   ; string
   return
@@ -4773,7 +4773,7 @@ fn 103 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local __for_i_2 i64
   local p string
   local $call_27 i64
-  local.field 0 55 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 54 0   ; arg 0 std_string__builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -4785,7 +4785,7 @@ fn 103 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 55 0   ; arg 0 std_string__builder$StringBuilder.parts
+    local.field 0 54 0   ; arg 0 std_string__builder$StringBuilder.parts
     i32.const 0
     array.get 6   ; string[]
     ref.cast 2   ; string
@@ -4798,7 +4798,7 @@ fn 103 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> str
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; off
-  local.field 0 55 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 54 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 4   ; __for_arr_0
   array.len
   local.set 5   ; __for_len_1
@@ -4846,7 +4846,7 @@ fn 104 std_string__builder$byte_len (ref) -> i64
   local $call_12 i64
   i64.const 0
   local.set 1   ; total
-  local.field 0 55 0   ; arg 0 std_string__builder$StringBuilder.parts
+  local.field 0 54 0   ; arg 0 std_string__builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -4890,11 +4890,11 @@ fn 105 std_runtime_scheduler$gate_or_new (any) -> ref
     bool.const false
     i64.const 0
     local.get 2   ; $arr_6
-    struct.new 57   ; std_runtime_scheduler$InitGate
+    struct.new 56   ; std_runtime_scheduler$InitGate
     return
   end $L0
   local.get 1   ; __coalesce_0
-  ref.cast 57   ; std_runtime_scheduler$InitGate
+  ref.cast 56   ; std_runtime_scheduler$InitGate
   return
 end
 
@@ -4902,10 +4902,10 @@ fn 106 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
   call.import 10   ; std_runtime_scheduler$current_thread
   local.set 2   ; me
-  local.field 0 57 0   ; arg 0 std_runtime_scheduler$InitGate.held
+  local.field 0 56 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 23   ; bool
   if $L0 void
-    local.field 0 57 1   ; arg 0 std_runtime_scheduler$InitGate.owner
+    local.field 0 56 1   ; arg 0 std_runtime_scheduler$InitGate.owner
     ref.cast 3   ; i64
     local.get 2   ; me
     i64.eq
@@ -4913,7 +4913,7 @@ fn 106 std_runtime_scheduler$run_gated (ref,ref) -> bool
       return.lit bool.const false
     end $L1
   end $L0
-  local.field 0 57 0   ; arg 0 std_runtime_scheduler$InitGate.held
+  local.field 0 56 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 23   ; bool
   if $L2 void
     local.get 0   ; arg 0
@@ -4922,12 +4922,12 @@ fn 106 std_runtime_scheduler$run_gated (ref,ref) -> bool
   end $L2
   local.get 0   ; arg 0
   bool.const true
-  struct.set 57 0   ; std_runtime_scheduler$InitGate.held
+  struct.set 56 0   ; std_runtime_scheduler$InitGate.held
   local.get 0   ; arg 0
   local.get 2   ; me
-  struct.set 57 1   ; std_runtime_scheduler$InitGate.owner
+  struct.set 56 1   ; std_runtime_scheduler$InitGate.owner
   local.get 0   ; arg 0
-  struct.new 58   ; __defer_env_std_runtime_scheduler_1
+  struct.new 57   ; __defer_env_std_runtime_scheduler_1
   make_closure 107 36   ; __defer_std_runtime_scheduler_0 fn
   defer.push
   local.get 1   ; arg 1
@@ -4937,22 +4937,22 @@ fn 106 std_runtime_scheduler$run_gated (ref,ref) -> bool
 end
 
 fn 107 __defer_std_runtime_scheduler_0 (ref) -> void
-  local.field 0 58 0   ; arg 0 __defer_env_std_runtime_scheduler_1.cap_0
+  local.field 0 57 0   ; arg 0 __defer_env_std_runtime_scheduler_1.cap_0
   call 110   ; std_runtime_scheduler$let_go
   return
 end
 
 fn 108 std_runtime_scheduler$await_gate (ref,i64) -> void
-  local.field 0 57 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
+  local.field 0 56 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
   local.get 1   ; arg 1
   array.push 3   ; i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  struct.new 59   ; __defer_env_std_runtime_scheduler_3
+  struct.new 58   ; __defer_env_std_runtime_scheduler_3
   make_closure 109 36   ; __defer_std_runtime_scheduler_2 fn
   defer.push
   loop $L0 void
-    local.field 0 57 0   ; arg 0 std_runtime_scheduler$InitGate.held
+    local.field 0 56 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 23   ; bool
     if $L1 void
       call.import 8   ; std_runtime_scheduler$park
@@ -4966,10 +4966,10 @@ end
 fn 109 __defer_std_runtime_scheduler_2 (ref) -> void
   local $field_2 ref
   local $field_3 i64
-  local.field 0 59 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
-  struct.get 57 2   ; std_runtime_scheduler$InitGate.waiters
+  local.field 0 58 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
+  struct.get 56 2   ; std_runtime_scheduler$InitGate.waiters
   local.set 1   ; $field_2
-  local.field 0 59 1   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_1
+  local.field 0 58 1   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_1
   ref.cast 3   ; i64
   local.set 2   ; $field_3
   local.get 1   ; $field_2
@@ -4985,8 +4985,8 @@ fn 110 std_runtime_scheduler$let_go (ref) -> void
   local __for_i_2 i64
   local.get 0   ; arg 0
   bool.const false
-  struct.set 57 0   ; std_runtime_scheduler$InitGate.held
-  local.field 0 57 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
+  struct.set 56 0   ; std_runtime_scheduler$InitGate.held
+  local.field 0 56 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1

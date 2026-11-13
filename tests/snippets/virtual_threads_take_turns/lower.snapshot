@@ -135,12 +135,3 @@
     struct __defer_env_std_runtime_scheduler_1
     struct __defer_env_std_runtime_scheduler_3
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
-  system/posix
-    struct system.posix.Pollfd  // system_posix$Pollfd
-    struct system.posix.Winsize  // system_posix$Winsize
-  system/windows
-    struct system.windows.Coord  // system_windows$Coord
-    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
-    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
-    struct system.windows.SmallRect  // system_windows$SmallRect
-    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -126,12 +126,3 @@
     fn std.string.StringChars.next  // std_string$StringChars$std_core$Iterator$next
     fn std.string.chars  // std_string$chars
     struct std.string.StringChars  // std_string$StringChars
-  system/posix
-    struct system.posix.Pollfd  // system_posix$Pollfd
-    struct system.posix.Winsize  // system_posix$Winsize
-  system/windows
-    struct system.windows.Coord  // system_windows$Coord
-    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
-    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
-    struct system.windows.SmallRect  // system_windows$SmallRect
-    struct system.windows.StartupInfo  // system_windows$StartupInfo

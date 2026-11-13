@@ -85,12 +85,3 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.string.to_string  // std_core$string$Display$to_string
     struct std.core.Buffer  // std_core$Buffer
-  system/posix
-    struct system.posix.Pollfd  // system_posix$Pollfd
-    struct system.posix.Winsize  // system_posix$Winsize
-  system/windows
-    struct system.windows.Coord  // system_windows$Coord
-    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
-    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
-    struct system.windows.SmallRect  // system_windows$SmallRect
-    struct system.windows.StartupInfo  // system_windows$StartupInfo

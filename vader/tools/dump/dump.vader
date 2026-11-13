@@ -39,6 +39,10 @@ export DumpInput :: struct {
     /// Keep, in the C dump, the index check of each access the range analysis
     /// proves in bounds, under a message of its own (`$VADER_VERIFY_BOUNDS`).
     verify_bounds: bool = false
+    /// Load every module whole: for a stage that lists what a module declares,
+    /// called or not.
+    @internal
+    whole_modules: bool = false
     @internal
     pipeline: EvaluatedPipeline | null = null
     @internal
@@ -117,6 +121,7 @@ front_end :: fn(input: DumpInput) -> EvaluatedPipeline = prepare_evaluated_proje
     input.include_paths,
     input.project_root,
     input.target,
+    only_reached = !input.whole_modules,
 )
 
 // The scope of a module-scoped dump of `input`: its `--module` list, else the

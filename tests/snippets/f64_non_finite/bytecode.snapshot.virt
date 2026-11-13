@@ -12,8 +12,8 @@ type 9 scalar i64
 type 10 scalar u8
 type 11 array 10
 type 12 scalar void
-type 13 array 4
-type 14 array 3
+type 13 array 3
+type 14 array 4
 string 0 " "
 string 1 "nan"
 string 2 "-inf"
@@ -40,7 +40,7 @@ fn 0 snippet$main () -> i32
   local $call_19 string
   f64.const inf
   f64.const -inf
-  array.new 14 2   ; f64[]
+  array.new 13 2   ; f64[]
   local.set 0   ; arr
   f64.const inf
   call 3   ; std_core$f64$Display$to_string
@@ -428,11 +428,11 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 13   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 13   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -542,11 +542,11 @@ fn 5 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 13   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 13   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

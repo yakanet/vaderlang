@@ -14,10 +14,10 @@ type 11 scalar i64
 type 12 scalar u8
 type 13 array 12
 type 14 scalar void
-type 15 array 2
-type 16 array 1
-type 17 struct __Tuple_string_i32_4ccf6d4f { _0:3,_1:2 }
-type 18 array 17
+type 15 array 1
+type 16 struct __Tuple_string_i32_4ccf6d4f { _0:3,_1:2 }
+type 17 array 16
+type 18 array 2
 string 0 "answer"
 string 1 "ignored"
 string 2 "seven"
@@ -473,7 +473,7 @@ fn 3 snippet$main () -> i32
   local.get 0   ; p
   local.get 6   ; __buf_23
   local.get 7   ; $struct_193
-  array.new 16 3   ; __Tuple_i32_string_d0b3dcb6[]
+  array.new 15 3   ; __Tuple_i32_string_d0b3dcb6[]
   local.tee 0   ; p
   array.len
   local.set 3   ; $call_7
@@ -486,7 +486,7 @@ fn 3 snippet$main () -> i32
     if $L1 void
       local.get 0   ; p
       local.get 4   ; $cast_15
-      array.get 16   ; __Tuple_i32_string_d0b3dcb6[]
+      array.get 15   ; __Tuple_i32_string_d0b3dcb6[]
       local.set 6   ; __buf_23
       local.field 6 1 0   ; __buf_23 __Tuple_i32_string_d0b3dcb6._0
       ref.cast 2   ; i32
@@ -539,20 +539,20 @@ fn 3 snippet$main () -> i32
   end $L0
   string.const 25   ; "a"
   i32.const 1
-  struct.new_stack 17   ; __Tuple_string_i32_4ccf6d4f
+  struct.new_stack 16   ; __Tuple_string_i32_4ccf6d4f
   local.set 0   ; p
   string.const 26   ; "b"
   i32.const 2
-  struct.new_stack 17   ; __Tuple_string_i32_4ccf6d4f
+  struct.new_stack 16   ; __Tuple_string_i32_4ccf6d4f
   local.set 6   ; __buf_23
   string.const 27   ; "c"
   i32.const 3
-  struct.new_stack 17   ; __Tuple_string_i32_4ccf6d4f
+  struct.new_stack 16   ; __Tuple_string_i32_4ccf6d4f
   local.set 7   ; $struct_193
   local.get 0   ; p
   local.get 6   ; __buf_23
   local.get 7   ; $struct_193
-  array.new 18 3   ; __Tuple_string_i32_4ccf6d4f[]
+  array.new 17 3   ; __Tuple_string_i32_4ccf6d4f[]
   local.tee 0   ; p
   array.len
   local.set 3   ; $call_7
@@ -565,12 +565,12 @@ fn 3 snippet$main () -> i32
     if $L3 void
       local.get 0   ; p
       local.get 4   ; $cast_15
-      array.get 18   ; __Tuple_string_i32_4ccf6d4f[]
+      array.get 17   ; __Tuple_string_i32_4ccf6d4f[]
       local.set 6   ; __buf_23
-      local.field 6 17 0   ; __buf_23 __Tuple_string_i32_4ccf6d4f._0
+      local.field 6 16 0   ; __buf_23 __Tuple_string_i32_4ccf6d4f._0
       ref.cast 3   ; string
       local.set 2   ; __p_1
-      local.field 6 17 1   ; __buf_23 __Tuple_string_i32_4ccf6d4f._1
+      local.field 6 16 1   ; __buf_23 __Tuple_string_i32_4ccf6d4f._1
       ref.cast 2   ; i32
       local.set 1   ; __p_0
       local.get 2   ; __p_1
@@ -620,7 +620,7 @@ fn 3 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 15 3   ; i32[]
+  array.new 18 3   ; i32[]
   local.tee 0   ; p
   array.len
   local.set 3   ; $call_7

@@ -91,12 +91,3 @@
     fn std.string_builder.append_char  // std_string__builder$append_char
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
-  system/posix
-    struct system.posix.Pollfd  // system_posix$Pollfd
-    struct system.posix.Winsize  // system_posix$Winsize
-  system/windows
-    struct system.windows.Coord  // system_windows$Coord
-    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
-    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
-    struct system.windows.SmallRect  // system_windows$SmallRect
-    struct system.windows.StartupInfo  // system_windows$StartupInfo

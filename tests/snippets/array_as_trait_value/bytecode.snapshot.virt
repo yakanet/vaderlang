@@ -31,8 +31,8 @@ type 28 struct std_core$FloatDec32 { mantissa:25,exp:7 }
 type 29 struct std_core$Dec64 { mantissa:20,exp:7 }
 type 30 struct __Tuple_u64_u64_u64_2d035edd { _0:20,_1:20,_2:20 }
 type 31 scalar void
-type 32 array 20
-type 33 array 3
+type 32 array 3
+type 33 array 20
 string 0 "word "
 string 1 "none"
 string 2 "w"
@@ -185,7 +185,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $arr_35
   local.get 0   ; $arr_32
   local.get 1   ; $arr_35
-  array.new 33 2   ; ref snippet$Poke[]
+  array.new 32 2   ; ref snippet$Poke[]
   local.tee 0   ; $arr_32
   array.len
   local.set 2   ; __for_len_1
@@ -198,7 +198,7 @@ fn 4 snippet$main () -> i32
     if $L1 void
       local.get 0   ; $arr_32
       local.get 3   ; __for_i_2
-      array.get 33   ; ref snippet$Poke[]
+      array.get 32   ; ref snippet$Poke[]
       virtual.call 1 snippet$Poke.poke -> string
       call 65   ; std_console$println__string
       local.get 3   ; __for_i_2
@@ -2164,11 +2164,11 @@ fn 38 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 32   ; pool[0] u64[]
+    data.const 0 33   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 32   ; pool[0] u64[]
+    data.const 0 33   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2278,11 +2278,11 @@ fn 38 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 32   ; pool[1] u64[]
+    data.const 1 33   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 32   ; pool[1] u64[]
+    data.const 1 33   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2688,7 +2688,7 @@ end
 
 fn 42 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 2 32   ; pool[2] u64[]
+  data.const 2 33   ; pool[2] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -2720,7 +2720,7 @@ end
 
 fn 45 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 3 32   ; pool[3] u64[]
+  data.const 3 33   ; pool[3] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4

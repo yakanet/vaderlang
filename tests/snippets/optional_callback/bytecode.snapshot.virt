@@ -27,8 +27,8 @@ type 24 scalar bool
 type 25 struct __Tuple_u64_u64_u64_2d035edd { _0:22,_1:22,_2:22 }
 type 26 scalar u8
 type 27 array 26
-type 28 array 22
-type 29 fn (13) -> 13
+type 28 fn (13) -> 13
+type 29 array 22
 string 0 "nothing"
 string 1 "doubled "
 string 2 "stepped "
@@ -284,19 +284,19 @@ fn 6 snippet$main () -> i32
   i32.const 1
   struct.new 12   ; snippet$Gauge
   struct.new 15   ; __method_env_snippet_8
-  make_closure 13 29   ; __method_snippet_7 fn
+  make_closure 13 28   ; __method_snippet_7 fn
   local.tee 1   ; doubled
   type_check 0   ; null
   if $L0 void
     return.lit i32.const 0
   end $L0
   local.get 1   ; doubled
-  ref.cast 29   ; fn
+  ref.cast 28   ; fn
   local.set 0   ; $fn_ref_1
   f64.const 0.5 4602678819172646912
   retag 13   ; f64
   local.get 0   ; $fn_ref_1
-  call.indirect 29   ; fn
+  call.indirect 28   ; fn
   call 21   ; std_core$f64$Display$to_string
   local.set 4   ; $call_49
   string.const 10   ; "raised "
@@ -906,11 +906,11 @@ fn 23 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 28   ; pool[0] u64[]
+    data.const 0 29   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 28   ; pool[0] u64[]
+    data.const 0 29   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1020,11 +1020,11 @@ fn 23 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 28   ; pool[1] u64[]
+    data.const 1 29   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 28   ; pool[1] u64[]
+    data.const 1 29   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

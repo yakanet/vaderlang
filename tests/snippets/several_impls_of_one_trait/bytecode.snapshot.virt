@@ -27,8 +27,8 @@ type 24 struct std_core$Dec64 { mantissa:23,exp:4 }
 type 25 struct __Tuple_u64_u64_u64_2d035edd { _0:23,_1:23,_2:23 }
 type 26 scalar u8
 type 27 array 26
-type 28 array 23
-type 29 array 15
+type 28 array 15
+type 29 array 23
 string 0 ":"
 string 1 "="
 string 2 "bag"
@@ -326,9 +326,9 @@ fn 19 snippet$Counter$std_core$Iterator$next (ref) -> any
     retag 4   ; i32
     return
   end $L0
-  data.const 2 29   ; pool[2] std_core$Stop[]
+  data.const 2 28   ; pool[2] std_core$Stop[]
   i64.const 0
-  array.get 29   ; std_core$Stop[]
+  array.get 28   ; std_core$Stop[]
   return
 end
 
@@ -1529,11 +1529,11 @@ fn 40 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 28   ; pool[0] u64[]
+    data.const 0 29   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 28   ; pool[0] u64[]
+    data.const 0 29   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1643,11 +1643,11 @@ fn 40 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 28   ; pool[1] u64[]
+    data.const 1 29   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 28   ; pool[1] u64[]
+    data.const 1 29   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1

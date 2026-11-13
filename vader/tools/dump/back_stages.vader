@@ -129,6 +129,7 @@ c_stage :: fn(input: DumpInput) -> StageOutput {
 // Each `@extern` the modules in scope declare, as the C prototype it is called
 // through, the uncalled ones included.
 externs_stage :: fn(input: DumpInput) -> StageOutput {
+    input.whole_modules = true
     pipeline :: input.evaluated_pipeline()
     le :: input.lowered_entry()
     scope :: input.scope_of()

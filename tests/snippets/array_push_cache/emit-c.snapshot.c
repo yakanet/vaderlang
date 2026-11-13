@@ -161,11 +161,11 @@ const vader_type_info_t vader_type_info_table[17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
-    [13] = { .slot_size = 2 },
-    [14] = {
+    [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 14u,
     },
+    [14] = { .slot_size = 2 },
     [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 16u,
@@ -659,7 +659,7 @@ static vader_string_t snippet$widths(int32_t l0) {
     } else {
         l1 = INT64_C(0);
     }
-    vader_array_t* _a1_arr = vader_array_reserve(14u, (int64_t) l1, 6u, 13u);
+    vader_array_t* _a1_arr = vader_array_reserve(13u, (int64_t) l1, 6u, 14u);
     l5 = (void*) _a1_arr;
     l3 = INT32_C(0);
     vader_array_t* _pc54_hdr = (vader_array_t*) l5;
@@ -757,7 +757,7 @@ static vader_string_t snippet$widths(int32_t l0) {
         vader_array_t* _a4_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l11)
-        t3 = vader_box_i32(13u, ((int16_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) l11]);
+        t3 = vader_box_i32(14u, ((int16_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) l11]);
         t5 = ((int16_t) t3.payload.i);
         l13 = ((int32_t) (int16_t) t5);
         l12 = vader_chk_add(i32, l12, l13);

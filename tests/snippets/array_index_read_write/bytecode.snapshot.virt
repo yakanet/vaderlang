@@ -9,9 +9,9 @@ type 6 scalar u8
 type 7 array 6
 type 8 scalar void
 type 9 array 4
-type 10 array 1
-type 11 scalar f64
-type 12 array 11
+type 10 scalar f64
+type 11 array 1
+type 12 array 10
 type 13 array 2
 string 0 "xs="
 string 1 ","
@@ -46,7 +46,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 10 3   ; i32[]
+  array.new 11 3   ; i32[]
   local.tee 0   ; xs
   i32.const 0
   load_slot_i32
@@ -201,7 +201,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; xs
   i64.const 1
   i64.const 3
-  array.slice 10   ; i32[]
+  array.slice 11   ; i32[]
   local.set 0   ; xs
   i64.const 46
   buffer.new

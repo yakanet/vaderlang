@@ -47,7 +47,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
         { 1u, 0u, { .obj = (void*) (struct vader_struct_snippet$Point_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(14u, 1u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(13u, 1u, &vader_data_0_buf);
 
 static int32_t snippet$through_param(void* l0);
 static int32_t snippet$double(void* l0);
@@ -100,11 +100,11 @@ const vader_type_info_t vader_type_info_table[15] = {
     },
     [13] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
     },
     [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
 };
 const size_t vader_type_info_count = 15;
@@ -189,13 +189,13 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a1_obj, 1u);
     _a1_obj->f_x = INT32_C(4);
     l1 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(14u, 2u, 13u, 1u);
+    vader_array_t* _a2_arr = vader_array_new(13u, 2u, 13u, 1u);
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l1;
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     l0 = (void*) _a2_arr;
     l2 = l0;
     t1 = vader_array_length(((vader_array_t*) l2));
-    vader_array_t* _a3_arr = vader_array_reserve(13u, (int64_t) t1, 7u, 2u);
+    vader_array_t* _a3_arr = vader_array_reserve(14u, (int64_t) t1, 7u, 2u);
     l3 = (void*) _a3_arr;
     l4 = vader_array_length(((vader_array_t*) l2));
     l5 = INT64_C(0);

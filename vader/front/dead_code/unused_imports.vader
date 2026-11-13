@@ -191,19 +191,22 @@ runs_an_impl_of :: fn(run: ImplsRun, path: string, imported: LoadedModule) -> bo
     }
     for file in imported.module.files {
         for d in file.program.decls {
-            if d !is AST.ImplDecl {
-                continue
-            }
-            // A key ends with the trait's own name, which an impl may write behind
-            // an alias (`Ns.Trait`).
-            written :: d.trait_name.split(".")
-            name :: written[written.len() - 1]
-            if run.inherited || run.trait_keys.any_match((key) -> key.ends_with(name)) {
+            if d is AST.ImplDecl && run.may_run_an_impl_of(d.trait_name) {
                 return true
             }
         }
     }
-    return false
+    // The impls a load that keeps only what is reached dropped are declared too.
+    return imported.lost_impl_traits.any_match((trait_name) -> run.may_run_an_impl_of(trait_name))
+}
+
+// Whether a site of the file may run an impl of the trait written `trait_name`.
+may_run_an_impl_of :: fn(run: ImplsRun, trait_name: string) -> bool {
+    // A key ends with the trait's own name, which an impl may write behind an
+    // alias (`Ns.Trait`).
+    written :: trait_name.split(".")
+    name :: written[written.len() - 1]
+    return run.inherited || run.trait_keys.any_match((key) -> key.ends_with(name))
 }
 
 // Whether `names` holds a name the import `d` of the module `imported` brings:
@@ -320,6 +323,9 @@ walk_imports :: fn(
 }
 
 declares_an_impl :: fn(loaded: LoadedModule) -> bool {
+    if loaded.lost_impl_traits.len() > 0 {
+        return true
+    }
     for file in loaded.module.files {
         for d in file.program.decls {
             if d is AST.ImplDecl {

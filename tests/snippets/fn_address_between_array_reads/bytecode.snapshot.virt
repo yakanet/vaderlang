@@ -9,8 +9,8 @@ type 6 scalar u8
 type 7 scalar bool
 type 8 array 6
 type 9 scalar void
-type 10 scalar pointer
-type 11 array 1
+type 10 array 1
+type 11 scalar pointer
 string 0 "first: "
 string 1 ", through the callback: "
 string 2 "\n"
@@ -40,7 +40,7 @@ fn 1 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 11 3   ; i32[]
+  array.new 10 3   ; i32[]
   local.tee 0   ; xs
   i32.const 0
   load_slot_i32

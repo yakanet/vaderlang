@@ -108,13 +108,22 @@ private_type_of :: fn(d: AST.Decl, private_types: Set<string>) -> string | null 
     if d !is AST.ImplDecl {
         return null
     }
-    target :: d.for_type
-    if target is AST.IdentExpr && target.name in private_types {
-        return target.name
+    owner :: type_head_name(d.for_type) ?? return null
+    if owner in private_types {
+        return owner
     }
-    if target is AST.GenericInstExpr {
-        callee :: target.callee
-        if callee is AST.IdentExpr && callee.name in private_types {
+    return null
+}
+
+// The name a written type starts with: `Box` for `Box` and for `Box<T>`, null
+// for a type with no name of its own (an array, a tuple, a function).
+type_head_name :: fn(written: AST.TypeExpr) -> string | null {
+    if written is AST.IdentExpr {
+        return written.name
+    }
+    if written is AST.GenericInstExpr {
+        callee :: written.callee
+        if callee is AST.IdentExpr {
             return callee.name
         }
     }

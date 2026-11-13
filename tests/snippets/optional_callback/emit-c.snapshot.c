@@ -444,7 +444,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 684) vader_data_0_buf = {
         (uint64_t) UINT64_C(673562245690857633), (uint64_t) UINT64_C(1345193707530136767),
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(28u, 684u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(29u, 684u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(22u, 4u, 652u),
     .slots = {
@@ -776,7 +776,7 @@ static const VADER_ARRAY_STATIC_BUF(uint64_t, 652) vader_data_1_buf = {
         (uint64_t) UINT64_C(1780059086805761106),
     },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(28u, 652u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(29u, 652u, &vader_data_1_buf);
 
 static void snippet$apply(int32_t l0, vader_box_t l1);
 static int32_t snippet$run(vader_box_t l0, int32_t l1);
@@ -970,12 +970,12 @@ const vader_type_info_t vader_type_info_table[30] = {
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 26u,
     },
     [28] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 22u,
-    },
-    [29] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ref_offsets = vader_fn_ref_offsets, .ref_count = 1,
+    },
+    [29] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 22u,
     },
 };
 const size_t vader_type_info_count = 30;
@@ -1202,7 +1202,7 @@ static int32_t snippet$main(void) {
     _a4_obj->f_receiver = t0;
     t0 = (void*) _a4_obj;
     vader_fn_t* _a5_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a5_closure, 29u);
+    vader_obj_header_init(_a5_closure, 28u);
     _a5_closure->code = (void*) &vader_fn_lift___method_snippet_7;
     _a5_closure->env = t0;
     t0 = (void*) _a5_closure;

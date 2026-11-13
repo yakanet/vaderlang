@@ -39,13 +39,13 @@ type 36 array 37
 type 37 struct std_task$Waiter { thread:9,group:38,index:9 }
 type 38 union 39,0
 type 39 struct std_task$Group { ended:25,taken:9 }
-type 40 array 10
-type 41 union 42,0
-type 42 struct std_runtime_scheduler$InitGate { held:17,owner:9,waiters:25 }
-type 43 struct __defer_env_std_runtime_scheduler_1 { cap_0:42 }
-type 44 struct __defer_env_std_runtime_scheduler_3 { cap_0:42,cap_1:9 }
-type 45 array 6
-type 46 array 7
+type 40 union 41,0
+type 41 struct std_runtime_scheduler$InitGate { held:17,owner:9,waiters:25 }
+type 42 struct __defer_env_std_runtime_scheduler_1 { cap_0:41 }
+type 43 struct __defer_env_std_runtime_scheduler_3 { cap_0:41,cap_1:9 }
+type 44 array 6
+type 45 array 7
+type 46 array 10
 type 47 array 11
 string 0 "body "
 string 1 "inner body (unreached)"
@@ -76,7 +76,7 @@ data 5 agg 1 struct 7 0
 data 6 structs 11 0 1
 global 0 2 started.state
 global 1 28 started.instance
-global 2 41 started.gate
+global 2 40 started.gate
 import 0 byte_len std_core$byte_len result_type=9 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=21 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=21 param_types=1 param_c_out= param_by_address= (string) -> ref
@@ -134,9 +134,9 @@ fn 0 snippet$step (string) -> i32
 end
 
 fn 1 snippet$inner () -> i32
-  data.const 4 45   ; pool[4] __defer_env_snippet_5[]
+  data.const 4 44   ; pool[4] __defer_env_snippet_5[]
   i64.const 0
-  array.get 45   ; __defer_env_snippet_5[]
+  array.get 44   ; __defer_env_snippet_5[]
   make_closure 6 29   ; __defer_snippet_4 fn
   defer.push
   i64.const 1000
@@ -150,9 +150,9 @@ end
 
 fn 2 snippet$outer () -> i32
   local x i32
-  data.const 5 46   ; pool[5] __defer_env_snippet_7[]
+  data.const 5 45   ; pool[5] __defer_env_snippet_7[]
   i64.const 0
-  array.get 46   ; __defer_env_snippet_7[]
+  array.get 45   ; __defer_env_snippet_7[]
   make_closure 7 29   ; __defer_snippet_6 fn
   defer.push
   call 1   ; snippet$inner
@@ -1859,11 +1859,11 @@ fn 36 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 40   ; pool[0] u64[]
+    data.const 0 46   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 40   ; pool[0] u64[]
+    data.const 0 46   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1973,11 +1973,11 @@ fn 36 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 40   ; pool[1] u64[]
+    data.const 1 46   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 40   ; pool[1] u64[]
+    data.const 1 46   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -2383,7 +2383,7 @@ end
 
 fn 40 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 2 40   ; pool[2] u64[]
+  data.const 2 46   ; pool[2] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -2415,7 +2415,7 @@ end
 
 fn 43 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local $idx_4 u64
-  data.const 3 40   ; pool[3] u64[]
+  data.const 3 46   ; pool[3] u64[]
   local.get 1   ; arg 1
   load_slot_i64
   local.set 3   ; $idx_4
@@ -3816,11 +3816,11 @@ fn 83 std_runtime_scheduler$gate_or_new (any) -> ref
     bool.const false
     i64.const 0
     local.get 2   ; $arr_6
-    struct.new 42   ; std_runtime_scheduler$InitGate
+    struct.new 41   ; std_runtime_scheduler$InitGate
     return
   end $L0
   local.get 1   ; __coalesce_0
-  ref.cast 42   ; std_runtime_scheduler$InitGate
+  ref.cast 41   ; std_runtime_scheduler$InitGate
   return
 end
 
@@ -3828,10 +3828,10 @@ fn 84 std_runtime_scheduler$run_gated (ref,ref) -> bool
   local me i64
   call.import 11   ; std_runtime_scheduler$current_thread
   local.set 2   ; me
-  local.field 0 42 0   ; arg 0 std_runtime_scheduler$InitGate.held
+  local.field 0 41 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 17   ; bool
   if $L0 void
-    local.field 0 42 1   ; arg 0 std_runtime_scheduler$InitGate.owner
+    local.field 0 41 1   ; arg 0 std_runtime_scheduler$InitGate.owner
     ref.cast 9   ; i64
     local.get 2   ; me
     i64.eq
@@ -3839,7 +3839,7 @@ fn 84 std_runtime_scheduler$run_gated (ref,ref) -> bool
       return.lit bool.const false
     end $L1
   end $L0
-  local.field 0 42 0   ; arg 0 std_runtime_scheduler$InitGate.held
+  local.field 0 41 0   ; arg 0 std_runtime_scheduler$InitGate.held
   ref.cast 17   ; bool
   if $L2 void
     local.get 0   ; arg 0
@@ -3848,12 +3848,12 @@ fn 84 std_runtime_scheduler$run_gated (ref,ref) -> bool
   end $L2
   local.get 0   ; arg 0
   bool.const true
-  struct.set 42 0   ; std_runtime_scheduler$InitGate.held
+  struct.set 41 0   ; std_runtime_scheduler$InitGate.held
   local.get 0   ; arg 0
   local.get 2   ; me
-  struct.set 42 1   ; std_runtime_scheduler$InitGate.owner
+  struct.set 41 1   ; std_runtime_scheduler$InitGate.owner
   local.get 0   ; arg 0
-  struct.new 43   ; __defer_env_std_runtime_scheduler_1
+  struct.new 42   ; __defer_env_std_runtime_scheduler_1
   make_closure 85 29   ; __defer_std_runtime_scheduler_0 fn
   defer.push
   local.get 1   ; arg 1
@@ -3863,22 +3863,22 @@ fn 84 std_runtime_scheduler$run_gated (ref,ref) -> bool
 end
 
 fn 85 __defer_std_runtime_scheduler_0 (ref) -> void
-  local.field 0 43 0   ; arg 0 __defer_env_std_runtime_scheduler_1.cap_0
+  local.field 0 42 0   ; arg 0 __defer_env_std_runtime_scheduler_1.cap_0
   call 88   ; std_runtime_scheduler$let_go
   return
 end
 
 fn 86 std_runtime_scheduler$await_gate (ref,i64) -> void
-  local.field 0 42 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
+  local.field 0 41 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
   local.get 1   ; arg 1
   array.push 9   ; i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  struct.new 44   ; __defer_env_std_runtime_scheduler_3
+  struct.new 43   ; __defer_env_std_runtime_scheduler_3
   make_closure 87 29   ; __defer_std_runtime_scheduler_2 fn
   defer.push
   loop $L0 void
-    local.field 0 42 0   ; arg 0 std_runtime_scheduler$InitGate.held
+    local.field 0 41 0   ; arg 0 std_runtime_scheduler$InitGate.held
     ref.cast 17   ; bool
     if $L1 void
       call.import 7   ; std_runtime_scheduler$park
@@ -3892,10 +3892,10 @@ end
 fn 87 __defer_std_runtime_scheduler_2 (ref) -> void
   local $field_2 ref
   local $field_3 i64
-  local.field 0 44 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
-  struct.get 42 2   ; std_runtime_scheduler$InitGate.waiters
+  local.field 0 43 0   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_0
+  struct.get 41 2   ; std_runtime_scheduler$InitGate.waiters
   local.set 1   ; $field_2
-  local.field 0 44 1   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_1
+  local.field 0 43 1   ; arg 0 __defer_env_std_runtime_scheduler_3.cap_1
   ref.cast 9   ; i64
   local.set 2   ; $field_3
   local.get 1   ; $field_2
@@ -3911,8 +3911,8 @@ fn 88 std_runtime_scheduler$let_go (ref) -> void
   local __for_i_2 i64
   local.get 0   ; arg 0
   bool.const false
-  struct.set 42 0   ; std_runtime_scheduler$InitGate.held
-  local.field 0 42 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
+  struct.set 41 0   ; std_runtime_scheduler$InitGate.held
+  local.field 0 41 2   ; arg 0 std_runtime_scheduler$InitGate.waiters
   local.tee 1   ; __for_arr_0
   array.len
   local.set 2   ; __for_len_1

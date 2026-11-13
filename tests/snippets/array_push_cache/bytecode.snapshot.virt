@@ -12,8 +12,8 @@ type 9 scalar i64
 type 10 scalar u8
 type 11 array 10
 type 12 scalar void
-type 13 scalar i16
-type 14 array 13
+type 13 array 14
+type 14 scalar i16
 type 15 array 16
 type 16 scalar f32
 string 0 "v"
@@ -671,7 +671,7 @@ fn 12 snippet$widths (i32) -> string
     local.set 1   ; if_res
   end $L3
   local.get 1   ; if_res
-  array.reserve 14   ; i16[]
+  array.reserve 13   ; i16[]
   local.set 5   ; shorts
   i32.const 0
   local.set 3   ; i
@@ -693,7 +693,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 6   ; $cast_28
       local.get 5   ; shorts
       local.get 6   ; $cast_28
-      array.push 13 5   ; i16 shorts
+      array.push 14 5   ; i16 shorts
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -785,8 +785,8 @@ fn 12 snippet$widths (i32) -> string
     if $L12 void
       local.get 2   ; bytes
       local.get 11   ; __for_i_2
-      array.get 14   ; i16[]
-      ref.cast 13   ; i16
+      array.get 13   ; i16[]
+      ref.cast 14   ; i16
       i16.to_i32
       local.set 13   ; $cast_70
       local.get 12   ; $cast_56

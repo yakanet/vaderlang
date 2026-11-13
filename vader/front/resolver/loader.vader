@@ -92,6 +92,13 @@ export LoadedModule :: struct {
     /// its files is not what its author wrote, and a lint of the source does not
     /// read it.
     tests_removed: bool = false
+    /// The module holds only the declarations the program reaches
+    /// (`only_reached`): what looks unused in it may be used by the ones that
+    /// went, and a lint of dead code does not read it.
+    trimmed: bool = false
+    /// The trait of each impl among the declarations that went, as written: the
+    /// module declares them, for a reader that asks what loading it brings.
+    lost_impl_traits: string[] = []
 }
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
@@ -102,13 +109,17 @@ export LoadedModule :: struct {
 ///                      null for a file compiled on its own.
 /// @param under_test    the entry is loaded to run its tests: every other module
 ///                      is loaded without its own, the project's included.
+/// @param only_reached  a dependency keeps the declarations the program reaches
+///                      by name, and no other (`reached.vader`). For a load that
+///                      builds or runs the program; one that reads what a module
+///                      offers (completion, docs, lints) leaves it off.
 export load_project :: fn(
     entry_path: string, include_path_flags: string[], project_root: string | null,
-    selection: Selection | null = null, under_test: bool = false,
+    selection: Selection | null = null, under_test: bool = false, only_reached: bool = false,
 ) -> LoadedProject {
     return load_project_with_overlay(
         entry_path, Map<string, string> {}, include_path_flags, project_root, selection,
-        under_test = under_test)
+        under_test = under_test, only_reached = only_reached)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -136,11 +147,13 @@ export load_project :: fn(
 ///                     build leaves it off and pays nothing for them.
 /// @param under_test   the entry is loaded to run its tests: every other module
 ///                     is loaded without its own, the project's included.
+/// @param only_reached a dependency keeps the declarations the program reaches
+///                     by name, and no other (see `load_project`).
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: Map<string, string>,
     include_path_flags: string[], project_root: string | null,
     selection: Selection | null = null, extra_seeds: string[] = [],
-    keep_docs: bool = false, under_test: bool = false,
+    keep_docs: bool = false, under_test: bool = false, only_reached: bool = false,
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // Windows hands the entry path with `\` separators ; the resolver keeps `/`
@@ -202,6 +215,7 @@ export load_project_with_overlay :: fn(
                 .selected_target = effective_target,
                 .keep_docs = keep_docs,
                 .tested = if under_test { entry_module.folder } else { null },
+                .only_reached = only_reached,
             }
             // Re-resolve the entry through the generic path now that the roots
             // exist. `paths[0]` is the entry's own folder rooted at its declared
@@ -256,6 +270,7 @@ export load_project_with_overlay :: fn(
             // under `HostBodies`. Defaulting here rather than per entry point is
             // what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
             load_baked_target(ctx, bake_target)
+            collect_deferred(ctx)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = entry_module.folder, .modules = modules, .factory = factory,
@@ -420,7 +435,32 @@ LoadState :: struct {
     /// The folder of the module loaded to run its tests, null in any other load.
     /// NO default, for the reason `selected_target` has none.
     tested: string | null
+    /// Whether a dependency keeps only what the program reaches. Its symbols are
+    /// then minted once every module is parsed (`collect_deferred`), in the
+    /// order the modules were read.
+    only_reached: bool
+    /// The modules read so far whose symbols are still to mint.
+    deferred: DeferredModule[] = []
 }
+
+// A module read and not yet collected: what `ingest_module` knew of it.
+DeferredModule :: struct {
+    found: DiscoveredModule
+    sources: SourceFile[]
+    discarded_bodies: FnDecl[]
+    target_decls: FnDecl[]
+    tests_removed: bool
+    trimmed: bool = false
+    lost_impl_traits: string[] = []
+}
+
+// The modules the compiler reads declarations of by itself, with no source that
+// writes their name: the prelude, what an interpolation and a baked constant
+// are lowered to, and the scheduler a program with tasks starts. They are never
+// trimmed.
+STUDIED_WHOLE :: [
+    "std/core", "std/string_builder", "std/target", BAKED_MODULE, "std/runtime/scheduler",
+]
 
 // The module `name` resolves to from the roots of the load `ctx`.
 resolve_in :: fn(ctx: LoadState, name: string) -> DiscoveredModule | null =
@@ -531,25 +571,95 @@ ingest_module :: fn(ctx: LoadState, m: DiscoveredModule) -> void {
     // `diagnose_import_path` finds them instead of firing a spurious R2001:
     // the failure mode that reverted the earlier lazy attempt.
     preresolve_imports(sources, ctx.bases, ctx.index, ctx.overlay, ctx.diags)
-    collected :: collect_files(sources, m.folder, m.name, ctx.factory, ctx.index, ctx.bases, ctx.diags)
-    ctx.modules[m.folder] = LoadedModule {
+    read_module :: DeferredModule {
+        .found = m,
+        .sources = sources,
         .discarded_bodies = dropped_bodies,
         .target_decls = target_declarations(parsed),
         .tests_removed = tests_removed,
+    }
+    if !ctx.only_reached {
+        collected :: collect_files(sources, m.folder, m.name, ctx.factory, ctx.index, ctx.bases, ctx.diags)
+        ctx.modules[m.folder] = loaded_module(ctx, read_module, collected)
+        return
+    }
+    // Only its imports for now, which is what the walk of the module graph
+    // reads: the symbols wait for `collect_deferred`.
+    ctx.deferred.push(read_module)
+    ctx.modules[m.folder] = loaded_module(ctx, read_module, CollectedModule {
+        .symbols      = Map<string, Symbol> {},
+        .fn_overloads = Map<string, Symbol[]> {},
+        .imports      = Map<i32, ImportInfo> {},
+        .import_paths = import_paths_of(sources),
+        .files        = [],
+    })
+}
+
+// The loaded form of the module `read` and of what was collected from it.
+loaded_module :: fn(ctx: LoadState, read: DeferredModule, collected: CollectedModule) -> LoadedModule =
+    LoadedModule {
+        .discarded_bodies = read.discarded_bodies,
+        .target_decls = read.target_decls,
+        .tests_removed = read.tests_removed,
+        .trimmed = read.trimmed,
+        .lost_impl_traits = read.lost_impl_traits,
         .module = Module {
-            .id           = m.folder,
+            .id           = read.found.folder,
             // Display path is the module's declared name (`module "..."`),
             // NOT the filesystem folder. Keeps `# Lower` / `# Comptime` /
             // `# Typecheck` dumps stable.
-            .display_path = m.name,
-            .module_name  = m.name,
-            .origin       = m.origin,
-            .files        = sources,
+            .display_path = read.found.name,
+            .module_name  = read.found.name,
+            .origin       = read.found.origin,
+            .files        = read.sources,
         },
         .collected       = collected,
         // Same project-global factory every module's parse used ; carried here
         // so materialised members mint past the project-global max.
         .node_id_factory = ctx.node_factory,
+    }
+
+// Every `import "path"` of `sources`, in source order.
+import_paths_of :: fn(sources: SourceFile[]) -> ImportPath[] {
+    paths: ImportPath[]: []
+    for f in sources {
+        for d in f.program.decls {
+            // An import with no path has its own error, and names no module.
+            if d is ImportDecl && d.path != "" {
+                paths.push(ImportPath { .path = d.path, .span = d.span })
+            }
+        }
+    }
+    return paths
+}
+
+// Mint the symbols of the modules a load that keeps only what is reached has
+// read, each trimmed first to what the others reach (`only_reached`). Modules
+// are collected in the order they were read, the order of a load that collects
+// each as it reads it.
+collect_deferred :: fn(ctx: LoadState) -> void {
+    if ctx.deferred.len() == 0 {
+        return
+    }
+    units: ReachUnit[]: []
+    for read in ctx.deferred {
+        trimmed :: is_dependency(ctx, read.found) && !(read.found.name in STUDIED_WHOLE)
+        units.push(ReachUnit { .files = read.sources, .trimmed = trimmed })
+    }
+    reached :: only_reached(units)
+    for i in 0..<ctx.deferred.len() {
+        read :: ctx.deferred[i]
+        kept :: DeferredModule {
+            ...read,
+            .sources = reached[i].files,
+            .trimmed = units[i].trimmed,
+            .lost_impl_traits = reached[i].lost_impl_traits,
+        }
+        collected :: collect_files(
+            kept.sources, read.found.folder, read.found.name, ctx.factory, ctx.index, ctx.bases,
+            ctx.diags,
+        )
+        ctx.modules[read.found.folder] = loaded_module(ctx, kept, collected)
     }
 }
 
