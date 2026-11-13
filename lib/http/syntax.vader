@@ -1,0 +1,95 @@
+// http/syntax: the bytes a head is made of, and the failures of this module.
+//
+// The character classes are those of RFC 9110, section 5. They are asked of
+// what is read and of what is written alike.
+
+module "http"
+
+import "std/io"
+import "std/string"
+import "std/uri"
+
+// ---- bytes ----------------------------------------------------------------
+
+is_digit_byte :: fn(b: u8) -> bool = b >= '0' && b <= '9'
+
+is_blank :: fn(b: u8) -> bool = b == ' ' || b == '\t'
+
+// `tchar` of RFC 9110: a letter, a digit, or one of the marks no delimiter
+// takes.
+is_token_byte :: fn(b: u8) -> bool {
+    if is_digit_byte(b) || b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z' {
+        return true
+    }
+    return match b {
+        '!' | '#' | '$' | '%' | '&' | '\'' | '*' | '+' | '-' | '.' | '^' | '_' | '`' | '|' | '~' -> true
+        _ -> false
+    }
+}
+
+// Whether `bytes` are a token of RFC 9110: what a method and a field name are
+// made of.
+is_token :: fn(bytes: u8[]) -> bool {
+    if bytes.len() == 0 {
+        return false
+    }
+    for b in bytes {
+        if !is_token_byte(b) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `bytes` may be a request target: not empty, and visible ASCII alone,
+// which is all a URI is written in.
+is_target :: fn(bytes: u8[]) -> bool {
+    if bytes.len() == 0 {
+        return false
+    }
+    for b in bytes {
+        if b <= ' ' || b >= 0x7F {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `bytes` may be a field value: no control byte but the tab. The bytes
+// above ASCII are taken as they come.
+is_field_value :: fn(bytes: u8[]) -> bool {
+    for b in bytes {
+        if b < ' ' && b != '\t' || b == 0x7F {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `text` may be the value of a `Host` field: `uri-host [ ":" port ]`,
+// which is an authority with no user in it. An empty one names no host, as a
+// request whose target has no authority does.
+is_host :: fn(text: string) -> bool {
+    parsed :: parse_uri("http://${text}")
+    if parsed !is Uri {
+        return false
+    }
+    authority :: parsed.authority ?? return false
+    return authority.userinfo == null
+        && parsed.path == ""
+        && parsed.query == null
+        && parsed.fragment == null
+        && !text.ends_with(":")
+}
+
+// ---- failures -------------------------------------------------------------
+
+malformed :: fn(msg: string) -> HttpError = HttpError { .kind = .Malformed, .msg = msg }
+
+incomplete :: fn(msg: string) -> HttpError = HttpError { .kind = .Incomplete, .msg = msg }
+
+transport :: fn(cause: IOError) -> HttpError = HttpError {
+    .kind = .Transport,
+    .msg = cause.msg,
+    .cause = cause,
+}

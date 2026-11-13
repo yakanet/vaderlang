@@ -1,0 +1,186 @@
+// http/headers: the fields of a message.
+//
+// A field is a name and a value (RFC 9110, section 5). Names compare without
+// regard to case, a name may come several times, and the order the lines came
+// in is kept: a recipient may join the values of one name with commas, never
+// reorder them.
+
+module "http"
+
+// ---- fields ---------------------------------------------------------------
+
+/// One field line: a name and its value.
+export Header :: struct {
+    /// As it was written. `same_field_name` compares two of them.
+    name: string
+    /// With no whitespace at either end.
+    value: string
+}
+
+/// The fields of a message, in the order they were written.
+///
+/// @example
+///   headers :: Headers {}
+///   headers.set("Content-Type", "text/plain")
+///   headers.get("content-type")   // "text/plain"
+export Headers :: struct {
+    @internal
+    lines: Header[] = []
+}
+
+/// The field lines of `headers`, in the order they were written.
+///
+/// @param headers  the fields to walk.
+/// @example
+///   headers :: Headers {}
+///   headers.add("Accept", "text/html")
+///   for line in headers.fields() {
+///       line.name   // "Accept"
+///   }
+export fields :: fn(headers: Headers) -> Iterator<Header> {
+    for line in headers.lines {
+        yield line
+    }
+}
+
+/// How many field lines `headers` holds.
+///
+/// @param headers  the fields to count.
+export count :: fn(headers: Headers) -> i64 = headers.lines.len()
+
+/// The value of the first field named `name`, null when there is none.
+///
+/// @param headers  the fields to search.
+/// @param name     the name looked for, in any case.
+export get :: fn(headers: Headers, name: string) -> string | null {
+    for line in headers.lines {
+        if same_field_name(line.name, name) {
+            return line.value
+        }
+    }
+    return null
+}
+
+/// The values of every field named `name`, in order; empty when there is none.
+///
+/// @param headers  the fields to search.
+/// @param name     the name looked for, in any case.
+export get_all :: fn(headers: Headers, name: string) -> string[] {
+    values: string[]: []
+    for line in headers.lines {
+        if same_field_name(line.name, name) {
+            values.push(line.value)
+        }
+    }
+    return values
+}
+
+/// Add a field after the ones already there, those named `name` included.
+///
+/// @param headers  the fields to add to.
+/// @param name     the name of the field.
+/// @param value    its value.
+export add :: fn(headers: Headers, name: string, value: string) -> void {
+    headers.lines.push(Header { .name = name, .value = value })
+}
+
+/// Give `name` one value: the fields already named `name` go, and the new one
+/// comes last.
+///
+/// @param headers  the fields to change.
+/// @param name     the name of the field.
+/// @param value    its only value from now on.
+export set :: fn(headers: Headers, name: string, value: string) -> void {
+    headers.remove(name)
+    headers.add(name, value)
+}
+
+/// Take out every field named `name`.
+///
+/// @param headers  the fields to change.
+/// @param name     the name to remove, in any case.
+export remove :: fn(headers: Headers, name: string) -> void {
+    kept: Header[]: []
+    for line in headers.lines {
+        if !same_field_name(line.name, name) {
+            kept.push(line)
+        }
+    }
+    headers.lines = kept
+}
+
+/// Whether two field names are one: they differ at most by the case of their
+/// ASCII letters.
+///
+/// @param a  a field name.
+/// @param b  another.
+export same_field_name :: fn(a: string, b: string) -> bool {
+    left :: a.bytes()
+    right :: b.bytes()
+    if left.len() != right.len() {
+        return false
+    }
+    for i in 0..<left.len() {
+        if lower_ascii(left[i]) != lower_ascii(right[i]) {
+            return false
+        }
+    }
+    return true
+}
+
+lower_ascii :: fn(b: u8) -> u8 {
+    if b >= 'A' && b <= 'Z' {
+        return b + 32
+    }
+    return b
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+
+@test
+test_headers_find_a_name_in_any_case :: fn() -> void {
+    headers :: Headers {}
+    headers.add("Content-Type", "text/plain")
+    assert_eq(headers.get("content-type") ?? "", "text/plain")
+    assert_eq(headers.get("CONTENT-TYPE") ?? "", "text/plain")
+    assert(headers.get("Content-Length") == null, "an absent name is null")
+}
+
+@test
+test_headers_keep_the_lines_of_one_name_in_order :: fn() -> void {
+    headers :: Headers {}
+    headers.add("Accept", "text/html")
+    headers.add("Host", "example.org")
+    headers.add("accept", "text/plain")
+    assert_eq(headers.get_all("Accept").join(" | "), "text/html | text/plain")
+    assert_eq(headers.get("Accept") ?? "", "text/html")
+}
+
+@test
+test_headers_set_replaces_every_line_of_the_name :: fn() -> void {
+    headers :: Headers {}
+    headers.add("Accept", "text/html")
+    headers.add("accept", "text/plain")
+    headers.set("ACCEPT", "*/*")
+    assert_eq(headers.get_all("Accept").join(" | "), "*/*")
+}
+
+@test
+test_headers_remove_leaves_the_other_names :: fn() -> void {
+    headers :: Headers {}
+    headers.add("Accept", "text/html")
+    headers.add("Host", "example.org")
+    headers.remove("accept")
+    assert_eq(headers.count(), 1)
+    assert_eq(headers.get("Host") ?? "", "example.org")
+}
+
+@test
+test_field_names_differ_by_more_than_case :: fn() -> void {
+    assert(same_field_name("Host", "hOST"), "case does not tell names apart")
+    assert(!same_field_name("Host", "Hosts"), "a longer name is another")
+    assert(!same_field_name("Host", "Hast"), "another letter is another name")
+}

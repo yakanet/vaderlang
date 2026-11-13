@@ -1,0 +1,348 @@
+// http/message: what a request and a response are, whatever carries them.
+//
+// The names are those of RFC 9110. Nothing here reads or writes: read.vader
+// takes a message off a `Reader`, write.vader puts one on a `Writer`.
+//
+// A body is a `Reader`, never an array: a message may carry more than fits in
+// memory, and what reads it does not know how it is framed.
+
+module "http"
+
+import "std/io"
+
+// ---- methods --------------------------------------------------------------
+
+/// The methods of RFC 9110, and `PATCH` (RFC 5789). A request with any other
+/// method is one this library does not implement.
+export Method :: enum {
+    Get,
+    Head,
+    Post,
+    Put,
+    Delete,
+    Connect,
+    Options,
+    Trace,
+    Patch,
+}
+
+Method implements Display {
+    /// The token a request line writes, in upper case.
+    to_string :: fn(self) -> string = match self {
+        .Get     -> "GET"
+        .Head    -> "HEAD"
+        .Post    -> "POST"
+        .Put     -> "PUT"
+        .Delete  -> "DELETE"
+        .Connect -> "CONNECT"
+        .Options -> "OPTIONS"
+        .Trace   -> "TRACE"
+        .Patch   -> "PATCH"
+    }
+}
+
+/// The method a request line names, null for a token that is none of
+/// `Method`. A method is case-sensitive: `get` is not `GET`.
+///
+/// @param token  the first word of a request line.
+export method_named :: fn(token: string) -> Method | null = match token {
+    "GET"     -> .Get
+    "HEAD"    -> .Head
+    "POST"    -> .Post
+    "PUT"     -> .Put
+    "DELETE"  -> .Delete
+    "CONNECT" -> .Connect
+    "OPTIONS" -> .Options
+    "TRACE"   -> .Trace
+    "PATCH"   -> .Patch
+    _         -> null
+}
+
+// ---- versions -------------------------------------------------------------
+
+/// The versions of HTTP whose messages this module reads and writes.
+export HttpVersion :: enum {
+    Http10,
+    Http11,
+}
+
+HttpVersion implements Display {
+    to_string :: fn(self) -> string = match self {
+        .Http10 -> "HTTP/1.0"
+        .Http11 -> "HTTP/1.1"
+    }
+}
+
+// ---- status codes ---------------------------------------------------------
+
+/// The three digits that say how a request went. Any code from 100 to 599 is
+/// one, named below or not.
+export Status :: u16
+
+export STATUS_CONTINUE: Status: Status(100)
+export STATUS_SWITCHING_PROTOCOLS: Status: Status(101)
+export STATUS_OK: Status: Status(200)
+export STATUS_CREATED: Status: Status(201)
+export STATUS_ACCEPTED: Status: Status(202)
+export STATUS_NO_CONTENT: Status: Status(204)
+export STATUS_PARTIAL_CONTENT: Status: Status(206)
+export STATUS_MOVED_PERMANENTLY: Status: Status(301)
+export STATUS_FOUND: Status: Status(302)
+export STATUS_SEE_OTHER: Status: Status(303)
+export STATUS_NOT_MODIFIED: Status: Status(304)
+export STATUS_TEMPORARY_REDIRECT: Status: Status(307)
+export STATUS_PERMANENT_REDIRECT: Status: Status(308)
+export STATUS_BAD_REQUEST: Status: Status(400)
+export STATUS_UNAUTHORIZED: Status: Status(401)
+export STATUS_FORBIDDEN: Status: Status(403)
+export STATUS_NOT_FOUND: Status: Status(404)
+export STATUS_METHOD_NOT_ALLOWED: Status: Status(405)
+export STATUS_REQUEST_TIMEOUT: Status: Status(408)
+export STATUS_CONFLICT: Status: Status(409)
+export STATUS_LENGTH_REQUIRED: Status: Status(411)
+export STATUS_CONTENT_TOO_LARGE: Status: Status(413)
+export STATUS_URI_TOO_LONG: Status: Status(414)
+export STATUS_UNSUPPORTED_MEDIA_TYPE: Status: Status(415)
+export STATUS_TOO_MANY_REQUESTS: Status: Status(429)
+export STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE: Status: Status(431)
+export STATUS_INTERNAL_SERVER_ERROR: Status: Status(500)
+export STATUS_NOT_IMPLEMENTED: Status: Status(501)
+export STATUS_BAD_GATEWAY: Status: Status(502)
+export STATUS_SERVICE_UNAVAILABLE: Status: Status(503)
+export STATUS_GATEWAY_TIMEOUT: Status: Status(504)
+export STATUS_HTTP_VERSION_NOT_SUPPORTED: Status: Status(505)
+
+/// The words a status line writes after `status`, for a reader of the wire: a
+/// client acts on the code alone. Empty for a code named by no constant above.
+///
+/// @param status  a status code.
+export reason_phrase :: fn(status: Status) -> string = match u16(status) {
+    100 -> "Continue"
+    101 -> "Switching Protocols"
+    200 -> "OK"
+    201 -> "Created"
+    202 -> "Accepted"
+    204 -> "No Content"
+    206 -> "Partial Content"
+    301 -> "Moved Permanently"
+    302 -> "Found"
+    303 -> "See Other"
+    304 -> "Not Modified"
+    307 -> "Temporary Redirect"
+    308 -> "Permanent Redirect"
+    400 -> "Bad Request"
+    401 -> "Unauthorized"
+    403 -> "Forbidden"
+    404 -> "Not Found"
+    405 -> "Method Not Allowed"
+    408 -> "Request Timeout"
+    409 -> "Conflict"
+    411 -> "Length Required"
+    413 -> "Content Too Large"
+    414 -> "URI Too Long"
+    415 -> "Unsupported Media Type"
+    429 -> "Too Many Requests"
+    431 -> "Request Header Fields Too Large"
+    500 -> "Internal Server Error"
+    501 -> "Not Implemented"
+    502 -> "Bad Gateway"
+    503 -> "Service Unavailable"
+    504 -> "Gateway Timeout"
+    505 -> "HTTP Version Not Supported"
+    _   -> ""
+}
+
+/// Whether a response with `status` carries no content whatever its fields
+/// say: an interim response, `204` and `304` (RFC 9112, section 6.3).
+///
+/// @param status  the status of a response.
+export has_no_content :: fn(status: Status) -> bool {
+    code :: u16(status)
+    return code < 200 || code == 204 || code == 304
+}
+
+// ---- messages -------------------------------------------------------------
+
+/// What a client asks of a server.
+///
+/// @example
+///   request :: Request { .method = .Get, .target = "/index.html" }
+///   request.headers.set("Host", "example.org")
+export Request :: struct {
+    method: Method
+    /// What the request is about, as the request line writes it: a path and
+    /// its query for most requests (`/search?q=vader`), a whole URI for a
+    /// request to a proxy, `host:port` for `CONNECT`, `*` for a server-wide
+    /// `OPTIONS`.
+    target: string
+    version: HttpVersion = .Http11
+    headers: Headers = Headers {}
+    /// What the request carries. It is read once, and before the next message
+    /// of its connection.
+    body: Reader = BytesReader { .content = "" }
+}
+
+/// What a server answers.
+///
+/// @example
+///   response :: new_response(STATUS_OK, "hello\n")
+///   response.headers.set("Content-Type", "text/plain")
+export Response :: struct {
+    status: Status = STATUS_OK
+    version: HttpVersion = .Http11
+    headers: Headers = Headers {}
+    /// What the response carries, read as the body of a `Request` is.
+    body: Reader = BytesReader { .content = "" }
+}
+
+/// A request that carries `content`, whose length it declares.
+///
+/// @param method   what is asked.
+/// @param target   what it is asked about, as `Request.target` describes.
+/// @param content  the body, as bytes or as the UTF-8 bytes of a string.
+export new_request :: fn(method: Method, target: string, content: u8[] | string) -> Request {
+    request :: Request {
+        .method = method,
+        .target = target,
+        .body = BytesReader { .content = content },
+    }
+    request.headers.set(CONTENT_LENGTH, "${content.bytes_of().len()}")
+    return request
+}
+
+/// A response that carries `content`, whose length it declares.
+///
+/// @param status   how the request went.
+/// @param content  the body, as bytes or as the UTF-8 bytes of a string.
+export new_response :: fn(status: Status, content: u8[] | string) -> Response {
+    response :: Response { .status = status, .body = BytesReader { .content = content } }
+    response.headers.set(CONTENT_LENGTH, "${content.bytes_of().len()}")
+    return response
+}
+
+// The fields that say where a message ends, and the one a request names its
+// server by.
+CONTENT_LENGTH    :: "Content-Length"
+TRANSFER_ENCODING :: "Transfer-Encoding"
+HOST              :: "Host"
+
+// ---- errors ---------------------------------------------------------------
+
+/// Why a message could not be read or written.
+export HttpErrorKind :: enum {
+    /// The message does not follow the grammar of HTTP/1.1.
+    Malformed,
+    /// The request line is longer than `Limits.start_line`.
+    TargetTooLong,
+    /// The fields are more, or longer, than `Limits` allows.
+    FieldsTooLarge,
+    /// The request names a method that is none of `Method`.
+    MethodNotImplemented,
+    /// The message is of a major version other than 1.
+    VersionNotSupported,
+    /// The body is framed by a transfer coding this module does not read.
+    CodingNotImplemented,
+    /// The source ended in the middle of the message.
+    Incomplete,
+    /// The source or the destination failed: `HttpError.cause` says how.
+    Transport,
+}
+
+/// A message that could not be read or written.
+export HttpError :: struct {
+    kind: HttpErrorKind
+    msg: string
+    /// The failure of the `Reader` or the `Writer`, for `.Transport`.
+    cause: IOError | null = null
+}
+
+HttpError implements Error {
+    message :: fn(self) -> string = self.msg
+}
+
+/// The status a server answers a request it could not read with; null when
+/// there is no one to answer, the connection having failed.
+///
+/// @param error  what `read_request` returned.
+export status_of :: fn(error: HttpError) -> Status | null = match error.kind {
+    .Malformed | .Incomplete -> STATUS_BAD_REQUEST
+    .TargetTooLong           -> STATUS_URI_TOO_LONG
+    .FieldsTooLarge          -> STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE
+    .MethodNotImplemented    -> STATUS_NOT_IMPLEMENTED
+    .CodingNotImplemented    -> STATUS_NOT_IMPLEMENTED
+    .VersionNotSupported     -> STATUS_HTTP_VERSION_NOT_SUPPORTED
+    .Transport               -> null
+}
+
+// ---- limits ---------------------------------------------------------------
+
+/// How much of a message is read before it is refused: a peer that sends
+/// without end must not make a reader grow without end.
+export Limits :: struct {
+    /// The longest request line or status line, in bytes.
+    start_line: i64 = 8192
+    /// The most bytes all the field lines take together.
+    fields: i64 = 65536
+    /// The most field lines.
+    field_count: i64 = 100
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_method_named_reads_what_a_method_writes :: fn() -> void {
+    for method in [
+        Method.Get,
+        Method.Head,
+        Method.Post,
+        Method.Put,
+        Method.Delete,
+        Method.Connect,
+        Method.Options,
+        Method.Trace,
+        Method.Patch,
+    ] {
+        assert(method_named("${method}") == method, "${method} names itself")
+    }
+}
+
+@test
+test_method_named_is_case_sensitive :: fn() -> void {
+    assert(method_named("get") == null, "a method is written in upper case")
+    assert(method_named("PROPFIND") == null, "an unknown method is none")
+}
+
+@test
+test_new_response_declares_the_length_of_its_content :: fn() -> void {
+    response :: new_response(STATUS_NOT_FOUND, "nothing here\n")
+    assert_eq(response.headers.get("content-length") ?? "", "13")
+    assert_eq(reason_phrase(response.status), "Not Found")
+}
+
+@test
+test_a_status_with_no_content_is_interim_or_204_or_304 :: fn() -> void {
+    assert(has_no_content(STATUS_CONTINUE), "100 carries nothing")
+    assert(has_no_content(STATUS_NO_CONTENT), "204 carries nothing")
+    assert(has_no_content(STATUS_NOT_MODIFIED), "304 carries nothing")
+    assert(!has_no_content(STATUS_OK), "200 may carry content")
+}
+
+// The code `status_of` answers a failure of `kind` with, 0 for none.
+answer_to :: fn(kind: HttpErrorKind) -> u16 {
+    status :: status_of(HttpError { .kind = kind, .msg = "" }) ?? return 0
+    return u16(status)
+}
+
+@test
+test_status_of_answers_each_kind_of_failure :: fn() -> void {
+    assert_eq(answer_to(.Malformed), 400)
+    assert_eq(answer_to(.Incomplete), 400)
+    assert_eq(answer_to(.TargetTooLong), 414)
+    assert_eq(answer_to(.FieldsTooLarge), 431)
+    assert_eq(answer_to(.MethodNotImplemented), 501)
+    assert_eq(answer_to(.CodingNotImplemented), 501)
+    assert_eq(answer_to(.VersionNotSupported), 505)
+    assert_eq(answer_to(.Transport), 0)
+}

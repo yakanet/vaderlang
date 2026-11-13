@@ -1,0 +1,103 @@
+// http/body: where the body of a message read ends.
+//
+// A message says how long its body is in its fields (RFC 9112, section 6.3).
+// What reads the body is handed a `Reader` that ends where the message does,
+// so that the next message of the connection is found whole.
+
+module "http"
+
+import "std/io"
+import "std/math"
+import "std/numbers"
+import "std/string"
+
+// ---- what the fields declare ----------------------------------------------
+
+// The body the fields declare, null when they declare none (RFC 9112, section
+// 6.3, rules 3 to 6). A transfer coding and a length together, or a coding in
+// an HTTP/1.0 message, are refused: two recipients may frame them two ways.
+declared_body :: fn(
+    reader: BufferedReader,
+    version: HttpVersion,
+    headers: Headers,
+) -> Reader | null | HttpError {
+    lengths :: headers.get_all(CONTENT_LENGTH)
+    if headers.get(TRANSFER_ENCODING) != null {
+        if version == .Http10 {
+            return malformed("an HTTP/1.0 message has no transfer coding")
+        }
+        if lengths.len() > 0 {
+            return malformed("a transfer coding and a content length together")
+        }
+        return HttpError {
+            .kind = .CodingNotImplemented,
+            .msg = "transfer codings are not implemented",
+        }
+    }
+    if lengths.len() == 0 {
+        return null
+    }
+    length :: content_length(lengths)
+    if length is HttpError {
+        return length
+    }
+    return LengthBody { .source = reader, .left = length }
+}
+
+// The one length the `Content-Length` lines `values` give. A length repeated,
+// on one line or on several, is that length; two that differ are refused.
+content_length :: fn(values: string[]) -> i64 | HttpError {
+    found: i64 = -1
+    for value in values {
+        for part in value.split(",") {
+            length :: decimal(trimmed(part.bytes()))
+            if length is HttpError {
+                return length
+            }
+            if found >= 0 && found != length {
+                return malformed("two content lengths that differ")
+            }
+            found = length
+        }
+    }
+    return found
+}
+
+// `1*DIGIT` as a number, refused when it does not fit.
+decimal :: fn(digits: u8[]) -> i64 | HttpError {
+    value :: parse_int_in_base(digits.bytes_to_string(), 10)
+    if value is ParseError {
+        return malformed("a content length is digits alone, and a number that can be counted")
+    }
+    return value
+}
+
+// The body of a message that declares its length: the next `left` bytes of
+// `source`, and no more of it.
+LengthBody :: struct {
+    source: BufferedReader
+    left: i64
+}
+
+LengthBody implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if self.left == 0 {
+            return null
+        }
+        if into.len() == 0 {
+            return 0
+        }
+        got :: self.source.read(into[0..<min(into.len(), self.left)])
+        if got is IOError {
+            return got
+        }
+        if got == null {
+            return IOError {
+                .msg = "the message ended ${self.left} bytes before its declared length",
+                .kind = .EndOfInput,
+            }
+        }
+        self.left -= got
+        return got
+    }
+}

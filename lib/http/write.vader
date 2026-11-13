@@ -1,0 +1,424 @@
+// http/write: a message put on a `Writer`.
+//
+// Nothing a caller hands over reaches the head unchecked: a name that is no
+// token, a value or a target with a line break in it, are refused. A line break
+// let through is how one message is made to read as two.
+//
+// The head goes out in one write. A body whose length the fields declare is
+// copied as it is read; one that declares none is read whole first, to count
+// it.
+
+module "http"
+
+import "std/io"
+import "std/math"
+import "std/string_builder"
+
+// ---- requests -------------------------------------------------------------
+
+/// Write `request` on `writer`.
+///
+/// With a `Content-Length` field, that many bytes of `request.body` are copied
+/// as they are read. With none, the body is read to its end and its length
+/// declared, unless it is empty and the method gives a body no meaning.
+///
+/// @param writer   where the connection is written.
+/// @param request  what to write; its body is read.
+/// @error          `HttpError`: `.Malformed` for a request no server would read
+///                 as it was meant (a target or a field with a line break, an
+///                 HTTP/1.1 request that names its host not once), `.Incomplete`
+///                 for a body shorter than the length declared, `.Transport`
+///                 when the body cannot be read or `writer` fails.
+/// @example
+///   # import "std/io"
+///   out :: BytesWriter {}
+///   request :: Request { .method = .Get, .target = "/" }
+///   request.headers.set("Host", "example.org")
+///   write_request(out, request)
+///   out.written.bytes_to_string()   // "GET / HTTP/1.1\r\nHost: example.org\r\n\r\n"
+export write_request :: fn(writer: Writer, request: Request) -> null | HttpError {
+    if !is_target(request.target.bytes()) {
+        return malformed("the request target is empty or holds a byte no URI has")
+    }
+    if request.version == .Http11 && request.headers.get_all(HOST).len() != 1 {
+        return malformed("an HTTP/1.1 request names its host once")
+    }
+    head :: StringBuilder {}
+    head.append("${request.method} ${request.target} ${request.version}\r\n")
+    fields :: append_fields(head, request.headers, false)
+    if fields is HttpError {
+        return fields
+    }
+    return write_framed(
+        writer,
+        head,
+        request.headers,
+        request.body,
+        expects_content(request.method),
+    )
+}
+
+// Whether a request of `method` says how long its content is even when it has
+// none: a server may wait for the length of what such a request carries.
+expects_content :: fn(method: Method) -> bool =
+    method == .Post || method == .Put || method == .Patch
+
+// ---- responses ------------------------------------------------------------
+
+/// Write `response` on `writer`.
+///
+/// The body is framed as `write_request` frames one, its length always
+/// declared. A response that carries no content has none written: one to a
+/// `HEAD` request and a `304` keep the fields that describe what a `GET` would
+/// have carried, an interim response and a `204` lose their `Content-Length`.
+///
+/// @param writer          where the connection is written.
+/// @param response        what to write; its body is read, unless the response
+///                        carries none.
+/// @param request_method  the method of the request answered.
+/// @error                 `HttpError`, as `write_request` reports them, and
+///                        `.Malformed` for a status outside 100 to 599.
+/// @example
+///   # import "std/io"
+///   out :: BytesWriter {}
+///   write_response(out, new_response(STATUS_OK, "hi"))
+///   out.written.bytes_to_string()   // "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi"
+export write_response :: fn(
+    writer: Writer,
+    response: Response,
+    request_method: Method = .Get,
+) -> null | HttpError {
+    code :: u16(response.status)
+    if code < 100 || code > 599 {
+        return malformed("a status code is 100 to 599")
+    }
+    head :: StringBuilder {}
+    // The space after the code is due even with no reason phrase.
+    head.append("${response.version} ${code} ${reason_phrase(response.status)}\r\n")
+    bodiless :: is_bodiless(request_method, response.status)
+    fields :: append_fields(
+        head,
+        response.headers,
+        bodiless && code != 304 && request_method != .Head,
+    )
+    if fields is HttpError {
+        return fields
+    }
+    if bodiless {
+        head.append("\r\n")
+        return sent(writer.write(head.to_string()))
+    }
+    return write_framed(writer, head, response.headers, response.body, true)
+}
+
+// ---- the head and the body ------------------------------------------------
+
+// The field lines of `headers` after what `head` holds, each checked; without
+// the `Content-Length` lines when `without_length`.
+append_fields :: fn(head: StringBuilder, headers: Headers, without_length: bool) -> null | HttpError {
+    if headers.get(TRANSFER_ENCODING) != null {
+        return HttpError {
+            .kind = .CodingNotImplemented,
+            .msg = "transfer codings are not implemented",
+        }
+    }
+    for line in headers.lines {
+        if !is_token(line.name.bytes()) {
+            return malformed("a field name is not a token")
+        }
+        if !is_field_value(line.value.bytes()) {
+            return malformed("the value of `${line.name}` holds a control byte")
+        }
+        if without_length && same_field_name(line.name, CONTENT_LENGTH) {
+            continue
+        }
+        head.append("${line.name}: ${line.value}\r\n")
+    }
+    return null
+}
+
+// End the head `head` and write it, then `body`: as many bytes of it as
+// `headers` declare, else all of it, its length declared when it has bytes or
+// `declares` says so.
+write_framed :: fn(
+    writer: Writer,
+    head: StringBuilder,
+    headers: Headers,
+    body: Reader,
+    declares: bool,
+) -> null | HttpError {
+    lengths :: headers.get_all(CONTENT_LENGTH)
+    if lengths.len() > 1 {
+        return malformed("a message declares its length once")
+    }
+    if lengths.len() == 1 {
+        // One number: a list of lengths is what a recipient may forgive, not
+        // what a sender writes.
+        length :: decimal(lengths[0].bytes())
+        if length is HttpError {
+            return length
+        }
+        head.append("\r\n")
+        written :: sent(writer.write(head.to_string()))
+        if written is HttpError {
+            return written
+        }
+        return copy_exactly(writer, body, length)
+    }
+    content :: gathered(body)
+    if content is HttpError {
+        return content
+    }
+    if content.len() > 0 || declares {
+        head.append("${CONTENT_LENGTH}: ${content.len()}\r\n")
+    }
+    head.append("\r\n")
+    written :: sent(writer.write(head.to_string()))
+    if written is HttpError || content.len() == 0 {
+        return written
+    }
+    return sent(writer.write(content))
+}
+
+// How many bytes of a body go from its reader to the writer at a time.
+COPY_CHUNK: i64: 8192
+
+// Copy `length` bytes of `body` to `writer`, as they are read.
+copy_exactly :: fn(writer: Writer, body: Reader, length: i64) -> null | HttpError {
+    chunk: u8[]: [0] * COPY_CHUNK
+    left: i64 = length
+    for left > 0 {
+        got :: body.read(chunk[0..<min(COPY_CHUNK, left)])
+        if got is IOError {
+            return transport(got)
+        }
+        if got == null {
+            return incomplete("the body ended ${left} bytes before the length it declares")
+        }
+        written :: sent(writer.write(chunk[0..<got]))
+        if written is HttpError {
+            return written
+        }
+        left -= got
+    }
+    return null
+}
+
+// All of `body`, read to its end.
+gathered :: fn(body: Reader) -> u8[] | HttpError {
+    content: u8[]: []
+    chunk: u8[]: [0] * COPY_CHUNK
+    for {
+        got :: body.read(chunk)
+        if got is IOError {
+            return transport(got)
+        }
+        if got == null {
+            return content
+        }
+        content.push_all(chunk[0..<got])
+    }
+}
+
+// What a write of the connection came to.
+sent :: fn(written: null | IOError) -> null | HttpError {
+    if written is IOError {
+        return transport(written)
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// What writing `request` puts on the wire, or the kind of its failure.
+request_wire :: fn(request: Request) -> string | HttpErrorKind {
+    out :: BytesWriter {}
+    written :: write_request(out, request)
+    if written is HttpError {
+        return written.kind
+    }
+    return out.written.bytes_to_string()
+}
+
+// What writing `response` puts on the wire, or the kind of its failure.
+response_wire :: fn(response: Response, request_method: Method = .Get) -> string | HttpErrorKind {
+    out :: BytesWriter {}
+    written :: write_response(out, response, request_method)
+    if written is HttpError {
+        return written.kind
+    }
+    return out.written.bytes_to_string()
+}
+
+// A request for `target` of the host `example.org`.
+request_for :: fn(method: Method, target: string) -> Request {
+    request :: Request { .method = method, .target = target }
+    request.headers.set("Host", "example.org")
+    return request
+}
+
+@test
+test_a_request_with_no_body_is_its_head_alone :: fn() -> void {
+    wire :: request_wire(request_for(.Get, "/index.html"))
+    assert(
+        wire is string && wire == "GET /index.html HTTP/1.1\r\nHost: example.org\r\n\r\n",
+        "a GET",
+    )
+}
+
+@test
+test_a_request_that_expects_content_declares_an_empty_one :: fn() -> void {
+    wire :: request_wire(request_for(.Post, "/submit"))
+    assert(
+        wire is string && wire == "POST /submit HTTP/1.1\r\nHost: example.org\r\nContent-Length: 0\r\n\r\n",
+        "an empty POST",
+    )
+}
+
+@test
+test_a_body_of_unknown_length_is_counted :: fn() -> void {
+    request :: request_for(.Put, "/file")
+    request.body = FragmentedReader { .source = BytesReader { .content = "0123456789" }, .size = 3 }
+    wire :: request_wire(request)
+    assert(
+        wire is string && wire == "PUT /file HTTP/1.1\r\nHost: example.org\r\nContent-Length: 10\r\n\r\n0123456789",
+        "a body read to its end",
+    )
+}
+
+@test
+test_a_declared_length_is_how_much_of_the_body_goes :: fn() -> void {
+    request :: request_for(.Post, "/")
+    request.headers.set("Content-Length", "4")
+    request.body = BytesReader { .content = "0123456789" }
+    wire :: request_wire(request)
+    assert(
+        wire is string && wire == "POST / HTTP/1.1\r\nHost: example.org\r\nContent-Length: 4\r\n\r\n0123",
+        "four bytes of ten",
+    )
+    short :: request_for(.Post, "/")
+    short.headers.set("Content-Length", "40")
+    short.body = BytesReader { .content = "0123456789" }
+    assert(request_wire(short) == HttpErrorKind.Incomplete, "a body shorter than declared")
+}
+
+@test
+test_a_request_no_server_would_read_as_meant_is_refused :: fn() -> void {
+    assert(
+        request_wire(request_for(.Get, "/a b")) == HttpErrorKind.Malformed,
+        "a space in the target",
+    )
+    assert(request_wire(request_for(.Get, "")) == HttpErrorKind.Malformed, "no target")
+    assert(
+        request_wire(request_for(.Get, "/\r\nX: y")) == HttpErrorKind.Malformed,
+        "a line break in the target",
+    )
+    no_host :: Request { .method = .Get, .target = "/" }
+    assert(request_wire(no_host) == HttpErrorKind.Malformed, "no host in HTTP/1.1")
+    old :: Request { .method = .Get, .target = "/", .version = .Http10 }
+    assert(old.request_wire() is string, "HTTP/1.0 needs none")
+}
+
+@test
+test_a_field_cannot_carry_a_line_break :: fn() -> void {
+    injected :: request_for(.Get, "/")
+    injected.headers.add("X-Note", "one\r\nX-Admin: yes")
+    assert(request_wire(injected) == HttpErrorKind.Malformed, "a line break in a value")
+    named :: request_for(.Get, "/")
+    named.headers.add("X Note", "one")
+    assert(request_wire(named) == HttpErrorKind.Malformed, "a space in a name")
+    coded :: request_for(.Post, "/")
+    coded.headers.add("Transfer-Encoding", "chunked")
+    assert(request_wire(coded) == HttpErrorKind.CodingNotImplemented, "a transfer coding")
+    listed :: request_for(.Post, "/")
+    listed.headers.add("Content-Length", "2, 2")
+    assert(request_wire(listed) == HttpErrorKind.Malformed, "a list of lengths")
+    twice :: request_for(.Post, "/")
+    twice.headers.add("Content-Length", "2")
+    twice.headers.add("Content-Length", "2")
+    assert(request_wire(twice) == HttpErrorKind.Malformed, "two lines of length")
+}
+
+@test
+test_a_response_declares_the_length_of_its_content :: fn() -> void {
+    wire :: response_wire(new_response(STATUS_OK, "hi"))
+    assert(wire is string && wire == "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi", "a body")
+    empty :: response_wire(Response { .status = STATUS_NOT_FOUND })
+    assert(
+        empty is string && empty == "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n",
+        "no body is a length of zero",
+    )
+}
+
+@test
+test_a_status_with_no_name_keeps_the_space_after_its_code :: fn() -> void {
+    wire :: response_wire(Response { .status = Status(299) })
+    assert(
+        wire is string && wire == "HTTP/1.1 299 \r\nContent-Length: 0\r\n\r\n",
+        "an unnamed code",
+    )
+    assert(
+        response_wire(Response { .status = Status(99) }) == HttpErrorKind.Malformed,
+        "two digits",
+    )
+    assert(response_wire(Response { .status = Status(600) }) == HttpErrorKind.Malformed, "600")
+}
+
+@test
+test_a_response_with_no_content_writes_none :: fn() -> void {
+    to_head :: response_wire(new_response(STATUS_OK, "hidden"), .Head)
+    assert(
+        to_head is string && to_head == "HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\n",
+        "a HEAD keeps the length and writes no body",
+    )
+    none :: response_wire(new_response(STATUS_NO_CONTENT, "dropped"))
+    assert(none is string && none == "HTTP/1.1 204 No Content\r\n\r\n", "a 204 declares no length")
+    coded :: Response { .status = STATUS_NO_CONTENT }
+    coded.headers.add("Transfer-Encoding", "chunked")
+    assert(
+        response_wire(coded) == HttpErrorKind.CodingNotImplemented,
+        "a 204 carries no transfer coding",
+    )
+}
+
+@test
+test_a_writer_that_fails_is_reported_with_its_cause :: fn() -> void {
+    failing :: FailingWriter { .sink = BytesWriter {}, .calls = 0 }
+    written :: write_response(failing, new_response(STATUS_OK, "hi"))
+    if written !is HttpError {
+        return assert(false, "a failed writer fails the response")
+    }
+    assert(written.kind == .Transport && written.cause != null, "with what the writer said")
+}
+
+@test
+test_what_is_written_reads_back_the_same :: fn() -> void {
+    request :: new_request(.Post, "/orders?id=7", "{\"count\": 2}")
+    request.headers.set("Host", "example.org")
+    request.headers.add("Accept", "application/json")
+    out :: BytesWriter {}
+    assert(write_request(out, request) == null, "the request is written")
+    for size in CUTS {
+        back :: read_request(cut(out.written.bytes_to_string(), size))
+        if back !is Request {
+            return assert(false, "the request does not read back, cut by ${size}")
+        }
+        assert(back.method == .Post, "the method, cut by ${size}")
+        assert_eq(back.target, "/orders?id=7")
+        assert_eq(back.headers.get("accept") ?? "", "application/json")
+        assert_eq(text_of(back.body), "{\"count\": 2}")
+    }
+    response :: new_response(STATUS_CREATED, "done")
+    response.headers.add("Location", "/orders/7")
+    answered :: BytesWriter {}
+    assert(write_response(answered, response) == null, "the response is written")
+    read :: read_response(whole(answered.written.bytes_to_string()))
+    if read !is Response {
+        return assert(false, "the response does not read back")
+    }
+    assert_eq(u16(read.status), 201)
+    assert_eq(read.headers.get("location") ?? "", "/orders/7")
+    assert_eq(text_of(read.body), "done")
+}

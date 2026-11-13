@@ -1,0 +1,716 @@
+// http/read: a message taken off a `BufferedReader`.
+//
+// The grammar is that of RFC 9112, read strictly: where the RFC lets a
+// recipient be lenient (a line feed alone for a line break, several spaces in
+// a start line), this one is not. Two readers that disagree on where a message
+// ends are what request smuggling is made of.
+//
+// A message is read as bytes. Its head becomes strings; its body stays on the
+// reader, behind a `Reader` that stops where the message does.
+
+module "http"
+
+import "std/io"
+import "std/uri"
+
+// ---- requests -------------------------------------------------------------
+
+/// Read the next request of a connection.
+///
+/// The request returned has its head read and its body still on `reader`: read
+/// `body` to its end before asking for the next request.
+///
+/// @param reader  where the connection is read.
+/// @param limits  how much is read before the request is refused.
+/// @return        the request, and `null` when the source ended before its
+///                first byte: the client is done with the connection.
+/// @error         `HttpError`, whose `status_of` is what to answer.
+/// @example
+///   # import "std/io"
+///   text :: "GET /hello HTTP/1.1\r\nHost: example.org\r\n\r\n"
+///   request :: read_request(BufferedReader { .source = BytesReader { .content = text } })
+///   if request is Request {
+///       request.target   // "/hello"
+///   }
+export read_request :: fn(
+    reader: BufferedReader,
+    limits: Limits = Limits {},
+) -> Request | null | HttpError {
+    line :: read_request_line(reader, limits) ?? return null
+    if line is HttpError {
+        return line
+    }
+    start :: parse_request_line(line)
+    if start is HttpError {
+        return start
+    }
+    headers :: read_fields(reader, limits, false)
+    if headers is HttpError {
+        return headers
+    }
+    if start.version == .Http11 {
+        hosts :: headers.get_all(HOST)
+        if hosts.len() != 1 || !is_host(hosts[0]) {
+            return malformed("an HTTP/1.1 request names one host, as `host` or `host:port`")
+        }
+    }
+    body :: declared_body(reader, start.version, headers)
+    if body is HttpError {
+        return body
+    }
+    return Request {
+        .method = start.method,
+        .target = start.target,
+        .version = start.version,
+        .headers = headers,
+        .body = body ?? LengthBody { .source = reader, .left = 0 },
+    }
+}
+
+// What a request line says.
+RequestLine :: struct {
+    method: Method
+    target: string
+    version: HttpVersion
+}
+
+// How many empty lines may come before a request line: a client that ends a
+// request with a line break too many is read all the same.
+LEADING_EMPTY_LINES: i64: 4
+
+// The request line, null when the source ended before it.
+read_request_line :: fn(reader: BufferedReader, limits: Limits) -> u8[] | null | HttpError {
+    for _ in 0..=LEADING_EMPTY_LINES {
+        line :: read_head_line(reader, limits.start_line, .TargetTooLong) ?? return null
+        if line is HttpError {
+            return line
+        }
+        if line.len() > 0 {
+            return line
+        }
+    }
+    return malformed("empty lines where a request line was expected")
+}
+
+// `method SP request-target SP HTTP-version`, one space each. A space too
+// many lands in the version, which is refused with it.
+parse_request_line :: fn(line: u8[]) -> RequestLine | HttpError {
+    first :: line.index_of(' ') ?? return malformed("a request line has three parts")
+    rest :: line[first + 1..<line.len()]
+    second :: rest.index_of(' ') ?? return malformed("a request line has three parts")
+    name :: line[0..<first]
+    target :: rest[0..<second]
+    if !is_token(name) {
+        return malformed("the method is not a token")
+    }
+    if !is_target(target) {
+        return malformed("the request target is empty or holds a byte no URI has")
+    }
+    version :: parse_version(rest[second + 1..<rest.len()])
+    if version is HttpError {
+        return version
+    }
+    method :: method_named(name.bytes_to_string()) ?? return HttpError {
+        .kind = .MethodNotImplemented,
+        .msg = "method `${name.bytes_to_string()}` is not implemented",
+    }
+    return RequestLine {
+        .method = method,
+        .target = target.bytes_to_string(),
+        .version = version,
+    }
+}
+
+// ---- responses ------------------------------------------------------------
+
+/// Read the response to a request.
+///
+/// The response returned has its head read and its body still on `reader`. A
+/// response that says nothing of its length is read to the end of the
+/// connection.
+///
+/// @param reader          where the connection is read.
+/// @param request_method  the method of the request answered: a response to
+///                        `HEAD` carries no content, whatever its fields say.
+/// @param limits          how much is read before the response is refused.
+/// @error                 `HttpError`, `.Incomplete` when the source ended
+///                        before the response did.
+/// @example
+///   # import "std/io"
+///   text :: "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi"
+///   response :: read_response(BufferedReader { .source = BytesReader { .content = text } })
+///   if response is Response {
+///       u16(response.status)   // 200
+///   }
+export read_response :: fn(
+    reader: BufferedReader,
+    request_method: Method = .Get,
+    limits: Limits = Limits {},
+) -> Response | HttpError {
+    line :: read_head_line(reader, limits.start_line, .Malformed)
+    if line is HttpError {
+        return line
+    }
+    if line == null {
+        return incomplete("the connection ended before the response")
+    }
+    start :: parse_status_line(line)
+    if start is HttpError {
+        return start
+    }
+    headers :: read_fields(reader, limits, true)
+    if headers is HttpError {
+        return headers
+    }
+    if is_bodiless(request_method, start.status) {
+        return start.response(headers, LengthBody { .source = reader, .left = 0 })
+    }
+    body :: declared_body(reader, start.version, headers)
+    if body is HttpError {
+        return body
+    }
+    // With no length declared, the response ends where the connection does.
+    return start.response(headers, body ?? reader)
+}
+
+// What a status line says, its reason phrase left out: a client acts on the
+// code alone.
+StatusLine :: struct {
+    version: HttpVersion
+    status: Status
+}
+
+response :: fn(start: StatusLine, headers: Headers, body: Reader) -> Response = Response {
+    .status = start.status,
+    .version = start.version,
+    .headers = headers,
+    .body = body,
+}
+
+// The bytes of `HTTP/1.1 200 `, which a status line has at least.
+STATUS_LINE_HEAD: i64: 13
+
+// `HTTP-version SP status-code SP [ reason-phrase ]`.
+parse_status_line :: fn(line: u8[]) -> StatusLine | HttpError {
+    if line.len() < STATUS_LINE_HEAD || line[8] != ' ' || line[12] != ' ' {
+        return malformed("a status line is a version, three digits and a space")
+    }
+    version :: parse_version(line[0..<8])
+    if version is HttpError {
+        return version
+    }
+    code: u16 = 0
+    for digit in line[9..<12] {
+        if !is_digit_byte(digit) {
+            return malformed("a status code is three digits")
+        }
+        code = code * 10 + u16(digit - '0')
+    }
+    if code < 100 {
+        return malformed("a status code is 100 at least")
+    }
+    if !is_field_value(line[STATUS_LINE_HEAD..<line.len()]) {
+        return malformed("the reason phrase holds a control byte")
+    }
+    return StatusLine { .version = version, .status = Status(code) }
+}
+
+// Whether a response carries no content whatever its fields say (RFC 9112,
+// section 6.3, rules 1 and 2). A successful answer to `CONNECT` opens a tunnel:
+// what follows it is no message of HTTP.
+is_bodiless :: fn(request_method: Method, status: Status) -> bool {
+    if request_method == .Head || has_no_content(status) {
+        return true
+    }
+    return request_method == .Connect && u16(status) >= 200 && u16(status) < 300
+}
+
+// ---- the head -------------------------------------------------------------
+
+// One line of a head, without the CRLF that ends it; null when the source
+// ended before its first byte. A line longer than `max` bytes fails as
+// `too_long`.
+read_head_line :: fn(
+    reader: BufferedReader,
+    max: i64,
+    too_long: HttpErrorKind,
+) -> u8[] | null | HttpError {
+    // The carriage return is one of the bytes before the line feed.
+    run :: reader.read_through('\n', max + 1)
+    if run is IOError {
+        if run.kind == .InvalidInput {
+            return HttpError { .kind = too_long, .msg = "a line of more than ${max} bytes" }
+        }
+        return transport(run)
+    }
+    if run == null {
+        return null
+    }
+    count :: run.len()
+    if run[count - 1] != '\n' {
+        return incomplete("the connection ended in the middle of a line")
+    }
+    if count < 2 || run[count - 2] != '\r' {
+        return malformed("a line ends with a line feed alone")
+    }
+    line :: run[0..<count - 2]
+    if line.index_of('\r') != null {
+        return malformed("a carriage return with no line feed after it")
+    }
+    return line
+}
+
+// `HTTP/` DIGIT `.` DIGIT, in upper case. Any 1.x from 1.1 on is read as 1.1:
+// a later minor version only adds what an older reader may ignore.
+parse_version :: fn(text: u8[]) -> HttpVersion | HttpError {
+    if text.len() != 8
+        || text[0] != 'H'
+        || text[1] != 'T'
+        || text[2] != 'T'
+        || text[3] != 'P'
+        || text[4] != '/'
+        || !is_digit_byte(text[5])
+        || text[6] != '.'
+        || !is_digit_byte(text[7]) {
+        return malformed("the version is not `HTTP/` and two digits")
+    }
+    if text[5] != '1' {
+        return HttpError {
+            .kind = .VersionNotSupported,
+            .msg = "HTTP/${text[5..<8].bytes_to_string()} is not HTTP/1",
+        }
+    }
+    if text[7] == '0' {
+        return .Http10
+    }
+    return .Http11
+}
+
+// The field lines up to the empty line that ends a head. A line that opens
+// with whitespace continues the value of the line before it, a form no sender
+// may write any more: `unfold` joins it with one space, as a client must, and
+// it is refused otherwise, as a server may.
+read_fields :: fn(reader: BufferedReader, limits: Limits, unfold: bool) -> Headers | HttpError {
+    headers :: Headers {}
+    taken: i64 = 0
+    for {
+        line :: read_head_line(reader, limits.fields - taken, .FieldsTooLarge)
+        if line is HttpError {
+            return line
+        }
+        if line == null {
+            return incomplete("the connection ended in the middle of the fields")
+        }
+        if line.len() == 0 {
+            return headers
+        }
+        taken += line.len() + 2
+        if line[0] == ' ' || line[0] == '\t' {
+            count :: headers.lines.len()
+            if !unfold || count == 0 {
+                return malformed("a field line opens with whitespace")
+            }
+            continued :: headers.lines[count - 1]
+            rest :: trimmed(line)
+            if !is_field_value(rest) {
+                return malformed("a field value holds a control byte")
+            }
+            headers.lines[count - 1] = Header {
+                .name = continued.name,
+                .value = "${continued.value} ${rest.bytes_to_string()}",
+            }
+            continue
+        }
+        if headers.lines.len() == limits.field_count {
+            return HttpError {
+                .kind = .FieldsTooLarge,
+                .msg = "more than ${limits.field_count} field lines",
+            }
+        }
+        header :: parse_field(line)
+        if header is HttpError {
+            return header
+        }
+        headers.lines.push(header)
+    }
+}
+
+// `field-name ":" OWS field-value OWS`. Whitespace before the colon is no part
+// of a token, so it is refused with the name.
+parse_field :: fn(line: u8[]) -> Header | HttpError {
+    colon :: line.index_of(':') ?? return malformed("a field line has no colon")
+    name :: line[0..<colon]
+    if !is_token(name) {
+        return malformed("a field name is not a token")
+    }
+    value :: trimmed(line[colon + 1..<line.len()])
+    if !is_field_value(value) {
+        return malformed("a field value holds a control byte")
+    }
+    return Header { .name = name.bytes_to_string(), .value = value.bytes_to_string() }
+}
+
+// `bytes` without the spaces and tabs at either end.
+trimmed :: fn(bytes: u8[]) -> u8[] {
+    from: i64 = 0
+    to: i64 = bytes.len()
+    for from < to && is_blank(bytes[from]) {
+        from += 1
+    }
+    for to > from && is_blank(bytes[to - 1]) {
+        to -= 1
+    }
+    return bytes[from..<to]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A reader of `text` that hands it out `size` bytes at a time, as a socket
+// may.
+cut :: fn(text: string, size: i64) = BufferedReader {
+    .source = FragmentedReader { .source = BytesReader { .content = text }, .size = size },
+}
+
+// Every way of cutting a message that a test is run under: a parser that
+// reads ahead breaks where a line break or a field is cut in two.
+CUTS: i64[]: [1, 2, 3, 7, 4096]
+
+whole :: fn(text: string) = cut(text, 4096)
+
+// All of `body`, as text.
+text_of :: fn(body: Reader) -> string {
+    rest :: BufferedReader { .source = body }.read_to_end(1024 * 1024)
+    if rest is IOError {
+        return "error: ${rest.msg}"
+    }
+    return rest.bytes_to_string()
+}
+
+// Whether reading `text` as a request fails as `kind`.
+request_fails :: fn(text: string, kind: HttpErrorKind) -> bool {
+    request :: read_request(whole(text))
+    return request is HttpError && request.kind == kind
+}
+
+// Whether reading `text` as a response fails as `kind`.
+response_fails :: fn(text: string, kind: HttpErrorKind) -> bool {
+    response :: read_response(whole(text))
+    return response is HttpError && response.kind == kind
+}
+
+@test
+test_a_request_is_read_however_it_is_cut :: fn() -> void {
+    text :: "GET /search?q=vader HTTP/1.1\r\nHost: example.org\r\nAccept:  text/html \r\n\r\n"
+    for size in CUTS {
+        request :: read_request(cut(text, size))
+        if request !is Request {
+            return assert(false, "no request, cut by ${size}")
+        }
+        assert(request.method == .Get, "the method, cut by ${size}")
+        assert_eq(request.target, "/search?q=vader")
+        assert(request.version == .Http11, "the version, cut by ${size}")
+        assert_eq(request.headers.get("host") ?? "", "example.org")
+        assert_eq(request.headers.get("accept") ?? "", "text/html")
+        assert_eq(text_of(request.body), "")
+    }
+}
+
+@test
+test_requests_follow_each_other_on_one_connection :: fn() -> void {
+    text :: "POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 5\r\n\r\nhello"
+        + "PUT /b HTTP/1.1\r\nHost: h\r\nContent-Length: 0\r\n\r\n"
+    for size in CUTS {
+        reader :: cut(text, size)
+        first :: read_request(reader)
+        if first !is Request {
+            return assert(false, "no first request, cut by ${size}")
+        }
+        assert_eq(text_of(first.body), "hello")
+        second :: read_request(reader)
+        if second !is Request {
+            return assert(false, "no second request, cut by ${size}")
+        }
+        assert(second.method == .Put, "the second method, cut by ${size}")
+        assert_eq(text_of(second.body), "")
+        assert(read_request(reader) == null, "the end of the connection, cut by ${size}")
+    }
+}
+
+@test
+test_empty_lines_before_a_request_are_skipped :: fn() -> void {
+    request :: read_request(whole("\r\n\r\nGET / HTTP/1.1\r\nHost: h\r\n\r\n"))
+    assert(request is Request, "the request after two empty lines")
+    assert(
+        request_fails("\r\n\r\n\r\n\r\n\r\n\r\nGET / HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed),
+        "empty lines without end are refused",
+    )
+}
+
+@test
+test_a_request_cut_short_is_incomplete :: fn() -> void {
+    assert(read_request(whole("")) == null, "nothing at all is the end")
+    assert(request_fails("GET / HTT", .Incomplete), "the end in the request line")
+    assert(request_fails("GET / HTTP/1.1\r\nHost: h\r\n", .Incomplete), "the end in the fields")
+    assert(request_fails("GET / HTTP/1.1\r\nHos", .Incomplete), "the end in a field")
+}
+
+@test
+test_a_line_break_is_a_carriage_return_and_a_line_feed :: fn() -> void {
+    assert(request_fails("GET / HTTP/1.1\nHost: h\n\n", .Malformed), "a line feed alone")
+    assert(request_fails("GET / HTTP/1.1\r\nHost: a\rb\r\n\r\n", .Malformed), "a return alone")
+    assert(request_fails("GET /\r HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed), "a return in the line")
+}
+
+@test
+test_a_request_line_is_three_parts_one_space_apart :: fn() -> void {
+    assert(request_fails("GET  / HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed), "two spaces")
+    assert(
+        request_fails("GET /a b HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed),
+        "a space in the target",
+    )
+    assert(request_fails("GET /\tHTTP/1.1\r\nHost: h\r\n\r\n", .Malformed), "a tab for a space")
+    assert(request_fails("GET HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed), "no target")
+    assert(request_fails("GET\r\nHost: h\r\n\r\n", .Malformed), "a method alone")
+    assert(request_fails(" GET / HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed), "a space first")
+    assert(request_fails("G(T / HTTP/1.1\r\nHost: h\r\n\r\n", .Malformed), "a method no token")
+}
+
+@test
+test_a_method_is_one_of_those_implemented :: fn() -> void {
+    assert(
+        request_fails("PROPFIND / HTTP/1.1\r\nHost: h\r\n\r\n", .MethodNotImplemented),
+        "another method",
+    )
+    assert(request_fails("get / HTTP/1.1\r\nHost: h\r\n\r\n", .MethodNotImplemented), "lower case")
+}
+
+@test
+test_a_version_is_read_by_its_major_number :: fn() -> void {
+    later :: read_request(whole("GET / HTTP/1.2\r\nHost: h\r\n\r\n"))
+    assert(later is Request && later.version == .Http11, "a later 1.x reads as 1.1")
+    older :: read_request(whole("GET / HTTP/1.0\r\n\r\n"))
+    assert(older is Request && older.version == .Http10, "1.0 needs no host")
+    assert(request_fails("GET / HTTP/2.0\r\nHost: h\r\n\r\n", .VersionNotSupported), "HTTP/2.0")
+    assert(request_fails("GET / http/1.1\r\nHost: h\r\n\r\n", .Malformed), "lower case")
+    assert(request_fails("GET / HTTP/1.10\r\nHost: h\r\n\r\n", .Malformed), "two digits")
+    assert(request_fails("GET / HTTP/11\r\nHost: h\r\n\r\n", .Malformed), "no dot")
+}
+
+@test
+test_a_request_line_too_long_is_refused_as_such :: fn() -> void {
+    limits :: Limits { .start_line = 32 }
+    fits :: read_request(whole("GET /0123456789abcdefgh HTTP/1.1\r\nHost: h\r\n\r\n"), limits)
+    assert(fits is Request, "a line of 32 bytes fits")
+    long :: read_request(whole("GET /0123456789abcdefghi HTTP/1.1\r\nHost: h\r\n\r\n"), limits)
+    assert(long is HttpError && long.kind == .TargetTooLong, "a line of 33 bytes does not")
+}
+
+@test
+test_a_field_is_a_token_a_colon_and_a_value :: fn() -> void {
+    assert(
+        request_fails("GET / HTTP/1.1\r\nHost : h\r\n\r\n", .Malformed),
+        "a space before the colon",
+    )
+    assert(request_fails("GET / HTTP/1.1\r\nHost h\r\n\r\n", .Malformed), "no colon")
+    assert(request_fails("GET / HTTP/1.1\r\n: h\r\n\r\n", .Malformed), "no name")
+    assert(
+        request_fails("GET / HTTP/1.1\r\nHost: h\r\nX: a\u{0}b\r\n\r\n", .Malformed),
+        "a NUL in a value",
+    )
+    assert(
+        request_fails("GET / HTTP/1.1\r\n Host: h\r\n\r\n", .Malformed),
+        "whitespace before the first field",
+    )
+    assert(
+        request_fails("GET / HTTP/1.1\r\nHost: h\r\nX: a\r\n b\r\n\r\n", .Malformed),
+        "a folded line",
+    )
+    request :: read_request(
+        whole("GET / HTTP/1.1\r\nHost: h\r\nX-Empty:\r\nX-Tab:\ta\tb\t\r\n\r\n"),
+    )
+    if request !is Request {
+        return assert(false, "no request")
+    }
+    assert_eq(request.headers.get("X-Empty") ?? "absent", "")
+    assert_eq(request.headers.get("X-Tab") ?? "", "a\tb")
+}
+
+@test
+test_the_fields_are_bounded_in_number_and_in_bytes :: fn() -> void {
+    text :: "GET / HTTP/1.1\r\nHost: h\r\nA: 1\r\nB: 2\r\n\r\n"
+    assert(read_request(whole(text), Limits { .field_count = 3 }) is Request, "three lines fit")
+    many :: read_request(whole(text), Limits { .field_count = 2 })
+    assert(many is HttpError && many.kind == .FieldsTooLarge, "a third line does not")
+    // The three lines and the empty one are 23 bytes with their line breaks.
+    assert(read_request(whole(text), Limits { .fields = 23 }) is Request, "23 bytes fit")
+    large :: read_request(whole(text), Limits { .fields = 20 })
+    assert(large is HttpError && large.kind == .FieldsTooLarge, "20 bytes do not hold them")
+}
+
+@test
+test_an_http_1_1_request_names_its_host_once :: fn() -> void {
+    assert(request_fails("GET / HTTP/1.1\r\n\r\n", .Malformed), "no host")
+    assert(request_fails("GET / HTTP/1.1\r\nHost: a\r\nHost: b\r\n\r\n", .Malformed), "two hosts")
+    assert(request_fails("GET / HTTP/1.1\r\nHost: a b\r\n\r\n", .Malformed), "a space in the host")
+    for host in ["a/b", "<x>", "a:b:c", "h:99x", "me@h", "h:", "h?q", "h#f"] {
+        assert(
+            request_fails("GET / HTTP/1.1\r\nHost: ${host}\r\n\r\n", .Malformed),
+            "`${host}` is no host",
+        )
+    }
+    for host in ["example.org", "example.org:8080", "127.0.0.1:80", "[::1]:8080", "[::1]"] {
+        request :: read_request(whole("GET / HTTP/1.1\r\nHost: ${host}\r\n\r\n"))
+        assert(request is Request, "`${host}` is a host")
+    }
+    empty :: read_request(whole("GET / HTTP/1.1\r\nHost:\r\n\r\n"))
+    assert(empty is Request, "an empty host is one")
+}
+
+@test
+test_a_content_length_is_one_number :: fn() -> void {
+    twice :: read_request(
+        whole("POST / HTTP/1.1\r\nHost: h\r\nContent-Length: 2, 2\r\ncontent-length: 2\r\n\r\nok"),
+    )
+    if twice !is Request {
+        return assert(false, "a length repeated is that length")
+    }
+    assert_eq(text_of(twice.body), "ok")
+    prefix :: "POST / HTTP/1.1\r\nHost: h\r\n"
+    assert(
+        request_fails(prefix + "Content-Length: 2\r\nContent-Length: 3\r\n\r\n", .Malformed),
+        "two lengths",
+    )
+    assert(request_fails(prefix + "Content-Length: 2, 3\r\n\r\n", .Malformed), "two in a list")
+    assert(request_fails(prefix + "Content-Length: +2\r\n\r\n", .Malformed), "a sign")
+    assert(request_fails(prefix + "Content-Length: 2.0\r\n\r\n", .Malformed), "a point")
+    assert(request_fails(prefix + "Content-Length: 0x2\r\n\r\n", .Malformed), "hexadecimal")
+    assert(request_fails(prefix + "Content-Length:\r\n\r\n", .Malformed), "no digit")
+    assert(request_fails(prefix + "Content-Length: 2,\r\n\r\n", .Malformed), "an empty element")
+    assert(
+        request_fails(prefix + "Content-Length: 9223372036854775808\r\n\r\n", .Malformed),
+        "one more than fits",
+    )
+    assert(
+        read_request(whole(prefix + "Content-Length: 9223372036854775807\r\n\r\n")) is Request,
+        "the largest that fits",
+    )
+}
+
+@test
+test_a_transfer_coding_is_refused_and_never_with_a_length :: fn() -> void {
+    prefix :: "POST / HTTP/1.1\r\nHost: h\r\n"
+    assert(
+        request_fails(prefix + "Transfer-Encoding: chunked\r\n\r\n", .CodingNotImplemented),
+        "a coding alone is not implemented",
+    )
+    assert(
+        request_fails(
+            prefix + "Transfer-Encoding: chunked\r\nContent-Length: 2\r\n\r\n",
+            .Malformed,
+        ),
+        "a coding and a length",
+    )
+    assert(
+        request_fails("POST / HTTP/1.0\r\nTransfer-Encoding: chunked\r\n\r\n", .Malformed),
+        "a coding in HTTP/1.0",
+    )
+}
+
+@test
+test_a_body_shorter_than_declared_fails_where_it_ends :: fn() -> void {
+    request :: read_request(whole("POST / HTTP/1.1\r\nHost: h\r\nContent-Length: 10\r\n\r\nshort"))
+    if request !is Request {
+        return assert(false, "the head is whole")
+    }
+    buffer: u8[]: [0] * 16
+    got :: request.body.read(buffer)
+    assert(got is i64 && got == 5, "the five bytes that came")
+    ended :: request.body.read(buffer)
+    assert(ended is IOError && ended.kind == .EndOfInput, "the end before the declared length")
+}
+
+@test
+test_a_source_that_fails_is_reported_with_its_cause :: fn() -> void {
+    source :: FailingReader {
+        .source = BytesReader { .content = "GET / HTTP/1.1\r\n" },
+        .calls = 0,
+    }
+    request :: read_request(BufferedReader { .source = source })
+    if request !is HttpError {
+        return assert(false, "a failed source fails the request")
+    }
+    assert(request.kind == .Transport, "as a failure of the transport")
+    assert(request.cause != null, "with what the source said")
+}
+
+@test
+test_a_response_is_read_however_it_is_cut :: fn() -> void {
+    text :: "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\nContent-Length: 7\r\n\r\nnothing"
+    for size in CUTS {
+        response :: read_response(cut(text, size))
+        if response !is Response {
+            return assert(false, "no response, cut by ${size}")
+        }
+        assert_eq(u16(response.status), 404)
+        assert_eq(response.headers.get("content-type") ?? "", "text/plain")
+        assert_eq(text_of(response.body), "nothing")
+    }
+}
+
+@test
+test_a_status_line_is_a_version_a_code_and_a_space :: fn() -> void {
+    bare :: read_response(whole("HTTP/1.1 204 \r\n\r\n"))
+    assert(bare is Response && u16(bare.status) == 204, "no reason phrase")
+    assert(response_fails("HTTP/1.1 204\r\n\r\n", .Malformed), "no space after the code")
+    assert(response_fails("HTTP/1.1 20x OK\r\n\r\n", .Malformed), "a code no number")
+    assert(response_fails("HTTP/1.1 099 Low\r\n\r\n", .Malformed), "a code under 100")
+    assert(response_fails("HTTP/1.1  200 OK\r\n\r\n", .Malformed), "two spaces")
+    assert(response_fails("HTTP/2.0 200 OK\r\n\r\n", .VersionNotSupported), "HTTP/2.0")
+    assert(response_fails("", .Incomplete), "nothing at all")
+}
+
+@test
+test_a_response_with_no_content_leaves_the_next_one_whole :: fn() -> void {
+    text :: "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nHTTP/1.1 304 Not Modified\r\nContent-Length: 9\r\n\r\n"
+        + "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok"
+    reader :: whole(text)
+    to_head :: read_response(reader, .Head)
+    if to_head !is Response {
+        return assert(false, "no response to HEAD")
+    }
+    assert_eq(text_of(to_head.body), "")
+    unchanged :: read_response(reader)
+    if unchanged !is Response {
+        return assert(false, "no 304")
+    }
+    assert_eq(text_of(unchanged.body), "")
+    last :: read_response(reader)
+    if last !is Response {
+        return assert(false, "no last response")
+    }
+    assert_eq(text_of(last.body), "ok")
+}
+
+@test
+test_a_response_with_no_length_ends_with_the_connection :: fn() -> void {
+    for size in CUTS {
+        response :: read_response(cut("HTTP/1.0 200 OK\r\n\r\nall that is left", size))
+        if response !is Response {
+            return assert(false, "no response, cut by ${size}")
+        }
+        assert_eq(text_of(response.body), "all that is left")
+    }
+}
+
+@test
+test_a_folded_field_of_a_response_is_joined_with_a_space :: fn() -> void {
+    response :: read_response(
+        whole("HTTP/1.1 200 OK\r\nX-Long: one\r\n \t two\r\nContent-Length: 0\r\n\r\n"),
+    )
+    if response !is Response {
+        return assert(false, "no response")
+    }
+    assert_eq(response.headers.get("X-Long") ?? "", "one two")
+}
