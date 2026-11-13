@@ -25,7 +25,7 @@ static inline vader_string_t vader_host_std_core$bytes_to_string(void* a0) {
 }
 
 static inline void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 29u, 504u);
+    return (void*) vader_string_bytes_view(a0, 29u, 507u);
 }
 
 static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
@@ -97,6 +97,18 @@ static inline void vader_host_std_runtime_wait$wait_readable(int64_t a0) {
 
 static inline bool vader_host_std_runtime_wait$wait_readable_for(int64_t a0, int64_t a1) {
     return vader_scheduler_wait_readable_for(a0, a1);
+}
+
+static inline void vader_host_std_runtime_wait$wait_writable(int64_t a0) {
+    vader_scheduler_wait_writable(a0);
+}
+
+static inline bool vader_host_std_runtime_wait$wait_writable_for(int64_t a0, int64_t a1) {
+    return vader_scheduler_wait_writable_for(a0, a1);
+}
+
+static inline void vader_host_std_runtime_wait$stop_waiting(int64_t a0) {
+    vader_scheduler_stop_waiting(a0);
 }
 
 static inline int64_t vader_host_std_runtime$collections(void) {

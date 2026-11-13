@@ -90,7 +90,7 @@ void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2) {
     l5 = vader_front_effects$deep_copy_diagnostics(l4, l3);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check$CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1690u);
+    vader_obj_header_init(_a0_obj, 1698u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
@@ -120,6 +120,7 @@ static void vader_pipeline_check$lint_dead_code(void* l0, void* l1) {
     int64_t l7, l8;
     void* t0 = NULL;
     vader_box_t t1 = vader_box_null();
+    bool t2;
     vader_box_t* gc_roots[2] = { &l4, &t1 };
     void** gc_raw_roots[7] = { &l0, &l1, &l2, &l5, &l6, &l10, &t0 };
     vader_string_t* gc_atom_roots[3] = { &l3, &l9, &l11 };
@@ -154,7 +155,10 @@ static void vader_pipeline_check$lint_dead_code(void* l0, void* l1) {
         l10 = l2;
         l11 = ((vader_struct_vader_front_resolver$LoadedProject_t*) l0)->f_entry;
         if (l9 != l11) {
-            vader_pipeline_check$lint_module(l10, l1);
+            t2 = ((vader_struct_vader_front_resolver$LoadedModule_t*) l10)->f_trimmed;
+            if (!(t2)) {
+                vader_pipeline_check$lint_module(l10, l1);
+            }
         }
         l7 = (l7 + INT64_C(1));
     }

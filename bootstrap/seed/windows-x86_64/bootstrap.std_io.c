@@ -2,6 +2,7 @@
 
 static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2);
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1);
+static void* std_io$io_error_of(int32_t l0, vader_string_t l1);
 static uint8_t std_io$win32_error_kind(uint32_t l0);
 
 vader_string_t std_io$IOError$std_core$Error$message(void* l0) {
@@ -20,7 +21,7 @@ void* std_io$bytes_of(vader_box_t l0) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (l0.tag == 499u) {
+    if (l0.tag == 502u) {
         t0 = l0.payload.s;
         t1 = vader_host_std_core$bytes(t0);
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -40,7 +41,7 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
     vader_gc_top = &gc_frame;
     t0 = std_io$describe_io_error_kind(l1, l0);
     vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a0_obj, 873u);
+    vader_obj_header_init(_a0_obj, 878u);
     _a0_obj->f_msg = t0;
     _a0_obj->f_kind = l1;
     _a0_obj->f_code = l2;
@@ -51,33 +52,45 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
     vader_string_t l2;
     if (l0 == INT32_C(1)) {
-        l2 = 2137u;
+        l2 = 2141u;
         return l2;
     }
     if (l0 == INT32_C(2)) {
-        l2 = 2628u;
+        l2 = 2633u;
     } else if (l0 == INT32_C(3)) {
-        l2 = 2328u;
+        l2 = 2332u;
     } else if (l0 == INT32_C(4)) {
-        l2 = 1635u;
+        l2 = 1637u;
     } else if (l0 == INT32_C(5)) {
-        l2 = 2565u;
+        l2 = 2569u;
     } else if (l0 == INT32_C(6)) {
-        l2 = 2350u;
+        l2 = 2354u;
     } else if (l0 == INT32_C(7)) {
-        l2 = 3269u;
+        l2 = 3286u;
     } else if (l0 == INT32_C(8)) {
-        l2 = 1761u;
+        l2 = 1763u;
     } else if (l0 == INT32_C(9)) {
-        l2 = 2556u;
+        l2 = 2560u;
     } else if (l0 == INT32_C(10)) {
-        l2 = 2340u;
+        l2 = 2344u;
     } else if (l0 == INT32_C(11)) {
-        l2 = 1966u;
+        l2 = 1970u;
     } else if (l0 == INT32_C(12)) {
-        l2 = 1728u;
+        l2 = 1730u;
     } else if (l0 == INT32_C(13)) {
-        l2 = 2009u;
+        l2 = 2013u;
+    } else if (l0 == INT32_C(14)) {
+        l2 = 1917u;
+    } else if (l0 == INT32_C(15)) {
+        l2 = 1918u;
+    } else if (l0 == INT32_C(16)) {
+        l2 = 1630u;
+    } else if (l0 == INT32_C(17)) {
+        l2 = 1631u;
+    } else if (l0 == INT32_C(18)) {
+        l2 = 2571u;
+    } else if (l0 == INT32_C(19)) {
+        l2 = 2944u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -87,22 +100,32 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
     return l2;
 }
 
-void* std_io$last_io_error(vader_string_t l0) {
-    uint32_t l1;
+static void* std_io$io_error_of(int32_t l0, vader_string_t l1) {
     uint8_t l2;
-    int32_t l3;
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l1 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    l2 = std_io$win32_error_kind((uint32_t) (int32_t) l0);
+    t0 = std_io$classified_error(l1, l2, l0);
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+void* std_io$last_io_error(vader_string_t l0) {
+    uint32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = vader_host_system_windows$get_last_error();
-    l2 = std_io$win32_error_kind(l1);
-    l3 = ((int32_t) (uint32_t) l1);
-    t0 = std_io$classified_error(l0, l2, l3);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_host_system_windows$get_last_error();
+    t1 = std_io$io_error_of(((int32_t) (uint32_t) t0), l0);
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static uint8_t std_io$win32_error_kind(uint32_t l0) {
