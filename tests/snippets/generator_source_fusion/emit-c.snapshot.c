@@ -116,7 +116,7 @@ const vader_type_info_t vader_type_info_table[22] = {
     [3] = { .slot_size = 1 },
     [4] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
     },
     [5] = { .slot_size = 4 },
     [7] = {
@@ -140,7 +140,7 @@ const vader_type_info_t vader_type_info_table[22] = {
     [13] = { .slot_size = 1 },
     [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
     },
     [15] = { .slot_size = 16 },
     [16] = {
@@ -155,7 +155,7 @@ const vader_type_info_t vader_type_info_table[22] = {
     [20] = { .slot_size = 16 },
     [21] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 9u,
     },
 };
 const size_t vader_type_info_count = 22;

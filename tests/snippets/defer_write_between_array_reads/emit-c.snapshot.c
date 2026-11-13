@@ -49,7 +49,7 @@ static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[12] = {
     [1] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
     [2] = { .slot_size = 4 },
     [3] = { .slot_size = 8 },
@@ -68,7 +68,7 @@ const vader_type_info_t vader_type_info_table[12] = {
     [9] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
     [11] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,

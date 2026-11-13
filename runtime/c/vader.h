@@ -1331,6 +1331,9 @@ typedef enum {
 
 typedef struct {
     vader_type_kind_t   kind;
+    /* The type index of an element, for an array type: the tag a scalar element
+     * takes when it is read as a box. Sits in padding. */
+    uint32_t            element_tag;
     size_t              size;          /* sizeof(object) incl. header; 0 if non-heap */
     const uint16_t*     ptr_offsets;   /* byte offsets of vader_box_t fields */
     uint16_t            ptr_count;

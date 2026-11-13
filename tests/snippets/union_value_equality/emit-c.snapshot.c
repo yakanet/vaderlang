@@ -151,7 +151,7 @@ const vader_type_info_t vader_type_info_table[26] = {
     [22] = { .slot_size = 4 },
     [23] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 16u,
     },
     [25] = {
         .kind = VADER_TYPE_KIND_STRUCT,

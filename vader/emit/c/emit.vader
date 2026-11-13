@@ -1187,6 +1187,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                     "vader_fn_t",
                     size_of_bc_type(entry),
                     "vader_fn_ref_offsets",
+                    [],
                 ),
             )
             is BcArray  -> rows.push(
@@ -1196,6 +1197,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                     "vader_array_t",
                     size_of_bc_type(entry),
                     "vader_array_ref_offsets",
+                    [designated(".element_tag", verbatim("${entry.element}u"))],
                 ),
             )
             // Primitives / unions / refs: every other `BcType`. MUST stay a
@@ -1241,23 +1243,26 @@ single_offset_list :: fn(name: string, offset: string) -> CTopLevel = CGlobal {
 }
 
 // The row of a type whose objects hold exactly one raw reference, at the
-// offset the shared list `offsets` names.
+// offset the shared list `offsets` names. `more` holds the members only this
+// kind of type has.
 single_reference_row :: fn(
     index: i64,
     kind: string,
     type: string,
     slot_size: i32,
     offsets: string,
-) -> CExpression = info_row(
-    index,
-    [
+    more: CExpression[],
+) -> CExpression {
+    members: CExpression[]: [
         designated(".kind", verbatim("VADER_TYPE_KIND_${kind}")),
         designated(".size", verbatim("sizeof(${type})")),
         designated(".slot_size", number(i64(slot_size))),
         designated(".ref_offsets", verbatim(offsets)),
         designated(".ref_count", number(1)),
-    ],
-)
+    ]
+    members.push_all(more)
+    return info_row(index, members)
+}
 
 // `[index] = { members... }`: one row of the type-info table.
 info_row :: fn(index: i64, members: CExpression[]) -> CExpression = designated(

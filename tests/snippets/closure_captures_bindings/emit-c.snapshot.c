@@ -269,7 +269,7 @@ const vader_type_info_t vader_type_info_table[38] = {
     [17] = { .slot_size = 8 },
     [18] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
     },
     [19] = { .slot_size = 16 },
     [20] = { .slot_size = 16 },
@@ -292,7 +292,7 @@ const vader_type_info_t vader_type_info_table[38] = {
     [26] = { .slot_size = 1 },
     [27] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 25u,
     },
     [29] = { .slot_size = 16 },
     [30] = {
@@ -308,7 +308,7 @@ const vader_type_info_t vader_type_info_table[38] = {
     },
     [33] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 18u,
     },
     [34] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_$Cell_i32_2af2b319_t),
@@ -318,7 +318,7 @@ const vader_type_info_t vader_type_info_table[38] = {
     [36] = { .slot_size = 16 },
     [37] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 22u,
     },
 };
 const size_t vader_type_info_count = 38;
