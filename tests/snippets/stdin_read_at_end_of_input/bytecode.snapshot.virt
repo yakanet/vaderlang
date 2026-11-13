@@ -34,6 +34,12 @@ string 16 "invalid argument"
 string 17 "directory not empty"
 string 18 "bad file descriptor"
 string 19 "end of input"
+string 20 "connection refused"
+string 21 "connection reset"
+string 22 "address already in use"
+string 23 "address not available"
+string 24 "not connected"
+string 25 "timed out"
 data 0 structs 10 3 1 strref 19 u8 0d i32 00000000
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_c_out= param_by_address= (ref) -> string
@@ -801,10 +807,106 @@ fn 19 std_io$errno_kind (i32) -> u8
   i32.const 9
   i32.eq
   if $L14 void
+    return.lit i32.const 12
+  end $L14
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L15 void
+    i32.const 61
+    local.set 1   ; if_res
+  else
+    i32.const 111
+    local.set 1   ; if_res
+  end $L15
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L16 void
+    return.lit i32.const 14
+  end $L16
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L17 void
+    i32.const 54
+    local.set 1   ; if_res
+  else
+    i32.const 104
+    local.set 1   ; if_res
+  end $L17
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L18 void
+    return.lit i32.const 15
+  end $L18
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L19 void
+    i32.const 48
+    local.set 1   ; if_res
+  else
+    i32.const 98
+    local.set 1   ; if_res
+  end $L19
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L20 void
+    return.lit i32.const 16
+  end $L20
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L21 void
+    i32.const 49
+    local.set 1   ; if_res
+  else
+    i32.const 99
+    local.set 1   ; if_res
+  end $L21
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L22 void
+    return.lit i32.const 17
+  end $L22
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L23 void
+    i32.const 57
+    local.set 1   ; if_res
+  else
+    i32.const 107
+    local.set 1   ; if_res
+  end $L23
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L24 void
+    return.lit i32.const 18
+  end $L24
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L25 void
+    i32.const 60
+    local.set 1   ; if_res
+  else
+    i32.const 110
+    local.set 1   ; if_res
+  end $L25
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L26 void
   else
     return.lit i32.const 0
-  end $L14
-  return.lit i32.const 12
+  end $L26
+  return.lit i32.const 19
 end
 
 fn 20 std_io$describe_io_error_kind (u8,string) -> string
@@ -902,14 +1004,62 @@ fn 20 std_io$describe_io_error_kind (u8,string) -> string
                           local.set 2   ; if_res
                         else
                           local.get 0   ; arg 0
-                          i32.const 0
+                          i32.const 14
                           i32.eq
                           if $L13 void
+                            string.const 20   ; "connection refused"
+                            local.set 2   ; if_res
                           else
-                            unreachable
+                            local.get 0   ; arg 0
+                            i32.const 15
+                            i32.eq
+                            if $L14 void
+                              string.const 21   ; "connection reset"
+                              local.set 2   ; if_res
+                            else
+                              local.get 0   ; arg 0
+                              i32.const 16
+                              i32.eq
+                              if $L15 void
+                                string.const 22   ; "address already in use"
+                                local.set 2   ; if_res
+                              else
+                                local.get 0   ; arg 0
+                                i32.const 17
+                                i32.eq
+                                if $L16 void
+                                  string.const 23   ; "address not available"
+                                  local.set 2   ; if_res
+                                else
+                                  local.get 0   ; arg 0
+                                  i32.const 18
+                                  i32.eq
+                                  if $L17 void
+                                    string.const 24   ; "not connected"
+                                    local.set 2   ; if_res
+                                  else
+                                    local.get 0   ; arg 0
+                                    i32.const 19
+                                    i32.eq
+                                    if $L18 void
+                                      string.const 25   ; "timed out"
+                                      local.set 2   ; if_res
+                                    else
+                                      local.get 0   ; arg 0
+                                      i32.const 0
+                                      i32.eq
+                                      if $L19 void
+                                      else
+                                        unreachable
+                                      end $L19
+                                      local.get 1   ; arg 1
+                                      local.set 2   ; if_res
+                                    end $L18
+                                  end $L17
+                                end $L16
+                              end $L15
+                            end $L14
                           end $L13
-                          local.get 1   ; arg 1
-                          local.set 2   ; if_res
                         end $L12
                       end $L11
                     end $L10

@@ -38,6 +38,18 @@ export IOErrorKind :: enum(u8) {
     BadHandle
     /// The input ended: nothing more will arrive on it.
     EndOfInput
+    /// Nothing listens at the address a connection was asked to.
+    ConnectionRefused
+    /// The other end dropped the connection.
+    ConnectionReset
+    /// Another socket already listens on the address.
+    AddressInUse
+    /// The address is not one of this machine.
+    AddressNotAvailable
+    /// The socket has no connection.
+    NotConnected
+    /// The other end did not answer in time.
+    TimedOut
 }
 
 /// Raised by every fallible I/O operation: the concrete error member of each
@@ -78,6 +90,12 @@ describe_io_error_kind :: fn(kind: IOErrorKind, fallback: string) -> string = ma
     .DirectoryNotEmpty -> "directory not empty"
     .BadHandle         -> "bad file descriptor"
     .EndOfInput        -> "end of input"
+    .ConnectionRefused -> "connection refused"
+    .ConnectionReset   -> "connection reset"
+    .AddressInUse      -> "address already in use"
+    .AddressNotAvailable -> "address not available"
+    .NotConnected      -> "not connected"
+    .TimedOut          -> "timed out"
     .Other             -> fallback
 }
 
@@ -148,6 +166,12 @@ errno_kind :: fn(e: i32) -> IOErrorKind {
     if e == EINVAL    { return .InvalidInput }
     if e == ENOTEMPTY { return .DirectoryNotEmpty }
     if e == EBADF     { return .BadHandle }
+    if e == ECONNREFUSED  { return .ConnectionRefused }
+    if e == ECONNRESET    { return .ConnectionReset }
+    if e == EADDRINUSE    { return .AddressInUse }
+    if e == EADDRNOTAVAIL { return .AddressNotAvailable }
+    if e == ENOTCONN      { return .NotConnected }
+    if e == ETIMEDOUT     { return .TimedOut }
     return .Other
 }
 

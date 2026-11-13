@@ -122,6 +122,12 @@ static const char vader_atom_blob[] =
     "DirectoryNotEmpty" "\0"
     "BadHandle" "\0"
     "EndOfInput" "\0"
+    "ConnectionRefused" "\0"
+    "ConnectionReset" "\0"
+    "AddressInUse" "\0"
+    "AddressNotAvailable" "\0"
+    "NotConnected" "\0"
+    "TimedOut" "\0"
     "the stream failed" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
@@ -179,15 +185,21 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[705] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[715] },
     { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[726] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[744] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[760] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[773] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[793] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[806] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[815] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 54u
+#define VADER_COMPTIME_ATOM_COUNT 60u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(3u), 54u, (uint8_t) UINT64_C(0), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(3u), 60u, (uint8_t) UINT64_C(0), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     VADER_STATIC_BUF_HEADER(3u, 0u, 1u),
@@ -1428,11 +1440,23 @@ static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) 
         l1 = 51u;
     } else if (l0 == INT32_C(12)) {
         l1 = 52u;
+    } else if (l0 == INT32_C(13)) {
+        l1 = 53u;
+    } else if (l0 == INT32_C(14)) {
+        l1 = 54u;
+    } else if (l0 == INT32_C(15)) {
+        l1 = 55u;
+    } else if (l0 == INT32_C(16)) {
+        l1 = 56u;
+    } else if (l0 == INT32_C(17)) {
+        l1 = 57u;
+    } else if (l0 == INT32_C(18)) {
+        l1 = 58u;
     } else {
-        if (!(l0 == INT32_C(13))) {
+        if (!(l0 == INT32_C(19))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 53u;
+        l1 = 59u;
     }
     return l1;
 }

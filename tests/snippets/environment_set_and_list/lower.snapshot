@@ -105,5 +105,11 @@
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.split_first  // std_string$split_first
   system/posix
+    const EADDRINUSE: i32  inline
+    const EADDRNOTAVAIL: i32  inline
     const EAGAIN: i32  inline
+    const ECONNREFUSED: i32  inline
+    const ECONNRESET: i32  inline
+    const ENOTCONN: i32  inline
     const ENOTEMPTY: i32  inline
+    const ETIMEDOUT: i32  inline

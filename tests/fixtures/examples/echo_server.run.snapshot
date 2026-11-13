@@ -1,0 +1,7 @@
+# stdout
+client 3 got back: third
+client 2 got back: second
+client 1 got back: first
+server echoed 19 bytes
+# exit
+0

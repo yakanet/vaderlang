@@ -79,8 +79,14 @@ string 49 "InvalidInput"
 string 50 "DirectoryNotEmpty"
 string 51 "BadHandle"
 string 52 "EndOfInput"
-string 53 "the stream failed"
-data 0 structs 3 3 1 strref 53 u8 00 i32 00000000
+string 53 "ConnectionRefused"
+string 54 "ConnectionReset"
+string 55 "AddressInUse"
+string 56 "AddressNotAvailable"
+string 57 "NotConnected"
+string 58 "TimedOut"
+string 59 "the stream failed"
+data 0 structs 3 3 1 strref 59 u8 00 i32 00000000
 import 0 byte_len std_core$byte_len result_type=10 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=4 param_types=6 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=6 param_types=4 param_c_out= param_by_address= (string) -> ref
@@ -1860,11 +1866,59 @@ fn 26 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                           i32.const 13
                           i32.eq
                           if $L13 void
+                            string.const 52   ; "EndOfInput"
+                            local.set 1   ; if_res
                           else
-                            unreachable
+                            local.get 0   ; arg 0
+                            i32.const 14
+                            i32.eq
+                            if $L14 void
+                              string.const 53   ; "ConnectionRefused"
+                              local.set 1   ; if_res
+                            else
+                              local.get 0   ; arg 0
+                              i32.const 15
+                              i32.eq
+                              if $L15 void
+                                string.const 54   ; "ConnectionReset"
+                                local.set 1   ; if_res
+                              else
+                                local.get 0   ; arg 0
+                                i32.const 16
+                                i32.eq
+                                if $L16 void
+                                  string.const 55   ; "AddressInUse"
+                                  local.set 1   ; if_res
+                                else
+                                  local.get 0   ; arg 0
+                                  i32.const 17
+                                  i32.eq
+                                  if $L17 void
+                                    string.const 56   ; "AddressNotAvailable"
+                                    local.set 1   ; if_res
+                                  else
+                                    local.get 0   ; arg 0
+                                    i32.const 18
+                                    i32.eq
+                                    if $L18 void
+                                      string.const 57   ; "NotConnected"
+                                      local.set 1   ; if_res
+                                    else
+                                      local.get 0   ; arg 0
+                                      i32.const 19
+                                      i32.eq
+                                      if $L19 void
+                                      else
+                                        unreachable
+                                      end $L19
+                                      string.const 58   ; "TimedOut"
+                                      local.set 1   ; if_res
+                                    end $L18
+                                  end $L17
+                                end $L16
+                              end $L15
+                            end $L14
                           end $L13
-                          string.const 52   ; "EndOfInput"
-                          local.set 1   ; if_res
                         end $L12
                       end $L11
                     end $L10

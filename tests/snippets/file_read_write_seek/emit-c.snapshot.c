@@ -121,6 +121,12 @@ static const char vader_atom_blob[] =
     "directory not empty" "\0"
     "bad file descriptor" "\0"
     "end of input" "\0"
+    "connection refused" "\0"
+    "connection reset" "\0"
+    "address already in use" "\0"
+    "address not available" "\0"
+    "not connected" "\0"
+    "timed out" "\0"
     "Other" "\0"
     "NotFound" "\0"
     "PermissionDenied" "\0"
@@ -135,6 +141,12 @@ static const char vader_atom_blob[] =
     "DirectoryNotEmpty" "\0"
     "BadHandle" "\0"
     "EndOfInput" "\0"
+    "ConnectionRefused" "\0"
+    "ConnectionReset" "\0"
+    "AddressInUse" "\0"
+    "AddressNotAvailable" "\0"
+    "NotConnected" "\0"
+    "TimedOut" "\0"
     "file is closed" "\0"
     "path contains a NUL byte" "\0";
 
@@ -198,31 +210,43 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[801] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[821] },
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[841] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[854] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[860] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[869] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[886] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[898] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[912] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[926] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[939] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[950] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[961] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[969] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[982] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1000] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1010] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1021] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1036] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[854] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[873] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[890] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[913] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[935] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[949] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[959] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[965] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[974] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[991] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1003] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1017] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1031] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1044] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1055] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1066] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1074] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1087] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1105] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1115] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1126] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1144] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1160] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1173] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1193] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1206] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1215] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[1230] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 75u
+#define VADER_COMPTIME_ATOM_COUNT 87u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(4u), 74u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(4u), 86u, (uint8_t) UINT64_C(12), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     VADER_STATIC_BUF_HEADER(4u, 0u, 1u),
@@ -232,7 +256,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
 };
 static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(36u, 1u, &vader_data_0_buf);
 static const struct vader_struct_std_io$IOError_t vader_data_1_e0 = {
-    VADER_STATIC_HEADER(4u), 75u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(4u), 87u, (uint8_t) UINT64_C(10), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(4u, 0u, 1u),
@@ -2231,10 +2255,58 @@ static uint8_t std_io$errno_kind(int32_t l0) {
     if (l0 == l1) {
         return (uint8_t) 11;
     }
-    if (!(l0 == INT32_C(9))) {
+    if (l0 == INT32_C(9)) {
+        return (uint8_t) 12;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(61);
+    } else {
+        l1 = INT32_C(111);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 14;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(54);
+    } else {
+        l1 = INT32_C(104);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 15;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(48);
+    } else {
+        l1 = INT32_C(98);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 16;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(49);
+    } else {
+        l1 = INT32_C(99);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 17;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(57);
+    } else {
+        l1 = INT32_C(107);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 18;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(60);
+    } else {
+        l1 = INT32_C(110);
+    }
+    if (!(l0 == l1)) {
         return (uint8_t) 0;
     }
-    return (uint8_t) 12;
+    return (uint8_t) 19;
 }
 
 static void std_io$reserve(void* l0) {
@@ -2289,6 +2361,18 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
         l2 = 58u;
     } else if (l0 == INT32_C(13)) {
         l2 = 59u;
+    } else if (l0 == INT32_C(14)) {
+        l2 = 60u;
+    } else if (l0 == INT32_C(15)) {
+        l2 = 61u;
+    } else if (l0 == INT32_C(16)) {
+        l2 = 62u;
+    } else if (l0 == INT32_C(17)) {
+        l2 = 63u;
+    } else if (l0 == INT32_C(18)) {
+        l2 = 64u;
+    } else if (l0 == INT32_C(19)) {
+        l2 = 65u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
@@ -2301,38 +2385,50 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
 static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 60u;
+        l1 = 66u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 61u;
-    } else if (l0 == INT32_C(2)) {
-        l1 = 62u;
-    } else if (l0 == INT32_C(3)) {
-        l1 = 63u;
-    } else if (l0 == INT32_C(4)) {
-        l1 = 64u;
-    } else if (l0 == INT32_C(5)) {
-        l1 = 65u;
-    } else if (l0 == INT32_C(6)) {
-        l1 = 66u;
-    } else if (l0 == INT32_C(7)) {
         l1 = 67u;
-    } else if (l0 == INT32_C(8)) {
+    } else if (l0 == INT32_C(2)) {
         l1 = 68u;
-    } else if (l0 == INT32_C(9)) {
+    } else if (l0 == INT32_C(3)) {
         l1 = 69u;
-    } else if (l0 == INT32_C(10)) {
+    } else if (l0 == INT32_C(4)) {
         l1 = 70u;
-    } else if (l0 == INT32_C(11)) {
+    } else if (l0 == INT32_C(5)) {
         l1 = 71u;
-    } else if (l0 == INT32_C(12)) {
+    } else if (l0 == INT32_C(6)) {
         l1 = 72u;
+    } else if (l0 == INT32_C(7)) {
+        l1 = 73u;
+    } else if (l0 == INT32_C(8)) {
+        l1 = 74u;
+    } else if (l0 == INT32_C(9)) {
+        l1 = 75u;
+    } else if (l0 == INT32_C(10)) {
+        l1 = 76u;
+    } else if (l0 == INT32_C(11)) {
+        l1 = 77u;
+    } else if (l0 == INT32_C(12)) {
+        l1 = 78u;
+    } else if (l0 == INT32_C(13)) {
+        l1 = 79u;
+    } else if (l0 == INT32_C(14)) {
+        l1 = 80u;
+    } else if (l0 == INT32_C(15)) {
+        l1 = 81u;
+    } else if (l0 == INT32_C(16)) {
+        l1 = 82u;
+    } else if (l0 == INT32_C(17)) {
+        l1 = 83u;
+    } else if (l0 == INT32_C(18)) {
+        l1 = 84u;
     } else {
-        if (!(l0 == INT32_C(13))) {
+        if (!(l0 == INT32_C(19))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 73u;
+        l1 = 85u;
     }
     return l1;
 }

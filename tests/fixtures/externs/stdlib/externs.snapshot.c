@@ -102,6 +102,17 @@ int32_t poll(struct pollfd* fds, uint64_t nfds, int32_t timeout_ms);  // system_
 /* RESOURCE (system/posix): <sys/resource.h> */
 int32_t getrusage(int32_t who, void* usage);  // system_posix$sys_getrusage
 
+/* SOCKET (system/posix): <netinet/in.h>, <sys/socket.h> */
+int32_t accept(int32_t fd, void* address, void* length);  // system_posix$sys_accept
+int32_t bind(int32_t fd, const void* address, uint32_t length);  // system_posix$sys_bind
+int32_t connect(int32_t fd, const void* address, uint32_t length);  // system_posix$sys_connect
+int32_t getpeername(int32_t fd, void* address, void* length);  // system_posix$sys_getpeername
+int32_t getsockname(int32_t fd, void* address, void* length);  // system_posix$sys_getsockname
+int32_t listen(int32_t fd, int32_t backlog);  // system_posix$sys_listen
+int32_t setsockopt(int32_t fd, int32_t level, int32_t name, const void* value, uint32_t length);  // system_posix$sys_setsockopt
+int32_t shutdown(int32_t fd, int32_t how);  // system_posix$sys_shutdown
+int32_t socket(int32_t domain, int32_t kind, int32_t protocol);  // system_posix$sys_socket
+
 /* SPAWN (system/posix): <signal.h>, <spawn.h>, <string.h>, <sys/wait.h> */
 int32_t kill(int32_t pid, int32_t sig);  // system_posix$sys_kill
 int32_t posix_spawn_file_actions_addchdir_np(void* actions, const char* path);  // system_posix$sys_spawn_actions_addchdir

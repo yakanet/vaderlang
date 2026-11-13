@@ -29,6 +29,9 @@ export PipeHandle :: CPointer
 /// A process `CreateProcess` started. `std/process` holds one as a `Process`.
 export ProcessHandle :: CPointer
 
+/// A socket Winsock opened. `std/net` holds one as a `Socket`.
+export SocketHandle :: CPointer
+
 /// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
 /// written in their two's-complement form.
 export STD_OUTPUT_HANDLE: u32 : 0xFFFF_FFF5

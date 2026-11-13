@@ -1,0 +1,126 @@
+// std/net/sockaddr: a `SocketAddress` as the bytes a socket call takes.
+//
+// A `sockaddr_in` and a `sockaddr_in6` are written here byte by byte instead of
+// through a mirror of the C structs: their layout differs between systems (Darwin
+// opens them with their length, Linux with a family of two bytes), and a mirror
+// is compared with no header where the tests run.
+//
+//   sockaddr_in  (16 bytes): family, port, the 4 bytes of the address, 8 zeros
+//   sockaddr_in6 (28 bytes): family, port, flow (4), the 16 bytes, scope (4)
+//
+// The port and the address are in network order on every system.
+
+module "std/net"
+
+import "std/io"
+import "std/target"
+import "system/posix"
+
+SOCKADDR_IN_BYTES: i64: 16
+// The longer of the two: room for either.
+SOCKADDR_IN6_BYTES: i64: 28
+
+// Where the address starts in each struct, after the family and the port, and
+// after the flow of a `sockaddr_in6`.
+IPV4_OFFSET: i64: 4
+IPV6_OFFSET: i64: 8
+
+// The family of the addresses of `address`, as `socket` takes it.
+family_of :: fn(address: SocketAddress) -> i32 =
+    if address.ip is Ipv4 { AF_INET } else { AF_INET6 }
+
+// The bytes of the `sockaddr_in` or the `sockaddr_in6` of `address`.
+sockaddr_of :: fn(address: SocketAddress) -> u8[] {
+    ip :: address.ip
+    out: u8[]: []
+    if ip is Ipv4 {
+        push_family(out, AF_INET, SOCKADDR_IN_BYTES)
+        push_port(out, address.port)
+        out.push_all(ip.octets)
+        pad_to(out, SOCKADDR_IN_BYTES)
+    } else {
+        push_family(out, AF_INET6, SOCKADDR_IN6_BYTES)
+        push_port(out, address.port)
+        pad_to(out, IPV6_OFFSET)
+        out.push_all(ip.octets)
+        pad_to(out, SOCKADDR_IN6_BYTES)
+    }
+    return out
+}
+
+// Zeros until `out` is `length` bytes: the fields nothing sets.
+pad_to :: fn(out: u8[], length: i64) -> void {
+    for out.len() < length {
+        out.push(0)
+    }
+}
+
+// The address the bytes `encoded` hold, which a socket call filled.
+address_of :: fn(encoded: u8[]) -> SocketAddress | IOError {
+    family :: family_in(encoded)
+    port :: (u16(encoded[2]) << 8) | u16(encoded[3])
+    if family == AF_INET {
+        octets :: encoded[IPV4_OFFSET..<IPV4_OFFSET + IPV4_BYTES].clone()
+        return SocketAddress { .ip = Ipv4 { .octets = octets }, .port = port }
+    }
+    if family == AF_INET6 {
+        octets :: encoded[IPV6_OFFSET..<IPV6_OFFSET + IPV6_BYTES].clone()
+        return SocketAddress { .ip = Ipv6 { .octets = octets }, .port = port }
+    }
+    return IOError { .msg = "the socket has an address of family ${family}, not an IP address" }
+}
+
+// The two bytes a struct of `length` bytes opens with: its length and its
+// family on Darwin, its family as a 16-bit number on Linux.
+push_family :: fn(out: u8[], family: i32, length: i64) -> void {
+    if VADER_OS == .Darwin {
+        out.push(u8(length))
+        out.push(u8(family))
+        return
+    }
+    out.push(u8(family))
+    out.push(0)
+}
+
+family_in :: fn(encoded: u8[]) -> i32 {
+    if VADER_OS == .Darwin {
+        return i32(encoded[1])
+    }
+    return i32(encoded[0])
+}
+
+push_port :: fn(out: u8[], port: u16) -> void {
+    out.push(u8(port >> 8))
+    out.push(u8(port & 0xFF))
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_sockaddr_round_trips_an_ipv4_address :: fn() -> void {
+    address :: SocketAddress { .ip = ipv4(192, 168, 1, 20), .port = 8080 }
+    encoded :: sockaddr_of(address)
+    assert_eq(encoded.len(), SOCKADDR_IN_BYTES)
+    // The port in network order: 8080 is 0x1F90.
+    assert_eq(encoded[2], 0x1F)
+    assert_eq(encoded[3], 0x90)
+    decoded :: address_of(encoded)
+    if decoded is IOError {
+        return assert(false, "not decoded: ${decoded.msg}")
+    }
+    assert_eq(decoded.to_string(), "192.168.1.20:8080")
+}
+
+@test
+test_sockaddr_round_trips_an_ipv6_address :: fn() -> void {
+    address :: parse_socket_address("[2001:db8::7334]:443") ?? return assert(false, "an address")
+    encoded :: sockaddr_of(address)
+    assert_eq(encoded.len(), SOCKADDR_IN6_BYTES)
+    decoded :: address_of(encoded)
+    if decoded is IOError {
+        return assert(false, "not decoded: ${decoded.msg}")
+    }
+    assert_eq(decoded.to_string(), "[2001:db8::7334]:443")
+}

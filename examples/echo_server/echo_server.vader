@@ -1,0 +1,102 @@
+// A TCP echo server, one task per connection, and three clients that talk to
+// it at the same time.
+//
+// The server listens on a port the system picks on the loopback address. Each
+// connection is served by a task of its own: a read with nothing to take parks
+// the task until the client sends, and the other tasks run meanwhile. The
+// clients connect first, then speak in the reverse order, so a server that
+// served one connection at a time would never answer.
+
+module "main"
+
+import "std/console"
+import "std/io"
+import "std/net"
+import "std/task"
+
+// Send back what `stream` sends until it ends; the bytes sent back.
+echo :: fn(stream: TcpStream) -> i64 {
+    buffer: u8[]: 1024.filled(() -> 0)
+    total: i64 = 0
+    for {
+        got :: stream.read(buffer)
+        if got !is i64 {
+            break
+        }
+        stream.write(buffer[0..<got])
+        total += got
+    }
+    stream.close()
+    return total
+}
+
+// Serve `connections` connections of `listener`, each in its own task; the
+// bytes sent back in all.
+serve :: fn(listener: TcpListener, connections: i64) -> i64 {
+    serving: Task<i64>[]: []
+    for serving.len() < connections {
+        stream :: listener.accept()
+        if stream is IOError {
+            break
+        }
+        serving.push(launch(() -> echo(stream)))
+    }
+    total: i64 = 0
+    for task in serving {
+        sent :: task.join()
+        if sent is i64 {
+            total += sent
+        }
+    }
+    return total
+}
+
+// Send `message` on `stream` and read the server's answer, one line.
+exchange :: fn(stream: TcpStream, message: string) -> string {
+    stream.write("${message}\n")
+    reader :: BufferedReader { .source = stream }
+    answer :: reader.read_line()
+    if answer is string {
+        return answer
+    }
+    return "no answer"
+}
+
+main :: fn() -> i32 {
+    listener :: listen(loopback(0))
+    if listener is IOError {
+        eprintln("cannot listen: ${listener.msg}")
+        return 1
+    }
+    address :: listener.local_address()
+    if address is IOError {
+        eprintln("no address: ${address.msg}")
+        return 1
+    }
+    messages :: ["first", "second", "third"]
+    server :: launch(() -> serve(listener, messages.len()))
+    streams: TcpStream[]: []
+    for _ in messages {
+        stream :: connect(address)
+        if stream is IOError {
+            eprintln("cannot connect: ${stream.msg}")
+            return 1
+        }
+        streams.push(stream)
+    }
+    // The last client to connect speaks first.
+    i := messages.len() - 1
+    for i >= 0 {
+        println("client ${i + 1} got back: ${exchange(streams[i], messages[i])}")
+        i -= 1
+    }
+    for stream in streams {
+        stream.close()
+    }
+    echoed :: server.join()
+    if echoed is i64 {
+        println("server echoed ${echoed} bytes")
+    }
+    listener.close()
+    return 0
+}

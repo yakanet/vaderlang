@@ -1,0 +1,358 @@
+// std/net/address: IP addresses, and the address of a socket.
+//
+// An address is its bytes in network order, whatever the system: what a socket
+// call takes is built from them in `sockaddr.vader`.
+
+module "std/net"
+
+import "std/numbers"
+import "std/string"
+import "std/string_builder"
+
+// ---- addresses ------------------------------------------------------------
+
+/// An IPv4 address.
+export Ipv4 :: struct {
+    /// Its four bytes, the first written first: `[127, 0, 0, 1]`.
+    octets: u8[]
+}
+
+/// An IPv6 address.
+export Ipv6 :: struct {
+    /// Its sixteen bytes, the first written first.
+    octets: u8[]
+}
+
+/// The address of a machine on a network.
+export IpAddress :: Ipv4 | Ipv6
+
+/// Where a socket listens or connects: a machine and a port on it.
+export SocketAddress :: struct {
+    ip: IpAddress
+    /// 0 lets the system pick a free port when a listener binds.
+    port: u16
+}
+
+/// The IPv4 address `a.b.c.d`.
+///
+/// @param a  its first byte.
+/// @param b  its second byte.
+/// @param c  its third byte.
+/// @param d  its last byte.
+/// @example
+///   ipv4(192, 168, 0, 1).to_string()   // "192.168.0.1"
+export ipv4 :: fn(a: u8, b: u8, c: u8, d: u8) -> Ipv4 = Ipv4 { .octets = [a, b, c, d] }
+
+/// `port` on this machine, reached by this machine alone: `127.0.0.1`.
+///
+/// @param port  the port, 0 for one the system picks.
+export loopback :: fn(port: u16) -> SocketAddress =
+    SocketAddress { .ip = ipv4(127, 0, 0, 1), .port = port }
+
+/// `port` on this machine over IPv6, reached by this machine alone: `::1`.
+///
+/// @param port  the port, 0 for one the system picks.
+export loopback_v6 :: fn(port: u16) -> SocketAddress {
+    octets: u8[]: IPV6_BYTES.filled(() -> 0)
+    octets[IPV6_BYTES - 1] = 1
+    return SocketAddress { .ip = Ipv6 { .octets = octets }, .port = port }
+}
+
+/// `port` on every IPv4 address of this machine, which other machines reach:
+/// `0.0.0.0`.
+///
+/// @param port  the port, 0 for one the system picks.
+export all_interfaces :: fn(port: u16) -> SocketAddress =
+    SocketAddress { .ip = ipv4(0, 0, 0, 0), .port = port }
+
+IPV4_BYTES: i64: 4
+IPV6_BYTES: i64: 16
+// The 16-bit groups an IPv6 address is written in.
+IPV6_GROUPS: i64: 8
+
+// ---- reading --------------------------------------------------------------
+
+/// The address `text` writes: `127.0.0.1`, `::1`, `2001:db8::8a2e:370:7334`.
+///
+/// An IPv4 address is four decimal numbers with no leading zero. An IPv6
+/// address is groups of hexadecimal digits, `::` standing once for a run of
+/// zero groups; a zone (`%eth0`) and an IPv4 tail (`::ffff:1.2.3.4`) are not
+/// read.
+///
+/// @param text  the address, with nothing around it.
+/// @return      null when `text` writes no address.
+/// @example
+///   parse_ip("192.168.0.1")    // an `Ipv4`
+///   parse_ip("localhost")      // null: a name, not an address
+export parse_ip :: fn(text: string) -> IpAddress | null {
+    if text.contains_char(':') {
+        return parse_ipv6(text)
+    }
+    return parse_ipv4(text)
+}
+
+/// The address of a socket `text` writes: `127.0.0.1:8080`, `[::1]:8080`.
+///
+/// @param text  an IP address, a colon and a port; an IPv6 address between
+///              brackets.
+/// @return      null when `text` writes no such address.
+/// @example
+///   parse_socket_address("127.0.0.1:8080")   // 127.0.0.1, port 8080
+///   parse_socket_address("localhost:8080")   // null: a name, not an address
+export parse_socket_address :: fn(text: string) -> SocketAddress | null {
+    [host, port_text] :: text.split_last(":") ?? return null
+    port :: parse_port(port_text) ?? return null
+    if host.starts_with("[") && host.ends_with("]") {
+        ip :: parse_ipv6(host.byte_slice(1, host.byte_len() - 1)) ?? return null
+        return SocketAddress { .ip = ip, .port = port }
+    }
+    ip :: parse_ipv4(host) ?? return null
+    return SocketAddress { .ip = ip, .port = port }
+}
+
+parse_port :: fn(text: string) -> u16 | null {
+    if text.byte_len() > 5 {
+        return null
+    }
+    port :: parse_uint_in_base(text, 10)
+    if port is ParseError || port > 0xFFFF {
+        return null
+    }
+    return u16(port)
+}
+
+parse_ipv4 :: fn(text: string) -> Ipv4 | null {
+    parts :: text.split(".")
+    if parts.len() != IPV4_BYTES {
+        return null
+    }
+    octets: u8[]: []
+    for part in parts {
+        octets.push(parse_octet(part) ?? return null)
+    }
+    return Ipv4 { .octets = octets }
+}
+
+// One number of an IPv4 address: up to 255, with no leading zero.
+parse_octet :: fn(text: string) -> u8 | null {
+    if text.byte_len() > 3 || text.byte_len() > 1 && text.starts_with("0") {
+        return null
+    }
+    value :: parse_uint_in_base(text, 10)
+    if value is ParseError || value > 0xFF {
+        return null
+    }
+    return u8(value)
+}
+
+parse_ipv6 :: fn(text: string) -> Ipv6 | null {
+    halves :: text.split("::")
+    if halves.len() > 2 {
+        return null
+    }
+    head :: parse_groups(halves[0]) ?? return null
+    if halves.len() == 1 {
+        if head.len() != IPV6_GROUPS {
+            return null
+        }
+        return Ipv6 { .octets = octets_of(head) }
+    }
+    tail :: parse_groups(halves[1]) ?? return null
+    // `::` stands for one group at least.
+    if head.len() + tail.len() >= IPV6_GROUPS {
+        return null
+    }
+    groups: u16[]: []
+    groups.push_all(head)
+    for _ in 0..<IPV6_GROUPS - head.len() - tail.len() {
+        groups.push(0)
+    }
+    groups.push_all(tail)
+    return Ipv6 { .octets = octets_of(groups) }
+}
+
+// The groups `text` writes, colons between them; none for an empty text.
+parse_groups :: fn(text: string) -> u16[] | null {
+    groups: u16[]: []
+    if text.is_empty() {
+        return groups
+    }
+    for part in text.split(":") {
+        if part.byte_len() > 4 {
+            return null
+        }
+        value :: parse_uint_in_base(part, 16)
+        if value is ParseError {
+            return null
+        }
+        groups.push(u16(value))
+    }
+    return groups
+}
+
+octets_of :: fn(groups: u16[]) -> u8[] {
+    octets: u8[]: []
+    for group in groups {
+        octets.push(u8(group >> 8))
+        octets.push(u8(group & 0xFF))
+    }
+    return octets
+}
+
+// ---- writing --------------------------------------------------------------
+
+Ipv4 implements Display {
+    /// The four bytes in decimal, dots between them.
+    to_string :: fn(self) -> string {
+        parts: string[]: []
+        for octet in self.octets {
+            parts.push("${octet}")
+        }
+        return parts.join(".")
+    }
+}
+
+Ipv6 implements Display {
+    /// The groups in lower-case hexadecimal with no leading zero, the longest
+    /// run of two zero groups or more written `::`.
+    to_string :: fn(self) -> string {
+        groups :: groups_of(self.octets)
+        [run_start, run_length] :: longest_zero_run(groups)
+        sb :: StringBuilder {}
+        i: i64 = 0
+        for i < groups.len() {
+            if run_length > 1 && i == run_start {
+                sb.append("::")
+                i += run_length
+                continue
+            }
+            if i > 0 && !(run_length > 1 && i == run_start + run_length) {
+                sb.append(":")
+            }
+            sb.append(u64(groups[i]).to_hex())
+            i += 1
+        }
+        return sb.to_string()
+    }
+}
+
+SocketAddress implements Display {
+    /// `ip:port`, an IPv6 address between brackets.
+    to_string :: fn(self) -> string {
+        ip :: self.ip
+        if ip is Ipv4 {
+            return "${ip}:${self.port}"
+        }
+        return "[${ip}]:${self.port}"
+    }
+}
+
+groups_of :: fn(octets: u8[]) -> u16[] {
+    groups: u16[]: []
+    for i in 0..<octets.len() / 2 {
+        groups.push((u16(octets[2 * i]) << 8) | u16(octets[2 * i + 1]))
+    }
+    return groups
+}
+
+// Where the longest run of zero groups starts and how long it is, the first of
+// two runs of one length.
+longest_zero_run :: fn(groups: u16[]) -> [i64, i64] {
+    best_start: i64 = 0
+    best_length: i64 = 0
+    start: i64 = 0
+    length: i64 = 0
+    for i in 0..<groups.len() {
+        if groups[i] != 0 {
+            length = 0
+            continue
+        }
+        if length == 0 {
+            start = i
+        }
+        length += 1
+        if length > best_length {
+            best_start = start
+            best_length = length
+        }
+    }
+    return [best_start, best_length]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// What `text` reads as, written back; "null" for no address.
+round_trip :: fn(text: string) -> string {
+    ip :: parse_ip(text)
+    if ip is Ipv4 {
+        return ip.to_string()
+    }
+    if ip is Ipv6 {
+        return ip.to_string()
+    }
+    return "null"
+}
+
+@test
+test_parse_ip_reads_an_ipv4_address :: fn() -> void {
+    assert_eq(round_trip("192.168.0.1"), "192.168.0.1")
+    assert_eq(round_trip("0.0.0.0"), "0.0.0.0")
+}
+
+@test
+test_parse_ip_refuses_what_is_no_ipv4_address :: fn() -> void {
+    assert_eq(round_trip("256.0.0.1"), "null")
+    assert_eq(round_trip("1.2.3"), "null")
+    assert_eq(round_trip("01.2.3.4"), "null")
+    assert_eq(round_trip("1.2.3.x"), "null")
+    assert_eq(round_trip("localhost"), "null")
+}
+
+@test
+test_parse_ip_reads_an_ipv6_address :: fn() -> void {
+    assert_eq(round_trip("::1"), "::1")
+    assert_eq(round_trip("::"), "::")
+    assert_eq(round_trip("2001:DB8:0:0:0:8a2e:370:7334"), "2001:db8::8a2e:370:7334")
+    assert_eq(round_trip("fe80::1"), "fe80::1")
+    assert_eq(round_trip("1:2:3:4:5:6:7:8"), "1:2:3:4:5:6:7:8")
+}
+
+@test
+test_ipv6_writes_one_zero_group_in_full :: fn() -> void {
+    assert_eq(round_trip("1:0:3:4:5:6:7:8"), "1:0:3:4:5:6:7:8")
+    assert_eq(round_trip("1:0:0:4:0:0:0:8"), "1:0:0:4::8")
+}
+
+@test
+test_parse_ip_refuses_what_is_no_ipv6_address :: fn() -> void {
+    assert_eq(round_trip("1:2:3:4:5:6:7"), "null")
+    assert_eq(round_trip("1::2::3"), "null")
+    assert_eq(round_trip("1:2:3:4:5:6:7::8"), "null")
+    assert_eq(round_trip("12345::"), "null")
+    assert_eq(round_trip(":::"), "null")
+}
+
+@test
+test_parse_socket_address_reads_both_families :: fn() -> void {
+    v4 :: parse_socket_address("127.0.0.1:8080") ?? return assert(false, "an IPv4 address")
+    assert_eq(v4.to_string(), "127.0.0.1:8080")
+    v6 :: parse_socket_address("[::1]:443") ?? return assert(false, "an IPv6 address")
+    assert_eq(v6.to_string(), "[::1]:443")
+}
+
+@test
+test_parse_socket_address_refuses_a_bad_port :: fn() -> void {
+    assert(parse_socket_address("127.0.0.1:65536") == null, "past the last port")
+    assert(parse_socket_address("127.0.0.1:") == null, "no port")
+    assert(parse_socket_address("127.0.0.1") == null, "no colon")
+    assert(parse_socket_address("::1:80") == null, "an IPv6 address without brackets")
+}
+
+@test
+test_loopback_names_this_machine :: fn() -> void {
+    assert_eq(loopback(80).to_string(), "127.0.0.1:80")
+    assert_eq(loopback_v6(80).to_string(), "[::1]:80")
+    assert_eq(all_interfaces(0).to_string(), "0.0.0.0:0")
+}

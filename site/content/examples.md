@@ -30,6 +30,10 @@ Lawn mowers driven across a grid: enums, a trait, an exhaustive `match`, and an 
 
 A Brainfuck compiler: it turns a program into the bytecode of the Vader VM and runs it, in memory.
 
+## echo_server
+
+A TCP echo server on the loopback address, one task per connection, and three clients that talk to it at the same time, with `std/net`.
+
 ## raycaster
 
 A first-person walk through a hangar full of zombies. The engine draws every frame in Vader, pixel by pixel; raylib opens the window. Its output is that of the `frames` entry, which draws the game's views in characters.

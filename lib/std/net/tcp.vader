@@ -1,0 +1,692 @@
+// std/net/tcp: TCP sockets a task waits on.
+//
+// A `TcpListener` accepts connections, a `TcpStream` is one: a `Reader` and a
+// `Writer` of `std/io`. An `accept` or a read with nothing to take parks the
+// running task until the socket has something, and the other tasks run
+// meanwhile: a server is one task per connection, written as if each call
+// waited.
+//
+// What does not wait on the socket yet: a write the system has no room for
+// asks again every millisecond, and `connect` waits on the system thread, every
+// task with it.
+//
+// macOS and Linux. What a socket is to the system is a descriptor there and a
+// handle on Windows; only the `system_*` primitives at the end of this file
+// name either.
+
+module "std/net"
+
+import "std/io"
+import "std/target"
+import "std/task"
+import "std/time"
+import "system/posix"
+import "system/windows"
+
+// ---- what the system holds ------------------------------------------------
+
+// What a socket call takes from the system and gives back to it. Nothing
+// computes with it.
+Socket :: Fd | SocketHandle
+
+// ---- listening ------------------------------------------------------------
+
+/// A socket that accepts the connections made to an address.
+export TcpListener :: struct {
+    @internal
+    socket: Socket
+    @internal
+    closed: AtomicBool
+}
+
+/// How many connections wait for an `accept` unless `listen` is told otherwise.
+export BACKLOG_DEFAULT: i32: 128
+
+/// Listen for connections to `address`.
+///
+/// The address may be one a connection closed a moment ago still holds, so a
+/// server restarts at once.
+///
+/// @param address  where to listen; port 0 for a free port, which
+///                 `local_address` then tells.
+/// @param backlog  how many connections may wait for an `accept`.
+/// @error          `IOError` when the address cannot be bound: taken by another
+///                 listener, not one of this machine, or a port the program may
+///                 not open.
+/// @example
+///   # import "std/console"
+///   listener :: listen(loopback(8080))
+///   if listener is IOError {
+///       eprintln("cannot listen: ${listener}")
+///   }
+export listen :: fn(
+    address: SocketAddress, backlog: i32 = BACKLOG_DEFAULT,
+) -> TcpListener | IOError {
+    socket :: system_listen(address, backlog)
+    if socket is IOError {
+        return socket
+    }
+    return TcpListener { .socket = socket, .closed = AtomicBool {} }
+}
+
+/// Wait for the next connection to `listener`, the other tasks running
+/// meanwhile.
+///
+/// @param listener  the listening socket.
+/// @error           `IOError` when the listener is closed, or the system
+///                  refuses: no descriptor left, say.
+export accept :: fn(listener: TcpListener) -> TcpStream | IOError {
+    if listener.closed.load() {
+        return SOCKET_CLOSED
+    }
+    socket :: system_accept(listener.socket)
+    if socket is IOError {
+        return socket
+    }
+    return TcpStream { .socket = socket, .closed = AtomicBool {} }
+}
+
+/// The address `listener` listens on, with the port the system picked when it
+/// was asked for port 0.
+///
+/// @param listener  the listening socket.
+/// @error           `IOError` when the listener is closed.
+export local_address :: fn(listener: TcpListener) -> SocketAddress | IOError {
+    if listener.closed.load() {
+        return SOCKET_CLOSED
+    }
+    return system_address(listener.socket, false)
+}
+
+/// Stop listening: the connections not accepted yet are refused, and every
+/// later `accept` fails. A second `close` does nothing. The connections already
+/// accepted go on.
+///
+/// @param listener  the listening socket.
+/// @error           `IOError` when the system reports a failure on closing.
+export close :: fn(listener: TcpListener) -> null | IOError {
+    return close_once(listener.socket, listener.closed)
+}
+
+// ---- a connection ---------------------------------------------------------
+
+/// One end of a TCP connection: a `Reader` of what the other end sends and a
+/// `Writer` of what it receives.
+export TcpStream :: struct {
+    @internal
+    socket: Socket
+    @internal
+    closed: AtomicBool
+}
+
+/// Connect to the listener at `address`.
+///
+/// @param address  where the other end listens.
+/// @error          `IOError` when nothing listens there, or the machine cannot
+///                 be reached.
+/// @example
+///   stream :: connect(loopback(8080))
+///   if stream is TcpStream {
+///       stream.write("hello\n")
+///       stream.close()
+///   }
+export connect :: fn(address: SocketAddress) -> TcpStream | IOError {
+    socket :: system_connect(address)
+    if socket is IOError {
+        return socket
+    }
+    return TcpStream { .socket = socket, .closed = AtomicBool {} }
+}
+
+TcpStream implements Reader {
+    read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        if self.closed.load() {
+            return SOCKET_CLOSED
+        }
+        if into.len() == 0 {
+            return 0
+        }
+        return system_receive(self.socket, into)
+    }
+}
+
+TcpStream implements Writer {
+    write :: fn(self, content: u8[] | string) -> null | IOError {
+        if self.closed.load() {
+            return SOCKET_CLOSED
+        }
+        return system_send(self.socket, content.bytes_of())
+    }
+}
+
+/// The address of this end of `stream`.
+///
+/// @param stream  the connection.
+/// @error         `IOError` when the stream is closed.
+export local_address :: fn(stream: TcpStream) -> SocketAddress | IOError {
+    if stream.closed.load() {
+        return SOCKET_CLOSED
+    }
+    return system_address(stream.socket, false)
+}
+
+/// The address of the other end of `stream`.
+///
+/// @param stream  the connection.
+/// @error         `IOError` when the stream is closed, or the connection is
+///                gone.
+export peer_address :: fn(stream: TcpStream) -> SocketAddress | IOError {
+    if stream.closed.load() {
+        return SOCKET_CLOSED
+    }
+    return system_address(stream.socket, true)
+}
+
+/// Say that this end sends nothing more: the other end reads to the end of the
+/// stream, and may still answer, which `stream` goes on reading.
+///
+/// @param stream  the connection.
+/// @error         `IOError` when the stream is closed, or the connection is
+///                gone.
+export close_write :: fn(stream: TcpStream) -> null | IOError {
+    if stream.closed.load() {
+        return SOCKET_CLOSED
+    }
+    return system_close_write(stream.socket)
+}
+
+/// Close `stream`: the other end reads to the end of the stream, and every
+/// later read or write on `stream` fails. A second `close` does nothing.
+///
+/// @param stream  the connection.
+/// @error         `IOError` when the system reports a failure on closing.
+export close :: fn(stream: TcpStream) -> null | IOError {
+    return close_once(stream.socket, stream.closed)
+}
+
+// Give `socket` back to the system unless `closed` says it went already.
+close_once :: fn(socket: Socket, closed: AtomicBool) -> null | IOError {
+    if closed.load() {
+        return null
+    }
+    closed.store(true)
+    return system_close(socket)
+}
+
+// What a call on a closed socket answers.
+SOCKET_CLOSED: IOError: IOError { .msg = "socket is closed", .kind = .BadHandle }
+
+// ---- system primitives ----------------------------------------------------
+
+// What every primitive answers on a system this module does not run on.
+unsupported :: fn() -> IOError = IOError { .msg = "std/net does not run on this system yet" }
+
+// A socket that listens on `address`, in the mode where a call with nothing to
+// take fails instead of waiting.
+@target
+system_listen :: fn(address: SocketAddress, backlog: i32) -> Socket | IOError
+
+@target(.Linux, .Darwin)
+system_listen :: fn(address: SocketAddress, backlog: i32) -> Socket | IOError {
+    fd :: sys_socket(family_of(address), SOCK_STREAM, 0)
+    if fd < 0 {
+        return last_io_error("cannot open a socket")
+    }
+    encoded :: sockaddr_of(address)
+    if sys_setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, [1], 4) != 0
+        || sys_bind(fd, encoded, u32(encoded.len())) != 0
+        || sys_listen(fd, backlog) != 0
+        || !set_non_blocking(fd) {
+        return closing(fd, last_io_error("cannot listen on ${address}"))
+    }
+    return Fd(fd)
+}
+
+@target(.Windows)
+system_listen :: fn(address: SocketAddress, backlog: i32) -> Socket | IOError = unsupported()
+
+// The next connection to the listener `socket`, parking until there is one.
+@target
+system_accept :: fn(socket: Socket) -> Socket | IOError
+
+@target(.Linux, .Darwin)
+system_accept :: fn(socket: Socket) -> Socket | IOError {
+    fd :: fd_of(socket)
+    for {
+        accepted :: sys_accept(fd, null, null)
+        if accepted >= 0 {
+            if !set_non_blocking(accepted) {
+                return closing(accepted, last_io_error("cannot accept"))
+            }
+            return Fd(accepted)
+        }
+        code :: sys_last_errno()
+        if code == EAGAIN {
+            park_until_readable(fd)
+        } else if code != EINTR {
+            return last_io_error("cannot accept")
+        }
+    }
+}
+
+@target(.Windows)
+system_accept :: fn(socket: Socket) -> Socket | IOError = unsupported()
+
+// A socket connected to `address`, in the mode `system_listen` describes.
+@target
+system_connect :: fn(address: SocketAddress) -> Socket | IOError
+
+@target(.Linux, .Darwin)
+system_connect :: fn(address: SocketAddress) -> Socket | IOError {
+    fd :: sys_socket(family_of(address), SOCK_STREAM, 0)
+    if fd < 0 {
+        return last_io_error("cannot open a socket")
+    }
+    encoded :: sockaddr_of(address)
+    if sys_connect(fd, encoded, u32(encoded.len())) != 0 || !set_non_blocking(fd) {
+        return closing(fd, last_io_error("cannot connect to ${address}"))
+    }
+    return Fd(fd)
+}
+
+@target(.Windows)
+system_connect :: fn(address: SocketAddress) -> Socket | IOError = unsupported()
+
+// Some bytes of the connection `socket` into `into`, parking until there are
+// some; null at the end of the stream.
+@target
+system_receive :: fn(socket: Socket, into: u8[]) -> i64 | null | IOError
+
+@target(.Linux, .Darwin)
+system_receive :: fn(socket: Socket, into: u8[]) -> i64 | null | IOError {
+    fd :: fd_of(socket)
+    for {
+        got :: sys_read(fd, into, into.len())
+        if got > 0 {
+            return got
+        }
+        if got == 0 {
+            return null
+        }
+        code :: sys_last_errno()
+        if code == EAGAIN {
+            park_until_readable(fd)
+        } else if code != EINTR {
+            return last_io_error("read failed")
+        }
+    }
+}
+
+@target(.Windows)
+system_receive :: fn(socket: Socket, into: u8[]) -> i64 | null | IOError = unsupported()
+
+// How long a write waits before it asks a full socket again.
+SEND_RETRY :: 1.millis()
+
+// All of `bytes` to the connection `socket`.
+@target
+system_send :: fn(socket: Socket, bytes: u8[]) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_send :: fn(socket: Socket, bytes: u8[]) -> null | IOError {
+    fd :: fd_of(socket)
+    done: i64 = 0
+    for done < bytes.len() {
+        rest :: bytes[done..<bytes.len()]
+        sent :: sys_write(fd, rest, rest.len())
+        if sent > 0 {
+            done += sent
+            continue
+        }
+        // A write the system took none of, without saying why, would otherwise
+        // be asked again forever.
+        if sent == 0 {
+            return IOError { .msg = "write failed: nothing written" }
+        }
+        code :: sys_last_errno()
+        if code == EAGAIN {
+            // The other end has to read first, which may be a task of this
+            // program: let the tasks run.
+            sleep(SEND_RETRY)
+        } else if code != EINTR {
+            return last_io_error("write failed")
+        }
+    }
+    return null
+}
+
+@target(.Windows)
+system_send :: fn(socket: Socket, bytes: u8[]) -> null | IOError = unsupported()
+
+// The address of the other end of `socket` when `peer`, of this end otherwise.
+@target
+system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError
+
+@target(.Linux, .Darwin)
+system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError {
+    encoded: u8[]: SOCKADDR_IN6_BYTES.filled(() -> 0)
+    length: u32[]: [u32(SOCKADDR_IN6_BYTES)]
+    read :: if peer {
+        sys_getpeername(fd_of(socket), encoded, length)
+    } else {
+        sys_getsockname(fd_of(socket), encoded, length)
+    }
+    if read != 0 {
+        return last_io_error("cannot read the address of the socket")
+    }
+    return address_of(encoded)
+}
+
+@target(.Windows)
+system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError = unsupported()
+
+@target
+system_close_write :: fn(socket: Socket) -> null | IOError
+
+@target(.Linux, .Darwin)
+system_close_write :: fn(socket: Socket) -> null | IOError =
+    failure_unless(sys_shutdown(fd_of(socket), SHUT_WR) == 0, "cannot end the sending side")
+
+@target(.Windows)
+system_close_write :: fn(socket: Socket) -> null | IOError = unsupported()
+
+@target
+system_close :: fn(socket: Socket) -> null | IOError
+
+// Not asked again on `EINTR`: Linux has closed the descriptor by then, and
+// another socket may already have its number.
+@target(.Linux, .Darwin)
+system_close :: fn(socket: Socket) -> null | IOError =
+    failure_unless(sys_close(fd_of(socket)) == 0, "close failed")
+
+@target(.Windows)
+system_close :: fn(socket: Socket) -> null | IOError = unsupported()
+
+// A socket is an `Fd` on POSIX: the other member is a bug of this module, and
+// stops the program.
+fd_of :: fn(socket: Socket) -> i32 = @unreachable match socket {
+    is Fd -> i32(socket)
+}
+
+// `error`, once the socket `fd` that met it is given back. The error is read
+// before this body runs: closing would replace it.
+closing :: fn(fd: i32, error: IOError) -> IOError {
+    sys_close(fd)
+    return error
+}
+
+// Whether `fd` is now in the mode where a call with nothing to take fails with
+// `EAGAIN` instead of waiting.
+set_non_blocking :: fn(fd: i32) -> bool {
+    flags :: sys_fcntl(fd, F_GETFL, 0)
+    return flags >= 0 && sys_fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0
+}
+
+// Park the running task until `fd` has something to read, the other tasks
+// running meanwhile. With no other task the park ends at once, and the system
+// waits instead.
+park_until_readable :: fn(fd: i32) -> void {
+    wait_readable(Fd(fd))
+    watched :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
+    sys_poll_one(watched, 1, -1)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Whether the tests of this file have sockets to run on.
+has_sockets :: fn() -> bool = VADER_OS != .Windows
+
+// Send back what `stream` sends until it ends; the bytes sent back.
+echo :: fn(stream: TcpStream) -> i64 {
+    buffer: u8[]: 64.filled(() -> 0)
+    total: i64 = 0
+    for {
+        got :: stream.read(buffer)
+        if got !is i64 {
+            break
+        }
+        stream.write(buffer[0..<got])
+        total += got
+    }
+    stream.close()
+    return total
+}
+
+// Serve `connections` connections of `listener`, each in a task; the bytes
+// sent back in all.
+serve :: fn(listener: TcpListener, connections: i64) -> i64 {
+    serving: Task<i64>[]: []
+    for serving.len() < connections {
+        stream :: listener.accept()
+        if stream is IOError {
+            break
+        }
+        serving.push(launch(() -> echo(stream)))
+    }
+    total: i64 = 0
+    for task in serving {
+        sent :: task.join()
+        if sent is i64 {
+            total += sent
+        }
+    }
+    return total
+}
+
+// A listener on a free port of the loopback address; null, the test having
+// failed, when the system refuses.
+loopback_listener :: fn() -> TcpListener | null {
+    listener :: listen(loopback(0))
+    if listener is IOError {
+        assert(false, "cannot listen: ${listener.msg}")
+        return null
+    }
+    return listener
+}
+
+// The address `listener` listens on; null, the test having failed, when the
+// system does not tell.
+bound_address :: fn(listener: TcpListener) -> SocketAddress | null {
+    address :: listener.local_address()
+    if address is IOError {
+        assert(false, "no address: ${address.msg}")
+        return null
+    }
+    return address
+}
+
+// A connection to `address`; null, the test having failed, when there is none.
+connection_to :: fn(address: SocketAddress) -> TcpStream | null {
+    stream :: connect(address)
+    if stream is IOError {
+        assert(false, "cannot connect: ${stream.msg}")
+        return null
+    }
+    return stream
+}
+
+// What `server` counted, -1 for a task that was cancelled.
+counted :: fn(server: Task<i64>) -> i64 {
+    total :: server.join()
+    if total is i64 {
+        return total
+    }
+    return -1
+}
+
+// What the other end of `stream` answers to `message`, read to the end.
+exchange :: fn(stream: TcpStream, message: string) -> string {
+    stream.write(message)
+    stream.close_write()
+    reader :: BufferedReader { .source = stream }
+    answer :: reader.read_to_end(1024)
+    if answer is IOError {
+        return "error: ${answer.msg}"
+    }
+    return bytes_to_string(answer)
+}
+
+@test
+test_listener_binds_a_free_port :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    assert(address.port != 0, "the system picked a port")
+    assert_eq(address.ip.to_string(), "127.0.0.1")
+    listener.close()
+}
+
+@test
+test_streams_carry_bytes_both_ways :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    server :: launch(() -> serve(listener, 1))
+    stream :: connection_to(address) ?? return
+    assert_eq(exchange(stream, "hello"), "hello")
+    stream.close()
+    assert_eq(counted(server), 5)
+    listener.close()
+}
+
+@test
+test_connections_are_served_at_the_same_time :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    server :: launch(() -> serve(listener, 2))
+    first :: connection_to(address) ?? return
+    second :: connection_to(address) ?? return
+    // The second to connect is answered while the first has sent nothing.
+    assert_eq(exchange(second, "second"), "second")
+    assert_eq(exchange(first, "first"), "first")
+    first.close()
+    second.close()
+    assert_eq(counted(server), 11)
+    listener.close()
+}
+
+// Write `count` bytes on `stream`, then say nothing more comes.
+send_bytes :: fn(stream: TcpStream, count: i64) -> void {
+    payload: u8[]: count.filled(() -> 'x')
+    stream.write(payload)
+    stream.close_write()
+}
+
+@test
+test_a_write_larger_than_the_socket_holds_goes_through :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    server :: launch(() -> serve(listener, 1))
+    stream :: connection_to(address) ?? return
+    // More than the system keeps for a socket: the server has to read while
+    // this end still writes, and this end to read while the server writes back.
+    size: i64: 4 * 1024 * 1024
+    sender :: launch(() -> send_bytes(stream, size))
+    buffer: u8[]: 65536.filled(() -> 0)
+    received: i64 = 0
+    for {
+        got :: stream.read(buffer)
+        if got !is i64 {
+            break
+        }
+        received += got
+    }
+    assert_eq(received, size)
+    sender.join()
+    stream.close()
+    assert_eq(counted(server), size)
+    listener.close()
+}
+
+@test
+test_listen_fails_on_an_address_already_taken :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    second :: listen(address)
+    if second is TcpListener {
+        return assert(false, "two listeners on one address")
+    }
+    assert_eq(second.kind, .AddressInUse)
+    listener.close()
+}
+
+@test
+test_peer_address_is_the_listener_s :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    stream :: connection_to(address) ?? return
+    peer :: stream.peer_address()
+    if peer is IOError {
+        return assert(false, "no peer: ${peer.msg}")
+    }
+    assert_eq(peer.to_string(), address.to_string())
+    stream.close()
+    listener.close()
+}
+
+@test
+test_connect_fails_where_nothing_listens :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    listener.close()
+    refused :: connect(address)
+    if refused is TcpStream {
+        return assert(false, "nothing listens on a closed port")
+    }
+    assert_eq(refused.kind, .ConnectionRefused)
+}
+
+@test
+test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: loopback_listener() ?? return
+    address :: bound_address(listener) ?? return
+    stream :: connection_to(address) ?? return
+    stream.close()
+    assert(stream.write("late") is IOError, "a write after close")
+    assert(stream.read(8.filled(() -> 0)) is IOError, "a read after close")
+    assert(stream.close() == null, "a second close does nothing")
+    listener.close()
+}
+
+@test
+test_ipv6_loopback_carries_bytes :: fn() -> void {
+    if !has_sockets() {
+        return
+    }
+    listener :: listen(loopback_v6(0))
+    if listener is IOError {
+        // A machine with no IPv6 has no `::1` to bind.
+        return
+    }
+    address :: bound_address(listener) ?? return
+    server :: launch(() -> serve(listener, 1))
+    stream :: connection_to(address) ?? return
+    assert_eq(exchange(stream, "six"), "six")
+    stream.close()
+    assert_eq(counted(server), 3)
+    listener.close()
+}

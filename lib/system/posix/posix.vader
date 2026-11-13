@@ -126,6 +126,18 @@ export EPIPE: i32: 32
 export EAGAIN: i32: if VADER_OS == .Darwin { 35 } else { 11 }
 /// Diverges: 66 on Darwin, 39 on Linux.
 export ENOTEMPTY: i32: if VADER_OS == .Darwin { 66 } else { 39 }
+/// Diverges: 48 on Darwin, 98 on Linux.
+export EADDRINUSE: i32: if VADER_OS == .Darwin { 48 } else { 98 }
+/// Diverges: 49 on Darwin, 99 on Linux.
+export EADDRNOTAVAIL: i32: if VADER_OS == .Darwin { 49 } else { 99 }
+/// Diverges: 54 on Darwin, 104 on Linux.
+export ECONNRESET: i32: if VADER_OS == .Darwin { 54 } else { 104 }
+/// Diverges: 57 on Darwin, 107 on Linux.
+export ENOTCONN: i32: if VADER_OS == .Darwin { 57 } else { 107 }
+/// Diverges: 60 on Darwin, 110 on Linux.
+export ETIMEDOUT: i32: if VADER_OS == .Darwin { 60 } else { 110 }
+/// Diverges: 61 on Darwin, 111 on Linux.
+export ECONNREFUSED: i32: if VADER_OS == .Darwin { 61 } else { 111 }
 
 /// The calling thread's `errno`, as the LAST foreign call left it.
 ///
@@ -706,3 +718,121 @@ export sys_getrusage :: fn(who: i32, @c_out usage: i64[]) -> i32
 /// `_SC_PAGESIZE`: the size of a memory page, in bytes. The value is not
 /// portable: 29 on Darwin, 30 on Linux.
 export SC_PAGESIZE: i32: if VADER_OS == .Darwin { 29 } else { 30 }
+
+// ---- sockets --------------------------------------------------------------
+
+SOCKET :: CLibrary {
+    .name = "",
+    .headers = ["<netinet/in.h>", "<sys/socket.h>"],
+}
+
+/// `AF_INET`, the family of IPv4 addresses. 2 on both systems.
+export AF_INET: i32: 2
+
+/// `AF_INET6`, the family of IPv6 addresses. The value is not portable: 30 on
+/// Darwin, 10 on Linux.
+export AF_INET6: i32: if VADER_OS == .Darwin { 30 } else { 10 }
+
+/// `SOCK_STREAM`, a socket that carries a stream of bytes. 1 on both systems.
+export SOCK_STREAM: i32: 1
+
+/// `SOL_SOCKET`, the level of the options of the socket itself. The value is
+/// not portable: 0xFFFF on Darwin, 1 on Linux.
+export SOL_SOCKET: i32: if VADER_OS == .Darwin { 0xFFFF } else { 1 }
+
+/// `SO_REUSEADDR`: a listener may bind an address a closed connection still
+/// holds. The value is not portable: 4 on Darwin, 2 on Linux.
+export SO_REUSEADDR: i32: if VADER_OS == .Darwin { 4 } else { 2 }
+
+/// `F_GETFL`, the `fcntl(2)` command that reads the flags of an open file. 3 on
+/// both systems.
+export F_GETFL: i32: 3
+
+/// `F_SETFL`, the `fcntl(2)` command that sets the flags of an open file. 4 on
+/// both systems.
+export F_SETFL: i32: 4
+
+/// `O_NONBLOCK`: a call that would wait fails with `EAGAIN` instead. The value
+/// is not portable: 0x4 on Darwin, 0x800 on Linux.
+export O_NONBLOCK: i32: if VADER_OS == .Darwin { 0x0004 } else { 0x0800 }
+
+/// `SHUT_WR`, the `shutdown(2)` direction that ends what the socket sends. 1 on
+/// both systems.
+export SHUT_WR: i32: 1
+
+/// `socket(2)`. A descriptor, or -1 with `errno` set.
+///
+/// @param domain    the family of its addresses, `AF_INET` or `AF_INET6`.
+/// @param kind      `SOCK_STREAM`.
+/// @param protocol  0 for the one protocol of `kind` in `domain`.
+@extern(SOCKET, "socket")
+export sys_socket :: fn(domain: i32, kind: i32, protocol: i32) -> i32
+
+/// `bind(2)`. 0 on success, -1 with `errno` set.
+///
+/// @param fd       the socket.
+/// @param address  the bytes of a `sockaddr_in` or a `sockaddr_in6`.
+/// @param length   how many bytes `address` holds.
+@extern(SOCKET, "bind")
+export sys_bind :: fn(fd: i32, address: u8[], length: u32) -> i32
+
+/// `listen(2)`. 0 on success, -1 with `errno` set.
+///
+/// @param fd       the bound socket.
+/// @param backlog  how many connections may wait for an `accept`.
+@extern(SOCKET, "listen")
+export sys_listen :: fn(fd: i32, backlog: i32) -> i32
+
+/// `accept(2)`, which does not report the address of the peer: `sys_getpeername`
+/// does. A descriptor, or -1 with `errno` set.
+///
+/// @param fd       the listening socket.
+/// @param address  null.
+/// @param length   null.
+@extern(SOCKET, "accept")
+export sys_accept :: fn(fd: i32, address: CPointer | null, length: CPointer | null) -> i32
+
+/// `connect(2)`. 0 on success, -1 with `errno` set.
+///
+/// @param fd       the socket.
+/// @param address  the bytes of a `sockaddr_in` or a `sockaddr_in6`.
+/// @param length   how many bytes `address` holds.
+@extern(SOCKET, "connect")
+export sys_connect :: fn(fd: i32, address: u8[], length: u32) -> i32
+
+/// `getsockname(2)`: the address `fd` is bound to. 0 on success, -1 with
+/// `errno` set.
+///
+/// @param fd       the socket.
+/// @param address  room for the bytes of the address.
+/// @param length   one cell: the room in `address` on the way in, the bytes
+///                 written on the way out.
+@extern(SOCKET, "getsockname")
+export sys_getsockname :: fn(fd: i32, @c_out address: u8[], @c_out length: u32[]) -> i32
+
+/// `getpeername(2)`: the address of the other end of `fd`. As
+/// `sys_getsockname`.
+///
+/// @param fd       the connected socket.
+/// @param address  room for the bytes of the address.
+/// @param length   one cell, as `sys_getsockname` takes it.
+@extern(SOCKET, "getpeername")
+export sys_getpeername :: fn(fd: i32, @c_out address: u8[], @c_out length: u32[]) -> i32
+
+/// `setsockopt(2)` for an option that is an `int`. 0 on success, -1 with
+/// `errno` set.
+///
+/// @param fd      the socket.
+/// @param level   `SOL_SOCKET`.
+/// @param name    the option, `SO_REUSEADDR` say.
+/// @param value   one cell holding the value.
+/// @param length  4, the size of the cell.
+@extern(SOCKET, "setsockopt")
+export sys_setsockopt :: fn(fd: i32, level: i32, name: i32, value: i32[], length: u32) -> i32
+
+/// `shutdown(2)`. 0 on success, -1 with `errno` set.
+///
+/// @param fd   the connected socket.
+/// @param how  the direction to end, `SHUT_WR` say.
+@extern(SOCKET, "shutdown")
+export sys_shutdown :: fn(fd: i32, how: i32) -> i32
