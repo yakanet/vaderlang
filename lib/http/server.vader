@@ -16,6 +16,7 @@ import "std/io"
 // ---- the end of a connection ----------------------------------------------
 
 /// Why a connection stopped being served.
+@displayable
 export EndReason :: enum {
     /// The client sent no further request.
     ClientDone,

@@ -1,0 +1,50 @@
+// tests/fixtures/http_server: an HTTP server other programs talk to.
+//
+// It listens on a port the system picks on the loopback address, prints the
+// port on a line of its own, and serves until it is killed. `/echo` sends back
+// the body of the request as it reads it, `/ignored` answers without reading
+// the body, and any other target is answered with the method, the target and
+// how many bytes the body held. `tools/cli_tests/http` builds it and talks to
+// it with `curl`.
+
+module "main"
+
+import "http"
+import "std/console"
+import "std/io"
+import "std/net"
+
+// How much of a body is read to be counted.
+COUNTED_AT_MOST: i64: 1 << 24
+
+answer :: fn(request: Request) -> Response {
+    if request.target == "/echo" {
+        return Response { .body = request.body }
+    }
+    if request.target == "/ignored" {
+        return new_response(STATUS_OK, "ignored\n")
+    }
+    reader :: BufferedReader { .source = request.body }
+    content :: reader.read_to_end(COUNTED_AT_MOST)
+    if content is IOError {
+        return new_response(STATUS_BAD_REQUEST, "the body could not be read\n")
+    }
+    return new_response(STATUS_OK, "${request.method} ${request.target} ${content.len()}\n")
+}
+
+main :: fn() -> i32 {
+    listener :: listen(loopback(0))
+    if listener is IOError {
+        eprintln("cannot listen: ${listener.msg}")
+        return 1
+    }
+    address :: listener.local_address()
+    if address is IOError {
+        eprintln("no address: ${address.msg}")
+        return 1
+    }
+    println("${address.port}")
+    stopped :: serve(listener, answer)
+    eprintln("no connection accepted any more: ${stopped.msg}")
+    return 1
+}

@@ -1,0 +1,32 @@
+# stdout
+> GET /hello/vader HTTP/1.1
+HTTP/1.1 200 OK
+Content-Length: 21
+Connection: close
+
+hello vader, visit 1
+
+> GET /hello/world HTTP/1.1
+HTTP/1.1 200 OK
+Content-Length: 21
+Connection: close
+
+hello world, visit 2
+
+> POST /hello/vader HTTP/1.1
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 26
+Connection: close
+
+only GET is answered here
+
+> GET /elsewhere HTTP/1.1
+HTTP/1.1 404 Not Found
+Content-Length: 22
+Connection: close
+
+nothing at /elsewhere
+
+2 visits
+# exit
+0

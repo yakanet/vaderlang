@@ -1,0 +1,175 @@
+// tools/cli_tests/http/http: `curl` and the server of `lib/http` read each
+// other.
+//
+// The tests of `lib/http` write the requests they send. Here the client is one
+// the library did not write: the fixture `tests/fixtures/http_server` is built
+// natively, started once per test on a port of its own, and asked by `curl`.
+// Where the host has no `curl` or no C compiler the tests check nothing.
+
+module "tools/cli_tests/http"
+
+import "std/fs"
+import "std/option"
+import "std/process"
+import "std/string"
+import "tools/cli_tests/cli"
+
+FIXTURE :: "tests/fixtures/http_server/main.vader"
+
+// The fixture built natively; null without a C compiler.
+@singleton
+server_binary :: fn() -> string | null {
+    if !has_cc() {
+        return null
+    }
+    return build_binary("http_server", ["--release"], FIXTURE).unwrap()
+}
+
+// The name `curl` is run by.
+CURL :: executable_path("curl")
+
+// Whether this host has a `curl` to run.
+@singleton
+has_curl :: fn() -> bool = run_command([CURL, "--version"]) is ProcessResult
+
+// A server that runs, and where it is asked.
+Talk :: struct {
+    server: ChildProcess
+    /// The scheme, the address and the port, with no path.
+    base: string
+}
+
+// A server started for a test, which kills it once done; null where the host
+// cannot run the test, or, the test having failed, when the server does not
+// start.
+talking :: fn() -> Talk | null {
+    if !has_curl() {
+        return null
+    }
+    binary :: server_binary() ?? return null
+    server :: spawn_start([binary])
+    if server is ProcessError {
+        assert(false, "the server does not start: ${server.msg}")
+        return null
+    }
+    printed: u8[]: []
+    for "\n" !in printed.bytes_to_string() {
+        taken :: server.read_output()
+        printed.push_all(taken.out)
+        if taken.ended {
+            assert(false, "the server ended before it told its port")
+            return null
+        }
+    }
+    return Talk { .server = server, .base = "http://127.0.0.1:${printed.bytes_to_string().trim()}" }
+}
+
+// What `curl` printed, run with `flags` on the targets `targets` of the server
+// of `talk`, in one run.
+asked :: fn(talk: Talk, flags: string[], targets: string[]) -> string {
+    argv: string[]: [CURL, "--silent", "--show-error", "--max-time", "20"]
+    argv.push_all(flags)
+    for target in targets {
+        argv.push("${talk.base}${target}")
+    }
+    return succeeded(run_command(argv)).unwrap().stdout
+}
+
+// A file of `size` bytes for a request to carry, in a fresh folder `name`; its
+// path.
+body_file :: fn(name: string, size: i64) -> string {
+    path :: "${scratch_dir(name)}/body"
+    write_file(path, "x" * size).unwrap()
+    return path
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_curl_reads_a_response :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    assert_eq(asked(talk, [], ["/a"]), "GET /a 0\n")
+}
+
+@test
+test_curl_sends_two_requests_on_one_connection :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    // After each answer, how many connections its request opened.
+    assert_eq(
+        asked(talk, ["--write-out", "%{num_connects}\n"], ["/a", "/b"]),
+        "GET /a 0\n1\nGET /b 0\n0\n",
+    )
+}
+
+@test
+test_curl_sends_a_body_with_its_length :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    assert_eq(asked(talk, ["--data", "hello=world"], ["/post"]), "POST /post 11\n")
+}
+
+@test
+test_curl_sends_a_body_in_chunks :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    flags :: ["--header", "Transfer-Encoding: chunked", "--data", "abcdefghij"]
+    assert_eq(asked(talk, flags, ["/chunked"]), "POST /chunked 10\n")
+}
+
+@test
+test_curl_reads_the_head_alone_of_an_answer_to_head :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    assert_eq(asked(talk, ["--head"], ["/head"]), "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\n")
+}
+
+@test
+test_curl_in_http_1_0_reads_an_answer_that_ends_its_connection :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    assert_eq(
+        asked(talk, ["--http1.0", "--include"], ["/old"]),
+        "HTTP/1.1 200 OK\r\nContent-Length: 11\r\nConnection: close\r\n\r\nGET /old 0\n",
+    )
+}
+
+@test
+test_curl_reads_back_a_body_sent_as_it_is_read :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    size :: 300_000
+    sent :: body_file("http_echo", size)
+    back :: asked(talk, ["--data-binary", "@${sent}"], ["/echo"])
+    assert_eq(back.byte_len(), size)
+    assert(back == "x" * size, "the bytes come back as they were sent")
+}
+
+@test
+test_curl_is_told_to_send_the_body_it_held_back :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    size :: 2 * 1024 * 1024
+    flags :: [
+        "--include",
+        "--header",
+        "Expect: 100-continue",
+        "--data-binary",
+        "@${body_file("http_expect", size)}",
+    ]
+    assert_eq(
+        asked(talk, flags, ["/big"]),
+        "HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 18\r\n\r\nPOST /big ${size}\n",
+    )
+}
+
+@test
+test_curl_keeps_its_connection_past_a_body_nobody_read :: fn() -> void {
+    talk :: talking() ?? return
+    defer talk.server.kill()
+    flags :: ["--data", "a body the server leaves", "--write-out", "%{num_connects}\n"]
+    assert_eq(asked(talk, flags, ["/ignored", "/ignored"]), "ignored\n1\nignored\n0\n")
+}

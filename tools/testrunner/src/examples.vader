@@ -39,6 +39,7 @@ example_run :: fn(name: string) -> ExampleRun | null = match name {
     "raycaster"     -> ExampleRun { .flags = ["--entry=frames"], .native = true }
     "raylib_sprite" -> null
     "echo_server"   -> ExampleRun { .native = true }
+    "http_hello"    -> ExampleRun { .native = true }
     _               -> ExampleRun {}
 }
 

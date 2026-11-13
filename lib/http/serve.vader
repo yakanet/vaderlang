@@ -1,0 +1,295 @@
+// http/serve: the connections of a listener, each served in a task of its own.
+//
+// `serve` accepts connections and hands each to `serve_connection`
+// (server.vader), which owns the exchanges of one. A connection that waits,
+// for its next request or for a client slow to read, parks its task, and the
+// others go on.
+//
+// No connection outlives the call: when no further one is accepted, those
+// still served are cut where they are.
+// docs/adr/0139-a-server-is-a-task-per-connection-none-outlives-it.md has the
+// reasons.
+
+module "http"
+
+import "std/io"
+import "std/net"
+import "std/task"
+
+// ---- serving a listener ---------------------------------------------------
+
+/// Serve the connections made to `listener`, each in a task of its own, until
+/// no further one is accepted.
+///
+/// A connection is served as `serve_connection` serves one, then closed.
+///
+/// `handler` runs in the task of a connection, and several connections are
+/// served at a time: what it keeps from one request to the next goes in a
+/// `Shared` or an `AtomicInt` of `std/task`.
+///
+/// Closing `listener` ends the call, and so does cancelling the task that
+/// runs it. The connections still served are then cut where they are, and
+/// closed: none is left when the call returns.
+///
+/// @param listener  where the connections arrive.
+/// @param handler   what answers a request, with a final response.
+/// @param limits    how much of a request is read before it is refused.
+/// @return          why no further connection was accepted: the listener was
+///                  closed, or the system refused.
+/// @example
+///   # import "std/net"
+///   listener :: listen(loopback(8080))
+///   if listener is TcpListener {
+///       serve(listener, request -> new_response(STATUS_OK, "hello\n"))
+///   }
+export serve :: fn(
+    listener: TcpListener,
+    handler: fn(Request) -> Response,
+    limits: Limits = Limits {},
+) -> IOError {
+    serving: Connection[]: []
+    defer cut(serving)
+    for {
+        stream :: listener.accept()
+        if stream is IOError {
+            return stream
+        }
+        serving.remove_where((connection) -> connection.task.is_ready())
+        serving.push(
+            Connection {
+                .stream = stream,
+                .task = launch(() -> serve_stream(stream, handler, limits)),
+            },
+        )
+    }
+}
+
+// A connection and the task that serves it.
+Connection :: struct {
+    stream: TcpStream
+    task: Task<void>
+}
+
+// Serve the connection `stream` to its end, and close it.
+serve_stream :: fn(stream: TcpStream, handler: fn(Request) -> Response, limits: Limits) -> void {
+    defer stream.close()
+    serve_connection(stream, stream, handler, limits)
+}
+
+// Cancel the connections of `serving` still served, and wait until each is
+// closed. All are cancelled first, so that they unwind together. A task
+// cancelled before it started runs nothing, its `defer` included: its stream
+// is closed here.
+cut :: fn(serving: Connection[]) -> void {
+    for connection in serving {
+        connection.task.cancel()
+    }
+    for connection in serving {
+        connection.task.join()
+        connection.stream.close()
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+import "std/testing"
+import "std/time"
+
+// A listener on a free port of the loopback address; null, the test having
+// failed, when the system refuses.
+listening :: fn() -> TcpListener | null {
+    listener :: listen(loopback(0))
+    if listener is IOError {
+        assert(false, "cannot listen: ${listener.msg}")
+        return null
+    }
+    return listener
+}
+
+// Where `listener` listens; null, the test having failed, when the system
+// does not tell.
+address_of :: fn(listener: TcpListener) -> SocketAddress | null {
+    address :: listener.local_address()
+    if address is IOError {
+        assert(false, "no address: ${address.msg}")
+        return null
+    }
+    return address
+}
+
+// A connection to `address`; null, the test having failed, when there is none.
+calling :: fn(address: SocketAddress) -> TcpStream | null {
+    stream :: connect(address)
+    if stream is IOError {
+        assert(false, "cannot connect: ${stream.msg}")
+        return null
+    }
+    return stream
+}
+
+// A request for `target` that asks to keep its connection, or to end it.
+get :: fn(target: string, last: bool = false) -> string {
+    if last {
+        return "GET ${target} HTTP/1.1\r\nHost: h\r\nConnection: close\r\n\r\n"
+    }
+    return "GET ${target} HTTP/1.1\r\nHost: h\r\n\r\n"
+}
+
+// What `stream` carries until its end, which a connection left open never
+// has: the wait is given up after a while, and the test fails on what it gets.
+rest_of :: fn(stream: TcpStream) -> string {
+    rest :: launch(() -> read_to_the_end(stream)).timeout(10.seconds())
+    if rest is string {
+        return rest
+    }
+    return "no end in sight"
+}
+
+read_to_the_end :: fn(stream: TcpStream) -> string {
+    reader :: BufferedReader { .source = stream }
+    rest :: reader.read_to_end(65536)
+    if rest is IOError {
+        return "error: ${rest.msg}"
+    }
+    return rest.bytes_to_string()
+}
+
+// The next `count` bytes `stream` carries.
+some_of :: fn(stream: TcpStream, count: i64) -> string {
+    into: u8[]: [0] * count
+    seen: i64 = 0
+    for seen < count {
+        got :: stream.read(into[seen..<count])
+        if got !is i64 {
+            return "ended after ${seen} bytes"
+        }
+        seen += got
+    }
+    return into.bytes_to_string()
+}
+
+// Answers a request with its target.
+naming :: fn(request: Request) -> Response = new_response(STATUS_OK, request.target)
+
+// What `naming` answers to a request for `target`, the last of its connection
+// or not.
+named :: fn(target: string, last: bool = false) -> string {
+    if last {
+        return "HTTP/1.1 200 OK\r\nContent-Length: ${target.byte_len()}\r\nConnection: close\r\n\r\n${target}"
+    }
+    return "HTTP/1.1 200 OK\r\nContent-Length: ${target.byte_len()}\r\n\r\n${target}"
+}
+
+@test
+test_connections_are_served_at_the_same_time :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming))
+    first :: calling(address) ?? return
+    second :: calling(address) ?? return
+    // The last to connect speaks first: a server that served one connection
+    // at a time would wait for the first.
+    second.write(get("/2", true))
+    assert_eq(rest_of(second), named("/2", true))
+    first.write(get("/1", true))
+    assert_eq(rest_of(first), named("/1", true))
+    first.close()
+    second.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_connection_carries_its_requests_in_turn :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming))
+    stream :: calling(address) ?? return
+    stream.write(get("/a"))
+    assert_eq(some_of(stream, named("/a").byte_len()), named("/a"))
+    stream.write(get("/b", true))
+    assert_eq(rest_of(stream), named("/b", true))
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_what_a_handler_keeps_is_shared_by_the_connections :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    served :: AtomicInt {}
+    server :: launch(
+        () -> serve(
+            listener,
+            fn(request: Request) -> Response {
+                return new_response(STATUS_OK, "${served.fetch_add(1) + 1}")
+            },
+        ),
+    )
+    answers: string[]: []
+    for _ in 0..<3 {
+        stream :: calling(address) ?? return
+        stream.write(get("/", true))
+        answers.push(rest_of(stream).split("\r\n\r\n")[1])
+        stream.close()
+    }
+    assert_eq(answers.join(" "), "1 2 3")
+    listener.close()
+    server.join()
+}
+
+@test
+test_closing_the_listener_ends_the_call_and_its_connections :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming))
+    idle :: calling(address) ?? return
+    idle.write(get("/a"))
+    assert_eq(some_of(idle, named("/a").byte_len()), named("/a"))
+    listener.close()
+    ended :: server.join()
+    assert(ended is IOError, "the call tells why it accepts no more")
+    // The connection waited for a request: it was cut, and closed.
+    assert_eq(rest_of(idle), "")
+    idle.close()
+}
+
+@test
+test_cancelling_the_call_ends_its_connections :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming))
+    idle :: calling(address) ?? return
+    idle.write(get("/a"))
+    assert_eq(some_of(idle, named("/a").byte_len()), named("/a"))
+    server.cancel()
+    assert(server.join() is Cancelled, "the call was cancelled")
+    assert_eq(rest_of(idle), "")
+    idle.close()
+    listener.close()
+}
+
+@test
+test_a_connection_cut_before_it_was_served_is_closed :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    client :: calling(address) ?? return
+    accepted :: listener.accept()
+    if accepted is IOError {
+        return assert(false, "no connection: ${accepted.msg}")
+    }
+    // Nothing parks between the launch and the cut: the task has not started.
+    cut(
+        [
+            Connection {
+                .stream = accepted,
+                .task = launch(() -> serve_stream(accepted, naming, Limits {})),
+            },
+        ],
+    )
+    assert_eq(rest_of(client), "")
+    client.close()
+    listener.close()
+}

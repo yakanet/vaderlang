@@ -1,0 +1,76 @@
+// An HTTP server, and a client that asks it four things.
+//
+// The server listens on a port the system picks on the loopback address.
+// `serve` gives each connection a task of its own and hands every request it
+// reads to the handler, which returns the response: the handler sees no
+// socket. What the handler keeps from one request to the next, here a count
+// of the visits, is an `AtomicInt`: several connections run it at a time.
+//
+// The client is a TCP stream: it writes the text of a request and prints the
+// text that comes back.
+
+module "main"
+
+import "http"
+import "std/console"
+import "std/io"
+import "std/net"
+import "std/string"
+import "std/task"
+
+// Greet who the target names, and count the visit.
+greet :: fn(request: Request, visits: AtomicInt) -> Response {
+    if request.method != .Get {
+        return new_response(STATUS_METHOD_NOT_ALLOWED, "only GET is answered here\n")
+    }
+    if !request.target.starts_with("/hello/") {
+        return new_response(STATUS_NOT_FOUND, "nothing at ${request.target}\n")
+    }
+    name :: request.target.trim_prefix("/hello/")
+    return new_response(STATUS_OK, "hello ${name}, visit ${visits.fetch_add(1) + 1}\n")
+}
+
+// Send `request` to the server at `address`, and print what it answers.
+ask :: fn(address: SocketAddress, request: string) -> void {
+    stream :: connect(address)
+    if stream is IOError {
+        eprintln("cannot connect: ${stream.msg}")
+        return
+    }
+    defer stream.close()
+    stream.write("${request}\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+    reader :: BufferedReader { .source = stream }
+    answer :: reader.read_to_end(4096)
+    if answer is IOError {
+        eprintln("cannot read: ${answer.msg}")
+        return
+    }
+    println("> ${request}")
+    println(answer.bytes_to_string().replace_all("\r\n", "\n"))
+}
+
+main :: fn() -> i32 {
+    listener :: listen(loopback(0))
+    if listener is IOError {
+        eprintln("cannot listen: ${listener.msg}")
+        return 1
+    }
+    address :: listener.local_address()
+    if address is IOError {
+        eprintln("no address: ${address.msg}")
+        return 1
+    }
+    visits :: AtomicInt {}
+    server :: launch(
+        () -> serve(listener, fn(request: Request) -> Response = greet(request, visits)),
+    )
+    ask(address, "GET /hello/vader HTTP/1.1")
+    ask(address, "GET /hello/world HTTP/1.1")
+    ask(address, "POST /hello/vader HTTP/1.1")
+    ask(address, "GET /elsewhere HTTP/1.1")
+    // Closing the listener ends `serve`, which the join waits for.
+    listener.close()
+    server.join()
+    println("${visits.load()} visits")
+    return 0
+}

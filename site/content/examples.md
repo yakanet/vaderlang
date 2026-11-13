@@ -34,6 +34,10 @@ A Brainfuck compiler: it turns a program into the bytecode of the Vader VM and r
 
 A TCP echo server on the loopback address, one task per connection, and three clients that talk to it at the same time, with `std/net`.
 
+## http_hello
+
+An HTTP server on the loopback address and a client that asks it four things, with `http`: the handler takes a request and returns a response, and counts its visits across connections.
+
 ## raycaster
 
 A first-person walk through a hangar full of zombies. The engine draws every frame in Vader, pixel by pixel; raylib opens the window. Its output is that of the `frames` entry, which draws the game's views in characters.
