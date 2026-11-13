@@ -3062,7 +3062,7 @@ void vader_midir_optimise$report_heap_allocations(void* l0) {
         l6 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l4);
         l5 = toolchain_span$source_position(((vader_struct_vader_midir_optimise$EscapeSite_t*) l6)->f_span);
         l7 = ((vader_struct_vader_midir_optimise$EscapeSite_t*) l6)->f_type_name;
-        l8 = concat_5(26u, l5, 1044u, l7, 124u);
+        l8 = concat_5(26u, l5, 1045u, l7, 124u);
         std_string__builder$append(l1, l8);
         l4 = (l4 + INT64_C(1));
     }

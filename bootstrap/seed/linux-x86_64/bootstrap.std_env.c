@@ -21,7 +21,7 @@ vader_string_t std_env$current_executable_location(void) {
     l0 = (void*) _a1_arr;
     t1 = ((vader_array_t*) l0)->length;
     l1 = vader_chk_sub(i64, t1, INT64_C(1));
-    t1 = vader_host_system_posix$sys_readlink(495u, l0, l1);
+    t1 = vader_host_system_posix$sys_readlink(496u, l0, l1);
     if (!((t1 <= INT64_C(0)))) {
         t2 = system_posix$up_to_nul(l0);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -109,6 +109,6 @@ vader_box_t std_env$set_current_working_directory(vader_string_t l0) {
     if (!(t0 != INT32_C(0))) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    t1 = std_io$last_io_error(1840u);
+    t1 = std_io$last_io_error(1841u);
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }

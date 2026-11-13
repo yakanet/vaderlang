@@ -52,40 +52,40 @@ static vader_string_t vader_support_profile$open_name(vader_box_t l0) {
         t1 = vader_support_profile$phase_name(t0);
         return t1;
     }
-    return 2566u;
+    return 2567u;
 }
 
 static vader_string_t vader_support_profile$phase_name(uint8_t l0) {
     vader_string_t l1;
     if (l0 == INT32_C(0)) {
-        l1 = 2422u;
+        l1 = 2423u;
         return l1;
     }
     if (l0 == INT32_C(1)) {
-        l1 = 2982u;
+        l1 = 2983u;
     } else if (l0 == INT32_C(2)) {
-        l1 = 1900u;
+        l1 = 1901u;
     } else if (l0 == INT32_C(3)) {
-        l1 = 2443u;
+        l1 = 2444u;
     } else if (l0 == INT32_C(4)) {
-        l1 = 2642u;
+        l1 = 2643u;
     } else if (l0 == INT32_C(5)) {
-        l1 = 1866u;
-    } else if (l0 == INT32_C(6)) {
         l1 = 1867u;
+    } else if (l0 == INT32_C(6)) {
+        l1 = 1868u;
     } else if (l0 == INT32_C(7)) {
-        l1 = 2041u;
+        l1 = 2042u;
     } else if (l0 == INT32_C(8)) {
-        l1 = 1792u;
+        l1 = 1793u;
     } else if (l0 == INT32_C(9)) {
-        l1 = 1805u;
+        l1 = 1806u;
     } else if (l0 == INT32_C(10)) {
-        l1 = 3221u;
+        l1 = 3222u;
     } else {
         if (!(l0 == INT32_C(11))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 2656u;
+        l1 = 2657u;
     }
     return l1;
 }
@@ -115,7 +115,7 @@ void vader_support_profile$prof_begin(uint8_t l0) {
     l2 = ((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open;
     if (!(l2.tag == 0u)) {
         l3 = vader_support_profile$phase_name(l0);
-        l3 = concat_3(1035u, l3, 153u);
+        l3 = concat_3(1036u, l3, 153u);
         t1 = ((uint8_t) l2.payload.i);
         t2 = vader_support_profile$phase_name(t1);
         l4 = concat_2(t2, 366u);
@@ -174,7 +174,7 @@ void vader_support_profile$prof_end(uint8_t l0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
     l3 = vader_support_profile$phase_name(l0);
-    l3 = concat_3(1036u, l3, 408u);
+    l3 = concat_3(1037u, l3, 408u);
     t2 = vader_support_profile$open_name(((vader_struct_vader_support_profile$Profiler_t*) l1)->f_open);
     l4 = concat_2(t2, 365u);
     t2 = concat_2(l3, l4);
@@ -314,7 +314,7 @@ static bool vader_support_profile$profiling$singleton(void) {
     bool t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = std_env$is_env_flag_on(1001u);
+    t0 = std_env$is_env_flag_on(1002u);
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return false; }
     }

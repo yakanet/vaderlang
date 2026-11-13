@@ -51,33 +51,33 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
     vader_string_t l2;
     if (l0 == INT32_C(1)) {
-        l2 = 2138u;
+        l2 = 2139u;
         return l2;
     }
     if (l0 == INT32_C(2)) {
-        l2 = 2630u;
+        l2 = 2631u;
     } else if (l0 == INT32_C(3)) {
-        l2 = 2329u;
+        l2 = 2330u;
     } else if (l0 == INT32_C(4)) {
-        l2 = 1635u;
+        l2 = 1636u;
     } else if (l0 == INT32_C(5)) {
-        l2 = 2567u;
+        l2 = 2568u;
     } else if (l0 == INT32_C(6)) {
-        l2 = 2351u;
+        l2 = 2352u;
     } else if (l0 == INT32_C(7)) {
-        l2 = 3267u;
+        l2 = 3268u;
     } else if (l0 == INT32_C(8)) {
-        l2 = 1761u;
+        l2 = 1762u;
     } else if (l0 == INT32_C(9)) {
-        l2 = 2558u;
+        l2 = 2559u;
     } else if (l0 == INT32_C(10)) {
-        l2 = 2341u;
+        l2 = 2342u;
     } else if (l0 == INT32_C(11)) {
-        l2 = 1967u;
+        l2 = 1968u;
     } else if (l0 == INT32_C(12)) {
-        l2 = 1728u;
+        l2 = 1729u;
     } else if (l0 == INT32_C(13)) {
-        l2 = 2010u;
+        l2 = 2011u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

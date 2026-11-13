@@ -58,7 +58,7 @@ bool vader_support_text$module_in_scope(vader_string_t l0, void* l1) {
         if (l0 == l5) {
             { vader_gc_top = gc_frame.prev; return true; }
         }
-        l6 = concat_2(l5, 483u);
+        l6 = concat_2(l5, 484u);
         t1 = std_string$starts_with(l0, l6);
         if (t1) {
             { vader_gc_top = gc_frame.prev; return true; }
