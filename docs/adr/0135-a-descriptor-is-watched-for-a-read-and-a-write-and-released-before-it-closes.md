@@ -40,7 +40,8 @@ grew with the parked ones: 0.03 s for 20 000 exchanges with none, 0.17 s with
   ready, without asking the system about `fd` again. The owner of the
   descriptor calls it before closing, and marks the descriptor closed first:
   the woken task reads that mark, never the descriptor.
-- **Windows** takes no watch for a write yet: the wait returns at once.
+- **Windows** watches for a write only a socket it follows (0136): on any
+  other handle the wait returns at once.
 
 Set aside:
 

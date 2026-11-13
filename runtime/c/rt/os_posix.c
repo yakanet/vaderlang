@@ -128,6 +128,11 @@ static int vader_os_writable_now(int64_t fd) {
     return poll(&probe, 1, 0) != 0;
 }
 
+static int vader_os_only_reports(int64_t id) {
+    (void) id;
+    return 0;
+}
+
 #if defined(__APPLE__)
 
 static int g_os_queue = -1;

@@ -705,7 +705,7 @@ static int vader_scheduler_ready_now(int kind, int64_t fd) {
  * (`vader_scheduler_stop_waiting`): its number may name another descriptor by
  * then, which is not asked. */
 static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos) {
-    if (vader_virtual_thread_count() == 0u) return true;
+    if (vader_virtual_thread_count() == 0u && !vader_os_only_reports(fd)) return true;
     vader_scheduler_start();
     int64_t thread = vader_virtual_thread_current();
     int timed = nanos >= 0;

@@ -134,8 +134,9 @@ process_handle_of :: fn(p: Process) -> Handle = @unreachable match p {
 // or the pid, else the address of the handle.
 
 descriptor_word :: fn(d: Descriptor) -> i64 = match d {
-    is Fd         -> i64(d)
-    is PipeHandle -> i64(d)
+    is Fd           -> i64(d)
+    is PipeHandle   -> i64(d)
+    is SocketHandle -> i64(d)
 }
 
 process_word :: fn(p: Process) -> i64 = match p {

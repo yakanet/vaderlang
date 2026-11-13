@@ -29,8 +29,8 @@ export PipeHandle :: CPointer
 /// A process `CreateProcess` started. `std/process` holds one as a `Process`.
 export ProcessHandle :: CPointer
 
-/// A socket Winsock opened: a number, as a `SOCKET` is. `std/net` holds one
-/// in a `Socket`.
+/// A socket Winsock opened: a number, as a `SOCKET` is. `std/net` holds one as
+/// a `Socket`, and `std/io` waits on one as a `Descriptor`.
 export SocketHandle :: u64
 
 /// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
@@ -814,33 +814,27 @@ export query_performance_counter :: fn(@c_out counter: i64[]) -> bool
 @extern(KERNEL32, "QueryPerformanceFrequency")
 export query_performance_frequency :: fn(@c_out freq: i64[]) -> bool
 
-// ---- events ---------------------------------------------------------------
-
-/// `CreateEventW`. An event nothing has signalled, or null on failure.
-///
-/// @param security      `lpEventAttributes`; `null` for the default descriptor.
-/// @param manual_reset  whether the event stays signalled until `ResetEvent`;
-///                      when false, the wait it releases takes the signal.
-/// @param signalled     whether the event starts signalled.
-/// @param name          `null` for an event no other process opens.
-@extern(KERNEL32, "CreateEventW")
-export create_event :: fn(
-    security: CPointer | null,
-    manual_reset: bool,
-    signalled: bool,
-    name: CPointer | null,
-) -> Handle | null
-
-/// `SetEvent`. False on failure.
-///
-/// @param event  the event to signal.
-@extern(KERNEL32, "SetEvent")
-export set_event :: fn(event: Handle) -> bool
-
 // ---- sockets --------------------------------------------------------------
 //
 // A failed call leaves its code where `GetLastError` reads it: Winsock keeps it
 // in the same cell of the thread.
+
+/// Have the scheduler follow `socket`. The event returned is the runtime's:
+/// once `wsa_event_select` has the system signal it for the socket, each signal
+/// ends the waits on `socket`, which `std/io` then takes as a `Descriptor`.
+///
+/// @param socket  a socket, as its number.
+/// @return        the event to hand to `wsa_event_select`; null when the socket
+///                cannot be followed.
+@extern(VADER_RUNTIME, "vader_socket_event")
+export follow_socket :: fn(socket: i64) -> Handle | null
+
+/// Stop following `socket`, which gives its event back. Call it before closing
+/// the socket, after `stop_waiting`: the system hands its number out again.
+///
+/// @param socket  a socket `follow_socket` took.
+@extern(VADER_RUNTIME, "vader_socket_forget")
+export forget_socket :: fn(socket: i64) -> void
 
 /// The library the Winsock calls below come from.
 WS2_32 :: CLibrary {

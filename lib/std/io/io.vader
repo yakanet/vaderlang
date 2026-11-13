@@ -213,9 +213,10 @@ win32_error_kind :: fn(e: u32) -> IOErrorKind {
 }
 
 /// What a read takes from the system and gives back to it: a file descriptor
-/// on POSIX; on Windows, stdin as descriptor 0, else the read end of a pipe.
+/// on POSIX; on Windows, stdin as descriptor 0, the read end of a pipe, or a
+/// socket the scheduler follows.
 /// Nothing computes with it: it converts to nothing, and compares with `==`.
-export Descriptor :: Fd | PipeHandle
+export Descriptor :: Fd | PipeHandle | SocketHandle
 
 /// Standard input.
 export STDIN: Descriptor: Fd(0)
@@ -264,6 +265,7 @@ export stop_waiting :: fn(d: Descriptor) -> void = Wait.stop_waiting(descriptor_
 // The machine word a wait names `d` by: the descriptor, or the address of the
 // handle.
 descriptor_word :: fn(d: Descriptor) -> i64 = match d {
-    is Fd         -> i64(d)
-    is PipeHandle -> i64(d)
+    is Fd           -> i64(d)
+    is PipeHandle   -> i64(d)
+    is SocketHandle -> i64(d)
 }

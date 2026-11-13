@@ -50,7 +50,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
   std/io
-    const STDIN: Fd | PipeHandle  inline
+    const STDIN: Fd | PipeHandle | SocketHandle  inline
     fn std.io.classified_error  // std_io$classified_error
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.descriptor_word  // std_io$descriptor_word

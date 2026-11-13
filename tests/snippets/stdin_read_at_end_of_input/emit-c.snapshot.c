@@ -89,7 +89,7 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
         { 10u, 0u, { .obj = (void*) (struct vader_struct_std_io$IOError_t*) &vader_data_0_e0 } },
     },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(14u, 1u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(15u, 1u, &vader_data_0_buf);
 
 static int32_t snippet$main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -118,7 +118,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ref_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[15] = {
+const vader_type_info_t vader_type_info_table[16] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 4 },
     [3] = {
@@ -142,12 +142,13 @@ const vader_type_info_t vader_type_info_table[15] = {
     [11] = { .slot_size = 16 },
     [12] = { .slot_size = 16 },
     [13] = { .slot_size = 8 },
-    [14] = {
+    [14] = { .slot_size = 8 },
+    [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
 };
-const size_t vader_type_info_count = 15;
+const size_t vader_type_info_count = 16;
 
 /* Headers named by `@c_header` or a `CLibrary`: they own the prototypes below. */
 #include <unistd.h>
@@ -621,19 +622,26 @@ static void* std_io$last_io_error(vader_string_t l0) {
 }
 
 static int64_t std_io$descriptor_word(vader_box_t l0) {
+    int64_t l1;
     int32_t t0;
     void* t1;
-    int64_t t2;
+    uint64_t t2;
     if (l0.tag == 1u) {
         t0 = ((int32_t) l0.payload.i);
-        return ((int64_t) (int32_t) t0);
+        l1 = ((int64_t) (int32_t) t0);
+        return l1;
     }
-    if (!(l0.tag == 13u)) {
-        vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+    if (l0.tag == 13u) {
+        t1 = ((void*) (intptr_t) l0.payload.i);
+        l1 = (int64_t) (void*) t1;
+    } else {
+        if (!(l0.tag == 14u)) {
+            vader_unreachable("non-exhaustive match (T3013 should have caught this)");
+        }
+        t2 = ((uint64_t) l0.payload.i);
+        l1 = ((int64_t) (uint64_t) t2);
     }
-    t1 = ((void*) (intptr_t) l0.payload.i);
-    t2 = (int64_t) (void*) t1;
-    return t2;
+    return l1;
 }
 
 static void* std_io$io_error_of(int32_t l0, vader_string_t l1) {

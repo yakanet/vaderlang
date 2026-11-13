@@ -1590,6 +1590,8 @@ VADER_HOST_EXPORT int64_t     vader_console_read(void* buf, int64_t max);
 VADER_HOST_EXPORT int32_t     vader_stdin_await_reader(int32_t timeout_ms);
 VADER_HOST_EXPORT int32_t     vader_overlapped_pipe(void* read_end, void* write_end);
 VADER_HOST_EXPORT int32_t     vader_input_pipe(void* read_end, void* write_end);
+VADER_HOST_EXPORT void*       vader_socket_event(int64_t socket);
+VADER_HOST_EXPORT void        vader_socket_forget(int64_t socket);
 #else
 VADER_HOST_EXPORT int32_t     vader_path_kind(const char* path);
 VADER_HOST_EXPORT int64_t     vader_path_mtime(const char* path);

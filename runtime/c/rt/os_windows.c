@@ -73,8 +73,8 @@ static size_t vader_os_physical_ram(void) {
 #define VADER_OS_EVENTS 64
 
 /* Every report arrives on one completion port: the end of a read of a pipe,
- * the end of a child, which the thread pool posts, and what stdin's reader
- * brings. */
+ * the end of a child and the signal of a socket, which the thread pool posts,
+ * and what stdin's reader brings. */
 static HANDLE g_os_port = NULL;
 
 static HANDLE vader_os_port(void) {
@@ -154,6 +154,124 @@ static int vader_os_watch_child(vader_os_wait_t* w) {
     }
     CloseHandle(w->process);
     return 0;
+}
+
+/* ---- sockets ------------------------------------------------------------- */
+
+/* A socket the library has the scheduler follow. The OS signals `event` each
+ * time the socket has something for a call that found nothing, and does not
+ * say which side: a signal ends the wait for a read and the wait for a write,
+ * and each asks the socket again. A report names the record by its
+ * `OVERLAPPED`, which comes first, under `VADER_OS_SOCKET_KEY`.
+ *
+ * A record is never freed: a report already on the port may name it after the
+ * socket is forgotten, and finds it with no event, or serving another socket,
+ * whose waits then end once for nothing. */
+typedef struct vader_os_socket {
+    OVERLAPPED              overlapped;
+    int64_t                 id;
+    HANDLE                  event;       /* NULL while the record serves no socket */
+    HANDLE                  registered;  /* the thread pool's wait on `event` */
+    /* One bit per kind of watch: signalled since a wait of that kind asked. */
+    uint8_t                 pending;
+    struct vader_os_socket* next;        /* in its bucket, or among the free */
+} vader_os_socket_t;
+
+#define VADER_OS_SOCKET_KEY ((ULONG_PTR) 1)
+#define VADER_OS_SOCKET_BUCKETS 1024u
+#define VADER_OS_SOCKET_PENDING \
+    ((uint8_t) ((1u << VADER_WATCH_READABLE) | (1u << VADER_WATCH_WRITABLE)))
+
+static vader_os_socket_t* g_os_sockets[VADER_OS_SOCKET_BUCKETS];
+static vader_os_socket_t* g_os_sockets_free = NULL;
+
+/* A handle is a multiple of four. */
+static vader_os_socket_t** vader_os_socket_bucket(int64_t id) {
+    return &g_os_sockets[((uint64_t) id >> 2) % VADER_OS_SOCKET_BUCKETS];
+}
+
+static vader_os_socket_t* vader_os_socket_of(int64_t id) {
+    vader_os_socket_t* record = *vader_os_socket_bucket(id);
+    while (record != NULL && record->id != id) record = record->next;
+    return record;
+}
+
+static VOID CALLBACK vader_os_socket_signalled(PVOID record, BOOLEAN timed_out) {
+    (void) timed_out;
+    PostQueuedCompletionStatus(g_os_port, 0, VADER_OS_SOCKET_KEY,
+                               &((vader_os_socket_t*) record)->overlapped);
+}
+
+static void vader_os_report_socket(vader_os_socket_t* record) {
+    if (record->event == NULL) return;
+    int64_t id = record->id;
+    /* Before the wakes: a woken wait asks whether the socket is ready. */
+    record->pending = VADER_OS_SOCKET_PENDING;
+    vader_scheduler_on_event(VADER_WATCH_READABLE, id);
+    vader_scheduler_on_event(VADER_WATCH_WRITABLE, id);
+}
+
+/* Whether `record` was signalled since a wait of `kind` last asked. */
+static int vader_os_socket_take(vader_os_socket_t* record, int kind) {
+    uint8_t bit = (uint8_t) (1u << kind);
+    if ((record->pending & bit) == 0) return 0;
+    record->pending = (uint8_t) (record->pending & ~bit);
+    return 1;
+}
+
+/* Have the scheduler follow `socket`: the event returned, once the library
+ * has the OS signal it for the socket (`WSAEventSelect`), ends the waits on
+ * `socket` at each signal. The caller never closes the event:
+ * `vader_socket_forget` does. NULL when the socket cannot be followed. */
+VADER_HOST_EXPORT
+void* vader_socket_event(int64_t socket) {
+    if (vader_os_port() == NULL) return NULL;
+    vader_socket_forget(socket);
+    /* One that resets itself when the pool takes its signal: nothing else
+     * resets it, so no signal is cleared before it is reported. */
+    HANDLE event = CreateEventW(NULL, FALSE, FALSE, NULL);
+    if (event == NULL) return NULL;
+    vader_os_socket_t* record = g_os_sockets_free;
+    if (record != NULL) {
+        g_os_sockets_free = record->next;
+    } else {
+        record = (vader_os_socket_t*) calloc(1, sizeof(vader_os_socket_t));
+    }
+    if (record == NULL
+        || !RegisterWaitForSingleObject(&record->registered, event, vader_os_socket_signalled, record,
+                                        INFINITE, WT_EXECUTEINWAITTHREAD)) {
+        CloseHandle(event);
+        if (record != NULL) {
+            record->next = g_os_sockets_free;
+            g_os_sockets_free = record;
+        }
+        return NULL;
+    }
+    record->id = socket;
+    record->event = event;
+    record->pending = 0;
+    vader_os_socket_t** bucket = vader_os_socket_bucket(socket);
+    record->next = *bucket;
+    *bucket = record;
+    return event;
+}
+
+/* Stop following `socket`, before it is closed: its number may name another
+ * socket afterwards. The waits parked on it are ended first, by
+ * `vader_scheduler_stop_waiting`. */
+VADER_HOST_EXPORT
+void vader_socket_forget(int64_t socket) {
+    vader_os_socket_t** link = vader_os_socket_bucket(socket);
+    while (*link != NULL && (*link)->id != socket) link = &(*link)->next;
+    vader_os_socket_t* record = *link;
+    if (record == NULL) return;
+    *link = record->next;
+    /* Returns once no callback runs, so that none posts for a closed event. */
+    UnregisterWaitEx(record->registered, INVALID_HANDLE_VALUE);
+    CloseHandle(record->event);
+    record->event = NULL;
+    record->next = g_os_sockets_free;
+    g_os_sockets_free = record;
 }
 
 /* ---- stdin --------------------------------------------------------------- */
@@ -327,8 +445,10 @@ static int vader_os_watch_stdin(void) {
 /* ---- the reactor --------------------------------------------------------- */
 
 /* A watch of `id` already under way reports for this one too. Stdin is
- * descriptor 0, any other id a handle. */
+ * descriptor 0, any other id a handle. A followed socket reports at each
+ * signal, with nothing to arm. */
 static int vader_os_watch(int kind, int64_t id) {
+    if (kind != VADER_WATCH_EXIT && vader_os_socket_of(id) != NULL) return 1;
     if (kind == VADER_WATCH_WRITABLE) return 0;
     if (vader_os_port() == NULL) return 0;
     if (kind == VADER_WATCH_READABLE && id == 0) return vader_os_watch_stdin();
@@ -356,7 +476,11 @@ static int vader_os_watch(int kind, int64_t id) {
 
 /* A packet whose `OVERLAPPED` is no watch's comes from a read other code
  * started on a handle the port knows: it reports nothing. */
-static void vader_os_report(OVERLAPPED* overlapped) {
+static void vader_os_report(ULONG_PTR key, OVERLAPPED* overlapped) {
+    if (key == VADER_OS_SOCKET_KEY) {
+        vader_os_report_socket((vader_os_socket_t*) overlapped);
+        return;
+    }
     if (overlapped == &g_os_stdin_report) {
         vader_scheduler_on_event(VADER_WATCH_READABLE, 0);
         return;
@@ -386,18 +510,26 @@ static void vader_os_wait_events(int64_t timeout_ns) {
     OVERLAPPED_ENTRY events[VADER_OS_EVENTS];
     ULONG got = 0;
     if (!GetQueuedCompletionStatusEx(g_os_port, events, VADER_OS_EVENTS, &got, timeout_ms, FALSE)) return;
-    for (ULONG i = 0; i < got; i++) vader_os_report(events[i].lpOverlapped);
+    for (ULONG i = 0; i < got; i++) vader_os_report(events[i].lpCompletionKey, events[i].lpOverlapped);
 }
 
 static int vader_os_readable_now(int64_t fd) {
     if (fd == 0) return vader_os_stdin_readable();
+    vader_os_socket_t* record = vader_os_socket_of(fd);
+    if (record != NULL) return vader_os_socket_take(record, VADER_WATCH_READABLE);
     return vader_os_pipe_readable((HANDLE) (intptr_t) fd);
 }
 
-/* Nothing here is watched for a write: the write itself waits. */
+/* Only a followed socket is watched for a write: on anything else the write
+ * itself waits. */
 static int vader_os_writable_now(int64_t fd) {
-    (void) fd;
+    vader_os_socket_t* record = vader_os_socket_of(fd);
+    if (record != NULL) return vader_os_socket_take(record, VADER_WATCH_WRITABLE);
     return 1;
+}
+
+static int vader_os_only_reports(int64_t id) {
+    return vader_os_socket_of(id) != NULL;
 }
 
 /* ---- stack --------------------------------------------------------------- */

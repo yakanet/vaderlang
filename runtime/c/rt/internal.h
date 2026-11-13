@@ -272,6 +272,10 @@ static void vader_os_wait_events(int64_t timeout_ns);
 static int vader_os_readable_now(int64_t fd);
 /* Whether a write to `fd` would not block: it has room, or fails. */
 static int vader_os_writable_now(int64_t fd);
+/* Whether the OS only reports `id`, and cannot be asked whether it is ready: a
+ * wait on it parks even when no other thread runs, since its caller has
+ * nothing to wait on by itself. */
+static int vader_os_only_reports(int64_t id);
 /* Highest address of the main thread's C stack, NULL when unknown. The stack
  * grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);

@@ -17,8 +17,8 @@ had two shapes, a pid and two descriptors on POSIX, three handles stored as
 - **One member per OS, one union per kind.** `Fd` and `Pid` (`system/posix`)
   are distinct types over `i32`; `PipeHandle` and `ProcessHandle`
   (`system/windows`) over `CPointer`. `Descriptor :: Fd | PipeHandle` (`std/io`,
-  with `STDIN`) and `Process :: Pid | ProcessHandle` (`std/process`) are what
-  the standard library hands out and takes back.
+  with `STDIN`; a third member since 0136) and `Process :: Pid | ProcessHandle`
+  (`std/process`) are what the standard library hands out and takes back.
 - **The union is opaque.** It compares with `==` and nothing else: no operator,
   no conversion to or from an integer, no interpolation, no ordering. The only
   way to the integer is to name a member (`is Fd`, `Fd(42)`), so to import

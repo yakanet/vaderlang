@@ -11,9 +11,10 @@ type 8 scalar void
 type 9 union 10,2
 type 10 struct std_io$IOError { msg:2,kind:6,code:1 }
 type 11 union 10,7
-type 12 union 1,13
+type 12 union 1,13,14
 type 13 scalar pointer
-type 14 array 10
+type 14 scalar u64
+type 15 array 10
 string 0 "a line: "
 string 1 "an error: "
 string 2 "true"
@@ -527,9 +528,9 @@ fn 9 std_console$read_ready (i64) -> any
       i64.const 0
       i64.eq
       if $L3 void
-        data.const 0 14   ; pool[0] std_io$IOError[]
+        data.const 0 15   ; pool[0] std_io$IOError[]
         i64.const 0
-        array.get 14   ; std_io$IOError[]
+        array.get 15   ; std_io$IOError[]
         return
       end $L3
       local.get 2   ; __for_discard_0
@@ -672,23 +673,36 @@ fn 16 std_io$last_io_error (string) -> ref
 end
 
 fn 17 std_io$descriptor_word (any) -> i64
+  local if_res i64
   local.get 0   ; arg 0
   type_check 1   ; i32
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 1   ; i32
     i32.to_i64
+    local.tee 1   ; if_res
     return
   end $L0
   local.get 0   ; arg 0
   type_check 13   ; pointer
   if $L1 void
+    local.get 0   ; arg 0
+    ref.cast 13   ; pointer
+    ref.cast 4   ; i64
+    local.set 1   ; if_res
   else
-    unreachable
+    local.get 0   ; arg 0
+    type_check 14   ; u64
+    if $L2 void
+    else
+      unreachable
+    end $L2
+    local.get 0   ; arg 0
+    ref.cast 14   ; u64
+    u64.to_i64
+    local.set 1   ; if_res
   end $L1
-  local.get 0   ; arg 0
-  ref.cast 13   ; pointer
-  ref.cast 4   ; i64
+  local.get 1   ; if_res
   return
 end
 
