@@ -75,7 +75,7 @@ impl 7 std_core$ByteAccess
 impl 11 std_core$Error
 impl 16 std_io$Reader
 impl 16 std_io$Writer
-vtable std_core$Error.message 11 32
+vtable std_core$Error.message 11 33
 export main 2
 
 fn 0 snippet$describe (string) -> string
@@ -93,7 +93,7 @@ fn 0 snippet$describe (string) -> string
   end $L0
   local.get 1   ; r
   ref.cast 11   ; std_io$IOError
-  call 32   ; std_io$IOError$std_core$Error$message
+  call 33   ; std_io$IOError$std_core$Error$message
   local.set 2   ; $call_7
   local.get 1   ; r
   ref.cast 11   ; std_io$IOError
@@ -1054,30 +1054,35 @@ fn 27 std_fs$is_a_directory (i32) -> ref
 end
 
 fn 28 std_io$last_io_error (string) -> ref
-  local e i32
-  local $call_3 u8
   call.import 4   ; system_posix$sys_last_errno
-  local.tee 1   ; e
-  call 30   ; std_io$errno_kind
-  local.set 2   ; $call_3
   local.get 0   ; arg 0
-  local.get 2   ; $call_3
-  local.get 1   ; e
-  call 29   ; std_io$classified_error
+  call 29   ; std_io$io_error_of
   return
 end
 
-fn 29 std_io$classified_error (string,u8,i32) -> ref
+fn 29 std_io$io_error_of (i32,string) -> ref
+  local $call_2 u8
+  local.get 0   ; arg 0
+  call 31   ; std_io$errno_kind
+  local.set 2   ; $call_2
+  local.get 1   ; arg 1
+  local.get 2   ; $call_2
+  local.get 0   ; arg 0
+  call 30   ; std_io$classified_error
+  return
+end
+
+fn 30 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 31   ; std_io$describe_io_error_kind
+  call 32   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 11   ; std_io$IOError
   return
 end
 
-fn 30 std_io$errno_kind (i32) -> u8
+fn 31 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -1277,7 +1282,7 @@ fn 30 std_io$errno_kind (i32) -> u8
   return.lit i32.const 19
 end
 
-fn 31 std_io$describe_io_error_kind (u8,string) -> string
+fn 32 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -1444,7 +1449,7 @@ fn 31 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 32 std_io$IOError$std_core$Error$message (ref) -> string
+fn 33 std_io$IOError$std_core$Error$message (ref) -> string
   local.field 0 11 0   ; arg 0 std_io$IOError.msg
   ref.cast 1   ; string
   return

@@ -445,8 +445,8 @@ fn 9 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 43   ; std_path$to_path
-    call 44   ; std_path$as_string
+    call 44   ; std_path$to_path
+    call 45   ; std_path$as_string
     return
   end $L1
   return.lit string.const 12   ; "/tmp"
@@ -1264,7 +1264,7 @@ fn 35 std_fs$File$std_io$Writer$write (ref,any) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call 42   ; std_io$bytes_of
+  call 43   ; std_io$bytes_of
   local.set 2   ; bytes
   i64.const 0
   local.set 3   ; done
@@ -1369,30 +1369,35 @@ fn 37 std_io$failure_unless (bool,string) -> any
 end
 
 fn 38 std_io$last_io_error (string) -> ref
-  local e i32
-  local $call_3 u8
   call.import 9   ; system_posix$sys_last_errno
-  local.tee 1   ; e
-  call 40   ; std_io$errno_kind
-  local.set 2   ; $call_3
   local.get 0   ; arg 0
-  local.get 2   ; $call_3
-  local.get 1   ; e
-  call 39   ; std_io$classified_error
+  call 39   ; std_io$io_error_of
   return
 end
 
-fn 39 std_io$classified_error (string,u8,i32) -> ref
+fn 39 std_io$io_error_of (i32,string) -> ref
+  local $call_2 u8
+  local.get 0   ; arg 0
+  call 41   ; std_io$errno_kind
+  local.set 2   ; $call_2
+  local.get 1   ; arg 1
+  local.get 2   ; $call_2
+  local.get 0   ; arg 0
+  call 40   ; std_io$classified_error
+  return
+end
+
+fn 40 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 41   ; std_io$describe_io_error_kind
+  call 42   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 15   ; std_io$IOError
   return
 end
 
-fn 40 std_io$errno_kind (i32) -> u8
+fn 41 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -1592,7 +1597,7 @@ fn 40 std_io$errno_kind (i32) -> u8
   return.lit i32.const 19
 end
 
-fn 41 std_io$describe_io_error_kind (u8,string) -> string
+fn 42 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -1759,7 +1764,7 @@ fn 41 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 42 std_io$bytes_of (any) -> ref
+fn 43 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
   type_check 2   ; string
   if $L0 void
@@ -1773,11 +1778,11 @@ fn 42 std_io$bytes_of (any) -> ref
   return
 end
 
-fn 43 std_path$to_path (string) -> string
+fn 44 std_path$to_path (string) -> string
   local $call_4 u8
   local.get 0   ; arg 0
   string.const 16   ; "/"
-  call 50   ; std_string$ends_with
+  call 51   ; std_string$ends_with
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -1787,16 +1792,16 @@ fn 43 std_path$to_path (string) -> string
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
-  call 45   ; std_path$without_trailing_separators
+  call 46   ; std_path$without_trailing_separators
   return
 end
 
-fn 44 std_path$as_string (string) -> string
+fn 45 std_path$as_string (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 45 std_path$without_trailing_separators (string,u8) -> string
+fn 46 std_path$without_trailing_separators (string,u8) -> string
   local n i64
   local $sub_checked_7 i64
   local $sub_checked_16 i64
@@ -1824,7 +1829,7 @@ fn 45 std_path$without_trailing_separators (string,u8) -> string
   end $L1
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 46   ; std_path$root_length
+  call 47   ; std_path$root_length
   local.set 3   ; $sub_checked_7
   block $L2 void
     loop $L3 void
@@ -1860,12 +1865,12 @@ fn 45 std_path$without_trailing_separators (string,u8) -> string
   return
 end
 
-fn 46 std_path$root_length (string,u8) -> i64
+fn 47 std_path$root_length (string,u8) -> i64
   local prefix i64
   local $call_4 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 47   ; std_path$prefix_length
+  call 48   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
   call.import 2   ; std_core$byte_len
@@ -1892,7 +1897,7 @@ fn 46 std_path$root_length (string,u8) -> i64
   return
 end
 
-fn 47 std_path$prefix_length (string,u8) -> i64
+fn 48 std_path$prefix_length (string,u8) -> i64
   local n i64
   local __coalesce_0 any
   local $add_checked_39 i64
@@ -1911,7 +1916,7 @@ fn 47 std_path$prefix_length (string,u8) -> i64
     local.get 0   ; arg 0
     i64.const 0
     call.import 3   ; std_core$byte_at
-    call 48   ; std_path$is_ascii_letter
+    call 49   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
@@ -1955,7 +1960,7 @@ fn 47 std_path$prefix_length (string,u8) -> i64
   end $L7
   local.get 0   ; arg 0
   i64.const 2
-  call 49   ; std_path$next_separator
+  call 50   ; std_path$next_separator
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L8 void
@@ -1969,7 +1974,7 @@ fn 47 std_path$prefix_length (string,u8) -> i64
   local.set 4   ; $add_checked_39
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
-  call 49   ; std_path$next_separator
+  call 50   ; std_path$next_separator
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L9 void
@@ -1981,7 +1986,7 @@ fn 47 std_path$prefix_length (string,u8) -> i64
   return
 end
 
-fn 48 std_path$is_ascii_letter (u8) -> bool
+fn 49 std_path$is_ascii_letter (u8) -> bool
   local and_res bool
   local.get 0   ; arg 0
   i32.const 97
@@ -2015,7 +2020,7 @@ fn 48 std_path$is_ascii_letter (u8) -> bool
   return
 end
 
-fn 49 std_path$next_separator (string,i64) -> any
+fn 50 std_path$next_separator (string,i64) -> any
   local i i64
   local __for_hi_0 i64
   local.get 1   ; arg 1
@@ -2048,7 +2053,7 @@ fn 49 std_path$next_separator (string,i64) -> any
   return.lit null.const
 end
 
-fn 50 std_string$ends_with (string,string) -> bool
+fn 51 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
@@ -2075,13 +2080,13 @@ fn 50 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 51   ; std_string$matches_at
+    call 52   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 51 std_string$matches_at (string,i64,string) -> bool
+fn 52 std_string$matches_at (string,i64,string) -> bool
   local m i64
   local $call_5 i64
   local $add_checked_14 i64

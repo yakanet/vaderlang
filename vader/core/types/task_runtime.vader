@@ -76,6 +76,8 @@ export task_primitive :: fn(key: string) -> TaskPrimitive | null = match key {
     "std/runtime/scheduler.sleep_for"       -> TaskPrimitive { .parks = true }
     "std/runtime/wait.wait_readable"        -> TaskPrimitive { .parks = true }
     "std/runtime/wait.wait_readable_for"    -> TaskPrimitive { .parks = true }
+    "std/runtime/wait.wait_writable"        -> TaskPrimitive { .parks = true }
+    "std/runtime/wait.wait_writable_for"    -> TaskPrimitive { .parks = true }
     "std/task.shared"                       -> TaskPrimitive { .gives = 0 }
     "std/task.send"                         -> TaskPrimitive {
         .gives = 1,
@@ -120,7 +122,12 @@ import "std/testing"
 
 @test
 test_task_primitive_descriptor_waits_park :: fn() -> void {
-    for key in ["std/runtime/wait.wait_readable", "std/runtime/wait.wait_readable_for"] {
+    for key in [
+        "std/runtime/wait.wait_readable",
+        "std/runtime/wait.wait_readable_for",
+        "std/runtime/wait.wait_writable",
+        "std/runtime/wait.wait_writable_for",
+    ] {
         primitive :: task_primitive(key) ?? return assert(false, "${key} is a primitive")
         assert(primitive.parks, "${key} parks")
     }

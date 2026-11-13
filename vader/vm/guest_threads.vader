@@ -75,6 +75,9 @@ serve_thread_primitive :: fn(
     .SchedulerWatchExit     -> on_i64(args[0], origin, "watch_exit", (n) -> watch_exit(n))
     .WaitReadable           -> serve_wait_readable(state, args[0], origin)
     .WaitReadableFor        -> serve_wait_readable_for(state, args, origin)
+    .WaitWritable           -> on_i64(args[0], origin, "wait_writable", (n) -> wait_writable(n))
+    .WaitWritableFor        -> serve_wait_writable_for(args, origin)
+    .WaitStop               -> on_i64(args[0], origin, "stop_waiting", (n) -> stop_waiting(n))
     .SchedulerCancel        -> cancel_guest_thread(args[0], origin)
     .SchedulerCurrent       -> HostOk { .value = I64Val(current_thread()) }
     .SchedulerIsCancelled   -> HostOk { .value = BoolVal(is_cancelled()) }
@@ -167,6 +170,19 @@ serve_wait_readable_for :: fn(state: VmState, args: Value[], origin: i32) -> Hos
         return nanos
     }
     return HostOk { .value = BoolVal(wait_readable_for(i64(fd), i64(nanos))) }
+}
+
+// Run the host's own `wait_writable_for` on the two `i64` the guest handed it.
+serve_wait_writable_for :: fn(args: Value[], origin: i32) -> HostCallResult {
+    fd :: read_i64(args[0], origin, "wait_writable_for")
+    if fd is Trap {
+        return fd
+    }
+    nanos :: read_i64(args[1], origin, "wait_writable_for")
+    if nanos is Trap {
+        return nanos
+    }
+    return HostOk { .value = BoolVal(wait_writable_for(i64(fd), i64(nanos))) }
 }
 
 // Ask the host's scheduler whether the thread the guest names is leaving.

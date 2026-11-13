@@ -8,6 +8,10 @@ Accepted (2026-11-08). Amends 0127.
 (2026-11-08)**: the waits on a descriptor live in `std/runtime/wait`, in machine
 words, and `std/io` wraps them over a `Descriptor`.
 
+**Amended by [0135](0135-a-descriptor-is-watched-for-a-read-and-a-write-and-released-before-it-closes.md)
+(2026-11-13)**: a descriptor is watched for a write too, by one thread a side,
+and `stop_waiting` ends the parks on a descriptor from outside.
+
 **Amended by [0130](0130-a-poll-of-stdin-waits-for-the-readers-read.md)
 (2026-11-08)**: `poll_stdin`, alone, waits for the reader's read on a stdin pipe
 to end instead of cancelling it.

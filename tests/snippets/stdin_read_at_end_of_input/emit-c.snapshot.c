@@ -109,6 +109,7 @@ static void std_console$println__string(vader_string_t l0);
 static void std_io$wait_readable(vader_box_t l0);
 static void* std_io$last_io_error(vader_string_t l0);
 static int64_t std_io$descriptor_word(vader_box_t l0);
+static void* std_io$io_error_of(int32_t l0, vader_string_t l1);
 static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2);
 static uint8_t std_io$errno_kind(int32_t l0);
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1);
@@ -606,19 +607,17 @@ static void std_io$wait_readable(vader_box_t l0) {
 }
 
 static void* std_io$last_io_error(vader_string_t l0) {
-    int32_t l1;
-    uint8_t l2;
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
+    int32_t t0;
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l1 = vader_host_system_posix$sys_last_errno();
-    l2 = std_io$errno_kind(l1);
-    t0 = std_io$classified_error(l0, l2, l1);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_host_system_posix$sys_last_errno();
+    t1 = std_io$io_error_of(t0, l0);
+    { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int64_t std_io$descriptor_word(vader_box_t l0) {
@@ -635,6 +634,20 @@ static int64_t std_io$descriptor_word(vader_box_t l0) {
     t1 = ((void*) (intptr_t) l0.payload.i);
     t2 = (int64_t) (void*) t1;
     return t2;
+}
+
+static void* std_io$io_error_of(int32_t l0, vader_string_t l1) {
+    uint8_t l2;
+    void* t0 = NULL;
+    void** gc_raw_roots[1] = { &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l1 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    l2 = std_io$errno_kind(l0);
+    t0 = std_io$classified_error(l1, l2, l0);
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) {

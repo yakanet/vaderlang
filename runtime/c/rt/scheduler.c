@@ -3,9 +3,10 @@
  *
  * A thread runs until it parks, sleeps or ends; the scheduler then runs the
  * ready threads in the order they became ready. With none ready, it waits for
- * the nearest sleep to end or for what a thread watches (a descriptor to read,
- * a child to end), and gives the stacks freed meanwhile back to the OS; with
- * neither, every thread waits on another and the program stops. While threads
+ * the nearest sleep to end or for what a thread watches (a descriptor to read
+ * or to write, a child to end), and gives the stacks freed meanwhile back to
+ * the OS; with neither, every thread waits on another and the program stops.
+ * While threads
  * are ready, the OS is asked what it has once they have all run and
  * VADER_SCHEDULER_ASK_EVERY_NS has passed since it was last asked, so that
  * threads that never park do not starve the ones that watch. The scheduler
@@ -37,6 +38,7 @@ typedef struct {
     uint8_t  unwinding;     /* cancelling its children, then running its defers */
     uint8_t  reaping;       /* waits for its children to end */
     uint8_t  outlives;      /* launched by a defer of its launcher's cancellation */
+    uint8_t  released;      /* the descriptor it waited for is no longer waited on */
 } vader_scheduler_slot_t;
 
 typedef struct {
@@ -52,7 +54,7 @@ typedef struct {
     int64_t  id;
     int64_t  thread;
     uint32_t sleep;
-    uint8_t  kind;          /* VADER_WATCH_READABLE or VADER_WATCH_EXIT */
+    uint8_t  kind;          /* one of VADER_WATCH_* */
 } vader_scheduler_watch_t;
 
 static int      g_scheduler_started = 0;
@@ -82,11 +84,18 @@ static size_t g_scheduler_timer_len = 0;
 static size_t g_scheduler_timer_cap = 0;
 static uint64_t g_scheduler_sleeps_begun = 0;
 
-/* The watches, in no order. One the OS will not take is a sleep instead, of
- * VADER_SCHEDULER_REFUSED_WATCH_NS, after which the thread checks again. */
+/* The watches, in no order, one at most for an `id` watched as a `kind`. One
+ * the OS will not take, or whose `id` another thread already watches as the
+ * same `kind`, is a sleep instead, of VADER_SCHEDULER_REFUSED_WATCH_NS, after
+ * which the thread checks again. */
 static vader_scheduler_watch_t* g_scheduler_watches = NULL;
 static size_t g_scheduler_watch_len = 0;
 static size_t g_scheduler_watch_cap = 0;
+/* Where each watch is: open addressing on `id` and `kind`, linear probing, a
+ * cell holding the watch's index plus one and 0 when free. Its capacity is a
+ * power of two, at least twice the watches. */
+static uint32_t* g_scheduler_watch_cells = NULL;
+static size_t g_scheduler_watch_cell_cap = 0;
 #define VADER_SCHEDULER_REFUSED_WATCH_NS 2000000
 /* While threads are ready, how long at least between two questions to the OS:
  * one costs microseconds, a switch tens of nanoseconds. */
@@ -277,24 +286,104 @@ static int vader_scheduler_watch_wakes(const vader_scheduler_watch_t* watch) {
     return vader_scheduler_slot_of(watch->thread)->sleep == watch->sleep;
 }
 
-static void vader_scheduler_on_event(int kind, int64_t id) {
-    size_t i = 0;
-    while (i < g_scheduler_watch_len) {
-        vader_scheduler_watch_t* w = &g_scheduler_watches[i];
-        if (w->kind != kind || w->id != id) {
-            i++;
-            continue;
-        }
-        if (vader_scheduler_watch_wakes(w)) vader_scheduler_enqueue(w->thread);
-        g_scheduler_watches[i] = g_scheduler_watches[--g_scheduler_watch_len];
+/* The cell a watch of `id` as `kind` is looked for from. */
+static size_t vader_scheduler_watch_home(int kind, int64_t id) {
+    uint64_t h = ((uint64_t) id * 4u + (uint64_t) kind) * 0x9E3779B97F4A7C15ull;
+    return (size_t) (h >> 32) & (g_scheduler_watch_cell_cap - 1u);
+}
+
+/* The cell that holds the watch of `id` as `kind`, or the free cell it would
+ * take. */
+static size_t vader_scheduler_watch_cell(int kind, int64_t id) {
+    size_t cell = vader_scheduler_watch_home(kind, id);
+    while (g_scheduler_watch_cells[cell] != 0u) {
+        const vader_scheduler_watch_t* w = &g_scheduler_watches[g_scheduler_watch_cells[cell] - 1u];
+        if (w->kind == kind && w->id == id) break;
+        cell = (cell + 1u) & (g_scheduler_watch_cell_cap - 1u);
     }
+    return cell;
+}
+
+/* The watch of `id` as `kind`, NULL when there is none. */
+static vader_scheduler_watch_t* vader_scheduler_watch_of(int kind, int64_t id) {
+    if (g_scheduler_watch_len == 0u) return NULL;
+    uint32_t held = g_scheduler_watch_cells[vader_scheduler_watch_cell(kind, id)];
+    if (held == 0u) return NULL;
+    return &g_scheduler_watches[held - 1u];
+}
+
+/* Free `cell`, and move back the watches a probe would no longer reach past it. */
+static void vader_scheduler_free_watch_cell(size_t cell) {
+    size_t mask = g_scheduler_watch_cell_cap - 1u;
+    size_t next = cell;
+    for (;;) {
+        g_scheduler_watch_cells[cell] = 0u;
+        for (;;) {
+            next = (next + 1u) & mask;
+            uint32_t held = g_scheduler_watch_cells[next];
+            if (held == 0u) return;
+            const vader_scheduler_watch_t* w = &g_scheduler_watches[held - 1u];
+            size_t home = vader_scheduler_watch_home(w->kind, w->id);
+            /* Stays when its home lies in (cell, next], going round. */
+            if (((next - home) & mask) < ((next - cell) & mask)) continue;
+            break;
+        }
+        g_scheduler_watch_cells[cell] = g_scheduler_watch_cells[next];
+        cell = next;
+    }
+}
+
+static void vader_scheduler_drop_watch(vader_scheduler_watch_t* w) {
+    vader_scheduler_free_watch_cell(vader_scheduler_watch_cell(w->kind, w->id));
+    vader_scheduler_watch_t* last = &g_scheduler_watches[--g_scheduler_watch_len];
+    if (w == last) return;
+    size_t cell = vader_scheduler_watch_cell(last->kind, last->id);
+    *w = *last;
+    g_scheduler_watch_cells[cell] = (uint32_t) (w - g_scheduler_watches) + 1u;
+}
+
+/* Room for one more watch, the cells at most half full. */
+static void vader_scheduler_grow_watches(void) {
+    if (g_scheduler_watch_len == g_scheduler_watch_cap) {
+        size_t cap = 16u;
+        if (g_scheduler_watch_cap != 0u) cap = g_scheduler_watch_cap * 2u;
+        vader_scheduler_watch_t* grown = (vader_scheduler_watch_t*) realloc(
+            g_scheduler_watches, cap * sizeof(vader_scheduler_watch_t));
+        if (grown == NULL) vader_trap("virtual threads: out of memory");
+        g_scheduler_watches = grown;
+        g_scheduler_watch_cap = cap;
+    }
+    if ((g_scheduler_watch_len + 1u) * 2u <= g_scheduler_watch_cell_cap) return;
+    size_t cells = g_scheduler_watch_cap * 2u;
+    uint32_t* fresh = (uint32_t*) calloc(cells, sizeof(uint32_t));
+    if (fresh == NULL) vader_trap("virtual threads: out of memory");
+    free(g_scheduler_watch_cells);
+    g_scheduler_watch_cells = fresh;
+    g_scheduler_watch_cell_cap = cells;
+    for (size_t i = 0; i < g_scheduler_watch_len; i++) {
+        const vader_scheduler_watch_t* w = &g_scheduler_watches[i];
+        g_scheduler_watch_cells[vader_scheduler_watch_cell(w->kind, w->id)] = (uint32_t) i + 1u;
+    }
+}
+
+static void vader_scheduler_on_event(int kind, int64_t id) {
+    vader_scheduler_watch_t* w = vader_scheduler_watch_of(kind, id);
+    if (w == NULL) return;
+    if (vader_scheduler_watch_wakes(w)) vader_scheduler_enqueue(w->thread);
+    vader_scheduler_drop_watch(w);
+}
+
+static int vader_scheduler_watched(int kind, int64_t id) {
+    const vader_scheduler_watch_t* w = vader_scheduler_watch_of(kind, id);
+    return w != NULL && vader_scheduler_watch_wakes(w);
 }
 
 /* Whether a watch still wakes a thread. The ones met that wake none go. */
 static int vader_scheduler_watching(void) {
     while (g_scheduler_watch_len > 0u) {
-        if (vader_scheduler_watch_wakes(&g_scheduler_watches[0])) return 1;
-        g_scheduler_watches[0] = g_scheduler_watches[--g_scheduler_watch_len];
+        vader_scheduler_watch_t* last = &g_scheduler_watches[g_scheduler_watch_len - 1u];
+        if (vader_scheduler_watch_wakes(last)) return 1;
+        vader_scheduler_drop_watch(last);
     }
     return 0;
 }
@@ -574,32 +663,28 @@ static void vader_scheduler_watch(int kind, int64_t id) {
     vader_scheduler_start();
     int64_t thread = vader_virtual_thread_current();
     uint32_t sleep = vader_scheduler_slot_of(thread)->sleep + 1u;
-    if (!vader_os_watch(kind, id)) {
+    vader_scheduler_watch_t* held = vader_scheduler_watch_of(kind, id);
+    /* Another thread waits for the same report, which wakes one thread. */
+    int taken = held != NULL && held->thread != thread && vader_scheduler_watch_wakes(held);
+    if (taken || !vader_os_watch(kind, id)) {
         int64_t deadline = vader_scheduler_deadline_in(VADER_SCHEDULER_REFUSED_WATCH_NS);
         vader_scheduler_arm(
             (vader_scheduler_timer_t) { deadline, ++g_scheduler_sleeps_begun, thread, sleep });
         return;
     }
     /* A thread watches the same `id` again at each park of a loop, woken
-     * meanwhile by another watch: its entry moves to the new park. */
-    for (size_t i = 0; i < g_scheduler_watch_len; i++) {
-        vader_scheduler_watch_t* w = &g_scheduler_watches[i];
-        if (w->kind == kind && w->id == id && w->thread == thread) {
-            w->sleep = sleep;
-            return;
-        }
+     * meanwhile by another watch: its entry moves to the new park. One left
+     * by a thread that waits no more is taken over. */
+    if (held != NULL) {
+        held->thread = thread;
+        held->sleep = sleep;
+        return;
     }
-    if (g_scheduler_watch_len == g_scheduler_watch_cap) {
-        size_t cap = 16u;
-        if (g_scheduler_watch_cap != 0u) cap = g_scheduler_watch_cap * 2u;
-        vader_scheduler_watch_t* grown = (vader_scheduler_watch_t*) realloc(
-            g_scheduler_watches, cap * sizeof(vader_scheduler_watch_t));
-        if (grown == NULL) vader_trap("virtual threads: out of memory");
-        g_scheduler_watches = grown;
-        g_scheduler_watch_cap = cap;
-    }
+    vader_scheduler_grow_watches();
+    size_t cell = vader_scheduler_watch_cell(kind, id);
     g_scheduler_watches[g_scheduler_watch_len++] =
         (vader_scheduler_watch_t) { id, thread, sleep, (uint8_t) kind };
+    g_scheduler_watch_cells[cell] = (uint32_t) g_scheduler_watch_len;
 }
 
 void vader_scheduler_watch_readable(int64_t fd) {
@@ -610,28 +695,64 @@ void vader_scheduler_watch_exit(int64_t child) {
     vader_scheduler_watch(VADER_WATCH_EXIT, child);
 }
 
-bool vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos) {
+static int vader_scheduler_ready_now(int kind, int64_t fd) {
+    if (kind == VADER_WATCH_WRITABLE) return vader_os_writable_now(fd);
+    return vader_os_readable_now(fd);
+}
+
+/* Park until `fd` is as `kind` waits for, at most `nanos` when not negative:
+ * false once they have passed. The wait ends too once `fd` is released
+ * (`vader_scheduler_stop_waiting`): its number may name another descriptor by
+ * then, which is not asked. */
+static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos) {
     if (vader_virtual_thread_count() == 0u) return true;
     vader_scheduler_start();
     int64_t thread = vader_virtual_thread_current();
     int timed = nanos >= 0;
     int64_t deadline = vader_scheduler_deadline_in(nanos);
     uint64_t began = ++g_scheduler_sleeps_begun;
-    while (!vader_os_readable_now(fd)) {
+    vader_scheduler_slot_of(thread)->released = 0;
+    while (!vader_scheduler_ready_now(kind, fd)) {
         if (timed && vader_scheduler_now() >= deadline) return false;
-        vader_scheduler_watch(VADER_WATCH_READABLE, fd);
+        vader_scheduler_watch(kind, fd);
         /* The timer ends the park the watch ends, whichever comes first. */
         if (timed) {
             uint32_t sleep = vader_scheduler_slot_of(thread)->sleep + 1u;
             vader_scheduler_arm((vader_scheduler_timer_t) { deadline, began, thread, sleep });
         }
         vader_scheduler_park();
+        if (vader_scheduler_slot_of(thread)->released) return true;
     }
     return true;
 }
 
+bool vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos) {
+    return vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, nanos);
+}
+
 void vader_scheduler_wait_readable(int64_t fd) {
-    (void) vader_scheduler_wait_readable_for(fd, -1);
+    (void) vader_scheduler_wait_for(VADER_WATCH_READABLE, fd, -1);
+}
+
+bool vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos) {
+    return vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, nanos);
+}
+
+void vader_scheduler_wait_writable(int64_t fd) {
+    (void) vader_scheduler_wait_for(VADER_WATCH_WRITABLE, fd, -1);
+}
+
+void vader_scheduler_stop_waiting(int64_t fd) {
+    static const int kinds[2] = { VADER_WATCH_READABLE, VADER_WATCH_WRITABLE };
+    for (size_t i = 0; i < 2u; i++) {
+        vader_scheduler_watch_t* w = vader_scheduler_watch_of(kinds[i], fd);
+        if (w == NULL) continue;
+        if (vader_scheduler_watch_wakes(w)) {
+            vader_scheduler_slot_of(w->thread)->released = 1;
+            vader_scheduler_enqueue(w->thread);
+        }
+        vader_scheduler_drop_watch(w);
+    }
 }
 
 void vader_scheduler_cancel(int64_t thread) {

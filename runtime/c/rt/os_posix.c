@@ -119,6 +119,15 @@ static int vader_os_readable_now(int64_t fd) {
     return poll(&probe, 1, 0) != 0;
 }
 
+/* A write that fails is ready too: the write then reports the failure. */
+static int vader_os_writable_now(int64_t fd) {
+    struct pollfd probe;
+    probe.fd = (int) fd;
+    probe.events = POLLOUT;
+    probe.revents = 0;
+    return poll(&probe, 1, 0) != 0;
+}
+
 #if defined(__APPLE__)
 
 static int g_os_queue = -1;
@@ -132,6 +141,8 @@ static int vader_os_watch(int kind, int64_t id) {
     struct kevent change;
     if (kind == VADER_WATCH_EXIT) {
         EV_SET(&change, (uintptr_t) id, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, NULL);
+    } else if (kind == VADER_WATCH_WRITABLE) {
+        EV_SET(&change, (uintptr_t) id, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, NULL);
     } else {
         EV_SET(&change, (uintptr_t) id, EVFILT_READ, EV_ADD | EV_ONESHOT, 0, 0, NULL);
     }
@@ -151,6 +162,7 @@ static void vader_os_wait_events(int64_t timeout_ns) {
     for (int i = 0; i < got; i++) {
         int kind = VADER_WATCH_READABLE;
         if (events[i].filter == EVFILT_PROC) kind = VADER_WATCH_EXIT;
+        if (events[i].filter == EVFILT_WRITE) kind = VADER_WATCH_WRITABLE;
         vader_scheduler_on_event(kind, (int64_t) events[i].ident);
     }
 }
@@ -169,17 +181,18 @@ static vader_os_pidfd_t* g_os_pidfds = NULL;
 static size_t g_os_pidfd_len = 0;
 static size_t g_os_pidfd_cap = 0;
 
-/* Watch `fd` until it reads once, reported as `id` watched as `kind`. */
-static int vader_os_arm(int fd, int kind, int64_t id) {
+/* Have `fd` reported once, when it meets `events`, under the name `id`: that
+ * of a child that has ended when `child`, else of the descriptor itself. */
+static int vader_os_arm(int fd, uint32_t events, int child, int64_t id) {
     if (g_os_queue < 0) {
         g_os_queue = epoll_create1(EPOLL_CLOEXEC);
         if (g_os_queue < 0) return 0;
     }
     struct epoll_event event;
     memset(&event, 0, sizeof event);
-    event.events = EPOLLIN | EPOLLONESHOT;
+    event.events = events | EPOLLONESHOT;
     /* A descriptor and a pid both fit in 32 bits. */
-    event.data.u64 = ((uint64_t) (uint32_t) kind << 32) | (uint64_t) (uint32_t) id;
+    event.data.u64 = ((uint64_t) (uint32_t) child << 32) | (uint64_t) (uint32_t) id;
     /* Watched before, it is armed again: a one-shot watch stays registered. */
     if (epoll_ctl(g_os_queue, EPOLL_CTL_MOD, fd, &event) == 0) return 1;
     return errno == ENOENT && epoll_ctl(g_os_queue, EPOLL_CTL_ADD, fd, &event) == 0;
@@ -189,7 +202,7 @@ static int vader_os_arm(int fd, int kind, int64_t id) {
  * is not watched. */
 static int vader_os_watch_child(int64_t child) {
     for (size_t i = 0; i < g_os_pidfd_len; i++) {
-        if (g_os_pidfds[i].child == child) return vader_os_arm(g_os_pidfds[i].fd, VADER_WATCH_EXIT, child);
+        if (g_os_pidfds[i].child == child) return vader_os_arm(g_os_pidfds[i].fd, EPOLLIN, 1, child);
     }
     int fd = (int) syscall(SYS_pidfd_open, (pid_t) child, 0);
     if (fd < 0) return 0;
@@ -204,7 +217,7 @@ static int vader_os_watch_child(int64_t child) {
         g_os_pidfds = grown;
         g_os_pidfd_cap = cap;
     }
-    if (!vader_os_arm(fd, VADER_WATCH_EXIT, child)) {
+    if (!vader_os_arm(fd, EPOLLIN, 1, child)) {
         close(fd);
         return 0;
     }
@@ -212,9 +225,35 @@ static int vader_os_watch_child(int64_t child) {
     return 1;
 }
 
+/* A descriptor has one registration, for the read and the write it is watched
+ * for: the side `kind` asks for, and the other one while a thread waits for it. */
 static int vader_os_watch(int kind, int64_t id) {
     if (kind == VADER_WATCH_EXIT) return vader_os_watch_child(id);
-    return vader_os_arm((int) id, VADER_WATCH_READABLE, id);
+    uint32_t events = EPOLLIN;
+    int other = VADER_WATCH_WRITABLE;
+    if (kind == VADER_WATCH_WRITABLE) {
+        events = EPOLLOUT;
+        other = VADER_WATCH_READABLE;
+    }
+    if (vader_scheduler_watched(other, id)) events = EPOLLIN | EPOLLOUT;
+    return vader_os_arm((int) id, events, 0, id);
+}
+
+/* Report the sides of the descriptor `id` that `events` say are ready, a failure
+ * being ready for both, and watch again the side a thread still waits for:
+ * the registration is spent once it has reported either. */
+static void vader_os_report_descriptor(uint32_t events, int64_t id) {
+    uint32_t failed = events & (uint32_t) (EPOLLERR | EPOLLHUP);
+    if (failed || (events & EPOLLIN)) vader_scheduler_on_event(VADER_WATCH_READABLE, id);
+    if (failed || (events & EPOLLOUT)) vader_scheduler_on_event(VADER_WATCH_WRITABLE, id);
+    uint32_t left = 0;
+    if (vader_scheduler_watched(VADER_WATCH_READABLE, id)) left |= EPOLLIN;
+    if (vader_scheduler_watched(VADER_WATCH_WRITABLE, id)) left |= EPOLLOUT;
+    if (left == 0u || vader_os_arm((int) id, left, 0, id)) return;
+    /* Not watched again, a descriptor closed while a thread waited for it: the
+     * thread wakes and its read or write reports the failure. */
+    vader_scheduler_on_event(VADER_WATCH_READABLE, id);
+    vader_scheduler_on_event(VADER_WATCH_WRITABLE, id);
 }
 
 static void vader_os_close_pidfd(int64_t child) {
@@ -238,10 +277,14 @@ static void vader_os_wait_events(int64_t timeout_ns) {
     struct epoll_event events[VADER_OS_EVENTS];
     int got = epoll_wait(g_os_queue, events, VADER_OS_EVENTS, timeout_ms);
     for (int i = 0; i < got; i++) {
-        int kind = (int) (events[i].data.u64 >> 32);
+        int child = (int) (events[i].data.u64 >> 32);
         int64_t id = (int64_t) (uint32_t) events[i].data.u64;
-        if (kind == VADER_WATCH_EXIT) vader_os_close_pidfd(id);
-        vader_scheduler_on_event(kind, id);
+        if (!child) {
+            vader_os_report_descriptor(events[i].events, id);
+            continue;
+        }
+        vader_os_close_pidfd(id);
+        vader_scheduler_on_event(VADER_WATCH_EXIT, id);
     }
 }
 

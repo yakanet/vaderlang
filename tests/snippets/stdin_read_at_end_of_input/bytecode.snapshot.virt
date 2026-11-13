@@ -665,16 +665,9 @@ fn 15 std_io$wait_readable (any) -> void
 end
 
 fn 16 std_io$last_io_error (string) -> ref
-  local e i32
-  local $call_3 u8
   call.import 4   ; system_posix$sys_last_errno
-  local.tee 1   ; e
-  call 19   ; std_io$errno_kind
-  local.set 2   ; $call_3
   local.get 0   ; arg 0
-  local.get 2   ; $call_3
-  local.get 1   ; e
-  call 18   ; std_io$classified_error
+  call 18   ; std_io$io_error_of
   return
 end
 
@@ -699,17 +692,29 @@ fn 17 std_io$descriptor_word (any) -> i64
   return
 end
 
-fn 18 std_io$classified_error (string,u8,i32) -> ref
+fn 18 std_io$io_error_of (i32,string) -> ref
+  local $call_2 u8
+  local.get 0   ; arg 0
+  call 20   ; std_io$errno_kind
+  local.set 2   ; $call_2
+  local.get 1   ; arg 1
+  local.get 2   ; $call_2
+  local.get 0   ; arg 0
+  call 19   ; std_io$classified_error
+  return
+end
+
+fn 19 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 20   ; std_io$describe_io_error_kind
+  call 21   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 10   ; std_io$IOError
   return
 end
 
-fn 19 std_io$errno_kind (i32) -> u8
+fn 20 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -909,7 +914,7 @@ fn 19 std_io$errno_kind (i32) -> u8
   return.lit i32.const 19
 end
 
-fn 20 std_io$describe_io_error_kind (u8,string) -> string
+fn 21 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1

@@ -212,7 +212,7 @@ fn 0 snippet$main () -> i32
     local.get 2   ; __coalesce_0
     ref.cast 13   ; std_io$IOError
     struct.get 13 1   ; std_io$IOError.kind
-    call 24   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 25   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 0   ; name
     string.const 12   ; "refused: "
     local.get 0   ; name
@@ -521,7 +521,7 @@ fn 11 std_env$env_vars () -> ref
       local.set 1   ; index
       local.get 2   ; entry
       string.const 17   ; "="
-      call 28   ; std_string$split_first
+      call 29   ; std_string$split_first
       local.tee 5   ; __coalesce_1
       type_check 0   ; null
       if $L2 void
@@ -558,7 +558,7 @@ fn 11 std_env$env_vars () -> ref
   local.set 4   ; parts
   local.get 0   ; vars
   local.get 4   ; parts
-  call 25   ; std_sort$sort__std_env_EnvVar
+  call 26   ; std_sort$sort__std_env_EnvVar
   return
 end
 
@@ -674,30 +674,35 @@ fn 19 std_io$failure_unless (bool,string) -> any
 end
 
 fn 20 std_io$last_io_error (string) -> ref
-  local e i32
-  local $call_3 u8
   call.import 5   ; system_posix$sys_last_errno
-  local.tee 1   ; e
-  call 22   ; std_io$errno_kind
-  local.set 2   ; $call_3
   local.get 0   ; arg 0
-  local.get 2   ; $call_3
-  local.get 1   ; e
-  call 21   ; std_io$classified_error
+  call 21   ; std_io$io_error_of
   return
 end
 
-fn 21 std_io$classified_error (string,u8,i32) -> ref
+fn 21 std_io$io_error_of (i32,string) -> ref
+  local $call_2 u8
+  local.get 0   ; arg 0
+  call 23   ; std_io$errno_kind
+  local.set 2   ; $call_2
+  local.get 1   ; arg 1
+  local.get 2   ; $call_2
+  local.get 0   ; arg 0
+  call 22   ; std_io$classified_error
+  return
+end
+
+fn 22 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 23   ; std_io$describe_io_error_kind
+  call 24   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 13   ; std_io$IOError
   return
 end
 
-fn 22 std_io$errno_kind (i32) -> u8
+fn 23 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -897,7 +902,7 @@ fn 22 std_io$errno_kind (i32) -> u8
   return.lit i32.const 19
 end
 
-fn 23 std_io$describe_io_error_kind (u8,string) -> string
+fn 24 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -1064,7 +1069,7 @@ fn 23 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 24 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+fn 25 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -1231,7 +1236,7 @@ fn 24 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   return
 end
 
-fn 25 std_sort$sort__std_env_EnvVar (ref,ref) -> ref
+fn 26 std_sort$sort__std_env_EnvVar (ref,ref) -> ref
   local n i64
   local out ref
   local buf ref
@@ -1254,7 +1259,7 @@ fn 25 std_sort$sort__std_env_EnvVar (ref,ref) -> ref
     i64.const 0
     local.get 2   ; n
     local.get 1   ; arg 1
-    call 26   ; std_sort$merge_sort_range__Any
+    call 27   ; std_sort$merge_sort_range__Any
     local.get 3   ; out
     return
   end $L0
@@ -1262,7 +1267,7 @@ fn 25 std_sort$sort__std_env_EnvVar (ref,ref) -> ref
   return
 end
 
-fn 26 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
+fn 27 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
   local n i64
   local i i64
   local $idx_17 any
@@ -1290,7 +1295,7 @@ fn 26 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
     local.get 2   ; arg 2
     local.get 3   ; arg 3
     local.get 4   ; arg 4
-    call 27   ; std_sort$insertion_sort_range__Any
+    call 28   ; std_sort$insertion_sort_range__Any
     return
   end $L1
   local.get 5   ; n
@@ -1306,13 +1311,13 @@ fn 26 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
   local.get 2   ; arg 2
   local.get 5   ; n
   local.get 4   ; arg 4
-  call 26   ; std_sort$merge_sort_range__Any
+  call 27   ; std_sort$merge_sort_range__Any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 5   ; n
   local.get 3   ; arg 3
   local.get 4   ; arg 4
-  call 26   ; std_sort$merge_sort_range__Any
+  call 27   ; std_sort$merge_sort_range__Any
   local.get 2   ; arg 2
   local.set 6   ; i
   loop $L2 void
@@ -1431,7 +1436,7 @@ fn 26 std_sort$merge_sort_range__Any (ref,ref,i64,i64,ref) -> void
   return
 end
 
-fn 27 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
+fn 28 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
   local i i64
   local x any
   local j i64
@@ -1510,20 +1515,20 @@ fn 27 std_sort$insertion_sort_range__Any (ref,i64,i64,ref) -> void
   return
 end
 
-fn 28 std_string$split_first (string,string) -> any
+fn 29 std_string$split_first (string,string) -> any
   local $call_2 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 29   ; std_string$first_byte_offset
+  call 30   ; std_string$first_byte_offset
   local.set 2   ; $call_2
   local.get 0   ; arg 0
   local.get 2   ; $call_2
   local.get 1   ; arg 1
-  call 30   ; std_string$cut_at
+  call 31   ; std_string$cut_at
   return
 end
 
-fn 29 std_string$first_byte_offset (string,string) -> any
+fn 30 std_string$first_byte_offset (string,string) -> any
   local n i64
   local m i64
   local first u8
@@ -1573,7 +1578,7 @@ fn 29 std_string$first_byte_offset (string,string) -> any
         local.get 0   ; arg 0
         local.get 5   ; i
         local.get 1   ; arg 1
-        call 31   ; std_string$matches_at
+        call 32   ; std_string$matches_at
         if $L5 void
           local.get 5   ; i
           retag 6   ; i64
@@ -1590,7 +1595,7 @@ fn 29 std_string$first_byte_offset (string,string) -> any
   return.lit null.const
 end
 
-fn 30 std_string$cut_at (string,any,string) -> any
+fn 31 std_string$cut_at (string,any,string) -> any
   local $cast_6 i64
   local $call_7 string
   local $call_9 i64
@@ -1633,7 +1638,7 @@ fn 30 std_string$cut_at (string,any,string) -> any
   return.lit null.const
 end
 
-fn 31 std_string$matches_at (string,i64,string) -> bool
+fn 32 std_string$matches_at (string,i64,string) -> bool
   local m i64
   local $call_5 i64
   local $add_checked_14 i64

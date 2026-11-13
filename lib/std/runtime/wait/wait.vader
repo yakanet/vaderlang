@@ -28,3 +28,29 @@ export wait_readable :: fn(fd: i64) -> void
 /// @return       `false` once `nanos` have passed with nothing to read on `fd`.
 @intrinsic
 export wait_readable_for :: fn(fd: i64, nanos: i64) -> bool
+
+/// Park the running thread until descriptor `fd` takes a write without
+/// blocking, or fails, while the other threads run. With no other thread, it
+/// returns at once, and the write that follows waits on the system thread.
+///
+/// @param fd  a descriptor of the process.
+@intrinsic
+export wait_writable :: fn(fd: i64) -> void
+
+/// Park the running thread as `wait_writable` does, but no longer than `nanos`.
+/// With no other thread, it returns `true` at once, and the caller asks the
+/// system itself.
+///
+/// @param fd     a descriptor of the process.
+/// @param nanos  the longest wait; a negative one waits with no deadline.
+/// @return       `false` once `nanos` have passed with no room on `fd`.
+@intrinsic
+export wait_writable_for :: fn(fd: i64, nanos: i64) -> bool
+
+/// End the waits of the threads parked on descriptor `fd`: each returns as if
+/// `fd` were ready, and asks what it waited for again. Called before `fd` is
+/// closed, since the system hands its number out again.
+///
+/// @param fd  a descriptor of the process, about to be closed.
+@intrinsic
+export stop_waiting :: fn(fd: i64) -> void

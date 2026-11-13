@@ -253,7 +253,8 @@ export dispatch_import :: fn(
     .RuntimeCountAllocations -> { return HostOk { .value = NullVal {} } }
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor | .SchedulerCancel
         | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving | .SchedulerWatchReadable
-        | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor -> {
+        | .SchedulerWatchExit | .WaitReadable | .WaitReadableFor | .WaitWritable
+        | .WaitWritableFor | .WaitStop -> {
         message :: "${info.mangled_name}: a thread primitive reached the host dispatch"
         return Trap { .message = message }
     }
@@ -1223,7 +1224,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor -> null
     .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving -> null
     .SchedulerWatchReadable | .SchedulerWatchExit -> null
-    .WaitReadable | .WaitReadableFor -> null
+    .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .AbortPanic -> null
     .NotIntrinsic -> null
 }

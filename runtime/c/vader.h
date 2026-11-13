@@ -1536,6 +1536,14 @@ void    vader_scheduler_wait_readable(int64_t fd);
 /* The same wait, given up once `nanos` have passed: false then. A negative
  * `nanos` sets no deadline. */
 bool    vader_scheduler_wait_readable_for(int64_t fd, int64_t nanos);
+/* Park until `fd` takes a write without blocking, as the two above do for a
+ * read. */
+void    vader_scheduler_wait_writable(int64_t fd);
+bool    vader_scheduler_wait_writable_for(int64_t fd, int64_t nanos);
+/* End the waits of the threads parked on `fd`, each returning as if `fd` were
+ * ready: for a descriptor about to be closed, whose number the OS hands out
+ * again. */
+void    vader_scheduler_stop_waiting(int64_t fd);
 /* `main` returned `code`: cancel the threads still running and wait for their
  * defers. The process's exit code, not zero when it cancelled any. */
 int     vader_scheduler_exit(int code);

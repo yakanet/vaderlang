@@ -108,6 +108,7 @@ int32_t bind(int32_t fd, const void* address, uint32_t length);  // system_posix
 int32_t connect(int32_t fd, const void* address, uint32_t length);  // system_posix$sys_connect
 int32_t getpeername(int32_t fd, void* address, void* length);  // system_posix$sys_getpeername
 int32_t getsockname(int32_t fd, void* address, void* length);  // system_posix$sys_getsockname
+int32_t getsockopt(int32_t fd, int32_t level, int32_t name, void* value, void* length);  // system_posix$sys_getsockopt
 int32_t listen(int32_t fd, int32_t backlog);  // system_posix$sys_listen
 int32_t setsockopt(int32_t fd, int32_t level, int32_t name, const void* value, uint32_t length);  // system_posix$sys_setsockopt
 int32_t shutdown(int32_t fd, int32_t how);  // system_posix$sys_shutdown

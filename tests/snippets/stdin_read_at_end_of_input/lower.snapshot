@@ -55,6 +55,7 @@
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.descriptor_word  // std_io$descriptor_word
     fn std.io.errno_kind  // std_io$errno_kind
+    fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
     fn std.io.wait_readable  // std_io$wait_readable
     struct std.io.IOError  // std_io$IOError

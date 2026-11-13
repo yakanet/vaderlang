@@ -157,7 +157,7 @@ impl 15 std_io$Writer
 impl 31 std_io$Reader
 impl 4 std_core$Error
 vtable std_io$Reader.read 15 45
-vtable std_io$Reader.read 31 60
+vtable std_io$Reader.read 31 61
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -404,7 +404,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
-    call 59   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 60   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 2   ; $field_9
     string.const 15   ; "read after close: "
     local.get 2   ; $field_9
@@ -432,7 +432,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
-    call 59   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 60   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 2   ; $field_9
     string.const 17   ; "missing: "
     local.get 2   ; $field_9
@@ -458,7 +458,7 @@ fn 0 snippet$main () -> i32
     local.get 1   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
-    call 59   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 60   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 2   ; $field_9
     string.const 18   ; "directory: "
     local.get 2   ; $field_9
@@ -924,8 +924,8 @@ fn 15 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 62   ; std_path$to_path
-    call 63   ; std_path$as_string
+    call 63   ; std_path$to_path
+    call 64   ; std_path$as_string
     return
   end $L1
   return.lit string.const 25   ; "/tmp"
@@ -1871,7 +1871,7 @@ fn 46 std_fs$File$std_io$Writer$write (ref,any) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call 61   ; std_io$bytes_of
+  call 62   ; std_io$bytes_of
   local.set 2   ; bytes
   i64.const 0
   local.set 3   ; done
@@ -2268,16 +2268,9 @@ fn 51 std_io$line_break_of (ref) -> i64
 end
 
 fn 52 std_io$last_io_error (string) -> ref
-  local e i32
-  local $call_3 u8
   call.import 8   ; system_posix$sys_last_errno
-  local.tee 1   ; e
-  call 56   ; std_io$errno_kind
-  local.set 2   ; $call_3
   local.get 0   ; arg 0
-  local.get 2   ; $call_3
-  local.get 1   ; e
-  call 55   ; std_io$classified_error
+  call 55   ; std_io$io_error_of
   return
 end
 
@@ -2286,7 +2279,7 @@ fn 53 std_io$refill (ref) -> any
   local __coalesce_0 any
   local $cast_12 i64
   local.get 0   ; arg 0
-  call 57   ; std_io$reserve
+  call 56   ; std_io$reserve
   local.field 0 31 0   ; arg 0 std_io$BufferedReader.source
   local.set 1   ; got
   local.field 0 31 3   ; arg 0 std_io$BufferedReader.buffer
@@ -2332,17 +2325,55 @@ fn 54 std_io$failure_unless (bool,string) -> any
   return.lit null.const
 end
 
-fn 55 std_io$classified_error (string,u8,i32) -> ref
+fn 55 std_io$io_error_of (i32,string) -> ref
+  local $call_2 u8
+  local.get 0   ; arg 0
+  call 58   ; std_io$errno_kind
+  local.set 2   ; $call_2
+  local.get 1   ; arg 1
+  local.get 2   ; $call_2
+  local.get 0   ; arg 0
+  call 57   ; std_io$classified_error
+  return
+end
+
+fn 56 std_io$reserve (ref) -> void
+  local $arr_6 ref
+  local $field_7 i64
+  local.field 0 31 3   ; arg 0 std_io$BufferedReader.buffer
+  array.len
+  i64.const 0
+  i64.eq
+  if $L0 void
+    i32.const 0
+    array.new 9 1   ; u8[]
+    local.set 1   ; $arr_6
+    local.field 0 31 1   ; arg 0 std_io$BufferedReader.capacity
+    ref.cast 3   ; i64
+    local.set 2   ; $field_7
+    local.get 1   ; $arr_6
+    local.get 2   ; $field_7
+    array.repeat
+    local.set 1   ; $arr_6
+    local.get 0   ; arg 0
+    local.get 1   ; $arr_6
+    struct.set 31 3   ; std_io$BufferedReader.buffer
+    return
+  end $L0
+  return
+end
+
+fn 57 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 58   ; std_io$describe_io_error_kind
+  call 59   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 4   ; std_io$IOError
   return
 end
 
-fn 56 std_io$errno_kind (i32) -> u8
+fn 58 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -2542,33 +2573,7 @@ fn 56 std_io$errno_kind (i32) -> u8
   return.lit i32.const 19
 end
 
-fn 57 std_io$reserve (ref) -> void
-  local $arr_6 ref
-  local $field_7 i64
-  local.field 0 31 3   ; arg 0 std_io$BufferedReader.buffer
-  array.len
-  i64.const 0
-  i64.eq
-  if $L0 void
-    i32.const 0
-    array.new 9 1   ; u8[]
-    local.set 1   ; $arr_6
-    local.field 0 31 1   ; arg 0 std_io$BufferedReader.capacity
-    ref.cast 3   ; i64
-    local.set 2   ; $field_7
-    local.get 1   ; $arr_6
-    local.get 2   ; $field_7
-    array.repeat
-    local.set 1   ; $arr_6
-    local.get 0   ; arg 0
-    local.get 1   ; $arr_6
-    struct.set 31 3   ; std_io$BufferedReader.buffer
-    return
-  end $L0
-  return
-end
-
-fn 58 std_io$describe_io_error_kind (u8,string) -> string
+fn 59 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -2735,7 +2740,7 @@ fn 58 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 59 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+fn 60 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -2902,7 +2907,7 @@ fn 59 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   return
 end
 
-fn 60 std_io$BufferedReader$Reader$read (ref,ref) -> any
+fn 61 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local $field_6 i64
   local $field_7 i64
   local $field_12 any
@@ -2975,7 +2980,7 @@ fn 60 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local.set 3   ; $field_7
   local.get 2   ; $field_6
   local.get 3   ; $field_7
-  call 71   ; std_math$min__i64
+  call 72   ; std_math$min__i64
   local.set 2   ; $field_6
   local.field 0 31 3   ; arg 0 std_io$BufferedReader.buffer
   local.set 6   ; $field_28
@@ -3001,7 +3006,7 @@ fn 60 std_io$BufferedReader$Reader$read (ref,ref) -> any
   return
 end
 
-fn 61 std_io$bytes_of (any) -> ref
+fn 62 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
   type_check 5   ; string
   if $L0 void
@@ -3015,11 +3020,11 @@ fn 61 std_io$bytes_of (any) -> ref
   return
 end
 
-fn 62 std_path$to_path (string) -> string
+fn 63 std_path$to_path (string) -> string
   local $call_4 u8
   local.get 0   ; arg 0
   string.const 38   ; "/"
-  call 69   ; std_string$ends_with
+  call 70   ; std_string$ends_with
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -3029,16 +3034,16 @@ fn 62 std_path$to_path (string) -> string
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
-  call 64   ; std_path$without_trailing_separators
+  call 65   ; std_path$without_trailing_separators
   return
 end
 
-fn 63 std_path$as_string (string) -> string
+fn 64 std_path$as_string (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 64 std_path$without_trailing_separators (string,u8) -> string
+fn 65 std_path$without_trailing_separators (string,u8) -> string
   local n i64
   local $sub_checked_7 i64
   local $sub_checked_16 i64
@@ -3066,7 +3071,7 @@ fn 64 std_path$without_trailing_separators (string,u8) -> string
   end $L1
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 65   ; std_path$root_length
+  call 66   ; std_path$root_length
   local.set 3   ; $sub_checked_7
   block $L2 void
     loop $L3 void
@@ -3102,12 +3107,12 @@ fn 64 std_path$without_trailing_separators (string,u8) -> string
   return
 end
 
-fn 65 std_path$root_length (string,u8) -> i64
+fn 66 std_path$root_length (string,u8) -> i64
   local prefix i64
   local $call_4 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 66   ; std_path$prefix_length
+  call 67   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -3134,7 +3139,7 @@ fn 65 std_path$root_length (string,u8) -> i64
   return
 end
 
-fn 66 std_path$prefix_length (string,u8) -> i64
+fn 67 std_path$prefix_length (string,u8) -> i64
   local n i64
   local __coalesce_0 any
   local $add_checked_39 i64
@@ -3153,7 +3158,7 @@ fn 66 std_path$prefix_length (string,u8) -> i64
     local.get 0   ; arg 0
     i64.const 0
     call.import 1   ; std_core$byte_at
-    call 67   ; std_path$is_ascii_letter
+    call 68   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
@@ -3197,7 +3202,7 @@ fn 66 std_path$prefix_length (string,u8) -> i64
   end $L7
   local.get 0   ; arg 0
   i64.const 2
-  call 68   ; std_path$next_separator
+  call 69   ; std_path$next_separator
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L8 void
@@ -3211,7 +3216,7 @@ fn 66 std_path$prefix_length (string,u8) -> i64
   local.set 4   ; $add_checked_39
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
-  call 68   ; std_path$next_separator
+  call 69   ; std_path$next_separator
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L9 void
@@ -3223,7 +3228,7 @@ fn 66 std_path$prefix_length (string,u8) -> i64
   return
 end
 
-fn 67 std_path$is_ascii_letter (u8) -> bool
+fn 68 std_path$is_ascii_letter (u8) -> bool
   local and_res bool
   local.get 0   ; arg 0
   i32.const 97
@@ -3257,7 +3262,7 @@ fn 67 std_path$is_ascii_letter (u8) -> bool
   return
 end
 
-fn 68 std_path$next_separator (string,i64) -> any
+fn 69 std_path$next_separator (string,i64) -> any
   local i i64
   local __for_hi_0 i64
   local.get 1   ; arg 1
@@ -3290,7 +3295,7 @@ fn 68 std_path$next_separator (string,i64) -> any
   return.lit null.const
 end
 
-fn 69 std_string$ends_with (string,string) -> bool
+fn 70 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
@@ -3317,13 +3322,13 @@ fn 69 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 70   ; std_string$matches_at
+    call 71   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 70 std_string$matches_at (string,i64,string) -> bool
+fn 71 std_string$matches_at (string,i64,string) -> bool
   local m i64
   local $call_5 i64
   local $add_checked_14 i64
@@ -3387,7 +3392,7 @@ fn 70 std_string$matches_at (string,i64,string) -> bool
   return.lit bool.const true
 end
 
-fn 71 std_math$min__i64 (i64,i64) -> i64
+fn 72 std_math$min__i64 (i64,i64) -> i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.lt

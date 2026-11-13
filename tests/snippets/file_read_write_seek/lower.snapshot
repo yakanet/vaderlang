@@ -209,6 +209,7 @@
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.failure_unless  // std_io$failure_unless
+    fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
     fn std.io.line_break_of  // std_io$line_break_of
     fn std.io.read_line  // std_io$read_line

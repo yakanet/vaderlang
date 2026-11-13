@@ -329,6 +329,7 @@ static int vader_os_watch_stdin(void) {
 /* A watch of `id` already under way reports for this one too. Stdin is
  * descriptor 0, any other id a handle. */
 static int vader_os_watch(int kind, int64_t id) {
+    if (kind == VADER_WATCH_WRITABLE) return 0;
     if (vader_os_port() == NULL) return 0;
     if (kind == VADER_WATCH_READABLE && id == 0) return vader_os_watch_stdin();
     for (vader_os_wait_t* w = g_os_waits; w != NULL; w = w->next) {
@@ -391,6 +392,12 @@ static void vader_os_wait_events(int64_t timeout_ns) {
 static int vader_os_readable_now(int64_t fd) {
     if (fd == 0) return vader_os_stdin_readable();
     return vader_os_pipe_readable((HANDLE) (intptr_t) fd);
+}
+
+/* Nothing here is watched for a write: the write itself waits. */
+static int vader_os_writable_now(int64_t fd) {
+    (void) fd;
+    return 1;
 }
 
 /* ---- stack --------------------------------------------------------------- */

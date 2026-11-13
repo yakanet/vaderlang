@@ -169,6 +169,7 @@
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.errno_kind  // std_io$errno_kind
     fn std.io.failure_unless  // std_io$failure_unless
+    fn std.io.io_error_of  // std_io$io_error_of
     fn std.io.last_io_error  // std_io$last_io_error
     struct std.io.IOError  // std_io$IOError
   std/path

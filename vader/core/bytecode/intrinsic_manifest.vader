@@ -114,8 +114,8 @@ export IntrinsicId :: enum(u8) {
     SchedulerSpawn, SchedulerPark, SchedulerWake, SchedulerSleepFor, SchedulerCancel,
     SchedulerCurrent, SchedulerIsCancelled, SchedulerIsLeaving, SchedulerWatchReadable,
     SchedulerWatchExit,
-    // std/runtime/wait: a read that parks while another thread runs
-    WaitReadable, WaitReadableFor,
+    // std/runtime/wait: a read or a write that parks while another thread runs
+    WaitReadable, WaitReadableFor, WaitWritable, WaitWritableFor, WaitStop,
     // std/abort
     AbortPanic,
     // std/target: the OS the process is RUNNING on, not the one it was built
@@ -179,6 +179,9 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
     if mangled == r"std_runtime_scheduler$watch_exit"     { return .SchedulerWatchExit }
     if mangled == r"std_runtime_wait$wait_readable"       { return .WaitReadable }
     if mangled == r"std_runtime_wait$wait_readable_for"   { return .WaitReadableFor }
+    if mangled == r"std_runtime_wait$wait_writable"       { return .WaitWritable }
+    if mangled == r"std_runtime_wait$wait_writable_for"   { return .WaitWritableFor }
+    if mangled == r"std_runtime_wait$stop_waiting"        { return .WaitStop }
 
     if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
     if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
@@ -207,10 +210,10 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // Make a stack, queue a thread, read a handle or a flag, or note a watch:
     // `malloc`, `mmap` and the OS, never the collector.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
-    .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit -> false
+    .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
     // Other threads run, and collect, before these return.
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel -> true
-    .WaitReadable | .WaitReadableFor -> true
+    .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text, a copy.
@@ -242,11 +245,11 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> false
     // Nothing runs before they return.
     .SchedulerSpawn | .SchedulerWake | .SchedulerCurrent | .SchedulerIsCancelled -> false
-    .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit -> false
+    .SchedulerIsLeaving | .SchedulerWatchReadable | .SchedulerWatchExit | .WaitStop -> false
     // Other threads run before these return, and may shorten any array they
     // reach.
     .SchedulerPark | .SchedulerSleepFor | .SchedulerCancel -> true
-    .WaitReadable | .WaitReadableFor -> true
+    .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor -> true
     // Constants of the build ; `panic` never returns.
     .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
     // Foreign code is lent a buffer, never the header that holds its length.
@@ -299,6 +302,12 @@ import "std/testing"
         intrinsic_id_for(r"std_runtime_wait$wait_readable_for") == .WaitReadableFor,
         "wait_readable_for",
     )
+    assert(intrinsic_id_for(r"std_runtime_wait$wait_writable") == .WaitWritable, "wait_writable")
+    assert(
+        intrinsic_id_for(r"std_runtime_wait$wait_writable_for") == .WaitWritableFor,
+        "wait_writable_for",
+    )
+    assert(intrinsic_id_for(r"std_runtime_wait$stop_waiting") == .WaitStop, "stop_waiting")
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {

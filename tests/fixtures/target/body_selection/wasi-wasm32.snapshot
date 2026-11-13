@@ -1,5 +1,6 @@
 # Diagnostics
 [lib/std/io/io.vader:113:8] error[R2041] no `@target` body covers the target being built: `last_io_error` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:129:8] error[R2041] no `@target` body covers the target being built: `io_error_of` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/time/time.vader:48:1] error[R2041] no `@target` body covers the target being built: `now_unix_ms` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/time/time.vader:74:1] error[R2041] no `@target` body covers the target being built: `monotonic_ns` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 
@@ -13,6 +14,7 @@ std_console$read_ready <- lib/std/console/console.vader:295
 std_console$system_poll_stdin <- lib/std/console/console.vader:404
 std_console$write_bytes <- lib/std/console/console.vader:42
 std_console$write_text <- lib/std/console/console.vader:81
+std_io$io_error_of <- (no body)
 std_io$last_io_error <- (no body)
 std_time$monotonic_ns <- (no body)
 std_time$now_unix_ms <- (no body)

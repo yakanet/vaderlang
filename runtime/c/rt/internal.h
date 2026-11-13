@@ -228,10 +228,13 @@ static void vader_scheduler_loop(void);
 static void vader_scheduler_ending(void);
 
 /* What a thread waits for the OS to report: a descriptor that reads without
- * blocking or has reached its end, a child process that has ended. */
-enum { VADER_WATCH_READABLE = 0, VADER_WATCH_EXIT = 1 };
-/* The OS reports `id`, watched as `kind`: wake the threads that wait for it. */
+ * blocking or has reached its end, a child process that has ended, a
+ * descriptor that takes a write without blocking. */
+enum { VADER_WATCH_READABLE = 0, VADER_WATCH_EXIT = 1, VADER_WATCH_WRITABLE = 2 };
+/* The OS reports `id`, watched as `kind`: wake the thread that waits for it. */
 static void vader_scheduler_on_event(int kind, int64_t id);
+/* Whether a thread still waits for the OS to report `id`, watched as `kind`. */
+static int vader_scheduler_watched(int kind, int64_t id);
 
 /* ---- os_posix.c, os_windows.c -------------------------------------------- */
 
@@ -258,7 +261,8 @@ static int64_t vader_os_monotonic_ns(void);
 static void vader_os_sleep_ns(int64_t ns);
 /* Have the OS report once, through `vader_scheduler_on_event`, that `id` is as
  * `kind` waits for: the descriptor reads without blocking or has reached its
- * end, the child process has ended. 0 when it will not watch `id`. */
+ * end, the child process has ended, the descriptor takes a write without
+ * blocking. 0 when it will not watch `id`. */
 static int vader_os_watch(int kind, int64_t id);
 /* Wait at most `timeout_ns` for what the OS watches, not at all for 0 and
  * without bound for a negative one, and report what it has. */
@@ -266,6 +270,8 @@ static void vader_os_wait_events(int64_t timeout_ns);
 /* Whether a read of `fd` would not block: it holds data, has reached its end,
  * or fails. */
 static int vader_os_readable_now(int64_t fd);
+/* Whether a write to `fd` would not block: it has room, or fails. */
+static int vader_os_writable_now(int64_t fd);
 /* Highest address of the main thread's C stack, NULL when unknown. The stack
  * grows down, so [current sp, base) covers every live frame. */
 static char* vader_os_stack_base(void);

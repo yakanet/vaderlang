@@ -113,16 +113,28 @@ describe_io_error_kind :: fn(kind: IOErrorKind, fallback: string) -> string = ma
 export last_io_error :: fn(msg: string) -> IOError
 
 @target(.Linux, .Darwin)
-last_io_error :: fn(msg: string) -> IOError {
-    e :: sys_last_errno()
-    return classified_error(msg, errno_kind(e), e)
-}
+last_io_error :: fn(msg: string) -> IOError = io_error_of(sys_last_errno(), msg)
 
 @target(.Windows)
-last_io_error :: fn(msg: string) -> IOError {
-    e :: get_last_error()
-    return classified_error(msg, win32_error_kind(e), i32(e))
-}
+last_io_error :: fn(msg: string) -> IOError = io_error_of(i32(get_last_error()), msg)
+
+/// The failure the system names by `code`, wrapped as an `IOError`: for a code
+/// read some other way than as the last error, a socket's pending one say.
+///
+/// @param code  the raw platform value: an `errno` on POSIX, a `GetLastError`
+///              code on Windows.
+/// @param msg   fallback diagnostic, as `last_io_error` takes it.
+/// @return      the reason, its portable classification, and `code`.
+@target
+export io_error_of :: fn(code: i32, msg: string) -> IOError
+
+@target(.Linux, .Darwin)
+io_error_of :: fn(code: i32, msg: string) -> IOError =
+    classified_error(msg, errno_kind(code), code)
+
+@target(.Windows)
+io_error_of :: fn(code: i32, msg: string) -> IOError =
+    classified_error(msg, win32_error_kind(u32(code)), code)
 
 /// Null when the system call whose outcome is `succeeded` worked, else the
 /// error it left, as `last_io_error` reads it.
@@ -215,6 +227,30 @@ export wait_readable :: fn(d: Descriptor) -> void = Wait.wait_readable(descripto
 /// @return         `false` once `timeout` has passed with nothing to read on `d`.
 export wait_readable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
     Wait.wait_readable_for(descriptor_word(d), timeout.to_nanos())
+
+/// Park the running task until `d` takes a write without blocking, or fails,
+/// while the other tasks run. With no other task, it returns at once, and the
+/// write that follows waits on the system thread.
+///
+/// @param d  what to wait on.
+export wait_writable :: fn(d: Descriptor) -> void = Wait.wait_writable(descriptor_word(d))
+
+/// Park the running task as `wait_writable` does, but no longer than `timeout`.
+/// With no other task, it returns `true` at once, and the caller asks the
+/// system itself.
+///
+/// @param d        what to wait on.
+/// @param timeout  the longest wait; a negative one waits with no deadline.
+/// @return         `false` once `timeout` has passed with no room on `d`.
+export wait_writable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
+    Wait.wait_writable_for(descriptor_word(d), timeout.to_nanos())
+
+/// End the waits of the tasks parked on `d`, each returning as if `d` were
+/// ready. Call it before closing `d`: the system hands its number out again,
+/// and a task still parked would then wait on whatever takes it.
+///
+/// @param d  what is about to be closed.
+export stop_waiting :: fn(d: Descriptor) -> void = Wait.stop_waiting(descriptor_word(d))
 
 // The machine word a wait names `d` by: the descriptor, or the address of the
 // handle.

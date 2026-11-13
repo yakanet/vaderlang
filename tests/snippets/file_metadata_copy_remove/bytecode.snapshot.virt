@@ -356,7 +356,7 @@ fn 0 snippet$main () -> i32
     local.get 3   ; entry
     ref.cast 12   ; std_io$IOError
     struct.get 12 1   ; std_io$IOError.kind
-    call 67   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 68   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 1   ; $call_10
     string.const 9   ; "not empty: "
     local.get 1   ; $call_10
@@ -420,7 +420,7 @@ fn 0 snippet$main () -> i32
     local.get 3   ; entry
     ref.cast 12   ; std_io$IOError
     struct.get 12 1   ; std_io$IOError.kind
-    call 67   ; std_io$IOErrorKind$std_core$Display$to_string
+    call 68   ; std_io$IOErrorKind$std_core$Display$to_string
     local.set 1   ; $call_10
     string.const 12   ; "missing: "
     local.get 1   ; $call_10
@@ -860,8 +860,8 @@ fn 13 std_env$temp_dir_of (any) -> string
   if $L1 void
   else
     local.get 1   ; e
-    call 70   ; std_path$to_path
-    call 72   ; std_path$as_string
+    call 71   ; std_path$to_path
+    call 73   ; std_path$as_string
     return
   end $L1
   return.lit string.const 19   ; "/tmp"
@@ -900,9 +900,9 @@ fn 15 std_fs$create_dir (string) -> any
     return
   end $L1
   local.get 0   ; arg 0
-  call 70   ; std_path$to_path
-  call 71   ; std_path$root
-  call 72   ; std_path$as_string
+  call 71   ; std_path$to_path
+  call 72   ; std_path$root
+  call 73   ; std_path$as_string
   call.import 0   ; std_core$byte_len
   local.set 1   ; i
   local.get 0   ; arg 0
@@ -1525,7 +1525,7 @@ fn 38 std_fs$real_path (string) -> any
   if $L0 void
   else
     local.get 1   ; resolved
-    call 69   ; system_posix$up_to_nul
+    call 70   ; system_posix$up_to_nul
     retag 2   ; string
     return
   end $L0
@@ -2333,7 +2333,7 @@ fn 59 std_fs$File$std_io$Writer$write (ref,any) -> any
     return
   end $L0
   local.get 1   ; arg 1
-  call 68   ; std_io$bytes_of
+  call 69   ; std_io$bytes_of
   local.set 2   ; bytes
   i64.const 0
   local.set 3   ; done
@@ -2468,30 +2468,35 @@ fn 62 std_io$failure_unless (bool,string) -> any
 end
 
 fn 63 std_io$last_io_error (string) -> ref
-  local e i32
-  local $call_3 u8
   call.import 8   ; system_posix$sys_last_errno
-  local.tee 1   ; e
-  call 65   ; std_io$errno_kind
-  local.set 2   ; $call_3
   local.get 0   ; arg 0
-  local.get 2   ; $call_3
-  local.get 1   ; e
-  call 64   ; std_io$classified_error
+  call 64   ; std_io$io_error_of
   return
 end
 
-fn 64 std_io$classified_error (string,u8,i32) -> ref
+fn 64 std_io$io_error_of (i32,string) -> ref
+  local $call_2 u8
+  local.get 0   ; arg 0
+  call 66   ; std_io$errno_kind
+  local.set 2   ; $call_2
+  local.get 1   ; arg 1
+  local.get 2   ; $call_2
+  local.get 0   ; arg 0
+  call 65   ; std_io$classified_error
+  return
+end
+
+fn 65 std_io$classified_error (string,u8,i32) -> ref
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 66   ; std_io$describe_io_error_kind
+  call 67   ; std_io$describe_io_error_kind
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   struct.new 12   ; std_io$IOError
   return
 end
 
-fn 65 std_io$errno_kind (i32) -> u8
+fn 66 std_io$errno_kind (i32) -> u8
   local if_res i32
   local.get 0   ; arg 0
   i32.const 2
@@ -2691,7 +2696,7 @@ fn 65 std_io$errno_kind (i32) -> u8
   return.lit i32.const 19
 end
 
-fn 66 std_io$describe_io_error_kind (u8,string) -> string
+fn 67 std_io$describe_io_error_kind (u8,string) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 1
@@ -2858,7 +2863,7 @@ fn 66 std_io$describe_io_error_kind (u8,string) -> string
   return
 end
 
-fn 67 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
+fn 68 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -3025,7 +3030,7 @@ fn 67 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   return
 end
 
-fn 68 std_io$bytes_of (any) -> ref
+fn 69 std_io$bytes_of (any) -> ref
   local.get 0   ; arg 0
   type_check 2   ; string
   if $L0 void
@@ -3039,7 +3044,7 @@ fn 68 std_io$bytes_of (any) -> ref
   return
 end
 
-fn 69 system_posix$up_to_nul (ref) -> string
+fn 70 system_posix$up_to_nul (ref) -> string
   local end i64
   local i i64
   local __for_hi_0 i64
@@ -3084,11 +3089,11 @@ fn 69 system_posix$up_to_nul (ref) -> string
   return
 end
 
-fn 70 std_path$to_path (string) -> string
+fn 71 std_path$to_path (string) -> string
   local $call_4 u8
   local.get 0   ; arg 0
   string.const 32   ; "/"
-  call 78   ; std_string$ends_with
+  call 79   ; std_string$ends_with
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -3098,11 +3103,11 @@ fn 70 std_path$to_path (string) -> string
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
-  call 73   ; std_path$without_trailing_separators
+  call 74   ; std_path$without_trailing_separators
   return
 end
 
-fn 71 std_path$root (string) -> string
+fn 72 std_path$root (string) -> string
   local s string
   local $call_4 u8
   local $call_5 i64
@@ -3112,7 +3117,7 @@ fn 71 std_path$root (string) -> string
   local.set 2   ; $call_4
   local.get 1   ; s
   local.get 2   ; $call_4
-  call 74   ; std_path$root_length
+  call 75   ; std_path$root_length
   local.set 3   ; $call_5
   local.get 1   ; s
   i64.const 0
@@ -3121,12 +3126,12 @@ fn 71 std_path$root (string) -> string
   return
 end
 
-fn 72 std_path$as_string (string) -> string
+fn 73 std_path$as_string (string) -> string
   local.get 0   ; arg 0
   return
 end
 
-fn 73 std_path$without_trailing_separators (string,u8) -> string
+fn 74 std_path$without_trailing_separators (string,u8) -> string
   local n i64
   local $sub_checked_7 i64
   local $sub_checked_16 i64
@@ -3154,7 +3159,7 @@ fn 73 std_path$without_trailing_separators (string,u8) -> string
   end $L1
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 74   ; std_path$root_length
+  call 75   ; std_path$root_length
   local.set 3   ; $sub_checked_7
   block $L2 void
     loop $L3 void
@@ -3190,12 +3195,12 @@ fn 73 std_path$without_trailing_separators (string,u8) -> string
   return
 end
 
-fn 74 std_path$root_length (string,u8) -> i64
+fn 75 std_path$root_length (string,u8) -> i64
   local prefix i64
   local $call_4 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 75   ; std_path$prefix_length
+  call 76   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -3222,7 +3227,7 @@ fn 74 std_path$root_length (string,u8) -> i64
   return
 end
 
-fn 75 std_path$prefix_length (string,u8) -> i64
+fn 76 std_path$prefix_length (string,u8) -> i64
   local n i64
   local __coalesce_0 any
   local $add_checked_39 i64
@@ -3241,7 +3246,7 @@ fn 75 std_path$prefix_length (string,u8) -> i64
     local.get 0   ; arg 0
     i64.const 0
     call.import 1   ; std_core$byte_at
-    call 76   ; std_path$is_ascii_letter
+    call 77   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
@@ -3285,7 +3290,7 @@ fn 75 std_path$prefix_length (string,u8) -> i64
   end $L7
   local.get 0   ; arg 0
   i64.const 2
-  call 77   ; std_path$next_separator
+  call 78   ; std_path$next_separator
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L8 void
@@ -3299,7 +3304,7 @@ fn 75 std_path$prefix_length (string,u8) -> i64
   local.set 4   ; $add_checked_39
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
-  call 77   ; std_path$next_separator
+  call 78   ; std_path$next_separator
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L9 void
@@ -3311,7 +3316,7 @@ fn 75 std_path$prefix_length (string,u8) -> i64
   return
 end
 
-fn 76 std_path$is_ascii_letter (u8) -> bool
+fn 77 std_path$is_ascii_letter (u8) -> bool
   local and_res bool
   local.get 0   ; arg 0
   i32.const 97
@@ -3345,7 +3350,7 @@ fn 76 std_path$is_ascii_letter (u8) -> bool
   return
 end
 
-fn 77 std_path$next_separator (string,i64) -> any
+fn 78 std_path$next_separator (string,i64) -> any
   local i i64
   local __for_hi_0 i64
   local.get 1   ; arg 1
@@ -3378,7 +3383,7 @@ fn 77 std_path$next_separator (string,i64) -> any
   return.lit null.const
 end
 
-fn 78 std_string$ends_with (string,string) -> bool
+fn 79 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
@@ -3405,13 +3410,13 @@ fn 78 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 79   ; std_string$matches_at
+    call 80   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 79 std_string$matches_at (string,i64,string) -> bool
+fn 80 std_string$matches_at (string,i64,string) -> bool
   local m i64
   local $call_5 i64
   local $add_checked_14 i64
