@@ -40,6 +40,11 @@ loopback address, against 0.35 ms once either cause was removed.
 - **`serve` returns why it accepts no more**, an `IOError`: the listener was
   closed, or the system refused. Closing the listener is how a server is
   stopped; cancelling the task that runs `serve` does the same.
+- **A failure that says nothing of the next connection does not stop the
+  server.** `accept` of `std/net` passes over a connection dropped before it
+  was taken. A process with no descriptor left (`IOErrorKind.NoDescriptor`)
+  is waited out by `serve`: it asks again after 5 ms, then twice as long each
+  time, a second at most, while the connections it serves go on.
 - **The head of a message goes out with the first bytes read of its body**,
   in one write. What the body gives later goes as it is read: nothing is held
   back for a buffer to fill, since a client may wait for it.
@@ -57,9 +62,11 @@ exchanges under way finish, within a delay, comes with the deadlines of a
 connection, which nothing bounds yet: a connection that sends nothing is
 served for as long as it stays open.
 
-Any failure of `accept` ends the server, one the system would lift a moment
-later included (no descriptor left, a connection dropped before it was
-accepted).
+A server kept out of descriptors by clients that hold their connections and
+send nothing waits for as long as they stay: the same deadlines end that.
+
+Linux reports through `accept` the failures of the network a new connection
+met (`ENETDOWN`, `EPROTO` and six more): they still end the server.
 
 The connections still served are looked over at each `accept`, to forget
 those that ended: a cost that grows with how many are open.

@@ -65,9 +65,12 @@ export listen :: fn(address: SocketAddress, backlog: i32 = 128) -> TcpListener |
 /// Wait for the next connection to `listener`, the other tasks running
 /// meanwhile.
 ///
+/// A connection the other end dropped before it was accepted is passed over.
+///
 /// @param listener  the listening socket.
 /// @error           `IOError` when the listener is closed, or the system
-///                  refuses: no descriptor left, say.
+///                  refuses: `.NoDescriptor` when the process has as many open
+///                  sockets as it may, which a later call may not meet.
 export accept :: fn(listener: TcpListener) -> TcpStream | IOError {
     if listener.closed.load() {
         return SOCKET_CLOSED
@@ -274,8 +277,10 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
             if !park_readable(fd, closed) {
                 return SOCKET_CLOSED
             }
-        } else if code != EINTR {
-            return last_io_error("cannot accept")
+        } else if code != EINTR && code != ECONNABORTED {
+            // A connection dropped before it was taken says nothing of the
+            // next: only another failure ends the call.
+            return io_error_of(code, "cannot accept")
         }
     }
 }
@@ -289,6 +294,10 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
             return followed(accepted)
         }
         code :: get_last_error()
+        // A connection dropped before it was taken says nothing of the next.
+        if code == WSAECONNRESET {
+            continue
+        }
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "cannot accept")
         }
@@ -925,6 +934,23 @@ test_a_stream_holds_no_write_back :: fn() -> void {
     client.close()
     server.close()
     listener.close()
+}
+
+// The code the system gives a process that has as many open sockets as it may.
+@target
+too_many_open :: fn() -> i32
+
+@target(.Linux, .Darwin)
+too_many_open :: fn() -> i32 = EMFILE
+
+@target(.Windows)
+too_many_open :: fn() -> i32 = i32(WSAEMFILE)
+
+@test
+test_a_process_out_of_descriptors_is_told_apart :: fn() -> void {
+    refused :: io_error_of(too_many_open(), "cannot accept")
+    assert(refused.kind == .NoDescriptor, "a failure a caller may wait out")
+    assert_eq(refused.msg, "too many open files")
 }
 
 @test

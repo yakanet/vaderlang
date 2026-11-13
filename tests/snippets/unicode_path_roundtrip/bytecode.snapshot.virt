@@ -84,10 +84,11 @@ string 45 "address already in use"
 string 46 "address not available"
 string 47 "not connected"
 string 48 "timed out"
-string 49 "path contains a NUL byte"
-string 50 "file is closed"
-data 0 structs 13 3 1 strref 49 u8 0a i32 00000000
-data 1 structs 13 3 1 strref 50 u8 0c i32 00000000
+string 49 "too many open files"
+string 50 "path contains a NUL byte"
+string 51 "file is closed"
+data 0 structs 13 3 1 strref 50 u8 0a i32 00000000
+data 1 structs 13 3 1 strref 51 u8 0c i32 00000000
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=7 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
@@ -1915,68 +1916,96 @@ fn 51 std_io$errno_kind (i32) -> u8
   i32.const 2
   i32.eq
   if $L19 void
-    i32.const 48
+    i32.const 53
     local.set 1   ; if_res
   else
-    i32.const 98
+    i32.const 103
     local.set 1   ; if_res
   end $L19
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L20 void
-    return.lit i32.const 16
+    return.lit i32.const 15
   end $L20
   i32.const 1
   i32.const 2
   i32.eq
   if $L21 void
-    i32.const 49
+    i32.const 48
     local.set 1   ; if_res
   else
-    i32.const 99
+    i32.const 98
     local.set 1   ; if_res
   end $L21
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L22 void
-    return.lit i32.const 17
+    return.lit i32.const 16
   end $L22
   i32.const 1
   i32.const 2
   i32.eq
   if $L23 void
-    i32.const 57
+    i32.const 49
     local.set 1   ; if_res
   else
-    i32.const 107
+    i32.const 99
     local.set 1   ; if_res
   end $L23
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L24 void
-    return.lit i32.const 18
+    return.lit i32.const 17
   end $L24
   i32.const 1
   i32.const 2
   i32.eq
   if $L25 void
-    i32.const 60
+    i32.const 57
     local.set 1   ; if_res
   else
-    i32.const 110
+    i32.const 107
     local.set 1   ; if_res
   end $L25
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L26 void
+    return.lit i32.const 18
+  end $L26
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L27 void
+    i32.const 60
+    local.set 1   ; if_res
+  else
+    i32.const 110
+    local.set 1   ; if_res
+  end $L27
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L28 void
+    return.lit i32.const 19
+  end $L28
+  local.get 0   ; arg 0
+  i32.const 24
+  i32.eq
+  if $L29 void
+    return.lit i32.const 20
+  end $L29
+  local.get 0   ; arg 0
+  i32.const 23
+  i32.eq
+  if $L30 void
   else
     return.lit i32.const 0
-  end $L26
-  return.lit i32.const 19
+  end $L30
+  return.lit i32.const 20
 end
 
 fn 52 std_io$describe_io_error_kind (u8,string) -> string
@@ -2116,14 +2145,22 @@ fn 52 std_io$describe_io_error_kind (u8,string) -> string
                                       local.set 2   ; if_res
                                     else
                                       local.get 0   ; arg 0
-                                      i32.const 0
+                                      i32.const 20
                                       i32.eq
                                       if $L19 void
+                                        string.const 49   ; "too many open files"
+                                        local.set 2   ; if_res
                                       else
-                                        unreachable
+                                        local.get 0   ; arg 0
+                                        i32.const 0
+                                        i32.eq
+                                        if $L20 void
+                                        else
+                                          unreachable
+                                        end $L20
+                                        local.get 1   ; arg 1
+                                        local.set 2   ; if_res
                                       end $L19
-                                      local.get 1   ; arg 1
-                                      local.set 2   ; if_res
                                     end $L18
                                   end $L17
                                 end $L16

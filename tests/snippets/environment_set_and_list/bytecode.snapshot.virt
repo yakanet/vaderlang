@@ -60,26 +60,28 @@ string 36 "address already in use"
 string 37 "address not available"
 string 38 "not connected"
 string 39 "timed out"
-string 40 "Other"
-string 41 "NotFound"
-string 42 "PermissionDenied"
-string 43 "Interrupted"
-string 44 "AlreadyExists"
-string 45 "NotADirectory"
-string 46 "IsADirectory"
-string 47 "WouldBlock"
-string 48 "BrokenPipe"
-string 49 "NoSpace"
-string 50 "InvalidInput"
-string 51 "DirectoryNotEmpty"
-string 52 "BadHandle"
-string 53 "EndOfInput"
-string 54 "ConnectionRefused"
-string 55 "ConnectionReset"
-string 56 "AddressInUse"
-string 57 "AddressNotAvailable"
-string 58 "NotConnected"
-string 59 "TimedOut"
+string 40 "too many open files"
+string 41 "Other"
+string 42 "NotFound"
+string 43 "PermissionDenied"
+string 44 "Interrupted"
+string 45 "AlreadyExists"
+string 46 "NotADirectory"
+string 47 "IsADirectory"
+string 48 "WouldBlock"
+string 49 "BrokenPipe"
+string 50 "NoSpace"
+string 51 "InvalidInput"
+string 52 "DirectoryNotEmpty"
+string 53 "BadHandle"
+string 54 "EndOfInput"
+string 55 "ConnectionRefused"
+string 56 "ConnectionReset"
+string 57 "AddressInUse"
+string 58 "AddressNotAvailable"
+string 59 "NotConnected"
+string 60 "TimedOut"
+string 61 "NoDescriptor"
 import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$byte_at result_type=4 param_types=2,6 param_c_out= param_by_address= (string,i64) -> u8
 import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,6,6 param_c_out= param_by_address= (string,i64,i64) -> string
@@ -838,68 +840,96 @@ fn 23 std_io$errno_kind (i32) -> u8
   i32.const 2
   i32.eq
   if $L19 void
-    i32.const 48
+    i32.const 53
     local.set 1   ; if_res
   else
-    i32.const 98
+    i32.const 103
     local.set 1   ; if_res
   end $L19
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L20 void
-    return.lit i32.const 16
+    return.lit i32.const 15
   end $L20
   i32.const 1
   i32.const 2
   i32.eq
   if $L21 void
-    i32.const 49
+    i32.const 48
     local.set 1   ; if_res
   else
-    i32.const 99
+    i32.const 98
     local.set 1   ; if_res
   end $L21
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L22 void
-    return.lit i32.const 17
+    return.lit i32.const 16
   end $L22
   i32.const 1
   i32.const 2
   i32.eq
   if $L23 void
-    i32.const 57
+    i32.const 49
     local.set 1   ; if_res
   else
-    i32.const 107
+    i32.const 99
     local.set 1   ; if_res
   end $L23
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L24 void
-    return.lit i32.const 18
+    return.lit i32.const 17
   end $L24
   i32.const 1
   i32.const 2
   i32.eq
   if $L25 void
-    i32.const 60
+    i32.const 57
     local.set 1   ; if_res
   else
-    i32.const 110
+    i32.const 107
     local.set 1   ; if_res
   end $L25
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L26 void
+    return.lit i32.const 18
+  end $L26
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L27 void
+    i32.const 60
+    local.set 1   ; if_res
+  else
+    i32.const 110
+    local.set 1   ; if_res
+  end $L27
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L28 void
+    return.lit i32.const 19
+  end $L28
+  local.get 0   ; arg 0
+  i32.const 24
+  i32.eq
+  if $L29 void
+    return.lit i32.const 20
+  end $L29
+  local.get 0   ; arg 0
+  i32.const 23
+  i32.eq
+  if $L30 void
   else
     return.lit i32.const 0
-  end $L26
-  return.lit i32.const 19
+  end $L30
+  return.lit i32.const 20
 end
 
 fn 24 std_io$describe_io_error_kind (u8,string) -> string
@@ -1039,14 +1069,22 @@ fn 24 std_io$describe_io_error_kind (u8,string) -> string
                                       local.set 2   ; if_res
                                     else
                                       local.get 0   ; arg 0
-                                      i32.const 0
+                                      i32.const 20
                                       i32.eq
                                       if $L19 void
+                                        string.const 40   ; "too many open files"
+                                        local.set 2   ; if_res
                                       else
-                                        unreachable
+                                        local.get 0   ; arg 0
+                                        i32.const 0
+                                        i32.eq
+                                        if $L20 void
+                                        else
+                                          unreachable
+                                        end $L20
+                                        local.get 1   ; arg 1
+                                        local.set 2   ; if_res
                                       end $L19
-                                      local.get 1   ; arg 1
-                                      local.set 2   ; if_res
                                     end $L18
                                   end $L17
                                 end $L16
@@ -1075,7 +1113,7 @@ fn 25 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 40   ; "Other"
+    string.const 41   ; "Other"
     local.tee 1   ; if_res
     return
   end $L0
@@ -1083,137 +1121,145 @@ fn 25 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 41   ; "NotFound"
+    string.const 42   ; "NotFound"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 2
     i32.eq
     if $L2 void
-      string.const 42   ; "PermissionDenied"
+      string.const 43   ; "PermissionDenied"
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 3
       i32.eq
       if $L3 void
-        string.const 43   ; "Interrupted"
+        string.const 44   ; "Interrupted"
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 4
         i32.eq
         if $L4 void
-          string.const 44   ; "AlreadyExists"
+          string.const 45   ; "AlreadyExists"
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
           i32.const 5
           i32.eq
           if $L5 void
-            string.const 45   ; "NotADirectory"
+            string.const 46   ; "NotADirectory"
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
             i32.const 6
             i32.eq
             if $L6 void
-              string.const 46   ; "IsADirectory"
+              string.const 47   ; "IsADirectory"
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 7
               i32.eq
               if $L7 void
-                string.const 47   ; "WouldBlock"
+                string.const 48   ; "WouldBlock"
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 8
                 i32.eq
                 if $L8 void
-                  string.const 48   ; "BrokenPipe"
+                  string.const 49   ; "BrokenPipe"
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 9
                   i32.eq
                   if $L9 void
-                    string.const 49   ; "NoSpace"
+                    string.const 50   ; "NoSpace"
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 10
                     i32.eq
                     if $L10 void
-                      string.const 50   ; "InvalidInput"
+                      string.const 51   ; "InvalidInput"
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 11
                       i32.eq
                       if $L11 void
-                        string.const 51   ; "DirectoryNotEmpty"
+                        string.const 52   ; "DirectoryNotEmpty"
                         local.set 1   ; if_res
                       else
                         local.get 0   ; arg 0
                         i32.const 12
                         i32.eq
                         if $L12 void
-                          string.const 52   ; "BadHandle"
+                          string.const 53   ; "BadHandle"
                           local.set 1   ; if_res
                         else
                           local.get 0   ; arg 0
                           i32.const 13
                           i32.eq
                           if $L13 void
-                            string.const 53   ; "EndOfInput"
+                            string.const 54   ; "EndOfInput"
                             local.set 1   ; if_res
                           else
                             local.get 0   ; arg 0
                             i32.const 14
                             i32.eq
                             if $L14 void
-                              string.const 54   ; "ConnectionRefused"
+                              string.const 55   ; "ConnectionRefused"
                               local.set 1   ; if_res
                             else
                               local.get 0   ; arg 0
                               i32.const 15
                               i32.eq
                               if $L15 void
-                                string.const 55   ; "ConnectionReset"
+                                string.const 56   ; "ConnectionReset"
                                 local.set 1   ; if_res
                               else
                                 local.get 0   ; arg 0
                                 i32.const 16
                                 i32.eq
                                 if $L16 void
-                                  string.const 56   ; "AddressInUse"
+                                  string.const 57   ; "AddressInUse"
                                   local.set 1   ; if_res
                                 else
                                   local.get 0   ; arg 0
                                   i32.const 17
                                   i32.eq
                                   if $L17 void
-                                    string.const 57   ; "AddressNotAvailable"
+                                    string.const 58   ; "AddressNotAvailable"
                                     local.set 1   ; if_res
                                   else
                                     local.get 0   ; arg 0
                                     i32.const 18
                                     i32.eq
                                     if $L18 void
-                                      string.const 58   ; "NotConnected"
+                                      string.const 59   ; "NotConnected"
                                       local.set 1   ; if_res
                                     else
                                       local.get 0   ; arg 0
                                       i32.const 19
                                       i32.eq
                                       if $L19 void
+                                        string.const 60   ; "TimedOut"
+                                        local.set 1   ; if_res
                                       else
-                                        unreachable
+                                        local.get 0   ; arg 0
+                                        i32.const 20
+                                        i32.eq
+                                        if $L20 void
+                                        else
+                                          unreachable
+                                        end $L20
+                                        string.const 61   ; "NoDescriptor"
+                                        local.set 1   ; if_res
                                       end $L19
-                                      string.const 59   ; "TimedOut"
-                                      local.set 1   ; if_res
                                     end $L18
                                   end $L17
                                 end $L16

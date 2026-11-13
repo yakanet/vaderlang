@@ -5,6 +5,10 @@
 // for its next request or for a client slow to read, parks its task, and the
 // others go on.
 //
+// A process that has as many open sockets as it may accepts no connection
+// until one closes: `serve` waits and asks again, and the connections it
+// serves go on meanwhile.
+//
 // No connection outlives the call: when no further one is accepted, those
 // still served are cut where they are.
 // docs/adr/0139-a-server-is-a-task-per-connection-none-outlives-it.md has the
@@ -13,8 +17,10 @@
 module "http"
 
 import "std/io"
+import "std/math"
 import "std/net"
 import "std/task"
+import "std/time"
 
 // ---- serving a listener ---------------------------------------------------
 
@@ -30,6 +36,9 @@ import "std/task"
 /// Closing `listener` ends the call, and so does cancelling the task that
 /// runs it. The connections still served are then cut where they are, and
 /// closed: none is left when the call returns.
+///
+/// A process that has as many open sockets as it may does not end the call:
+/// the next connection is accepted once the process can open one.
 ///
 /// @param listener  where the connections arrive.
 /// @param handler   what answers a request, with a final response.
@@ -49,8 +58,9 @@ export serve :: fn(
 ) -> IOError {
     serving: Connection[]: []
     defer cut(serving)
+    accept :: () -> listener.accept()
     for {
-        stream :: listener.accept()
+        stream :: patiently(accept)
         if stream is IOError {
             return stream
         }
@@ -61,6 +71,26 @@ export serve :: fn(
                 .task = launch(() -> serve_stream(stream, handler, limits)),
             },
         )
+    }
+}
+
+// How long `patiently` waits before it asks again, at first and at most, in
+// milliseconds.
+FIRST_PAUSE_MILLIS: i64: 5
+LONGEST_PAUSE_MILLIS: i64: 1000
+
+// What `accept` gives, asked again for as long as it fails for want of a
+// descriptor: one comes back when a connection closes. The wait doubles each
+// time, so that a process that stays short is not kept busy asking.
+patiently :: fn(accept: fn() -> TcpStream | IOError) -> TcpStream | IOError {
+    pause := FIRST_PAUSE_MILLIS
+    for {
+        stream :: accept()
+        if stream is TcpStream || stream.kind != .NoDescriptor {
+            return stream
+        }
+        sleep(pause.millis())
+        pause = min(pause * 2, LONGEST_PAUSE_MILLIS)
     }
 }
 
@@ -94,7 +124,6 @@ cut :: fn(serving: Connection[]) -> void {
 
 import "std/string"
 import "std/testing"
-import "std/time"
 
 // A listener on a free port of the loopback address; null, the test having
 // failed, when the system refuses.
@@ -292,4 +321,25 @@ test_a_connection_cut_before_it_was_served_is_closed :: fn() -> void {
     assert_eq(rest_of(client), "")
     client.close()
     listener.close()
+}
+
+@test
+test_a_process_out_of_descriptors_is_waited_for :: fn() -> void {
+    asked: i64[]: [0]
+    short :: IOError { .msg = "too many open files", .kind = .NoDescriptor }
+    gone :: IOError { .msg = "socket is closed", .kind = .BadHandle }
+    began :: monotonic()
+    ended :: patiently(
+        fn() -> TcpStream | IOError {
+            asked[0] += 1
+            if asked[0] < 4 {
+                return short
+            }
+            return gone
+        },
+    )
+    assert(ended is IOError && ended.kind == .BadHandle, "another failure ends the wait")
+    assert_eq(asked[0], 4)
+    // Three waits, of 5, 10 and 20 ms.
+    assert(began.since() >= 35.millis(), "each failure is waited out, longer each time")
 }

@@ -867,6 +867,8 @@ export WINSOCK_TCP_NODELAY: i32: 1
 
 /// The Winsock codes `std/io` classifies.
 export WSAEINTR: u32: 10004
+/// The process has as many open sockets as it may.
+export WSAEMFILE: u32: 10024
 /// The call has nothing to take and the socket does not wait.
 export WSAEWOULDBLOCK: u32: 10035
 export WSAEADDRINUSE: u32: 10048

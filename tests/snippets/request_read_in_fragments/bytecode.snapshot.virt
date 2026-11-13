@@ -85,8 +85,9 @@ string 55 "AddressInUse"
 string 56 "AddressNotAvailable"
 string 57 "NotConnected"
 string 58 "TimedOut"
-string 59 "the stream failed"
-data 0 structs 3 3 1 strref 59 u8 00 i32 00000000
+string 59 "NoDescriptor"
+string 60 "the stream failed"
+data 0 structs 3 3 1 strref 60 u8 00 i32 00000000
 import 0 byte_len std_core$byte_len result_type=10 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes_to_string std_core$bytes_to_string result_type=4 param_types=6 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=6 param_types=4 param_c_out= param_by_address= (string) -> ref
@@ -1908,11 +1909,19 @@ fn 26 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                                       i32.const 19
                                       i32.eq
                                       if $L19 void
+                                        string.const 58   ; "TimedOut"
+                                        local.set 1   ; if_res
                                       else
-                                        unreachable
+                                        local.get 0   ; arg 0
+                                        i32.const 20
+                                        i32.eq
+                                        if $L20 void
+                                        else
+                                          unreachable
+                                        end $L20
+                                        string.const 59   ; "NoDescriptor"
+                                        local.set 1   ; if_res
                                       end $L19
-                                      string.const 58   ; "TimedOut"
-                                      local.set 1   ; if_res
                                     end $L18
                                   end $L17
                                 end $L16

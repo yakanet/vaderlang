@@ -120,6 +120,10 @@ export EEXIST: i32: 17
 export ENOTDIR: i32: 20
 export EISDIR: i32: 21
 export EINVAL: i32: 22
+/// The system has no room for one more open file.
+export ENFILE: i32: 23
+/// The process has as many open files as it may.
+export EMFILE: i32: 24
 export ENOSPC: i32: 28
 export EPIPE: i32: 32
 /// Diverges: 35 on Darwin, 11 on Linux, where `EDEADLK` sits on the other.
@@ -130,6 +134,9 @@ export ENOTEMPTY: i32: if VADER_OS == .Darwin { 66 } else { 39 }
 export EADDRINUSE: i32: if VADER_OS == .Darwin { 48 } else { 98 }
 /// Diverges: 49 on Darwin, 99 on Linux.
 export EADDRNOTAVAIL: i32: if VADER_OS == .Darwin { 49 } else { 99 }
+/// A connection dropped before it was accepted. Diverges: 53 on Darwin, 103
+/// on Linux.
+export ECONNABORTED: i32: if VADER_OS == .Darwin { 53 } else { 103 }
 /// Diverges: 54 on Darwin, 104 on Linux.
 export ECONNRESET: i32: if VADER_OS == .Darwin { 54 } else { 104 }
 /// Diverges: 57 on Darwin, 107 on Linux.

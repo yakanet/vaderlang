@@ -128,6 +128,7 @@ static const char vader_atom_blob[] =
     "AddressNotAvailable" "\0"
     "NotConnected" "\0"
     "TimedOut" "\0"
+    "NoDescriptor" "\0"
     "the stream failed" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
@@ -190,16 +191,17 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[773] },
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[793] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[806] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[815] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[815] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[828] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 60u
+#define VADER_COMPTIME_ATOM_COUNT 61u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 static const struct vader_struct_std_io$IOError_t vader_data_0_e0 = {
-    VADER_STATIC_HEADER(3u), 60u, (uint8_t) UINT64_C(0), (int32_t) UINT64_C(0),
+    VADER_STATIC_HEADER(3u), 61u, (uint8_t) UINT64_C(0), (int32_t) UINT64_C(0),
 };
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 1) vader_data_0_buf = {
     VADER_STATIC_BUF_HEADER(3u, 0u, 1u),
@@ -1452,11 +1454,13 @@ static vader_string_t std_io$IOErrorKind$std_core$Display$to_string(uint8_t l0) 
         l1 = 57u;
     } else if (l0 == INT32_C(18)) {
         l1 = 58u;
+    } else if (l0 == INT32_C(19)) {
+        l1 = 59u;
     } else {
-        if (!(l0 == INT32_C(19))) {
+        if (!(l0 == INT32_C(20))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l1 = 59u;
+        l1 = 60u;
     }
     return l1;
 }

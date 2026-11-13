@@ -144,51 +144,53 @@ string 60 "address already in use"
 string 61 "address not available"
 string 62 "not connected"
 string 63 "timed out"
-string 64 "NotFound"
-string 65 "PermissionDenied"
-string 66 "Interrupted"
-string 67 "AlreadyExists"
-string 68 "NotADirectory"
-string 69 "IsADirectory"
-string 70 "WouldBlock"
-string 71 "BrokenPipe"
-string 72 "NoSpace"
-string 73 "InvalidInput"
-string 74 "DirectoryNotEmpty"
-string 75 "BadHandle"
-string 76 "EndOfInput"
-string 77 "ConnectionRefused"
-string 78 "ConnectionReset"
-string 79 "AddressInUse"
-string 80 "AddressNotAvailable"
-string 81 "NotConnected"
-string 82 "TimedOut"
-string 83 "a trailing `\\` quotes nothing"
-string 84 "a class cannot start a range"
-string 85 "the range `"
-string 86 "-"
-string 87 "` is reversed"
-string 88 "POSIX names no class `[:"
-string 89 ":]`"
-string 90 "a class cannot end a range"
-string 91 "the POSIX locale has no element `["
-string 92 "]`"
-string 93 "alnum"
-string 94 "alpha"
-string 95 "blank"
-string 96 "cntrl"
-string 97 "digit"
-string 98 "graph"
-string 99 "lower"
-string 100 "print"
-string 101 "punct"
-string 102 "space"
-string 103 "upper"
-string 104 "xdigit"
-string 105 "path contains a NUL byte"
-string 106 "file is closed"
-data 0 structs 20 3 1 strref 105 u8 0a i32 00000000
-data 1 structs 20 3 1 strref 106 u8 0c i32 00000000
+string 64 "too many open files"
+string 65 "NotFound"
+string 66 "PermissionDenied"
+string 67 "Interrupted"
+string 68 "AlreadyExists"
+string 69 "NotADirectory"
+string 70 "IsADirectory"
+string 71 "WouldBlock"
+string 72 "BrokenPipe"
+string 73 "NoSpace"
+string 74 "InvalidInput"
+string 75 "DirectoryNotEmpty"
+string 76 "BadHandle"
+string 77 "EndOfInput"
+string 78 "ConnectionRefused"
+string 79 "ConnectionReset"
+string 80 "AddressInUse"
+string 81 "AddressNotAvailable"
+string 82 "NotConnected"
+string 83 "TimedOut"
+string 84 "NoDescriptor"
+string 85 "a trailing `\\` quotes nothing"
+string 86 "a class cannot start a range"
+string 87 "the range `"
+string 88 "-"
+string 89 "` is reversed"
+string 90 "POSIX names no class `[:"
+string 91 ":]`"
+string 92 "a class cannot end a range"
+string 93 "the POSIX locale has no element `["
+string 94 "]`"
+string 95 "alnum"
+string 96 "alpha"
+string 97 "blank"
+string 98 "cntrl"
+string 99 "digit"
+string 100 "graph"
+string 101 "lower"
+string 102 "print"
+string 103 "punct"
+string 104 "space"
+string 105 "upper"
+string 106 "xdigit"
+string 107 "path contains a NUL byte"
+string 108 "file is closed"
+data 0 structs 20 3 1 strref 107 u8 0a i32 00000000
+data 1 structs 20 3 1 strref 108 u8 0c i32 00000000
 data 2 structs 16 0 1
 data 3 structs 57 0 1
 data 4 structs 62 0 1
@@ -3063,68 +3065,96 @@ fn 62 std_io$errno_kind (i32) -> u8
   i32.const 2
   i32.eq
   if $L19 void
-    i32.const 48
+    i32.const 53
     local.set 1   ; if_res
   else
-    i32.const 98
+    i32.const 103
     local.set 1   ; if_res
   end $L19
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L20 void
-    return.lit i32.const 16
+    return.lit i32.const 15
   end $L20
   i32.const 1
   i32.const 2
   i32.eq
   if $L21 void
-    i32.const 49
+    i32.const 48
     local.set 1   ; if_res
   else
-    i32.const 99
+    i32.const 98
     local.set 1   ; if_res
   end $L21
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L22 void
-    return.lit i32.const 17
+    return.lit i32.const 16
   end $L22
   i32.const 1
   i32.const 2
   i32.eq
   if $L23 void
-    i32.const 57
+    i32.const 49
     local.set 1   ; if_res
   else
-    i32.const 107
+    i32.const 99
     local.set 1   ; if_res
   end $L23
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L24 void
-    return.lit i32.const 18
+    return.lit i32.const 17
   end $L24
   i32.const 1
   i32.const 2
   i32.eq
   if $L25 void
-    i32.const 60
+    i32.const 57
     local.set 1   ; if_res
   else
-    i32.const 110
+    i32.const 107
     local.set 1   ; if_res
   end $L25
   local.get 0   ; arg 0
   local.get 1   ; if_res
   i32.eq
   if $L26 void
+    return.lit i32.const 18
+  end $L26
+  i32.const 1
+  i32.const 2
+  i32.eq
+  if $L27 void
+    i32.const 60
+    local.set 1   ; if_res
+  else
+    i32.const 110
+    local.set 1   ; if_res
+  end $L27
+  local.get 0   ; arg 0
+  local.get 1   ; if_res
+  i32.eq
+  if $L28 void
+    return.lit i32.const 19
+  end $L28
+  local.get 0   ; arg 0
+  i32.const 24
+  i32.eq
+  if $L29 void
+    return.lit i32.const 20
+  end $L29
+  local.get 0   ; arg 0
+  i32.const 23
+  i32.eq
+  if $L30 void
   else
     return.lit i32.const 0
-  end $L26
-  return.lit i32.const 19
+  end $L30
+  return.lit i32.const 20
 end
 
 fn 63 std_io$describe_io_error_kind (u8,string) -> string
@@ -3264,14 +3294,22 @@ fn 63 std_io$describe_io_error_kind (u8,string) -> string
                                       local.set 2   ; if_res
                                     else
                                       local.get 0   ; arg 0
-                                      i32.const 0
+                                      i32.const 20
                                       i32.eq
                                       if $L19 void
+                                        string.const 64   ; "too many open files"
+                                        local.set 2   ; if_res
                                       else
-                                        unreachable
+                                        local.get 0   ; arg 0
+                                        i32.const 0
+                                        i32.eq
+                                        if $L20 void
+                                        else
+                                          unreachable
+                                        end $L20
+                                        local.get 1   ; arg 1
+                                        local.set 2   ; if_res
                                       end $L19
-                                      local.get 1   ; arg 1
-                                      local.set 2   ; if_res
                                     end $L18
                                   end $L17
                                 end $L16
@@ -3308,137 +3346,145 @@ fn 64 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 64   ; "NotFound"
+    string.const 65   ; "NotFound"
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
     i32.const 2
     i32.eq
     if $L2 void
-      string.const 65   ; "PermissionDenied"
+      string.const 66   ; "PermissionDenied"
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
       i32.const 3
       i32.eq
       if $L3 void
-        string.const 66   ; "Interrupted"
+        string.const 67   ; "Interrupted"
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
         i32.const 4
         i32.eq
         if $L4 void
-          string.const 67   ; "AlreadyExists"
+          string.const 68   ; "AlreadyExists"
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
           i32.const 5
           i32.eq
           if $L5 void
-            string.const 68   ; "NotADirectory"
+            string.const 69   ; "NotADirectory"
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
             i32.const 6
             i32.eq
             if $L6 void
-              string.const 69   ; "IsADirectory"
+              string.const 70   ; "IsADirectory"
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
               i32.const 7
               i32.eq
               if $L7 void
-                string.const 70   ; "WouldBlock"
+                string.const 71   ; "WouldBlock"
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
                 i32.const 8
                 i32.eq
                 if $L8 void
-                  string.const 71   ; "BrokenPipe"
+                  string.const 72   ; "BrokenPipe"
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
                   i32.const 9
                   i32.eq
                   if $L9 void
-                    string.const 72   ; "NoSpace"
+                    string.const 73   ; "NoSpace"
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
                     i32.const 10
                     i32.eq
                     if $L10 void
-                      string.const 73   ; "InvalidInput"
+                      string.const 74   ; "InvalidInput"
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
                       i32.const 11
                       i32.eq
                       if $L11 void
-                        string.const 74   ; "DirectoryNotEmpty"
+                        string.const 75   ; "DirectoryNotEmpty"
                         local.set 1   ; if_res
                       else
                         local.get 0   ; arg 0
                         i32.const 12
                         i32.eq
                         if $L12 void
-                          string.const 75   ; "BadHandle"
+                          string.const 76   ; "BadHandle"
                           local.set 1   ; if_res
                         else
                           local.get 0   ; arg 0
                           i32.const 13
                           i32.eq
                           if $L13 void
-                            string.const 76   ; "EndOfInput"
+                            string.const 77   ; "EndOfInput"
                             local.set 1   ; if_res
                           else
                             local.get 0   ; arg 0
                             i32.const 14
                             i32.eq
                             if $L14 void
-                              string.const 77   ; "ConnectionRefused"
+                              string.const 78   ; "ConnectionRefused"
                               local.set 1   ; if_res
                             else
                               local.get 0   ; arg 0
                               i32.const 15
                               i32.eq
                               if $L15 void
-                                string.const 78   ; "ConnectionReset"
+                                string.const 79   ; "ConnectionReset"
                                 local.set 1   ; if_res
                               else
                                 local.get 0   ; arg 0
                                 i32.const 16
                                 i32.eq
                                 if $L16 void
-                                  string.const 79   ; "AddressInUse"
+                                  string.const 80   ; "AddressInUse"
                                   local.set 1   ; if_res
                                 else
                                   local.get 0   ; arg 0
                                   i32.const 17
                                   i32.eq
                                   if $L17 void
-                                    string.const 80   ; "AddressNotAvailable"
+                                    string.const 81   ; "AddressNotAvailable"
                                     local.set 1   ; if_res
                                   else
                                     local.get 0   ; arg 0
                                     i32.const 18
                                     i32.eq
                                     if $L18 void
-                                      string.const 81   ; "NotConnected"
+                                      string.const 82   ; "NotConnected"
                                       local.set 1   ; if_res
                                     else
                                       local.get 0   ; arg 0
                                       i32.const 19
                                       i32.eq
                                       if $L19 void
+                                        string.const 83   ; "TimedOut"
+                                        local.set 1   ; if_res
                                       else
-                                        unreachable
+                                        local.get 0   ; arg 0
+                                        i32.const 20
+                                        i32.eq
+                                        if $L20 void
+                                        else
+                                          unreachable
+                                        end $L20
+                                        string.const 84   ; "NoDescriptor"
+                                        local.set 1   ; if_res
                                       end $L19
-                                      string.const 82   ; "TimedOut"
-                                      local.set 1   ; if_res
                                     end $L18
                                   end $L17
                                 end $L16
@@ -4928,7 +4974,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
     local.get 5   ; $len_9
     i64.eq
     if $L1 void
-      string.const 83   ; "a trailing `\\` quotes nothing"
+      string.const 85   ; "a trailing `\\` quotes nothing"
       local.get 1   ; arg 1
       struct.new 29   ; std_glob$GlobError
       return
@@ -5594,11 +5640,11 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
           local.get 24   ; high_char
           call 10   ; std_core$char$Display$to_string
           local.set 27   ; $call_90
-          string.const 85   ; "the range `"
+          string.const 87   ; "the range `"
           local.get 26   ; $call_88
-          string.const 86   ; "-"
+          string.const 88   ; "-"
           local.get 27   ; $call_90
-          string.const 87   ; "` is reversed"
+          string.const 89   ; "` is reversed"
           call 4   ; concat_5
           local.get 4   ; $add_checked_6
           struct.new 29   ; std_glob$GlobError
@@ -5629,7 +5675,7 @@ fn 94 std_glob$bracket_token (ref,i64,bool) -> any
       type_check 0   ; null
       if $L16 void
       else
-        string.const 84   ; "a class cannot start a range"
+        string.const 86   ; "a class cannot start a range"
         local.get 16   ; after_class
         struct.new 29   ; std_glob$GlobError
         return
@@ -5833,9 +5879,9 @@ fn 97 std_glob$class_at (ref,i64) -> any
     struct.new 65   ; __Tuple_u8_i64_485b013f
     return
   end $L1
-  string.const 88   ; "POSIX names no class `[:"
+  string.const 90   ; "POSIX names no class `[:"
   local.get 6   ; name
-  string.const 89   ; ":]`"
+  string.const 91   ; ":]`"
   call 3   ; concat_3
   local.get 1   ; arg 1
   struct.new 29   ; std_glob$GlobError
@@ -5893,7 +5939,7 @@ fn 98 std_glob$range_end_at (ref,i64) -> any
     i64.const 1
     i64.checked_add
     local.set 2   ; $add_checked_3
-    string.const 90   ; "a class cannot end a range"
+    string.const 92   ; "a class cannot end a range"
     local.get 2   ; $add_checked_3
     struct.new 29   ; std_glob$GlobError
     return
@@ -6032,11 +6078,11 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
       local.get 4   ; $idx_12
       call 10   ; std_core$char$Display$to_string
       local.set 13   ; $call_46
-      string.const 91   ; "the POSIX locale has no element `["
+      string.const 93   ; "the POSIX locale has no element `["
       local.get 12   ; $call_45
       local.get 11   ; name
       local.get 13   ; $call_46
-      string.const 92   ; "]`"
+      string.const 94   ; "]`"
       call 4   ; concat_5
       local.get 1   ; arg 1
       struct.new 29   ; std_glob$GlobError
@@ -6256,7 +6302,7 @@ end
 fn 103 std_glob$posix_class_named (string) -> any
   local if_res any
   local.get 0   ; arg 0
-  string.const 93   ; "alnum"
+  string.const 95   ; "alnum"
   string.eq
   if $L0 void
     i32.const 0
@@ -6265,7 +6311,7 @@ fn 103 std_glob$posix_class_named (string) -> any
     return
   end $L0
   local.get 0   ; arg 0
-  string.const 94   ; "alpha"
+  string.const 96   ; "alpha"
   string.eq
   if $L1 void
     i32.const 1
@@ -6273,7 +6319,7 @@ fn 103 std_glob$posix_class_named (string) -> any
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    string.const 95   ; "blank"
+    string.const 97   ; "blank"
     string.eq
     if $L2 void
       i32.const 2
@@ -6281,7 +6327,7 @@ fn 103 std_glob$posix_class_named (string) -> any
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0
-      string.const 96   ; "cntrl"
+      string.const 98   ; "cntrl"
       string.eq
       if $L3 void
         i32.const 3
@@ -6289,7 +6335,7 @@ fn 103 std_glob$posix_class_named (string) -> any
         local.set 1   ; if_res
       else
         local.get 0   ; arg 0
-        string.const 97   ; "digit"
+        string.const 99   ; "digit"
         string.eq
         if $L4 void
           i32.const 4
@@ -6297,7 +6343,7 @@ fn 103 std_glob$posix_class_named (string) -> any
           local.set 1   ; if_res
         else
           local.get 0   ; arg 0
-          string.const 98   ; "graph"
+          string.const 100   ; "graph"
           string.eq
           if $L5 void
             i32.const 5
@@ -6305,7 +6351,7 @@ fn 103 std_glob$posix_class_named (string) -> any
             local.set 1   ; if_res
           else
             local.get 0   ; arg 0
-            string.const 99   ; "lower"
+            string.const 101   ; "lower"
             string.eq
             if $L6 void
               i32.const 6
@@ -6313,7 +6359,7 @@ fn 103 std_glob$posix_class_named (string) -> any
               local.set 1   ; if_res
             else
               local.get 0   ; arg 0
-              string.const 100   ; "print"
+              string.const 102   ; "print"
               string.eq
               if $L7 void
                 i32.const 7
@@ -6321,7 +6367,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                 local.set 1   ; if_res
               else
                 local.get 0   ; arg 0
-                string.const 101   ; "punct"
+                string.const 103   ; "punct"
                 string.eq
                 if $L8 void
                   i32.const 8
@@ -6329,7 +6375,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                   local.set 1   ; if_res
                 else
                   local.get 0   ; arg 0
-                  string.const 102   ; "space"
+                  string.const 104   ; "space"
                   string.eq
                   if $L9 void
                     i32.const 9
@@ -6337,7 +6383,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                     local.set 1   ; if_res
                   else
                     local.get 0   ; arg 0
-                    string.const 103   ; "upper"
+                    string.const 105   ; "upper"
                     string.eq
                     if $L10 void
                       i32.const 10
@@ -6345,7 +6391,7 @@ fn 103 std_glob$posix_class_named (string) -> any
                       local.set 1   ; if_res
                     else
                       local.get 0   ; arg 0
-                      string.const 104   ; "xdigit"
+                      string.const 106   ; "xdigit"
                       string.eq
                       if $L11 void
                         i32.const 11

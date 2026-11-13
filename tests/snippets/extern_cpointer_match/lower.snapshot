@@ -134,6 +134,7 @@
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline
     const EAGAIN: i32  inline
+    const ECONNABORTED: i32  inline
     const ECONNREFUSED: i32  inline
     const ECONNRESET: i32  inline
     const ENOTCONN: i32  inline

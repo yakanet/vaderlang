@@ -44,7 +44,8 @@ static const char vader_atom_blob[] =
     "address already in use" "\0"
     "address not available" "\0"
     "not connected" "\0"
-    "timed out" "\0";
+    "timed out" "\0"
+    "too many open files" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
@@ -73,9 +74,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[333] },
     { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[355] },
     { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[369] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[379] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 26u
+#define VADER_COMPTIME_ATOM_COUNT 27u
 
 /* Comptime data pool: read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
@@ -745,6 +747,14 @@ static uint8_t std_io$errno_kind(int32_t l0) {
         return (uint8_t) 15;
     }
     if (INT32_C(1) == INT32_C(2)) {
+        l1 = INT32_C(53);
+    } else {
+        l1 = INT32_C(103);
+    }
+    if (l0 == l1) {
+        return (uint8_t) 15;
+    }
+    if (INT32_C(1) == INT32_C(2)) {
         l1 = INT32_C(48);
     } else {
         l1 = INT32_C(98);
@@ -773,10 +783,16 @@ static uint8_t std_io$errno_kind(int32_t l0) {
     } else {
         l1 = INT32_C(110);
     }
-    if (!(l0 == l1)) {
+    if (l0 == l1) {
+        return (uint8_t) 19;
+    }
+    if (l0 == INT32_C(24)) {
+        return (uint8_t) 20;
+    }
+    if (!(l0 == INT32_C(23))) {
         return (uint8_t) 0;
     }
-    return (uint8_t) 19;
+    return (uint8_t) 20;
 }
 
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
@@ -821,6 +837,8 @@ static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l
         l2 = 25u;
     } else if (l0 == INT32_C(19)) {
         l2 = 26u;
+    } else if (l0 == INT32_C(20)) {
+        l2 = 27u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
