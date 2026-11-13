@@ -168,7 +168,7 @@ pc_liftable_kind :: fn(k: ArrayKind) -> bool {
 pc_emit_preheader :: fn(s: FnState, p: PushCache) -> void {
     n :: p.opener_pc
     declare(s, "vader_array_t*", "_pc${n}_hdr", array_pointer(CLocal { .slot = p.slot }))
-    declare(s, "size_t", "_pc${n}_len", pc_header(n, "length"))
+    declare(s, "size_t", "_pc${n}_len", call("vader_array_length", [pc_local(n, "hdr")]))
     declare(s, "size_t", "_pc${n}_cap", pc_capacity(n))
     declare(s, "void*", "_pc${n}_slots", pc_header(n, "buf->slots"))
 }
@@ -184,12 +184,12 @@ pc_header :: fn(n: i32, path: string) -> CExpression =
 pc_capacity :: fn(n: i32) -> CExpression = CConditional {
     .condition = call("vader_array_is_borrowed", [pc_local(n, "hdr")]),
     .then_value = cast("size_t", verbatim("0")),
-    .else_value = pc_header(n, "capacity"),
+    .else_value = call("vader_array_capacity", [pc_local(n, "hdr")]),
 }
 
 // Re-read the lifted state from the header `_pc<n>_hdr` points at.
 pc_reload :: fn(s: FnState, n: i32) -> void {
-    assign(s, pc_local(n, "len"), pc_header(n, "length"))
+    assign(s, pc_local(n, "len"), call("vader_array_length", [pc_local(n, "hdr")]))
     assign(s, pc_local(n, "cap"), pc_capacity(n))
     assign(s, pc_local(n, "slots"), pc_header(n, "buf->slots"))
 }
@@ -234,7 +234,7 @@ pc_emit_push :: fn(s: FnState, p: PushCache, obj: CExpression, value: CExpressio
 /// bound only rises: a header with no room ran no fast push, and lowering
 /// `buf->length` to its length would hide slots a view of the buffer reads.
 pc_emit_writeback :: fn(s: FnState, n: i32) -> void {
-    assign(s, pc_header(n, "length"), pc_local(n, "len"))
+    evaluate(s, call("vader_array_set_length", [pc_local(n, "hdr"), pc_local(n, "len")]))
     open_if(s, binary(.Less, pc_header(n, "buf->length"), pc_local(n, "len")))
     assign(s, pc_header(n, "buf->length"), pc_local(n, "len"))
     close_node(s, "")

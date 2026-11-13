@@ -44,7 +44,7 @@ const size_t vader_type_info_count = 6;
 
 static int32_t snippet$count_fields(void* l0) {
     int64_t t0;
-    t0 = ((vader_array_t*) l0)->length;
+    t0 = vader_array_length(((vader_array_t*) l0));
     return ((int32_t) (int64_t) t0);
 }
 

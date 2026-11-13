@@ -57,9 +57,9 @@ static int32_t snippet$main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(30);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(30);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(20);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(10);
     t0 = (void*) _a0_arr;
     l0 = snippet$second__i32(t0);
     vader_struct_snippet$Point_t* _a1_obj = (vader_struct_snippet$Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Point_t));
@@ -71,8 +71,8 @@ static int32_t snippet$main(void) {
     _a2_obj->f_x = INT32_C(2);
     l2 = (void*) _a2_obj;
     vader_array_t* _a3_arr = vader_array_new(6u, 2u, 13u, 5u);
-    ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = l2;
-    ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = l1;
+    ((void**) _a3_arr->buf->slots)[vader_array_offset(_a3_arr) + 1u] = l2;
+    ((void**) _a3_arr->buf->slots)[vader_array_offset(_a3_arr) + 0u] = l1;
     t0 = (void*) _a3_arr;
     t1 = snippet$second__snippet_Point(t0);
     l3 = ((vader_struct_snippet$Point_t*) t1.payload.obj)->f_x;
@@ -85,7 +85,7 @@ static int32_t snippet$second__i32(void* l0) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))
-    t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) INT32_C(1)];
+    t0 = ((int32_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(1)];
     return t0;
 }
 
@@ -94,7 +94,7 @@ static vader_box_t snippet$second__snippet_Point(void* l0) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))
-    t0 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT32_C(1));
+    t0 = vader_array_ref_load_box(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT32_C(1));
     return t0;
 }
 

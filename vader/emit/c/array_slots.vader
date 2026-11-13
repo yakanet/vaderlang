@@ -141,9 +141,12 @@ array_header_pointer :: fn(v: StackVal) -> CExpression = CParenthesized { .inner
 // `(vader_array_t*) pointer`.
 array_pointer :: fn(pointer: CExpression) -> CExpression = cast("vader_array_t*", pointer)
 
-// The absolute slot index into the array's buf : `array->offset + (size_t) i`.
-slot_index :: fn(array: string, index: StackVal) -> CExpression =
-    binary(.Add, verbatim("${array}->offset"), cast("size_t", expression_of(index)))
+// The absolute slot index into the array's buf : `offset(array) + (size_t) i`.
+slot_index :: fn(array: string, index: StackVal) -> CExpression = binary(
+    .Add,
+    call("vader_array_offset", [verbatim(array)]),
+    cast("size_t", expression_of(index)),
+)
 
 // `((c_type*) array->buf->slots)[index]`.
 typed_slot :: fn(c_type: string, array: string, index: CExpression) -> CExpression = CIndex {
@@ -151,9 +154,9 @@ typed_slot :: fn(c_type: string, array: string, index: CExpression) -> CExpressi
     .index = index,
 }
 
-// `array->offset + <slot>u`: a constant slot of an array being built.
+// `offset(array) + <slot>u`: a constant slot of an array being built.
 fresh_slot :: fn(array: string, slot: i32) -> CExpression =
-    binary(.Add, verbatim("${array}->offset"), verbatim("${slot}u"))
+    binary(.Add, call("vader_array_offset", [verbatim(array)]), verbatim("${slot}u"))
 
 // `vader_array_box_slots(array->buf)[index]`.
 box_slot :: fn(array: string, index: CExpression) -> CExpression = CIndex {

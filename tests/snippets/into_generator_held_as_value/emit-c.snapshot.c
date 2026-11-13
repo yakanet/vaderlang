@@ -308,7 +308,7 @@ static vader_box_t snippet$__gen_state_snippet_0$Iterator$next(void* l0) {
                         t2 = (void*) &vader_data_0;
                         vader_array_t* _a0_slotarr = ((vader_array_t*) t2);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-                        t2 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
+                        t2 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) INT64_C(0));
                         return vader_ref_box(t2);
                     }
                     ((vader_struct_snippet$__gen_state_snippet_0_t*) l0)->f_s1 = INT32_C(0);
@@ -565,12 +565,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }
@@ -809,7 +809,7 @@ static vader_box_t std_string$__gen_state_std_string_0$Iterator$next(void* l0) {
                                                 t5 = (void*) &vader_data_0;
                                                 vader_array_t* _a1_slotarr = ((vader_array_t*) t5);
                                                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-                                                t5 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
+                                                t5 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) INT64_C(0));
                                                 { vader_box_t __vret = vader_ref_box(t5); vader_gc_top = gc_frame.prev; return __vret; }
                                             }
                                             ((vader_struct_std_string$__gen_state_std_string_0_t*) l0)->f_s1 = INT64_C(0);

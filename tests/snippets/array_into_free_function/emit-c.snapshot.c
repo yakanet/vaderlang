@@ -160,26 +160,26 @@ static vader_box_t snippet$Reversed$std_core$Iterator$next(void* l0) {
     void* t1;
     t0 = ((vader_struct_snippet$Reversed_t*) l0)->f_pos;
     l1 = ((int64_t) (int32_t) t0);
-    l2 = ((vader_array_t*) ((vader_struct_snippet$Reversed_t*) l0)->f_items)->length;
+    l2 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Reversed_t*) l0)->f_items));
     if (!((l1 >= l2))) {
         t0 = ((vader_struct_snippet$Reversed_t*) l0)->f_pos;
         l3 = vader_chk_add(i32, t0, INT32_C(1));
         ((vader_struct_snippet$Reversed_t*) l0)->f_pos = l3;
         l4 = ((vader_struct_snippet$Reversed_t*) l0)->f_items;
-        l1 = ((vader_array_t*) ((vader_struct_snippet$Reversed_t*) l0)->f_items)->length;
+        l1 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Reversed_t*) l0)->f_items));
         t0 = ((vader_struct_snippet$Reversed_t*) l0)->f_pos;
         l2 = ((int64_t) (int32_t) t0);
         l1 = vader_chk_sub(i64, l1, l2);
         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l1)
-        t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l1];
+        t0 = ((int32_t*) _a0_slotarr->buf->slots)[vader_array_offset(_a0_slotarr) + (size_t) l1];
         return vader_box_i32(3u, t0);
     }
     t1 = (void*) &vader_data_0;
     vader_array_t* _a1_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-    t1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
+    t1 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) INT64_C(0));
     return vader_ref_box(t1);
 }
 
@@ -216,9 +216,9 @@ static int32_t snippet$main(void) {
     };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(5u, 3u, 7u, 3u);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(1);
     l0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(5u, 0u, 7u, 3u);
     l1 = (void*) _a1_arr;
@@ -250,19 +250,19 @@ static int32_t snippet$main(void) {
     t0 = std_core$$array$Display$to_string__i32(l1);
     std_console$println__string(t0);
     vader_array_t* _a3_arr = vader_array_new(7u, 2u, 0u, 6u);
-    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 1u] = vader_box_string(6u, 2u);
-    vader_array_box_slots(_a3_arr->buf)[_a3_arr->offset + 0u] = vader_box_string(6u, 1u);
+    vader_array_box_slots(_a3_arr->buf)[vader_array_offset(_a3_arr) + 1u] = vader_box_string(6u, 2u);
+    vader_array_box_slots(_a3_arr->buf)[vader_array_offset(_a3_arr) + 0u] = vader_box_string(6u, 1u);
     l0 = (void*) _a3_arr;
-    t2 = ((vader_array_t*) l0)->length;
+    t2 = vader_array_length(((vader_array_t*) l0));
     vader_array_t* _a4_arr = vader_array_reserve(7u, (int64_t) t2, 0u, 6u);
     l1 = (void*) _a4_arr;
-    l5 = ((vader_array_t*) l0)->length;
+    l5 = vader_array_length(((vader_array_t*) l0));
     l6 = INT64_C(0);
     while ((l6 < l5)) {
         vader_array_t* _a5_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l6)
-        t3 = vader_array_box_slots(_a5_slotarr->buf)[_a5_slotarr->offset + (size_t) l6];
+        t3 = vader_array_box_slots(_a5_slotarr->buf)[vader_array_offset(_a5_slotarr) + (size_t) l6];
         t0 = t3.payload.s;
         l7 = __lambda_snippet_1(t0);
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(6u, l7));
@@ -321,27 +321,27 @@ static vader_string_t std_core$$array$Display$to_string__i32(void* l0) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
+    t0 = vader_array_length(((vader_array_t*) l0));
     vader_array_t* _a0_arr = vader_array_reserve(7u, (int64_t) t0, 0u, 6u);
     l1 = (void*) _a0_arr;
     l2 = INT64_C(2);
     l3 = l0;
-    l4 = ((vader_array_t*) l3)->length;
+    l4 = vader_array_length(((vader_array_t*) l3));
     l5 = INT64_C(0);
     while ((l5 < l4)) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
-        t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
+        t1 = ((int32_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) l5];
         l6 = std_core$i32$Display$to_string(t1);
         l7 = vader_host_std_core$byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(6u, l6));
         l5 = (l5 + INT64_C(1));
     }
-    t0 = ((vader_array_t*) l1)->length;
+    t0 = vader_array_length(((vader_array_t*) l1));
     if ((t0 > INT64_C(1))) {
-        t0 = ((vader_array_t*) l1)->length;
+        t0 = vader_array_length(((vader_array_t*) l1));
         l4 = vader_chk_sub(i64, t0, INT64_C(1));
         l4 = vader_chk_mul(i64, INT64_C(2), l4);
         l2 = vader_chk_add(i64, l2, l4);
@@ -349,7 +349,7 @@ static vader_string_t std_core$$array$Display$to_string__i32(void* l0) {
     l3 = (void*) vader_buffer_new((size_t) l2);
     l2 = std_core$write_string_at(l3, INT64_C(0), 4u);
     l4 = INT64_C(0);
-    l5 = ((vader_array_t*) l1)->length;
+    l5 = vader_array_length(((vader_array_t*) l1));
     while ((l4 < l5)) {
         if ((l4 > INT64_C(0))) {
             l2 = std_core$write_string_at(l3, l2, 5u);
@@ -357,7 +357,7 @@ static vader_string_t std_core$$array$Display$to_string__i32(void* l0) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
-        t2 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l4];
+        t2 = vader_array_box_slots(_a2_slotarr->buf)[vader_array_offset(_a2_slotarr) + (size_t) l4];
         l6 = t2.payload.s;
         l2 = std_core$write_string_at(l3, l2, l6);
         l4 = (l4 + INT64_C(1));
@@ -382,18 +382,18 @@ static vader_string_t std_core$$array$Display$to_string__string(void* l0) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
+    t0 = vader_array_length(((vader_array_t*) l0));
     vader_array_t* _a0_arr = vader_array_reserve(7u, (int64_t) t0, 0u, 6u);
     l1 = (void*) _a0_arr;
     l2 = INT64_C(2);
     l3 = l0;
-    l4 = ((vader_array_t*) l3)->length;
+    l4 = vader_array_length(((vader_array_t*) l3));
     l5 = INT64_C(0);
     while ((l5 < l4)) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
-        t1 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l5];
+        t1 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l5];
         t2 = t1.payload.s;
         l6 = std_core$string$Display$to_string(t2);
         l7 = vader_host_std_core$byte_len(l6);
@@ -401,9 +401,9 @@ static vader_string_t std_core$$array$Display$to_string__string(void* l0) {
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(6u, l6));
         l5 = (l5 + INT64_C(1));
     }
-    t0 = ((vader_array_t*) l1)->length;
+    t0 = vader_array_length(((vader_array_t*) l1));
     if ((t0 > INT64_C(1))) {
-        t0 = ((vader_array_t*) l1)->length;
+        t0 = vader_array_length(((vader_array_t*) l1));
         l4 = vader_chk_sub(i64, t0, INT64_C(1));
         l4 = vader_chk_mul(i64, INT64_C(2), l4);
         l2 = vader_chk_add(i64, l2, l4);
@@ -411,7 +411,7 @@ static vader_string_t std_core$$array$Display$to_string__string(void* l0) {
     l3 = (void*) vader_buffer_new((size_t) l2);
     l2 = std_core$write_string_at(l3, INT64_C(0), 4u);
     l4 = INT64_C(0);
-    l5 = ((vader_array_t*) l1)->length;
+    l5 = vader_array_length(((vader_array_t*) l1));
     while ((l4 < l5)) {
         if ((l4 > INT64_C(0))) {
             l2 = std_core$write_string_at(l3, l2, 5u);
@@ -419,7 +419,7 @@ static vader_string_t std_core$$array$Display$to_string__string(void* l0) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
-        t1 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l4];
+        t1 = vader_array_box_slots(_a2_slotarr->buf)[vader_array_offset(_a2_slotarr) + (size_t) l4];
         l6 = t1.payload.s;
         l2 = std_core$write_string_at(l3, l2, l6);
         l4 = (l4 + INT64_C(1));
@@ -536,12 +536,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

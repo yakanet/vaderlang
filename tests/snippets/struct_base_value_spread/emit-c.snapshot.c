@@ -346,8 +346,8 @@ static int32_t snippet$main(void) {
     t1 = snippet$describe(t0);
     std_console$println__string(t1);
     vader_array_t* _a10_arr = vader_array_new(9u, 2u, 0u, 2u);
-    vader_array_box_slots(_a10_arr->buf)[_a10_arr->offset + 1u] = vader_box_string(2u, 7u);
-    vader_array_box_slots(_a10_arr->buf)[_a10_arr->offset + 0u] = vader_box_string(2u, 6u);
+    vader_array_box_slots(_a10_arr->buf)[vader_array_offset(_a10_arr) + 1u] = vader_box_string(2u, 7u);
+    vader_array_box_slots(_a10_arr->buf)[vader_array_offset(_a10_arr) + 0u] = vader_box_string(2u, 6u);
     t0 = (void*) _a10_arr;
     vader_struct_snippet$Pair__string___t* _a12_obj = &_a11_storage;
     vader_obj_header_init(_a12_obj, 8u);
@@ -364,7 +364,7 @@ static int32_t snippet$main(void) {
     l0 = (void*) _a14_obj;
     l1 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l7 = INT64_C(0);
-    l8 = ((vader_array_t*) ((vader_struct_snippet$Chain__string_t*) l0)->f_first)->length;
+    l8 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Chain__string_t*) l0)->f_first));
     l7 = std_core$write_int(l1, l7, l8);
     l7 = std_core$write_string_at(l1, l7, 2u);
     t2 = ((vader_struct_snippet$Chain__string_t*) l0)->f_count;
@@ -377,9 +377,9 @@ static int32_t snippet$main(void) {
     t1 = std_core$finish_buffer(l1, l7);
     std_console$println__string(t1);
     vader_array_t* _a15_arr = vader_array_new(12u, 3u, 7u, 3u);
-    ((int32_t*) _a15_arr->buf->slots)[_a15_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a15_arr->buf->slots)[_a15_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a15_arr->buf->slots)[_a15_arr->offset + 0u] = (int32_t) INT32_C(1);
+    ((int32_t*) _a15_arr->buf->slots)[vader_array_offset(_a15_arr) + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a15_arr->buf->slots)[vader_array_offset(_a15_arr) + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a15_arr->buf->slots)[vader_array_offset(_a15_arr) + 0u] = (int32_t) INT32_C(1);
     t0 = (void*) _a15_arr;
     vader_struct_snippet$Pair__Any___t* _a16_obj = (vader_struct_snippet$Pair__Any___t*) vader_gc_alloc(sizeof(vader_struct_snippet$Pair__Any___t));
     vader_obj_header_init(_a16_obj, 13u);
@@ -389,7 +389,7 @@ static int32_t snippet$main(void) {
     l0 = snippet$lift__i32(t0);
     l1 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l7 = INT64_C(0);
-    l8 = ((vader_array_t*) ((vader_struct_snippet$Chain__i32_t*) l0)->f_first)->length;
+    l8 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Chain__i32_t*) l0)->f_first));
     l7 = std_core$write_int(l1, l7, l8);
     l7 = std_core$write_string_at(l1, l7, 2u);
     t2 = ((vader_struct_snippet$Chain__i32_t*) l0)->f_count;
@@ -544,12 +544,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

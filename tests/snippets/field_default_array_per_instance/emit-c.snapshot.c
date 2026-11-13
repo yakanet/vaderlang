@@ -180,10 +180,10 @@ static int32_t snippet$main(void) {
     l2 = (void*) vader_buffer_new((size_t) INT64_C(55));
     l3 = INT64_C(0);
     l3 = std_core$write_string_at(l2, l3, 2u);
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Log_t*) l0)->f_lines)->length;
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Log_t*) l0)->f_lines));
     l3 = std_core$write_int(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 3u);
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Log_t*) l1)->f_lines)->length;
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Log_t*) l1)->f_lines));
     l3 = std_core$write_int(l2, l3, l4);
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
@@ -203,7 +203,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a8_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a8_slotarr, INT32_C(0))
-    t0 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) INT32_C(0));
+    t0 = vader_array_ref_load_obj(_a8_slotarr->buf, vader_array_offset(_a8_slotarr) + (size_t) INT32_C(0));
     vader_array_push_scalar((vader_array_t*) ((vader_struct_snippet$Log_t*) t0)->f_lines, vader_box_string(2u, 4u));
     l1 = (void*) vader_buffer_new((size_t) INT64_C(64));
     l3 = INT64_C(0);
@@ -211,15 +211,15 @@ static int32_t snippet$main(void) {
     vader_array_t* _a9_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a9_slotarr, INT32_C(0))
-    t0 = vader_array_ref_load_obj(_a9_slotarr->buf, _a9_slotarr->offset + (size_t) INT32_C(0));
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Log_t*) t0)->f_lines)->length;
+    t0 = vader_array_ref_load_obj(_a9_slotarr->buf, vader_array_offset(_a9_slotarr) + (size_t) INT32_C(0));
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Log_t*) t0)->f_lines));
     l3 = std_core$write_int(l1, l3, l4);
     l3 = std_core$write_string_at(l1, l3, 3u);
     vader_array_t* _a10_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a10_slotarr, INT32_C(1))
-    t0 = vader_array_ref_load_obj(_a10_slotarr->buf, _a10_slotarr->offset + (size_t) INT32_C(1));
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Log_t*) t0)->f_lines)->length;
+    t0 = vader_array_ref_load_obj(_a10_slotarr->buf, vader_array_offset(_a10_slotarr) + (size_t) INT32_C(1));
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Log_t*) t0)->f_lines));
     l3 = std_core$write_int(l1, l3, l4);
     t1 = std_core$finish_buffer(l1, l3);
     std_console$println__string(t1);
@@ -237,14 +237,14 @@ static int32_t snippet$main(void) {
     l2 = (void*) vader_buffer_new((size_t) INT64_C(81));
     l3 = INT64_C(0);
     l3 = std_core$write_string_at(l2, l3, 7u);
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Tagged_t*) l0)->f_tags)->length;
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Tagged_t*) l0)->f_tags));
     l3 = std_core$write_int(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 3u);
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Tagged_t*) l1)->f_tags)->length;
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Tagged_t*) l1)->f_tags));
     l3 = std_core$write_int(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 3u);
     t0 = (void*) &vader_data_0;
-    l4 = ((vader_array_t*) t0)->length;
+    l4 = vader_array_length(((vader_array_t*) t0));
     l3 = std_core$write_int(l2, l3, l4);
     t1 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t1);
@@ -358,12 +358,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

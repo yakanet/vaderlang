@@ -146,7 +146,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(0))
-    vader_array_ref_store_box(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT32_C(0), vader_box_i32(1u, INT32_C(5)));
+    vader_array_ref_store_box(_a2_slotarr->buf, vader_array_offset(_a2_slotarr) + (size_t) INT32_C(0), vader_box_i32(1u, INT32_C(5)));
     VADER_WRITE_BARRIER(_a2_slotarr->buf);
     vader_struct_snippet$Circle_t* _a3_obj = (vader_struct_snippet$Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Circle_t));
     vader_obj_header_init(_a3_obj, 2u);
@@ -155,15 +155,15 @@ static int32_t snippet$main(void) {
     vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(1))
-    vader_array_ref_store_box(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) INT32_C(1), vader_ref_box(l1));
+    vader_array_ref_store_box(_a4_slotarr->buf, vader_array_offset(_a4_slotarr) + (size_t) INT32_C(1), vader_ref_box(l1));
     VADER_WRITE_BARRIER(_a4_slotarr->buf);
-    l2 = ((vader_array_t*) l0)->length;
+    l2 = vader_array_length(((vader_array_t*) l0));
     l3 = INT64_C(0);
     while ((l3 < l2)) {
         vader_array_t* _a5_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l3)
-        l4 = vader_array_ref_load_box(_a5_slotarr->buf, _a5_slotarr->offset + (size_t) l3);
+        l4 = vader_array_ref_load_box(_a5_slotarr->buf, vader_array_offset(_a5_slotarr) + (size_t) l3);
         l1 = (void*) vader_buffer_new((size_t) INT64_C(20));
         l5 = INT64_C(0);
         t0 = snippet$Shape$area$$dispatch(l4);
@@ -274,12 +274,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

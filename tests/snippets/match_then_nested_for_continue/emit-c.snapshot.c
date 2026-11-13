@@ -55,9 +55,9 @@ static int32_t snippet$run(vader_box_t l0, bool l1, bool l2) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(6u, 3u, 7u, 5u);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
-    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 2u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (int32_t) INT32_C(1);
     l3 = (void*) _a0_arr;
     l4 = INT32_C(0);
     if (l0.tag == 2u) {
@@ -72,13 +72,13 @@ static int32_t snippet$run(vader_box_t l0, bool l1, bool l2) {
     }
     if (l1) {
         if (l2) {
-            l5 = ((vader_array_t*) l3)->length;
+            l5 = vader_array_length(((vader_array_t*) l3));
             l6 = INT64_C(0);
             while ((l6 < l5)) {
                 vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
-                t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l6];
+                t1 = ((int32_t*) _a1_slotarr->buf->slots)[vader_array_offset(_a1_slotarr) + (size_t) l6];
                 if (t1 == INT32_C(2)) {
                     l6 = (l6 + INT64_C(1));
                     continue;

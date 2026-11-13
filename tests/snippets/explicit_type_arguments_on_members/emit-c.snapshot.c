@@ -157,10 +157,10 @@ static int32_t snippet$main(void) {
     vader_array_push_f64((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l1)->f_items, 1.5);
     l2 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l3 = INT64_C(0);
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l0)->f_items)->length;
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l0)->f_items));
     l3 = std_core$write_int(l2, l3, l4);
     l3 = std_core$write_string_at(l2, l3, 2u);
-    l4 = ((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l1)->f_items)->length;
+    l4 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l1)->f_items));
     l3 = std_core$write_int(l2, l3, l4);
     t0 = std_core$finish_buffer(l2, l3);
     std_console$println__string(t0);
@@ -299,12 +299,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

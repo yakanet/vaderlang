@@ -377,12 +377,12 @@ static int32_t snippet$main(void) {
     t2 = snippet$counter();
     l3 = ((vader_struct_snippet$Counter_t*) t2)->f_n;
     t2 = snippet$log();
-    l1 = ((vader_array_t*) t2)->length;
+    l1 = vader_array_length(((vader_array_t*) t2));
     t2 = snippet$log();
     vader_array_t* _a0_slotarr = ((vader_array_t*) t2);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))
-    t3 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) INT32_C(1)];
+    t3 = vader_array_box_slots(_a0_slotarr->buf)[vader_array_offset(_a0_slotarr) + (size_t) INT32_C(1)];
     l4 = t3.payload.s;
     l5 = vader_host_std_core$byte_len(l4);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l5));
@@ -405,7 +405,7 @@ static int32_t snippet$main(void) {
     t2 = (void*) &vader_data_0;
     vader_array_t* _a1_slotarr = ((vader_array_t*) t2);
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-    t2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
+    t2 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) INT64_C(0));
     t1 = ((vader_struct_snippet$Counter_t*) t2)->f_n;
     l5 = ((int64_t) (int32_t) t1);
     l1 = std_core$write_int(l0, l1, l5);
@@ -576,12 +576,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

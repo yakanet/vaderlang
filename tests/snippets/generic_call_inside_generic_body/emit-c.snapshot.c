@@ -170,7 +170,7 @@ static int32_t snippet$grow__i32(int32_t l0) {
     l1 = snippet$empty__i32();
     vader_array_push_i32((vader_array_t*) l1, l0);
     vader_array_push_i32((vader_array_t*) l1, l0);
-    t0 = ((vader_array_t*) l1)->length;
+    t0 = vader_array_length(((vader_array_t*) l1));
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -186,7 +186,7 @@ static int32_t snippet$grow__string(vader_string_t l0) {
     l1 = snippet$empty__string();
     vader_array_push_scalar((vader_array_t*) l1, vader_box_string(5u, l0));
     vader_array_push_scalar((vader_array_t*) l1, vader_box_string(5u, l0));
-    t0 = ((vader_array_t*) l1)->length;
+    t0 = vader_array_length(((vader_array_t*) l1));
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -198,7 +198,7 @@ static int32_t snippet$fill__f64(double l0) {
     vader_gc_top = &gc_frame;
     l1 = snippet$Bag$Make$make__f64(INT32_C(1));
     vader_array_push_f64((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l1)->f_items, l0);
-    t0 = ((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l1)->f_items)->length;
+    t0 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$Bag__f64_t*) l1)->f_items));
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -289,12 +289,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

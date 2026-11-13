@@ -157,7 +157,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l2);
+    l3 = vader_array_ref_load_obj(_a0_slotarr->buf, vader_array_offset(_a0_slotarr) + (size_t) l2);
     l4 = ((vader_struct_snippet$StatusInfo_t*) l3)->f_code;
     l5 = ((vader_struct_snippet$StatusInfo_t*) l3)->f_reason;
     vader_struct_snippet$StatusInfo_t* _a2_obj = &_a1_storage;
@@ -171,7 +171,7 @@ static int32_t snippet$main(void) {
     vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
     VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
-    l3 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) l2);
+    l3 = vader_array_ref_load_obj(_a3_slotarr->buf, vader_array_offset(_a3_slotarr) + (size_t) l2);
     l4 = ((vader_struct_snippet$StatusInfo_t*) l3)->f_code;
     l5 = ((vader_struct_snippet$StatusInfo_t*) l3)->f_reason;
     vader_struct_snippet$StatusInfo_t* _a5_obj = &_a4_storage;
@@ -191,14 +191,14 @@ static int32_t snippet$main(void) {
     vader_array_t* _a8_slotarr = ((vader_array_t*) l3);
     VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l2)
-    t0 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) l2);
+    t0 = vader_array_ref_load_obj(_a8_slotarr->buf, vader_array_offset(_a8_slotarr) + (size_t) l2);
     l7 = ((vader_struct_snippet$StatusInfo_t*) t0)->f_code;
     l3 = (void*) &vader_data_0;
     l2 = ((int64_t) (uint8_t) l0);
     vader_array_t* _a9_slotarr = ((vader_array_t*) l3);
     VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l2)
-    t0 = vader_array_ref_load_obj(_a9_slotarr->buf, _a9_slotarr->offset + (size_t) l2);
+    t0 = vader_array_ref_load_obj(_a9_slotarr->buf, vader_array_offset(_a9_slotarr) + (size_t) l2);
     l8 = ((vader_struct_snippet$StatusInfo_t*) t0)->f_code;
     l5 = ((vader_struct_snippet$StatusInfo_t*) l1)->f_reason;
     l2 = vader_host_std_core$byte_len(l5);
@@ -329,12 +329,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

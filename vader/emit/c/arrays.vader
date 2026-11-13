@@ -244,7 +244,7 @@ boxed_push_helper :: fn(value: StackVal) -> string =
 /// buf deref: the length lives on the header, which is the live gc_root).
 emit_array_len :: fn(s: FnState) -> void {
     arr :: pop(s)
-    push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .I64)
+    push_into_temporary(s, call("vader_array_length", [array_header_pointer(arr)]), .I64)
 }
 
 // `(int64_t) v` : a count, an offset or a slice bound the array runtime clamps at 0.

@@ -384,8 +384,8 @@ static int32_t snippet$main(void) {
     _a1_obj->f_x = INT32_C(2);
     l3 = (void*) _a1_obj;
     vader_array_t* _a2_arr = vader_array_new(5u, 2u, 13u, 6u);
-    ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = l3;
-    ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = l0;
+    ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l3;
+    ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     l0 = (void*) _a2_arr;
     l4 = INT32_C(0);
     l5 = snippet$$array$std_core$Into$into__snippet_Pt$2(l0);
@@ -464,7 +464,7 @@ static vader_box_t snippet$$genstate_scaled$Iterator$next(void* l0) {
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
-                        l6 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
+                        l6 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) l5);
                         ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s4 = l6;
                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_scaled_t*) l0);
                         ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_state = INT32_C(4);
@@ -474,13 +474,13 @@ static vader_box_t snippet$$genstate_scaled$Iterator$next(void* l0) {
                             t3 = (void*) &vader_data_1;
                             vader_array_t* _a2_slotarr = ((vader_array_t*) t3);
                             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-                            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
+                            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, vader_array_offset(_a2_slotarr) + (size_t) INT64_C(0));
                             { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l7 = ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s0;
                         ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s1 = l7;
                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_scaled_t*) l0);
-                        l8 = ((vader_array_t*) ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s1)->length;
+                        l8 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s1));
                         ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s2 = l8;
                         ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_s3 = INT64_C(0);
                         ((vader_struct_snippet$$genstate_scaled_t*) l0)->f_state = INT32_C(2);
@@ -559,7 +559,7 @@ static vader_box_t snippet$$genstate_labels$Iterator$next(void* l0) {
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
-                        l9 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l8);
+                        l9 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) l8);
                         ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s4 = l9;
                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_labels_t*) l0);
                         ((vader_struct_snippet$$genstate_labels_t*) l0)->f_state = INT32_C(4);
@@ -569,13 +569,13 @@ static vader_box_t snippet$$genstate_labels$Iterator$next(void* l0) {
                             t3 = (void*) &vader_data_1;
                             vader_array_t* _a2_slotarr = ((vader_array_t*) t3);
                             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-                            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
+                            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, vader_array_offset(_a2_slotarr) + (size_t) INT64_C(0));
                             { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l10 = ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s0;
                         ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s1 = l10;
                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_labels_t*) l0);
-                        l11 = ((vader_array_t*) ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s1)->length;
+                        l11 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s1));
                         ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s2 = l11;
                         ((vader_struct_snippet$$genstate_labels_t*) l0)->f_s3 = INT64_C(0);
                         ((vader_struct_snippet$$genstate_labels_t*) l0)->f_state = INT32_C(2);
@@ -644,7 +644,7 @@ static vader_box_t snippet$$genstate_shifted$Iterator$next(void* l0) {
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
-                        l6 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
+                        l6 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) l5);
                         ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s4 = l6;
                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_shifted_t*) l0);
                         ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_state = INT32_C(4);
@@ -654,13 +654,13 @@ static vader_box_t snippet$$genstate_shifted$Iterator$next(void* l0) {
                             t3 = (void*) &vader_data_1;
                             vader_array_t* _a2_slotarr = ((vader_array_t*) t3);
                             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-                            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
+                            t3 = vader_array_ref_load_obj(_a2_slotarr->buf, vader_array_offset(_a2_slotarr) + (size_t) INT64_C(0));
                             { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l7 = ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s0;
                         ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s1 = l7;
                         VADER_WRITE_BARRIER((vader_struct_snippet$$genstate_shifted_t*) l0);
-                        l8 = ((vader_array_t*) ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s1)->length;
+                        l8 = vader_array_length(((vader_array_t*) ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s1));
                         ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s2 = l8;
                         ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_s3 = INT64_C(0);
                         ((vader_struct_snippet$$genstate_shifted_t*) l0)->f_state = INT32_C(2);
@@ -827,12 +827,12 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     l2 = vader_host_std_core$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
-        l4 = ((vader_array_t*) l2)->length;
+        l4 = vader_array_length(((vader_array_t*) l2));
         if (!((l3 >= l4))) {
-            l5 = ((vader_array_t*) l2)->length;
+            l5 = vader_array_length(((vader_array_t*) l2));
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-            l7 = ((vader_array_t*) l6)->length;
+            l7 = vader_array_length(((vader_array_t*) l6));
             l8 = std_console$write_bytes(l0, l6, l7);
             if ((l8 <= INT32_C(0))) {
                 { vader_gc_top = gc_frame.prev; return; }

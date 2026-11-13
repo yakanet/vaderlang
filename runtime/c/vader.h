@@ -545,6 +545,21 @@ typedef struct {
     uint64_t                 _pad;
 } vader_array_t;
 
+/* The length, the room and the first slot of an array: what the emitted C
+ * reads and writes them by, so their place in the header is this file's alone. */
+static inline size_t vader_array_length(const vader_array_t* a) {
+    return a->length;
+}
+static inline void vader_array_set_length(vader_array_t* a, size_t length) {
+    a->length = length;
+}
+static inline size_t vader_array_capacity(const vader_array_t* a) {
+    return a->capacity;
+}
+static inline size_t vader_array_offset(const vader_array_t* a) {
+    return a->offset;
+}
+
 /* Borrowed `const u8[]` byte-view accessors: the single home of the
  * VADER_ARRAY_FLAG_BORROWED representation. On a borrowed view `capacity`
  * packs `(element_tag << 32) | owner_atom_id` (see VADER_ARRAY_FLAG_BORROWED
