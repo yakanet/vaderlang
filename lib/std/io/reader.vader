@@ -159,6 +159,28 @@ export read_until :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | nu
     return run[0..<end].clone()
 }
 
+/// Read through the next `delimiter`, which ends the run returned. A run that
+/// does not end with it is the last of a source that ended without one: this is
+/// how a caller tells a whole line from one cut short, which `read_until` hides.
+///
+/// @param delimiter  the byte that ends the run.
+/// @param max        the longest run taken, in bytes, the delimiter not counted.
+/// @return           the bytes up to `delimiter` and `delimiter` itself, and
+///                   `null` once the source has ended with nothing left.
+/// @error            `IOError` when the source cannot be read, and
+///                   `.InvalidInput` for a run longer than `max`.
+/// @example
+///   reader :: BufferedReader { .source = BytesReader { .content = "a\r\nb" } }
+///   reader.read_through('\n', 16)   // [97, 13, 10]
+///   reader.read_through('\n', 16)   // [98]: the source ended first
+export read_through :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | null | IOError {
+    run :: r.take_through(delimiter, max) ?? return null
+    if run is IOError {
+        return run
+    }
+    return run.clone()
+}
+
 // The bytes up to the next `delimiter` and that delimiter, which only a run cut
 // short by the end of the source lacks; `max` counts the bytes before it. A run
 // that sits whole in the buffer comes as a slice of it: the next read of `r`
@@ -402,6 +424,16 @@ test_read_until_leaves_the_delimiter_out :: fn() -> void {
         assert_eq(shown(r.read_until(':', 64)), "name")
         assert_eq(shown(r.read_until(':', 64)), " value")
         assert(r.read_until(':', 64) == null, "the end is null, cut by ${size}")
+    }
+}
+
+@test
+test_read_through_keeps_the_delimiter_and_tells_a_run_cut_short :: fn() -> void {
+    for size in CUTS {
+        r :: cut("a\r\nbc", size, 4)
+        assert_eq(shown(r.read_through('\n', 64)), "a\r\n")
+        assert_eq(shown(r.read_through('\n', 64)), "bc")
+        assert(r.read_through('\n', 64) == null, "the end is null, cut by ${size}")
     }
 }
 
