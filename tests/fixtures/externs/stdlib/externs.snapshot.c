@@ -25,6 +25,7 @@ void* realpath(const char* path, void* resolved);  // system_posix$sys_realpath
 bool CloseHandle(void* h);  // system_windows$close_handle
 bool CopyFileW(const void* from, const void* to, bool fail_if_exists);  // system_windows$copy_file_w
 bool CreateDirectoryW(const void* path, void* security);  // system_windows$create_directory
+void* CreateEventW(void* security, bool manual_reset, bool signalled, void* name);  // system_windows$create_event
 void* CreateFileW(const void* path, uint32_t access, uint32_t share, void* security, uint32_t disposition, uint32_t flags, void* template);  // system_windows$create_file_w
 bool CreateProcessW(void* application, void* command_line, void* proc_attrs, void* thread_attrs, bool inherit, uint32_t flags, void* environment, const void* directory, STARTUPINFOW* startup, PROCESS_INFORMATION* info);  // system_windows$create_process
 int32_t DeleteFileW(const void* path);  // system_windows$delete_file
@@ -62,6 +63,7 @@ bool SetConsoleMode(void* h, uint32_t mode);  // system_windows$set_console_mode
 int32_t SetCurrentDirectoryW(const void* path);  // system_windows$set_current_directory
 bool SetEnvironmentVariableW(const void* name, const void* value);  // system_windows$set_environment_variable_w
 bool SetEnvironmentVariableW(const void* name, void* value);  // system_windows$unset_environment_variable_w
+bool SetEvent(void* event);  // system_windows$set_event
 bool SetFileAttributesW(const void* path, uint32_t attributes);  // system_windows$set_file_attributes_w
 uint32_t SetFilePointer(void* h, int32_t low, void* high, uint32_t method);  // system_windows$set_file_pointer
 void Sleep(uint32_t ms);  // system_windows$sleep_ms
@@ -169,3 +171,19 @@ bool vader_input_pipe(void* read_end, void* write_end);  // system_windows$creat
 bool vader_overlapped_pipe(void* read_end, void* write_end);  // system_windows$create_watched_pipe
 void* vader_ptr_at(const void* base, int64_t i);  // system_windows$ptr_at
 bool vader_stdin_await_reader(int32_t timeout_ms);  // system_windows$await_stdin_reader
+
+/* WS2_32 (system/windows), library ws2_32: <winsock2.h> */
+int32_t WSAEnumNetworkEvents(uint64_t socket, void* event, void* happened);  // system_windows$wsa_enum_network_events
+int32_t WSAEventSelect(uint64_t socket, void* event, int32_t events);  // system_windows$wsa_event_select
+int32_t WSAStartup(uint16_t version, void* data);  // system_windows$wsa_startup
+uint64_t accept(uint64_t socket, void* address, void* length);  // system_windows$winsock_accept
+int32_t bind(uint64_t socket, const void* address, int32_t length);  // system_windows$winsock_bind
+int32_t closesocket(uint64_t socket);  // system_windows$close_socket
+int32_t connect(uint64_t socket, const void* address, int32_t length);  // system_windows$winsock_connect
+int32_t getpeername(uint64_t socket, void* address, void* length);  // system_windows$winsock_peer_name
+int32_t getsockname(uint64_t socket, void* address, void* length);  // system_windows$winsock_local_name
+int32_t listen(uint64_t socket, int32_t backlog);  // system_windows$winsock_listen
+int32_t recv(uint64_t socket, void* into, int32_t length, int32_t flags);  // system_windows$winsock_receive
+int32_t send(uint64_t socket, const void* bytes, int32_t length, int32_t flags);  // system_windows$winsock_send
+int32_t shutdown(uint64_t socket, int32_t how);  // system_windows$winsock_shutdown
+uint64_t socket(int32_t family, int32_t kind, int32_t protocol);  // system_windows$winsock_socket

@@ -31,15 +31,14 @@ ExampleRun :: struct {
 }
 
 // How the example `name` runs; null for one that has no run here: it opens a
-// window, or does not run on this system.
+// window.
 example_run :: fn(name: string) -> ExampleRun | null = match name {
     // A program to run, named from the root of the repository.
     "brainfuck"     -> ExampleRun { .args = ["examples/brainfuck/programs/hello.bf"] }
     // The entry that draws the views of the game with no window.
     "raycaster"     -> ExampleRun { .flags = ["--entry=frames"], .native = true }
     "raylib_sprite" -> null
-    // `std/net` has no sockets on Windows yet.
-    "echo_server"   -> if VADER_OS == .Windows { null } else { ExampleRun { .native = true } }
+    "echo_server"   -> ExampleRun { .native = true }
     _               -> ExampleRun {}
 }
 

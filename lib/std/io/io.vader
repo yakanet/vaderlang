@@ -200,6 +200,15 @@ win32_error_kind :: fn(e: u32) -> IOErrorKind {
     if e == ERROR_DISK_FULL      { return .NoSpace }
     if e == ERROR_DIR_NOT_EMPTY  { return .DirectoryNotEmpty }
     if e == ERROR_DIRECTORY      { return .NotADirectory }
+    if e == WSAEINTR             { return .Interrupted }
+    if e == WSAEWOULDBLOCK       { return .WouldBlock }
+    if e == WSAECONNREFUSED      { return .ConnectionRefused }
+    if e == WSAECONNRESET        { return .ConnectionReset }
+    if e == WSAECONNABORTED      { return .ConnectionReset }
+    if e == WSAEADDRINUSE        { return .AddressInUse }
+    if e == WSAEADDRNOTAVAIL     { return .AddressNotAvailable }
+    if e == WSAENOTCONN          { return .NotConnected }
+    if e == WSAETIMEDOUT         { return .TimedOut }
     return .Other
 }
 

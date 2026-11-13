@@ -9,14 +9,15 @@
 // Closing a socket ends the waits of the tasks parked on it: their call fails,
 // the socket being closed.
 //
-// macOS and Linux. What a socket is to the system is a descriptor there and a
-// handle on Windows; only the `system_*` primitives at the end of this file
-// name either.
+// What a socket is to the system is a descriptor on macOS and Linux, a handle
+// and an event on Windows; only the `system_*` primitives at the end of this
+// file name either.
 
 module "std/net"
 
 import "std/io"
-import "std/target"
+import "std/math"
+import "std/runtime/scheduler"
 import "std/task"
 import "system/posix"
 import "system/windows"
@@ -25,7 +26,14 @@ import "system/windows"
 
 // What a socket call takes from the system and gives back to it. Nothing
 // computes with it.
-Socket :: Fd | SocketHandle
+Socket :: Fd | WindowsSocket
+
+// A Winsock socket, with the event the system signals each time the socket has
+// something for a call that found nothing.
+WindowsSocket :: struct {
+    handle: SocketHandle
+    event: Handle
+}
 
 // ---- listening ------------------------------------------------------------
 
@@ -216,9 +224,6 @@ SOCKET_CLOSED: IOError: IOError { .msg = "socket is closed", .kind = .BadHandle 
 
 // ---- system primitives ----------------------------------------------------
 
-// What every primitive answers on a system this module does not run on.
-unsupported :: fn() -> IOError = IOError { .msg = "std/net does not run on this system yet" }
-
 // A socket that listens on `address`, in the mode where a call with nothing to
 // take fails instead of waiting.
 @target
@@ -240,8 +245,21 @@ system_listen :: fn(address: SocketAddress, backlog: i32) -> Socket | IOError {
     return Fd(fd)
 }
 
+// Without `SO_REUSEADDR`: Windows already lets a server restart at once, and
+// the option there lets two listeners take one address.
 @target(.Windows)
-system_listen :: fn(address: SocketAddress, backlog: i32) -> Socket | IOError = unsupported()
+system_listen :: fn(address: SocketAddress, backlog: i32) -> Socket | IOError {
+    socket :: open_windows_socket(address)
+    if socket is IOError {
+        return socket
+    }
+    encoded :: sockaddr_of(address)
+    if winsock_bind(socket.handle, encoded, i32(encoded.len())) != 0
+        || winsock_listen(socket.handle, backlog) != 0 {
+        return abandoning(socket, last_io_error("cannot listen on ${address}"))
+    }
+    return socket
+}
 
 // The next connection to the listener `socket`, parking until there is one or
 // `closed` says the listener went.
@@ -271,7 +289,22 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
 }
 
 @target(.Windows)
-system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError = unsupported()
+system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
+    listener :: windows_socket_of(socket)
+    for {
+        accepted :: winsock_accept(listener.handle, null, null)
+        if accepted != INVALID_SOCKET {
+            return followed(accepted)
+        }
+        code :: get_last_error()
+        if code != WSAEWOULDBLOCK {
+            return io_error_of(i32(code), "cannot accept")
+        }
+        if !park_on(listener, closed) {
+            return SOCKET_CLOSED
+        }
+    }
+}
 
 // A socket connected to `address`, in the mode `system_listen` describes,
 // parking until the other end answers.
@@ -311,7 +344,34 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
 }
 
 @target(.Windows)
-system_connect :: fn(address: SocketAddress) -> Socket | IOError = unsupported()
+system_connect :: fn(address: SocketAddress) -> Socket | IOError {
+    socket :: open_windows_socket(address)
+    if socket is IOError {
+        return socket
+    }
+    encoded :: sockaddr_of(address)
+    if winsock_connect(socket.handle, encoded, i32(encoded.len())) == 0 {
+        return socket
+    }
+    code :: get_last_error()
+    if code != WSAEWOULDBLOCK {
+        return abandoning(socket, io_error_of(i32(code), "cannot connect to ${address}"))
+    }
+    // A park ends for more than the end of the attempt: the socket tells
+    // whether it is over, and how it went.
+    happened: i32[]: [0] * NETWORK_EVENTS_CELLS
+    for happened[0] & FD_CONNECT == 0 {
+        park_on_event(socket)
+        if wsa_enum_network_events(socket.handle, null, happened) != 0 {
+            return abandoning(socket, last_io_error("cannot connect to ${address}"))
+        }
+    }
+    outcome :: happened[NETWORK_EVENTS_CONNECT_CODE]
+    if outcome != 0 {
+        return abandoning(socket, io_error_of(outcome, "cannot connect to ${address}"))
+    }
+    return socket
+}
 
 // Some bytes of the connection `socket` into `into`, parking until there are
 // some or `closed` says the stream went; null at the end of the stream.
@@ -341,8 +401,25 @@ system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | nu
 }
 
 @target(.Windows)
-system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | null | IOError =
-    unsupported()
+system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | null | IOError {
+    stream :: windows_socket_of(socket)
+    for {
+        got :: winsock_receive(stream.handle, into, winsock_length(into), 0)
+        if got > 0 {
+            return i64(got)
+        }
+        if got == 0 {
+            return null
+        }
+        code :: get_last_error()
+        if code != WSAEWOULDBLOCK {
+            return io_error_of(i32(code), "read failed")
+        }
+        if !park_on(stream, closed) {
+            return SOCKET_CLOSED
+        }
+    }
+}
 
 // All of `bytes` to the connection `socket`, parking while the system has no
 // room for them, until `closed` says the stream went.
@@ -378,8 +455,31 @@ system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOE
 }
 
 @target(.Windows)
-system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOError =
-    unsupported()
+system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOError {
+    stream :: windows_socket_of(socket)
+    done: i64 = 0
+    for done < bytes.len() {
+        rest :: bytes[done..<bytes.len()]
+        sent :: winsock_send(stream.handle, rest, winsock_length(rest), 0)
+        if sent > 0 {
+            done += i64(sent)
+            continue
+        }
+        // A send that took nothing and says no more would be asked again
+        // forever.
+        if sent == 0 {
+            return IOError { .msg = "write failed: nothing written" }
+        }
+        code :: get_last_error()
+        if code != WSAEWOULDBLOCK {
+            return io_error_of(i32(code), "write failed")
+        }
+        if !park_on(stream, closed) {
+            return SOCKET_CLOSED
+        }
+    }
+    return null
+}
 
 // The address of the other end of `socket` when `peer`, of this end otherwise.
 @target
@@ -401,7 +501,20 @@ system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError {
 }
 
 @target(.Windows)
-system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError = unsupported()
+system_address :: fn(socket: Socket, peer: bool) -> SocketAddress | IOError {
+    handle :: windows_socket_of(socket).handle
+    encoded: u8[]: [0] * SOCKADDR_IN6_BYTES
+    length: i32[]: [i32(SOCKADDR_IN6_BYTES)]
+    read :: if peer {
+        winsock_peer_name(handle, encoded, length)
+    } else {
+        winsock_local_name(handle, encoded, length)
+    }
+    if read != 0 {
+        return last_io_error("cannot read the address of the socket")
+    }
+    return address_of(encoded)
+}
 
 @target
 system_close_write :: fn(socket: Socket) -> null | IOError
@@ -411,7 +524,10 @@ system_close_write :: fn(socket: Socket) -> null | IOError =
     failure_unless(sys_shutdown(fd_of(socket), SHUT_WR) == 0, "cannot end the sending side")
 
 @target(.Windows)
-system_close_write :: fn(socket: Socket) -> null | IOError = unsupported()
+system_close_write :: fn(socket: Socket) -> null | IOError = failure_unless(
+    winsock_shutdown(windows_socket_of(socket).handle, SD_SEND) == 0,
+    "cannot end the sending side",
+)
 
 @target
 system_close :: fn(socket: Socket) -> null | IOError
@@ -425,8 +541,17 @@ system_close :: fn(socket: Socket) -> null | IOError {
     return failure_unless(sys_close(fd_of(socket)) == 0, "close failed")
 }
 
+// The task parked on the socket is woken first, by the signal a new event
+// would give it, and finds the socket closed. Closing the event under it is
+// safe: the scheduler waits on a handle of its own.
 @target(.Windows)
-system_close :: fn(socket: Socket) -> null | IOError = unsupported()
+system_close :: fn(socket: Socket) -> null | IOError {
+    closing :: windows_socket_of(socket)
+    set_event(closing.event)
+    outcome :: failure_unless(close_socket(closing.handle) == 0, "close failed")
+    close_handle(closing.event)
+    return outcome
+}
 
 // A socket is an `Fd` on POSIX: the other member is a bug of this module, and
 // stops the program.
@@ -450,6 +575,80 @@ set_non_blocking :: fn(fd: i32) -> bool {
 
 // A socket as `std/io` waits on it.
 socket_descriptor :: fn(socket: Socket) -> Descriptor = Fd(fd_of(socket))
+
+// A socket is a `WindowsSocket` on Windows, as it is an `Fd` on POSIX.
+windows_socket_of :: fn(socket: Socket) -> WindowsSocket = @unreachable match socket {
+    is WindowsSocket -> socket
+}
+
+// Winsock 2.2, as `WSAStartup` takes it.
+WINSOCK_VERSION: u16: 0x0202
+
+// Whether this process may call Winsock, asked once.
+@singleton
+winsock_started :: fn() -> bool = wsa_startup(WINSOCK_VERSION, [0] * WSADATA_BYTES) == 0
+
+// The events a socket is followed for: all that end a wait of this module.
+SOCKET_EVENTS: i32: FD_READ | FD_WRITE | FD_ACCEPT | FD_CONNECT | FD_CLOSE
+
+// A new socket for the family of `address`, in the mode `followed` describes.
+open_windows_socket :: fn(address: SocketAddress) -> WindowsSocket | IOError {
+    if !winsock_started() {
+        return IOError { .msg = "cannot start Winsock" }
+    }
+    handle :: winsock_socket(family_of(address), WINSOCK_SOCK_STREAM, 0)
+    if handle == INVALID_SOCKET {
+        return last_io_error("cannot open a socket")
+    }
+    return followed(handle)
+}
+
+// `handle` with an event of its own, which the system signals for each of
+// `SOCKET_EVENTS`: a call with nothing to take fails from then on instead of
+// waiting. The event is one a wait takes the signal of, so that no task resets
+// it under another. On failure `handle` is given back.
+followed :: fn(handle: SocketHandle) -> WindowsSocket | IOError {
+    event :: create_event(null, false, false, null)
+    if event == null {
+        error :: last_io_error("cannot follow a socket")
+        close_socket(handle)
+        return error
+    }
+    socket :: WindowsSocket { .handle = handle, .event = event }
+    if wsa_event_select(handle, event, SOCKET_EVENTS) != 0 {
+        return abandoning(socket, last_io_error("cannot follow a socket"))
+    }
+    return socket
+}
+
+// `error`, once the `socket` that met it is given back, as `closing` does.
+abandoning :: fn(socket: WindowsSocket, error: IOError) -> IOError {
+    close_socket(socket.handle)
+    close_handle(socket.event)
+    return error
+}
+
+// How many bytes of `bytes` one Winsock call is asked for: its lengths are 32
+// bits wide.
+WINSOCK_CHUNK: i64: 0x4000_0000
+
+winsock_length :: fn(bytes: u8[]) -> i32 = i32(min(bytes.len(), WINSOCK_CHUNK))
+
+// Park the running task until the system signals the event of `socket`: the
+// socket has something, or it is being closed; false when `closed` says the
+// latter.
+park_on :: fn(socket: WindowsSocket, closed: AtomicBool) -> bool {
+    park_on_event(socket)
+    return !closed.load()
+}
+
+// The scheduler follows the event as it follows a child, both being handles
+// the system signals. A signal no task waited for stays, and ends the next
+// park at once: the caller asks the socket again in a loop.
+park_on_event :: fn(socket: WindowsSocket) -> void {
+    watch_exit(i64(socket.event))
+    park()
+}
 
 // Park the running task until `fd` has something to read; false when `closed`
 // says the socket went meanwhile, its number then naming nothing of this
@@ -484,9 +683,6 @@ block_until :: fn(fd: i32, events: i16) -> void {
 
 import "std/testing"
 import "std/time"
-
-// Whether the tests of this file have sockets to run on.
-has_sockets :: fn() -> bool = VADER_OS != .Windows
 
 // Send back what `stream` sends until it ends; the bytes sent back.
 echo :: fn(stream: TcpStream) -> i64 {
@@ -580,9 +776,6 @@ exchange :: fn(stream: TcpStream, message: string) -> string {
 
 @test
 test_listener_binds_a_free_port :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     assert(address.port != 0, "the system picked a port")
@@ -592,9 +785,6 @@ test_listener_binds_a_free_port :: fn() -> void {
 
 @test
 test_streams_carry_bytes_both_ways :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     server :: launch(() -> serve(listener, 1))
@@ -607,9 +797,6 @@ test_streams_carry_bytes_both_ways :: fn() -> void {
 
 @test
 test_connections_are_served_at_the_same_time :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     server :: launch(() -> serve(listener, 2))
@@ -633,9 +820,6 @@ send_bytes :: fn(stream: TcpStream, count: i64) -> void {
 
 @test
 test_a_write_larger_than_the_socket_holds_goes_through :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     server :: launch(() -> serve(listener, 1))
@@ -662,9 +846,6 @@ test_a_write_larger_than_the_socket_holds_goes_through :: fn() -> void {
 
 @test
 test_listen_fails_on_an_address_already_taken :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     second :: listen(address)
@@ -677,9 +858,6 @@ test_listen_fails_on_an_address_already_taken :: fn() -> void {
 
 @test
 test_peer_address_is_the_listener_s :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     stream :: connection_to(address) ?? return
@@ -694,9 +872,6 @@ test_peer_address_is_the_listener_s :: fn() -> void {
 
 @test
 test_connect_fails_where_nothing_listens :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     listener.close()
@@ -709,9 +884,6 @@ test_connect_fails_where_nothing_listens :: fn() -> void {
 
 @test
 test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     stream :: connection_to(address) ?? return
@@ -736,9 +908,6 @@ read_outcome :: fn(stream: TcpStream) -> string {
 
 @test
 test_closing_a_stream_ends_the_read_parked_on_it :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     address :: bound_address(listener) ?? return
     stream :: connection_to(address) ?? return
@@ -756,9 +925,6 @@ test_closing_a_stream_ends_the_read_parked_on_it :: fn() -> void {
 
 @test
 test_closing_a_listener_ends_the_accept_parked_on_it :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: loopback_listener() ?? return
     accepting :: launch(() -> listener.accept() is IOError)
     sleep(5.millis())
@@ -769,9 +935,6 @@ test_closing_a_listener_ends_the_accept_parked_on_it :: fn() -> void {
 
 @test
 test_ipv6_loopback_carries_bytes :: fn() -> void {
-    if !has_sockets() {
-        return
-    }
     listener :: listen(loopback_v6(0))
     if listener is IOError {
         // A machine with no IPv6 has no `::1` to bind.

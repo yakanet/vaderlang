@@ -29,8 +29,9 @@ export PipeHandle :: CPointer
 /// A process `CreateProcess` started. `std/process` holds one as a `Process`.
 export ProcessHandle :: CPointer
 
-/// A socket Winsock opened. `std/net` holds one as a `Socket`.
-export SocketHandle :: CPointer
+/// A socket Winsock opened: a number, as a `SOCKET` is. `std/net` holds one
+/// in a `Socket`.
+export SocketHandle :: u64
 
 /// `nStdHandle` selectors. `DWORD` is unsigned, so the negative constants are
 /// written in their two's-complement form.
@@ -812,3 +813,216 @@ export query_performance_counter :: fn(@c_out counter: i64[]) -> bool
 /// `QueryPerformanceFrequency`. Fills `freq` with counts per second; false on failure.
 @extern(KERNEL32, "QueryPerformanceFrequency")
 export query_performance_frequency :: fn(@c_out freq: i64[]) -> bool
+
+// ---- events ---------------------------------------------------------------
+
+/// `CreateEventW`. An event nothing has signalled, or null on failure.
+///
+/// @param security      `lpEventAttributes`; `null` for the default descriptor.
+/// @param manual_reset  whether the event stays signalled until `ResetEvent`;
+///                      when false, the wait it releases takes the signal.
+/// @param signalled     whether the event starts signalled.
+/// @param name          `null` for an event no other process opens.
+@extern(KERNEL32, "CreateEventW")
+export create_event :: fn(
+    security: CPointer | null,
+    manual_reset: bool,
+    signalled: bool,
+    name: CPointer | null,
+) -> Handle | null
+
+/// `SetEvent`. False on failure.
+///
+/// @param event  the event to signal.
+@extern(KERNEL32, "SetEvent")
+export set_event :: fn(event: Handle) -> bool
+
+// ---- sockets --------------------------------------------------------------
+//
+// A failed call leaves its code where `GetLastError` reads it: Winsock keeps it
+// in the same cell of the thread.
+
+/// The library the Winsock calls below come from.
+WS2_32 :: CLibrary {
+    .name = "ws2_32",
+    .headers = ["<winsock2.h>"],
+    .system = ["ws2_32"],
+}
+
+/// What `socket` and `accept` return on failure.
+export INVALID_SOCKET: SocketHandle: SocketHandle(u64(0xFFFF_FFFF_FFFF_FFFF))
+
+/// `AF_INET`, the family of IPv4 addresses.
+export WINSOCK_AF_INET: i32: 2
+
+/// `AF_INET6`, the family of IPv6 addresses.
+export WINSOCK_AF_INET6: i32: 23
+
+/// `SOCK_STREAM`, a socket that carries a stream of bytes.
+export WINSOCK_SOCK_STREAM: i32: 1
+
+/// `SD_SEND`, the side `shutdown` ends: what this end sends.
+export SD_SEND: i32: 1
+
+/// The Winsock codes `std/io` classifies.
+export WSAEINTR: u32: 10004
+/// The call has nothing to take and the socket does not wait.
+export WSAEWOULDBLOCK: u32: 10035
+export WSAEADDRINUSE: u32: 10048
+export WSAEADDRNOTAVAIL: u32: 10049
+export WSAECONNABORTED: u32: 10053
+export WSAECONNRESET: u32: 10054
+export WSAENOTCONN: u32: 10057
+export WSAETIMEDOUT: u32: 10060
+export WSAECONNREFUSED: u32: 10061
+
+/// The size of a `WSADATA`, rounded up: what `wsa_startup` fills.
+export WSADATA_BYTES: i64: 512
+
+/// `WSAStartup`. Zero once the process may call Winsock, else the code of the
+/// failure, which `GetLastError` does not hold.
+///
+/// @param version  the Winsock version asked for: `0x0202` for 2.2.
+/// @param data     receives a `WSADATA`; `WSADATA_BYTES` bytes.
+@extern(WS2_32, "WSAStartup")
+export wsa_startup :: fn(version: u16, @c_out data: u8[]) -> i32
+
+/// `socket`. A socket, or `INVALID_SOCKET`.
+///
+/// @param family    the family of its addresses, `WINSOCK_AF_INET` or
+///                  `WINSOCK_AF_INET6`.
+/// @param kind      `WINSOCK_SOCK_STREAM`.
+/// @param protocol  0 for the protocol of the kind.
+@extern(WS2_32, "socket")
+export winsock_socket :: fn(family: i32, kind: i32, protocol: i32) -> SocketHandle
+
+/// `bind`. Zero on success.
+///
+/// @param socket   the socket to name.
+/// @param address  a `sockaddr_in` or a `sockaddr_in6`.
+/// @param length   the bytes of `address`.
+@extern(WS2_32, "bind")
+export winsock_bind :: fn(socket: SocketHandle, address: u8[], length: i32) -> i32
+
+/// `listen`. Zero on success.
+///
+/// @param socket   a bound socket.
+/// @param backlog  how many connections may wait for an `accept`.
+@extern(WS2_32, "listen")
+export winsock_listen :: fn(socket: SocketHandle, backlog: i32) -> i32
+
+/// `accept`. The next connection, or `INVALID_SOCKET`. The socket returned
+/// follows the event of `socket`, until `wsa_event_select` gives it its own.
+///
+/// @param socket   a listening socket.
+/// @param address  `null`: the address of the other end is asked later.
+/// @param length   `null`, as `address`.
+@extern(WS2_32, "accept")
+export winsock_accept :: fn(
+    socket: SocketHandle,
+    address: CPointer | null,
+    length: CPointer | null,
+) -> SocketHandle
+
+/// `connect`. Zero once connected; on a socket that does not wait, non-zero
+/// with `WSAEWOULDBLOCK` while the connection is under way.
+///
+/// @param socket   the socket to connect.
+/// @param address  a `sockaddr_in` or a `sockaddr_in6`.
+/// @param length   the bytes of `address`.
+@extern(WS2_32, "connect")
+export winsock_connect :: fn(socket: SocketHandle, address: u8[], length: i32) -> i32
+
+/// `recv`. The bytes read, 0 at the end of the stream, negative on failure.
+///
+/// @param socket  a connected socket.
+/// @param into    receives the bytes.
+/// @param length  how many bytes `into` takes at most.
+/// @param flags   0.
+@extern(WS2_32, "recv")
+export winsock_receive :: fn(socket: SocketHandle, @c_out into: u8[], length: i32, flags: i32) -> i32
+
+/// `send`. The bytes taken, which may be fewer than `length`; negative on
+/// failure.
+///
+/// @param socket  a connected socket.
+/// @param bytes   what to send.
+/// @param length  how many bytes of `bytes` to send.
+/// @param flags   0.
+@extern(WS2_32, "send")
+export winsock_send :: fn(socket: SocketHandle, bytes: u8[], length: i32, flags: i32) -> i32
+
+/// `shutdown`. Zero on success.
+///
+/// @param socket  a connected socket.
+/// @param how     `SD_SEND`.
+@extern(WS2_32, "shutdown")
+export winsock_shutdown :: fn(socket: SocketHandle, how: i32) -> i32
+
+/// `closesocket`. Zero on success.
+///
+/// @param socket  the socket to give back.
+@extern(WS2_32, "closesocket")
+export close_socket :: fn(socket: SocketHandle) -> i32
+
+/// `getsockname`. Zero on success.
+///
+/// @param socket   a bound socket.
+/// @param address  receives the address of this end.
+/// @param length   one cell: the bytes of `address`, then the bytes written.
+@extern(WS2_32, "getsockname")
+export winsock_local_name :: fn(
+    socket: SocketHandle,
+    @c_out address: u8[],
+    @c_out length: i32[],
+) -> i32
+
+/// `getpeername`. Zero on success.
+///
+/// @param socket   a connected socket.
+/// @param address  receives the address of the other end.
+/// @param length   one cell: the bytes of `address`, then the bytes written.
+@extern(WS2_32, "getpeername")
+export winsock_peer_name :: fn(
+    socket: SocketHandle,
+    @c_out address: u8[],
+    @c_out length: i32[],
+) -> i32
+
+/// The network events `wsa_event_select` asks for, one bit each.
+export FD_READ: i32: 0x01
+export FD_WRITE: i32: 0x02
+export FD_ACCEPT: i32: 0x08
+export FD_CONNECT: i32: 0x10
+export FD_CLOSE: i32: 0x20
+
+/// The cells of a `WSANETWORKEVENTS`: the events that happened, then one code
+/// per kind of event.
+export NETWORK_EVENTS_CELLS: i64: 11
+
+/// Where a `WSANETWORKEVENTS` holds the outcome of a connection: 0 once made.
+export NETWORK_EVENTS_CONNECT_CODE: i64: 5
+
+/// `WSAEventSelect`. Zero on success. Signals `event` each time one of `events`
+/// happens on `socket`, which from then on does not wait. A kind of event is
+/// signalled again only once the call that takes it has been made.
+///
+/// @param socket  the socket to follow.
+/// @param event   the event to signal.
+/// @param events  the kinds to follow, `FD_*` bits.
+@extern(WS2_32, "WSAEventSelect")
+export wsa_event_select :: fn(socket: SocketHandle, event: Handle, events: i32) -> i32
+
+/// `WSAEnumNetworkEvents`. Zero on success. Tells what happened on `socket`
+/// since the last call, and forgets it.
+///
+/// @param socket    a socket `wsa_event_select` follows.
+/// @param event     `null`, or an event to reset in the same step.
+/// @param happened  receives a `WSANETWORKEVENTS`; `NETWORK_EVENTS_CELLS`
+///                  cells.
+@extern(WS2_32, "WSAEnumNetworkEvents")
+export wsa_enum_network_events :: fn(
+    socket: SocketHandle,
+    event: Handle | null,
+    @c_out happened: i32[],
+) -> i32

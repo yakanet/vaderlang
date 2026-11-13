@@ -2,8 +2,8 @@
 //
 // A `sockaddr_in` and a `sockaddr_in6` are written here byte by byte instead of
 // through a mirror of the C structs: their layout differs between systems (Darwin
-// opens them with their length, Linux with a family of two bytes), and a mirror
-// is compared with no header where the tests run.
+// opens them with their length, Linux and Windows with a family of two bytes),
+// and a mirror is compared with no header where the tests run.
 //
 //   sockaddr_in  (16 bytes): family, port, the 4 bytes of the address, 8 zeros
 //   sockaddr_in6 (28 bytes): family, port, flow (4), the 16 bytes, scope (4)
@@ -15,6 +15,7 @@ module "std/net"
 import "std/io"
 import "std/target"
 import "system/posix"
+import "system/windows"
 
 SOCKADDR_IN_BYTES: i64: 16
 // The longer of the two: room for either.
@@ -25,25 +26,29 @@ SOCKADDR_IN6_BYTES: i64: 28
 IPV4_OFFSET: i64: 4
 IPV6_OFFSET: i64: 8
 
+// The families of addresses, which each system numbers its own way.
+FAMILY_IPV4: i32: if VADER_OS == .Windows { WINSOCK_AF_INET } else { AF_INET }
+FAMILY_IPV6: i32: if VADER_OS == .Windows { WINSOCK_AF_INET6 } else { AF_INET6 }
+
 // The family of the addresses of `address`, as `socket` takes it.
 family_of :: fn(address: SocketAddress) -> i32 =
-    if address.ip is Ipv4 { AF_INET } else { AF_INET6 }
+    if address.ip is Ipv4 { FAMILY_IPV4 } else { FAMILY_IPV6 }
 
 // The bytes of the `sockaddr_in` or the `sockaddr_in6` of `address`.
 sockaddr_of :: fn(address: SocketAddress) -> u8[] {
     ip :: address.ip
     out: u8[]: []
     if ip is Ipv4 {
-        push_family(out, AF_INET, SOCKADDR_IN_BYTES)
-        push_port(out, address.port)
+        out.push_family(FAMILY_IPV4, SOCKADDR_IN_BYTES)
+        out.push_port(address.port)
         out.push_all(ip.octets)
-        pad_to(out, SOCKADDR_IN_BYTES)
+        out.pad_to(SOCKADDR_IN_BYTES)
     } else {
-        push_family(out, AF_INET6, SOCKADDR_IN6_BYTES)
-        push_port(out, address.port)
-        pad_to(out, IPV6_OFFSET)
+        out.push_family(FAMILY_IPV6, SOCKADDR_IN6_BYTES)
+        out.push_port(address.port)
+        out.pad_to(IPV6_OFFSET)
         out.push_all(ip.octets)
-        pad_to(out, SOCKADDR_IN6_BYTES)
+        out.pad_to(SOCKADDR_IN6_BYTES)
     }
     return out
 }
@@ -59,11 +64,11 @@ pad_to :: fn(out: u8[], length: i64) -> void {
 address_of :: fn(encoded: u8[]) -> SocketAddress | IOError {
     family :: family_in(encoded)
     port :: (u16(encoded[2]) << 8) | u16(encoded[3])
-    if family == AF_INET {
+    if family == FAMILY_IPV4 {
         octets :: encoded[IPV4_OFFSET..<IPV4_OFFSET + IPV4_BYTES].clone()
         return SocketAddress { .ip = Ipv4 { .octets = octets }, .port = port }
     }
-    if family == AF_INET6 {
+    if family == FAMILY_IPV6 {
         octets :: encoded[IPV6_OFFSET..<IPV6_OFFSET + IPV6_BYTES].clone()
         return SocketAddress { .ip = Ipv6 { .octets = octets }, .port = port }
     }
@@ -71,7 +76,7 @@ address_of :: fn(encoded: u8[]) -> SocketAddress | IOError {
 }
 
 // The two bytes a struct of `length` bytes opens with: its length and its
-// family on Darwin, its family as a 16-bit number on Linux.
+// family on Darwin, its family as a 16-bit number elsewhere.
 push_family :: fn(out: u8[], family: i32, length: i64) -> void {
     if VADER_OS == .Darwin {
         out.push(u8(length))
