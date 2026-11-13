@@ -215,6 +215,28 @@ export remove_value :: fn<T: Equals>(self: T[], value: T) -> bool {
     return true
 }
 
+/// Remove from `self` every element `drop` says to, keeping the others in
+/// order ; how many went.
+///
+/// @param drop  whether an element goes.
+/// @example
+///   xs :: [1, 2, 3, 4]
+///   xs.remove_where(x -> x % 2 == 0)   // 2: xs is [1, 3]
+export remove_where :: fn<T>(self: T[], drop: fn(T) -> bool) -> i64 {
+    kept: i64 = 0
+    for i in 0..<self.len() {
+        if !drop(self[i]) {
+            self[kept] = self[i]
+            kept += 1
+        }
+    }
+    removed :: self.len() - kept
+    for self.len() > kept {
+        self.remove_last()
+    }
+    return removed
+}
+
 /// True when `self` holds no element.
 export is_empty :: fn<T>(self: T[]) -> bool = self.len() == 0
 
@@ -307,6 +329,27 @@ test_remove_value_takes_the_first_equal_element_out :: fn() -> void {
     xs :: [1, 2, 1, 3]
     assert(xs.remove_value(1), "1 is there")
     assert(xs.content_equals([2, 1, 3]), "the others keep their order")
+}
+
+@test
+test_remove_where_takes_out_what_the_test_names :: fn() -> void {
+    xs :: [1, 2, 3, 4, 6]
+    assert_eq(xs.remove_where((x) -> x % 2 == 0), 3)
+    assert(xs.content_equals([1, 3]), "the others stay, in order")
+}
+
+@test
+test_remove_where_leaves_an_array_the_test_names_nothing_of :: fn() -> void {
+    xs :: [1, 3]
+    assert_eq(xs.remove_where((x) -> x > 9), 0)
+    assert(xs.content_equals([1, 3]), "unchanged")
+}
+
+@test
+test_remove_where_may_empty_an_array :: fn() -> void {
+    xs :: [1, 3]
+    assert_eq(xs.remove_where((x) -> true), 2)
+    assert(xs.is_empty(), "nothing is left")
 }
 
 @test
