@@ -263,6 +263,30 @@ export wait_writable :: fn(d: Descriptor) -> void = Wait.wait_writable(descripto
 export wait_writable_for :: fn(d: Descriptor, timeout: Duration) -> bool =
     Wait.wait_writable_for(descriptor_word(d), timeout.to_nanos())
 
+/// `timeout` in the whole milliseconds a system poll takes: rounded up, so
+/// that the poll never ends before `timeout`, and at most the largest `i32`.
+///
+/// For the wait a caller makes on the system thread once a wait of this module
+/// returned at once, no other task running.
+///
+/// @param timeout  the longest wait; a negative one waits with no deadline.
+/// @return         the milliseconds, -1 for no deadline.
+export poll_milliseconds :: fn(timeout: Duration) -> i32 {
+    nanos :: timeout.to_nanos()
+    if nanos < 0 {
+        return -1
+    }
+    whole :: nanos / 1_000_000
+    rounded :: if nanos % 1_000_000 == 0 { whole } else { whole + 1 }
+    if rounded > i64(MAX_POLL_MILLISECONDS) {
+        return MAX_POLL_MILLISECONDS
+    }
+    return i32(rounded)
+}
+
+/// The longest wait a system poll takes, about 24 days.
+export MAX_POLL_MILLISECONDS: i32: 2_147_483_647
+
 /// End the waits of the tasks parked on `d`, each returning as if `d` were
 /// ready. Call it before closing `d`: the system hands its number out again,
 /// and a task still parked would then wait on whatever takes it.

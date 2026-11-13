@@ -7,7 +7,9 @@
 // waited.
 //
 // Closing a socket ends the waits of the tasks parked on it: their call fails,
-// the socket being closed.
+// the socket being closed. A stream may be given an instant past which its
+// reads fail, and one for its writes: a call still parked then fails, timed
+// out.
 //
 // What a socket is to the system is a descriptor on macOS and Linux and a
 // handle on Windows; only the `system_*` primitives at the end of this file
@@ -18,6 +20,7 @@ module "std/net"
 import "std/io"
 import "std/math"
 import "std/task"
+import "std/time"
 import "system/posix"
 import "system/windows"
 
@@ -79,8 +82,7 @@ export accept :: fn(listener: TcpListener) -> TcpStream | IOError {
     if socket is IOError {
         return socket
     }
-    send_at_once(socket)
-    return TcpStream { .socket = socket, .closed = AtomicBool {} }
+    return stream_of(socket)
 }
 
 /// The address `listener` listens on, with the port the system picked when it
@@ -112,11 +114,32 @@ export close :: fn(listener: TcpListener) -> null | IOError {
 ///
 /// Each write goes to the other end as it is made, held back for none before
 /// it: what is written in two calls may travel as two packets.
+///
+/// Two tasks may hold one stream: what `read_by` and `write_by` set is seen by
+/// both.
 export TcpStream :: struct {
     @internal
     socket: Socket
     @internal
     closed: AtomicBool
+    /// The instant `read_by` set, in nanoseconds of the monotonic clock;
+    /// `NO_DEADLINE` for none.
+    @internal
+    read_deadline: AtomicInt
+    /// The instant `write_by` set, as `read_deadline` is.
+    @internal
+    write_deadline: AtomicInt
+}
+
+// The stream of a connection the system just made.
+stream_of :: fn(socket: Socket) -> TcpStream {
+    send_at_once(socket)
+    return TcpStream {
+        .socket = socket,
+        .closed = AtomicBool {},
+        .read_deadline = AtomicInt {},
+        .write_deadline = AtomicInt {},
+    }
 }
 
 /// Connect to the listener at `address`.
@@ -135,8 +158,7 @@ export connect :: fn(address: SocketAddress) -> TcpStream | IOError {
     if socket is IOError {
         return socket
     }
-    send_at_once(socket)
-    return TcpStream { .socket = socket, .closed = AtomicBool {} }
+    return stream_of(socket)
 }
 
 TcpStream implements Reader {
@@ -147,7 +169,11 @@ TcpStream implements Reader {
         if into.len() == 0 {
             return 0
         }
-        return system_receive(self.socket, into, self.closed)
+        deadline :: self.read_deadline.load()
+        if time_left(deadline) == 0 {
+            return TIMED_OUT
+        }
+        return system_receive(self.socket, into, self.closed, deadline)
     }
 }
 
@@ -156,8 +182,71 @@ TcpStream implements Writer {
         if self.closed.load() {
             return SOCKET_CLOSED
         }
-        return system_send(self.socket, content.bytes_of(), self.closed)
+        deadline :: self.write_deadline.load()
+        if time_left(deadline) == 0 {
+            return TIMED_OUT
+        }
+        return system_send(self.socket, content.bytes_of(), self.closed, deadline)
     }
+}
+
+/// Have the reads of `stream` fail from `deadline` on.
+///
+/// A read parked at that instant fails as `.TimedOut`, and so does every read
+/// made after it, until the deadline is moved or lifted. An instant, not a
+/// delay: it bounds what is read in several calls, a request that arrives in
+/// ten pieces say. What was read before it stays read.
+///
+/// A read already parked keeps the deadline it parked with.
+///
+/// @param stream    the connection.
+/// @param deadline  the instant of the monotonic clock past which a read
+///                  fails; null for no deadline.
+/// @example
+///   # import "std/io"
+///   # import "std/time"
+///   stream :: connect(loopback(8080))
+///   if stream is TcpStream {
+///       stream.read_by(monotonic() + 5.seconds())
+///       buffer: u8[]: [0] * 512
+///       stream.read(buffer)   // an IOError of kind .TimedOut after 5 s of silence
+///   }
+export read_by :: fn(stream: TcpStream, deadline: Monotonic | null) -> void {
+    stream.read_deadline.store(deadline_word(deadline))
+}
+
+/// Have the writes of `stream` fail from `deadline` on, as `read_by` does for
+/// its reads.
+///
+/// A write that fails this way may have sent a part of its bytes: the stream
+/// is then good for closing only.
+///
+/// @param stream    the connection.
+/// @param deadline  the instant of the monotonic clock past which a write
+///                  fails; null for no deadline.
+export write_by :: fn(stream: TcpStream, deadline: Monotonic | null) -> void {
+    stream.write_deadline.store(deadline_word(deadline))
+}
+
+// What a stream with no deadline holds for one.
+NO_DEADLINE: i64: 0
+
+// `deadline` as a stream holds it.
+deadline_word :: fn(deadline: Monotonic | null) -> i64 {
+    if deadline == null {
+        return NO_DEADLINE
+    }
+    // The one instant that would read as no deadline is put a nanosecond later.
+    return max(i64(deadline), NO_DEADLINE + 1)
+}
+
+// How long until `deadline`, in nanoseconds: 0 once it has passed, negative
+// when there is none, as a wait of `std/io` takes it.
+time_left :: fn(deadline: i64) -> i64 {
+    if deadline == NO_DEADLINE {
+        return -1
+    }
+    return max(deadline - i64(monotonic()), 0)
 }
 
 /// The address of this end of `stream`.
@@ -217,6 +306,9 @@ close_once :: fn(socket: Socket, closed: AtomicBool) -> null | IOError {
 // What a call on a closed socket answers.
 SOCKET_CLOSED: IOError: IOError { .msg = "socket is closed", .kind = .BadHandle }
 
+// What a call answers once the deadline of its stream has passed.
+TIMED_OUT: IOError: IOError { .msg = "timed out", .kind = .TimedOut }
+
 // ---- system primitives ----------------------------------------------------
 
 // A socket that listens on `address`, in the mode where a call with nothing to
@@ -274,8 +366,9 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
         }
         code :: sys_last_errno()
         if code == EAGAIN {
-            if !park_readable(fd, closed) {
-                return SOCKET_CLOSED
+            parked :: park(socket, false, closed, NO_DEADLINE)
+            if parked != null {
+                return parked
             }
         } else if code != EINTR && code != ECONNABORTED {
             // A connection dropped before it was taken says nothing of the
@@ -301,9 +394,9 @@ system_accept :: fn(socket: Socket, closed: AtomicBool) -> Socket | IOError {
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "cannot accept")
         }
-        wait_readable(listener)
-        if closed.load() {
-            return SOCKET_CLOSED
+        parked :: park(socket, false, closed, NO_DEADLINE)
+        if parked != null {
+            return parked
         }
     }
 }
@@ -332,7 +425,7 @@ system_connect :: fn(address: SocketAddress) -> Socket | IOError {
         return closing(fd, io_error_of(code, "cannot connect to ${address}"))
     }
     wait_writable(Fd(fd))
-    block_until(fd, POLLOUT)
+    block_until(fd, POLLOUT, NO_LIMIT)
     // Writable once the connection is made or has failed: the socket holds
     // which.
     failure: i32[]: [0]
@@ -399,12 +492,23 @@ send_at_once :: fn(socket: Socket) -> void {
 }
 
 // Some bytes of the connection `socket` into `into`, parking until there are
-// some or `closed` says the stream went; null at the end of the stream.
+// some, `closed` says the stream went or `deadline` comes; null at the end of
+// the stream.
 @target
-system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | null | IOError
+system_receive :: fn(
+    socket: Socket,
+    into: u8[],
+    closed: AtomicBool,
+    deadline: i64,
+) -> i64 | null | IOError
 
 @target(.Linux, .Darwin)
-system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | null | IOError {
+system_receive :: fn(
+    socket: Socket,
+    into: u8[],
+    closed: AtomicBool,
+    deadline: i64,
+) -> i64 | null | IOError {
     fd :: fd_of(socket)
     for {
         got :: sys_read(fd, into, into.len())
@@ -416,17 +520,23 @@ system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | nu
         }
         code :: sys_last_errno()
         if code == EAGAIN {
-            if !park_readable(fd, closed) {
-                return SOCKET_CLOSED
+            parked :: park(socket, false, closed, deadline)
+            if parked != null {
+                return parked
             }
         } else if code != EINTR {
-            return last_io_error("read failed")
+            return io_error_of(code, "read failed")
         }
     }
 }
 
 @target(.Windows)
-system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | null | IOError {
+system_receive :: fn(
+    socket: Socket,
+    into: u8[],
+    closed: AtomicBool,
+    deadline: i64,
+) -> i64 | null | IOError {
     stream :: handle_of(socket)
     for {
         got :: winsock_receive(stream, into, winsock_length(into), 0)
@@ -440,20 +550,30 @@ system_receive :: fn(socket: Socket, into: u8[], closed: AtomicBool) -> i64 | nu
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "read failed")
         }
-        wait_readable(stream)
-        if closed.load() {
-            return SOCKET_CLOSED
+        parked :: park(socket, false, closed, deadline)
+        if parked != null {
+            return parked
         }
     }
 }
 
 // All of `bytes` to the connection `socket`, parking while the system has no
-// room for them, until `closed` says the stream went.
+// room for them, until `closed` says the stream went or `deadline` comes.
 @target
-system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOError
+system_send :: fn(
+    socket: Socket,
+    bytes: u8[],
+    closed: AtomicBool,
+    deadline: i64,
+) -> null | IOError
 
 @target(.Linux, .Darwin)
-system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOError {
+system_send :: fn(
+    socket: Socket,
+    bytes: u8[],
+    closed: AtomicBool,
+    deadline: i64,
+) -> null | IOError {
     fd :: fd_of(socket)
     done: i64 = 0
     for done < bytes.len() {
@@ -470,18 +590,24 @@ system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOE
         }
         code :: sys_last_errno()
         if code == EAGAIN {
-            if !park_writable(fd, closed) {
-                return SOCKET_CLOSED
+            parked :: park(socket, true, closed, deadline)
+            if parked != null {
+                return parked
             }
         } else if code != EINTR {
-            return last_io_error("write failed")
+            return io_error_of(code, "write failed")
         }
     }
     return null
 }
 
 @target(.Windows)
-system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOError {
+system_send :: fn(
+    socket: Socket,
+    bytes: u8[],
+    closed: AtomicBool,
+    deadline: i64,
+) -> null | IOError {
     stream :: handle_of(socket)
     done: i64 = 0
     for done < bytes.len() {
@@ -500,9 +626,9 @@ system_send :: fn(socket: Socket, bytes: u8[], closed: AtomicBool) -> null | IOE
         if code != WSAEWOULDBLOCK {
             return io_error_of(i32(code), "write failed")
         }
-        wait_writable(stream)
-        if closed.load() {
-            return SOCKET_CLOSED
+        parked :: park(socket, true, closed, deadline)
+        if parked != null {
+            return parked
         }
     }
     return null
@@ -599,7 +725,13 @@ set_non_blocking :: fn(fd: i32) -> bool {
 }
 
 // A socket as `std/io` waits on it.
-socket_descriptor :: fn(socket: Socket) -> Descriptor = Fd(fd_of(socket))
+socket_descriptor :: fn(socket: Socket) -> Descriptor = match socket {
+    is Fd           -> socket
+    is SocketHandle -> socket
+}
+
+// A wait of `std/io` with no limit of time.
+NO_LIMIT :: -1.nanos()
 
 // A socket is a `SocketHandle` on Windows, as it is an `Fd` on POSIX.
 handle_of :: fn(socket: Socket) -> SocketHandle = @unreachable match socket {
@@ -660,33 +792,51 @@ WINSOCK_CHUNK: i64: 0x4000_0000
 
 winsock_length :: fn(bytes: u8[]) -> i32 = i32(min(bytes.len(), WINSOCK_CHUNK))
 
-// Park the running task until `fd` has something to read; false when `closed`
-// says the socket went meanwhile, its number then naming nothing of this
-// socket's.
-park_readable :: fn(fd: i32, closed: AtomicBool) -> bool {
-    wait_readable(Fd(fd))
+// Park the running task until `socket` has something to read, or takes a
+// write when `to_write`. Null once it is worth asking again; an error when
+// `closed` says the socket went meanwhile, its number then naming nothing of
+// this socket's, or when `deadline` came first.
+park :: fn(socket: Socket, to_write: bool, closed: AtomicBool, deadline: i64) -> null | IOError {
+    left :: time_left(deadline).nanos()
+    in_time :: awaited(socket_descriptor(socket), to_write, left)
     if closed.load() {
-        return false
+        return SOCKET_CLOSED
     }
-    block_until(fd, POLLIN)
-    return true
+    if !in_time || !waited_out(socket, to_write, left) {
+        return TIMED_OUT
+    }
+    return null
 }
 
-// Park the running task until `fd` takes a write; false as `park_readable`.
-park_writable :: fn(fd: i32, closed: AtomicBool) -> bool {
-    wait_writable(Fd(fd))
-    if closed.load() {
-        return false
+// Wait as `std/io` does until `d` has input, or takes a write when `to_write`,
+// for `left` at most, a negative one being no limit; false once it passed.
+awaited :: fn(d: Descriptor, to_write: bool, left: Duration) -> bool {
+    if to_write {
+        return wait_writable_for(d, left)
     }
-    block_until(fd, POLLOUT)
-    return true
+    return wait_readable_for(d, left)
 }
 
-// Wait on the system thread until `fd` is as `events` say. A wait of `std/io`
-// returns at once when no other task runs: the system waits then, here.
-block_until :: fn(fd: i32, events: i16) -> void {
+// Wait on the system thread, where the wait of `std/io` did not: it returns
+// at once when no other task runs, a socket of Windows apart, which the
+// scheduler waits on itself. False once `left` passed.
+@target
+waited_out :: fn(socket: Socket, to_write: bool, left: Duration) -> bool
+
+@target(.Linux, .Darwin)
+waited_out :: fn(socket: Socket, to_write: bool, left: Duration) -> bool {
+    events :: if to_write { POLLOUT } else { POLLIN }
+    return block_until(fd_of(socket), events, left)
+}
+
+@target(.Windows)
+waited_out :: fn(socket: Socket, to_write: bool, left: Duration) -> bool = true
+
+// Wait on the system thread until `fd` is as `events` say, for `left` at
+// most, a negative one being no limit; false once it passed.
+block_until :: fn(fd: i32, events: i16, left: Duration) -> bool {
     watched :: Pollfd { .fd = fd, .events = events, .revents = 0 }
-    sys_poll_one(watched, 1, -1)
+    return sys_poll_one(watched, 1, poll_milliseconds(left)) != 0
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -934,6 +1084,109 @@ test_a_stream_holds_no_write_back :: fn() -> void {
     client.close()
     server.close()
     listener.close()
+}
+
+// The two ends of one connection, both held by the test: no task serves it.
+Ends :: struct {
+    listener: TcpListener
+    client: TcpStream
+    server: TcpStream
+}
+
+// A connection made and accepted here; null, the test having failed, when the
+// system refuses.
+connected_ends :: fn() -> Ends | null {
+    listener :: loopback_listener() ?? return null
+    address :: bound_address(listener) ?? return null
+    client :: connection_to(address) ?? return null
+    server :: listener.accept()
+    if server is IOError {
+        assert(false, "no connection: ${server.msg}")
+        return null
+    }
+    return Ends { .listener = listener, .client = client, .server = server }
+}
+
+close_ends :: fn(ends: Ends) -> void {
+    ends.client.close()
+    ends.server.close()
+    ends.listener.close()
+}
+
+// How a read of `stream` into a small buffer went: what it read, or the kind
+// of its failure.
+read_of :: fn(stream: TcpStream) -> string {
+    buffer: u8[]: [0] * 16
+    got :: stream.read(buffer)
+    if got is IOError {
+        return "${got.kind}"
+    }
+    if got == null {
+        return "the end"
+    }
+    return bytes_to_string(buffer[0..<got])
+}
+
+@test
+test_a_read_fails_once_its_deadline_has_come :: fn() -> void {
+    ends :: connected_ends() ?? return
+    began :: monotonic()
+    ends.server.read_by(began + 30.millis())
+    assert_eq(read_of(ends.server), "TimedOut")
+    assert(began.since() >= 30.millis(), "the read waited for its deadline")
+    // The deadline stays: what arrives after it is not read.
+    ends.client.write("late")
+    assert_eq(read_of(ends.server), "TimedOut")
+    ends.server.read_by(null)
+    assert_eq(read_of(ends.server), "late")
+    close_ends(ends)
+}
+
+@test
+test_a_read_parked_beside_other_tasks_fails_at_its_deadline :: fn() -> void {
+    ends :: connected_ends() ?? return
+    server :: ends.server
+    began :: monotonic()
+    server.read_by(began + 30.millis())
+    reading :: launch(() -> read_of(server))
+    outcome :: reading.join()
+    assert(outcome is string && outcome == "TimedOut", "the task was woken by the deadline")
+    assert(began.since() >= 30.millis(), "and not before it")
+    close_ends(ends)
+}
+
+@test
+test_a_read_served_before_its_deadline_is_a_read :: fn() -> void {
+    ends :: connected_ends() ?? return
+    ends.server.read_by(monotonic() + 10.seconds())
+    ends.client.write("in time")
+    assert_eq(read_of(ends.server), "in time")
+    close_ends(ends)
+}
+
+@test
+test_a_write_nobody_reads_fails_at_its_deadline :: fn() -> void {
+    ends :: connected_ends() ?? return
+    piece: u8[]: ['x'] * 65536
+    began :: monotonic()
+    ends.client.write_by(began + 50.millis())
+    // The other end reads none: the system takes what it has room for, then a
+    // write parks. 64 MiB is more than it keeps for a socket.
+    outcome := "everything was taken"
+    for _ in 0..<1024 {
+        written :: ends.client.write(piece)
+        if written is IOError {
+            outcome = "${written.kind}"
+            break
+        }
+    }
+    assert_eq(outcome, "TimedOut")
+    assert(began.since() >= 50.millis(), "the write gave up at its deadline")
+    // The deadline of the writes is none of the reads: what the system took
+    // before it is there to read.
+    ends.server.read_by(monotonic() + 10.seconds())
+    assert_eq(read_of(ends.server), "x" * 16)
+    close_ends(ends)
 }
 
 // The code the system gives a process that has as many open sockets as it may.

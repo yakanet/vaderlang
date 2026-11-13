@@ -379,25 +379,6 @@ read_console :: fn(max: i64) -> u8[] | IOError {
 export poll_stdin :: fn(timeout: Duration) -> bool =
     wait_readable_for(STDIN, timeout) && system_poll_stdin(poll_milliseconds(timeout))
 
-// `timeout` in the whole milliseconds a system poll takes: rounded up, so that
-// the poll never ends before `timeout`, at most the largest `i32`, and -1, the
-// systems' own spelling, for no deadline.
-poll_milliseconds :: fn(timeout: Duration) -> i32 {
-    nanos :: timeout.to_nanos()
-    if nanos < 0 {
-        return -1
-    }
-    whole :: nanos / 1_000_000
-    rounded :: if nanos % 1_000_000 == 0 { whole } else { whole + 1 }
-    if rounded > i64(MAX_POLL_MILLISECONDS) {
-        return MAX_POLL_MILLISECONDS
-    }
-    return i32(rounded)
-}
-
-// The longest wait a system poll takes, about 24 days.
-MAX_POLL_MILLISECONDS: i32 : 2_147_483_647
-
 // Ask the system whether stdin has data ready within `timeout_ms`, blocking
 // every task meanwhile.
 @target
