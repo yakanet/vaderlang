@@ -412,6 +412,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .deprecated_messages = Map<i32, string> {},
         .namespace_member_types = Map<i32, Map<string, Type>> {},
         .namespace_private_members = Map<i32, Map<string, bool>> {},
+        .namespace_member_symbols = Map<i32, Map<string, Symbol>> {},
     }
 }
 

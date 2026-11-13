@@ -1,0 +1,39 @@
+// A generic type reached through a namespace alias takes its type arguments
+// like one named bare: as a written type, as the head of a struct literal, as
+// a generic alias, and as the head of an impl.
+
+module "snippet"
+
+C :: import "std/collections"
+import "std/console"
+S :: import "snippet/shelf"
+
+Labelled :: trait {
+    label :: fn(self) -> string
+}
+
+S.Crate<i32> implements Labelled {
+    label :: fn(self) -> string = "crate of ${self.item}"
+}
+
+count :: fn(words: C.Map<string, i32>) -> i64 = C.len(words)
+
+item_of :: fn(box: S.Box<string>) -> string = box.item
+
+main :: fn() -> i32 {
+    words :: C.Map<string, i32> {}
+    words["a"] = 1
+    words["b"] = 2
+    println("${count(words)}")
+
+    box :: S.Box<string> { .item = "book" }
+    println("${item_of(box)} ${S.unwrap(box)}")
+
+    none: S.Maybe<i32>: null
+    some: S.Maybe<i32>: 7
+    println("${none ?? 0} ${some ?? 0}")
+
+    crate :: S.empty(3)
+    println(crate.label())
+    return 0
+}

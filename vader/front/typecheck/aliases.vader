@@ -102,7 +102,7 @@ settle_namespace_member_aliases :: fn(
     // A target's private-name set depends on its collected symbols alone, so it is
     // built once ; its member map also on its `alias_types`, so it is rebuilt each
     // round.
-    share_namespace_private_members(targets, project, per_module)
+    share_namespace_member_declarations(targets, project, per_module)
     for {
         share_namespace_member_types(targets, project, per_module)
         // The retry merges every module's aliases into each pending one: skip it

@@ -1,0 +1,62 @@
+# Typecheck
+
+## tests/snippets/namespace_generic_instance
+  FnDecl         count                :: fn(Map<string, i32>) -> i64
+  FnDecl         item_of              :: fn(Box<string>) -> string
+  TraitDecl      Labelled             :: Labelled
+  FnDecl         main                 :: fn() -> i32
+  expr 16:35    StringLitExpr  :: string
+  expr 16:47    FieldExpr      :: i32
+  expr 16:47    IdentExpr      :: Crate<i32>
+  expr 19:49    CallExpr       :: i64
+  expr 19:49    FieldExpr      :: fn(Map<K, V>) -> i64
+  expr 19:55    IdentExpr      :: Map<string, i32>
+  expr 21:47    FieldExpr      :: string
+  expr 21:47    IdentExpr      :: Box<string>
+  expr 24:14    StructLitExpr  :: Map<string, i32>
+  expr 25:11    StringLitExpr  :: string
+  expr 25:5     IdentExpr      :: Map<string, i32>
+  expr 26:11    StringLitExpr  :: string
+  expr 26:5     IdentExpr      :: Map<string, i32>
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: i64
+  expr 27:16    IdentExpr      :: fn(Map<string, i32>) -> i64
+  expr 27:22    IdentExpr      :: Map<string, i32>
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 29:12    StructLitExpr  :: Box<string>
+  expr 29:36    StringLitExpr  :: string
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    CallExpr       :: string
+  expr 30:16    IdentExpr      :: fn(Box<string>) -> string
+  expr 30:24    IdentExpr      :: Box<string>
+  expr 30:32    CallExpr       :: string
+  expr 30:32    FieldExpr      :: fn(Box<T>) -> T
+  expr 30:41    IdentExpr      :: Box<string>
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 34:13    StringLitExpr  :: string
+  expr 34:16    IdentExpr      :: i32 | null
+  expr 34:16    NullCoalesceExpr :: i32
+  expr 34:29    IdentExpr      :: i32 | null
+  expr 34:29    NullCoalesceExpr :: i32
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 36:14    CallExpr       :: Crate<i32>
+  expr 36:14    FieldExpr      :: fn(T) -> Crate<T>
+  expr 37:13    CallExpr       :: string
+  expr 37:13    FieldExpr      :: fn() -> string
+  expr 37:13    IdentExpr      :: Crate<i32>
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/namespace_generic_instance/shelf
+  StructDecl     Box                  :: Box<T>
+  StructDecl     Crate                :: Crate<T>
+  FnDecl         empty                :: fn(T) -> Crate<T>
+  TypeAliasDecl  Maybe                :: null | T
+  FnDecl         unwrap               :: fn(Box<T>) -> T
+  expr 13:42    FieldExpr      :: T
+  expr 13:42    IdentExpr      :: Box<T>
+  expr 15:46    StructLitExpr  :: Crate<T>
+  expr 15:65    IdentExpr      :: T

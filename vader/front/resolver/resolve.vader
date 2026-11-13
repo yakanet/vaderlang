@@ -111,6 +111,13 @@ export ResolvedModule :: struct {
     /// of silently degrading to unresolved. Populated alongside
     /// `namespace_member_types`.
     namespace_private_members: Map<i32, Map<string, bool>>
+    /// `namespace_sym.id -> name -> Symbol` for every `P :: import "..."`
+    /// binding : the declarations of the target module, the private ones
+    /// included. Lets `P.Decl<A>` instantiate the declaration, which its
+    /// type alone does not identify (an alias's type is its expansion) ;
+    /// read it for a member `namespace_member_types` holds, which is an
+    /// exported one. Populated alongside `namespace_private_members`.
+    namespace_member_symbols: Map<i32, Map<string, Symbol>>
 }
 
 export ResolvedProject :: struct {
@@ -201,6 +208,7 @@ export resolve_module_files :: fn(
         .deprecated_messages = Map<i32, string> {},
         .namespace_member_types = Map<i32, Map<string, Type>> {},
         .namespace_private_members = Map<i32, Map<string, bool>> {},
+        .namespace_member_symbols = Map<i32, Map<string, Symbol>> {},
     }
 }
 

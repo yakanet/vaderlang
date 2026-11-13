@@ -270,11 +270,31 @@ lower_generic_inst :: fn(
     e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     args :: written_type_args(e.type_args, resolved, diags)
-    if e.callee is AST.IdentExpr {
-        target :: lookup_type_name(e.callee, resolved) ?? return TY_UNRESOLVED
+    callee :: e.callee
+    if callee is AST.IdentExpr {
+        target :: lookup_type_name(callee, resolved) ?? return TY_UNRESOLVED
         return instantiate_named(target, args, e.span, resolved, diags)
     }
+    if callee is AST.FieldExpr {
+        target :: namespace_member_declaration(callee, resolved, diags) ?? return TY_UNRESOLVED
+        return instantiate_named(target, args, e.span, resolved, diags)
+    }
+    diags.push(typecheck_error(.ExpectedKnownType, callee.span,
+        "type arguments are written after a type's name"))
     return TY_UNRESOLVED
+}
+
+// The declaration `P.Decl` names when it is a type of the namespace `P` ; null,
+// and the diagnostic `namespace_member_type` gives, when it names none.
+namespace_member_declaration :: fn(
+    e: AST.FieldExpr, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Symbol | null {
+    if namespace_member_type(e, resolved, diags) is UnresolvedType {
+        return null
+    }
+    namespace :: resolved.idents[e.target.span.hash()] ?? return null
+    members :: resolved.namespace_member_symbols[namespace.id] ?? return null
+    return members[e.field]
 }
 
 /// Resolve a type-position ident to its Symbol via the resolver's span-keyed

@@ -68,24 +68,30 @@ share_namespace_member_types :: fn(
     }
 }
 
-// The companion of `share_namespace_member_types` : each namespace binding's set
-// of the target's PRIVATE member names, so a `P.private` access can be told apart
-// from a genuinely-absent member and fire R2008.
-share_namespace_private_members :: fn(
+// The companion of `share_namespace_member_types`, for what depends on the
+// target's collected symbols alone : each namespace binding's set of the target's
+// PRIVATE member names, so a `P.private` access can be told apart from a
+// genuinely-absent member and fire R2008, and the target's declarations by
+// name, so `P.Decl<A>` can instantiate the one it names.
+share_namespace_member_declarations :: fn(
     targets: ImportTargetTable,
     project: LoadedProject,
     per_module: Map<string, TypedProgram>,
 ) -> void {
     private_cache :: Map<string, Map<string, bool>> {}
     privates :: Map<i32, Map<string, bool>> {}
+    symbols :: Map<i32, Map<string, Symbol>> {}
     for [sym_id, mod_id] in targets.namespace_targets {
         privates[sym_id] = private_cache.get_or_put_with(
             mod_id,
             () -> build_namespace_private_names(mod_id, project),
         )
+        loaded :: project.modules[mod_id] ?? continue
+        symbols[sym_id] = loaded.collected.symbols
     }
     for [_, typed] in per_module {
         typed.resolved.namespace_private_members = privates
+        typed.resolved.namespace_member_symbols = symbols
     }
 }
 

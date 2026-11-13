@@ -892,6 +892,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .deprecated_messages = Map<i32, string> {},
         .namespace_member_types = Map<i32, Map<string, Type>> {},
         .namespace_private_members = Map<i32, Map<string, bool>> {},
+        .namespace_member_symbols = Map<i32, Map<string, Symbol>> {},
     }
     return new_typed_program(rm)
 }
@@ -917,6 +918,7 @@ fresh_module :: fn() -> ResolvedModule {
         .deprecated_messages = Map<i32, string> {},
         .namespace_member_types = Map<i32, Map<string, Type>> {},
         .namespace_private_members = Map<i32, Map<string, bool>> {},
+        .namespace_member_symbols = Map<i32, Map<string, Symbol>> {},
     }
 }
 

@@ -1,0 +1,15 @@
+module "snippet/shelf"
+
+export Box :: struct<T> {
+    item: T
+}
+
+export Maybe<T> :: T | null
+
+export Crate :: struct<T> {
+    item: T
+}
+
+export unwrap :: fn<T>(b: Box<T>) -> T = b.item
+
+export empty :: fn<T>(item: T) -> Crate<T> = Crate<T> { .item = item }

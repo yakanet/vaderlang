@@ -1,0 +1,122 @@
+# Lower
+
+## snippet
+  snippet.count :: fn(words: Map<string, i32>) -> i64 {  // snippet$count
+      std.collections.len<string, i32>(words)
+  }
+  snippet.item_of :: fn(box: Box<string>) -> string {  // snippet$item_of
+      box.item
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      words: Map<string, i32> = Map<string, i32> {
+          .ekeys = [] :string[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .grow_at = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      std.collections.Map<string, i32>.set_at(words, "a", 1)
+      std.collections.Map<string, i32>.set_at(words, "b", 2)
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.count(words))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      box: Box<string> = Box<string> { .item = "book" }
+      std.console.println<string>(concat_3(snippet.item_of(box), " ", snippet.shelf.unwrap<string>(box)))
+      none: i32 | null = null
+      some: i32 | null = 7
+      std.console.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, {
+              __coalesce_2: i32 | null = none
+              if __coalesce_2 is null { 0 } else { i32(__coalesce_2) } :i32
+          } :i32)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, {
+              __coalesce_3: i32 | null = some
+              if __coalesce_3 is null { 0 } else { i32(__coalesce_3) } :i32
+          } :i32)
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      crate: Crate<i32> = snippet.shelf.empty<i32>(3)
+      std.console.println<string>(snippet.Crate<i32>.label(crate))
+      return 0
+  }
+  snippet.Crate<i32>.label :: fn(self: Crate<i32>) -> string {  // snippet$snippet_shelf$Crate$Labelled$label__i32
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "crate of ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.item)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Labelled.label for Crate<i32>  snippet.Crate<i32>.label  // snippet$snippet_shelf$Crate$Labelled$label__i32
+
+## snippet/shelf
+  snippet.shelf.Box<string> :: struct { item: string }  // snippet_shelf$Box__string
+  snippet.shelf.Crate<i32> :: struct { item: i32 }  // snippet_shelf$Crate__i32
+  snippet.shelf.unwrap<string> :: fn(b: Box<string>) -> string {  // snippet_shelf$unwrap__string
+      b.item
+  }
+  snippet.shelf.empty<i32> :: fn(item: i32) -> Crate<i32> {  // snippet_shelf$empty__i32
+      Crate<i32> { .item = item }
+  }
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.Map<string, i32>.at  // std_collections$Map$std_core$Index$at__string__i32
+    fn std.collections.Map<string, i32>.contains  // std_collections$Map$std_core$Contains$contains__string__i32
+    fn std.collections.Map<string, i32>.into  // std_collections$Map$std_core$Into$into__string__i32
+    fn std.collections.Map<string, i32>.set_at  // std_collections$Map$std_core$IndexSet$set_at__string__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.grow_index<string, i32>  // std_collections$grow_index__string__i32
+    fn std.collections.len<string, i32>  // std_collections$len__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    struct std.collections.Map<string, i32>  // std_collections$Map__string__i32
+    struct std_collections$__gen_state_std_collections_0
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Stop  // std_core$Stop
