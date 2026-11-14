@@ -1,0 +1,98 @@
+// Operands are evaluated in the order they are written: a variable read before
+// an operand that assigns it keeps the value it had. Each case reads `x` (or the
+// array, the index, the struct) first, then assigns it in a block that follows.
+module "snippet"
+
+import "std/console"
+
+pair :: fn(a: i32, b: i32) = a * 10 + b
+
+Pair :: struct { a: i32, b: i32 }
+
+arguments :: fn() -> i32 {
+    x := 1
+    return pair(x, {
+        x = 5
+        x
+    })
+}
+
+// The left operand of a binary operation.
+operands :: fn() -> i32 {
+    x := 1
+    return x - {
+        x = 5
+        x
+    }
+}
+
+array_elements :: fn() -> i32 {
+    x := 1
+    xs :: [x, {
+        x = 5
+        x
+    }]
+    return xs[0] * 10 + xs[1]
+}
+
+struct_fields :: fn() -> i32 {
+    x := 1
+    p :: Pair { .a = x, .b = {
+        x = 5
+        x
+    } }
+    return p.a * 10 + p.b
+}
+
+// The element written to is chosen before the value is computed.
+element_written :: fn() -> i32 {
+    cells: i32[]: [0, 0]
+    at := 0
+    cells[at] = {
+        at = 1
+        7
+    }
+    return cells[0] * 10 + cells[1]
+}
+
+// The struct written to is the one named before the value is computed.
+field_written :: fn() -> i32 {
+    first :: Pair { .a = 0, .b = 0 }
+    p := first
+    p.a = {
+        p = Pair { .a = 0, .b = 0 }
+        3
+    }
+    return first.a * 10 + p.a
+}
+
+// The array indexed is the one named before the index is computed.
+indexed :: fn() -> i32 {
+    xs := [10, 20]
+    return xs[{
+        xs = [30, 40]
+        0
+    }]
+}
+
+// A closure that assigns a captured variable changes nothing already passed.
+captured :: fn() -> i32 {
+    x := 1
+    bump :: fn() {
+        x = 5
+        x
+    }
+    return pair(x, bump())
+}
+
+main :: fn() -> i32 {
+    println("arguments ${arguments()}")
+    println("operands ${operands()}")
+    println("array elements ${array_elements()}")
+    println("struct fields ${struct_fields()}")
+    println("element written ${element_written()}")
+    println("field written ${field_written()}")
+    println("indexed ${indexed()}")
+    println("captured ${captured()}")
+    return 0
+}

@@ -535,7 +535,7 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
         return
     }
     if target is LoweredFieldAccess {
-        tgt :: build_expr(fn_ctx, target.target)
+        tgt :: kept_before(fn_ctx, build_expr(fn_ctx, target.target), s.value, s.span)
         value :: build_held(fn_ctx, s.value, place_slot(fn_ctx, tgt, target))
         if tgt is null { return }
         if value is null { return }
@@ -546,7 +546,7 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
         return
     }
     if target is LoweredUnionField {
-        tgt :: build_expr(fn_ctx, target.target)
+        tgt :: kept_before(fn_ctx, build_expr(fn_ctx, target.target), s.value, s.span)
         value :: build_held(fn_ctx, s.value, place_slot(fn_ctx, tgt, target))
         if tgt == null || value == null {
             return
@@ -560,8 +560,9 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
         return
     }
     if target is LoweredIndex {
-        tgt :: build_expr(fn_ctx, target.target)
-        idx :: build_expr(fn_ctx, target.index)
+        built_target :: kept_before(fn_ctx, build_expr(fn_ctx, target.target), target.index, s.span)
+        tgt :: kept_before(fn_ctx, built_target, s.value, s.span)
+        idx :: kept_before(fn_ctx, build_expr(fn_ctx, target.index), s.value, s.span)
         value :: build_held(fn_ctx, s.value, place_slot(fn_ctx, tgt, target))
         if tgt is null { return }
         if idx is null { return }
@@ -843,7 +844,7 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
             return end_after_no_return(fn_ctx, e, dst)
         }
     }
-    callee :: build_expr(fn_ctx, e.callee) else return null
+    callee :: kept_before_all(fn_ctx, build_expr(fn_ctx, e.callee), e.args, e.span) else return null
     args :: build_args(fn_ctx, e.args, param_types_of(e.callee.type)) else return null
     dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
@@ -891,7 +892,8 @@ build_extern_args :: fn(
     for i in 0..<args.len() {
         a :: args[i]
         if !slots.contains(i) {
-            local :: build_held(fn_ctx, a, type_at(params, i)) else return null
+            local :: kept_in(fn_ctx, build_held(fn_ctx, a, type_at(params, i)), args, i, a.span)
+                else return null
             out.push(local)
             continue
         }
@@ -919,14 +921,16 @@ build_extern_args :: fn(
 build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[], params: Type[]) -> LocalId[] | null {
     out: LocalId[]: []
     for i in 0..<args.len() {
-        local :: build_held(fn_ctx, args[i], type_at(params, i)) else return null
+        built :: build_held(fn_ctx, args[i], type_at(params, i))
+        local :: kept_in(fn_ctx, built, args, i, args[i].span) else return null
         out.push(local)
     }
     return out
 }
 
 build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
-    receiver :: build_expr(fn_ctx, e.receiver) else return null
+    built_receiver :: build_expr(fn_ctx, e.receiver)
+    receiver :: kept_before_all(fn_ctx, built_receiver, e.args, e.span) else return null
     args :: build_args(fn_ctx, e.args, e.param_types) else return null
     dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
     emit(fn_ctx, InstrVirtualCall {
@@ -988,7 +992,7 @@ field_read_type :: fn(
 }
 
 build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
+    target :: kept_before(fn_ctx, build_expr(fn_ctx, e.target), e.index, e.span)
     index :: build_expr(fn_ctx, e.index)
     if target is null { return null }
     if index is null { return null }
@@ -1023,7 +1027,7 @@ build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
         check_unshared_identity(fn_ctx.project, e)
     }
     width :: binary_width(fn_ctx, e)
-    lhs :: build_held(fn_ctx, e.left, width) else return null
+    lhs :: kept_before(fn_ctx, build_held(fn_ctx, e.left, width), e.right, e.span) else return null
     rhs :: build_held(fn_ctx, e.right, width) else return null
     computed :: computed_type(e.type, width)
     dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), computed)
@@ -1374,8 +1378,13 @@ build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
     }
     field_locals: LocalId[]: []
     field_slots :: literal_slots(fn_ctx.project.slots, e.type)
-    for i in 0..<e.fields.len() {
-        local :: build_held(fn_ctx, e.fields[i].value, type_at(field_slots, i)) else return null
+    values: LoweredExpr[]: []
+    for f in e.fields {
+        values.push(f.value)
+    }
+    for i in 0..<values.len() {
+        built :: build_held(fn_ctx, values[i], type_at(field_slots, i))
+        local :: kept_in(fn_ctx, built, values, i, values[i].span) else return null
         field_locals.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "struct", e.type)
@@ -1440,8 +1449,10 @@ check_unshared_identity :: fn(ctx: ProjectCtx, e: LoweredBinary) -> void {
 build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
     elems: LocalId[]: []
     slot :: element_slot(e.type)
-    for el in e.elements {
-        local :: build_held(fn_ctx, el, slot) else return null
+    for i in 0..<e.elements.len() {
+        el :: e.elements[i]
+        built :: build_held(fn_ctx, el, slot)
+        local :: kept_in(fn_ctx, built, e.elements, i, el.span) else return null
         elems.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "arr", e.type)
@@ -1519,7 +1530,7 @@ build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
 }
 
 build_array_push :: fn(fn_ctx: FnCtx, e: LoweredArrayPush) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
+    target :: kept_before(fn_ctx, build_expr(fn_ctx, e.target), e.value, e.span)
     value :: build_held(fn_ctx, e.value, element_slot(e.target.type))
     if target is null { return null }
     if value is null { return null }
@@ -1528,8 +1539,9 @@ build_array_push :: fn(fn_ctx: FnCtx, e: LoweredArrayPush) -> LocalId | null {
 }
 
 build_array_slice :: fn(fn_ctx: FnCtx, e: LoweredArraySlice) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
-    lo :: build_held(fn_ctx, e.lo, TY_I64)
+    built_target :: kept_before(fn_ctx, build_expr(fn_ctx, e.target), e.lo, e.span)
+    target :: kept_before(fn_ctx, built_target, e.hi, e.span)
+    lo :: kept_before(fn_ctx, build_held(fn_ctx, e.lo, TY_I64), e.hi, e.span)
     hi :: build_held(fn_ctx, e.hi, TY_I64)
     if target is null { return null }
     if lo is null { return null }

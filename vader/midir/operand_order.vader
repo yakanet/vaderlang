@@ -1,0 +1,75 @@
+// vader/midir/operand_order: an operand keeps the value it had when it was built.
+//
+// A read of a variable builds to the variable's own slot, not to a copy, and an
+// instruction reads its operands once they are all built. An operand built after
+// it that assigns the variable (a block `{ x = 5 ; x }`) would change what the
+// earlier one passes: `pair(x, { x = 5 ; x })` would call `pair(5, 5)`. Operands
+// are evaluated in the order they are written, so such a read is copied as soon
+// as it is built. A builder of several operands passes each one through
+// `kept_before` or `kept_in`.
+
+module "vader/midir"
+
+import "toolchain/span"
+import "vader/lower/ir"
+
+// `built`, an operand `later` follows: a copy when it is the slot of a variable
+// `later` assigns, itself otherwise.
+kept_before :: fn(
+    fn_ctx: FnCtx,
+    built: LocalId | null,
+    later: LoweredExpr,
+    span: Span,
+) -> LocalId | null {
+    local :: built else return null
+    symbol :: fn_ctx.locals[i64(local)].symbol else return local
+    return if assigns(later, symbol.id) { copied(fn_ctx, local, span) } else { local }
+}
+
+// `built`, an operand all of `later` follow.
+kept_before_all :: fn(fn_ctx: FnCtx, built: LocalId | null, later: LoweredExpr[], span: Span) =
+    kept_in(fn_ctx, built, later, -1, span)
+
+// `built`, the operand `operands[index]`: a copy when it is the slot of a
+// variable an operand after it assigns, itself otherwise.
+kept_in :: fn(
+    fn_ctx: FnCtx,
+    built: LocalId | null,
+    operands: LoweredExpr[],
+    index: i64,
+    span: Span,
+) -> LocalId | null {
+    local :: built else return null
+    symbol :: fn_ctx.locals[i64(local)].symbol else return local
+    for later in index + 1..<operands.len() {
+        if assigns(operands[later], symbol.id) {
+            return copied(fn_ctx, local, span)
+        }
+    }
+    return local
+}
+
+copied :: fn(fn_ctx: FnCtx, local: LocalId, span: Span) -> LocalId {
+    dst :: fresh_tmp(fn_ctx, "operand", fn_ctx.locals[i64(local)].type)
+    emit(fn_ctx, InstrMove { .dst = dst, .src = local, .span = span })
+    return dst
+}
+
+// Whether a statement nested in `e` assigns the variable `symbol_id` by name.
+assigns :: fn(e: LoweredExpr, symbol_id: i32) -> bool {
+    if e is LoweredIdent | LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredStringLit {
+        return false
+    }
+    found := false
+    for_each_stmt_node_in_expr(
+        e,
+        (s) ->
+            if s is LoweredAssign && names_variable(s.target, symbol_id) {
+                found = true
+            },
+    )
+    return found
+}
+
+names_variable :: fn(target: LoweredExpr, symbol_id: i32) =
+    target is LoweredIdent && target.symbol.id == symbol_id
