@@ -34,6 +34,11 @@ export Timeouts :: struct {
     body: Duration | null = 60.seconds()
     /// To take more of a response, each time some is written.
     write: Duration | null = 60.seconds()
+    /// To close its side of a connection the server ended after writing to
+    /// it. What the client sends meanwhile is read and dropped: a connection
+    /// closed with bytes unread is reset, and the reset may reach the client
+    /// before the response it was to read (RFC 9112, section 9.6).
+    linger: Duration | null = 5.seconds()
 }
 
 // ---- how the loop applies it ----------------------------------------------
@@ -47,10 +52,12 @@ Deadlines :: trait {
     write_within :: fn(self, timeout: Duration | null) -> void
 }
 
-// The timeouts of a connection and what applies them.
+// How `serve` holds a connection: the timeouts of its client, what applies
+// them, and what stops it between two requests.
 Pace :: struct {
     deadlines: Deadlines
     timeouts: Timeouts
+    stop: Stop = Stop {}
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -110,11 +117,19 @@ StallingReader implements Reader {
 }
 
 // What a connection that sends `wire`, then nothing, comes to under the
-// default timeouts.
-stalled_after :: fn(wire: string, handler: fn(Request) -> Response) -> Served {
+// default timeouts, `serve` moving `stop`.
+stalled_after :: fn(
+    wire: string,
+    handler: fn(Request) -> Response,
+    stop: Stop = Stop {},
+) -> Served {
     out :: BytesWriter {}
     source :: StallingReader { .content = BytesReader { .content = wire } }
-    pace :: Pace { .deadlines = NotedDeadlines {}, .timeouts = Timeouts {} }
+    pace :: Pace {
+        .deadlines = NotedDeadlines {},
+        .timeouts = Timeouts {},
+        .stop = stop,
+    }
     end :: serve_paced(source, out, handler, Limits {}, pace)
     return Served { .end = end, .written = out.written.bytes_to_string() }
 }

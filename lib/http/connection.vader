@@ -21,7 +21,8 @@ import "std/io"
 // It does not when either message says `close`, when either is of HTTP/1.0
 // and does not say `keep-alive`, when the response ends with the connection
 // or turns it into something else than HTTP, and when the request waited for
-// a `100 Continue` that never came: its content may follow, or not.
+// a `100 Continue` that never came: its content may follow, or not. Nor when
+// `serve` stops: the exchange under way is the last of its connection.
 //
 // The rule of the RFC bears on the message received. It is asked of both
 // here: each end then concludes what the other will.
@@ -30,6 +31,10 @@ persists :: fn(request: Request | null, response: Response) -> bool {
         return false
     }
     if request.exchange.continue_on != null {
+        return false
+    }
+    pace :: request.exchange.pace
+    if pace != null && pace.stop.stopping() {
         return false
     }
     if response.status == STATUS_SWITCHING_PROTOCOLS

@@ -22,7 +22,8 @@ export EndReason :: enum {
     ClientDone,
     /// An exchange ended the connection: one of its messages said `close`,
     /// or was of HTTP/1.0 and did not ask to keep it, or the request waited
-    /// for a `100 Continue` its handler never had sent.
+    /// for a `100 Continue` its handler never had sent. Or `serve` stopped
+    /// before the next request.
     Closed,
     /// The response opened a tunnel: what follows is not HTTP.
     LeftHttp,
@@ -138,7 +139,12 @@ serve_paced :: fn(
 // The next ones are waited for as long as a connection is kept idle, and get
 // the time of a head from their first byte. A wait that ends with no byte
 // received is answered nothing: there is no request to answer.
+//
+// A connection `serve` stops takes no further request.
 await_request :: fn(source: BufferedReader, pace: Pace, first: bool) -> ConnectionEnd | null {
+    if !waits(pace.stop) {
+        return ConnectionEnd { .reason = .Closed }
+    }
     waited :: if first { pace.timeouts.head } else { pace.timeouts.idle }
     pace.deadlines.read_within(waited)
     next :: source.peek(1)
@@ -151,6 +157,9 @@ await_request :: fn(source: BufferedReader, pace: Pace, first: bool) -> Connecti
     }
     if next == null {
         return ConnectionEnd { .reason = .ClientDone }
+    }
+    if !begins(pace.stop) {
+        return ConnectionEnd { .reason = .Closed }
     }
     if !first {
         pace.deadlines.read_within(pace.timeouts.head)

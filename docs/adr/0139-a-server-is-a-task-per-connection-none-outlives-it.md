@@ -57,8 +57,8 @@ loopback address, against 0.35 ms once either cause was removed.
 
 ## Consequences
 
-The stop is abrupt: an exchange under way is cut where it is. Letting the
-exchanges under way finish, within a delay, is not done yet.
+The stop is abrupt: an exchange under way is cut where it is. 0141 lets the
+exchanges under way finish, within a delay.
 
 A server kept out of descriptors by clients that hold their connections and
 send nothing waits for as long as they stay: the timeouts of 0140 are what
