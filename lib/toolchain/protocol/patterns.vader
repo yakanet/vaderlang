@@ -1,0 +1,155 @@
+// toolchain/protocol/patterns: the patterns of a `match` arm, on the wire.
+//
+// A pattern opens with a tag naming its form, then its span, as an expression
+// does (`expressions.vader`).
+
+module "toolchain/protocol"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+
+// ---- writing --------------------------------------------------------------
+
+write_pattern :: fn(w: DeclWriter, p: AST.Pattern) -> void {
+    match p {
+        is AST.IsPattern          -> {
+            w.write_form("is", p.span)
+            w.write_expr(p.ty)
+            w.write_optional_pattern(p.inner)
+        }
+        is AST.StructPattern      -> {
+            w.write_form("struct", p.span)
+            w.write_list(p.fields, write_struct_pattern_field)
+        }
+        is AST.WildcardPattern    -> w.write_form("wildcard", p.span)
+        is AST.EnumVariantPattern -> {
+            w.write_form("variant", p.span)
+            w.out.write_field(p.variant)
+        }
+        is AST.LiteralPattern     -> {
+            w.write_form("literal", p.span)
+            w.write_expr(p.value)
+        }
+        is AST.RangePattern       -> {
+            w.write_form("range", p.span)
+            w.out.write_flag(p.inclusive)
+            w.write_expr(p.lower)
+            w.write_expr(p.upper)
+        }
+        is AST.OrPattern          -> {
+            w.write_form("or", p.span)
+            w.write_list(p.patterns, write_pattern)
+        }
+    }
+}
+
+write_optional_pattern :: fn(w: DeclWriter, p: AST.Pattern | null) -> void =
+    w.write_optional(p, write_pattern)
+
+write_struct_pattern_field :: fn(w: DeclWriter, f: AST.StructPatternField) -> void {
+    w.write_span(f.span)
+    w.out.write_field(f.name)
+    w.write_span(f.name_span)
+    w.write_pattern_field_value(f.value)
+}
+
+write_pattern_field_value :: fn(w: DeclWriter, v: AST.PatternFieldValue) -> void {
+    if v is AST.PatternBinding {
+        w.write_form("binding", v.span)
+        w.out.write_field(v.name)
+    } else {
+        w.out.write_field("literal")
+        w.write_expr(v.value)
+    }
+}
+
+// ---- reading --------------------------------------------------------------
+
+read_pattern :: fn(d: DeclReader) -> AST.Pattern | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    return match form {
+        "is"       -> d.read_is_pattern(span)
+        "struct"   -> d.read_struct_pattern(span)
+        "wildcard" -> AST.WildcardPattern { .span = span }
+        "variant"  -> d.read_variant_pattern(span)
+        "literal"  -> d.read_literal_pattern(span)
+        "range"    -> d.read_range_pattern(span)
+        "or"       -> d.read_or_pattern(span)
+        _          -> ProtocolError { .msg = "`${form}` is no pattern" }
+    }
+}
+
+read_optional_pattern :: fn(d: DeclReader) -> AST.Pattern | null | ProtocolError =
+    d.read_optional(read_pattern)
+
+read_is_pattern :: fn(d: DeclReader, span: Span) -> AST.IsPattern | ProtocolError {
+    ty :: d.read_expr() else return ty
+    inner :: d.read_optional_pattern() else is ProtocolError {
+        return inner
+    }
+    return AST.IsPattern {
+        .span = span,
+        .ty = ty,
+        .inner = inner,
+    }
+}
+
+read_struct_pattern :: fn(d: DeclReader, span: Span) -> AST.StructPattern | ProtocolError {
+    fields :: d.read_list(read_struct_pattern_field) else return fields
+    return AST.StructPattern { .span = span, .fields = fields }
+}
+
+read_struct_pattern_field :: fn(d: DeclReader) -> AST.StructPatternField | ProtocolError {
+    span :: d.read_span() else return span
+    name :: d.fields.read_field() else return name
+    name_span :: d.read_span() else return name_span
+    value :: d.read_pattern_field_value() else return value
+    return AST.StructPatternField {
+        .span = span,
+        .name = name,
+        .name_span = name_span,
+        .value = value,
+    }
+}
+
+read_pattern_field_value :: fn(d: DeclReader) -> AST.PatternFieldValue | ProtocolError {
+    form :: d.fields.read_field() else return form
+    if form == "binding" {
+        span :: d.read_span() else return span
+        name :: d.fields.read_field() else return name
+        return AST.PatternBinding { .name = name, .span = span }
+    }
+    if form != "literal" {
+        return ProtocolError { .msg = "`${form}` is no field of a struct pattern" }
+    }
+    value :: d.read_expr() else return value
+    return AST.PatternLiteral { .value = value }
+}
+
+read_variant_pattern :: fn(d: DeclReader, span: Span) -> AST.EnumVariantPattern | ProtocolError {
+    variant :: d.fields.read_field() else return variant
+    return AST.EnumVariantPattern { .span = span, .variant = variant }
+}
+
+read_literal_pattern :: fn(d: DeclReader, span: Span) -> AST.LiteralPattern | ProtocolError {
+    value :: d.read_expr() else return value
+    return AST.LiteralPattern { .span = span, .value = value }
+}
+
+read_range_pattern :: fn(d: DeclReader, span: Span) -> AST.RangePattern | ProtocolError {
+    inclusive :: d.fields.read_flag() else return inclusive
+    lower :: d.read_expr() else return lower
+    upper :: d.read_expr() else return upper
+    return AST.RangePattern {
+        .span = span,
+        .inclusive = inclusive,
+        .lower = lower,
+        .upper = upper,
+    }
+}
+
+read_or_pattern :: fn(d: DeclReader, span: Span) -> AST.OrPattern | ProtocolError {
+    patterns :: d.read_list(read_pattern) else return patterns
+    return AST.OrPattern { .span = span, .patterns = patterns }
+}

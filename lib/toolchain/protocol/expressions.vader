@@ -1,0 +1,587 @@
+// toolchain/protocol/expressions: an expression on the wire.
+//
+// What a declaration writes outside the body of a function crosses as it is
+// written (ADR 0150): the value of a constant, the default of a field or a
+// parameter, the data of a variant, and every type, which is written as an
+// expression. An expression opens with a tag naming its form, then its span. The
+// blocks, statements and patterns an expression holds are `statements.vader`.
+
+module "toolchain/protocol"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+
+// ---- writing --------------------------------------------------------------
+
+write_expr :: fn(w: DeclWriter, e: AST.Expr) -> void {
+    match e {
+        is AST.IntLitExpr        -> {
+            w.write_form("int", e.span)
+            w.out.write_field("${e.value}")
+            w.out.write_flag(e.negative)
+        }
+        is AST.FloatLitExpr      -> {
+            w.write_form("float", e.span)
+            w.out.write_field("${e.value.to_bits()}")
+        }
+        is AST.BoolLitExpr       -> {
+            w.write_form("bool", e.span)
+            w.out.write_flag(e.value)
+        }
+        is AST.NullLitExpr       -> w.write_form("null", e.span)
+        is AST.CharLitExpr       -> {
+            w.write_form("char", e.span)
+            w.out.write_integer(i64(e.value))
+        }
+        is AST.StringLitExpr     -> {
+            w.write_form("string", e.span)
+            w.write_string_parts(e.parts)
+        }
+        is AST.IdentExpr         -> {
+            w.write_form("ident", e.span)
+            w.out.write_field(e.name)
+            w.out.write_flag(e.implicit_dot)
+        }
+        is AST.CallExpr          -> {
+            w.write_form("call", e.span)
+            w.write_expr(e.callee)
+            w.write_exprs(e.type_args)
+            w.write_call_args(e.written_args else e.args)
+        }
+        is AST.FieldExpr         -> {
+            w.write_form("field", e.span)
+            w.write_expr(e.target)
+            w.out.write_field(e.field)
+            w.write_span(e.field_span)
+            w.out.write_flag(e.is_numeric)
+        }
+        is AST.IndexExpr         -> {
+            w.write_form("index", e.span)
+            w.write_expr(e.target)
+            w.write_expr(e.index)
+        }
+        is AST.UnaryExpr         -> {
+            w.write_form("unary", e.span)
+            w.out.write_field(AST.unary_op_symbol(e.op))
+            w.write_expr(e.operand)
+        }
+        is AST.BinaryExpr        -> {
+            w.write_form("binary", e.span)
+            w.out.write_field(AST.binary_op_symbol(e.op))
+            w.write_span(e.op_span)
+            w.write_expr(e.left)
+            w.write_expr(e.right)
+        }
+        is AST.FallbackExpr      -> {
+            w.write_form("fallback", e.span)
+            w.write_fallback_body(e)
+        }
+        is AST.IfExpr            -> {
+            w.write_form("if", e.span)
+            w.write_if_body(e)
+        }
+        is AST.MatchExpr         -> {
+            w.write_form("match", e.span)
+            w.write_match_body(e)
+        }
+        is AST.BlockExpr         -> {
+            w.write_form("block", e.span)
+            w.write_block_body(e)
+        }
+        is AST.LambdaExpr        -> {
+            w.write_form("lambda", e.span)
+            w.write_params(e.params)
+            w.write_span(e.params_span)
+            w.write_optional_expr(e.return_type)
+            w.write_block(e.body)
+            w.out.write_flag(e.is_expression_bodied)
+        }
+        is AST.StructLitExpr     -> {
+            w.write_form("struct", e.span)
+            w.write_expr(e.type_name)
+            w.write_struct_items(e.items)
+        }
+        is AST.SeqLitExpr        -> {
+            w.write_form("sequence", e.span)
+            w.write_exprs(e.elements)
+        }
+        is AST.RangeExpr         -> {
+            w.write_form("range", e.span)
+            w.out.write_flag(e.inclusive)
+            w.write_expr(e.lower)
+            w.write_expr(e.upper)
+        }
+        is AST.CastExpr          -> {
+            w.write_form("cast", e.span)
+            w.write_expr(e.target)
+            w.write_expr(e.value)
+        }
+        is AST.GenericInstExpr   -> {
+            w.write_form("generic", e.span)
+            w.write_expr(e.callee)
+            w.write_exprs(e.type_args)
+        }
+        is AST.IntrinsicCallExpr -> {
+            w.write_form("intrinsic", e.span)
+            w.out.write_field(e.name)
+            w.write_span(e.name_span)
+            w.write_exprs(e.args)
+        }
+        is AST.DotVariantExpr    -> {
+            w.write_form("variant", e.span)
+            w.out.write_field(e.variant)
+            w.write_span(e.variant_span)
+        }
+        is AST.FnTypeExpr        -> {
+            w.write_form("function", e.span)
+            w.write_exprs(e.params)
+            w.write_optional_expr(e.return_type)
+        }
+        is AST.ArrayTypeExpr     -> {
+            w.write_form("array", e.span)
+            w.write_expr(e.element)
+        }
+    }
+}
+
+// What a node of several forms opens with: the name of its form, its span.
+write_form :: fn(w: DeclWriter, form: string, span: Span) -> void {
+    w.out.write_field(form)
+    w.write_span(span)
+}
+
+write_exprs :: fn(w: DeclWriter, exprs: AST.Expr[]) -> void = w.write_list(exprs, write_expr)
+
+write_optional_expr :: fn(w: DeclWriter, e: AST.Expr | null) -> void =
+    w.write_optional(e, write_expr)
+
+write_string_parts :: fn(w: DeclWriter, parts: AST.StringLitPart[]) -> void =
+    w.write_list(parts, write_string_part)
+
+write_string_part :: fn(w: DeclWriter, part: AST.StringLitPart) -> void {
+    if part is AST.StringLitText {
+        w.write_form("text", part.span)
+        w.out.write_field(part.value)
+    } else {
+        w.write_form("interpolation", part.span)
+        w.write_expr(part.expr)
+    }
+}
+
+write_call_args :: fn(w: DeclWriter, args: AST.CallArg[]) -> void =
+    w.write_list(args, write_call_arg)
+
+write_call_arg :: fn(w: DeclWriter, a: AST.CallArg) -> void {
+    w.write_span(a.span)
+    w.out.write_optional_field(a.name)
+    w.write_expr(a.value)
+    w.out.write_flag(a.spread)
+}
+
+// The items of a struct literal, or the data of an enum variant.
+write_struct_items :: fn(w: DeclWriter, items: AST.StructLitItem[]) -> void =
+    w.write_list(items, write_struct_item)
+
+write_struct_item :: fn(w: DeclWriter, item: AST.StructLitItem) -> void {
+    if item is AST.StructLitField {
+        w.write_form("field", item.span)
+        w.out.write_field(item.name)
+        w.write_span(item.name_span)
+        w.write_expr(item.value)
+    } else {
+        w.write_form("spread", item.span)
+        w.write_expr(item.expr)
+    }
+}
+
+// ---- reading --------------------------------------------------------------
+
+read_expr :: fn(d: DeclReader) -> AST.Expr | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    return match form {
+        "int"       -> d.read_int(span)
+        "float"     -> d.read_float(span)
+        "bool"      -> d.read_bool(span)
+        "null"      -> AST.NullLitExpr { .span = span }
+        "char"      -> d.read_char(span)
+        "string"    -> d.read_string(span)
+        "ident"     -> d.read_ident(span)
+        "call"      -> d.read_call(span)
+        "field"     -> d.read_field_access(span)
+        "index"     -> d.read_index(span)
+        "unary"     -> d.read_unary(span)
+        "binary"    -> d.read_binary(span)
+        "fallback"  -> d.read_fallback_body(span)
+        "if"        -> d.read_if_body(span)
+        "match"     -> d.read_match_body(span)
+        "block"     -> d.read_block_body(span)
+        "lambda"    -> d.read_lambda(span)
+        "struct"    -> d.read_struct_literal(span)
+        "sequence"  -> d.read_sequence(span)
+        "range"     -> d.read_range(span)
+        "cast"      -> d.read_cast(span)
+        "generic"   -> d.read_generic(span)
+        "intrinsic" -> d.read_intrinsic(span)
+        "variant"   -> d.read_dot_variant(span)
+        "function"  -> d.read_function_type(span)
+        "array"     -> d.read_array_type(span)
+        _           -> ProtocolError { .msg = "`${form}` is no expression" }
+    }
+}
+
+read_exprs :: fn(d: DeclReader) -> AST.Expr[] | ProtocolError = d.read_list(read_expr)
+
+read_optional_expr :: fn(d: DeclReader) -> AST.Expr | null | ProtocolError =
+    d.read_optional(read_expr)
+
+read_int :: fn(d: DeclReader, span: Span) -> AST.IntLitExpr | ProtocolError {
+    value :: d.fields.read_unsigned() else return value
+    negative :: d.fields.read_flag() else return negative
+    return AST.IntLitExpr {
+        .span = span,
+        .value = value,
+        .negative = negative,
+    }
+}
+
+read_float :: fn(d: DeclReader, span: Span) -> AST.FloatLitExpr | ProtocolError {
+    bits :: d.fields.read_unsigned() else return bits
+    return AST.FloatLitExpr { .span = span, .value = bits.from_bits() }
+}
+
+read_bool :: fn(d: DeclReader, span: Span) -> AST.BoolLitExpr | ProtocolError {
+    value :: d.fields.read_flag() else return value
+    return AST.BoolLitExpr { .span = span, .value = value }
+}
+
+read_char :: fn(d: DeclReader, span: Span) -> AST.CharLitExpr | ProtocolError {
+    value :: d.fields.read_integer() else return value
+    return AST.CharLitExpr { .span = span, .value = u32(value) }
+}
+
+read_string :: fn(d: DeclReader, span: Span) -> AST.StringLitExpr | ProtocolError {
+    parts :: d.read_list(read_string_part) else return parts
+    return AST.StringLitExpr { .span = span, .parts = parts }
+}
+
+read_string_part :: fn(d: DeclReader) -> AST.StringLitPart | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    if form == "text" {
+        value :: d.fields.read_field() else return value
+        return AST.StringLitText { .value = value, .span = span }
+    }
+    if form != "interpolation" {
+        return ProtocolError { .msg = "`${form}` is no part of a string" }
+    }
+    expr :: d.read_expr() else return expr
+    return AST.StringLitInterpolation { .expr = expr, .span = span }
+}
+
+read_ident :: fn(d: DeclReader, span: Span) -> AST.IdentExpr | ProtocolError {
+    name :: d.fields.read_field() else return name
+    implicit_dot :: d.fields.read_flag() else return implicit_dot
+    return AST.IdentExpr {
+        .span = span,
+        .name = name,
+        .implicit_dot = implicit_dot,
+    }
+}
+
+read_call :: fn(d: DeclReader, span: Span) -> AST.CallExpr | ProtocolError {
+    callee :: d.read_expr() else return callee
+    type_args :: d.read_exprs() else return type_args
+    args :: d.read_list(read_call_arg) else return args
+    return AST.CallExpr {
+        .span = span,
+        .callee = callee,
+        .type_args = type_args,
+        .args = args,
+    }
+}
+
+read_call_arg :: fn(d: DeclReader) -> AST.CallArg | ProtocolError {
+    span :: d.read_span() else return span
+    name :: d.fields.read_optional_field() else is ProtocolError {
+        return name
+    }
+    value :: d.read_expr() else return value
+    spread :: d.fields.read_flag() else return spread
+    return AST.CallArg {
+        .span = span,
+        .name = name,
+        .value = value,
+        .spread = spread,
+    }
+}
+
+read_field_access :: fn(d: DeclReader, span: Span) -> AST.FieldExpr | ProtocolError {
+    target :: d.read_expr() else return target
+    field :: d.fields.read_field() else return field
+    field_span :: d.read_span() else return field_span
+    is_numeric :: d.fields.read_flag() else return is_numeric
+    return AST.FieldExpr {
+        .span = span,
+        .target = target,
+        .field = field,
+        .field_span = field_span,
+        .is_numeric = is_numeric,
+    }
+}
+
+read_index :: fn(d: DeclReader, span: Span) -> AST.IndexExpr | ProtocolError {
+    target :: d.read_expr() else return target
+    index :: d.read_expr() else return index
+    return AST.IndexExpr {
+        .span = span,
+        .target = target,
+        .index = index,
+    }
+}
+
+read_unary :: fn(d: DeclReader, span: Span) -> AST.UnaryExpr | ProtocolError {
+    symbol :: d.fields.read_field() else return symbol
+    op :: AST.unary_op_spelled(symbol) else return ProtocolError {
+        .msg = "`${symbol}` is no unary operator",
+    }
+    operand :: d.read_expr() else return operand
+    return AST.UnaryExpr {
+        .span = span,
+        .op = op,
+        .operand = operand,
+    }
+}
+
+read_binary :: fn(d: DeclReader, span: Span) -> AST.BinaryExpr | ProtocolError {
+    symbol :: d.fields.read_field() else return symbol
+    op :: AST.binary_op_spelled(symbol) else return ProtocolError {
+        .msg = "`${symbol}` is no binary operator",
+    }
+    op_span :: d.read_span() else return op_span
+    left :: d.read_expr() else return left
+    right :: d.read_expr() else return right
+    return AST.BinaryExpr {
+        .span = span,
+        .op = op,
+        .op_span = op_span,
+        .left = left,
+        .right = right,
+    }
+}
+
+read_lambda :: fn(d: DeclReader, span: Span) -> AST.LambdaExpr | ProtocolError {
+    params :: d.read_params() else return params
+    params_span :: d.read_span() else return params_span
+    return_type :: d.read_optional_expr() else is ProtocolError {
+        return return_type
+    }
+    body :: d.read_block() else return body
+    is_expression_bodied :: d.fields.read_flag() else return is_expression_bodied
+    return AST.LambdaExpr {
+        .span = span,
+        .params = params,
+        .params_span = params_span,
+        .return_type = return_type,
+        .body = body,
+        .is_expression_bodied = is_expression_bodied,
+    }
+}
+
+read_struct_literal :: fn(d: DeclReader, span: Span) -> AST.StructLitExpr | ProtocolError {
+    type_name :: d.read_expr() else return type_name
+    items :: d.read_struct_items() else return items
+    return AST.StructLitExpr {
+        .span = span,
+        .type_name = type_name,
+        .items = items,
+    }
+}
+
+read_struct_items :: fn(d: DeclReader) -> AST.StructLitItem[] | ProtocolError =
+    d.read_list(read_struct_item)
+
+read_struct_item :: fn(d: DeclReader) -> AST.StructLitItem | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    if form == "spread" {
+        expr :: d.read_expr() else return expr
+        return AST.StructLitSpread { .span = span, .expr = expr }
+    }
+    if form != "field" {
+        return ProtocolError { .msg = "`${form}` is no item of a struct literal" }
+    }
+    name :: d.fields.read_field() else return name
+    name_span :: d.read_span() else return name_span
+    value :: d.read_expr() else return value
+    return AST.StructLitField {
+        .span = span,
+        .name = name,
+        .name_span = name_span,
+        .value = value,
+    }
+}
+
+read_sequence :: fn(d: DeclReader, span: Span) -> AST.SeqLitExpr | ProtocolError {
+    elements :: d.read_exprs() else return elements
+    return AST.SeqLitExpr { .span = span, .elements = elements }
+}
+
+read_range :: fn(d: DeclReader, span: Span) -> AST.RangeExpr | ProtocolError {
+    inclusive :: d.fields.read_flag() else return inclusive
+    lower :: d.read_expr() else return lower
+    upper :: d.read_expr() else return upper
+    return AST.RangeExpr {
+        .span = span,
+        .inclusive = inclusive,
+        .lower = lower,
+        .upper = upper,
+    }
+}
+
+read_cast :: fn(d: DeclReader, span: Span) -> AST.CastExpr | ProtocolError {
+    target :: d.read_expr() else return target
+    value :: d.read_expr() else return value
+    return AST.CastExpr {
+        .span = span,
+        .target = target,
+        .value = value,
+    }
+}
+
+read_generic :: fn(d: DeclReader, span: Span) -> AST.GenericInstExpr | ProtocolError {
+    callee :: d.read_expr() else return callee
+    type_args :: d.read_exprs() else return type_args
+    return AST.GenericInstExpr {
+        .span = span,
+        .callee = callee,
+        .type_args = type_args,
+    }
+}
+
+read_intrinsic :: fn(d: DeclReader, span: Span) -> AST.IntrinsicCallExpr | ProtocolError {
+    name :: d.fields.read_field() else return name
+    name_span :: d.read_span() else return name_span
+    args :: d.read_exprs() else return args
+    return AST.IntrinsicCallExpr {
+        .span = span,
+        .name = name,
+        .name_span = name_span,
+        .args = args,
+    }
+}
+
+read_dot_variant :: fn(d: DeclReader, span: Span) -> AST.DotVariantExpr | ProtocolError {
+    variant :: d.fields.read_field() else return variant
+    variant_span :: d.read_span() else return variant_span
+    return AST.DotVariantExpr {
+        .span = span,
+        .variant = variant,
+        .variant_span = variant_span,
+    }
+}
+
+read_function_type :: fn(d: DeclReader, span: Span) -> AST.FnTypeExpr | ProtocolError {
+    params :: d.read_exprs() else return params
+    return_type :: d.read_optional_expr() else is ProtocolError {
+        return return_type
+    }
+    return AST.FnTypeExpr {
+        .span = span,
+        .params = params,
+        .return_type = return_type,
+    }
+}
+
+read_array_type :: fn(d: DeclReader, span: Span) -> AST.ArrayTypeExpr | ProtocolError {
+    element :: d.read_expr() else return element
+    return AST.ArrayTypeExpr { .span = span, .element = element }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+import "toolchain/parser"
+
+// Each form of an expression, as the value of a constant. A type form stands
+// among the type arguments of a struct literal.
+EXPRESSIONS :: r"""
+    module "app"
+
+    INT :: -42
+    FLOAT :: 0.1
+    BOOL :: true
+    NOTHING :: null
+    CHAR :: 'z'
+    TEXT :: "x = ${INT + 1}"
+    CALL :: max<i64>(1, b = 2)
+    FIELD :: point.x
+    INDEX :: table[0]
+    NEGATED :: !BOOL
+    WRAPPED :: INT +% 1
+    FALLBACK :: lookup() else 0
+    CHOICE :: if BOOL { 1 } else if !BOOL { 2 } else { 3 }
+    BLOCK :: { 1 }
+    SQUARE :: [fn(x: i64) -> i64 { return x * x }]
+    POINT :: Point { .x = 1, ...ORIGIN }
+    SPAN :: 0..<10
+    WIDE :: i64(INT)
+    HOOKS :: Map<string, fn(i32) -> bool> {}
+    LISTS :: Map<string, i32[]> {}
+    SIZE :: @size_of(i64)
+    RED :: .Red
+    """
+
+// The value the constant `name` of `EXPRESSIONS` is written with, once it crossed.
+crossed_value :: fn(name: string) -> AST.Expr {
+    for d in crossed(EXPRESSIONS) {
+        if d is AST.ConstDecl && d.name == name {
+            return d.value
+        }
+    }
+    panic("`EXPRESSIONS` declares no `${name}`")
+}
+
+@test
+test_every_form_of_an_expression_reads_back_as_written :: fn() -> void {
+    parsed :: parse_source(EXPRESSIONS, "src/app.vader")
+    assert_eq(parsed.errors.len(), 0)
+    back :: crossed(EXPRESSIONS)
+    assert_eq(back.len(), parsed.program.decls.len())
+    assert_eq(encode_declarations(back), encode_declarations(parsed.program.decls))
+}
+
+@test
+test_a_float_reads_back_to_the_same_bits :: fn() -> void {
+    value :: crossed_value("FLOAT")
+    if value !is AST.FloatLitExpr {
+        assert(false, "`0.1` is a float")
+        return
+    }
+    written: f64: 0.1
+    assert_eq(value.value.to_bits(), written.to_bits())
+}
+
+@test
+test_an_operator_reads_back_as_itself :: fn() -> void {
+    wrapped :: crossed_value("WRAPPED")
+    negated :: crossed_value("NEGATED")
+    if wrapped !is AST.BinaryExpr || negated !is AST.UnaryExpr {
+        assert(false, "`INT +% 1` and `!BOOL` keep their forms")
+        return
+    }
+    assert(wrapped.op == .AddWrap, "`+%`")
+    assert(negated.op == .Not, "`!`")
+}
+
+@test
+test_a_string_keeps_its_interpolations :: fn() -> void {
+    text :: crossed_value("TEXT")
+    if text !is AST.StringLitExpr {
+        assert(false, "`TEXT` is a string")
+        return
+    }
+    assert_eq(text.parts.len(), 2)
+    assert(text.parts[1] is AST.StringLitInterpolation, "the interpolation")
+}

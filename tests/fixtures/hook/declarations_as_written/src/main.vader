@@ -1,0 +1,32 @@
+module "app"
+
+import "std/console"
+
+LIMIT :: 4 * 1024
+
+TABLE :: @comptime [1, 2, 3]
+
+Celsius :: f64
+
+Settings :: struct {
+    name: string = "default"
+    limit: i64 = LIMIT
+}
+
+greet :: fn(name: string = "world") -> string = "hello ${name}"
+
+settings_for :: fn(name: string = "default", limit: i64 = LIMIT) -> Settings = Settings {
+    .name = name,
+    .limit = limit,
+}
+
+SMALL :: settings_for(limit = 8)
+
+@assert(LIMIT > 0)
+
+main :: fn() -> i32 {
+    settings :: Settings {}
+    readings: Celsius[]: []
+    println("${greet(settings.name)} ${TABLE.len()} ${SMALL.limit} ${readings.len()}")
+    return 0
+}

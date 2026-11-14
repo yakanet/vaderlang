@@ -8,6 +8,11 @@ decision that no AST crosses, and that the driver re-reads the text. The
 surface opens a little at a time; what crosses today is listed in
 `lib/toolchain/protocol/declarations.vader`.
 
+**Superseded in part by
+[0150](0150-a-driver-is-handed-everything-but-the-bodies-of-functions.md) (2026-11-14)**:
+every declaration crosses with what it writes outside the body of a function,
+values included; only the bodies of functions stay behind.
+
 ## Context
 
 0145 left one question open: does a driver read the AST as written, by parsing

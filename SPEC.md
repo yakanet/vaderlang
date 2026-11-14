@@ -3238,7 +3238,7 @@ A driver reaches its build through `toolchain/build`, and names AST types throug
 
 Builds run one at a time: draining the `messages()` of another context ends the build a driver left before its end.
 
-A driver receives the surface of each declaration: its name, spans and visibility, its type parameters, the fields of a struct, the parameters and result of a function, the variants of an enum, the members a trait or an impl writes, and the types as written. It does not receive bodies (a trait member's default included), default values, the data of a variant, constants, assertions, decorators, or doc comments.
+A driver receives every declaration the source writes, constants and assertions included, with what it writes outside the body of a function: names, spans and visibility, type parameters, the fields of a struct with their defaults and what it spreads, the parameters of a function with their defaults and its result, the variants of an enum with their values or data, the members a trait or an impl writes, the value of a constant, and every type and expression as written. A `@comptime` constant arrives with the expression it is written with, and a call with the arguments written, in their order, without the defaults the compiler fills in. A driver does not receive the body of a function (a trait member's default included), decorators, doc comments, or a declaration the compiler makes, such as a member an impl takes from its trait.
 
 A driver asks its build for the vaderdoc of a declaration, a field or a variant it received: `ctx.doc_of(d)`, `ctx.doc_of_field(f)`, `ctx.doc_of_variant(v)`, null when the node has none. The build answers at once. Before `messages()` is pulled, no build answers, and the result is null.
 

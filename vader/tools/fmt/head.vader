@@ -344,7 +344,7 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> NamedText {
     if is_inline_comptime(d) {
         h.write("@comptime ")
     }
-    value :: written_value(d)
+    value :: p.written_value(d)
     h.emit_expr(value)
     if is_bitor_chain(value) {
         return h.finish_named()

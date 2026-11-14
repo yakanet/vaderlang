@@ -393,12 +393,14 @@ export ImportName :: struct {
 
 /// A function declaration, `name :: fn(...) -> T { ... }`.
 ///
-/// Four flags mark functions the user did not write. `sam_synthetic` is a
-/// single-abstract-method lambda the parser desugared into an impl member;
-/// `materialized` a member declared for an impl from its trait (one it inherits,
-/// `inherits`, or an intrinsic stub); `comptime_synthetic` a declaration the
-/// comptime engine produced. And
-/// `is_expression_bodied` distinguishes `f :: fn() = expr` from a braced body,
+/// Three flags mark functions the parser or the compiler shaped. `sam_synthetic`
+/// is a single-abstract-method lambda the parser desugared into an impl member,
+/// which the user wrote in short; `materialized` a member declared for an impl
+/// from its trait (one it inherits, `inherits`, or an intrinsic stub);
+/// `comptime_synthetic` the helper the parser writes to compute a `@comptime`
+/// constant. The last two hold nothing of the user's source
+/// (`is_compiler_made`). And `is_expression_bodied` distinguishes
+/// `f :: fn() = expr` from a braced body,
 /// which the formatter needs and a generator emitting source should preserve.
 ///
 /// Each is a plain `bool` defaulting to `false`, never `bool | null` (Vader has no
@@ -426,8 +428,8 @@ export FnDecl :: struct {
     materialized:          bool
     /// `true` when this FnDecl is the `__comptime_NAME` helper the parser
     /// synthesises for the `NAME :: @comptime <expr>` const sugar (see
-    /// `desugar_comptime_const`). The formatter skips it: the surface sugar
-    /// is re-emitted from the paired `ConstDecl.comptime_body` instead.
+    /// `through_comptime_helper`). The formatter and a build driver skip it:
+    /// the paired `ConstDecl.comptime_body` holds what was written.
     /// Defaults `false` : only the desugar sets it, every other constructor
     /// leaves it off.
     comptime_synthetic:    bool = false
@@ -440,6 +442,13 @@ export FnDecl :: struct {
     /// impl from there. Null for any other function.
     inherits:              FnDecl | null = null
 }
+
+/// Whether the compiler made `f` rather than the source: the helper the parser
+/// writes to compute a `@comptime` constant, or a member an impl takes from its
+/// trait.
+///
+/// @param f  the function.
+export is_compiler_made :: fn(f: FnDecl) -> bool = f.comptime_synthetic || f.materialized
 
 /// The declaration whose body `fd` runs: for a member an impl inherits, the
 /// trait's member (`inherits`), whose default body it is ; `fd` itself otherwise.
@@ -657,6 +666,12 @@ export ConstDecl :: struct {
     comptime_as_decorator: bool = false
     doc:        DocComment | null = null
 }
+
+/// The value `d` was written with: the operand of its `@comptime` when the
+/// parser gave it a helper to call (`comptime_body`), its value otherwise.
+///
+/// @param d  the constant.
+export written_value :: fn(d: ConstDecl) -> Expr = d.comptime_body else d.value
 
 /// An `@assert` at the top level: a build-time invariant.
 ///
@@ -1025,6 +1040,10 @@ export CallExpr :: struct {
     /// callee's type parameters, first ones first. Empty when the call infers them.
     type_args: TypeExpr[] = []
     args:   CallArg[]
+    /// The arguments as written, once the type checker replaced `args` with them
+    /// in the order of the parameters and the omitted defaults filled in; null
+    /// while `args` is what was written.
+    written_args: CallArg[] | null = null
     /// Source wrote a trailing comma before `)`: formatter keeps it exploded.
     trailing_comma: bool = false
 }
@@ -1184,6 +1203,32 @@ export unary_op_symbol :: fn(op: UnaryOp) -> string = match op {
     .Neg    -> "-"
     .Not    -> "!"
     .BitNot -> "~"
+}
+
+/// The binary operator `binary_op_symbol` spells `symbol`.
+///
+/// @param symbol  the operator as the source spells it.
+/// @return        null when no binary operator is spelled so.
+export binary_op_spelled :: fn(symbol: string) -> BinaryOp | null {
+    for op in BinaryOp {
+        if binary_op_symbol(op) == symbol {
+            return op
+        }
+    }
+    return null
+}
+
+/// The unary operator `unary_op_symbol` spells `symbol`.
+///
+/// @param symbol  the operator as the source spells it.
+/// @return        null when no unary operator is spelled so.
+export unary_op_spelled :: fn(symbol: string) -> UnaryOp | null {
+    for op in UnaryOp {
+        if unary_op_symbol(op) == symbol {
+            return op
+        }
+    }
+    return null
 }
 
 /// An infix operator applied to two operands.
@@ -1537,5 +1582,19 @@ append_bitor_variants :: fn(e: Expr, out: Expr[]) -> void {
             out.push(e)
         }
         _ -> { out.push(e) }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_every_operator_is_spelled_back_to_itself :: fn() -> void {
+    for op in BinaryOp {
+        assert(binary_op_spelled(binary_op_symbol(op)) == op, binary_op_symbol(op))
+    }
+    for op in UnaryOp {
+        assert(unary_op_spelled(unary_op_symbol(op)) == op, unary_op_symbol(op))
     }
 }

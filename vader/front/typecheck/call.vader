@@ -428,8 +428,9 @@ collect_overload_candidates :: fn(
 
 // Reorder `c`'s args into positional parameter order, filling omitted params
 // from their `default_value`. The result replaces `c.args` in place (see
-// `infer_call`), so a reordered / defaulted call flows positionally through
-// every downstream pass: the lowerer needs no special handling.
+// `infer_call`), the written list kept in `c.written_args`, so a reordered /
+// defaulted call flows positionally through every downstream pass: the lowerer
+// needs no special handling.
 //
 // Returns null (leaving `c.args` untouched) when there is nothing to reorder, or
 // when the call can't be normalised : a variadic param (the slot model can't
@@ -785,6 +786,9 @@ type_call :: fn(
             // (nothing to reorder, variadic, error) leaves `c.args` as it is.
             normalised = true
             if norm is AST.CallArg[] {
+                if c.written_args == null {
+                    c.written_args = c.args
+                }
                 c.args = norm
             }
         }

@@ -1,7 +1,7 @@
 // toolchain/build/questions: what a driver asks its build about the nodes it
 // received.
 //
-// Declarations reach a driver with their surface alone (`toolchain/protocol`).
+// Declarations reach a driver without their vaderdoc (`toolchain/protocol`).
 // The rest of a node, its vaderdoc for now, the driver asks for while it handles
 // a message, and the build answers at once (ADR 0149).
 
@@ -21,8 +21,8 @@ import "toolchain/span"
 /// `doc_of_variant`).
 ///
 /// @param decl  the declaration, or a member of a trait or an impl.
-/// @return      null when it has none, when no build answers, and for a
-///              constant, an assertion or an import, which do not cross.
+/// @return      null when it has none, when no build answers, and for an
+///              assertion or an import, which carry none.
 /// @example
 ///   # import "std/console"
 ///   # import "toolchain/ast"

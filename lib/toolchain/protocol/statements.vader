@@ -1,0 +1,515 @@
+// toolchain/protocol/statements: the blocks and statements an expression holds,
+// on the wire.
+//
+// A value may hold a lambda or a block, so what a body is made of crosses with
+// it, though the body of a function declaration does not (ADR 0150). A node of
+// several forms opens with a tag naming its form, then its span, as an
+// expression does (`expressions.vader`); what a statement binds is
+// `bindings.vader`, the patterns of a `match` `patterns.vader`.
+
+module "toolchain/protocol"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+
+// ---- writing --------------------------------------------------------------
+
+// A block where only a block stands: its span, then what it holds.
+write_block :: fn(w: DeclWriter, b: AST.BlockExpr) -> void {
+    w.write_span(b.span)
+    w.write_block_body(b)
+}
+
+write_block_body :: fn(w: DeclWriter, b: AST.BlockExpr) -> void {
+    w.write_list(b.stmts, write_stmt)
+    w.write_optional_expr(b.trailing)
+}
+
+write_if_body :: fn(w: DeclWriter, e: AST.IfExpr) -> void {
+    w.write_expr(e.cond)
+    w.write_block(e.then_block)
+    branch :: e.else_branch
+    match branch {
+        is null            -> w.out.write_field("none")
+        is AST.IfElseIf    -> {
+            w.write_form("if", branch.branch.span)
+            w.write_if_body(branch.branch)
+        }
+        is AST.IfElseBlock -> {
+            w.out.write_field("else")
+            w.write_block(branch.block)
+        }
+    }
+}
+
+write_match_body :: fn(w: DeclWriter, e: AST.MatchExpr) -> void {
+    w.write_expr(e.scrutinee)
+    w.write_list(e.arms, write_match_arm)
+    w.out.write_flag(e.partial)
+    w.out.write_flag(e.unreachable)
+    w.write_optional_binding(e.binding)
+}
+
+write_match_arm :: fn(w: DeclWriter, arm: AST.MatchArm) -> void {
+    w.write_span(arm.span)
+    w.write_pattern(arm.pattern)
+    w.write_optional_expr(arm.guard)
+    w.write_expr(arm.body)
+}
+
+write_fallback_body :: fn(w: DeclWriter, e: AST.FallbackExpr) -> void {
+    w.write_expr(e.left)
+    w.write_list(e.clauses, write_fallback_clause)
+    w.write_optional_binding(e.binding)
+}
+
+write_fallback_clause :: fn(w: DeclWriter, c: AST.FallbackClause) -> void {
+    w.write_span(c.span)
+    w.write_span(c.op_span)
+    w.write_optional_expr(c.test)
+    w.write_fallback_result(c.body)
+}
+
+// What a fallback clause yields: a value, or a statement that leaves.
+write_fallback_result :: fn(w: DeclWriter, body: AST.FallbackBody) -> void {
+    if body is AST.Expr {
+        w.out.write_field("value")
+        w.write_expr(body)
+    } else {
+        w.write_stmt(body)
+    }
+}
+
+write_stmt :: fn(w: DeclWriter, s: AST.Stmt) -> void {
+    match s {
+        is AST.LetStmt               -> {
+            w.write_form("let", s.span)
+            w.out.write_flag(s.mutable)
+            w.write_binding(s.binding)
+            w.write_optional_expr(s.ty)
+            w.write_expr(s.value)
+        }
+        is AST.AssignStmt            -> {
+            w.write_form("assign", s.span)
+            w.write_expr(s.target)
+            w.write_expr(s.value)
+        }
+        is AST.DestructureAssignStmt -> {
+            w.write_form("destructure", s.span)
+            w.write_list(s.targets, write_target)
+            w.write_expr(s.value)
+        }
+        is AST.ExprStmt              -> {
+            w.write_form("expr", s.span)
+            w.write_expr(s.expr)
+        }
+        is AST.ReturnStmt            -> {
+            w.write_form("return", s.span)
+            w.write_optional_expr(s.value)
+        }
+        is AST.YieldStmt             -> {
+            w.write_form("yield", s.span)
+            w.write_expr(s.value)
+        }
+        is AST.ForStmt               -> {
+            w.write_form("for", s.span)
+            w.out.write_optional_field(s.label)
+            w.write_for_form(s.form)
+            w.write_block(s.body)
+            w.out.write_flag(s.is_comptime)
+        }
+        is AST.BreakStmt             -> {
+            w.write_form("break", s.span)
+            w.out.write_optional_field(s.label)
+        }
+        is AST.ContinueStmt          -> {
+            w.write_form("continue", s.span)
+            w.out.write_optional_field(s.label)
+        }
+        is AST.DeferStmt             -> {
+            w.write_form("defer", s.span)
+            w.write_defer_body(s.body)
+        }
+    }
+}
+
+write_for_form :: fn(w: DeclWriter, form: AST.ForForm) -> void {
+    match form {
+        is AST.InfiniteFor -> w.out.write_field("forever")
+        is AST.WhileFor    -> {
+            w.out.write_field("while")
+            w.write_expr(form.cond)
+        }
+        is AST.InFor       -> {
+            w.out.write_field("in")
+            w.write_loop_var(form.loop_var)
+            w.write_expr(form.iter)
+        }
+    }
+}
+
+write_defer_body :: fn(w: DeclWriter, body: AST.DeferBody) -> void {
+    if body is AST.DeferBlockBody {
+        w.out.write_field("block")
+        w.write_block(body.block)
+    } else {
+        w.out.write_field("statement")
+        w.write_stmt(body.stmt)
+    }
+}
+
+// ---- reading --------------------------------------------------------------
+
+read_block :: fn(d: DeclReader) -> AST.BlockExpr | ProtocolError {
+    span :: d.read_span() else return span
+    return d.read_block_body(span)
+}
+
+read_block_body :: fn(d: DeclReader, span: Span) -> AST.BlockExpr | ProtocolError {
+    stmts :: d.read_list(read_stmt) else return stmts
+    trailing :: d.read_optional_expr() else is ProtocolError {
+        return trailing
+    }
+    return AST.BlockExpr {
+        .span = span,
+        .stmts = stmts,
+        .trailing = trailing,
+    }
+}
+
+read_if_body :: fn(d: DeclReader, span: Span) -> AST.IfExpr | ProtocolError {
+    cond :: d.read_expr() else return cond
+    then_block :: d.read_block() else return then_block
+    else_branch :: d.read_else() else is ProtocolError {
+        return else_branch
+    }
+    return AST.IfExpr {
+        .span = span,
+        .cond = cond,
+        .then_block = then_block,
+        .else_branch = else_branch,
+    }
+}
+
+read_else :: fn(d: DeclReader) -> AST.IfElse | null | ProtocolError {
+    form :: d.fields.read_field() else return form
+    return match form {
+        "none" -> null
+        "if"   -> d.read_else_if()
+        "else" -> d.read_else_block()
+        _      -> ProtocolError { .msg = "`${form}` is no else branch" }
+    }
+}
+
+read_else_if :: fn(d: DeclReader) -> AST.IfElseIf | ProtocolError {
+    span :: d.read_span() else return span
+    branch :: d.read_if_body(span) else return branch
+    return AST.IfElseIf { .branch = branch }
+}
+
+read_else_block :: fn(d: DeclReader) -> AST.IfElseBlock | ProtocolError {
+    block :: d.read_block() else return block
+    return AST.IfElseBlock { .block = block }
+}
+
+read_match_body :: fn(d: DeclReader, span: Span) -> AST.MatchExpr | ProtocolError {
+    scrutinee :: d.read_expr() else return scrutinee
+    arms :: d.read_list(read_match_arm) else return arms
+    partial :: d.fields.read_flag() else return partial
+    unreachable :: d.fields.read_flag() else return unreachable
+    binding :: d.read_optional_binding() else is ProtocolError {
+        return binding
+    }
+    return AST.MatchExpr {
+        .span = span,
+        .scrutinee = scrutinee,
+        .arms = arms,
+        .partial = partial,
+        .unreachable = unreachable,
+        .binding = binding,
+    }
+}
+
+read_match_arm :: fn(d: DeclReader) -> AST.MatchArm | ProtocolError {
+    span :: d.read_span() else return span
+    pattern :: d.read_pattern() else return pattern
+    guard :: d.read_optional_expr() else is ProtocolError {
+        return guard
+    }
+    body :: d.read_expr() else return body
+    return AST.MatchArm {
+        .span = span,
+        .pattern = pattern,
+        .guard = guard,
+        .body = body,
+    }
+}
+
+read_fallback_body :: fn(d: DeclReader, span: Span) -> AST.FallbackExpr | ProtocolError {
+    left :: d.read_expr() else return left
+    clauses :: d.read_list(read_fallback_clause) else return clauses
+    binding :: d.read_optional_binding() else is ProtocolError {
+        return binding
+    }
+    return AST.FallbackExpr {
+        .span = span,
+        .left = left,
+        .clauses = clauses,
+        .binding = binding,
+    }
+}
+
+read_fallback_clause :: fn(d: DeclReader) -> AST.FallbackClause | ProtocolError {
+    span :: d.read_span() else return span
+    op_span :: d.read_span() else return op_span
+    test :: d.read_optional_expr() else is ProtocolError {
+        return test
+    }
+    body :: d.read_fallback_result() else return body
+    return AST.FallbackClause {
+        .span = span,
+        .op_span = op_span,
+        .test = test,
+        .body = body,
+    }
+}
+
+read_fallback_result :: fn(d: DeclReader) -> AST.FallbackBody | ProtocolError {
+    form :: d.fields.read_field() else return form
+    if form == "value" {
+        return d.read_expr()
+    }
+    span :: d.read_span() else return span
+    return match form {
+        "return"   -> d.read_return(span)
+        "break"    -> d.read_break(span)
+        "continue" -> d.read_continue(span)
+        _          -> ProtocolError { .msg = "`${form}` is no result of a fallback" }
+    }
+}
+
+read_stmt :: fn(d: DeclReader) -> AST.Stmt | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    return match form {
+        "let"         -> d.read_let(span)
+        "assign"      -> d.read_assign(span)
+        "destructure" -> d.read_destructure(span)
+        "expr"        -> d.read_expr_stmt(span)
+        "return"      -> d.read_return(span)
+        "yield"       -> d.read_yield(span)
+        "for"         -> d.read_for(span)
+        "break"       -> d.read_break(span)
+        "continue"    -> d.read_continue(span)
+        "defer"       -> d.read_defer(span)
+        _             -> ProtocolError { .msg = "`${form}` is no statement" }
+    }
+}
+
+read_let :: fn(d: DeclReader, span: Span) -> AST.LetStmt | ProtocolError {
+    mutable :: d.fields.read_flag() else return mutable
+    binding :: d.read_binding() else return binding
+    ty :: d.read_optional_expr() else is ProtocolError {
+        return ty
+    }
+    value :: d.read_expr() else return value
+    return AST.LetStmt {
+        .span = span,
+        .mutable = mutable,
+        .binding = binding,
+        .ty = ty,
+        .value = value,
+    }
+}
+
+read_assign :: fn(d: DeclReader, span: Span) -> AST.AssignStmt | ProtocolError {
+    target :: d.read_expr() else return target
+    value :: d.read_expr() else return value
+    return AST.AssignStmt {
+        .span = span,
+        .target = target,
+        .value = value,
+    }
+}
+
+read_destructure :: fn(d: DeclReader, span: Span) -> AST.DestructureAssignStmt | ProtocolError {
+    targets :: d.read_list(read_target) else return targets
+    value :: d.read_expr() else return value
+    return AST.DestructureAssignStmt {
+        .span = span,
+        .targets = targets,
+        .value = value,
+    }
+}
+
+read_expr_stmt :: fn(d: DeclReader, span: Span) -> AST.ExprStmt | ProtocolError {
+    expr :: d.read_expr() else return expr
+    return AST.ExprStmt { .span = span, .expr = expr }
+}
+
+read_return :: fn(d: DeclReader, span: Span) -> AST.ReturnStmt | ProtocolError {
+    value :: d.read_optional_expr() else is ProtocolError {
+        return value
+    }
+    return AST.ReturnStmt { .span = span, .value = value }
+}
+
+read_yield :: fn(d: DeclReader, span: Span) -> AST.YieldStmt | ProtocolError {
+    value :: d.read_expr() else return value
+    return AST.YieldStmt { .span = span, .value = value }
+}
+
+read_for :: fn(d: DeclReader, span: Span) -> AST.ForStmt | ProtocolError {
+    label :: d.fields.read_optional_field() else is ProtocolError {
+        return label
+    }
+    loop :: d.read_for_form() else return loop
+    body :: d.read_block() else return body
+    is_comptime :: d.fields.read_flag() else return is_comptime
+    return AST.ForStmt {
+        .span = span,
+        .label = label,
+        .form = loop,
+        .body = body,
+        .is_comptime = is_comptime,
+    }
+}
+
+read_for_form :: fn(d: DeclReader) -> AST.ForForm | ProtocolError {
+    form :: d.fields.read_field() else return form
+    return match form {
+        "forever" -> AST.InfiniteFor {}
+        "while"   -> d.read_while()
+        "in"      -> d.read_in()
+        _         -> ProtocolError { .msg = "`${form}` is no form of a loop" }
+    }
+}
+
+read_while :: fn(d: DeclReader) -> AST.WhileFor | ProtocolError {
+    cond :: d.read_expr() else return cond
+    return AST.WhileFor { .cond = cond }
+}
+
+read_in :: fn(d: DeclReader) -> AST.InFor | ProtocolError {
+    loop_var :: d.read_loop_var() else return loop_var
+    iter :: d.read_expr() else return iter
+    return AST.InFor { .loop_var = loop_var, .iter = iter }
+}
+
+read_break :: fn(d: DeclReader, span: Span) -> AST.BreakStmt | ProtocolError {
+    label :: d.fields.read_optional_field() else is ProtocolError {
+        return label
+    }
+    return AST.BreakStmt { .span = span, .label = label }
+}
+
+read_continue :: fn(d: DeclReader, span: Span) -> AST.ContinueStmt | ProtocolError {
+    label :: d.fields.read_optional_field() else is ProtocolError {
+        return label
+    }
+    return AST.ContinueStmt { .span = span, .label = label }
+}
+
+read_defer :: fn(d: DeclReader, span: Span) -> AST.DeferStmt | ProtocolError {
+    body :: d.read_defer_body() else return body
+    return AST.DeferStmt { .span = span, .body = body }
+}
+
+read_defer_body :: fn(d: DeclReader) -> AST.DeferBody | ProtocolError {
+    form :: d.fields.read_field() else return form
+    if form == "block" {
+        block :: d.read_block() else return block
+        return AST.DeferBlockBody { .block = block }
+    }
+    if form != "statement" {
+        return ProtocolError { .msg = "`${form}` is no body of a defer" }
+    }
+    stmt :: d.read_stmt() else return stmt
+    return AST.DeferStmtBody { .stmt = stmt }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/parser"
+
+// Each form of a statement and of a pattern, in lambdas held by constants.
+STATEMENTS :: """
+    module "app"
+
+    RUN :: [(items: i64[], pairs: Map<string, i64>) -> {
+        total := 0
+        [first, ...rest] :: items
+        [total, _] = [1, 2]
+        total = total + first
+        defer println("done")
+        defer {
+            println("still done")
+        }
+        outer: for x in items {
+            found :: lookup(x) else continue
+            if x == 0 {
+                continue outer
+            }
+            if found < 0 {
+                break
+            }
+        }
+        for total < 10 {
+            total += 1
+        }
+        for {
+            break
+        }
+        for [key, value] in pairs {
+            println(key)
+        }
+        for 0..<3 {
+            println("again")
+        }
+        yield total
+        return total
+    }]
+
+    DESCRIBE :: [(shape: Shape) -> match s :: shape.kind {
+        is Circle { radius } -> "circle"
+        is Square { side: 0 } -> "dot"
+        .Red | .Green -> "warm"
+        0 -> "zero"
+        1..=9 -> "digit"
+        is Point if s > 4 -> "far"
+        _ -> "other"
+    }]
+
+    PICK :: [(x: i64 | null) -> x else return 0]
+    """
+
+@test
+test_every_form_of_a_statement_and_a_pattern_reads_back_as_written :: fn() -> void {
+    parsed :: parse_source(STATEMENTS, "src/app.vader")
+    assert_eq(parsed.errors.len(), 0)
+    back :: crossed(STATEMENTS)
+    assert_eq(back.len(), 3)
+    assert_eq(encode_declarations(back), encode_declarations(parsed.program.decls))
+}
+
+@test
+test_a_lambda_keeps_its_statements :: fn() -> void {
+    run :: crossed(STATEMENTS)[0]
+    if run !is AST.ConstDecl {
+        assert(false, "the first declaration is `RUN`")
+        return
+    }
+    lambdas :: run.value
+    if lambdas !is AST.SeqLitExpr {
+        assert(false, "`RUN` holds a list")
+        return
+    }
+    lambda :: lambdas.elements[0]
+    if lambda !is AST.LambdaExpr {
+        assert(false, "the list holds a lambda")
+        return
+    }
+    assert_eq(lambda.body.stmts.len(), 13)
+    assert(lambda.body.stmts[12] is AST.ReturnStmt, "`return total`")
+}

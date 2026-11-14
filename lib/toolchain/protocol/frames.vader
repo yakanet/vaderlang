@@ -53,9 +53,9 @@ export DriverFrame :: ConfigureFrame
 export TypecheckedFrame :: struct {
     module_name: string
     /// The declarations of the module the driver has not received yet, as the
-    /// front end left them, those that `crosses` and only their surface
-    /// (`declarations.vader`): a module a round generated into comes back with
-    /// the generated file's alone.
+    /// front end left them, those that `crosses` and without the bodies of their
+    /// functions (`declarations.vader`): a module a round generated into comes
+    /// back with the generated file's alone.
     declarations: AST.Decl[]
 }
 
@@ -463,6 +463,16 @@ read_integer :: fn(r: FieldReader) -> i64 | ProtocolError {
         return -magnitude
     }
     return magnitude
+}
+
+// An integer an `i64` may not hold: the magnitude of an integer literal, the
+// bits of a float.
+read_unsigned :: fn(r: FieldReader) -> u64 | ProtocolError {
+    field :: r.read_field() else return field
+    value :: parse_uint_in_base(field, 10) else return ProtocolError {
+        .msg = "`${field}` is no unsigned integer",
+    }
+    return value
 }
 
 read_i32 :: fn(r: FieldReader) -> i32 | ProtocolError {

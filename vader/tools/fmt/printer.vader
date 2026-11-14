@@ -1131,7 +1131,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
         self.emit_comptime_const(d, cb)
         return
     }
-    value :: written_value(d)
+    value :: p.written_value(d)
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     // Typed const-decls use the Odin-style `NAME: T: value` form (two single
@@ -1179,10 +1179,6 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     }
     self.emit_expr(value)
 }
-
-// The value `d` was written with : the operand of its `@comptime` when the parser
-// gave it a helper to call, its value otherwise.
-written_value :: fn(d: p.ConstDecl) -> p.Expr = d.comptime_body else d.value
 
 // Whether `d` was written `NAME :: @comptime <expr>`, its `@comptime` after `::`.
 is_inline_comptime :: fn(d: p.ConstDecl) -> bool =

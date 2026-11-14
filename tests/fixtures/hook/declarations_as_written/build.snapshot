@@ -1,0 +1,16 @@
+# stdout
+driver: import std/console
+driver: constant LIMIT = `*` of the integer 4 and the integer 1024
+driver: constant TABLE = a list of 3
+driver: constant Celsius = `f64`
+driver: struct Settings, defaults: name = a string, limit = `LIMIT`
+driver: function greet, defaults: name = a string
+driver: function settings_for, defaults: name = a string, limit = `LIMIT`
+driver: constant SMALL = a call of `settings_for` with limit = the integer 8
+driver: assertion `>` of `LIMIT` and the integer 0
+driver: function main, defaults: (none)
+# stderr
+vader build: wrote <project>/build/driver/driver
+vader build: wrote <project>/build/debug-<host>/app (split: <n> objects compiled in parallel)
+# exit
+0

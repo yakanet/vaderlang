@@ -1,0 +1,88 @@
+// What a driver receives of a module: every declaration the source writes, with
+// what it writes outside the body of a function. A constant arrives with its
+// value, a `@comptime` one with the expression it is written with and without
+// the helper the parser makes to compute it, a call with the arguments written
+// and not those the type checker fills in; fields and parameters arrive with
+// their defaults.
+
+module "build"
+
+import "std/console"
+import "std/string"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    exit := 0
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage && msg.module_name == "app" {
+            for d in msg.declarations {
+                println("driver: ${described(d)}")
+            }
+        }
+        if msg is CompleteMessage {
+            exit = msg.code
+        }
+    }
+    return exit
+}
+
+// @partial: the declarations the module does not write share one line.
+described :: fn(d: AST.Decl) -> string = @partial match d {
+    is AST.ImportDecl -> "import ${d.path}"
+    is AST.ConstDecl  -> "constant ${d.name} = ${shape(d.value)}"
+    is AST.AssertDecl -> "assertion ${shape(d.condition)}"
+    is AST.StructDecl -> "struct ${d.name}, defaults: ${field_defaults(d.fields)}"
+    is AST.FnDecl     -> "function ${d.name}, defaults: ${parameter_defaults(d.params)}"
+    _                 -> "another declaration"
+}
+
+// The form of `e`, in a few words.
+// @partial: the forms the module does not write share one line.
+shape :: fn(e: AST.Expr) -> string = @partial match e {
+    is AST.IntLitExpr    -> "the integer ${e.value}"
+    is AST.BinaryExpr    -> "`${AST.binary_op_symbol(e.op)}` of ${shape(e.left)} and ${shape(e.right)}"
+    is AST.SeqLitExpr    -> "a list of ${e.elements.len()}"
+    is AST.IdentExpr     -> "`${e.name}`"
+    is AST.StringLitExpr -> "a string"
+    is AST.CallExpr      -> "a call of ${shape(e.callee)} with ${arguments(e.args)}"
+    _                    -> "another expression"
+}
+
+arguments :: fn(args: AST.CallArg[]) -> string {
+    shown: string[]: []
+    for a in args {
+        name :: a.name else "_"
+        shown.push("${name} = ${shape(a.value)}")
+    }
+    return listed(shown)
+}
+
+field_defaults :: fn(fields: AST.StructField[]) -> string {
+    shown: string[]: []
+    for f in fields {
+        if f.default != null {
+            shown.push("${f.name} = ${shape(f.default)}")
+        }
+    }
+    return listed(shown)
+}
+
+parameter_defaults :: fn(params: AST.FnParam[]) -> string {
+    shown: string[]: []
+    for p in params {
+        if p.default_value != null {
+            shown.push("${p.name} = ${shape(p.default_value)}")
+        }
+    }
+    return listed(shown)
+}
+
+listed :: fn(items: string[]) -> string {
+    if items.len() == 0 {
+        return "(none)"
+    }
+    return items.join(", ")
+}

@@ -1,0 +1,152 @@
+// toolchain/protocol/bindings: what a `::`, an assignment or a loop binds, on
+// the wire.
+//
+// A binding of several forms opens with a tag naming its form, then its span,
+// as an expression does (`expressions.vader`).
+
+module "toolchain/protocol"
+
+AST :: import "toolchain/ast"
+import "toolchain/span"
+
+// ---- writing --------------------------------------------------------------
+
+write_optional_binding :: fn(w: DeclWriter, b: AST.SimpleBinding | null) -> void =
+    w.write_optional(b, write_simple_binding)
+
+// A binding to one name, past its tag.
+write_simple_binding :: fn(w: DeclWriter, b: AST.SimpleBinding) -> void {
+    w.write_span(b.span)
+    w.out.write_field(b.name)
+    w.write_span(b.name_span)
+}
+
+write_binding :: fn(w: DeclWriter, b: AST.LetBinding) -> void {
+    match b {
+        is AST.SimpleBinding   -> {
+            w.out.write_field("name")
+            w.write_simple_binding(b)
+        }
+        is AST.TupleBinding    -> {
+            w.write_form("tuple", b.span)
+            w.write_list(b.elements, write_binding)
+        }
+        is AST.WildcardBinding -> w.write_form("wildcard", b.span)
+        is AST.RestBinding     -> {
+            w.write_form("rest", b.span)
+            w.out.write_field(b.name)
+            w.write_span(b.name_span)
+        }
+    }
+}
+
+write_target :: fn(w: DeclWriter, t: AST.AssignTarget) -> void {
+    match t {
+        is AST.PlaceTarget    -> {
+            w.write_form("place", t.span)
+            w.write_expr(t.place)
+        }
+        is AST.WildcardTarget -> w.write_form("wildcard", t.span)
+        is AST.RestTarget     -> {
+            w.write_form("rest", t.span)
+            w.write_expr(t.place)
+        }
+    }
+}
+
+write_loop_var :: fn(w: DeclWriter, v: AST.LoopVar) -> void {
+    match v {
+        is AST.NamedVar       -> {
+            w.write_form("named", v.span)
+            w.out.write_field(v.name)
+        }
+        is AST.DestructureVar -> {
+            w.out.write_field("destructure")
+            w.write_binding(v.pattern)
+        }
+        is AST.DiscardVar     -> w.out.write_field("discard")
+    }
+}
+
+// ---- reading --------------------------------------------------------------
+
+read_optional_binding :: fn(d: DeclReader) -> AST.SimpleBinding | null | ProtocolError =
+    d.read_optional(read_named_binding)
+
+// A binding to one name, past its tag.
+read_named_binding :: fn(d: DeclReader) -> AST.SimpleBinding | ProtocolError {
+    span :: d.read_span() else return span
+    return d.read_simple_binding(span)
+}
+
+read_binding :: fn(d: DeclReader) -> AST.LetBinding | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    return match form {
+        "name"     -> d.read_simple_binding(span)
+        "tuple"    -> d.read_tuple_binding(span)
+        "wildcard" -> AST.WildcardBinding { .span = span }
+        "rest"     -> d.read_rest_binding(span)
+        _          -> ProtocolError { .msg = "`${form}` is no binding" }
+    }
+}
+
+read_simple_binding :: fn(d: DeclReader, span: Span) -> AST.SimpleBinding | ProtocolError {
+    name :: d.fields.read_field() else return name
+    name_span :: d.read_span() else return name_span
+    return AST.SimpleBinding {
+        .span = span,
+        .name = name,
+        .name_span = name_span,
+    }
+}
+
+read_tuple_binding :: fn(d: DeclReader, span: Span) -> AST.TupleBinding | ProtocolError {
+    elements :: d.read_list(read_binding) else return elements
+    return AST.TupleBinding { .span = span, .elements = elements }
+}
+
+read_rest_binding :: fn(d: DeclReader, span: Span) -> AST.RestBinding | ProtocolError {
+    name :: d.fields.read_field() else return name
+    name_span :: d.read_span() else return name_span
+    return AST.RestBinding {
+        .span = span,
+        .name = name,
+        .name_span = name_span,
+    }
+}
+
+read_target :: fn(d: DeclReader) -> AST.AssignTarget | ProtocolError {
+    form :: d.fields.read_field() else return form
+    span :: d.read_span() else return span
+    if form == "wildcard" {
+        return AST.WildcardTarget { .span = span }
+    }
+    place :: d.read_expr() else return place
+    return match form {
+        "place" -> AST.PlaceTarget { .span = span, .place = place }
+        "rest"  -> AST.RestTarget { .span = span, .place = place }
+        _       -> ProtocolError { .msg = "`${form}` is no target of an assignment" }
+    }
+}
+
+read_loop_var :: fn(d: DeclReader) -> AST.LoopVar | ProtocolError {
+    form :: d.fields.read_field() else return form
+    return match form {
+        "named"       -> d.read_named_var()
+        "destructure" -> d.read_destructure_var()
+        "discard"     -> AST.DiscardVar {}
+        _             -> ProtocolError { .msg = "`${form}` is no loop variable" }
+    }
+}
+
+read_named_var :: fn(d: DeclReader) -> AST.NamedVar | ProtocolError {
+    span :: d.read_span() else return span
+    name :: d.fields.read_field() else return name
+    return AST.NamedVar { .name = name, .span = span }
+}
+
+read_destructure_var :: fn(d: DeclReader) -> AST.DestructureVar | ProtocolError {
+    pattern :: d.read_binding() else return pattern
+    return AST.DestructureVar { .pattern = pattern }
+}

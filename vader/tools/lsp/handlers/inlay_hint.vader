@@ -271,9 +271,9 @@ emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void
     if ty is UnresolvedType { return }
     if ty is TypeMetaType   { return }
     // The value of a `@comptime` constant is a call spanning from the marker,
-    // which a decorator puts above the name: what was written after the operator
-    // is its `comptime_body`.
-    written :: cd.comptime_body else cd.value
+    // which a decorator puts above the name: the hint follows the expression
+    // written after the operator.
+    written :: AST.written_value(cd)
     emit_operator_hint(ctx, cd.name_span, written.span, display_type(ty), out)
 }
 

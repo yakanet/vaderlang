@@ -95,7 +95,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
         deps_seen :: Set<i64> {}
         // A const the parser gave a `__comptime_` helper calls it ; what it reads
         // is the value it was written with, which the helper holds.
-        written :: record.decl.comptime_body else record.decl.value
+        written :: AST.written_value(record.decl)
         AST.inspect(written, (n) -> dependency_step(n, typed, nodes, deps_seen, record))
         nodes.by_id[id] = record
     }

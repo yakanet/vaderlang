@@ -67,8 +67,8 @@ from that run, which the back end lowers. The driver is a process of its own,
 compiled from `lib/` alone: `vader` starts it (`vader/tools/cli/driver_process.vader`)
 and the two talk in the frames of `toolchain/protocol` over the driver's standard
 streams, the driver's stdout also carrying what the project prints. The
-declarations cross with their surface, without bodies (`declarations.vader`,
-ADR 0147). The driver opens with its configuration and what it did before pulling
+declarations cross as written, but for the bodies of their functions
+(`declarations.vader`, ADR 0150). The driver opens with its configuration and what it did before pulling
 the stream; between two events, what it did since (modules to generate, reports)
 reaches the build, which writes the generated modules at `BeforeEmit`. A question
 of the driver, the vaderdoc of a node named by its span, is answered at once from
