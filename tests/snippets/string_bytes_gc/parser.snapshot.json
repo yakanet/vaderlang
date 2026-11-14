@@ -64,7 +64,7 @@
                     "value": "vader-byte-view-payload-"
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "seed"
@@ -667,7 +667,7 @@
                           "value": "ok: 4 byte views survived 2 major GCs; sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "total"

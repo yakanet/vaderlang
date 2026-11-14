@@ -310,7 +310,7 @@
                           "value": "const === const: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "same",
@@ -363,7 +363,7 @@
                           "value": "fresh === const: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "same",
@@ -416,7 +416,7 @@
                           "value": "null === null: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "same",
@@ -482,7 +482,7 @@
                           "value": "square !== const: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "not_same",

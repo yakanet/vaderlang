@@ -607,7 +607,7 @@
                             "value": "have "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "k"
@@ -618,7 +618,7 @@
                             "value": "="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "present"
@@ -677,7 +677,7 @@
                           "value": "width="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -706,7 +706,7 @@
                           "value": " depth="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -756,7 +756,7 @@
                           "value": "first="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -829,7 +829,7 @@
                           "value": "sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -911,7 +911,7 @@
                           "value": "req_width="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -940,7 +940,7 @@
                           "value": " req_depth="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -990,7 +990,7 @@
                           "value": "missing="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1114,7 +1114,7 @@
                           "value": "scaled="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "scaled"

@@ -140,7 +140,7 @@
                           "value": "start: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -193,7 +193,7 @@
                           "value": "header: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -263,7 +263,7 @@
                           "value": "next: ["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -329,7 +329,7 @@
                           "value": "value: ["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -386,7 +386,7 @@
                           "value": "blank: ["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -443,7 +443,7 @@
                           "value": "body: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -505,7 +505,7 @@
                           "value": "rest: ["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -571,7 +571,7 @@
                           "value": "at the end: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -624,7 +624,7 @@
                           "value": "past the end: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -730,7 +730,7 @@
                           "value": "too long: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -872,7 +872,7 @@
                           "value": "gathered, not written: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -945,7 +945,7 @@
                           "value": "a write the buffer cannot hold: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1022,7 +1022,7 @@
                           "value": "before the flush: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1081,7 +1081,7 @@
                           "value": "after the flush: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1188,7 +1188,7 @@
                             "value": "answer: ["
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "line"
@@ -1312,7 +1312,7 @@
                           "value": "before the failure: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1365,7 +1365,7 @@
                           "value": "the failure: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1503,7 +1503,7 @@
                           "value": "gathered: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1570,7 +1570,7 @@
                           "value": "flushed: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1878,7 +1878,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -1893,7 +1893,7 @@
                             "value": ": "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {

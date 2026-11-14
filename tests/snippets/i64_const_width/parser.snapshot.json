@@ -130,7 +130,7 @@
                           "value": "min="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -145,7 +145,7 @@
                           "value": " near="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -160,7 +160,7 @@
                           "value": " over="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -175,7 +175,7 @@
                           "value": " big="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

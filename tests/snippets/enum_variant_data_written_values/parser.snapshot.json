@@ -417,7 +417,7 @@
             "kind": "StringLitExpr",
             "parts": [
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "FieldExpr",
                   "target": {
@@ -432,7 +432,7 @@
                 "value": " "
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "FieldExpr",
                   "target": {
@@ -447,7 +447,7 @@
                 "value": " retry="
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "FieldExpr",
                   "target": {
@@ -545,7 +545,7 @@
                             "value": "written: "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -569,7 +569,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "s"
@@ -580,7 +580,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -595,7 +595,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -619,7 +619,7 @@
                             "value": " code="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -694,7 +694,7 @@
                             "value": "consecutive: "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -718,7 +718,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -756,7 +756,7 @@
                           "value": "constant: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -784,7 +784,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "eq",
@@ -810,7 +810,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -885,7 +885,7 @@
                             "value": "field code: "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -962,7 +962,7 @@
                           "value": "whole: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -977,7 +977,7 @@
                           "value": " / "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -996,7 +996,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1045,7 +1045,7 @@
                           "value": "sizes: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -1062,7 +1062,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",

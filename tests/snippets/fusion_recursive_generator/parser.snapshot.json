@@ -199,7 +199,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -288,7 +288,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -322,7 +322,7 @@
                           "value": "countdown(3):"
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "fused"
@@ -333,7 +333,7 @@
                           "value": " |"
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "lazy"

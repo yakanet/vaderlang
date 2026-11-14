@@ -355,7 +355,7 @@
                             "value": "m "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -474,7 +474,7 @@
                             "value": "f "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -649,7 +649,7 @@
                             "value": "c "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"

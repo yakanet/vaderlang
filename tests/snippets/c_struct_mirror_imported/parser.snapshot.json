@@ -172,7 +172,7 @@
                           "value": "poll "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -212,7 +212,7 @@
                           "value": ", revents "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {

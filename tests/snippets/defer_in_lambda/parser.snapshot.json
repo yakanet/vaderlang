@@ -109,7 +109,7 @@
                                     "value": "uses outer "
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "IdentExpr",
                                       "name": "x"
@@ -237,7 +237,7 @@
                                     "value": "panic defer in lambda saw "
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "IdentExpr",
                                       "name": "x"
@@ -323,7 +323,7 @@
                           "value": "result="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

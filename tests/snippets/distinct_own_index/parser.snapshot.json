@@ -208,7 +208,7 @@
                           "value": "set_at "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "i"
@@ -219,7 +219,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "v"
@@ -493,7 +493,7 @@
                           "value": "offset read "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -589,7 +589,7 @@
                           "value": "cells read "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -749,7 +749,7 @@
                           "value": "log read "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -800,7 +800,7 @@
                             "value": "log backing "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -834,7 +834,7 @@
                           "value": "log slice "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

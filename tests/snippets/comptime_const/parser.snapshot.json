@@ -250,7 +250,7 @@
                           "value": "greeting: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "GREETING"
@@ -282,7 +282,7 @@
                           "value": "nine:     "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "NINE"

@@ -596,7 +596,7 @@
                             "value": "sentinel "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -703,7 +703,7 @@
                             "value": "pair "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -714,7 +714,7 @@
                             "value": ":"
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "s"
@@ -802,7 +802,7 @@
                             "value": "offset "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -870,7 +870,7 @@
                                 "value": "s"
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "x"
@@ -905,7 +905,7 @@
                             "value": "remap "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "s"
@@ -916,7 +916,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {

@@ -27,7 +27,7 @@
 [9:12-9:13  ] lparen         "("
 [9:13-9:14  ] string_begin   "\""
 [9:14-9:19  ] string_part    "argc=" ="argc="
-[9:19-9:21  ] interp_open    "${"
+[9:19-9:21  ] interpolation_open "${"
 [9:21-9:25  ] ident          "argv"
 [9:25-9:26  ] dot            "."
 [9:26-9:29  ] ident          "len"
@@ -35,7 +35,7 @@
 [9:30-9:31  ] rparen         ")"
 [9:32-9:33  ] minus          "-"
 [9:34-9:35  ] int_literal    "1" =1n
-[9:35-9:36  ] interp_close   "}"
+[9:35-9:36  ] interpolation_close "}"
 [9:36-9:37  ] string_end     "\""
 [9:37-9:38  ] rparen         ")"
 [10:1-10:1  ] newline        "\n"

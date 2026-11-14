@@ -222,7 +222,7 @@
                       "value": "unit circle r="
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "r"
@@ -260,7 +260,7 @@
                       "value": "circle r="
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "r"
@@ -512,7 +512,7 @@
                                   "value": "x="
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -523,7 +523,7 @@
                                   "value": " -> matched ten, name="
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "name"
@@ -558,7 +558,7 @@
                                   "value": "x="
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"

@@ -473,7 +473,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -596,7 +596,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -629,7 +629,7 @@
                       "value": "map.map:"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -640,7 +640,7 @@
                       "value": " |"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -897,7 +897,7 @@
                       "value": "filter.filter.count: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -908,7 +908,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1165,7 +1165,7 @@
                       "value": "take.take.count: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -1176,7 +1176,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1433,7 +1433,7 @@
                       "value": "skip.skip.count: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -1444,7 +1444,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1755,7 +1755,7 @@
                       "value": "map.chain(map): "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -1766,7 +1766,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1885,7 +1885,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -2004,7 +2004,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -2037,7 +2037,7 @@
                       "value": "scale.scale:"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -2048,7 +2048,7 @@
                       "value": " |"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -2199,7 +2199,7 @@
                                           "value": "upto in upto: runaway after "
                                         },
                                         {
-                                          "kind": "interp",
+                                          "kind": "interpolation",
                                           "expr": {
                                             "kind": "IdentExpr",
                                             "name": "GUARD"
@@ -2373,7 +2373,7 @@
                       "value": "upto in upto, rounds: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -2384,7 +2384,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -2569,7 +2569,7 @@
                                           "value": "take in take: runaway after "
                                         },
                                         {
-                                          "kind": "interp",
+                                          "kind": "interpolation",
                                           "expr": {
                                             "kind": "IdentExpr",
                                             "name": "GUARD"
@@ -2777,7 +2777,7 @@
                       "value": "take in take, rounds: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -2788,7 +2788,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -3129,7 +3129,7 @@
                       "value": "chars.filter.filter.count: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -3140,7 +3140,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -3486,7 +3486,7 @@
                       "value": "comptime map.map sum: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "COMPTIME_SUM"
@@ -3497,7 +3497,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "CallExpr",
                         "callee": {
@@ -3781,7 +3781,7 @@
                                               "value": "break i: runaway after "
                                             },
                                             {
-                                              "kind": "interp",
+                                              "kind": "interpolation",
                                               "expr": {
                                                 "kind": "IdentExpr",
                                                 "name": "GUARD"
@@ -3829,7 +3829,7 @@
                                   "value": " "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "i"
@@ -3840,7 +3840,7 @@
                                   "value": ":"
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -3972,7 +3972,7 @@
                                   "value": " "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "i"
@@ -3983,7 +3983,7 @@
                                   "value": ":"
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -4046,7 +4046,7 @@
                       "value": "break i:"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -4057,7 +4057,7 @@
                       "value": " |"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"

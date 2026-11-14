@@ -219,7 +219,7 @@
                             "value": "skip "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -317,7 +317,7 @@
                             "value": "stop "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -633,7 +633,7 @@
                             "value": "small "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -835,7 +835,7 @@
                             "value": "pair "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "p"
@@ -1123,7 +1123,7 @@
                             "value": "headed "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -1156,7 +1156,7 @@
                       "value": "found "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "CallExpr",
                         "callee": {
@@ -1323,7 +1323,7 @@
                                   "value": "cell "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "r"
@@ -1334,7 +1334,7 @@
                                   "value": ","
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "c"

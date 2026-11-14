@@ -108,7 +108,7 @@
                     "value": "cat "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "FieldExpr",
                       "target": {

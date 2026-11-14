@@ -171,7 +171,7 @@
                             "value": "no day "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "n"
@@ -192,7 +192,7 @@
                 "kind": "StringLitExpr",
                 "parts": [
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {
@@ -264,7 +264,7 @@
                           "value": "week "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "min",
@@ -281,7 +281,7 @@
                           "value": " to "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "max",
@@ -319,7 +319,7 @@
                           "value": "discounts "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "min",
@@ -336,7 +336,7 @@
                           "value": " to "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "max",
@@ -370,7 +370,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -394,7 +394,7 @@
                           "value": ", "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -447,7 +447,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "d"
@@ -513,7 +513,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "c"
@@ -583,7 +583,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "in",
@@ -602,7 +602,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -626,7 +626,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "in",
@@ -770,7 +770,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "hours"
@@ -781,7 +781,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "bytes"

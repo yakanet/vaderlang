@@ -547,7 +547,7 @@
                     "value": "i32 "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "c"
@@ -567,7 +567,7 @@
                     "value": "string "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "c"
@@ -629,7 +629,7 @@
                       "value": "f64 "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "m"
@@ -656,7 +656,7 @@
                       "value": "bool "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "m"
@@ -683,7 +683,7 @@
                       "value": "char "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "m"
@@ -710,7 +710,7 @@
                       "value": "string "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "m"
@@ -773,7 +773,7 @@
                     "value": "u8 "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "s"
@@ -793,7 +793,7 @@
                     "value": "string "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "s"
@@ -1089,7 +1089,7 @@
                                 "value": "i64 "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "w"
@@ -1109,7 +1109,7 @@
                                 "value": "string "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "w"
@@ -1174,7 +1174,7 @@
                                 "value": "circle "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "FieldExpr",
                                   "target": {
@@ -1198,7 +1198,7 @@
                                 "value": "square "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "FieldExpr",
                                   "target": {
@@ -1246,7 +1246,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -1261,7 +1261,7 @@
                             "value": ": "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {

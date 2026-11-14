@@ -55,7 +55,7 @@
                 "kind": "StringLitExpr",
                 "parts": [
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {
@@ -156,7 +156,7 @@
                                       "value": "write failed: "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "CallExpr",
                                         "callee": {
@@ -252,7 +252,7 @@
                                       "value": "read failed: "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "CallExpr",
                                         "callee": {
@@ -307,7 +307,7 @@
                           "value": "roundtrip="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "eq",
@@ -355,7 +355,7 @@
                           "value": "exists="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -420,7 +420,7 @@
                           "value": "removed="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "UnaryExpr",
                             "op": "not",

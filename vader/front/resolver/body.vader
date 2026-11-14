@@ -1009,7 +1009,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
         is AST.StringLitExpr -> {
             for part in e.parts {
                 match part {
-                    is AST.StringLitInterp -> { self.walk_expr(part.expr) }
+                    is AST.StringLitInterpolation -> { self.walk_expr(part.expr) }
                     _ -> {}
                 }
             }

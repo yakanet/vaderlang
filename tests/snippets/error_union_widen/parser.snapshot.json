@@ -70,7 +70,7 @@
                     "value": "a:"
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "FieldExpr",
                       "target": {
@@ -145,7 +145,7 @@
                     "value": "b:"
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "FieldExpr",
                       "target": {
@@ -410,7 +410,7 @@
                                 "value": "err "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "CallExpr",
                                   "callee": {
@@ -458,7 +458,7 @@
                                 "value": "str "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "e"

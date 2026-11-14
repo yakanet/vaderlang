@@ -128,7 +128,7 @@
                           "value": "["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "mul",
@@ -152,7 +152,7 @@
                           "value": "]["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "mul",
@@ -176,7 +176,7 @@
                           "value": "]["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "mul",

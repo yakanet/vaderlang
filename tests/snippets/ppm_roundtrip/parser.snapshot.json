@@ -63,7 +63,7 @@
                 "kind": "StringLitExpr",
                 "parts": [
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {
@@ -334,7 +334,7 @@
                                       "value": "write failed: "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "CallExpr",
                                         "callee": {
@@ -353,7 +353,7 @@
                                       "value": " path=["
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "IdentExpr",
                                         "name": "path"
@@ -445,7 +445,7 @@
                                       "value": "read failed: "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "CallExpr",
                                         "callee": {
@@ -789,7 +789,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "dec"

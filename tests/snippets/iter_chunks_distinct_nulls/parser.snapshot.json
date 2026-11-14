@@ -114,7 +114,7 @@
                             "value": "indexed "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "i"
@@ -125,7 +125,7 @@
                             "value": ":"
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "s"
@@ -209,7 +209,7 @@
                             "value": "chunk "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "c"
@@ -310,7 +310,7 @@
                             "value": "lazy chunk "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "c"
@@ -385,7 +385,7 @@
                             "value": "distinct "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -507,7 +507,7 @@
                             "value": "lazy distinct "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "w"
@@ -603,7 +603,7 @@
                             "value": "not null "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "BinaryExpr",
                               "op": "add",
@@ -678,7 +678,7 @@
                             "value": "lazy not null "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "BinaryExpr",
                               "op": "mul",

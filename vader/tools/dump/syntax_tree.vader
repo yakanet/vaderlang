@@ -1064,8 +1064,8 @@ write_string_parts :: fn(sb: StringBuilder, parts: StringLitPart[], level: i32) 
                 sb.entry(false, level + 2, "value")
                 sb.write_string(pp.value)
             }
-            is StringLitInterp -> {
-                sb.kind_entry(level + 2, "interp")
+            is StringLitInterpolation -> {
+                sb.kind_entry(level + 2, "interpolation")
                 sb.entry(false, level + 2, "expr")
                 sb.write_expr(pp.expr, level + 2)
             }

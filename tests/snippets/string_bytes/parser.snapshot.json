@@ -164,7 +164,7 @@
                           "value": "sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sum"
@@ -242,7 +242,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "b"
@@ -340,7 +340,7 @@
                           "value": "b0="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -358,7 +358,7 @@
                           "value": " b1="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -376,7 +376,7 @@
                           "value": " b2="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -415,7 +415,7 @@
                           "value": "after bom: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -433,7 +433,7 @@
                           "value": "="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -557,7 +557,7 @@
                           "value": "done bytes="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -656,7 +656,7 @@
                           "value": "len="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -675,7 +675,7 @@
                           "value": " bs[0]="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -693,7 +693,7 @@
                           "value": " bs[1]="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -711,7 +711,7 @@
                           "value": " bs[2]="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -842,7 +842,7 @@
                           "value": "sl.len="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -861,7 +861,7 @@
                           "value": " sl0="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -879,7 +879,7 @@
                           "value": " sl1="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {
@@ -897,7 +897,7 @@
                           "value": " sl2="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IndexExpr",
                             "target": {

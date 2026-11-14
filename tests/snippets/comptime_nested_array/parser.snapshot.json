@@ -369,7 +369,7 @@
                                 "value": "a"
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "i"
@@ -385,7 +385,7 @@
                                 "value": "b"
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "i"
@@ -556,7 +556,7 @@
                             "value": "s"
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "i"
@@ -807,7 +807,7 @@
                     "value": "array "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {
@@ -935,7 +935,7 @@
                           "value": "rows "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -958,7 +958,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1088,7 +1088,7 @@
                           "value": "grid "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -1107,7 +1107,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

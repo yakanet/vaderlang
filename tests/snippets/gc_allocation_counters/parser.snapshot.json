@@ -131,7 +131,7 @@
                           "value": "counted the allocation: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "gt",
@@ -175,7 +175,7 @@
                           "value": "counted its bytes: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "gte",
@@ -227,7 +227,7 @@
                           "value": "length: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

@@ -630,7 +630,7 @@
                           "value": "inferred, bare = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "a"
@@ -683,7 +683,7 @@
                           "value": "inferred, ufcs = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "n"
@@ -747,7 +747,7 @@
                           "value": "explicit = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "e"
@@ -813,7 +813,7 @@
                           "value": "two params = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "s"
@@ -901,7 +901,7 @@
                           "value": "array param = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "v"
@@ -980,7 +980,7 @@
                           "value": "pair = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -995,7 +995,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -1052,7 +1052,7 @@
                           "value": "box = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -1109,7 +1109,7 @@
                           "value": "nested = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -1166,7 +1166,7 @@
                           "value": "comparison in args = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "c"

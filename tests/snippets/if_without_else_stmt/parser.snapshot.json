@@ -47,7 +47,7 @@
                     "value": "ok: "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "s"

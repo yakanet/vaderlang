@@ -161,7 +161,7 @@
                           "value": "on shelf: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "on_shelf"
@@ -172,7 +172,7 @@
                           "value": ", in hand: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "stock"

@@ -105,7 +105,7 @@
                           "value": "0..<5 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sum"
@@ -196,7 +196,7 @@
                           "value": "1..=4 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "total"
@@ -287,7 +287,7 @@
                           "value": "5..<3 iterations: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "n"
@@ -377,7 +377,7 @@
                           "value": "shorthand 0..<5 iterations: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "count"
@@ -467,7 +467,7 @@
                           "value": "shorthand 1..=4 iterations: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "inclusive"
@@ -583,7 +583,7 @@
                           "value": "nested shorthand iterations: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "cells"
@@ -693,7 +693,7 @@
                           "value": "u64 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "su"
@@ -803,7 +803,7 @@
                           "value": "i64 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "si"
@@ -926,7 +926,7 @@
                           "value": "u8 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sb"
@@ -1049,7 +1049,7 @@
                           "value": "i16 inclusive sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sh"
@@ -1140,7 +1140,7 @@
                           "value": "'a'..='e' iterations: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "letters"
@@ -1231,7 +1231,7 @@
                           "value": "'0'..<'5' iterations: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "digits"

@@ -293,7 +293,7 @@
                                       "kind": "StringLitExpr",
                                       "parts": [
                                         {
-                                          "kind": "interp",
+                                          "kind": "interpolation",
                                           "expr": {
                                             "kind": "IdentExpr",
                                             "name": "name"
@@ -304,7 +304,7 @@
                                           "value": ":"
                                         },
                                         {
-                                          "kind": "interp",
+                                          "kind": "interpolation",
                                           "expr": {
                                             "kind": "IdentExpr",
                                             "name": "job"
@@ -752,7 +752,7 @@
                               "kind": "StringLitExpr",
                               "parts": [
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "n"
@@ -867,7 +867,7 @@
                           "value": "taken "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -921,7 +921,7 @@
                           "value": "done "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -944,7 +944,7 @@
                           "value": ", total "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "total"
@@ -1055,7 +1055,7 @@
                           "value": "after close: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

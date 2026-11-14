@@ -68,7 +68,7 @@
             "kind": "StringLitExpr",
             "parts": [
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IntrinsicCallExpr",
                   "name": "type_name",
@@ -85,7 +85,7 @@
                 "value": " "
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IntrinsicCallExpr",
                   "name": "type_name",
@@ -728,7 +728,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -751,7 +751,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

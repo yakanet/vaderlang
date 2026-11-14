@@ -66,7 +66,7 @@
                             "value": "refund "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "amount"
@@ -99,7 +99,7 @@
                           "value": "charging "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "amount"

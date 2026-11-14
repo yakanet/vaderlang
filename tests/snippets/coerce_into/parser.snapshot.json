@@ -125,7 +125,7 @@
                     "value": "user_"
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "FieldExpr",
                       "target": {
@@ -451,7 +451,7 @@
                           "value": "implicit call:   "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -512,7 +512,7 @@
                           "value": "implicit let:    "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "n"
@@ -544,7 +544,7 @@
                           "value": "implicit return: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -623,7 +623,7 @@
                           "value": "implicit field:  tag="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -638,7 +638,7 @@
                           "value": " n="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
@@ -726,7 +726,7 @@
                           "value": "explicit i32:    "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "explicit_n"
@@ -784,7 +784,7 @@
                           "value": "explicit string: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "explicit_s"
@@ -842,7 +842,7 @@
                           "value": "overload into:   "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "a"
@@ -900,7 +900,7 @@
                           "value": "overload direct: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "b"

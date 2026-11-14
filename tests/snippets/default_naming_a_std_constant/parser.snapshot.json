@@ -63,7 +63,7 @@
                 "kind": "StringLitExpr",
                 "parts": [
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {
@@ -148,7 +148,7 @@
                                       "value": "setup failed: "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "FieldExpr",
                                         "target": {
@@ -265,7 +265,7 @@
                               "value": "bare: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "CallExpr",
                                 "callee": {
@@ -346,7 +346,7 @@
                               "value": "ufcs: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "CallExpr",
                                 "callee": {
@@ -440,7 +440,7 @@
                               "value": "explicit 4: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "FieldExpr",
                                 "target": {

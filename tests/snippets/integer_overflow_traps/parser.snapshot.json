@@ -109,7 +109,7 @@
                           "value": "u8 in range: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add",
@@ -162,7 +162,7 @@
                           "value": "u8 method in range: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -240,7 +240,7 @@
                           "value": "u64 in range: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "sub",
@@ -317,7 +317,7 @@
                           "value": "i8 in range: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "sub",
@@ -386,7 +386,7 @@
                           "value": "i32 in range: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add",
@@ -442,7 +442,7 @@
                           "value": "i64 in range: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "UnaryExpr",
                             "op": "neg",
@@ -499,7 +499,7 @@
                           "value": "i32 past its maximum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add",

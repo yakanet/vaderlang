@@ -112,7 +112,7 @@
                 "value": "free render "
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IdentExpr",
                   "name": "x"
@@ -308,7 +308,7 @@
                               "value": "field "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "x"
@@ -387,7 +387,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "c"

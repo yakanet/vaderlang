@@ -20,7 +20,7 @@ import "std/string"
 import "std/string_builder"
 
 /// A text block's state while its body is lexed, kept across the
-/// interpolations that suspend it (`InterpFrame.block`).
+/// interpolations that suspend it (`InterpolationFrame.block`).
 TextBlock :: struct {
     /// Where every line that holds more than spaces and tabs starts.
     lines: TextBlockLine[] = []
@@ -219,7 +219,7 @@ test_text_block_interpolation_at_line_start :: fn() -> void {
 @test
 test_text_block_part_emptied_by_the_cut_goes :: fn() -> void {
     l :: tokenize("\"\"\"\n    \${x} a\n    \"\"\"", "test.vader")
-    assert(l.tokens[1].kind == .InterpOpen, "no empty part before the interpolation")
+    assert(l.tokens[1].kind == .InterpolationOpen, "no empty part before the interpolation")
 }
 
 @test

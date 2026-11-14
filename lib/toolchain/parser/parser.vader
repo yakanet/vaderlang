@@ -205,10 +205,10 @@ advance :: fn(p: Parser) -> Token {
 // How a token moves the bracket depth: +1 for an opening bracket, -1 for a closing
 // one. Only `advance` consumes brackets.
 bracket_step :: fn(k: TokenKind) -> i32 {
-    if k == .LParen || k == .LBracket || k == .LBrace || k == .InterpOpen {
+    if k == .LParen || k == .LBracket || k == .LBrace || k == .InterpolationOpen {
         return 1
     }
-    if k == .RParen || k == .RBracket || k == .RBrace || k == .InterpClose {
+    if k == .RParen || k == .RBracket || k == .RBrace || k == .InterpolationClose {
         return -1
     }
     return 0
@@ -867,9 +867,9 @@ expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
                 _         -> { sb.append(t.text) }
             }
         }
-        if t.kind == .InterpOpen {
+        if t.kind == .InterpolationOpen {
             p.error(.UnexpectedToken, t.span, "interpolation not allowed in import path")
-            for !p.check(.InterpClose) && !p.check(.Eof) { p.advance() }
+            for !p.check(.InterpolationClose) && !p.check(.Eof) { p.advance() }
         }
     }
     end_tok :: p.match_or_peek(.StringEnd)
@@ -2774,64 +2774,64 @@ infix_for :: fn(k: TokenKind) = match k {
     .PlusPercent  -> InfixOpDescr { .has = true, .left_bp = 80, .right_bp = 81, .op = .AddWrap, .non_assoc = false }
     .MinusPercent -> InfixOpDescr { .has = true, .left_bp = 80, .right_bp = 81, .op = .SubWrap, .non_assoc = false }
     .StarPercent  -> InfixOpDescr { .has = true, .left_bp = 90, .right_bp = 91, .op = .MulWrap, .non_assoc = false }
-    .Eof          -> no_infix()
-    .Newline      -> no_infix()
-    .Ident        -> no_infix()
-    .IntLit       -> no_infix()
-    .FloatLit     -> no_infix()
-    .CharLit      -> no_infix()
-    .StringBegin  -> no_infix()
-    .StringPart   -> no_infix()
-    .StringEnd    -> no_infix()
-    .InterpOpen   -> no_infix()
-    .InterpClose  -> no_infix()
-    .Tilde        -> no_infix()
-    .Bang         -> no_infix()
-    .Assign       -> no_infix()
-    .PlusAssign   -> no_infix()
-    .MinusAssign  -> no_infix()
-    .StarAssign   -> no_infix()
-    .SlashAssign  -> no_infix()
-    .PercentAssign -> no_infix()
+    .Eof                -> no_infix()
+    .Newline            -> no_infix()
+    .Ident              -> no_infix()
+    .IntLit             -> no_infix()
+    .FloatLit           -> no_infix()
+    .CharLit            -> no_infix()
+    .StringBegin        -> no_infix()
+    .StringPart         -> no_infix()
+    .StringEnd          -> no_infix()
+    .InterpolationOpen  -> no_infix()
+    .InterpolationClose -> no_infix()
+    .Tilde              -> no_infix()
+    .Bang               -> no_infix()
+    .Assign             -> no_infix()
+    .PlusAssign         -> no_infix()
+    .MinusAssign        -> no_infix()
+    .StarAssign         -> no_infix()
+    .SlashAssign        -> no_infix()
+    .PercentAssign      -> no_infix()
     .PlusPercentAssign  -> no_infix()
     .MinusPercentAssign -> no_infix()
     .StarPercentAssign  -> no_infix()
-    .DeclConst    -> no_infix()
-    .DeclVar      -> no_infix()
-    .Arrow        -> no_infix()
-    .FatArrow     -> no_infix()
-    .At           -> no_infix()
-    .LParen       -> no_infix()
-    .RParen       -> no_infix()
-    .LBracket     -> no_infix()
-    .RBracket     -> no_infix()
-    .LBrace       -> no_infix()
-    .RBrace       -> no_infix()
-    .Comma        -> no_infix()
-    .Dot          -> no_infix()
-    .Colon        -> no_infix()
-    .KwFn         -> no_infix()
-    .KwStruct     -> no_infix()
-    .KwTrait      -> no_infix()
-    .KwImplements -> no_infix()
-    .KwEnum       -> no_infix()
-    .KwIf         -> no_infix()
-    .KwElse       -> no_infix()
-    .KwMatch      -> no_infix()
-    .KwFor        -> no_infix()
-    .KwReturn     -> no_infix()
-    .KwYield      -> no_infix()
-    .KwDefer      -> no_infix()
-    .KwBreak      -> no_infix()
-    .KwContinue   -> no_infix()
-    .KwImport     -> no_infix()
-    .KwAs         -> no_infix()
-    .KwExport     -> no_infix()
-    .KwTrue       -> no_infix()
-    .KwFalse      -> no_infix()
-    .KwNull       -> no_infix()
-    .KwSelf       -> no_infix()
-    .KwConst      -> no_infix()
+    .DeclConst          -> no_infix()
+    .DeclVar            -> no_infix()
+    .Arrow              -> no_infix()
+    .FatArrow           -> no_infix()
+    .At                 -> no_infix()
+    .LParen             -> no_infix()
+    .RParen             -> no_infix()
+    .LBracket           -> no_infix()
+    .RBracket           -> no_infix()
+    .LBrace             -> no_infix()
+    .RBrace             -> no_infix()
+    .Comma              -> no_infix()
+    .Dot                -> no_infix()
+    .Colon              -> no_infix()
+    .KwFn               -> no_infix()
+    .KwStruct           -> no_infix()
+    .KwTrait            -> no_infix()
+    .KwImplements       -> no_infix()
+    .KwEnum             -> no_infix()
+    .KwIf               -> no_infix()
+    .KwElse             -> no_infix()
+    .KwMatch            -> no_infix()
+    .KwFor              -> no_infix()
+    .KwReturn           -> no_infix()
+    .KwYield            -> no_infix()
+    .KwDefer            -> no_infix()
+    .KwBreak            -> no_infix()
+    .KwContinue         -> no_infix()
+    .KwImport           -> no_infix()
+    .KwAs               -> no_infix()
+    .KwExport           -> no_infix()
+    .KwTrue             -> no_infix()
+    .KwFalse            -> no_infix()
+    .KwNull             -> no_infix()
+    .KwSelf             -> no_infix()
+    .KwConst            -> no_infix()
 }
 
 // Postfix BP : `(` / `[` / `.` all bind at 100.
@@ -2839,89 +2839,89 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .LParen   -> 100
     .LBracket -> 100
     .Dot      -> 100
-    .KwConst      -> -1
-    .Eof          -> -1
-    .Newline      -> -1
-    .Ident        -> -1
-    .IntLit       -> -1
-    .FloatLit     -> -1
-    .CharLit      -> -1
-    .StringBegin  -> -1
-    .StringPart   -> -1
-    .StringEnd    -> -1
-    .InterpOpen   -> -1
-    .InterpClose  -> -1
-    .Plus         -> -1
-    .Minus        -> -1
-    .Star         -> -1
-    .Slash        -> -1
-    .Percent      -> -1
-    .PlusPercent  -> -1
-    .MinusPercent -> -1
-    .StarPercent  -> -1
-    .Amp          -> -1
-    .Pipe         -> -1
-    .Caret        -> -1
-    .Tilde        -> -1
-    .Shl          -> -1
-    .Shr          -> -1
-    .Eq           -> -1
-    .Neq          -> -1
-    .Same         -> -1
-    .NotSame      -> -1
-    .Lt           -> -1
-    .Lte          -> -1
-    .Gt           -> -1
-    .Gte          -> -1
-    .AndAnd       -> -1
-    .OrOr         -> -1
-    .Bang         -> -1
-    .Assign       -> -1
-    .PlusAssign   -> -1
-    .MinusAssign  -> -1
-    .StarAssign   -> -1
-    .SlashAssign  -> -1
-    .PercentAssign -> -1
+    .KwConst            -> -1
+    .Eof                -> -1
+    .Newline            -> -1
+    .Ident              -> -1
+    .IntLit             -> -1
+    .FloatLit           -> -1
+    .CharLit            -> -1
+    .StringBegin        -> -1
+    .StringPart         -> -1
+    .StringEnd          -> -1
+    .InterpolationOpen  -> -1
+    .InterpolationClose -> -1
+    .Plus               -> -1
+    .Minus              -> -1
+    .Star               -> -1
+    .Slash              -> -1
+    .Percent            -> -1
+    .PlusPercent        -> -1
+    .MinusPercent       -> -1
+    .StarPercent        -> -1
+    .Amp                -> -1
+    .Pipe               -> -1
+    .Caret              -> -1
+    .Tilde              -> -1
+    .Shl                -> -1
+    .Shr                -> -1
+    .Eq                 -> -1
+    .Neq                -> -1
+    .Same               -> -1
+    .NotSame            -> -1
+    .Lt                 -> -1
+    .Lte                -> -1
+    .Gt                 -> -1
+    .Gte                -> -1
+    .AndAnd             -> -1
+    .OrOr               -> -1
+    .Bang               -> -1
+    .Assign             -> -1
+    .PlusAssign         -> -1
+    .MinusAssign        -> -1
+    .StarAssign         -> -1
+    .SlashAssign        -> -1
+    .PercentAssign      -> -1
     .PlusPercentAssign  -> -1
     .MinusPercentAssign -> -1
     .StarPercentAssign  -> -1
-    .DeclConst    -> -1
-    .DeclVar      -> -1
-    .RangeExcl    -> -1
-    .RangeIncl    -> -1
-    .DotDotDot    -> -1
-    .Arrow        -> -1
-    .FatArrow     -> -1
-    .At           -> -1
-    .RParen       -> -1
-    .RBracket     -> -1
-    .LBrace       -> -1
-    .RBrace       -> -1
-    .Comma        -> -1
-    .Colon        -> -1
-    .KwFn         -> -1
-    .KwStruct     -> -1
-    .KwTrait      -> -1
-    .KwImplements -> -1
-    .KwEnum       -> -1
-    .KwIf         -> -1
-    .KwElse       -> -1
-    .KwMatch      -> -1
-    .KwIs         -> -1
-    .KwFor        -> -1
-    .KwIn         -> -1
-    .KwReturn     -> -1
-    .KwYield      -> -1
-    .KwDefer      -> -1
-    .KwBreak      -> -1
-    .KwContinue   -> -1
-    .KwImport     -> -1
-    .KwAs         -> -1
-    .KwExport     -> -1
-    .KwTrue       -> -1
-    .KwFalse      -> -1
-    .KwNull       -> -1
-    .KwSelf       -> -1
+    .DeclConst          -> -1
+    .DeclVar            -> -1
+    .RangeExcl          -> -1
+    .RangeIncl          -> -1
+    .DotDotDot          -> -1
+    .Arrow              -> -1
+    .FatArrow           -> -1
+    .At                 -> -1
+    .RParen             -> -1
+    .RBracket           -> -1
+    .LBrace             -> -1
+    .RBrace             -> -1
+    .Comma              -> -1
+    .Colon              -> -1
+    .KwFn               -> -1
+    .KwStruct           -> -1
+    .KwTrait            -> -1
+    .KwImplements       -> -1
+    .KwEnum             -> -1
+    .KwIf               -> -1
+    .KwElse             -> -1
+    .KwMatch            -> -1
+    .KwIs               -> -1
+    .KwFor              -> -1
+    .KwIn               -> -1
+    .KwReturn           -> -1
+    .KwYield            -> -1
+    .KwDefer            -> -1
+    .KwBreak            -> -1
+    .KwContinue         -> -1
+    .KwImport           -> -1
+    .KwAs               -> -1
+    .KwExport           -> -1
+    .KwTrue             -> -1
+    .KwFalse            -> -1
+    .KwNull             -> -1
+    .KwSelf             -> -1
 }
 
 parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
@@ -3704,14 +3704,14 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
             parts.push(StringLitText { .value = text, .span = t.span })
             continue
         }
-        if t.kind == .InterpOpen {
-            interp_start :: p.advance()
+        if t.kind == .InterpolationOpen {
+            interpolation_start :: p.advance()
             expr :: p.parse_expr(0)
-            close_match :: p.match_kind(.InterpClose)
+            close_match :: p.match_kind(.InterpolationClose)
             close_span :: if close_match != null { close_match.span } else { expr.span }
-            parts.push(StringLitInterp {
+            parts.push(StringLitInterpolation {
                 .expr = expr,
-                .span = Span { .start = interp_start.span.start, .end = close_span.end },
+                .span = Span { .start = interpolation_start.span.start, .end = close_span.end },
             })
             continue
         }

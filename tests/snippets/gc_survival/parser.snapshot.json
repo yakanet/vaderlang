@@ -477,7 +477,7 @@
                                   "value": "chain: expected 1 collection, got "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "diff"
@@ -596,7 +596,7 @@
                                   "value": "chain: sum mismatch: got "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "sum"
@@ -607,7 +607,7 @@
                                   "value": ", expected "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "expected"
@@ -652,7 +652,7 @@
                           "value": "chain: 200 nodes survived GC; sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sum"
@@ -842,7 +842,7 @@
                                   "value": "multi: expected 3 collections, got "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "diff"
@@ -961,7 +961,7 @@
                                   "value": "multi: sum mismatch after 3 collections: "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "sum"
@@ -972,7 +972,7 @@
                                   "value": " vs "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "expected"
@@ -1017,7 +1017,7 @@
                           "value": "multi: 50 nodes survived 3 collections; sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sum"
@@ -1224,7 +1224,7 @@
                                   "value": "array: expected 1 collection, got "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "diff"
@@ -1368,7 +1368,7 @@
                                   "value": "array: sum mismatch: got "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "sum"
@@ -1379,7 +1379,7 @@
                                   "value": ", expected "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "expected"
@@ -1424,7 +1424,7 @@
                           "value": "array: 200 array elements survived GC; sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sum"

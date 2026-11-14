@@ -49,7 +49,7 @@
             "kind": "StringLitExpr",
             "parts": [
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IdentExpr",
                   "name": "x"
@@ -221,7 +221,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "n"
@@ -255,7 +255,7 @@
                           "value": "lazy:"
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "lazy"
@@ -363,7 +363,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "n"
@@ -397,7 +397,7 @@
                           "value": "fused:"
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "fused"

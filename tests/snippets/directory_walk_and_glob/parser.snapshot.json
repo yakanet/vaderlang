@@ -63,7 +63,7 @@
                 "kind": "StringLitExpr",
                 "parts": [
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {
@@ -144,7 +144,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -176,7 +176,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -208,7 +208,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -253,7 +253,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -298,7 +298,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -343,7 +343,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -499,7 +499,7 @@
                                 "kind": "StringLitExpr",
                                 "parts": [
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "FieldExpr",
                                       "target": {
@@ -514,7 +514,7 @@
                                     "value": " "
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "FieldExpr",
                                       "target": {
@@ -529,7 +529,7 @@
                                     "value": " "
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "FieldExpr",
                                       "target": {
@@ -566,7 +566,7 @@
                               "value": "errors: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "CallExpr",
                                 "callee": {
@@ -686,7 +686,7 @@
                                     "value": "source "
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "CallExpr",
                                       "callee": {
@@ -777,7 +777,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "root"
@@ -830,7 +830,7 @@
                               "value": "file root: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "FieldExpr",
                                 "target": {

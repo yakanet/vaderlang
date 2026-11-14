@@ -200,7 +200,7 @@ Accepted by every action, after the action name. All three are **reserved**: par
 | `resolved-ast`  | per-module symbol table + import resolutions + reference counts                      | See how names bind across modules.                                        |
 | `typed-ast`     | per-decl types + per-expression type counts                                          | Inspect inference, narrowing, generic instantiation.                      |
 | `evaluated-ast` | `@comptime` values and how they were evaluated, `@assert` verdicts (Markdown)                | See what the comptime engine baked.                                       |
-| `lowered-ast`   | desugared program as Vader (match → if/else, interp → builder calls, defer → thunk stack), where each constant and global slot lives, vtable rows, what the dependencies hold | Confirm the desugarings and what was materialised.                        |
+| `lowered-ast`   | desugared program as Vader (match → if/else, interpolation → builder calls, defer → thunk stack), where each constant and global slot lives, vtable rows, what the dependencies hold | Confirm the desugarings and what was materialised.                        |
 | `dced-ast`      | lowered tree after stdlib reachability prune                                         | See which stdlib decls survive the prune.                                 |
 | `cfg`           | midir CFG per fn, as lowered: before the prune and every midir pass                  | Inspect basic blocks, terminators, three-address instructions.            |
 | `ranges`        | per fn, a verdict on each array access and checked operation                         | See which bounds and overflow checks the range analysis proves.           |

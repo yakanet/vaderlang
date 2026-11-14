@@ -91,7 +91,7 @@
                     "value": "box "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "FieldExpr",
                       "target": {
@@ -142,7 +142,7 @@
                     "value": "bag "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "FieldExpr",
                       "target": {
@@ -371,7 +371,7 @@
                           "value": "min(3, 5)     = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -424,7 +424,7 @@
                           "value": "min(3.5, 5.0) = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -477,7 +477,7 @@
                           "value": "max(-2, 8)    = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -530,7 +530,7 @@
                           "value": "abs(-7)       = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -575,7 +575,7 @@
                           "value": "abs(-7.5)     = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -620,7 +620,7 @@
                           "value": "clamp(15, 0, 10)      = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -681,7 +681,7 @@
                           "value": "clamp(1.5, 0.0, 1.0)  = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

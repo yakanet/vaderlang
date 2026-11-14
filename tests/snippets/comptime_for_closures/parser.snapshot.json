@@ -75,7 +75,7 @@
                                   "value": "deferred "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "x"
@@ -107,7 +107,7 @@
                             "value": "body "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "x"
@@ -246,7 +246,7 @@
                           "value": "total "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "total"
@@ -374,7 +374,7 @@
                             "value": "nested "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {

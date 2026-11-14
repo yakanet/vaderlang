@@ -244,7 +244,7 @@
                           "value": "nothing beyond ten: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "eq",

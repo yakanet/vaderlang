@@ -1,7 +1,7 @@
 // vader/lower/string_lit: string + interpolation lowering, with Display coercion.
 //
 // A text-only string literal becomes a single `LoweredStringLit`. A literal with
-// any `${expr}` segment lowers to ONE right-sized byte buffer (`lower_interp_buffer`)
+// any `${expr}` segment lowers to ONE right-sized byte buffer (`lower_interpolation_buffer`)
 // when some part is a directly-writable primitive (int / uint / bool): each
 // writes its bytes straight in, no throwaway interned string per part. A purely
 // text + `${string}` / `${Display}` interpolation has no digit to format, so it
@@ -25,7 +25,7 @@ import "toolchain/span"
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: TY_STRING
-    if !has_interp_part(expr) {
+    if !has_interpolation_part(expr) {
         body := ""
         for part in expr.parts {
             match part {
@@ -40,7 +40,7 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
     // bytes straight in, so a `${int}` formats its digits with no throwaway
     // interned string (the old `value.to_string()` per part). Interned once at
     // `finish`.
-    return lower_interp_buffer(ctx, expr)
+    return lower_interpolation_buffer(ctx, expr)
 }
 
 // Lower a flattened string `+` chain (`operands` are the lowered leaves, in
@@ -166,7 +166,7 @@ resolve_writer_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
     lookup_core_symbol(ctx, name)
 
 // The `Buffer` the std/core writer API fn `writer` takes as its `self`. Shared by
-// `lower_interp_buffer` and `synthesize_concat_fn` (both size + write a buffer).
+// `lower_interpolation_buffer` and `synthesize_concat_fn` (both size + write a buffer).
 // `null` when the fn type can't be resolved.
 writer_buffer :: fn(ctx: FnLowerCtx, writer: Symbol) -> Type | null {
     ft :: lookup_fn_type_anywhere(ctx, writer)
@@ -209,7 +209,7 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // interpolation has no digit to format, so it stays on the leaner all-string
 // `concat_N` path (`lower_concat_chain`). Each part is lowered once, and runs in
 // source order.
-lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
+lower_interpolation_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     string_type :: TY_STRING
     span :: expr.span
     // Lower every part once, classifying interpolated values by type ; a
@@ -223,7 +223,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
                 values.push(LoweredStringLit { .span = part.span, .type = string_type, .value = part.value })
                 kinds.push(.Text)
             }
-            is StringLitInterp -> {
+            is StringLitInterpolation -> {
                 inner :: lower_expr(ctx, part.expr)
                 shown :: default_if_free(shown_type(ctx, part.expr, inner))
                 rendered :: render_part(ctx, part.expr, inner, shown, span)
@@ -429,10 +429,10 @@ shown_type :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> Type {
     return if checked is EnumType { checked } else { lowered.type }
 }
 
-has_interp_part :: fn(expr: StringLitExpr) -> bool {
+has_interpolation_part :: fn(expr: StringLitExpr) -> bool {
     for part in expr.parts {
         match part {
-            is StringLitInterp -> { return true }
+            is StringLitInterpolation -> { return true }
             _ -> {}
         }
     }

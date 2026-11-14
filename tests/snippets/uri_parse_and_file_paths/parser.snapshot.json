@@ -100,7 +100,7 @@
                               "kind": "StringLitExpr",
                               "parts": [
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "web"
@@ -131,7 +131,7 @@
                               "value": "path "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "FieldExpr",
                                 "target": {
@@ -146,7 +146,7 @@
                               "value": " decoded "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "CallExpr",
                                 "callee": {
@@ -235,7 +235,7 @@
                               "kind": "StringLitExpr",
                               "parts": [
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "file"
@@ -304,7 +304,7 @@
                                   "value": "back "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "back"
@@ -429,7 +429,7 @@
                                   "value": "refused: "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "FieldExpr",
                                     "target": {

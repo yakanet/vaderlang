@@ -70,7 +70,7 @@
                                   "value": "  outer defer "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -127,7 +127,7 @@
                                         "value": "  inner defer "
                                       },
                                       {
-                                        "kind": "interp",
+                                        "kind": "interpolation",
                                         "expr": {
                                           "kind": "IdentExpr",
                                           "name": "v"
@@ -138,7 +138,7 @@
                                         "value": "."
                                       },
                                       {
-                                        "kind": "interp",
+                                        "kind": "interpolation",
                                         "expr": {
                                           "kind": "IdentExpr",
                                           "name": "w"
@@ -199,7 +199,7 @@
                                   "value": "  body "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -210,7 +210,7 @@
                                   "value": "."
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "w"
@@ -312,7 +312,7 @@
                                   "value": "  outer defer "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -369,7 +369,7 @@
                                         "value": "  inner defer "
                                       },
                                       {
-                                        "kind": "interp",
+                                        "kind": "interpolation",
                                         "expr": {
                                           "kind": "IdentExpr",
                                           "name": "v"
@@ -380,7 +380,7 @@
                                         "value": "."
                                       },
                                       {
-                                        "kind": "interp",
+                                        "kind": "interpolation",
                                         "expr": {
                                           "kind": "IdentExpr",
                                           "name": "w"
@@ -441,7 +441,7 @@
                                   "value": "  body "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "v"
@@ -452,7 +452,7 @@
                                   "value": "."
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "w"

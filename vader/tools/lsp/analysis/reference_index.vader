@@ -660,7 +660,7 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         // compiles.
         is AST.StringLitExpr -> {
             for part in e.parts {
-                if part is AST.StringLitInterp { collect_expr(part.expr, out) }
+                if part is AST.StringLitInterpolation { collect_expr(part.expr, out) }
             }
         }
     }

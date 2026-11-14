@@ -196,7 +196,7 @@
                                 "value": "x = "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "x"
@@ -281,7 +281,7 @@
                                 "value": "y = "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "y"
@@ -367,7 +367,7 @@
                                 "value": "pair int   = "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "p"
@@ -407,7 +407,7 @@
                                 "value": "pair str   = "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "p"

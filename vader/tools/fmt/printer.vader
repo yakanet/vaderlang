@@ -1857,7 +1857,7 @@ emit_float_lit :: fn(self: Printer, x: p.FloatLitExpr) -> void {
 }
 
 // Char + string literals : verbatim-from-source to preserve escape spelling,
-// raw/triple-quoted form, and `$ident` interp shorthand. The AST only retains
+// raw/triple-quoted form, and `$ident` interpolation shorthand. The AST only retains
 // the decoded text + interpolation positions ; round-trip equality demands
 // the original surface form survives.
 emit_char_lit :: fn(self: Printer, x: p.CharLitExpr) -> void {

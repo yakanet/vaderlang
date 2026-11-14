@@ -296,7 +296,7 @@
                           "value": "delta = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "delta"

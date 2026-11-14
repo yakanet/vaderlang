@@ -273,7 +273,7 @@
                             "value": "area "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -301,7 +301,7 @@
                             "value": " perimeter "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -385,7 +385,7 @@
                               "value": "measure "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "m"

@@ -109,7 +109,7 @@
                           "value": "size i32      = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -147,7 +147,7 @@
                           "value": "size i64      = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -185,7 +185,7 @@
                           "value": "size union    = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -223,7 +223,7 @@
                           "value": "size array    = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",

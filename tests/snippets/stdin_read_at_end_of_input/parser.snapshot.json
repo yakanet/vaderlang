@@ -121,7 +121,7 @@
                               "value": "a line: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "line"
@@ -218,7 +218,7 @@
                               "value": "an error: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "FieldExpr",
                                 "target": {

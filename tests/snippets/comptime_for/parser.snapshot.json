@@ -113,7 +113,7 @@
                             "value": "type-arg size="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IntrinsicCallExpr",
                               "name": "size_of",
@@ -180,7 +180,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -195,7 +195,7 @@
                             "value": " size="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IntrinsicCallExpr",
                               "name": "size_of",

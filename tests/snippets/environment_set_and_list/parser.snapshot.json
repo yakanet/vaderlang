@@ -190,7 +190,7 @@
                           "value": "get: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "value"
@@ -259,7 +259,7 @@
                                 "value": "listed: "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "FieldExpr",
                                   "target": {
@@ -372,7 +372,7 @@
                           "value": "empty: ["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "empty"
@@ -472,7 +472,7 @@
                           "value": "after unset: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "after"
@@ -565,7 +565,7 @@
                               "value": "refused: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "FieldExpr",
                                 "target": {

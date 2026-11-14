@@ -303,7 +303,7 @@
                           "value": "array  seen="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "seen"
@@ -314,7 +314,7 @@
                           "value": " nulls="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "nulls"
@@ -325,7 +325,7 @@
                           "value": " sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sum"
@@ -517,7 +517,7 @@
                           "value": "gen    seen="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "gseen"
@@ -528,7 +528,7 @@
                           "value": " nulls="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "gnulls"
@@ -539,7 +539,7 @@
                           "value": " sum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "gsum"

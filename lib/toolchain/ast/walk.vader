@@ -231,7 +231,7 @@ inspect_parts :: fn(
     leave: fn(Node) -> void,
 ) -> bool {
     for part in parts {
-        if part is StringLitInterp && inspect(part.expr, visit, leave) {
+        if part is StringLitInterpolation && inspect(part.expr, visit, leave) {
             return true
         }
     }

@@ -93,7 +93,7 @@
                             "value": "unreadable ("
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -112,7 +112,7 @@
                             "value": " / "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -233,7 +233,7 @@
                                 "value": "caught by trait: "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "CallExpr",
                                   "callee": {

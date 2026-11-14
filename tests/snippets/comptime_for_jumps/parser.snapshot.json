@@ -123,7 +123,7 @@
                                   "value": "continue: "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "i"
@@ -134,7 +134,7 @@
                                   "value": ":"
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "x"
@@ -224,7 +224,7 @@
                                         "value": "  defer of a copy, round "
                                       },
                                       {
-                                        "kind": "interp",
+                                        "kind": "interpolation",
                                         "expr": {
                                           "kind": "IdentExpr",
                                           "name": "i"
@@ -285,7 +285,7 @@
                                   "value": "break: "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "i"
@@ -296,7 +296,7 @@
                                   "value": ":"
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "x"
@@ -329,7 +329,7 @@
                             "value": "after round "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "i"

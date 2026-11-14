@@ -70,7 +70,7 @@
               "value": "hello "
             },
             {
-              "kind": "interp",
+              "kind": "interpolation",
               "expr": {
                 "kind": "IdentExpr",
                 "name": "name"
@@ -93,7 +93,7 @@
               "value": "result: "
             },
             {
-              "kind": "interp",
+              "kind": "interpolation",
               "expr": {
                 "kind": "BinaryExpr",
                 "op": "add",
@@ -124,7 +124,7 @@
               "value": "outer "
             },
             {
-              "kind": "interp",
+              "kind": "interpolation",
               "expr": {
                 "kind": "StringLitExpr",
                 "parts": [
@@ -133,7 +133,7 @@
                     "value": "inner "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "y"

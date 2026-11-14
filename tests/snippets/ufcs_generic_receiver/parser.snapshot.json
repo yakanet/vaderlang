@@ -53,7 +53,7 @@
                 "value": "generic "
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IdentExpr",
                   "name": "self"
@@ -96,7 +96,7 @@
                 "value": "i32 "
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IdentExpr",
                   "name": "self"

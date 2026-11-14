@@ -131,7 +131,7 @@
                             "value": "pair-arg size="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IntrinsicCallExpr",
                               "name": "size_of",
@@ -190,7 +190,7 @@
                           "value": "wrapper-arg count="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

@@ -94,7 +94,7 @@
                           "value": "size i32     = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -132,7 +132,7 @@
                           "value": "size i64     = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",
@@ -170,7 +170,7 @@
                           "value": "size string  = "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "size_of",

@@ -78,7 +78,7 @@
                     "value": "int "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "v"
@@ -98,7 +98,7 @@
                     "value": "str "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "v"
@@ -482,7 +482,7 @@
                               "value": "first "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "CallExpr",
                                 "callee": {
@@ -546,7 +546,7 @@
                           "value": "or_zero "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

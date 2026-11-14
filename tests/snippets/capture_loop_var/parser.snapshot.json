@@ -236,7 +236,7 @@
                                       "value": "thunk "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "IdentExpr",
                                         "name": "label"
@@ -326,7 +326,7 @@
                                   "value": "range defer i="
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "i"
@@ -358,7 +358,7 @@
                             "value": "range body i="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "i"
@@ -472,7 +472,7 @@
                                       "value": "mapped "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "IdentExpr",
                                         "name": "y"
@@ -579,7 +579,7 @@
                                   "value": "filtered defer z="
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "z"
@@ -655,7 +655,7 @@
                                       "value": "nested n="
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "IdentExpr",
                                         "name": "n"

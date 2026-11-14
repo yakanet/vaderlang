@@ -50,7 +50,7 @@
             "kind": "StringLitExpr",
             "parts": [
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IdentExpr",
                   "name": "name"
@@ -61,7 +61,7 @@
                 "value": "_"
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "IdentExpr",
                   "name": "idx"
@@ -104,7 +104,7 @@
                 "value": "block $"
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "CallExpr",
                   "callee": {
@@ -141,7 +141,7 @@
                 "value": " void\n  local.get 1\nend $"
               },
               {
-                "kind": "interp",
+                "kind": "interpolation",
                 "expr": {
                   "kind": "CallExpr",
                   "callee": {
@@ -266,7 +266,7 @@
                           "value": "["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "indented"
@@ -320,7 +320,7 @@
                           "value": "["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "escapes"
@@ -362,7 +362,7 @@
                 "kind": "StringLitExpr",
                 "parts": [
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "n"
@@ -470,7 +470,7 @@
                           "value": "["
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "inline"

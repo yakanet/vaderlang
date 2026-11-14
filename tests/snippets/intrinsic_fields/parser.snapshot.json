@@ -132,7 +132,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -147,7 +147,7 @@
                             "value": " size="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IntrinsicCallExpr",
                               "name": "size_of",
@@ -222,7 +222,7 @@
                             "value": "pair."
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -237,7 +237,7 @@
                             "value": " size="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IntrinsicCallExpr",
                               "name": "size_of",

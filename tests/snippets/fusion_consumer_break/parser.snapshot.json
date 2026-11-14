@@ -349,7 +349,7 @@
                       "value": "flat_map.find: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -360,7 +360,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -575,7 +575,7 @@
                       "value": "chain.find: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -586,7 +586,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -849,7 +849,7 @@
                       "value": "flat_map + break, visits: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -860,7 +860,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1155,7 +1155,7 @@
                       "value": "flat_map.take(1), calls: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -1166,7 +1166,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "calls"
@@ -1528,7 +1528,7 @@
                       "value": "two yields + break, visits: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -1539,7 +1539,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1687,7 +1687,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -1771,7 +1771,7 @@
                             "value": " "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -1808,7 +1808,7 @@
                       "value": "loop then tail yield + break:"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -1819,7 +1819,7 @@
                       "value": " |"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -1903,7 +1903,7 @@
                             "value": "  inner resumed after "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "i"
@@ -2127,7 +2127,7 @@
                             "value": "  v="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -2274,7 +2274,7 @@
                             "value": "  v="
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "v"
@@ -2568,7 +2568,7 @@
                       "value": "chain + break, sum: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -2579,7 +2579,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -2924,7 +2924,7 @@
                       "value": "chain + break x from an inner loop: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -2935,7 +2935,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -3114,7 +3114,7 @@
                                   "value": " "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "a"
@@ -3125,7 +3125,7 @@
                                   "value": ":"
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "b"
@@ -3322,7 +3322,7 @@
                                   "value": " "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "a"
@@ -3333,7 +3333,7 @@
                                   "value": ":"
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "IdentExpr",
                                     "name": "b"
@@ -3371,7 +3371,7 @@
                       "value": "flat_map, then take(2) inside, break a:"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -3382,7 +3382,7 @@
                       "value": " |"
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"
@@ -3735,7 +3735,7 @@
                       "value": "two yields + break v from an inner loop: "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "fused"
@@ -3746,7 +3746,7 @@
                       "value": " | "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "lazy"

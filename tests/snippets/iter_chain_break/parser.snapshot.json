@@ -203,7 +203,7 @@
                           "value": "break in 1st source="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "first"
@@ -336,7 +336,7 @@
                           "value": "break in 2nd source="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "second"
@@ -469,7 +469,7 @@
                           "value": "labelled break="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "labelled"
@@ -618,7 +618,7 @@
                           "value": "continue="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "kept"
@@ -722,7 +722,7 @@
                           "value": "no break="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "whole"
@@ -879,7 +879,7 @@
                           "value": "map+break="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "mapped"
@@ -1031,7 +1031,7 @@
                           "value": "nested break="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "nested"

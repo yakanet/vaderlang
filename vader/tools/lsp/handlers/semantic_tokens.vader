@@ -103,7 +103,7 @@ classify_token :: fn(t: Token) -> TokenType | null = match t.kind {
     .IntLit | .FloatLit -> .Number
 
     // Operators + interpolation delimiters.
-    .InterpOpen | .InterpClose
+    .InterpolationOpen | .InterpolationClose
         | .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
         | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
         | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte
@@ -124,7 +124,7 @@ classify_token :: fn(t: Token) -> TokenType | null = match t.kind {
     // escape sequences (`\t`, `\n`) lost theirs the moment the LSP loaded. The
     // shared grammar (`editors/common/vader.tmLanguage.json`) already owns
     // strings, escapes included, so the semantic layer only degrades them.
-    // `.InterpOpen` / `.InterpClose` keep their operator token above: they
+    // `.InterpolationOpen` / `.InterpolationClose` keep their operator token above: they
     // delimit a real expression, not literal text.
     //
     // Punctuation / brackets / layout / `@` / `$` / `...` carry no token.

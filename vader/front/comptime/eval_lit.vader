@@ -44,7 +44,7 @@ evaluate_char_lit :: fn(literal: AST.CharLitExpr) -> EvalResult {
 
 /// Evaluate a `StringLitExpr`. Plain text segments concat directly ;
 /// interpolation segments recurse through `evaluate_expr` and render
-/// via `display_value`. Falls back to `C4001` when an interp segment
+/// via `display_value`. Falls back to `C4001` when an interpolation segment
 /// itself doesn't reduce to a concrete value.
 /// @param literal  the literal node.
 /// @param context  the evaluator context.
@@ -57,20 +57,20 @@ evaluate_string_lit :: fn(
     for part in literal.parts {
         match part {
             is AST.StringLitText -> { sb.append(part.value) }
-            is AST.StringLitInterp -> {
+            is AST.StringLitInterpolation -> {
                 inner :: evaluate_expr(part.expr, context)
                 value :: inner.value else return inner
                 if value is EnumValue {
                     shown :: display_enum(value, part.expr, context)
                     text :: shown.value else return shown
-                    sb.append(interp_value(text))
+                    sb.append(interpolation_value(text))
                     continue
                 }
                 // Rendered by their `Display` impl, which the VM runs.
                 if value is ArrayValue | StructValue {
                     return vm_required(part.expr.span, "array or struct interpolated")
                 }
-                sb.append(interp_value(value))
+                sb.append(interpolation_value(value))
             }
         }
     }
@@ -82,7 +82,7 @@ evaluate_string_lit :: fn(
 // renders as its glyph (not the codepoint number). Used by
 // string-interpolation segments so `"x=${42}"` resolves to `"x=42"` and
 // `"c=${'A'}"` to `"c=A"`, matching the runtime `Display` of the same code.
-interp_value :: fn(v: ComptimeValue) -> string = match v {
+interpolation_value :: fn(v: ComptimeValue) -> string = match v {
     is IntValue    -> int_digits(v)
     is FloatValue  -> "${v.value}"
     is BoolValue   -> "${v.value}"
@@ -102,19 +102,19 @@ interp_value :: fn(v: ComptimeValue) -> string = match v {
 
 import "std/testing"
 
-@test test_interp_value_char_renders_glyph :: fn() -> void {
+@test test_interpolation_value_char_renders_glyph :: fn() -> void {
     // comptime-1 : a char in an interpolation renders its glyph, not the
     // codepoint number (65 -> "A"), matching runtime `Display`.
-    assert_eq(interp_value(CharValue { .value = 65 }), "A")
+    assert_eq(interpolation_value(CharValue { .value = 65 }), "A")
 }
 
-@test test_interp_value_char_multibyte :: fn() -> void {
+@test test_interpolation_value_char_multibyte :: fn() -> void {
     // Non-ASCII codepoint round-trips through UTF-8 (U+00E9 -> "é"), proving
     // the fix encodes rather than printing `233`.
-    assert_eq(interp_value(CharValue { .value = 233 }), "é")
+    assert_eq(interpolation_value(CharValue { .value = 233 }), "é")
 }
 
-@test test_interp_value_int_no_suffix :: fn() -> void {
-    assert_eq(interp_value(int_val(42)), "42")
+@test test_interpolation_value_int_no_suffix :: fn() -> void {
+    assert_eq(interpolation_value(int_val(42)), "42")
 }
 

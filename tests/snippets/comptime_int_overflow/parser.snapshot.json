@@ -197,7 +197,7 @@
                           "value": "sum comptime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "SUM"
@@ -208,7 +208,7 @@
                           "value": " runtime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add_wrap",
@@ -248,7 +248,7 @@
                           "value": "gt0 comptime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "GT0"
@@ -259,7 +259,7 @@
                           "value": " runtime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "gt",
@@ -307,7 +307,7 @@
                           "value": "shl comptime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "SHL"
@@ -318,7 +318,7 @@
                           "value": " runtime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "shl",
@@ -358,7 +358,7 @@
                           "value": "big comptime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "BIG"
@@ -369,7 +369,7 @@
                           "value": " runtime="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add",

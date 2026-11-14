@@ -27,10 +27,10 @@ import "toolchain/span"
 // ---- driver state ---------------------------------------------------------
 
 // One per active `${...}` interpolation. `brace_depth` counts unclosed `{`s
-// inside the current interp expression so we know when a `}` closes the
-// interp (depth 0) vs an inner expression (depth > 0). `triple` and `block`
+// inside the current interpolation expression so we know when a `}` closes the
+// interpolation (depth 0) vs an inner expression (depth > 0). `triple` and `block`
 // record which string mode to resume on close.
-InterpFrame :: struct {
+InterpolationFrame :: struct {
     brace_depth: i32
     triple: bool
     block: TextBlock | null = null
@@ -60,7 +60,7 @@ Lexer :: struct {
     malformed_utf8_at: i64 = 0
     tokens: Token[] = []
     errors: Diagnostic[] = []
-    interp_stack: InterpFrame[] = []
+    interpolation_stack: InterpolationFrame[] = []
     // Set by `tokenize_with_docs` : every run of `///` lines is then kept in
     // `doc_runs`, and the span of every comment in `comments`. The token stream is
     // the same either way.
@@ -304,7 +304,7 @@ note_line_comment :: fn(l: Lexer, start: i64, column: i32) -> void {
 // One inside a `${...}` is part of its string literal and is not kept. Out of
 // `lex_one` for the reason `note_line_comment` gives.
 note_comment :: fn(l: Lexer, start: i64, line: i32, column: i32) -> void {
-    if l.interp_stack.len() > 0 {
+    if l.interpolation_stack.len() > 0 {
         return
     }
     l.comments.push(l.span_since(start, line, column))
@@ -338,12 +338,12 @@ error_span :: fn(l: Lexer, start: Position) =
 // ---- whitespace + comments -----------------------------------------------
 
 skip_horizontal :: fn(l: Lexer) -> void {
-    in_interp :: in_interp_expression(l)
+    in_interpolation :: in_interpolation_expression(l)
     for !l.at_end() {
         c :: l.peek()
         if c == ' ' || c == '\t' {
             l.advance(1)
-        } else if in_interp && (c == '\n' || c == '\r') {
+        } else if in_interpolation && (c == '\n' || c == '\r') {
             // Newlines inside `${...}` are absorbed so the resumed string
             // body keeps its anchor position in the source.
             l.advance(1)
@@ -355,8 +355,8 @@ skip_horizontal :: fn(l: Lexer) -> void {
 
 // Inside a `${...}` expression itself : a `{` block opened there separates its
 // statements with newlines, as any block does.
-in_interp_expression :: fn(l: Lexer) -> bool {
-    top :: l.top_interp() else return false
+in_interpolation_expression :: fn(l: Lexer) -> bool {
+    top :: l.top_interpolation() else return false
     return top.brace_depth == 0
 }
 
@@ -706,16 +706,16 @@ lex_char :: fn(l: Lexer) -> void {
 
 // ---- string literals ------------------------------------------------------
 
-// Top of the interp stack, or null when not currently inside an interpolation.
-top_interp :: fn(l: Lexer) -> InterpFrame | null {
-    n :: l.interp_stack.len()
+// Top of the interpolation stack, or null when not currently inside an interpolation.
+top_interpolation :: fn(l: Lexer) -> InterpolationFrame | null {
+    n :: l.interpolation_stack.len()
     if n == 0 { return null }
-    return l.interp_stack[n - 1]
+    return l.interpolation_stack[n - 1]
 }
 
 // Drop the current top frame (called at `}` matching depth 0).
-pop_interp :: fn(l: Lexer) -> void {
-    l.interp_stack.remove_last()
+pop_interpolation :: fn(l: Lexer) -> void {
+    l.interpolation_stack.remove_last()
 }
 
 // Open a `"` / `r"` / `"""` / `r"""` literal. Emits StringBegin, then drives
@@ -748,7 +748,7 @@ lex_string :: fn(l: Lexer, raw: bool) -> void {
 }
 
 // Emit a StringPart token if the builder accumulated any content: no-op
-// otherwise so we don't generate empty parts between back-to-back interps.
+// otherwise so we don't generate empty parts between back-to-back interpolations.
 flush_string_part :: fn(
     l: Lexer, sb: StringBuilder, part_start: Position, has_part: bool, block: TextBlock | null,
 ) -> void {
@@ -773,9 +773,9 @@ write_char :: fn(sb: StringBuilder, c: char, block: TextBlock | null) -> void {
 }
 
 // Drive the body of a string literal. Handles raw vs. interpolated input,
-// emits StringPart / InterpOpen / StringEnd as needed. When the body opens
-// an interpolation we push onto `interp_stack` and return: `lex_one` will
-// resume the body when the matching `}` closes the interp.
+// emits StringPart / InterpolationOpen / StringEnd as needed. When the body opens
+// an interpolation we push onto `interpolation_stack` and return: `lex_one` will
+// resume the body when the matching `}` closes the interpolation.
 lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null) -> void {
     part_start := l.position_here()
     sb := StringBuilder {}
@@ -841,14 +841,14 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null
             }
         }
 
-        // `${expr}`: interp open, push frame, return so `lex_one` takes over.
+        // `${expr}`: interpolation open, push frame, return so `lex_one` takes over.
         if !raw && c == '$' && l.peek_at(1) == '{' {
             flush_string_part(l, sb, part_start, has_part, block)
             op_start :: l.position_here()
             l.advance(2)
             op_span :: Span { .start = op_start, .end = l.position_here() }
-            l.emit(make_token(.InterpOpen, "\${", op_span))
-            l.interp_stack.push(InterpFrame {
+            l.emit(make_token(.InterpolationOpen, "\${", op_span))
+            l.interpolation_stack.push(InterpolationFrame {
                 .brace_depth = 0,
                 .triple = triple,
                 .block = block,
@@ -856,16 +856,16 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool, block: TextBlock | null
             return
         }
 
-        // `$ident`: single-identifier interp, no `{}` brackets.
+        // `$ident`: single-identifier interpolation, no `{}` brackets.
         if !raw && c == '$' && l.peek_at(1).is_ident_start() {
             flush_string_part(l, sb, part_start, has_part, block)
             op_start :: l.position_here()
             l.advance(1)
             op_span :: Span { .start = op_start, .end = l.position_here() }
-            l.emit(make_token(.InterpOpen, "$", op_span))
+            l.emit(make_token(.InterpolationOpen, "$", op_span))
             l.lex_ident()
             here :: l.position_here()
-            l.emit(make_token(.InterpClose, "", Span { .start = here, .end = here }))
+            l.emit(make_token(.InterpolationClose, "", Span { .start = here, .end = here }))
             // Resume body in-place ; reset `part_start` so the next StringPart's
             // span starts after the interpolated identifier.
             part_start = l.position_here()
@@ -999,17 +999,17 @@ try_lex_operator :: fn(l: Lexer) -> bool {
         return true
     }
     if c == '{' {
-        // Track unclosed `{` on the active interp frame so the matching `}`
-        // closes the inner expression rather than the interp itself.
-        top :: l.top_interp()
-        if top is InterpFrame { top.brace_depth = top.brace_depth + 1 }
+        // Track unclosed `{` on the active interpolation frame so the matching `}`
+        // closes the inner expression rather than the interpolation itself.
+        top :: l.top_interpolation()
+        if top is InterpolationFrame { top.brace_depth = top.brace_depth + 1 }
         l.enclosing_paren_depths.push(l.paren_depth)
         l.paren_depth = 0
         return l.emit_and_advance(.LBrace, "{")
     }
     if c == '}' {
-        top :: l.top_interp()
-        if top is InterpFrame {
+        top :: l.top_interpolation()
+        if top is InterpolationFrame {
             if top.brace_depth > 0 {
                 top.brace_depth = top.brace_depth - 1
             }
@@ -1040,18 +1040,18 @@ lex_one :: fn(l: Lexer) -> void {
 
     // Closing `}` for the active `${...}` interpolation. Must run BEFORE
     // `try_lex_operator` would emit a regular `rbrace` token. Inner `{...}`
-    // expressions inside the interp are still emitted normally: the brace
+    // expressions inside the interpolation are still emitted normally: the brace
     // tracking on the frame disambiguates.
-    top :: l.top_interp()
+    top :: l.top_interpolation()
     match top {
-        is InterpFrame -> {
+        is InterpolationFrame -> {
             if l.peek() == '}' && top.brace_depth == 0 {
                 close_start :: l.position_here()
                 l.advance(1)
-                l.push_simple(.InterpClose, "}", close_start)
+                l.push_simple(.InterpolationClose, "}", close_start)
                 triple :: top.triple
                 block :: top.block
-                l.pop_interp()
+                l.pop_interpolation()
                 l.lex_string_body(triple, false, block)
                 return
             }

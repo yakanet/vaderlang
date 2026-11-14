@@ -270,7 +270,7 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
             }
             is AST.StringLitExpr -> {
                 for part in x.parts {
-                    if part is AST.StringLitInterp {
+                    if part is AST.StringLitInterpolation {
                         work.push(part.expr)
                     }
                 }

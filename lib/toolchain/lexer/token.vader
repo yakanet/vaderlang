@@ -20,12 +20,12 @@ export TokenKind :: enum(u8) {
     CharLit,
 
     // String tokens. A literal yields:
-    //   StringBegin ( StringPart | InterpOpen <expr...> InterpClose )* StringEnd
+    //   StringBegin ( StringPart | InterpolationOpen <expr...> InterpolationClose )* StringEnd
     StringBegin,
     StringPart,
     StringEnd,
-    InterpOpen,
-    InterpClose,
+    InterpolationOpen,
+    InterpolationClose,
 
     // Keywords
     KwFn, KwStruct, KwTrait, KwImplements, KwEnum,
@@ -77,15 +77,15 @@ export TokenKind :: enum(u8) {
 ///
 /// @param k  the kind to name.
 export kind_name :: fn(k: TokenKind) -> string = match k {
-    .Ident       -> "ident"
-    .IntLit      -> "int_literal"
-    .FloatLit    -> "float_literal"
-    .CharLit     -> "char_literal"
-    .StringBegin -> "string_begin"
-    .StringPart  -> "string_part"
-    .StringEnd   -> "string_end"
-    .InterpOpen  -> "interp_open"
-    .InterpClose -> "interp_close"
+    .Ident              -> "ident"
+    .IntLit             -> "int_literal"
+    .FloatLit           -> "float_literal"
+    .CharLit            -> "char_literal"
+    .StringBegin        -> "string_begin"
+    .StringPart         -> "string_part"
+    .StringEnd          -> "string_end"
+    .InterpolationOpen  -> "interpolation_open"
+    .InterpolationClose -> "interpolation_close"
 
     .KwFn         -> "kw_fn"
     .KwStruct     -> "kw_struct"

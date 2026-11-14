@@ -852,7 +852,7 @@
                           "value": "size_of primitive: i8="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "s8"
@@ -863,7 +863,7 @@
                           "value": " i32="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "s32"
@@ -874,7 +874,7 @@
                           "value": " i64="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "s64"
@@ -885,7 +885,7 @@
                           "value": " string="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "sstr"
@@ -974,7 +974,7 @@
                           "value": "size_of enum: u8="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "narrow"
@@ -985,7 +985,7 @@
                           "value": " i32="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "wide"
@@ -996,7 +996,7 @@
                           "value": " inferred="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "inferred"
@@ -1096,7 +1096,7 @@
                           "value": "size_of reference: struct="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "ref"
@@ -1107,7 +1107,7 @@
                           "value": " array="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "arr"
@@ -1118,7 +1118,7 @@
                           "value": " erased="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "erased"
@@ -1215,7 +1215,7 @@
                           "value": "align_of: i32="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "a32"
@@ -1226,7 +1226,7 @@
                           "value": " i64="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "a64"
@@ -1237,7 +1237,7 @@
                           "value": " erased="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "abox"
@@ -1357,7 +1357,7 @@
                           "value": "type_kind: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "kp"
@@ -1368,7 +1368,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "ks"
@@ -1379,7 +1379,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "ka"
@@ -1390,7 +1390,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "kt"
@@ -1511,7 +1511,7 @@
                           "value": "type_kind compared: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "matches"
@@ -1562,7 +1562,7 @@
                           "value": "type_name: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "name"
@@ -1573,7 +1573,7 @@
                           "value": " "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IntrinsicCallExpr",
                             "name": "type_name",
@@ -1696,7 +1696,7 @@
                           "value": "field_count: Pair="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "pair"
@@ -1707,7 +1707,7 @@
                           "value": " Triple="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "triple"
@@ -1718,7 +1718,7 @@
                           "value": " tuple="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "tuple"
@@ -1729,7 +1729,7 @@
                           "value": " i32="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "scalar"
@@ -1807,7 +1807,7 @@
                           "value": "variant_count: enum="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "variants_enum"
@@ -1818,7 +1818,7 @@
                           "value": " union="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "variants_union"
@@ -1934,7 +1934,7 @@
                           "value": "field_index: x="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "index_x"
@@ -1945,7 +1945,7 @@
                           "value": " y="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "index_y"
@@ -1956,7 +1956,7 @@
                           "value": " z="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "index_z"
@@ -2057,7 +2057,7 @@
                           "value": "satisfies: string Add="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "concat"
@@ -2068,7 +2068,7 @@
                           "value": " string Hash="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "hash_text"
@@ -2079,7 +2079,7 @@
                           "value": " i32 Hash="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "hash_int"

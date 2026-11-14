@@ -86,7 +86,7 @@
 [31:12-31:13] lparen         "("
 [31:13-31:14] string_begin   "\""
 [31:14-31:21] string_part    "bumped=" ="bumped="
-[31:21-31:23] interp_open    "${"
+[31:21-31:23] interpolation_open "${"
 [31:23-31:26] ident          "run"
 [31:26-31:27] lparen         "("
 [31:27-31:34] ident          "Counter"
@@ -97,7 +97,7 @@
 [31:42-31:44] int_literal    "41" =41n
 [31:45-31:46] rbrace         "}"
 [31:46-31:47] rparen         ")"
-[31:47-31:48] interp_close   "}"
+[31:47-31:48] interpolation_close "}"
 [31:48-31:49] string_end     "\""
 [31:49-31:50] rparen         ")"
 [32:1-32:1  ] newline        "\n"

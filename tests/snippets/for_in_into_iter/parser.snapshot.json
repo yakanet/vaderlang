@@ -143,7 +143,7 @@
                           "value": "arr="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "arr_total"
@@ -313,7 +313,7 @@
                           "value": "map="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "map_total"
@@ -470,7 +470,7 @@
                           "value": "set="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "set_total"
@@ -558,7 +558,7 @@
                           "value": "chars="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "chars"

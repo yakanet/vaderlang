@@ -347,7 +347,7 @@
                             "value": "int "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "BinaryExpr",
                               "op": "add",
@@ -399,7 +399,7 @@
                             "value": "float "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "BinaryExpr",
                               "op": "mul",
@@ -451,7 +451,7 @@
                             "value": "square of side "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "FieldExpr",
                               "target": {
@@ -674,7 +674,7 @@
                                 "value": "later "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "FieldExpr",
                                   "target": {

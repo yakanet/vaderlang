@@ -81,7 +81,7 @@
                     "value": "int "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "c"
@@ -101,7 +101,7 @@
                     "value": "text "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "IdentExpr",
                       "name": "c"
@@ -320,7 +320,7 @@
                             "value": "alias element: "
                           },
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "CallExpr",
                               "callee": {
@@ -465,7 +465,7 @@
                                 "value": "int-only literal: str "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "x"
@@ -498,7 +498,7 @@
                                 "value": "int-only literal: int "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "x"
@@ -615,7 +615,7 @@
                               "value": "widened argument: "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "first"

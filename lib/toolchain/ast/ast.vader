@@ -52,7 +52,7 @@ export ForForm :: InfiniteFor | WhileFor | InFor
 export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | FallbackExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 /// One piece of a string literal: literal text, or an interpolated expression.
-export StringLitPart :: StringLitText | StringLitInterp
+export StringLitPart :: StringLitText | StringLitInterpolation
 
 /// What follows an `else`: another `if` branch, or a final block.
 export IfElse :: IfElseIf | IfElseBlock
@@ -964,9 +964,9 @@ export StringLitExpr :: struct {
 }
 
 /// A run of literal text inside a string literal.
-export StringLitText   :: struct { value: string, span: Span, id: i64 = UNASSIGNED_NODE_ID }
+export StringLitText          :: struct { value: string, span: Span, id: i64 = UNASSIGNED_NODE_ID }
 /// An interpolated `${...}` inside a string literal.
-export StringLitInterp :: struct { expr:  Expr,   span: Span, id: i64 = UNASSIGNED_NODE_ID }
+export StringLitInterpolation :: struct { expr:  Expr,   span: Span, id: i64 = UNASSIGNED_NODE_ID }
 
 /// The text of `e` when it is a string literal of one run of text, with no
 /// interpolation: what a name spelled out at build time reads (`@field(x, "n")`).

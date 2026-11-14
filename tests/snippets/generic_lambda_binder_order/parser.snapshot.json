@@ -354,7 +354,7 @@
                           "value": "empty="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "empty"
@@ -365,7 +365,7 @@
                           "value": " filled="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "filled_in"

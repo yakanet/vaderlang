@@ -76,7 +76,7 @@
 [20:5-20:12 ] ident          "println"
 [20:12-20:13] lparen         "("
 [20:13-20:14] string_begin   "\""
-[20:14-20:16] interp_open    "${"
+[20:14-20:16] interpolation_open "${"
 [20:16-20:33] ident          "read_around_defer"
 [20:33-20:34] lparen         "("
 [20:34-20:35] lbracket       "["
@@ -87,7 +87,7 @@
 [20:40-20:41] comma          ","
 [20:42-20:43] int_literal    "0" =0n
 [20:43-20:44] rparen         ")"
-[20:44-20:45] interp_close   "}"
+[20:44-20:45] interpolation_close "}"
 [20:45-20:46] string_end     "\""
 [20:46-20:47] rparen         ")"
 [21:1-21:1  ] newline        "\n"

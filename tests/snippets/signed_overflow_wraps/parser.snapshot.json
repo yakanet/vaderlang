@@ -195,7 +195,7 @@
                           "value": "i32 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add_wrap",
@@ -235,7 +235,7 @@
                           "value": "i32 product: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "mul_wrap",
@@ -275,7 +275,7 @@
                           "value": "i32 negated minimum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "sub_wrap",
@@ -323,7 +323,7 @@
                           "value": "i32 grows at the maximum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -368,7 +368,7 @@
                           "value": "i32 grows below it: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -519,7 +519,7 @@
                           "value": "i32 steps to the wrap: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "count"
@@ -580,7 +580,7 @@
                           "value": "i64 sum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "BinaryExpr",
                             "op": "add_wrap",
@@ -620,7 +620,7 @@
                           "value": "i64 grows at the maximum: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

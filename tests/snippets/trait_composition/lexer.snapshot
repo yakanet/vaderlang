@@ -182,7 +182,7 @@
 [44:12-44:13] lparen         "("
 [44:13-44:14] string_begin   "\""
 [44:14-44:26] string_part    "fingerprint " ="fingerprint "
-[44:26-44:28] interp_open    "${"
+[44:26-44:28] interpolation_open "${"
 [44:28-44:42] ident          "fingerprint_of"
 [44:42-44:43] lparen         "("
 [44:43-44:46] ident          "Tag"
@@ -193,7 +193,7 @@
 [44:55-44:56] int_literal    "2" =2n
 [44:57-44:58] rbrace         "}"
 [44:58-44:59] rparen         ")"
-[44:59-44:60] interp_close   "}"
+[44:59-44:60] interpolation_close "}"
 [44:60-44:61] string_end     "\""
 [44:61-44:62] rparen         ")"
 [45:1-45:1  ] newline        "\n"

@@ -338,7 +338,7 @@
                           "value": "value trailing: got "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

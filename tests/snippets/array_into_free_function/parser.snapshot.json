@@ -398,7 +398,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "walked"
@@ -426,7 +426,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -548,7 +548,7 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -592,7 +592,7 @@
                                           "kind": "StringLitExpr",
                                           "parts": [
                                             {
-                                              "kind": "interp",
+                                              "kind": "interpolation",
                                               "expr": {
                                                 "kind": "IdentExpr",
                                                 "name": "w"

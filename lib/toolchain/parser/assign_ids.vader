@@ -183,7 +183,7 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             for p in e.parts {
                 match p {
                     is StringLitText   -> { p.id = f.mint() }
-                    is StringLitInterp -> {
+                    is StringLitInterpolation -> {
                         p.id = f.mint()
                         walk_expr(p.expr, f)
                     }

@@ -298,7 +298,7 @@
                               "value": "early "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "early"
@@ -786,7 +786,7 @@
                           "value": "micros "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "micros"
@@ -797,7 +797,7 @@
                           "value": ", shifted "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "shifted"
@@ -808,7 +808,7 @@
                           "value": ", count "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "count"
@@ -819,7 +819,7 @@
                           "value": ", scaled "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "scaled"
@@ -851,7 +851,7 @@
                           "value": "forward "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "forward"
@@ -862,7 +862,7 @@
                           "value": ", next "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "next"

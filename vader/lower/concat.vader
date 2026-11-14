@@ -20,8 +20,9 @@
 // member via `find_impl_member_for`, like `concat2`'s `buf.write_string(off, s)`),
 // NOT the offset-returning `write_string_at` free wrapper, which adds a call
 // layer + recomputes `byte_len`. `new_byte_buffer` and `byte_len` are force-loaded
-// std/core `@intrinsic` free fns, each an op. Mirrors `lower_string_lit::lower_interp_buffer`,
-// minus the int/bool `write_*` (those keep `write_string_at`'s off-threading).
+// std/core `@intrinsic` free fns, each an op. Mirrors
+// `lower_string_lit::lower_interpolation_buffer`, minus the int/bool `write_*`
+// (those keep `write_string_at`'s off-threading).
 
 module "vader/lower"
 

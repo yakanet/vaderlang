@@ -14,7 +14,7 @@
 //     (from `std/string`) on malformed input.
 //   - `Version` plugs into `std/core::Display`, `Equals`, `Comparable`:
 //     call sites use `a.compare(b)`, `a < b`, `a == b`,
-//     `${v}` (interp).
+//     `${v}` (interpolation).
 //   - `VersionRange` plugs into `std/core::Contains<Version>`: call
 //     sites use the infix `in` operator : `v in r` desugars to
 //     `r.contains(v)`.

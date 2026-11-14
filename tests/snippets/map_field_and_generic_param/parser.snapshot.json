@@ -297,7 +297,7 @@
                           "value": "field: x="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "v"
@@ -374,7 +374,7 @@
                           "value": "generic parameter: len="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

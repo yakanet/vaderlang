@@ -90,7 +90,7 @@
                                       "value": "inner sees "
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "IdentExpr",
                                         "name": "p"
@@ -216,7 +216,7 @@
                                     "value": "deferred sees "
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "IdentExpr",
                                       "name": "p"
@@ -439,7 +439,7 @@
                       "value": "n="
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "IdentExpr",
                         "name": "n"
@@ -529,7 +529,7 @@
                                     "value": "deferred sees n="
                                   },
                                   {
-                                    "kind": "interp",
+                                    "kind": "interpolation",
                                     "expr": {
                                       "kind": "IdentExpr",
                                       "name": "n"

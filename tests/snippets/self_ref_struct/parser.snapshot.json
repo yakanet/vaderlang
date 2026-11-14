@@ -276,7 +276,7 @@
                                 "value": "value = "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "FieldExpr",
                                   "target": {

@@ -87,7 +87,7 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
-                            "kind": "interp",
+                            "kind": "interpolation",
                             "expr": {
                               "kind": "IdentExpr",
                               "name": "FILENAME"
@@ -123,7 +123,7 @@
                                 "value": "cannot read `"
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "IdentExpr",
                                   "name": "FILENAME"
@@ -134,7 +134,7 @@
                                 "value": ".txt`: "
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "CallExpr",
                                   "callee": {

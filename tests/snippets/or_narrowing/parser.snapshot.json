@@ -461,7 +461,7 @@
                         "value": "furry "
                       },
                       {
-                        "kind": "interp",
+                        "kind": "interpolation",
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
@@ -499,7 +499,7 @@
                         "value": "bird "
                       },
                       {
-                        "kind": "interp",
+                        "kind": "interpolation",
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
@@ -641,7 +641,7 @@
                     "value": "not a dog: "
                   },
                   {
-                    "kind": "interp",
+                    "kind": "interpolation",
                     "expr": {
                       "kind": "CallExpr",
                       "callee": {

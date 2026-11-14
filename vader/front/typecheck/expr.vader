@@ -279,7 +279,7 @@ infer_expr :: fn(
         is AST.CharLitExpr   -> { return TY_FREE_CHAR }
         is AST.StringLitExpr -> {
             for part in expr.parts {
-                if part is AST.StringLitInterp {
+                if part is AST.StringLitInterpolation {
                     part_type :: check_expr(part.expr, null, typed, diags)
                     renders :: check_interpolated_part(part_type, part.expr, typed, diags)
                     record_site(typed, part.expr, .Display, renders)

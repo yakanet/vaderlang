@@ -224,7 +224,7 @@
                           "value": "first: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "first"
@@ -235,7 +235,7 @@
                           "value": ", through the callback: "
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "second"

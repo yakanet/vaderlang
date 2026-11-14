@@ -197,7 +197,7 @@
                               "value": "u8 x="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vx"
@@ -208,7 +208,7 @@
                               "value": " y="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IndexExpr",
                                 "target": {
@@ -437,7 +437,7 @@
                               "value": "bool t="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vt"
@@ -448,7 +448,7 @@
                               "value": " f="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vf"
@@ -625,7 +625,7 @@
                               "value": "char first="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vc"
@@ -636,7 +636,7 @@
                               "value": " accent="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IndexExpr",
                                 "target": {
@@ -802,7 +802,7 @@
                               "value": "f32 pi="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vp"
@@ -956,7 +956,7 @@
                               "value": "f64 e="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "ve"
@@ -1110,7 +1110,7 @@
                               "value": "i16 neg="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vn"
@@ -1264,7 +1264,7 @@
                               "value": "u16 big="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vb"
@@ -1434,7 +1434,7 @@
                               "value": "i64 huge="
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "vh"
@@ -1535,7 +1535,7 @@
                               "value": "miss: WRONG "
                             },
                             {
-                              "kind": "interp",
+                              "kind": "interpolation",
                               "expr": {
                                 "kind": "IdentExpr",
                                 "name": "miss"

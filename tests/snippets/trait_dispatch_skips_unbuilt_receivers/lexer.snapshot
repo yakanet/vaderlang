@@ -190,7 +190,7 @@
 [46:5-46:12 ] ident          "println"
 [46:12-46:13] lparen         "("
 [46:13-46:14] string_begin   "\""
-[46:14-46:16] interp_open    "${"
+[46:14-46:16] interpolation_open "${"
 [46:16-46:24] ident          "describe"
 [46:24-46:25] lparen         "("
 [46:25-46:31] ident          "Square"
@@ -201,7 +201,7 @@
 [46:42-46:45] float_literal  "3.0" =3.0
 [46:46-46:47] rbrace         "}"
 [46:47-46:48] rparen         ")"
-[46:48-46:49] interp_close   "}"
+[46:48-46:49] interpolation_close "}"
 [46:49-46:50] string_end     "\""
 [46:50-46:51] rparen         ")"
 [47:1-47:1  ] newline        "\n"

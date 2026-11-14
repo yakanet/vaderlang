@@ -134,7 +134,7 @@
                       "value": "P.x = "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "FieldExpr",
                         "target": {
@@ -165,7 +165,7 @@
                       "value": "Q.y = "
                     },
                     {
-                      "kind": "interp",
+                      "kind": "interpolation",
                       "expr": {
                         "kind": "FieldExpr",
                         "target": {

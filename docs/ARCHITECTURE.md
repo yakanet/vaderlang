@@ -70,12 +70,13 @@ run, which the back end lowers.
 The lexer emits a flat token stream for an interpolated string:
 
 ```
-STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOSE  STRING_PART(" bar")  STRING_END
+STRING_BEGIN  STRING_PART("foo ")  INTERPOLATION_OPEN  <expression tokens>  INTERPOLATION_CLOSE  STRING_PART(" bar")  STRING_END
 ```
 
-`STRING_PART` carries decoded text, ordinary tokens come between `INTERP_OPEN` and
-`INTERP_CLOSE`, and a stack of string and interpolation modes handles nesting. A
-raw string is `STRING_BEGIN`, one `STRING_PART` as written, and `STRING_END`.
+`STRING_PART` carries decoded text, ordinary tokens come between
+`INTERPOLATION_OPEN` and `INTERPOLATION_CLOSE`, and a stack of string and
+interpolation modes handles nesting. A raw string is `STRING_BEGIN`, one
+`STRING_PART` as written, and `STRING_END`.
 
 The lexer drops comments. Asked for docs (`tokenize_with_docs`), it also keeps each
 run of `///` lines beside the tokens, never in the stream, and the parser gives a run

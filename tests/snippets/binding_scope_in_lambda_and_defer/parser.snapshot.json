@@ -281,7 +281,7 @@
                                         "value": "lf="
                                       },
                                       {
-                                        "kind": "interp",
+                                        "kind": "interpolation",
                                         "expr": {
                                           "kind": "FieldExpr",
                                           "target": {
@@ -417,7 +417,7 @@
                                       "value": "s="
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "FieldExpr",
                                         "target": {
@@ -465,7 +465,7 @@
                                       "value": "s="
                                     },
                                     {
-                                      "kind": "interp",
+                                      "kind": "interpolation",
                                       "expr": {
                                         "kind": "FieldExpr",
                                         "target": {
@@ -618,7 +618,7 @@
                                 "value": "df="
                               },
                               {
-                                "kind": "interp",
+                                "kind": "interpolation",
                                 "expr": {
                                   "kind": "FieldExpr",
                                   "target": {
@@ -683,7 +683,7 @@
                           "value": "if="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -741,7 +741,7 @@
                           "value": "match="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -799,7 +799,7 @@
                           "value": "defer="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {

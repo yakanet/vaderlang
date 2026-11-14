@@ -480,7 +480,7 @@
                           "value": "length="
                         },
                         {
-                          "kind": "interp",
+                          "kind": "interpolation",
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
@@ -603,7 +603,7 @@
                                   "value": "found "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "FieldExpr",
                                     "target": {
@@ -722,7 +722,7 @@
                                   "value": "found "
                                 },
                                 {
-                                  "kind": "interp",
+                                  "kind": "interpolation",
                                   "expr": {
                                     "kind": "FieldExpr",
                                     "target": {
