@@ -886,15 +886,21 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.write_expr(e.right, level + 1)
             sb.close_obj(level)
         }
-        is NullCoalesceExpr -> {
+        is FallbackExpr -> {
             sb.open_obj()
-            sb.kind_entry(level + 1, "NullCoalesceExpr")
+            sb.kind_entry(level + 1, "FallbackExpr")
             sb.entry(false, level + 1, "left")
             sb.write_expr(e.left, level + 1)
-            sb.entry(false, level + 1, "fallback")
-            match s :: e.fallback {
-                is ReturnStmt | BreakStmt | ContinueStmt -> sb.write_stmt(s, level + 1)
-                is Expr                                  -> sb.write_expr(s, level + 1)
+            sb.entry(false, level + 1, "clauses")
+            sb.write_fallback_clauses(e.clauses, level + 1)
+            if e.coalesce {
+                sb.entry(false, level + 1, "coalesce")
+                sb.append("true")
+            }
+            binding :: e.binding
+            if binding != null {
+                sb.entry(false, level + 1, "binding")
+                sb.write_string(binding.name)
             }
             sb.close_obj(level)
         }
@@ -1153,6 +1159,31 @@ write_match_arms :: fn(sb: StringBuilder, arms: MatchArm[], level: i32) -> void 
         sb.write_optional_expr(a.guard, level + 2)
         sb.entry(false, level + 2, "body")
         sb.write_expr(a.body, level + 2)
+        sb.close_obj(level + 1)
+    }
+    sb.close_arr(level)
+}
+
+write_fallback_clauses :: fn(sb: StringBuilder, clauses: FallbackClause[], level: i32) -> void {
+    if clauses.len() == 0 {
+        sb.close_arr_empty()
+        return
+    }
+    sb.open_arr()
+    first := true
+    for c in clauses {
+        if !first { sb.append_char(',') }
+        first = false
+        sb.append_char('\n')
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "test")
+        sb.write_optional_type(c.test, level + 2)
+        sb.entry(false, level + 2, "body")
+        match body :: c.body {
+            is ReturnStmt | BreakStmt | ContinueStmt -> sb.write_stmt(body, level + 2)
+            is Expr                                  -> sb.write_expr(body, level + 2)
+        }
         sb.close_obj(level + 1)
     }
     sb.close_arr(level)

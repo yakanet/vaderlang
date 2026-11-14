@@ -54,8 +54,8 @@
   expr 23:9     IdentExpr      :: Node
   expr 25:12    IdentExpr      :: Node
   expr 30:24    IdentExpr      :: Node
+  expr 32:17    FallbackExpr   :: Node
   expr 32:17    IdentExpr      :: Node | null
-  expr 32:17    NullCoalesceExpr :: Node
   expr 33:16    FieldExpr      :: i32
   expr 33:16    IdentExpr      :: Node
   expr 33:9     BinaryExpr     :: i32

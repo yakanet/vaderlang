@@ -37,8 +37,8 @@
   expr 103:76   StructLitExpr  :: Clock
   expr 104:13   StringLitExpr  :: string
   expr 104:16   CallExpr       :: 6..=9 | null
+  expr 104:16   FallbackExpr   :: 6..=9
   expr 104:16   IdentExpr      :: fn(Hour) -> 6..=9 | null
-  expr 104:16   NullCoalesceExpr :: 6..=9
   expr 104:37   BinaryExpr     :: bool
   expr 104:37   CallExpr       :: 6..=9 | null
   expr 104:37   IdentExpr      :: fn(Hour) -> 6..=9 | null
@@ -53,8 +53,8 @@
   expr 105:16   CallExpr       :: 6..=20 | null
   expr 105:16   IdentExpr      :: fn(Hour) -> 6..=20 | null
   expr 105:39   CallExpr       :: 6..=20 | null
+  expr 105:39   FallbackExpr   :: 6..=20
   expr 105:39   IdentExpr      :: fn(Hour) -> 6..=20 | null
-  expr 105:39   NullCoalesceExpr :: 6..=20
   expr 105:5    CallExpr       :: void
   expr 105:5    IdentExpr      :: fn(T) -> void
   expr 105:60   CallExpr       :: 1..=24

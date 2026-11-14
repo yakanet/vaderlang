@@ -145,10 +145,12 @@ settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagno
             }
         }
         is AST.UnaryExpr        -> { settle_free_value(e.operand, t, typed, diags) }
-        is AST.NullCoalesceExpr -> {
+        is AST.FallbackExpr     -> {
             settle_free_value(e.left, t, typed, diags)
-            fallback :: AST.coalesce_fallback_expr(e.fallback) ?? return
-            settle_free_value(fallback, t, typed, diags)
+            for c in e.clauses {
+                body :: AST.fallback_body_expr(c.body) ?? continue
+                settle_free_value(body, t, typed, diags)
+            }
         }
         is AST.BinaryExpr       -> {
             settle_free_value(e.left, t, typed, diags)
@@ -159,10 +161,10 @@ settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagno
 }
 
 // Whether settling a union that holds a free literal reaches the literal through
-// `e`: a block, an `if`, a `match` or a `??`, which the walk descends. A name keeps
+// `e`: a block, an `if`, a `match` or a fallback, which the walk descends. A name keeps
 // the type its storage was given.
 settles_through :: fn(e: AST.Expr) -> bool =
-    e is AST.BlockExpr || e is AST.IfExpr || e is AST.MatchExpr || e is AST.NullCoalesceExpr
+    e is AST.BlockExpr || e is AST.IfExpr || e is AST.MatchExpr || e is AST.FallbackExpr
 
 // `recorded` with its free literal of `t`'s family read as `t`: the type itself, or
 // the member of a union (`{integer} | null` is `u8 | null`) ; null when it holds no
@@ -247,7 +249,7 @@ export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
     is AST.MatchExpr         -> "MatchExpr"
     is AST.CallExpr          -> "CallExpr"
     is AST.BinaryExpr        -> "BinaryExpr"
-    is AST.NullCoalesceExpr  -> "NullCoalesceExpr"
+    is AST.FallbackExpr      -> "FallbackExpr"
     is AST.UnaryExpr         -> "UnaryExpr"
     is AST.FieldExpr         -> "FieldExpr"
     is AST.IndexExpr         -> "IndexExpr"
@@ -319,7 +321,7 @@ infer_expr :: fn(
             return called
         }
         is AST.BinaryExpr -> { return infer_binary(expr, expected, typed, diags) }
-        is AST.NullCoalesceExpr -> { return infer_null_coalesce(expr, expected, typed, diags) }
+        is AST.FallbackExpr -> { return infer_fallback(expr, expected, typed, diags) }
         is AST.FieldExpr -> { return infer_field(expr, expected, typed, diags) }
         is AST.StructLitExpr -> { return infer_struct_lit(expr, typed, diags) }
         is AST.SeqLitExpr -> { return infer_seq_lit(expr, expected, typed, diags) }

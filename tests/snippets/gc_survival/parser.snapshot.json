@@ -262,15 +262,21 @@
                     },
                     "type": null,
                     "value": {
-                      "kind": "NullCoalesceExpr",
+                      "kind": "FallbackExpr",
                       "left": {
                         "kind": "IdentExpr",
                         "name": "cur"
                       },
-                      "fallback": {
-                        "kind": "BreakStmt",
-                        "label": null
-                      }
+                      "clauses": [
+                        {
+                          "test": null,
+                          "body": {
+                            "kind": "BreakStmt",
+                            "label": null
+                          }
+                        }
+                      ],
+                      "coalesce": true
                     }
                   },
                   {

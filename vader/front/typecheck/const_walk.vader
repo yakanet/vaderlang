@@ -275,10 +275,12 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
                     }
                 }
             }
-            is AST.NullCoalesceExpr -> {
+            is AST.FallbackExpr -> {
                 work.push(x.left)
-                fallback :: AST.coalesce_fallback_expr(x.fallback) ?? continue
-                work.push(fallback)
+                for c in x.clauses {
+                    body :: AST.fallback_body_expr(c.body) ?? continue
+                    work.push(body)
+                }
             }
             _ -> {}
         }

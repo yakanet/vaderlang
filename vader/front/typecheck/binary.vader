@@ -122,16 +122,17 @@ operator_default :: fn(op: AST.BinaryOp) -> Callee = match classify(op) {
     .Logical | .Integral | .Identity | .Is -> BUILTIN_CALLEE
 }
 
-/// Type-check `left ?? fallback`. `left` must be nullable ; the result is
-/// `left` with `null` subtracted. The fallback is either a value expression
-/// (must be assignable to the result) or a divergent statement (`return` /
-/// `break` / `continue`), checked in the enclosing function / loop context
-/// via the global `current_fn_ctx` / `loop_stack` (passing `ctx = null`).
+/// Type-check a fallback `left ?? value`: one clause handling `null`.
+/// `left` must be nullable ; the result is `left` with `null`
+/// subtracted. Each clause body is either a value expression (must be
+/// assignable to the result) or a divergent statement (`return` / `break` /
+/// `continue`), checked in the enclosing function / loop context via the
+/// global `current_fn_ctx` / `loop_stack` (passing `ctx = null`).
 ///
 /// @error T3068 when `left` can never be null (the fallback is unreachable).
 /// @error T3001 when a value fallback isn't assignable to the non-null result.
-infer_null_coalesce :: fn(
-    e: AST.NullCoalesceExpr,
+infer_fallback :: fn(
+    e: AST.FallbackExpr,
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
@@ -141,28 +142,38 @@ infer_null_coalesce :: fn(
     if equals_type(result, left_ty) {
         diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
     }
-    match fallback :: e.fallback {
+    for c in e.clauses {
+        check_fallback_body(c.body, result, typed, diags)
+    }
+    return result
+}
+
+check_fallback_body :: fn(
+    body: AST.FallbackBody,
+    result: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    match body {
         is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> {
             // A divergent fallback is checked in the enclosing fn / loop context via
             // `check_stmt`'s existing `return` / `break` / `continue` dispatch
             // (ctx = null resolves to the global `current_fn_ctx` / `loop_stack`).
-
-            check_stmt(fallback, typed, diags, null)
+            check_stmt(body, typed, diags, null)
         }
         is AST.Expr -> {
-            got :: check_expr(fallback, result, typed, diags)
-            if !flows_into(got, result, fallback, typed) {
+            got :: check_expr(body, result, typed, diags)
+            if !flows_into(got, result, body, typed) {
                 diags.push(
                     typecheck_error(
                         .TypeMismatch,
-                        fallback.span,
+                        body.span,
                         "`??` fallback type ${display_type(got)} is not assignable to ${display_type(result)}",
                     ),
                 )
             }
         }
     }
-    return result
 }
 
 // ---- per-op-class checkers ------------------------------------------------

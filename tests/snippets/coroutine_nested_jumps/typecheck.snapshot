@@ -22,15 +22,15 @@
   expr 16:14    RangeExpr      :: Range<i32>
   expr 16:18    IdentExpr      :: i32
   expr 17:14    CallExpr       :: i32 | null
+  expr 17:14    FallbackExpr   :: i32
   expr 17:14    IdentExpr      :: fn(i32) -> i32 | null
-  expr 17:14    NullCoalesceExpr :: i32
   expr 17:19    IdentExpr      :: i32
   expr 18:15    IdentExpr      :: i32
   expr 24:14    RangeExpr      :: Range<i32>
   expr 24:18    IdentExpr      :: i32
   expr 25:15    CallExpr       :: i32 | null
+  expr 25:15    FallbackExpr   :: i32
   expr 25:15    IdentExpr      :: fn(i32) -> i32 | null
-  expr 25:15    NullCoalesceExpr :: i32
   expr 25:20    IdentExpr      :: i32
   expr 26:17    StringLitExpr  :: string
   expr 26:25    IdentExpr      :: i32
@@ -39,15 +39,15 @@
   expr 32:14    RangeExpr      :: Range<i32>
   expr 32:18    IdentExpr      :: i32
   expr 33:14    CallExpr       :: i32 | null
+  expr 33:14    FallbackExpr   :: i32
   expr 33:14    IdentExpr      :: fn(i32, i32) -> i32 | null
-  expr 33:14    NullCoalesceExpr :: i32
   expr 33:20    IdentExpr      :: i32
   expr 34:15    IdentExpr      :: i32
   expr 41:14    RangeExpr      :: Range<i32>
   expr 41:18    IdentExpr      :: i32
   expr 42:14    CallExpr       :: i32 | null
+  expr 42:14    FallbackExpr   :: i32
   expr 42:14    IdentExpr      :: fn(i32, i32) -> i32 | null
-  expr 42:14    NullCoalesceExpr :: i32
   expr 42:20    IdentExpr      :: i32
   expr 43:15    IdentExpr      :: i32
   expr 50:14    RangeExpr      :: Range<i32>

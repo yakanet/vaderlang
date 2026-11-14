@@ -572,10 +572,12 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
     out.nodes.push(e)
     match e {
         is AST.IdentExpr        -> { out.spans.push(e.span) }
-        is AST.NullCoalesceExpr -> {
+        is AST.FallbackExpr -> {
             collect_expr(e.left, out)
-            inner :: AST.coalesce_fallback_expr(e.fallback)
-            if inner != null { collect_expr(inner, out) }
+            for c in e.clauses {
+                collect_opt_type(c.test, out)
+                collect_opt_expr(AST.fallback_body_expr(c.body), out)
+            }
         }
         is AST.CallExpr -> {
             collect_expr(e.callee, out)

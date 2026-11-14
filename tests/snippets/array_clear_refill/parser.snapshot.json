@@ -475,20 +475,26 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IdentExpr",
                               "name": "popped"
                             },
-                            "fallback": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "<null>"
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "<null>"
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {

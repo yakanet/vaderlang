@@ -395,7 +395,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "FieldExpr",
                   "target": {
@@ -404,18 +404,24 @@
                   },
                   "field": "on_click"
                 },
-                "fallback": {
-                  "kind": "ReturnStmt",
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "nothing"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "nothing"
+                          }
+                        ]
                       }
-                    ]
+                    }
                   }
-                }
+                ],
+                "coalesce": true
               }
             },
             {

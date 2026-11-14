@@ -2150,7 +2150,7 @@
               "value": {
                 "kind": "FieldExpr",
                 "target": {
-                  "kind": "NullCoalesceExpr",
+                  "kind": "FallbackExpr",
                   "left": {
                     "kind": "CallExpr",
                     "callee": {
@@ -2245,31 +2245,37 @@
                       }
                     ]
                   },
-                  "fallback": {
-                    "kind": "StructLitExpr",
-                    "typeName": {
-                      "kind": "IdentExpr",
-                      "name": "Point"
-                    },
-                    "items": [
-                      {
-                        "kind": "field",
-                        "name": "x",
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "0n"
-                        }
-                      },
-                      {
-                        "kind": "field",
-                        "name": "y",
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "0n"
-                        }
+                  "clauses": [
+                    {
+                      "test": null,
+                      "body": {
+                        "kind": "StructLitExpr",
+                        "typeName": {
+                          "kind": "IdentExpr",
+                          "name": "Point"
+                        },
+                        "items": [
+                          {
+                            "kind": "field",
+                            "name": "x",
+                            "value": {
+                              "kind": "IntLitExpr",
+                              "value": "0n"
+                            }
+                          },
+                          {
+                            "kind": "field",
+                            "name": "y",
+                            "value": {
+                              "kind": "IntLitExpr",
+                              "value": "0n"
+                            }
+                          }
+                        ]
                       }
-                    ]
-                  }
+                    }
+                  ],
+                  "coalesce": true
                 },
                 "field": "x"
               }
@@ -2308,7 +2314,7 @@
                           "expr": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "NullCoalesceExpr",
+                              "kind": "FallbackExpr",
                               "left": {
                                 "kind": "CallExpr",
                                 "callee": {
@@ -2358,31 +2364,37 @@
                                   }
                                 ]
                               },
-                              "fallback": {
-                                "kind": "StructLitExpr",
-                                "typeName": {
-                                  "kind": "IdentExpr",
-                                  "name": "Point"
-                                },
-                                "items": [
-                                  {
-                                    "kind": "field",
-                                    "name": "x",
-                                    "value": {
-                                      "kind": "IntLitExpr",
-                                      "value": "0n"
-                                    }
-                                  },
-                                  {
-                                    "kind": "field",
-                                    "name": "y",
-                                    "value": {
-                                      "kind": "IntLitExpr",
-                                      "value": "0n"
-                                    }
+                              "clauses": [
+                                {
+                                  "test": null,
+                                  "body": {
+                                    "kind": "StructLitExpr",
+                                    "typeName": {
+                                      "kind": "IdentExpr",
+                                      "name": "Point"
+                                    },
+                                    "items": [
+                                      {
+                                        "kind": "field",
+                                        "name": "x",
+                                        "value": {
+                                          "kind": "IntLitExpr",
+                                          "value": "0n"
+                                        }
+                                      },
+                                      {
+                                        "kind": "field",
+                                        "name": "y",
+                                        "value": {
+                                          "kind": "IntLitExpr",
+                                          "value": "0n"
+                                        }
+                                      }
+                                    ]
                                   }
-                                ]
-                              }
+                                }
+                              ],
+                              "coalesce": true
                             },
                             "field": "x"
                           }
@@ -3929,7 +3941,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "CallExpr",
                               "callee": {
@@ -4001,10 +4013,16 @@
                                 }
                               ]
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "0n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "0n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]

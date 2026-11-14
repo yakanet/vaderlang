@@ -496,7 +496,7 @@
           "kind": "BlockExpr",
           "stmts": [],
           "trailing": {
-            "kind": "NullCoalesceExpr",
+            "kind": "FallbackExpr",
             "left": {
               "kind": "CallExpr",
               "callee": {
@@ -509,10 +509,16 @@
               },
               "args": []
             },
-            "fallback": {
-              "kind": "IntLitExpr",
-              "value": "-1n"
-            }
+            "clauses": [
+              {
+                "test": null,
+                "body": {
+                  "kind": "IntLitExpr",
+                  "value": "-1n"
+                }
+              }
+            ],
+            "coalesce": true
           }
         },
         "decorators": [],
@@ -1220,7 +1226,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "CallExpr",
                               "callee": {
@@ -1233,10 +1239,16 @@
                               },
                               "args": []
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]
@@ -1352,7 +1364,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "CallExpr",
                               "callee": {
@@ -1395,10 +1407,16 @@
                               },
                               "args": []
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]

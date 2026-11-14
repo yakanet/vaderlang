@@ -49,7 +49,7 @@ export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImpor
 export ForForm :: InfiniteFor | WhileFor | InFor
 
 /// Any expression. Also serves as `TypeExpr`, see the note there.
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | FallbackExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 /// One piece of a string literal: literal text, or an interpolated expression.
 export StringLitPart :: StringLitText | StringLitInterp
@@ -69,19 +69,18 @@ export AssignTarget :: PlaceTarget | WildcardTarget | RestTarget
 /// Inside a struct pattern, what a field is matched against: a binding or a literal.
 export PatternFieldValue :: PatternBinding | PatternLiteral
 
-/// Right operand of `??` (null-coalescing). Either an ordinary value
-/// expression (must be assignable to the non-null result type) or a
-/// divergent statement (`return` / `break` / `continue`, typed `never`).
-/// The divergent forms are statements (not `Expr` variants) so they are
-/// carried here directly rather than through the `Expr` union.
-export CoalesceFallback :: Expr | ReturnStmt | BreakStmt | ContinueStmt
+/// What a fallback clause yields. Either a value expression or a divergent
+/// statement (`return` / `break` / `continue`, typed `never`). The divergent
+/// forms are statements (not `Expr` variants) so they are carried here
+/// directly rather than through the `Expr` union.
+export FallbackBody :: Expr | ReturnStmt | BreakStmt | ContinueStmt
 
 /// The value expression a read-only expression walker should descend into
-/// for a `??` fallback : the fallback expression itself, the value of a
+/// for a fallback clause : the fallback expression itself, the value of a
 /// `return <expr>`, or `null` for a bare `return` / `break` / `continue`.
 /// Passes that also need to visit the statement node itself (id assignment,
-/// typecheck, formatting) destructure `CoalesceFallback` directly instead.
-export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match f {
+/// typecheck, formatting) destructure `FallbackBody` directly instead.
+export fallback_body_expr :: fn(f: FallbackBody) -> Expr | null = match f {
     is ReturnStmt -> f.value
     is BreakStmt | ContinueStmt -> null
     is Expr -> f
@@ -113,7 +112,7 @@ export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
 /// A reader must not assume an `IdentExpr` in type position denotes a type it can
 /// name: `Id` may be an alias, an imported struct or a distinct newtype, and only
 /// the resolver knows which.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | FallbackExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
 // ---- Visibility / shared shapes -------------------------------------------
 
@@ -1184,19 +1183,35 @@ export BinaryExpr :: struct {
     right:   Expr
 }
 
-/// Null-coalescing `left ?? fallback`. `left` must be typed `T | null` ;
-/// the expression yields `T` (null subtracted). `fallback` supplies the
-/// value when `left` is null : either a value expression assignable to `T`,
-/// or a divergent statement (`return` / `break` / `continue`, typed
-/// `never`). Lowers to `_t :: left ; if _t is null { fallback } else { _t }`,
-/// so the existing narrowing engine refines the result to `T`.
-export NullCoalesceExpr :: struct {
+/// A fallback, `left else value`, or a chain of clauses
+/// `left else is T { ... } else is U { ... } else { ... }`.
+///
+/// Every clause tests `left`, evaluated once, in order ; each one takes away
+/// what it handles before the next. A bare `else` handles `null` and the
+/// members known to implement `Error` ; `else is T` handles `T`. The result is
+/// `left` without what the clauses handled, or a clause's value.
+///
+/// `left ?? value` is read as one clause handling `null` alone (`coalesce`).
+export FallbackExpr :: struct {
     span:     Span
     id:       i64 = UNASSIGNED_NODE_ID
-    /// The `??` token.
-    op_span:  Span
     left:     Expr
-    fallback: CoalesceFallback
+    clauses:  FallbackClause[]
+    /// Written `??`: one clause, handling `null` alone, printed back as `??`.
+    coalesce: bool = false
+    /// On a declaration, the name the clauses see `left` under, narrowed to
+    /// what each one handles: the role of `MatchExpr.binding`.
+    binding:  SimpleBinding | null = null
+}
+
+/// One clause of a `FallbackExpr`: `else value` or `else is T { ... }`.
+export FallbackClause :: struct {
+    span:    Span
+    /// The `else` keyword (`??` on a coalesce).
+    op_span: Span
+    /// `else is T`: the type handled ; `null` on a bare `else` or a `??`.
+    test:    TypeExpr | null = null
+    body:    FallbackBody
 }
 
 // ---- Expressions: control flow --------------------------------------------

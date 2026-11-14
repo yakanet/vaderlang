@@ -861,7 +861,7 @@
                   "kind": "BlockExpr",
                   "stmts": [],
                   "trailing": {
-                    "kind": "NullCoalesceExpr",
+                    "kind": "FallbackExpr",
                     "left": {
                       "kind": "IfExpr",
                       "cond": {
@@ -884,10 +884,16 @@
                         }
                       }
                     },
-                    "fallback": {
-                      "kind": "IntLitExpr",
-                      "value": "5n"
-                    }
+                    "clauses": [
+                      {
+                        "test": null,
+                        "body": {
+                          "kind": "IntLitExpr",
+                          "value": "5n"
+                        }
+                      }
+                    ],
+                    "coalesce": true
                   }
                 }
               }

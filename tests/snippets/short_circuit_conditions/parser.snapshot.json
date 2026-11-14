@@ -1444,18 +1444,24 @@
                     "kind": "BinaryExpr",
                     "op": "gt",
                     "left": {
-                      "kind": "NullCoalesceExpr",
+                      "kind": "FallbackExpr",
                       "left": {
                         "kind": "IdentExpr",
                         "name": "x"
                       },
-                      "fallback": {
-                        "kind": "ReturnStmt",
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "99n"
+                      "clauses": [
+                        {
+                          "test": null,
+                          "body": {
+                            "kind": "ReturnStmt",
+                            "value": {
+                              "kind": "IntLitExpr",
+                              "value": "99n"
+                            }
+                          }
                         }
-                      }
+                      ],
+                      "coalesce": true
                     },
                     "right": {
                       "kind": "IntLitExpr",

@@ -135,8 +135,8 @@
   expr 177:19   FieldExpr      :: fn() -> Iterator<[i32, i64]>
   expr 177:19   SeqLitExpr     :: i32[]
   expr 178:14   CallExpr       :: i32 | null
+  expr 178:14   FallbackExpr   :: i32
   expr 178:14   IdentExpr      :: fn(i32) -> i32 | null
-  expr 178:14   NullCoalesceExpr :: i32
   expr 178:25   IdentExpr      :: i32
   expr 179:17   BinaryExpr     :: string
   expr 179:17   IdentExpr      :: string
@@ -150,8 +150,8 @@
   expr 182:11   SeqLitExpr     :: i32[]
   expr 183:19   IdentExpr      :: Iterator<[i32, i64]>
   expr 184:14   CallExpr       :: i32 | null
+  expr 184:14   FallbackExpr   :: i32
   expr 184:14   IdentExpr      :: fn(i32) -> i32 | null
-  expr 184:14   NullCoalesceExpr :: i32
   expr 184:25   IdentExpr      :: i32
   expr 185:16   BinaryExpr     :: string
   expr 185:16   IdentExpr      :: string

@@ -224,7 +224,7 @@
           "kind": "BlockExpr",
           "stmts": [],
           "trailing": {
-            "kind": "NullCoalesceExpr",
+            "kind": "FallbackExpr",
             "left": {
               "kind": "FieldExpr",
               "target": {
@@ -233,10 +233,16 @@
               },
               "field": "next"
             },
-            "fallback": {
-              "kind": "IdentExpr",
-              "name": "n"
-            }
+            "clauses": [
+              {
+                "test": null,
+                "body": {
+                  "kind": "IdentExpr",
+                  "name": "n"
+                }
+              }
+            ],
+            "coalesce": true
           }
         },
         "decorators": [],

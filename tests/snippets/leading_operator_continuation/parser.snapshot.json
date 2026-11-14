@@ -176,7 +176,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "IfExpr",
                   "cond": {
@@ -222,18 +222,24 @@
                     }
                   }
                 },
-                "fallback": {
-                  "kind": "ReturnStmt",
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "none"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "none"
+                          }
+                        ]
                       }
-                    ]
+                    }
                   }
-                }
+                ],
+                "coalesce": true
               }
             },
             {

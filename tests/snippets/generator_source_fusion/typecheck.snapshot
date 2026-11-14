@@ -108,8 +108,8 @@
   expr 60:38    BinaryExpr     :: bool
   expr 60:38    IdentExpr      :: i32
   expr 61:13    StringLitExpr  :: string
+  expr 61:28    FallbackExpr   :: i32
   expr 61:28    IdentExpr      :: i32 | null
-  expr 61:28    NullCoalesceExpr :: i32
   expr 61:5     CallExpr       :: void
   expr 61:5     IdentExpr      :: fn(T) -> void
   expr 63:14    CallExpr       :: Iterator<i32>

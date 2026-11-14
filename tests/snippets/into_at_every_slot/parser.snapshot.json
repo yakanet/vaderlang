@@ -258,28 +258,34 @@
           "kind": "BlockExpr",
           "stmts": [],
           "trailing": {
-            "kind": "NullCoalesceExpr",
+            "kind": "FallbackExpr",
             "left": {
               "kind": "IdentExpr",
               "name": "x"
             },
-            "fallback": {
-              "kind": "StructLitExpr",
-              "typeName": {
-                "kind": "IdentExpr",
-                "name": "Celsius"
-              },
-              "items": [
-                {
-                  "kind": "field",
-                  "name": "v",
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "4n"
-                  }
+            "clauses": [
+              {
+                "test": null,
+                "body": {
+                  "kind": "StructLitExpr",
+                  "typeName": {
+                    "kind": "IdentExpr",
+                    "name": "Celsius"
+                  },
+                  "items": [
+                    {
+                      "kind": "field",
+                      "name": "v",
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "4n"
+                      }
+                    }
+                  ]
                 }
-              ]
-            }
+              }
+            ],
+            "coalesce": true
           }
         },
         "decorators": [],
@@ -1009,7 +1015,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "IndexExpr",
                   "target": {
@@ -1026,28 +1032,34 @@
                     ]
                   }
                 },
-                "fallback": {
-                  "kind": "StructLitExpr",
-                  "typeName": {
-                    "kind": "IdentExpr",
-                    "name": "Label"
-                  },
-                  "items": [
-                    {
-                      "kind": "field",
-                      "name": "text",
-                      "value": {
-                        "kind": "StringLitExpr",
-                        "parts": [
-                          {
-                            "kind": "text",
-                            "value": "absent"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "StructLitExpr",
+                      "typeName": {
+                        "kind": "IdentExpr",
+                        "name": "Label"
+                      },
+                      "items": [
+                        {
+                          "kind": "field",
+                          "name": "text",
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "absent"
+                              }
+                            ]
                           }
-                        ]
-                      }
+                        }
+                      ]
                     }
-                  ]
-                }
+                  }
+                ],
+                "coalesce": true
               }
             },
             {

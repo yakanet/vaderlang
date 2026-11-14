@@ -12,10 +12,10 @@
   expr 25:15    StringLitExpr  :: string
   expr 25:5     FieldExpr      :: Map<string, i32>
   expr 25:5     IdentExpr      :: Counts
+  expr 26:10    FallbackExpr   :: i32
   expr 26:10    FieldExpr      :: Map<string, i32>
   expr 26:10    IdentExpr      :: Counts
   expr 26:10    IndexExpr      :: i32 | null
-  expr 26:10    NullCoalesceExpr :: i32
   expr 26:20    StringLitExpr  :: string
   expr 27:13    StringLitExpr  :: string
   expr 27:25    IdentExpr      :: i32

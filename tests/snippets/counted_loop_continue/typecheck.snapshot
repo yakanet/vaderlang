@@ -160,8 +160,8 @@
   expr 68:18    CallExpr       :: i32
   expr 68:18    IdentExpr      :: fn(i32) -> i32
   expr 68:21    CallExpr       :: i32 | null
+  expr 68:21    FallbackExpr   :: i32
   expr 68:21    IdentExpr      :: fn(i32) -> i32 | null
-  expr 68:21    NullCoalesceExpr :: i32
   expr 68:27    IdentExpr      :: i32
   expr 68:9     BinaryExpr     :: i32
   expr 68:9     IdentExpr      :: i32

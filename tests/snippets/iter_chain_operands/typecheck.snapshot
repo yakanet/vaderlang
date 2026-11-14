@@ -74,10 +74,10 @@
   expr 48:23    CallExpr       :: Iterator<i32>
   expr 48:23    CallExpr       :: i32 | null
   expr 48:23    CallExpr       :: i32[]
+  expr 48:23    FallbackExpr   :: i32
   expr 48:23    FieldExpr      :: fn(fn(i32) -> bool) -> i32 | null
   expr 48:23    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 48:23    IdentExpr      :: fn(string, i32[]) -> i32[]
-  expr 48:23    NullCoalesceExpr :: i32
   expr 48:30    StringLitExpr  :: string
   expr 48:36    IdentExpr      :: i32[]
   expr 48:44    CallExpr       :: fn(i32) -> i32

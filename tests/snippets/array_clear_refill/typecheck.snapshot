@@ -63,8 +63,8 @@
   expr 39:15    FieldExpr      :: fn() -> null | string
   expr 39:15    IdentExpr      :: fn() -> string[]
   expr 40:13    StringLitExpr  :: string
+  expr 40:23    FallbackExpr   :: string
   expr 40:23    IdentExpr      :: null | string
-  expr 40:23    NullCoalesceExpr :: string
   expr 40:33    StringLitExpr  :: string
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void

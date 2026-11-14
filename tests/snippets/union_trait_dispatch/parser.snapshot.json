@@ -812,7 +812,7 @@
               "kind": "BlockExpr",
               "stmts": [],
               "trailing": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "IndexExpr",
                   "target": {
@@ -828,10 +828,16 @@
                     "name": "k"
                   }
                 },
-                "fallback": {
-                  "kind": "IntLitExpr",
-                  "value": "0n"
-                }
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "IntLitExpr",
+                      "value": "0n"
+                    }
+                  }
+                ],
+                "coalesce": true
               }
             },
             "decorators": [],

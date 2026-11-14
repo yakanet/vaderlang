@@ -73,8 +73,8 @@ export inspect :: fn(
             is IndexExpr -> inspect(n.target, visit, leave) || inspect(n.index, visit, leave)
             is UnaryExpr -> inspect(n.operand, visit, leave)
             is BinaryExpr -> inspect(n.left, visit, leave) || inspect(n.right, visit, leave)
-            is NullCoalesceExpr -> inspect(n.left, visit, leave)
-                || inspect(n.fallback, visit, leave)
+            is FallbackExpr -> inspect(n.left, visit, leave)
+                || inspect_clauses(n.clauses, visit, leave)
             is IfExpr -> inspect_if(n, visit, leave)
             is MatchExpr -> inspect(n.scrutinee, visit, leave) || inspect_arms(n.arms, visit, leave)
             is BlockExpr -> inspect_stmts(n.stmts, visit, leave)
@@ -178,6 +178,19 @@ inspect_if :: fn(i: IfExpr, visit: fn(Node) -> Walk, leave: fn(Node) -> void) ->
         is IfElseIf    -> inspect(tail.branch, visit, leave)
         is IfElseBlock -> inspect(tail.block, visit, leave)
     }
+}
+
+inspect_clauses :: fn(
+    clauses: FallbackClause[],
+    visit: fn(Node) -> Walk,
+    leave: fn(Node) -> void,
+) -> bool {
+    for clause in clauses {
+        if inspect_maybe(clause.test, visit, leave) || inspect(clause.body, visit, leave) {
+            return true
+        }
+    }
+    return false
 }
 
 inspect_arms :: fn(arms: MatchArm[], visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {

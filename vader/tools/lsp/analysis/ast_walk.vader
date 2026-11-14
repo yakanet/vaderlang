@@ -234,7 +234,7 @@ binding_step :: fn(n: AST.Node, typed: TypedProgram, st: FindBindingState) -> AS
         | AST.ForStmt | AST.BreakStmt | AST.ContinueStmt | AST.DeferStmt
         | AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
         | AST.StringLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr
-        | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.NullCoalesceExpr | AST.IfExpr
+        | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.FallbackExpr | AST.IfExpr
         | AST.BlockExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr
         | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.FnTypeExpr
         | AST.ArrayTypeExpr | AST.Pattern -> .Descend

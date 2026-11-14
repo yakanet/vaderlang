@@ -1082,15 +1082,21 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IdentExpr",
                               "name": "found"
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]

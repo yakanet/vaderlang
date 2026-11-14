@@ -136,7 +136,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "CallExpr",
                   "callee": {
@@ -154,15 +154,21 @@
                     }
                   ]
                 },
-                "fallback": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "unset"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "unset"
+                        }
+                      ]
                     }
-                  ]
-                }
+                  }
+                ],
+                "coalesce": true
               }
             },
             {
@@ -312,7 +318,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "CallExpr",
                   "callee": {
@@ -330,15 +336,21 @@
                     }
                   ]
                 },
-                "fallback": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "unset"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "unset"
+                        }
+                      ]
                     }
-                  ]
-                }
+                  }
+                ],
+                "coalesce": true
               }
             },
             {
@@ -406,7 +418,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "CallExpr",
                   "callee": {
@@ -424,15 +436,21 @@
                     }
                   ]
                 },
-                "fallback": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "unset"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "unset"
+                        }
+                      ]
                     }
-                  ]
-                }
+                  }
+                ],
+                "coalesce": true
               }
             },
             {

@@ -363,7 +363,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -388,15 +388,21 @@
                                 ]
                               }
                             },
-                            "fallback": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "absent"
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "absent"
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -406,7 +412,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -431,15 +437,21 @@
                                 ]
                               }
                             },
-                            "fallback": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "absent"
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "absent"
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]

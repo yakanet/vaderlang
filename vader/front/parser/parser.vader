@@ -2612,7 +2612,7 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
 // (`return` / `break` / `continue`), otherwise a value expression parsed at
 // the `??` right binding power (7: below the operator's own 6, so `??` is
 // left-associative and non-chaining).
-parse_coalesce_fallback :: fn(p: Parser) -> CoalesceFallback {
+parse_fallback_body :: fn(p: Parser) -> FallbackBody {
     // A `match ... { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
     // if-chain keeps "3 divergent keywords, else a value expression" warning-free.
     k :: p.peek().kind
@@ -2958,12 +2958,17 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
         // so handle it here.
         if t.kind == .QuestionQuestion && 6 >= min_bp {
             p.advance()  // `??`
-            fallback :: p.parse_coalesce_fallback()
-            left = NullCoalesceExpr {
-                .span     = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
-                .op_span  = t.span,
+            body :: p.parse_fallback_body()
+            end :: p.peek_at(-1).span.end
+            left = FallbackExpr {
+                .span     = Span { .start = left.span.start, .end = end },
                 .left     = left,
-                .fallback = fallback,
+                .clauses  = [FallbackClause {
+                    .span    = Span { .start = t.span.start, .end = end },
+                    .op_span = t.span,
+                    .body    = body,
+                }],
+                .coalesce = true,
             }
             last_non_assoc_level = -1
             continue
@@ -4323,8 +4328,8 @@ operator_text :: fn(expr: string) -> string {
     if value is BinaryExpr {
         return value.op_span.text_in(src)
     }
-    if value is NullCoalesceExpr {
-        return value.op_span.text_in(src)
+    if value is FallbackExpr {
+        return value.clauses[0].op_span.text_in(src)
     }
     return ""
 }

@@ -70,9 +70,9 @@
   expr 58:6     IndexExpr      :: i32
   expr 58:8     StringLitExpr  :: string
   expr 59:13    StringLitExpr  :: string
+  expr 59:27    FallbackExpr   :: i32
   expr 59:27    IdentExpr      :: Map<string, i32>
   expr 59:27    IndexExpr      :: i32 | null
-  expr 59:27    NullCoalesceExpr :: i32
   expr 59:29    StringLitExpr  :: string
   expr 59:45    IdentExpr      :: i32
   expr 59:5     CallExpr       :: void

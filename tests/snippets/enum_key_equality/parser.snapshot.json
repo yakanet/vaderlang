@@ -651,7 +651,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -663,10 +663,16 @@
                                 "variant": "Red"
                               }
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -676,7 +682,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -688,10 +694,16 @@
                                 "variant": "Green"
                               }
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -701,7 +713,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -713,10 +725,16 @@
                                 "variant": "Blue"
                               }
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]
@@ -842,7 +860,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -854,15 +872,21 @@
                                 "variant": "NotFound"
                               }
                             },
-                            "fallback": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "?"
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "?"
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -872,7 +896,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -884,15 +908,21 @@
                                 "variant": "Ok"
                               }
                             },
-                            "fallback": {
-                              "kind": "StringLitExpr",
-                              "parts": [
-                                {
-                                  "kind": "text",
-                                  "value": "?"
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "?"
+                                    }
+                                  ]
                                 }
-                              ]
-                            }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -1202,7 +1232,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -1214,10 +1244,16 @@
                                 "variant": "Blue"
                               }
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -1227,7 +1263,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IndexExpr",
                               "target": {
@@ -1252,10 +1288,16 @@
                                 ]
                               }
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "-1n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "-1n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {

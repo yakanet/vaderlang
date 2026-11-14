@@ -38,19 +38,19 @@
   expr 21:29    FieldExpr      :: Status
   expr 21:5     IdentExpr      :: Map<Status, i64>
   expr 22:13    StringLitExpr  :: string
+  expr 22:16    FallbackExpr   :: i64
   expr 22:16    IdentExpr      :: Map<Status, i64>
   expr 22:16    IndexExpr      :: i64 | null
-  expr 22:16    NullCoalesceExpr :: i64
   expr 22:25    DotVariantExpr :: Status
+  expr 22:42    FallbackExpr   :: i64
   expr 22:42    IdentExpr      :: Map<Status, i64>
   expr 22:42    IndexExpr      :: i64 | null
-  expr 22:42    NullCoalesceExpr :: i64
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 22:50    DotVariantExpr :: Status
+  expr 22:67    FallbackExpr   :: i64
   expr 22:67    IdentExpr      :: Map<Status, i64>
   expr 22:67    IndexExpr      :: i64 | null
-  expr 22:67    NullCoalesceExpr :: i64
   expr 22:75    DotVariantExpr :: Status
 
 ## tests/snippets/generic_enum_same_name/alpha

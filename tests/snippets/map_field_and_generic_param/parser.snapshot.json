@@ -242,7 +242,7 @@
               },
               "type": null,
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "IndexExpr",
                   "target": {
@@ -263,13 +263,19 @@
                     ]
                   }
                 },
-                "fallback": {
-                  "kind": "ReturnStmt",
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "1n"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "1n"
+                      }
+                    }
                   }
-                }
+                ],
+                "coalesce": true
               }
             },
             {

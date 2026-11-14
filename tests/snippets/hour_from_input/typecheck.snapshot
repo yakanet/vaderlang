@@ -47,8 +47,8 @@
   expr 53:12    IdentExpr      :: 0..=22
   expr 57:13    StringLitExpr  :: string
   expr 57:16    CallExpr       :: Hour | null
+  expr 57:16    FallbackExpr   :: Hour
   expr 57:16    IdentExpr      :: fn(i64) -> Hour | null
-  expr 57:16    NullCoalesceExpr :: Hour
   expr 57:38    BinaryExpr     :: bool
   expr 57:38    CallExpr       :: Hour | null
   expr 57:38    IdentExpr      :: fn(i64) -> Hour | null

@@ -175,8 +175,8 @@
   expr 60:12    IdentExpr      :: i32
   expr 60:16    IdentExpr      :: i32
   expr 64:17    BinaryExpr     :: bool
+  expr 64:17    FallbackExpr   :: i32
   expr 64:17    IdentExpr      :: i32 | null
-  expr 64:17    NullCoalesceExpr :: i32
   expr 64:5     IfExpr         :: void
   expr 64:8     BinaryExpr     :: bool
   expr 64:8     IdentExpr      :: bool

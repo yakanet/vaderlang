@@ -566,15 +566,21 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IdentExpr",
                               "name": "none"
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "0n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "0n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -584,15 +590,21 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "IdentExpr",
                               "name": "some"
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "0n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "0n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]

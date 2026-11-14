@@ -105,7 +105,7 @@ probe_step :: fn(n: AST.Node, probe: BodyProbe) -> AST.Walk = match n {
         | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.FloatLitExpr | AST.BinaryExpr
         | AST.ExprStmt | AST.LetStmt | AST.BlockExpr | AST.ReturnStmt | AST.IfExpr
         | AST.DotVariantExpr | AST.StructLitExpr | AST.UnaryExpr | AST.AssignStmt | AST.IndexExpr
-        | AST.MatchExpr | AST.NullCoalesceExpr | AST.GenericInstExpr | AST.SeqLitExpr
+        | AST.MatchExpr | AST.FallbackExpr | AST.GenericInstExpr | AST.SeqLitExpr
         | AST.RangeExpr | AST.IntrinsicCallExpr | AST.CastExpr | AST.ContinueStmt
         | AST.DestructureAssignStmt | AST.Decl -> .Descend
     is AST.ForStmt -> loop_step(n, probe)

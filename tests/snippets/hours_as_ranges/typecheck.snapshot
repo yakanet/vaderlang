@@ -133,8 +133,8 @@
   expr 62:20    SeqLitExpr     :: Hour[]
   expr 63:13    StringLitExpr  :: string
   expr 63:27    CallExpr       :: Hour | null
+  expr 63:27    FallbackExpr   :: Hour
   expr 63:27    IdentExpr      :: fn(Hour[]) -> Hour | null
-  expr 63:27    NullCoalesceExpr :: Hour
   expr 63:38    IdentExpr      :: Hour[]
   expr 63:5     CallExpr       :: void
   expr 63:5     IdentExpr      :: fn(T) -> void

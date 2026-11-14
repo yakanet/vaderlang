@@ -28,16 +28,16 @@
   expr 32:30    StringLitExpr  :: string
   expr 32:5     IdentExpr      :: Map<Label | Point, string>
   expr 33:13    StringLitExpr  :: string
+  expr 33:16    FallbackExpr   :: string
   expr 33:16    IdentExpr      :: Map<Label | Point, string>
   expr 33:16    IndexExpr      :: null | string
-  expr 33:16    NullCoalesceExpr :: string
   expr 33:21    StructLitExpr  :: Label
   expr 33:42    StringLitExpr  :: string
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 33:54    FallbackExpr   :: string
   expr 33:54    IdentExpr      :: Map<Label | Point, string>
   expr 33:54    IndexExpr      :: null | string
-  expr 33:54    NullCoalesceExpr :: string
   expr 33:59    StructLitExpr  :: Point
   expr 33:80    StringLitExpr  :: string
   expr 34:22    SeqLitExpr     :: (Label | Point)[]

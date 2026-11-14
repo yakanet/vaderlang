@@ -117,8 +117,8 @@
   expr 75:13    IdentExpr      :: bool
   expr 75:17    CallExpr       :: u8
   expr 75:17    IdentExpr      :: type
+  expr 75:33    FallbackExpr   :: u8
   expr 75:33    IfExpr         :: null | u8
-  expr 75:33    NullCoalesceExpr :: u8
   expr 75:36    IdentExpr      :: bool
   expr 76:12    IdentExpr      :: u8
   expr 80:16    SeqLitExpr     :: u8[]

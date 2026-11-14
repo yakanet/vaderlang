@@ -17,31 +17,31 @@
   expr 14:8     BinaryExpr     :: bool
   expr 14:8     IdentExpr      :: string
   expr 19:37    CallExpr       :: i32 | null
+  expr 19:37    FallbackExpr   :: i32
   expr 19:37    IdentExpr      :: fn(string) -> i32 | null
-  expr 19:37    NullCoalesceExpr :: i32
   expr 19:45    IdentExpr      :: string
   expr 23:14    IdentExpr      :: string[]
   expr 24:18    CallExpr       :: i32 | null
+  expr 24:18    FallbackExpr   :: i32
   expr 24:18    IdentExpr      :: fn(string) -> i32 | null
-  expr 24:18    NullCoalesceExpr :: i32
   expr 24:26    IdentExpr      :: string
   expr 25:16    IdentExpr      :: i32
   expr 33:14    IdentExpr      :: string[]
   expr 34:18    CallExpr       :: i32 | null
+  expr 34:18    FallbackExpr   :: i32
   expr 34:18    IdentExpr      :: fn(string) -> i32 | null
-  expr 34:18    NullCoalesceExpr :: i32
   expr 34:26    IdentExpr      :: string
   expr 34:9     BinaryExpr     :: i32
   expr 34:9     IdentExpr      :: i32
   expr 36:12    IdentExpr      :: i32
   expr 41:12    CallExpr       :: i32 | null
+  expr 41:12    FallbackExpr   :: i32
   expr 41:12    IdentExpr      :: fn(string) -> i32 | null
-  expr 41:12    NullCoalesceExpr :: i32
   expr 41:20    IdentExpr      :: string
   expr 47:14    IdentExpr      :: string[]
   expr 48:20    CallExpr       :: i32 | null
+  expr 48:20    FallbackExpr   :: i32
   expr 48:20    IdentExpr      :: fn(string) -> i32 | null
-  expr 48:20    NullCoalesceExpr :: i32
   expr 48:28    IdentExpr      :: string
   expr 49:13    BinaryExpr     :: i32
   expr 49:13    IdentExpr      :: i32
@@ -99,8 +99,8 @@
   expr 62:57    StringLitExpr  :: string
   expr 64:16    BinaryExpr     :: i32
   expr 64:16    CallExpr       :: i32 | null
+  expr 64:16    FallbackExpr   :: i32
   expr 64:16    IdentExpr      :: fn(string) -> i32 | null
-  expr 64:16    NullCoalesceExpr :: i32
   expr 64:24    StringLitExpr  :: string
   expr 65:13    StringLitExpr  :: string
   expr 65:23    IdentExpr      :: i32

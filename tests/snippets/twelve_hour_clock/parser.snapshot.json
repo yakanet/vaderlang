@@ -1391,7 +1391,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "CallExpr",
                               "callee": {
@@ -1409,10 +1409,16 @@
                                 }
                               ]
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "6n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "6n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {
@@ -1549,7 +1555,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "CallExpr",
                               "callee": {
@@ -1567,10 +1573,16 @@
                                 }
                               ]
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "6n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "6n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         },
                         {

@@ -154,7 +154,7 @@
           "kind": "BlockExpr",
           "stmts": [],
           "trailing": {
-            "kind": "NullCoalesceExpr",
+            "kind": "FallbackExpr",
             "left": {
               "kind": "CallExpr",
               "callee": {
@@ -172,10 +172,16 @@
                 }
               ]
             },
-            "fallback": {
-              "kind": "IntLitExpr",
-              "value": "0n"
-            }
+            "clauses": [
+              {
+                "test": null,
+                "body": {
+                  "kind": "IntLitExpr",
+                  "value": "0n"
+                }
+              }
+            ],
+            "coalesce": true
           }
         },
         "decorators": [],
@@ -230,7 +236,7 @@
                     },
                     "type": null,
                     "value": {
-                      "kind": "NullCoalesceExpr",
+                      "kind": "FallbackExpr",
                       "left": {
                         "kind": "CallExpr",
                         "callee": {
@@ -248,10 +254,16 @@
                           }
                         ]
                       },
-                      "fallback": {
-                        "kind": "ContinueStmt",
-                        "label": null
-                      }
+                      "clauses": [
+                        {
+                          "test": null,
+                          "body": {
+                            "kind": "ContinueStmt",
+                            "label": null
+                          }
+                        }
+                      ],
+                      "coalesce": true
                     }
                   },
                   {
@@ -348,7 +360,7 @@
                         "name": "total"
                       },
                       "right": {
-                        "kind": "NullCoalesceExpr",
+                        "kind": "FallbackExpr",
                         "left": {
                           "kind": "CallExpr",
                           "callee": {
@@ -366,10 +378,16 @@
                             }
                           ]
                         },
-                        "fallback": {
-                          "kind": "BreakStmt",
-                          "label": null
-                        }
+                        "clauses": [
+                          {
+                            "test": null,
+                            "body": {
+                              "kind": "BreakStmt",
+                              "label": null
+                            }
+                          }
+                        ],
+                        "coalesce": true
                       }
                     }
                   }
@@ -416,7 +434,7 @@
             {
               "kind": "ReturnStmt",
               "value": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "CallExpr",
                   "callee": {
@@ -434,13 +452,19 @@
                     }
                   ]
                 },
-                "fallback": {
-                  "kind": "ReturnStmt",
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "-1n"
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "ReturnStmt",
+                      "value": {
+                        "kind": "IntLitExpr",
+                        "value": "-1n"
+                      }
+                    }
                   }
-                }
+                ],
+                "coalesce": true
               }
             }
           ],
@@ -513,7 +537,7 @@
                     },
                     "type": null,
                     "value": {
-                      "kind": "NullCoalesceExpr",
+                      "kind": "FallbackExpr",
                       "left": {
                         "kind": "CallExpr",
                         "callee": {
@@ -531,35 +555,41 @@
                           }
                         ]
                       },
-                      "fallback": {
-                        "kind": "BlockExpr",
-                        "stmts": [
-                          {
-                            "kind": "AssignStmt",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "missing"
-                            },
-                            "value": {
-                              "kind": "BinaryExpr",
-                              "op": "add",
-                              "left": {
-                                "kind": "IdentExpr",
-                                "name": "missing"
+                      "clauses": [
+                        {
+                          "test": null,
+                          "body": {
+                            "kind": "BlockExpr",
+                            "stmts": [
+                              {
+                                "kind": "AssignStmt",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "missing"
+                                },
+                                "value": {
+                                  "kind": "BinaryExpr",
+                                  "op": "add",
+                                  "left": {
+                                    "kind": "IdentExpr",
+                                    "name": "missing"
+                                  },
+                                  "right": {
+                                    "kind": "IntLitExpr",
+                                    "value": "1n"
+                                  }
+                                }
                               },
-                              "right": {
-                                "kind": "IntLitExpr",
-                                "value": "1n"
+                              {
+                                "kind": "ContinueStmt",
+                                "label": null
                               }
-                            }
-                          },
-                          {
-                            "kind": "ContinueStmt",
-                            "label": null
+                            ],
+                            "trailing": null
                           }
-                        ],
-                        "trailing": null
-                      }
+                        }
+                      ],
+                      "coalesce": true
                     }
                   }
                 ],
@@ -1029,7 +1059,7 @@
                 "kind": "BinaryExpr",
                 "op": "add",
                 "left": {
-                  "kind": "NullCoalesceExpr",
+                  "kind": "FallbackExpr",
                   "left": {
                     "kind": "CallExpr",
                     "callee": {
@@ -1052,10 +1082,16 @@
                       }
                     ]
                   },
-                  "fallback": {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  }
+                  "clauses": [
+                    {
+                      "test": null,
+                      "body": {
+                        "kind": "IntLitExpr",
+                        "value": "0n"
+                      }
+                    }
+                  ],
+                  "coalesce": true
                 },
                 "right": {
                   "kind": "IntLitExpr",

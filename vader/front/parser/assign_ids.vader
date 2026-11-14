@@ -218,12 +218,20 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             walk_expr(e.left, f)
             walk_expr(e.right, f)
         }
-        is NullCoalesceExpr -> {
+        is FallbackExpr -> {
             e.id = f.mint()
+            if e.binding != null {
+                walk_let_binding(e.binding, f)
+            }
             walk_expr(e.left, f)
-            match s :: e.fallback {
-                is ReturnStmt | BreakStmt | ContinueStmt -> { walk_stmt(s, f) }
-                is Expr                                  -> { walk_expr(s, f) }
+            for c in e.clauses {
+                if c.test != null {
+                    walk_expr(c.test, f)
+                }
+                match body :: c.body {
+                    is ReturnStmt | BreakStmt | ContinueStmt -> { walk_stmt(body, f) }
+                    is Expr                                  -> { walk_expr(body, f) }
+                }
             }
         }
         is IfExpr -> {

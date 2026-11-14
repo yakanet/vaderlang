@@ -26,8 +26,8 @@
   expr 23:38    IdentExpr      :: i32
   expr 25:16    IdentExpr      :: i32
   expr 27:39    CallExpr       :: i32 | null
+  expr 27:39    FallbackExpr   :: i32
   expr 27:39    IdentExpr      :: fn(i32) -> i32 | null
-  expr 27:39    NullCoalesceExpr :: i32
   expr 27:48    BinaryExpr     :: i32
   expr 27:48    CallExpr       :: i32
   expr 27:48    FieldExpr      :: fn() -> i32

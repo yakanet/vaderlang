@@ -377,7 +377,7 @@
               "kind": "BlockExpr",
               "stmts": [],
               "trailing": {
-                "kind": "NullCoalesceExpr",
+                "kind": "FallbackExpr",
                 "left": {
                   "kind": "CallExpr",
                   "callee": {
@@ -411,10 +411,16 @@
                     }
                   ]
                 },
-                "fallback": {
-                  "kind": "IdentExpr",
-                  "name": "d"
-                }
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "IdentExpr",
+                      "name": "d"
+                    }
+                  }
+                ],
+                "coalesce": true
               }
             },
             "decorators": [],

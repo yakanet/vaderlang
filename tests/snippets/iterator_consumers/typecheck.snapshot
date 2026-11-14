@@ -127,11 +127,11 @@
   expr 119:30   IdentExpr      :: Point
   expr 120:14   CallExpr       :: Iterator<Point>
   expr 120:14   CallExpr       :: null | Point
+  expr 120:14   FallbackExpr   :: Point
   expr 120:14   FieldExpr      :: fn(fn(Point) -> bool) -> Iterator<Point>
   expr 120:14   FieldExpr      :: fn(fn(Point) -> bool) -> null | Point
   expr 120:14   FieldExpr      :: i32
   expr 120:14   IdentExpr      :: Point[]
-  expr 120:14   NullCoalesceExpr :: Point
   expr 120:25   LambdaExpr     :: fn(Point) -> bool
   expr 120:32   BinaryExpr     :: bool
   expr 120:32   FieldExpr      :: i32
@@ -144,10 +144,10 @@
   expr 121:13   StringLitExpr  :: string
   expr 121:28   IdentExpr      :: i32
   expr 121:37   CallExpr       :: null | Point
+  expr 121:37   FallbackExpr   :: Point
   expr 121:37   FieldExpr      :: fn(fn(Point) -> bool) -> null | Point
   expr 121:37   FieldExpr      :: i32
   expr 121:37   IdentExpr      :: Iterator<Point>
-  expr 121:37   NullCoalesceExpr :: Point
   expr 121:46   LambdaExpr     :: fn(Point) -> bool
   expr 121:5    CallExpr       :: void
   expr 121:5    IdentExpr      :: fn(T) -> void
@@ -362,9 +362,9 @@
   expr 148:5    IdentExpr      :: fn(T) -> void
   expr 149:13   StringLitExpr  :: string
   expr 149:25   CallExpr       :: i32 | null
+  expr 149:25   FallbackExpr   :: i32
   expr 149:25   FieldExpr      :: fn(fn(i32) -> i32 | null) -> i32 | null
   expr 149:25   IdentExpr      :: i32[]
-  expr 149:25   NullCoalesceExpr :: i32
   expr 149:36   LambdaExpr     :: fn(i32) -> i32 | null
   expr 149:43   IfExpr         :: i32 | null
   expr 149:46   BinaryExpr     :: bool

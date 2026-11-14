@@ -1495,19 +1495,20 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
 
 // `left ?? fallback`: the fallback is a value expression or a divergent
 // statement (`return` / `break` / `continue`).
-emit_null_coalesce :: fn(self: Printer, e: p.NullCoalesceExpr) -> void {
-    right_start :: fallback_start(e.fallback)
-    place :: self.operator_place(e.op_span, e.left.span.end, right_start)
+emit_fallback :: fn(self: Printer, e: p.FallbackExpr) -> void {
+    clause :: e.clauses[0]
+    right_start :: fallback_start(clause.body)
+    place :: self.operator_place(clause.op_span, e.left.span.end, right_start)
     // A left operand that closes on a delimiter decides its layout knowing the
     // ` ?? ...` that shares its last line, and explodes rather than run past
     // `MAX_LINE`.
     shares_line :: !self.flat && place.at == .Inline
     if shares_line && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
-        self.trailing = coalesce_tail_width(self.source, e.fallback)
+        self.trailing = coalesce_tail_width(self.source, clause.body)
     }
     self.emit_expr(e.left)
     self.write_operator(place, "??", right_start)
-    self.emit_coalesce_fallback(e.fallback)
+    self.emit_fallback_body(clause.body)
     if place.at != .Inline {
         self.depth -= 1
     }
@@ -1535,7 +1536,7 @@ keeps_line_breaks :: fn(self: Printer) -> bool = !self.flat && self.keep_line_br
 line_breaks_before :: fn(source: string, offset: i64) -> bool =
     offset > 0 && !code_before_on_line(source, offset)
 
-fallback_start :: fn(fallback: p.CoalesceFallback) -> Position = match fallback {
+fallback_start :: fn(fallback: p.FallbackBody) -> Position = match fallback {
     is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> fallback.span.start
     is p.Expr                                      -> fallback.span.start
 }
@@ -1625,7 +1626,7 @@ break_line :: fn(self: Printer, before: i64, node_line: i32) -> void {
     self.indent()
 }
 
-emit_coalesce_fallback :: fn(self: Printer, fallback: p.CoalesceFallback) -> void {
+emit_fallback_body :: fn(self: Printer, fallback: p.FallbackBody) -> void {
     match fallback {
         is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(fallback)
         is p.Expr -> self.emit_expr(fallback)
@@ -1634,10 +1635,10 @@ emit_coalesce_fallback :: fn(self: Printer, fallback: p.CoalesceFallback) -> voi
 
 // Width of ` ?? ` and the fallback's first line, laid out on its own : all of a
 // short fallback, the head of one that explodes (`return Foo {`).
-coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> i64 {
+coalesce_tail_width :: fn(source: string, fallback: p.FallbackBody) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.write(" ?? ")
-    sub.emit_coalesce_fallback(fallback)
+    sub.emit_fallback_body(fallback)
     return first_line_len(sub.finish())
 }
 
@@ -1737,7 +1738,7 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
         is p.IndexExpr         -> self.emit_index(e)
         is p.UnaryExpr         -> self.emit_unary(e)
         is p.BinaryExpr        -> self.emit_binary(e)
-        is p.NullCoalesceExpr  -> self.emit_null_coalesce(e)
+        is p.FallbackExpr      -> self.emit_fallback(e)
         is p.IfExpr            -> self.emit_if(e)
         is p.MatchExpr         -> self.emit_match(e)
         is p.BlockExpr         -> self.emit_block_expr(e)
@@ -1931,7 +1932,7 @@ emit_postfix_target :: fn(self: Printer, target: p.Expr) -> void {
 // (`T(x)`, `T<U>`) fall through and stay bare.
 postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
     if e is p.BinaryExpr { return true }
-    if e is p.NullCoalesceExpr { return true }
+    if e is p.FallbackExpr { return true }
     if e is p.RangeExpr  { return true }
     if e is p.UnaryExpr  { return true }
     if e is p.IfExpr     { return true }
@@ -1971,7 +1972,7 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     // with a number keeps them too: `-5` and `-5.abs()` would reparse with the `-`
     // inside the literal.
     negated_number :: x.op == .Neg && starts_with_number(x.operand)
-    if x.operand is p.BinaryExpr || x.operand is p.NullCoalesceExpr || negated_number {
+    if x.operand is p.BinaryExpr || x.operand is p.FallbackExpr || negated_number {
         self.write("(")
         self.emit_expr(x.operand)
         self.write(")")
@@ -2034,7 +2035,7 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
     // `??` binds looser than every binary operator, so a null-coalescing
     // operand of any binary parent must be parenthesised: otherwise
     // `(a ?? b) + c` re-emits as `a ?? b + c` and reparses as `a ?? (b + c)`.
-    if operand is p.NullCoalesceExpr {
+    if operand is p.FallbackExpr {
         self.write("(")
         self.emit_expr(operand)
         self.write(")")
@@ -2711,7 +2712,7 @@ emit_range_operand :: fn(self: Printer, operand: p.Expr) -> void {
 range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
     if operand is p.BinaryExpr { return binary_precedence(operand.op) < 4 }
     if operand is p.RangeExpr { return true }
-    if operand is p.NullCoalesceExpr { return true }   // `??` binds looser than `..`
+    if operand is p.FallbackExpr { return true }   // `??` binds looser than `..`
     return false
 }
 

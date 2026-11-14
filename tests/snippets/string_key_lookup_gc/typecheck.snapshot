@@ -39,9 +39,9 @@
   expr 29:17    IdentExpr      :: Map<string, i32>
   expr 29:24    IdentExpr      :: string
   expr 29:30    BinaryExpr     :: i32
+  expr 29:30    FallbackExpr   :: i32
   expr 29:30    IdentExpr      :: Map<string, i32>
   expr 29:30    IndexExpr      :: i32 | null
-  expr 29:30    NullCoalesceExpr :: i32
   expr 29:37    IdentExpr      :: string
   expr 33:13    StringLitExpr  :: string
   expr 33:22    IdentExpr      :: i32

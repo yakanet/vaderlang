@@ -164,10 +164,10 @@
   expr 63:5     IdentExpr      :: Log | Map<string, i32>
   expr 64:12    StringLitExpr  :: string
   expr 64:5     IdentExpr      :: Log | Map<string, i32>
+  expr 72:40    FallbackExpr   :: i32
   expr 72:40    FieldExpr      :: Map<string, i32>
   expr 72:40    IdentExpr      :: Tally
   expr 72:40    IndexExpr      :: i32 | null
-  expr 72:40    NullCoalesceExpr :: i32
   expr 72:52    IdentExpr      :: string
   expr 77:21    IdentExpr      :: string
   expr 77:26    BinaryExpr     :: i32

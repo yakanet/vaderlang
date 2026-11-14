@@ -401,7 +401,7 @@
                                 "kind": "BinaryExpr",
                                 "op": "add",
                                 "left": {
-                                  "kind": "NullCoalesceExpr",
+                                  "kind": "FallbackExpr",
                                   "left": {
                                     "kind": "IndexExpr",
                                     "target": {
@@ -413,10 +413,16 @@
                                       "name": "w"
                                     }
                                   },
-                                  "fallback": {
-                                    "kind": "IntLitExpr",
-                                    "value": "0n"
-                                  }
+                                  "clauses": [
+                                    {
+                                      "test": null,
+                                      "body": {
+                                        "kind": "IntLitExpr",
+                                        "value": "0n"
+                                      }
+                                    }
+                                  ],
+                                  "coalesce": true
                                 },
                                 "right": {
                                   "kind": "IntLitExpr",

@@ -56,7 +56,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null = match e {
     is AST.CallExpr          -> ctx.call_value(e)
     is AST.BinaryExpr        -> ctx.binary_value(e)
     is AST.UnaryExpr         -> ctx.nothing(e.operand)
-    is AST.NullCoalesceExpr  -> ctx.one_of([ctx.value(e.left), ctx.fallback_value(e.fallback)])
+    is AST.FallbackExpr      -> ctx.fallback_expr_value(e)
     is AST.IfExpr            -> ctx.if_value(e)
     is AST.MatchExpr         -> ctx.match_value(e)
     is AST.BlockExpr         -> ctx.block_value(e)
@@ -266,8 +266,17 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> i64 | null {
 
 // ---- control flow ---------------------------------------------------------
 
-// What a `??` falls back to: a value, or a statement that leaves.
-fallback_value :: fn(ctx: WalkCtx, f: AST.CoalesceFallback) -> i64 | null {
+// What a fallback yields: `left` itself, or one of its clauses.
+fallback_expr_value :: fn(ctx: WalkCtx, e: AST.FallbackExpr) -> i64 | null {
+    values: (i64 | null)[]: [ctx.value(e.left)]
+    for c in e.clauses {
+        values.push(ctx.fallback_value(c.body))
+    }
+    return ctx.one_of(values)
+}
+
+// What a fallback clause yields: a value, or a statement that leaves.
+fallback_value :: fn(ctx: WalkCtx, f: AST.FallbackBody) -> i64 | null {
     match f {
         is AST.ReturnStmt                   -> { ctx.return_stmt(f) }
         is AST.BreakStmt | AST.ContinueStmt -> {}

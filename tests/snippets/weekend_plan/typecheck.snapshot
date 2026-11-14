@@ -115,8 +115,8 @@
   expr 82:54    IdentExpr      :: fn(Weekday) -> string
   expr 83:13    StringLitExpr  :: string
   expr 83:16    CallExpr       :: 6..=6 | null
+  expr 83:16    FallbackExpr   :: 6..=6
   expr 83:16    IdentExpr      :: fn(Weekday) -> 6..=6 | null
-  expr 83:16    NullCoalesceExpr :: 6..=6
   expr 83:34    BinaryExpr     :: bool
   expr 83:34    CallExpr       :: 6..=6 | null
   expr 83:34    IdentExpr      :: fn(Weekday) -> 6..=6 | null

@@ -36,10 +36,10 @@
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void
   expr 34:13    StringLitExpr  :: string
+  expr 34:16    FallbackExpr   :: i32
   expr 34:16    IdentExpr      :: i32 | null
-  expr 34:16    NullCoalesceExpr :: i32
+  expr 34:29    FallbackExpr   :: i32
   expr 34:29    IdentExpr      :: i32 | null
-  expr 34:29    NullCoalesceExpr :: i32
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
   expr 36:14    CallExpr       :: Crate<i32>

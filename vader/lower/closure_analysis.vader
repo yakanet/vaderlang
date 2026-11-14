@@ -148,7 +148,7 @@ enter_node :: fn(n: AST.Node, w: BodyWalk) -> AST.Walk = match n {
         | AST.ReturnStmt | AST.YieldStmt | AST.BreakStmt | AST.ContinueStmt | AST.IntLitExpr
         | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
         | AST.StringLitExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr
-        | AST.UnaryExpr | AST.BinaryExpr | AST.NullCoalesceExpr | AST.IfExpr | AST.BlockExpr
+        | AST.UnaryExpr | AST.BinaryExpr | AST.FallbackExpr | AST.IfExpr | AST.BlockExpr
         | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr
         | AST.IntrinsicCallExpr -> .Descend
 }

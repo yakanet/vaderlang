@@ -29,9 +29,9 @@
   expr 24:57    IdentExpr      :: i32
   expr 24:61    IdentExpr      :: i32
   expr 26:28    IdentExpr      :: T
+  expr 34:16    FallbackExpr   :: fn(string) -> string
   expr 34:16    FieldExpr      :: fn(string) -> string | null
   expr 34:16    IdentExpr      :: Button
-  expr 34:16    NullCoalesceExpr :: fn(string) -> string
   expr 34:37    StringLitExpr  :: string
   expr 35:12    CallExpr       :: string
   expr 35:12    IdentExpr      :: fn(string) -> string

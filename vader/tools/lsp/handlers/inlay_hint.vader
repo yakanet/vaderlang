@@ -85,7 +85,7 @@ hint_step :: fn(n: AST.Node, ctx: HintCtx, out: JsonValue[]) -> AST.Walk = match
     // Any value may carry an implicit `.into()`.
     is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
         | AST.StringLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr
-        | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.NullCoalesceExpr | AST.IfExpr
+        | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.FallbackExpr | AST.IfExpr
         | AST.MatchExpr | AST.BlockExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr
         | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.FnTypeExpr
         | AST.ArrayTypeExpr -> expr_hints(n, ctx, out)

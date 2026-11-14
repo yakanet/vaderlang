@@ -1428,7 +1428,7 @@
                         {
                           "kind": "interp",
                           "expr": {
-                            "kind": "NullCoalesceExpr",
+                            "kind": "FallbackExpr",
                             "left": {
                               "kind": "CallExpr",
                               "callee": {
@@ -1446,10 +1446,16 @@
                                 }
                               ]
                             },
-                            "fallback": {
-                              "kind": "IntLitExpr",
-                              "value": "0n"
-                            }
+                            "clauses": [
+                              {
+                                "test": null,
+                                "body": {
+                                  "kind": "IntLitExpr",
+                                  "value": "0n"
+                                }
+                              }
+                            ],
+                            "coalesce": true
                           }
                         }
                       ]
