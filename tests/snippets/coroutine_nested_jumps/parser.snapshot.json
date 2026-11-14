@@ -250,7 +250,8 @@
                             "label": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "v"
                     }
                   },
                   {
@@ -491,7 +492,8 @@
                             "label": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "v"
                     }
                   },
                   {
@@ -615,7 +617,8 @@
                             "value": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "v"
                     }
                   },
                   {

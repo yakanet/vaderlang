@@ -57,7 +57,7 @@
       {
           r: BufferedReader = reader
           max: i64 = 1048576
-          $exit$i12: {
+          $exit$i13: {
               for {
                   line: IOError | string = {
                       __fallback_0: IOError | null | string = std.io.read_line(r, max)
@@ -71,7 +71,7 @@
                   }
                   if line is IOError {
                       r.error = IOError(line)
-                      break $exit$i12
+                      break $exit$i13
                   }
                   line: string = string(line)
                   std.console.println<string>(concat_2("line: ", line))

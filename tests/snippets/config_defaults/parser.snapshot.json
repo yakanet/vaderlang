@@ -261,7 +261,8 @@
                             "label": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "value"
                     }
                   },
                   {
@@ -584,7 +585,8 @@
                             "trailing": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "present"
                     }
                   }
                 ],

@@ -267,7 +267,8 @@
                       "trailing": null
                     }
                   }
-                ]
+                ],
+                "binding": "enc"
               }
             },
             {
@@ -549,7 +550,8 @@
                       "trailing": null
                     }
                   }
-                ]
+                ],
+                "binding": "dec"
               }
             },
             {

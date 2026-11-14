@@ -2655,7 +2655,8 @@
                             "label": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "v"
                     }
                   },
                   {
@@ -2817,7 +2818,8 @@
                             "label": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "v"
                     }
                   },
                   {

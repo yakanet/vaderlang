@@ -1196,8 +1196,8 @@ export FallbackExpr :: struct {
     left:    Expr
     clauses: FallbackClause[]
     /// On a declaration, the name the clauses see `left` under, narrowed to
-    /// what each one handles: the role of `MatchExpr.binding`. Only when a
-    /// clause names it.
+    /// what each one handles: the role of `MatchExpr.binding`. Bound whether
+    /// a clause reads it or not.
     binding: SimpleBinding | null = null
 }
 

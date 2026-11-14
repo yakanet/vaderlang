@@ -2322,19 +2322,14 @@ parse_let :: fn(p: Parser) -> LetStmt {
 
 // `x :: e else ...` : the clauses see `e` under the declared name, a binding of its
 // own, minted at the empty span right after the declared name, where no other
-// binding starts. Only when a clause spells the name, wherever and in whatever
-// scope: an unread binding costs a copy of `e`, and a slot in the state of a
-// generator, while one bound for nothing changes no meaning.
+// binding starts.
 name_fallback :: fn(value: Expr, name_tok: Token) -> void {
-    if value !is FallbackExpr || !clauses_name(value, name_tok.text) {
+    if value !is FallbackExpr {
         return
     }
     at :: Span { .start = name_tok.span.end, .end = name_tok.span.end }
     value.binding = SimpleBinding { .span = at, .name = name_tok.text, .name_span = at }
 }
-
-clauses_name :: fn(f: FallbackExpr, name: string) =
-    f.clauses.any_match((c) -> find_expr(c.body, (e) -> e is IdentExpr && e.name == name) != null)
 
 // Lookahead : after the leading `[`, scan past the matching `]` and check
 // whether the next significant token starts a let-destructure (`::`, `:=`, or

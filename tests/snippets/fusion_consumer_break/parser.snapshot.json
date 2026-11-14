@@ -245,7 +245,8 @@
                       "value": "-1n"
                     }
                   }
-                ]
+                ],
+                "binding": "fused"
               }
             },
             {
@@ -326,7 +327,8 @@
                       "value": "-1n"
                     }
                   }
-                ]
+                ],
+                "binding": "lazy"
               }
             }
           ],
@@ -460,7 +462,8 @@
                       "value": "-1n"
                     }
                   }
-                ]
+                ],
+                "binding": "fused"
               }
             },
             {
@@ -550,7 +553,8 @@
                       "value": "-1n"
                     }
                   }
-                ]
+                ],
+                "binding": "lazy"
               }
             }
           ],

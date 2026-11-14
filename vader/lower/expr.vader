@@ -716,13 +716,11 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
     tmp_ref :: LoweredIdent { .span = e.span, .type = left_ty, .symbol = tmp }
     stmts: LoweredStmt[]: [let_stmt]
     // `x :: e else ...` binds `x` to the one evaluation above, in a slot of its own :
-    // a lambda in a clause may capture it, while the tests need the bare value.
-    binding :: e.binding
-    if binding != null {
-        bound :: resolve_ident(ctx, binding.name_span)
-        if bound is Symbol {
-            stmts.push(cell_aware_let(ctx, bound, bound.name, tmp_ref, left_ty, e.span))
-        }
+    // a lambda in a clause may capture it, while the tests need the bare value. An
+    // unread `x` takes no slot, and none in the state of a generator.
+    bound :: fallback_name_read(ctx, e)
+    if bound != null {
+        stmts.push(cell_aware_let(ctx, bound, bound.name, tmp_ref, left_ty, e.span))
     }
     rest := left_ty
     for clause in e.clauses {
@@ -742,6 +740,24 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
         }
     }
     return LoweredBlock { .span = e.span, .type = result, .stmts = stmts, .trailing = chain }
+}
+
+// The symbol `x :: e else ...` binds in the clauses, when one of them reads it.
+fallback_name_read :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> Symbol | null {
+    binding :: e.binding else return null
+    bound :: resolve_ident(ctx, binding.name_span) else return null
+    reads :: (x: Expr) -> x is IdentExpr && names_symbol(ctx, x, bound)
+    for clause in e.clauses {
+        if find_expr(clause.body, reads) != null {
+            return bound
+        }
+    }
+    return null
+}
+
+names_symbol :: fn(ctx: FnLowerCtx, ident: IdentExpr, symbol: Symbol) -> bool {
+    named :: resolve_ident(ctx, ident.span) else return false
+    return named.id == symbol.id
 }
 
 // The value of a fallback when no clause takes it : `_t` cast to the result, less

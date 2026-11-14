@@ -275,7 +275,8 @@
                             "label": null
                           }
                         }
-                      ]
+                      ],
+                      "binding": "node"
                     }
                   },
                   {

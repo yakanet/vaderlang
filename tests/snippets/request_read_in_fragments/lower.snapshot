@@ -78,7 +78,7 @@
       {
           r: BufferedReader = written
           max: i64 = 1048576
-          $exit$i26: {
+          $exit$i27: {
               for {
                   line: IOError | string = {
                       __fallback_0: IOError | null | string = std.io.read_line(r, max)
@@ -92,7 +92,7 @@
                   }
                   if line is IOError {
                       r.error = IOError(line)
-                      break $exit$i26
+                      break $exit$i27
                   }
                   line: string = string(line)
                   std.console.println<string>(concat_3("answer: [", line, "]"))
