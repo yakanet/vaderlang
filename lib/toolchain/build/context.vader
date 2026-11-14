@@ -96,8 +96,8 @@ export BuildContext :: struct {
     /// driver's behaviour is anchored at.
     @internal
     description_file: string = DRIVER_FILENAME
-    /// Diagnostics of the build and the driver's own reports. The end of the
-    /// stream prints them, and the driver's exit what is left.
+    /// The driver's own reports, which the build takes before each event and
+    /// at the driver's exit, and prints with its own diagnostics.
     @internal
     diagnostics:    Diagnostic[] = []
     /// How many of `diagnostics` the build took or the driver's exit printed,
@@ -107,10 +107,10 @@ export BuildContext :: struct {
     /// The plugins `use` received, in that order (`plugin.vader`).
     @internal
     plugins:        BuildPlugin[] = []
-    /// The build the last `messages()` opened, which the driver's exit closes
-    /// when the driver left its loop before the end.
+    /// The build the last `messages()` opened, which takes what the driver does
+    /// until the driver's exit stops it.
     @internal
-    session:        BuildSession | null = null
+    link:           InProcessLink | null = null
 }
 
 /// Build a context carrying the defaults a driver would otherwise restate.
@@ -256,9 +256,9 @@ export report :: fn(ctx: BuildContext, span: Span, message: string) -> void {
 ///         put them on the wire.
 export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
 
-// Print the reports not printed yet, in the compiler's own diagnostic format: at
-// the end of `messages()`, and at the driver's exit (`finish_driver`). Each prints
-// once; a call sorts what it prints by file and position and drops its
+// Print the reports not printed yet, in the compiler's own diagnostic format, at
+// the driver's exit (`finish_driver`): those of a context no build took them
+// from. A call sorts what it prints by file and position and drops its
 // duplicates, which is what makes a driven build's output reproducible.
 flush_reports :: fn(ctx: BuildContext) -> void {
     if ctx.printed == ctx.diagnostics.len() {

@@ -1,0 +1,93 @@
+// toolchain/build/link: the build a driver pulls, served in the driver's process.
+//
+// A driver talks to its build in frames (`toolchain/protocol`): it sends its
+// configuration and its requests, and receives the events. Here the build runs
+// in the driver's own process, behind this link: each frame is written and read
+// back as a pipe would carry it, so the driver sees exactly what crosses, and
+// the build answers the frames as `serve` does across a pipe
+// (`vader/build_server`).
+
+module "toolchain/build"
+
+import "std/glob"
+import "toolchain/protocol"
+import "vader/build_server"
+import "vader/pipeline"
+
+// ---- the link -------------------------------------------------------------
+
+// The build behind the link, once the driver configured it, and where its stream
+// stands.
+InProcessLink :: struct {
+    request: DriverRequest
+    description_file: string
+    session: BuildSession | null = null
+    events: Iterator<BuildEvent> | null = null
+    /// The pipeline's code, once the stream sent its end: `NextFrame` then
+    /// closes the build.
+    end_code: i32 | null = null
+    /// The build's exit code as it last closed, as `serve` gives it.
+    closed: i32 | null = null
+}
+
+// Hand the build `frame`, as it reads the frame off a pipe.
+send :: fn(link: InProcessLink, frame: DriverFrame) -> null | ProtocolError {
+    received :: decode_driver_frame(driver_payload(frame)) else return received
+    return match received {
+        is ConfigureFrame                -> link.configure(received)
+        is EmitModuleFrame | ReportFrame -> link.take(received)
+        is NextFrame                     -> link.go_on()
+        is StopFrame                     -> link.close()
+    }
+}
+
+// The next event of the build, as the driver reads it off a pipe.
+receive :: fn(link: InProcessLink) -> ServerFrame | ProtocolError {
+    session :: link.session else return unconfigured()
+    events :: link.events else return unconfigured()
+    event :: events.next()
+    if event is Stop {
+        return ProtocolError { .msg = "the driver pulled past the end of the stream" }
+    }
+    if event is CompleteFrame {
+        link.end_code = event.code
+    }
+    return decode_server_frame(server_payload(frame_of(session, event)))
+}
+
+configure :: fn(link: InProcessLink, frame: ConfigureFrame) -> null | ProtocolError {
+    if link.session != null {
+        return ProtocolError { .msg = "the driver configured its build twice" }
+    }
+    session :: new_session(link.request, link.description_file, frame) else is GlobError {
+        return ProtocolError { .msg = "a module pattern does not parse: ${session.message()}" }
+    }
+    link.session = session
+    link.events = build_events(session)
+    return null
+}
+
+take :: fn(link: InProcessLink, frame: EmitModuleFrame | ReportFrame) -> null | ProtocolError {
+    session :: link.session else return unconfigured()
+    return take_request(session, frame)
+}
+
+// On with the stream, or, past its end, close the build: it prints what it
+// holds, and still takes the driver's requests until the driver stops it.
+go_on :: fn(link: InProcessLink) -> null | ProtocolError {
+    if link.end_code == null {
+        return null
+    }
+    return link.close()
+}
+
+// Close the build, which prints what came since it last closed.
+close :: fn(link: InProcessLink) -> null | ProtocolError {
+    session :: link.session else return unconfigured()
+    link.closed = close_session(session, link.end_code else 0)
+    return null
+}
+
+unconfigured :: fn() -> ProtocolError = ProtocolError {
+    .msg = "the driver spoke to a build it did not configure",
+}

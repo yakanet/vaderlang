@@ -59,6 +59,8 @@ export PhaseFrame :: struct {
 export CompleteFrame :: struct {
     /// The exit code of the build, 0 when it succeeded.
     code: i32
+    /// Files written for the generated modules, in the order they landed.
+    generated: string[] = []
 }
 
 /// The configuration of the driver, sent on its first pull of `messages()`.
@@ -166,12 +168,17 @@ export server_payload :: fn(frame: ServerFrame) -> string {
         is CompleteFrame    -> {
             out.write_field("complete")
             out.write_integer(frame.code)
+            out.write_strings(frame.generated)
         }
     }
     return out.to_string()
 }
 
-driver_payload :: fn(frame: DriverFrame) -> string {
+/// The bytes of a frame a driver sends, without the header that announces them,
+/// as `decode_driver_frame` reads them back.
+///
+/// @param frame  the configuration or the request.
+export driver_payload :: fn(frame: DriverFrame) -> string {
     out :: StringBuilder {}
     match frame {
         is ConfigureFrame  -> {
@@ -309,7 +316,8 @@ read_phase :: fn(r: FieldReader) -> PhaseFrame | ProtocolError {
 
 read_complete :: fn(r: FieldReader) -> CompleteFrame | ProtocolError {
     code :: r.read_i32() else return code
-    return CompleteFrame { .code = code }
+    generated :: r.read_strings() else return generated
+    return CompleteFrame { .code = code, .generated = generated }
 }
 
 read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
@@ -507,6 +515,17 @@ test_phase_and_complete_frames_round_trip :: fn() -> void {
     assert(phase is PhaseFrame && phase.phase == .Lowered, "the phase reads back")
     complete :: decode_server_frame(server_payload(CompleteFrame { .code = -1 }))
     assert(complete is CompleteFrame && complete.code == -1, "a negative code reads back")
+}
+
+@test
+test_complete_frame_carries_the_generated_files :: fn() -> void {
+    sent :: CompleteFrame { .code = 0, .generated = ["build/generated/gen/a1b2.vader"] }
+    received :: decode_server_frame(server_payload(sent))
+    if received !is CompleteFrame {
+        assert(false, "a complete frame reads back as one")
+        return
+    }
+    assert_eq(received.generated.join(","), "build/generated/gen/a1b2.vader")
 }
 
 @test

@@ -1,11 +1,12 @@
 // vader/build_server/dispatch: a build served to its driver, one event at a time.
 //
-// Lock-step, as the stream is: the driver opens with its `ConfigureFrame`, then
-// for each event `vader` sends, the driver answers with its requests (modules
-// to generate, reports) and closes with `NextFrame`, or `StopFrame` when its
-// loop is over. Whatever stands on the other side is a `DriverPeer`: the driver
-// a `vader.json` stands for, in this process (`ManifestPeer`), or a driver
-// process behind its pipes.
+// Lock-step, as the stream is: the driver opens with its `ConfigureFrame` and
+// what it asked for before pulling the stream, then for each event `vader`
+// sends, the driver answers with its requests (modules to generate, reports).
+// Either closes with `NextFrame`, or `StopFrame` when its loop is over. Past
+// the end, the build takes requests until the driver's exit stops it. Whatever
+// stands on the other side is a `DriverPeer`: the driver a `vader.json` stands
+// for, in this process (`ManifestPeer`), or a driver process behind its pipes.
 
 module "vader/build_server"
 
@@ -76,8 +77,11 @@ export manifest_peer :: fn(request: DriverRequest, manifest: Manifest) -> Manife
 // ---- serving --------------------------------------------------------------
 
 /// Serve the build a driver configures, as the command asked: its events go to
-/// the driver, its requests to the build, until the stream ends or the driver
-/// stops pulling it.
+/// the driver, its requests to the build, until the driver stops it.
+///
+/// Once the driver had its say on the end, the build prints what it holds, and
+/// still takes what the driver reports or emits until it stops the build at its
+/// exit: a module emitted then is one no round writes.
 ///
 /// @param peer              the driver.
 /// @param request           what the command asks.
@@ -96,9 +100,17 @@ export serve :: fn(peer: DriverPeer, request: DriverRequest, description_file: s
     session :: new_session(request, description_file, opening) else is GlobError {
         return protocol_failure("a module pattern does not parse: ${session.message()}")
     }
+    // A module asked for before the stream is pulled, generated from data the
+    // entries import, is read by the first round.
+    opened :: answer(peer, session) else is ProtocolError {
+        return protocol_failure(opened.msg)
+    }
+    if opened is StopFrame {
+        return close_session(session, 0)
+    }
     code := 0
     for event in build_events(session) {
-        sent :: peer.send(frame_of(event)) else is ProtocolError {
+        sent :: peer.send(frame_of(session, event)) else is ProtocolError {
             return protocol_failure(sent.msg)
         }
         answered :: answer(peer, session) else is ProtocolError {
@@ -108,8 +120,12 @@ export serve :: fn(peer: DriverPeer, request: DriverRequest, description_file: s
             code = event.code
         }
         if answered is StopFrame {
-            break
+            return close_session(session, code)
         }
+    }
+    close_session(session, code)
+    stopped :: answer(peer, session) else is ProtocolError {
+        return protocol_failure(stopped.msg)
     }
     return close_session(session, code)
 }
@@ -119,21 +135,39 @@ export serve :: fn(peer: DriverPeer, request: DriverRequest, description_file: s
 answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame | ProtocolError {
     for {
         match frame :: peer.receive() {
-            is ProtocolError         -> { return frame }
-            is EmitModuleFrame       -> session.queue_module(frame.name, frame.source)
-            is ReportFrame           -> {
-                reported :: take_report(session, frame) else is ProtocolError {
-                    return reported
-                }
-            }
-            is NextFrame | StopFrame -> {
+            is ProtocolError                 -> {
                 return frame
             }
-            is ConfigureFrame        -> {
+            is EmitModuleFrame | ReportFrame -> {
+                taken :: take_request(session, frame) else is ProtocolError {
+                    return taken
+                }
+            }
+            is NextFrame | StopFrame         -> {
+                return frame
+            }
+            is ConfigureFrame                -> {
                 return ProtocolError { .msg = "the driver configured its build twice" }
             }
         }
     }
+}
+
+/// Take a request of the driver: a module to generate, written at the end of the
+/// round, or a report.
+///
+/// @param session  the build.
+/// @param frame    what the driver asks.
+/// @error          `ProtocolError` for a report under a code that is no hook code.
+export take_request :: fn(
+    session: BuildSession,
+    frame: EmitModuleFrame | ReportFrame,
+) -> null | ProtocolError {
+    if frame is EmitModuleFrame {
+        session.queue_module(frame.name, frame.source)
+        return null
+    }
+    return take_report(session, frame)
 }
 
 // The report of the driver, under the hook code it names.
@@ -148,16 +182,21 @@ take_report :: fn(session: BuildSession, frame: ReportFrame) -> null | ProtocolE
 }
 
 /// The frame that tells a driver `event`: of a module, the declarations that
-/// cross.
+/// cross; of the end, the build's outcome so far, the driver's reports included,
+/// and the files it generated.
 ///
-/// @param event  what the build produced.
-export frame_of :: fn(event: BuildEvent) -> ServerFrame = match event {
+/// @param session  the build.
+/// @param event    what the build produced.
+export frame_of :: fn(session: BuildSession, event: BuildEvent) -> ServerFrame = match event {
     is ModuleTypechecked -> TypecheckedFrame {
         .module_name = event.module_name,
         .declarations = concat_file_decls(event.files).filter(crosses).collect(),
     }
     is PhaseFrame        -> event
-    is CompleteFrame     -> event
+    is CompleteFrame     -> CompleteFrame {
+        .code = session_outcome(session, event.code),
+        .generated = session.generated,
+    }
 }
 
 protocol_failure :: fn(problem: string) -> i32 {
@@ -208,10 +247,48 @@ entryless :: fn() -> ConfigureFrame = ConfigureFrame {
 
 @test
 test_serve_ends_a_build_without_entries_on_its_failure :: fn() -> void {
-    peer :: ScriptedPeer { .answers = [entryless(), NextFrame {}] }
+    peer :: ScriptedPeer { .answers = [entryless(), NextFrame {}, NextFrame {}, StopFrame {}] }
     assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
     assert_eq(peer.sent.len(), 1)
     assert(peer.sent[0] is CompleteFrame, "the stream is its end alone")
+}
+
+@test
+test_serve_takes_the_reports_sent_before_the_stream :: fn() -> void {
+    report :: ReportFrame {
+        .code = "H6004",
+        .span = empty_span(),
+        .detail = "a rule of the project",
+    }
+    peer :: ScriptedPeer {
+        .answers = [entryless(), report, NextFrame {}, NextFrame {}, StopFrame {}],
+    }
+    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    // The report reached the build before it ran: nothing compiles.
+    assert_eq(peer.sent.len(), 1)
+    sent :: peer.sent[0]
+    assert(sent is CompleteFrame && sent.code == 1, "the end carries the failure")
+}
+
+@test
+test_serve_takes_the_requests_of_the_driver_until_it_stops_the_build :: fn() -> void {
+    report :: ReportFrame {
+        .code = "H6004",
+        .span = empty_span(),
+        .detail = "made once the loop was over",
+    }
+    peer :: ScriptedPeer {
+        .answers = [entryless(), NextFrame {}, NextFrame {}, report, StopFrame {}],
+    }
+    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    assert_eq(peer.at, peer.answers.len())
+}
+
+@test
+test_serve_closes_a_build_the_driver_stops_before_the_stream :: fn() -> void {
+    peer :: ScriptedPeer { .answers = [entryless(), StopFrame {}] }
+    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 0)
+    assert_eq(peer.sent.len(), 0)
 }
 
 @test

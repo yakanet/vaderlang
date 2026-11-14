@@ -73,16 +73,17 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         return
     }
     plugins :: plugins_told(ctx)
-    session :: open_session(ctx)
+    link :: open_link(ctx)
     // One `yield` for the whole stream: a driver's loop body is copied at each.
-    for event in build_events(session) {
-        yield relayed(ctx, session, plugins, event)
-        // What the plugins and the driver did meanwhile reaches the build before
-        // it resumes: a module emitted at `BeforeEmit` is written next. The end
-        // of the stream has taken what it was handed already.
-        if event !is CompleteFrame {
-            hand_over(ctx, session)
+    for {
+        msg :: next_message(ctx, link, plugins)
+        yield msg
+        if msg is CompleteMessage {
+            return
         }
+        // What the plugins and the driver did meanwhile reaches the build before
+        // it resumes: a module emitted at `BeforeEmit` is written next.
+        ctx.hand_over(link, NextFrame {})
     }
 }
 
@@ -95,9 +96,10 @@ plugins_told :: fn(ctx: BuildContext) -> BuildPlugin[] {
     return ctx.plugins.clone()
 }
 
-// The build the context configures, holding what the driver did so far. Every
-// module is read, as the stream promises.
-open_session :: fn(ctx: BuildContext) -> BuildSession {
+// Configure the build, and hand it what the driver did so far: a module asked
+// for before the stream is read by its first round. Every module is read, as
+// the stream promises.
+open_link :: fn(ctx: BuildContext) -> InProcessLink {
     configure :: ConfigureFrame {
         .fingerprint = "",
         .entries = configured_entries(ctx.entries),
@@ -108,71 +110,72 @@ open_session :: fn(ctx: BuildContext) -> BuildSession {
         .cc = ctx.cc,
         .ldflags = ctx.ldflags,
     }
-    session :: new_session(ctx.request, ctx.description_file, configure)
-        else panic("`**` is a module pattern: ${session.message()}")
-    session.project_root = ctx.project_root
-    ctx.session = session
-    hand_over(ctx, session)
-    return session
+    link :: InProcessLink { .request = ctx.request, .description_file = ctx.description_file }
+    ctx.link = link
+    tell(link, configure)
+    ctx.hand_over(link, NextFrame {})
+    return link
 }
 
-// Hand the build what the driver did since it last took: its reports and the
-// modules it emitted.
-hand_over :: fn(ctx: BuildContext, session: BuildSession) -> void {
-    if ctx.printed < ctx.diagnostics.len() {
-        session.diagnostics.push_all(ctx.diagnostics[ctx.printed..<ctx.diagnostics.len()])
-        ctx.printed = ctx.diagnostics.len()
+// Send the build what the driver did since it last sent, its reports and the
+// modules it emitted, then `closing`: on with the stream, or stop the build.
+hand_over :: fn(ctx: BuildContext, link: InProcessLink, closing: NextFrame | StopFrame) -> void {
+    for i in ctx.printed..<ctx.diagnostics.len() {
+        d :: ctx.diagnostics[i]
+        tell(link, ReportFrame { .code = d.code.id, .span = d.primary, .detail = d.detail })
     }
+    ctx.printed = ctx.diagnostics.len()
     for m in ctx.pending {
-        session.queue_module(m.name, m.source)
+        tell(link, m)
     }
     ctx.pending.clear()
+    tell(link, closing)
 }
 
-// `event` once the plugins heard it, the end of the stream as `finished` settles it.
-relayed :: fn(
-    ctx: BuildContext,
-    session: BuildSession,
-    plugins: BuildPlugin[],
-    event: BuildEvent,
-) -> Message {
-    msg :: message_of(event)
-    if msg is CompleteMessage {
-        return finished(ctx, session, plugins, msg.code)
+// Send the build `frame`, which it takes: the driver's reports are under hook
+// codes, and its configuration reads every module.
+tell :: fn(link: InProcessLink, frame: DriverFrame) -> void {
+    sent :: link.send(frame)
+    if sent is ProtocolError {
+        panic("the build refused a frame: ${sent.msg}")
     }
+}
+
+// The next message of the stream, once the plugins heard it, the end as
+// `finished` settles it.
+next_message :: fn(ctx: BuildContext, link: InProcessLink, plugins: BuildPlugin[]) -> Message {
+    frame :: link.receive() else panic("a frame that does not read back: ${frame.msg}")
+    if frame is CompleteFrame {
+        return finished(ctx, link, plugins, frame)
+    }
+    msg :: message_of(frame)
     tell_plugins(ctx, plugins, msg)
     return msg
 }
 
-// `event` as a driver in a process of its own reads it, once its frame crossed
-// the protocol: what does not cross yet is missing here too.
-message_of :: fn(event: BuildEvent) -> Message {
-    frame :: decode_server_frame(server_payload(frame_of(event)))
-        else panic("a frame that does not read back: ${frame.msg}")
-    return match frame {
-        is TypecheckedFrame -> TypecheckedMessage {
-            .module_name = frame.module_name,
-            .declarations = frame.declarations,
-        }
-        is PhaseFrame       -> PhaseMessage { .phase = frame.phase }
-        is CompleteFrame    -> CompleteMessage { .code = frame.code }
+message_of :: fn(frame: TypecheckedFrame | PhaseFrame) -> Message {
+    if frame is PhaseFrame {
+        return PhaseMessage { .phase = frame.phase }
+    }
+    return TypecheckedMessage {
+        .module_name = frame.module_name,
+        .declarations = frame.declarations,
     }
 }
 
-// The message that ends the stream. The plugins hear the outcome, the build
-// prints what it holds, and a reported error fails the build whatever the
-// pipeline answered, one a plugin made on hearing the end included.
+// The message that ends the stream. The plugins hear the outcome, then the build
+// takes what they did on hearing it and prints what it holds. A reported error
+// fails the build whatever the pipeline answered.
 finished :: fn(
     ctx: BuildContext,
-    session: BuildSession,
+    link: InProcessLink,
     plugins: BuildPlugin[],
-    code: i32,
+    frame: CompleteFrame,
 ) -> CompleteMessage {
-    hand_over(ctx, session)
-    tell_plugins(ctx, plugins, CompleteMessage { .code = session_outcome(session, code) })
-    hand_over(ctx, session)
-    ctx.generated = session.generated
-    return CompleteMessage { .code = close_session(session, code) }
+    ctx.generated = frame.generated
+    tell_plugins(ctx, plugins, CompleteMessage { .code = frame.code })
+    ctx.hand_over(link, NextFrame {})
+    return CompleteMessage { .code = outcome(ctx, frame.code) }
 }
 
 // `code`, or 1 once the context holds an error.
@@ -183,18 +186,19 @@ outcome :: fn(ctx: BuildContext, code: i32) -> i32 {
     return code
 }
 
-/// The exit code of a driver whose `build` returned `code`, once every context
-/// it made has printed what it still holds.
+/// The exit code of a driver whose `build` returned `code`, once every build it
+/// started has taken what the driver did since.
 ///
 /// The entry `vader build` writes beside `build.vader` calls it; a driver does
-/// not. It is what prints the reports, and fails the build on an error among
-/// them, when the driver left `messages()` before its end or reported once the
-/// build was over. The driver's process ends there, so it also prints the
-/// per-pass profile under `$VADER_PROFILE`.
+/// not. It stops each build, which prints the reports the driver made since the
+/// build last took them and fails on an error among them: when the driver left
+/// `messages()` before its end, or reported once the build was over. The
+/// driver's process ends there, so it also prints the per-pass profile under
+/// `$VADER_PROFILE`.
 ///
 /// @param code  what `build` returned.
-/// @return      `code`, or 1 when a context holds an error.
-/// @error       H6014 for a context whose stream ran its rounds and still holds
+/// @return      `code`, or 1 when a build failed or a context holds an error.
+/// @error       H6014 for a build whose stream ran its rounds and is handed
 ///              generated modules: emitted after the last `BeforeEmit`, or
 ///              before the driver left the loop there, no round wrote them.
 export finish_driver :: fn(code: i32) -> i32 {
@@ -207,13 +211,17 @@ export finish_driver :: fn(code: i32) -> i32 {
 }
 
 // What the driver's exit does for one context: hand the build it opened what
-// the driver did since, close it, print what is left, and fail on an error.
+// the driver did since and stop it, print the reports no build took, and fail
+// on an error.
 finished_context :: fn(ctx: BuildContext, code: i32) -> i32 {
     result := code
-    session :: ctx.session
-    if session != null {
-        hand_over(ctx, session)
-        result = close_session(session, code)
+    link :: ctx.link
+    if link != null {
+        ctx.hand_over(link, StopFrame {})
+        // The build ran in this process: its exit code is the driver's to give.
+        if result == 0 {
+            result = link.closed else 0
+        }
     }
     ctx.flush_reports()
     return outcome(ctx, result)
@@ -266,12 +274,33 @@ import "toolchain/span"
 
 @test test_the_driver_exit_hands_over_a_module_no_round_wrote_h6014 :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])
-    session :: open_session(ctx)
+    link :: open_link(ctx)
+    session :: link.session else panic("the build is configured")
     session.entered_rounds = true
     ctx.emit_module("gen/late", "late :: fn() -> i32 = 1")
     assert_eq(finished_context(ctx, 0), 1)
     assert_eq(session.diagnostics.len(), 1)
     assert_eq(session.diagnostics[0].code.id, "H6014")
+}
+
+@test test_the_build_takes_a_report_made_once_its_stream_ended :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.request.mode = .Describe
+    for _ in ctx.messages() {}
+    ctx.report(empty_span(), "made once the loop was over")
+    assert_eq(finished_context(ctx, 0), 1)
+    link :: ctx.link else panic("the build is configured")
+    session :: link.session else panic("the build is configured")
+    assert_eq(session.diagnostics.len(), 1)
+    assert_eq(session.diagnostics[0].detail, "made once the loop was over")
+}
+
+@test test_the_driver_exit_fails_on_the_failure_of_the_build :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    // No entry: the build reports H6003 itself, and fails whatever `build` returns.
+    for _ in ctx.messages() {}
+    assert_eq(finished_context(ctx, 0), 1)
+    assert_eq(ctx.reports_of().len(), 0)
 }
 
 @test test_a_stream_that_compiles_nothing_leaves_its_modules_unreported :: fn() -> void {
