@@ -701,12 +701,12 @@ try_route_through_env :: fn(
 }
 
 // Desugar a fallback to a temp-bound chain of if-expressions, one per clause :
-//   { _t :: left ; if _t is null { fallback } else { (T) _t } }
+//   { _t :: left ; if _t is A { body_a } else if _t is B { body_b } else { (rest) _t } }
 // Every test runs on the un-narrowed union `_t` (so the C-emit tag check doesn't
-// constant-fold), and the last else casts `_t` to the result, reusing the
-// existing narrowing-cast lowering path.
+// constant-fold), and the last else casts `_t` to what no clause handled, reusing
+// the existing narrowing-cast lowering path.
 lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
-    result  :: ctx.types.expr_type(e)         // `left` without what the clauses handle
+    result  :: ctx.types.expr_type(e)
     left_ty :: ctx.types.expr_type(e.left)
     tmp :: fresh_synthetic_symbol(ctx, "coalesce")
     let_stmt :: LoweredLet {
@@ -714,7 +714,11 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
         .type = left_ty, .value = lower_expr(ctx, e.left),
     }
     tmp_ref :: LoweredIdent { .span = e.span, .type = left_ty, .symbol = tmp }
-    chain: LoweredExpr = LoweredCast { .span = e.span, .type = result, .value = tmp_ref }
+    rest := left_ty
+    for clause in e.clauses {
+        rest = subtract_type_with_impls(rest, ctx.types.clause_type(clause), ctx.typed)
+    }
+    chain: LoweredExpr = no_clause_taken(tmp_ref, rest, result, e.span)
     i := e.clauses.len()
     for i > 0 {
         i -= 1
@@ -722,17 +726,27 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
         chain = LoweredIf {
             .span       = e.span,
             .type       = result,
-            .cond       = LoweredTypeCheck {
-                .span       = e.span,
-                .type       = TY_BOOL,
-                .value      = tmp_ref,
-                .check_type = TY_NULL,
-            },
+            .cond       = folded_type_check(ctx, tmp_ref, ctx.types.clause_type(clause), e.span),
             .then_block = lower_fallback_body(ctx, clause.body, result),
             .else_block = wrap_as_block(chain, e.span),
         }
     }
     return LoweredBlock { .span = e.span, .type = result, .stmts = [let_stmt], .trailing = chain }
+}
+
+// The value of a fallback when no clause takes it : `_t` cast to the result, less
+// the `null` an `else null` added to it, or a trap when the clauses handle every
+// value. The result, not `rest` : the typecheck may have settled it narrower (a
+// range).
+no_clause_taken :: fn(tmp_ref: LoweredIdent, rest: Type, result: Type, span: Span) -> LoweredExpr {
+    if rest is NeverType {
+        return LoweredUnreachable { .span = span, .type = result, .reason = "every value goes to a clause" }
+    }
+    without_null :: subtract_type(rest, TY_NULL)
+    if !equals_type(without_null, rest) {
+        return LoweredCast { .span = span, .type = result, .value = tmp_ref }
+    }
+    return LoweredCast { .span = span, .type = subtract_type(result, TY_NULL), .value = tmp_ref }
 }
 
 // Then-branch block for a fallback clause : its value wrapped in a block, or the

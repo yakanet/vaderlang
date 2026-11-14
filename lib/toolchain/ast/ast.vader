@@ -1207,6 +1207,8 @@ export FallbackExpr :: struct {
 /// One clause of a `FallbackExpr`: `else value` or `else is T { ... }`.
 export FallbackClause :: struct {
     span:    Span
+    /// Keys the type the clause tests, recorded by the typecheck.
+    id:      i64 = UNASSIGNED_NODE_ID
     /// The `else` keyword (`??` on a coalesce).
     op_span: Span
     /// `else is T`: the type handled ; `null` on a bare `else` or a `??`.

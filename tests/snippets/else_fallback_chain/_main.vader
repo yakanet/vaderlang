@@ -1,0 +1,72 @@
+// `left else ...` falls back on what `left` fails with. A bare `else` handles
+// the `null` and the errors, `else is T { ... }` the `T` it names, each clause
+// testing `left` in order. A clause gives a value or leaves (`return`,
+// `continue`) ; an `else null` widens the result. `else` binds tighter than a
+// comparison : `lookup(n) else 0 == 0` compares the fallback's value.
+
+module "snippet"
+
+import "std/console"
+import "std/io"
+
+lookup :: fn(n: i32) -> i32 | null {
+    if n > 0 {
+        return n * 10
+    }
+    return null
+}
+
+open_thing :: fn(n: i32) -> string | IOError | null {
+    if n == 0 {
+        return null
+    }
+    if n < 0 {
+        return IOError { .msg = "negative", .kind = .Other, .code = 1 }
+    }
+    return "thing ${n}"
+}
+
+bare :: fn(n: i32) -> string = open_thing(n) else "fallback"
+
+chained :: fn(n: i32) -> string {
+    s :: open_thing(n) else is null {
+        return "absent"
+    } else is IOError {
+        return "failed"
+    }
+    return s
+}
+
+widened :: fn(n: i32) -> string | null = open_thing(n) else null
+
+leave :: fn(n: i32) -> i32 {
+    v :: lookup(n) else return -1
+    return v + 1
+}
+
+loop_sum :: fn() -> i32 {
+    total := 0
+    for n in [-1, 2, 0, 3] {
+        v :: lookup(n) else continue
+        total += v
+    }
+    return total
+}
+
+precedence :: fn(n: i32, ready: bool) -> bool = lookup(n) else 0 == 0 && ready
+
+main :: fn() -> i32 {
+    println(bare(1))
+    println(bare(0))
+    println(bare(-1))
+    println(chained(2))
+    println(chained(0))
+    println(chained(-2))
+    w :: widened(-1)
+    println("${w == null}")
+    println("${leave(3)} ${leave(-3)}")
+    println("${loop_sum()}")
+    println("${precedence(0, true)} ${precedence(1, true)}")
+    println("${lookup(4) else 7} ${lookup(-4) else 7}")
+    return 0
+}

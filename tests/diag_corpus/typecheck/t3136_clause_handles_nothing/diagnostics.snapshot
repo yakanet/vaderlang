@@ -1,0 +1,2 @@
+[12:18] error[T3136] this `else` has nothing left to handle: `i32` holds no `null` and no error
+[13:47] error[T3136] this `else` has nothing left to handle: `IOError` is never a value of `i32`

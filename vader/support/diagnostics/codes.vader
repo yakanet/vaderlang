@@ -159,6 +159,8 @@ export TypecheckCode :: enum(CodeInfo) {
     MainThreadFunctionInTask        { .id = "T3133", .message = "main-thread function reached from a task" },
     TaskRunsUnknownFunctionValue    { .id = "T3134", .message = "task runs a function value whose captures are unknown" },
     FunctionValueDeepCopied         { .id = "T3135", .message = "a function value cannot be deep-copied" },
+    ClauseHandlesNothing            { .id = "T3136", .message = "this `else` has nothing left to handle" },
+    FallbackLeavesNothing           { .id = "T3137", .message = "every value goes to a clause that leaves, so the fallback has no value" },
 }
 
 // Parser-pass codes.

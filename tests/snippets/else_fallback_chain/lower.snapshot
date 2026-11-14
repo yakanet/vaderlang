@@ -1,0 +1,178 @@
+# Lower
+
+## snippet
+  snippet.lookup :: fn(n: i32) -> i32 | null {  // snippet$lookup
+      if n > 0 {
+          return n * 10
+      }
+      return null
+  }
+  snippet.open_thing :: fn(n: i32) -> IOError | null | string {  // snippet$open_thing
+      if n == 0 {
+          return null
+      }
+      if n < 0 {
+          return IOError {
+              .msg = "negative",
+              .kind = IOErrorKind(0),
+              .code = 1,
+          }
+      }
+      return {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "thing ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, n)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.bare :: fn(n: i32) -> string {  // snippet$bare
+      {
+          __coalesce_0: IOError | null | string = snippet.open_thing(n)
+          if __coalesce_0 is IOError | null { "fallback" } else { string(__coalesce_0) } :string
+      } :string
+  }
+  snippet.chained :: fn(n: i32) -> string {  // snippet$chained
+      s: string = {
+          __coalesce_0: IOError | null | string = snippet.open_thing(n)
+          if __coalesce_0 is null {
+              {
+                  return "absent"
+              }
+          } else if __coalesce_0 is IOError {
+              {
+                  return "failed"
+              }
+          } else {
+              string(__coalesce_0)
+          } :string
+      }
+      return s
+  }
+  snippet.widened :: fn(n: i32) -> null | string {  // snippet$widened
+      {
+          __coalesce_0: IOError | null | string = snippet.open_thing(n)
+          if __coalesce_0 is IOError | null { null } else { string(__coalesce_0) } :null | string
+      } :null | string
+  }
+  snippet.leave :: fn(n: i32) -> i32 {  // snippet$leave
+      v: i32 = {
+          __coalesce_0: i32 | null = snippet.lookup(n)
+          if __coalesce_0 is null {
+              return -1
+              @unreachable("`??` fallback diverges")
+          } else {
+              i32(__coalesce_0)
+          } :i32
+      }
+      return v + 1
+  }
+  snippet.loop_sum :: fn() -> i32 {  // snippet$loop_sum
+      total: i32 = 0
+      {
+          __for_arr_0: i32[] = [-1, 2, 0, 3] :i32[]
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              n: i32 = __for_arr_0[__for_i_2]
+              v: i32 = {
+                  __coalesce_3: i32 | null = snippet.lookup(n)
+                  if __coalesce_3 is null {
+                      continue
+                      @unreachable("`??` fallback diverges")
+                  } else {
+                      i32(__coalesce_3)
+                  } :i32
+              }
+              total = total + v
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      return total
+  }
+  snippet.precedence :: fn(n: i32, ready: bool) -> bool {  // snippet$precedence
+      (({
+          __coalesce_0: i32 | null = snippet.lookup(n)
+          if __coalesce_0 is null { 0 } else { i32(__coalesce_0) } :i32
+      } :i32) == 0) && ready
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(snippet.bare(1))
+      std.console.println<string>(snippet.bare(0))
+      std.console.println<string>(snippet.bare(-1))
+      std.console.println<string>(snippet.chained(2))
+      std.console.println<string>(snippet.chained(0))
+      std.console.println<string>(snippet.chained(-2))
+      w: null | string = snippet.widened(-1)
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(5))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_bool(__buf_0, __off_1, w is null)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.console.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.leave(3))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.leave(-3))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.console.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.loop_sum())
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.console.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.precedence(0, true))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.precedence(1, true))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      std.console.println<string>({
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_11: i64 = 0
+          __off_11 = std.core.write_int(__buf_10, __off_11, {
+              __coalesce_8: i32 | null = snippet.lookup(4)
+              if __coalesce_8 is null { 7 } else { i32(__coalesce_8) } :i32
+          } :i32)
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_int(__buf_10, __off_11, {
+              __coalesce_9: i32 | null = snippet.lookup(-4)
+              if __coalesce_9 is null { 7 } else { i32(__coalesce_9) } :i32
+          } :i32)
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    struct std.io.IOError  // std_io$IOError

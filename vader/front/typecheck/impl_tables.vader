@@ -696,7 +696,7 @@ resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[
 /// the remainder too. With `x: IOError | string`, `match x { is string ..., is
 /// Error ... }` is exhaustive. A non-trait `removed` delegates to plain
 /// `subtract_type`.
-subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
+export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
     if removed !is TraitType {
         return subtract_type(from, removed)
     }

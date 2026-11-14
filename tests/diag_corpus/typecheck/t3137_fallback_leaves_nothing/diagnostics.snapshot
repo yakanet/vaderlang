@@ -1,0 +1,2 @@
+[10:5] error[T3137] every value goes to a clause that leaves, so the fallback has no value
+[11:5] warning[W0002] unreachable code: code after a divergent statement

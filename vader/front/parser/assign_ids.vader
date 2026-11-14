@@ -225,6 +225,7 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             }
             walk_expr(e.left, f)
             for c in e.clauses {
+                c.id = f.mint()
                 if c.test != null {
                     walk_expr(c.test, f)
                 }

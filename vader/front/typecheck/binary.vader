@@ -122,15 +122,18 @@ operator_default :: fn(op: AST.BinaryOp) -> Callee = match classify(op) {
     .Logical | .Integral | .Identity | .Is -> BUILTIN_CALLEE
 }
 
-/// Type-check a fallback `left ?? value`: one clause handling `null`.
-/// `left` must be nullable ; the result is `left` with `null`
-/// subtracted. Each clause body is either a value expression (must be
-/// assignable to the result) or a divergent statement (`return` / `break` /
-/// `continue`), checked in the enclosing function / loop context via the
-/// global `current_fn_ctx` / `loop_stack` (passing `ctx = null`).
+/// Type-check a fallback, `left else ...` or `left ?? value`. Every clause tests
+/// `left` in order and takes away what it handles : `else is T` a `T`, a bare
+/// `else` the `null` and the members known here to implement `Error`, a `??` the
+/// `null`. What no clause handles is the result. A clause body is a divergent
+/// statement (`return` / `break` / `continue`, checked in the enclosing fn / loop
+/// context via the global `current_fn_ctx` / `loop_stack`, `ctx = null`), or a
+/// value that must fit the result ; an `else` value `null` widens it.
 ///
-/// @error T3068 when `left` can never be null (the fallback is unreachable).
-/// @error T3001 when a value fallback isn't assignable to the non-null result.
+/// @error T3068 when `left` of a `??` can never be null.
+/// @error T3136 when a clause has nothing left to handle.
+/// @error T3137 when every value goes to a clause that leaves.
+/// @error T3001 when a value doesn't fit the result.
 infer_fallback :: fn(
     e: AST.FallbackExpr,
     expected: Type | null,
@@ -138,42 +141,118 @@ infer_fallback :: fn(
     diags: Diagnostic[],
 ) -> Type {
     left_ty :: check_expr(e.left, null, typed, diags)
-    result :: subtract_type(left_ty, TY_NULL)
-    if equals_type(result, left_ty) {
-        diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
-    }
+    remaining := left_ty
     for c in e.clauses {
-        check_fallback_body(c.body, result, typed, diags)
+        handled :: handled_by_clause(e, c, remaining, typed, diags)
+        typed.expr_types[c.id] = handled
+        remaining = subtract_type_with_impls(remaining, handled, typed)
+    }
+    result := remaining
+    has_value := false
+    for c in e.clauses {
+        body :: c.body
+        if body is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt {
+            check_stmt(body, typed, diags, null)
+            continue
+        }
+        got :: check_expr(body, remaining, typed, diags)
+        if got is NeverType {
+            continue
+        }
+        has_value = true
+        result = fallback_result(e, body, got, remaining, result, typed, diags)
+    }
+    if remaining is NeverType && !has_value && !e.coalesce {
+        diags.push(typecheck_error(.FallbackLeavesNothing, e.span, ""))
     }
     return result
 }
 
-check_fallback_body :: fn(
-    body: AST.FallbackBody,
+// What `c` takes away from `remaining`, the values of `left` no clause before it
+// handled. One that has nothing to handle is reported, and still returned so the
+// walk goes on.
+handled_by_clause :: fn(
+    e: AST.FallbackExpr,
+    c: AST.FallbackClause,
+    remaining: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if e.coalesce {
+        if equals_type(subtract_type(remaining, TY_NULL), remaining) {
+            diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
+        }
+        return TY_NULL
+    }
+    test :: c.test
+    if test != null {
+        tested :: type_operand(test, typed, diags)
+        check_is_test_target(tested, test.span, typed, diags)
+        if equals_type(subtract_type_with_impls(remaining, tested, typed), remaining) {
+            diags.push(
+                typecheck_error(
+                    .ClauseHandlesNothing,
+                    test.span,
+                    "`${display_type(tested)}` is never a value of `${display_type(remaining)}`",
+                ),
+            )
+        }
+        return tested
+    }
+    failures: Type[]: []
+    for variant in union_variants(remaining) ?? [remaining] {
+        if is_null_type(variant) || is_known_error(variant, typed) {
+            failures.push(variant)
+        }
+    }
+    if failures.len() == 0 {
+        diags.push(
+            typecheck_error(
+                .ClauseHandlesNothing,
+                c.op_span,
+                "`${display_type(remaining)}` holds no `null` and no error",
+            ),
+        )
+    }
+    return union_of(failures)
+}
+
+// Whether a value of `t` is an `Error` whatever the program : a struct or an enum
+// whose impl says so. A type parameter, a trait value or `any` may hold one or
+// not, which only a written `else is Error` tests.
+is_known_error :: fn(t: Type, typed: TypedProgram) -> bool =
+    t is StructType | EnumType && struct_implements_trait(t, core_trait_key(TRAIT_ERROR), typed)
+
+// The result once a clause gives `got` : unchanged when it fits what no clause
+// handled, that value's type when every value went to a clause, widened by a
+// `null` an `else` writes. Anything else is reported.
+fallback_result :: fn(
+    e: AST.FallbackExpr,
+    body: AST.Expr,
+    got: Type,
+    remaining: Type,
     result: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-) -> void {
-    match body {
-        is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> {
-            // A divergent fallback is checked in the enclosing fn / loop context via
-            // `check_stmt`'s existing `return` / `break` / `continue` dispatch
-            // (ctx = null resolves to the global `current_fn_ctx` / `loop_stack`).
-            check_stmt(body, typed, diags, null)
-        }
-        is AST.Expr -> {
-            got :: check_expr(body, result, typed, diags)
-            if !flows_into(got, result, body, typed) {
-                diags.push(
-                    typecheck_error(
-                        .TypeMismatch,
-                        body.span,
-                        "`??` fallback type ${display_type(got)} is not assignable to ${display_type(result)}",
-                    ),
-                )
-            }
-        }
+) -> Type {
+    if remaining is NeverType {
+        return union_of([result, got])
     }
+    if flows_into(got, remaining, body, typed) {
+        return result
+    }
+    if !e.coalesce && is_null_type(got) {
+        return union_of([result, TY_NULL])
+    }
+    operator :: if e.coalesce { "??" } else { "else" }
+    diags.push(
+        typecheck_error(
+            .TypeMismatch,
+            body.span,
+            "`${operator}` fallback type ${display_type(got)} is not assignable to ${display_type(remaining)}",
+        ),
+    )
+    return result
 }
 
 // ---- per-op-class checkers ------------------------------------------------

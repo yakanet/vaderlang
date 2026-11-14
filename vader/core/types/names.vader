@@ -168,6 +168,7 @@ export TRAIT_ITERATOR   :: @type_name(Iterator)
 export TRAIT_CONTAINS   :: @type_name(Contains)
 export TRAIT_INDEX      :: @type_name(Index)
 export TRAIT_INDEX_SET  :: @type_name(IndexSet)
+export TRAIT_ERROR      :: @type_name(Error)
 
 /// `impl_base_key` of a nominal declaration: the symbol ids are unique across
 /// every kind, so the id alone names it.

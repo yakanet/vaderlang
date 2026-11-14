@@ -1,0 +1,12 @@
+// `check()` gives an `IOError` or `null`, both handled by the bare `else`,
+// which leaves: no value is ever left, the code after it never runs: T3137.
+module "snippet"
+
+import "std/io"
+
+check :: fn() -> IOError | null = null
+
+main :: fn() -> i32 {
+    check() else return 1
+    return 0
+}

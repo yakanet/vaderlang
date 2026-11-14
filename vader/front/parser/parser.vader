@@ -2468,7 +2468,9 @@ parse_let_binding :: fn(p: Parser) -> LetBinding {
 parse_return :: fn(p: Parser) -> ReturnStmt {
     start :: p.advance()  // `return`
     value: Expr | null = null
-    if !p.check(.Newline) && !p.check(.RBrace) && !p.check(.Eof) {
+    // A `{` that opens the body of an `if` or a `for` is no value of the `return`.
+    opens_body :: p.check(.LBrace) && !p.allows_struct_lit()
+    if !p.check(.Newline) && !p.check(.RBrace) && !p.check(.Eof) && !opens_body {
         value = p.parse_expr(0)
     }
     return ReturnStmt {
@@ -2608,18 +2610,56 @@ parse_continue :: fn(p: Parser) -> ContinueStmt {
     }
 }
 
-// Right operand of `??`. A divergent statement when the keyword leads
-// (`return` / `break` / `continue`), otherwise a value expression parsed at
-// the `??` right binding power (7: below the operator's own 6, so `??` is
-// left-associative and non-chaining).
-parse_fallback_body :: fn(p: Parser) -> FallbackBody {
+// A fallback body : a divergent statement when the keyword leads (`return` /
+// `break` / `continue`), otherwise a value expression parsed at `min_bp`, the
+// right binding power of the operator before it.
+parse_fallback_body :: fn(p: Parser, min_bp: i32) -> FallbackBody {
     // A `match ... { _ -> }` over `TokenKind` (a closed enum) trips W0005 ; the
     // if-chain keeps "3 divergent keywords, else a value expression" warning-free.
     k :: p.peek().kind
     if k == .KwReturn   { return p.parse_return() }
     if k == .KwBreak    { return p.parse_break() }
     if k == .KwContinue { return p.parse_continue() }
-    return p.parse_expr(7)
+    return p.parse_expr(min_bp)
+}
+
+// `left else ...`, every clause that follows: one node, each clause testing
+// `left`. `(a else b) else c`, parenthesised, is a fallback on a fallback.
+parse_fallback_chain :: fn(p: Parser, left: Expr) -> FallbackExpr {
+    clauses: FallbackClause[]: []
+    for p.check(.KwElse) {
+        clauses.push(p.parse_fallback_clause())
+    }
+    return FallbackExpr {
+        .span    = Span { .start = left.span.start, .end = p.peek_at(-1).span.end },
+        .left    = left,
+        .clauses = clauses,
+    }
+}
+
+// `else value`, `else return x`, `else { ... }`, or `else is T { ... }`.
+parse_fallback_clause :: fn(p: Parser) -> FallbackClause {
+    else_tok :: p.advance()  // `else`
+    test: TypeExpr | null = null
+    if p.match_kind(.KwIs) != null {
+        test = p.parse_type()
+    }
+    if test != null || p.check(.LBrace) {
+        return p.finish_clause(else_tok, test, p.parse_block())
+    }
+    return p.finish_clause(else_tok, null, p.parse_fallback_body(ELSE_RIGHT_BP))
+}
+
+finish_clause :: fn(
+    p: Parser,
+    else_tok: Token,
+    test: TypeExpr | null,
+    body: FallbackBody,
+) = FallbackClause {
+    .span    = Span { .start = else_tok.span.start, .end = p.peek_at(-1).span.end },
+    .op_span = else_tok.span,
+    .test    = test,
+    .body    = body,
 }
 
 parse_defer :: fn(p: Parser) -> DeferStmt {
@@ -2662,6 +2702,13 @@ InfixOpDescr :: struct {
     op:         BinaryOp
     non_assoc:  bool
 }
+
+// The binding powers of the fallbacks. `else` sits between the comparisons (20)
+// and the ranges (30) ; `??` below every other operator.
+ELSE_LEFT_BP: i32:      25
+ELSE_RIGHT_BP: i32:     26
+COALESCE_LEFT_BP: i32:  6
+COALESCE_RIGHT_BP: i32: 7
 
 no_infix :: fn() = InfixOpDescr { .has = false, .left_bp = 0, .right_bp = 0, .op = .Add, .non_assoc = false }
 
@@ -2956,9 +3003,9 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
         // may be a value expression OR a divergent statement (`return` /
         // `break` / `continue`), which the generic infix path can't produce,
         // so handle it here.
-        if t.kind == .QuestionQuestion && 6 >= min_bp {
+        if t.kind == .QuestionQuestion && COALESCE_LEFT_BP >= min_bp {
             p.advance()  // `??`
-            body :: p.parse_fallback_body()
+            body :: p.parse_fallback_body(COALESCE_RIGHT_BP)
             end :: p.peek_at(-1).span.end
             left = FallbackExpr {
                 .span     = Span { .start = left.span.start, .end = end },
@@ -2970,6 +3017,15 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                 }],
                 .coalesce = true,
             }
+            last_non_assoc_level = -1
+            continue
+        }
+
+        // `else`: a fallback on `left`. Above the comparisons and below the
+        // ranges : `a else b + c` is `a else (b + c)`, `m[k] else false && ready`
+        // is `(m[k] else false) && ready`.
+        if t.kind == .KwElse && ELSE_LEFT_BP >= min_bp {
+            left = p.parse_fallback_chain(left)
             last_non_assoc_level = -1
             continue
         }

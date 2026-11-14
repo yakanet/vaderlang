@@ -1,0 +1,15 @@
+// `count()` is an `i32`, never `null` nor an error, so the bare `else` has
+// nothing to handle; the second `else is IOError` comes after the first took
+// every `IOError`: T3136 on both.
+module "snippet"
+
+import "std/io"
+
+count :: fn() -> i32 = 3
+read :: fn() -> i32 | IOError = 4
+
+main :: fn() -> i32 {
+    a :: count() else 0
+    b :: read() else is IOError { 0 } else is IOError { 1 }
+    return a + b
+}

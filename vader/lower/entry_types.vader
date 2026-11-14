@@ -116,6 +116,14 @@ expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
     return apply_or_unresolved(self, self.typed.expr_types[expr.id])
 }
 
+/// The type a fallback clause tests, recorded by the typecheck, with substitution
+/// applied.
+/// @param self    the entry-types view.
+/// @param clause  the clause of a `FallbackExpr`.
+/// @return        the type tested ; `TY_UNRESOLVED` on a miss.
+clause_type :: fn(self: EntryTypes, clause: FallbackClause) -> Type =
+    apply_or_unresolved(self, self.typed.expr_types[clause.id])
+
 /// Per-expression type WITHOUT applying the entry substitution: the raw
 /// recorded type. Needed where a type parameter must stay visible despite the
 /// entry's subst binding it : whether a `for`'s iterable was a type parameter, which

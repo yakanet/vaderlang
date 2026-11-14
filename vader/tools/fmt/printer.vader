@@ -1493,9 +1493,55 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
     }
 }
 
+// `left else ...` : each clause after the one before, `else is T` with its
+// braces ; `left ?? fallback` as written.
+emit_fallback :: fn(self: Printer, e: p.FallbackExpr) -> void {
+    if e.coalesce {
+        self.emit_coalesce(e)
+        return
+    }
+    self.emit_else_operand(e.left, true)
+    for c in e.clauses {
+        self.write(" else ")
+        test :: c.test
+        if test != null {
+            self.write("is ")
+            self.emit_type_expr(test)
+            self.write(" ")
+        }
+        match body :: c.body {
+            is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(body)
+            is p.Expr -> self.emit_else_operand(body, false)
+        }
+    }
+}
+
+// An operand of `else` keeps the parentheses its source needs : one that binds
+// looser (a comparison, `&&`, another fallback), and on the left one that ends on
+// a `}` an `else` would join (`(if c { a }) else 0`).
+emit_else_operand :: fn(self: Printer, e: p.Expr, is_left: bool) -> void {
+    if !else_operand_needs_parens(e, is_left) {
+        self.emit_expr(e)
+        return
+    }
+    self.write("(")
+    self.emit_expr(e)
+    self.write(")")
+}
+
+else_operand_needs_parens :: fn(e: p.Expr, is_left: bool) -> bool {
+    if e is p.BinaryExpr {
+        return binary_precedence(e.op) <= binary_precedence(.Eq)
+    }
+    if e is p.FallbackExpr | p.LambdaExpr {
+        return true
+    }
+    return is_left && e is p.IfExpr | p.MatchExpr | p.BlockExpr
+}
+
 // `left ?? fallback`: the fallback is a value expression or a divergent
 // statement (`return` / `break` / `continue`).
-emit_fallback :: fn(self: Printer, e: p.FallbackExpr) -> void {
+emit_coalesce :: fn(self: Printer, e: p.FallbackExpr) -> void {
     clause :: e.clauses[0]
     right_start :: fallback_start(clause.body)
     place :: self.operator_place(clause.op_span, e.left.span.end, right_start)
@@ -2032,10 +2078,9 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
             return
         }
     }
-    // `??` binds looser than every binary operator, so a null-coalescing
-    // operand of any binary parent must be parenthesised: otherwise
+    // A fallback looser than its parent keeps its parentheses : otherwise
     // `(a ?? b) + c` re-emits as `a ?? b + c` and reparses as `a ?? (b + c)`.
-    if operand is p.FallbackExpr {
+    if operand is p.FallbackExpr && fallback_operand_needs_parens(operand, parent_op) {
         self.write("(")
         self.emit_expr(operand)
         self.write(")")
@@ -2062,6 +2107,11 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
         _ -> self.emit_expr(operand)
     }
 }
+
+// `??` binds looser than every binary operator ; `else` binds tighter than a
+// comparison and looser than the rest.
+fallback_operand_needs_parens :: fn(operand: p.FallbackExpr, parent_op: p.BinaryOp) -> bool =
+    operand.coalesce || binary_precedence(parent_op) > binary_precedence(.Eq)
 
 // Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
 // `vader/front/parser/parser.vader::infix_for` (the only authority on what the

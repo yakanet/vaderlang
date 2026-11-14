@@ -1,0 +1,14 @@
+# stdout
+thing 1
+fallback
+fallback
+thing 2
+absent
+failed
+true
+31 -1
+50
+true false
+40 7
+# exit
+0
