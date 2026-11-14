@@ -14,9 +14,9 @@ module "vader/front/resolver"
 
 import "std/collections"
 import "std/string"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "toolchain/ast"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/core/symbol"
 import "toolchain/span"
 
@@ -386,7 +386,7 @@ diagnose_import_path :: fn(
     // `vader/*` that does not resolve from where the library sits, which means
     // this check STAYS ABOVE the module-not-found lookup below. Move it under and
     // R2034 silently becomes R2001; `tools/cli_tests/library` pins that with a
-    // probe importing `vader/front/lexer` from a staged root where it cannot
+    // probe importing `vader/pipeline` from a staged root where it cannot
     // resolve.
     if raw_path.starts_with("vader/")
         && !from_module_name.starts_with("vader/")

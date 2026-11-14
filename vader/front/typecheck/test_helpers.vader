@@ -4,11 +4,11 @@ module "vader/front/typecheck"
 
 import "std/string_builder"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/parser"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/parser"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 import "vader/support/integer"
 
 // ---- a source without `std/core` ------------------------------------------

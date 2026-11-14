@@ -8,7 +8,7 @@ import "std/collections"
 import "vader/core/mono"
 import "vader/lower/ir"
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "toolchain/ast"
 import "vader/front/typecheck"
 import "vader/core/types"

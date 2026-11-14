@@ -12,7 +12,7 @@
 // unit in every encoding, so a position before it (on a pure-ASCII line, the
 // overwhelming common case, any position) converts with no scan, and utf-8 skips
 // the scan on every line. Line breaks match the lexer
-// (`vader/front/lexer/lexer.vader` `advance`): LF, a lone CR, and CRLF each start
+// (`toolchain/lexer/lexer.vader` `advance`): LF, a lone CR, and CRLF each start
 // exactly one new line.
 //
 // See `position.vader` for the JSON encoders that consume the results.

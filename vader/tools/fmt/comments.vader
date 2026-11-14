@@ -8,8 +8,8 @@
 module "vader/tools/fmt"
 
 import "std/string"
+import "toolchain/lexer"
 import "toolchain/span"
-import "vader/front/lexer"
 
 /// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form

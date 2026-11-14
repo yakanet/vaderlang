@@ -9,7 +9,7 @@
 //   - `import "std/foo"`: resolves against the library root `lib/`, which
 //     hosts every namespace the toolchain ships (probed next to the
 //     executable, then `<cwd>/lib`, see `resolve_sidecar`).
-//   - `import "vader/front/parser"`: a bare name resolved against the project
+//   - `import "vader/front/resolver"`: a bare name resolved against the project
 //     root and each `includePaths` entry, first match wins.
 //
 // Each candidate path is probed first as a directory (multi-file
@@ -26,7 +26,7 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "toolchain/ast"
-import "vader/front/parser"
+import "toolchain/parser"
 
 /// The file through which a project drives its own build. Here, beside
 /// `MANIFEST_FILENAME`, because the CLI and the driver contract both name it.

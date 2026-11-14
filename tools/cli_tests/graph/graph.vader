@@ -80,11 +80,11 @@ test_the_scope_project_hides_the_compiler_from_a_driven_project :: fn() -> void 
 @test
 test_the_scope_project_keeps_the_compiler_when_the_entry_is_one_of_its_modules :: fn() -> void {
     // The rule reads the name of the entry's module, not the size of its closure.
-    drawn :: run_vader(["graph", "vader/front/lexer/lexer.vader"]) else panic(drawn.message())
+    drawn :: run_vader(["graph", "vader/core/types/types.vader"]) else panic(drawn.message())
     assert_eq(drawn.exit, 0)
-    node :: "vader_support_diagnostics[\"vader/support/diagnostics\"]"
+    node :: "vader_core_symbol[\"vader/core/symbol\"]"
     assert(node in drawn.stdout, drawn.stdout)
-    assert("vader_front_lexer --> vader_support_diagnostics" in drawn.stdout, drawn.stdout)
+    assert("vader_core_types --> vader_core_symbol" in drawn.stdout, drawn.stdout)
 }
 
 @test

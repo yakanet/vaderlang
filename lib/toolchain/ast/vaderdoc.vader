@@ -20,7 +20,7 @@ import "toolchain/span"
 /// variant: its vaderdoc.
 ///
 /// Only a parse that asks for docs fills one (`parse_source_with_docs` in
-/// `vader/front/parser`): the `parse_source` a build runs leaves every `doc` null, so
+/// `toolchain/parser`): the `parse_source` a build runs leaves every `doc` null, so
 /// a build pays nothing for comments it never reads. A plain `//` or `/* */` comment
 /// between the lines and the declaration detaches them; blank lines do not.
 export DocComment :: struct {

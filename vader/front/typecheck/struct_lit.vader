@@ -9,7 +9,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/iter"
 import "std/string"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/core/types"
 AST :: import "toolchain/ast"
 
@@ -265,7 +265,7 @@ check_item_no_expected :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"

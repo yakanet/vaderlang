@@ -13,12 +13,12 @@
 
 module "vader/midir/pipeline"
 
+import "toolchain/diagnostics"
 import "vader/lower/ir"
 import "vader/midir"
 import "vader/midir/optimise"
 import "vader/midir/ranges"
 import "vader/midir/value_return"
-import "vader/support/diagnostics"
 import "vader/support/opt_report"
 Prof :: import "vader/support/profile"
 

@@ -28,7 +28,7 @@
 
 module "toolchain/build"
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "std/console"
 import "std/path"
 import "vader/pipeline"

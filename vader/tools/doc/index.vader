@@ -19,7 +19,7 @@ import "std/string"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/tools/fmt"
 Tc :: import "vader/front/typecheck"
 

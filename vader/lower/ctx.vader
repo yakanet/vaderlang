@@ -11,7 +11,7 @@ module "vader/lower"
 
 import "std/collections"
 import "vader/core/mono"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/symbol"

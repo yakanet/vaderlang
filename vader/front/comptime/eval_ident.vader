@@ -13,7 +13,7 @@ module "vader/front/comptime"
 
 import "vader/front/typecheck"
 import "vader/core/types"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 
 /// Evaluate an `IdentExpr`. Path 1 (bound const) wins ; path 2 (type

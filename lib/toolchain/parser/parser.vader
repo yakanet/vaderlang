@@ -1,16 +1,16 @@
-// vader/front/parser/parser: recursive-descent parser + Pratt expression parser.
+// toolchain/parser/parser: recursive-descent parser + Pratt expression parser.
 // Public entry: `parse_source(source, file)`, which gives a `ParsedSource`.
 // Errors flow into the parser's `errors` array ; after an error the parser
 // synchronises on `}` / top-level keywords / NEWLINE so it can keep going.
 
-module "vader/front/parser"
+module "toolchain/parser"
 
 import "std/string"
 import "std/char"
 import "std/iter"
 import "std/string_builder"
-import "vader/front/lexer"
-import "vader/support/diagnostics"
+import "toolchain/lexer"
+import "toolchain/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"
 
@@ -3177,7 +3177,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     //   `@<intrinsic>(args)`: compiler reflection / introspection call
     //                                 (`@size_of`, `@type_name`, ...).
     //                                 The set of recognised names lives in
-    //                                 `vader/front/parser/intrinsics.vader`.
+    //                                 `intrinsics.vader`.
     // Anything else is P1014.
     if t.kind == .At {
         at_tok :: p.advance()

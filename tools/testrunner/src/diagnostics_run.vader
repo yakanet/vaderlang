@@ -11,7 +11,7 @@ import "std/iter"
 import "std/sort"
 import "std/string"
 import "std/time"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/tools/dump"
 
 // What the snapshot of a fixture with no diagnostic holds.

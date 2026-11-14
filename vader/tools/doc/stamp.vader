@@ -22,8 +22,8 @@ import "std/iter"
 import "std/path"
 import "std/sort"
 import "std/string"
+import "toolchain/diagnostics"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 /// What the data depends on beside the files the load reads, taken before the
 /// load.

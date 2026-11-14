@@ -8,8 +8,8 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 /// Check `[t0, _, ...rest] = value`: one assignment per place, against the
 /// element types of a tuple or array `value`.

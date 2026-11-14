@@ -25,7 +25,7 @@ module "vader/lower"
 
 import "std/collections"
 import "std/iter"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/support/integer"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"

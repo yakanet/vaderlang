@@ -9,7 +9,7 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "std/string"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 AST :: import "toolchain/ast"
@@ -218,8 +218,8 @@ add_dependency :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/parser"
 import "vader/core/symbol"
-import "vader/front/parser"
 
 build_order :: fn(src: string) -> ComptimeOrder {
     parsed :: parse_source(src, "t.vader")

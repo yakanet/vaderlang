@@ -21,7 +21,7 @@ import "toolchain/span"
 import "vader/core/bytecode"
 import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
 

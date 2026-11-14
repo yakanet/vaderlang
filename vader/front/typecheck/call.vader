@@ -24,7 +24,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/iter"
 import "std/math"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/support/integer"
 AST :: import "toolchain/ast"
 import "vader/core/types"
@@ -1396,7 +1396,7 @@ check_args_no_expected :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagno
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 
 // Parse + resolve + check `src`, then find the first `CallExpr` in the last

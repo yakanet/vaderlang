@@ -243,7 +243,7 @@ worse_placement :: fn(a: YieldPlacement, b: YieldPlacement) -> YieldPlacement {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 
 // The body of the loop the first fn of `source` opens on.
 first_loop_body :: fn(source: string) -> AST.BlockExpr {

@@ -27,7 +27,7 @@ import "std/collections"
 import "std/string"
 import "std/sort"
 AST :: import "toolchain/ast"
-Parse :: import "vader/front/parser"
+Parse :: import "toolchain/parser"
 import "toolchain/span"
 
 /// The organize-imports source action. Registered in `registry::all_source_actions`.

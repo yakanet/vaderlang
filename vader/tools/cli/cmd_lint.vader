@@ -13,7 +13,7 @@ import "std/path"
 import "cli"
 import "vader/front/resolver"
 import "vader/front/dead_code"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 
 /// `vader lint <file>`: project-wide hygiene lints kept OUT of the default
 /// build (a plain `vader build` never runs any of these). v1 ships a single

@@ -7,8 +7,8 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 /// Walk a let-binding tree and write the inferred / declared type into
 /// `typed.local_types` keyed by the binding span (the same span the

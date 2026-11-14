@@ -15,9 +15,9 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 /// The spreads of one struct, as its module resolves them.
 export StructSpreads :: struct {

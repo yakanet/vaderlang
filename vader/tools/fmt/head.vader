@@ -14,8 +14,8 @@ module "vader/tools/fmt"
 import "std/iter"
 import "std/string"
 p :: import "toolchain/ast"
+import "toolchain/parser"
 import "toolchain/span"
-import "vader/front/parser"
 
 /// A name a head wrote: where it lies in the text, and the node it comes from,
 /// by which a caller resolves it.

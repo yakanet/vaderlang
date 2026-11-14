@@ -1,4 +1,4 @@
-// vader/front/lexer/lexer: the Vader-in-Vader lexer.
+// toolchain/lexer/lexer: the Vader-in-Vader lexer.
 //
 // Produces the token stream the parser consumes:
 //   - whitespace, // line comments, /* block comments */ (nested)
@@ -11,14 +11,14 @@
 //   - brackets, punctuation
 //   - newlines with the SUPPRESS_AFTER rules from SPEC §3
 
-module "vader/front/lexer"
+module "toolchain/lexer"
 
 import "std/string"
 import "std/char"
 
 import "std/string_builder"
 import "std/numbers"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 // Position/Span are re-imported transparently via token.vader (same module);
@@ -1546,7 +1546,15 @@ count_newlines :: fn(l: LexedSource) -> i64 {
 @test test_tokenize_with_docs_lexes_the_same_tokens :: fn() -> void {
     src :: "/// Doc.\n@allow_unused\nexport f :: fn() -> i32 = 1 // note\n/* x */\n/// Lost.\n"
     with_docs :: tokenize_with_docs(src, "test.vader")
-    assert_eq(dump_tokens(with_docs), dump_tokens(tokenize(src, "test.vader")))
+    assert_eq(token_lines(with_docs), token_lines(tokenize(src, "test.vader")))
+}
+
+token_lines :: fn(l: LexedSource) -> string {
+    out: string[]: []
+    for t in l.tokens {
+        out.push("${t.span.start.offset}-${t.span.end.offset} ${kind_name(t.kind)} ${t.text}")
+    }
+    return out.join("\n")
 }
 
 @test test_tokenize_with_docs_keeps_a_run :: fn() -> void {

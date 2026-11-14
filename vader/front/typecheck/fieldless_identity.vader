@@ -13,8 +13,8 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/string"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 /// Note the structs with no field that both operands of a valid `===` or `!==` may
 /// hold, and warn when there is one.

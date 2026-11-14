@@ -19,9 +19,9 @@ import "std/io"
 import "std/iter"
 import "std/path"
 TTY :: import "std/tty"
+import "toolchain/diagnostics"
 import "vader/front/resolver"
 import "vader/pipeline"
-import "vader/support/diagnostics"
 Doc :: import "vader/tools/doc"
 
 /// `vader doc [path]`: write the documentation data of every module under

@@ -120,7 +120,7 @@ import "std/testing"
 
 @test
 test_module_for_prefix :: fn() -> void {
-    assert_eq(module_for("", "vader/front/parser"), "vader/front/parser")
+    assert_eq(module_for("", "vader/front/resolver"), "vader/front/resolver")
     assert_eq(module_for("main", "config"), "main/config")
     assert_eq(module_for("main", ""), "main")
 }

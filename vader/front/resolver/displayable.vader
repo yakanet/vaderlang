@@ -10,7 +10,7 @@
 module "vader/front/resolver"
 
 import "std/string_builder"
-import "vader/front/parser"
+import "toolchain/parser"
 AST :: import "toolchain/ast"
 
 // Prefix of the file name a generated impl is parsed under ; the rest is the

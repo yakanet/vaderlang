@@ -11,8 +11,8 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "toolchain/diagnostics"
 import "vader/core/types"
-import "vader/support/diagnostics"
 import "vader/support/fixpoint"
 
 // The calls of a project that forward the caller's type parameters, and what each

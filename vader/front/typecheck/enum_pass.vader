@@ -13,10 +13,10 @@
 module "vader/front/typecheck"
 
 import "std/collections"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/support/integer"
 import "toolchain/ast"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/core/types"
 import "toolchain/span"
 

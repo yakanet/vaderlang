@@ -25,8 +25,8 @@ flowchart TD
 
 | Stage | Directory | Output |
 |---|---|---|
-| Lexer | `vader/front/lexer/` | tokens |
-| Parser | `vader/front/parser/` | AST |
+| Lexer | `lib/toolchain/lexer/` | tokens |
+| Parser | `lib/toolchain/parser/` | AST |
 | Resolver | `vader/front/resolver/` | names bound to declarations, imports collected |
 | Type checker | `vader/front/typecheck/` | types, narrowing, trait resolution |
 | Comptime | `vader/front/comptime/`, `vader/pipeline/comptime_vm/` | `@comptime` values |
@@ -45,8 +45,10 @@ describes the values and memory of a running program.
 `vader dump --stage=<name>` prints any stage; `vader run` and `vader build` accept
 a `.virt` file, the whole program after monomorphization without source
 positions. The LSP (`vader/tools/lsp/`) and the formatter (`vader/tools/fmt/`)
-share the resolver; `vader/support/diagnostics/codes.vader` holds every phase's
-diagnostic codes.
+share the resolver; `lib/toolchain/diagnostics/codes.vader` holds every phase's
+diagnostic codes. The lexer, the parser and the diagnostics sit in `lib/toolchain/`
+next to the syntax tree and import nothing from `vader/`: a program can parse Vader
+without carrying the compiler, which a build driver is meant to do (ADR 0145).
 
 Before the type checker, the loader keeps one body per `@target` group
 (`vader/front/resolver/target_select.vader`), so a body for another target is never

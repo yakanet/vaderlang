@@ -11,11 +11,11 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/iter"
 import "toolchain/ast"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 
 /// One `T implements Trait { ... }` block, indexed by the registry.
 export ImplEntry :: struct {

@@ -1,0 +1,192 @@
+// toolchain/lexer/token: token shapes for the self-hosted lexer.
+//
+// One enum variant per kind so downstream passes get exhaustive `match`
+// checking. `Position` and `Span` come from `toolchain/span`, so tokens, the
+// syntax tree and diagnostics share the same canonical source-location types.
+
+module "toolchain/lexer"
+
+import "toolchain/span"
+
+export TokenKind :: enum(u8) {
+    // Layout
+    Eof,
+    Newline,
+
+    // Identifiers and literals
+    Ident,
+    IntLit,
+    FloatLit,
+    CharLit,
+
+    // String tokens. A literal yields:
+    //   StringBegin ( StringPart | InterpOpen <expr...> InterpClose )* StringEnd
+    StringBegin,
+    StringPart,
+    StringEnd,
+    InterpOpen,
+    InterpClose,
+
+    // Keywords
+    KwFn, KwStruct, KwTrait, KwImplements, KwEnum,
+    KwIf, KwElse, KwMatch, KwIs, KwFor, KwIn,
+    KwReturn, KwYield, KwDefer, KwBreak, KwContinue,
+    KwImport, KwAs, KwExport,
+    KwTrue, KwFalse, KwNull,
+    KwSelf,
+    KwConst,
+
+    // Operators
+    Plus, Minus, Star, Slash, Percent,
+    PlusPercent,   // +%  (wrapping)
+    MinusPercent,  // -%  (wrapping)
+    StarPercent,   // *%  (wrapping)
+    Amp, Pipe, Caret, Tilde, Shl, Shr,
+    Eq, Neq, Lt, Lte, Gt, Gte,
+    Same,          // ===
+    NotSame,       // !==
+    AndAnd, OrOr, Bang,
+    Assign,        // =
+    PlusAssign,    // +=
+    MinusAssign,   // -=
+    StarAssign,    // *=
+    SlashAssign,   // /=
+    PercentAssign, // %=
+    PlusPercentAssign,  // +%=
+    MinusPercentAssign, // -%=
+    StarPercentAssign,  // *%=
+    DeclConst,     // ::
+    DeclVar,       // :=
+    RangeExcl,     // ..<
+    RangeIncl,     // ..=
+    DotDotDot,     // ...   (struct spread)
+    Arrow,         // ->
+    FatArrow,      // =>
+    At,            // @
+
+    // Punctuation
+    LParen, RParen,
+    LBracket, RBracket,
+    LBrace, RBrace,
+    Comma, Dot, Colon,
+
+}
+
+/// The snake_case name of `k`, which the token dump prints and the parser names a
+/// token by when it has no text.
+///
+/// @param k  the kind to name.
+export kind_name :: fn(k: TokenKind) -> string = match k {
+    .Ident       -> "ident"
+    .IntLit      -> "int_literal"
+    .FloatLit    -> "float_literal"
+    .CharLit     -> "char_literal"
+    .StringBegin -> "string_begin"
+    .StringPart  -> "string_part"
+    .StringEnd   -> "string_end"
+    .InterpOpen  -> "interp_open"
+    .InterpClose -> "interp_close"
+
+    .KwFn         -> "kw_fn"
+    .KwStruct     -> "kw_struct"
+    .KwTrait      -> "kw_trait"
+    .KwImplements -> "kw_implements"
+    .KwEnum       -> "kw_enum"
+    .KwIf         -> "kw_if"
+    .KwElse       -> "kw_else"
+    .KwMatch      -> "kw_match"
+    .KwIs         -> "kw_is"
+    .KwFor        -> "kw_for"
+    .KwIn         -> "kw_in"
+    .KwReturn     -> "kw_return"
+    .KwYield      -> "kw_yield"
+    .KwDefer      -> "kw_defer"
+    .KwBreak      -> "kw_break"
+    .KwContinue   -> "kw_continue"
+    .KwImport     -> "kw_import"
+    .KwAs         -> "kw_as"
+    .KwExport     -> "kw_export"
+    .KwTrue       -> "kw_true"
+    .KwFalse      -> "kw_false"
+    .KwNull       -> "kw_null"
+    .KwSelf       -> "kw_self"
+    .KwConst      -> "kw_const"
+
+    .Plus    -> "plus"
+    .Minus   -> "minus"
+    .Star    -> "star"
+    .Slash   -> "slash"
+    .Percent -> "percent"
+    .PlusPercent  -> "plus_percent"
+    .MinusPercent -> "minus_percent"
+    .StarPercent  -> "star_percent"
+    .Amp     -> "amp"
+    .Pipe    -> "pipe"
+    .Caret   -> "caret"
+    .Tilde   -> "tilde"
+    .Shl     -> "shl"
+    .Shr     -> "shr"
+    .Eq      -> "eq"
+    .Neq     -> "neq"
+    .Same    -> "same"
+    .NotSame -> "not_same"
+    .Lt      -> "lt"
+    .Lte     -> "lte"
+    .Gt      -> "gt"
+    .Gte     -> "gte"
+    .AndAnd  -> "and_and"
+    .OrOr    -> "or_or"
+    .Bang    -> "bang"
+    .Assign        -> "assign"
+    .PlusAssign    -> "plus_assign"
+    .MinusAssign   -> "minus_assign"
+    .StarAssign    -> "star_assign"
+    .SlashAssign   -> "slash_assign"
+    .PercentAssign -> "percent_assign"
+    .PlusPercentAssign  -> "plus_percent_assign"
+    .MinusPercentAssign -> "minus_percent_assign"
+    .StarPercentAssign  -> "star_percent_assign"
+    .DeclConst     -> "decl_const"
+    .DeclVar       -> "decl_var"
+    .RangeExcl -> "range_excl"
+    .RangeIncl -> "range_incl"
+    .DotDotDot -> "dotdotdot"
+    .Arrow     -> "arrow"
+    .FatArrow  -> "fat_arrow"
+    .At        -> "at"
+
+    .LParen   -> "lparen"
+    .RParen   -> "rparen"
+    .LBracket -> "lbracket"
+    .RBracket -> "rbracket"
+    .LBrace   -> "lbrace"
+    .RBrace   -> "rbrace"
+    .Comma    -> "comma"
+    .Dot      -> "dot"
+    .Colon    -> "colon"
+
+    .Newline -> "newline"
+    .Eof     -> "eof"
+}
+
+// `value` carries the parsed payload: the integer for `IntLit`, the float for
+// `FloatLit`, the codepoint for `CharLit`, the decoded text for `StringPart`,
+// and `null` for everything else (keywords, ops, punctuation).
+export Token :: struct {
+    kind: TokenKind
+    text: string
+    span: Span
+    value: i64 | u64 | f64 | u32 | string | null
+}
+
+export empty_file_span :: fn(file: string) -> Span {
+    p :: Position { .file = file, .offset = 0, .line = 1, .column = 1 }
+    return Span { .start = p, .end = p }
+}
+
+export make_token :: fn(kind: TokenKind, text: string, span: Span) -> Token = Token {
+    .kind = kind,
+    .text = text,
+    .span = span,
+    .value = null,
+}

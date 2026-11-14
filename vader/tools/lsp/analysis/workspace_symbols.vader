@@ -14,7 +14,7 @@ import "std/io"
 import "std/sort"
 import "std/string"
 import "std/uri"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
 

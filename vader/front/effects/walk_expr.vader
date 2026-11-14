@@ -12,7 +12,7 @@ import "vader/core/types"
 import "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
-Parse :: import "vader/front/parser"
+Parse :: import "toolchain/parser"
 
 /// The slot of `e`'s value, `e` walked ; null when it holds nothing lent. An
 /// implicit `into` at `e` hands on what the conversion returns of it.

@@ -206,7 +206,7 @@ reach_key :: fn(d: AST.Decl, dependency_types: Set<string>) -> string | null {
 
 import "std/string"
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 
 // A one-file module from its source.
 unit_of :: fn(source: string, trimmed: bool) -> ReachUnit {

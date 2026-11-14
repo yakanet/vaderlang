@@ -7,7 +7,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/front/resolver"
 import "vader/front/typecheck"

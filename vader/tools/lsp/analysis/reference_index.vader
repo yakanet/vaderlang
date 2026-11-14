@@ -31,7 +31,7 @@ import "vader/front/resolver"
 import "vader/core/symbol"
 import "vader/front/typecheck"
 AST :: import "toolchain/ast"
-Parse :: import "vader/front/parser"
+Parse :: import "toolchain/parser"
 import "toolchain/span"
 
 /// One recorded reference : a source span and the target it refers to

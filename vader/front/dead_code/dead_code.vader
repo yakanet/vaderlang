@@ -32,11 +32,11 @@ module "vader/front/dead_code"
 import "std/collections"
 import "std/iter"
 import "std/string"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/front/reach"
 import "vader/front/resolver"
 AST :: import "toolchain/ast"
-Parse :: import "vader/front/parser"
+Parse :: import "toolchain/parser"
 import "toolchain/span"
 
 // A private top-level declaration that may be dead: keyed for the final report.

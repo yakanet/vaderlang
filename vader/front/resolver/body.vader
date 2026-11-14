@@ -18,9 +18,9 @@ module "vader/front/resolver"
 
 import "std/abort"
 import "std/collections"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
-import "vader/front/parser"
+import "toolchain/parser"
 import "std/string"
 import "vader/core/symbol"
 import "vader/support/target"
@@ -606,7 +606,7 @@ check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
 is_contract_decorator :: fn(name: string) -> bool = name == "returns" || name == "ensures"
 
 // Whether `name` is a decorator this walk may meet : one a declaration or a
-// parameter carries (`vader/front/parser/decorators.vader`).
+// parameter carries (`toolchain/parser/decorators.vader`).
 is_known_decorator :: fn(name: string) -> bool = decorator_on(name, .Declaration) || decorator_on(name, .Parameter)
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {

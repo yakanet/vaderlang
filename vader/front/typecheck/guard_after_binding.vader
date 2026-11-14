@@ -11,8 +11,8 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 /// Warn on each binding of `stmts` that the guard right after it should be the
 /// `else` of.

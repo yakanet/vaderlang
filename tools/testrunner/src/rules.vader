@@ -14,11 +14,11 @@ import "std/io"
 import "std/iter"
 import "std/sort"
 import "std/string"
+import "toolchain/diagnostics"
 Effects :: import "vader/front/effects"
-import "vader/support/diagnostics"
 
 // What opens an error diagnostic in a dump, `error[T3001]`, as
-// `vader/support/diagnostics` renders one.
+// `toolchain/diagnostics` renders one.
 ERROR_OPENING :: "error["
 
 // The locals the `fusion_*` snippets bind a chain to, so that it runs lazily.

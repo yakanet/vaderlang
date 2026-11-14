@@ -10,7 +10,7 @@ module "vader/front/comptime"
 import "std/collections"
 import "vader/front/typecheck"
 import "vader/core/types"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 
 /// Dispatch a `@<name>(args)` call to the matching evaluator. Returns

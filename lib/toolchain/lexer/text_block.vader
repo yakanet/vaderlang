@@ -1,4 +1,4 @@
-// vader/front/lexer/text_block: the indentation a `"""` text block drops.
+// toolchain/lexer/text_block: the indentation a `"""` text block drops.
 //
 // A `"""` whose opening delimiter ends its line is a text block. Its lines lose
 // the indentation they all share, the closing delimiter's line included when the
@@ -14,7 +14,7 @@
 // starts in its part ; `strip_indentation` cuts the shared width from those
 // parts when the literal closes.
 
-module "vader/front/lexer"
+module "toolchain/lexer"
 
 import "std/string"
 import "std/string_builder"

@@ -22,7 +22,7 @@ import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 
 /// One resolver output entry per source module.
 ///

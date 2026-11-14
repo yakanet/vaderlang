@@ -7,9 +7,9 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 // ---- for loops ------------------------------------------------------------
 
@@ -293,7 +293,7 @@ several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | nu
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 
 @test
 test_for_in_array_narrows_binding :: fn() -> void {

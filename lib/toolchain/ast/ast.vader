@@ -27,7 +27,7 @@ import "toolchain/span"
 
 /// Sentinel `id` on a node the parser has just minted.
 ///
-/// Node ids are assigned in a later pass (`vader/front/parser::assign_program_ids`), which
+/// Node ids are assigned in a later pass (`toolchain/parser::assign_program_ids`), which
 /// replaces this with a fresh unique value (>= 1), so a freshly parsed tree carries
 /// the sentinel everywhere. A generator reading a typechecked tree sees real ids;
 /// one building nodes by hand leaves them at the default: it is every node's
@@ -1379,7 +1379,7 @@ export GenericInstExpr :: struct {
 /// A call to a compiler intrinsic: `@size_of(T)`, `@type_name(T)`.
 ///
 /// `name` is the intrinsic ident WITHOUT the leading `@`. The recognised set lives
-/// in `vader/front/parser/intrinsics.vader`, and the parser mints this node only for a
+/// in `toolchain/parser/intrinsics.vader`, and the parser mints this node only for a
 /// known name: an unknown `@name(...)` in expression position raises P1014.
 export IntrinsicCallExpr :: struct {
     span:      Span

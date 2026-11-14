@@ -10,9 +10,9 @@
 module "vader/front/effects"
 
 import "std/collections"
+import "toolchain/diagnostics"
 import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/support/diagnostics"
 
 /// The key of `deep_copy` among the intrinsics (`intrinsic_key`).
 DEEP_COPY_KEY :: "std/core.deep_copy"

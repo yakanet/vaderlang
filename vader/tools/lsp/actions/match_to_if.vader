@@ -27,7 +27,7 @@
 module "vader/tools/lsp/actions"
 
 AST :: import "toolchain/ast"
-Parse :: import "vader/front/parser"
+Parse :: import "toolchain/parser"
 import "toolchain/span"
 
 /// The match->if code action. Registered in `registry.vader::all_actions`.

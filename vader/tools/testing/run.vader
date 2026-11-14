@@ -10,11 +10,11 @@ module "vader/tools/testing"
 
 import "std/iter"
 import "std/time"
+import "toolchain/diagnostics"
 import "vader/emit/bytecode"
 import "vader/lower/dce"
 import "vader/lower/ir"
 import "vader/pipeline"
-import "vader/support/diagnostics"
 import "vader/vm"
 
 /// The tests of one entry, lowered: what a listing names, before anything is

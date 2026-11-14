@@ -5,9 +5,9 @@
 
 module "vader/front/typecheck"
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "toolchain/ast"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "std/collections"
 

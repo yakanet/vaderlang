@@ -23,9 +23,9 @@ import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 AST :: import "toolchain/ast"
-Parser :: import "vader/front/parser"
+Parser :: import "toolchain/parser"
 Rs :: import "vader/front/resolver"
-import "vader/front/lexer"
+import "toolchain/lexer"
 
 /// Build the completion response for the position in `params`. Returns a
 /// `CompletionList` (`{ isIncomplete, items }`): empty when the document was
@@ -266,7 +266,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     // Struct fields: look up the receiver type's fields in the project-wide
     // `struct_fields` table (keyed by the struct symbol's id), so a receiver
     // whose type is declared in an IMPORTED module (e.g. `lambda : AST.LambdaExpr`
-    // from `vader/front/parser`) resolves its fields too, not just entry-module structs.
+    // from `toolchain/parser`) resolves its fields too, not just entry-module structs.
     if recv_type is StructType {
         fields :: cached.result.typed.struct_fields[recv_type.symbol.id]
         if fields != null {

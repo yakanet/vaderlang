@@ -12,11 +12,11 @@ module "vader/pipeline/check"
 
 import "std/collections"
 import "std/iter"
+import "toolchain/diagnostics"
 import "vader/front/comptime"
 import "vader/front/dead_code"
 import "vader/front/resolver"
 import "vader/front/typecheck"
-import "vader/support/diagnostics"
 import "vader/support/target"
 
 Fx :: import "vader/front/effects"

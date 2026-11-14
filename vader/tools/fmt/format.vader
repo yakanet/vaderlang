@@ -3,8 +3,8 @@
 module "vader/tools/fmt"
 
 import "std/string"
-import "vader/front/parser"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
+import "toolchain/parser"
 
 /// Outcome of a `format_source` call : either the formatted output or the
 /// list of parser diagnostics that prevented formatting. Callers

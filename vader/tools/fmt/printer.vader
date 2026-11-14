@@ -2104,7 +2104,7 @@ fallback_operand_needs_parens :: fn(operand: p.FallbackExpr, parent_op: p.Binary
         || binary_precedence(parent_op) > binary_precedence(.Eq)
 
 // Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
-// `vader/front/parser/parser.vader::infix_for` (the only authority on what the
+// `toolchain/parser/parser.vader::infix_for` (the only authority on what the
 // parser accepts) : comparisons AND `is` / `in` / `!in` share one rank
 // (parser bp 20, non-associative). Rank 4 is reserved for ranges (parser bp
 // 30) and consulted by `range_operand_needs_parens`. Adding a `BinaryOp`

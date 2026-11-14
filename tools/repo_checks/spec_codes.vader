@@ -2,7 +2,7 @@
 // of the registry holds the codes of its own family.
 //
 // SPEC.md describes the language for a reader: which code a rule fires is
-// recorded in `vader/support/diagnostics/codes.vader` and pinned by the
+// recorded in `lib/toolchain/diagnostics/codes.vader` and pinned by the
 // fixtures and snapshots.
 
 module "tools/repo_checks"
@@ -10,7 +10,7 @@ module "tools/repo_checks"
 import "std/iter"
 import "std/string"
 
-REGISTRY :: "vader/support/diagnostics/codes.vader"
+REGISTRY :: "lib/toolchain/diagnostics/codes.vader"
 
 // What closes the header of an enum of the registry, `export LexerCode`
 // before it.

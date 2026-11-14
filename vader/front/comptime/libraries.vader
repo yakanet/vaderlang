@@ -13,10 +13,10 @@ import "std/collections"
 import "std/ffi"
 import "std/path"
 import "std/string"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/front/resolver"
 import "vader/front/typecheck"
-import "vader/support/diagnostics"
 
 /// Evaluate the library of every `@extern` the typecheck accepted a `CLibrary`
 /// for (`TypedProgram.extern_libraries`), into `project.libraries`.

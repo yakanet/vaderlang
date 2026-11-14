@@ -4,10 +4,10 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 // Record every impl of the project into the tables its modules share, each impl
 // once, by the module that declares it: the membership of every impl, then the

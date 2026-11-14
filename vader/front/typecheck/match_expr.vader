@@ -11,7 +11,7 @@
 
 module "vader/front/typecheck"
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/support/integer"
 import "vader/core/types"
 AST :: import "toolchain/ast"
@@ -855,7 +855,7 @@ is_constrained :: fn(p: AST.Pattern) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
 

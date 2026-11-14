@@ -18,7 +18,7 @@ import "std/string"
 import "vader/lower/ir"
 
 import "toolchain/ast"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/front/typecheck"
 import "vader/core/symbol"
 import "vader/core/types"

@@ -8,10 +8,10 @@
 module "vader/front/comptime"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/support/diagnostics"
 import "vader/support/integer"
 
 /// Evaluate a `BinaryExpr`. Recurses into the operands, the right one only

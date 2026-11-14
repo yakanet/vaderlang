@@ -42,7 +42,7 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     return out
 }
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 
 wire_module :: fn(
     loaded: LoadedModule, path_index: Map<string, string>,

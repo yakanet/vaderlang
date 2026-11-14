@@ -1,0 +1,82 @@
+// vader/tools/dump/tokens: render the tokens of a lexed file as text.
+//
+// This is the sole producer of the `lexer.snapshot` fixtures ; the output
+// format is stable so the snapshot suite can diff it against them. A kind's
+// name comes from `kind_name`, next to the enum it indexes in `toolchain/lexer`.
+
+module "vader/tools/dump"
+
+import "std/string"
+import "std/numbers"
+import "std/string_builder"
+import "toolchain/lexer"
+import "vader/support/text"
+
+/// Render the tokens of `l` one per line, as the `lexer.snapshot` fixtures hold them.
+export dump_tokens :: fn(l: LexedSource) -> string {
+    sb :: StringBuilder {}
+    sb.append("# Tokens")
+    for t in l.tokens {
+        sb.append_char('\n')
+        sb.format_token(t)
+    }
+    return sb.to_string()
+}
+
+format_token :: fn(sb: StringBuilder, t: Token) -> void {
+    span :: "${t.span.start.line}:${t.span.start.column}-${t.span.end.line}:${t.span.end.column}"
+    sb.append_char('[')
+    sb.append(span.pad_end(11, ' '))
+    sb.append("] ")
+    sb.append(kind_name(t.kind).pad_end(14, ' '))
+    sb.append_char(' ')
+    sb.append(quote_simple(t.text))
+    sb.append_token_detail(t)
+}
+
+append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
+    // The `_ -> "?"` arms below are defensive : the kind/value type pairing
+    // is contractually guaranteed by `lex_number` / `lex_char` / etc., but
+    // Vader's type system can't narrow the `value` union on `t.kind`, so
+    // the inner match must be exhaustive. `?` will never appear in practice.
+    match t.kind {
+        .IntLit -> {
+            sb.append(" =")
+            v :: t.value
+            match v {
+                is u64 -> { sb.append("${v}") }
+                _      -> { sb.append("?") }
+            }
+            sb.append_char('n')
+        }
+        .FloatLit -> {
+            sb.append(" =")
+            v :: t.value
+            match v {
+                is f64 -> { sb.append("${v}") }
+                _      -> { sb.append("?") }
+            }
+        }
+        .CharLit -> {
+            v :: t.value
+            match v {
+                is u32 -> {
+                    sb.append(" =U+")
+                    sb.append(u64(v).to_hex().pad_start(4, '0'))
+                }
+                _      -> { sb.append(" =U+????") }
+            }
+        }
+        .StringPart -> {
+            v :: t.value
+            match v {
+                is string -> {
+                    sb.append(" =")
+                    sb.append(quote_simple(v))
+                }
+                _ -> { }
+            }
+        }
+        _ -> { }
+    }
+}

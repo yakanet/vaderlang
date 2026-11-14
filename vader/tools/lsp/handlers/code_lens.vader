@@ -67,7 +67,7 @@ run_lens :: fn(span: Span, title: string, arguments: string[], li: LineIndex) ->
 
 import "std/string"
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 
 // The lenses of `src`, as `<line>:<title>:<arguments joined by space>`.
 lenses_of :: fn(src: string) -> string[] {

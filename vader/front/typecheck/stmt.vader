@@ -12,11 +12,11 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 /// Check every statement in `block`, then type the trailing expression
 /// (or `void` when none). Writes the block's type into `expr_types`.
@@ -343,7 +343,7 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 
 // ---- tests ----------------------------------------------------------------
 
-import "vader/front/parser"
+import "toolchain/parser"
 
 // A source checked as the pipeline checks a module : its declarations, then
 // every body. Both `typed` and `diags`, so a test can assert on either. The

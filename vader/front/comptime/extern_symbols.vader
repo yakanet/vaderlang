@@ -15,9 +15,9 @@ module "vader/front/comptime"
 import "std/collections"
 import "std/ffi"
 import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 // Report each C symbol two `@extern` declarations of the project claim (C4020),
 // unless both declarations name a header, and each variadic `@extern` that names

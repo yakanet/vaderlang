@@ -11,7 +11,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
 AST :: import "toolchain/ast"
 

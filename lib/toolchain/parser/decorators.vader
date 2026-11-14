@@ -1,4 +1,4 @@
-// vader/front/parser/decorators: registry of the decorators the compiler knows.
+// toolchain/parser/decorators: registry of the decorators the compiler knows.
 //
 // One table for every `@name` a declaration, a parameter, a struct field or a
 // `match` may carry, and where. The parser reads it for a field's and a
@@ -6,7 +6,7 @@
 // does not hold), the typecheck for a parameter's, and the LSP hover shows an
 // entry's usage and text. SPEC §12 is the reference each `doc` summarises.
 
-module "vader/front/parser"
+module "toolchain/parser"
 
 import "std/collections"
 

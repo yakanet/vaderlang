@@ -8,8 +8,8 @@
 
 module "vader/front/typecheck"
 
+import "toolchain/diagnostics"
 import "vader/core/types"
-import "vader/support/diagnostics"
 import "vader/support/integer"
 // `display_type` and `is_numeric` live in sibling files of this module and are
 // referenced directly (a re-import would trip R2026 duplicate-declaration).

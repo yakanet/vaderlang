@@ -1,10 +1,10 @@
-// vader/front/parser/intrinsics: registry of compiler-built `@name(...)` calls.
+// toolchain/parser/intrinsics: registry of compiler-built `@name(...)` calls.
 //
 // Used by the parser to decide whether `@name(...)` in expression
 // position lowers to an `IntrinsicCallExpr` or surfaces P1014 (unknown
 // decorator placement).
 
-module "vader/front/parser"
+module "toolchain/parser"
 
 /// What an intrinsic does with one of its arguments.
 export IntrinsicArgKind :: enum(u8) {

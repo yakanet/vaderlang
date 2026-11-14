@@ -4,10 +4,10 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/types"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 // Coherence key for an `impl` : `(receiver type, trait, trait-args)`. Keyed on
 // `canonical_key`, so distinct types never collide (it carries struct/enum

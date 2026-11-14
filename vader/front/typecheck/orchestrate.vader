@@ -14,10 +14,10 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 /// Multi-module typecheck. Types the entry module fully, then
 /// types each directly-imported module *just enough* to harvest

@@ -24,7 +24,7 @@ import "std/collections"
 import "std/iter"
 import "std/math"
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 

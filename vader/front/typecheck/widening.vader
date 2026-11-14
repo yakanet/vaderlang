@@ -9,9 +9,9 @@
 
 module "vader/front/typecheck"
 
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 /// How many arrays deep `from` fits `to` only by widening an element: 1 for
 /// `Circle[]` into `(Circle | null)[]`, or into `Shape[]` when `Circle implements

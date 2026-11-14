@@ -3,9 +3,9 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/types"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 // ---- member checks --------------------------------------------------------
 

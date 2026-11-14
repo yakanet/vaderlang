@@ -9,10 +9,10 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
     ann: Type | null = null
@@ -292,7 +292,7 @@ path_name :: fn(e: AST.Expr, fallback: string) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 
 @test
 test_let_simple_binding_records_local_type :: fn() -> void {

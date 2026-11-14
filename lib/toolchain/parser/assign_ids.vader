@@ -1,4 +1,4 @@
-// vader/front/parser/assign_ids: post-parse walker assigning unique IDs.
+// toolchain/parser/assign_ids: post-parse walker assigning unique IDs.
 //
 // Every AST node declares `id: i64 = UNASSIGNED_NODE_ID` so downstream
 // passes can key side-tables (`expr_types`, `expr_kinds`, ...) on a stable
@@ -8,7 +8,7 @@
 // `LetBinding`, `ImportBinding`, `StringLitPart`, etc. explicitly: a node kind
 // it does not visit keeps `UNASSIGNED_NODE_ID`.
 
-module "vader/front/parser"
+module "toolchain/parser"
 
 /// Mints a unique `i64` id per call. One factory serves the whole project
 /// (`load_project_with_overlay`), and what `materialize.vader` synthesises

@@ -147,7 +147,7 @@ is_reached :: fn(d: AST.Decl, reachable: Set<string>, private_types: Set<string>
 import "std/iter"
 import "std/string"
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 
 // What is left of the one-file module `source`: the names it declares, an impl
 // as `Type:Trait`.

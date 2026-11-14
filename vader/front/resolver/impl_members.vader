@@ -12,8 +12,8 @@ module "vader/front/resolver"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/symbol"
-import "vader/support/diagnostics"
 
 /// Fill every impl of `project` with the members its trait implies, before the
 /// resolver walks a body: the stubs of an `@intrinsic` impl, the method a short

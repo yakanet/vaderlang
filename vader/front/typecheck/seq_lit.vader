@@ -16,7 +16,7 @@ module "vader/front/typecheck"
 
 import "std/math"
 import "std/iter"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/core/types"
 AST :: import "toolchain/ast"
 
@@ -241,7 +241,7 @@ pick_seq_variant :: fn(u: UnionType, arity: i64) -> Type | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "toolchain/span"

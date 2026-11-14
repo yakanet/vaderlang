@@ -15,7 +15,7 @@
 
 module "vader/front/typecheck"
 
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -1657,7 +1657,7 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 
 import "std/collections"
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 import "vader/front/resolver"
 import "toolchain/span"
 

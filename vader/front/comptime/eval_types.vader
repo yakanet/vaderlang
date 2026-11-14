@@ -4,7 +4,7 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "vader/core/symbol"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/front/typecheck"
 import "toolchain/span"
 

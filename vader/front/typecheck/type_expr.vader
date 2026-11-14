@@ -23,7 +23,7 @@ module "vader/front/typecheck"
 
 import "std/collections"
 import "std/math"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 import "vader/support/integer"
 import "vader/front/resolver"
 import "vader/core/symbol"
@@ -561,7 +561,7 @@ is_type_operand :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/parser"
 import "toolchain/span"
 
 resolve_test_module :: fn(src: string) -> ResolvedModule {

@@ -10,6 +10,7 @@ module "vader/tools/dump"
 
 import "std/collections"
 import "toolchain/ast"
+import "toolchain/diagnostics"
 import "vader/core/bytecode"
 import "vader/emit/bytecode"
 import "vader/emit/c"
@@ -22,7 +23,6 @@ import "vader/midir"
 import "vader/midir/pipeline"
 import "vader/midir/ranges"
 import "vader/pipeline"
-import "vader/support/diagnostics"
 import "vader/support/text"
 
 // The lowered tree of the modules in scope, then the diagnostics.

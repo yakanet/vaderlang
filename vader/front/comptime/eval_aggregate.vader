@@ -14,7 +14,7 @@ import "toolchain/span"
 import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 
 /// Evaluate one of the forms only an evaluation reaching the project reads;

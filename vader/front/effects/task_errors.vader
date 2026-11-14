@@ -6,7 +6,7 @@
 module "vader/front/effects"
 
 import "std/iter"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 
 /// The T3128 to T3134 errors of a checked project: each value two tasks race on,
 /// or a task and the code that launched it.

@@ -16,8 +16,8 @@ module "vader/tools/dump"
 import "std/fs"
 import "std/io"
 import "std/path"
+import "toolchain/diagnostics"
 import "vader/pipeline"
-import "vader/support/diagnostics"
 import "vader/support/target"
 
 /// The entry and the options a dump stage reads, as `vader dump` takes them.

@@ -6,9 +6,9 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/types"
-import "vader/support/diagnostics"
 
 // ---- return and yield -----------------------------------------------------
 

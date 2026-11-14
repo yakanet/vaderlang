@@ -2,7 +2,7 @@
 // etc. typing.
 //
 // Each intrinsic's static return type comes from
-// `vader/front/parser/intrinsics::intrinsic_spec(name).result`. The result
+// `toolchain/parser/intrinsics::intrinsic_spec(name).result`. The result
 // string is one of "i64", "bool", "string", "type", "field_array",
 // "type_array" (`type_for_result`) : a primitive, `type`, `type[]`, or
 // `std/core`'s `Field[]`. `@field` and `@min` / `@max` take theirs from their
@@ -10,8 +10,8 @@
 
 module "vader/front/typecheck"
 
-import "vader/support/diagnostics"
-import "vader/front/parser"
+import "toolchain/diagnostics"
+import "toolchain/parser"
 import "vader/core/symbol"
 import "vader/core/types"
 AST :: import "toolchain/ast"

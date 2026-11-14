@@ -257,9 +257,9 @@ site_position :: fn(span: Span) -> string =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/parser"
+import "toolchain/diagnostics"
+import "toolchain/parser"
 import "vader/front/resolver"
-import "vader/support/diagnostics"
 
 // A single typed module, always in scope (its own display path).
 dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> string {

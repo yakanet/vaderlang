@@ -17,7 +17,7 @@ import "tools/cli_tests/cli"
 
 // A library module of the namespace `name` that imports the compiler.
 importing_the_compiler :: fn(name: string) -> string =
-    "module \"${name}\"\n\nimport \"vader/front/lexer\"\n\nexport peek :: fn() -> i32 = 1\n"
+    "module \"${name}\"\n\nimport \"vader/pipeline\"\n\nexport peek :: fn() -> i32 = 1\n"
 
 // ---- tests ----------------------------------------------------------------
 
@@ -26,7 +26,7 @@ import "std/testing"
 @test
 test_a_shipped_library_cannot_import_the_compiler :: fn() -> void {
     // R2034 is checked before the module is looked for: it fires whether or not
-    // `vader/front/lexer` resolves from here, the rule being about the attempt.
+    // `vader/pipeline` resolves from here, the rule being about the attempt.
     dir :: staged_library_root(
         "library_imports",
         "r2034probe",

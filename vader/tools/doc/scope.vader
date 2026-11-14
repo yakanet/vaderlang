@@ -16,7 +16,7 @@ import "std/path"
 import "std/sort"
 import "vader/front/resolver"
 import "vader/pipeline"
-import "vader/support/diagnostics"
+import "toolchain/diagnostics"
 Tc :: import "vader/front/typecheck"
 
 /// Find the module folders under `path`.

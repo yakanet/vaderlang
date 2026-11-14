@@ -10,9 +10,9 @@ module "vader/tools/doc"
 import "std/collections"
 import "std/string"
 TTY :: import "std/tty"
+Lex :: import "toolchain/lexer"
 import "toolchain/span"
 Ty :: import "vader/core/types"
-Lex :: import "vader/front/lexer"
 
 // What a piece of text is, for its colour. Each is a role: two roles may share
 // a colour today and part later.
