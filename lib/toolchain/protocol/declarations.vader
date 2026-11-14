@@ -1,15 +1,24 @@
 // toolchain/protocol/declarations: the declarations of a module, on the wire.
 //
 // `vader` hands a driver the declarations of each module as the front end left
-// them (ADR 0145). Their surface crosses, opened a little at a time. Today: the
-// name, spans and visibility of every declaration but the constants and the
-// build-time assertions; the fields of a struct; the parameters and result of a
-// function; the repr of an enum; what a trait requires; the trait and target of
-// an impl; the type an alias with type parameters names (one without is a
-// constant to the parser); the path and binding of an import; every type as
-// written. Not yet: a body, a default, a decorator, a doc comment, type
-// parameters, enum variants, trait and impl members. The node read back holds
-// none of them.
+// them (ADR 0145). Their surface crosses, opened a little at a time. Today:
+//
+// - the name, spans and visibility of every declaration but the constants and
+//   the build-time assertions;
+// - type parameters, with their bound and default type;
+// - the fields of a struct, the parameters and result of a function;
+// - the repr of an enum and its variants, with the value written for one;
+// - what a trait requires, the trait and target of an impl;
+// - the members a trait or an impl writes, as functions, never one the compiler
+//   declares for an impl from its trait;
+// - the type an alias with type parameters names (one without is a constant to
+//   the parser);
+// - the path and binding of an import;
+// - every type as written.
+//
+// Not yet: a body (a trait member's default included), a default value, the
+// data of a variant, a decorator, a doc comment. The node read back holds none
+// of them.
 //
 // The layout is the frames' own (`frames.vader`): fields after their length,
 // integers as decimal fields, lists as a count then their items. A declaration
@@ -74,16 +83,14 @@ write_decl :: fn(w: DeclWriter, d: AST.Decl) -> void {
     }
 }
 
-// What a named declaration opens with.
+// What a named declaration opens with, past its tag.
 write_head :: fn(
     w: DeclWriter,
-    tag: string,
     span: Span,
     name: string,
     name_span: Span,
     visibility: AST.Visibility,
 ) -> void {
-    w.out.write_field(tag)
     w.write_span(span)
     w.out.write_field(name)
     w.write_span(name_span)
@@ -91,7 +98,9 @@ write_head :: fn(
 }
 
 write_struct :: fn(w: DeclWriter, d: AST.StructDecl) -> void {
-    w.write_head("struct", d.span, d.name, d.name_span, d.visibility)
+    w.out.write_field("struct")
+    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_type_params(d.type_params)
     w.out.write_integer(d.fields.len())
     for f in d.fields {
         w.write_span(f.span)
@@ -102,7 +111,15 @@ write_struct :: fn(w: DeclWriter, d: AST.StructDecl) -> void {
 }
 
 write_fn :: fn(w: DeclWriter, d: AST.FnDecl) -> void {
-    w.write_head("fn", d.span, d.name, d.name_span, d.visibility)
+    w.out.write_field("fn")
+    w.write_function(d)
+}
+
+// A function past its tag: a member is one, with no tag since only a function
+// is.
+write_function :: fn(w: DeclWriter, d: AST.FnDecl) -> void {
+    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_type_params(d.type_params)
     w.write_span(d.params_span)
     w.out.write_integer(d.params.len())
     for p in d.params {
@@ -116,27 +133,62 @@ write_fn :: fn(w: DeclWriter, d: AST.FnDecl) -> void {
 }
 
 write_enum :: fn(w: DeclWriter, d: AST.EnumDecl) -> void {
-    w.write_head("enum", d.span, d.name, d.name_span, d.visibility)
+    w.out.write_field("enum")
+    w.write_head(d.span, d.name, d.name_span, d.visibility)
     w.write_types(d.header)
+    w.out.write_integer(d.variants.len())
+    for v in d.variants {
+        w.write_span(v.span)
+        w.out.write_field(v.name)
+        w.out.write_optional_integer(v.value)
+        w.write_optional_span(v.value_span)
+    }
 }
 
 write_trait :: fn(w: DeclWriter, d: AST.TraitDecl) -> void {
-    w.write_head("trait", d.span, d.name, d.name_span, d.visibility)
+    w.out.write_field("trait")
+    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_type_params(d.type_params)
     w.write_optional_type(d.requires)
+    w.write_members(d.members)
 }
 
 write_impl :: fn(w: DeclWriter, d: AST.ImplDecl) -> void {
     w.out.write_field("impl")
     w.write_span(d.span)
+    w.write_type_params(d.type_params)
     w.out.write_field(d.trait_name)
     w.write_span(d.trait_name_span)
     w.write_types(d.trait_args)
     w.write_type(d.for_type)
+    w.write_members(d.members)
+}
+
+// A member the compiler declared for an impl from its trait (`materialized`)
+// does not cross: nothing of it sits in the user's source.
+write_members :: fn(w: DeclWriter, members: AST.FnDecl[]) -> void {
+    written :: members.filter((m: AST.FnDecl) -> !m.materialized).collect()
+    w.out.write_integer(written.len())
+    for m in written {
+        w.write_function(m)
+    }
 }
 
 write_alias :: fn(w: DeclWriter, d: AST.TypeAliasDecl) -> void {
-    w.write_head("alias", d.span, d.name, d.name_span, d.visibility)
+    w.out.write_field("alias")
+    w.write_head(d.span, d.name, d.name_span, d.visibility)
+    w.write_type_params(d.type_params)
     w.write_type(d.aliased)
+}
+
+write_type_params :: fn(w: DeclWriter, params: AST.TypeParam[]) -> void {
+    w.out.write_integer(params.len())
+    for p in params {
+        w.write_span(p.span)
+        w.out.write_field(p.name)
+        w.write_optional_type(p.bound)
+        w.write_optional_type(p.default)
+    }
 }
 
 write_import :: fn(w: DeclWriter, d: AST.ImportDecl) -> void {
@@ -254,6 +306,13 @@ write_span :: fn(w: DeclWriter, span: Span) -> void {
     w.out.write_place(span.end)
 }
 
+write_optional_span :: fn(w: DeclWriter, span: Span | null) -> void {
+    w.out.write_flag(span != null)
+    if span != null {
+        w.write_span(span)
+    }
+}
+
 // ---- reading --------------------------------------------------------------
 
 /// The declarations `encode_declarations` wrote.
@@ -325,6 +384,7 @@ read_head :: fn(d: DeclReader) -> Head | ProtocolError {
 
 read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
     head :: d.read_head() else return head
+    type_params :: d.read_type_params() else return type_params
     count :: d.fields.read_count() else return count
     fields: AST.StructField[]: []
     for _ in 0..<count {
@@ -347,7 +407,7 @@ read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
         .name = head.name,
         .name_span = head.name_span,
         .visibility = head.visibility,
-        .type_params = [],
+        .type_params = type_params,
         .fields = fields,
         .decorators = [],
     }
@@ -355,6 +415,7 @@ read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
 
 read_fn :: fn(d: DeclReader) -> AST.FnDecl | ProtocolError {
     head :: d.read_head() else return head
+    type_params :: d.read_type_params() else return type_params
     params_span :: d.read_span() else return params_span
     count :: d.fields.read_count() else return count
     params: AST.FnParam[]: []
@@ -386,7 +447,7 @@ read_fn :: fn(d: DeclReader) -> AST.FnDecl | ProtocolError {
         .name = head.name,
         .name_span = head.name_span,
         .visibility = head.visibility,
-        .type_params = [],
+        .type_params = type_params,
         .params = params,
         .params_span = params_span,
         .return_type = return_type,
@@ -401,64 +462,123 @@ read_fn :: fn(d: DeclReader) -> AST.FnDecl | ProtocolError {
 read_enum :: fn(d: DeclReader) -> AST.EnumDecl | ProtocolError {
     head :: d.read_head() else return head
     header :: d.read_types() else return header
+    count :: d.fields.read_count() else return count
+    variants: AST.EnumVariant[]: []
+    for _ in 0..<count {
+        span :: d.read_span() else return span
+        name :: d.fields.read_field() else return name
+        value :: d.fields.read_optional_integer() else is ProtocolError {
+            return value
+        }
+        value_span :: d.read_optional_span() else is ProtocolError {
+            return value_span
+        }
+        variants.push(
+            AST.EnumVariant {
+                .span = span,
+                .name = name,
+                .value = value,
+                .value_span = value_span,
+            },
+        )
+    }
     return AST.EnumDecl {
         .span = head.span,
         .name = head.name,
         .name_span = head.name_span,
         .visibility = head.visibility,
         .header = header,
-        .variants = [],
+        .variants = variants,
         .decorators = [],
     }
 }
 
 read_trait :: fn(d: DeclReader) -> AST.TraitDecl | ProtocolError {
     head :: d.read_head() else return head
+    type_params :: d.read_type_params() else return type_params
     requires :: d.read_optional_type() else is ProtocolError {
         return requires
     }
+    members :: d.read_members() else return members
     return AST.TraitDecl {
         .span = head.span,
         .name = head.name,
         .name_span = head.name_span,
         .visibility = head.visibility,
-        .type_params = [],
+        .type_params = type_params,
         .requires = requires,
-        .members = [],
+        .members = members,
         .decorators = [],
     }
 }
 
 read_impl :: fn(d: DeclReader) -> AST.ImplDecl | ProtocolError {
     span :: d.read_span() else return span
+    type_params :: d.read_type_params() else return type_params
     trait_name :: d.fields.read_field() else return trait_name
     trait_name_span :: d.read_span() else return trait_name_span
     trait_args :: d.read_types() else return trait_args
     for_type :: d.read_type() else return for_type
+    members :: d.read_members() else return members
     return AST.ImplDecl {
         .span = span,
-        .type_params = [],
+        .type_params = type_params,
         .for_type = for_type,
         .trait_name = trait_name,
         .trait_name_span = trait_name_span,
         .trait_args = trait_args,
-        .members = [],
+        .members = members,
         .decorators = [],
     }
 }
 
+read_members :: fn(d: DeclReader) -> AST.FnDecl[] | ProtocolError {
+    count :: d.fields.read_count() else return count
+    members: AST.FnDecl[]: []
+    for _ in 0..<count {
+        member :: d.read_fn() else return member
+        members.push(member)
+    }
+    return members
+}
+
 read_alias :: fn(d: DeclReader) -> AST.TypeAliasDecl | ProtocolError {
     head :: d.read_head() else return head
+    type_params :: d.read_type_params() else return type_params
     aliased :: d.read_type() else return aliased
     return AST.TypeAliasDecl {
         .span = head.span,
         .name = head.name,
         .name_span = head.name_span,
         .visibility = head.visibility,
-        .type_params = [],
+        .type_params = type_params,
         .aliased = aliased,
         .decorators = [],
     }
+}
+
+read_type_params :: fn(d: DeclReader) -> AST.TypeParam[] | ProtocolError {
+    count :: d.fields.read_count() else return count
+    params: AST.TypeParam[]: []
+    for _ in 0..<count {
+        span :: d.read_span() else return span
+        name :: d.fields.read_field() else return name
+        bound :: d.read_optional_type() else is ProtocolError {
+            return bound
+        }
+        default_type :: d.read_optional_type() else is ProtocolError {
+            return default_type
+        }
+        params.push(
+            AST.TypeParam {
+                .span = span,
+                .name = name,
+                .bound = bound,
+                .default = default_type,
+            },
+        )
+    }
+    return params
 }
 
 read_import :: fn(d: DeclReader) -> AST.ImportDecl | ProtocolError {
@@ -647,6 +767,14 @@ read_span :: fn(d: DeclReader) -> Span | ProtocolError {
     return Span { .start = start, .end = end }
 }
 
+read_optional_span :: fn(d: DeclReader) -> Span | null | ProtocolError {
+    present :: d.fields.read_flag() else return present
+    if !present {
+        return null
+    }
+    return d.read_span()
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/abort"
@@ -674,10 +802,11 @@ SAMPLE :: """
 
     export area :: fn(p: Point, scale: f64) -> f64 = 0.0
 
-    Colour :: enum(u8) { Red, Green }
+    Colour :: enum(u8) { Red, Green = 4 }
 
     Shape :: trait {
         area :: fn(self) -> f64
+        describe :: fn(self) -> string = "a shape"
     }
 
     Point implements Shape {
@@ -685,6 +814,16 @@ SAMPLE :: """
     }
 
     Pair<T> :: [T, T]
+
+    Box :: struct<T: Shape = Point> {
+        item: T
+    }
+
+    first :: fn<T>(items: T[]) -> T | null = null
+
+    Box<T> implements<T: Shape> Shape {
+        area :: fn(self) -> f64 = 2.0
+    }
 
     LIMIT :: 10
 
@@ -705,16 +844,16 @@ crossed_sample :: fn() -> AST.Decl[] {
 @test
 test_declarations_read_back_as_written :: fn() -> void {
     decls :: crossed_sample()
-    assert_eq(decls.len(), 9)
+    assert_eq(decls.len(), 12)
     assert_eq(encode_declarations(decls), encode_declarations(crossing_sample()))
 }
 
 @test
 test_constants_and_assertions_do_not_cross_yet :: fn() -> void {
     decls :: sample_declarations()
-    assert_eq(decls.len(), 11)
-    assert(!crosses(decls[9]), "`LIMIT`")
-    assert(!crosses(decls[10]), "the `@assert`")
+    assert_eq(decls.len(), 14)
+    assert(!crosses(decls[12]), "`LIMIT`")
+    assert(!crosses(decls[13]), "the `@assert`")
 }
 
 @test
@@ -749,6 +888,87 @@ test_a_function_keeps_its_signature_and_loses_its_body :: fn() -> void {
     assert_eq(area.params[1].name, "scale")
     assert(area.return_type != null, "`-> f64`")
     assert(area.body == null, "a body does not cross")
+}
+
+@test
+test_type_parameters_keep_their_bound_and_default :: fn() -> void {
+    box :: crossed_sample()[9]
+    if box !is AST.StructDecl {
+        assert(false, "the tenth declaration is `Box`")
+        return
+    }
+    assert_eq(box.type_params.len(), 1)
+    assert_eq(box.type_params[0].name, "T")
+    assert(box.type_params[0].bound is AST.IdentExpr, "`: Shape`")
+    assert(box.type_params[0].default is AST.IdentExpr, "`= Point`")
+}
+
+@test
+test_a_function_keeps_its_type_parameters :: fn() -> void {
+    first :: crossed_sample()[10]
+    if first !is AST.FnDecl {
+        assert(false, "the eleventh declaration is `first`")
+        return
+    }
+    assert_eq(first.type_params.len(), 1)
+    assert(first.type_params[0].bound == null, "`T` is unbounded")
+}
+
+@test
+test_a_trait_keeps_its_members_without_their_defaults :: fn() -> void {
+    shape :: crossed_sample()[6]
+    if shape !is AST.TraitDecl {
+        assert(false, "the seventh declaration is `Shape`")
+        return
+    }
+    assert_eq(shape.members.len(), 2)
+    assert_eq(shape.members[1].name, "describe")
+    assert(shape.members[1].return_type != null, "`-> string`")
+    assert(shape.members[1].body == null, "a default body does not cross")
+}
+
+@test
+test_an_impl_keeps_its_type_parameters_and_members :: fn() -> void {
+    impl :: crossed_sample()[11]
+    if impl !is AST.ImplDecl {
+        assert(false, "the twelfth declaration is the impl for `Box`")
+        return
+    }
+    assert_eq(impl.type_params.len(), 1)
+    assert(impl.type_params[0].bound is AST.IdentExpr, "`<T: Shape>`")
+    assert_eq(impl.members.len(), 1)
+    assert_eq(impl.members[0].name, "area")
+}
+
+@test
+test_a_member_the_compiler_declared_does_not_cross :: fn() -> void {
+    impl :: crossing_sample()[11]
+    if impl !is AST.ImplDecl {
+        assert(false, "the twelfth declaration is the impl for `Box`")
+        return
+    }
+    impl.members[0].materialized = true
+    crossed :: decode_declarations(encode_declarations([impl]))
+        else panic("the impl does not read back: ${crossed.msg}")
+    read :: crossed[0]
+    if read !is AST.ImplDecl {
+        assert(false, "an impl reads back as one")
+        return
+    }
+    assert_eq(read.members.len(), 0)
+}
+
+@test
+test_an_enum_keeps_its_variants_and_their_values :: fn() -> void {
+    colour :: crossed_sample()[5]
+    if colour !is AST.EnumDecl {
+        assert(false, "the sixth declaration is `Colour`")
+        return
+    }
+    assert_eq(colour.variants.len(), 2)
+    assert(colour.variants[0].value == null, "`Red` takes the next value")
+    assert_eq(colour.variants[1].name, "Green")
+    assert_eq(colour.variants[1].value else -1, 4)
 }
 
 @test

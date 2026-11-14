@@ -248,6 +248,13 @@ write_optional_field :: fn(out: StringBuilder, text: string | null) -> void {
     }
 }
 
+write_optional_integer :: fn(out: StringBuilder, value: i64 | null) -> void {
+    out.write_flag(value != null)
+    if value != null {
+        out.write_integer(value)
+    }
+}
+
 // ---- reading --------------------------------------------------------------
 
 /// Read a frame `vader` sent.
@@ -459,6 +466,14 @@ read_optional_field :: fn(r: FieldReader) -> string | null | ProtocolError {
         return null
     }
     return r.read_field()
+}
+
+read_optional_integer :: fn(r: FieldReader) -> i64 | null | ProtocolError {
+    present :: r.read_flag() else return present
+    if !present {
+        return null
+    }
+    return r.read_integer()
 }
 
 past_last_field :: fn(r: FieldReader) -> ProtocolError = ProtocolError {

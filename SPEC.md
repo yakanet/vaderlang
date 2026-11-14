@@ -3238,7 +3238,7 @@ A driver reaches its build through `toolchain/build`, and names AST types throug
 
 Builds run one at a time: draining the `messages()` of another context ends the build a driver left before its end.
 
-A driver receives the surface of each declaration: its name, spans and visibility, the fields of a struct, the parameters and result of a function, and the types as written. It does not receive bodies, constants, assertions, decorators, doc comments, type parameters, enum variants, or the members of traits and impls.
+A driver receives the surface of each declaration: its name, spans and visibility, its type parameters, the fields of a struct, the parameters and result of a function, the variants of an enum, the members a trait or an impl writes, and the types as written. It does not receive bodies (a trait member's default included), default values, the data of a variant, constants, assertions, decorators, or doc comments.
 
 #### Plugins
 
