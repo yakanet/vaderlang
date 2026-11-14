@@ -1,0 +1,291 @@
+// toolchain/protocol/stream: frames on a stream.
+//
+// A frame is a header, then the payload it announces (`frames.vader`):
+//
+// ```
+// \u{1e}vader:<n>\n<n bytes>
+// ```
+//
+// `vader` writes its frames on the stdin of the driver, which carries nothing
+// else: the driver reads the header line, then the `n` bytes (`frame_length`).
+// The driver writes its own on its stdout, which also carries what the
+// project's code prints, and which `vader` relays to the user. A frame starts
+// at its marker wherever it falls, after a `print` that left its line open
+// too, and every byte outside a frame is output (`scan_output`). Output that
+// holds the marker itself breaks the build.
+
+module "toolchain/protocol"
+
+import "std/numbers"
+import "std/string"
+import "std/string_builder"
+
+// Opens every frame: a record separator, which text output does not hold, then
+// a name, so a stray separator stays output.
+FRAME_MARKER :: "\u{1e}vader:"
+
+RECORD_SEPARATOR :: '\u{1e}'
+
+MAX_LENGTH_DIGITS :: 12
+
+// ---- writing --------------------------------------------------------------
+
+/// A frame `vader` sends, as it goes on the driver's stdin.
+///
+/// @param frame  the event to send.
+export encode_server_frame :: fn(frame: ServerFrame) -> string = framed(server_payload(frame))
+
+/// A frame a driver sends, as it goes on its stdout.
+///
+/// @param frame  the request to send.
+export encode_driver_frame :: fn(frame: DriverFrame) -> string = framed(driver_payload(frame))
+
+framed :: fn(payload: string) -> string = "${FRAME_MARKER}${payload.byte_len()}\n${payload}"
+
+// ---- reading the driver's stdin -------------------------------------------
+
+/// How many bytes of payload follow the header of a frame.
+///
+/// @param header  the header line, without its newline: what `read_line` gives.
+/// @error         `ProtocolError` when the line is no header.
+export frame_length :: fn(header: string) -> i64 | ProtocolError {
+    if !header.starts_with(FRAME_MARKER) {
+        return ProtocolError { .msg = "expected a frame, got `${header}`" }
+    }
+    digits :: header.byte_slice(FRAME_MARKER.byte_len(), header.byte_len())
+    if digits.byte_len() > MAX_LENGTH_DIGITS {
+        return ProtocolError { .msg = "a frame announces ${digits.byte_len()} digits of length" }
+    }
+    length :: parse_int_in_base(digits, 10) else return ProtocolError {
+        .msg = "a frame announces `${digits}` bytes",
+    }
+    return length
+}
+
+// ---- reading the driver's stdout ------------------------------------------
+
+/// Takes the frames out of a driver's stdout, chunk by chunk, and hands back
+/// the rest: what the driver printed.
+export OutputScanner :: struct {
+    /// The end of the output so far, when it may start a frame or holds part of
+    /// one, in the pieces it came in.
+    @internal
+    pending: StringBuilder = StringBuilder {}
+    /// How many bytes `pending` holds.
+    @internal
+    held: i64 = 0
+    /// How many bytes the frame `pending` opens takes, once its header is
+    /// whole: until they are all there, a chunk is only kept.
+    @internal
+    awaited: i64 = 0
+}
+
+/// What a chunk of a driver's stdout held.
+export ScannedOutput :: struct {
+    /// What the driver printed, to relay as it is.
+    printed: string
+    /// The frames the chunk completed, in order.
+    frames: DriverFrame[]
+}
+
+/// Take the frames a chunk of a driver's stdout completes.
+///
+/// A frame may span chunks: the part one chunk holds waits in `scanner` for the
+/// next. So does a chunk's end that may open a frame, a lone record separator
+/// included.
+///
+/// @param scanner  the scanner of this driver's stdout.
+/// @param chunk    the bytes `read_output` gave.
+/// @return         what the driver printed, and the frames it sent.
+/// @error          `ProtocolError` on a malformed frame.
+export scan_output :: fn(scanner: OutputScanner, chunk: u8[]) -> ScannedOutput | ProtocolError {
+    scanner.pending.append(chunk.bytes_to_string())
+    scanner.held += chunk.len()
+    if scanner.held < scanner.awaited {
+        return ScannedOutput { .printed = "", .frames = [] }
+    }
+    text :: scanner.take_pending()
+    printed :: StringBuilder {}
+    frames: DriverFrame[]: []
+    at: i64 = 0
+    for at < text.byte_len() {
+        start :: text.index_of(RECORD_SEPARATOR, at) else {
+            printed.append(text.byte_slice(at, text.byte_len()))
+            break
+        }
+        printed.append(text.byte_slice(at, start))
+        if opens_marker(text, start) {
+            scanner.keep(text, start, 0)
+            break
+        }
+        if !text.matches_at(start, FRAME_MARKER) {
+            printed.append_char(RECORD_SEPARATOR)
+            at = start + 1
+            continue
+        }
+        bounds :: frame_bounds(text, start) else is null {
+            scanner.keep(text, start, 0)
+            break
+        } else {
+            return bounds
+        }
+        if bounds.end > text.byte_len() {
+            scanner.keep(text, start, bounds.end - start)
+            break
+        }
+        frame :: decode_driver_frame(text.byte_slice(bounds.payload_start, bounds.end))
+            else return frame
+        frames.push(frame)
+        at = bounds.end
+    }
+    return ScannedOutput { .printed = printed.to_string(), .frames = frames }
+}
+
+/// What a driver's stdout still holds once the driver ended.
+///
+/// @param scanner  the scanner of this driver's stdout.
+/// @return         what `scan_output` kept waiting: the end of the output.
+/// @error          `ProtocolError` when it is a frame the driver did not finish.
+export end_output :: fn(scanner: OutputScanner) -> string | ProtocolError {
+    rest :: scanner.take_pending()
+    if rest.starts_with(FRAME_MARKER) {
+        return ProtocolError { .msg = "the driver's output ends inside a frame" }
+    }
+    return rest
+}
+
+take_pending :: fn(scanner: OutputScanner) -> string {
+    text :: scanner.pending.to_string()
+    scanner.pending = StringBuilder {}
+    scanner.held = 0
+    scanner.awaited = 0
+    return text
+}
+
+// Keep the end of `text` from `start` for the next chunk; `awaited` is the
+// length of the frame it opens, 0 while its header is cut.
+keep :: fn(scanner: OutputScanner, text: string, start: i64, awaited: i64) -> void {
+    rest :: text.byte_slice(start, text.byte_len())
+    scanner.pending.append(rest)
+    scanner.held = rest.byte_len()
+    scanner.awaited = awaited
+}
+
+// Whether `text` ends at `start` with the beginning of a marker, cut short.
+opens_marker :: fn(text: string, start: i64) -> bool {
+    tail :: text.byte_len() - start
+    return tail < FRAME_MARKER.byte_len()
+        && FRAME_MARKER.starts_with(text.byte_slice(start, text.byte_len()))
+}
+
+// Where the frame whose marker is at `start` in `text` holds its payload, which
+// may run past `text`.
+FrameBounds :: struct {
+    payload_start: i64
+    end: i64
+}
+
+// Null when `text` ends inside the header.
+frame_bounds :: fn(text: string, start: i64) -> FrameBounds | ProtocolError | null {
+    digits_start :: start + FRAME_MARKER.byte_len()
+    newline :: text.index_of('\n', digits_start) else {
+        if text.byte_len() - digits_start <= MAX_LENGTH_DIGITS {
+            return null
+        }
+        return ProtocolError { .msg = "a frame header has no end" }
+    }
+    length :: frame_length(text.byte_slice(start, newline)) else return length
+    return FrameBounds { .payload_start = newline + 1, .end = newline + 1 + length }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+@test
+test_scan_output_takes_a_frame_out_of_what_the_driver_printed :: fn() -> void {
+    scanner :: OutputScanner {}
+    chunk :: "building\n${encode_driver_frame(NextFrame {})}done\n"
+    scanned :: scanner.scan_output(chunk.bytes()) else panic("${scanned.msg}")
+    assert_eq(scanned.printed, "building\ndone\n")
+    assert_eq(scanned.frames.len(), 1)
+    assert(scanned.frames[0] is NextFrame, "the frame is `next`")
+}
+
+@test
+test_scan_output_finds_a_frame_after_an_open_line :: fn() -> void {
+    scanner :: OutputScanner {}
+    chunk :: "50%${encode_driver_frame(StopFrame {})}"
+    scanned :: scanner.scan_output(chunk.bytes()) else panic("${scanned.msg}")
+    assert_eq(scanned.printed, "50%")
+    assert(scanned.frames[0] is StopFrame, "the frame is `stop`")
+}
+
+@test
+test_scan_output_takes_frames_split_at_every_byte :: fn() -> void {
+    emitted :: EmitModuleFrame { .name = "gen", .source = "x :: \"é\"\n" }
+    stream :: "a${encode_driver_frame(emitted)}b${encode_driver_frame(NextFrame {})}".bytes()
+    scanner :: OutputScanner {}
+    printed :: StringBuilder {}
+    frames: DriverFrame[]: []
+    for i in 0..<stream.len() {
+        scanned :: scanner.scan_output(stream[i..<i + 1]) else panic("${scanned.msg}")
+        printed.append(scanned.printed)
+        frames.push_all(scanned.frames)
+    }
+    assert_eq(printed.to_string(), "ab")
+    assert_eq(frames.len(), 2)
+    first :: frames[0]
+    assert(first is EmitModuleFrame && first.source == emitted.source, "the module comes whole")
+    assert(frames[1] is NextFrame, "then `next`")
+}
+
+@test
+test_scan_output_relays_a_stray_record_separator :: fn() -> void {
+    scanner :: OutputScanner {}
+    scanned :: scanner.scan_output("a\u{1e}b".bytes()) else panic("${scanned.msg}")
+    assert_eq(scanned.printed, "a\u{1e}b")
+    assert_eq(scanned.frames.len(), 0)
+}
+
+@test
+test_end_output_relays_a_marker_the_output_ended_in :: fn() -> void {
+    scanner :: OutputScanner {}
+    scanned :: scanner.scan_output("tail\u{1e}vad".bytes()) else panic("${scanned.msg}")
+    assert_eq(scanned.printed, "tail")
+    assert_eq(scanner.end_output() else "refused", "\u{1e}vad")
+}
+
+@test
+test_end_output_refuses_a_frame_the_driver_did_not_finish :: fn() -> void {
+    framed_text :: encode_driver_frame(EmitModuleFrame { .name = "gen", .source = "x :: 1" })
+    scanner :: OutputScanner {}
+    cut :: framed_text.byte_slice(0, framed_text.byte_len() - 2)
+    scanned :: scanner.scan_output(cut.bytes()) else panic("${scanned.msg}")
+    assert_eq(scanned.frames.len(), 0)
+    assert(scanner.end_output() is ProtocolError, "the frame is cut")
+}
+
+@test
+test_scan_output_refuses_a_malformed_header :: fn() -> void {
+    scanner :: OutputScanner {}
+    assert(scanner.scan_output("\u{1e}vader:x\n".bytes()) is ProtocolError, "no length")
+}
+
+@test
+test_frame_length_reads_the_header_line_of_a_server_frame :: fn() -> void {
+    framed_text :: encode_server_frame(PhaseFrame { .phase = 2 })
+    newline :: framed_text.index_of('\n') else panic("a frame has a header line")
+    length :: frame_length(framed_text.byte_slice(0, newline)) else panic("${length.msg}")
+    payload :: framed_text.byte_slice(newline + 1, framed_text.byte_len())
+    assert_eq(length, payload.byte_len())
+    received :: decode_server_frame(payload)
+    assert(received is PhaseFrame && received.phase == 2, "the frame reads back")
+}
+
+@test
+test_frame_length_refuses_a_line_that_is_no_header :: fn() -> void {
+    assert(frame_length("hello") is ProtocolError, "no marker")
+    assert(frame_length("\u{1e}vader:1234567890123") is ProtocolError, "too many digits")
+}

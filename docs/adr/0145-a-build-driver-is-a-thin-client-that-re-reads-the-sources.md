@@ -2,9 +2,10 @@
 
 ## Status
 
-Accepted (2026-11-14). Its first step, the parser moving to `lib/toolchain`,
-is in place; the protocol and the thin driver come next. What a driver is
-handed, the AST as written or as the front end elaborated it, is still open.
+Accepted (2026-11-14). Its first steps, the parser moving to `lib/toolchain`
+and the protocol (`toolchain/protocol`), are in place; the thin driver comes
+next. What a driver is handed, the AST as written or as the front end
+elaborated it, is still open.
 
 ## Context
 
@@ -52,6 +53,19 @@ outside the pipeline.
   from cold in 0.40 s (1.4 MB of C, 20 units). A round trip over a pipe costs
   30 microseconds either way, but a line-framed channel reads one byte per
   system call: 1 MB takes 280 ms against 0.47 ms with a length prefix.
+- **A frame opens with a marker, searched anywhere in the driver's output.**
+  `vader` writes on the driver's stdin, which carries nothing else. The driver
+  writes on its stdout, which also carries what the project prints and what
+  `vader` relays to the user: a record separator then `vader:` opens a frame
+  even after a `print` that left its line open, which a marker at the start of
+  a line would miss. A payload is a list of strings and decimal integers, each
+  after its length in bytes, written by hand: no JSON while no tree crosses.
+- **Both ends come from the same `lib/toolchain`.** `vader` hashes its sources
+  (SHA-256, 6 ms for 500 KB), writes the digest into the driver it compiles,
+  and the driver sends it back in its first frame; a driver whose digest
+  differs is compiled again. Hashing on disk keeps the hash out of the
+  driver; it cannot see a `vader` older than its `lib/toolchain`, which ship
+  together.
 
 ## Consequences
 

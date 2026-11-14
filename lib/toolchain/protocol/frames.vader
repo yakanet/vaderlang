@@ -1,0 +1,513 @@
+// toolchain/protocol/frames: what a build driver and `vader` say to each other.
+//
+// A project's `build.vader` runs as a process of its own, a client of the
+// `vader` that launched it (ADR 0145). `vader` keeps the pipeline: it sends the
+// driver each event `messages()` yields, a `ServerFrame`, then reads the
+// driver's requests, `DriverFrame`s, until a `NextFrame` lets the pipeline go
+// on or a `StopFrame` ends the drain. The driver opens with a
+// `ConfigureFrame`, on its first pull.
+//
+// A frame holds strings and integers only, a `Span` included. Its payload is a
+// sequence of fields, each written as its length in bytes, a colon, then the
+// bytes; the first field names the frame:
+//
+// ```
+// 11:emit_module3:gen6:x :: 1
+// ```
+//
+// An integer is a field of decimal digits; a list is a field holding its
+// count, then its items. `stream.vader` puts a payload on a stream and takes
+// it back off.
+//
+// Both ends are compiled from the same sources: the driver sends the
+// fingerprint of `lib/toolchain` it was compiled from, and `vader` rebuilds a
+// driver whose fingerprint is not its own. The layout needs no version.
+
+module "toolchain/protocol"
+
+import "std/numbers"
+import "std/string"
+import "std/string_builder"
+import "toolchain/span"
+
+// ---- frames ---------------------------------------------------------------
+
+/// What `vader` sends a driver: the events of the pipeline.
+export ServerFrame :: TypecheckedFrame | PhaseFrame | CompleteFrame
+
+/// What a driver sends `vader`: its configuration, then its requests.
+export DriverFrame :: ConfigureFrame | EmitModuleFrame | ReportFrame | NextFrame | StopFrame
+
+/// A module passed type checking.
+export TypecheckedFrame :: struct {
+    module_name: string
+    /// The files of the module the driver has not received yet, which it
+    /// parses again: a module a round generated into comes back with the
+    /// generated file alone.
+    files: ModuleFile[]
+}
+
+/// A source file, as the loader read it.
+export ModuleFile :: struct {
+    path: string
+    text: string
+}
+
+/// The pipeline reached a phase.
+export PhaseFrame :: struct {
+    /// The rank of the phase in `Phase`, of `toolchain/build`.
+    phase: i32
+}
+
+/// The pipeline ended.
+export CompleteFrame :: struct {
+    /// The exit code of the build, 0 when it succeeded.
+    code: i32
+}
+
+/// The configuration of the driver, sent on its first pull of `messages()`.
+export ConfigureFrame :: struct {
+    /// The fingerprint of `lib/toolchain` the driver was compiled from.
+    fingerprint: string
+    /// In the order the driver added them.
+    entries: ConfiguredEntry[]
+    include_paths: string[]
+    assets: string[]
+    /// The rank of the target in `BuildTarget`, of `toolchain/build`.
+    target: i32
+    cc: string
+    ldflags: string
+}
+
+/// An entry of the build: what its binary is called, and the file it starts
+/// from.
+export ConfiguredEntry :: struct {
+    name: string
+    path: string
+}
+
+/// A module the driver generates, which `vader` writes at `BeforeEmit`.
+export EmitModuleFrame :: struct {
+    name: string
+    source: string
+}
+
+/// A diagnostic of the driver.
+export ReportFrame :: struct {
+    /// The id of the `HookCode` the diagnostic carries (`H6004`).
+    code: string
+    span: Span
+    detail: string
+}
+
+/// Let the pipeline go on to its next event.
+export NextFrame :: struct {}
+
+/// The driver pulls no more events: its loop ended before the stream did.
+export StopFrame :: struct {}
+
+/// A frame that does not read: a malformed or truncated stream, or a frame the
+/// reader does not expect.
+export ProtocolError :: struct {
+    msg: string
+}
+
+ProtocolError implements Error {
+    message :: fn(self) -> string = self.msg
+}
+
+// ---- writing --------------------------------------------------------------
+
+server_payload :: fn(frame: ServerFrame) -> string {
+    out :: StringBuilder {}
+    match frame {
+        is TypecheckedFrame -> {
+            out.write_field("typechecked")
+            out.write_field(frame.module_name)
+            out.write_integer(frame.files.len())
+            for f in frame.files {
+                out.write_field(f.path)
+                out.write_field(f.text)
+            }
+        }
+        is PhaseFrame       -> {
+            out.write_field("phase")
+            out.write_integer(frame.phase)
+        }
+        is CompleteFrame    -> {
+            out.write_field("complete")
+            out.write_integer(frame.code)
+        }
+    }
+    return out.to_string()
+}
+
+driver_payload :: fn(frame: DriverFrame) -> string {
+    out :: StringBuilder {}
+    match frame {
+        is ConfigureFrame  -> {
+            out.write_field("configure")
+            out.write_field(frame.fingerprint)
+            out.write_integer(frame.entries.len())
+            for e in frame.entries {
+                out.write_field(e.name)
+                out.write_field(e.path)
+            }
+            out.write_strings(frame.include_paths)
+            out.write_strings(frame.assets)
+            out.write_integer(frame.target)
+            out.write_field(frame.cc)
+            out.write_field(frame.ldflags)
+        }
+        is EmitModuleFrame -> {
+            out.write_field("emit_module")
+            out.write_field(frame.name)
+            out.write_field(frame.source)
+        }
+        is ReportFrame     -> {
+            out.write_field("report")
+            out.write_field(frame.code)
+            out.write_span(frame.span)
+            out.write_field(frame.detail)
+        }
+        is NextFrame       -> out.write_field("next")
+        is StopFrame       -> out.write_field("stop")
+    }
+    return out.to_string()
+}
+
+write_field :: fn(out: StringBuilder, text: string) -> void {
+    out.append("${text.byte_len()}:")
+    out.append(text)
+}
+
+write_integer :: fn(out: StringBuilder, value: i64) -> void = out.write_field("${value}")
+
+write_strings :: fn(out: StringBuilder, texts: string[]) -> void {
+    out.write_integer(texts.len())
+    for t in texts {
+        out.write_field(t)
+    }
+}
+
+write_span :: fn(out: StringBuilder, span: Span) -> void {
+    out.write_position(span.start)
+    out.write_position(span.end)
+}
+
+write_position :: fn(out: StringBuilder, p: Position) -> void {
+    out.write_field(p.file)
+    out.write_integer(p.offset)
+    out.write_integer(p.line)
+    out.write_integer(p.column)
+}
+
+// ---- reading --------------------------------------------------------------
+
+/// Read a frame `vader` sent.
+///
+/// @param payload  the bytes the header of the frame announced.
+/// @error          `ProtocolError` when they hold no frame `vader` sends.
+export decode_server_frame :: fn(payload: string) -> ServerFrame | ProtocolError {
+    r :: FieldReader { .payload = payload }
+    kind :: r.read_field() else return kind
+    frame :: read_server_frame(r, kind) else return frame
+    if r.at < payload.byte_len() {
+        return past_last_field(r)
+    }
+    return frame
+}
+
+/// Read a frame a driver sent.
+///
+/// @param payload  the bytes the header of the frame announced.
+/// @error          `ProtocolError` when they hold no frame a driver sends.
+export decode_driver_frame :: fn(payload: string) -> DriverFrame | ProtocolError {
+    r :: FieldReader { .payload = payload }
+    kind :: r.read_field() else return kind
+    frame :: read_driver_frame(r, kind) else return frame
+    if r.at < payload.byte_len() {
+        return past_last_field(r)
+    }
+    return frame
+}
+
+read_server_frame :: fn(r: FieldReader, kind: string) -> ServerFrame | ProtocolError = match kind {
+    "typechecked" -> read_typechecked(r)
+    "phase"       -> read_phase(r)
+    "complete"    -> read_complete(r)
+    _             -> ProtocolError { .msg = "`${kind}` is no frame `vader` sends" }
+}
+
+read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolError = match kind {
+    "configure"   -> read_configure(r)
+    "emit_module" -> read_emit_module(r)
+    "report"      -> read_report(r)
+    "next"        -> NextFrame {}
+    "stop"        -> StopFrame {}
+    _             -> ProtocolError { .msg = "`${kind}` is no frame a driver sends" }
+}
+
+read_typechecked :: fn(r: FieldReader) -> TypecheckedFrame | ProtocolError {
+    module_name :: r.read_field() else return module_name
+    count :: r.read_count() else return count
+    files: ModuleFile[]: []
+    for _ in 0..<count {
+        path :: r.read_field() else return path
+        text :: r.read_field() else return text
+        files.push(ModuleFile { .path = path, .text = text })
+    }
+    return TypecheckedFrame { .module_name = module_name, .files = files }
+}
+
+read_phase :: fn(r: FieldReader) -> PhaseFrame | ProtocolError {
+    phase :: r.read_i32() else return phase
+    return PhaseFrame { .phase = phase }
+}
+
+read_complete :: fn(r: FieldReader) -> CompleteFrame | ProtocolError {
+    code :: r.read_i32() else return code
+    return CompleteFrame { .code = code }
+}
+
+read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
+    fingerprint :: r.read_field() else return fingerprint
+    count :: r.read_count() else return count
+    entries: ConfiguredEntry[]: []
+    for _ in 0..<count {
+        name :: r.read_field() else return name
+        path :: r.read_field() else return path
+        entries.push(ConfiguredEntry { .name = name, .path = path })
+    }
+    include_paths :: r.read_strings() else return include_paths
+    assets :: r.read_strings() else return assets
+    target :: r.read_i32() else return target
+    cc :: r.read_field() else return cc
+    ldflags :: r.read_field() else return ldflags
+    return ConfigureFrame {
+        .fingerprint = fingerprint,
+        .entries = entries,
+        .include_paths = include_paths,
+        .assets = assets,
+        .target = target,
+        .cc = cc,
+        .ldflags = ldflags,
+    }
+}
+
+read_emit_module :: fn(r: FieldReader) -> EmitModuleFrame | ProtocolError {
+    name :: r.read_field() else return name
+    source :: r.read_field() else return source
+    return EmitModuleFrame { .name = name, .source = source }
+}
+
+read_report :: fn(r: FieldReader) -> ReportFrame | ProtocolError {
+    code :: r.read_field() else return code
+    span :: r.read_span() else return span
+    detail :: r.read_field() else return detail
+    return ReportFrame {
+        .code = code,
+        .span = span,
+        .detail = detail,
+    }
+}
+
+FieldReader :: struct {
+    payload: string
+    /// The byte offset of the next field.
+    at: i64 = 0
+}
+
+read_field :: fn(r: FieldReader) -> string | ProtocolError {
+    colon :: r.payload.index_of(':', r.at) else return ProtocolError {
+        .msg = "a field at byte ${r.at} has no length",
+    }
+    length :: parse_int_in_base(r.payload.byte_slice(r.at, colon), 10) else return ProtocolError {
+        .msg = "a field at byte ${r.at} has no length",
+    }
+    start :: colon + 1
+    end :: start + length
+    if end > r.payload.byte_len() {
+        return ProtocolError { .msg = "a field at byte ${r.at} runs past the end of the frame" }
+    }
+    r.at = end
+    return r.payload.byte_slice(start, end)
+}
+
+read_integer :: fn(r: FieldReader) -> i64 | ProtocolError {
+    field :: r.read_field() else return field
+    digits :: field.trim_prefix("-")
+    magnitude :: parse_int_in_base(digits, 10) else return ProtocolError {
+        .msg = "`${field}` is no integer",
+    }
+    if digits.byte_len() < field.byte_len() {
+        return -magnitude
+    }
+    return magnitude
+}
+
+read_i32 :: fn(r: FieldReader) -> i32 | ProtocolError {
+    value :: r.read_integer() else return value
+    if value < @min(i32) || value > @max(i32) {
+        return ProtocolError { .msg = "${value} does not fit an `i32`" }
+    }
+    return i32(value)
+}
+
+read_count :: fn(r: FieldReader) -> i64 | ProtocolError {
+    count :: r.read_integer() else return count
+    if count < 0 {
+        return ProtocolError { .msg = "a list holds ${count} items" }
+    }
+    return count
+}
+
+read_strings :: fn(r: FieldReader) -> string[] | ProtocolError {
+    count :: r.read_count() else return count
+    texts: string[]: []
+    for _ in 0..<count {
+        text :: r.read_field() else return text
+        texts.push(text)
+    }
+    return texts
+}
+
+read_span :: fn(r: FieldReader) -> Span | ProtocolError {
+    start :: r.read_position() else return start
+    end :: r.read_position() else return end
+    return Span { .start = start, .end = end }
+}
+
+read_position :: fn(r: FieldReader) -> Position | ProtocolError {
+    file :: r.read_field() else return file
+    offset :: r.read_integer() else return offset
+    line :: r.read_i32() else return line
+    column :: r.read_i32() else return column
+    return Position {
+        .file = file,
+        .offset = offset,
+        .line = line,
+        .column = column,
+    }
+}
+
+past_last_field :: fn(r: FieldReader) -> ProtocolError = ProtocolError {
+    .msg = "the frame goes on past its last field, at byte ${r.at}",
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_driver_payload_writes_each_field_after_its_length :: fn() -> void {
+    frame :: EmitModuleFrame { .name = "gen", .source = "x :: 1" }
+    assert_eq(driver_payload(frame), "11:emit_module3:gen6:x :: 1")
+    assert_eq(driver_payload(NextFrame {}), "4:next")
+}
+
+@test
+test_typechecked_frame_round_trips :: fn() -> void {
+    sent :: TypecheckedFrame {
+        .module_name = "app",
+        .files = [
+            ModuleFile { .path = "src/a.vader", .text = "module \"app\"\n\nx :: \"é: 12:\"\n" },
+            ModuleFile { .path = "src/b.vader", .text = "" },
+        ],
+    }
+    received :: decode_server_frame(server_payload(sent))
+    if received !is TypecheckedFrame {
+        assert(false, "a typechecked frame reads back as one")
+        return
+    }
+    assert_eq(received.module_name, "app")
+    assert_eq(received.files.len(), 2)
+    assert_eq(received.files[0].path, "src/a.vader")
+    assert_eq(received.files[0].text, sent.files[0].text)
+    assert_eq(received.files[1].text, "")
+}
+
+@test
+test_phase_and_complete_frames_round_trip :: fn() -> void {
+    phase :: decode_server_frame(server_payload(PhaseFrame { .phase = 3 }))
+    assert(phase is PhaseFrame && phase.phase == 3, "the phase reads back")
+    complete :: decode_server_frame(server_payload(CompleteFrame { .code = -1 }))
+    assert(complete is CompleteFrame && complete.code == -1, "a negative code reads back")
+}
+
+@test
+test_configure_frame_round_trips :: fn() -> void {
+    sent :: ConfigureFrame {
+        .fingerprint = "9f86d081",
+        .entries = [ConfiguredEntry { .name = "app", .path = "src/main.vader" }],
+        .include_paths = [r"$VADER_HOME/third_party", "vendor"],
+        .assets = [],
+        .target = 1,
+        .cc = "clang",
+        .ldflags = "-lm -lpthread",
+    }
+    received :: decode_driver_frame(driver_payload(sent))
+    if received !is ConfigureFrame {
+        assert(false, "a configure frame reads back as one")
+        return
+    }
+    assert_eq(received.fingerprint, "9f86d081")
+    assert_eq(received.entries.len(), 1)
+    assert_eq(received.entries[0].name, "app")
+    assert_eq(received.entries[0].path, "src/main.vader")
+    assert_eq(received.include_paths.join(","), r"$VADER_HOME/third_party,vendor")
+    assert_eq(received.assets.len(), 0)
+    assert_eq(received.target, 1)
+    assert_eq(received.cc, "clang")
+    assert_eq(received.ldflags, "-lm -lpthread")
+}
+
+@test
+test_report_frame_round_trips :: fn() -> void {
+    span :: Span {
+        .start = Position { .file = "src/main.vader", .offset = 40, .line = 3, .column = 1 },
+        .end = Position { .file = "src/main.vader", .offset = 47, .line = 3, .column = 8 },
+    }
+    sent :: ReportFrame {
+        .code = "H6004",
+        .span = span,
+        .detail = "`main` is missing a doc",
+    }
+    received :: decode_driver_frame(driver_payload(sent))
+    if received !is ReportFrame {
+        assert(false, "a report frame reads back as one")
+        return
+    }
+    assert_eq(received.code, "H6004")
+    assert_eq(received.span.start.offset, 40)
+    assert_eq(received.span.end.file, "src/main.vader")
+    assert_eq(received.span.end.column, 8)
+    assert_eq(received.detail, "`main` is missing a doc")
+}
+
+@test
+test_next_and_stop_frames_round_trip :: fn() -> void {
+    assert(decode_driver_frame(driver_payload(NextFrame {})) is NextFrame, "next reads back")
+    assert(decode_driver_frame(driver_payload(StopFrame {})) is StopFrame, "stop reads back")
+}
+
+@test
+test_decode_refuses_a_frame_of_the_other_side :: fn() -> void {
+    assert(decode_server_frame("4:next") is ProtocolError, "`vader` sends no `next`")
+    assert(decode_driver_frame("5:phase1:3") is ProtocolError, "a driver sends no `phase`")
+}
+
+@test
+test_decode_refuses_a_field_past_the_end :: fn() -> void {
+    assert(decode_driver_frame("11:emit_module3:gen9:x") is ProtocolError, "the source is cut")
+}
+
+@test
+test_decode_refuses_bytes_past_the_last_field :: fn() -> void {
+    assert(decode_driver_frame("4:next1:x") is ProtocolError, "nothing follows `next`")
+}
+
+@test
+test_decode_refuses_a_field_with_no_length :: fn() -> void {
+    assert(decode_driver_frame("next") is ProtocolError, "a field starts with its length")
+}

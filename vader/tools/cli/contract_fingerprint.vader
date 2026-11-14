@@ -1,0 +1,111 @@
+// vader/tools/cli/contract_fingerprint: the sources a build driver is compiled
+// from.
+//
+// A driver parses the files `vader` sends it with the parser of
+// `lib/toolchain`, as `vader` does (ADR 0145): both must come from the same
+// sources, or a syntax one of them reads the other refuses. `vader` writes the
+// fingerprint of those sources into the driver it compiles, the driver sends it
+// back in its `ConfigureFrame` (`toolchain/protocol`), and a driver whose
+// fingerprint is not that of `vader`'s library is compiled again.
+
+module "vader/tools/cli"
+
+import "crypto"
+import "std/fs"
+import "std/io"
+import "std/string"
+import "std/string_builder"
+import "vader/front/resolver"
+
+/// The fingerprint of the build contract under `library`: a SHA-256 over every
+/// `.vader` file of its `toolchain/`, the file's path under that folder and its
+/// text.
+///
+/// @param library  the folder holding `toolchain/`: the toolchain's `lib/`.
+/// @return         64 hex digits, the same for the same files.
+/// @error          `IOError` when a file or a folder of `toolchain/` cannot be
+///                 read.
+export contract_fingerprint :: fn(library: string) -> string | IOError {
+    tree :: walk(join_path(library, "toolchain")) else return tree
+    // Each part after its length, so no two trees hash the same bytes.
+    hashed :: StringBuilder {}
+    for entry in tree {
+        if entry.kind == .File && entry.name.ends_with(".vader") {
+            text :: read_file_string(entry.path) else return text
+            hashed.append("${entry.relative.byte_len()}:")
+            hashed.append(entry.relative)
+            hashed.append("${text.byte_len()}:")
+            hashed.append(text)
+        }
+    }
+    if tree.errors.len() > 0 {
+        return tree.errors[0]
+    }
+    return sha256(hashed.to_string())
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/env"
+import "std/testing"
+
+// A library whose `toolchain/` holds two sources and a file that is none.
+fixture_library :: fn() -> string {
+    library :: create_unique_dir(temp_dir(), "contract.") else panic("${library.msg}")
+    toolchain :: join_path(library, "toolchain")
+    create_dir(toolchain)
+    create_dir(join_path(toolchain, "parser"))
+    write_file(join_path(toolchain, "span.vader"), "module \"toolchain/span\"\n")
+    write_file(join_path(toolchain, "parser/parser.vader"), "module \"toolchain/parser\"\n")
+    write_file(join_path(toolchain, "README.md"), "# toolchain\n")
+    return library
+}
+
+fingerprint_of :: fn(library: string) -> string =
+    contract_fingerprint(library) else panic("${library}: no fingerprint")
+
+@test
+test_contract_fingerprint_is_the_same_for_the_same_sources :: fn() -> void {
+    first :: fixture_library()
+    defer remove(first, RemoveOptions { .recursive = true })
+    second :: fixture_library()
+    defer remove(second, RemoveOptions { .recursive = true })
+    assert_eq(fingerprint_of(first), fingerprint_of(second))
+    assert_eq(fingerprint_of(first).byte_len(), 64)
+}
+
+@test
+test_contract_fingerprint_follows_the_text_of_a_source :: fn() -> void {
+    library :: fixture_library()
+    defer remove(library, RemoveOptions { .recursive = true })
+    before :: fingerprint_of(library)
+    write_file(join_path(library, "toolchain/parser/parser.vader"), "module \"toolchain/lexer\"\n")
+    assert_ne(fingerprint_of(library), before)
+}
+
+@test
+test_contract_fingerprint_follows_the_path_of_a_source :: fn() -> void {
+    library :: fixture_library()
+    defer remove(library, RemoveOptions { .recursive = true })
+    before :: fingerprint_of(library)
+    toolchain :: join_path(library, "toolchain")
+    rename(join_path(toolchain, "span.vader"), join_path(toolchain, "spans.vader"))
+    assert_ne(fingerprint_of(library), before)
+}
+
+@test
+test_contract_fingerprint_reads_only_the_sources :: fn() -> void {
+    library :: fixture_library()
+    defer remove(library, RemoveOptions { .recursive = true })
+    before :: fingerprint_of(library)
+    write_file(join_path(library, "toolchain/README.md"), "# the build contract\n")
+    assert_eq(fingerprint_of(library), before)
+}
+
+@test
+test_contract_fingerprint_refuses_a_library_with_no_toolchain :: fn() -> void {
+    library :: create_unique_dir(temp_dir(), "contract.") else panic("${library.msg}")
+    defer remove(library, RemoveOptions { .recursive = true })
+    assert(contract_fingerprint(library) is IOError, "no `toolchain/` to read")
+}
