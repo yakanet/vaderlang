@@ -15,28 +15,25 @@
 //     }
 //
 // This file is the CONTRACT: what a driver fills in, and what it reads back.
-// Draining the stream is `drive.vader`; queueing generated modules is
-// `generate.vader`; what a driver plugs into its build is `plugin.vader`.
-// `vader` runs the build itself (`vader/build_server`).
-// They share this module, so nothing crosses a boundary.
+// Draining the stream is `drive.vader`; the link to the build `link.vader`;
+// queueing generated modules is `generate.vader`; what a driver plugs into its
+// build is `plugin.vader`.
+//
+// `vader` runs the build (ADR 0145): the driver is a process of its own, which
+// `vader` starts and talks to over its standard streams (`toolchain/protocol`).
+// Nothing here imports the compiler, so a driver compiles from `lib/` alone.
 //
 // `build` is a reserved name in `build.vader`, the way `main` is in a program:
-// no decorator is involved. The driver is compiled and run NATIVELY, not through
-// the comptime VM: it reads the compiler's own AST nodes, and the VM has its own
-// value representation (per-module type indices and atom ids), which no shared
-// layout can reconcile.
+// no decorator is involved.
 
 module "toolchain/build"
 
-import "toolchain/diagnostics"
 import "std/console"
 import "std/path"
+import "toolchain/diagnostics"
 import "toolchain/project"
-import "vader/pipeline"
-import "vader/front/resolver"
-import "toolchain/span"
 Protocol :: import "toolchain/protocol"
-import "vader/build_server"
+import "toolchain/span"
 
 // ---- context --------------------------------------------------------------
 
@@ -60,11 +57,9 @@ export BuildContext :: struct {
     /// folder when it starts with `$VADER_HOME`, searched after the project
     /// folder. Left empty by `new_build_context`.
     include_paths:  string[]
-    /// What the command asked, read from `args` or handed over in process:
-    /// the binaries go to `build/<profile>-<target>/<name>` under
-    /// `project_root`, or to `--out`.
+    /// What the command running the driver asks of it, read from `args`.
     @internal
-    request:        DriverRequest = DriverRequest {}
+    asked_mode:     DriverMode = .Build
     /// C compiler for the link step.
     cc:             string
     /// Raw linker flags, whitespace-split and appended verbatim.
@@ -108,9 +103,12 @@ export BuildContext :: struct {
     @internal
     plugins:        BuildPlugin[] = []
     /// The build the last `messages()` opened, which takes what the driver does
-    /// until the driver's exit stops it.
+    /// until it is stopped: by another build opening, or the driver's exit.
     @internal
-    link:           InProcessLink | null = null
+    link:           ServerLink | null = null
+    /// Where `messages()` opens its build: the driver's own pipe to `vader`.
+    @internal
+    server:         ServerLink = PipeLink {}
 }
 
 /// Build a context carrying the defaults a driver would otherwise restate.
@@ -118,48 +116,39 @@ export BuildContext :: struct {
 /// The project root comes from `args`, not from the process working directory:
 /// the stdlib exposes no `cwd()` (`std/env` has only `get_env`, and the C runtime
 /// no `getcwd`), so threading it is the only way a driver can know where it is.
-/// The compiler passes the root it resolved in the request; invoked bare, the
-/// root is left empty rather than guessed.
+/// `vader` passes the root it resolved; started bare, the driver leaves the root
+/// empty rather than guessed.
 ///
-/// @param args  the driver's argv, as the compiler passes it: the request
-///              `parse_driver_request` reads. A driver invoked by hand may supply
-///              less; each missing part falls back, the whole to a debug build of
-///              every entry.
+/// @param args  the driver's argv, as `vader` passes it (`read_launch`). A
+///              driver started by hand may carry less; each missing part falls
+///              back, the whole to a build.
 /// @return      a context with `project_root` set (empty when `args` carried
 ///              none), no entry and no include paths. Returned MUTABLE: the whole
 ///              contract is that the driver fills it in.
 export new_build_context :: fn(args: string[]) -> BuildContext {
-    request :: parse_driver_request(args)
-    // The driver runs from its project's `build/driver/<profile>/`: probing beside
-    // itself, the loader would miss the toolchain the CLI names, its `lib/`,
-    // its C runtime and a `$VADER_HOME/...` root included. Empty when the driver
-    // was run by hand, which leaves that probe as it is.
-    register_toolchain_root(request.toolchain_root)
-    ctx :: new_build_context_from(request)
-    driver_contexts().contexts.push(ctx)
+    launch :: Protocol.read_launch(args)
+    ctx :: BuildContext {
+        .project_root = launch.project_root,
+        .include_paths = [],
+        .asked_mode = launch.mode,
+        .cc = launch.cc,
+        .ldflags = launch.ldflags,
+        .target = .Native,
+    }
+    driver_process().contexts.push(ctx)
     return ctx
 }
 
-// The contexts of this driver process, so its exit prints what each one still
-// holds (`finish_driver`). Only `new_build_context` registers: the CLI builds a
-// `vader.json` project in its own process, which may be a long-lived server.
-DriverContexts :: struct {
+// This driver process: the contexts it made, whose builds its exit stops
+// (`run_driver`), and the fingerprint of the `lib/toolchain` it was compiled
+// from.
+DriverProcess :: struct {
     contexts: BuildContext[] = []
+    fingerprint: string = ""
 }
 
 @singleton
-driver_contexts :: fn() -> DriverContexts = DriverContexts {}
-
-// A context for a request already in hand, which `new_build_context` reads from
-// `args`.
-new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildContext {
-    .project_root   = request.build.project_root else "",
-    .include_paths  = [],
-    .request        = request,
-    .cc             = cc_or_default(request.build.cc),
-    .ldflags        = request.build.ldflags,
-    .target         = .Native,
-}
+driver_process :: fn() -> DriverProcess = DriverProcess {}
 
 /// What the command running the driver asks of it. Only `.Build` writes
 /// outputs: `vader check` (`.Check`), `run`, `dump`, `lint` and `graph`
@@ -168,7 +157,7 @@ new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildCont
 /// after the build, installing or packaging, checks `ctx.mode() == .Build`.
 ///
 /// @param ctx  the context the driver configured.
-export mode :: fn(ctx: BuildContext) -> DriverMode = ctx.request.mode
+export mode :: fn(ctx: BuildContext) -> DriverMode = ctx.asked_mode
 
 /// What a drained `messages()` leaves behind: the `BuildTarget` of
 /// `toolchain/protocol`, which a driver sends.
@@ -179,7 +168,7 @@ export BuildTarget :: Protocol.BuildTarget
 // line is unknown (it is a behaviour, not a statement) but the faulty FILE never
 // is, and `empty_span` would render as `<synthetic>`, naming nothing.
 driver_span :: fn(ctx: BuildContext) -> Span =
-    file_head_span(join_path(ctx.project_root, ctx.description_file))
+    file_head_span(Path(ctx.project_root).join(ctx.description_file).as_string())
 
 // ---- configuration --------------------------------------------------------
 
@@ -257,7 +246,7 @@ export report :: fn(ctx: BuildContext, span: Span, message: string) -> void {
 export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
 
 // Print the reports not printed yet, in the compiler's own diagnostic format, at
-// the driver's exit (`finish_driver`): those of a context no build took them
+// the driver's exit (`run_driver`): those of a context no build took them
 // from. A call sorts what it prints by file and position and drops its
 // duplicates, which is what makes a driven build's output reproducible.
 flush_reports :: fn(ctx: BuildContext) -> void {
@@ -327,10 +316,11 @@ import "std/testing"
     assert_eq(ctx.reports_of()[0].code.id, "H6010")
 }
 
-@test test_new_context_reads_the_request_from_args :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj", "", "--check", "--release"])
-    assert(ctx.request.mode == .Check, "the mode comes from args")
-    assert(ctx.request.build.release, "and the profile")
+@test test_new_context_reads_the_launch_from_args :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj", "check", "clang", "-lm"])
+    assert(ctx.mode() == .Check, "the mode comes from args")
+    assert_eq(ctx.cc, "clang")
+    assert_eq(ctx.ldflags, "-lm")
 }
 
 @test test_report_accumulates_in_order :: fn() -> void {

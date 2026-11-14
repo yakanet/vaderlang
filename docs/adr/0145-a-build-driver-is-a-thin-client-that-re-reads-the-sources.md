@@ -2,9 +2,9 @@
 
 ## Status
 
-Accepted (2026-11-14). Its first steps, the parser moving to `lib/toolchain`
-and the protocol (`toolchain/protocol`), are in place; the thin driver comes
-next.
+Accepted (2026-11-14). In place: the parser in `lib/toolchain`, the protocol
+(`toolchain/protocol`), and the thin driver, which
+[0148](0148-vader-serves-a-driver-process-one-build-at-a-time.md) completes.
 
 **Superseded in part by
 [0147](0147-a-driver-is-handed-the-surface-of-the-elaborated-declarations.md) (2026-11-14)**:

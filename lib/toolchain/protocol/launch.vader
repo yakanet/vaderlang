@@ -1,0 +1,81 @@
+// toolchain/protocol/launch: what `vader` hands a driver it starts.
+//
+// A driver learns its build over the protocol; its command line carries only
+// what it reads before its first frame: where the project is, what the command
+// asks, and the C toolchain the command named, which the driver may change
+// before it configures its build.
+
+module "toolchain/protocol"
+
+import "toolchain/project"
+
+/// What a driver is started with.
+export DriverLaunch :: struct {
+    /// The project folder, as the command named it.
+    project_root: string = ""
+    mode: DriverMode = .Build
+    /// The C compiler, resolved by `vader`.
+    cc: string = ""
+    ldflags: string = ""
+}
+
+/// The arguments that start a driver for `launch`, to place after its binary.
+///
+/// @param launch  what the driver starts with.
+export launch_args :: fn(launch: DriverLaunch) -> string[] =
+    [launch.project_root, mode_name(launch.mode), launch.cc, launch.ldflags]
+
+/// What a driver was started with.
+///
+/// @param args  the driver's argv, `args[0]` being its binary. A missing
+///              argument keeps its default: a driver started by hand builds.
+export read_launch :: fn(args: string[]) -> DriverLaunch = DriverLaunch {
+    .project_root = argument(args, 1),
+    .mode = mode_named(argument(args, 2)),
+    .cc = argument(args, 3),
+    .ldflags = argument(args, 4),
+}
+
+argument :: fn(args: string[], at: i64) -> string = if args.len() > at { args[at] } else { "" }
+
+mode_name :: fn(mode: DriverMode) -> string = match mode {
+    .Build    -> "build"
+    .Check    -> "check"
+    .Prepare  -> "prepare"
+    .Describe -> "describe"
+}
+
+mode_named :: fn(name: string) -> DriverMode = match name {
+    "check"    -> .Check
+    "prepare"  -> .Prepare
+    "describe" -> .Describe
+    _          -> .Build
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_launch_args_read_back :: fn() -> void {
+    sent :: DriverLaunch {
+        .project_root = "/tmp/proj",
+        .mode = .Prepare,
+        .cc = "clang",
+        .ldflags = "-lm",
+    }
+    args :: ["driver"]
+    args.push_all(launch_args(sent))
+    received :: read_launch(args)
+    assert_eq(received.project_root, "/tmp/proj")
+    assert(received.mode == .Prepare, "the mode reads back")
+    assert_eq(received.cc, "clang")
+    assert_eq(received.ldflags, "-lm")
+}
+
+@test
+test_a_driver_started_by_hand_builds :: fn() -> void {
+    received :: read_launch(["driver"])
+    assert_eq(received.project_root, "")
+    assert(received.mode == .Build, "no mode is a build")
+}

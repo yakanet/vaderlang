@@ -3198,7 +3198,7 @@ A driver's `ctx.emit_module("app", ...)` can therefore extend the project's own 
 
 ### Programmable build API: `build.vader`
 
-A project drives its own build with a `build.vader` at its root, which the command compiles and runs (`docs/TOOLING.md` *Build drivers*). The driver decides what to compile: the compiler is part of its import closure. Its folder is the project of the entries it adds.
+A project drives its own build with a `build.vader` at its root, which the command compiles and runs as a program of its own (`docs/TOOLING.md` *Build drivers*). The driver decides what to compile, and the command compiles it. Its folder is the project of the entries it adds.
 
 `build.vader` declares `module "build"` and `build :: fn(args: string[]) -> i32`. The name is reserved, as `main` is in a program. A `build.vader` that declares another module is an ordinary source file of its folder, not a driver.
 
@@ -3234,7 +3234,9 @@ What the command asked reaches the driver in `args`, and the driver does not cha
 
 #### The message stream
 
-A driver reaches the compiler through `toolchain/build`, and names AST types through `toolchain/ast`. Draining `ctx.messages()` is the build: it yields each module's typed declarations, then the phase boundaries, and last a `CompleteMessage` whose `code` is the build's exit code. `Phase.BeforeEmit` is the last point where leaving the loop writes nothing, which is how a driver that only lints declines to build.
+A driver reaches its build through `toolchain/build`, and names AST types through `toolchain/ast`. Draining `ctx.messages()` is the build: it yields each module's typed declarations, then the phase boundaries, and last a `CompleteMessage` whose `code` is the build's exit code. `Phase.BeforeEmit` is the last point where leaving the loop writes nothing, which is how a driver that only lints declines to build.
+
+Builds run one at a time: draining the `messages()` of another context ends the build a driver left before its end.
 
 A driver receives the surface of each declaration: its name, spans and visibility, the fields of a struct, the parameters and result of a function, and the types as written. It does not receive bodies, constants, assertions, decorators, doc comments, type parameters, enum variants, or the members of traits and impls.
 

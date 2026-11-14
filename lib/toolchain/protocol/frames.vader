@@ -30,6 +30,7 @@ import "std/numbers"
 import "std/string"
 import "std/string_builder"
 AST :: import "toolchain/ast"
+import "toolchain/project"
 import "toolchain/span"
 
 // ---- frames ---------------------------------------------------------------
@@ -68,7 +69,7 @@ export ConfigureFrame :: struct {
     /// The fingerprint of `lib/toolchain` the driver was compiled from.
     fingerprint: string
     /// In the order the driver added them.
-    entries: ConfiguredEntry[]
+    entries: ManifestEntry[]
     include_paths: string[]
     assets: string[]
     /// Glob patterns over module names (`app/**`): `vader` sends a
@@ -78,13 +79,6 @@ export ConfigureFrame :: struct {
     target: BuildTarget
     cc: string
     ldflags: string
-}
-
-/// An entry of the build: what its binary is called, and the file it starts
-/// from.
-export ConfiguredEntry :: struct {
-    name: string
-    path: string
 }
 
 /// A module the driver generates, which `vader` writes at `BeforeEmit`.
@@ -323,11 +317,11 @@ read_complete :: fn(r: FieldReader) -> CompleteFrame | ProtocolError {
 read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
     fingerprint :: r.read_field() else return fingerprint
     count :: r.read_count() else return count
-    entries: ConfiguredEntry[]: []
+    entries: ManifestEntry[]: []
     for _ in 0..<count {
         name :: r.read_field() else return name
         path :: r.read_field() else return path
-        entries.push(ConfiguredEntry { .name = name, .path = path })
+        entries.push(ManifestEntry { .name = name, .path = path })
     }
     include_paths :: r.read_strings() else return include_paths
     assets :: r.read_strings() else return assets
@@ -532,7 +526,7 @@ test_complete_frame_carries_the_generated_files :: fn() -> void {
 test_configure_frame_round_trips :: fn() -> void {
     sent :: ConfigureFrame {
         .fingerprint = "9f86d081",
-        .entries = [ConfiguredEntry { .name = "app", .path = "src/main.vader" }],
+        .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
         .include_paths = [r"$VADER_HOME/third_party", "vendor"],
         .assets = [],
         .modules = ["app/**"],

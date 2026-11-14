@@ -1,93 +1,85 @@
-// toolchain/build/link: the build a driver pulls, served in the driver's process.
+// toolchain/build/link: the driver's end of the link to its build.
 //
-// A driver talks to its build in frames (`toolchain/protocol`): it sends its
-// configuration and its requests, and receives the events. Here the build runs
-// in the driver's own process, behind this link: each frame is written and read
-// back as a pipe would carry it, so the driver sees exactly what crosses, and
-// the build answers the frames as `serve` does across a pipe
-// (`vader/build_server`).
+// `vader` starts the driver and serves its build (ADR 0145): it writes its
+// frames on the driver's stdin, and reads the driver's on the driver's stdout,
+// which also carries what the project's code prints (`toolchain/protocol`).
 
 module "toolchain/build"
 
-import "std/glob"
+import "std/console"
 import "toolchain/protocol"
-import "vader/build_server"
-import "vader/pipeline"
 
 // ---- the link -------------------------------------------------------------
 
-// The build behind the link, once the driver configured it, and where its stream
-// stands.
-InProcessLink :: struct {
-    request: DriverRequest
-    description_file: string
-    session: BuildSession | null = null
-    events: Iterator<BuildEvent> | null = null
-    /// The pipeline's code, once the stream sent its end: `NextFrame` then
-    /// closes the build.
-    end_code: i32 | null = null
-    /// The build's exit code as it last closed, as `serve` gives it.
-    closed: i32 | null = null
+// A build the driver talks to: what the driver tells it, and its next event.
+ServerLink :: trait {
+    send    :: fn(self, frame: DriverFrame) -> void
+    receive :: fn(self) -> ServerFrame | ProtocolError
 }
 
-// Hand the build `frame`, as it reads the frame off a pipe.
-send :: fn(link: InProcessLink, frame: DriverFrame) -> null | ProtocolError {
-    received :: decode_driver_frame(driver_payload(frame)) else return received
-    return match received {
-        is ConfigureFrame                -> link.configure(received)
-        is EmitModuleFrame | ReportFrame -> link.take(received)
-        is NextFrame                     -> link.go_on()
-        is StopFrame                     -> link.close()
+// The driver's standard streams, on which `vader` serves its build.
+PipeLink :: struct {}
+
+PipeLink implements ServerLink {
+    send :: fn(self, frame: DriverFrame) -> void = print(encode_driver_frame(frame))
+
+    receive :: fn(self) -> ServerFrame | ProtocolError {
+        header :: read_line() else return ProtocolError {
+            .msg = "`vader` closed the link: ${header.message()}",
+        }
+        length :: frame_length(header) else return length
+        payload :: read_stdin(length) else return ProtocolError {
+            .msg = "`vader` closed the link inside a frame: ${payload.message()}",
+        }
+        return decode_server_frame(payload)
     }
 }
 
-// The next event of the build, as the driver reads it off a pipe.
-receive :: fn(link: InProcessLink) -> ServerFrame | ProtocolError {
-    session :: link.session else return unconfigured()
-    events :: link.events else return unconfigured()
-    event :: events.next()
-    if event is Stop {
-        return ProtocolError { .msg = "the driver pulled past the end of the stream" }
-    }
-    if event is CompleteFrame {
-        link.end_code = event.code
-    }
-    return decode_server_frame(server_payload(frame_of(session, event)))
+// ---- tests ----------------------------------------------------------------
+
+import "std/string"
+
+// A build that answers each pull with the next event a test lined up, and
+// writes down what the driver told it.
+ScriptedLink :: struct {
+    events: ServerFrame[]
+    told: DriverFrame[] = []
+    at: i64 = 0
 }
 
-configure :: fn(link: InProcessLink, frame: ConfigureFrame) -> null | ProtocolError {
-    if link.session != null {
-        return ProtocolError { .msg = "the driver configured its build twice" }
+ScriptedLink implements ServerLink {
+    send :: fn(self, frame: DriverFrame) -> void = self.told.push(frame)
+
+    receive :: fn(self) -> ServerFrame | ProtocolError {
+        if self.at >= self.events.len() {
+            return ProtocolError { .msg = "the script is over" }
+        }
+        frame :: self.events[self.at]
+        self.at += 1
+        return frame
     }
-    session :: new_session(link.request, link.description_file, frame) else is GlobError {
-        return ProtocolError { .msg = "a module pattern does not parse: ${session.message()}" }
+}
+
+// A context whose builds `link` serves.
+scripted_context :: fn(link: ScriptedLink) -> BuildContext {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.server = link
+    return ctx
+}
+
+// What the driver told the build, a word per frame.
+told :: fn(link: ScriptedLink) -> string {
+    words: string[]: []
+    for frame in link.told {
+        words.push(told_word(frame))
     }
-    link.session = session
-    link.events = build_events(session)
-    return null
+    return words.join(" ")
 }
 
-take :: fn(link: InProcessLink, frame: EmitModuleFrame | ReportFrame) -> null | ProtocolError {
-    session :: link.session else return unconfigured()
-    return take_request(session, frame)
-}
-
-// On with the stream, or, past its end, close the build: it prints what it
-// holds, and still takes the driver's requests until the driver stops it.
-go_on :: fn(link: InProcessLink) -> null | ProtocolError {
-    if link.end_code == null {
-        return null
-    }
-    return link.close()
-}
-
-// Close the build, which prints what came since it last closed.
-close :: fn(link: InProcessLink) -> null | ProtocolError {
-    session :: link.session else return unconfigured()
-    link.closed = close_session(session, link.end_code else 0)
-    return null
-}
-
-unconfigured :: fn() -> ProtocolError = ProtocolError {
-    .msg = "the driver spoke to a build it did not configure",
+told_word :: fn(frame: DriverFrame) -> string = match frame {
+    is ConfigureFrame  -> "configure"
+    is EmitModuleFrame -> "emit:${frame.name}"
+    is ReportFrame     -> "report:${frame.code}"
+    is NextFrame       -> "next"
+    is StopFrame       -> "stop"
 }

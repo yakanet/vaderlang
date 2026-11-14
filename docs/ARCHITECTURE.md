@@ -63,17 +63,18 @@ function for each instance (`vader/lower/inherited.vader`).
 A project's `build.vader` drives the same pipeline through `toolchain/build`, and
 `vader` runs it (`vader/build_server`, ADR 0145): per generation round the front end
 runs once, the driver reads each module's typed declarations and phase boundaries
-from that run, which the back end lowers. The driver and the build talk in the
-frames of `toolchain/protocol`, even while the build still runs in the driver's
-process (`toolchain/build/link.vader`): the declarations cross with their surface,
-without bodies (`declarations.vader`, ADR 0147). The driver opens with its
-configuration and what it did before pulling the stream; between two events, what
-it did since (modules to generate, reports) reaches the build, which writes the
-generated modules at `BeforeEmit`. Once the driver had its say on the end, the
-build prints what it holds, and still takes what the driver reports or emits until
-the driver's exit stops it, which prints the rest: a module emitted then is one no
-round writes. A `vader.json` is served by the same build, its driver standing in
-`vader` itself (`manifest_peer`).
+from that run, which the back end lowers. The driver is a process of its own,
+compiled from `lib/` alone: `vader` starts it (`vader/tools/cli/driver_process.vader`)
+and the two talk in the frames of `toolchain/protocol` over the driver's standard
+streams, the driver's stdout also carrying what the project prints. The
+declarations cross with their surface, without bodies (`declarations.vader`,
+ADR 0147). The driver opens with its configuration and what it did before pulling
+the stream; between two events, what it did since (modules to generate, reports)
+reaches the build, which writes the generated modules at `BeforeEmit`. Once the
+driver had its say on the end, the build prints what it holds, and still takes what
+the driver reports or emits until the driver's exit stops it, which prints the
+rest: a module emitted then is one no round writes. A `vader.json` is served by the
+same build, its driver standing in `vader` itself (`manifest_peer`).
 
 ## Lexer: interpolated strings
 

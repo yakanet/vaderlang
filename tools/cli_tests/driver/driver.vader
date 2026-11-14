@@ -26,7 +26,7 @@ FIXTURES :: "tests/fixtures/hook"
 binaries :: fn(dir: string) -> string = "${dir}/build/debug-${host_folder()}"
 
 // The driver a build of the project in `dir` compiled.
-driver_of :: fn(dir: string) -> string = executable_path("${dir}/build/driver/debug/driver")
+driver_of :: fn(dir: string) -> string = executable_path("${dir}/build/driver/driver")
 
 // What `vader` with `args` did in the project `dir`, against the toolchain of the
 // repository, with the wait a build of its driver takes.
@@ -127,10 +127,10 @@ test_the_driver_produces_a_working_binary :: fn() -> void {
 
 @test
 test_the_front_end_runs_once_for_a_driver_that_observes_and_builds :: fn() -> void {
-    // The profile of the driver's own process: one of `vader build` would also
-    // hold the compiler's pass over the driver.
+    // The driver is compiled already: the profile of `vader build` holds the
+    // passes over the project alone.
     dir :: linted()
-    profiled :: ran_in(dir, driver_of(dir), [["VADER_PROFILE", "1"]])
+    profiled :: vader_in(dir, ["build"], [["VADER_PROFILE", "1"]], HEAVY_TIMEOUT)
     assert_eq(runs_of(profiled.stderr, "typecheck") else "no row", "1")
 }
 

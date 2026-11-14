@@ -288,7 +288,7 @@ run_manifest_project :: fn(
         .build = BuildRequest { ...request, .project_root = project.dir },
     }
     peer :: Server.manifest_peer(driver_request, project.manifest)
-    return Server.serve(peer, driver_request, MANIFEST_FILENAME)
+    return Server.serve(peer, driver_request, MANIFEST_FILENAME) else 1
 }
 
 // Build one entry file as `request` asks, its outputs named after it without

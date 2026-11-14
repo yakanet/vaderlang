@@ -25,7 +25,7 @@ import "vader/pipeline"
 export DriverPeer :: trait {
     /// Hand the driver an event.
     send :: fn(self, frame: ServerFrame) -> null | ProtocolError
-    /// The driver's next frame, waited for.
+    /// The driver's next frame, waited for. A driver that hung up stopped.
     receive :: fn(self) -> DriverFrame | ProtocolError
 }
 
@@ -52,7 +52,7 @@ ManifestPeer implements DriverPeer {
         self.configured = true
         return ConfigureFrame {
             .fingerprint = "",
-            .entries = configured_entries(self.manifest.entries),
+            .entries = self.manifest.entries,
             .include_paths = self.manifest.include_paths,
             .assets = self.manifest.assets,
             .modules = [],
@@ -88,11 +88,20 @@ export manifest_peer :: fn(request: DriverRequest, manifest: Manifest) -> Manife
 /// @param description_file  the file describing the project, relative to it:
 ///                          `vader.json`, `build.vader`.
 /// @return                  the build's exit code: 1 once its diagnostics hold an
-///                          error, the driver's reports included, or when the
-///                          driver breaks the protocol.
-export serve :: fn(peer: DriverPeer, request: DriverRequest, description_file: string) -> i32 {
+///                          error, the driver's reports included.
+/// @error                   `ProtocolError` when the driver breaks the protocol,
+///                          once said: nothing it sends from there on is read.
+export serve :: fn(
+    peer: DriverPeer,
+    request: DriverRequest,
+    description_file: string,
+) -> i32 | ProtocolError {
     opening :: peer.receive() else is ProtocolError {
         return protocol_failure(opening.msg)
+    }
+    // A driver that stops before configuring a build started none.
+    if opening is StopFrame {
+        return 0
     }
     if opening !is ConfigureFrame {
         return protocol_failure("the driver opened with another frame than its configuration")
@@ -199,9 +208,9 @@ export frame_of :: fn(session: BuildSession, event: BuildEvent) -> ServerFrame =
     }
 }
 
-protocol_failure :: fn(problem: string) -> i32 {
+protocol_failure :: fn(problem: string) -> ProtocolError {
     eprintln("vader: the build driver broke the protocol: ${problem}")
-    return 1
+    return ProtocolError { .msg = problem }
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -233,6 +242,10 @@ ScriptedPeer implements DriverPeer {
     }
 }
 
+// The code of the build `peer` drives, -1 when it breaks the protocol.
+served :: fn(peer: ScriptedPeer) -> i32 =
+    serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader") else -1
+
 // A configuration with no entry, reading every module.
 entryless :: fn() -> ConfigureFrame = ConfigureFrame {
     .fingerprint = "",
@@ -248,7 +261,7 @@ entryless :: fn() -> ConfigureFrame = ConfigureFrame {
 @test
 test_serve_ends_a_build_without_entries_on_its_failure :: fn() -> void {
     peer :: ScriptedPeer { .answers = [entryless(), NextFrame {}, NextFrame {}, StopFrame {}] }
-    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    assert_eq(served(peer), 1)
     assert_eq(peer.sent.len(), 1)
     assert(peer.sent[0] is CompleteFrame, "the stream is its end alone")
 }
@@ -263,7 +276,7 @@ test_serve_takes_the_reports_sent_before_the_stream :: fn() -> void {
     peer :: ScriptedPeer {
         .answers = [entryless(), report, NextFrame {}, NextFrame {}, StopFrame {}],
     }
-    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    assert_eq(served(peer), 1)
     // The report reached the build before it ran: nothing compiles.
     assert_eq(peer.sent.len(), 1)
     sent :: peer.sent[0]
@@ -280,14 +293,21 @@ test_serve_takes_the_requests_of_the_driver_until_it_stops_the_build :: fn() -> 
     peer :: ScriptedPeer {
         .answers = [entryless(), NextFrame {}, NextFrame {}, report, StopFrame {}],
     }
-    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    assert_eq(served(peer), 1)
     assert_eq(peer.at, peer.answers.len())
+}
+
+@test
+test_serve_builds_nothing_for_a_driver_that_stops_before_configuring :: fn() -> void {
+    peer :: ScriptedPeer { .answers = [StopFrame {}] }
+    assert_eq(served(peer), 0)
+    assert_eq(peer.sent.len(), 0)
 }
 
 @test
 test_serve_closes_a_build_the_driver_stops_before_the_stream :: fn() -> void {
     peer :: ScriptedPeer { .answers = [entryless(), StopFrame {}] }
-    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 0)
+    assert_eq(served(peer), 0)
     assert_eq(peer.sent.len(), 0)
 }
 
@@ -319,7 +339,8 @@ test_a_report_under_another_code_is_refused :: fn() -> void {
 @test
 test_serve_refuses_a_driver_that_does_not_open_with_its_configuration :: fn() -> void {
     peer :: ScriptedPeer { .answers = [NextFrame {}] }
-    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    served :: serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader")
+    assert(served is ProtocolError, "a driver opens with its configuration")
     assert_eq(peer.sent.len(), 0)
 }
 

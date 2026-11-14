@@ -4,9 +4,9 @@
 // A project drives its own build by putting a `build.vader` at its root, holding
 // a `build` fn (a reserved name, the way `main` is in a program). `vader build`,
 // `check`, `run`, `dump`, `lint` and `graph` given that folder compile the driver
-// and run it with their request (`vader/pipeline/driver_request.vader`); the
-// driver then decides what to compile, because the compiler is part of its own
-// import closure.
+// and run it as a process of their own, which they serve the builds it
+// configures (`driver_process.vader`, ADR 0145). The driver imports only
+// `lib/`, so it compiles in a fraction of a second.
 //
 // Why a GENERATED entry rather than teaching the lowerer a second entry name:
 // `is_main_decl` (`lower/decl.vader`) recognises the entry by the
@@ -23,10 +23,6 @@
 // folder of the same name), so `import "build"` cannot resolve a root-level
 // `build.vader`: sharing the module sidesteps that, and needs no directory
 // creation, which `std/io` cannot do anyway.
-//
-// The driver runs NATIVELY, not through the comptime VM: it reads the compiler's
-// own AST nodes, and the VM has its own value representation (per-module type
-// indices and atom ids) that no shared layout reconciles.
 
 module "vader/tools/cli"
 
@@ -37,14 +33,12 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "std/string_builder"
-import "std/process"
-import "std/task"
-import "std/time"
 import "toolchain/diagnostics"
 import "crypto"
 AST :: import "toolchain/ast"
 Parse :: import "toolchain/parser"
 import "toolchain/project"
+import "toolchain/protocol"
 import "vader/front/resolver"
 import "toolchain/span"
 import "vader/pipeline"
@@ -183,48 +177,64 @@ export compiler_source_root :: fn(root: string) -> string {
 
 /// Key identifying what the cached driver binary was built from.
 ///
-/// Two inputs decide that binary: the driver source, and the compiler that
-/// compiles it. `build.vader` is hashed by content; the compiler by a SHA-256 of
-/// its own executable, which costs a small fraction of the driver build it saves.
+/// Two inputs decide that binary: the driver source, hashed by content, and the
+/// build contract it is compiled against, the fingerprint of `lib/toolchain`,
+/// which the driver also sends back in its configuration. A new `vader` with the
+/// same `lib/toolchain` speaks the same protocol, so it reuses the driver.
 ///
-/// What it deliberately does NOT catch: editing `vader/` or `lib/` sources
-/// WITHOUT rebuilding the compiler. The driver is compiled from those sources, so
-/// a cached driver would then be stale. The case is a compiler-developer one, and
-/// this repo's own test harness already refuses to run against a `build/vader`
-/// older than its sources, so the binary hash tracks it in practice. Delete
-/// `build/driver/` to force a rebuild.
+/// What it deliberately does NOT catch: editing the rest of `lib/` (`std/`, the
+/// C runtime) under a cached driver, which keeps the code it was linked with.
+/// Delete `build/driver/` to force a rebuild.
 ///
 /// @param driver_path  the project's `build.vader`.
+/// @param fingerprint  the fingerprint of `lib/toolchain` (`contract_fingerprint`).
 /// @return             a key that changes when either input does.
-driver_input_key :: fn(driver_path: string) -> string {
+driver_input_key :: fn(driver_path: string, fingerprint: string) -> string {
     src :: read_file_string(driver_path)
     driver_hash :: match src {
         is string  -> src.hash()
         is IOError -> 0
     }
-    return "${driver_hash}-${compiler_digest() else ""}"
+    return "${driver_hash}-${fingerprint}"
 }
 
-/// True when the driver of the project `root` compiled in one profile can be
-/// reused for `key`.
+/// True when the driver of the project `root` can be reused for `key`.
 ///
 /// Both halves matter: the stamp says what the binary was built from, and the
 /// binary has to still be there: `build/` is a directory users delete.
 ///
-/// @param root     the project folder.
-/// @param release  whether the driver is the optimised one.
-/// @param key      the key of the current inputs (`driver_input_key`).
-driver_is_current :: fn(root: string, release: bool, key: string) -> bool {
-    if linked_binary(driver_binary_path(root, release)) == null {
+/// @param root  the project folder.
+/// @param key   the key of the current inputs (`driver_input_key`).
+driver_is_current :: fn(root: string, key: string) -> bool {
+    if linked_binary(driver_binary_path(root)) == null {
         return false
     }
-    recorded :: read_file_string(driver_stamp_path(root, release)) else return false
+    recorded :: read_file_string(driver_stamp_path(root)) else return false
     return recorded.trim() == key
 }
 
-// The driver binary of the project `root` compiled in one profile.
-driver_binary_path :: fn(root: string, release: bool) -> string =
-    join_path(driver_dir(root, release), "driver")
+// The driver binary of the project `root`.
+driver_binary_path :: fn(root: string) -> string = join_path(driver_dir(root), "driver")
+
+// The fingerprint of the build contract of the `lib/` this `vader` reads, which
+// every driver it serves is compiled against: read once, `vader info` asking
+// twice.
+toolchain_fingerprint :: fn() -> string | IOError = toolchain_contract().fingerprint
+
+ToolchainContract :: struct {
+    fingerprint: string | IOError
+}
+
+@singleton
+toolchain_contract :: fn() -> ToolchainContract =
+    ToolchainContract { .fingerprint = read_toolchain_fingerprint() }
+
+read_toolchain_fingerprint :: fn() -> string | IOError {
+    library :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER) else return IOError {
+        .msg = "no `lib/` beside `vader`",
+    }
+    return contract_fingerprint(library)
+}
 
 // ---- the compiler's digest ------------------------------------------------
 
@@ -240,14 +250,15 @@ compiler_digest :: fn() -> string | null =
 
 /// Render the entry module that calls a driver's `build`.
 ///
-/// The `main` the lowerer insists on, around the driver's `build`:
-/// `finish_driver` prints what its contexts still hold and fails the build on an
-/// error among it. Everything else the driver builds itself through
-/// `new_build_context`.
+/// The `main` the lowerer insists on, around the driver's `build`: `run_driver`
+/// stops the builds it left open, and carries the fingerprint of the
+/// `lib/toolchain` the driver is compiled against. Everything else the driver
+/// builds itself through `new_build_context`.
 ///
-/// @return the module source, ready to write next to a `module "..."` folder
-///         named `DRIVER_ENTRY_MODULE`.
-export render_driver_entry :: fn() -> string {
+/// @param fingerprint  the fingerprint of `lib/toolchain` (`contract_fingerprint`).
+/// @return             the module source, ready to write next to a `module "..."`
+///                     folder named `DRIVER_ENTRY_MODULE`.
+export render_driver_entry :: fn(fingerprint: string) -> string {
     out :: StringBuilder {}
     // The banner is what `sweep_generated` deletes on; this shim escapes the
     // sweep only because it is written at the project root, outside the
@@ -264,7 +275,7 @@ export render_driver_entry :: fn() -> string {
     out.append("import \"toolchain/build\"\n")
     out.append("\n")
     out.append("main :: fn(args: string[]) -> i32 {\n")
-    out.append("    return finish_driver(build(args))\n")
+    out.append("    return run_driver(\"${fingerprint}\", build, args)\n")
     out.append("}\n")
     return out.to_string()
 }
@@ -383,7 +394,7 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
         "add `${DRIVER_ENTRY} :: fn(args: string[]) -> void`")
 }
 
-// The generated entry hands what `build(args)` returns to `finish_driver`, so two
+// The generated entry hands `build` to `run_driver`, which calls it, so two
 // shapes have to hold: one parameter, and an `i32` result. The result matters: a
 // failure that reports nothing (a binary not written, an asset not copied)
 // reaches the exit only through it. A wrong parameter TYPE is still left to the
@@ -412,20 +423,18 @@ returns_i32 :: fn(f: AST.FnDecl) -> bool {
 
 // ---- running the driver ---------------------------------------------------
 
-/// Compile the project's driver and run it.
+/// Compile the project's driver and run it, serving it the builds it configures.
 ///
-/// The driver decides what to compile, so this function's whole job is to hand
-/// control over: write the entry shim, build it, run it with the request as its
-/// `args`, and clean the shim up. The compiler's own sources are added to the
-/// include paths so `import "toolchain/build"` resolves without the user configuring
-/// anything.
+/// The driver decides what to build, so this function's job is to hand control
+/// over: write the entry shim, build it, start the driver with its launch
+/// arguments, serve its builds (`serve_driver`), and clean the shim up.
 ///
 /// @param command  the command running the driver, which names its messages.
 /// @param root     project root, where the driver and the shim live.
-/// @param request  what the command asks of the driver; its roots are filled
-///                 here. Its `cc` and `ldflags` also compile the driver itself.
-/// @return         the driver's own exit code, or 1 when the driver could not be
-///                 built or written.
+/// @param request  what the command asks of the builds. Its `cc` and `ldflags`
+///                 also compile the driver itself.
+/// @return         the worst of the builds' codes and the driver's exit code,
+///                 or 1 when the driver could not be built or started.
 /// @error          H6001 when the driver declares no `build`: surfaced as a
 ///                 compile error on the generated entry's call to it.
 export run_build_driver :: fn(command: string, root: string, request: DriverRequest) -> i32 {
@@ -435,18 +444,17 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
         eprintln(dump_diagnostics_with_file([problem]))
         return 1
     }
-
-    key :: driver_input_key(driver)
-    release :: runs_release_driver(root, key, request)
-    binary :: driver_binary_path(root, release)
-
-    // Compiling a driver compiles the WHOLE compiler, and it produces the same
-    // binary every time its inputs are unchanged, which for anyone iterating on
-    // their project is every build but the first.
-    if !driver_is_current(root, release, key) {
-        cc :: cc_or_default(request.build.cc)
-        ldflags :: request.build.ldflags
-        build_code :: rebuild_driver(command, root, release, key, cc, ldflags)
+    fingerprint :: toolchain_fingerprint() else is IOError {
+        eprintln("vader ${command}: cannot read the build contract: ${fingerprint.msg}")
+        return 1
+    }
+    key :: driver_input_key(driver, fingerprint)
+    binary :: driver_binary_path(root)
+    cc :: cc_or_default(request.build.cc)
+    // A driver produces the same binary every time its inputs are unchanged,
+    // which for anyone iterating on their project is every build but the first.
+    if !driver_is_current(root, key) {
+        build_code :: rebuild_driver(command, root, key, fingerprint, cc, request.build.ldflags)
         if build_code != 0 {
             return build_code
         }
@@ -455,90 +463,33 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
         eprintln("vader ${command}: the driver build left no binary at ${binary.to_native()}")
         return 1
     }
-
-    // Bounded: a driver is user code with no supervisor, and a `for { }` in one
-    // would otherwise hang the build with no message and no way out. It runs as
-    // a child process, so a timeout costs nothing more than naming one: no
-    // instruction budget is possible (the driver is native, not VM-interpreted),
-    // but a wall-clock bound is what actually catches an infinite loop.
-    // `timeout` cancels its task on expiry, and the `spawn` in it kills the
-    // process as it unwinds: without that the parent would unblock while the
-    // runaway driver kept spinning a core.
-    // The toolchain root is the folder holding THIS executable, and therefore
-    // its `lib/` and `runtime/c/`. The driver cannot work it out
-    // itself: it runs as `<project>/build/driver/<profile>/driver`, so its own sidecar
-    // probe looks inside the project. Without this a driven build only resolves
-    // `std/*` when the project happens to have a `lib/` beside it, which is
-    // what the fixtures' symlinks were quietly providing.
-    rooted :: DriverRequest {
-        ...request,
-        .toolchain_root = current_executable_location().dir_of(),
-        .build = BuildRequest { ...request.build, .project_root = root },
+    launch :: DriverLaunch {
+        .project_root = root,
+        .mode = request.mode,
+        .cc = cc,
+        .ldflags = request.build.ldflags,
     }
     argv :: [exe]
-    argv.push_all(driver_request_args(rooted))
-    match outcome :: launch(() -> spawn(argv)).timeout(DRIVER_TIMEOUT_MS.millis()) {
-        is TimeoutError -> {
-            seconds :: DRIVER_TIMEOUT_MS / 1000
-            eprintln("vader ${command}: the build driver did not finish within ${seconds}s, killed")
-            eprintln("(a loop in `${DRIVER_FILENAME}`?)")
-            return 1
-        }
-        is ProcessError -> {
-            // A driver ended by a signal may have written why first: a panic does.
-            relay_driver_output(request, outcome.stdout, outcome.stderr)
-            eprintln("vader ${command}: ${outcome.message()}")
-            return 1
-        }
-        is ProcessResult -> {
-            relay_driver_output(request, outcome.stdout, outcome.stderr)
-            return outcome.exit
-        }
-        is Cancelled -> {
-            eprintln("vader ${command}: the build driver was cancelled")
-            return 1
-        }
+    argv.push_all(launch_args(launch))
+    rooted :: DriverRequest {
+        ...request,
+        .build = BuildRequest { ...request.build, .project_root = root },
     }
-}
-
-// Pass on what the driver printed. A driver run to describe or prepare the
-// project works for another command, whose stdout carries that command's own
-// output (`vader info --json`, `vader dump`): what the driver prints goes to
-// stderr.
-relay_driver_output :: fn(request: DriverRequest, stdout: string, stderr: string) -> void {
-    if request.mode == .Describe || request.mode == .Prepare {
-        eprint(stdout)
-    } else {
-        print(stdout)
-    }
-    eprint(stderr)
+    return serve_driver(command, argv, rooted, fingerprint)
 }
 
 /// Whether the project `root`'s driver is compiled as it stands, from its
-/// `build.vader` and this compiler: what `run_build_driver` would run to
-/// describe the project without compiling first.
+/// `build.vader` and this toolchain's `lib/toolchain`: what `run_build_driver`
+/// would run to describe the project without compiling first.
 ///
 /// @param root  the project folder, holding a `build.vader`.
 export driver_is_compiled :: fn(root: string) -> bool {
     driver :: find_build_driver(root) else return false
-    key :: driver_input_key(driver)
-    release :: runs_release_driver(root, key, DriverRequest { .mode = .Describe })
-    return driver_is_current(root, release, key)
+    fingerprint :: toolchain_fingerprint() else return false
+    return driver_is_current(root, driver_input_key(driver, fingerprint))
 }
 
-// Whether `request` runs the release driver. The driver runs the pipeline of the
-// project, so a release build has it optimised. Any other command takes the
-// release driver when it is compiled as it stands, and the debug one otherwise,
-// which costs less to compile than a small project ever earns back.
-runs_release_driver :: fn(root: string, key: string, request: DriverRequest) -> bool {
-    if request.mode == .Build && request.build.release {
-        return true
-    }
-    return driver_is_current(root, true, key)
-}
-
-// Write the entry shim, compile the driver in one profile, record what it was
-// built from.
+// Write the entry shim, compile the driver, record what it was built from.
 //
 // The shim is removed whether or not the build worked: leaving a generated file
 // behind after a failure is how a stale one gets compiled next time. The stamp is
@@ -546,13 +497,13 @@ runs_release_driver :: fn(root: string, key: string, request: DriverRequest) -> 
 rebuild_driver :: fn(
     command: string,
     root: string,
-    release: bool,
     key: string,
+    fingerprint: string,
     cc: string,
     ldflags: string,
 ) -> i32 {
     entry :: driver_entry_path(root)
-    written :: write_file(entry, render_driver_entry()) else is IOError {
+    written :: write_file(entry, render_driver_entry(fingerprint)) else is IOError {
         eprintln("vader ${command}: cannot write the build entry at ${entry.to_native()}: "
             + written.msg)
         return 1
@@ -560,27 +511,24 @@ rebuild_driver :: fn(
     // Artefacts go under `build/`, not the project root: a driven build should
     // not litter the directory the user works in. `create_dir` makes the path
     // rather than requiring it to exist.
-    artefacts :: driver_dir(root, release)
+    artefacts :: driver_dir(root)
     made :: create_dir(artefacts) else is IOError {
         eprintln("vader ${command}: cannot create ${artefacts.to_native()}: ${made.msg}")
         remove_entry(entry)
         return 1
     }
-    // The driver is a normal native build; `toolchain/build` resolves through the
-    // compiler's own sources, and the driver's module through the entry's folder.
-    // The driver splits like every other build; what it does NOT inherit is the
-    // user's `--no-split`, since a driver is a build artefact nobody diffs or
-    // ships and only stands to gain the idle cores. It is built for this
-    // machine, the only one whose toolchain it can invoke, whatever `--target`
-    // says of the project.
+    // The driver is a normal native build, always a debug one: it does little,
+    // the project being compiled by `vader`. `toolchain/build` resolves in the
+    // toolchain's `lib/`, and the driver's module through the entry's folder.
+    // It does NOT inherit the user's `--no-split`, since a driver is a build
+    // artefact nobody diffs or ships. It is built for this machine, the only one
+    // whose toolchain it can invoke, whatever `--target` says of the project.
     request :: BuildRequest {
         .cc = cc,
         .ldflags = ldflags,
-        .include_paths = [compiler_source_root(root)],
         .cc_jobs = DRIVER_CC_JOBS,
-        .release = release,
     }
-    binary :: driver_binary_path(root, release)
+    binary :: driver_binary_path(root)
     code :: build_driver_binary(command, Path(entry), Path(binary), request)
     remove_entry(entry)
     if code != 0 {
@@ -588,15 +536,14 @@ rebuild_driver :: fn(
     }
     // A stamp we cannot write is not fatal: it only costs the next build a
     // rebuild, which is what happens today anyway.
-    write_file(driver_stamp_path(root, release), key)
+    write_file(driver_stamp_path(root), key)
     return 0
 }
 
 // How many `cc` a driver's own build runs at once. Fewer than the user's own
-// build, which runs one per processor: compiling a driver compiles the whole
-// compiler, one `cc` per Vader module, and several driven builds may run at
-// once, so one per processor each oversubscribes the machine. Eight is a floor
-// on the runners this project targets (GitHub's are 4-core).
+// build, which runs one per processor: several driven builds may run at once,
+// and one per processor each oversubscribes the machine. Eight is a floor on
+// the runners this project targets (GitHub's are 4-core).
 DRIVER_CC_JOBS: i32: 8
 
 // Compile the driver's entry shim into its binary.
@@ -609,14 +556,6 @@ build_driver_binary :: fn(
     b :: prepared_program(entry, request, command) else return 1
     return emit_program(b, entry, binary, request)
 }
-
-/// How long a driver may run before the build gives up on it.
-///
-/// Generous on purpose: a driver compiles a real project, and a large one
-/// legitimately takes minutes. This is a backstop against a hang, not a
-/// performance budget: a driver that needs longer is better served by
-/// `--no-hooks` and a manual build than by raising this.
-export DRIVER_TIMEOUT_MS: i64: 600_000
 
 // Best-effort deletion: a leftover shim is a nuisance, not a failure, so the
 // error is dropped. It matters that this really unlinks: a blanked file left in
@@ -635,25 +574,25 @@ import "std/testing"
 }
 
 @test test_entry_shares_the_driver_module :: fn() -> void {
-    src :: render_driver_entry()
+    src :: render_driver_entry("9f86d081")
     assert("module \"build\"" in src, "entry declares the driver's own module")
 }
 
 @test test_entry_does_not_import_the_driver :: fn() -> void {
     // A root-level `build.vader` is not importable by module name, so sharing
     // the module is the point: an import here would not resolve.
-    src :: render_driver_entry()
+    src :: render_driver_entry("9f86d081")
     assert(!("import \"build\"" in src), "entry does not import what it shares a module with")
 }
 
 @test test_entry_calls_build_and_returns :: fn() -> void {
-    src :: render_driver_entry()
-    assert("finish_driver(build(args))" in src, "entry calls build with argv, then finishes the driver")
+    src :: render_driver_entry("9f86d081")
+    assert("run_driver(\"9f86d081\", build, args)" in src, "entry runs build, fingerprinted")
     assert("main :: fn(args: string[]) -> i32" in src, "entry declares the main the lowerer needs")
 }
 
 @test test_entry_is_marked_generated :: fn() -> void {
-    src :: render_driver_entry()
+    src :: render_driver_entry("9f86d081")
     assert("do not edit" in src, "generated file says so")
 }
 
@@ -738,29 +677,12 @@ test_string_literal_escapes_what_a_raw_literal_cannot_hold :: fn() -> void {
 }
 
 @test
-test_only_a_release_build_compiles_the_release_driver :: fn() -> void {
-    root :: "/nonexistent-project-root"
-    release :: DriverRequest { .build = BuildRequest { .release = true } }
-    assert(runs_release_driver(root, "key", release), "a release build has its driver optimised")
-    assert(
-        !runs_release_driver(root, "key", DriverRequest {}),
-        "a debug build with no release driver compiles the debug one",
-    )
-    check :: DriverRequest { .mode = .Check, .build = BuildRequest { .release = true } }
-    assert(
-        !runs_release_driver(root, "key", check),
-        "`--release` optimises the driver of a build only",
-    )
-}
-
-@test
-test_a_current_release_driver_serves_every_command :: fn() -> void {
-    root :: join_path(temp_dir(), "vader_driver_probe_profiles")
-    create_dir(driver_dir(root, true))
-    write_file(driver_binary_path(root, true), "")
-    write_file(driver_stamp_path(root, true), "key\n")
-    describe :: DriverRequest { .mode = .Describe }
-    assert(runs_release_driver(root, "key", describe), "a current release driver is taken")
-    assert(!runs_release_driver(root, "other", describe), "a release driver of other inputs is not")
+test_a_driver_is_current_for_the_inputs_its_stamp_records :: fn() -> void {
+    root :: join_path(temp_dir(), "vader_driver_probe_stamp")
+    create_dir(driver_dir(root))
+    write_file(driver_binary_path(root), "")
+    write_file(driver_stamp_path(root), "key\n")
+    assert(driver_is_current(root, "key"), "a driver of the same inputs is taken")
+    assert(!driver_is_current(root, "other"), "a driver of other inputs is not")
     remove(root, RemoveOptions { .recursive = true })
 }

@@ -64,6 +64,7 @@ tell_plugins :: fn(ctx: BuildContext, plugins: BuildPlugin[], msg: Message) -> v
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/protocol"
 
 // Writes down what it is told, after a name, so a test reads the order.
 Recorder :: struct {
@@ -97,11 +98,10 @@ Nested implements BuildPlugin {
 }
 
 @test test_plugins_hear_the_stream_in_the_order_they_were_plugged :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx :: scripted_context(ScriptedLink { .events = [CompleteFrame { .code = 1 }] })
     log: string[]: []
     ctx.use(Recorder { .name = "a", .log = log })
     ctx.use(Recorder { .name = "b", .log = log })
-    // No entry: the stream is its end alone, which both plugins hear.
     for _ in ctx.messages() {}
     assert_eq(log.len(), 2)
     assert_eq(log[0], "a complete 1")
@@ -109,7 +109,7 @@ Nested implements BuildPlugin {
 }
 
 @test test_a_build_started_from_a_plugin_is_refused :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx :: scripted_context(ScriptedLink { .events = [CompleteFrame { .code = 0 }] })
     reported: string[]: []
     ctx.use(Nested { .reported = reported })
     ctx.emit_native()
@@ -118,8 +118,8 @@ Nested implements BuildPlugin {
 }
 
 @test test_a_description_tells_the_plugins_nothing :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
-    ctx.request.mode = .Describe
+    ctx :: scripted_context(ScriptedLink { .events = [CompleteFrame { .code = 0 }] })
+    ctx.asked_mode = .Describe
     log: string[]: []
     ctx.use(Recorder { .name = "a", .log = log })
     for _ in ctx.messages() {}

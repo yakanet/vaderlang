@@ -344,7 +344,7 @@ drained :: fn(session: BuildSession) -> i32 {
 @test
 test_build_events_with_an_unknown_entry_reports_h6009 :: fn() -> void {
     request :: parse_driver_request(["driver", "/tmp/proj", "", "--entry=tool"])
-    session :: test_session(request, [ConfiguredEntry { .name = "app", .path = "src/main.vader" }])
+    session :: test_session(request, [ManifestEntry { .name = "app", .path = "src/main.vader" }])
     // The choice is checked before any front end runs, so nothing is compiled.
     assert_eq(drained(session), 1)
     assert_eq(session.diagnostics.len(), 1)
@@ -355,8 +355,8 @@ test_build_events_with_an_unknown_entry_reports_h6009 :: fn() -> void {
 test_build_events_with_one_output_for_two_entries_reports_h6011 :: fn() -> void {
     request :: parse_driver_request(["driver", "/tmp/proj", "", "--out=/tmp/app"])
     entries :: [
-        ConfiguredEntry { .name = "app", .path = "src/main.vader" },
-        ConfiguredEntry { .name = "tool", .path = "tool.vader" },
+        ManifestEntry { .name = "app", .path = "src/main.vader" },
+        ManifestEntry { .name = "tool", .path = "tool.vader" },
     ]
     session :: test_session(request, entries)
     // Refused before any front end runs, so nothing is compiled.
@@ -377,7 +377,7 @@ test_build_events_without_entries_reports_h6003 :: fn() -> void {
 test_build_events_after_a_configuration_error_compiles_nothing :: fn() -> void {
     session :: test_session(
         parse_driver_request(["driver", "/tmp/proj"]),
-        [ConfiguredEntry { .name = "app", .path = "src/main.vader" }],
+        [ManifestEntry { .name = "app", .path = "src/main.vader" }],
     )
     session.report_driver(.DuplicateEntryName, "twice")
     // The entry is not compiled: its front end would add a report of its own,

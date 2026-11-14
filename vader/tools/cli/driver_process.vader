@@ -1,0 +1,172 @@
+// vader/tools/cli/driver_process: a project's build driver, run as a process of
+// its own and served its builds.
+//
+// `vader` starts the driver with its launch arguments (`toolchain/protocol`),
+// writes each build's frames on the driver's stdin and reads the driver's off
+// its stdout, relaying what else the driver prints (`OutputScanner`). The build
+// itself is `vader/build_server`'s: this file is the pipe, and the rules a
+// process adds to it. A driver whose output ends without `StopFrame` stops its
+// build: before configuring one it started none, and a crash fails through the
+// driver's exit code. The driver serves its builds one at a time, and each wait
+// for a frame is bounded, which is what catches a loop in a driver.
+
+module "vader/tools/cli"
+
+import "std/console"
+import "std/process"
+import "std/task"
+import "std/time"
+import "toolchain/project"
+import "toolchain/protocol"
+import "vader/build_server"
+import "vader/pipeline"
+
+// ---- the driver behind its pipes ------------------------------------------
+
+// How long `vader` waits for a frame of the build driver before it gives up on
+// the driver. Generous on purpose: it bounds what the driver does between two
+// frames, which is little, and only a hang comes near it.
+DRIVER_TIMEOUT_MS: i64: 600_000
+
+// A driver `vader` started, and what its stdout held that was not read yet.
+PipedDriver :: struct {
+    child: ChildProcess
+    /// The fingerprint of `vader`'s `lib/toolchain`, which the driver's builds
+    /// must send back.
+    fingerprint: string
+    /// Whether what the driver prints goes to stderr: a command whose own
+    /// output is on stdout (`vader info --json`, `vader dump`) runs it to
+    /// describe or prepare the project.
+    prints_to_stderr: bool
+    scanner: OutputScanner = OutputScanner {}
+    /// Frames read and not received yet, from `next`.
+    frames: DriverFrame[] = []
+    next: i64 = 0
+    /// Whether the driver's output ended: past its frames, it stopped.
+    ended: bool = false
+}
+
+PipedDriver implements DriverPeer {
+    send :: fn(self, frame: ServerFrame) -> null | ProtocolError {
+        written :: self.child.write_input(encode_server_frame(frame).bytes()) else is ProcessError {
+            return ProtocolError { .msg = "it stopped reading: ${written.message()}" }
+        }
+        return null
+    }
+
+    receive :: fn(self) -> DriverFrame | ProtocolError {
+        for self.next == self.frames.len() {
+            if self.ended {
+                return StopFrame {}
+            }
+            read :: self.read_more()
+            if read is ProtocolError {
+                return read
+            }
+        }
+        frame :: self.frames[self.next]
+        self.next += 1
+        if frame is ConfigureFrame && frame.fingerprint != self.fingerprint {
+            return ProtocolError {
+                .msg = "it was compiled from another `lib/toolchain`: "
+                    + "delete `build/driver` and build again",
+            }
+        }
+        return frame
+    }
+}
+
+// Whether the driver hung up and every frame it sent was received.
+drained :: fn(driver: PipedDriver) -> bool = driver.ended && driver.next == driver.frames.len()
+
+// Read what the driver wrote since, the frames received before all taken. A
+// watchdog kills a driver silent for
+// `DRIVER_TIMEOUT_MS`: it holds a copy of the child, the same process, so that
+// no task shares the child this one waits on.
+read_more :: fn(driver: PipedDriver) -> null | ProtocolError {
+    child :: driver.child
+    watched :: child.deep_copy()
+    watchdog :: launch(() -> kill_after(watched, DRIVER_TIMEOUT_MS))
+    output :: child.read_output()
+    if watchdog.is_ready() {
+        seconds :: DRIVER_TIMEOUT_MS / 1000
+        return ProtocolError {
+            .msg = "it did not answer within ${seconds}s and was killed "
+                + "(a loop in `build.vader`?)",
+        }
+    }
+    watchdog.cancel()
+    eprint(output.err.bytes_to_string())
+    scanned :: scan_output(driver.scanner, output.out) else return scanned
+    driver.relay(scanned.printed)
+    driver.frames = scanned.frames
+    driver.next = 0
+    if output.ended {
+        rest :: end_output(driver.scanner) else return rest
+        driver.relay(rest)
+        driver.ended = true
+    }
+    return null
+}
+
+// Kill `child` once `ms` milliseconds went by, unless cancelled first.
+kill_after :: fn(child: ChildProcess, ms: i64) -> void {
+    sleep(ms.millis())
+    child.kill()
+}
+
+relay :: fn(driver: PipedDriver, printed: string) -> void {
+    if driver.prints_to_stderr {
+        eprint(printed)
+    } else {
+        print(printed)
+    }
+}
+
+// ---- serving it -----------------------------------------------------------
+
+/// Run the driver `argv` starts, and serve each build it opens, one after the
+/// other, as `request` asks.
+///
+/// @param command      the command running the driver, which names its
+///                     messages.
+/// @param argv         the driver's binary and its launch arguments.
+/// @param request      what the command asks of the builds.
+/// @param fingerprint  the fingerprint of `vader`'s `lib/toolchain`.
+/// @return             the worst of the builds' codes and the driver's exit
+///                     code: 1 when the driver breaks the protocol or cannot be
+///                     started.
+export serve_driver :: fn(
+    command: string,
+    argv: string[],
+    request: DriverRequest,
+    fingerprint: string,
+) -> i32 {
+    child :: spawn_interactive(argv) else is ProcessError {
+        eprintln("vader ${command}: ${child.message()}")
+        return 1
+    }
+    driver :: PipedDriver {
+        .child = child,
+        .fingerprint = fingerprint,
+        .prints_to_stderr = request.mode == .Describe || request.mode == .Prepare,
+    }
+    code := 0
+    for !driver.drained() {
+        served :: serve(driver, request, DRIVER_FILENAME) else {
+            child.kill()
+            code = 1
+            break
+        }
+        code = first_failure(code, served)
+    }
+    exit :: child.wait() else is ProcessError {
+        eprintln("vader ${command}: ${exit.message()}")
+        return 1
+    }
+    return first_failure(code, exit.exit)
+}
+
+// The code of a run two sides answered: a failure of either, the first's when
+// both failed.
+first_failure :: fn(first: i32, second: i32) -> i32 = if first != 0 { first } else { second }

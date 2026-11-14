@@ -82,7 +82,7 @@ export new_session :: fn(
         .project_root = request.build.project_root else "",
         .description_file = description_file,
         .request = request,
-        .entries = manifest_entries(configure.entries),
+        .entries = configure.entries,
         .include_paths = configure.include_paths,
         .assets = configure.assets,
         .target = configure.target,
@@ -91,16 +91,6 @@ export new_session :: fn(
         .module_filter = filter,
     }
 }
-
-/// The entries of a project, as a driver configures them.
-///
-/// @param entries  those of a `vader.json` or of a context, in their order.
-export configured_entries :: fn(entries: ManifestEntry[]) -> ConfiguredEntry[] =
-    entries.map((e) -> ConfiguredEntry { .name = e.name, .path = e.path }).collect()
-
-// The entries a driver configured, as the build reads them.
-manifest_entries :: fn(entries: ConfiguredEntry[]) -> ManifestEntry[] =
-    entries.map((e) -> ManifestEntry { .name = e.name, .path = e.path }).collect()
 
 /// Whether the driver reads the declarations of the module `name`.
 ///
@@ -206,7 +196,7 @@ import "std/testing"
 
 // A session for `request`, configured with `entries` and nothing else, reading
 // every module.
-test_session :: fn(request: DriverRequest, entries: ConfiguredEntry[]) -> BuildSession {
+test_session :: fn(request: DriverRequest, entries: ManifestEntry[]) -> BuildSession {
     configure :: ConfigureFrame {
         .fingerprint = "",
         .entries = entries,

@@ -225,8 +225,8 @@ driver_line :: fn(line: string) -> string {
     if !line.starts_with(DRIVER_LINE) {
         return line
     }
-    halves :: line.trim_prefix(DRIVER_LINE).split_first("/driver") else return line
-    return "${DRIVER_LINE}${halves.0}/driver"
+    halves :: line.split_first(" (") else return line
+    return halves.0
 }
 
 // ---- tests ------------------------------------------------------------------
@@ -249,6 +249,6 @@ test_a_build_text_names_no_hash_of_a_generated_module :: fn() -> void {
 
 @test
 test_a_build_text_keeps_the_name_of_its_driver_only :: fn() -> void {
-    text :: "vader build: wrote /tmp/p/build/driver/debug/driver (split: 71 objects compiled)"
-    assert_eq(normalised(text, "/tmp/p"), "vader build: wrote <project>/build/driver/debug/driver")
+    text :: "vader build: wrote /tmp/p/build/driver/driver (split: 20 objects compiled)"
+    assert_eq(normalised(text, "/tmp/p"), "vader build: wrote <project>/build/driver/driver")
 }

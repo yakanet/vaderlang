@@ -1,0 +1,29 @@
+// tools/repo_checks/library_layering: the library imports nothing of the
+// compiler.
+//
+// A project's build driver is compiled from `lib/` alone (ADR 0148): a module of
+// the library that imported one of `vader/` would drag the compiler into every
+// driver, which nothing in the compiler would notice, since the whole tree
+// builds either way.
+
+module "tools/repo_checks"
+
+import "std/string"
+
+// Push on `found` each import of `text`, the text of `file`, that reaches into
+// the compiler.
+check_library_imports :: fn(file: string, text: string, found: string[]) -> void {
+    for line in text.lines() {
+        path :: imported_path(line) else continue
+        if path.starts_with("vader/") {
+            found.push("${file}: ${path}")
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+@test
+test_the_library_imports_nothing_of_the_compiler :: fn() -> void {
+    assert_none(findings_in(LIBRARY_SCOPE, check_library_imports), "imports of the compiler")
+}
