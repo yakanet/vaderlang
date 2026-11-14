@@ -146,16 +146,42 @@ hand_over :: fn(ctx: BuildContext, link: ServerLink, closing: NextFrame | StopFr
 // The next message of the stream, once the plugins heard it, the end as
 // `finished` settles it. A link `vader` closed ends the stream on a failure.
 next_message :: fn(ctx: BuildContext, link: ServerLink, plugins: BuildPlugin[]) -> Message {
-    frame :: link.receive() else {
-        eprintln("vader: the build driver lost its build: ${frame.msg}")
+    if ctx.lost {
         return finished(ctx, link, plugins, CompleteFrame { .code = 1 })
     }
-    if frame is CompleteFrame {
-        return finished(ctx, link, plugins, frame)
+    frame :: link.receive() else return lost_build(ctx, link, plugins, frame.msg)
+    match frame {
+        is CompleteFrame                 -> {
+            return finished(ctx, link, plugins, frame)
+        }
+        is DocAnswerFrame                -> {
+            return lost_build(ctx, link, plugins, "it was sent an answer for an event")
+        }
+        is TypecheckedFrame | PhaseFrame -> {
+            msg :: message_of(frame)
+            tell_plugins(ctx, plugins, msg)
+            return msg
+        }
     }
-    msg :: message_of(frame)
-    tell_plugins(ctx, plugins, msg)
-    return msg
+}
+
+// The end of a build the driver lost: a failure.
+lost_build :: fn(
+    ctx: BuildContext,
+    link: ServerLink,
+    plugins: BuildPlugin[],
+    why: string,
+) -> Message {
+    ctx.lose_build(why)
+    return finished(ctx, link, plugins, CompleteFrame { .code = 1 })
+}
+
+// Say why the driver lost its build, once however many times it learns it.
+lose_build :: fn(ctx: BuildContext, why: string) -> void {
+    if !ctx.lost {
+        eprintln("vader: the build driver lost its build: ${why}")
+    }
+    ctx.lost = true
 }
 
 message_of :: fn(frame: TypecheckedFrame | PhaseFrame) -> Message {
@@ -185,7 +211,7 @@ finished :: fn(
 
 // `code`, or 1 once the context holds an error.
 outcome :: fn(ctx: BuildContext, code: i32) -> i32 {
-    if any_error_diag(ctx.diagnostics) {
+    if ctx.lost || any_error_diag(ctx.diagnostics) {
         return 1
     }
     return code

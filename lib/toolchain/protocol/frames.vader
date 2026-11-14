@@ -5,7 +5,8 @@
 // driver each event `messages()` yields, a `ServerFrame`, then reads the
 // driver's requests, `DriverFrame`s, until a `NextFrame` lets the pipeline go
 // on or a `StopFrame` ends the drain. The driver opens with a
-// `ConfigureFrame`, on its first pull.
+// `ConfigureFrame`, on its first pull. A question among the requests
+// (`DocQueryFrame`) is answered at once, before the next request is read.
 //
 // A frame holds strings and integers, a `Span` included, and the declarations of
 // a module (`declarations.vader`). Its payload is a sequence of fields, each
@@ -35,11 +36,18 @@ import "toolchain/span"
 
 // ---- frames ---------------------------------------------------------------
 
-/// What `vader` sends a driver: the events of the pipeline.
-export ServerFrame :: TypecheckedFrame | PhaseFrame | CompleteFrame
+/// What `vader` sends a driver: the events of the pipeline, and the answers to
+/// its questions.
+export ServerFrame :: TypecheckedFrame | PhaseFrame | CompleteFrame | DocAnswerFrame
 
-/// What a driver sends `vader`: its configuration, then its requests.
-export DriverFrame :: ConfigureFrame | EmitModuleFrame | ReportFrame | NextFrame | StopFrame
+/// What a driver sends `vader`: its configuration, then its requests and
+/// questions.
+export DriverFrame :: ConfigureFrame
+             | EmitModuleFrame
+             | ReportFrame
+             | DocQueryFrame
+             | NextFrame
+             | StopFrame
 
 /// A module passed type checking.
 export TypecheckedFrame :: struct {
@@ -93,6 +101,19 @@ export ReportFrame :: struct {
     code: string
     span: Span
     detail: string
+}
+
+/// A question of the driver: the vaderdoc of the declaration, field, variant or
+/// member it received whose span is `span`. `vader` answers at once.
+export DocQueryFrame :: struct {
+    span: Span
+}
+
+/// The answer to a `DocQueryFrame`.
+export DocAnswerFrame :: struct {
+    /// Null when the node has none, or when no node the driver received has
+    /// that span.
+    doc: AST.DocComment | null
 }
 
 /// Let the pipeline go on to its next event.
@@ -164,8 +185,24 @@ export server_payload :: fn(frame: ServerFrame) -> string {
             out.write_integer(frame.code)
             out.write_strings(frame.generated)
         }
+        is DocAnswerFrame   -> {
+            out.write_field("doc_answer")
+            out.write_doc(frame.doc)
+        }
     }
     return out.to_string()
+}
+
+write_doc :: fn(out: StringBuilder, doc: AST.DocComment | null) -> void {
+    out.write_flag(doc != null)
+    if doc == null {
+        return
+    }
+    out.write_integer(doc.lines.len())
+    for line in doc.lines {
+        out.write_field(line.text)
+        out.write_span(line.span)
+    }
 }
 
 /// The bytes of a frame a driver sends, without the header that announces them,
@@ -200,6 +237,10 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
             out.write_field(frame.code)
             out.write_span(frame.span)
             out.write_field(frame.detail)
+        }
+        is DocQueryFrame   -> {
+            out.write_field("doc_query")
+            out.write_span(frame.span)
         }
         is NextFrame       -> out.write_field("next")
         is StopFrame       -> out.write_field("stop")
@@ -289,6 +330,7 @@ read_server_frame :: fn(r: FieldReader, kind: string) -> ServerFrame | ProtocolE
     "typechecked" -> read_typechecked(r)
     "phase"       -> read_phase(r)
     "complete"    -> read_complete(r)
+    "doc_answer"  -> read_doc_answer(r)
     _             -> ProtocolError { .msg = "`${kind}` is no frame `vader` sends" }
 }
 
@@ -296,6 +338,7 @@ read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolE
     "configure"   -> read_configure(r)
     "emit_module" -> read_emit_module(r)
     "report"      -> read_report(r)
+    "doc_query"   -> read_doc_query(r)
     "next"        -> NextFrame {}
     "stop"        -> StopFrame {}
     _             -> ProtocolError { .msg = "`${kind}` is no frame a driver sends" }
@@ -319,6 +362,21 @@ read_complete :: fn(r: FieldReader) -> CompleteFrame | ProtocolError {
     code :: r.read_i32() else return code
     generated :: r.read_strings() else return generated
     return CompleteFrame { .code = code, .generated = generated }
+}
+
+read_doc_answer :: fn(r: FieldReader) -> DocAnswerFrame | ProtocolError {
+    present :: r.read_flag() else return present
+    if !present {
+        return DocAnswerFrame { .doc = null }
+    }
+    count :: r.read_count() else return count
+    lines: AST.DocCommentLine[]: []
+    for _ in 0..<count {
+        text :: r.read_field() else return text
+        span :: r.read_span() else return span
+        lines.push(AST.DocCommentLine { .text = text, .span = span })
+    }
+    return DocAnswerFrame { .doc = AST.DocComment { .lines = lines } }
 }
 
 read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
@@ -355,6 +413,11 @@ read_emit_module :: fn(r: FieldReader) -> EmitModuleFrame | ProtocolError {
     name :: r.read_field() else return name
     source :: r.read_field() else return source
     return EmitModuleFrame { .name = name, .source = source }
+}
+
+read_doc_query :: fn(r: FieldReader) -> DocQueryFrame | ProtocolError {
+    span :: r.read_span() else return span
+    return DocQueryFrame { .span = span }
 }
 
 read_report :: fn(r: FieldReader) -> ReportFrame | ProtocolError {
@@ -587,6 +650,43 @@ test_report_frame_round_trips :: fn() -> void {
     assert_eq(received.span.end.file, "src/main.vader")
     assert_eq(received.span.end.column, 8)
     assert_eq(received.detail, "`main` is missing a doc")
+}
+
+@test
+test_a_doc_question_and_its_answer_round_trip :: fn() -> void {
+    span :: Span { .start = in_main(12, 2, 1), .end = in_main(30, 2, 19) }
+    question :: decode_driver_frame(driver_payload(DocQueryFrame { .span = span }))
+    if question !is DocQueryFrame {
+        assert(false, "a doc question reads back as one")
+        return
+    }
+    assert(question.span == span, "its span reads back")
+    line :: AST.DocCommentLine { .text = " A point: 2 coordinates.", .span = span }
+    sent :: DocAnswerFrame { .doc = AST.DocComment { .lines = [line] } }
+    answer :: decode_server_frame(server_payload(sent))
+    if answer !is DocAnswerFrame {
+        assert(false, "a doc answer reads back as one")
+        return
+    }
+    assert_eq(AST.doc_text(answer.doc), "A point: 2 coordinates.")
+}
+
+// A position in `src/main.vader`.
+in_main :: fn(offset: i64, line: i32, column: i32) -> Position = Position {
+    .file = "src/main.vader",
+    .offset = offset,
+    .line = line,
+    .column = column,
+}
+
+@test
+test_an_answer_without_a_doc_reads_back_empty :: fn() -> void {
+    answer :: decode_server_frame(server_payload(DocAnswerFrame { .doc = null }))
+    if answer !is DocAnswerFrame {
+        assert(false, "a doc answer reads back as one")
+        return
+    }
+    assert(answer.doc == null, "no doc")
 }
 
 @test

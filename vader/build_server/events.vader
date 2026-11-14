@@ -160,7 +160,13 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
             // build. The generated tree is not passed: the loader derives it
             // from the project root, so what this build reads is what `vader
             // run` and the LSP read too.
-            pipeline :: prepare_evaluated_project_with(entry, roots, project, output.target)
+            pipeline :: prepare_evaluated_project_with(
+                entry,
+                roots,
+                project,
+                output.target,
+                keep_docs = true,
+            )
             for [_, loaded] in pipeline.loaded.modules {
                 if !session.reads_module(loaded.module.module_name) {
                     continue
@@ -173,6 +179,7 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                 if !fresh.any_match((f) -> f.program.decls.len() > 0) {
                     continue
                 }
+                session.remember_delivered(fresh)
                 yield ModuleTypechecked { .module_name = loaded.module.module_name, .files = fresh }
             }
             yield PhaseFrame { .phase = .Typechecked }

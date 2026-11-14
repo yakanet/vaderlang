@@ -80,6 +80,7 @@ told_word :: fn(frame: DriverFrame) -> string = match frame {
     is ConfigureFrame  -> "configure"
     is EmitModuleFrame -> "emit:${frame.name}"
     is ReportFrame     -> "report:${frame.code}"
+    is DocQueryFrame   -> "doc"
     is NextFrame       -> "next"
     is StopFrame       -> "stop"
 }

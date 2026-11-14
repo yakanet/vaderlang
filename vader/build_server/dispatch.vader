@@ -152,6 +152,11 @@ answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame |
                     return taken
                 }
             }
+            is DocQueryFrame                 -> {
+                sent :: peer.send(session.answer_question(frame)) else is ProtocolError {
+                    return sent
+                }
+            }
             is NextFrame | StopFrame         -> {
                 return frame
             }

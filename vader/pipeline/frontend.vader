@@ -48,10 +48,12 @@ export EvaluatedPipeline :: struct {
 // a build target, or null for this machine. `under_test` loads the entry to run
 // its tests, and every other module without its own. `only_reached` keeps of a
 // dependency what the program reaches (`load_project`): a caller that lists
-// what the modules it loads declare turns it off.
+// what the modules it loads declare turns it off. `keep_docs` keeps the
+// vaderdoc of every declaration, which a driven build answers questions with.
 export prepare_evaluated_project_with :: fn(
     file: Path, include_path_flags: string[], project_root: string | null,
     view: Selection | null = null, under_test: bool = false, only_reached: bool = true,
+    keep_docs: bool = false,
 ) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
     // prepare_cfg_bytecode_with / the C emit of `output.vader`). `prof_begin` / `prof_end` are
@@ -64,6 +66,7 @@ export prepare_evaluated_project_with :: fn(
     Prof.prof_begin(.Load)
     loaded :: load_project(
         file.as_string(), include_path_flags, project_root, view, under_test, only_reached,
+        keep_docs = keep_docs,
     )
     Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []

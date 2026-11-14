@@ -9,6 +9,7 @@
 
 module "vader/build_server"
 
+import "std/collections"
 import "std/console"
 import "std/glob"
 import "std/iter"
@@ -54,6 +55,9 @@ export BuildSession :: struct {
     pending: GeneratedModule[] = []
     /// Files written for the generated modules, in the order they landed.
     generated: string[] = []
+    /// The files delivered to the driver, by path, each version an entry was
+    /// sent: what its questions are answered from (`questions.vader`).
+    received: Map<string, SourceFile[]> = Map<string, SourceFile[]> {}
     /// Whether the stream reached its generation rounds, after which a module
     /// still queued at the end is one no round wrote. A stream that compiles
     /// nothing (a description, a run waiting for its entry, a refused

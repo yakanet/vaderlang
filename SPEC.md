@@ -3240,6 +3240,8 @@ Builds run one at a time: draining the `messages()` of another context ends the 
 
 A driver receives the surface of each declaration: its name, spans and visibility, its type parameters, the fields of a struct, the parameters and result of a function, the variants of an enum, the members a trait or an impl writes, and the types as written. It does not receive bodies (a trait member's default included), default values, the data of a variant, constants, assertions, decorators, or doc comments.
 
+A driver asks its build for the vaderdoc of a declaration, a field or a variant it received: `ctx.doc_of(d)`, `ctx.doc_of_field(f)`, `ctx.doc_of_variant(v)`, null when the node has none. The build answers at once. Before `messages()` is pulled, no build answers, and the result is null.
+
 #### Plugins
 
 A plugin is a type that implements `BuildPlugin`. `ctx.use(p)` plugs it into the build: it hears each message of the stream, in the order the plugins were plugged, before the driver's own loop does. Its members do nothing unless it overrides them:

@@ -117,10 +117,11 @@ export LoadedModule :: struct {
 export load_project :: fn(
     entry_path: string, include_path_flags: string[], project_root: string | null,
     selection: Selection | null = null, under_test: bool = false, only_reached: bool = false,
+    keep_docs: bool = false,
 ) -> LoadedProject {
     return load_project_with_overlay(
         entry_path, Map<string, string> {}, include_path_flags, project_root, selection,
-        under_test = under_test, only_reached = only_reached)
+        keep_docs = keep_docs, under_test = under_test, only_reached = only_reached)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path

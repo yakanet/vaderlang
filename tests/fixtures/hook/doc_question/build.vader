@@ -1,0 +1,48 @@
+// A driver asking its build for what does not cross: the vaderdoc of a
+// declaration, of a field and of a variant, each answered at once over the
+// pipe while the driver handles the module that holds them.
+
+module "build"
+
+import "std/console"
+import "toolchain/build"
+AST :: import "toolchain/ast"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    exit := 0
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage {
+            if msg.module_name != "app" {
+                continue
+            }
+            for d in msg.declarations {
+                if d is AST.StructDecl {
+                    println("driver: ${d.name}: ${shown(ctx.doc_of(d))}")
+                    for f in d.fields {
+                        println("driver: ${d.name}.${f.name}: ${shown(ctx.doc_of_field(f))}")
+                    }
+                }
+                if d is AST.EnumDecl {
+                    println("driver: ${d.name}: ${shown(ctx.doc_of(d))}")
+                    for v in d.variants {
+                        println("driver: ${d.name}.${v.name}: ${shown(ctx.doc_of_variant(v))}")
+                    }
+                }
+            }
+        }
+        if msg is CompleteMessage {
+            exit = msg.code
+        }
+    }
+    return exit
+}
+
+// The text of `doc`, or a word saying there is none.
+shown :: fn(doc: AST.DocComment | null) -> string {
+    if doc == null {
+        return "(none)"
+    }
+    return AST.doc_text(doc)
+}

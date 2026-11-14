@@ -70,7 +70,10 @@ streams, the driver's stdout also carrying what the project prints. The
 declarations cross with their surface, without bodies (`declarations.vader`,
 ADR 0147). The driver opens with its configuration and what it did before pulling
 the stream; between two events, what it did since (modules to generate, reports)
-reaches the build, which writes the generated modules at `BeforeEmit`. Once the
+reaches the build, which writes the generated modules at `BeforeEmit`. A question
+of the driver, the vaderdoc of a node named by its span, is answered at once from
+the files the build delivered, which a driven build loads with their vaderdoc
+(`vader/build_server/questions.vader`, ADR 0149). Once the
 driver had its say on the end, the build prints what it holds, and still takes what
 the driver reports or emits until the driver's exit stops it, which prints the
 rest: a module emitted then is one no round writes. A `vader.json` is served by the

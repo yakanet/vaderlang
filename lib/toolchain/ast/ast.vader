@@ -291,6 +291,21 @@ sole_string_argument :: fn(d: Decorator) -> string {
 
 // ---- Declarations ---------------------------------------------------------
 
+/// The span of `decl`, from its first token to its last.
+///
+/// @param decl  a declaration.
+export decl_span :: fn(decl: Decl) -> Span = match decl {
+    is FnDecl        -> decl.span
+    is StructDecl    -> decl.span
+    is EnumDecl      -> decl.span
+    is TraitDecl     -> decl.span
+    is ImplDecl      -> decl.span
+    is TypeAliasDecl -> decl.span
+    is ConstDecl     -> decl.span
+    is AssertDecl    -> decl.span
+    is ImportDecl    -> decl.span
+}
+
 /// The span of the name `decl` declares.
 ///
 /// @param decl  a declaration.

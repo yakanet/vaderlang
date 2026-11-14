@@ -1,0 +1,174 @@
+// vader/build_server/questions: what a driver asks about the nodes it received.
+//
+// Declarations cross with their surface alone (`toolchain/protocol`); a driver
+// asks for the rest of a node it received, and the server answers at once from
+// the files it delivered (ADR 0149). A driven build loads with the vaderdoc of
+// every declaration for that (`keep_docs`).
+
+module "vader/build_server"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/protocol"
+import "toolchain/span"
+import "vader/front/resolver"
+
+/// Remember `files` as delivered to the driver, which may ask about the nodes
+/// they hold. A file delivered for each of two entries is kept twice: the
+/// target of each may select other declarations of it.
+///
+/// @param session  the build.
+/// @param files    what the driver was just sent.
+export remember_delivered :: fn(session: BuildSession, files: SourceFile[]) -> void {
+    for f in files {
+        session.received.get_or_put(f.path, []).push(f)
+    }
+}
+
+/// The answer to `question`, from the files delivered to the driver.
+///
+/// @param session   the build.
+/// @param question  what the driver asks.
+export answer_question :: fn(session: BuildSession, question: DocQueryFrame) -> DocAnswerFrame =
+    DocAnswerFrame { .doc = session.doc_at(question.span) }
+
+/// The vaderdoc of the declaration, field, variant or member whose span is
+/// `span`, among the files delivered to the driver.
+///
+/// @param session  the build.
+/// @param span     the node's `span`, as the driver received it.
+/// @return         null when the node has none, or when no node delivered has
+///                 that span.
+export doc_at :: fn(session: BuildSession, span: Span) -> AST.DocComment | null {
+    versions :: session.received[span.start.file] else return null
+    for file in versions {
+        for decl in file.program.decls {
+            doc :: doc_in(decl, span)
+            if doc != null {
+                return doc
+            }
+        }
+    }
+    return null
+}
+
+// The vaderdoc of `decl`, or of its field, variant or member, whose span is
+// `span`.
+doc_in :: fn(decl: AST.Decl, span: Span) -> AST.DocComment | null {
+    if AST.decl_span(decl) == span {
+        return AST.decl_doc(decl)
+    }
+    match decl {
+        is AST.StructDecl -> {
+            for f in decl.fields {
+                if f.span == span {
+                    return f.doc
+                }
+            }
+        }
+        is AST.EnumDecl -> {
+            for v in decl.variants {
+                if v.span == span {
+                    return v.doc
+                }
+            }
+        }
+        is AST.TraitDecl -> {
+            return member_doc(decl.members, span)
+        }
+        is AST.ImplDecl -> {
+            return member_doc(decl.members, span)
+        }
+        is AST.FnDecl | AST.TypeAliasDecl | AST.ConstDecl | AST.AssertDecl | AST.ImportDecl -> {}
+    }
+    return null
+}
+
+member_doc :: fn(members: AST.FnDecl[], span: Span) -> AST.DocComment | null {
+    for m in members {
+        if m.span == span {
+            return m.doc
+        }
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/parser"
+
+// A session that delivered `source`, parsed with its vaderdoc as `src/app.vader`.
+delivered_session :: fn(source: string) -> BuildSession {
+    session :: test_session(request_for("/tmp/proj"), [])
+    parsed :: parse_source_with_docs(source, "src/app.vader")
+    file :: SourceFile { .path = "src/app.vader", .content = source, .program = parsed.program }
+    session.remember_delivered([file])
+    return session
+}
+
+DOCUMENTED :: """
+    module "app"
+
+    /// A point on the map.
+    Point :: struct {
+        /// East to west.
+        x: i32
+        y: i32
+    }
+
+    Colour :: enum {
+        /// The first.
+        Red,
+        Green,
+    }
+
+    Shape :: trait {
+        /// Area in square units.
+        area :: fn(self) -> f64
+    }
+    """
+
+documented_decls :: fn(file: string) -> AST.Decl[] = parse_source(DOCUMENTED, file).program.decls
+
+@test
+test_a_question_finds_the_doc_of_a_declaration_and_its_fields :: fn() -> void {
+    session :: delivered_session(DOCUMENTED)
+    point :: documented_decls("src/app.vader")[0]
+    if point !is AST.StructDecl {
+        assert(false, "the first declaration is `Point`")
+        return
+    }
+    assert_eq(AST.doc_text(session.doc_at(point.span)), "A point on the map.")
+    assert_eq(AST.doc_text(session.doc_at(point.fields[0].span)), "East to west.")
+    assert(session.doc_at(point.fields[1].span) == null, "`y` has no doc")
+}
+
+@test
+test_a_question_finds_the_doc_of_a_variant :: fn() -> void {
+    session :: delivered_session(DOCUMENTED)
+    colour :: documented_decls("src/app.vader")[1]
+    if colour !is AST.EnumDecl {
+        assert(false, "the second declaration is `Colour`")
+        return
+    }
+    assert_eq(AST.doc_text(session.doc_at(colour.variants[0].span)), "The first.")
+}
+
+@test
+test_a_question_finds_the_doc_of_a_trait_member :: fn() -> void {
+    session :: delivered_session(DOCUMENTED)
+    shape :: documented_decls("src/app.vader")[2]
+    if shape !is AST.TraitDecl {
+        assert(false, "the third declaration is `Shape`")
+        return
+    }
+    assert_eq(AST.doc_text(session.doc_at(shape.members[0].span)), "Area in square units.")
+}
+
+@test
+test_a_question_about_a_file_never_delivered_has_no_answer :: fn() -> void {
+    session :: delivered_session(DOCUMENTED)
+    point :: documented_decls("src/other.vader")[0]
+    assert(session.doc_at(AST.decl_span(point)) == null, "`src/other.vader` was never sent")
+}

@@ -17,8 +17,8 @@
 // - every type as written.
 //
 // Not yet: a body (a trait member's default included), a default value, the
-// data of a variant, a decorator, a doc comment. The node read back holds none
-// of them.
+// data of a variant, a decorator. The node read back holds none of them, nor a
+// doc comment, which a driver asks for (`DocQueryFrame`).
 //
 // The layout is the frames' own (`frames.vader`): fields after their length,
 // integers as decimal fields, lists as a count then their items. A declaration

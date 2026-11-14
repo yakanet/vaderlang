@@ -1,0 +1,24 @@
+module "app"
+
+import "std/console"
+
+/// A point on the map.
+Point :: struct {
+    /// East to west.
+    x: i32
+    y: i32
+}
+
+/// Where a point leans.
+Lean :: enum {
+    /// Toward the east.
+    East,
+    West,
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    lean :: if p.x > p.y { Lean.East } else { Lean.West }
+    println("${p.x} ${lean == .East}")
+    return 0
+}

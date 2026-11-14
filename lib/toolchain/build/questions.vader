@@ -1,0 +1,141 @@
+// toolchain/build/questions: what a driver asks its build about the nodes it
+// received.
+//
+// Declarations reach a driver with their surface alone (`toolchain/protocol`).
+// The rest of a node, its vaderdoc for now, the driver asks for while it handles
+// a message, and the build answers at once (ADR 0149).
+
+module "toolchain/build"
+
+import "std/console"
+AST :: import "toolchain/ast"
+import "toolchain/protocol"
+import "toolchain/span"
+
+/// The vaderdoc written above `decl`, as `vader` read it.
+///
+/// A declaration reaches the driver without its vaderdoc: this asks the build,
+/// which answers at once. Ask while the stream is open, about a node a
+/// `TypecheckedMessage` delivered: before `messages()` is pulled, no build is
+/// there to answer. The other nodes have their own question (`doc_of_field`,
+/// `doc_of_variant`).
+///
+/// @param decl  the declaration, or a member of a trait or an impl.
+/// @return      null when it has none, when no build answers, and for a
+///              constant, an assertion or an import, which do not cross.
+/// @example
+///   # import "std/console"
+///   # import "toolchain/ast"
+///   # ctx :: new_build_context(["driver"])
+///   for msg in ctx.messages() {
+///       if msg is TypecheckedMessage {
+///           for d in msg.declarations {
+///               println(doc_text(ctx.doc_of(d)))
+///           }
+///       }
+///   }
+export doc_of :: fn(ctx: BuildContext, decl: AST.Decl) -> AST.DocComment | null =
+    ctx.ask_doc(AST.decl_span(decl))
+
+/// The vaderdoc written above `field`, as `vader` read it.
+///
+/// @param field  a field of a struct the driver received.
+/// @return       null when it has none, or when no build answers.
+export doc_of_field :: fn(ctx: BuildContext, field: AST.StructField) -> AST.DocComment | null =
+    ctx.ask_doc(field.span)
+
+/// The vaderdoc written above `variant`, as `vader` read it.
+///
+/// @param variant  a variant of an enum the driver received.
+/// @return         null when it has none, or when no build answers.
+export doc_of_variant :: fn(
+    ctx: BuildContext,
+    variant: AST.EnumVariant,
+) -> AST.DocComment | null = ctx.ask_doc(variant.span)
+
+ask_doc :: fn(ctx: BuildContext, span: Span) -> AST.DocComment | null {
+    answer :: ctx.ask(DocQueryFrame { .span = span }) else return null
+    return answer.doc
+}
+
+// Put `question` to the build open on `ctx`, and take its answer: null when no
+// build is open, or once the driver lost it.
+ask :: fn(ctx: BuildContext, question: DocQueryFrame) -> DocAnswerFrame | null {
+    link :: ctx.link else return null
+    if ctx.lost {
+        return null
+    }
+    link.send(question)
+    answer :: link.receive() else {
+        ctx.lose_build(answer.msg)
+        return null
+    }
+    if answer !is DocAnswerFrame {
+        ctx.lose_build("it was sent an event where an answer was due")
+        return null
+    }
+    return answer
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/parser"
+
+POINT :: "module \"app\"\n\nPoint :: struct {\n    x: i32\n}\n"
+
+point :: fn() -> AST.Decl = parse_source(POINT, "src/app.vader").program.decls[0]
+
+one_line_doc :: fn(text: string, span: Span) -> AST.DocComment = AST.DocComment {
+    .lines = [AST.DocCommentLine { .text = text, .span = span }],
+}
+
+@test
+test_a_driver_asks_its_build_for_the_doc_of_a_declaration :: fn() -> void {
+    decl :: point()
+    link :: ScriptedLink {
+        .events = [
+            TypecheckedFrame { .module_name = "app", .declarations = [decl] },
+            DocAnswerFrame { .doc = one_line_doc(" A point.", AST.decl_span(decl)) },
+            CompleteFrame { .code = 0 },
+        ],
+    }
+    ctx :: scripted_context(link)
+    asked := ""
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage {
+            asked = AST.doc_text(ctx.doc_of(msg.declarations[0]))
+        }
+    }
+    assert_eq(asked, "A point.")
+    assert_eq(told(link), "configure next doc next next")
+}
+
+@test
+test_an_event_in_place_of_an_answer_ends_the_build_on_a_failure :: fn() -> void {
+    link :: ScriptedLink {
+        .events = [
+            TypecheckedFrame { .module_name = "app", .declarations = [point()] },
+            CompleteFrame { .code = 0 },
+        ],
+    }
+    ctx :: scripted_context(link)
+    end := -1
+    for msg in ctx.messages() {
+        if msg is TypecheckedMessage {
+            assert(ctx.doc_of(msg.declarations[0]) == null, "no answer came")
+        }
+        if msg is CompleteMessage {
+            end = msg.code
+        }
+    }
+    assert_eq(end, 1)
+}
+
+@test
+test_no_build_answers_before_the_stream_is_pulled :: fn() -> void {
+    link :: ScriptedLink { .events = [] }
+    ctx :: scripted_context(link)
+    assert(ctx.doc_of(point()) == null, "no build is open")
+    assert_eq(told(link), "")
+}
