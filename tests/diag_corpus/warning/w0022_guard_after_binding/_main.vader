@@ -1,6 +1,7 @@
 // A guard on the failure of the value just bound, which leaves, is the `else`
 // of its binding: W0022 on `a` (bare `else`), on `b` (`else is IOError`, whose
-// `null` is the success) and on `c` (a comment in between changes nothing).
+// `null` is the success), on `c` (a comment in between changes nothing) and
+// in a generator, on a guard that yields before it leaves.
 // Quiet: a test of a success, a guard that does not follow its binding, a
 // mutable binding, a guard that does not leave, and a left that ends with a `}`.
 module "snippet"
@@ -48,5 +49,17 @@ main :: fn() -> i32 {
     if h == null {
         return 6
     }
+    for x in found(1) {
+        total += x
+    }
     return total + e + h
+}
+
+found :: fn(n: i32) -> Iterator<i32> {
+    v :: find(n)
+    if v == null {
+        yield 0
+        return
+    }
+    yield v
 }

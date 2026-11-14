@@ -4,10 +4,9 @@
 // `x :: f()` followed by `if x == null { return }` or `if x is E { ... }` (E a
 // failure: `null`, an error type, `Error`) whose body ends by leaving reads as
 // `x :: f() else ...` / `else is E { ... }`, same meaning. Left alone: a guard
-// that does not follow its binding, a mutable or annotated binding, a left that
-// is an `if`, a `match`, a block or an `else` already (`x :: if c { a } else
-// { b } else return` would read as a branch of the `if`), and a body holding a
-// `yield`, which a clause cannot suspend in.
+// that does not follow its binding, a mutable or annotated binding, and a left
+// that is an `if`, a `match`, a block or an `else` already (`x :: if c { a }
+// else { b } else return` would read as a branch of the `if`).
 
 module "vader/front/typecheck"
 
@@ -53,7 +52,7 @@ foldable_binding :: fn(decl: AST.LetStmt) -> string | null {
 
 // What `guard` tests `name`, of type `bound`, for, and what that leaves of
 // `bound`, when `bound` holds both that failure and something else and the guard
-// leaves through a body a clause can hold ; null otherwise.
+// leaves ; null otherwise.
 guard_on_failure :: fn(
     guard: AST.IfExpr,
     name: string,
@@ -66,9 +65,6 @@ guard_on_failure :: fn(
         return null
     }
     if guard.else_branch != null || !then_is_divergent(guard.then_block, typed) {
-        return null
-    }
-    if has_yield(guard.then_block) {
         return null
     }
     return GuardFold { .tested = tested, .kept = kept }

@@ -200,10 +200,7 @@ pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         yield CompleteMessage { .code = 1 }
         return
     }
-    // A `yield` in the clause of an `else` would sit inside an expression, where
-    // the generator cannot suspend.
-    chosen :: chosen_entries(ctx, request)
-    if chosen == null {
+    chosen :: chosen_entries(ctx, request) else {
         yield CompleteMessage { .code = 1 }
         return
     }
