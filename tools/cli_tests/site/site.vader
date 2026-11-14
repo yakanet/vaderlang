@@ -11,11 +11,11 @@
 
 module "tools/cli_tests/site"
 
+import "std/abort"
 import "std/char"
 import "std/fs"
 import "std/io"
 import "std/iter"
-import "std/option"
 import "std/sort"
 import "std/string"
 import "toolchain/ast"
@@ -127,14 +127,16 @@ output_after :: fn(blocks: Block[], next: i64) -> string | null {
 // The programs of every page of `CONTENT`, the pages in name order.
 site_programs :: fn() -> Program[] {
     pages: string[]: []
-    for entry in walk(CONTENT).unwrap() {
+    entries :: walk(CONTENT) else panic(entries.message())
+    for entry in entries {
         if entry.name.ends_with(".md") {
             pages.push(entry.relative)
         }
     }
     out: Program[]: []
     for page in sort(pages, compare_ascending) {
-        out.push_all(programs_of(page, read_file_string("${CONTENT}/${page}").unwrap()))
+        text :: read_file_string("${CONTENT}/${page}") else panic(text.message())
+        out.push_all(programs_of(page, text))
     }
     return out
 }
@@ -148,7 +150,7 @@ compiled :: fn(source: string) -> string =
 run_problem :: fn(program: Program, index: i64) -> string | null {
     file :: scratch_source("site_${index}", compiled(program.source))
     options :: RunOptions { .env = [["VADER_VIRTUAL_CLOCK", "1"]] }
-    ran :: run_vader(["run", file], options).unwrap()
+    ran :: run_vader(["run", file], options) else panic(ran.message())
     if ran.exit != 0 || ran.stderr != "" {
         return "${program.place}: exit ${ran.exit}\n${ran.stderr}"
     }

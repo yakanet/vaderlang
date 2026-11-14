@@ -12,7 +12,6 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/uri"
 import "toolchain/ast"
 import "toolchain/span"
@@ -33,7 +32,7 @@ RUN_TEST_COMMAND :: "vader.runTest"
 export handle_code_lens :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     idx :: state.index_for(uri) else return JsonArray { .items = [] }
-    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+    path :: path_of_uri(uri)
         else return JsonArray { .items = [] }
     folder :: project_or_folder_of_document(path)
     return JsonArray { .items = test_lenses(idx.program, uri, folder, idx.line_index) }

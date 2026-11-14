@@ -6,8 +6,8 @@
 
 module "snippet"
 
+import "std/abort"
 import "std/iter"
-import "std/option"
 import "std/task"
 
 Stats :: struct {
@@ -24,5 +24,5 @@ main :: fn() -> i32 {
         return n * 2
     }).sum()
     t :: launch(() -> look(stats))
-    return i32(t.join().unwrap() + total) - 8
+    return i32((t.join() else panic("the task was cancelled")) + total) - 8
 }

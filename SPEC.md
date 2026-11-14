@@ -2691,7 +2691,7 @@ Among the candidates whose first parameter accepts the first argument, the most 
 3. On a direct call, the candidate whose number of parameters matches. Through UFCS this rank does not apply, and candidates with different numbers of parameters are never ambiguous with each other.
 4. For a free literal, the candidate whose parameter is the literal's default type (§4 *Default integer*): `abs(-5)` reaches the `i32` overload whatever the declaration order.
 
-If two candidates of one module are still tied after these ranks, the call is an error: `x.or(-1)` on `x: i32 | Error | null` fits `or(x: T | null, d: T)` and `or(x: T | Error, d: T)` equally. Narrow `x` first.
+If two candidates of one module are still tied after these ranks, the call is an error: with `label :: fn<T>(x: T | null) -> string` and `label :: fn<T>(x: T | Error) -> string` in one module, `x.label()` on `x: i32 | Error | null` fits both equally. Narrow `x` first.
 
 In a generic body, a call is resolved once, against the type parameters. A first argument typed by `T`, or by a type that mentions it (`T[]`), reaches only the candidates whose first parameter accepts `T` itself, never an overload on a concrete type, and every instance runs the candidate chosen. With `describe :: fn<T: Display>(self: T)` and `describe :: fn(self: i32)`, `show :: fn<T: Display>(v: T) -> string = v.describe()` runs the generic one for `show(1)`. Behaviour that must differ by type goes through a trait bound (§4 *Specialization: the instance wins*).
 

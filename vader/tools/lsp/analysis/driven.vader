@@ -20,7 +20,6 @@ import "json"
 import "std/collections"
 import "std/env"
 import "std/fs"
-import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -176,7 +175,7 @@ settle :: fn(self: ServerState, root: string, known: DrivenProject, roots: strin
     register_project_roots(root, roots)
     forget_project_analyses(self, root)
     for [uri, _] in self.docs {
-        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else continue
+        path :: path_of_uri(uri) else continue
         if is_inside(path, root) {
             self.dirty[uri] = true
         }

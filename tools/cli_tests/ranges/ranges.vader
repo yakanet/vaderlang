@@ -10,8 +10,8 @@
 module "tools/cli_tests/ranges"
 
 import "regex"
+import "std/abort"
 import "std/iter"
-import "std/option"
 import "std/string"
 import "tools/cli_tests/cli"
 
@@ -35,7 +35,8 @@ checks_in :: fn(c: string, name: string) -> string {
                 }
                 body.push(lines[j])
             }
-            found :: compile(INDEX_CHECK).unwrap().find_all(body.join("\n"))
+            pattern :: compile(INDEX_CHECK) else panic(pattern.message())
+            found :: pattern.find_all(body.join("\n"))
             return found.map((m) -> m.groups[0]).collect().join(" ")
         }
     }
@@ -45,7 +46,8 @@ checks_in :: fn(c: string, name: string) -> string {
 // The C a native build of `ELISION` with `flags` emits, streamed.
 native_c :: fn(flags: string[], env: [string, string | null][] = []) -> string {
     argv :: ["build"] + flags + ["--emit=c", "--out=-", ELISION]
-    return succeeded(run_vader(argv, RunOptions { .env = env })).unwrap().stdout
+    built :: succeeded(run_vader(argv, RunOptions { .env = env })) else panic(built.message())
+    return built.stdout
 }
 
 // The environment that keeps the check of a proven access.
@@ -58,7 +60,8 @@ import "std/testing"
 @test
 test_the_optimisation_report_totals_the_verdicts_and_lists_each_certain_fault :: fn() -> void {
     options :: RunOptions { .env = [["VADER_OPT_REPORT", "1"]] }
-    dumped :: succeeded(run_vader(["dump", "--stage=ranges", VERDICTS], options)).unwrap()
+    dumped :: succeeded(run_vader(["dump", "--stage=ranges", VERDICTS], options))
+        else panic(dumped.message())
     for said in [
         "[VADER_OPT_REPORT] range analysis",
         "x + \$k_3 in verdicts\$always_overflows",
@@ -98,6 +101,7 @@ test_verify_bounds_keeps_the_check_of_a_proven_access_under_a_message_of_its_own
     }
     // The path of the C stage of the dump.
     options :: RunOptions { .env = VERIFY_BOUNDS }
-    dumped :: succeeded(run_vader(["dump", "--stage=c", ELISION], options)).unwrap()
+    dumped :: succeeded(run_vader(["dump", "--stage=c", ELISION], options))
+        else panic(dumped.message())
     assert_eq(checks_in(dumped.stdout, "proven_access"), "VADER_ARRAY_CHECK_PROVEN")
 }

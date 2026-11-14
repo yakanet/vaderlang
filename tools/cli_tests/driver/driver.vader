@@ -12,10 +12,10 @@
 module "tools/cli_tests/driver"
 
 import "json"
+import "std/abort"
 import "std/char"
 import "std/fs"
 import "std/io"
-import "std/option"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -35,8 +35,10 @@ driven :: fn(dir: string, args: string[]) -> ProcessResult =
 
 // What the program `binary` did, run in `dir` with the changes `env` to its
 // environment.
-ran_in :: fn(dir: string, binary: string, env: [string, string | null][] = []) -> ProcessResult =
-    run_command([binary], RunOptions { .cwd = dir, .env = env }).unwrap()
+ran_in :: fn(dir: string, binary: string, env: [string, string | null][] = []) -> ProcessResult {
+    ran :: run_command([binary], RunOptions { .cwd = dir, .env = env }) else panic(ran.message())
+    return ran
+}
 
 // The fixture `pascal_case_lint` built by its driver, which reports a rule the
 // project breaks, and builds it all the same.
@@ -141,13 +143,15 @@ test_info_check_run_build_run_and_the_build_flags_take_a_driven_project :: fn() 
     dir :: staged_copy("${FIXTURES}/generate_module", "driver_modes")
     driver :: "${dir}/build.vader"
     entry :: "ctx.add_entry(\"app\", \"src/main.vader\")"
-    rooted :: read_file_string(driver).unwrap().replace_all(
+    script :: read_file_string(driver) else panic(script.message())
+    rooted :: script.replace_all(
         entry,
         "${entry}\n    ctx.include_paths.push(\"extra\")",
     )
     write_file(driver, rooted)
     main :: "${dir}/src/main.vader"
-    imports :: read_file_string(main).unwrap().replace_all(
+    source :: read_file_string(main) else panic(source.message())
+    imports :: source.replace_all(
         "import \"gen/describe\"",
         "import \"gen/describe\"\nimport \"greet\"",
     )
@@ -165,7 +169,7 @@ test_info_check_run_build_run_and_the_build_flags_take_a_driven_project :: fn() 
     // The driver prints its own counters to stderr, leaving stdout to the JSON.
     info :: driven(dir, ["info", "--json", "."])
     assert_eq(info.exit, 0)
-    described :: parse(info.stdout).unwrap()
+    described :: parse(info.stdout) else panic(described.message())
     assert_eq(string_member(described, "kind") else "", "driver")
     assert_eq(strings_member(described, "includePaths").join(" "), "extra")
     entries :: member(described, "entries") else JsonNull {}
@@ -216,7 +220,8 @@ test_a_driven_build_sweeps_the_generated_modules_of_the_build_before :: fn() -> 
     built :: driven(dir, ["build"])
     assert(built.exit == 0 && "error[" !in built.stderr, built.stderr)
     assert(!exists(stale), "the leftover is swept")
-    assert_eq(read_dir(generated).unwrap().len(), 1)
+    left :: read_dir(generated) else panic(left.message())
+    assert_eq(left.len(), 1)
     ran :: ran_in(dir, executable_path("${binaries(dir)}/app"))
     assert("Point(x, y) /" in ran.stdout && "STALE" !in ran.stdout, ran.stdout)
 }

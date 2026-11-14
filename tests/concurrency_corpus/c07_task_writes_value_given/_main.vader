@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Grid :: struct {
@@ -28,5 +28,5 @@ render :: fn(grid: Grid) -> i64 = grid.cells.len()
 main :: fn() -> i32 {
     grid :: load_grid("map.png")
     t :: launch(() -> blur(grid))
-    return i32(render(t.join().unwrap())) - 3
+    return i32(render(t.join() else panic("the task was cancelled"))) - 3
 }

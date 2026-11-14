@@ -160,7 +160,10 @@
       snippet.pool()
   }
   __lambda_snippet_4 :: fn() -> i32 {
-      std.option.unwrap<i32>(std.task.join<i32>(snippet.warmup()))
+      {
+          __fallback_0: Cancelled | i32 = std.task.join<i32>(snippet.warmup())
+          if __fallback_0 is Cancelled { std.abort.panic("the task was cancelled") } else { i32(__fallback_0) } :i32
+      } :i32
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -210,7 +213,6 @@
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Cancelled.message  // std_core$Cancelled$Error$message
     fn std.core.Cancelled.to_string  // std_core$Cancelled$Display$to_string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
@@ -270,8 +272,6 @@
     struct std.core.Cancelled  // std_core$Cancelled
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.FloatDec32  // std_core$FloatDec32
-  std/option
-    fn std.option.unwrap<i32>  // std_option$unwrap__i32
   std/runtime/scheduler
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2

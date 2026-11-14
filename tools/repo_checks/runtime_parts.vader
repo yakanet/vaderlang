@@ -10,10 +10,10 @@
 
 module "tools/repo_checks"
 
+import "std/abort"
 import "std/fs"
 import "std/io"
 import "std/iter"
-import "std/option"
 import "std/process"
 import "std/sort"
 import "std/string"
@@ -54,7 +54,7 @@ test_each_runtime_part_parses_on_its_own :: fn() -> void {
     if !has_cc() {
         return
     }
-    listed :: read_dir(RUNTIME_PARTS).unwrap()
+    listed :: read_dir(RUNTIME_PARTS) else panic(listed.message())
     parts :: sort(
         listed.filter((n) -> n.ends_with(".c") && is_built_here(n)).collect(),
         compare_ascending,

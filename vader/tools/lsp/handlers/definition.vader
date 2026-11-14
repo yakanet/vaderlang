@@ -18,7 +18,6 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/uri"
 import "vader/support/diagnostics"
 import "vader/core/symbol"
@@ -121,7 +120,7 @@ member_by_type :: fn(
         // like a wildcard.
         return resolve_in_module(state, uri, alias_path, name, true)
     }
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return null
+    file_path :: path_of_uri(uri) else return null
     // DURING an edit burst this project is deliberately stale: `handle_did_change`
     // rebuilds the document index but keeps the typed cache, so the debounce can
     // typecheck once instead of per keystroke. The AST here is then the PREVIOUS
@@ -359,7 +358,7 @@ def_response :: fn(
     // The target spans (`name_span` / `full_span`) live in `uri`'s file, which
     // may differ from the origin's: encode each with its own file's index. A
     // URI that names no file is the origin's own document, an untitled buffer.
-    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+    path :: path_of_uri(uri) else null
     target_li :: if path == null { origin_li } else { state.line_index_for_path(path) }
     clicked :: if origin == null { null } else { origin.span_to_range_json(origin_li) }
     full :: full_span.span_to_range_json(target_li)

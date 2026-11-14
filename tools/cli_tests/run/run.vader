@@ -8,8 +8,8 @@
 
 module "tools/cli_tests/run"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/process"
 import "std/string"
 import "std/string_builder"
@@ -96,7 +96,7 @@ import "std/testing"
 
 @test
 test_run_stops_on_a_lowering_error_and_reports_it :: fn() -> void {
-    ran :: run_vader(["run", LOWERING_ERROR]).unwrap()
+    ran :: run_vader(["run", LOWERING_ERROR]) else panic(ran.message())
     assert_eq(ran.exit, 1)
     assert("error[M5001]" in ran.stderr, ran.stderr)
     assert("reached unreachable" !in ran.stderr, ran.stderr)
@@ -112,18 +112,20 @@ test_run_picks_the_main_of_the_named_file :: fn() -> void {
         "${dir}/zeta.vader",
         "module \"scratch\"\nmain :: fn(argv: string[]) -> i32 {\n    return 9\n}\n",
     )
-    assert_eq(run_vader(["run", "${dir}/zeta.vader"]).unwrap().exit, 9)
-    assert_eq(run_vader(["run", "${dir}/alpha.vader"]).unwrap().exit, 7)
+    zeta :: run_vader(["run", "${dir}/zeta.vader"]) else panic(zeta.message())
+    assert_eq(zeta.exit, 9)
+    alpha :: run_vader(["run", "${dir}/alpha.vader"]) else panic(alpha.message())
+    assert_eq(alpha.exit, 7)
 }
 
 @test
 test_run_and_build_refuse_a_module_with_no_main :: fn() -> void {
     file :: "${scratch_dir("run_no_main")}/lib.vader"
     write_file(file, "module \"scratch\"\nshout :: fn() -> i32 {\n    return 3\n}\n")
-    ran :: run_vader(["run", file]).unwrap()
+    ran :: run_vader(["run", file]) else panic(ran.message())
     assert_eq(ran.exit, 1)
     assert("declares no `main`" in ran.stderr, ran.stderr)
-    built :: run_vader(["build", "--emit=c", "--out=-", file]).unwrap()
+    built :: run_vader(["build", "--emit=c", "--out=-", file]) else panic(built.message())
     assert_eq(built.exit, 1)
     assert_eq(built.stdout, "")
     assert("declares no `main`" in built.stderr, built.stderr)
@@ -137,14 +139,14 @@ test_a_program_printing_past_its_reader_stops_once_it_has_gone :: fn() -> void {
     }
     source :: scratch_source("run_closed_pipe", ENDLESS_PRINTER)
     pipeline :: ["/bin/sh", "-c", "\"\$0\" run \"\$1\" | head -c 1", vader_binary(), source]
-    ran :: run_command(pipeline, RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    ran :: run_command(pipeline, RunOptions { .timeout = LONG_TIMEOUT }) else panic(ran.message())
     assert_eq(ran.stdout, "x")
     assert_eq(ran.exit, 0)
 }
 
 @test
 test_a_failed_check_runs_the_pending_defers_on_the_vm :: fn() -> void {
-    ran :: run_vader(["run", OUT_OF_RANGE]).unwrap()
+    ran :: run_vader(["run", OUT_OF_RANGE]) else panic(ran.message())
     assert_eq(ran.stdout, OUT_OF_RANGE_STDOUT)
     assert(ran.exit != 0, "the run stops")
 }
@@ -156,7 +158,8 @@ test_a_failed_check_runs_the_pending_defers_natively :: fn() -> void {
     }
     binary :: executable_path("${scratch_dir("run_out_of_range")}/out_of_range")
     argv :: ["build", "--out=${binary}", OUT_OF_RANGE]
-    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+        else panic(built.message())
     ran :: run_command([binary])
     if ran is ProcessResult {
         assert(ran.exit != 0, "the binary stops")
@@ -185,7 +188,8 @@ test_vader_run_builds_a_large_array_literal :: fn() -> void {
 // Check that `vader run` of the program `source`, written to a fresh folder
 // named after `name`, prints `TABLE_PRINTED`.
 assert_prints_table :: fn(name: string, source: string) -> void {
-    ran :: run_vader(["run", scratch_source(name, source)], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    ran :: run_vader(["run", scratch_source(name, source)], RunOptions { .timeout = LONG_TIMEOUT })
+        else panic(ran.message())
     assert_eq(ran.stderr, "")
     assert_eq(ran.stdout, TABLE_PRINTED)
     assert_eq(ran.exit, 0)

@@ -9,8 +9,8 @@
 
 module "tools/cli_tests/threads"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/string"
 import "std/target"
 import "tools/cli_tests/cli"
@@ -60,7 +60,8 @@ built :: fn(profile: string, flags: string[]) -> string | null {
     if !has_cc() {
         return null
     }
-    return build_binary("threads_${profile}", flags, FIXTURE).unwrap()
+    binary :: build_binary("threads_${profile}", flags, FIXTURE) else panic(binary.message())
+    return binary
 }
 
 @singleton
@@ -344,7 +345,8 @@ test_main_returning_names_a_thread_a_defer_of_a_cancelled_thread_launched :: fn(
 @test
 test_a_test_that_leaves_a_thread_fails_and_the_thread_ends_before_the_next :: fn() -> void {
     // One that cancels its thread passes.
-    ran :: run_vader(["test", TESTS_FIXTURE], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    ran :: run_vader(["test", TESTS_FIXTURE], RunOptions { .timeout = LONG_TIMEOUT })
+        else panic(ran.message())
     for said in [
         "FAIL test_leaves_a_thread",
         "task #1 still running when the test returns: cancelled",

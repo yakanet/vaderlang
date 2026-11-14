@@ -11,8 +11,8 @@
 
 module "tools/cli_tests/comptime"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/string_builder"
 import "tools/cli_tests/cli"
 
@@ -183,7 +183,8 @@ test_a_comptime_read_names_a_file_beside_its_source_in_a_native_build :: fn() ->
     built :: vader_in(dir, ["build", "--out=out/main", "src/main.vader"])
     assert(built.exit == 0 && "error" !in built.stderr, built.stderr)
     options :: RunOptions { .cwd = dir }
-    ran :: succeeded(run_command([executable_path("${dir}/out/main")], options)).unwrap()
+    ran :: succeeded(run_command([executable_path("${dir}/out/main")], options))
+        else panic(ran.message())
     assert_eq(ran.stdout, expected_output())
 }
 

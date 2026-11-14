@@ -8,7 +8,7 @@
     "decls": [
       {
         "kind": "ImportDecl",
-        "path": "std/console",
+        "path": "std/abort",
         "binding": {
           "kind": "wildcard"
         },
@@ -16,7 +16,7 @@
       },
       {
         "kind": "ImportDecl",
-        "path": "std/option",
+        "path": "std/console",
         "binding": {
           "kind": "wildcard"
         },
@@ -1002,28 +1002,50 @@
                         "kind": "BlockExpr",
                         "stmts": [],
                         "trailing": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "CallExpr",
-                              "callee": {
-                                "kind": "FieldExpr",
-                                "target": {
-                                  "kind": "CallExpr",
-                                  "callee": {
-                                    "kind": "IdentExpr",
-                                    "name": "warmup"
-                                  },
-                                  "args": []
+                          "kind": "FallbackExpr",
+                          "left": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "warmup"
                                 },
-                                "field": "join"
+                                "args": []
                               },
-                              "args": []
+                              "field": "join"
                             },
-                            "field": "unwrap"
+                            "args": []
                           },
-                          "args": []
+                          "clauses": [
+                            {
+                              "test": null,
+                              "body": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "panic"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "StringLitExpr",
+                                      "parts": [
+                                        {
+                                          "kind": "text",
+                                          "value": "the task was cancelled"
+                                        }
+                                      ]
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              }
+                            }
+                          ]
                         }
                       }
                     },

@@ -8,7 +8,6 @@ module "vader/tools/lsp/analysis"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/string"
 import "std/uri"
 import "vader/pipeline/check"
@@ -388,7 +387,7 @@ export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> Sou
 export doc_overlay :: fn(self: ServerState) -> Map<string, string> {
     overlay :: Map<string, string> {}
     for [uri, text] in self.docs {
-        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else continue
+        path :: path_of_uri(uri) else continue
         if text != "" {
             overlay[path] = text
         }
@@ -424,7 +423,7 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
 /// roots: its project describes itself again (`ensure_described`), its known
 /// roots serving meanwhile. Params shape : { textDocument: { uri } }
 export handle_did_save :: fn(self: ServerState, params: JsonValue) -> void {
-    path :: parse_uri(position_uri(params)).and_then(u -> u.to_path()).or_null() else return
+    path :: path_of_uri(position_uri(params)) else return
     describe_again_if_driver(self, path)
 }
 
@@ -582,7 +581,7 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
     changed: string[]: []
     for change in changes.items {
         uri :: canonical_uri(get_string(change, "uri"))
-        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else continue
+        path :: path_of_uri(uri) else continue
         if self.docs[uri] != null {
             if !is_deletion(change, path) {
                 continue
@@ -598,7 +597,7 @@ export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValu
     forget_analyses(self)
     self.union_cache = null
     for [uri, _] in self.docs {
-        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else continue
+        path :: path_of_uri(uri) else continue
         if !is_virt_uri(uri) && touches_document(changed, path) {
             self.dirty[uri] = true
         }

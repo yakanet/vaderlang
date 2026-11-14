@@ -9,8 +9,8 @@
 
 module "tools/cli_tests/native"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/process"
 import "std/string"
 import "std/target"
@@ -119,7 +119,7 @@ test_a_release_build_wraps_the_wrapping_operators_as_the_vm_does :: fn() -> void
         return
     }
     source :: "${SIGNED_OVERFLOW}/_main.vader"
-    ran :: build_and_run("signed_overflow", ["--release"], source).unwrap()
+    ran :: build_and_run("signed_overflow", ["--release"], source) else panic(ran.message())
     assert_eq(ran.stdout, vm_stdout(SIGNED_OVERFLOW))
     assert(exited_cleanly(ran), ran.stderr)
 }
@@ -129,7 +129,8 @@ test_a_debug_build_stops_on_an_integer_overflow_as_the_vm_does :: fn() -> void {
     if !has_cc() {
         return
     }
-    ran :: build_and_run("overflow_debug", [], "${INTEGER_OVERFLOW}/_main.vader").unwrap()
+    ran :: build_and_run("overflow_debug", [], "${INTEGER_OVERFLOW}/_main.vader")
+        else panic(ran.message())
     assert_eq(ran.stdout, vm_stdout(INTEGER_OVERFLOW))
     assert("i32.add overflow" in ran.stderr, ran.stderr)
     assert(!exited_cleanly(ran), "the binary stops")
@@ -141,7 +142,7 @@ test_a_release_build_wraps_an_integer_overflow :: fn() -> void {
         return
     }
     source :: "${INTEGER_OVERFLOW}/_main.vader"
-    ran :: build_and_run("overflow_release", ["--release"], source).unwrap()
+    ran :: build_and_run("overflow_release", ["--release"], source) else panic(ran.message())
     expected :: "${vm_stdout(INTEGER_OVERFLOW)}i32 past its maximum: -2147483648\n"
     assert_eq(ran.stdout, expected)
     assert(exited_cleanly(ran), ran.stderr)
@@ -156,10 +157,11 @@ test_a_for_over_a_string_steps_no_iterator :: fn() -> void {
         return
     }
     source :: scratch_source("native_string_for_source", STRING_FOR)
-    binary :: build_binary("string_for", [], source).unwrap()
+    binary :: build_binary("string_for", [], source) else panic(binary.message())
     // 104 + 233 + 108 + 108 + 111, the code points of "héllo".
-    assert_eq(succeeded(run_command([binary])).unwrap().stdout, "664\n")
-    symbols :: succeeded(run_command(["nm", binary])).unwrap()
+    ran :: succeeded(run_command([binary])) else panic(ran.message())
+    assert_eq(ran.stdout, "664\n")
+    symbols :: succeeded(run_command(["nm", binary])) else panic(symbols.message())
     assert("std_string_StringChars_Iterator_next" !in symbols.stdout, "no `next` of `StringChars`")
 }
 
@@ -181,7 +183,7 @@ assert_each_check :: fn(run_case: fn(string) -> Ran, wraps: string[]) -> void {
 test_every_unread_check_stops_the_vm :: fn() -> void {
     virt :: "${scratch_dir("native_unread")}/unread.virt"
     argv :: ["build", "--emit=bytecode-text", "--out=${virt}", UNREAD_CHECKS_PROGRAM]
-    succeeded(run_vader(argv)).unwrap()
+    built :: succeeded(run_vader(argv)) else panic(built.message())
     assert_each_check((name) -> vm_run(virt, [name]), [])
 }
 
@@ -190,7 +192,7 @@ test_every_unread_check_stops_a_debug_build :: fn() -> void {
     if !has_cc() {
         return
     }
-    binary :: build_binary("unread_debug", [], UNREAD_CHECKS_PROGRAM).unwrap()
+    binary :: build_binary("unread_debug", [], UNREAD_CHECKS_PROGRAM) else panic(binary.message())
     assert_each_check((name) -> ran_of(run_command([binary, name])), [])
 }
 
@@ -199,7 +201,8 @@ test_a_release_build_wraps_an_unread_overflow_and_stops_on_the_other_checks :: f
     if !has_cc() {
         return
     }
-    binary :: build_binary("unread_release", ["--release"], UNREAD_CHECKS_PROGRAM).unwrap()
+    binary :: build_binary("unread_release", ["--release"], UNREAD_CHECKS_PROGRAM)
+        else panic(binary.message())
     assert_each_check((name) -> ran_of(run_command([binary, name])), ["add", "negate"])
 }
 
@@ -221,7 +224,7 @@ test_a_constant_read_again_by_its_function_stops_a_native_build :: fn() -> void 
     if !has_cc() {
         return
     }
-    ran :: build_and_run("read_again", [], CONSTANT_READ_AGAIN, ["cycle"]).unwrap()
+    ran :: build_and_run("read_again", [], CONSTANT_READ_AGAIN, ["cycle"]) else panic(ran.message())
     assert_stopped(ran, "42 42 126\n", LOOP_STOP)
 }
 
@@ -235,7 +238,7 @@ test_a_gated_constant_read_again_by_its_function_stops_a_native_build :: fn() ->
     if !has_cc() {
         return
     }
-    ran :: build_and_run("gated_again", [], GATED_CONSTANT, ["again"]).unwrap()
+    ran :: build_and_run("gated_again", [], GATED_CONSTANT, ["again"]) else panic(ran.message())
     assert_stopped(ran, GATED_STDOUT, LOOP_STOP)
 }
 
@@ -249,7 +252,7 @@ test_a_singleton_called_again_by_its_own_body_stops_a_native_build :: fn() -> vo
     if !has_cc() {
         return
     }
-    ran :: build_and_run("selfish", [], SELFISH_SINGLETON).unwrap()
+    ran :: build_and_run("selfish", [], SELFISH_SINGLETON) else panic(ran.message())
     assert_stopped(ran, "selfish starts\n", SELFISH_STOP)
 }
 
@@ -259,8 +262,9 @@ test_a_byte_buffer_emits_the_helpers_of_its_abi :: fn() -> void {
     // BUFFER sentinel of its header has the collector forward it.
     out :: "${scratch_dir("native_membuf_c")}/membuf.c"
     argv :: ["build", "--emit=c", "--release", "--out=${out}", MEMBUF]
-    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
-    c :: read_file_string(out).unwrap()
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+        else panic(built.message())
+    c :: read_file_string(out) else panic(c.message())
     assert("(void*) vader_buffer_new(" in c, "the buffer is a raw reference")
     assert("vader_buffer_store_i32(" in c, "a store helper")
     assert("vader_buffer_load_i32(" in c, "a load helper")
@@ -274,7 +278,8 @@ test_a_byte_buffer_survives_a_moving_collection :: fn() -> void {
     if !has_cc() {
         return
     }
-    binary :: build_binary("membuf", ["--emit=executable", "--release"], MEMBUF).unwrap()
+    binary :: build_binary("membuf", ["--emit=executable", "--release"], MEMBUF)
+        else panic(binary.message())
     for kilobytes in [16, 32, 64, 128] {
         options :: RunOptions {
             .env = [["VADER_GC_YOUNG_BYTES", "${kilobytes * 1024}"], ["VADER_GC_SCAN_ALL_OLD", "1"]],

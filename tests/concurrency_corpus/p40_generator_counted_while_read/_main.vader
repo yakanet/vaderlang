@@ -6,8 +6,8 @@
 
 module "snippet"
 
+import "std/abort"
 import "std/iter"
-import "std/option"
 import "std/task"
 
 Bot :: struct {
@@ -32,5 +32,5 @@ main :: fn() -> i32 {
     level :: Level { .bots = [Bot {}, Bot { .x = 2 }] }
     t :: launch(() -> alive(level))
     total :: total_x(level)
-    return i32(t.join().unwrap() + total) - 3
+    return i32((t.join() else panic("the task was cancelled")) + total) - 3
 }

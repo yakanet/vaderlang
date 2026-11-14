@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Bot :: struct {
@@ -50,7 +50,7 @@ main :: fn() -> i32 {
     fast_mode :: level.bots.len() > 1
     ai :: launch(() -> think(level))
     if fast_mode {
-        apply(level, ai.join().unwrap())
+        apply(level, ai.join() else panic("the task was cancelled"))
     }
     update(level, player)
     return 0

@@ -9,7 +9,7 @@
 
 module "tools/cli_tests/arguments"
 
-import "std/option"
+import "std/abort"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -32,7 +32,10 @@ ECHO_ARGUMENTS :: r"""
     """
 
 // What `vader` with `args` wrote and how it ended.
-vader :: fn(args: string[]) -> ProcessResult = run_vader(args).unwrap()
+vader :: fn(args: string[]) -> ProcessResult {
+    ran :: run_vader(args) else panic(ran.message())
+    return ran
+}
 
 // ---- tests ----------------------------------------------------------------
 

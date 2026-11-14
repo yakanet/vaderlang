@@ -305,7 +305,7 @@ main :: fn(argv: string[]) -> i32 {
         return 1
     }
     path :: args.positionals[0]
-    src :: read_file_string(path) else is Error {
+    src :: read_file_string(path) else {
         eprintln("brainfuck: cannot read ${path}")
         return 1
     }

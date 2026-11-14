@@ -8,7 +8,7 @@
 
 module "tools/cli_tests/check"
 
-import "std/option"
+import "std/abort"
 import "std/string"
 import "tools/cli_tests/cli"
 
@@ -24,7 +24,8 @@ import "std/testing"
 
 @test
 test_check_reports_an_error_in_the_body_of_another_target :: fn() -> void {
-    checked :: run_vader(["check", "--target=windows-x86_64", BROKEN_ON_WINDOWS]).unwrap()
+    checked :: run_vader(["check", "--target=windows-x86_64", BROKEN_ON_WINDOWS])
+        else panic(checked.message())
     assert_eq(checked.exit, 1)
     assert("T3020" in checked.stderr, checked.stderr)
     assert("main-windows.vader" in checked.stderr, checked.stderr)
@@ -32,7 +33,8 @@ test_check_reports_an_error_in_the_body_of_another_target :: fn() -> void {
 
 @test
 test_check_is_silent_and_succeeds_for_a_target_whose_bodies_are_sound :: fn() -> void {
-    checked :: run_vader(["check", "--target=darwin-arm64", BROKEN_ON_WINDOWS]).unwrap()
+    checked :: run_vader(["check", "--target=darwin-arm64", BROKEN_ON_WINDOWS])
+        else panic(checked.message())
     assert_eq(checked.exit, 0)
     // A script reads a gate before a person does.
     assert_eq(checked.stdout.trim(), "")
@@ -40,7 +42,8 @@ test_check_is_silent_and_succeeds_for_a_target_whose_bodies_are_sound :: fn() ->
 
 @test
 test_check_refuses_a_malformed_target_and_names_the_fragment :: fn() -> void {
-    checked :: run_vader(["check", "--target=drawin-arm64", BROKEN_ON_WINDOWS]).unwrap()
+    checked :: run_vader(["check", "--target=drawin-arm64", BROKEN_ON_WINDOWS])
+        else panic(checked.message())
     assert_eq(checked.exit, 2)
     assert("drawin" in checked.stderr, checked.stderr)
 }
@@ -48,14 +51,15 @@ test_check_refuses_a_malformed_target_and_names_the_fragment :: fn() -> void {
 @test
 test_vader_os_resolves_and_folds_under_a_target_given :: fn() -> void {
     for target in ["windows-x86_64", "darwin-arm64"] {
-        checked :: run_vader(["check", "--target=${target}", BAKED_CONSTANT]).unwrap()
+        checked :: run_vader(["check", "--target=${target}", BAKED_CONSTANT])
+            else panic(checked.message())
         assert(checked.exit == 0, "`${target}`: ${checked.stderr}")
     }
 }
 
 @test
 test_vader_os_is_baked_from_the_host_with_no_target_given :: fn() -> void {
-    checked :: run_vader(["check", BAKED_CONSTANT]).unwrap()
+    checked :: run_vader(["check", BAKED_CONSTANT]) else panic(checked.message())
     assert_eq(checked.exit, 0)
     assert_eq(checked.stderr.trim(), "")
 }
@@ -66,7 +70,8 @@ test_the_compiler_checks_clean_for_every_os :: fn() -> void {
     // `Arch` selects no code, so one target per OS reaches every body.
     for target in ["windows-x86_64", "linux-x86_64", "darwin-arm64"] {
         argv :: ["check", "--target=${target}", COMPILER_ENTRY]
-        checked :: run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+        checked :: run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })
+            else panic(checked.message())
         assert(checked.exit == 0 && checked.stderr == "", "`${target}`: ${checked.stderr}")
     }
 }
@@ -80,7 +85,7 @@ test_a_file_with_no_module_declaration_is_told_which_line_to_add :: fn() -> void
         "check_no_module",
         "import \"std/io\"\n\nmain :: fn() -> i32 {\n    return 0\n}\n",
     )
-    checked :: run_vader(["check", entry]).unwrap()
+    checked :: run_vader(["check", entry]) else panic(checked.message())
     assert_eq(checked.exit, 1)
     assert("R2020" in checked.stderr && "R2001" in checked.stderr, checked.stderr)
     assert("module \"main\"" in checked.stderr, checked.stderr)

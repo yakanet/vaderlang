@@ -10,10 +10,10 @@
 
 module "tools/cli_tests/cli"
 
+import "std/abort"
 import "std/env"
 import "std/fs"
 import "std/io"
-import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -108,7 +108,8 @@ export vader_in :: fn(
         .env = toolchain_env() + env,
         .timeout = timeout,
     }
-    return run_vader(args, options).unwrap()
+    ran :: run_vader(args, options) else panic(ran.message())
+    return ran
 }
 
 /// Start `vader` with `args` as a child the test writes to and reads from as it
@@ -241,7 +242,7 @@ export copy_sources :: fn(from: string, to: string) -> null | IOError {
 /// @return      the copy.
 export staged_copy :: fn(from: string, name: string) -> string {
     dir :: "${scratch_dir(name)}/${Path(from).filename()}"
-    copy_sources(from, dir).unwrap()
+    copied :: copy_sources(from, dir) else is Error { panic(copied.message()) }
     return dir
 }
 
@@ -302,7 +303,9 @@ export staged_library_root :: fn(name: string, namespace: string, source: string
     create_dir("${dir}/lib/${namespace}")
     write_file("${dir}/lib/${namespace}/${namespace}.vader", source)
     for copied in ["std", "system"] {
-        copy_tree("lib/${copied}", "${dir}/lib/${copied}").unwrap()
+        tree :: copy_tree("lib/${copied}", "${dir}/lib/${copied}") else is Error {
+            panic(tree.message())
+        }
     }
     return dir
 }

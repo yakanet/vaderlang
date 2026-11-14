@@ -37,7 +37,6 @@ module "tools/testrunner/src"
 import "json"
 import "std/collections"
 import "std/console"
-import "std/option"
 import "std/string"
 import "vader/support/target"
 
@@ -175,7 +174,7 @@ read_request :: fn(line: string) -> Case | null {
     message :: message_of(line) else return null
     name :: string_member(message, "case") else return null
     named :: string_member(message, "target") else return null
-    target :: parse_target(named).or_null() else return null
+    target :: parse_target(named) else return null
     return Case {
         .name = name,
         .dir = string_member(message, "dir") else return null,

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Counter :: struct {
@@ -22,5 +22,5 @@ main :: fn() -> i32 {
     w :: Wrap { .counter = counter }
     t :: launch(() -> w.counter.n)
     counter.n += 1
-    return t.join().unwrap()
+    return t.join() else panic("the task was cancelled")
 }

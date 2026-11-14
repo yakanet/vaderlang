@@ -5,8 +5,8 @@
 
 module "snippet"
 
+import "std/abort"
 import "std/collections"
-import "std/option"
 import "std/task"
 
 Page :: struct {
@@ -16,7 +16,7 @@ Page :: struct {
 // Waits for the task that reads the socket.
 fetch :: fn(url: string) -> Page {
     reader :: launch(() -> Page { .title = url })
-    return reader.join().unwrap()
+    return reader.join() else panic("the task was cancelled")
 }
 
 main :: fn() -> i32 {

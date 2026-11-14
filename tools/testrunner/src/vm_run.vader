@@ -13,7 +13,6 @@ module "tools/testrunner/src"
 
 import "std/console"
 import "std/fs"
-import "std/io"
 import "std/path"
 import "std/time"
 import "vader/emit/virt"

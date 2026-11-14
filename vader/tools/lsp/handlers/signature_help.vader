@@ -15,7 +15,6 @@ module "vader/tools/lsp/handlers"
 
 import "std/collections"
 import "json"
-import "std/option"
 import "std/uri"
 import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
@@ -28,7 +27,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     uri  :: position_uri(params)
     line :: cursor_field(params, "line")
     char :: cursor_field(params, "character")
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
+    file_path :: path_of_uri(uri) else return JsonNull {}
 
     cached :: typed_project_for(state, file_path)
     project :: cached.project

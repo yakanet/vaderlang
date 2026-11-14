@@ -5,8 +5,8 @@
 
 module "snippet"
 
+import "std/abort"
 import "std/console"
-import "std/option"
 import "std/task"
 
 Config :: struct {
@@ -24,5 +24,7 @@ main :: fn() -> i32 {
     a :: launch(() -> run_worker(config))
     b :: launch(() -> run_worker(config))
     println("port ${config.port}")
-    return i32(a.join().unwrap() + b.join().unwrap() - 2 * config.port)
+    first :: a.join() else panic(first.message())
+    second :: b.join() else panic(second.message())
+    return i32(first + second - 2 * config.port)
 }

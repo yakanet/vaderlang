@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 KEYWORDS: string[]: ["fn", "struct", "enum"]
@@ -19,7 +19,8 @@ console :: fn() -> Console = Console {}
 
 main :: fn() -> i32 {
     t :: launch(() -> console().is_tty && "fn" in KEYWORDS)
-    if t.join().unwrap() {
+    tty_keyword :: t.join() else panic(tty_keyword.message())
+    if tty_keyword {
         return 0
     }
     return 1

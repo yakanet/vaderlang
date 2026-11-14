@@ -11,7 +11,6 @@ import "json"
 import "std/fs"
 import "std/abort"
 import "std/iter"
-import "std/option"
 import "std/sort"
 import "std/string"
 import "tools/cli_tests/lsp"
@@ -281,13 +280,14 @@ first_word :: fn(line: string) -> string {
 snapshot_heads :: fn() -> string[] {
     root :: "tests/snippets"
     heads: string[]: []
-    names :: read_dir(root).unwrap()
+    names :: read_dir(root) else panic(names.message())
     for name in names {
         path :: "${root}/${name}/bytecode.snapshot.virt"
         if !exists(path) {
             continue
         }
-        for line in read_file_string(path).unwrap().split("\n") {
+        text :: read_file_string(path) else panic(text.message())
+        for line in text.split("\n") {
             word :: first_word(line)
             if is_head(word) {
                 heads.push(word)
@@ -299,7 +299,7 @@ snapshot_heads :: fn() -> string[] {
 
 // The ops the bytecode printer spells out, one per arm.
 printed_heads :: fn() -> string[] {
-    printer :: read_file_string("vader/emit/virt/dump.vader").unwrap()
+    printer :: read_file_string("vader/emit/virt/dump.vader") else panic(printer.message())
     parts :: printer.split("-> out.append(\"")
     heads: string[]: []
     for i in 1..<parts.len() {

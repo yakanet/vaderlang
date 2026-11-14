@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Bot :: struct {
@@ -28,6 +28,6 @@ main :: fn() -> i32 {
     level :: Level { .bots = [Bot {}] }
     ai :: launch(() -> level.deep_copy())
     update(level)
-    copy :: ai.join().unwrap()
+    copy :: ai.join() else panic(copy.message())
     return i32(copy.bots.len()) - 1
 }

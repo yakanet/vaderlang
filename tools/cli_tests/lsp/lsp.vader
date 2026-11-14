@@ -12,7 +12,6 @@ import "json"
 import "std/abort"
 import "std/fs"
 import "std/iter"
-import "std/option"
 import "std/path"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -341,7 +340,9 @@ export start_of :: fn(item: JsonValue) -> string = position_at(item, ["range", "
 /// @param flags  the options given before it.
 export bytecode_dump :: fn(entry: string, flags: string[] = []) -> string {
     argv :: ["dump", "--stage=bytecode"] + flags + [entry]
-    return succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap().stdout
+    dumped :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+        else panic(dumped.message())
+    return dumped.stdout
 }
 
 // A client of one session: the ids it gives its requests.
@@ -357,7 +358,8 @@ start_client :: fn(
     capabilities: string = "{}",
     options: RunOptions = RunOptions {},
 ) -> Client {
-    client :: Client { .session = open_session(server_args(), options).unwrap() }
+    session :: open_session(server_args(), options) else panic(session.message())
+    client :: Client { .session = session }
     client.send(initialize(client.take_id(), dir, capabilities))
     client.send(INITIALIZED)
     return client

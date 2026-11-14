@@ -9,8 +9,8 @@
 module "tools/cli_tests/doctor"
 
 import "json"
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -33,9 +33,10 @@ doctor_json :: fn(
     args: string[] = [],
 ) -> Report {
     options :: RunOptions { .cwd = cwd, .env = env }
-    ran :: run_vader(["doctor", "--json"] + args, options).unwrap()
+    ran :: run_vader(["doctor", "--json"] + args, options) else panic(ran.message())
+    report :: parse(ran.stdout) else panic(report.message())
     return Report {
-        .report = parse(ran.stdout).unwrap(),
+        .report = report,
         .exit = ran.exit,
         .stderr = ran.stderr,
     }
@@ -93,7 +94,7 @@ test_doctor_reports_a_working_toolchain_and_its_json_has_the_documented_shape ::
     if !has_cc() {
         return
     }
-    text :: run_vader(["doctor"]).unwrap()
+    text :: run_vader(["doctor"]) else panic(text.message())
     assert_eq(text.exit, 0)
     assert("library-root" in text.stdout && "all clear" in text.stdout, text.stdout)
     json :: doctor_json()
@@ -183,11 +184,12 @@ test_vader_home_points_the_command_at_a_toolchain_that_is_not_beside_it :: fn() 
     // A project in a folder with no toolchain in sight runs all the same, and the
     // doctor says which probe answered.
     workspace :: scratch_dir("doctor_elsewhere")
-    created :: run_vader(["new", "elsewhere"], RunOptions { .cwd = workspace }).unwrap()
+    created :: run_vader(["new", "elsewhere"], RunOptions { .cwd = workspace })
+        else panic(created.message())
     assert_eq(created.exit, 0)
     project :: "${workspace}/elsewhere"
     options :: RunOptions { .cwd = project, .env = toolchain_env() }
-    ran :: run_vader(["run", "src/main.vader"], options).unwrap()
+    ran :: run_vader(["run", "src/main.vader"], options) else panic(ran.message())
     assert_eq(ran.exit, 0)
     assert("hello from elsewhere" in ran.stdout, ran.stdout)
     json :: doctor_json(toolchain_env(), project)

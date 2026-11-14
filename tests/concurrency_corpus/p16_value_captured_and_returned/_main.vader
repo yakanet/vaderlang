@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Grid :: struct {
@@ -18,6 +18,6 @@ main :: fn() -> i32 {
     grid :: Grid { .cells = [1] }
     t :: launch(() -> keep(grid))
     grid.cells.push(2)
-    other :: t.join().unwrap()
+    other :: t.join() else panic(other.message())
     return i32(other.cells.len()) - 2
 }

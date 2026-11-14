@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Box :: struct {
@@ -16,7 +16,7 @@ make :: fn() -> Box = Box {}
 
 main :: fn() -> i32 {
     t :: launch(() -> make())
-    b :: t.join().unwrap()
+    b :: t.join() else panic(b.message())
     u :: launch(() -> { b.n += 1 })
     b.n += 2
     u.join()

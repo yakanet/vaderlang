@@ -10,10 +10,10 @@
 module "tools/cli_tests/doc"
 
 import "json"
+import "std/abort"
 import "std/env"
 import "std/fs"
 import "std/io"
-import "std/option"
 import "std/process"
 import "std/string"
 import "std/target"
@@ -40,8 +40,11 @@ search :: fn(dir: string, query: string) -> ProcessResult =
     vader_in(dir, ["doc", "--search=${query}"])
 
 // The JSON of `file`, under the data the command wrote for the project in `dir`.
-data_of :: fn(dir: string, file: string) -> JsonValue =
-    parse(read_file_string("${dir}/build/doc/${file}").unwrap()).unwrap()
+data_of :: fn(dir: string, file: string) -> JsonValue {
+    text :: read_file_string("${dir}/build/doc/${file}") else panic(text.message())
+    data :: parse(text) else panic(data.message())
+    return data
+}
 
 // The member `field` of each object of the array `key` of `value`.
 fields_of :: fn(value: JsonValue, key: string, field: string) -> string[] {
@@ -78,7 +81,7 @@ declared :: fn(dir: string, file: string) -> string[] =
 // Make a symbolic link at `link` to `target`. Windows grants one only to a
 // privileged user: the tests that make one do not run there.
 link_to :: fn(target: string, link: string) -> void {
-    succeeded(run_command(["ln", "-s", target, link])).unwrap()
+    linked :: succeeded(run_command(["ln", "-s", target, link])) else panic(linked.message())
 }
 
 // `path`, `/`-separated, as the command names it on this host.
@@ -172,7 +175,8 @@ test_doc_writes_the_data_again_when_what_the_load_read_changes :: fn() -> void {
     dir :: staged("shapes", "changed")
     doc_shapes(dir)
     area :: "${dir}/shapes/geometry/area.vader"
-    write_file(area, read_file_string(area).unwrap() + "\n/// One.\nexport ONE :: 1\n")
+    text :: read_file_string(area) else panic(text.message())
+    write_file(area, text + "\n/// One.\nexport ONE :: 1\n")
     assert("modules written" in doc_shapes(dir).stdout, "a changed file")
     zero :: "module \"shapes/geometry\"\n\n/// Zero.\nexport ZERO :: 0\n"
     write_file("${dir}/shapes/geometry/zero.vader", zero)
@@ -230,7 +234,8 @@ test_doc_shows_a_type_error_of_a_module_it_documents_and_writes_its_data :: fn()
     dir :: staged("shapes", "type_error")
     file :: "${dir}/shapes/text/text.vader"
     broken :: "\nexport broken :: fn() -> i32 = \"not a number\"\n"
-    write_file(file, read_file_string(file).unwrap() + broken)
+    text :: read_file_string(file) else panic(text.message())
+    write_file(file, text + broken)
     ran :: doc_shapes(dir)
     assert_eq(ran.exit, 0)
     assert("error[T3020]" in ran.stderr, ran.stderr)
@@ -373,7 +378,8 @@ test_doc_search_finds_what_a_file_gained_since_the_last_search :: fn() -> void {
     assert_eq(search(dir, "freshly_added").exit, 1)
     area :: "${dir}/shapes/geometry/area.vader"
     added :: "\n/// Added after the first search.\nexport FRESHLY_ADDED :: 1\n"
-    write_file(area, read_file_string(area).unwrap() + added)
+    text :: read_file_string(area) else panic(text.message())
+    write_file(area, text + added)
     ran :: search(dir, "freshly_added")
     assert_eq(ran.exit, 0)
     assert("\nexport FRESHLY_ADDED :: 1" in ran.stdout, ran.stdout)

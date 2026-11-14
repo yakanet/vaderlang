@@ -9,8 +9,8 @@
 
 module "main"
 
+import "std/abort"
 import "std/console"
-import "std/option"
 import "std/task"
 
 BATCH: i64: 1_000
@@ -28,7 +28,7 @@ launch_and_join :: fn() -> i64 {
         }
         // One join per task, as the peers do: `join_all` would also build an array.
         for task in tasks {
-            total += task.join().unwrap()
+            total += task.join() else panic("the task was cancelled")
         }
     }
     return total
@@ -58,7 +58,7 @@ ping_pong :: fn() -> string {
         }
     }
     ping.close()
-    return "traded=${total} echoed=${echoer.join().unwrap()}"
+    return "traded=${total} echoed=${echoer.join() else panic("the task was cancelled")}"
 }
 
 main :: fn() -> i32 {

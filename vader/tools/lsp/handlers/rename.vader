@@ -19,7 +19,6 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/uri"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
@@ -31,7 +30,7 @@ AST :: import "toolchain/ast"
 /// resolved reference: the client then refuses the rename.
 export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
+    file_path :: path_of_uri(uri) else return JsonNull {}
     cached :: typed_project_for(state, file_path)
     index :: reference_index_of(cached)
     site :: renameable_at(state, index, file_path, params) else return JsonNull {}
@@ -43,7 +42,7 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
 /// reference or `newName` is empty.
 export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
+    file_path :: path_of_uri(uri) else return JsonNull {}
     new_name :: rename_new_name(params)
     if new_name == "" { return JsonNull {} }
 

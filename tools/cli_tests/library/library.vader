@@ -10,8 +10,8 @@
 
 module "tools/cli_tests/library"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/string"
 import "tools/cli_tests/cli"
 
@@ -44,7 +44,7 @@ test_a_shipped_library_cannot_import_the_compiler :: fn() -> void {
         }
         """
     write_file("${dir}/app.vader", app)
-    ran :: run_vader(["run", "app.vader"], RunOptions { .cwd = dir }).unwrap()
+    ran :: run_vader(["run", "app.vader"], RunOptions { .cwd = dir }) else panic(ran.message())
     assert("R2034" in ran.stderr, ran.stderr)
     assert("only `toolchain/build` may" in ran.stderr, ran.stderr)
 }
@@ -56,7 +56,8 @@ test_a_library_module_compiled_as_the_entry_is_no_library :: fn() -> void {
     // import was seen, after the point where R2034 would have fired.
     dir :: staged_library_root("library_entry", "entryprobe", importing_the_compiler("entryprobe"))
     options :: RunOptions { .cwd = dir }
-    ran :: run_vader(["build", "lib/entryprobe/entryprobe.vader"], options).unwrap()
+    ran :: run_vader(["build", "lib/entryprobe/entryprobe.vader"], options)
+        else panic(ran.message())
     assert("R2001" in ran.stderr, ran.stderr)
     assert("R2034" !in ran.stderr, ran.stderr)
 }

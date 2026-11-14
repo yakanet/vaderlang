@@ -9,9 +9,9 @@
 module "tools/cli_tests/test"
 
 import "json"
+import "std/abort"
 import "std/fs"
 import "std/iter"
-import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -44,7 +44,8 @@ read_sequence :: fn(stdout: string) -> Sequence {
     read :: Sequence { .events = [], .output = chunks[0] }
     for i in 1..<chunks.len() {
         line :: chunks[i].split_first("\n") else [chunks[i], ""]
-        read.events.push(parse(line.0).unwrap())
+        event :: parse(line.0) else panic(event.message())
+        read.events.push(event)
         read.output = read.output + line.1
     }
     return read
@@ -56,7 +57,7 @@ kinds :: fn(events: JsonValue[]) -> string =
 
 // The lines `vader test` with `args` printed, which must succeed.
 listed :: fn(args: string[], options: RunOptions = RunOptions {}) -> string {
-    ran :: succeeded(run_vader(["test"] + args, options)).unwrap()
+    ran :: succeeded(run_vader(["test"] + args, options)) else panic(ran.message())
     return ran.stdout.trim()
 }
 
@@ -66,7 +67,7 @@ import "std/testing"
 
 @test
 test_the_json_report_gives_each_step_of_a_run_as_an_event :: fn() -> void {
-    ran :: run_vader(["test", "--reporter=json", REPORT]).unwrap()
+    ran :: run_vader(["test", "--reporter=json", REPORT]) else panic(ran.message())
     assert_eq(ran.exit, 1)
     read :: read_sequence(ran.stdout)
     assert_eq(kinds(read.events), "module start pass start fail summary")
@@ -96,7 +97,8 @@ test_list_names_each_test_as_the_filter_that_keeps_it_alone_and_runs_none :: fn(
 
 @test
 test_list_with_the_json_report_gives_the_module_and_its_tests :: fn() -> void {
-    ran :: succeeded(run_vader(["test", "--list", "--reporter=json", REPORT])).unwrap()
+    ran :: succeeded(run_vader(["test", "--list", "--reporter=json", REPORT]))
+        else panic(ran.message())
     read :: read_sequence(ran.stdout)
     assert_eq(read.output, "")
     assert_eq(kinds(read.events), "module test test")

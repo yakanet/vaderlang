@@ -8,8 +8,8 @@
 
 module "tools/cli_tests/http"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -22,7 +22,8 @@ server_binary :: fn() -> string | null {
     if !has_cc() {
         return null
     }
-    return build_binary("http_server", ["--release"], FIXTURE).unwrap()
+    binary :: build_binary("http_server", ["--release"], FIXTURE) else panic(binary.message())
+    return binary
 }
 
 // The name `curl` is run by.
@@ -71,14 +72,15 @@ asked :: fn(talk: Talk, flags: string[], targets: string[]) -> string {
     for target in targets {
         argv.push("${talk.base}${target}")
     }
-    return succeeded(run_command(argv)).unwrap().stdout
+    ran :: succeeded(run_command(argv)) else panic(ran.message())
+    return ran.stdout
 }
 
 // A file of `size` bytes for a request to carry, in a fresh folder `name`; its
 // path.
 body_file :: fn(name: string, size: i64) -> string {
     path :: "${scratch_dir(name)}/body"
-    write_file(path, "x" * size).unwrap()
+    written :: write_file(path, "x" * size) else is Error { panic(written.message()) }
     return path
 }
 

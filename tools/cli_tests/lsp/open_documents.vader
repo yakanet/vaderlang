@@ -13,9 +13,9 @@
 module "tools/cli_tests/lsp"
 
 import "json"
+import "std/abort"
 import "std/fs"
 import "std/iter"
-import "std/option"
 import "std/string"
 import "std/uri"
 import "tools/cli_tests/cli"
@@ -164,7 +164,9 @@ test_a_document_renamed_outside_the_editor_leaves_its_module_under_the_old_name 
     assert_eq(error_places(diagnostics_of(client, old_uri)), "")
     // As `git mv` reaches an editor that keeps the old document open: a deletion
     // and a creation, and no didClose.
-    rename("${dir}/old.vader", "${dir}/new.vader").unwrap()
+    moved :: rename("${dir}/old.vader", "${dir}/new.vader") else is Error {
+        panic(moved.message())
+    }
     renamed :: mark(client)
     client.send(watched_changes([[old_uri, 3], [new_uri, 1]]))
     client.send(did_open(new_uri, SIBLING))

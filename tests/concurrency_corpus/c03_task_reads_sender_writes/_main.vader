@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Bot :: struct {
@@ -48,6 +48,6 @@ main :: fn() -> i32 {
     player :: Player { .x = 3 }
     ai :: launch(() -> think(level))
     update(level, player)
-    plan :: ai.join().unwrap()
+    plan :: ai.join() else panic(plan.message())
     return i32(plan.moves) - 1
 }

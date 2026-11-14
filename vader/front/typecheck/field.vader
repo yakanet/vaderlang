@@ -1116,16 +1116,14 @@ resolve_struct_field :: fn(
             return TY_UNRESOLVED
         }
         // A UFCS method by this name exists, but no overload's first param
-        // accepts this union receiver: the common case being a value combinator
-        // (`or` / `map` / ...) fed a union with more than one "unhappy" variant
-        // (e.g. `T | Error | null` fits neither the `T | null` nor the `T | Error`
-        // overload). Point at narrowing rather than at a bare missing member.
+        // accepts this union receiver. Point at narrowing rather than at a bare
+        // missing member.
         if target_ty is UnionType && ufcs_name_has_candidates(e.field, e.span.start.file, typed) {
             diags.push(
                 typecheck_error(
                     .MemberDoesNotExist,
                     e.span,
-                    "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}`, so narrow the union with `if`/`match` first (a value combinator handles a single unhappy variant, `T | null` or `T | Error`, not both)",
+                    "no `${e.field}` overload accepts a receiver of type `${display_type(target_ty)}`, so narrow the union with `if`, `match` or `else` first",
                 ),
             )
             return TY_UNRESOLVED

@@ -6,7 +6,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Index :: struct {
@@ -27,7 +27,9 @@ search :: fn(index: Index, word: string) -> i64 = index.words.len()
 main :: fn() -> i32 {
     files: string[]: ["a"]
     index :: launch(() -> build_index(files))
-    a :: launch(() -> add_synonyms(index.join().unwrap().deep_copy()))
-    b :: launch(() -> search(index.join().unwrap(), "vader"))
-    return i32(a.join().unwrap() + b.join().unwrap()) - 2
+    a :: launch(() -> add_synonyms((index.join() else panic("the task was cancelled")).deep_copy()))
+    b :: launch(() -> search(index.join() else panic("the task was cancelled"), "vader"))
+    synonyms :: a.join() else panic(synonyms.message())
+    found :: b.join() else panic(found.message())
+    return i32(synonyms + found) - 2
 }

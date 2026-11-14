@@ -15,7 +15,6 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/string"
 import "std/uri"
 import "vader/core/types"
@@ -69,7 +68,7 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             // The typed cache lets us show a binding's *inferred* type
             // (`x :: foo()` -> `Symbol`) instead of the index's RHS source
             // slice, see `decl_detail`. An untitled buffer names no file.
-            file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+            file_path :: path_of_uri(uri) else null
             ctx :: detail_ctx(state, file_path)
 
             for d in visible_decls(idx, line, col) {
@@ -219,7 +218,7 @@ ident_start :: fn(source: string, offset: i64) -> i64 {
 // the parser error-recovers a trailing `.` into a `FieldExpr` whose target is
 // still typed, so the typed cache resolves the receiver even mid-edit.
 member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool, struct_key: bool) -> JsonValue {
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return completion_list([])
+    file_path :: path_of_uri(uri) else return completion_list([])
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] else return completion_list([])
     sf :: source_file_for_path(entry.module.files, file_path) else return completion_list([])

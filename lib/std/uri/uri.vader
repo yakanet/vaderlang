@@ -448,6 +448,18 @@ export to_uri :: fn(path: string) -> Uri = path.file_uri(current_os())
 ///             escaped `/` or NUL in the path, which no file name holds.
 export to_path :: fn(uri: Uri) -> string | UriError = uri.file_path(current_os())
 
+/// The file path the `file` URI written as `text` names: `parse_uri`, then
+/// `to_path`.
+///
+/// @param text  a URI, as text.
+/// @error       `UriError` when `text` is no URI, or names no local file.
+/// @example
+///   path_of_uri("https://example.com/x") else ""   // "", not a file URI
+export path_of_uri :: fn(text: string) -> string | UriError {
+    uri :: parse_uri(text) else return uri
+    return uri.to_path()
+}
+
 // The URI of `path`, read as the OS `os` writes paths.
 file_uri :: fn(path: string, os: Os) -> Uri {
     absolute :: path.slashed(os).absolute(os)
@@ -659,6 +671,13 @@ test_file_path_refuses_a_uri_that_names_no_local_file :: fn() -> void {
     windows_backslash :: path_of("file:///c:/a%5Cb", .Windows)
     assert_eq(windows_backslash, "error: an escaped separator or NUL in a file path")
     assert_eq(path_of("file:///a%5Cb", .Linux), "/a\\b")
+}
+
+@test
+test_path_of_uri_reads_a_uri_then_its_path :: fn() -> void {
+    assert(path_of_uri("file:///tmp/x") is string, "a file URI names a path")
+    assert(path_of_uri("https://example.com/x") is UriError, "an https URI names no file")
+    assert(path_of_uri("not a uri") is UriError, "text that is no URI names no file")
 }
 
 @test

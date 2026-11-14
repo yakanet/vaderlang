@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 Texture :: struct {
@@ -23,5 +23,5 @@ load_texture :: fn(path: string) -> Texture = upload(path)
 
 main :: fn() -> i32 {
     t :: launch(() -> load_texture("bot.png"))
-    return i32(t.join().unwrap().id) - 1
+    return i32((t.join() else panic("the task was cancelled")).id) - 1
 }

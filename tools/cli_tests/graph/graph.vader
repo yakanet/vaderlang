@@ -7,8 +7,8 @@
 
 module "tools/cli_tests/graph"
 
+import "std/abort"
 import "std/iter"
-import "std/option"
 import "std/sort"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -24,7 +24,7 @@ import "std/testing"
 
 @test
 test_graph_draws_every_module_and_every_import_edge :: fn() -> void {
-    drawn :: run_vader(["graph", CHAIN]).unwrap()
+    drawn :: run_vader(["graph", CHAIN]) else panic(drawn.message())
     assert_eq(drawn.exit, 0)
     lines :: drawn.stdout.trim().split("\n").map((line) -> line.trim()).collect()
     assert_eq(lines[0], "graph TB")
@@ -45,13 +45,13 @@ test_graph_draws_every_module_and_every_import_edge :: fn() -> void {
 test_graph_names_a_module_by_its_name_not_its_folder :: fn() -> void {
     // A project loaded from an outer root, the root of the repository here, keys
     // its modules by folder: a graph keyed so would lose every edge.
-    drawn :: run_vader(["graph", CHAIN]).unwrap()
+    drawn :: run_vader(["graph", CHAIN]) else panic(drawn.message())
     assert("tests/fixtures/graph/chain" !in drawn.stdout, drawn.stdout)
 }
 
 @test
 test_graph_draws_dot_on_request :: fn() -> void {
-    drawn :: run_vader(["graph", "--format=dot", CHAIN]).unwrap()
+    drawn :: run_vader(["graph", "--format=dot", CHAIN]) else panic(drawn.message())
     assert_eq(drawn.exit, 0)
     assert("digraph modules {" in drawn.stdout, drawn.stdout)
     assert("\"chain\" -> \"chain/alpha\";" in drawn.stdout, drawn.stdout)
@@ -60,9 +60,9 @@ test_graph_draws_dot_on_request :: fn() -> void {
 
 @test
 test_the_scope_all_reaches_the_library_and_the_default_does_not :: fn() -> void {
-    narrow :: run_vader(["graph", CHAIN]).unwrap()
+    narrow :: run_vader(["graph", CHAIN]) else panic(narrow.message())
     assert("std/console" !in narrow.stdout, narrow.stdout)
-    wide :: run_vader(["graph", "--scope=all", CHAIN]).unwrap()
+    wide :: run_vader(["graph", "--scope=all", CHAIN]) else panic(wide.message())
     assert_eq(wide.exit, 0)
     assert("[\"std/console\"]" in wide.stdout, wide.stdout)
 }
@@ -71,7 +71,7 @@ test_the_scope_all_reaches_the_library_and_the_default_does_not :: fn() -> void 
 test_the_scope_project_hides_the_compiler_from_a_driven_project :: fn() -> void {
     // The modules of the compiler come in through the include path, as the
     // project's own do: their name tells them apart, as for a build.
-    drawn :: run_vader(["graph", "--include-paths=.", DRIVEN]).unwrap()
+    drawn :: run_vader(["graph", "--include-paths=.", DRIVEN]) else panic(drawn.message())
     assert_eq(drawn.exit, 0)
     assert("vader/pipeline" !in drawn.stdout, drawn.stdout)
     assert("build[\"build\"]" in drawn.stdout, drawn.stdout)
@@ -80,7 +80,7 @@ test_the_scope_project_hides_the_compiler_from_a_driven_project :: fn() -> void 
 @test
 test_the_scope_project_keeps_the_compiler_when_the_entry_is_one_of_its_modules :: fn() -> void {
     // The rule reads the name of the entry's module, not the size of its closure.
-    drawn :: run_vader(["graph", "vader/front/lexer/lexer.vader"]).unwrap()
+    drawn :: run_vader(["graph", "vader/front/lexer/lexer.vader"]) else panic(drawn.message())
     assert_eq(drawn.exit, 0)
     node :: "vader_support_diagnostics[\"vader/support/diagnostics\"]"
     assert(node in drawn.stdout, drawn.stdout)
@@ -89,14 +89,14 @@ test_the_scope_project_keeps_the_compiler_when_the_entry_is_one_of_its_modules :
 
 @test
 test_graph_refuses_an_unknown_format_and_names_the_others :: fn() -> void {
-    drawn :: run_vader(["graph", "--format=svg", CHAIN]).unwrap()
+    drawn :: run_vader(["graph", "--format=svg", CHAIN]) else panic(drawn.message())
     assert(drawn.exit != 0, "an unknown format")
     assert("mermaid" in drawn.stderr && "dot" in drawn.stderr, drawn.stderr)
 }
 
 @test
 test_graph_asks_for_a_file_when_given_none :: fn() -> void {
-    drawn :: run_vader(["graph"]).unwrap()
+    drawn :: run_vader(["graph"]) else panic(drawn.message())
     assert_eq(drawn.exit, 1)
     assert("expected a file or a project folder" in drawn.stderr, drawn.stderr)
 }

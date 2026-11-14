@@ -16,11 +16,11 @@ module "tools/cli_tests/verify"
 
 import "json"
 import "regex"
+import "std/abort"
 import "std/collections"
 import "std/fs"
 import "std/io"
 import "std/iter"
-import "std/option"
 import "std/process"
 import "std/sort"
 import "std/string"
@@ -58,8 +58,9 @@ entry_flags :: fn(input: string) -> string[][] {
     if !is_dir(input) {
         return [[]]
     }
-    info :: succeeded(run_vader(["info", "--json", input])).unwrap()
-    entries :: member(parse(info.stdout).unwrap(), "entries")
+    info :: succeeded(run_vader(["info", "--json", input])) else panic(info.message())
+    listed :: parse(info.stdout) else panic(listed.message())
+    entries :: member(listed, "entries")
     if entries is JsonObject && entries.entries.len() > 0 {
         names :: sort(entries.entries.keys().collect(), compare_ascending)
         return names.map((name) -> ["--entry=${name}"]).collect()
@@ -69,7 +70,8 @@ entry_flags :: fn(input: string) -> string[][] {
 
 // The examples the repository ships, as a command is handed them.
 example_inputs :: fn() -> string[] {
-    names :: sort(read_dir(EXAMPLES).unwrap(), compare_ascending)
+    found :: read_dir(EXAMPLES) else panic(found.message())
+    names :: sort(found, compare_ascending)
     return names.filter((name) -> is_dir("${EXAMPLES}/${name}")).map(example_input).collect()
 }
 
@@ -86,7 +88,7 @@ build_verified :: fn(
 
 // The disagreements the report of the callee verifier lists in `stderr`.
 disagreements :: fn(stderr: string) -> string[] {
-    line :: compile(REPORTED_LINE).unwrap()
+    line :: compile(REPORTED_LINE) else panic(line.message())
     listed: string[]: []
     for text in stderr.split("\n") {
         found :: line.find(text) else continue
@@ -98,7 +100,8 @@ disagreements :: fn(stderr: string) -> string[] {
 // Whether `disagreement`, its position left out, is of a kind of `EXPLAINED`.
 is_explained :: fn(disagreement: string) -> bool {
     for kind in EXPLAINED {
-        if compile(kind.0).unwrap().matches(disagreement) {
+        pattern :: compile(kind.0) else panic(pattern.message())
+        if pattern.matches(disagreement) {
             return true
         }
     }
@@ -139,25 +142,28 @@ test_verify_changes_nothing_about_the_emitted_bytecode :: fn() -> void {
     entry :: example_input("mandelbrot")
     plain :: "${dir}/plain.virt"
     argv :: ["build", "--emit=bytecode-text", "--out=${plain}", entry]
-    succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT })).unwrap()
-    build_verified(entry, "${dir}/checked.virt").unwrap()
-    emitted :: read_file_string(plain).unwrap()
+    built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
+        else panic(built.message())
+    verified :: build_verified(entry, "${dir}/checked.virt") else panic(verified.message())
+    emitted :: read_file_string(plain) else panic(emitted.message())
     // An empty emission would make the two equal for the wrong reason.
     assert(emitted.byte_len() > 10_000, "the bytecode of the example")
-    assert(read_file_string("${dir}/checked.virt").unwrap() == emitted, "the same bytecode")
+    checked :: read_file_string("${dir}/checked.virt") else panic(checked.message())
+    assert(checked == emitted, "the same bytecode")
 }
 
 @test
 test_verify_finds_nothing_in_the_compiler :: fn() -> void {
     built :: build_verified(COMPILER_ENTRY, "${scratch_dir("verify_compiler")}/self.virt")
-    assert(VERIFIER_FINDING !in built.unwrap().stderr, "no finding in the compiler")
+        else panic(built.message())
+    assert(VERIFIER_FINDING !in built.stderr, "no finding in the compiler")
 }
 
 @test
 test_the_callee_verifier_lists_the_sites_of_the_fixture_the_lowering_gets_wrong :: fn() -> void {
     options :: RunOptions { .env = VERIFY_CALLEES }
     dumped :: run_vader(["dump", "--stage=lowered-ast", CALLEE_SITES], options)
-    report :: succeeded(dumped).unwrap()
+    report :: succeeded(dumped) else panic(report.message())
     listed :: disagreements(report.stderr)
     own :: listed.filter((line) -> "[${CALLEE_SITES}:" in line).collect()
     // The generators are fused into the loop: their `next` runs in place, and a
@@ -175,7 +181,7 @@ test_every_disagreement_on_the_compiler_is_an_explained_one :: fn() -> void {
     out :: "${scratch_dir("verify_callees")}/self.c"
     options :: RunOptions { .env = VERIFY_CALLEES, .timeout = LONG_TIMEOUT }
     built :: succeeded(run_vader(["build", "--emit=c", "--out=${out}", COMPILER_ENTRY], options))
-    report :: built.unwrap()
+    report :: built else panic(report.message())
     assert("[VADER_VERIFY_CALLEES]" in report.stderr, "the report of the verifier")
     kinds :: disagreements(report.stderr).map(without_position)
     unexplained :: kinds.filter((kind) -> !is_explained(kind)).collect()

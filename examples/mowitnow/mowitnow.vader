@@ -212,7 +212,7 @@ run :: fn(input: string) -> string | ParseError {
 
 load_input :: fn(argv: string[]) -> string | Error {
     if argv.len() > 1 {
-        r :: read_file_string(argv[1]) else is Error { return r }
+        r :: read_file_string(argv[1]) else return r
         return r
     }
     return DEFAULT_INPUT

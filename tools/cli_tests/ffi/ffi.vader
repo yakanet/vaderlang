@@ -9,10 +9,10 @@
 
 module "tools/cli_tests/ffi"
 
+import "std/abort"
 import "std/fs"
 import "std/io"
 import "std/iter"
-import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -135,7 +135,7 @@ first_cell_paths :: fn(name: string, parameter: string, element: string) -> (Pro
 // Check that each of `answers` failed and said `said`.
 assert_each_refused :: fn(answers: (ProcessResult | ProcessError)[], said: string) -> void {
     for answer in answers {
-        refused :: answer.unwrap()
+        refused :: answer else panic(refused.message())
         assert(refused.exit != 0 && said in refused.stderr, refused.stderr)
     }
 }
@@ -185,7 +185,9 @@ test_an_extern_with_no_header_compiles_beside_a_header_declaring_it_otherwise ::
     entry :: "${dir}/main.vader"
     write_file(entry, WITHOUT_HEADER)
     for flags in BUILD_MODES {
-        assert_eq(built_output(entry, flags, executable_path("${dir}/app")).unwrap(), "0 0 0\n")
+        output :: built_output(entry, flags, executable_path("${dir}/app"))
+            else panic(output.message())
+        assert_eq(output, "0 0 0\n")
     }
 }
 
@@ -204,7 +206,9 @@ test_a_quoted_header_beside_the_entry_compiles_with_the_binary_elsewhere :: fn()
     entry :: "${root}/src/main.vader"
     write_file(entry, QUOTED_HEADER)
     for flags in BUILD_MODES {
-        assert_eq(built_output(entry, flags, executable_path("${root}/out/app")).unwrap(), "7\n")
+        output :: built_output(entry, flags, executable_path("${root}/out/app"))
+            else panic(output.message())
+        assert_eq(output, "7\n")
     }
 }
 
@@ -232,7 +236,7 @@ test_a_parameter_the_header_accepts_passes_every_path :: fn() -> void {
     }
     answers :: first_cell_paths("pointer_match", "@c_type(\"int\") @c_out cells: i32[]", "i32")
     for answer in answers {
-        succeeded(answer).unwrap()
+        answered :: succeeded(answer) else panic(answered.message())
     }
 }
 
@@ -245,7 +249,8 @@ test_a_struct_returned_by_value_crosses_under_vader_run :: fn() -> void {
     }
     dir :: scratch_dir("ffi_by_value_result")
     copy_tree("${BY_VALUE}/result", dir)
-    ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT })
+        else panic(ran.message())
     assert_eq(ran.stderr, "")
     assert_eq(ran.exit, 0)
     assert_eq(ran.stdout, "quot=3\n")
@@ -268,11 +273,11 @@ test_runs_started_together_share_one_adapter_library :: fn() -> void {
         runs.push(launch(() -> run_vader(["run", "${dir}/_main.vader"], options)))
     }
     for ran in join_all(runs) {
-        finished :: ran.unwrap()
+        finished :: ran else panic(finished.message())
         assert_eq(finished.stderr, "")
         assert_eq(finished.stdout, "quot=3\n")
     }
-    kept :: read_dir("${dir}/build/ffi").unwrap()
+    kept :: read_dir("${dir}/build/ffi") else panic(kept.message())
     assert_eq(kept.len(), 1)
     assert(exists("${dir}/build/ffi/${kept[0]}/built"), "a whole library")
 }
@@ -284,7 +289,8 @@ test_an_adapter_that_does_not_link_stops_vader_run_and_names_the_extern :: fn() 
     }
     dir :: scratch_dir("ffi_by_value_argument")
     copy_tree("${BY_VALUE}/argument", dir)
-    ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT }).unwrap()
+    ran :: run_vader(["run", "${dir}/_main.vader"], RunOptions { .timeout = LONG_TIMEOUT })
+        else panic(ran.message())
     assert_eq(ran.exit, 1)
     said :: "extern `takes_div` is called through an adapter (argument 0 passes a struct by value)"
     assert(said in ran.stderr, ran.stderr)
@@ -299,7 +305,7 @@ test_without_a_c_compiler_vader_run_says_the_adapters_need_one :: fn() -> void {
         .env = [["CC", "${dir}/no-such-cc"]],
         .timeout = LONG_TIMEOUT,
     }
-    ran :: run_vader(["run", "${dir}/_main.vader"], options).unwrap()
+    ran :: run_vader(["run", "${dir}/_main.vader"], options) else panic(ran.message())
     assert_eq(ran.exit, 1)
     said :: "extern `div` is called through an adapter (it returns a struct by value)"
     assert(said in ran.stderr, ran.stderr)
@@ -311,12 +317,13 @@ test_a_clibrary_links_by_itself :: fn() -> void {
     if !has_cc() {
         return
     }
-    dir :: stage_clibrary("clibrary_link", true).unwrap()
+    dir :: stage_clibrary("clibrary_link", true) else panic(dir.message())
     for flags in BUILD_MODES {
         built :: run_vader(["build"] + flags + ["--out=${dir}/main", dir], in_project(dir))
-        succeeded(built).unwrap()
-        ran :: succeeded(run_command([executable_path("${dir}/main")], RunOptions { .cwd = dir }))
-        assert_eq(ran.unwrap().stdout, GREETED)
+        linked :: succeeded(built) else panic(linked.message())
+        main :: run_command([executable_path("${dir}/main")], RunOptions { .cwd = dir })
+        ran :: succeeded(main) else panic(ran.message())
+        assert_eq(ran.stdout, GREETED)
     }
 }
 
@@ -325,9 +332,10 @@ test_the_calls_of_a_clibrary_compile_in_a_unit_of_their_own :: fn() -> void {
     // Two libraries' headers need not agree (`raylib.h` and `<windows.h>` do
     // not), so a library's headers are included by its unit alone; every other
     // unit reaches its shims through prototypes.
-    dir :: stage_clibrary("clibrary_units", false).unwrap()
+    dir :: stage_clibrary("clibrary_units", false) else panic(dir.message())
     split :: "${dir}/split/main"
-    succeeded(run_vader(["build", "--emit=c", "--out=${split}", dir], in_project(dir))).unwrap()
+    built :: succeeded(run_vader(["build", "--emit=c", "--out=${split}", dir], in_project(dir)))
+        else panic(built.message())
     unit :: read_file_string("${split}-_ffi_greeter.c")
     imports :: read_file_string("${split}.imports.h")
     assert(unit is string && "#include \"greeter.h\"" in unit, "the unit of the library")
@@ -337,7 +345,7 @@ test_the_calls_of_a_clibrary_compile_in_a_unit_of_their_own :: fn() -> void {
     )
     single :: "${dir}/single/main.c"
     mono :: run_vader(["build", "--emit=c", "--no-split", "--out=${single}", dir], in_project(dir))
-    succeeded(mono).unwrap()
+    mono_built :: succeeded(mono) else panic(mono_built.message())
     whole :: read_file_string(single)
     shims :: read_file_string("${dir}/single/main-_ffi_greeter.c")
     assert(
@@ -346,7 +354,8 @@ test_the_calls_of_a_clibrary_compile_in_a_unit_of_their_own :: fn() -> void {
     )
     assert(shims is string && "#include \"greeter.h\"" in shims, "but the unit of its shims does")
     // One stream holds one unit, every shim in it.
-    stream :: succeeded(run_vader(["build", "--emit=c", "--out=-", dir], in_project(dir))).unwrap()
+    stream :: succeeded(run_vader(["build", "--emit=c", "--out=-", dir], in_project(dir)))
+        else panic(stream.message())
     assert("#include \"greeter.h\"" in stream.stdout, "the stream includes the header")
 }
 
@@ -355,19 +364,22 @@ test_a_virt_carries_the_library_to_a_native_build :: fn() -> void {
     if !has_cc() {
         return
     }
-    dir :: stage_clibrary("clibrary_virt", true).unwrap()
+    dir :: stage_clibrary("clibrary_virt", true) else panic(dir.message())
     virt :: "${dir}/main.virt"
     dumped :: run_vader(["build", "--emit=bytecode-text", "--out=${virt}", dir], in_project(dir))
-    succeeded(dumped).unwrap()
-    succeeded(run_vader(["build", "--out=${dir}/from-virt", virt], in_project(dir))).unwrap()
+    dumped_ok :: succeeded(dumped) else panic(dumped_ok.message())
+    linked :: succeeded(run_vader(["build", "--out=${dir}/from-virt", virt], in_project(dir)))
+        else panic(linked.message())
     ran :: run_command([executable_path("${dir}/from-virt")], RunOptions { .cwd = dir })
-    assert_eq(succeeded(ran).unwrap().stdout, GREETED)
+    printed :: succeeded(ran) else panic(printed.message())
+    assert_eq(printed.stdout, GREETED)
 }
 
 @test
 test_a_missing_archive_stops_the_build_and_names_the_path :: fn() -> void {
-    dir :: stage_clibrary("clibrary_missing", false).unwrap()
-    built :: run_vader(["build", "--out=${dir}/main", dir], in_project(dir)).unwrap()
+    dir :: stage_clibrary("clibrary_missing", false) else panic(dir.message())
+    built :: run_vader(["build", "--out=${dir}/main", dir], in_project(dir))
+        else panic(built.message())
     assert_eq(built.exit, 1)
     assert("library `greeter` has no archive for this target" in built.stderr, built.stderr)
     assert("lib/${host_folder()}/libgreeter.a" in to_posix(built.stderr), built.stderr)
@@ -378,8 +390,8 @@ test_the_interpreter_calls_a_library_shipped_as_archives_through_adapters :: fn(
     if !has_cc() {
         return
     }
-    dir :: stage_clibrary("clibrary_run", true).unwrap()
-    ran :: run_vader(["run", dir], in_project(dir)).unwrap()
+    dir :: stage_clibrary("clibrary_run", true) else panic(dir.message())
+    ran :: run_vader(["run", dir], in_project(dir)) else panic(ran.message())
     assert_eq(ran.stderr, "")
     assert_eq(ran.exit, 0)
     assert_eq(ran.stdout, GREETED)
@@ -387,8 +399,8 @@ test_the_interpreter_calls_a_library_shipped_as_archives_through_adapters :: fn(
 
 @test
 test_the_interpreter_reports_a_missing_archive_and_names_the_extern :: fn() -> void {
-    dir :: stage_clibrary("clibrary_run_missing", false).unwrap()
-    ran :: run_vader(["run", dir], in_project(dir)).unwrap()
+    dir :: stage_clibrary("clibrary_run_missing", false) else panic(dir.message())
+    ran :: run_vader(["run", dir], in_project(dir)) else panic(ran.message())
     assert_eq(ran.exit, 1)
     said :: "is called through an adapter (its binding `greeter` ships static archives"
     assert(said in ran.stderr, ran.stderr)

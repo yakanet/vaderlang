@@ -5,7 +5,7 @@
 
 module "snippet"
 
-import "std/option"
+import "std/abort"
 import "std/task"
 
 total :: fn(xs: i64[]) -> i64 {
@@ -23,7 +23,7 @@ total :: fn(xs: i64[]) -> i64 {
     }
     t :: launch(() -> total(left))
     r :: total(right)
-    return t.join().unwrap() + r
+    return (t.join() else panic("the task was cancelled")) + r
 }
 
 main :: fn() -> i32 = i32(total([1, 2, 3, 4]) - 4)

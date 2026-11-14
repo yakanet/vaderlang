@@ -120,10 +120,12 @@
   expr 66:22    LambdaExpr     :: fn() -> i32
   expr 66:28    CallExpr       :: Cancelled | i32
   expr 66:28    CallExpr       :: Task<i32>
-  expr 66:28    CallExpr       :: i32
+  expr 66:28    FallbackExpr   :: i32
   expr 66:28    FieldExpr      :: fn() -> Cancelled | i32
-  expr 66:28    FieldExpr      :: fn() -> i32
   expr 66:28    IdentExpr      :: fn() -> Task<i32>
+  expr 66:49    CallExpr       :: never
+  expr 66:49    IdentExpr      :: fn(string) -> void
+  expr 66:55    StringLitExpr  :: string
   expr 67:13    StringLitExpr  :: string
   expr 67:16    CallExpr       :: Cancelled | i32
   expr 67:16    FieldExpr      :: fn() -> Cancelled | i32

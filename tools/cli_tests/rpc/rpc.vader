@@ -14,7 +14,6 @@ module "tools/cli_tests/rpc"
 import "json"
 import "std/abort"
 import "std/iter"
-import "std/option"
 import "std/process"
 import "std/string"
 import "std/task"
@@ -67,7 +66,8 @@ export frames_of :: fn(text: string) -> Frames {
         if parts.1.byte_len() < length {
             break
         }
-        messages.push(parse(parts.1.byte_slice(0, length)).unwrap())
+        message :: parse(parts.1.byte_slice(0, length)) else panic(message.message())
+        messages.push(message)
         rest = parts.1.byte_slice(length, parts.1.byte_len())
     }
     return Frames { .messages = messages, .rest = rest }

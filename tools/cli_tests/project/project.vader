@@ -10,8 +10,8 @@
 module "tools/cli_tests/project"
 
 import "json"
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -52,7 +52,8 @@ stage :: fn(name: string, manifest: string | null) -> string {
 // repository.
 vader :: fn(args: string[], cwd: string | null = null) -> ProcessResult {
     options :: RunOptions { .cwd = cwd, .env = toolchain_env() }
-    return run_vader(args, options).unwrap()
+    ran :: run_vader(args, options) else panic(ran.message())
+    return ran
 }
 
 // The folder a build of this host's `profile` writes the binaries of `dir` to.
@@ -184,8 +185,8 @@ test_info_describes_a_project_folder_and_builds_nothing :: fn() -> void {
     assert("(vader.json)" in printed, printed)
     assert("entry    tool -> ${to_posix(dir)}/tool.vader\n" in printed, printed)
     assert("asset    data -> ${to_posix(dir)}/data\n" in printed, printed)
-    json :: succeeded(run_vader(["info", "--json", dir])).unwrap()
-    described :: parse(json.stdout).unwrap()
+    json :: succeeded(run_vader(["info", "--json", dir])) else panic(json.message())
+    described :: parse(json.stdout) else panic(described.message())
     assert_eq(string_member(described, "kind") else "", "manifest")
     assert_eq(string_at(described, ["entries", "app"]) else "", "src/main.vader")
     assert_eq(string_at(described, ["entries", "tool"]) else "", "tool.vader")
@@ -211,7 +212,7 @@ test_eject_writes_the_driver_a_manifest_stands_for :: fn() -> void {
     dir :: stage("eject", manifest.trim())
     remove("${dir}/tool.vader")
     assert_eq(vader(["eject", "--preserve-manifest", dir]).exit, 0)
-    driver :: read_file_string("${dir}/build.vader").unwrap()
+    driver :: read_file_string("${dir}/build.vader") else panic(driver.message())
     assert(r"""ctx.include_paths.push(r"$VADER_HOME/third_party")""" in driver, driver)
     assert("ctx.add_entry(\"app\", \"src/main.vader\")" in driver, driver)
     assert("ctx.add_asset(\"data\")" in driver, driver)

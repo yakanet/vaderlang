@@ -11,7 +11,6 @@ module "vader/tools/lsp"
 import "json"
 import "std/collections"
 import "std/env"
-import "std/option"
 import "std/uri"
 import "vader/front/resolver"
 import "vader/support/version"
@@ -36,7 +35,7 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
     state.inlay_refresh_support = read_inlay_refresh_support(params)
     state.watched_files_support = read_watched_files_support(params)
     state.position_encoding = negotiate_position_encoding(params)
-    root :: parse_uri(get_string(params, "rootUri")).and_then(u -> u.to_path()).or_null()
+    root :: path_of_uri(get_string(params, "rootUri")) else null
     if root != null {
         state.workspace_root = root
     }

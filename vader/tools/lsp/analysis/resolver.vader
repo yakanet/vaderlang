@@ -11,7 +11,6 @@
 module "vader/tools/lsp/analysis"
 
 import "std/collections"
-import "std/option"
 import "std/string"
 import "std/uri"
 import "vader/support/diagnostics"
@@ -54,7 +53,7 @@ export resolve :: fn(
     // leads there.
     module :: roots.entry
     if module != null {
-        here :: parse_uri(idx.uri).and_then(u -> u.to_path()).or_null()
+        here :: path_of_uri(idx.uri) else null
         sibling :: first_in_files(
             state, module.files, here, (sub: DocIndex) -> sub.find_toplevel(name),
         )
@@ -232,7 +231,7 @@ export project_or_folder_of_document :: fn(path: string) -> string =
 /// @param state  carries the host's roots, searched first (`include_flags`).
 /// @param uri    the document's URI.
 export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
-    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return null
+    path :: path_of_uri(uri) else return null
     discard: Diagnostic[]: []
     roots :: search_roots(
         path, state.include_flags, project_of_document(path), doc_overlay(state), discard,

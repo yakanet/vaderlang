@@ -8,8 +8,8 @@
 // backends.
 module "snippet"
 
+import "std/abort"
 import "std/console"
-import "std/option"
 import "std/task"
 import "std/time"
 
@@ -63,7 +63,7 @@ main :: fn(argv: string[]) -> i32 {
     reader :: launch(read_answer)
     other :: launch(read_answer)
     println("${reader.join()} ${other.join()}")
-    joiner :: launch(() -> warmup().join().unwrap())
+    joiner :: launch(() -> warmup().join() else panic("the task was cancelled"))
     println("${joiner.join()} ${warmup().join()}")
     if argv.len() > 1 && argv[1] == "again" {
         println("${LOOP}")

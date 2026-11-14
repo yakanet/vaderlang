@@ -9,9 +9,9 @@
 
 module "tools/cli_tests/bundle"
 
+import "std/abort"
 import "std/fs"
 import "std/io"
-import "std/option"
 import "std/path"
 import "std/process"
 import "std/string"
@@ -27,28 +27,38 @@ DIST_EXCLUDE :: "bootstrap/dist-exclude.txt"
 staged_bundle :: fn(name: string) -> string {
     dir :: scratch_dir(name)
     binary :: "${dir}/${Path(vader_binary()).filename()}"
-    copy(vader_binary(), binary).unwrap()
+    copied_binary :: copy(vader_binary(), binary) else is Error {
+        panic(copied_binary.message())
+    }
     // A copied arm64 binary is no longer signed, and macOS kills it.
     if current_os() == .Darwin {
-        succeeded(run_command(["codesign", "-s", "-", binary])).unwrap()
+        signed :: succeeded(run_command(["codesign", "-s", "-", binary]))
+            else panic(signed.message())
     }
-    for namespace in read_dir("lib").unwrap() {
-        copy_tree("lib/${namespace}", "${dir}/lib/${namespace}").unwrap()
-    }
-    trimmed :: excluded_folders()
-    for folder in read_dir("vader").unwrap() {
-        if !trimmed.contains(folder) {
-            copy_tree("vader/${folder}", "${dir}/src/vader/${folder}").unwrap()
+    namespaces :: read_dir("lib") else panic(namespaces.message())
+    for namespace in namespaces {
+        copied :: copy_tree("lib/${namespace}", "${dir}/lib/${namespace}") else is Error {
+            panic(copied.message())
         }
     }
-    copy_tree("runtime/c", "${dir}/runtime/c").unwrap()
+    trimmed :: excluded_folders()
+    folders :: read_dir("vader") else panic(folders.message())
+    for folder in folders {
+        if !trimmed.contains(folder) {
+            copied :: copy_tree("vader/${folder}", "${dir}/src/vader/${folder}") else is Error {
+                panic(copied.message())
+            }
+        }
+    }
+    runtime :: copy_tree("runtime/c", "${dir}/runtime/c") else is Error { panic(runtime.message()) }
     return dir
 }
 
 // The folders of `vader/` a bundle leaves out.
 excluded_folders :: fn() -> string[] {
     out: string[]: []
-    for line in read_file_string(DIST_EXCLUDE).unwrap().split("\n") {
+    excluded :: read_file_string(DIST_EXCLUDE) else panic(excluded.message())
+    for line in excluded.split("\n") {
         folder :: line.trim()
         if folder != "" && !folder.starts_with("#") {
             out.push(folder)
@@ -61,7 +71,8 @@ excluded_folders :: fn() -> string[] {
 bundled :: fn(bundle: string, dir: string, args: string[]) -> ProcessResult {
     binary :: "${bundle}/${Path(vader_binary()).filename()}"
     options :: RunOptions { .cwd = dir, .timeout = HEAVY_TIMEOUT }
-    return run_command([binary] + args, options).unwrap()
+    ran :: run_command([binary] + args, options) else panic(ran.message())
+    return ran
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -83,7 +94,7 @@ test_a_bundle_drives_a_build_with_nothing_beside_the_project :: fn() -> void {
     assert("R2001" !in built.stderr && "error[" !in built.stderr, built.stderr)
     assert_eq(built.exit, 0)
     binary :: executable_path("${dir}/build/debug-${host_folder()}/app")
-    ran :: run_command([binary], RunOptions { .cwd = dir }).unwrap()
+    ran :: run_command([binary], RunOptions { .cwd = dir }) else panic(ran.message())
     assert("\"home\":{\"city\":\"Lyon\",\"zip\":69001}" in ran.stdout, ran.stdout)
 }
 

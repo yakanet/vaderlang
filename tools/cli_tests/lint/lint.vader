@@ -10,8 +10,8 @@
 
 module "tools/cli_tests/lint"
 
+import "std/abort"
 import "std/fs"
-import "std/option"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -74,7 +74,7 @@ import "std/testing"
 @test
 test_lint_flags_an_export_nothing_reaches :: fn() -> void {
     // `reached` is called by `main`; a private declaration is W0007's.
-    ran :: run_vader(["lint", DEAD]).unwrap()
+    ran :: run_vader(["lint", DEAD]) else panic(ran.message())
     output :: said_by(ran)
     assert_eq(unused_exports(ran), 1)
     assert("orphan" in output, output)
@@ -84,7 +84,7 @@ test_lint_flags_an_export_nothing_reaches :: fn() -> void {
 
 @test
 test_lint_is_silent_when_every_export_is_reached :: fn() -> void {
-    ran :: run_vader(["lint", CLEAN]).unwrap()
+    ran :: run_vader(["lint", CLEAN]) else panic(ran.message())
     assert_eq(unused_exports(ran), 0)
     assert_eq(ran.exit, 0)
 }
@@ -92,14 +92,14 @@ test_lint_is_silent_when_every_export_is_reached :: fn() -> void {
 @test
 test_a_build_never_runs_the_lint_of_the_exports :: fn() -> void {
     // An export nothing reaches is no error.
-    ran :: run_vader(["build", "--emit=c", "--out=-", DEAD]).unwrap()
+    ran :: run_vader(["build", "--emit=c", "--out=-", DEAD]) else panic(ran.message())
     assert_eq(unused_exports(ran), 0)
     assert_eq(ran.exit, 0)
 }
 
 @test
 test_lint_with_no_file_is_a_usage_error :: fn() -> void {
-    ran :: run_vader(["lint"]).unwrap()
+    ran :: run_vader(["lint"]) else panic(ran.message())
     assert("expected a file" in ran.stderr, ran.stderr)
     assert_eq(ran.exit, 1)
 }
@@ -108,14 +108,15 @@ test_lint_with_no_file_is_a_usage_error :: fn() -> void {
 test_lint_scopes_the_exports_by_where_a_module_comes_from :: fn() -> void {
     dir :: staged_lint_root("provenance")
     write_file("${dir}/app.vader", PROBED_APP)
-    relative :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }).unwrap()
+    relative :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir })
+        else panic(relative.message())
     said :: said_by(relative)
     assert("never_used_in_app" in said && "never_used_in_probe" !in said, said)
     // By its absolute path, from elsewhere, the folder is the project its
     // `vader.json` describes, and its `lib/` an absolute root: the two agree.
     manifest :: r"""{"name": "p", "includePaths": ["lib"], "entries": {"app": "app.vader"}}"""
     write_file("${dir}/vader.json", manifest)
-    absolute :: run_vader(["lint", dir]).unwrap()
+    absolute :: run_vader(["lint", dir]) else panic(absolute.message())
     said_absolute :: said_by(absolute)
     assert("never_used_in_app" in said_absolute, said_absolute)
     assert("never_used_in_probe" !in said_absolute, said_absolute)
@@ -128,6 +129,6 @@ test_lint_flags_an_export_named_build_outside_a_driver :: fn() -> void {
     // `build` is rooted in the `build` module only.
     dir :: staged_lint_root("stray_build")
     write_file("${dir}/app.vader", STRAY_BUILD)
-    ran :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }).unwrap()
+    ran :: run_vader(["lint", "app.vader"], RunOptions { .cwd = dir }) else panic(ran.message())
     assert("`build` is never used" in said_by(ran), said_by(ran))
 }

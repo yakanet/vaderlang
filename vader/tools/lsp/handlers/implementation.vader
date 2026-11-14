@@ -25,7 +25,6 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/uri"
 import "toolchain/span"
 import "vader/tools/lsp/protocol"
@@ -45,7 +44,7 @@ import "vader/front/resolver"
 /// @return        a JSON array of `Location`, or `JsonNull`.
 export handle_implementation :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
+    file_path :: path_of_uri(uri) else return JsonNull {}
     project :: union_project_for(state, file_path)
     [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
     name :: target_group_name_at(project, file_path, line, column)

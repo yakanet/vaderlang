@@ -15,7 +15,6 @@ module "vader/tools/lsp/protocol"
 
 import "json"
 import "std/collections"
-import "std/option"
 import "std/uri"
 import "toolchain/span"
 
@@ -160,7 +159,7 @@ location_link_json :: fn(
 ///
 /// @param raw  the URI as the client sent it.
 export canonical_uri :: fn(raw: string) -> string {
-    parsed :: parse_uri(raw).or_null() else return raw
+    parsed :: parse_uri(raw) else return raw
     path :: parsed.to_path()
     if path is string {
         return path.to_uri().to_string()

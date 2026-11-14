@@ -5,8 +5,8 @@
 
 module "snippet"
 
+import "std/abort"
 import "std/collections"
-import "std/option"
 import "std/task"
 
 count_words :: fn(f: string) -> Map<string, i64> {
@@ -29,7 +29,7 @@ main :: fn() -> i32 {
     }
     total :: Map<string, i64> {}
     for t in tasks {
-        merge(total, t.join().unwrap())
+        merge(total, t.join() else panic("the task was cancelled"))
     }
     return i32(total.len()) - 2
 }

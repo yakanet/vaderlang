@@ -9,9 +9,9 @@
 module "tools/cli_tests/new"
 
 import "json"
+import "std/abort"
 import "std/fs"
 import "std/io"
-import "std/option"
 import "std/process"
 import "std/string"
 import "tools/cli_tests/cli"
@@ -20,13 +20,14 @@ import "tools/cli_tests/cli"
 // environment.
 vader :: fn(args: string[], cwd: string, env: [string, string | null][] = []) -> ProcessResult {
     options :: RunOptions { .cwd = cwd, .env = env }
-    return run_vader(args, options).unwrap()
+    ran :: run_vader(args, options) else panic(ran.message())
+    return ran
 }
 
 // The members of a project's description `info --json` printed in `stdout` that
 // the manifest declares: its search roots, its entries and its assets.
 declared :: fn(stdout: string) -> string {
-    described :: parse(stdout).unwrap()
+    described :: parse(stdout) else panic(described.message())
     out: string[]: []
     for key in ["includePaths", "entries", "assets"] {
         out.push("${key}: ${stringify(member(described, key) else JsonNull {})}")
@@ -59,9 +60,9 @@ test_new_writes_a_project_that_runs_and_builds :: fn() -> void {
     assert(holds(project, ["vader.json", "src/main.vader", ".gitignore"]), "the three files")
     // The manifest carries the name of the folder, and the entry declares the
     // module its folder is called.
-    manifest :: read_file_string("${project}/vader.json").unwrap()
+    manifest :: read_file_string("${project}/vader.json") else panic(manifest.message())
     assert("\"name\": \"my-app\"" in manifest, manifest)
-    entry :: read_file_string("${project}/src/main.vader").unwrap()
+    entry :: read_file_string("${project}/src/main.vader") else panic(entry.message())
     assert("module \"src\"" in entry, entry)
     ran :: vader(["run", "."], project, toolchain_env())
     assert_eq(ran.exit, 0)
@@ -123,7 +124,7 @@ test_a_manifest_ejected_into_a_driver_declares_builds_and_runs_as_it :: fn() -> 
     assert_eq(vader(["new", "--build=manifest", "scaffolded"], workspace).exit, 0)
     project :: "${workspace}/scaffolded"
     manifest_path :: "${project}/vader.json"
-    manifest :: read_file_string(manifest_path).unwrap()
+    manifest :: read_file_string(manifest_path) else panic(manifest.message())
     rooted :: manifest.replace_all("\"includePaths\": []", "\"includePaths\": [\"vendor\"]")
     widened :: rooted.replace_all("\"assets\": []", "\"assets\": [\"data\"]")
     assert("\"vendor\"" in widened && "\"data\"" in widened, widened)
@@ -136,7 +137,8 @@ test_a_manifest_ejected_into_a_driver_declares_builds_and_runs_as_it :: fn() -> 
     create_dir("${project}/data")
     write_file("${project}/data/note.txt", "note\n")
     main :: "${project}/src/main.vader"
-    imports :: read_file_string(main).unwrap().replace_all(
+    source :: read_file_string(main) else panic(source.message())
+    imports :: source.replace_all(
         "import \"std/console\"",
         "import \"greet\"\nimport \"std/console\"",
     )
@@ -158,7 +160,7 @@ test_a_manifest_ejected_into_a_driver_declares_builds_and_runs_as_it :: fn() -> 
     // The binary is named after the project: the entry of the scaffold carries its
     // name.
     binaries :: "${project}/build/debug-${host_folder()}"
-    ran :: run_command([executable_path("${binaries}/scaffolded")]).unwrap()
+    ran :: run_command([executable_path("${binaries}/scaffolded")]) else panic(ran.message())
     assert_eq(ran.exit, 0)
     assert("hello from scaffolded, hi" in ran.stdout, ran.stdout)
     assert(exists("${binaries}/data/note.txt"), "the asset beside the binary")
