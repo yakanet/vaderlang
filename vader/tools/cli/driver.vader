@@ -184,20 +184,14 @@ export compiler_source_root :: fn(root: string) -> string {
 ///
 /// Two inputs decide that binary: the driver source, and the compiler that
 /// compiles it. `build.vader` is hashed by content; the compiler by a SHA-256 of
-/// its own executable: **38 ms for 3.4 MB natively**, against an 8.2 s driver
-/// build, which is what makes checking cheaper than rebuilding.
-///
-/// Measure natively, not through `vader run`: the same hash takes 27 s in the
-/// VM, and reading that as a `std/crypto` problem is a mistake I made. The VM
-/// only ever runs the comptime table construction here.
+/// its own executable, which costs a small fraction of the driver build it saves.
 ///
 /// What it deliberately does NOT catch: editing `vader/` or `lib/` sources
 /// WITHOUT rebuilding the compiler. The driver is compiled from those sources, so
-/// a cached driver would then be stale. Hashing both trees is affordable too
-/// (284 files, 4.6 MB) but the case is a compiler-developer one, and this repo's
-/// own test harness already refuses to run against a `build/vader` older than its
-/// sources, so the binary hash tracks it in practice. Delete `build/driver/` to
-/// force a rebuild.
+/// a cached driver would then be stale. The case is a compiler-developer one, and
+/// this repo's own test harness already refuses to run against a `build/vader`
+/// older than its sources, so the binary hash tracks it in practice. Delete
+/// `build/driver/` to force a rebuild.
 ///
 /// @param driver_path  the project's `build.vader`.
 /// @return             a key that changes when either input does.
@@ -445,9 +439,9 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     release :: runs_release_driver(root, key, request)
     binary :: driver_binary_path(root, release)
 
-    // Compiling a driver compiles the WHOLE compiler (274k lines of C, 8.2 s)
-    // and it produces the same binary every time its inputs are unchanged, which
-    // for anyone iterating on their project is every build but the first.
+    // Compiling a driver compiles the WHOLE compiler, and it produces the same
+    // binary every time its inputs are unchanged, which for anyone iterating on
+    // their project is every build but the first.
     if !driver_is_current(root, release, key) {
         cc :: cc_or_default(request.build.cc)
         ldflags :: request.build.ldflags
