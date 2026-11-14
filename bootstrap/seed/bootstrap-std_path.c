@@ -60,7 +60,7 @@ static bool std_path$is_anchored(vader_string_t l0, uint8_t l1) {
     bool t0;
     uint8_t t1;
     l2 = std_path$root_length(l0, l1);
-    t0 = std_string$starts_with(l0, 483u);
+    t0 = std_string$starts_with(l0, 486u);
     if (t0) {
         return true;
     }
@@ -103,7 +103,7 @@ static vader_box_t std_path$last_separator(vader_string_t l0, int64_t l1) {
             if (!(t0 == INT32_C(47))) {
                 continue;
             }
-            return vader_box_i64(507u, l2);
+            return vader_box_i64(508u, l2);
         }
         break;
     }
@@ -133,7 +133,7 @@ static vader_box_t std_path$next_separator(vader_string_t l0, int64_t l1) {
     while ((l2 < l3)) {
         t0 = vader_host_std_core$byte_at(l0, l2);
         if (t0 == INT32_C(47)) {
-            return vader_box_i64(507u, l2);
+            return vader_box_i64(508u, l2);
         }
         l2 = (l2 + INT64_C(1));
     }
@@ -178,7 +178,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
     }
     l3 = std_path$root_length(l0, l1);
     l4 = std_path$is_anchored(l0, l1);
-    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 503u);
+    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 504u);
     l5 = (void*) _a0_arr;
     l6 = l3;
     while ((l6 <= l2)) {
@@ -194,10 +194,10 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
         if (t0) {
             continue;
         }
-        if (l9 == 432u) {
+        if (l9 == 435u) {
             continue;
         }
-        if (l9 == 433u) {
+        if (l9 == 436u) {
             t1 = vader_array_length(((vader_array_t*) l5));
             l11 = (t1 > INT64_C(0));
         } else {
@@ -211,7 +211,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l12)
             t2 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l12];
             t3 = t2.payload.s;
-            l10 = t3 != 433u;
+            l10 = t3 != 436u;
         } else {
             l10 = false;
         }
@@ -219,25 +219,25 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
             t2 = vader_array_remove_last((vader_array_t*) l5);
             continue;
         }
-        if (l9 != 433u) {
+        if (l9 != 436u) {
             l13 = true;
         } else {
             l13 = !(l4);
         }
         if (l13) {
-            vader_array_push_scalar((vader_array_t*) l5, vader_box_string(503u, l9));
+            vader_array_push_scalar((vader_array_t*) l5, vader_box_string(504u, l9));
         }
     }
     if (l3 == INT64_C(0)) {
         t0 = std_core$is_empty__string(l5);
         if (t0) {
-            { vader_gc_top = gc_frame.prev; return 432u; }
+            { vader_gc_top = gc_frame.prev; return 435u; }
         }
     }
-    vader_array_t* _a2_arr = vader_array_new(26u, 0u, 0u, 503u);
+    vader_array_t* _a2_arr = vader_array_new(26u, 0u, 0u, 504u);
     t4 = (void*) _a2_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a3_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a3_obj, 882u);
+    vader_obj_header_init(_a3_obj, 886u);
     _a3_obj->f_parts = t4;
     l14 = (void*) _a3_obj;
     l9 = vader_host_std_core$byte_slice(l0, INT64_C(0), l3);
@@ -246,7 +246,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
     l3 = vader_array_length(((vader_array_t*) l5));
     while ((l2 < l3)) {
         if ((l2 > INT64_C(0))) {
-            std_string__builder$append(l14, 483u);
+            std_string__builder$append(l14, 486u);
         }
         vader_array_t* _a4_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
@@ -366,7 +366,7 @@ vader_string_t std_path$to_native(vader_string_t l0) {
     t0 = vader_host_std_target$current_os();
     if (!(t0 != INT32_C(0))) {
         l1 = (void*) &vader_fn_static___lambda_std_path_0;
-        t1 = std_string$replace_chars_where(l0, l1, 1043u);
+        t1 = std_string$replace_chars_where(l0, l1, 1045u);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -387,7 +387,7 @@ vader_string_t std_path$to_path(vader_string_t l0) {
     uint8_t l1;
     bool t0;
     vader_string_t t1;
-    t0 = std_string$ends_with(l0, 483u);
+    t0 = std_string$ends_with(l0, 486u);
     if (!(t0)) {
         return l0;
     }
@@ -424,15 +424,15 @@ static vader_string_t std_path$to_posix_on(vader_string_t l0, uint8_t l1) {
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = (void*) &vader_fn_static___lambda_std_path_1;
-    l3 = std_string$replace_chars_where(l0, l2, 483u);
-    t0 = std_string$starts_with(l3, 493u);
+    l3 = std_string$replace_chars_where(l0, l2, 486u);
+    t0 = std_string$starts_with(l3, 496u);
     if (t0) {
         l4 = vader_host_std_core$byte_len(l3);
         l5 = vader_host_std_core$byte_slice(l3, INT64_C(8), l4);
-        t1 = concat_2(485u, l5);
+        t1 = concat_2(488u, l5);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = std_string$starts_with(l3, 492u);
+    t0 = std_string$starts_with(l3, 495u);
     if (!(t0)) {
         { vader_string_t __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }

@@ -26,7 +26,7 @@ vader_box_t vader_support_integer$checked_add(int64_t l0, bool l1, int64_t l2, i
             t0 = l2;
             l5 = (uint64_t) (int64_t) t0;
             if (!((l4 < l5))) {
-                return vader_box_i64(507u, ((int64_t) (uint64_t) l4));
+                return vader_box_i64(508u, ((int64_t) (uint64_t) l4));
             }
             return vader_box_obj(0u, NULL);
         }
@@ -40,7 +40,7 @@ vader_box_t vader_support_integer$checked_add(int64_t l0, bool l1, int64_t l2, i
     l7 = (l2 ^ l6);
     l8 = (l3 ^ l6);
     if (!(((l7 & l8) < INT64_C(0)))) {
-        return vader_box_i64(507u, l6);
+        return vader_box_i64(508u, l6);
     }
     return vader_box_obj(0u, NULL);
 }
@@ -67,9 +67,9 @@ vader_box_t vader_support_integer$checked_mul(int64_t l0, bool l1, int64_t l2, i
                 if (l5 != l6) {
                     return vader_box_obj(0u, NULL);
                 }
-                return vader_box_i64(507u, ((int64_t) (uint64_t) l4));
+                return vader_box_i64(508u, ((int64_t) (uint64_t) l4));
             }
-            return vader_box_i64(507u, ((int64_t) (uint64_t) l4));
+            return vader_box_i64(508u, ((int64_t) (uint64_t) l4));
         }
     }
     if (l0 == INT64_C(64)) {
@@ -83,9 +83,9 @@ vader_box_t vader_support_integer$checked_mul(int64_t l0, bool l1, int64_t l2, i
             if (t0 != l3) {
                 return vader_box_obj(0u, NULL);
             }
-            return vader_box_i64(507u, l7);
+            return vader_box_i64(508u, l7);
         }
-        return vader_box_i64(507u, l7);
+        return vader_box_i64(508u, l7);
     }
     if (l1) {
         if (l0 == INT64_C(32)) {
@@ -117,7 +117,7 @@ vader_box_t vader_support_integer$checked_negation(int64_t l0, bool l1, int64_t 
     int64_t t1;
     if (l1) {
         if (!(l2 != INT64_C(0))) {
-            return vader_box_i64(507u, INT64_C(0));
+            return vader_box_i64(508u, INT64_C(0));
         }
         return vader_box_obj(0u, NULL);
     }
@@ -128,7 +128,7 @@ vader_box_t vader_support_integer$checked_negation(int64_t l0, bool l1, int64_t 
     }
     if (!(l2 == INT64_MIN)) {
         t1 = vader_chk_neg(i64, l2);
-        return vader_box_i64(507u, t1);
+        return vader_box_i64(508u, t1);
     }
     return vader_box_obj(0u, NULL);
 }
@@ -145,7 +145,7 @@ vader_box_t vader_support_integer$checked_sub(int64_t l0, bool l1, int64_t l2, i
             t0 = l3;
             l5 = (uint64_t) (int64_t) t0;
             if (!((l4 < l5))) {
-                return vader_box_i64(507u, (l2 - l3));
+                return vader_box_i64(508u, (l2 - l3));
             }
             return vader_box_obj(0u, NULL);
         }
@@ -159,7 +159,7 @@ vader_box_t vader_support_integer$checked_sub(int64_t l0, bool l1, int64_t l2, i
     l7 = (l2 ^ l3);
     l8 = (l2 ^ l6);
     if (!(((l7 & l8) < INT64_C(0)))) {
-        return vader_box_i64(507u, l6);
+        return vader_box_i64(508u, l6);
     }
     return vader_box_obj(0u, NULL);
 }
@@ -264,7 +264,7 @@ void* vader_support_integer$interval(int64_t l0, int64_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1708u);
+    vader_obj_header_init(_a0_obj, 1713u);
     _a0_obj->f_lo = l0;
     _a0_obj->f_hi = l1;
     _a0_obj->f_lo_open = false;
@@ -380,7 +380,7 @@ void* vader_support_integer$interval_from_ends(vader_box_t l0, vader_box_t l1) {
     l5 = l0.tag == 0u;
     l6 = l1.tag == 0u;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1708u);
+    vader_obj_header_init(_a0_obj, 1713u);
     _a0_obj->f_lo = l3;
     _a0_obj->f_hi = l4;
     _a0_obj->f_lo_open = l5;
@@ -414,7 +414,7 @@ void* vader_support_integer$interval_join(void* l0, void* l1) {
     l6 = ((vader_struct_vader_support_integer$Interval_t*) l2)->f_hi_open;
     l7 = ((vader_struct_vader_support_integer$Interval_t*) l2)->f_hi_past;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1708u);
+    vader_obj_header_init(_a0_obj, 1713u);
     _a0_obj->f_lo = l3;
     _a0_obj->f_hi = l4;
     _a0_obj->f_lo_open = l5;
@@ -452,7 +452,7 @@ vader_box_t vader_support_integer$interval_meet(void* l0, void* l1) {
     l6 = ((vader_struct_vader_support_integer$Interval_t*) l4)->f_hi_open;
     l7 = ((vader_struct_vader_support_integer$Interval_t*) l4)->f_hi_past;
     vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-    vader_obj_header_init(_a0_obj, 1708u);
+    vader_obj_header_init(_a0_obj, 1713u);
     _a0_obj->f_lo = l2;
     _a0_obj->f_hi = l3;
     _a0_obj->f_lo_open = l5;
@@ -606,17 +606,17 @@ void* vader_support_integer$interval_remove(void* l0, void* l1) {
     void* l2 = NULL;
     void* l3 = NULL;
     void* l6 = NULL;
-    void* l12 = NULL;
-    void* l17 = NULL;
-    int64_t l4, l5, l8, l9, l10, l11, l13, l14, l15, l16;
-    vader_box_t l7 = vader_box_null();
-    void* t0 = NULL;
-    int64_t t1;
-    vader_box_t* gc_roots[1] = { &l7 };
-    void** gc_raw_roots[8] = { &l0, &l1, &l2, &l3, &l6, &l12, &l17, &t0 };
+    void* l7 = NULL;
+    void* l13 = NULL;
+    void* l18 = NULL;
+    int64_t l4, l5, l9, l10, l11, l12, l14, l15, l16, l17;
+    vader_box_t l8 = vader_box_null();
+    int64_t t0;
+    vader_box_t* gc_roots[1] = { &l8 };
+    void** gc_raw_roots[8] = { &l0, &l1, &l2, &l3, &l6, &l7, &l13, &l18 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 8u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(365u, 0u, 13u, 1708u);
+    vader_array_t* _a0_arr = vader_array_new(365u, 0u, 13u, 1713u);
     l2 = (void*) _a0_arr;
     l3 = l0;
     l4 = vader_array_length(((vader_array_t*) l3));
@@ -625,33 +625,30 @@ void* vader_support_integer$interval_remove(void* l0, void* l1) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         l6 = vader_array_ref_load_obj(_a1_slotarr->buf, vader_array_offset(_a1_slotarr) + (size_t) l5);
-        l7 = vader_support_integer$interval_meet(l6, l1);
-        if (l7.tag == 0u) {
+        l8 = vader_support_integer$interval_meet(l6, l1);
+        if (l8.tag == 0u) {
             vader_array_push_ref((vader_array_t*) l2, l6);
             l5 = (l5 + INT64_C(1));
             continue;
         }
-        l8 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_lo;
-        t0 = l7.payload.obj;
-        l9 = ((vader_struct_vader_support_integer$Interval_t*) t0)->f_lo;
-        if ((l8 < l9)) {
-            l10 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_lo;
-            t0 = l7.payload.obj;
-            t1 = ((vader_struct_vader_support_integer$Interval_t*) t0)->f_lo;
-            l11 = vader_chk_sub(i64, t1, INT64_C(1));
-            l12 = vader_support_integer$interval(l10, l11);
-            vader_array_push_ref((vader_array_t*) l2, l12);
+        l7 = l8.payload.obj;
+        l9 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_lo;
+        l10 = ((vader_struct_vader_support_integer$Interval_t*) l7)->f_lo;
+        if ((l9 < l10)) {
+            l11 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_lo;
+            t0 = ((vader_struct_vader_support_integer$Interval_t*) l7)->f_lo;
+            l12 = vader_chk_sub(i64, t0, INT64_C(1));
+            l13 = vader_support_integer$interval(l11, l12);
+            vader_array_push_ref((vader_array_t*) l2, l13);
         }
-        t0 = l7.payload.obj;
-        l13 = ((vader_struct_vader_support_integer$Interval_t*) t0)->f_hi;
-        l14 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_hi;
-        if ((l13 < l14)) {
-            t0 = l7.payload.obj;
-            t1 = ((vader_struct_vader_support_integer$Interval_t*) t0)->f_hi;
-            l15 = vader_chk_add(i64, t1, INT64_C(1));
-            l16 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_hi;
-            l17 = vader_support_integer$interval(l15, l16);
-            vader_array_push_ref((vader_array_t*) l2, l17);
+        l14 = ((vader_struct_vader_support_integer$Interval_t*) l7)->f_hi;
+        l15 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_hi;
+        if ((l14 < l15)) {
+            t0 = ((vader_struct_vader_support_integer$Interval_t*) l7)->f_hi;
+            l16 = vader_chk_add(i64, t0, INT64_C(1));
+            l17 = ((vader_struct_vader_support_integer$Interval_t*) l6)->f_hi;
+            l18 = vader_support_integer$interval(l16, l17);
+            vader_array_push_ref((vader_array_t*) l2, l18);
         }
         l5 = (l5 + INT64_C(1));
     }
@@ -697,7 +694,7 @@ void* vader_support_integer$interval_up_to(int64_t l0, uint64_t l1) {
         t0 = vader_chk_sub(u64, l1, l2);
         l2 = (uint64_t) (int64_t) t0;
         vader_struct_vader_support_integer$Interval_t* _a0_obj = (vader_struct_vader_support_integer$Interval_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_integer$Interval_t));
-        vader_obj_header_init(_a0_obj, 1708u);
+        vader_obj_header_init(_a0_obj, 1713u);
         _a0_obj->f_lo = l0;
         _a0_obj->f_hi = INT64_C(9223372036854775807);
         _a0_obj->f_lo_open = false;
@@ -1066,7 +1063,7 @@ static vader_box_t vader_support_integer$within(int64_t l0, bool l1, int64_t l2)
         }
         l3 = (INT64_C(1) << (l0 & 63));
         if (!((l2 >= l3))) {
-            return vader_box_i64(507u, l2);
+            return vader_box_i64(508u, l2);
         }
         return vader_box_obj(0u, NULL);
     }
@@ -1077,7 +1074,7 @@ static vader_box_t vader_support_integer$within(int64_t l0, bool l1, int64_t l2)
         return vader_box_obj(0u, NULL);
     }
     if (!((l2 >= l3))) {
-        return vader_box_i64(507u, l2);
+        return vader_box_i64(508u, l2);
     }
     return vader_box_obj(0u, NULL);
 }
