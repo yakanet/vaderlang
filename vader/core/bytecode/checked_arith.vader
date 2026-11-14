@@ -27,7 +27,7 @@ export checked_arith :: fn(op: CheckedOp, kind: ValType, a: i64, b: i64) -> i64 
     unsigned :: is_unsigned_val(kind)
     x :: cell_value(kind, a)
     y :: cell_value(kind, b)
-    result :: integer_op(op, bits, unsigned, x, y) ?? return null
+    result :: integer_op(op, bits, unsigned, x, y) else return null
     return value_cell(kind, result)
 }
 
@@ -41,7 +41,7 @@ export checked_arith :: fn(op: CheckedOp, kind: ValType, a: i64, b: i64) -> i64 
 export checked_neg :: fn(kind: ValType, a: i64) -> i64 | null {
     bits :: integer_bits(kind)
     value :: cell_value(kind, a)
-    negated :: checked_negation(bits, is_unsigned_val(kind), value) ?? return null
+    negated :: checked_negation(bits, is_unsigned_val(kind), value) else return null
     return value_cell(kind, negated)
 }
 
@@ -103,16 +103,16 @@ import "std/testing"
 test_checked_arith_u32_cells :: fn() -> void {
     // 0xFFFF_FFFF sits as the cell -1.
     assert(checked_arith(.Add, .U32, -1, 1) == null, "u32 max + 1")
-    assert_eq(checked_arith(.Add, .U32, 0x7FFF_FFFF, 1) ?? 0, -0x8000_0000)
+    assert_eq(checked_arith(.Add, .U32, 0x7FFF_FFFF, 1) else 0, -0x8000_0000)
     assert(checked_arith(.Mul, .U32, -1, -1) == null, "u32 max * max")
-    assert_eq(checked_arith(.Mul, .U32, 0x1_0000, 0xFFFF) ?? 0, -0x1_0000)
+    assert_eq(checked_arith(.Mul, .U32, 0x1_0000, 0xFFFF) else 0, -0x1_0000)
 }
 
 @test
 test_checked_arith_classes :: fn() -> void {
     assert(checked_arith(.Add, .U8, 250, 10) == null, "u8 250 + 10")
     assert(checked_arith(.Sub, .U64, 0, 1) == null, "u64 0 - 1")
-    assert_eq(checked_arith(.Sub, .I64, 0, 1) ?? 0, -1)
+    assert_eq(checked_arith(.Sub, .I64, 0, 1) else 0, -1)
     assert(checked_neg(.I8, -128) == null, "i8 -(-128)")
 }
 

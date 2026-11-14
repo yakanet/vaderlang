@@ -602,7 +602,7 @@ bursts :: fn() -> void {
 }
 
 main :: fn() -> i32 {
-    case :: get_env("THREADS_CASE") ?? ""
+    case :: get_env("THREADS_CASE") else ""
     match case {
         "parked_roots"          -> parked_roots()
         "overflow"              -> overflow()

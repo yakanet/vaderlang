@@ -112,8 +112,8 @@ overload_candidates :: fn(callee: AST.Expr, typed: TypedProgram) -> FnCandidate[
 // stands for, every overload, the first declared first ; null when `e` is no
 // namespace member.
 namespace_overloads :: fn(e: AST.FieldExpr, typed: TypedProgram) -> FnCandidate[] | null {
-    mod_id :: namespace_call_mod_id(e, typed) ?? return null
-    by_name :: typed.namespace_fn_overloads[mod_id] ?? return null
+    mod_id :: namespace_call_mod_id(e, typed) else return null
+    by_name :: typed.namespace_fn_overloads[mod_id] else return null
     return by_name[e.field]
 }
 
@@ -132,15 +132,15 @@ pick_member_overload :: fn(
     if field !is AST.FieldExpr {
         return initial
     }
-    candidates :: typed.overloaded_members[field.id] ?? return initial
+    candidates :: typed.overloaded_members[field.id] else return initial
     is_static :: typed.static_members[field.id] != null
-    receiver :: typed.expr_types[field.target.id] ?? TY_UNRESOLVED
+    receiver :: typed.expr_types[field.target.id] else TY_UNRESOLVED
     sigs: Type[]: []
     for m in candidates {
         sigs.push(if is_static { m.ty } else { impl_member_type(m, receiver, typed) })
     }
     // An ambiguity is reported : nothing more to say about this call.
-    index :: pick_member_index(c, field, sigs, expected, typed, diags) ?? return TY_UNRESOLVED
+    index :: pick_member_index(c, field, sigs, expected, typed, diags) else return TY_UNRESOLVED
     chosen :: candidates[index]
     typed.callees[field.id] = member_callee(chosen.decl, receiver)
     ty :: if is_static {
@@ -170,7 +170,7 @@ pick_member_index :: fn(
             diags.push(member_ambiguity_error(field, sigs, "accept ${display_type(arg0)}"))
             return null
         }
-        return pick.best ?? 0
+        return pick.best else 0
     }
     fits: i64[]: []
     if expected != null {
@@ -262,11 +262,11 @@ integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
         return 0
     }
     closest: i32 = 0
-    for slot in union_variants(param0) ?? [param0] {
+    for slot in union_variants(param0) else [param0] {
         if equals_type(arg0, slot) {
             return OWN_TYPE_CLOSENESS
         }
-        values :: integer_values(slot) ?? continue
+        values :: integer_values(slot) else continue
         if !is_assignable(arg0, slot) {
             continue
         }
@@ -347,7 +347,7 @@ overload_specificity :: fn(arg0: Type, param0: Type, typed: TypedProgram) -> i32
         return 0
     }
     if param0 is UnionType {
-        arg_vars :: union_variants(arg0) ?? [arg0]
+        arg_vars :: union_variants(arg0) else [arg0]
         score: i32 = 0
         for av in arg_vars {
             score = score + variant_specificity(av, param0.variants, typed)
@@ -407,7 +407,7 @@ collect_overload_candidates :: fn(
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
         for sym in bucket {
-            ft :: typed.decl_types[sym.id] ?? continue
+            ft :: typed.decl_types[sym.id] else continue
             if ft is FnType {
                 out.push(FnCandidate {
                     .ty = ft,
@@ -646,7 +646,7 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
 // they line up with `callee_ty` (a mismatch stays positional rather than
 // mis-filling).
 namespace_member_params :: fn(fe: AST.FieldExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    fd :: picked_namespace_decl(fe, typed) ?? return null
+    fd :: picked_namespace_decl(fe, typed) else return null
     ps :: fd.params
     if ps.len() != callee_ty.params.len() {
         return null
@@ -669,7 +669,7 @@ picked_namespace_decl :: fn(e: AST.FieldExpr, typed: TypedProgram) -> AST.FnDecl
 // pick). Prefers an exact type match, falling back to the first same-arity
 // candidate so a substituted generic pick still lands.
 overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    bucket :: typed.resolved.fn_overloads[name] ?? return null
+    bucket :: typed.resolved.fn_overloads[name] else return null
     fallback: AST.FnParam[] | null = null
     for sym in bucket {
         decl :: typed.fn_decls[sym.id]
@@ -856,7 +856,7 @@ explicit_params :: fn(
     if callee !is AST.FieldExpr {
         return quantifier
     }
-    found :: typed.static_members[callee.id] ?? return quantifier
+    found :: typed.static_members[callee.id] else return quantifier
     of_owner :: type_params_in(found.owner)
     out: TypeParamType[]: []
     for tp in quantifier {
@@ -901,11 +901,11 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.args.len() == 0 {
         return
     }
-    receiver :: typed.expr_types[field_callee.target.id] ?? return
+    receiver :: typed.expr_types[field_callee.target.id] else return
     if !is_empty_array_type(receiver) {
         return
     }
-    arg_type :: typed.expr_types[c.args[0].value.id] ?? return
+    arg_type :: typed.expr_types[c.args[0].value.id] else return
     element :: default_if_free(arg_type)
     if widen_empty_array_local(typed, field_callee.target, receiver, mk_array(element)) {
         // This very call's `push` member was typed before the widening fired, so
@@ -936,20 +936,20 @@ widen_empty_array_local :: fn(typed: TypedProgram, e: AST.Expr, got: Type, widen
     if widened !is ArrayType || type_contains_unresolved(widened) || type_contains_infer_var(widened) {
         return false
     }
-    symbol :: typed.resolved.idents[e.span.hash()] ?? return false
+    symbol :: typed.resolved.idents[e.span.hash()] else return false
     if symbol.kind != .Local {
         return false
     }
-    binding_span :: symbol.defined_at ?? return false
+    binding_span :: symbol.defined_at else return false
     binding_key :: binding_span.hash()
-    if !is_empty_array_type(typed.local_types[binding_key] ?? TY_UNRESOLVED) {
+    if !is_empty_array_type(typed.local_types[binding_key] else TY_UNRESOLVED) {
         return false
     }
     typed.local_types[binding_key] = widened
     // This read was typed before the widening fired ; nothing downstream picks the
     // element kind from it, but the LSP reads it for hover.
     typed.expr_types[e.id] = widened
-    init_id :: typed.empty_array_inits[binding_key] ?? return true
+    init_id :: typed.empty_array_inits[binding_key] else return true
     typed.expr_types[init_id] = widened
     return true
 }
@@ -1003,7 +1003,7 @@ cast_target_type :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]
 
 // Whether `c`, once checked, was a conversion `T(x)`, which runs no user code.
 is_checked_conversion :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
-    callee_ty :: typed.expr_types[c.callee.id] ?? return false
+    callee_ty :: typed.expr_types[c.callee.id] else return false
     return converts_by_name(c, callee_ty, typed)
 }
 
@@ -1120,7 +1120,7 @@ converts_into_runs :: fn(
             "`${literal}` is no value of `${display_type(target)}`"))
         return false
     }
-    values :: integer_values(src) ?? return true
+    values :: integer_values(src) else return true
     if meets_any(runs, values) {
         return true
     }
@@ -1136,7 +1136,7 @@ note_cast_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target:
     if source is EnumType && source.data != null && target !is EnumType {
         return
     }
-    callee :: conversion_callee(typed, source, target) ?? return
+    callee :: conversion_callee(typed, source, target) else return
     record_site(typed, value, .Into, callee)
 }
 
@@ -1153,7 +1153,7 @@ check_typeparam_bounds :: fn(
     diags: Diagnostic[],
 ) -> void {
     for [id, bound_ty] in bindings {
-        bound :: typed.type_param_bound_traits[id] ?? continue
+        bound :: typed.type_param_bound_traits[id] else continue
         if bound.integer && !fits_integer_bound(bound_ty, typed) {
             diags.push(typecheck_error(.TraitNotSatisfied, site,
                 "type parameter `${bound.name}` of `${owner}` is an `Int`, an integer type "
@@ -1161,7 +1161,7 @@ check_typeparam_bounds :: fn(
         }
         for trait_ty in bound.traits {
             wanted :: bound_instance(trait_ty, bindings)
-            reason :: unmet_bound_reason(bound_ty, wanted, typed) ?? continue
+            reason :: unmet_bound_reason(bound_ty, wanted, typed) else continue
             key :: trait_key_of(trait_ty.symbol)
             detail := unmet_bound_detail(bound.name, owner, wanted, reason) +
                 unmet_impl_bound_note(bound_ty, key, typed)
@@ -1207,7 +1207,7 @@ generic_ufcs_callee :: fn(callee: AST.Expr, typed: TypedProgram) -> FnCandidate 
     if callee !is AST.FieldExpr || typed.ufcs_receiver_types[callee.id] == null {
         return null
     }
-    chosen :: typed.chosen_fns[callee.id] ?? return null
+    chosen :: typed.chosen_fns[callee.id] else return null
     return if type_contains_type_param(chosen.ty.params[0]) { chosen } else { null }
 }
 
@@ -1219,7 +1219,7 @@ ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProg
     if callee_ty !is FnType {
         return callee_ty
     }
-    chosen :: generic_ufcs_callee(callee, typed) ?? return callee_ty
+    chosen :: generic_ufcs_callee(callee, typed) else return callee_ty
     return mk_fn_drop_self(chosen.ty)
 }
 
@@ -1236,12 +1236,12 @@ reject_ufcs_receiver_at_instance :: fn(
     if callee !is AST.FieldExpr {
         return
     }
-    chosen :: generic_ufcs_callee(callee, typed) ?? return
+    chosen :: generic_ufcs_callee(callee, typed) else return
     first :: chosen.ty.params[0]
     if names_any(first, unsolved) {
         return
     }
-    receiver_ty :: typed.expr_types[callee.target.id] ?? return
+    receiver_ty :: typed.expr_types[callee.target.id] else return
     want :: substitute_map(first, bindings)
     // A receiver widening into a trait parameter fits through its impl, which the
     // method access checked, or converts into it, as an array into an `Iterator`.
@@ -1271,7 +1271,7 @@ fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) ->
 // Whether `arg` fits its parameter by widening an array (`widening_depth`): the
 // effect summary then checks that the callee puts no wider element into it.
 fits_by_widening :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
-    depth :: widening_depth(from, to, typed) ?? return false
+    depth :: widening_depth(from, to, typed) else return false
     typed.widened_arguments[arg.id] = WidenedArgument { .depth = depth, .span = arg.span }
     return true
 }
@@ -1288,8 +1288,8 @@ repin_free_ufcs_receiver_at_instance :: fn(
     if callee !is AST.FieldExpr {
         return
     }
-    chosen :: generic_ufcs_callee(callee, typed) ?? return
-    receiver_ty :: typed.expr_types[callee.target.id] ?? return
+    chosen :: generic_ufcs_callee(callee, typed) else return
+    receiver_ty :: typed.expr_types[callee.target.id] else return
     if !is_free_numeric(receiver_ty) {
         return
     }
@@ -1311,15 +1311,15 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
     // entirely and reached `midir/build`'s panic.
     if callee is AST.FieldExpr {
         // The first declared overload : a bucket is never empty.
-        overloads :: namespace_overloads(callee, typed) ?? return null
+        overloads :: namespace_overloads(callee, typed) else return null
         return overloads[0].decl
     }
     if callee !is AST.IdentExpr {
         return null
     }
-    sym :: typed.resolved.idents[callee.span.hash()] ?? return null
+    sym :: typed.resolved.idents[callee.span.hash()] else return null
     redirected :: declared_symbol(sym, typed)
-    declared :: typed.fn_decls[redirected.id] ?? return typed.fn_aliases[redirected.id]
+    declared :: typed.fn_decls[redirected.id] else return typed.fn_aliases[redirected.id]
     return declared
 }
 
@@ -1352,7 +1352,7 @@ reject_indirect_callbacks :: fn(
     if !has_callback {
         return
     }
-    decl :: lookup_callee_fn_decl(c.callee, typed) ?? return
+    decl :: lookup_callee_fn_decl(c.callee, typed) else return
     if !AST.decorators_have(decl.decorators, "extern") {
         return
     }

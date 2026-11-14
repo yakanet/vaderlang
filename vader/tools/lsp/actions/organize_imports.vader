@@ -214,7 +214,7 @@ sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
 }
 
 import_name_text :: fn(n: AST.ImportName) -> string {
-    a :: n.alias ?? return n.name
+    a :: n.alias else return n.name
     return n.name + " as " + a
 }
 

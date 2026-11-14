@@ -45,18 +45,18 @@ try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> Lo
     if is_known_non_consumer(ctx, call) {
         return null
     }
-    target :: call_target(ctx, call) ?? return null
+    target :: call_target(ctx, call) else return null
     if target.callee.id in ctx.project.inlining_callees {
         return null
     }
-    signature :: fn_signature(target.owner, target.callee) ?? return null
-    shape :: consumer_shape(ctx.project, target, signature) ?? return null
-    subst :: consumer_subst(ctx, call, target.callee, shape) ?? return null
-    chain :: descend_chain(ctx, target.args[shape.param], true) ?? return null
+    signature :: fn_signature(target.owner, target.callee) else return null
+    shape :: consumer_shape(ctx.project, target, signature) else return null
+    subst :: consumer_subst(ctx, call, target.callee, shape) else return null
+    chain :: descend_chain(ctx, target.args[shape.param], true) else return null
     // Minted last: a descent that gives up must leave no ids or clones behind.
     instance :: new_inline_instance(
         ctx.project, target.callee.id, target.decl, target.owner,
-    ) ?? return null
+    ) else return null
     consumer :: ConsumerCall {
         .target = target,
         .signature = signature,
@@ -84,7 +84,7 @@ ConsumerCall :: struct {
 // Whether `call` calls a declaration already known to consume nothing: read off
 // the declaration the typecheck recorded, before its target is built.
 is_known_non_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> bool {
-    decl :: recorded_decl(ctx.typed, call) ?? return false
+    decl :: recorded_decl(ctx.typed, call) else return false
     return decl.span.hash() in ctx.project.non_consumers
 }
 
@@ -113,7 +113,7 @@ find_consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signatur
     if fn_is_generator(target.owner, decl) {
         return null
     }
-    body :: decl.body ?? return null
+    body :: decl.body else return null
     for p in decl.params {
         if p.variadic || p.default_value != null {
             return null
@@ -124,7 +124,7 @@ find_consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signatur
             continue
         }
         p :: decl.params[k]
-        symbol :: lookup_local_symbol(project, target.owner.resolved, p.span) ?? continue
+        symbol :: lookup_local_symbol(project, target.owner.resolved, p.span) else continue
         if reference_count(target.owner, symbol, p.span) != 1 {
             continue
         }
@@ -142,7 +142,7 @@ shape_of :: fn(target: CallTarget, body: AST.BlockExpr, param: i64, symbol: Symb
     if block_holds(body, true, is_defer) {
         return null
     }
-    type_params :: declared_type_params(target.decl, target.owner) ?? return null
+    type_params :: declared_type_params(target.decl, target.owner) else return null
     return ConsumerShape {
         .param = param,
         .symbol = symbol,
@@ -182,7 +182,7 @@ loops_over :: fn(s: AST.Stmt, owner: TypedProgram, symbol: Symbol) -> bool {
 
 names_symbol :: fn(e: AST.Expr, owner: TypedProgram, symbol: Symbol) -> bool {
     if e is AST.IdentExpr {
-        found :: owner.resolved.idents[e.span.hash()] ?? return false
+        found :: owner.resolved.idents[e.span.hash()] else return false
         return found.id == symbol.id
     }
     return false
@@ -197,7 +197,7 @@ block_holds :: fn(block: AST.BlockExpr, into_loops: bool, test: fn(AST.Stmt) -> 
             return true
         }
     }
-    trailing :: block.trailing ?? return false
+    trailing :: block.trailing else return false
     return expr_holds(trailing, into_loops, test)
 }
 
@@ -258,7 +258,7 @@ consumer_subst :: fn(
     if shape.type_params.len() == 0 {
         return new_substitution()
     }
-    bound :: recorded_type_args(ctx, call, .Call, callee) ?? return null
+    bound :: recorded_type_args(ctx, call, .Call, callee) else return null
     concrete :: strip_distinct_each(bound)
     if !all_concrete(concrete) {
         return null
@@ -277,7 +277,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, spa
     stmts: LoweredStmt[]: []
     chain :: bind_consumer_arguments(ctx, call, stmts)
     decl :: call.target.decl
-    body :: decl.body ?? panic("consumer: the callee has no body")
+    body :: decl.body else panic("consumer: the callee has no body")
     result :: fresh_synthetic_symbol(ctx, "consumed")
     consumer_ctx :: instance_ctx(ctx, decl, call.target.owner, call.subst, call.instance)
     consumer_ctx.inline_consumer = InlineConsumer {
@@ -352,7 +352,7 @@ value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
     }
     last :: body.stmts[n - 1]
     if last is AST.ReturnStmt {
-        value :: last.value ?? return body
+        value :: last.value else return body
         return AST.BlockExpr {
             .span = body.span,
             .stmts = body.stmts[0..<n - 1],
@@ -377,8 +377,8 @@ slot_result :: fn(
 consumed_value :: fn(
     ctx: FnLowerCtx, node: AST.Expr | null, raw: LoweredExpr | null, type: Type, span: Span,
 ) -> LoweredExpr | null {
-    value :: raw ?? return null
-    source :: node ?? return value
+    value :: raw else return null
+    source :: node else return value
     return slot_result(ctx, source, value, type, span)
 }
 
@@ -403,7 +403,7 @@ assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span
 assign_consumer_return :: fn(
     ctx: FnLowerCtx, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt[],
 ) -> void {
-    v :: stmt.value ?? return
+    v :: stmt.value else return
     value :: slot_result(ctx, v, lower_expr(ctx, v), consumer.result_type, stmt.span)
     out.push(assign_consumed(consumer.result, consumer.result_type, value, stmt.span))
 }
@@ -414,9 +414,9 @@ assign_consumer_return :: fn(
 /// @param ctx   the fn-body context.
 /// @param iter  the loop's iterated expression.
 consumed_chain :: fn(ctx: FnLowerCtx, iter: AST.Expr) -> IterChain | null {
-    consumer :: ctx.inline_consumer ?? return null
+    consumer :: ctx.inline_consumer else return null
     if iter is AST.IdentExpr {
-        symbol :: resolve_ident(ctx, iter.span) ?? return null
+        symbol :: resolve_ident(ctx, iter.span) else return null
         if symbol.id == consumer.param.id {
             return consumer.chain
         }

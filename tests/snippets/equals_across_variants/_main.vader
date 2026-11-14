@@ -30,7 +30,7 @@ Shape :: Point | Label
 main :: fn() -> i32 {
     seen :: Map<Shape, string> {}
     seen[Point { .x = 1 }] = "point"
-    println("${seen[Label { .n = 1 }] ?? "absent"} ${seen[Point { .x = 1 }] ?? "absent"}")
+    println("${seen[Label { .n = 1 }] else "absent"} ${seen[Point { .x = 1 }] else "absent"}")
     shapes: Shape[]: [Point { .x = 1 }]
     label: Shape: Label { .n = 1 }
     println("${label in shapes}")

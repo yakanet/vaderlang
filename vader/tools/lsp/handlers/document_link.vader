@@ -29,11 +29,11 @@ import "toolchain/span"
 ///                never indexed or carries no resolvable imports.
 export handle_document_link :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    idx :: state.index_for(uri) ?? return JsonArray { .items = [] }
+    idx :: state.index_for(uri) else return JsonArray { .items = [] }
     links: JsonValue[]: []
     // Once, not per import: finding the roots walks up to `vader.json`, reads it
     // and scans the document's folder.
-    roots :: document_roots(state, uri) ?? return JsonArray { .items = [] }
+    roots :: document_roots(state, uri) else return JsonArray { .items = [] }
     for d in idx.program.decls {
         if d is ImportDecl {
             link :: import_link(state, d, idx.source, roots.paths, idx.line_index)
@@ -49,11 +49,11 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
 import_link :: fn(
     state: ServerState, imp: ImportDecl, source: string, paths: IncludePath[], li: LineIndex,
 ) -> JsonValue | null {
-    module :: module_named(state, imp.path, paths) ?? return null
+    module :: module_named(state, imp.path, paths) else return null
     if module.files.len() == 0 {
         return null
     }
-    range :: path_string_range(imp, source, li) ?? return null
+    range :: path_string_range(imp, source, li) else return null
     obj :: Map<string, JsonValue> {}
     obj["range"]  = range_json(range)
     obj["target"] = JsonString { .value = module.files[0].to_uri().to_string() }

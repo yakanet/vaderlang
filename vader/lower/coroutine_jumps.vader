@@ -3,7 +3,7 @@
 // `coroutine.vader` dissolves a coroutine body into numbered states and
 // compiles a `break` / `continue` / `return` written as a statement into the
 // state transition it means. A jump can also sit inside an expression:
-// `v :: x ?? continue` lowers to a `let` whose value is a block holding the
+// `v :: x else continue` lowers to a `let` whose value is a block holding the
 // `continue`, and such a statement runs whole inside one state, where the only
 // loop left around the jump is the dispatch loop. Retargeting replaces the jump
 // with its transition followed by a re-entry of that dispatch loop.

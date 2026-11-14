@@ -65,7 +65,7 @@ lower_for_slot :: fn(ctx: FnLowerCtx, value: Expr, slot: Type, span: Span) -> Lo
 /// @param value  the value's AST node.
 /// @return       the lowered value, through its `into` when the typecheck accepted one.
 lower_converted :: fn(ctx: FnLowerCtx, value: Expr) -> LoweredExpr {
-    target :: ctx.typed.into_coercions[value.id] ?? return lower_expr(ctx, value)
+    target :: ctx.typed.into_coercions[value.id] else return lower_expr(ctx, value)
     return lower_for_slot(ctx, value, ctx.types.apply(target), value.span)
 }
 
@@ -159,7 +159,7 @@ wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
 /// @return       the stmts list, with the trailing expression appended
 ///               as an `LoweredExprStmt` when one is present.
 block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
-    trailing :: block.trailing ?? return block.stmts
+    trailing :: block.trailing else return block.stmts
     out: LoweredStmt[]: []
     for stmt in block.stmts { out.push(stmt) }
     out.push(LoweredExprStmt { .span = trailing.span, .expr = trailing })
@@ -280,7 +280,7 @@ env_slots :: fn(ctx: FnLowerCtx, captures: Capture[]) -> EnvSlot[] {
         value_type: Type | null: if lives_in_cell(ctx, symbol.id) {
             null
         } else {
-            declared_type_of_symbol(ctx, symbol) ?? captures[i].type
+            declared_type_of_symbol(ctx, symbol) else captures[i].type
         }
         slots.push(EnvSlot { .field = "cap_${i}", .value_type = value_type })
     }
@@ -291,7 +291,7 @@ env_slots :: fn(ctx: FnLowerCtx, captures: Capture[]) -> EnvSlot[] {
 env_struct_fields :: fn(slots: EnvSlot[]) -> LoweredStructField[] {
     fields: LoweredStructField[]: []
     for slot in slots {
-        field_type :: slot.value_type ?? TY_UNRESOLVED
+        field_type :: slot.value_type else TY_UNRESOLVED
         fields.push(LoweredStructField { .name = slot.field, .type = field_type })
     }
     return fields
@@ -305,7 +305,7 @@ env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[], slots: En
         symbol :: captures[i].symbol
         value_type :: slots[i].value_type
         value :: if value_type != null {
-            try_route_through_env(ctx, symbol, span, value_type) ?? LoweredIdent {
+            try_route_through_env(ctx, symbol, span, value_type) else LoweredIdent {
                 .span = span,
                 .type = value_type,
                 .symbol = instance_symbol(ctx, symbol),

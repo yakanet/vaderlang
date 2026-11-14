@@ -65,7 +65,7 @@ debug :: fn(
 
 // The JSON at the end of `path` from `value`; `null` when there is none.
 json_at :: fn(value: JsonValue, path: string[]) -> string =
-    stringify(member_at(value, path) ?? JsonNull {})
+    stringify(member_at(value, path) else JsonNull {})
 
 // Whether the response `response` says its request succeeded.
 accepted :: fn(response: JsonValue) -> bool = json_at(response, ["success"]) == "true"
@@ -81,7 +81,7 @@ responses_to :: fn(frames: JsonValue[], command: string) -> JsonValue[] =
 // The first response of `frames` to a request `command`; a JSON null when none
 // came.
 response_to :: fn(frames: JsonValue[], command: string) -> JsonValue =
-    responses_to(frames, command).first() ?? JsonNull {}
+    responses_to(frames, command).first() else JsonNull {}
 
 // The events of `frames` named `name`, in order.
 events_named :: fn(frames: JsonValue[], name: string) -> JsonValue[] =
@@ -89,7 +89,7 @@ events_named :: fn(frames: JsonValue[], name: string) -> JsonValue[] =
 
 // The first event of `frames` named `name`; a JSON null when none came.
 event_named :: fn(frames: JsonValue[], name: string) -> JsonValue =
-    events_named(frames, name).first() ?? JsonNull {}
+    events_named(frames, name).first() else JsonNull {}
 
 // What the program wrote on its stream `category`: `stdout` or `stderr`.
 written :: fn(frames: JsonValue[], category: string) -> string {
@@ -118,20 +118,20 @@ names_of :: fn(variables: JsonValue[]) -> string[] =
 
 // The variable `name` of `variables`; a JSON null when there is none.
 variable :: fn(variables: JsonValue[], name: string) -> JsonValue =
-    variables.filter((v) -> name_of(v) == name).collect().first() ?? JsonNull {}
+    variables.filter((v) -> name_of(v) == name).collect().first() else JsonNull {}
 
 // The value the variable `name` of `variables` shows; "" when there is none.
 value_of :: fn(variables: JsonValue[], name: string) -> string =
-    string_member(variable(variables, name), "value") ?? ""
+    string_member(variable(variables, name), "value") else ""
 
 // The text member `key` of the body of `frame`; "" when there is none.
-body_text :: fn(frame: JsonValue, key: string) -> string = string_at(frame, ["body", key]) ?? ""
+body_text :: fn(frame: JsonValue, key: string) -> string = string_at(frame, ["body", key]) else ""
 
 // The name of `value`, a frame, a thread or a variable; "" when it has none.
-name_of :: fn(value: JsonValue) -> string = string_member(value, "name") ?? ""
+name_of :: fn(value: JsonValue) -> string = string_member(value, "name") else ""
 
 // The outermost frame of `stack`; a JSON null when it is empty.
-outermost :: fn(stack: JsonValue[]) -> JsonValue = stack.last() ?? JsonNull {}
+outermost :: fn(stack: JsonValue[]) -> JsonValue = stack.last() else JsonNull {}
 
 // Why the `stopped` event `event` stopped the program, and on which thread, as
 // `<reason>@<thread>`.

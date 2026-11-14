@@ -19,19 +19,19 @@ complete_at :: fn(spot: Spot) -> Query = ask_at("textDocument/completion", spot)
 // The labels of the items of the completion list `result`.
 labels_of :: fn(result: JsonValue) -> string[] {
     items :: array_at(result, ["items"])
-    return items.map((item) -> string_member(item, "label") ?? "").collect()
+    return items.map((item) -> string_member(item, "label") else "").collect()
 }
 
 // The item of the completion list `result` labelled `label`, a JSON null when
 // there is none.
 item_named :: fn(result: JsonValue, label: string) -> JsonValue {
     named :: array_at(result, ["items"]).find((item) -> string_member(item, "label") == label)
-    return named ?? JsonNull {}
+    return named else JsonNull {}
 }
 
 // The detail of the item labelled `label` in `result`.
 detail_of :: fn(result: JsonValue, label: string) -> string =
-    string_member(item_named(result, label), "detail") ?? "<none>"
+    string_member(item_named(result, label), "detail") else "<none>"
 
 // Whether the completion list `result` offers `label`.
 offers :: fn(result: JsonValue, label: string) -> bool = labels_of(result).contains(label)
@@ -76,7 +76,7 @@ test_completion_lists_in_scope_names_and_keywords :: fn() -> void {
         [complete_at(Spot { .line = 17, .character = 4 })],
     )
     list :: results[0]
-    assert_eq(stringify(member_at(list, ["isIncomplete"]) ?? JsonNull {}), "false")
+    assert_eq(stringify(member_at(list, ["isIncomplete"]) else JsonNull {}), "false")
     shown_labels :: shown(list)
     for name in ["double", "Point", "main", "println", "p", "y", "return"] {
         assert(offers(list, name), "${name} missing: ${shown_labels}")
@@ -438,13 +438,13 @@ test_completion_after_an_at_sign_offers_decorators_and_intrinsics_documented :: 
     )
     list :: results[0]
     test_item :: item_named(list, "test")
-    assert_eq(string_at(test_item, ["documentation", "kind"]) ?? "", "markdown")
-    test_docs :: string_at(test_item, ["documentation", "value"]) ?? ""
+    assert_eq(string_at(test_item, ["documentation", "kind"]) else "", "markdown")
+    test_docs :: string_at(test_item, ["documentation", "value"]) else ""
     assert("vader test" in test_docs, test_docs)
     size_of_item :: item_named(list, "size_of")
-    size_of_detail :: string_member(size_of_item, "detail") ?? ""
+    size_of_detail :: string_member(size_of_item, "detail") else ""
     assert("size_of" in size_of_detail, size_of_detail)
-    size_of_docs :: string_at(size_of_item, ["documentation", "value"]) ?? ""
+    size_of_docs :: string_at(size_of_item, ["documentation", "value"]) else ""
     assert(size_of_docs.byte_len() > 0, "size_of has no documentation")
 }
 

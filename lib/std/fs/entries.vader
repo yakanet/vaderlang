@@ -364,7 +364,7 @@ copy_content :: fn(from: string, to: string) -> null | IOError {
 copy_chunks :: fn(input: File, output: File) -> null | IOError {
     chunk: u8[]: [0] * READ_CHUNK
     for {
-        n :: input.read(chunk) ?? return null
+        n :: input.read(chunk) else is null { return null }
         if n is IOError {
             return n
         }

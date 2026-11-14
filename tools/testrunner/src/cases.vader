@@ -300,7 +300,7 @@ entry_path :: fn(case: Case) -> string = "${case.dir}/${case.entry}"
 // The path the report names `case` by: the snapshot it checks when its folder
 // holds one per case, its folder otherwise.
 case_path :: fn(case: Case) -> string {
-    snapshot :: case.snapshot ?? return case.dir
+    snapshot :: case.snapshot else return case.dir
     return "${case.dir}/${snapshot}"
 }
 
@@ -366,7 +366,7 @@ phases_of :: fn(config: SnippetConfig, phases: string[]) -> string[] {
 
 // Whether the snapshots of a snippet whose config is `config` cover `phase`.
 covers :: fn(config: SnippetConfig, phase: string) -> bool {
-    listed :: config.phases ?? return true
+    listed :: config.phases else return true
     return listed.contains(phase)
 }
 

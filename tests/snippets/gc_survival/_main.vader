@@ -29,7 +29,7 @@ sum_chain :: fn(head: Node) -> i32 {
     sum := 0
     cur: Node | null = head
     for {
-        node :: cur ?? break
+        node :: cur else break
         sum += node.value
         cur = node.next
     }

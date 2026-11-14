@@ -5,6 +5,6 @@ module "snippet"
 maybe :: fn(i: i32) -> i32 | null = if i > 0 { i } else { null }
 
 main :: fn() -> i32 {
-    x :: maybe(0) ?? break
+    x :: maybe(0) else break
     return x
 }

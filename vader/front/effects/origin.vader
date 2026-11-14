@@ -116,7 +116,7 @@ trace :: fn(ctx: TraceCtx, start: Link, index: i64) -> FaultChain {
             chain.write = written_by(ctx.index.paths, at, a, at.s.marks[mark].at, null)
             return chain
         }
-        call :: origin_call(how) ?? return chain
+        call :: origin_call(how) else return chain
         site :: at.s.sites[call.0]
         param :: call.2
         callee :: match target :: site.targets[call.1] {
@@ -138,7 +138,7 @@ trace :: fn(ctx: TraceCtx, start: Link, index: i64) -> FaultChain {
         }
         chain.via.push(hop)
         effects :: ctx.facts[callee.node][param]
-        i = find_access(ctx.index.paths, effects, at.effects.carried_at(i)) ?? return chain
+        i = find_access(ctx.index.paths, effects, at.effects.carried_at(i)) else return chain
         at = Link {
             .s = ctx.skeletons[callee.node],
             .module = f.typed.resolved.display_path,
@@ -182,9 +182,9 @@ import "std/testing"
 
 @test
 test_origin_words_name_their_constraint :: fn() -> void {
-    assert_eq(origin_mark(mark_origin(3)) ?? 99, 3)
+    assert_eq(origin_mark(mark_origin(3)) else 99, 3)
     assert(origin_call(mark_origin(3)) == null, "a mark is no call")
-    call :: origin_call(call_origin(5, 1, 2)) ?? return
+    call :: origin_call(call_origin(5, 1, 2)) else return
     assert_eq(call.0, 5)
     assert_eq(call.1, 1)
     assert_eq(call.2, 2)
@@ -198,7 +198,7 @@ test_find_access_takes_the_cut_path_that_dropped_it :: fn() -> void {
     effects :: ParamEffects {}
     t.include(effects, ROOT, .Stored)
     t.include(effects, t.cut(path_of(t, ["a"])), .Assigned)
-    assert_eq(find_access(t, effects, access_key(deep)) ?? 99, 1)
+    assert_eq(find_access(t, effects, access_key(deep)) else 99, 1)
     assert(find_access(t, effects, NO_ACCESS) == null, "no access to find")
 }
 

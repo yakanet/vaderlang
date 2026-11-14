@@ -307,7 +307,7 @@ finish_guest_threads :: fn(announce: bool, io: ProgramIo | null) -> i64[] {
     // leave.
     numbers: i64[]: []
     for thread in handles {
-        guest :: threads.live[thread] ?? continue
+        guest :: threads.live[thread] else continue
         if is_leaving(thread) {
             continue
         }
@@ -328,7 +328,7 @@ finish_guest_threads :: fn(announce: bool, io: ProgramIo | null) -> i64[] {
 }
 
 number_of :: fn(threads: GuestThreads, thread: i64) -> i64 {
-    guest :: threads.live[thread] ?? return 0
+    guest :: threads.live[thread] else return 0
     return guest.number
 }
 

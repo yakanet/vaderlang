@@ -31,10 +31,10 @@ AST :: import "toolchain/ast"
 /// resolved reference: the client then refuses the rename.
 export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
     cached :: typed_project_for(state, file_path)
     index :: reference_index_of(cached)
-    site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
+    site :: renameable_at(state, index, file_path, params) else return JsonNull {}
     return range_json(site.span.span_to_range_json(state.line_index_for_path(file_path)))
 }
 
@@ -43,13 +43,13 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
 /// reference or `newName` is empty.
 export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
     new_name :: rename_new_name(params)
     if new_name == "" { return JsonNull {} }
 
     cached :: typed_project_for(state, file_path)
     index :: reference_index_of(cached)
-    site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
+    site :: renameable_at(state, index, file_path, params) else return JsonNull {}
 
     sources :: Map<string, string> {}
     old_name :: span_text(state, sources, site.span)
@@ -66,7 +66,7 @@ renameable_at :: fn(
     state: ServerState, index: ReferenceIndex, file: string, params: JsonValue,
 ) -> RefSite | null {
     [line, column] :: state.span_point(file, position_line(params), position_character(params))
-    site :: site_at(index, file, line, column) ?? return null
+    site :: site_at(index, file, line, column) else return null
     if site.key in index.fixed {
         return null
     }
@@ -104,8 +104,8 @@ param_doc_tags :: fn(state: ServerState, sites: RefSite[], old_name: string) -> 
         }
         at :: s.span.start
         idx :: open_or_built_index(state, at.file)
-        param :: idx.entry_at_offset(at.offset) ?? continue
-        f :: enclosing_fn(idx, at.offset) ?? continue
+        param :: idx.entry_at_offset(at.offset) else continue
+        f :: enclosing_fn(idx, at.offset) else continue
         if param.kind != .Param || !in_signature(f, at.offset) {
             continue
         }
@@ -121,7 +121,7 @@ param_doc_tags :: fn(state: ServerState, sites: RefSite[], old_name: string) -> 
 in_signature :: fn(f: DeclEntry, offset: i64) -> bool {
     node :: f.node
     if node is AST.FnDecl {
-        body :: node.body ?? return true
+        body :: node.body else return true
         return offset < body.span.start.offset
     }
     return false

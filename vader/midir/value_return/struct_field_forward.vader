@@ -102,12 +102,12 @@ join_of_predecessors :: fn(
     if mine.len() == 0 {
         return fresh
     }
-    first :: exits[i32(mine[0])] ?? return fresh
+    first :: exits[i32(mine[0])] else return fresh
     for [obj, fields] in first {
         fresh[obj] = fields
     }
     for i in 1..<mine.len() {
-        other :: exits[i32(mine[i])] ?? return Map<i32, LocalId[]> {}
+        other :: exits[i32(mine[i])] else return Map<i32, LocalId[]> {}
         doomed: i32[]: []
         for [obj, fields] in fresh {
             theirs :: other[obj]

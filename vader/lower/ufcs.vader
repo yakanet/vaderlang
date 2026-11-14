@@ -30,7 +30,7 @@ as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
 /// @param call  the call ; its callee is the member access.
 /// @param type  the call's result type.
 try_lower_method_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    field :: as_field_expr(call.callee) ?? return null
+    field :: as_field_expr(call.callee) else return null
     callee :: recorded_callee(ctx, call, .Call)
     if callee is FnValue {
         return null
@@ -132,8 +132,8 @@ method_target :: fn(
 // `arity` arguments ; null when the receiver is no array, or a call runs it. An
 // array-backed distinct newtype carries them too : its value is the backing array.
 array_target :: fn(surface: Type, name: string, arity: i64) -> ArrayOpTarget | null {
-    array :: array_backing(surface) ?? return null
-    op :: array_op_of(name, arity) ?? return null
+    array :: array_backing(surface) else return null
+    op :: array_op_of(name, arity) else return null
     return ArrayOpTarget { .op = op, .element = array.element }
 }
 
@@ -147,7 +147,7 @@ names_array_member :: fn(ctx: FnLowerCtx, callee: Callee | null) -> bool =
 // reached through ; null for a free fn and a site with no record.
 member_trait_key :: fn(ctx: FnLowerCtx, callee: Callee | null) -> string | null {
     if callee is DirectFn {
-        entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
+        entry :: ctx.project.impls.member_entry(callee.decl) else return null
         return entry.trait_key
     }
     if callee is BoundMember {
@@ -366,7 +366,7 @@ lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string |
 lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     // `Symbol.module` carries the owning module id: direct lookup
     // beats walking every evaluated module per UFCS call site.
-    program :: ctx.project.evaluated.modules[sym.module] ?? return null
+    program :: ctx.project.evaluated.modules[sym.module] else return null
     if program is EvaluatedProgram {
         return fn_signature(program.typed, sym)
     }

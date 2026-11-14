@@ -92,7 +92,7 @@ Walker implements Into<Iterator<WalkEntry>> {
         pending: WalkEntry[]: []
         pending.push_entries(self.listed, self.root, "", 1)
         for {
-            entry :: pending.remove_last() ?? break
+            entry :: pending.remove_last() else break
             yield entry
             if entry.kind == .Directory && self.options.descend(entry) {
                 listed :: entry.path.list_dir()

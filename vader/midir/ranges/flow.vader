@@ -68,7 +68,7 @@ block_entry_states :: fn(
                 continue
             }
             flow.dirty[at] = false
-            entry :: flow.states[at] ?? continue
+            entry :: flow.states[at] else continue
             s :: copy_range_state(entry)
             block :: fn_.blocks[at]
             for ins in block.instructions {

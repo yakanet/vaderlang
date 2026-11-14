@@ -18,7 +18,7 @@ bump :: fn(count: Count) -> i32 {
         t :: launch(fn() {
             count.n += 1
         })
-        home :: get_env("HOME") ?? return 1
+        home :: get_env("HOME") else return 1
         t.join()
         return i32(home.byte_len())
     }

@@ -336,7 +336,7 @@ read_hex4 :: fn(p: Parser) -> i32 | null {
     }
     v := 0
     for k in i64(0)..<4 {
-        d :: hex_digit_value(char(p.src.byte_at(p.pos + k))) ?? return null
+        d :: hex_digit_value(char(p.src.byte_at(p.pos + k))) else return null
         v = v * 16 + d
     }
     p.pos = p.pos + 4
@@ -351,7 +351,7 @@ read_hex4 :: fn(p: Parser) -> i32 | null {
 // loop to re-decode, so it keeps its own meaning. Returns false on incomplete /
 // non-hex input.
 decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
-    hi_val :: read_hex4(p) ?? return false
+    hi_val :: read_hex4(p) else return false
     hi :: u32(hi_val)
     if !is_surrogate(hi) {
         sb.append_char(char(hi))            // ordinary BMP scalar
@@ -484,7 +484,7 @@ write_string :: fn(sb: StringBuilder, s: string, close: string) -> void {
     n :: s.byte_len()
     run: i64 = 0
     for i in 0..<n {
-        escape :: escape_of(s.byte_at(i)) ?? continue
+        escape :: escape_of(s.byte_at(i)) else continue
         if run < i {
             sb.append(s.byte_slice(run, i))
         }
@@ -702,14 +702,13 @@ export unknown_keys :: fn(value: JsonObject, known: string[]) -> string[] {
 /// @param value  the value to read, an object or any other shape.
 /// @param path   the keys to follow, the outermost first.
 /// @example
-///   # import "std/option"
-///   # config :: parse(r"""{"build": {"out": "dist"}}""").or_null() ?? JsonNull {}
+///   # config :: parse(r"""{"build": {"out": "dist"}}""") else JsonNull {}
 ///   member_at(config, ["build", "out"])    // the string "dist"
 ///   member_at(config, ["build", "mode"])   // null
 export member_at :: fn(value: JsonValue, path: string[]) -> JsonValue | null {
     current: JsonValue = value
     for key in path {
-        current = member(current, key) ?? return null
+        current = member(current, key) else return null
     }
     return current
 }
@@ -976,13 +975,13 @@ parsed_value :: fn(src: string) -> JsonValue {
 
 @test test_string_member_of_another_shape_is_null :: fn() -> void {
     value :: parsed_value("{\"name\": \"vader\", \"port\": 8080}")
-    assert_eq(string_member(value, "name") ?? "", "vader")
+    assert_eq(string_member(value, "name") else "", "vader")
     assert(string_member(value, "port") == null, "a number is no string")
 }
 
 @test test_number_member :: fn() -> void {
     value :: parsed_value("{\"port\": 8080, \"name\": \"vader\"}")
-    assert_eq(number_member(value, "port") ?? 0.0, 8080.0)
+    assert_eq(number_member(value, "port") else 0.0, 8080.0)
     assert(number_member(value, "name") == null, "a string is no number")
 }
 
@@ -994,8 +993,8 @@ parsed_value :: fn(src: string) -> JsonValue {
 }
 
 @test test_strings_of_an_array_of_strings :: fn() -> void {
-    assert_eq((strings_of(parsed_value("[\"a\", \"b\"]")) ?? []).join(","), "a,b")
-    assert_eq((strings_of(parsed_value("[]")) ?? ["x"]).len(), 0)
+    assert_eq((strings_of(parsed_value("[\"a\", \"b\"]")) else []).join(","), "a,b")
+    assert_eq((strings_of(parsed_value("[]")) else ["x"]).len(), 0)
 }
 
 @test test_strings_of_another_shape_is_null :: fn() -> void {
@@ -1019,22 +1018,22 @@ test_member_at_follows_each_key :: fn() -> void {
         fail(parsed.msg)
         return
     }
-    assert_eq(string_at(parsed, ["a", "b", "c"]) ?? "", "deep")
+    assert_eq(string_at(parsed, ["a", "b", "c"]) else "", "deep")
     assert(member_at(parsed, []) is JsonObject, "no key is the value itself")
     assert(member_at(parsed, ["a", "x", "c"]) == null, "a key missing on the way")
     assert(member_at(parsed, ["n", "c"]) == null, "a key under a number")
     assert(string_at(parsed, ["n"]) == null, "a number is no string")
-    assert_eq(number_at(parsed, ["n"]) ?? 0.0, 1.0)
+    assert_eq(number_at(parsed, ["n"]) else 0.0, 1.0)
     assert(number_at(parsed, ["a", "b", "c"]) == null, "a string is no number")
 }
 
 @test
 test_items_at_gives_the_items_of_an_array_only :: fn() -> void {
     value :: parsed_value(r"""{"list": [1, "two"], "n": 1}""")
-    assert_eq((items_at(value, ["list"]) ?? []).len(), 2)
+    assert_eq((items_at(value, ["list"]) else []).len(), 2)
     assert(items_at(value, ["n"]) == null, "a number is no array")
     assert(items_at(value, ["missing"]) == null, "a missing key")
-    assert_eq((items_at(parsed_value("[3]"), []) ?? []).len(), 1)
+    assert_eq((items_at(parsed_value("[3]"), []) else []).len(), 1)
 }
 
 @test test_sequence_entry_frames_the_compact_text :: fn() -> void {

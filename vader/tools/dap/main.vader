@@ -330,7 +330,7 @@ stack_of :: fn(view: PauseView, thread_id: i32) -> ShownFrame[] {
     if known != null {
         return known
     }
-    thread :: view.threads.find((t) -> t.id == thread_id) ?? return []
+    thread :: view.threads.find((t) -> t.id == thread_id) else return []
     return show_stack(view, thread_id, thread.stack())
 }
 
@@ -498,7 +498,7 @@ variables_body :: fn(view: PauseView, reference: i32) -> JsonValue {
 // rendered value, or `null` when no such local is in scope (the frame id is the
 // `id` from `stackTrace`).
 evaluate_find :: fn(view: PauseView, frame_id: i32, expression: string) -> string | null {
-    locals :: view.var_refs[frame_id] ?? return null
+    locals :: view.var_refs[frame_id] else return null
     for local in locals {
         if local.name == expression { return local.value }
     }
@@ -526,7 +526,7 @@ stop_line :: fn(message: string) -> string {
 // name (`snippet$main` -> `main`), or the whole name when it carries no `$`.
 // Uses a char literal (not a `"$"` string: a bare `$` opens interpolation).
 display_fn_name :: fn(mangled: string) -> string {
-    idx :: mangled.last_index_of('$') ?? return mangled
+    idx :: mangled.last_index_of('$') else return mangled
     return mangled.byte_slice(idx + 1, mangled.byte_len())
 }
 

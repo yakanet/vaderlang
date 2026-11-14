@@ -88,7 +88,7 @@ check_variant_data :: fn(decl: EnumDecl, typed: TypedProgram, diags: Diagnostic[
         return
     }
     for v in decl.variants {
-        items: StructLitItem[]: v.data ?? []
+        items: StructLitItem[]: v.data else []
         check_struct_items(items, v.span, data, typed, diags)
     }
     reject_variant_data_reference(decl, data, typed, diags)
@@ -100,7 +100,7 @@ check_variant_data :: fn(decl: EnumDecl, typed: TypedProgram, diags: Diagnostic[
 reject_variant_data_reference :: fn(
     decl: EnumDecl, data: StructType, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    fields :: typed.struct_fields[data.symbol.id] ?? return
+    fields :: typed.struct_fields[data.symbol.id] else return
     for [name, field] in fields {
         t :: field.ty
         if !is_value_only_type(t) {

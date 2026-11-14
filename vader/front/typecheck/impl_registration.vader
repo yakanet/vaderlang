@@ -20,7 +20,7 @@ register_project_impls :: fn(
     owners: TypedProgram[]: []
     impls: RecordedImpl[][]: []
     for [id, owner] in per_module {
-        loaded :: project.modules[id] ?? continue
+        loaded :: project.modules[id] else continue
         found :: recorded_impls(concat_file_decls(loaded.module.files), owner)
         record_impl_memberships(owner, found)
         owners.push(owner)
@@ -53,7 +53,7 @@ recorded_impls :: fn(decls: AST.Decl[], owner: TypedProgram) -> RecordedImpl[] {
     for decl in decls {
         if decl is AST.ImplDecl {
             for_ty :: type_from_expr(decl.for_type, owner.resolved, diag_sink())
-            trait_sym :: impl_trait_symbol(decl, owner.resolved) ?? continue
+            trait_sym :: impl_trait_symbol(decl, owner.resolved) else continue
             partly_generic :: is_refused_array_impl(for_ty)
             if !partly_generic && unbound_impl_params(decl, for_ty, owner.resolved).is_empty() {
                 out.push(RecordedImpl {
@@ -187,8 +187,8 @@ impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> Map<i32
     if for_ty !is StructType {
         return bindings
     }
-    decl :: typed.struct_decls[for_ty.symbol.id] ?? return bindings
-    declared :: declared_type_args(decl.type_params, typed) ?? return bindings
+    decl :: typed.struct_decls[for_ty.symbol.id] else return bindings
+    declared :: declared_type_args(decl.type_params, typed) else return bindings
     unify_type_param(for_ty, mk_struct(for_ty.symbol, declared), bindings)
     return bindings
 }
@@ -273,7 +273,7 @@ index_impl_metadata :: fn(
 }
 
 has_iterator_impl :: fn(tables: ImplTables, key: string) -> bool {
-    traits :: tables.struct_implemented_traits[key] ?? return false
+    traits :: tables.struct_implemented_traits[key] else return false
     return core_trait_key(TRAIT_ITERATOR) in traits
 }
 
@@ -322,7 +322,7 @@ record_impl_bounds :: fn(
     for i in 0..<args.len() {
         arg :: args[i]
         if arg is TypeParamType {
-            bound :: owner.resolved.type_param_bounds[arg.symbol.id] ?? continue
+            bound :: owner.resolved.type_param_bounds[arg.symbol.id] else continue
             traits: TraitType[]: []
             collect_bound_trait_types(bound, owner.resolved, traits)
             bounds.push(ArgBound {

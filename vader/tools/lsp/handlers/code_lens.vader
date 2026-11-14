@@ -32,8 +32,9 @@ RUN_TEST_COMMAND :: "vader.runTest"
 ///                never indexed, names no file, or holds no test.
 export handle_code_lens :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    idx :: state.index_for(uri) ?? return JsonArray { .items = [] }
-    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonArray { .items = [] }
+    idx :: state.index_for(uri) else return JsonArray { .items = [] }
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
+        else return JsonArray { .items = [] }
     folder :: project_or_folder_of_document(path)
     return JsonArray { .items = test_lenses(idx.program, uri, folder, idx.line_index) }
 }

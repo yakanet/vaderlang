@@ -40,7 +40,7 @@ segments_text :: fn(segments: DocSegment[]) -> string =
 head_segments :: fn(ctx: FileContext, head: NamedText) -> DocSegment[] {
     links: Ty.NamedRange[]: []
     for n in head.names {
-        found :: written_symbol(ctx, n.node) ?? continue
+        found :: written_symbol(ctx, n.node) else continue
         links.push(Ty.NamedRange {
             .start = n.start,
             .end = n.end,
@@ -113,11 +113,11 @@ push_text :: fn(out: DocSegment[], text: string) -> void {
 // The declaration the name `node` wrote stands for, an import followed to what it
 // imports; null when it resolves to none.
 written_symbol :: fn(ctx: FileContext, node: Span | FieldExpr) -> Symbol | null {
-    typed :: ctx.typed ?? return null
+    typed :: ctx.typed else return null
     if node is FieldExpr {
         return Tc.namespace_member_symbol(node, ctx.project, typed)
     }
-    named :: typed.resolved.idents[node.hash()] ?? return null
+    named :: typed.resolved.idents[node.hash()] else return null
     return Tc.declared_symbol(named, typed)
 }
 

@@ -46,7 +46,7 @@ mark_awaiting_values :: fn(project_ctx: LowerProjectCtx) -> void {
 // registry, each impl resolved in the module that declares it.
 populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
     for [module_id, module_typed] in typed.modules {
-        module_loaded :: loaded.modules[module_id] ?? continue
+        module_loaded :: loaded.modules[module_id] else continue
         project_ctx.impls.collect_impls(
             module_decls(module_loaded),
             module_typed.resolved,

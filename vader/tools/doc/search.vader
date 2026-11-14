@@ -96,14 +96,14 @@ read_catalog :: fn(dirs: string[]) -> Catalog {
         .whole = Map<string, DocModule> {},
     }
     for dir in dirs {
-        index :: read_doc_index(dir) ?? continue
+        index :: read_doc_index(dir) else continue
         for m in index.modules {
             if catalog.holder.put_absent(m.path, dir) == null {
                 catalog.modules.push(m)
             }
         }
         for e in index.entries {
-            if (catalog.holder[e.module] ?? "") == dir {
+            if (catalog.holder[e.module] else "") == dir {
                 catalog.entries.push(e)
                 catalog.by_id[e.id] = e
             }
@@ -118,8 +118,8 @@ whole_module :: fn(catalog: Catalog, path: string) -> DocModule | null {
     if known != null {
         return known
     }
-    dir :: catalog.holder[path] ?? return null
-    module :: read_doc_module(dir, path) ?? return null
+    dir :: catalog.holder[path] else return null
+    module :: read_doc_module(dir, path) else return null
     catalog.whole[path] = module
     return module
 }
@@ -377,11 +377,11 @@ qualified :: fn(catalog: Catalog, e: IndexEntry) -> string {
 // The name of the type the member `e` belongs to, through the impl it is a
 // method of when it is one; "" when that type is no declaration.
 owner_name :: fn(catalog: Catalog, e: IndexEntry) -> string {
-    owner :: catalog.by_id[e.owner] ?? return ""
+    owner :: catalog.by_id[e.owner] else return ""
     if owner.kind != "impl" {
         return owner.name
     }
-    target :: catalog.by_id[owner.owner] ?? return ""
+    target :: catalog.by_id[owner.owner] else return ""
     return target.name
 }
 

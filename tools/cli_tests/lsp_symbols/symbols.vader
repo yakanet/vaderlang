@@ -22,11 +22,11 @@ search_for :: fn(method: string, search: string) -> Query =
 
 // The `name` of each item of `items`.
 names_of :: fn(items: JsonValue[]) -> string[] =
-    items.map((item) -> string_member(item, "name") ?? "").collect()
+    items.map((item) -> string_member(item, "name") else "").collect()
 
 // The name and the kind of `item`, as `<name>:<kind>`.
 name_and_kind :: fn(item: JsonValue) -> string =
-    "${string_member(item, "name") ?? ""}:${int_at(item, ["kind"])}"
+    "${string_member(item, "name") else ""}:${int_at(item, ["kind"])}"
 
 // The target of the first link of `links` that starts on `line`; null when none does.
 target_at :: fn(links: JsonValue[], line: i64) -> string | null {
@@ -75,7 +75,7 @@ test_call_hierarchy_lists_a_fns_callers_and_callees :: fn() -> void {
     assert_eq(shown.join(" "), "helper:12")
     incoming :: array_at(results[1], []).map(
         fn(call) {
-            from :: string_at(call, ["from", "name"]) ?? ""
+            from :: string_at(call, ["from", "name"]) else ""
             ranges :: array_at(call, ["fromRanges"])
             sites :: ranges.map((range) -> position_at(range, ["start"])).collect()
             return "${from}@${sites.join(",")}"
@@ -84,7 +84,7 @@ test_call_hierarchy_lists_a_fns_callers_and_callees :: fn() -> void {
     assert_eq(incoming.join(" "), "twice@4:29,4:36 main@7:22")
     outgoing :: array_at(results[2], []).map(
         fn(call) {
-            to :: string_at(call, ["to", "name"]) ?? ""
+            to :: string_at(call, ["to", "name"]) else ""
             return "${to}@${array_at(call, ["fromRanges"]).len()}"
         },
     ).collect()
@@ -173,8 +173,8 @@ test_workspace_symbols_find_declarations_by_name :: fn() -> void {
     )
     first :: array_at(results[0], []).map(
         fn(s) {
-            name :: string_member(s, "name") ?? ""
-            container :: string_member(s, "containerName") ?? ""
+            name :: string_member(s, "name") else ""
+            container :: string_member(s, "containerName") else ""
             return "${name}:${int_at(s, ["kind"])}:${container}"
         },
     ).collect()
@@ -185,7 +185,7 @@ test_workspace_symbols_find_declarations_by_name :: fn() -> void {
     )
     gizmo :: array_at(results[1], [])
     assert_eq(names_of(gizmo).join(" "), "Gizmo gizmo_size")
-    assert_eq(string_member(gizmo[1], "containerName") ?? "", "lsptest \u{203A} Gizmo")
+    assert_eq(string_member(gizmo[1], "containerName") else "", "lsptest \u{203A} Gizmo")
     assert_eq(stringify(results[2]), "[]")
 }
 
@@ -196,11 +196,12 @@ test_initialize_advertises_definition_and_hover_providers_and_the_token_legend :
     params :: r"""{"rootUri":null,"capabilities":{}}"""
     initialize_request :: """{"jsonrpc":"2.0","id":1,"method":"initialize","params":${params}}"""
     messages :: exchange(server_args(), [initialize_request, SHUTDOWN, EXIT])
-    capabilities :: member_at(result_of(messages, 1), ["capabilities"]) ?? panic("no capabilities")
-    assert_eq(stringify(member(capabilities, "definitionProvider") ?? JsonNull {}), "true")
-    assert_eq(stringify(member(capabilities, "hoverProvider") ?? JsonNull {}), "true")
+    capabilities :: member_at(result_of(messages, 1), ["capabilities"])
+        else panic("no capabilities")
+    assert_eq(stringify(member(capabilities, "definitionProvider") else JsonNull {}), "true")
+    assert_eq(stringify(member(capabilities, "hoverProvider") else JsonNull {}), "true")
     assert_eq(
-        stringify(member(capabilities, "codeLensProvider") ?? JsonNull {}),
+        stringify(member(capabilities, "codeLensProvider") else JsonNull {}),
         r"""{"resolveProvider":false}""",
     )
     legend :: array_at(capabilities, ["semanticTokensProvider", "legend", "tokenTypes"])
@@ -227,11 +228,11 @@ test_document_link_resolves_an_import_to_every_shipped_namespace :: fn() -> void
         """
     results :: drive("document_link_namespaces", source, [ask("textDocument/documentLink", 0, 0)])
     links :: array_at(results[0], [])
-    assert("/lib/std/io/" in (target_at(links, 2) ?? ""), stringify(results[0]))
+    assert("/lib/std/io/" in (target_at(links, 2) else ""), stringify(results[0]))
     // `toolchain/ast` is neither under `std/` nor under `vader/`.
-    assert("/lib/toolchain/ast/" in (target_at(links, 3) ?? ""), stringify(results[0]))
+    assert("/lib/toolchain/ast/" in (target_at(links, 3) else ""), stringify(results[0]))
     // A library that left `std/`.
-    assert("/lib/json/" in (target_at(links, 4) ?? ""), stringify(results[0]))
+    assert("/lib/json/" in (target_at(links, 4) else ""), stringify(results[0]))
     // A module that does not exist yields no link, not a path to nowhere.
     assert(target_at(links, 5) == null, stringify(results[0]))
 }
@@ -260,8 +261,8 @@ test_code_lens_runs_each_test_and_the_module_through_the_client_command :: fn() 
     shown :: lenses.map(
         fn(l) {
             line :: int_at(l, ["range", "start", "line"])
-            title :: string_at(l, ["command", "title"]) ?? ""
-            command :: string_at(l, ["command", "command"]) ?? ""
+            title :: string_at(l, ["command", "title"]) else ""
+            command :: string_at(l, ["command", "command"]) else ""
             return "${line}:${title}:${command}"
         },
     ).collect()
@@ -299,7 +300,7 @@ test_a_project_module_outranks_a_shipped_namespace_of_the_same_name :: fn() -> v
         [ask("textDocument/documentLink", 0, 0)],
         Project { .files = files },
     )
-    target :: target_at(array_at(results[0], []), 2) ?? ""
+    target :: target_at(array_at(results[0], []), 2) else ""
     assert("/json/json.vader" in target, target)
     assert(!("/lib/json/" in target), target)
 }
@@ -319,7 +320,7 @@ test_the_library_root_is_searched_before_the_project :: fn() -> void {
         [ask("textDocument/documentLink", 0, 0)],
         Project { .files = files, .args = ["--library-root=${toolchain_home()}/lib"] },
     )
-    target :: target_at(array_at(results[0], []), 2) ?? ""
+    target :: target_at(array_at(results[0], []), 2) else ""
     assert("/lib/json/" in target, target)
 }
 
@@ -369,7 +370,7 @@ test_implementation_lists_every_target_body_including_a_foreign_one :: fn() -> v
     // The suite runs on every platform, so naming one platform's file would pass
     // for the wrong reason: both files are represented, which means one of them
     // was kept despite not being selected.
-    where :: bodies.map((b) -> file_of(string_member(b, "uri") ?? "")).collect()
+    where :: bodies.map((b) -> file_of(string_member(b, "uri") else "")).collect()
     assert_eq(sort(where, compare_ascending).join(" "), "lsp-test.vader lsp-windows.vader")
     assert_eq(array_at(results[1], []).len(), 2)
     assert(results[2] is JsonNull, stringify(results[2]))
@@ -400,13 +401,13 @@ test_the_selection_grows_from_the_word_to_its_declaration :: fn() -> void {
     chain: string[]: []
     level: JsonValue = array_at(results[0], [])[0]
     for level is JsonObject {
-        chain.push(text_at(src, member(level, "range") ?? JsonNull {}))
-        level = member(level, "parent") ?? JsonNull {}
+        chain.push(text_at(src, member(level, "range") else JsonNull {}))
+        level = member(level, "parent") else JsonNull {}
     }
     assert_eq(chain[0], "x")
     assert(chain.contains("x * 2"), chain.join(" | "))
     assert(chain.contains("sum += x * 2"), chain.join(" | "))
-    parts :: src.split_first("total ::") ?? panic("no `total ::` in the source")
+    parts :: src.split_first("total ::") else panic("no `total ::` in the source")
     assert_eq(chain[chain.len() - 1], "total ::${parts.1}".trim())
     for i in 1..<chain.len() {
         assert(chain[i].byte_len() > chain[i - 1].byte_len(), chain.join(" | "))

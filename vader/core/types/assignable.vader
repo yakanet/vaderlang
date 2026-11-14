@@ -215,8 +215,8 @@ is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
 /// @param wide    the type a value of `narrow` would go into.
 /// @param narrow  any type : only a range or an integer primitive is held.
 export holds_integer :: fn(wide: Type, narrow: Type) -> bool {
-    outer :: integer_values(wide) ?? return false
-    values :: integer_values(narrow) ?? return false
+    outer :: integer_values(wide) else return false
+    values :: integer_values(narrow) else return false
     if !interval_within(values, outer) {
         return false
     }
@@ -282,7 +282,7 @@ export free_member :: fn(t: Type) -> Type | null {
     if is_free_numeric(t) {
         return t
     }
-    variants :: union_variants(t) ?? return null
+    variants :: union_variants(t) else return null
     for v in variants {
         if is_free_numeric(v) {
             return v
@@ -297,7 +297,7 @@ export free_member :: fn(t: Type) -> Type | null {
 ///
 /// @param t  the type the binding's value was given.
 export default_free_members :: fn(t: Type) -> Type {
-    variants :: union_variants(t) ?? return default_if_free(t)
+    variants :: union_variants(t) else return default_if_free(t)
     if free_member(t) == null {
         return t
     }
@@ -317,7 +317,7 @@ export default_free_members :: fn(t: Type) -> Type {
 /// @param expected  the type of the slot it fills, when there is one.
 export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     if expected is UnionType {
-        member :: union_literal_member(got, expected) ?? return got
+        member :: union_literal_member(got, expected) else return got
         return member
     }
     if expected == null || !literal_takes(got, expected) {

@@ -87,6 +87,6 @@ doc_overlay :: fn() -> Map<string, string> {
 // their headers is left to the load, which reports it.
 record_module :: fn(folder: string, found: DiscoveredModule[]) -> void {
     ignored: Diagnostic[]: []
-    module :: seed_entry(folder, Map<string, string> {}, ignored) ?? return
+    module :: seed_entry(folder, Map<string, string> {}, ignored) else return
     found.push(module)
 }

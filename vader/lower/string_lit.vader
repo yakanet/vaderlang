@@ -60,7 +60,8 @@ lower_concat_chain :: fn(ctx: FnLowerCtx, operands: LoweredExpr[], span: Span) -
     if n == 1 {
         return leaves[0]
     }
-    sym :: get_or_create_concat(ctx, i32(n)) ?? return unreachable_buffer("concat_${n} unresolved")
+    sym :: get_or_create_concat(ctx, i32(n))
+        else return unreachable_buffer("concat_${n} unresolved")
     return mk_lowered_call(sym, leaves, string_type, span)
 }
 
@@ -248,15 +249,15 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     }
 
     // Resolve the std/core buffer API.
-    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return unreachable_buffer("new_byte_buffer")
-    finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return unreachable_buffer("finish_buffer")
-    blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return unreachable_buffer("byte_len")
-    wstr_sym :: resolve_writer_fn(ctx, "write_string_at") ?? return unreachable_buffer("write_string_at")
-    wint_sym :: resolve_writer_fn(ctx, "write_int") ?? return unreachable_buffer("write_int")
-    wuint_sym :: resolve_writer_fn(ctx, "write_unsigned") ?? return unreachable_buffer("write_unsigned")
-    wbool_sym :: resolve_writer_fn(ctx, "write_bool") ?? return unreachable_buffer("write_bool")
+    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer") else return unreachable_buffer("new_byte_buffer")
+    finish_sym :: resolve_writer_fn(ctx, "finish_buffer") else return unreachable_buffer("finish_buffer")
+    blen_sym :: resolve_writer_fn(ctx, "byte_len") else return unreachable_buffer("byte_len")
+    wstr_sym :: resolve_writer_fn(ctx, "write_string_at") else return unreachable_buffer("write_string_at")
+    wint_sym :: resolve_writer_fn(ctx, "write_int") else return unreachable_buffer("write_int")
+    wuint_sym :: resolve_writer_fn(ctx, "write_unsigned") else return unreachable_buffer("write_unsigned")
+    wbool_sym :: resolve_writer_fn(ctx, "write_bool") else return unreachable_buffer("write_bool")
     // Buffer type from `write_string_at`'s self param.
-    buffer_type :: writer_buffer(ctx, wstr_sym) ?? return unreachable_buffer("Buffer")
+    buffer_type :: writer_buffer(ctx, wstr_sym) else return unreachable_buffer("Buffer")
     register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, finish_sym)
     register_nongeneric_imported_fn(ctx, blen_sym)

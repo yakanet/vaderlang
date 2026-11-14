@@ -82,7 +82,7 @@ forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
                     InstrCall {
                         .span = span,
                         .dsts = [result],
-                        .callee = forwarded_symbol(f.origin.symbol ?? f.params[0].symbol, copy_mangle),
+                        .callee = forwarded_symbol(f.origin.symbol else f.params[0].symbol, copy_mangle),
                         .args = args,
                         .type = f.return_type,
                     },
@@ -135,7 +135,7 @@ plan_forwarding :: fn(
                         note_call(ins.callee, chosen, by_symbol, callers, called, f.mangled)
                         continue
                     }
-                    named :: taken_function(ins) ?? continue
+                    named :: taken_function(ins) else continue
                     note_symbol(named, by_symbol, as_value)
                 }
             }
@@ -170,7 +170,7 @@ callee_mangle :: fn(
     if chosen[callee.name] != null {
         return callee.name
     }
-    return by_symbol[callee.id] ?? callee.name
+    return by_symbol[callee.id] else callee.name
 }
 
 // Note `sym`'s function under BOTH names: `emit/bytecode/emit` resolves a callee by
@@ -189,7 +189,7 @@ note_symbol :: fn(
 mark_forwarding :: fn(
     mangled: string, chosen: Map<string, ReturnShape>, callers: Set<string>,
 ) -> void {
-    shape :: chosen[mangled] ?? return
+    shape :: chosen[mangled] else return
     if shape.forward_to != null {
         return
     }
@@ -249,6 +249,6 @@ callee_shape :: fn(
     if direct != null {
         return direct
     }
-    mangled :: by_symbol[callee.id] ?? return null
+    mangled :: by_symbol[callee.id] else return null
     return chosen[mangled]
 }

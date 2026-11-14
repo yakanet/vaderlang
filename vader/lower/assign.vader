@@ -107,15 +107,15 @@ lower_assign_one :: fn(
 try_lower_cell_set_assign :: fn(
     ctx: FnLowerCtx, assign_target: Expr, value: LoweredExpr, span: Span,
 ) -> LoweredStmt | null {
-    target_ident :: as_ident(assign_target) ?? return null
+    target_ident :: as_ident(assign_target) else return null
     if target_ident is IdentExpr {
-        symbol :: resolve_ident(ctx, target_ident.span) ?? return null
+        symbol :: resolve_ident(ctx, target_ident.span) else return null
         if symbol is Symbol {
             if !lives_in_cell(ctx, symbol.id) { return null }
             value_type :: ctx.types.expr_type(target_ident)
             // The cell holds the binding as declared, whatever a narrowing says of it
             // where the write stands.
-            declared :: declared_type_of_symbol(ctx, symbol) ?? value_type
+            declared :: declared_type_of_symbol(ctx, symbol) else value_type
             surface_array_into_trait(ctx, value.type, declared)
             return LoweredCellSet {
                 .span = span,
@@ -162,7 +162,7 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> L
             }
             is RestTarget     -> {
                 // The typechecker only lets a rest through over an array source.
-                arr :: array_backing(value_ty) ?? continue
+                arr :: array_backing(value_ty) else continue
                 elem_ty :: ctx.types.apply(arr.element)
                 tail_ty :: mk_array(elem_ty)
                 tmp :: fresh_synthetic_symbol(ctx, "destr_rest")

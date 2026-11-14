@@ -276,7 +276,7 @@ emit :: fn(l: Lexer, t: Token) -> void {
 // starting there takes them. Line breaks reach `l.tokens` without coming through
 // `emit`, so blank lines keep a run attached.
 close_doc_run :: fn(l: Lexer, t: Token) -> void {
-    doc :: l.open_doc ?? return
+    doc :: l.open_doc else return
     l.doc_runs.push(DocRun { .doc = doc, .followed_by = t.span.start.offset })
     l.open_doc = null
 }
@@ -357,7 +357,7 @@ skip_horizontal :: fn(l: Lexer) -> void {
 // Inside a `${...}` expression itself : a `{` block opened there separates its
 // statements with newlines, as any block does.
 in_interp_expression :: fn(l: Lexer) -> bool {
-    top :: l.top_interp() ?? return false
+    top :: l.top_interp() else return false
     return top.brace_depth == 0
 }
 
@@ -638,7 +638,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     cp: u32 = 0
     for i in 0..<hex_len {
         // The loop above admitted only hex digits.
-        d :: hex_digit_value(char(l.src.byte_at(hex_start + i))) ?? 0
+        d :: hex_digit_value(char(l.src.byte_at(hex_start + i))) else 0
         cp = cp * 16 + u32(d)
     }
     if cp > u32(MAX_CODEPOINT) {
@@ -1016,7 +1016,7 @@ try_lex_operator :: fn(l: Lexer) -> bool {
                 top.brace_depth = top.brace_depth - 1
             }
         }
-        l.paren_depth = l.enclosing_paren_depths.remove_last() ?? l.paren_depth
+        l.paren_depth = l.enclosing_paren_depths.remove_last() else l.paren_depth
         return l.emit_and_advance(.RBrace, "}")
     }
 

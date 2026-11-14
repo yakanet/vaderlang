@@ -42,14 +42,14 @@ range_of :: fn(element: Type, typed: TypedProgram) -> Type {
     // `range_symbol` is the well-known `std/core::Range` symbol, populated once
     // from core by the orchestrator ; a `RangeExpr` (`0..10`) is synthesised
     // without a source span, so it resolves via this slot, not `idents`.
-    range_sym :: typed.range_symbol ?? return TY_UNRESOLVED
+    range_sym :: typed.range_symbol else return TY_UNRESOLVED
     return mk_struct(range_sym, [element])
 }
 
 // The `T` of an expected `Range<T>` when the bounds can take it
 // (`is_pinned_element`).
 range_element :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
-    range_sym :: typed.range_symbol ?? return null
+    range_sym :: typed.range_symbol else return null
     if expected !is StructType || expected.symbol.id != range_sym.id || expected.args.len() != 1 {
         return null
     }

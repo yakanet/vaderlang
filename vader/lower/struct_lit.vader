@@ -68,7 +68,7 @@ literal_spread :: fn(ctx: FnLowerCtx, type: Type, symbol: Symbol, value: Lowered
         .symbol = symbol,
         .type = value.type,
         .fields = ctx.typed.struct_fields[source.symbol.id]
-            ?? panic("lower: no fields recorded for `${source.symbol.name}`"),
+            else panic("lower: no fields recorded for `${source.symbol.name}`"),
     }
 }
 
@@ -83,7 +83,7 @@ with_spread :: fn(spreads: LiteralSpread[] | null, spread: LiteralSpread) -> Lit
 
 // The last of `spreads` whose source holds the field `name`, null when none does.
 last_spread_holding :: fn(spreads: LiteralSpread[] | null, name: string) -> LiteralSpread | null {
-    listed :: spreads ?? return null
+    listed :: spreads else return null
     found: LiteralSpread | null = null
     for spread in listed {
         fields :: spread.fields
@@ -174,7 +174,8 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
     // non-enum context here -> stub (earlier diagnostics apply).
     @partial match resolved {
         is EnumType -> {
-            index :: resolved.indices[expr.variant] ?? return unknown_variant(expr, resolved, type)
+            index :: resolved.indices[expr.variant]
+                else return unknown_variant(expr, resolved, type)
             return LoweredIntLit { .span = expr.span, .type = resolved, .value = index }
         }
         _ -> { return stub(expr.span, type, "`.${expr.variant}` against non-enum context type") }
@@ -203,7 +204,7 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
             .span = expr.span, .type = type, .target = slot, .field = expr.field,
         }
     }
-    index :: enum_type.indices[expr.field] ?? return null
+    index :: enum_type.indices[expr.field] else return null
     return LoweredIntLit { .span = expr.span, .type = enum_type, .value = index }
 }
 
@@ -212,8 +213,8 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
 // otherwise. Shared by the namespace member lowerings (calls, reads), each
 // passing the receiver of the member access.
 as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
-    ident :: as_ident(expr) ?? return null
-    sym :: resolve_ident(ctx, ident.span) ?? return null
+    ident :: as_ident(expr) else return null
+    sym :: resolve_ident(ctx, ident.span) else return null
     if sym.kind == .ImportBinding { return sym }
     return null
 }
@@ -241,7 +242,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 // module's tables instead of the construction site's. No-op (returns `ctx`)
 // when the module isn't in the project's typed set.
 ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
-    owner_typed :: ctx.project.evaluated.typed.modules[module_id] ?? return ctx
+    owner_typed :: ctx.project.evaluated.typed.modules[module_id] else return ctx
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
     // bound to the concrete instance arg: MIXED (primitive -> concrete so the
@@ -273,8 +274,8 @@ build_struct_lit_fields :: fn(
     // field building walks the backing struct's fields. A non-struct type (or a
     // struct with no recorded fields) degrades to source order (defensive
     // fallback).
-    st :: struct_backing(type) ?? return fallback_provided_order(ctx, lit)
-    fields :: ctx.typed.struct_fields[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
+    st :: struct_backing(type) else return fallback_provided_order(ctx, lit)
+    fields :: ctx.typed.struct_fields[st.symbol.id] else return fallback_provided_order(ctx, lit)
     site: DefaultSite | null = null
     for [_, field] in fields {
         field_decl :: field.decl
@@ -347,7 +348,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
         panic("build_core_struct_lit: not a struct type")
     }
     declared :: ctx.typed.struct_fields[st.symbol.id]
-        ?? panic("build_core_struct_lit: struct fields not indexed for ${st.symbol.name}")
+        else panic("build_core_struct_lit: struct fields not indexed for ${st.symbol.name}")
     ordered: LoweredStructLitField[]: []
     site: DefaultSite | null = null
     for [_, field] in declared {

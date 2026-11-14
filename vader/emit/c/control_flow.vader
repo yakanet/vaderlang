@@ -229,7 +229,7 @@ emit_else :: fn(s: FnState) -> void {
 /// untargeted scopes close with a bare `}`.
 emit_end :: fn(s: FnState, pc: i32) -> void {
     assert_stack_empty(s, "scope end (pc ${pc})")
-    sc :: scope_ending_at(s.scopes, pc) ?? todo("emit_end: no scope ends at pc ${pc}")
+    sc :: scope_ending_at(s.scopes, pc) else todo("emit_end: no scope ends at pc ${pc}")
     // Before the close : the write-back belongs INSIDE the loop's block, at the
     // one place control falls out of it.
     pc_close_cache(s, sc.opener_pc)

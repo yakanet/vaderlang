@@ -47,7 +47,7 @@ imported_path :: fn(line: string) -> string | null {
         return null
     }
     start :: at + IMPORT_OPENING.byte_len()
-    close :: line.index_of('"', start) ?? return null
+    close :: line.index_of('"', start) else return null
     if close == start {
         return null
     }
@@ -68,7 +68,7 @@ import_start :: fn(line: string) -> i64 {
 // tree may not make.
 check_imports :: fn(file: string, text: string, found: string[]) -> void {
     for line in text.lines() {
-        path :: imported_path(line) ?? continue
+        path :: imported_path(line) else continue
         if !is_allowed(path) {
             found.push("${file}: ${path}")
         }
@@ -92,8 +92,8 @@ test_the_back_end_imports_nothing_from_the_front_end :: fn() -> void {
 
 @test
 test_an_import_is_read_with_or_without_its_alias :: fn() -> void {
-    assert_eq(imported_path("import \"std/string\"") ?? "", "std/string")
-    assert_eq(imported_path("Lo :: import \"vader/lower\"") ?? "", "vader/lower")
+    assert_eq(imported_path("import \"std/string\"") else "", "std/string")
+    assert_eq(imported_path("Lo :: import \"vader/lower\"") else "", "vader/lower")
     assert(imported_path("// import \"vader/front\"") == null, "a comment imports nothing")
 }
 

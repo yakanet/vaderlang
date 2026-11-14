@@ -27,7 +27,7 @@ import "vader/support/diagnostics"
 /// @param name_span  the declaration's name span.
 /// @return           null when no symbol is declared there.
 export declared_type_at :: fn(typed: TypedProgram, name_span: Span) -> Type | null {
-    sym :: symbol_declared_at(typed.resolved, name_span) ?? return null
+    sym :: symbol_declared_at(typed.resolved, name_span) else return null
     return typed.decl_types[sym.id]
 }
 
@@ -54,13 +54,13 @@ export declared_fn_type :: fn(typed: TypedProgram, fd: AST.FnDecl) -> Type | nul
 /// @param name       the fn name.
 /// @param name_span  the name span of the declaration to place.
 export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Span) -> string {
-    bucket :: module.fn_overloads[name] ?? return ""
+    bucket :: module.fn_overloads[name] else return ""
     if bucket.len() < 2 {
         return ""
     }
     key :: name_span.hash()
     for i in 0..<bucket.len() {
-        defined :: bucket[i].defined_at ?? continue
+        defined :: bucket[i].defined_at else continue
         if defined.hash() == key {
             return if i == 0 { "" } else { "_${i}" }
         }
@@ -139,7 +139,7 @@ export GateRuntime :: struct {
 /// @param callee_id  the callee node : the `FieldExpr` of a UFCS call, the
 ///                   `IdentExpr` of a direct one.
 export chosen_decl :: fn(typed: TypedProgram, callee_id: i64) -> AST.FnDecl | null {
-    chosen :: typed.chosen_fns[callee_id] ?? return null
+    chosen :: typed.chosen_fns[callee_id] else return null
     return chosen.decl
 }
 
@@ -149,7 +149,7 @@ export chosen_decl :: fn(typed: TypedProgram, callee_id: i64) -> AST.FnDecl | nu
 /// @param typed      the module the call was checked in.
 /// @param callee_id  the call's `FieldExpr`.
 export chosen_impl_decl :: fn(typed: TypedProgram, callee_id: i64) -> AST.FnDecl | null {
-    chosen :: typed.chosen_impl_methods[callee_id] ?? return null
+    chosen :: typed.chosen_impl_methods[callee_id] else return null
     return chosen.decl
 }
 
@@ -164,8 +164,8 @@ export chosen_impl_decl :: fn(typed: TypedProgram, callee_id: i64) -> AST.FnDecl
 imported_overloads_in :: fn(
     typed: TypedProgram, file: string, name: string,
 ) -> FnCandidate[] {
-    table :: imported_overloads_table_in(typed, file) ?? return []
-    return table[name] ?? []
+    table :: imported_overloads_table_in(typed, file) else return []
+    return table[name] else []
 }
 
 /// Find an import binding of the module by id: the key of the tables that map
@@ -936,7 +936,7 @@ test_new_typed_program_has_empty_tables :: fn() -> void {
 test_typed_program_stores_and_recovers_type :: fn() -> void {
     tp :: new_typed_program(fresh_module())
     tp.expr_types[42] = TY_I32
-    hit :: tp.expr_types[42] ?? return assert(false, "expected to recover the stored type")
+    hit :: tp.expr_types[42] else return assert(false, "expected to recover the stored type")
     assert(equals_type(hit, TY_I32), "the stored type comes back")
 }
 

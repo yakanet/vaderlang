@@ -47,7 +47,7 @@ export resolve :: fn(
     state: ServerState, idx: DocIndex, name: string, allow_member: bool = false,
 ) -> ExternalHit | null {
     if name.byte_len() == 0 { return null }
-    roots :: document_roots(state, idx.uri) ?? return null
+    roots :: document_roots(state, idx.uri) else return null
     // A declaration of the module wins over every import of the file : the
     // per-document index only sees the open file, so search the module's other
     // files. The dominant cross-file case in the compiler tree, and no import
@@ -62,7 +62,7 @@ export resolve :: fn(
     }
     imp :: idx.find_import(name)
     if imp != null {
-        original :: imp.imported_name ?? return null
+        original :: imp.imported_name else return null
         return find_in_module(state, roots.paths, imp.path, original, false)
     }
     // The prelude answers where nothing of the file does, ahead of any wildcard.
@@ -126,7 +126,7 @@ resolve_member :: fn(
 member_in_module :: fn(
     state: ServerState, paths: IncludePath[], module_path: string, name: string,
 ) -> ExternalHit | null {
-    module :: module_named(state, module_path, paths) ?? return null
+    module :: module_named(state, module_path, paths) else return null
     return first_in_files(state, module.files, null, (sub: DocIndex) -> sub.find_member(name))
 }
 
@@ -146,7 +146,7 @@ member_in_module :: fn(
 export resolve_in_module :: fn(
     state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool,
 ) -> ExternalHit | null {
-    roots :: document_roots(state, from_uri) ?? return null
+    roots :: document_roots(state, from_uri) else return null
     return find_in_module(state, roots.paths, module_path, name, exported_only)
 }
 
@@ -157,7 +157,7 @@ export resolve_in_module :: fn(
 find_in_module :: fn(
     state: ServerState, paths: IncludePath[], module_path: string, name: string, exported_only: bool,
 ) -> ExternalHit | null {
-    module :: module_named(state, module_path, paths) ?? return null
+    module :: module_named(state, module_path, paths) else return null
     return first_in_files(state, module.files, null, (sub: DocIndex) -> if exported_only {
         sub.find_exported_toplevel(name)
     } else {
@@ -192,8 +192,8 @@ export first_in_files :: fn(
             continue
         }
         uri :: file.to_uri().to_string()
-        index :: state.index_for(uri) ?? build_index(uri, src, state.position_encoding)
-        found :: query(index) ?? continue
+        index :: state.index_for(uri) else build_index(uri, src, state.position_encoding)
+        found :: query(index) else continue
         return ExternalHit {
             .uri    = uri,
             .target = found,
@@ -219,7 +219,7 @@ project_of_document :: fn(path: string) -> string | null = find_project_root(pat
 ///
 /// @param path  the document's filesystem path.
 export project_or_folder_of_document :: fn(path: string) -> string =
-    project_of_document(path) ?? dir_of(path)
+    project_of_document(path) else dir_of(path)
 
 /// Where the document `uri` looks for modules : the loader's roots for a load
 /// from that file (`search_roots`), each made absolute, and the module the
@@ -232,7 +232,7 @@ export project_or_folder_of_document :: fn(path: string) -> string =
 /// @param state  carries the host's roots, searched first (`include_flags`).
 /// @param uri    the document's URI.
 export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
-    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return null
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return null
     discard: Diagnostic[]: []
     roots :: search_roots(
         path, state.include_flags, project_of_document(path), doc_overlay(state), discard,

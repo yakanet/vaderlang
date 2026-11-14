@@ -362,7 +362,7 @@ test_method_named_is_case_sensitive :: fn() -> void {
 @test
 test_new_response_declares_the_length_of_its_content :: fn() -> void {
     response :: new_response(STATUS_NOT_FOUND, "nothing here\n")
-    assert_eq(response.headers.get("content-length") ?? "", "13")
+    assert_eq(response.headers.get("content-length") else "", "13")
     assert_eq(reason_phrase(response.status), "Not Found")
 }
 
@@ -378,7 +378,7 @@ test_a_status_with_no_content_is_interim_or_204_or_304 :: fn() -> void {
 
 // The code `status_of` answers a failure of `kind` with, 0 for none.
 answer_to :: fn(kind: HttpErrorKind) -> u16 {
-    status :: status_of(HttpError { .kind = kind, .msg = "" }) ?? return 0
+    status :: status_of(HttpError { .kind = kind, .msg = "" }) else return 0
     return u16(status)
 }
 

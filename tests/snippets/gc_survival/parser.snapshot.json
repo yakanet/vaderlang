@@ -275,8 +275,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {

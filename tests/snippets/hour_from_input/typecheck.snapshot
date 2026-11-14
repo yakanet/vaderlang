@@ -49,14 +49,14 @@
   expr 57:16    CallExpr       :: Hour | null
   expr 57:16    FallbackExpr   :: Hour
   expr 57:16    IdentExpr      :: fn(i64) -> Hour | null
-  expr 57:38    BinaryExpr     :: bool
-  expr 57:38    CallExpr       :: Hour | null
-  expr 57:38    IdentExpr      :: fn(i64) -> Hour | null
+  expr 57:40    BinaryExpr     :: bool
+  expr 57:40    CallExpr       :: Hour | null
+  expr 57:40    IdentExpr      :: fn(i64) -> Hour | null
   expr 57:5     CallExpr       :: void
   expr 57:5     IdentExpr      :: fn(T) -> void
-  expr 57:64    BinaryExpr     :: bool
-  expr 57:64    CallExpr       :: Hour | null
-  expr 57:64    IdentExpr      :: fn(i64) -> Hour | null
+  expr 57:66    BinaryExpr     :: bool
+  expr 57:66    CallExpr       :: Hour | null
+  expr 57:66    IdentExpr      :: fn(i64) -> Hour | null
   expr 58:13    StringLitExpr  :: string
   expr 58:16    CallExpr       :: Hour
   expr 58:16    IdentExpr      :: fn(i64) -> Hour

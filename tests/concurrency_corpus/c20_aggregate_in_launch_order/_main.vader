@@ -17,7 +17,7 @@ count_words :: fn(f: string) -> Map<string, i64> {
 
 merge :: fn(total: Map<string, i64>, part: Map<string, i64>) -> void {
     for [k, v] in part {
-        total[k] = (total[k] ?? 0) + v
+        total[k] = (total[k] else 0) + v
     }
 }
 

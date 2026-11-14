@@ -73,7 +73,7 @@ lambda_void :: fn() -> void {
 left_through_condition :: fn(xs: i32[]) -> i32 {
     i: i64 = 0
     for {
-        if (item_at(xs, i) ?? break) > 10 {
+        if (item_at(xs, i) else break) > 10 {
             return xs[i]
         }
         i += 1

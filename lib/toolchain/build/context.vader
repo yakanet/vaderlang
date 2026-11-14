@@ -170,7 +170,7 @@ driver_contexts :: fn() -> DriverContexts = DriverContexts {}
 // A context for a request already in hand: `new_build_context` reads it from
 // `args`, `build_from_manifest` receives it from the CLI.
 new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildContext {
-    .project_root   = request.build.project_root ?? "",
+    .project_root   = request.build.project_root else "",
     .include_paths  = [],
     .generated_root = DEFAULT_GENERATED_ROOT,
     .request        = request,

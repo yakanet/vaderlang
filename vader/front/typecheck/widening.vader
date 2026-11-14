@@ -33,7 +33,7 @@ widening_depth :: fn(from: Type, to: Type, typed: TypedProgram) -> i32 | null {
     if to is ArrayType {
         return array_widening_depth(from, to, typed)
     }
-    variants :: union_variants(to) ?? return null
+    variants :: union_variants(to) else return null
     for slot in variants {
         if slot is ArrayType {
             depth :: array_widening_depth(from, slot, typed)
@@ -111,7 +111,7 @@ several_impls_error :: fn(
 /// @param typed     reads the impls a trait value dispatches through.
 mismatch_diagnostic :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode, typed: TypedProgram,
-) -> Diagnostic = trait_value_error(got, expected, span, typed) ?? typecheck_error(
+) -> Diagnostic = trait_value_error(got, expected, span, typed) else typecheck_error(
     fallback,
     span,
     "expected ${display_type(expected)}, got ${display_type(got)}",
@@ -130,8 +130,8 @@ trait_value_error :: fn(
     if got is ArrayType && expected is ArrayType {
         return trait_value_error(got.element, expected.element, span, typed)
     }
-    for held in union_variants(got) ?? [got] {
-        for slot in union_variants(expected) ?? [expected] {
+    for held in union_variants(got) else [got] {
+        for slot in union_variants(expected) else [expected] {
             if slot is TraitType {
                 refusal :: held_as_trait_error(held, slot, span, typed)
                 if refusal != null {

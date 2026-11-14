@@ -25,7 +25,7 @@ populate_fn_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> 
     for [_, module_typed] in typed.modules {
         for [_, overloads] in module_typed.resolved.fn_overloads {
             for sym in overloads {
-                decl :: module_typed.fn_decls[sym.id] ?? continue
+                decl :: module_typed.fn_decls[sym.id] else continue
                 project_ctx.fn_symbols[decl.id] = sym
             }
         }
@@ -109,7 +109,7 @@ callee_target :: fn(
 /// @param callee    a site's record.
 /// @param receiver  the receiver's type at this instance.
 recorded_impl :: fn(ctx: FnLowerCtx, callee: DirectFn, receiver: Type) -> ImplEntry | null {
-    entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
+    entry :: ctx.project.impls.member_entry(callee.decl) else return null
     if !callee.per_instance {
         return entry
     }
@@ -150,7 +150,7 @@ runs_array_blanket_impl :: fn(
     receiver: Type,
     trait_name: string,
 ) -> bool {
-    entry :: recorded_impl_at(ctx, node, role, receiver) ?? return false
+    entry :: recorded_impl_at(ctx, node, role, receiver) else return false
     return !entry.instance
         && entry.for_type is ArrayType
         && entry.trait_key == core_trait_key(trait_name)
@@ -162,7 +162,7 @@ settled_direct_member :: fn(
     callee: DirectFn,
     receiver: Type,
 ) -> UfcsMember | null {
-    entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
+    entry :: ctx.project.impls.member_entry(callee.decl) else return null
     target :: impl_receiver(entry, receiver)
     own_args :: own_args_of(ctx, callee, entry)
     if !callee.per_instance {
@@ -275,9 +275,9 @@ recorded_type_args :: fn(
     if callee !is DirectFn || callee.decl.type_params.len() == 0 {
         return null
     }
-    owner :: resolve_owner_typed(ctx, fn_sym.module) ?? return null
-    declared :: declared_type_params(callee.decl, owner) ?? return null
-    recorded :: callee.bindings ?? Map<i32, Type> {}
+    owner :: resolve_owner_typed(ctx, fn_sym.module) else return null
+    declared :: declared_type_params(callee.decl, owner) else return null
+    recorded :: callee.bindings else Map<i32, Type> {}
     bindings :: Map<i32, Type> {}
     for [id, bound] in recorded {
         bindings[id] = ctx.types.apply(bound)
@@ -287,7 +287,7 @@ recorded_type_args :: fn(
     }
     out: Type[]: []
     for tp in declared {
-        out.push(bindings[tp.id] ?? return null)
+        out.push(bindings[tp.id] else return null)
     }
     return out
 }
@@ -300,8 +300,8 @@ recorded_type_args :: fn(
 /// @param node  the name.
 /// @param type  the instance's fn type, as the site takes it.
 recorded_fn_reference :: fn(ctx: FnLowerCtx, node: Expr, type: Type) -> LoweredIdent | null {
-    fn_sym :: recorded_fn_symbol(ctx, node, .Reference) ?? return null
-    mangled :: recorded_instance_mangle(ctx, node, .Reference, fn_sym) ?? return null
+    fn_sym :: recorded_fn_symbol(ctx, node, .Reference) else return null
+    mangled :: recorded_instance_mangle(ctx, node, .Reference, fn_sym) else return null
     return LoweredIdent { .span = node.span, .type = type, .symbol = instance_symbol(fn_sym, mangled) }
 }
 
@@ -310,7 +310,7 @@ recorded_fn_reference :: fn(ctx: FnLowerCtx, node: Expr, type: Type) -> LoweredI
 ///
 /// @param name_span  the binding's name.
 is_fn_alias :: fn(ctx: FnLowerCtx, name_span: Span) -> bool {
-    sym :: ctx.typed.resolved.idents[name_span.hash()] ?? return false
+    sym :: ctx.typed.resolved.idents[name_span.hash()] else return false
     return ctx.typed.fn_aliases[sym.id] != null
 }
 

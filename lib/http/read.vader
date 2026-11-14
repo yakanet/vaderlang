@@ -26,7 +26,7 @@ read_request :: fn(
     reader: BufferedReader,
     limits: Limits = Limits {},
 ) -> Request | null | HttpError {
-    line :: read_request_line(reader, limits) ?? return null
+    line :: read_request_line(reader, limits) else is null { return null }
     if line is HttpError {
         return line
     }
@@ -53,7 +53,7 @@ read_request :: fn(
         .target = start.target,
         .version = start.version,
         .headers = headers,
-        .body = body ?? LengthBody { .source = reader, .left = 0 },
+        .body = body else LengthBody { .source = reader, .left = 0 },
     }
 }
 
@@ -71,7 +71,9 @@ LEADING_EMPTY_LINES: i64: 4
 // The request line, null when the source ended before it.
 read_request_line :: fn(reader: BufferedReader, limits: Limits) -> u8[] | null | HttpError {
     for _ in 0..=LEADING_EMPTY_LINES {
-        line :: read_head_line(reader, limits.start_line, .TargetTooLong) ?? return null
+        line :: read_head_line(reader, limits.start_line, .TargetTooLong) else is null {
+            return null
+        }
         if line is HttpError {
             return line
         }
@@ -85,9 +87,9 @@ read_request_line :: fn(reader: BufferedReader, limits: Limits) -> u8[] | null |
 // `method SP request-target SP HTTP-version`, one space each. A space too
 // many lands in the version, which is refused with it.
 parse_request_line :: fn(line: u8[]) -> RequestLine | HttpError {
-    first :: line.index_of(' ') ?? return malformed("a request line has three parts")
+    first :: line.index_of(' ') else return malformed("a request line has three parts")
     rest :: line[first + 1..<line.len()]
-    second :: rest.index_of(' ') ?? return malformed("a request line has three parts")
+    second :: rest.index_of(' ') else return malformed("a request line has three parts")
     name :: line[0..<first]
     target :: rest[0..<second]
     if !is_token(name) {
@@ -100,7 +102,7 @@ parse_request_line :: fn(line: u8[]) -> RequestLine | HttpError {
     if version is HttpError {
         return version
     }
-    method :: method_named(name.bytes_to_string()) ?? return HttpError {
+    method :: method_named(name.bytes_to_string()) else return HttpError {
         .kind = .MethodNotImplemented,
         .msg = "method `${name.bytes_to_string()}` is not implemented",
     }
@@ -319,7 +321,7 @@ read_fields :: fn(reader: BufferedReader, limits: Limits, unfold: bool) -> Heade
 // `field-name ":" OWS field-value OWS`. Whitespace before the colon is no part
 // of a token, so it is refused with the name.
 parse_field :: fn(line: u8[]) -> Header | HttpError {
-    colon :: line.index_of(':') ?? return malformed("a field line has no colon")
+    colon :: line.index_of(':') else return malformed("a field line has no colon")
     name :: line[0..<colon]
     if !is_token(name) {
         return malformed("a field name is not a token")
@@ -405,8 +407,8 @@ test_a_request_is_read_however_it_is_cut :: fn() -> void {
         assert(request.method == .Get, "the method, cut by ${size}")
         assert_eq(request.target, "/search?q=vader")
         assert(request.version == .Http11, "the version, cut by ${size}")
-        assert_eq(request.headers.get("host") ?? "", "example.org")
-        assert_eq(request.headers.get("accept") ?? "", "text/html")
+        assert_eq(request.headers.get("host") else "", "example.org")
+        assert_eq(request.headers.get("accept") else "", "text/html")
         assert_eq(text_of(request.body), "")
     }
 }
@@ -527,8 +529,8 @@ test_a_field_is_a_token_a_colon_and_a_value :: fn() -> void {
     if request !is Request {
         return assert(false, "no request")
     }
-    assert_eq(request.headers.get("X-Empty") ?? "absent", "")
-    assert_eq(request.headers.get("X-Tab") ?? "", "a\tb")
+    assert_eq(request.headers.get("X-Empty") else "absent", "")
+    assert_eq(request.headers.get("X-Tab") else "", "a\tb")
 }
 
 @test
@@ -628,7 +630,7 @@ test_a_response_is_read_however_it_is_cut :: fn() -> void {
             return assert(false, "no response, cut by ${size}")
         }
         assert_eq(u16(response.status), 404)
-        assert_eq(response.headers.get("content-type") ?? "", "text/plain")
+        assert_eq(response.headers.get("content-type") else "", "text/plain")
         assert_eq(text_of(response.body), "nothing")
     }
 }
@@ -687,5 +689,5 @@ test_a_folded_field_of_a_response_is_joined_with_a_space :: fn() -> void {
     if response !is Response {
         return assert(false, "no response")
     }
-    assert_eq(response.headers.get("X-Long") ?? "", "one two")
+    assert_eq(response.headers.get("X-Long") else "", "one two")
 }

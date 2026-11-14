@@ -11,14 +11,14 @@ collect_vtable_entries :: fn(project: LoweredProject) -> LoweredVtableEntry[] {
     out: LoweredVtableEntry[]: []
     for [_, m] in project.modules {
         for d in m.decls {
-            out.push(vtable_entry_of(d) ?? continue)
+            out.push(vtable_entry_of(d) else continue)
         }
     }
     return out
 }
 
 push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
-    m :: project.modules[module_id] ?? return
+    m :: project.modules[module_id] else return
     if m is LoweredModule {
         m.decls.push(decl)
     }

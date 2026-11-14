@@ -29,7 +29,7 @@ import "vader/lower/ir"
 // declaration isn't registered (declines fusion). Shared by the direct-call and
 // combinator fusion sites.
 genstate_element :: fn(typed: TypedProgram, decl: AST.FnDecl, subst: Substitution) -> Type | null {
-    state :: generator_state_of(decl, typed) ?? return null
+    state :: generator_state_of(decl, typed) else return null
     return laid_out_unions(substitute(state.element, subst))
 }
 
@@ -93,9 +93,9 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
     } else if callee !is AST.IdentExpr {
         return null
     }
-    decl :: recorded_decl(ctx.typed, call) ?? return null
-    symbol :: ctx.project.fn_symbols[decl.id] ?? return null
-    owner :: resolve_owner_typed(ctx, symbol.module) ?? return null
+    decl :: recorded_decl(ctx.typed, call) else return null
+    symbol :: ctx.project.fn_symbols[decl.id] else return null
+    owner :: resolve_owner_typed(ctx, symbol.module) else return null
     args: AST.Expr[]: []
     if callee is AST.FieldExpr {
         args.push(callee.target)
@@ -120,7 +120,7 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
 declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | null {
     out: Symbol[]: []
     for tp in decl.type_params {
-        out.push(owner.type_param_symbols[tp.span.hash()] ?? return null)
+        out.push(owner.type_param_symbols[tp.span.hash()] else return null)
     }
     return out
 }
@@ -135,7 +135,7 @@ unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_p
     }
     out: Type[]: []
     for tp in type_params {
-        out.push(bindings[tp.id] ?? return null)
+        out.push(bindings[tp.id] else return null)
     }
     return out
 }
@@ -182,7 +182,7 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: Map<i32, Type>, ctx:
     // (`find_map`'s `f: fn(T) -> U | null`) to the instance typecheck checked: a
     // type-param left unbound leaves the call unresolved at emit.
     if pattern is UnionType {
-        for pair in union_leftovers(pattern.variants, union_variants(concrete) ?? [concrete]) {
+        for pair in union_leftovers(pattern.variants, union_variants(concrete) else [concrete]) {
             unify_params(pair.pattern, pair.actual, bindings, ctx)
         }
     }
@@ -302,21 +302,21 @@ GenComboLayer :: struct {
 // layer whose primary source is `descend_chain(<recv>)` and whose extra source
 // params fuse independently, else null (the chain falls back to the boxed path).
 try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
-    fluent :: unpack_fluent_combinator(ctx, call) ?? return null
-    decl :: recorded_decl(ctx.typed, call) ?? return null
-    callee_sym :: ctx.project.fn_symbols[decl.id] ?? return null
-    owner :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
+    fluent :: unpack_fluent_combinator(ctx, call) else return null
+    decl :: recorded_decl(ctx.typed, call) else return null
+    callee_sym :: ctx.project.fn_symbols[decl.id] else return null
+    owner :: resolve_owner_typed(ctx, callee_sym.module) else return null
     if !fn_is_generator(owner, decl) { return null }
     // v1: `self` plus zero (`indexed`) or one (map/filter/take/skip/chain) non-self param.
     if decl.params.len() != 1 && decl.params.len() != 2 { return null }
-    loops :: extract_gen_source_loops(decl) ?? return null
+    loops :: extract_gen_source_loops(decl) else return null
 
     // The primary loop iterates `self` (param 0) ; its source is the receiver.
-    primary :: find_source_loop(loops, 0) ?? return null
-    source :: descend_chain(ctx, fluent.receiver, true) ?? return null
+    primary :: find_source_loop(loops, 0) else return null
+    source :: descend_chain(ctx, fluent.receiver, true) else return null
     primary_loopvar :: lookup_local_symbol(
         ctx.project, owner.resolved, primary.loopvar_span,
-    ) ?? return null
+    ) else return null
 
     // Classify the non-self param (param 1, if any): a SOURCE (its own loop, as in
     // `chain`'s `other`) fuses as an extra source ; otherwise it's DATA (map's `f`,
@@ -327,13 +327,13 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     arg_is_data :: decl.params.len() == 2 && param1_loop is null
     extra_sources: GenSourceBinding[]: []
     if param1_loop is GenSourceLoop {
-        other_expr :: fluent.fn_arg ?? return null
-        other_src :: descend_chain(ctx, other_expr, true) ?? return null
+        other_expr :: fluent.fn_arg else return null
+        other_src :: descend_chain(ctx, other_expr, true) else return null
         other_loopvar :: lookup_local_symbol(
             ctx.project,
             owner.resolved,
             param1_loop.loopvar_span,
-        ) ?? return null
+        ) else return null
         extra_sources.push(GenSourceBinding {
             .source = other_src,
             .loop_id = param1_loop.loop_id,
@@ -358,10 +358,10 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
 
     // Direction A: the call result is the concrete `$genstate_<fn>` struct, not
     // `Iterator<U>`: take the yielded element from the registered element.
-    output_elem :: genstate_element(ctx.typed, decl, subst_opt) ?? return null
+    output_elem :: genstate_element(ctx.typed, decl, subst_opt) else return null
 
     // Minted last: a descent that gives up must leave no ids, clones or captures behind.
-    instance :: new_inline_instance(ctx.project, callee_sym.id, decl, owner) ?? return null
+    instance :: new_inline_instance(ctx.project, callee_sym.id, decl, owner) else return null
     cloned_extras: GenSourceBinding[]: []
     for extra in extra_sources {
         cloned_extras.push(GenSourceBinding {
@@ -389,7 +389,7 @@ find_source_loop :: fn(loops: GenSourceLoop[], param_index: i64) -> GenSourceLoo
 // The type of a combinator's DATA param (`params[1]`) under `subst`: the slot its
 // argument is prepared for ; null when typecheck recorded no signature.
 combinator_arg_slot :: fn(owner: TypedProgram, callee: Symbol, subst: Substitution) -> Type | null {
-    signature :: fn_signature(owner, callee) ?? return null
+    signature :: fn_signature(owner, callee) else return null
     return substitute(signature.params[1], subst)
 }
 
@@ -419,7 +419,7 @@ GenSourceLoop :: struct {
 // at all: shapes the fusion doesn't model. map/filter/take/skip/indexed yield a
 // single loop over `self` ; `chain` yields two (over `self` and `other`).
 extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
-    body :: decl.body ?? return null
+    body :: decl.body else return null
     if body.trailing != null { return null }
     if body.stmts.len() == 0 { return null }
     loops: GenSourceLoop[]: []
@@ -480,7 +480,7 @@ gen_combo_subst :: fn(
     receiver: AST.Expr, fn_arg: AST.Expr | null, source_elem: Type,
 ) -> Substitution | null {
     if decl.type_params.len() == 0 { return new_substitution() }
-    signature :: fn_signature(owner, callee_sym) ?? return null
+    signature :: fn_signature(owner, callee_sym) else return null
     patterns: Type[]: []
     actuals: Type[]: []
     // The SOURCE element comes from the post-fusion concrete `source_elem`, not from
@@ -502,8 +502,8 @@ gen_combo_subst :: fn(
         patterns.push(signature.params[1])
         actuals.push(default_if_free(ctx.types.expr_type(fn_arg)))
     }
-    type_params :: declared_type_params(decl, owner) ?? return null
-    concrete :: unify_type_args(ctx, patterns, actuals, type_params) ?? return null
+    type_params :: declared_type_params(decl, owner) else return null
+    concrete :: unify_type_args(ctx, patterns, actuals, type_params) else return null
     return subst_from_concrete(decl, owner, concrete)
 }
 
@@ -601,20 +601,20 @@ GenSourceCall :: struct {
 // `call` as a chain source when it calls a generator with every parameter given
 // and its instance and element type resolve ; null otherwise.
 try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
-    target :: call_target(ctx, call) ?? return null
+    target :: call_target(ctx, call) else return null
     decl :: target.decl
     owner :: target.owner
     if !fn_is_generator(owner, decl) || decl.body == null {
         return null
     }
-    signature :: fn_signature(owner, target.callee) ?? return null
-    subst :: gen_source_subst(ctx, target, call) ?? return null
-    element :: genstate_element(ctx.typed, decl, subst) ?? return null
+    signature :: fn_signature(owner, target.callee) else return null
+    subst :: gen_source_subst(ctx, target, call) else return null
+    element :: genstate_element(ctx.typed, decl, subst) else return null
     if is_void(element) {
         return null
     }
     // Minted last: a descent that gives up must leave no ids or clones behind.
-    instance :: new_inline_instance(ctx.project, target.callee.id, decl, owner) ?? return null
+    instance :: new_inline_instance(ctx.project, target.callee.id, decl, owner) else return null
     source :: GenSourceCall {
         .decl = decl,
         .owner = owner,
@@ -637,26 +637,26 @@ try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -
         return null
     }
     receiver :: ctx.types.expr_type(expr)
-    entry :: recorded_impl(ctx, into, receiver) ?? return null
-    decl :: select_member(entry, into.decl.name) ?? return null
-    owner :: typed_by_display_path(ctx.project, entry.module) ?? return null
+    entry :: recorded_impl(ctx, into, receiver) else return null
+    decl :: select_member(entry, into.decl.name) else return null
+    owner :: typed_by_display_path(ctx.project, entry.module) else return null
     if !fn_is_generator(owner, decl) || decl.body == null {
         return null
     }
-    signature :: impl_member_signature(owner, decl) ?? return null
+    signature :: impl_member_signature(owner, decl) else return null
     type_args :: strip_distinct_each(type_args_of(impl_receiver(entry, receiver)))
     if !all_concrete(type_args) {
         return null
     }
     subst :: build_impl_subst(entry, type_args)
     returned :: substitute(signature.return_type, subst)
-    element :: core_trait_arg(returned, TRAIT_ITERATOR) ?? return null
+    element :: core_trait_arg(returned, TRAIT_ITERATOR) else return null
     if is_void(element) || !all_concrete([element]) {
         return null
     }
     // Minted last: a descent that gives up must leave no ids or clones behind.
     callee_id :: impl_member_id(ctx, decl)
-    instance :: new_inline_instance(ctx.project, callee_id, decl, owner) ?? return null
+    instance :: new_inline_instance(ctx.project, callee_id, decl, owner) else return null
     source :: GenSourceCall {
         .decl = decl,
         .owner = owner,
@@ -695,7 +695,7 @@ gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) 
     if decl.type_params.len() == 0 {
         return new_substitution()
     }
-    concrete :: recorded_type_args(ctx, call, .Call, target.callee) ?? return null
+    concrete :: recorded_type_args(ctx, call, .Call, target.callee) else return null
     return subst_from_concrete(decl, target.owner, concrete)
 }
 
@@ -704,7 +704,7 @@ gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) 
 // parameter's slot as a call would: a `T[]` reaching an `Iterator<T>` parameter
 // is read through `Iterator.next` by the body, so it must arrive wrapped.
 bind_gen_source_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
-    gs :: chain.gen_source ?? return chain
+    gs :: chain.gen_source else return chain
     for k in 0..<gs.decl.params.len() {
         slot :: substitute(gs.signature.params[k], gs.subst)
         arg :: lower_expr(ctx, gs.args[k])
@@ -717,8 +717,8 @@ bind_gen_source_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredSt
 // The generator's body lowered in its own ctx (its module, its instance) with
 // `template` installed as the `yield` sink.
 emit_fused_gen_source :: fn(ctx: FnLowerCtx, chain: IterChain, template: BodyTemplate) -> LoweredStmt[] {
-    gs :: chain.gen_source ?? panic(UNBOUND_CHAIN)
-    body :: gs.decl.body ?? panic("generator source: the generator has no body")
+    gs :: chain.gen_source else panic(UNBOUND_CHAIN)
+    body :: gs.decl.body else panic("generator source: the generator has no body")
     gen_ctx :: inline_gen_ctx(ctx, gs.decl, gs.owner, gs.subst, gs.instance, template, chain.span)
     lowered :: lower_instance_body(ctx, gen_ctx, body)
     return wrap_instance_exit(gs.instance, chain.span, block_stmts_with_trailing(lowered))

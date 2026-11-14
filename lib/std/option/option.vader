@@ -169,13 +169,13 @@ test_or_else_error :: fn() -> void {
 
 @test
 test_or_null :: fn() -> void {
-    assert_eq(ok().or_null() ?? -1, 42)
+    assert_eq(ok().or_null() else -1, 42)
     assert(bad().or_null() == null, "an error gives null")
 }
 
 @test
 test_or_null_narrows_a_concrete_error :: fn() -> void {
-    assert_eq(counted(41).or_null() ?? -1, 41)
+    assert_eq(counted(41).or_null() else -1, 41)
 }
 
 @test

@@ -115,7 +115,7 @@ cmd_new :: fn(args: string[]) -> i32 {
     }
     complaint := ""
     if wants_git {
-        complaint = init_git(target.dir) ?? ""
+        complaint = init_git(target.dir) else ""
     }
     git_initialised :: wants_git && complaint == ""
     if asking {

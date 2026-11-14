@@ -36,7 +36,7 @@ settle_runs :: fn(ctx: TaskCtx, callers: i32[][]) -> i64[][] {
         }
     }
     for work.len() > 0 {
-        callee :: work.remove_last() ?? break
+        callee :: work.remove_last() else break
         for caller in callers[callee] {
             if ctx.runs_through(runs, caller, callee) {
                 work.push(caller)
@@ -96,8 +96,8 @@ handed_fns :: fn(ctx: TaskCtx, typed: TypedProgram, site: Site) -> i32[] {
         if k >= site.sources.len() {
             continue
         }
-        source :: site.sources[k] ?? continue
-        node :: ctx.fn_node_of(typed, source) ?? continue
+        source :: site.sources[k] else continue
+        node :: ctx.fn_node_of(typed, source) else continue
         out.push(node)
     }
     return out
@@ -110,11 +110,11 @@ fn_node_of :: fn(ctx: TaskCtx, typed: TypedProgram, e: AST.Expr) -> i32 | null {
     if e !is AST.IdentExpr {
         return null
     }
-    sym :: typed.resolved.idents[e.span.hash()] ?? return null
+    sym :: typed.resolved.idents[e.span.hash()] else return null
     if sym.kind != .Fn {
         return null
     }
-    at :: sym.defined_at ?? return null
+    at :: sym.defined_at else return null
     return ctx.fn_nodes[at]
 }
 

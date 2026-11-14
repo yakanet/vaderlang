@@ -203,7 +203,7 @@ fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_prefix: 
     // the raw one, two modules that sanitise alike both start at 0 and mint
     // identical names.
     key :: mangle_module_id(ctx.typed.resolved.display_path)
-    seq :: ctx.project.lambda_seq[key] ?? 0
+    seq :: ctx.project.lambda_seq[key] else 0
     ctx.project.lambda_seq[key] = seq + 1
     return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = .Private, .defined_at = null }
 }

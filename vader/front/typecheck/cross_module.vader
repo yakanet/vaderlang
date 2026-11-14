@@ -79,7 +79,7 @@ cross_publish_trait_decls :: fn(per_module: Map<string, TypedProgram>) -> void {
     for [_, tp] in per_module {
         for [sym_id, d] in tp.trait_decls {
             decls[sym_id] = d
-            owners[sym_id] = tp.trait_decl_owners[sym_id] ?? tp.resolved
+            owners[sym_id] = tp.trait_decl_owners[sym_id] else tp.resolved
         }
     }
     for [_, tp] in per_module {
@@ -179,8 +179,8 @@ register_external :: fn(
 ) -> void {
     if entry.external_types[sym.id] !is null { return }
     if sym.module == entry.resolved.path     { return }
-    owner :: per_module[sym.module] ?? return
-    declared :: owner.decl_types[sym.id] ?? return
+    owner :: per_module[sym.module] else return
+    declared :: owner.decl_types[sym.id] else return
     entry.external_types[sym.id] = declared
     // Chained references: `Foo { bar: Bar }` where `Bar { baz: Baz }`.
     pull_referenced_external_types(declared, entry, per_module)
@@ -221,7 +221,7 @@ settle_external_expr_bodied_returns :: fn(
             if id == entry_path {
                 continue
             }
-            other_typed :: per_module[id] ?? continue
+            other_typed :: per_module[id] else continue
             // Concatenate each module's files once per iteration: `concat_file_decls`
             // copies the decl list of a multi-file module, so reuse it across the
             // gate and the walk (mirrors the import loop's `other_decls`).

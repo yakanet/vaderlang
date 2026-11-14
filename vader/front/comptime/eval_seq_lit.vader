@@ -22,10 +22,10 @@ evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalRe
     elements: ComptimeValue[]: []
     for el in expr.elements {
         r :: evaluate_expr(el, context)
-        value :: r.value ?? return r
+        value :: r.value else return r
         elements.push(value)
     }
-    inferred :: context.typed.expr_types[expr.id] ?? TY_UNRESOLVED
+    inferred :: context.typed.expr_types[expr.id] else TY_UNRESOLVED
     if tuple_backing(inferred) != null {
         fields :: Map<string, ComptimeValue> {}
         for i in 0..<elements.len() {

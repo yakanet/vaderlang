@@ -31,7 +31,7 @@ main :: fn() -> i32 {
 
     none: S.Maybe<i32>: null
     some: S.Maybe<i32>: 7
-    println("${none ?? 0} ${some ?? 0}")
+    println("${none else 0} ${some else 0}")
 
     crate :: S.empty(3)
     println(crate.label())

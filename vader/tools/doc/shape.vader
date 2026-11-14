@@ -39,14 +39,14 @@ function_of :: fn(ctx: FileContext, fd: FnDecl) -> DocFunction {
     inferred :: unwritten_return(ctx, fd)
     return DocFunction {
         .parameters = fd.params.map((p: FnParam) -> parameter_of(ctx, p)).collect(),
-        .return_type = written_type(ctx, fd.return_type) ?? inferred,
+        .return_type = written_type(ctx, fd.return_type) else inferred,
         .return_inferred = inferred.len() > 0,
     }
 }
 
 parameter_of :: fn(ctx: FileContext, p: FnParam) -> DocParameter = DocParameter {
     .name = p.name,
-    .param_type = written_type(ctx, p.ty) ?? [],
+    .param_type = written_type(ctx, p.ty) else [],
     .default = default_segments(ctx, p.default_value),
     .variadic = p.variadic,
 }
@@ -75,7 +75,7 @@ unwritten_return :: fn(ctx: FileContext, fd: FnDecl) -> DocSegment[] {
     if fd.return_type != null || fd.comptime_synthetic {
         return []
     }
-    typed :: ctx.typed ?? return []
+    typed :: ctx.typed else return []
     t :: Tc.declared_fn_type(typed, fd)
     if t is Ty.FnType {
         return shown_type(t.return_type)
@@ -89,8 +89,8 @@ unwritten_type :: fn(ctx: FileContext, d: Decl) -> DocSegment[] {
     if d !is ConstDecl || d.ty != null || is_type_value(d.value) {
         return []
     }
-    typed :: ctx.typed ?? return []
-    t :: Tc.declared_type_at(typed, d.name_span) ?? return []
+    typed :: ctx.typed else return []
+    t :: Tc.declared_type_at(typed, d.name_span) else return []
     return shown_type(t)
 }
 

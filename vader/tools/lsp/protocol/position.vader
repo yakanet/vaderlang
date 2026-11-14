@@ -160,7 +160,7 @@ location_link_json :: fn(
 ///
 /// @param raw  the URI as the client sent it.
 export canonical_uri :: fn(raw: string) -> string {
-    parsed :: parse_uri(raw).or_null() ?? return raw
+    parsed :: parse_uri(raw).or_null() else return raw
     path :: parsed.to_path()
     if path is string {
         return path.to_uri().to_string()

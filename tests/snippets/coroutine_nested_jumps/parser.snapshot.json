@@ -250,8 +250,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {
@@ -354,8 +353,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   }
                 ],
@@ -493,8 +491,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {
@@ -618,8 +615,7 @@
                             "value": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {

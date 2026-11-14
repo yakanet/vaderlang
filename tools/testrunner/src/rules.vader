@@ -48,7 +48,7 @@ compile_error_problem :: fn(case: Case, text: string) -> string | null {
     if case.name.starts_with("_diag_") {
         return null
     }
-    code :: first_error_code(text) ?? return null
+    code :: first_error_code(text) else return null
     return "the dump reports `${ERROR_OPENING}${code}]`: a snippet must compile, and a "
         + "diagnostic is pinned under `tests/diag_corpus/`"
 }
@@ -66,7 +66,7 @@ first_error_code :: fn(text: string) -> string | null {
         if before.byte_len() > 0 && is_word_byte(before.byte_at(before.byte_len() - 1)) {
             continue
         }
-        halves :: pieces[i].split_first("]") ?? continue
+        halves :: pieces[i].split_first("]") else continue
         if is_diagnostic_code(halves.0) {
             return halves.0
         }
@@ -119,7 +119,7 @@ lazy_locals_problem :: fn(case: Case, stage: Stage, lowered: string) -> string |
 // Why the task check answers otherwise on the `diagnostics` of `case` than the
 // header of its fixture says, or null; null too for a case with no such header.
 task_verdict_problem :: fn(case: Case, diagnostics: Diagnostic[]) -> string | null {
-    expected :: case.expected_tasks ?? return null
+    expected :: case.expected_tasks else return null
     answered :: task_verdict(diagnostics)
     if answered == expected {
         return null
@@ -185,12 +185,12 @@ test_an_error_diagnostic_breaks_a_feature_snippet :: fn() -> void {
 @test
 test_a_rendered_error_reads_as_its_code :: fn() -> void {
     error :: typecheck_error(.TypeMismatch, Span { .start = AT_START, .end = AT_START }, "")
-    assert_eq(first_error_code(dump_diagnostics([error])) ?? "", "T3001")
+    assert_eq(first_error_code(dump_diagnostics([error])) else "", "T3001")
 }
 
 @test
 test_an_error_code_stands_on_its_own :: fn() -> void {
-    assert_eq(first_error_code("x\nerror[T3001] y") ?? "", "T3001")
+    assert_eq(first_error_code("x\nerror[T3001] y") else "", "T3001")
     assert(first_error_code("warning[W0007] x") == null, "a warning")
     assert(first_error_code("my_error[T3001]") == null, "inside a word")
     assert(first_error_code("error[t3001]") == null, "a lowercase letter")

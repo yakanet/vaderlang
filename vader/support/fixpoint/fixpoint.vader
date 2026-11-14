@@ -111,7 +111,7 @@ enter :: fn(walk: TarjanWalk, v: i32) -> void {
 pop_component :: fn(walk: TarjanWalk, root: i32) -> i32[] {
     component: i32[]: []
     for {
-        w :: walk.stack.remove_last() ?? panic("the component stack ran out before its root")
+        w :: walk.stack.remove_last() else panic("the component stack ran out before its root")
         walk.on_stack[w] = false
         component.push(w)
         if w == root {
@@ -236,7 +236,7 @@ sorted_components :: fn(g: Graph) -> i32[][] =
 // The position of the component holding `node` in `components`.
 rank_of :: fn(components: i32[][], node: i32) -> i64 {
     rank :: (0..<components.len()).find((i) -> node in components[i])
-    return rank ?? components.len()
+    return rank else components.len()
 }
 
 @test

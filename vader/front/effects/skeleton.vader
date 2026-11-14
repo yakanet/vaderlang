@@ -182,7 +182,7 @@ add_flow :: fn(s: Skeleton, into: i64, from: i64, path: i32 = ROOT) -> void {
 /// @return  the root's number.
 add_root :: fn(s: Skeleton, slot: i64) -> i64 {
     root :: s.next_root()
-    seeds :: s.seeds ?? Map<i64, i64> {}
+    seeds :: s.seeds else Map<i64, i64> {}
     seeds[root] = slot
     s.seeds = seeds
     return root
@@ -193,7 +193,7 @@ is_seed :: fn(s: Skeleton, root: i64) -> bool {
     if root < s.params {
         return false
     }
-    seeds :: s.seeds ?? return false
+    seeds :: s.seeds else return false
     return root in seeds
 }
 
@@ -334,14 +334,14 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
     took :: Map<i64, Root[]> {}
     mixed :: Set<i64> {}
     for f in s.flows {
-        copy :: f.copy ?? continue
-        roots :: slots.roots[f.from] ?? continue
+        copy :: f.copy else continue
+        roots :: slots.roots[f.from] else continue
         for r in roots {
             if !s.is_seed(r.param) || r.under != ROOT {
                 mixed.add(copy)
                 continue
             }
-            held :: r.carried(f, ctx.paths) ?? continue
+            held :: r.carried(f, ctx.paths) else continue
             took.get_or_put_with(copy, () -> []).push(held)
         }
     }
@@ -365,7 +365,7 @@ apply_constraints :: fn(
     grew := false
     for i in 0..<s.marks.len() {
         m :: s.marks[i]
-        roots :: slots.roots[m.slot] ?? continue
+        roots :: slots.roots[m.slot] else continue
         if mark_roots(marked, roots, m.access, ctx.paths, false, mark_origin(i)) {
             grew = true
         }
@@ -435,7 +435,7 @@ spread :: fn(slots: SlotRoots, s: Skeleton, ctx: EvalCtx, flows: Flow[]) -> void
 
 // How many roots slot `slot` holds.
 held_count :: fn(slots: SlotRoots, slot: i64) -> i64 {
-    roots :: slots.roots[slot] ?? return 0
+    roots :: slots.roots[slot] else return 0
     return roots.len()
 }
 
@@ -480,10 +480,10 @@ reroot :: fn(
     s: Skeleton,
     paths: PathTable,
 ) -> bool {
-    roots :: slots.roots[f.from] ?? return false
+    roots :: slots.roots[f.from] else return false
     grew := false
     for i in start..<end {
-        held :: flowed_root(roots[i], f, s, paths) ?? continue
+        held :: flowed_root(roots[i], f, s, paths) else continue
         if slots.include_root(f.into, held) {
             grew = true
         }
@@ -608,10 +608,10 @@ reroot_below :: fn(
     paths: PathTable,
     recursive: bool,
 ) -> bool {
-    roots :: slots.roots[from] ?? return false
+    roots :: slots.roots[from] else return false
     grew := false
     for i in start..<end {
-        below :: paths.moved(roots[i], path, under, recursive) ?? continue
+        below :: paths.moved(roots[i], path, under, recursive) else continue
         if slots.include_root(into, below) {
             grew = true
         }
@@ -628,14 +628,14 @@ collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: i6
     for target in site.targets {
         recursive :: ctx.recursive(target)
         for q in 0..<site.args.len() {
-            arg :: site.args[q] ?? continue
+            arg :: site.args[q] else continue
             start :: collected[site.first_argument + q]
             end :: slots.held_count(arg)
             if start == end {
                 continue
             }
             for a in target_accesses(target, ctx.facts, q, ctx.any) {
-                into :: site.receiver(target, a) ?? continue
+                into :: site.receiver(target, a) else continue
                 if slots.reroot_below(
                     arg,
                     start,
@@ -652,7 +652,7 @@ collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: i6
         }
     }
     for q in 0..<site.args.len() {
-        arg :: site.args[q] ?? continue
+        arg :: site.args[q] else continue
         collected[site.first_argument + q] = slots.held_count(arg)
     }
     return grew
@@ -705,8 +705,8 @@ apply_site :: fn(
         target :: site.targets[t]
         recursive :: ctx.recursive(target)
         for q in 0..<site.args.len() {
-            arg :: site.args[q] ?? continue
-            roots :: slots.roots[arg] ?? continue
+            arg :: site.args[q] else continue
+            roots :: slots.roots[arg] else continue
             how :: call_origin(index, t, q)
             for a in target_accesses(target, ctx.facts, q, ctx.any) {
                 then :: access_key(a)
@@ -748,7 +748,7 @@ mark_handed :: fn(
     }
     grew := false
     for r in roots {
-        below :: paths.lands_at(r, a.path, .Handed, recursive) ?? continue
+        below :: paths.lands_at(r, a.path, .Handed, recursive) else continue
         if value is ParamArg && r.param < params {
             handed :: handed_to(below, value.param, a.fn_arg)
             if paths.include_access(out[r.param], handed, how, then) {
@@ -837,7 +837,7 @@ mark_root :: fn(
     then: i64,
 ) -> bool {
     if r.under != ROOT || a.under != ROOT {
-        access :: paths.landed(r, a, recursive) ?? return false
+        access :: paths.landed(r, a, recursive) else return false
         return paths.include_access(effects, access, how, then)
     }
     below :: paths.composed(r.path, a.path, recursive)
@@ -852,10 +852,10 @@ mark_root :: fn(
 // it misses `r`.
 landed :: fn(paths: PathTable, r: Root, a: Access, recursive: bool) -> Access | null {
     if a.effect != .Returned {
-        below :: paths.lands_at(r, a.path, a.effect, recursive) ?? return null
+        below :: paths.lands_at(r, a.path, a.effect, recursive) else return null
         return a.plain_at(below)
     }
-    held :: paths.moved(r, a.path, a.under, recursive) ?? return null
+    held :: paths.moved(r, a.path, a.under, recursive) else return null
     if held.path == a.path && held.under == a.under && is_plain(a) {
         return a
     }
@@ -1073,7 +1073,7 @@ test_lands_at_spares_a_root_whose_holder_is_assigned :: fn() -> void {
 @test
 test_lands_at_keeps_a_root_whole_with_what_holds_it :: fn() -> void {
     t :: PathTable {}
-    kept :: t.lands_at(iterator_root(t), ROOT, .Stored) ?? -1
+    kept :: t.lands_at(iterator_root(t), ROOT, .Stored) else -1
     assert_eq(kept, t.joined(t.path_to("bots"), t.path_to(ELEMENT)))
 }
 

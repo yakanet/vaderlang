@@ -68,15 +68,15 @@ may_prove_an_access :: fn(fn_: CFGFunction) -> bool {
             if ins is InstrArrayLen {
                 measured.add(ins.target)
             }
-            target :: indexed_array(ins) ?? continue
-            sites[target] = (sites[target] ?? 0) + 1
+            target :: indexed_array(ins) else continue
+            sites[target] = (sites[target] else 0) + 1
             if is_checked_access(ins) {
                 checked.add(target)
             }
         }
     }
     for target in checked {
-        if target in measured || (sites[target] ?? 0) > 1 {
+        if target in measured || (sites[target] else 0) > 1 {
             return true
         }
     }

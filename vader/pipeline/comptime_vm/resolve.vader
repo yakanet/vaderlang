@@ -120,7 +120,7 @@ evaluate_layer :: fn(
     lowered: Ct.VmRequiredDecl[]: []
     callees: string[]: []
     for vr in pending {
-        callee :: staged_callee(cfg, module, vr.callee_decl_id) ?? continue
+        callee :: staged_callee(cfg, module, vr.callee_decl_id) else continue
         lowered.push(vr)
         callees.push(callee)
     }
@@ -258,10 +258,10 @@ report_cycle :: fn(
     by_callee: Map<string, Ct.VmRequiredDecl>,
     diags: Diagnostic[],
 ) -> void {
-    head :: by_callee[cycle[0]] ?? return
+    head :: by_callee[cycle[0]] else return
     names: string[]: []
     for callee in cycle {
-        decl :: by_callee[callee] ?? continue
+        decl :: by_callee[callee] else continue
         names.push(decl.name)
     }
     diags.push(comptime_error(.DependencyCycle, head.span, Ct.display_cycle(names)))
@@ -346,14 +346,14 @@ export copy_baked_values :: fn(
                 "the build machine's `@target` bodies evaluate it another way"))
             continue
         }
-        value :: deferred[vr.span.hash()] ?? continue
+        value :: deferred[vr.span.hash()] else continue
         inject(into, vr, value)
     }
 }
 
 // What the VM baked for `vr` in `evaluated`, or null when it did not.
 baked_value :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl) -> Ct.ComptimeValue | null {
-    program :: evaluated.modules[vr.module_id] ?? return null
+    program :: evaluated.modules[vr.module_id] else return null
     return program.comptime_decls[vr.symbol_id]
 }
 

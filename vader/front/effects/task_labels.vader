@@ -30,7 +30,7 @@ visible_path :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: i32) -> i32 {
     steps :: paths.steps_of(path)
     at := body.root_type(root)
     for k in 0..<steps.len() {
-        t :: at ?? return path
+        t :: at else return path
         name :: paths.step_names[steps[k]]
         if body.hides(t, name) {
             return paths.prefix(path, i32(k))
@@ -43,8 +43,8 @@ visible_path :: fn(ctx: TaskCtx, body: TaskBody, root: i64, path: i32) -> i32 {
 // Whether the field `name` of a value of type `t` is `@internal` to another module
 // than the one of `body`.
 hides :: fn(body: TaskBody, t: Type, name: string) -> bool {
-    st :: struct_backing(t) ?? return false
-    field :: struct_field_info(body.typed, st.symbol.id, name) ?? return false
+    st :: struct_backing(t) else return false
+    field :: struct_field_info(body.typed, st.symbol.id, name) else return false
     return field_hidden_here(field, body.typed)
 }
 
@@ -116,7 +116,7 @@ through :: fn(ctx: TaskCtx, body: TaskBody, ts: Touch[], what: string) -> string
     lines: i32[]: []
     file := ""
     for t in ts {
-        at :: ctx.where_made(t) ?? continue
+        at :: ctx.where_made(t) else continue
         if at.start.line !in lines {
             lines.push(at.start.line)
         }
@@ -154,7 +154,7 @@ where_made :: fn(ctx: TaskCtx, t: Touch) -> Span | null {
     if t.made != null {
         return t.made
     }
-    c :: t.access ?? return null
+    c :: t.access else return null
     return ctx.made_at(c)
 }
 
@@ -167,6 +167,6 @@ made_at :: fn(ctx: TaskCtx, c: CalleeAccess) -> Span | null {
     if mark != null {
         return s.marks[mark].at
     }
-    call :: origin_call(how) ?? return null
+    call :: origin_call(how) else return null
     return s.sites[call.0].at
 }

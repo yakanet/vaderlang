@@ -118,13 +118,13 @@ export is_int_name :: fn(name: string) -> bool = machine_integer_named(name) != 
 
 /// Whether `name` spells a signed machine integer.
 export is_signed_int_name :: fn(name: string) -> bool {
-    m :: machine_integer_named(name) ?? return false
+    m :: machine_integer_named(name) else return false
     return m.is_signed
 }
 
 /// Whether `name` spells an unsigned machine integer.
 export is_unsigned_int_name :: fn(name: string) -> bool {
-    m :: machine_integer_named(name) ?? return false
+    m :: machine_integer_named(name) else return false
     return !m.is_signed
 }
 
@@ -143,7 +143,7 @@ export primitive_size :: fn(name: string) -> i64 {
     if integer != null {
         return integer.bits / 8
     }
-    m :: primitive_meta(name) ?? return 0
+    m :: primitive_meta(name) else return 0
     return m.size
 }
 

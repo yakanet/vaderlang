@@ -133,7 +133,7 @@ loop_of :: fn(scope: CScope) -> CStatement {
         if core is CIf && (core.end_label == "" || scope.end_label == "") {
             end_label :: if core.end_label == "" { scope.end_label } else { core.end_label }
             // An empty then-arm loops on the else-arm, under the test negated.
-            test :: negated(core, core.end_label) ?? core
+            test :: negated(core, core.end_label) else core
             if test.else_block == null && ends_with_continue(test.then_block) {
                 return CWhile {
                     .label = scope.label,
@@ -179,7 +179,7 @@ is_empty :: fn(block: CBlock) -> bool = leading_directives(block.body) == block.
 
 // Whether control can fall off the end of `statements`.
 end_is_reachable :: fn(statements: CStatement[]) -> bool {
-    tail :: tail_statement(statements) ?? return true
+    tail :: tail_statement(statements) else return true
     // @partial: every other statement hands control to the next one.
     return @partial match tail {
         is CContinue | CBreak -> tail.condition != null
@@ -325,7 +325,7 @@ tidy_block :: fn(block: CBlock, used: Set<string>) -> void {
 // `end_label`, when its then-arm is empty and its else-arm is not; null
 // otherwise.
 negated :: fn(statement: CIf, end_label: string) -> CIf | null {
-    else_block :: statement.else_block ?? return null
+    else_block :: statement.else_block else return null
     if !is_empty(statement.then_block) || is_empty(else_block) {
         return null
     }

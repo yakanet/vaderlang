@@ -33,9 +33,9 @@ UfcsMember :: struct {
 is_identity_member :: fn(m: FnDecl) -> bool {
     if !m.is_expression_bodied { return false }
     if m.params.len() != 1 { return false }
-    b :: m.body ?? return false
+    b :: m.body else return false
     if !b.stmts.is_empty() { return false }
-    t :: b.trailing ?? return false
+    t :: b.trailing else return false
     if t is IdentExpr { return t.name == m.params[0].name }
     return false
 }
@@ -113,7 +113,7 @@ resolve_impl_member :: fn(
     }
     for entry in covering_first(candidates, target_type) {
         decl :: entry.decl
-        m :: select_member(entry, name) ?? continue
+        m :: select_member(entry, name) else continue
         if !decorators_have(decl.decorators, "intrinsic") {
             return member_or_instance(ctx, target_type, m, entry, own_args)
         }
@@ -274,7 +274,7 @@ impl_member_arg_types :: fn(
     member: FnDecl,
     entry: ImplEntry,
 ) -> Type[] {
-    entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] ?? return []
+    entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] else return []
     candidates :: impl_candidates(entry_typed, recv_type, "::${member.name}")
     if candidates.len() == 0 {
         return []
@@ -308,7 +308,7 @@ surface_array_variants :: fn(
     trait_key: string,
     method: string,
 ) -> void {
-    for v in union_variants(receiver) ?? [receiver] {
+    for v in union_variants(receiver) else [receiver] {
         if v is ArrayType {
             resolve_impl_member(ctx, v, trait_key, method)
         }
@@ -326,9 +326,9 @@ surface_array_into_trait :: fn(ctx: FnLowerCtx, value: Type, slot: Type) -> void
     if value !is ArrayType && value !is UnionType {
         return
     }
-    for wanted in union_variants(slot) ?? [slot] {
+    for wanted in union_variants(slot) else [slot] {
         if wanted is TraitType {
-            trait_decl :: ctx.typed.trait_decls[wanted.symbol.id] ?? continue
+            trait_decl :: ctx.typed.trait_decls[wanted.symbol.id] else continue
             trait_key :: trait_key_of(wanted.symbol)
             for m in trait_decl.members {
                 surface_array_variants(ctx, value, trait_key, m.name)
@@ -382,7 +382,7 @@ member_named :: fn(
     name: string,
     own_args: Type[] | null = null,
 ) -> UfcsMember | null {
-    m :: select_member(entry, name) ?? return null
+    m :: select_member(entry, name) else return null
     return member_or_instance(ctx, receiver, m, entry, own_args)
 }
 
@@ -392,7 +392,7 @@ member_or_instance :: fn(
     ctx: FnLowerCtx, target: Type, m: FnDecl, entry: ImplEntry, own_args: Type[] | null,
 ) -> UfcsMember | null {
     if m.type_params.len() > 0 {
-        return member_instance(ctx, target, m, entry, own_args ?? [])
+        return member_instance(ctx, target, m, entry, own_args else [])
     }
     return build_ufcs_member(ctx, target, m, entry, is_identity_member(m))
 }
@@ -427,7 +427,7 @@ impl_target_segment :: fn(impl_module: string, target: Type) -> string {
     if is_structural(target) && !has_type_param(target) {
         return sanitise_ident(qualified_display_type(target))
     }
-    sym :: type_to_target_symbol(target) ?? return shape_segment(target)
+    sym :: type_to_target_symbol(target) else return shape_segment(target)
     return impl_symbol_segment(impl_module, sym)
 }
 
@@ -500,8 +500,8 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     if call.callee !is IdentExpr && ctx.types.expr_type(call.callee) is TypeMetaType {
         return emit_value_cast(ctx, call, type)
     }
-    callee_ident :: as_ident(call.callee) ?? return null
-    callee_symbol :: resolve_ident(ctx, callee_ident.span) ?? return null
+    callee_ident :: as_ident(call.callee) else return null
+    callee_symbol :: resolve_ident(ctx, callee_ident.span) else return null
     // Follow an import binding first : a renamed import (`{ Info as I }`) and a
     // cross-module distinct both carry their kind and their `alias_types` entry
     // on the DEFINING symbol, not on the binding.
@@ -540,7 +540,7 @@ converts_integer_into_char :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) 
 // conversion, which checks nothing.
 checked_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) -> LoweredExpr | null {
     if is_refinement(target) || target is TypeParamType {
-        target_range :: instance_range(ctx, target) ?? return null
+        target_range :: instance_range(ctx, target) else return null
         return lower_range_conversion(ctx, call, target_range)
     }
     if target is EnumType && target.data == null {

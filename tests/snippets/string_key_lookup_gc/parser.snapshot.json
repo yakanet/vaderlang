@@ -421,8 +421,7 @@
                                         "value": "0n"
                                       }
                                     }
-                                  ],
-                                  "coalesce": true
+                                  ]
                                 },
                                 "right": {
                                   "kind": "IntLitExpr",

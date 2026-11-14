@@ -259,7 +259,7 @@ chain_position :: fn(t: PathTable, p: i32, depth: i32) -> i32 | null {
 /// @param a      an access of the callee's parameter.
 /// @param depth  how many arrays deep the element was widened (`widening_depth`).
 breaks_widening :: fn(t: PathTable, a: Access, depth: i32) -> bool {
-    k :: t.chain_position(a.path, depth) ?? return false
+    k :: t.chain_position(a.path, depth) else return false
     return match a.effect {
         .Shrunk -> false
         .Assigned -> k >= 1 || t.nodes[a.path].deeper
@@ -501,7 +501,7 @@ covered :: fn(
     destination: i64,
 ) -> bool {
     key :: key_at(path, effect, destination)
-    keys :: effects.keys ?? return t.find_access(effects, key) != null
+    keys :: effects.keys else return t.find_access(effects, key) != null
     if key in keys {
         return true
     }
@@ -523,7 +523,7 @@ covered :: fn(
 // origin of the first it drops, null when it drops none. The set is rebuilt only
 // when `a` covers one.
 drop_covered :: fn(t: PathTable, effects: ParamEffects, a: Access) -> [i64, i64] | null {
-    first :: t.first_covered(a, effects) ?? return null
+    first :: t.first_covered(a, effects) else return null
     origin: [i64, i64]: [effects.constraint_at(first), effects.carried_at(first)]
     kept: Access[]: []
     origins: i64[]: []

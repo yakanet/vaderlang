@@ -80,7 +80,7 @@ greet :: fn(name: string | null) -> string {
 
 main :: fn() -> i32 {
     println("${plan(6)} ${plan(2)} ${early_out(5)} ${early_out(0)}")
-    println("${lie_in(6) ?? 6} ${lie_in(5) == null} ${shared_rest(5, 6)} ${shared_rest(5, 2)}")
+    println("${lie_in(6) else 6} ${lie_in(5) == null} ${shared_rest(5, 6)} ${shared_rest(5, 2)}")
     println("${effort(Walk { .km = 4 })} ${effort(Swim { .laps = 12 })}")
     println("${greet("Ada")} ${greet(null)}")
     return 0

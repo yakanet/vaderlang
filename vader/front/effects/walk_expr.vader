@@ -41,7 +41,7 @@ converted :: fn(ctx: WalkCtx, e: AST.Expr, held: i64 | null) -> i64 | null =
 converted_by :: fn(
     ctx: WalkCtx, callee: Callee | null, held: i64 | null, source: AST.Expr,
 ) -> i64 | null {
-    conversion :: callee ?? return held
+    conversion :: callee else return held
     result :: ctx.call(conversion, [held], source.span, [source])
     if result == null {
         return held
@@ -87,14 +87,14 @@ intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
     }
     target :: ctx.value(e.args[0])
     ctx.discard(e.args[1])
-    name :: AST.string_literal_text(e.args[1]) ?? return ctx.any_field(e.args[0], target)
+    name :: AST.string_literal_text(e.args[1]) else return ctx.any_field(e.args[0], target)
     return ctx.step_slot(target, name)
 }
 
 // What `target`, the value of `source`, holds in any field that holds references ;
 // anything below it when its fields are not known.
 any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: i64 | null) -> i64 | null {
-    fields :: ctx.struct_fields_of(source) ?? return ctx.path_slot(target, EVERYWHERE)
+    fields :: ctx.struct_fields_of(source) else return ctx.path_slot(target, EVERYWHERE)
     held: (i64 | null)[]: []
     for [name, field] in fields {
         if holds_references(field.ty) {
@@ -106,7 +106,7 @@ any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: i64 | null) -> i64 | nul
 
 // Walk the arguments `e` runs (`Parse.is_evaluated`).
 evaluated_arguments_walked :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
-    spec :: Parse.intrinsic_spec(e.name) ?? return ctx.sequence_walked(e.args)
+    spec :: Parse.intrinsic_spec(e.name) else return ctx.sequence_walked(e.args)
     for i in 0..<e.args.len() {
         if Parse.is_evaluated(Parse.arg_kind(spec, i)) {
             ctx.discard(e.args[i])
@@ -125,7 +125,7 @@ sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> i64 | null {
 
 // A parameter's or a local's slot, or a use of a frozen constant.
 ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> i64 | null {
-    sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
+    sym :: ctx.typed.resolved.idents[e.span.hash()] else return null
     local :: ctx.slots[sym.id]
     if local != null {
         if e.id !in ctx.place_bases {
@@ -148,7 +148,7 @@ field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> i64 | null {
         return null
     }
     member :: namespace_member_symbol(e, ctx.index.project, ctx.typed)
-        ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
+        else return ctx.step_slot(ctx.value(e.target), field_step(e))
     return ctx.frozen_use(e, member)
 }
 
@@ -170,7 +170,7 @@ index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> i64 | null {
 // ---- calls ----------------------------------------------------------------
 
 call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
-    callee :: ctx.site_callee(.Call, c.id) ?? UnsettledCallee {}
+    callee :: ctx.site_callee(.Call, c.id) else UnsettledCallee {}
     sources :: ctx.call_sources(c, callee)
     args: (i64 | null)[]: []
     fn_args: (LambdaArg | ParamArg | null)[]: []
@@ -198,7 +198,7 @@ fn_arg :: fn(ctx: WalkCtx, source: AST.Expr) -> LambdaArg | ParamArg | null {
     if source is AST.LambdaExpr {
         return LambdaArg { .params = ctx.lambda_params }
     }
-    param :: ctx.param_named(source) ?? return null
+    param :: ctx.param_named(source) else return null
     return ParamArg { .param = param }
 }
 
@@ -257,7 +257,7 @@ single :: fn(args: (i64 | null)[]) -> i64 | null {
 binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> i64 | null {
     left :: ctx.value(e.left)
     right :: ctx.value(e.right)
-    operator :: ctx.site_callee(.Operator, e.id) ?? return null
+    operator :: ctx.site_callee(.Operator, e.id) else return null
     if e.op == .In || e.op == .NotIn {
         return ctx.call(operator, [right, left], e.span, [e.right, e.left])
     }
@@ -349,7 +349,7 @@ block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> i64 | null {
     for s in b.stmts {
         ctx.stmt(s)
     }
-    trailing :: b.trailing ?? return null
+    trailing :: b.trailing else return null
     return ctx.value(trailing)
 }
 
@@ -360,7 +360,7 @@ lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> i64 | null {
     if ctx.binds_lambda_params {
         ctx.binds_lambda_params = false
         for p in l.params {
-            sym :: ctx.typed.resolved.idents[p.span.hash()] ?? continue
+            sym :: ctx.typed.resolved.idents[p.span.hash()] else continue
             bound.push(ctx.local_slot(sym, p.span))
         }
     }
@@ -396,7 +396,7 @@ struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
 // `literal` holds each field of `source` that `named` leaves out, as a spread copies
 // it ; all of `source` when its fields are not known.
 spread :: fn(ctx: WalkCtx, literal: i64, source: AST.Expr, named: Set<string>) -> void {
-    slot :: ctx.value(source) ?? return
+    slot :: ctx.value(source) else return
     fields :: ctx.struct_fields_of(source)
     if fields == null {
         ctx.hold(literal, slot, EVERYWHERE, ROOT, source.span)
@@ -412,7 +412,7 @@ spread :: fn(ctx: WalkCtx, literal: i64, source: AST.Expr, named: Set<string>) -
 
 // The fields of the struct `e` evaluates to.
 struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> Map<string, StructFieldInfo> | null {
-    t :: ctx.typed.expr_types[e.id] ?? return null
+    t :: ctx.typed.expr_types[e.id] else return null
     if t !is StructType {
         return null
     }

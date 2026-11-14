@@ -64,15 +64,15 @@ fact_right :: fn(key: u64) -> LocalId = LocalId(i32(key & 0xFFFF_FFFF))
 join_range_states :: fn(a: RangeState, b: RangeState) -> RangeState {
     out :: new_range_state()
     for [local, iv] in a.intervals {
-        theirs :: b.intervals[local] ?? continue
+        theirs :: b.intervals[local] else continue
         out.intervals[local] = interval_join(iv, theirs)
     }
     for [key, c] in a.differences {
-        theirs :: b.differences[key] ?? continue
+        theirs :: b.differences[key] else continue
         out.differences[key] = greater(c, theirs)
     }
     for [n, array] in a.lengths {
-        theirs :: b.lengths[n] ?? continue
+        theirs :: b.lengths[n] else continue
         if theirs == array {
             out.lengths[n] = array
         }
@@ -92,12 +92,12 @@ join_range_states :: fn(a: RangeState, b: RangeState) -> RangeState {
 widen_range_states :: fn(old: RangeState, new: RangeState, thresholds: i64[]) -> void {
     // Written as it is walked: only keys already there, which the walk allows.
     for [local, iv] in new.intervals {
-        before :: old.intervals[local] ?? continue
+        before :: old.intervals[local] else continue
         new.intervals[local] = interval_widen(before, iv, thresholds)
     }
     grown: u64[]: []
     for [key, c] in new.differences {
-        before :: old.differences[key] ?? continue
+        before :: old.differences[key] else continue
         if c > before {
             grown.push(key)
         }
@@ -113,19 +113,19 @@ widen_range_states :: fn(old: RangeState, new: RangeState, thresholds: i64[]) ->
 /// change nothing.
 range_state_covers :: fn(outer: RangeState, inner: RangeState) -> bool {
     for [local, iv] in outer.intervals {
-        theirs :: inner.intervals[local] ?? return false
+        theirs :: inner.intervals[local] else return false
         if !interval_within(theirs, iv) {
             return false
         }
     }
     for [key, c] in outer.differences {
-        theirs :: inner.differences[key] ?? return false
+        theirs :: inner.differences[key] else return false
         if theirs > c {
             return false
         }
     }
     for [n, array] in outer.lengths {
-        theirs :: inner.lengths[n] ?? return false
+        theirs :: inner.lengths[n] else return false
         if theirs != array {
             return false
         }
@@ -140,19 +140,19 @@ same_range_state :: fn(a: RangeState, b: RangeState) -> bool {
         return false
     }
     for [local, iv] in a.intervals {
-        theirs :: b.intervals[local] ?? return false
+        theirs :: b.intervals[local] else return false
         if !same_interval(iv, theirs) {
             return false
         }
     }
     for [key, c] in a.differences {
-        theirs :: b.differences[key] ?? return false
+        theirs :: b.differences[key] else return false
         if theirs != c {
             return false
         }
     }
     for [n, array] in a.lengths {
-        theirs :: b.lengths[n] ?? return false
+        theirs :: b.lengths[n] else return false
         if theirs != array {
             return false
         }
@@ -231,10 +231,10 @@ test_join_range_states_keeps_what_both_know :: fn() -> void {
     a.lengths[LocalId(4)] = LocalId(9)
     b.lengths[LocalId(4)] = LocalId(9)
     joined :: join_range_states(a, b)
-    one :: joined.intervals[LocalId(1)] ?? ANY_INTEGER
+    one :: joined.intervals[LocalId(1)] else ANY_INTEGER
     assert(same_interval(one, interval(0, 7)), "joined interval")
     assert(joined.intervals[LocalId(2)] == null, "a local one path leaves open")
-    assert_eq(joined.differences[fact_key(LocalId(1), LocalId(2))] ?? 99, 0)
+    assert_eq(joined.differences[fact_key(LocalId(1), LocalId(2))] else 99, 0)
     assert(joined.differences[fact_key(LocalId(3), LocalId(2))] == null, "facts both know")
     assert(joined.lengths[LocalId(4)] == LocalId(9), "length both know")
 }
@@ -268,9 +268,9 @@ test_widen_range_states_drops_a_growing_fact :: fn() -> void {
     new.intervals[LocalId(1)] = interval(0, 1)
     new.differences[fact_key(LocalId(3), LocalId(2))] = 0
     widen_range_states(old, new, thresholds)
-    one :: new.intervals[LocalId(1)] ?? ANY_INTEGER
+    one :: new.intervals[LocalId(1)] else ANY_INTEGER
     assert(same_interval(one, interval(0, 10)), "interval widened")
-    assert_eq(new.differences[fact_key(LocalId(1), LocalId(2))] ?? 99, -1)
+    assert_eq(new.differences[fact_key(LocalId(1), LocalId(2))] else 99, -1)
     assert(new.differences[fact_key(LocalId(3), LocalId(2))] == null, "growing fact dropped")
 }
 
@@ -320,7 +320,7 @@ test_forget_local_drops_its_facts :: fn() -> void {
     forget_local(s, LocalId(1))
     assert(s.intervals[LocalId(1)] == null, "interval")
     assert(s.differences.len() == 1, "facts it takes part in")
-    assert_eq(s.differences[fact_key(LocalId(2), LocalId(3))] ?? 99, -1)
+    assert_eq(s.differences[fact_key(LocalId(2), LocalId(3))] else 99, -1)
     assert(s.lengths[LocalId(5)] == null, "the array it held the length of")
     assert(s.lengths[LocalId(1)] == null, "the length it held")
     assert(s.lengths[LocalId(7)] == LocalId(8), "a length without it")

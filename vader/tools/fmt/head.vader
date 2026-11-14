@@ -327,7 +327,7 @@ head_printer :: fn(source: string) -> Printer {
 // What `h` wrote, with the names it noted.
 finish_named :: fn(h: Printer) -> NamedText = NamedText {
     .text = h.finish(),
-    .names = h.names ?? [],
+    .names = h.names else [],
 }
 
 // `NAME :: value`, `NAME: T: value`, or their `@comptime` form: the operand the

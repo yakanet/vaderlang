@@ -34,7 +34,7 @@ export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
     sb.append("# effects\n")
     for path in by_module.keys().collect().sort((a, b) -> a < b) {
         sb.append("\n## ${path}\n")
-        nodes :: by_module[path] ?? []
+        nodes :: by_module[path] else []
         for node in sort(nodes, (a, b) -> comes_before(summary, a, b)) {
             write_function(sb, summary, node)
         }
@@ -123,7 +123,7 @@ write_chain :: fn(sb: StringBuilder, chain: FaultChain) -> void {
     for hop in chain.via {
         sb.append("    via ${hop.callee} (`${hop.param}`) ${position_of(hop.module, hop.span)}\n")
     }
-    write :: chain.write ?? return
+    write :: chain.write else return
     sb.append("    ${effect_label(write.effect)} ${write.place}")
     by :: write.by
     if by != null {

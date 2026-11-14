@@ -219,7 +219,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
     // default (or a default referencing an earlier param) resolves through
     // `subst`. Bind in order so a later default can reference an earlier one.
     for i in n..<trait_.type_params.len() {
-        d :: trait_.type_params[i].default ?? break
+        d :: trait_.type_params[i].default else break
         bind(subst, trait_.type_params[i].name, substitute_type_expr(d, subst))
     }
     return subst
@@ -362,8 +362,8 @@ Square implements Shape {
 }
 """
     parsed :: parse_source(src, "t.vader")
-    trait_decl :: find_trait(parsed.program.decls, "Shape") ?? panic("the trait should parse")
-    impl_decl :: find_impl(parsed.program.decls) ?? panic("the impl should parse")
+    trait_decl :: find_trait(parsed.program.decls, "Shape") else panic("the trait should parse")
+    impl_decl :: find_impl(parsed.program.decls) else panic("the impl should parse")
     materialize_default_members(impl_decl, trait_decl, new_node_id_factory())
     assert_eq(impl_decl.members.len(), 2)
     twice :: impl_decl.members[1]

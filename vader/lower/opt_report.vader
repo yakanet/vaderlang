@@ -71,7 +71,7 @@ render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
     }
     counts :: Map<string, i32> {}
     for m in ctx.opt_misses {
-        counts[m.pass] = (counts[m.pass] ?? 0) + 1
+        counts[m.pass] = (counts[m.pass] else 0) + 1
     }
     out :: StringBuilder {}
     out.append("\n[VADER_OPT_REPORT] optimisations that handed over to the general path\n")

@@ -54,7 +54,7 @@ new_dump_names :: fn(project: LoweredProject, typed: TypedProject) -> DumpNames 
     for n in named {
         printed :: printed_name(n, shared)
         names.by_mangle[n.mangled] = printed
-        symbol :: n.origin.symbol ?? continue
+        symbol :: n.origin.symbol else continue
         names.by_symbol[symbol.id] = printed
     }
     return names
@@ -90,7 +90,7 @@ trait_names :: fn(named: NamedDecl[], typed: TypedProject) -> Map<string, string
         if !seen.add(n.origin.module) {
             continue
         }
-        module :: typed.modules[n.origin.module] ?? continue
+        module :: typed.modules[n.origin.module] else continue
         for symbol in module.resolved.symbols {
             if symbol.kind == .Trait {
                 traits[trait_key_of(symbol)] = "${dotted(symbol.module_name)}.${symbol.name}"
@@ -110,7 +110,7 @@ qualified_name :: fn(
     if symbol != null && is_made_up(symbol) {
         return mangled
     }
-    module :: typed.modules[origin.module] ?? return mangled
+    module :: typed.modules[origin.module] else return mangled
     path :: dotted(module.resolved.display_path)
     decl :: origin.decl
     if decl is FnDecl {
@@ -172,7 +172,7 @@ symbol_text :: fn(names: DumpNames, symbol: Symbol) -> string {
 }
 
 declared_text :: fn(names: DumpNames, mangled: string) -> string =
-    names.by_mangle[mangled] ?? mangled
+    names.by_mangle[mangled] else mangled
 
 // A declaration's mangled name as a trailing comment when it prints under
 // another, so a grep from the bytecode or the C finds it.
@@ -187,4 +187,4 @@ mangle_comment :: fn(names: DumpNames, mangled: string) -> string {
 declared_line :: fn(names: DumpNames, mangled: string) -> string =
     "${declared_text(names, mangled)}${mangle_comment(names, mangled)}"
 
-trait_text :: fn(names: DumpNames, key: string) -> string = names.traits[key] ?? key
+trait_text :: fn(names: DumpNames, key: string) -> string = names.traits[key] else key

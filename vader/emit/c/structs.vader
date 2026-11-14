@@ -340,7 +340,7 @@ union_field_place :: fn(
 ) -> UnionFieldPlace {
     types :: s.ctx.module.types
     layout :: union_layout_struct(types, type_id)
-        ?? panic("c_emit: a union field access on type ${type_id}, no union of structs")
+        else panic("c_emit: a union field access on type ${type_id}, no union of structs")
     t :: types[layout]
     if t !is BcStruct {
         panic("c_emit: the layout of union ${type_id} is no struct")

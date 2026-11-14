@@ -402,7 +402,7 @@ join_indices :: fn(xs: i32[]) -> string {
 // `<lib>:` before the symbol of an import that names a library, `""` otherwise.
 // The colon marks the library, its name may be empty.
 library_prefix :: fn(imp: BcImport) -> string {
-    library :: imp.library ?? return ""
+    library :: imp.library else return ""
     return "${library.name}:"
 }
 
@@ -1021,7 +1021,7 @@ field_label :: fn(module: BytecodeModule, type_id: i32, field_index: i32) -> str
     }
     // A field read off a union is named by the variant its layout comes from.
     if t is BcUnion {
-        layout :: union_layout_struct(module.types, type_id) ?? return "<field #${field_index}>"
+        layout :: union_layout_struct(module.types, type_id) else return "<field #${field_index}>"
         return field_label(module, layout, field_index)
     }
     return "<field #${field_index}>"

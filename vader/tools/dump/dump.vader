@@ -111,7 +111,7 @@ lowered_entry :: fn(input: DumpInput) -> LoweredEntry {
     // Unless a stage kept it, the evaluated pipeline goes once lowered: its side
     // tables would otherwise stay live at the peak of the bytecode tail. A stage
     // that reads both asks for the pipeline first, so the lowering reuses it.
-    lowering :: lower_to_entry_from(input.pipeline ?? front_end(input))
+    lowering :: lower_to_entry_from(input.pipeline else front_end(input))
     input.lowering = lowering
     return lowering
 }

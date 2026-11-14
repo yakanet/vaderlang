@@ -388,7 +388,7 @@ same_variant :: fn(a: Type, b: Type) -> bool =
 /// @param t        an operand's type.
 /// @param variant  a variant of the other operand.
 export counterpart :: fn(t: Type, variant: Type) -> Type | null {
-    for v in union_variants(t) ?? [t] {
+    for v in union_variants(t) else [t] {
         if same_variant(v, variant) {
             return v
         }

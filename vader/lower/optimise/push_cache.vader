@@ -176,7 +176,7 @@ pc_try_cache :: fn(ctx: PurityCtx, lp: LoweredLoop, live: i32[]) -> void {
     for st in lp.step {
         pc_collect_in_stmt(st, pushes)
     }
-    sym :: pc_single_target(pushes) ?? return
+    sym :: pc_single_target(pushes) else return
     // The state is written back once, at the loop's end, so every way out has
     // to pass there.
     if pc_has_extra_exit(lp.body) {
@@ -330,7 +330,7 @@ pc_body_may_disturb :: fn(ctx: PurityCtx, b: LoweredBlock, sym: i32) -> bool {
             return true
         }
     }
-    t :: b.trailing ?? return false
+    t :: b.trailing else return false
     return pc_expr_may_disturb_skipping_push(ctx, t, sym)
 }
 
@@ -371,7 +371,7 @@ pc_expr_may_disturb_skipping_push :: fn(ctx: PurityCtx, e: LoweredExpr, sym: i32
         if pc_body_may_disturb(ctx, e.then_block, sym) {
             return true
         }
-        eb :: e.else_block ?? return false
+        eb :: e.else_block else return false
         return pc_body_may_disturb(ctx, eb, sym)
     }
     return expr_may_disturb(ctx, e)

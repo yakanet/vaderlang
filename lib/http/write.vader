@@ -741,7 +741,7 @@ test_what_is_written_reads_back_the_same :: fn() -> void {
         }
         assert(back.method == .Post, "the method, cut by ${size}")
         assert_eq(back.target, "/orders?id=7")
-        assert_eq(back.headers.get("accept") ?? "", "application/json")
+        assert_eq(back.headers.get("accept") else "", "application/json")
         assert_eq(text_of(back.body), "{\"count\": 2}")
     }
     response :: new_response(STATUS_CREATED, "done")
@@ -753,6 +753,6 @@ test_what_is_written_reads_back_the_same :: fn() -> void {
         return assert(false, "the response does not read back")
     }
     assert_eq(u16(read.status), 201)
-    assert_eq(read.headers.get("location") ?? "", "/orders/7")
+    assert_eq(read.headers.get("location") else "", "/orders/7")
     assert_eq(text_of(read.body), "done")
 }

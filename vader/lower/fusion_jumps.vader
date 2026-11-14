@@ -60,7 +60,7 @@ chain_jump_frame :: fn(loop_id: i64, chain: IterChain) -> JumpFrame {
 ///
 /// @param ctx  the context the frame was pushed on.
 pop_jump_frame :: fn(ctx: FnLowerCtx) -> JumpFrame =
-    ctx.jump_frames.remove_last() ?? panic("a jump frame popped where none was pushed")
+    ctx.jump_frames.remove_last() else panic("a jump frame popped where none was pushed")
 
 /// `body`, the loop body lowered under `frame`: inside its resume block when a
 /// `continue` leaves it, as it is otherwise.
@@ -68,7 +68,7 @@ pop_jump_frame :: fn(ctx: FnLowerCtx) -> JumpFrame =
 /// @param frame  the frame the body was lowered under, popped.
 /// @param body   the loop body.
 resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
-    label :: frame.resume ?? return body
+    label :: frame.resume else return body
     labelled :: labelled_block(label, body.span, block_stmts_with_trailing(body))
     return mk_void_block([labelled], body.span)
 }
@@ -80,7 +80,7 @@ resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
 /// @param span   span of the block when one is built.
 /// @param stmts  the producer's emitted statements.
 exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
-    label :: frame.exit ?? return stmts
+    label :: frame.exit else return stmts
     return [labelled_block(label, span, stmts)]
 }
 
@@ -95,8 +95,8 @@ exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredS
 spliced_jump :: fn(
     ctx: FnLowerCtx, jump_id: i64, written: string | null, is_break: bool, span: Span,
 ) -> LoweredStmt | null {
-    target :: ctx.typed.jump_targets[jump_id] ?? return null
-    frame :: frame_of(ctx, target) ?? return null
+    target :: ctx.typed.jump_targets[jump_id] else return null
+    frame :: frame_of(ctx, target) else return null
     lands :: if is_break { frame.breaks_land } else { frame.continue_lands }
     if lands && written == null {
         return null
@@ -117,13 +117,13 @@ frame_of :: fn(ctx: FnLowerCtx, loop_id: i64) -> JumpFrame | null {
 }
 
 resume_label :: fn(ctx: FnLowerCtx, frame: JumpFrame) -> string {
-    label :: frame.resume ?? synthetic_label(ctx.project, r"$resume")
+    label :: frame.resume else synthetic_label(ctx.project, r"$resume")
     frame.resume = label
     return label
 }
 
 exit_label :: fn(ctx: FnLowerCtx, frame: JumpFrame) -> string {
-    label :: frame.exit ?? synthetic_label(ctx.project, r"$leave")
+    label :: frame.exit else synthetic_label(ctx.project, r"$leave")
     frame.exit = label
     return label
 }
@@ -148,8 +148,8 @@ chain_landing :: fn(chain: IterChain) -> SplicedLanding {
     if chain.kind == .GenSource {
         return SPLICED_ANYWHERE
     }
-    layer :: chain.gen_layer ?? return LANDS_AS_WRITTEN
-    source :: chain.source ?? return LANDS_AS_WRITTEN
+    layer :: chain.gen_layer else return LANDS_AS_WRITTEN
+    source :: chain.source else return LANDS_AS_WRITTEN
     placement :: yield_placement(layer.inner)
     below :: chain_landing(source)
     continues := placement == .Last && below.continues
@@ -185,7 +185,7 @@ block_placement :: fn(block: AST.BlockExpr, tail: bool) -> YieldPlacement {
         last :: tail && i + 1 == n && block.trailing == null
         placement = worse_placement(placement, stmt_placement(block.stmts[i], last))
     }
-    trailing :: block.trailing ?? return placement
+    trailing :: block.trailing else return placement
     return worse_placement(placement, expr_placement(trailing, tail))
 }
 
@@ -249,7 +249,7 @@ import "vader/front/parser"
 first_loop_body :: fn(source: string) -> AST.BlockExpr {
     decl :: parse_source(source, "t.vader").program.decls[0]
     if decl is AST.FnDecl {
-        body :: decl.body ?? panic("the fn has no body")
+        body :: decl.body else panic("the fn has no body")
         loop :: body.stmts[0]
         if loop is AST.ForStmt {
             return loop.body

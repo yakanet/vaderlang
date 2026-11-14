@@ -109,8 +109,8 @@ export parse :: fn(s: string) -> Version | ParseError {
     }
     return Version {
         ...core,
-        .prerelease = sections.prerelease ?? "",
-        .build      = sections.build ?? "",
+        .prerelease = sections.prerelease else "",
+        .build      = sections.build else "",
     }
 }
 
@@ -175,8 +175,8 @@ sections_of :: fn(s: string) -> VersionSections {
 // Byte offset of the `-` that opens the pre-release: the first one after the
 // second `.`, since a pre-release follows a full `M.N.P` core.
 prerelease_dash :: fn(head: string) -> i64 | null {
-    first_dot :: head.index_of('.') ?? return null
-    second_dot :: head.index_of('.', first_dot + 1) ?? return null
+    first_dot :: head.index_of('.') else return null
+    second_dot :: head.index_of('.', first_dot + 1) else return null
     return head.index_of('-', second_dot + 1)
 }
 
@@ -429,8 +429,8 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
     if sections_error != null {
         return sections_error
     }
-    result.prerelease = sections.prerelease ?? ""
-    result.build = sections.build ?? ""
+    result.prerelease = sections.prerelease else ""
+    result.build = sections.build else ""
     return result
 }
 

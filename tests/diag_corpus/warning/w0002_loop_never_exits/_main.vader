@@ -35,7 +35,7 @@ bare_break :: fn() -> i32 {
 coalesce_break :: fn() -> i32 {
     n := 0
     for {
-        n = next_or_null(n) ?? break
+        n = next_or_null(n) else break
     }
     return n
 }
@@ -67,7 +67,7 @@ conditional :: fn() -> i32 {
 compound_break :: fn() -> i32 {
     n := 0
     for {
-        n += next_or_null(n) ?? break
+        n += next_or_null(n) else break
     }
     return n
 }
@@ -76,7 +76,7 @@ compound_break :: fn() -> i32 {
 condition_break :: fn() -> i32 {
     n := 0
     for {
-        if (next_or_null(n) ?? break) > 2 {
+        if (next_or_null(n) else break) > 2 {
             return n
         }
         n += 1

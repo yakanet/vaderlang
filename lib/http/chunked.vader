@@ -35,7 +35,7 @@ only_chunked :: fn(values: string[], is_request: bool) -> null | HttpError {
             if coding.len() == 0 {
                 continue
             }
-            name_end :: coding.index_of(';') ?? coding.len()
+            name_end :: coding.index_of(';') else coding.len()
             name :: trimmed(coding[0..<name_end])
             if !is_token(name) {
                 return malformed("a transfer coding is not a token")
@@ -213,7 +213,7 @@ are_chunk_extensions :: fn(text: u8[]) -> bool {
             continue
         }
         at = after_blanks(text, equals + 1)
-        value_end :: after_extension_value(text, at) ?? return false
+        value_end :: after_extension_value(text, at) else return false
         at = value_end
     }
     return true

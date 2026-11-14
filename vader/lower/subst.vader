@@ -56,7 +56,7 @@ build_mixed_subst :: fn(
 build_erased_subst :: fn(tps: TypeParam[], typed: TypedProgram) -> Substitution {
     bindings :: Map<i32, Type> {}
     for tp in tps {
-        sym :: typed.type_param_symbols[tp.span.hash()] ?? continue
+        sym :: typed.type_param_symbols[tp.span.hash()] else continue
         bindings[sym.id] = TY_ANY
     }
     return substitution_of(bindings)
@@ -66,7 +66,7 @@ build_erased_subst :: fn(tps: TypeParam[], typed: TypedProgram) -> Substitution 
 kept_or_any :: fn(impls: ImplRegistry, bindings: Map<i32, Type>) -> Map<i32, Type> {
     out :: Map<i32, Type> {}
     for [id, bound] in bindings {
-        out[id] = impls.kept_argument(bound) ?? TY_ANY
+        out[id] = impls.kept_argument(bound) else TY_ANY
     }
     return out
 }
@@ -169,7 +169,7 @@ build_impl_mixed_subst :: fn(
     kept :: Map<i32, Type> {}
     for tp in impl_type_params_of(entry.decl, impl_typed.resolved) {
         id :: tp.symbol.id
-        kept[id] = impls.kept_argument(bindings[id] ?? TY_ANY) ?? TY_ANY
+        kept[id] = impls.kept_argument(bindings[id] else TY_ANY) else TY_ANY
     }
     return substitution_of(kept)
 }
@@ -177,7 +177,7 @@ build_impl_mixed_subst :: fn(
 /// Erase a type arg for the impl-member self-type, but KEEP what `kept_argument`
 /// keeps.
 keep_concrete_or_erase :: fn(impls: ImplRegistry, t: Type) -> Type =
-    impls.kept_argument(t) ?? any_leaves_of(t)
+    impls.kept_argument(t) else any_leaves_of(t)
 
 // The type a generic instance keeps for the argument `t`, or null when it erases
 // it to `Any` : what `kept_type_argument` keeps, and an argument an impl on one

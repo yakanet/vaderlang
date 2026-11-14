@@ -32,7 +32,7 @@
   expr 34:16    FallbackExpr   :: fn(string) -> string
   expr 34:16    FieldExpr      :: fn(string) -> string | null
   expr 34:16    IdentExpr      :: Button
-  expr 34:37    StringLitExpr  :: string
+  expr 34:39    StringLitExpr  :: string
   expr 35:12    CallExpr       :: string
   expr 35:12    IdentExpr      :: fn(string) -> string
   expr 35:20    FieldExpr      :: string

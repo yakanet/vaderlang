@@ -341,7 +341,7 @@ gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr
 // params are pre-seeded by the caller.
 gb_collect_block :: fn(gb: GenBuild, block: LoweredBlock) -> void {
     for s in block.stmts { gb_collect_stmt(gb, s) }
-    trailing :: block.trailing ?? return
+    trailing :: block.trailing else return
     gb_collect_expr(gb, trailing)
 }
 
@@ -478,7 +478,7 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
 gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
     match e {
         is LoweredIdent -> {
-            name :: gb.field_map[e.symbol.id] ?? return e
+            name :: gb.field_map[e.symbol.id] else return e
             // The field of a symbol in a cell holds the cell (opaque ref), not the value ;
             // type the `self.<field>` access at the cell type so the wrapping
             // CellGet / CellSet (and any closure-env slot fed from it) stays a

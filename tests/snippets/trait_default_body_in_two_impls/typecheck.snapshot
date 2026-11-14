@@ -33,7 +33,7 @@
   expr 27:48    FieldExpr      :: fn() -> i32
   expr 27:48    IdentExpr      :: Self
   expr 27:62    IdentExpr      :: i32
-  expr 27:68    IdentExpr      :: i32
+  expr 27:70    IdentExpr      :: i32
   expr 29:15    CallExpr       :: void
   expr 29:15    IdentExpr      :: fn(T) -> void
   expr 29:23    StringLitExpr  :: string

@@ -60,7 +60,7 @@ is_tail_forwarder :: fn(functions: BcFunction[], body: Bc.Op[]) -> bool {
     if reads == body.len() {
         return false
     }
-    arity :: safepoint_result_arity(functions, body[reads], reads) ?? return false
+    arity :: safepoint_result_arity(functions, body[reads], reads) else return false
     after_safepoint :: reads + 1
     if arity == 1 && after_safepoint < body.len() && body[after_safepoint] is Bc.Drop {
         return returns_at(body, after_safepoint + 1)

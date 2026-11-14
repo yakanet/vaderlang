@@ -72,13 +72,13 @@ check_named :: fn(report: JsonValue, name: string) -> JsonValue {
 // What the check `name` of `report` says in its `field`; empty when it says
 // nothing there.
 said :: fn(report: JsonValue, name: string, field: string) -> string =
-    string_member(check_named(report, name), field) ?? ""
+    string_member(check_named(report, name), field) else ""
 
 // The names of the checks of `report`.
 check_names :: fn(report: JsonValue) -> string[] {
     names: string[]: []
     for check in checks_of(report) {
-        names.push(string_member(check, "name") ?? "")
+        names.push(string_member(check, "name") else "")
     }
     return names
 }
@@ -104,8 +104,8 @@ test_doctor_reports_a_working_toolchain_and_its_json_has_the_documented_shape ::
         assert(names.contains(name), "a check `${name}`")
     }
     for check in checks_of(json.report) {
-        name :: string_member(check, "name") ?? ""
-        assert(STATUSES.contains(string_member(check, "status") ?? ""), "the status of `${name}`")
+        name :: string_member(check, "name") else ""
+        assert(STATUSES.contains(string_member(check, "status") else ""), "the status of `${name}`")
         assert(string_member(check, "summary") != null, "the summary of `${name}`")
         assert(string_member(check, "detail") != null, "the detail of `${name}`")
     }

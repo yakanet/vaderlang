@@ -54,7 +54,7 @@ index_by_name :: fn(
     index: i32,
 ) -> void {
     by_mangle[mangled] = index
-    sym :: symbol ?? return
+    sym :: symbol else return
     by_symbol[sym.id] = index
 }
 
@@ -63,7 +63,7 @@ index_by_name :: fn(
 ///
 /// @param callee  the symbol the instruction names.
 function_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
-    found :: lookup.fn_by_mangle[callee.name] ?? return lookup.fn_by_symbol[callee.id]
+    found :: lookup.fn_by_mangle[callee.name] else return lookup.fn_by_symbol[callee.id]
     return found
 }
 
@@ -72,6 +72,6 @@ function_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
 ///
 /// @param callee  the symbol the call names.
 import_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
-    found :: lookup.import_by_symbol[callee.id] ?? return lookup.import_by_mangle[callee.name]
+    found :: lookup.import_by_symbol[callee.id] else return lookup.import_by_mangle[callee.name]
     return found
 }

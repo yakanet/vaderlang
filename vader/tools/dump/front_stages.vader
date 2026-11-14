@@ -90,7 +90,7 @@ resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> Resolve
     // The orphan rule reads the import bindings `wire_imports` redirects to the
     // module that owns each target, so it runs after it.
     for [id, lm] in project.modules {
-        rm :: resolved_by_id[id] ?? continue
+        rm :: resolved_by_id[id] else continue
         run_orphan_rule_check_for_module(lm, id, rm.idents, wire_targets, rm.diags)
     }
     return ResolvedProject { .modules = modules }

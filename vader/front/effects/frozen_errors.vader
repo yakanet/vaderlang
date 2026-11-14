@@ -55,8 +55,8 @@ export frozen_diagnostics :: fn(summary: EffectSummary) -> Diagnostic[] {
 // Where the write into the copy of `site` lands ; the binding when no write was
 // traced.
 lost_write :: fn(site: FrozenSite) -> Span {
-    chain :: site.chain ?? return site.span
-    write :: chain.write ?? return site.span
+    chain :: site.chain else return site.span
+    write :: chain.write else return site.span
     return write.span
 }
 
@@ -81,7 +81,7 @@ copy_hint :: fn(site: FrozenSite, purpose: string) -> string = match site.origin
 // What modifies the value of a fault: the place the body writes, or the function
 // it is lent to, the calls it goes on through, and the place written at the end.
 modified_how :: fn(site: FrozenSite) -> string {
-    chain :: site.chain ?? return "a function it is lent to modifies it"
+    chain :: site.chain else return "a function it is lent to modifies it"
     callees: string[]: chain.via.map((hop) -> hop.callee).collect()
     write :: chain.write
     if write != null {

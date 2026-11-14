@@ -116,7 +116,7 @@ place_slot :: fn(place: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> T
         return declared_lvalue_type(place, check_expr(place, null, typed, diags), typed)
     }
     receiver :: check_expr(place.target, null, typed, diags)
-    return index_write_type(receiver, typed) ?? TY_UNRESOLVED
+    return index_write_type(receiver, typed) else TY_UNRESOLVED
 }
 
 /// Element types a destructuring target of `count` elements would read, or null
@@ -201,7 +201,7 @@ index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic
         return picked.params[1]
     }
     reject_index_key(ix.index, index_ty, key_ty, diags)
-    return index_set_value_expected(receiver_ty, typed) ?? TY_UNRESOLVED
+    return index_set_value_expected(receiver_ty, typed) else TY_UNRESOLVED
 }
 
 // The slot an element write into an array fills : the backing's element, recorded
@@ -258,7 +258,7 @@ report_variant_data_write :: fn(
     if owner !is EnumType {
         return false
     }
-    data :: owner.data ?? return false
+    data :: owner.data else return false
     // A field the data has not is T3009's business, reported where it is read.
     if declared_struct_field_type(data, field.field, typed) == null {
         return false
@@ -278,8 +278,8 @@ report_tuple_element_write :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> bool {
-    owner :: typed.expr_types[field.target.id] ?? return false
-    tuple :: tuple_backing(owner) ?? return false
+    owner :: typed.expr_types[field.target.id] else return false
+    tuple :: tuple_backing(owner) else return false
     position :: parse_tuple_index(field.field)
     if position < 0 || position >= i32(tuple.elements.len()) {
         return false
@@ -310,7 +310,7 @@ check_destructure_target :: fn(
         }
     } else if target is AST.IndexExpr {
         // Judged as `m[k] = v` is.
-        slot :: index_write_slot(target, typed, diags) ?? return
+        slot :: index_write_slot(target, typed, diags) else return
         // The lowering types the element it writes by the target's own type.
         record_expr(typed, target, slot)
         emit_assign_mismatch_if(elem_ty, slot, target.span, target, "", typed, diags)

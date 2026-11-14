@@ -37,7 +37,7 @@ DeclTarget :: struct {
 
 // The declaration under the cursor of `params`, or null.
 cursor_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null {
-    path :: parse_uri(position_uri(params)).and_then(u -> u.to_path()).or_null() ?? return null
+    path :: parse_uri(position_uri(params)).and_then(u -> u.to_path()).or_null() else return null
     return target_at(state, path, path, position_line(params), position_character(params))
 }
 
@@ -46,7 +46,7 @@ cursor_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null 
 // its own file's.
 item_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null {
     item :: get_field(params, "item")
-    path :: parse_uri(get_string(item, "uri")).and_then(u -> u.to_path()).or_null() ?? return null
+    path :: parse_uri(get_string(item, "uri")).and_then(u -> u.to_path()).or_null() else return null
     start :: get_field(get_field(item, "selectionRange"), "start")
     line :: get_number(start, "line")
     character :: get_number(start, "character")
@@ -68,11 +68,11 @@ target_at :: fn(
     cached :: typed_project_for(state, document)
     index :: reference_index_of(cached)
     [l, column] :: state.span_point(path, line, character)
-    site :: site_at(index, path, l, column) ?? return null
-    decl_site :: declaration_site(index, site.key) ?? return null
+    site :: site_at(index, path, l, column) else return null
+    decl_site :: declaration_site(index, site.key) else return null
     at :: decl_site.span.start
     indices :: Map<string, DocIndex> {}
-    decl :: doc_index_for(state, indices, at.file).entry_at_offset(at.offset) ?? return null
+    decl :: doc_index_for(state, indices, at.file).entry_at_offset(at.offset) else return null
     return DeclTarget {
         .state     = state,
         .uri       = document.to_uri().to_string(),
@@ -139,7 +139,7 @@ line_index_for :: fn(target: DeclTarget, path: string) -> LineIndex =
 
 // The line index of `path`, not memoised.
 read_line_index :: fn(target: DeclTarget, path: string) -> LineIndex {
-    idx :: target.indices[path] ?? return target.state.line_index_for_path(path)
+    idx :: target.indices[path] else return target.state.line_index_for_path(path)
     return idx.line_index
 }
 

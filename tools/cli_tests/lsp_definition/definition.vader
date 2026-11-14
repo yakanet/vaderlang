@@ -63,12 +63,12 @@ test_a_definition_and_a_hover_reach_a_fn_a_struct_and_a_loop :: fn() -> void {
     )
     assert(is_in_document(results[0]), stringify(results[0]))
     assert_eq(range_at(results[0], ["range"]), "3:0-3:6")
-    assert_eq(string_at(results[1], ["contents", "kind"]) ?? "", "markdown")
-    double_hover :: string_at(results[1], ["contents", "value"]) ?? ""
+    assert_eq(string_at(results[1], ["contents", "kind"]) else "", "markdown")
+    double_hover :: string_at(results[1], ["contents", "value"]) else ""
     assert("```\ndouble :: fn(x: i32) -> i32\n```" in double_hover, double_hover)
     assert("Doubles its argument." in double_hover, double_hover)
     assert_eq(range_at(results[2], ["range"]), "8:0-8:5")
-    point_hover :: string_at(results[3], ["contents", "value"]) ?? ""
+    point_hover :: string_at(results[3], ["contents", "value"]) else ""
     assert("```\nPoint :: struct {\n    x: i32\n    y: i32\n}\n```" in point_hover, point_hover)
     assert("A 2D point." in point_hover, point_hover)
     assert(results[4] is JsonNull, stringify(results[4]))
@@ -83,7 +83,7 @@ file_name :: fn(value: JsonValue) -> string {
     if value is JsonNull {
         return "(no answer)"
     }
-    return file_of(string_member(value, "uri") ?? "")
+    return file_of(string_member(value, "uri") else "")
 }
 
 NON_ASCII_SOURCE :: r"""
@@ -245,7 +245,7 @@ test_definition_follows_an_import_across_files_to_std_console :: fn() -> void {
         CROSSFILE_SOURCE,
         [ask("textDocument/definition", 4, 4)],
     )
-    uri :: string_member(results[0], "uri") ?? ""
+    uri :: string_member(results[0], "uri") else ""
     assert(uri.ends_with("std/console/console.vader"), stringify(results[0]))
     assert(int_at(results[0], ["range", "start", "line"]) > 0, stringify(results[0]))
 }
@@ -258,7 +258,7 @@ test_definition_follows_an_import_across_files_to_collections :: fn() -> void {
         CROSSFILE_SOURCE,
         [ask("textDocument/definition", at.line, at.character)],
     )
-    uri :: string_member(results[0], "uri") ?? ""
+    uri :: string_member(results[0], "uri") else ""
     assert(uri.ends_with("std/collections/map.vader"), stringify(results[0]))
     assert(int_at(results[0], ["range", "start", "line"]) > 0, stringify(results[0]))
 }
@@ -310,7 +310,7 @@ test_definition_answers_a_location_link_when_the_client_supports_it :: fn() -> v
     assert(member(link, "originSelectionRange") != null, stringify(link))
     assert(member(link, "targetRange") != null, stringify(link))
     assert(
-        (string_member(link, "targetUri") ?? "").ends_with("link-support.vader"),
+        (string_member(link, "targetUri") else "").ends_with("link-support.vader"),
         stringify(link),
     )
     // The origin covers the clicked `double`.
@@ -337,7 +337,7 @@ test_definition_into_a_sibling_file_reads_its_unsaved_text :: fn() -> void {
         Project { .files = saved, .opened = edited },
     )
     assert(
-        (string_member(results[0], "uri") ?? "").ends_with("helper.vader"),
+        (string_member(results[0], "uri") else "").ends_with("helper.vader"),
         stringify(results[0]),
     )
     assert_eq(int_at(results[0], ["range", "start", "line"]), 6)

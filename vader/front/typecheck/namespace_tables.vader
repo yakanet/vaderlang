@@ -13,8 +13,8 @@ build_namespace_exports :: fn(
     per_module: Map<string, TypedProgram>,
 ) -> Map<string, Type> {
     out :: Map<string, Type> {}
-    loaded :: project.modules[mod_id] ?? return out
-    typed :: per_module[mod_id] ?? return out
+    loaded :: project.modules[mod_id] else return out
+    typed :: per_module[mod_id] else return out
     for [name, sym] in loaded.collected.symbols {
         // Exported members only: reached through a `P :: import "m"` alias.
         // Mirrors the destructured-import check that fires R2008 (`wire.vader`);
@@ -86,7 +86,7 @@ share_namespace_member_declarations :: fn(
             mod_id,
             () -> build_namespace_private_names(mod_id, project),
         )
-        loaded :: project.modules[mod_id] ?? continue
+        loaded :: project.modules[mod_id] else continue
         symbols[sym_id] = loaded.collected.symbols
     }
     for [_, typed] in per_module {
@@ -104,7 +104,7 @@ build_namespace_private_names :: fn(
     project: LoadedProject,
 ) -> Map<string, bool> {
     out :: Map<string, bool> {}
-    loaded :: project.modules[mod_id] ?? return out
+    loaded :: project.modules[mod_id] else return out
     for [name, sym] in loaded.collected.symbols {
         if sym.visibility == .Private {
             out[name] = true
@@ -128,7 +128,7 @@ build_namespace_type_members :: fn(
     per_module: Map<string, TypedProgram>,
 ) -> Map<string, Type> {
     out :: Map<string, Type> {}
-    loaded :: project.modules[mod_id] ?? return out
+    loaded :: project.modules[mod_id] else return out
     target_typed :: per_module[mod_id]
     for [name, sym] in loaded.collected.symbols {
         // Exported types only, see `build_namespace_exports`. A private type
@@ -158,7 +158,7 @@ lookup_external_type :: fn(
     st: SymbolTarget,
     per_module: Map<string, TypedProgram>,
 ) -> Type | null {
-    typed :: per_module[st.module_id] ?? return null
+    typed :: per_module[st.module_id] else return null
     declared :: typed.decl_types[st.symbol.id]
     if declared !is null {
         return declared

@@ -26,7 +26,7 @@ main :: fn() -> i32 {
         for w in words {
             if w in known {
                 total += i32(w.byte_at(1))
-                counts[w] = (counts[w] ?? 0) + 1
+                counts[w] = (counts[w] else 0) + 1
             }
         }
     }

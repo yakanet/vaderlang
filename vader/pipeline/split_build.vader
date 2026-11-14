@@ -28,8 +28,8 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     if report_missing_archives(native) {
         return 1
     }
-    work :: intermediate_stem(out) ?? return 1
-    objects :: object_stem(out) ?? return 1
+    work :: intermediate_stem(out) else return 1
+    objects :: object_stem(out) else return 1
     prog :: split_program(b, work)
     if write_split_files(work, prog) != 0 {
         return 1
@@ -121,7 +121,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
         return 1
     }
     // The file that exists, as the unsplit build reports it: `app.exe` on Windows.
-    linked :: linked_binary(out.as_string()) ?? out.as_string()
+    linked :: linked_binary(out.as_string()) else out.as_string()
     eprintln("vader build: wrote ${linked.to_native()} "
         + "(split: ${obj_files.len()} objects compiled in parallel)")
     return 0

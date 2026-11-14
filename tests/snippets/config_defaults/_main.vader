@@ -16,12 +16,12 @@ setting :: fn(key: string) -> i32 | null {
 }
 
 // value fallback : a missing key falls back to a default.
-resolve :: fn(key: string) -> i32 = setting(key) ?? 0
+resolve :: fn(key: string) -> i32 = setting(key) else 0
 
 // `?? continue` : skip missing entries while scanning for the first present one.
 first_present :: fn(keys: string[]) -> i32 {
     for k in keys {
-        value :: setting(k) ?? continue
+        value :: setting(k) else continue
         return value
     }
     return -1
@@ -31,21 +31,21 @@ first_present :: fn(keys: string[]) -> i32 {
 sum_prefix :: fn(keys: string[]) -> i32 {
     total: i32 = 0
     for k in keys {
-        total += setting(k) ?? break
+        total += setting(k) else break
     }
     return total
 }
 
 // `?? return` : propagate a sentinel when a required key is absent.
 required :: fn(key: string) -> i32 {
-    return setting(key) ?? return -1
+    return setting(key) else return -1
 }
 
 // `?? { block }` : run side effects, then diverge.
 count_missing :: fn(keys: string[]) -> i32 {
     missing: i32 = 0
     for k in keys {
-        present :: setting(k) ?? {
+        present :: setting(k) else {
             missing += 1
             continue
         }
@@ -61,7 +61,7 @@ export main :: fn() -> i32 {
     println("req_width=${required("width")} req_depth=${required("depth")}")
     println("missing=${count_missing(["width", "depth", "height"])}")
     // `??` binds looser than `+` : the parentheses must survive the formatter.
-    scaled :: (setting("width") ?? 0) + 1
+    scaled :: (setting("width") else 0) + 1
     println("scaled=${scaled}")
     return 0
 }

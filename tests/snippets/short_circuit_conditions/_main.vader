@@ -61,7 +61,7 @@ guard :: fn(x: i32 | null, y: i32) -> i32 {
 }
 
 diverge :: fn(x: i32 | null, flag: bool) -> i32 {
-    if flag || (x ?? return 99) > 0 {
+    if flag || (x else return 99) > 0 {
         return 1
     }
     return 0

@@ -124,7 +124,7 @@ import_mangle :: fn(mangled: string) -> string = "${mangled}\$extern_import"
 // The integer `e` crosses at: the width its header writes, which typecheck
 // requires (T3050), else the narrowest holding its values.
 crossing_type :: fn(e: EnumType) =
-    machine_integer_type(e.written_width ?? narrowest_width(e.values))
+    machine_integer_type(e.written_width else narrowest_width(e.values))
 
 // `return call`, or `call` alone when nothing comes back.
 forwarding_block :: fn(call: LoweredExpr, return_type: Type, span: Span) -> LoweredBlock {

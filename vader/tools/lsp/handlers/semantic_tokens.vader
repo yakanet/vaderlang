@@ -35,7 +35,7 @@ AST :: import "toolchain/ast"
 /// @param params  request params : `{ textDocument: { uri } }`.
 /// @return        `{ data: [...] }` or `null`.
 export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    idx :: state.index_for(position_uri(params)) ?? return JsonNull {}
+    idx :: state.index_for(position_uri(params)) else return JsonNull {}
     if idx.source.byte_len() == 0 {
         return JsonNull {}
     }
@@ -72,7 +72,7 @@ reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
 
 collect_token_kinds :: fn(lexed: Token[], out: RawToken[]) -> void {
     for i in 0..<lexed.len() {
-        token_type :: semantic_type_at(lexed, i) ?? continue
+        token_type :: semantic_type_at(lexed, i) else continue
         push_span(out, lexed[i].span, token_type)
     }
 }
@@ -432,7 +432,7 @@ test_yield_const_classified_as_keyword :: fn() -> void {
 
 // The semantic type of the token starting at byte `offset`, or `null` if none.
 token_type_at :: fn(toks: RawToken[], offset: i64) -> TokenType | null {
-    token :: toks.find(t -> t.start_offset == offset) ?? return null
+    token :: toks.find(t -> t.start_offset == offset) else return null
     return token.token_type
 }
 

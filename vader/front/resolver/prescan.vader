@@ -57,7 +57,7 @@ check_orphan_rule :: fn(
     idents: Map<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
-    trait_sym :: lookup_trait_sym(decl, module_symbols, bindings, wire_targets) ?? return
+    trait_sym :: lookup_trait_sym(decl, module_symbols, bindings, wire_targets) else return
     if trait_sym.kind != .Trait { return }
     for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
     for_is_primitive := false
@@ -85,7 +85,7 @@ lookup_trait_sym :: fn(
     if declared is Symbol {
         return resolve_import_redirect(declared, wire_targets)
     }
-    bound :: bindings[decl.trait_name] ?? return null
+    bound :: bindings[decl.trait_name] else return null
     return resolve_import_redirect(bound, wire_targets)
 }
 
@@ -97,16 +97,16 @@ for_type_owner_sym :: fn(
     idents: Map<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
     if t is AST.ArrayTypeExpr {
-        owner :: for_type_owner_sym(t.element, idents, wire_targets) ?? return null
+        owner :: for_type_owner_sym(t.element, idents, wire_targets) else return null
         return if owner.kind == .TypeParam { null } else { owner }
     }
     if t is AST.IdentExpr {
-        raw :: idents[t.span.hash()] ?? return null
+        raw :: idents[t.span.hash()] else return null
         return resolve_import_redirect(raw, wire_targets)
     }
     if t is AST.GenericInstExpr {
         if t.callee is AST.IdentExpr {
-            raw :: idents[t.callee.span.hash()] ?? return null
+            raw :: idents[t.callee.span.hash()] else return null
             return resolve_import_redirect(raw, wire_targets)
         }
     }

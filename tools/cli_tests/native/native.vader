@@ -104,8 +104,8 @@ vm_stdout :: fn(dir: string) -> string {
     if snapshot is IOError {
         return ""
     }
-    after :: snapshot.split_first("# stdout\n") ?? return ""
-    section :: after.1.split_first("\n# ") ?? return after.1
+    after :: snapshot.split_first("# stdout\n") else return ""
+    section :: after.1.split_first("\n# ") else return after.1
     return "${section.0}\n"
 }
 

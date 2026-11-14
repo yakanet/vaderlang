@@ -35,7 +35,7 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
     sb.append("# Comptime")
     module_ids :: project.modules.keys().collect().sort(compare_ascending)
     for module_id in module_ids {
-        module_program :: project.modules[module_id] ?? continue
+        module_program :: project.modules[module_id] else continue
         // The heading names the module's folder ; a scope lists declared module
         // names (`resolved.display_path`, e.g. `snippet`), which the check reads.
         if !module_in_scope(module_program.typed.resolved.display_path, scope) { continue }
@@ -69,7 +69,7 @@ const_items :: fn(module_program: EvaluatedProgram) -> string[] {
     for [symbol_id, value] in module_program.comptime_decls {
         name :: lookup_comptime_decl_name(typed, symbol_id)
         if name == "" { continue }
-        route :: module_program.routes[symbol_id] ?? .Marked
+        route :: module_program.routes[symbol_id] else .Marked
         decl :: code_span("${route_keyword(route)} ${name} = ${one_line(display_value(value))}")
         entries.push([name, "${decl}, ${route_word(route)}"])
     }

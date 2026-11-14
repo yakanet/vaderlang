@@ -832,8 +832,7 @@
                                   "value": "-1n"
                                 }
                               }
-                            ],
-                            "coalesce": true
+                            ]
                           }
                         },
                         {

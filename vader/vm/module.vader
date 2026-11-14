@@ -206,8 +206,8 @@ current_os_module :: fn() -> bc.BytecodeModule | null = parse_test_module("""
 
 @test
 test_exec_fn_value_calls_a_host_comptime_refuses :: fn() -> void {
-    module :: current_os_module() ?? return
-    state :: prepared(module) ?? return
+    module :: current_os_module() else return
+    state :: prepared(module) else return
     result :: exec_fn_value(state, "os")
     if result is Trap {
         assert(false, "a plain run calls every host, got: ${result.message}")
@@ -216,8 +216,8 @@ test_exec_fn_value_calls_a_host_comptime_refuses :: fn() -> void {
 
 @test
 test_exec_comptime_value_refuses_a_build_machine_host :: fn() -> void {
-    module :: current_os_module() ?? return
-    state :: prepared(module) ?? return
+    module :: current_os_module() else return
+    state :: prepared(module) else return
     result :: exec_comptime_value(state, "os")
     if result !is Trap {
         assert(false, "a comptime run refuses `current_os`")
@@ -239,7 +239,7 @@ prepared :: fn(module: bc.BytecodeModule) -> VmState | null {
 
 // Exec `module` and return its exit value, failing the test on a trap.
 exec_value :: fn(module: bc.BytecodeModule) -> i32 {
-    state :: prepared(module) ?? return -1
+    state :: prepared(module) else return -1
     result :: exec(state, [])
     if result is Trap {
         assert(false, "unexpected VM trap: ${result.message}")

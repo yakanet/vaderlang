@@ -65,7 +65,7 @@ continue_in_argument :: fn() -> void {
             println("argument: runaway")
             break
         }
-        total += id(maybe(i) ?? continue)
+        total += id(maybe(i) else continue)
     }
     println("argument total ${total}")
 }

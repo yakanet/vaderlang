@@ -25,7 +25,7 @@ AST :: import "toolchain/ast"
 /// @return      null when `cond` compares no range with a literal or a range value.
 detect_value_narrow :: fn(cond: AST.Expr, typed: TypedProgram) -> IsNarrow | null {
     if cond is AST.UnaryExpr && cond.op == .Not {
-        inner :: detect_value_narrow(cond.operand, typed) ?? return null
+        inner :: detect_value_narrow(cond.operand, typed) else return null
         return swapped(inner)
     }
     if cond is AST.CallExpr {
@@ -61,9 +61,9 @@ narrowing_of :: fn(
     if !is_refinement(typed.expr_types[subject.id]) {
         return null
     }
-    bounds :: compared_bounds(other, typed) ?? return null
-    slot :: slot_of(subject, typed) ?? return null
-    current :: refinement_of(slot.current) ?? return null
+    bounds :: compared_bounds(other, typed) else return null
+    slot :: slot_of(subject, typed) else return null
+    current :: refinement_of(slot.current) else return null
     return IsNarrow {
         .sym_id = slot.sym_id,
         .static_ty = current,
@@ -79,10 +79,10 @@ membership_narrowing :: fn(e: AST.BinaryExpr, typed: TypedProgram) -> IsNarrow |
     if subject !is RangeType && subject !is PrimitiveType {
         return null
     }
-    tested :: tested_type(e.right, typed) ?? return null
-    slot :: slot_of(e.left, typed) ?? return null
+    tested :: tested_type(e.right, typed) else return null
+    slot :: slot_of(e.left, typed) else return null
     current :: slot.current
-    sides :: membership_sides(current, tested, typed) ?? return null
+    sides :: membership_sides(current, tested, typed) else return null
     narrowing :: IsNarrow {
         .sym_id = slot.sym_id,
         .static_ty = current,
@@ -104,7 +104,7 @@ membership_sides :: fn(current: Type, tested: Type, typed: TypedProgram) -> [Typ
     if tested !is RangeType {
         return [tested, current]
     }
-    inside :: inside_of(current, tested) ?? return null
+    inside :: inside_of(current, tested) else return null
     return [inside, outside_of(current, tested.bounds)]
 }
 
@@ -115,7 +115,7 @@ tested_type :: fn(right: AST.Expr, typed: TypedProgram) -> Type | null {
     if tested != null {
         return tested
     }
-    param :: typed.expr_types[right.id] ?? return null
+    param :: typed.expr_types[right.id] else return null
     if is_integer_param(param, typed) {
         return param
     }
@@ -146,7 +146,7 @@ tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
         }
         return null
     }
-    recorded :: typed.expr_types[right.id] ?? return null
+    recorded :: typed.expr_types[right.id] else return null
     if recorded is RangeType {
         return recorded
     }
@@ -157,7 +157,7 @@ tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
         }
         return RangeType { .bounds = runs[0] }
     }
-    values :: integer_values(recorded) ?? return null
+    values :: integer_values(recorded) else return null
     return RangeType { .bounds = values }
 }
 
@@ -165,8 +165,8 @@ tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
 // itself when that is all it holds, else the range of the values both hold. Null
 // when `current` is no integer.
 inside_of :: fn(current: Type, tested: RangeType) -> Type | null {
-    values :: integer_values(current) ?? return null
-    met :: interval_meet(values, tested.bounds) ?? return TY_NEVER
+    values :: integer_values(current) else return null
+    met :: interval_meet(values, tested.bounds) else return TY_NEVER
     if same_interval(met, values) {
         return current
     }
@@ -180,9 +180,9 @@ inside_of :: fn(current: Type, tested: RangeType) -> Type | null {
 // end `tested` covers, `never` when it covers the whole ; a machine integer, or a
 // range `tested` would split, as it is.
 outside_of :: fn(current: Type, tested: Interval) -> Type {
-    refined :: refinement_of(current) ?? return current
+    refined :: refinement_of(current) else return current
     bounds :: refined.bounds
-    met :: interval_meet(bounds, tested) ?? return current
+    met :: interval_meet(bounds, tested) else return current
     if same_interval(met, bounds) {
         return TY_NEVER
     }
@@ -206,7 +206,7 @@ compared_bounds :: fn(other: AST.Expr, typed: TypedProgram) -> Interval | null {
     if bound != null {
         return bound
     }
-    refined :: refinement_of(typed.expr_types[other.id]) ?? return null
+    refined :: refinement_of(typed.expr_types[other.id]) else return null
     return refined.bounds
 }
 
@@ -220,7 +220,7 @@ NarrowedSlot :: struct {
 // The slot `subject` names, null for an expression no narrowing addresses.
 slot_of :: fn(subject: AST.Expr, typed: TypedProgram) -> NarrowedSlot | null {
     if subject is AST.IdentExpr {
-        sym :: typed.resolved.idents[subject.span.hash()] ?? return null
+        sym :: typed.resolved.idents[subject.span.hash()] else return null
         return NarrowedSlot {
             .sym_id = sym.id,
             .field_key = "",
@@ -228,7 +228,7 @@ slot_of :: fn(subject: AST.Expr, typed: TypedProgram) -> NarrowedSlot | null {
         }
     }
     if subject is AST.FieldExpr {
-        chain :: resolve_field_chain_static(subject, typed) ?? return null
+        chain :: resolve_field_chain_static(subject, typed) else return null
         return NarrowedSlot {
             .sym_id = 0,
             .field_key = chain.field_key,
@@ -247,8 +247,8 @@ holding :: fn(current: RangeType, op: AST.BinaryOp, bounds: Interval) -> Type {
         }
         return outside_of(current, bounds)
     }
-    within :: within_for(op, bounds) ?? return TY_NEVER
-    met :: interval_meet(current.bounds, within) ?? return TY_NEVER
+    within :: within_for(op, bounds) else return TY_NEVER
+    met :: interval_meet(current.bounds, within) else return TY_NEVER
     if same_interval(met, current.bounds) {
         return current
     }

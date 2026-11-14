@@ -86,9 +86,9 @@ into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: i64) -> strin
 // field reads (no stmts, no computed elements): anything else routes through
 // the allocating `into()` fallback, not this zero-alloc inline.
 seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
-    body :: m.body ?? return null
+    body :: m.body else return null
     if body.stmts.len() != 0 { return null }
-    trailing :: body.trailing ?? return null
+    trailing :: body.trailing else return null
     if trailing is SeqLitExpr {
         names: string[]: []
         for el in trailing.elements {
@@ -155,7 +155,7 @@ emit_rest_loop :: fn(
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
     // `name_span` like simple bindings, see resolver `bind_let_binding`).
-    rest_sym :: resolve_binding(ctx, rest.span) ?? return
+    rest_sym :: resolve_binding(ctx, rest.span) else return
     array_type :: mk_array(elem_type)
     empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
     out.push(cell_aware_let(ctx, rest_sym, rest.name, empty_arr, array_type, rest.span))
@@ -233,7 +233,7 @@ emit_let_leaf_array :: fn(
 ) -> void {
     match leaf {
         is SimpleBinding -> {
-            symbol :: resolve_binding(ctx, leaf.name_span) ?? return
+            symbol :: resolve_binding(ctx, leaf.name_span) else return
             out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))
         }
         is TupleBinding -> {
@@ -264,7 +264,7 @@ emit_let_leaf :: fn(
             })
         }
         is SimpleBinding -> {
-            symbol :: resolve_binding(ctx, leaf.name_span) ?? return
+            symbol :: resolve_binding(ctx, leaf.name_span) else return
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, leaf)
             access :: build_leaf_access(target, target_type, elem_type, leaf.span, index, field_names)
             out.push(cell_aware_let(ctx, symbol, leaf.name, access, elem_type, leaf.span))

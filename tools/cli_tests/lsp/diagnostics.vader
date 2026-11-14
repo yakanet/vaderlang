@@ -38,10 +38,10 @@ comptime_codes :: fn(diagnostics: JsonValue[]) -> string {
 
 // Check that `diagnostic` is a warning rendered faded, naming `name`.
 assert_faded_warning :: fn(diagnostic: JsonValue, name: string) -> void {
-    message :: string_member(diagnostic, "message") ?? ""
+    message :: string_member(diagnostic, "message") else ""
     assert(name in message, message)
-    assert_eq(number_member(diagnostic, "severity") ?? 0.0, 2.0)
-    assert_eq(stringify(member(diagnostic, "tags") ?? JsonNull {}), "[1]")
+    assert_eq(number_member(diagnostic, "severity") else 0.0, 2.0)
+    assert_eq(stringify(member(diagnostic, "tags") else JsonNull {}), "[1]")
 }
 
 // ---- tests ----------------------------------------------------------------

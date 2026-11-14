@@ -58,13 +58,13 @@ settle_const :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool = fals
 
 // Type the module const `sym` at a read of it (`settle_decl_read`).
 settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram) -> void {
-    cd :: walk_decl_of(sym, typed) ?? return
+    cd :: walk_decl_of(sym, typed) else return
     settle_decl_read(cd, span, typed)
 }
 
 // The walk's declaration of the module const `sym`.
 walk_decl_of :: fn(sym: Symbol, typed: TypedProgram) -> AST.ConstDecl | null {
-    declared :: typed.const_decls[sym.id] ?? return null
+    declared :: typed.const_decls[sym.id] else return null
     return typed.const_walk.decls[declared.span.hash()]
 }
 
@@ -231,14 +231,14 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
     out :: ValueReads {}
     work: AST.Expr[]: [e]
     for work.len() > 0 {
-        x :: work.remove_last() ?? break
+        x :: work.remove_last() else break
         match x {
             is AST.IdentExpr -> {
-                sym :: typed.resolved.idents[x.span.hash()] ?? continue
+                sym :: typed.resolved.idents[x.span.hash()] else continue
                 if sym.kind != .Const {
                     continue
                 }
-                found :: walk_decl_of(sym, typed) ?? continue
+                found :: walk_decl_of(sym, typed) else continue
                 out.consts.push(found)
             }
             is AST.BinaryExpr -> {
@@ -278,7 +278,7 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
             is AST.FallbackExpr -> {
                 work.push(x.left)
                 for c in x.clauses {
-                    body :: AST.fallback_body_expr(c.body) ?? continue
+                    body :: AST.fallback_body_expr(c.body) else continue
                     work.push(body)
                 }
             }
@@ -292,7 +292,7 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
 // alias, anything else is checked against its written type, or gives the const
 // its inferred one.
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return
+    sym :: symbol_declared_at(typed.resolved, cd.name_span) else return
     // Only a written type is the expected type. An unannotated const's entry is what
     // an earlier walk inferred: a return-only walk types it before the expression-
     // bodied fns it calls have their return, and would pin it to `?`.

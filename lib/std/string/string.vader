@@ -525,7 +525,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
 /// @return    the parsed float.
 /// @error     `ParseError` on malformed input.
 export parse_float :: fn(s: string) -> f64 | ParseError {
-    r :: parse_f64(s) ?? return ParseError { .msg = "parse_float: invalid float `${s}`" }
+    r :: parse_f64(s) else return ParseError { .msg = "parse_float: invalid float `${s}`" }
     return r
 }
 
@@ -1075,13 +1075,13 @@ import "std/testing"
 }
 
 @test test_split_first_cuts_at_the_first_separator :: fn() -> void {
-    parts :: "a.tar.gz".split_first(".") ?? ["?", "?"]
+    parts :: "a.tar.gz".split_first(".") else ["?", "?"]
     assert_eq(parts.0, "a")
     assert_eq(parts.1, "tar.gz")
 }
 
 @test test_split_last_cuts_at_the_last_separator :: fn() -> void {
-    parts :: "a.tar.gz".split_last(".") ?? ["?", "?"]
+    parts :: "a.tar.gz".split_last(".") else ["?", "?"]
     assert_eq(parts.0, "a.tar")
     assert_eq(parts.1, "gz")
 }
@@ -1095,7 +1095,7 @@ import "std/testing"
 }
 
 @test test_split_first_with_a_long_separator :: fn() -> void {
-    parts :: "key => value => more".split_first(" => ") ?? ["?", "?"]
+    parts :: "key => value => more".split_first(" => ") else ["?", "?"]
     assert_eq(parts.0, "key")
     assert_eq(parts.1, "value => more")
 }

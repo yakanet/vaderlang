@@ -63,7 +63,7 @@ FN_WRAP_MIN_ELEMENTS: i64: 4
 /// @param guards       whether a constant whose value runs code is guarded.
 inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx, guards: bool) -> void {
     for module_id in project.modules.keys() {
-        m :: project.modules[module_id] ?? continue
+        m :: project.modules[module_id] else continue
         new_decls: LoweredDecl[]: []
         changed := false
         for d in m.decls {
@@ -245,7 +245,7 @@ value_block :: fn(d: LoweredConstDecl) -> LoweredBlock = LoweredBlock {
 // `d` in the data pool : an array literal as an entry, a struct literal as the
 // single element of one ; null when it does not pool.
 pool :: fn(d: LoweredConstDecl, sym: Symbol, project: LoweredProject) -> PooledConst | null {
-    array :: try_data_pool(d, sym, project) ?? return try_pool_struct(d, sym, project)
+    array :: try_data_pool(d, sym, project) else return try_pool_struct(d, sym, project)
     return array
 }
 
@@ -307,7 +307,7 @@ try_pool_struct :: fn(
         .type     = pool_type,
         .elements = [cd.value],
     }
-    entry :: render_data_pool_entry(wrapped, display_type(cd.type)) ?? return null
+    entry :: render_data_pool_entry(wrapped, display_type(cd.type)) else return null
     pool_index :: project.data_pool.len()
     project.data_pool.push(entry)
     project.const_inline[symbol.id] = mk_pooled_struct_read(cd.type, pool_index, span)
@@ -348,7 +348,7 @@ pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
 // every other element type takes the primitive bit-pattern path.
 render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> DataPoolEntry | null {
     if element_name == "string" {
-        values :: render_string_items(lit) ?? return null
+        values :: render_string_items(lit) else return null
         return StrDataPoolEntry { .values = values }
     }
     // A union element is boxed, each with its own member: never a packed scalar.
@@ -424,7 +424,7 @@ render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
 render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | null {
     out: i64[]: []
     for el in lit.elements {
-        bits :: data_item_bits(el, element_name) ?? return null
+        bits :: data_item_bits(el, element_name) else return null
         out.push(bits)
     }
     return out

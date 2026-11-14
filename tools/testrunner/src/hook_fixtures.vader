@@ -235,7 +235,7 @@ driver_line :: fn(line: string) -> string {
     if !line.starts_with(DRIVER_LINE) {
         return line
     }
-    halves :: line.trim_prefix(DRIVER_LINE).split_first("/driver") ?? return line
+    halves :: line.trim_prefix(DRIVER_LINE).split_first("/driver") else return line
     return "${DRIVER_LINE}${halves.0}/driver"
 }
 

@@ -31,7 +31,7 @@ StepShape :: struct {
 /// @return         the shape, or null when std/core declares no `Stop`
 ///                 (std/core not loaded).
 resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
-    stop :: find_core_type(ctx, STRUCT_STOP, []) ?? return null
+    stop :: find_core_type(ctx, STRUCT_STOP, []) else return null
     return StepShape {
         .type = union_of([element, stop]),
         .element = element,

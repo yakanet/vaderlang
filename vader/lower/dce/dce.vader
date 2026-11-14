@@ -233,7 +233,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
 // enum, an array) is always taken. The test is per struct symbol: one instance
 // of a generic struct built keeps the impls of all its instances.
 receiver_is_built :: fn(t: Type, built: Set<i32>) -> bool {
-    st :: struct_backing(t) ?? return true
+    st :: struct_backing(t) else return true
     return st.symbol.id in built
 }
 

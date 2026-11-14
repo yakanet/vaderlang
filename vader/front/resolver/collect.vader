@@ -76,7 +76,7 @@ export FileImports :: struct {
 /// @param path  a wildcard-imported path.
 /// @param name  an export of that module.
 export drops :: fn(self: FileImports, path: string, name: string) -> bool {
-    dropped :: self.excludes[path] ?? return false
+    dropped :: self.excludes[path] else return false
     return name in dropped
 }
 
@@ -343,7 +343,7 @@ names_equal :: fn(a: string | null, b: string | null) -> bool {
 importer_origin :: fn(
     index: Map<string, DiscoveredModule>, from_module_name: string,
 ) -> ModuleOrigin {
-    from :: index[from_module_name] ?? return .Build
+    from :: index[from_module_name] else return .Build
     return from.origin
 }
 

@@ -53,7 +53,7 @@ main :: fn() -> i32 {
     reasons :: Map<HttpStatus, string> {}
     reasons[.NotFound] = "gone"
     reasons[.Ok] = "here"
-    println("${reasons[.NotFound] ?? "?"} ${reasons[.Ok] ?? "?"} ${reasons.len()}")
+    println("${reasons[.NotFound] else "?"} ${reasons[.Ok] else "?"} ${reasons.len()}")
     shades: Color[]: [.Red, .Green]
     boxed :: Box<Direction> { .value = .East }
     println("${shades.content_equals([.Red, .Green])} ${boxed}")

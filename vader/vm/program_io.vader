@@ -78,7 +78,7 @@ serve_program_stream :: fn(
         }
         return serve_read(info, stack, arg_base, at_pc)
     }
-    stream :: stream_of(i64(fd)) ?? return null
+    stream :: stream_of(i64(fd)) else return null
     return serve_write(io, stream, info, stack, arg_base, at_pc)
 }
 

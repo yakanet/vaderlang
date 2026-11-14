@@ -50,7 +50,7 @@ test_a_match_headers_binding_is_declared_renamed_and_hovered_at_its_name :: fn()
     )
     // The `x` of `match x :: make()`.
     assert_eq(range_at(results[0], ["range"]).split("-")[0], "7:33")
-    changes :: member(results[1], "changes") ?? JsonNull {}
+    changes :: member(results[1], "changes") else JsonNull {}
     assert(changes is JsonObject, stringify(results[1]))
     if changes is JsonObject {
         files :: changes.entries.keys().collect()
@@ -59,11 +59,11 @@ test_a_match_headers_binding_is_declared_renamed_and_hovered_at_its_name :: fn()
         // The declaration and one use, every range covering the name itself.
         assert_eq(edits.len(), 2)
         for edit in edits {
-            assert_eq(text_at(HEADER_BINDING_SOURCE, member(edit, "range") ?? JsonNull {}), "x")
+            assert_eq(text_at(HEADER_BINDING_SOURCE, member(edit, "range") else JsonNull {}), "x")
         }
     }
     // A use reads the binding at the type its arm narrowed it to.
-    assert_eq(string_at(results[2], ["contents", "value"]) ?? "", "```\nx: A\n```")
+    assert_eq(string_at(results[2], ["contents", "value"]) else "", "```\nx: A\n```")
 }
 
 // The alias `S` leads to `std/string`; the local `trim` is a decoy that would
@@ -250,12 +250,12 @@ test_a_field_received_through_a_spread_is_declared_by_its_base :: fn() -> void {
     )
     assert(results[0] is JsonObject, stringify(results[0]))
     assert_eq(start_line(results[0]), 7)
-    field_hover :: string_at(results[1], ["contents", "value"]) ?? ""
+    field_hover :: string_at(results[1], ["contents", "value"]) else ""
     assert(
         field_hover.starts_with("lsptest \u{203a} Base\n\n```\nwidth: i32 = 0\n```"),
         field_hover,
     )
-    struct_hover :: string_at(results[2], ["contents", "value"]) ?? ""
+    struct_hover :: string_at(results[2], ["contents", "value"]) else ""
     expected :: "lsptest\n\n```\nDerived :: struct {\n    ...Base\n    depth: i32 = 0\n}\n```"
     assert(struct_hover.starts_with(expected), struct_hover)
 }
@@ -363,7 +363,7 @@ operand_of :: fn(line: string, op: string) -> string | null {
 // The jump of the first line `<op> <n>`, its target the first line `<directive> <n> `.
 indexed :: fn(lines: string[], op: string, directive: string) -> Jump {
     at :: first_line(lines, 0, (l) -> operand_of(l, op) != null)
-    n :: operand_of(lines[at], op) ?? ""
+    n :: operand_of(lines[at], op) else ""
     target :: first_line(lines, 0, (l) -> l.starts_with("${directive} ${n} "))
     return Jump { .line = at, .operand = n, .target = target }
 }
@@ -425,7 +425,7 @@ test_a_virt_operand_jumps_to_what_it_names :: fn() -> void {
     jumps.push(Jump { .line = get_line, .operand = "1", .target = show })
     jumps.push(Jump { .line = tee_line, .operand = "2", .target = first_local })
     branch :: first_line(lines, 0, (l) -> branch_label(l) != null)
-    label :: branch_label(lines[branch]) ?? ""
+    label :: branch_label(lines[branch]) else ""
     opening :: last_line(lines, branch, (l) -> opens_scope(l, label))
     jumps.push(Jump { .line = branch, .operand = label, .target = opening })
     queries: Query[]: []

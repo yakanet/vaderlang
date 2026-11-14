@@ -226,7 +226,7 @@ unbound_impl_params :: fn(
     }
     mentioned :: type_params_in(for_ty)
     for tp in decl.type_params {
-        sym :: resolved.idents[tp.span.hash()] ?? continue
+        sym :: resolved.idents[tp.span.hash()] else continue
         if !mentioned.any_match((m) -> m.id == sym.id) {
             unbound.push(tp)
         }
@@ -264,7 +264,7 @@ declare_and_check_impl :: fn(
             ),
         )
     }
-    trait_sym :: impl_trait_symbol(id, typed.resolved) ?? return
+    trait_sym :: impl_trait_symbol(id, typed.resolved) else return
     trait_key :: trait_key_of(trait_sym)
     if trait_key == core_trait_key(TRAIT_INTO) {
         if id.trait_args.len() == 1 {
@@ -314,8 +314,8 @@ walk_default_bodies :: fn(
     if !d.members.any_match((m) -> m.body != null) {
         return
     }
-    trait_sym :: symbol_declared_at(typed.resolved, d.name_span) ?? return
-    self_sym :: typed.resolved.trait_self_params[trait_sym.id] ?? return
+    trait_sym :: symbol_declared_at(typed.resolved, d.name_span) else return
+    self_sym :: typed.resolved.trait_self_params[trait_sym.id] else return
     self_param :: TypeParamType { .symbol = self_sym }
     typed.default_body_params = default_body_param_ids(d, self_sym, typed)
     for m in d.members {
@@ -356,7 +356,7 @@ default_body_param_ids :: fn(
 ) -> Set<i32> {
     out :: Set<i32> {}
     out.add(self_sym.id)
-    for t in declared_type_args(d.type_params, typed) ?? [] {
+    for t in declared_type_args(d.type_params, typed) else [] {
         if t is TypeParamType {
             out.add(t.symbol.id)
         }
@@ -373,7 +373,7 @@ declare_inherited_member :: fn(
     for_ty: Type,
     typed: TypedProgram,
 ) -> void {
-    rest :: inherited_signature(m, trait_type, for_ty, typed) ?? return
+    rest :: inherited_signature(m, trait_type, for_ty, typed) else return
     params: Type[]: []
     if receiver_count(m) > 0 {
         params.push(for_ty)
@@ -416,14 +416,14 @@ check_inherited_tests :: fn(impl_: AST.ImplDecl, typed: TypedProgram, diags: Dia
     if !impl_.members.any_match((m) -> m.inherits != null) {
         return
     }
-    trait_sym :: impl_trait_symbol(impl_, typed.resolved) ?? return
-    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
+    trait_sym :: impl_trait_symbol(impl_, typed.resolved) else return
+    owner :: typed.trait_decl_owners[trait_sym.id] else typed.resolved
     for_ty :: type_from_expr(impl_.for_type, typed.resolved, [])
     args :: registered_trait_args(impl_, trait_sym, for_ty, typed.resolved, typed)
     bindings :: trait_param_bindings(trait_sym, args, for_ty, typed)
     for m in impl_.members {
-        inherited :: m.inherits ?? continue
-        body :: inherited.body ?? continue
+        inherited :: m.inherits else continue
+        body :: inherited.body else continue
         tested: AST.TypeExpr[]: []
         AST.inspect(body, (n) -> collect_tested_type(n, tested))
         for t in tested {
@@ -467,6 +467,6 @@ walk_fn_body :: fn(
     // silently leave every skipped body at `:?` (lowerer -> degraded bytecode,
     // no error).
     if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
-    body :: fd.body ?? return
+    body :: fd.body else return
     check_fn_body(fd, body, typed, diags)
 }

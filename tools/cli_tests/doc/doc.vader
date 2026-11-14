@@ -49,7 +49,7 @@ fields_of :: fn(value: JsonValue, key: string, field: string) -> string[] {
     found :: member(value, key)
     if found is JsonArray {
         for item in found.items {
-            out.push(string_member(item, field) ?? "")
+            out.push(string_member(item, field) else "")
         }
     }
     return out

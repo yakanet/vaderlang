@@ -116,7 +116,7 @@ export machine_integer_of :: fn(values: Interval) -> MachineInteger | null {
 ///
 /// @param bounds  a range's bounds.
 export machine_integer_name :: fn(bounds: Interval) -> string {
-    m :: machine_integer_of(bounds) ?? return ""
+    m :: machine_integer_of(bounds) else return ""
     return m.name
 }
 
@@ -192,7 +192,7 @@ test_machine_integer_rows_agree_with_their_bounds :: fn() -> void {
             assert(checked_sub(m.bits, !m.is_signed, m.values.lo, 1) == null, "${m.name} min")
         }
     }
-    wide :: machine_integer_named("u64") ?? return
+    wide :: machine_integer_named("u64") else return
     assert(same_interval(wide.values, U64_VALUES), "u64 holds up to u64.max")
 }
 

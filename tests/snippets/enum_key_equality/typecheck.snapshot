@@ -67,16 +67,16 @@
   expr 44:16    IdentExpr      :: Map<Color, i32>
   expr 44:16    IndexExpr      :: i32 | null
   expr 44:25    DotVariantExpr :: Color
-  expr 44:40    FallbackExpr   :: i32
-  expr 44:40    IdentExpr      :: Map<Color, i32>
-  expr 44:40    IndexExpr      :: i32 | null
-  expr 44:49    DotVariantExpr :: Color
+  expr 44:42    FallbackExpr   :: i32
+  expr 44:42    IdentExpr      :: Map<Color, i32>
+  expr 44:42    IndexExpr      :: i32 | null
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 44:66    FallbackExpr   :: i32
-  expr 44:66    IdentExpr      :: Map<Color, i32>
-  expr 44:66    IndexExpr      :: i32 | null
-  expr 44:75    DotVariantExpr :: Color
+  expr 44:51    DotVariantExpr :: Color
+  expr 44:70    FallbackExpr   :: i32
+  expr 44:70    IdentExpr      :: Map<Color, i32>
+  expr 44:70    IndexExpr      :: i32 | null
+  expr 44:79    DotVariantExpr :: Color
   expr 46:18    StructLitExpr  :: Map<HttpStatus, string>
   expr 47:15    DotVariantExpr :: HttpStatus
   expr 47:28    StringLitExpr  :: string
@@ -92,17 +92,17 @@
   expr 50:16    IdentExpr      :: Map<HttpStatus, string>
   expr 50:16    IndexExpr      :: null | string
   expr 50:26    DotVariantExpr :: HttpStatus
-  expr 50:40    StringLitExpr  :: string
-  expr 50:47    FallbackExpr   :: string
-  expr 50:47    IdentExpr      :: Map<HttpStatus, string>
-  expr 50:47    IndexExpr      :: null | string
+  expr 50:42    StringLitExpr  :: string
+  expr 50:49    FallbackExpr   :: string
+  expr 50:49    IdentExpr      :: Map<HttpStatus, string>
+  expr 50:49    IndexExpr      :: null | string
   expr 50:5     CallExpr       :: void
   expr 50:5     IdentExpr      :: fn(T) -> void
-  expr 50:57    DotVariantExpr :: HttpStatus
-  expr 50:65    StringLitExpr  :: string
-  expr 50:72    CallExpr       :: i64
-  expr 50:72    FieldExpr      :: fn() -> i64
-  expr 50:72    IdentExpr      :: Map<HttpStatus, string>
+  expr 50:59    DotVariantExpr :: HttpStatus
+  expr 50:69    StringLitExpr  :: string
+  expr 50:76    CallExpr       :: i64
+  expr 50:76    FieldExpr      :: fn() -> i64
+  expr 50:76    IdentExpr      :: Map<HttpStatus, string>
   expr 51:5     CallExpr       :: void
   expr 51:5     IdentExpr      :: fn(T) -> void
   expr 52:12    CallExpr       :: bool
@@ -140,14 +140,14 @@
   expr 64:16    IdentExpr      :: Map<Color, i32>
   expr 64:16    IndexExpr      :: i32 | null
   expr 64:23    DotVariantExpr :: Color
-  expr 64:39    FallbackExpr   :: i32
-  expr 64:39    IdentExpr      :: Map<Color, i32>
-  expr 64:39    IndexExpr      :: i32 | null
-  expr 64:48    CallExpr       :: Color
-  expr 64:48    IdentExpr      :: Color
+  expr 64:41    FallbackExpr   :: i32
+  expr 64:41    IdentExpr      :: Map<Color, i32>
+  expr 64:41    IndexExpr      :: i32 | null
   expr 64:5     CallExpr       :: void
   expr 64:5     IdentExpr      :: fn(T) -> void
-  expr 64:54    IdentExpr      :: i32
-  expr 64:70    CallExpr       :: bool
-  expr 64:70    IdentExpr      :: fn(Contains<Color>) -> bool
-  expr 64:79    IdentExpr      :: Map<Color, i32>
+  expr 64:50    CallExpr       :: Color
+  expr 64:50    IdentExpr      :: Color
+  expr 64:56    IdentExpr      :: i32
+  expr 64:74    CallExpr       :: bool
+  expr 64:74    IdentExpr      :: fn(Contains<Color>) -> bool
+  expr 64:83    IdentExpr      :: Map<Color, i32>

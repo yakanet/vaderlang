@@ -272,9 +272,9 @@ holds_integer :: fn(check: StorageCheck, l: LocalId) -> bool =
 // integer than its own ; nothing for a slot unknown.
 check_slot :: fn(check: StorageCheck, value: LocalId, slot: Type | null, span: Span) -> void {
     held :: local_type(check, value)
-    target :: stored_conversion(held, slot) ?? return
+    target :: stored_conversion(held, slot) else return
     detail :: "${check.where}: `${display_type(held)}` held in `${stored_name(held)}` " +
-        "goes into a slot of `${display_type(slot ?? held)}` held in `${target.name}`"
+        "goes into a slot of `${display_type(slot else held)}` held in `${target.name}`"
     check.diags.push(internal_error(.StorageMismatch, span, detail))
 }
 
@@ -287,7 +287,7 @@ check_operation :: fn(
     result: Type,
     span: Span,
 ) -> void {
-    l :: held_integer(local_type(check, left)) ?? return
+    l :: held_integer(local_type(check, left)) else return
     if right != null {
         r :: held_integer(local_type(check, right))
         check_same_integer(check, l, r, "its right operand", span)
@@ -304,7 +304,7 @@ check_same_integer :: fn(
     what: string,
     span: Span,
 ) -> void {
-    known :: other ?? return
+    known :: other else return
     if known.name == left.name {
         return
     }
@@ -317,7 +317,7 @@ local_type :: fn(check: StorageCheck, l: LocalId) -> Type = check.function.local
 
 // The name of the integer a value of type `t` is held in ; the type itself for none.
 stored_name :: fn(t: Type) -> string {
-    held :: held_integer(t) ?? return display_type(t)
+    held :: held_integer(t) else return display_type(t)
     return held.name
 }
 

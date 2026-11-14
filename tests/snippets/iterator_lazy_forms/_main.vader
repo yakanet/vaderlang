@@ -38,7 +38,7 @@ total :: fn(w: i32[]) -> i32 {
 
 erased_count :: fn(i: Iterator<i32>) -> i64 = i.count()
 
-erased_last :: fn(i: Iterator<i32>) -> i32 = i.last() ?? -1
+erased_last :: fn(i: Iterator<i32>) -> i32 = i.last() else -1
 
 erased_empty :: fn(i: Iterator<i32>) -> bool = i.is_empty()
 
@@ -76,9 +76,9 @@ defaults :: fn() -> void {
     emptied :: [2, 4].filter(odd)
     println("filter state, is_empty: ${emptied.is_empty()}")
     lasted :: [1, 2, 3, 4, 5].filter(odd)
-    println("filter state, last: ${lasted.last() ?? -1}")
+    println("filter state, last: ${lasted.last() else -1}")
     println("generator, count: ${upto(4).count()}, is_empty: ${upto(0).is_empty()}")
-    println("map, last: ${[1, 2, 3].map(inc).last() ?? -1}")
+    println("map, last: ${[1, 2, 3].map(inc).last() else -1}")
     println("zip, count: ${zip([1, 2], [3, 4, 5]).count()}")
     odds :: [1, 2, 3, 4, 5].filter(odd)
     println("erased filter state, count: ${erased_count(odds)}")

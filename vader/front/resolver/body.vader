@@ -134,7 +134,7 @@ export resolve_module_programs :: fn(
         .ambiguous = Map<string, string[]> {},
     }
     for program in programs {
-        scope :: file_scopes[program.file] ?? panic("resolver: no scope for `${program.file}`")
+        scope :: file_scopes[program.file] else panic("resolver: no scope for `${program.file}`")
         state.enter_file(scope)
         for d in program.decls {
             state.walk_decl(d)
@@ -321,7 +321,7 @@ bind_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
 // `bind_type_param`, then record the bound the typecheck holds `tp` to.
 declare_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
     sym :: self.bind_type_param(tp)
-    bound :: tp.bound ?? return sym
+    bound :: tp.bound else return sym
     self.type_param_bounds[sym.id] = self.checked_bound(tp, bound)
     return sym
 }
@@ -330,7 +330,7 @@ declare_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
 // on the bound. Returns the bound to record: the union's other member when `null`
 // is all it adds, so the body is checked against what was meant.
 checked_bound :: fn(self: ResolveState, tp: AST.TypeParam, bound: AST.Expr) -> AST.Expr {
-    union :: union_in_bound(bound) ?? return bound
+    union :: union_in_bound(bound) else return bound
     variants :: AST.collect_bitor_variants(union)
     others: AST.Expr[]: []
     for v in variants {
@@ -467,7 +467,7 @@ walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
 // Its bound names the trait at the trait's name, which `idents` then resolves. Null
 // when the trait has no symbol.
 declare_trait_self :: fn(self: ResolveState, d: AST.TraitDecl) -> Symbol | null {
-    trait_sym :: self.scope.lookup(d.name) ?? return null
+    trait_sym :: self.scope.lookup(d.name) else return null
     if trait_sym.kind != .Trait {
         return null
     }
@@ -480,7 +480,7 @@ declare_trait_self :: fn(self: ResolveState, d: AST.TraitDecl) -> Symbol | null 
 
 trait_self_bound :: fn(d: AST.TraitDecl) -> AST.Expr {
     own :: trait_at_its_params(d)
-    required :: d.requires ?? return own
+    required :: d.requires else return own
     return AST.BinaryExpr {
         .span = d.name_span,
         .op = .BitAnd,
@@ -653,7 +653,7 @@ warn_block_after_else_value :: fn(
     if next !is AST.BlockExpr {
         return
     }
-    fallback :: fallback_of_stmt(s) ?? return
+    fallback :: fallback_of_stmt(s) else return
     last :: fallback.clauses[fallback.clauses.len() - 1]
     if fallback.coalesce || last.test != null || last.body is AST.BlockExpr {
         return
@@ -722,8 +722,8 @@ note_fallback_name :: fn(self: ResolveState, value: AST.Expr, bound: Symbol[]) -
     if value !is AST.FallbackExpr || bound.len() != 1 {
         return
     }
-    binding :: value.binding ?? return
-    named :: self.idents[binding.name_span.hash()] ?? return
+    binding :: value.binding else return
+    named :: self.idents[binding.name_span.hash()] else return
     self.fallback_names[named.id] = bound[0]
 }
 
@@ -843,7 +843,7 @@ MutableDecl :: struct {
 // local or a module constant.
 note_rebind :: fn(self: ResolveState, target: AST.Expr) -> void {
     if target is AST.IdentExpr {
-        sym :: self.idents[target.span.hash()] ?? return
+        sym :: self.idents[target.span.hash()] else return
         self.reassigned.add(sym.id)
         if self.loop_depth > 0 {
             self.rebind_log.push(sym.id)
@@ -856,7 +856,7 @@ note_rebind :: fn(self: ResolveState, target: AST.Expr) -> void {
 
 // Whether the walk is inside a lambda that did not declare `name`.
 declared_outside_lambda :: fn(self: ResolveState, name: string) -> bool {
-    frame :: self.lambda_frame ?? return false
+    frame :: self.lambda_frame else return false
     return self.scope.lookup_frame_index(name) < frame
 }
 
@@ -920,7 +920,7 @@ has_reassignment :: fn(self: ResolveState, syms: Symbol[]) -> bool {
 // unambiguous. A cross-module `s` whose name is in `ambiguous` is the real clash.
 check_wildcard_ambiguity :: fn(self: ResolveState, name: string, span: Span, s: Symbol) -> void {
     if s.module == self.module_path { return }
-    mods :: self.ambiguous[name] ?? return
+    mods :: self.ambiguous[name] else return
     self.diags.push(resolver_error(.AmbiguousWildcardImport, span, wildcard_clash_detail(name, mods)))
 }
 
@@ -1056,7 +1056,7 @@ bind_header_name :: fn(
     binding: AST.SimpleBinding | null,
     why: ConstLocal,
 ) -> void {
-    named :: binding ?? return
+    named :: binding else return
     sym :: self.bind_local(.Local, named.name, named.name_span)
     self.idents[named.name_span.hash()] = sym
     self.immutable_locals[sym.id] = why

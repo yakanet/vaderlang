@@ -81,10 +81,10 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> i64 | Veri
     depth[0] = 0
     work: i64[]: [0]
     for work.len() > 0 {
-        pc :: work.remove_last() ?? break
+        pc :: work.remove_last() else break
         d :: depth[pc]
         op :: f.body[pc]
-        e :: effect_of(module, f, op) ?? return defect(f, pc, "`${op_text(op)}` names nothing")
+        e :: effect_of(module, f, op) else return defect(f, pc, "`${op_text(op)}` names nothing")
         if d < e.pops {
             return defect(f, pc, "`${op_text(op)}` needs ${e.pops} value(s) but the stack holds ${d}")
         }
@@ -249,7 +249,7 @@ op_text :: fn(op: bc.Op) -> string {
 
 // `call.indirect` pops the fn value on top of its arguments.
 indirect_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
-    t :: fn_type_of(module, type_id) ?? return null
+    t :: fn_type_of(module, type_id) else return null
     results: i64: if returns_void(module, t.return_type) { 0 } else { 1 }
     return effect(t.params.len() + 1, results)
 }

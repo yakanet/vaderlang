@@ -63,7 +63,7 @@ finish_check :: fn(
         return expected
     }
     narrowed :: free_value_in_range(expr, got, expected, typed, diags)
-        ?? narrow_for_expected(got, expected)
+        else narrow_for_expected(got, expected)
     // Still free against a union : no member settled it alone.
     final :: if expected is UnionType && is_free_numeric(narrowed) {
         settle_ambiguous_literal(expr, got, expected, diags)
@@ -97,7 +97,7 @@ check_literal_bounds :: fn(
         }
     }
     if expr is AST.IntLitExpr && final is FreeIntType {
-        defaulted :: integer_values(default_if_free(final)) ?? return
+        defaulted :: integer_values(default_if_free(final)) else return
         if !literal_fits(expr.value, expr.negative, defaulted) {
             typed.literals_past_default[expr.id] = expr
         }
@@ -115,20 +115,20 @@ check_literal_bounds :: fn(
 // holding a free literal (`{integer} | null`) records the union with `t` in place
 // of that member, and its branches are settled in turn.
 settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    recorded :: typed.expr_types[e.id] ?? return
+    recorded :: typed.expr_types[e.id] else return
     if primitive_name(t) == "" {
         return
     }
     if recorded is UnionType && !settles_through(e) {
         return
     }
-    settled :: settled_type(recorded, t) ?? return
+    settled :: settled_type(recorded, t) else return
     record_expr(typed, e, settled)
     // @partial: every other free node is a literal, whose bounds are checked, or a
     // node with no operand to follow.
     @partial match e {
         is AST.BlockExpr        -> {
-            tail :: e.trailing ?? return
+            tail :: e.trailing else return
             settle_free_value(tail, t, typed, diags)
         }
         is AST.IfExpr           -> {
@@ -148,7 +148,7 @@ settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagno
         is AST.FallbackExpr     -> {
             settle_free_value(e.left, t, typed, diags)
             for c in e.clauses {
-                body :: AST.fallback_body_expr(c.body) ?? continue
+                body :: AST.fallback_body_expr(c.body) else continue
                 settle_free_value(body, t, typed, diags)
             }
         }
@@ -172,7 +172,7 @@ settles_through :: fn(e: AST.Expr) -> bool =
 settled_type :: fn(recorded: Type, t: Type) -> Type | null {
     variants: Type[]: []
     found := false
-    for v in union_variants(recorded) ?? [recorded] {
+    for v in union_variants(recorded) else [recorded] {
         if literal_family_holds(v, t) {
             variants.push(t)
             found = true
@@ -192,7 +192,7 @@ settled_type :: fn(recorded: Type, t: Type) -> Type | null {
 // literal a later context repinned has its concrete type recorded by then.
 report_literals_past_default :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
     for [id, literal] in typed.literals_past_default {
-        recorded :: typed.expr_types[id] ?? continue
+        recorded :: typed.expr_types[id] else continue
         if recorded !is FreeIntType {
             continue
         }
@@ -344,7 +344,7 @@ mark_display_dispatch :: fn(type: Type, typed: TypedProgram) -> void {
     if !type_contains_type_param(type) {
         return
     }
-    fn_ctx :: typed.current_fn_ctx ?? return
+    fn_ctx :: typed.current_fn_ctx else return
     if fn_ctx.fn_id != 0 {
         typed.fn_display_dispatches[fn_ctx.fn_id] = true
     }
@@ -365,7 +365,7 @@ check_interpolated_part :: fn(
     type: Type, part: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Callee {
     if has_display(type, typed) {
-        boxed :: boxed_without_identity(type, typed) ?? return display_callee(typed, type)
+        boxed :: boxed_without_identity(type, typed) else return display_callee(typed, type)
         diags.push(typecheck_error(.UnionLosesVariantIdentity, part.span,
             "narrow it to `${boxed.name}` first"))
         return ERRONEOUS_CALLEE

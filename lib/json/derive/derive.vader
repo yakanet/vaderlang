@@ -154,7 +154,7 @@ field_of :: fn(name: string, ty: AST.TypeExpr) -> AST.StructField = AST.StructFi
 
 @test
 test_value_expression_reaches_a_struct_of_the_module_only :: fn() -> void {
-    assert_eq(value_expression(named_type("Address"), "x", ["Address"]) ?? "", "to_json_value(x)")
+    assert_eq(value_expression(named_type("Address"), "x", ["Address"]) else "", "to_json_value(x)")
     assert(value_expression(named_type("Address"), "x", []) == null, "another module's struct")
 }
 

@@ -134,10 +134,10 @@ export resolve_lazy :: fn(
         if home != null && !paths[pi].merge {
             continue
         }
-        cand_opt :: rooted_candidate(paths[pi], name) ?? continue
+        cand_opt :: rooted_candidate(paths[pi], name) else continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
-        bucket :: scan_folder(cand, overlay, diags) ?? continue
+        bucket :: scan_folder(cand, overlay, diags) else continue
         if bucket.name != name { continue }   // folder exists but declares another module
         if home == null {
             home = cand
@@ -153,7 +153,7 @@ export resolve_lazy :: fn(
         }
         files.push_all(bucket.files)
     }
-    folder :: home ?? return null
+    folder :: home else return null
     resolved :: DiscoveredModule {
         .name = name, .folder = folder, .files = files, .origin = origin,
     }
@@ -178,10 +178,10 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
     discard: Diagnostic[]: []
     disk_only :: Map<string, string> {}
     for pi in 0..<paths.len() {
-        cand_opt :: rooted_candidate(paths[pi], name) ?? continue
+        cand_opt :: rooted_candidate(paths[pi], name) else continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
-        bucket :: scan_folder(cand, disk_only, discard) ?? continue
+        bucket :: scan_folder(cand, disk_only, discard) else continue
         if bucket.name != "" && bucket.name != name { return bucket.name }
     }
     return null
@@ -204,7 +204,7 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
 export seed_entry :: fn(
     entry_folder: string, overlay: Map<string, string>, diags: Diagnostic[],
 ) -> DiscoveredModule | null {
-    bucket :: scan_folder(entry_folder, overlay, diags) ?? return null
+    bucket :: scan_folder(entry_folder, overlay, diags) else return null
     if bucket.name == "" { return null }
     // `.Build`: this is the ENTRY, and a root exists because the caller named that
     // file, see `ModuleOrigin.Build`. Never cached in `index` anyway (below), so
@@ -277,7 +277,7 @@ scan_folder :: fn(dir: string, overlay: Map<string, string>, diags: Diagnostic[]
         is IOError   -> []
     }
     for [path, _] in overlay {
-        name :: name_in_folder(path, dir) ?? continue
+        name :: name_in_folder(path, dir) else continue
         if name !in raw {
             raw.push(name)
         }

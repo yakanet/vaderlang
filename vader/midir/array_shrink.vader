@@ -101,7 +101,7 @@ is_shrinking_intrinsic :: fn(ins: Instruction) -> bool =
 
 // An intrinsic no op serves is assumed to shorten an array.
 intrinsic_shortens_array :: fn(name: string) -> bool {
-    op :: intrinsic_op_for_name(name) ?? return true
+    op :: intrinsic_op_for_name(name) else return true
     return Bc.op_shortens_array(op)
 }
 

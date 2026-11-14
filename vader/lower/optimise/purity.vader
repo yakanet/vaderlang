@@ -39,7 +39,7 @@ is_pure_fn :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> bool {
     if cached != null {
         return cached
     }
-    body :: fd.body ?? return false
+    body :: fd.body else return false
     // Stamp impure BEFORE walking: a re-entrant (recursive) query hits this and
     // gets `false`, a cycle can't be proven pure. The real verdict overwrites it
     // below, so no non-cyclic caller ever reads the sentinel.
@@ -102,7 +102,7 @@ block_may_disturb :: fn(ctx: PurityCtx, b: LoweredBlock) -> bool {
             return true
         }
     }
-    trailing :: b.trailing ?? return false
+    trailing :: b.trailing else return false
     return expr_may_disturb(ctx, trailing)
 }
 
@@ -199,7 +199,7 @@ call_may_disturb :: fn(ctx: PurityCtx, call: LoweredCall) -> bool {
     if symbol.kind != .Fn {
         return true
     }
-    decl :: indexed_decl(ctx, symbol) ?? return true
+    decl :: indexed_decl(ctx, symbol) else return true
     return !is_pure_fn(ctx, decl) || any_expr_may_disturb(ctx, call.args)
 }
 

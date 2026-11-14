@@ -140,7 +140,7 @@
   expr 120:53   BinaryExpr     :: bool
   expr 120:53   FieldExpr      :: i32
   expr 120:53   IdentExpr      :: Point
-  expr 120:66   StructLitExpr  :: Point
+  expr 120:68   StructLitExpr  :: Point
   expr 121:13   StringLitExpr  :: string
   expr 121:28   IdentExpr      :: i32
   expr 121:37   CallExpr       :: null | Point
@@ -154,7 +154,7 @@
   expr 121:53   BinaryExpr     :: bool
   expr 121:53   FieldExpr      :: i32
   expr 121:53   IdentExpr      :: Point
-  expr 121:66   StructLitExpr  :: Point
+  expr 121:68   StructLitExpr  :: Point
   expr 122:15   CallExpr       :: Iterator<Point>
   expr 122:15   FieldExpr      :: fn(fn(Point) -> bool) -> Iterator<Point>
   expr 122:15   IdentExpr      :: Point[]

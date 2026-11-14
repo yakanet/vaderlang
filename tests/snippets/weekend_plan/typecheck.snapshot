@@ -117,15 +117,15 @@
   expr 83:16    CallExpr       :: 6..=6 | null
   expr 83:16    FallbackExpr   :: 6..=6
   expr 83:16    IdentExpr      :: fn(Weekday) -> 6..=6 | null
-  expr 83:34    BinaryExpr     :: bool
-  expr 83:34    CallExpr       :: 6..=6 | null
-  expr 83:34    IdentExpr      :: fn(Weekday) -> 6..=6 | null
+  expr 83:36    BinaryExpr     :: bool
+  expr 83:36    CallExpr       :: 6..=6 | null
+  expr 83:36    IdentExpr      :: fn(Weekday) -> 6..=6 | null
   expr 83:5     CallExpr       :: void
   expr 83:5     IdentExpr      :: fn(T) -> void
-  expr 83:55    CallExpr       :: string
-  expr 83:55    IdentExpr      :: fn(Weekday, Weekday) -> string
-  expr 83:76    CallExpr       :: string
-  expr 83:76    IdentExpr      :: fn(Weekday, Weekday) -> string
+  expr 83:57    CallExpr       :: string
+  expr 83:57    IdentExpr      :: fn(Weekday, Weekday) -> string
+  expr 83:78    CallExpr       :: string
+  expr 83:78    IdentExpr      :: fn(Weekday, Weekday) -> string
   expr 84:13    StringLitExpr  :: string
   expr 84:16    CallExpr       :: i32
   expr 84:16    IdentExpr      :: fn(Swim | Walk) -> i32

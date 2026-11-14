@@ -54,8 +54,8 @@ cast_ray :: fn(level: Level, x: f64, y: f64, ray_x: f64, ray_y: f64) -> Hit {
         }
         cell :: level.cell_at(cell_x, cell_y)
         if cell == .Door {
-            door :: level.door_at(cell_x, cell_y) ?? continue
-            return strike_door(door, x, y, ray_x, ray_y) ?? continue
+            door :: level.door_at(cell_x, cell_y) else continue
+            return strike_door(door, x, y, ray_x, ray_y) else continue
         }
         if !cell.solid {
             continue

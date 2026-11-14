@@ -284,8 +284,7 @@
                   ]
                 }
               }
-            ],
-            "coalesce": true
+            ]
           }
         },
         "decorators": [],
@@ -1058,8 +1057,7 @@
                       ]
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             },
             {

@@ -575,7 +575,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     for ve in ordered {
         key :: vtable_key(ve.trait_name, ve.method_name)
         if used_keys[key] !is bool { continue }
-        fn_idx :: resolve_fn_index(ve.fn_symbol, ctx) ?? continue
+        fn_idx :: resolve_fn_index(ve.fn_symbol, ctx) else continue
         receiver_key :: type_intern_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
         if receiver_slot !is i32 { continue }
@@ -643,7 +643,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Ma
     for i in 0..<ctx.types.len() {
         st :: ctx.types[i]
         if st is BcStruct {
-            traits :: membership[st.symbol_id] ?? continue
+            traits :: membership[st.symbol_id] else continue
             for tr in traits {
                 key :: "${i}|${tr}"
                 if seen[key] is bool { continue }
@@ -977,7 +977,7 @@ boxed_field :: fn(ctx: EmitterCtx, type_index: i32, index: i64) -> bool {
 
 // An element of the array (or array-backed distinct) `t` boxes a scalar.
 boxed_element :: fn(t: Type) -> bool {
-    array :: array_backing(t) ?? return false
+    array :: array_backing(t) else return false
     return is_boxed_slot(array.element)
 }
 
@@ -1181,9 +1181,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         layout :: union_layout_struct(ctx.project.types, type_index)
-            ?? panic(no_common_field(ctx, ins.field, target_type))
+            else panic(no_common_field(ctx, ins.field, target_type))
         field_slot :: find_struct_field_index(ctx.project, layout, ins.field)
-            ?? panic(no_common_field(ctx, ins.field, target_type))
+            else panic(no_common_field(ctx, ins.field, target_type))
         emit_first_get(ctx, pos, ins.target, ins.span)
         get :: UnionFieldGet { .type_id = type_index, .field_index = i32(field_slot) }
         push_emit(ctx, get, ins.span)
@@ -1197,9 +1197,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         layout :: union_layout_struct(ctx.project.types, type_index)
-            ?? panic(no_common_field(ctx, ins.field, target_type))
+            else panic(no_common_field(ctx, ins.field, target_type))
         field_slot :: find_struct_field_index(ctx.project, layout, ins.field)
-            ?? panic(no_common_field(ctx, ins.field, target_type))
+            else panic(no_common_field(ctx, ins.field, target_type))
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
         emit_retag_into(ctx, ins.value, boxed_field(ctx.project, layout, field_slot), ins.span)
@@ -1574,7 +1574,7 @@ import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
     imp :: p.imports[index]
     intrinsic :: if imp.is_extern { null } else { intrinsic_op_for_mangled(imp.mangled_name) }
     return DirectCallTarget {
-        .op = intrinsic ?? CallImport { .index = index },
+        .op = intrinsic else CallImport { .index = index },
         .signature = imp.signature,
     }
 }
@@ -1685,7 +1685,7 @@ needs_ref_cast :: fn(t: Type) -> bool = t is RangeType || t is PrimitiveType && 
 // `(i32 | string)[]` or a `Display[]` is boxed, not packed. The value's type only
 // when the target is not visibly an array.
 pushed_element_type :: fn(target: Type, value: Type) -> Type {
-    array :: array_backing(target) ?? return value
+    array :: array_backing(target) else return value
     return array.element
 }
 

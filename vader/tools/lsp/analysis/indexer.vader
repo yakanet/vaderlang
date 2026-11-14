@@ -183,7 +183,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
 
 // The module a program declares, "" without a header.
 module_name_of :: fn(program: Program) -> string {
-    header :: program.module ?? return ""
+    header :: program.module else return ""
     return header.name
 }
 
@@ -745,7 +745,7 @@ node_doc :: fn(node: DeclNode) -> DocComment | null = match node {
 /// @param d  an entry of a document index.
 /// @return   "" when it has none, and for a binding, which has no declaration.
 export entry_doc :: fn(d: DeclEntry) -> string {
-    node :: d.node ?? return ""
+    node :: d.node else return ""
     return doc_text(node_doc(node))
 }
 
@@ -779,7 +779,7 @@ binding_entry :: fn(
 // ---- local bindings of a fn body ---------------------------------------
 
 index_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
-    body :: f.body ?? return
+    body :: f.body else return
     // Params live for the whole body.
     index_params(f.params, body.span, source, entries)
     w :: LocalIndex { .source = source, .entries = entries }
@@ -968,8 +968,8 @@ param_signature_slice :: fn(span: Span, fallback: string, source: string) -> str
 /// @param d       a declaration of that file.
 /// @param name    the name of one of its parameters.
 export param_tag_spans :: fn(source: string, path: string, d: DeclEntry, name: string) -> Span[] {
-    node :: d.node ?? return []
-    doc :: node_doc(node) ?? return []
+    node :: d.node else return []
+    doc :: node_doc(node) else return []
     out: Span[]: []
     for line in doc.lines {
         at :: param_tag_offset(line, name)
@@ -1086,7 +1086,7 @@ test_index_modifier_list_is_a_wildcard :: fn() -> void {
     assert_eq(idx.wildcards.paths[0], "std/string")
     assert_eq(idx.imports.len(), 1)
     assert_eq(idx.imports[0].local, "cut")
-    assert_eq(idx.imports[0].imported_name ?? "", "split")
+    assert_eq(idx.imports[0].imported_name else "", "split")
 }
 
 @test

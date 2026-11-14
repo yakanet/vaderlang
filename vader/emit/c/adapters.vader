@@ -52,7 +52,7 @@ export emit_adapter_units :: fn(m: BytecodeModule, adapted: i64[]) -> AdapterUni
     names: string[]: []
     units: string[]: []
     for library in sort(libraries, compare_ascending) {
-        imports :: by_library[library] ?? continue
+        imports :: by_library[library] else continue
         names.push(adapter_unit_name(library))
         units.push(emit_adapter_unit(m.types, struct_names, library, imports))
     }

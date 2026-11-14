@@ -24,7 +24,7 @@ Shape :: trait {
         }
         return acc
     }
-    pick :: fn(self, d: i32) -> i32 = positive(self.size() - d) ?? d
+    pick :: fn(self, d: i32) -> i32 = positive(self.size() - d) else d
     traced :: fn(self, label: string) -> i32 {
         defer println("leave ${label} ${self.size()}")
         return self.size()

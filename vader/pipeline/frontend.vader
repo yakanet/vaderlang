@@ -118,7 +118,7 @@ export prepare_evaluated_project_with :: fn(
 // `@comptime` value left to the VM.
 project_defers_a_value :: fn(loaded: LoadedProject, evaluated: EvaluatedProject) -> bool {
     for decl in evaluated.vm_required {
-        owner :: loaded.modules[decl.module_id] ?? continue
+        owner :: loaded.modules[decl.module_id] else continue
         if owner.module.origin == .Build {
             return true
         }

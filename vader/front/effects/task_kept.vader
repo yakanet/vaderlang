@@ -47,7 +47,7 @@ settle_kept_into :: fn(ctx: TaskCtx, callers: i32[][]) -> KeptInto[][] {
         }
     }
     for work.len() > 0 {
-        node :: work.remove_last() ?? break
+        node :: work.remove_last() else break
         queued.remove(node)
         if ctx.note_kept_into(kept, node) {
             for caller in callers[node] {
@@ -79,20 +79,20 @@ note_kept_into :: fn(ctx: TaskCtx, kept: KeptInto[][], node: i32) -> bool {
     slots.spread(s, ctx.eval_ctx(node), flows)
     grew := false
     for m in moves {
-        for v in slots.roots[m.into] ?? [] {
+        for v in slots.roots[m.into] else [] {
             // A value that is a part of a parameter, not the parameter itself, has no
             // relation to say: a stored value is a part of its holder, and taking the
             // holder for the value would chain holders into each other.
             if v.path != ROOT || v.under != ROOT {
                 continue
             }
-            for h in slots.roots[m.from] ?? [] {
+            for h in slots.roots[m.from] else [] {
                 if v.param == h.param || v.param >= s.params || h.param >= s.params {
                     continue
                 }
                 // The store puts the value in the place it writes: in `h` only below
                 // where the holder holds it.
-                into :: ctx.index.paths.lands_at(h, m.path, .Assigned) ?? continue
+                into :: ctx.index.paths.lands_at(h, m.path, .Assigned) else continue
                 k :: KeptInto {
                     .value = v.param,
                     .holder = h.param,
@@ -134,7 +134,7 @@ source_type :: fn(typed: TypedProgram, site: Site, q: i64) -> Type | null {
     if q >= site.sources.len() {
         return null
     }
-    source :: site.sources[q] ?? return null
+    source :: site.sources[q] else return null
     return typed.expr_types[source.id]
 }
 
@@ -155,8 +155,8 @@ callee_stores :: fn(ctx: TaskCtx, node: i32, kept: KeptInto[][]) -> CalleeStore[
                 if !holds_references(source_type(typed, site, k.value)) {
                     continue
                 }
-                value :: site.args[k.value] ?? continue
-                holder :: site.args[k.holder] ?? continue
+                value :: site.args[k.value] else continue
+                holder :: site.args[k.holder] else continue
                 flow :: Flow { .into = value, .from = holder, .path = k.path }
                 out.push(CalleeStore { .flow = flow, .at = site.at })
             }

@@ -50,7 +50,7 @@ module_text :: fn(ctx: TextCtx, m: IndexModule) -> string {
 
 // The header of the module `m`'s main file, its summary when it does not read.
 module_header :: fn(catalog: Catalog, m: IndexModule) -> string {
-    module :: whole_module(catalog, m.path) ?? return m.summary
+    module :: whole_module(catalog, m.path) else return m.summary
     return module.header
 }
 
@@ -75,13 +75,13 @@ text_of :: fn(lines: string[]) -> string {
 // The lines of `e` in full, from its module read whole; its head alone when
 // the module does not hold it.
 entry_lines :: fn(ctx: TextCtx, e: IndexEntry) -> string[] {
-    module :: whole_module(ctx.catalog, e.module) ?? return [e.signature]
+    module :: whole_module(ctx.catalog, e.module) else return [e.signature]
     if !is_member(e) {
-        decl :: module.decls.find((d: DocDecl) -> d.id == e.id) ?? return [e.signature]
+        decl :: module.decls.find((d: DocDecl) -> d.id == e.id) else return [e.signature]
         return declaration_lines(ctx, e, decl)
     }
-    owner :: module.decls.find((d: DocDecl) -> d.id == e.owner) ?? return [e.signature]
-    member :: owner.members.find((m: DocMember) -> m.id == e.id) ?? return [e.signature]
+    owner :: module.decls.find((d: DocDecl) -> d.id == e.owner) else return [e.signature]
+    member :: owner.members.find((m: DocMember) -> m.id == e.id) else return [e.signature]
     lines: string[]: [place(ctx, e, owner.file, member.line, member.column), ""]
     head :: head_of(ctx, member.name, member.signature, [], member.function)
     if owner.kind == "impl" {
@@ -132,7 +132,7 @@ declaration_lines :: fn(ctx: TextCtx, e: IndexEntry, decl: DocDecl) -> string[] 
 // directory when it lies under it. The working directory and the file are both
 // resolved first: one spelled through a link would not lie under the other.
 place :: fn(ctx: TextCtx, e: IndexEntry, file: string, line: i32, column: i32) -> string {
-    named :: ctx.places[file] ?? named_from_here(ctx, file)
+    named :: ctx.places[file] else named_from_here(ctx, file)
     ctx.places[file] = named
     return module_line(ctx, e.module) + "  " + painted(ctx, .Place, "${named}:${line}:${column}")
 }

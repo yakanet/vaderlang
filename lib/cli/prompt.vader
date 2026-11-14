@@ -227,7 +227,7 @@ KeyReader :: struct {
 // The next press, reading a fresh burst when the queue is empty.
 next_press :: fn(reader: KeyReader) -> KeyPress | PromptError {
     for reader.at >= reader.pending.len() {
-        burst :: TTY.read_keys(64) ?? return input_closed()
+        burst :: TTY.read_keys(64) else return input_closed()
         reader.pending = decode_burst(burst)
         reader.at = 0
     }
@@ -256,7 +256,7 @@ give_terminal_back :: fn() -> void {
 
 // Width to render inside, leaving a column so a full-width line does not wrap on
 // its own. 80 columns when the terminal will not say.
-render_width :: fn() -> i32 = (TTY.columns() ?? 80) - 1
+render_width :: fn() -> i32 = (TTY.columns() else 80) - 1
 
 /// Cut `s` to `width` columns, marking the cut so a truncated option does not
 /// read as a complete one.
@@ -472,7 +472,7 @@ export select :: fn(question: string, choices: Choice[]) -> i64 | PromptError {
     if choices.len() == 0 {
         return no_terminal(question)
     }
-    g :: take_terminal() ?? return no_terminal(question)
+    g :: take_terminal() else return no_terminal(question)
     defer give_terminal_back()
     step :: Step { .question = question, .glyphs = g }
     cursor: i64 = 0
@@ -556,7 +556,7 @@ export multiselect :: fn(question: string, choices: Choice[]) -> i64[] | PromptE
     if choices.len() == 0 {
         return no_terminal(question)
     }
-    g :: take_terminal() ?? return no_terminal(question)
+    g :: take_terminal() else return no_terminal(question)
     defer give_terminal_back()
     step :: Step { .question = question, .glyphs = g }
     checked: bool[]: [false] * choices.len()
@@ -617,7 +617,7 @@ render_confirm :: fn(question: string, yes: bool, width: i32, g: Glyphs) -> stri
 /// @error `.NoTerminal` when stdin is not interactive: the caller should use
 ///        its flag's own default; `.Cancelled` on Escape or Ctrl-C.
 export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError {
-    g :: take_terminal() ?? return no_terminal(question)
+    g :: take_terminal() else return no_terminal(question)
     defer give_terminal_back()
     step :: Step { .question = question, .glyphs = g }
     yes := default_yes
@@ -734,7 +734,7 @@ export text :: fn(
     default_value: string,
     check: fn(string) -> string | null = any_answer,
 ) -> string | PromptError {
-    g :: take_terminal() ?? return no_terminal(question)
+    g :: take_terminal() else return no_terminal(question)
     defer give_terminal_back()
     step :: Step { .question = question, .glyphs = g }
     typed := ""

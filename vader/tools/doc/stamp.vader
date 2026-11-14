@@ -66,8 +66,8 @@ export doc_inputs :: fn(
         .include_paths = include_paths,
         .header = [],
     }
-    digest :: compiler ?? return inputs
-    root :: project_root ?? ""
+    digest :: compiler else return inputs
+    root :: project_root else ""
     inputs.header.push("compiler ${digest}")
     inputs.header.push("entry ${entry_key(entry)}")
     inputs.header.push("project ${normalized_root(root)}")
@@ -100,7 +100,7 @@ export fresh_doc_data :: fn(dir: string, inputs: DocInputs) -> string[] | null {
     if inputs.header.len() == 0 || !exists(join_path(dir, INDEX_FILE)) {
         return null
     }
-    stamp :: read_stamp(dir) ?? return null
+    stamp :: read_stamp(dir) else return null
     if stamp.key != input_key(inputs, disk_lines(stamp.folders)) {
         return null
     }
@@ -113,7 +113,7 @@ export fresh_doc_data :: fn(dir: string, inputs: DocInputs) -> string[] | null {
 ///
 /// @param dir  the folder of the data.
 export doc_data_key :: fn(dir: string) -> string | null {
-    stamp :: read_stamp(dir) ?? return null
+    stamp :: read_stamp(dir) else return null
     return stamp.key
 }
 
@@ -201,7 +201,7 @@ loaded_lines :: fn(checked: DocCheck) -> FolderLines {
     lines: string[]: []
     for folder in folders {
         lines.push("folder ${folder}")
-        files :: by_folder[folder] ?? []
+        files :: by_folder[folder] else []
         for file in sort(files, by_path) {
             lines.push(file_line(file.path, file.content))
         }

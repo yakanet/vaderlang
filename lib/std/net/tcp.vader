@@ -954,8 +954,8 @@ exchange :: fn(stream: TcpStream, message: string) -> string {
 
 @test
 test_listener_binds_a_free_port :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
     assert(address.port != 0, "the system picked a port")
     assert_eq(address.ip.to_string(), "127.0.0.1")
     listener.close()
@@ -963,10 +963,10 @@ test_listener_binds_a_free_port :: fn() -> void {
 
 @test
 test_streams_carry_bytes_both_ways :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
     server :: launch(() -> serve(listener, 1))
-    stream :: connection_to(address) ?? return
+    stream :: connection_to(address) else return
     assert_eq(exchange(stream, "hello"), "hello")
     stream.close()
     assert_eq(counted(server), 5)
@@ -975,11 +975,11 @@ test_streams_carry_bytes_both_ways :: fn() -> void {
 
 @test
 test_connections_are_served_at_the_same_time :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
     server :: launch(() -> serve(listener, 2))
-    first :: connection_to(address) ?? return
-    second :: connection_to(address) ?? return
+    first :: connection_to(address) else return
+    second :: connection_to(address) else return
     // The second to connect is answered while the first has sent nothing.
     assert_eq(exchange(second, "second"), "second")
     assert_eq(exchange(first, "first"), "first")
@@ -998,10 +998,10 @@ send_bytes :: fn(stream: TcpStream, count: i64) -> void {
 
 @test
 test_a_write_larger_than_the_socket_holds_goes_through :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
     server :: launch(() -> serve(listener, 1))
-    stream :: connection_to(address) ?? return
+    stream :: connection_to(address) else return
     // More than the system keeps for a socket: the server has to read while
     // this end still writes, and this end to read while the server writes back.
     size: i64: 4 * 1024 * 1024
@@ -1024,8 +1024,8 @@ test_a_write_larger_than_the_socket_holds_goes_through :: fn() -> void {
 
 @test
 test_listen_fails_on_an_address_already_taken :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
     second :: listen(address)
     if second is TcpListener {
         return assert(false, "two listeners on one address")
@@ -1036,9 +1036,9 @@ test_listen_fails_on_an_address_already_taken :: fn() -> void {
 
 @test
 test_peer_address_is_the_listener_s :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
-    stream :: connection_to(address) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
+    stream :: connection_to(address) else return
     peer :: stream.peer_address()
     if peer is IOError {
         return assert(false, "no peer: ${peer.msg}")
@@ -1050,9 +1050,9 @@ test_peer_address_is_the_listener_s :: fn() -> void {
 
 @test
 test_one_task_connects_accepts_and_reads :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
-    client :: connection_to(address) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
+    client :: connection_to(address) else return
     server :: listener.accept()
     if server is IOError {
         return assert(false, "no connection: ${server.msg}")
@@ -1090,9 +1090,9 @@ sends_at_once :: fn(socket: Socket) -> bool {
 
 @test
 test_a_stream_holds_no_write_back :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
-    client :: connection_to(address) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
+    client :: connection_to(address) else return
     server :: listener.accept()
     if server is IOError {
         return assert(false, "no connection: ${server.msg}")
@@ -1114,9 +1114,9 @@ Ends :: struct {
 // A connection made and accepted here; null, the test having failed, when the
 // system refuses.
 connected_ends :: fn() -> Ends | null {
-    listener :: loopback_listener() ?? return null
-    address :: bound_address(listener) ?? return null
-    client :: connection_to(address) ?? return null
+    listener :: loopback_listener() else return null
+    address :: bound_address(listener) else return null
+    client :: connection_to(address) else return null
     server :: listener.accept()
     if server is IOError {
         assert(false, "no connection: ${server.msg}")
@@ -1147,7 +1147,7 @@ read_of :: fn(stream: TcpStream) -> string {
 
 @test
 test_a_read_fails_once_its_deadline_has_come :: fn() -> void {
-    ends :: connected_ends() ?? return
+    ends :: connected_ends() else return
     began :: monotonic()
     ends.server.read_by(began + 30.millis())
     assert_eq(read_of(ends.server), "TimedOut")
@@ -1162,7 +1162,7 @@ test_a_read_fails_once_its_deadline_has_come :: fn() -> void {
 
 @test
 test_a_read_parked_beside_other_tasks_fails_at_its_deadline :: fn() -> void {
-    ends :: connected_ends() ?? return
+    ends :: connected_ends() else return
     server :: ends.server
     began :: monotonic()
     server.read_by(began + 30.millis())
@@ -1175,7 +1175,7 @@ test_a_read_parked_beside_other_tasks_fails_at_its_deadline :: fn() -> void {
 
 @test
 test_a_read_served_before_its_deadline_is_a_read :: fn() -> void {
-    ends :: connected_ends() ?? return
+    ends :: connected_ends() else return
     ends.server.read_by(monotonic() + 10.seconds())
     ends.client.write("in time")
     assert_eq(read_of(ends.server), "in time")
@@ -1184,7 +1184,7 @@ test_a_read_served_before_its_deadline_is_a_read :: fn() -> void {
 
 @test
 test_a_write_nobody_reads_fails_at_its_deadline :: fn() -> void {
-    ends :: connected_ends() ?? return
+    ends :: connected_ends() else return
     piece: u8[]: ['x'] * 65536
     began :: monotonic()
     ends.client.write_by(began + 50.millis())
@@ -1226,8 +1226,8 @@ test_a_process_out_of_descriptors_is_told_apart :: fn() -> void {
 
 @test
 test_connect_fails_where_nothing_listens :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
     listener.close()
     refused :: connect(address)
     if refused is TcpStream {
@@ -1238,9 +1238,9 @@ test_connect_fails_where_nothing_listens :: fn() -> void {
 
 @test
 test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
-    stream :: connection_to(address) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
+    stream :: connection_to(address) else return
     stream.close()
     assert(stream.write("late") is IOError, "a write after close")
     assert(stream.read([0] * 8) is IOError, "a read after close")
@@ -1250,7 +1250,7 @@ test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
 
 @test
 test_a_closed_listener_says_so :: fn() -> void {
-    listener :: loopback_listener() ?? return
+    listener :: loopback_listener() else return
     assert(!listener.is_closed(), "a listener just made is open")
     listener.close()
     assert(listener.is_closed(), "a listener closed says so")
@@ -1270,9 +1270,9 @@ read_outcome :: fn(stream: TcpStream) -> string {
 
 @test
 test_closing_a_stream_ends_the_read_parked_on_it :: fn() -> void {
-    listener :: loopback_listener() ?? return
-    address :: bound_address(listener) ?? return
-    stream :: connection_to(address) ?? return
+    listener :: loopback_listener() else return
+    address :: bound_address(listener) else return
+    stream :: connection_to(address) else return
     // Nothing is ever sent: the read parks until the close.
     reading :: launch(() -> read_outcome(stream))
     sleep(5.millis())
@@ -1287,7 +1287,7 @@ test_closing_a_stream_ends_the_read_parked_on_it :: fn() -> void {
 
 @test
 test_closing_a_listener_ends_the_accept_parked_on_it :: fn() -> void {
-    listener :: loopback_listener() ?? return
+    listener :: loopback_listener() else return
     accepting :: launch(() -> listener.accept() is IOError)
     sleep(5.millis())
     listener.close()
@@ -1302,9 +1302,9 @@ test_ipv6_loopback_carries_bytes :: fn() -> void {
         // A machine with no IPv6 has no `::1` to bind.
         return
     }
-    address :: bound_address(listener) ?? return
+    address :: bound_address(listener) else return
     server :: launch(() -> serve(listener, 1))
-    stream :: connection_to(address) ?? return
+    stream :: connection_to(address) else return
     assert_eq(exchange(stream, "six"), "six")
     stream.close()
     assert_eq(counted(server), 3)
@@ -1313,7 +1313,7 @@ test_ipv6_loopback_carries_bytes :: fn() -> void {
 
 @test
 test_a_stream_closed_while_its_reader_gives_way_reads_as_closed :: fn() -> void {
-    ends :: connected_ends() ?? return
+    ends :: connected_ends() else return
     ends.client.write("x" * 4096)
     one: u8[]: [0] * 1
     // The bytes are there: the reads that follow find one each, and do not

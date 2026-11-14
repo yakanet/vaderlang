@@ -68,7 +68,7 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
             for d in f.program.decls {
                 add_leading_names(d, leading)
                 if declares_type(d) {
-                    dependency_types.add(declared_name(d) ?? continue)
+                    dependency_types.add(declared_name(d) else continue)
                 }
             }
         }
@@ -153,7 +153,7 @@ add_leading_names :: fn(d: AST.Decl, leading: Set<string>) -> void {
         leading.add(d.trait_name)
         return
     }
-    name :: declared_name(d) ?? return
+    name :: declared_name(d) else return
     leading.add(name)
     if d is AST.TraitDecl {
         for member in d.members {
@@ -222,10 +222,10 @@ reached_by :: fn(program: string, library: string) -> string {
     names: string[]: []
     for d in left[1].files[0].program.decls {
         if d is AST.ImplDecl {
-            names.push("${type_head_name(d.for_type) ?? "_"}:${d.trait_name}")
+            names.push("${type_head_name(d.for_type) else "_"}:${d.trait_name}")
             continue
         }
-        names.push(declared_name(d) ?? continue)
+        names.push(declared_name(d) else continue)
     }
     return names.join(" ")
 }

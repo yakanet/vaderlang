@@ -129,7 +129,7 @@ settle_tasks :: fn(
     // The facts of a node grow from those of its callees: a node whose facts grew
     // sends its callers back to the queue.
     for work.len() > 0 {
-        node :: work.remove_last() ?? break
+        node :: work.remove_last() else break
         queued.remove(node)
         if checked.add(node) {
             order.push(node)
@@ -280,7 +280,7 @@ body_of :: fn(ctx: TaskCtx, node: i32) -> TaskBody {
         slots.include_root(s.locals[k].slot, Root { .param = first_local + k, .path = ROOT })
     }
     for site in s.sites {
-        j :: ctx.singleton_of(site) ?? continue
+        j :: ctx.singleton_of(site) else continue
         slots.include_root(site.result, Root { .param = singleton_base + j, .path = ROOT })
     }
     flows: Flow[]: []
@@ -330,7 +330,7 @@ lambda_flows :: fn(ctx: TaskCtx, s: Skeleton) -> Flow[] {
             }
             for p in lambda.params {
                 for a in site.args {
-                    from :: a ?? continue
+                    from :: a else continue
                     out.push(Flow { .into = p, .from = from, .path = EVERYWHERE })
                 }
             }
@@ -367,7 +367,7 @@ eval_ctx :: fn(ctx: TaskCtx, node: i32) -> EvalCtx = EvalCtx {
 }
 
 // The roots `slot` holds.
-roots_at :: fn(body: TaskBody, slot: i64) -> Root[] = body.slots.roots[slot] ?? []
+roots_at :: fn(body: TaskBody, slot: i64) -> Root[] = body.slots.roots[slot] else []
 
 // Note every access of `body` to a root: the names it reads, its own writes and
 // stores, and what its calls do to what they are lent. A value a literal holds is
@@ -396,12 +396,12 @@ note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
     }
     for k in 0..<body.s.marks.len() {
         m :: body.s.marks[k]
-        kind :: touch_kind(m.access.effect) ?? continue
+        kind :: touch_kind(m.access.effect) else continue
         if kind == .Kept && (m.at in stored || k in held) {
             continue
         }
         for r in body.roots_at(m.slot) {
-            below :: paths.lands_at(r, m.access.path, m.access.effect) ?? continue
+            below :: paths.lands_at(r, m.access.path, m.access.effect) else continue
             touch :: Touch {
                 .root = r.param,
                 .path = below,
@@ -413,7 +413,7 @@ note_touches :: fn(ctx: TaskCtx, body: TaskBody) -> void {
     }
     for site in body.s.sites {
         ctx.note_site_touches(body, site, site.at in stored)
-        j :: ctx.singleton_of(site) ?? continue
+        j :: ctx.singleton_of(site) else continue
         touch :: Touch {
             .root = body.singleton_base + j,
             .path = ROOT,
@@ -459,7 +459,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
     for target in site.targets {
         params :: known_params(target, ctx.facts)
         for q in 0..<site.args.len() {
-            arg :: site.args[q] ?? continue
+            arg :: site.args[q] else continue
             roots :: body.roots_at(arg)
             lent :: lent_type(body, site, q)
             if roots.len() == 0 || is_task_shared_type(lent) {
@@ -469,7 +469,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
             accesses :: target_accesses(target, ctx.facts, q, ctx.index.any)
             for i in 0..<accesses.len() {
                 for a in as_touched(paths, site, target, accesses[i]) {
-                    kind :: touch_kind(a.effect) ?? continue
+                    kind :: touch_kind(a.effect) else continue
                     if kind == .Kept && (stores || ctx.keeps_in_another(target, q)) {
                         continue
                     }
@@ -477,7 +477,7 @@ note_site_touches :: fn(ctx: TaskCtx, body: TaskBody, site: Site, stores: bool) 
                         continue
                     }
                     for r in roots {
-                        below :: paths.lands_at(r, a.path, a.effect) ?? continue
+                        below :: paths.lands_at(r, a.path, a.effect) else continue
                         touch :: Touch {
                             .root = r.param,
                             .path = below,
@@ -540,7 +540,7 @@ lent_type :: fn(body: TaskBody, site: Site, q: i64) -> Type | null {
     if q >= site.sources.len() {
         return null
     }
-    source :: site.sources[q] ?? return null
+    source :: site.sources[q] else return null
     return body.typed.expr_types[source.id]
 }
 
@@ -554,7 +554,7 @@ crosses_task_shared :: fn(
 ) -> bool {
     at := t
     for step in paths.steps_of(path) {
-        at = step_type(typed, at, paths.step_names[step]) ?? return false
+        at = step_type(typed, at, paths.step_names[step]) else return false
         if is_task_shared_type(at) {
             return true
         }
@@ -586,7 +586,7 @@ sending_at :: fn(ctx: TaskCtx, site: Site, q: i64) -> Sending | null {
 note_doors :: fn(ctx: TaskCtx, body: TaskBody) -> void {
     for site in body.s.sites {
         for q in 0..<site.args.len() {
-            sending :: ctx.sending_at(site, q) ?? continue
+            sending :: ctx.sending_at(site, q) else continue
             door :: Door {
                 .site = site,
                 .param = q,
@@ -644,7 +644,7 @@ named_fn_node :: fn(ctx: TaskCtx, body: TaskBody, site: Site, q: i64) -> i32 | n
     if q >= site.sources.len() {
         return null
     }
-    source :: site.sources[q] ?? return null
+    source :: site.sources[q] else return null
     return ctx.fn_node_of(body.typed, source)
 }
 
@@ -653,7 +653,7 @@ forwarded_param :: fn(body: TaskBody, site: Site, q: i64) -> i64 | null {
     if q >= site.sources.len() {
         return null
     }
-    source :: site.sources[q] ?? return null
+    source :: site.sources[q] else return null
     return body.param_named(source)
 }
 
@@ -667,7 +667,7 @@ called_params :: fn(ctx: TaskCtx, body: TaskBody, entry: AST.LambdaExpr) -> i64[
             continue
         }
         for read in ctx.run_values(body.shape, site) {
-            q :: body.param_named(read) ?? continue
+            q :: body.param_named(read) else continue
             if q !in out {
                 out.push(q)
             }
@@ -681,10 +681,10 @@ param_named :: fn(body: TaskBody, e: AST.Expr) -> i64 | null {
     if e !is AST.IdentExpr {
         return null
     }
-    sym :: body.typed.resolved.idents[e.span.hash()] ?? return null
+    sym :: body.typed.resolved.idents[e.span.hash()] else return null
     for i in 0..<body.decl.params.len() {
         p :: body.decl.params[i]
-        named :: body.typed.resolved.idents[p.span.hash()] ?? continue
+        named :: body.typed.resolved.idents[p.span.hash()] else continue
         if named.id == sym.id {
             return i
         }
@@ -702,7 +702,7 @@ names_a_fn :: fn(body: TaskBody, site: Site, q: i64) -> bool {
     if source !is AST.IdentExpr {
         return false
     }
-    sym :: body.typed.resolved.idents[source.span.hash()] ?? return false
+    sym :: body.typed.resolved.idents[source.span.hash()] else return false
     return sym.kind == .Fn
 }
 
@@ -792,17 +792,17 @@ task_touches :: fn(ctx: TaskCtx, body: TaskBody, door: Door) -> Touch[] {
         }
         out.push(touch)
     }
-    arg :: door.arg ?? return out
+    arg :: door.arg else return out
     paths :: ctx.index.paths
     for r in body.roots_at(arg) {
         // A read takes whole a part that holds `r`, as a keep does ; a write there may
         // be one unseen code makes.
         for g in door.sending.given {
-            read :: paths.lands_at(r, g, .Stored) ?? continue
+            read :: paths.lands_at(r, g, .Stored) else continue
             out.push(sent_touch(r, read, .Read, door))
         }
         for w in door.sending.written {
-            written :: paths.lands_at(r, w, .Unknown) ?? continue
+            written :: paths.lands_at(r, w, .Unknown) else continue
             out.push(sent_touch(r, written, .Write, door))
         }
     }

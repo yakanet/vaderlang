@@ -82,17 +82,17 @@
   expr 56:16    IdentExpr      :: Map<HttpStatus, string>
   expr 56:16    IndexExpr      :: null | string
   expr 56:24    DotVariantExpr :: HttpStatus
-  expr 56:38    StringLitExpr  :: string
-  expr 56:45    FallbackExpr   :: string
-  expr 56:45    IdentExpr      :: Map<HttpStatus, string>
-  expr 56:45    IndexExpr      :: null | string
+  expr 56:40    StringLitExpr  :: string
+  expr 56:47    FallbackExpr   :: string
+  expr 56:47    IdentExpr      :: Map<HttpStatus, string>
+  expr 56:47    IndexExpr      :: null | string
   expr 56:5     CallExpr       :: void
   expr 56:5     IdentExpr      :: fn(T) -> void
-  expr 56:53    DotVariantExpr :: HttpStatus
-  expr 56:61    StringLitExpr  :: string
-  expr 56:68    CallExpr       :: i64
-  expr 56:68    FieldExpr      :: fn() -> i64
-  expr 56:68    IdentExpr      :: Map<HttpStatus, string>
+  expr 56:55    DotVariantExpr :: HttpStatus
+  expr 56:65    StringLitExpr  :: string
+  expr 56:72    CallExpr       :: i64
+  expr 56:72    FieldExpr      :: fn() -> i64
+  expr 56:72    IdentExpr      :: Map<HttpStatus, string>
   expr 57:22    SeqLitExpr     :: Color[]
   expr 57:23    DotVariantExpr :: Color
   expr 57:29    DotVariantExpr :: Color

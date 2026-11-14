@@ -81,8 +81,8 @@ export upper_past_i64 :: fn(a: Interval) -> u64 {
 
 /// The interval from `lo` to `hi`, an absent end open.
 export interval_from_ends :: fn(lo: i64 | null, hi: i64 | null) -> Interval = Interval {
-    .lo = lo ?? I64_MIN,
-    .hi = hi ?? I64_MAX,
+    .lo = lo else I64_MIN,
+    .hi = hi else I64_MAX,
     .lo_open = lo == null,
     .hi_open = hi == null,
 }
@@ -255,10 +255,10 @@ export interval_mul :: fn(a: Interval, b: Interval) -> Interval {
     if a.lo_open || a.hi_open || b.lo_open || b.hi_open {
         return ANY_INTEGER
     }
-    p1 :: checked_mul(64, false, a.lo, b.lo) ?? return ANY_INTEGER
-    p2 :: checked_mul(64, false, a.lo, b.hi) ?? return ANY_INTEGER
-    p3 :: checked_mul(64, false, a.hi, b.lo) ?? return ANY_INTEGER
-    p4 :: checked_mul(64, false, a.hi, b.hi) ?? return ANY_INTEGER
+    p1 :: checked_mul(64, false, a.lo, b.lo) else return ANY_INTEGER
+    p2 :: checked_mul(64, false, a.lo, b.hi) else return ANY_INTEGER
+    p3 :: checked_mul(64, false, a.hi, b.lo) else return ANY_INTEGER
+    p4 :: checked_mul(64, false, a.hi, b.hi) else return ANY_INTEGER
     return span_of(p1, p2, p3, p4)
 }
 
@@ -273,7 +273,7 @@ export interval_div :: fn(a: Interval, b: Interval) -> Interval {
     below :: quotients_over(a, b.lo, lesser(b.hi, -1))
     above :: quotients_over(a, greater(b.lo, 1), b.hi)
     if below == null {
-        return above ?? ANY_INTEGER
+        return above else ANY_INTEGER
     }
     if above == null {
         return below
@@ -344,7 +344,7 @@ test_interval_join_meet_within :: fn() -> void {
     a :: interval(0, 5)
     b :: interval(3, 9)
     assert(same_interval(interval_join(a, b), interval(0, 9)), "join")
-    met :: interval_meet(a, b) ?? ANY_INTEGER
+    met :: interval_meet(a, b) else ANY_INTEGER
     assert(same_interval(met, interval(3, 5)), "meet")
     assert(interval_meet(interval(0, 1), interval(2, 3)) == null, "disjoint")
     assert(interval_within(interval(1, 2), a), "within")
@@ -359,7 +359,7 @@ test_interval_open_ends_against_i64 :: fn() -> void {
     assert(!interval_within(ANY_INTEGER, whole_i64), "any is past i64")
     joined :: interval_join(whole_i64, ANY_INTEGER)
     assert(same_interval(joined, ANY_INTEGER), "join opens")
-    met :: interval_meet(whole_i64, ANY_INTEGER) ?? ANY_INTEGER
+    met :: interval_meet(whole_i64, ANY_INTEGER) else ANY_INTEGER
     assert(same_interval(met, whole_i64), "meet closes")
 }
 
@@ -453,7 +453,7 @@ test_interval_upper_end_past_i64 :: fn() -> void {
     assert(interval_within(U64_VALUES, ANY_INTEGER), "u64 within every integer")
     assert(!interval_within(ANY_INTEGER, U64_VALUES), "every integer past u64")
     assert(same_interval(interval_join(past_by_one, U64_VALUES), U64_VALUES), "join")
-    met :: interval_meet(past_by_one, U64_VALUES) ?? ANY_INTEGER
+    met :: interval_meet(past_by_one, U64_VALUES) else ANY_INTEGER
     assert(same_interval(met, past_by_one), "meet")
     assert(!same_interval(past_by_one, U64_VALUES), "two ends past i64 differ")
 }
@@ -494,7 +494,7 @@ test_count_bits_reads_the_number_of_values :: fn() -> void {
 
 // The values of the machine integer `name`, for the tests below.
 values_of_named :: fn(name: string) -> Interval {
-    m :: machine_integer_named(name) ?? panic("`${name}` is no machine integer")
+    m :: machine_integer_named(name) else panic("`${name}` is no machine integer")
     return m.values
 }
 

@@ -69,15 +69,15 @@ type_of :: fn(ctx: RangeContext, local: LocalId) -> Interval | null = ctx.types[
 
 /// The values `local` holds in `s`; null for a local of no integer type.
 interval_of :: fn(ctx: RangeContext, s: RangeState, local: LocalId) -> Interval | null {
-    whole :: type_of(ctx, local) ?? return null
-    return s.intervals[local] ?? whole
+    whole :: type_of(ctx, local) else return null
+    return s.intervals[local] else whole
 }
 
 /// Record that `local` holds the values of `iv` that are values of its type. A
 /// local that may hold its whole type keeps no entry, so that states knowing
 /// the same compare equal.
 set_interval :: fn(ctx: RangeContext, s: RangeState, local: LocalId, iv: Interval) -> void {
-    whole :: type_of(ctx, local) ?? return
+    whole :: type_of(ctx, local) else return
     met :: interval_meet(iv, whole)
     if met == null || same_interval(met, whole) {
         s.intervals.remove(local)
@@ -91,13 +91,13 @@ set_interval :: fn(ctx: RangeContext, s: RangeState, local: LocalId, iv: Interva
 settle_intervals :: fn(ctx: RangeContext, s: RangeState) -> void {
     unsettled: LocalId[]: []
     for [local, iv] in s.intervals {
-        whole :: type_of(ctx, local) ?? continue
+        whole :: type_of(ctx, local) else continue
         if !interval_within(iv, whole) || same_interval(iv, whole) {
             unsettled.push(local)
         }
     }
     for local in unsettled {
-        iv :: s.intervals[local] ?? continue
+        iv :: s.intervals[local] else continue
         set_interval(ctx, s, local, iv)
     }
 }
@@ -137,11 +137,11 @@ shift_local :: fn(
     bounds: i64[]: []
     for [key, c] in s.differences {
         if fact_left(key) == src {
-            bound :: checked_add(64, false, c, k) ?? continue
+            bound :: checked_add(64, false, c, k) else continue
             keys.push(fact_key(dst, fact_right(key)))
             bounds.push(bound)
         } else if fact_right(key) == src {
-            bound :: checked_sub(64, false, c, k) ?? continue
+            bound :: checked_sub(64, false, c, k) else continue
             keys.push(fact_key(fact_left(key), dst))
             bounds.push(bound)
         }
@@ -170,7 +170,7 @@ forget_written :: fn(s: RangeState, ins: Instruction) -> void {
         }
         return
     }
-    dst :: dst_of(ins) ?? return
+    dst :: dst_of(ins) else return
     forget_local(s, dst)
 }
 
@@ -217,9 +217,9 @@ transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
 // length of `array`. An index no value of which is in bounds proves nothing : the
 // code after it runs on no path.
 learn_access :: fn(ctx: RangeContext, s: RangeState, array: LocalId, index: LocalId) -> void {
-    current :: interval_of(ctx, s, index) ?? return
+    current :: interval_of(ctx, s, index) else return
     if current.lo_open || current.lo < 0 {
-        in_bounds :: interval_meet(current, interval_from_ends(0, null)) ?? return
+        in_bounds :: interval_meet(current, interval_from_ends(0, null)) else return
         set_interval(ctx, s, index, in_bounds)
     }
     s.lengths.get_or_put(index, array)
@@ -258,9 +258,9 @@ transfer_length :: fn(ctx: RangeContext, s: RangeState, ins: InstrArrayLen) -> v
     forget_local(s, ins.dst)
     for n in shorter {
         add_fact(s, fact_key(n, ins.dst), 0)
-        floor :: interval_of(ctx, s, n) ?? continue
-        length :: interval_of(ctx, s, ins.dst) ?? continue
-        raised :: interval_meet(length, interval_from_ends(floor.lo, null)) ?? continue
+        floor :: interval_of(ctx, s, n) else continue
+        length :: interval_of(ctx, s, ins.dst) else continue
+        raised :: interval_meet(length, interval_from_ends(floor.lo, null)) else continue
         set_interval(ctx, s, ins.dst, raised)
     }
     s.lengths[ins.dst] = ins.target
@@ -377,7 +377,7 @@ is_single :: fn(a: Interval) -> bool = !a.lo_open && !a.hi_open && a.lo == a.hi
 // integer for an operator the analysis does not follow.
 bitwise_interval :: fn(op: LoweredBinaryOp, a: Interval, b: Interval) -> Interval = match op {
     .Mod -> remainder_interval(a, b)
-    .BitAnd -> interval_meet(non_negative_bound(a), non_negative_bound(b)) ?? ANY_INTEGER
+    .BitAnd -> interval_meet(non_negative_bound(a), non_negative_bound(b)) else ANY_INTEGER
     .Shr -> non_negative_bound(a)
     .Add | .Sub | .Mul | .Div | .Shl | .BitOr | .BitXor | .And | .Or | .Eq | .Neq | .Lt | .Lte
      | .Gt | .Gte | .AddChecked | .SubChecked | .MulChecked -> ANY_INTEGER
@@ -453,8 +453,8 @@ test_ranges_index_below_length_steps_without_wrapping :: fn() -> void {
     assert(learn_comparison(ctx, s, test_binop(.Lt, 9, 0, 1), true), "i < n can hold")
     transfer(ctx, s, test_constant(2, 1))
     transfer(ctx, s, test_binop(.Add, 3, 0, 2))
-    assert_eq(s.differences[fact_key(LocalId(3), LocalId(1))] ?? 99, 0)
-    stepped :: interval_of(ctx, s, LocalId(3)) ?? ANY_INTEGER
+    assert_eq(s.differences[fact_key(LocalId(3), LocalId(1))] else 99, 0)
+    stepped :: interval_of(ctx, s, LocalId(3)) else ANY_INTEGER
     assert(stepped.lo == 1, "i + 1 is at least 1")
 }
 
@@ -475,7 +475,7 @@ test_ranges_checked_add_wraps_in_release :: fn() -> void {
     trapping :: new_range_state()
     transfer(debug, trapping, test_constant(1, 1))
     transfer(debug, trapping, test_binop(.AddChecked, 2, 0, 1))
-    kept :: interval_of(debug, trapping, LocalId(2)) ?? ANY_INTEGER
+    kept :: interval_of(debug, trapping, LocalId(2)) else ANY_INTEGER
     assert(kept.lo == 1, "a checked add that went on is at least 1")
     wrapping :: new_range_state()
     transfer(release, wrapping, test_constant(1, 1))
@@ -496,9 +496,9 @@ test_ranges_second_length_read_is_at_least_the_first :: fn() -> void {
         .target = LocalId(2),
     }
     transfer(ctx, s, read)
-    length :: interval_of(ctx, s, LocalId(1)) ?? ANY_INTEGER
+    length :: interval_of(ctx, s, LocalId(1)) else ANY_INTEGER
     assert(length.lo == 1, "the length is at least n")
-    assert_eq(s.differences[fact_key(LocalId(0), LocalId(1))] ?? 99, 0)
+    assert_eq(s.differences[fact_key(LocalId(0), LocalId(1))] else 99, 0)
 }
 
 @test

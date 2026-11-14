@@ -54,7 +54,7 @@ wrapped :: fn(h: Hour) -> Hour {
 }
 
 main :: fn() -> i32 {
-    println("${parse_hour(7) ?? 0} ${parse_hour(24) == null} ${parse_hour(-1) == null}")
+    println("${parse_hour(7) else 0} ${parse_hour(24) == null} ${parse_hour(-1) == null}")
     println("${hour_or_midnight(19)} ${hour_or_midnight(99)}")
     println("${half_of_day(9)} ${half_of_day(21)}")
     east :: Reading { .offset = 9 }

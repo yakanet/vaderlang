@@ -138,7 +138,7 @@ begin_lowering_of :: fn(
     // function the eager walk lowers as well.
     for module_id in module_ids {
         if is_eager_module(module_id, loaded, eager_modules) {
-            seed_eager_module(project_ctx, loaded.modules[module_id] ?? continue)
+            seed_eager_module(project_ctx, loaded.modules[module_id] else continue)
         }
     }
     for module_id in module_ids {
@@ -192,8 +192,8 @@ begin_lowering_of :: fn(
             }
             continue
         }
-        module_typed :: typed.modules[module_id] ?? continue
-        module_loaded :: loaded.modules[module_id] ?? continue
+        module_typed :: typed.modules[module_id] else continue
+        module_loaded :: loaded.modules[module_id] else continue
         decls :: module_decls(module_loaded)
         display_path :: module_loaded.module.display_path
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
@@ -430,7 +430,7 @@ seed_eager_module :: fn(project_ctx: LowerProjectCtx, module_loaded: LoadedModul
                 seed_fn_seen(project_ctx, d)
             }
         } else if d is ConstDecl {
-            sym :: module_loaded.collected.symbols[d.name] ?? continue
+            sym :: module_loaded.collected.symbols[d.name] else continue
             project_ctx.nongeneric_imported_consts.add(sym.id)
         }
     }
@@ -440,7 +440,7 @@ seed_eager_module :: fn(project_ctx: LowerProjectCtx, module_loaded: LoadedModul
 // (`materialize_nongeneric_imported_fns`) does not lower it again. It is found by
 // its declaration : the module's `symbols` keeps one overload per name.
 seed_fn_seen :: fn(project_ctx: LowerProjectCtx, d: FnDecl) -> void {
-    sym :: project_ctx.fn_symbols[d.id] ?? return
+    sym :: project_ctx.fn_symbols[d.id] else return
     project_ctx.nongeneric_imported_fns.add(sym.id)
 }
 

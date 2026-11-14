@@ -77,7 +77,7 @@ is_host :: fn(text: string) -> bool {
     if parsed !is Uri {
         return false
     }
-    authority :: parsed.authority ?? return false
+    authority :: parsed.authority else return false
     return authority.userinfo == null
         && parsed.path == ""
         && parsed.query == null

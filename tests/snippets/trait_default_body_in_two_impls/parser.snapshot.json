@@ -419,8 +419,7 @@
                       "name": "d"
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             },
             "decorators": [],

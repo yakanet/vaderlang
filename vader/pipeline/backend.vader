@@ -81,7 +81,7 @@ export dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> strin
 /// @param entry  the entry module's path key.
 /// @return       `<module>$main`, or "" when the entry has no `main`.
 export entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
-    tp :: typed.modules[entry] ?? return ""
+    tp :: typed.modules[entry] else return ""
     if "main" !in tp.resolved.fn_overloads {
         return ""
     }

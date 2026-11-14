@@ -120,7 +120,7 @@ substitute_in :: fn(
     self_type: Type | null,
 ) -> Type = @partial match t {
     is TypeParamType -> binding_of(t, bindings)
-    is SelfType      -> self_type ?? t
+    is SelfType      -> self_type else t
     is ArrayType     -> mk_array(substitute_in(t.element, bindings, self_type))
     is TupleType     -> mk_tuple(substitute_each_in(t.elements, bindings, self_type))
     is StructType    -> mk_struct(t.symbol, substitute_each_in(t.args, bindings, self_type))
@@ -159,7 +159,7 @@ binding_of :: fn(tp: TypeParamType, bindings: Map<i32, Type> | null) -> Type {
     if bindings == null {
         return tp
     }
-    return bindings[tp.symbol.id] ?? tp
+    return bindings[tp.symbol.id] else tp
 }
 
 // The parameters of `quantifier` that `bindings` leaves unbound: `quantifier`

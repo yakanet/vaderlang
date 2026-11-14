@@ -960,7 +960,7 @@ export vtable_entry_of :: fn(d: LoweredDecl) -> LoweredVtableEntry | null {
     if d !is LoweredFnDecl || d.params.len() == 0 {
         return null
     }
-    slot :: d.origin.vtable_slot ?? return null
+    slot :: d.origin.vtable_slot else return null
     // fn_symbol is informational here: the table builder
     // (`emit/bytecode/emit.vader::build_impl_table_from_vtable`) only keys on
     // (struct_type, trait_name).
@@ -977,7 +977,7 @@ export vtable_entry_of :: fn(d: LoweredDecl) -> LoweredVtableEntry | null {
 ///
 /// @param d  the function.
 export fn_symbol_of :: fn(d: LoweredFnDecl) -> Symbol =
-    d.origin.symbol ?? synthetic_symbol(0, .Fn, d.mangled)
+    d.origin.symbol else synthetic_symbol(0, .Fn, d.mangled)
 
 /// A symbol no resolver minted, private to no module.
 ///

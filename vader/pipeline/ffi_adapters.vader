@@ -165,7 +165,7 @@ adapter_flags :: fn(cc: string, native: NativeFlags, rt: string, quote_dir: stri
 adapter_links :: fn(module: BytecodeModule, adapted: i64[], native: NativeFlags) -> string[] {
     links :: native.links.clone()
     for i in adapted {
-        library :: module.imports[i].library ?? continue
+        library :: module.imports[i].library else continue
         if library.archives.len() == 0 && library.name != "" && !("-l${library.name}" in links) {
             links.push("-l${library.name}")
         }
@@ -251,13 +251,13 @@ export attach_ffi_adapters :: fn(
     built :: build_ffi_adapters(
         state.bc,
         adapted,
-        project_root ?? entry_dir,
+        project_root else entry_dir,
         cc_or_default(""),
         entry_dir,
     )
     if built is AdapterBuildError {
         imp :: state.bc.imports[adapted[0]]
-        reason :: VM.adapter_reason(imp, state.bc.types) ?? ""
+        reason :: VM.adapter_reason(imp, state.bc.types) else ""
         return "extern `${imp.extern_name}` is called through an adapter (${reason}), and the adapters "
             + "${built.message}; or build the program with `vader build`"
     }

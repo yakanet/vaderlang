@@ -129,7 +129,7 @@ test_the_front_end_runs_once_for_a_driver_that_observes_and_builds :: fn() -> vo
     // hold the compiler's pass over the driver.
     dir :: linted()
     profiled :: ran_in(dir, driver_of(dir), [["VADER_PROFILE", "1"]])
-    assert_eq(runs_of(profiled.stderr, "typecheck") ?? "no row", "1")
+    assert_eq(runs_of(profiled.stderr, "typecheck") else "no row", "1")
 }
 
 @test
@@ -166,9 +166,9 @@ test_info_check_run_build_run_and_the_build_flags_take_a_driven_project :: fn() 
     info :: driven(dir, ["info", "--json", "."])
     assert_eq(info.exit, 0)
     described :: parse(info.stdout).unwrap()
-    assert_eq(string_member(described, "kind") ?? "", "driver")
+    assert_eq(string_member(described, "kind") else "", "driver")
     assert_eq(strings_member(described, "includePaths").join(" "), "extra")
-    entries :: member(described, "entries") ?? JsonNull {}
+    entries :: member(described, "entries") else JsonNull {}
     assert_eq(stringify(entries), r"""{"app":"src/main.vader"}""")
     assert(!exists("${dir}/build/generated"), "`info` generates nothing")
     checked :: driven(dir, ["check", "."])

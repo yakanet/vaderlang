@@ -59,7 +59,7 @@ export frames_of :: fn(text: string) -> Frames {
     messages: JsonValue[]: []
     rest := text
     for {
-        parts :: rest.split_first(HEADER_END) ?? break
+        parts :: rest.split_first(HEADER_END) else break
         length :: body_length(parts.0)
         if length == null {
             panic("no `Content-Length` in the header `${parts.0}`")
@@ -80,7 +80,7 @@ export frames_of :: fn(text: string) -> Frames {
 /// @param value  a message, or a value in one.
 /// @param path   the keys to follow, the outermost first.
 export int_at :: fn(value: JsonValue, path: string[]) -> i64 {
-    found :: number_at(value, path) ?? panic(missing("number", value, path))
+    found :: number_at(value, path) else panic(missing("number", value, path))
     return i64(found)
 }
 
@@ -92,7 +92,7 @@ export int_at :: fn(value: JsonValue, path: string[]) -> i64 {
 /// @param path   the keys to follow, the outermost first: none reads `value`
 ///               itself.
 export array_at :: fn(value: JsonValue, path: string[]) -> JsonValue[] =
-    items_at(value, path) ?? panic(missing("array", value, path))
+    items_at(value, path) else panic(missing("array", value, path))
 
 // Why a test stops: no `shape` at `path` in `value`.
 missing :: fn(shape: string, value: JsonValue, path: string[]) -> string =

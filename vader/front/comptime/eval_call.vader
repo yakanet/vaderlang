@@ -39,7 +39,7 @@ evaluate_call_expr :: fn(
     // value, wrapped to the target width.
     if expr.args.len() == 1 && is_int_name(callee.name) {
         arg_result :: evaluate_expr(expr.args[0].value, context)
-        value :: arg_result.value ?? return arg_result
+        value :: arg_result.value else return arg_result
         if value is IntValue {
             wrapped :: wrap_to_width(value.value, callee.name)
             return ok(IntValue { .value = wrapped, .type_name = callee.name })
@@ -54,7 +54,7 @@ evaluate_call_expr :: fn(
     }
     fn_decl :: recorded.decl
     call_context :: context_declaring(fn_decl, context)
-        ?? return vm_required(expr.span, "CallExpr (callee of another module)")
+        else return vm_required(expr.span, "CallExpr (callee of another module)")
     // Its instance is built by the program's run, which has not started.
     if AST.decorators_have(fn_decl.decorators, "singleton") {
         return fail(comptime_error(.SingletonAtComptime, expr.span, "`${callee.name}`"))
@@ -69,7 +69,7 @@ evaluate_call_expr :: fn(
     arguments: ComptimeValue[]: []
     for arg in expr.args {
         arg_result :: evaluate_expr(arg.value, context)
-        value :: arg_result.value ?? return arg_result
+        value :: arg_result.value else return arg_result
         arguments.push(value)
     }
     return evaluate_with_arguments(fn_decl, arguments, bindings, call_context, expr.span)
@@ -82,7 +82,7 @@ context_declaring :: fn(decl: AST.FnDecl, context: ComptimeContext) -> ComptimeC
     if decl_symbol(context.typed.resolved, decl) != null {
         return context
     }
-    project :: context.project ?? return null
+    project :: context.project else return null
     for [module, typed] in project.typed.modules {
         if decl_symbol(typed.resolved, decl) != null {
             return declaring_context(module, context)
@@ -96,8 +96,8 @@ context_declaring :: fn(decl: AST.FnDecl, context: ComptimeContext) -> ComptimeC
 // no local binding. Null when the evaluation does not reach the project or the
 // module is unknown.
 declaring_context :: fn(module: string, context: ComptimeContext) -> ComptimeContext | null {
-    project :: context.project ?? return null
-    owner :: project.typed.modules[module] ?? return null
+    project :: context.project else return null
+    owner :: project.typed.modules[module] else return null
     return ComptimeContext {
         ...context,
         .typed = owner,
@@ -124,7 +124,7 @@ evaluate_with_arguments :: fn(
 ) -> EvalResult {
     for i in 0..<arguments.len() {
         parameter :: context.typed.resolved.idents[fn_decl.params[i].span.hash()]
-            ?? return vm_required(span, "CallExpr (param sym unresolved)")
+            else return vm_required(span, "CallExpr (param sym unresolved)")
         bindings[parameter.id] = arguments[i]
     }
     call_context :: ComptimeContext {
@@ -137,7 +137,7 @@ evaluate_with_arguments :: fn(
 evaluate_fn_body :: fn(
     fn_decl: AST.FnDecl, context: ComptimeContext, call_span: Span,
 ) -> EvalResult {
-    body :: fn_decl.body ?? return vm_required(call_span, "CallExpr (callee has no body)")
+    body :: fn_decl.body else return vm_required(call_span, "CallExpr (callee has no body)")
     trailing :: body.trailing
     if trailing !is null {
         // Sound ONLY with no preceding statements : earlier bindings and early

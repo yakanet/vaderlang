@@ -42,7 +42,7 @@ instantiate_fn_value :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    decl :: lookup_callee_fn_decl(expr, typed) ?? return got
+    decl :: lookup_callee_fn_decl(expr, typed) else return got
     return instance_in_slot(expr, decl, got, [], expected, typed, diags)
 }
 
@@ -62,7 +62,7 @@ infer_fn_instance :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    decl :: lookup_callee_fn_decl(e.callee, typed) ?? return TY_UNRESOLVED
+    decl :: lookup_callee_fn_decl(e.callee, typed) else return TY_UNRESOLVED
     reject_extra_type_args(e.callee, e.type_args, fn_ty, typed, diags)
     return instance_in_slot(e, decl, fn_ty, e.type_args, expected, typed, diags)
 }
@@ -91,7 +91,7 @@ instance_in_slot :: fn(
     open :: type_args.len() < own.len()
     return bound_by_slot(
         site, .Reference, decl, instance, bindings, open, held, expected, typed, diags,
-    ) ?? fn_ty
+    ) else fn_ty
 }
 
 /// The instance a generic free function takes as the method value `e` : the
@@ -126,7 +126,7 @@ method_value_instance :: fn(
     open :: type_contains_infer_var(zonk(instance, solutions))
     return bound_by_slot(
         e, .MethodValue, decl, instance, bindings, open, null, expected, typed, diags,
-    ) ?? TY_UNRESOLVED
+    ) else TY_UNRESOLVED
 }
 
 // `instance`, the instance of `decl` at the site `role` plays at `site`, its
@@ -220,8 +220,8 @@ note_fn_alias :: fn(s: AST.LetStmt, got: Type, typed: TypedProgram) -> void {
     if binding !is AST.SimpleBinding {
         return
     }
-    decl :: lookup_callee_fn_decl(s.value, typed) ?? return
-    sym :: typed.resolved.idents[binding.name_span.hash()] ?? return
+    decl :: lookup_callee_fn_decl(s.value, typed) else return
+    sym :: typed.resolved.idents[binding.name_span.hash()] else return
     typed.fn_aliases[sym.id] = decl
 }
 
@@ -245,8 +245,8 @@ settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[])
         if callee !is DirectFn {
             continue
         }
-        bindings :: callee.bindings ?? continue
-        span :: typed.call_sites.instantiation_spans[id] ?? continue
+        bindings :: callee.bindings else continue
+        span :: typed.call_sites.instantiation_spans[id] else continue
         zonk_table(bindings, typed.infer_solutions)
         default_free_bindings(bindings)
         if leaves_a_variable(bindings) {
@@ -254,7 +254,7 @@ settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[])
             continue
         }
         check_typeparam_bounds(span, callee.decl.name, bindings, typed, diags)
-        instance :: typed.expr_types[id] ?? continue
+        instance :: typed.expr_types[id] else continue
         reject_iterators_of_stop_in(zonk(instance, typed.infer_solutions), span, diags)
     }
 }
@@ -264,7 +264,7 @@ settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[])
 leaves_a_variable :: fn(bindings: Map<i32, Type>) -> bool {
     found := false
     for k in bindings.keys() {
-        bound :: bindings[k] ?? continue
+        bound :: bindings[k] else continue
         if type_contains_infer_var(bound) {
             bindings[k] = TY_UNRESOLVED
             found = true

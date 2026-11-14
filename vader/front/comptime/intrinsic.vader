@@ -61,8 +61,8 @@ intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
         return REPORTED_BY_TYPECHECK
     }
     target :: resolve_type_arg(expr.args[0], context)
-        ?? return arg_error(expr, "satisfies: first argument is not a type")
-    wanted :: resolve_type_arg(expr.args[1], context) ?? return ok(VAL_FALSE)
+        else return arg_error(expr, "satisfies: first argument is not a type")
+    wanted :: resolve_type_arg(expr.args[1], context) else return ok(VAL_FALSE)
     return ok(bool_value(satisfies_trait(target, wanted, context.typed)))
 }
 
@@ -76,7 +76,7 @@ intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
 
 type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
     if t is StructType {
-        fields :: context.typed.struct_fields[t.symbol.id] ?? return 0
+        fields :: context.typed.struct_fields[t.symbol.id] else return 0
         return fields.len()
     }
     if t is TupleType { return t.elements.len() }

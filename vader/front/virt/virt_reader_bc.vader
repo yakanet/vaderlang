@@ -340,7 +340,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         // so it is an instruction. A `null` back means either an opcode outside
         // the set or operands that don't parse, see `VirtParseError` for why
         // neither can be stepped over.
-        op :: parse_op_line(cleaned, head) ?? return VirtParseError {
+        op :: parse_op_line(cleaned, head) else return VirtParseError {
             .line_number = line_index,
             .line        = cleaned,
             .reason      = "unrecognised instruction `${head}`",
@@ -730,7 +730,7 @@ parse_import_decl_bc :: fn(
 // The library an import names by `<lib>:` before its symbol, or null for one
 // that names none. Its other fields follow as `library_*` attributes.
 read_library :: fn(raw_name: string) -> CLibrary | null {
-    colon :: raw_name.index_of(':') ?? return null
+    colon :: raw_name.index_of(':') else return null
     return CLibrary { .name = raw_name.byte_slice(0, colon) }
 }
 
@@ -1057,7 +1057,7 @@ parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
 // The results a line declares after its `->`; a single `Void` without one, as
 // the representation spells a call that leaves nothing.
 results_after_arrow :: fn(line: string) -> ValType[] {
-    arrow :: line.index_of('>') ?? return [.Void]
+    arrow :: line.index_of('>') else return [.Void]
     return results_written(line.byte_slice(arrow + 1, line.byte_len()))
 }
 
@@ -1077,7 +1077,7 @@ results_written :: fn(text: string) -> ValType[] {
 
 parse_local_decl_bc :: fn(cleaned: string) -> BcLocal {
     after :: cleaned.trim_prefix("local ").trim()
-    sp :: after.index_of(' ') ?? return BcLocal { .name = after, .val = .Void }
+    sp :: after.index_of(' ') else return BcLocal { .name = after, .val = .Void }
     nm :: after.byte_slice(0, sp)
     vtn :: after.byte_slice(sp + 1, after.byte_len()).trim()
     return BcLocal { .name = nm, .val = vt_or_void(vtn) }
@@ -1113,7 +1113,7 @@ unquote_name :: fn(s: string) -> string {
 
 /// `parse_val_type` with a `Void` fallback for unrecognised spellings.
 vt_or_void :: fn(name: string) -> ValType {
-    v :: parse_val_type(name) ?? return .Void
+    v :: parse_val_type(name) else return .Void
     return v
 }
 

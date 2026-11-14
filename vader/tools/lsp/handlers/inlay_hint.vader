@@ -45,8 +45,8 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
     cached :: typed_project_for(state, file_path)
     project :: cached.project
     result :: cached.result
-    entry :: project.modules[project.entry] ?? return JsonArray { .items = [] }
-    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonArray { .items = [] }
+    entry :: project.modules[project.entry] else return JsonArray { .items = [] }
+    sf :: source_file_for_path(entry.module.files, file_path) else return JsonArray { .items = [] }
     hints: JsonValue[]: []
     ctx :: HintCtx {
         .typed = result.typed,
@@ -254,7 +254,7 @@ emit_operator_hint :: fn(
 emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
     match sb :: ls.binding {
         is AST.SimpleBinding -> {
-            ty :: ctx.typed.local_types[sb.name_span.hash()] ?? return
+            ty :: ctx.typed.local_types[sb.name_span.hash()] else return
             if ty is UnresolvedType { return }
             if is_free_numeric(ty)  { return }
             emit_operator_hint(ctx, sb.name_span, ls.value.span, display_type(ty), out)
@@ -270,13 +270,13 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
 /// i32 | string`) get `TY_TYPE` ; we skip those: they're already
 /// self-describing.
 emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void {
-    ty :: declared_type_at(ctx.typed, cd.name_span) ?? return
+    ty :: declared_type_at(ctx.typed, cd.name_span) else return
     if ty is UnresolvedType { return }
     if ty is TypeMetaType   { return }
     // The value of a `@comptime` constant is a call spanning from the marker,
     // which a decorator puts above the name: what was written after the operator
     // is its `comptime_body`.
-    written :: cd.comptime_body ?? cd.value
+    written :: cd.comptime_body else cd.value
     emit_operator_hint(ctx, cd.name_span, written.span, display_type(ty), out)
 }
 
@@ -289,8 +289,8 @@ emit_fn_return_hints :: fn(d: AST.FnDecl, ctx: HintCtx, out: JsonValue[]) -> voi
     if d.return_type != null || d.comptime_synthetic {
         return
     }
-    body :: d.body ?? return
-    declared :: declared_fn_type(ctx.typed, d) ?? return
+    body :: d.body else return
+    declared :: declared_fn_type(ctx.typed, d) else return
     if declared !is FnType {
         return
     }
@@ -315,7 +315,7 @@ emit_lambda_return_hints :: fn(
     if e.return_type != null {
         return
     }
-    lambda_type :: ctx.typed.expr_types[e.id] ?? return
+    lambda_type :: ctx.typed.expr_types[e.id] else return
     if lambda_type !is FnType {
         return
     }
@@ -325,7 +325,7 @@ emit_lambda_return_hints :: fn(
     } else if show_return && carries_value(returned) {
         start :: e.body.span.start
         anchor :: anchor_before_token(ctx.li, ctx.content, start, "->")
-            ?? fn_return_anchor(ctx, start, e.is_expression_bodied)
+            else fn_return_anchor(ctx, start, e.is_expression_bodied)
         emit_return_type_hint(returned, anchor, out)
     }
 }
@@ -353,8 +353,8 @@ emit_return_type_hint :: fn(returned: Type, anchor: HintAnchor, out: JsonValue[]
 /// Mark the last expression of a body that returns nothing when it has a value:
 /// the value is evaluated, then dropped.
 emit_discarded_hint :: fn(body: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]) -> void {
-    trailing :: body.trailing ?? return
-    value :: ctx.typed.expr_types[trailing.id] ?? return
+    trailing :: body.trailing else return
+    value :: ctx.typed.expr_types[trailing.id] else return
     if !carries_value(value) {
         return
     }
@@ -376,7 +376,7 @@ fn_return_anchor :: fn(
 ) -> HintAnchor {
     on_body :: anchor_at(ctx.li, body_start)
     if is_expression_bodied {
-        return anchor_before_token(ctx.li, ctx.content, body_start, "=") ?? on_body
+        return anchor_before_token(ctx.li, ctx.content, body_start, "=") else on_body
     }
     return on_body
 }
@@ -539,14 +539,15 @@ token_anchor_of :: fn(content: string, body: Position, token: string) -> HintAnc
 test_return_anchor_finds_the_equals_on_the_previous_line :: fn() -> void {
     // `f :: fn(x: i32) =` then `    x * 2` : the body starts at offset 22.
     content :: "f :: fn(x: i32) =\n    x * 2"
-    a :: token_anchor_of(content, test_pos(22, 2, 5), "=") ?? return fail("no anchor")
+    a :: token_anchor_of(content, test_pos(22, 2, 5), "=") else return fail("no anchor")
     assert_eq(a.line, 0)
     assert_eq(a.character, 16)
 }
 
 @test
 test_return_anchor_finds_a_lambda_arrow :: fn() -> void {
-    a :: token_anchor_of("(x: i32) -> x + 1", test_pos(12, 1, 13), "->") ?? return fail("no anchor")
+    a :: token_anchor_of("(x: i32) -> x + 1", test_pos(12, 1, 13), "->")
+        else return fail("no anchor")
     assert_eq(a.line, 0)
     assert_eq(a.character, 9)
 }

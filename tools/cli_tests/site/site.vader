@@ -153,7 +153,7 @@ run_problem :: fn(program: Program, index: i64) -> string | null {
     if ran.exit != 0 || ran.stderr != "" {
         return "${program.place}: exit ${ran.exit}\n${ran.stderr}"
     }
-    expected :: program.output ?? return null
+    expected :: program.output else return null
     printed :: ran.stdout.right_trim()
     if printed != expected {
         return "${program.place}: expected\n${expected}\ngot\n${printed}"
@@ -172,13 +172,13 @@ test_a_text_block_right_after_a_program_is_its_output :: fn() -> void {
     assert_eq(programs.len(), 1)
     assert_eq(programs[0].place, "p.md:3")
     assert_eq(programs[0].source, "main")
-    assert_eq(programs[0].output ?? "none", "1")
+    assert_eq(programs[0].output else "none", "1")
 }
 
 @test
 test_a_text_block_after_prose_is_no_output :: fn() -> void {
     page :: "```vader\nmain\n```\n\nSo it prints:\n\n```text\n1\n```\n"
-    assert_eq(programs_of("p.md", page)[0].output ?? "none", "none")
+    assert_eq(programs_of("p.md", page)[0].output else "none", "none")
 }
 
 @test

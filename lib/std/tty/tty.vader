@@ -101,7 +101,7 @@ export should_colorize :: fn() -> bool =
 // Read once, as the terminal probes are, since `should_colorize` runs for every
 // coloured fragment: a `NO_COLOR` the program sets after its first one is not seen.
 @singleton
-no_color_set :: fn() -> bool = (get_env("NO_COLOR") ?? "") != ""
+no_color_set :: fn() -> bool = (get_env("NO_COLOR") else "") != ""
 
 // ---- coloring -------------------------------------------------------------
 //

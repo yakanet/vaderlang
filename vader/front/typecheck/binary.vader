@@ -159,7 +159,7 @@ infer_fallback :: fn(
     for c in e.clauses {
         prev: NarrowSlot | null = null
         if bound != null {
-            prev = push_narrow(typed, bound.id, typed.expr_types[c.id] ?? TY_NEVER)
+            prev = push_narrow(typed, bound.id, typed.expr_types[c.id] else TY_NEVER)
         }
         got :: check_clause_body(c.body, remaining, typed, diags)
         if bound != null {
@@ -223,7 +223,7 @@ handled_by_clause :: fn(
         return tested
     }
     failures: Type[]: []
-    for variant in union_variants(remaining) ?? [remaining] {
+    for variant in union_variants(remaining) else [remaining] {
         if is_null_type(variant) || is_known_error(variant, typed) {
             failures.push(variant)
         }
@@ -415,7 +415,7 @@ carries_mutable_state :: fn(t: Type, typed: TypedProgram) -> bool {
     }
     if t is StructType {
         // An undeclared struct (never walked) is assumed stateful: the common case.
-        fields :: typed.struct_fields[t.symbol.id] ?? return true
+        fields :: typed.struct_fields[t.symbol.id] else return true
         return fields.len() > 0
     }
     return false
@@ -505,7 +505,7 @@ pick_operator_member :: fn(
             sigs.push(impl_member_type(m, recv, typed))
         }
         pick :: pick_by_first_arg(sigs, operand, 1, typed)
-        index = pick.best ?? 0
+        index = pick.best else 0
         if pick.rival != null {
             diags.push(
                 typecheck_error(
@@ -805,7 +805,7 @@ contained_element :: fn(c: Type, span: Span, typed: TypedProgram) -> Type | null
     if candidates.len() > 1 {
         return null
     }
-    member :: dispatched_member(c, key, METHOD_CONTAINS, span, typed, diag_sink()) ?? return null
+    member :: dispatched_member(c, key, METHOD_CONTAINS, span, typed, diag_sink()) else return null
     if member.trait_key != key {
         return null
     }
@@ -836,7 +836,7 @@ check_contains_element :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    want :: contains_value(right, chosen, typed) ?? return
+    want :: contains_value(right, chosen, typed) else return
     if fits_through_backing(e, left, want) {
         return
     }
@@ -1130,7 +1130,7 @@ distinct_part_without_equality :: fn(t: DistinctType, typed: TypedProgram) -> Ty
     if struct_implements_trait(t, core_trait_key(TRAIT_EQUALS), typed) {
         return null
     }
-    part :: part_without_equality(t.backing, typed) ?? return null
+    part :: part_without_equality(t.backing, typed) else return null
     if equals_type(part, t.backing) {
         return t
     }
@@ -1140,7 +1140,7 @@ distinct_part_without_equality :: fn(t: DistinctType, typed: TypedProgram) -> Ty
 // Whether `left` and `right` share a variant (`counterpart`), each read as its
 // variants when it is a union.
 shares_variant :: fn(left: Type, right: Type) -> bool {
-    for l in union_variants(left) ?? [left] {
+    for l in union_variants(left) else [left] {
         if counterpart(right, l) != null {
             return true
         }
@@ -1155,7 +1155,7 @@ reject_untagged_beside_variants :: fn(e: AST.BinaryExpr, t: Type, diags: Diagnos
     if t !is UnionType {
         return
     }
-    untagged :: untagged_beside_variant(t) ?? return
+    untagged :: untagged_beside_variant(t) else return
     diags.push(
         typecheck_error(
             .IsTestOnSharedInstance,
@@ -1189,7 +1189,7 @@ first_without_equality :: fn(types: Type[], typed: TypedProgram) -> Type | null 
 // instance, refuses it (T3087).
 check_is_test_target :: fn(tested: Type, span: Span, typed: TypedProgram, diags: Diagnostic[]) -> void {
     observes := false
-    for variant in union_variants(tested) ?? [tested] {
+    for variant in union_variants(tested) else [tested] {
         if variant is StructType {
             if refuses_shared_argument(variant, span, typed, diags) {
                 return
@@ -1249,7 +1249,7 @@ observe_type_param_test :: fn(tested: Type, span: Span, typed: TypedProgram, dia
 // Keep the instances of the fn whose body is being checked concrete, as one that
 // observes its type parameters, and those of the fns handing it theirs.
 observe_type_params :: fn(typed: TypedProgram) -> void {
-    ctx :: typed.current_fn_ctx ?? return
+    ctx :: typed.current_fn_ctx else return
     if ctx.fn_id != 0 {
         typed.fn_observes_type_params[ctx.fn_id] = true
     }
@@ -1293,7 +1293,7 @@ may_overlap :: fn(scrut: Type, tested: Type) -> bool {
     if !type_contains_type_param(tested) {
         return false
     }
-    for variant in union_variants(scrut) ?? [scrut] {
+    for variant in union_variants(scrut) else [scrut] {
         if may_coincide(tested, variant) {
             return true
         }

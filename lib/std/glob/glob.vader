@@ -288,7 +288,7 @@ bracket_token :: fn(chars: char[], i: i64, pathname: bool) -> [GlobToken, i64] |
 // The class `[:name:]` opening at `j`, and the index after it. Null when `j`
 // opens no class.
 class_at :: fn(chars: char[], j: i64) -> [PosixClass, i64] | GlobError | null {
-    bounds :: delimited_at(chars, j, ':') ?? return null
+    bounds :: delimited_at(chars, j, ':') else return null
     [start, close] :: bounds
     name :: chars_between(chars, start, close)
     class :: posix_class_named(name)
@@ -308,7 +308,7 @@ endpoint_at :: fn(chars: char[], j: i64) -> [char, i64] | GlobError | null {
         return [chars[j + 1], j + 2]
     }
     for delimiter in ['=', '.'] {
-        bounds :: delimited_at(chars, j, delimiter) ?? continue
+        bounds :: delimited_at(chars, j, delimiter) else continue
         [start, close] :: bounds
         if close != start + 1 {
             name :: chars_between(chars, start, close)

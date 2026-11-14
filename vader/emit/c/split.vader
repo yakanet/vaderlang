@@ -386,7 +386,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     }
     buckets: i32[][]: [[]]
     for m in sorted_module_stems(of_module) {
-        buckets.push(of_module[m] ?? [])
+        buckets.push(of_module[m] else [])
     }
     return buckets
 }
@@ -444,7 +444,7 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
 // with no `$` (a lifted `__lambda_...` or `__defer_...`) lands under `""`, which
 // is one more module rather than a special case.
 module_stem_of :: fn(name: string) -> string {
-    at :: name.index_of('$') ?? return ""
+    at :: name.index_of('$') else return ""
     return name.byte_slice(0, at)
 }
 

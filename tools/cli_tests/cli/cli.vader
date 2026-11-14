@@ -362,7 +362,7 @@ export example_input :: fn(name: string) -> string {
 /// The rule is `default_cc` of `vader/pipeline`, not imported from there: the
 /// import would compile the compiler into every test of the command line.
 export host_cc :: fn() -> string {
-    named :: get_env("CC") ?? ""
+    named :: get_env("CC") else ""
     if named != "" {
         return named
     }
@@ -394,7 +394,7 @@ export stale_vader :: fn() -> string | null {
     if !exists(vader_binary()) {
         return "`build/vader` is missing: ${REBUILD}"
     }
-    newer :: newer_source(vader_binary(), SOURCES) ?? return null
+    newer :: newer_source(vader_binary(), SOURCES) else return null
     return "`build/vader` is older than `${newer}`: ${REBUILD}"
 }
 

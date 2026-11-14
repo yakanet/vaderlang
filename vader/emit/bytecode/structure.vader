@@ -177,7 +177,7 @@ closes_loop :: fn(
     p: BlockId,
     header: BlockId,
 ) -> bool {
-    body :: loops[header] ?? return false
+    body :: loops[header] else return false
     return body.contains(p)
 }
 
@@ -187,7 +187,7 @@ leaves_header :: fn(
     from: BlockId,
     b: BlockId,
 ) -> bool {
-    body :: loops[from] ?? return false
+    body :: loops[from] else return false
     return !body.contains(b)
 }
 
@@ -247,7 +247,7 @@ tests_its_exit :: fn(
     loops: Map<BlockId, Set<BlockId>>,
     h: BlockId,
 ) -> bool {
-    body :: loops[h] ?? return false
+    body :: loops[h] else return false
     t :: fn_.blocks[i32(h)].terminator
     return t is TermCondBranch && (!body.contains(t.then_block) || !body.contains(t.else_block))
 }
@@ -332,7 +332,7 @@ open_blocks :: fn(ctx: FnEmitCfg, ys: BlockId[], next: BlockId) -> BlockId {
         y :: ys[ys.len() - 1 - i]
         cf_block(ctx, ctx.fn_.blocks[i32(y)].span, y)
     }
-    return ys.first() ?? next
+    return ys.first() else next
 }
 
 // Close the `block`s `open_blocks` opened for `ys`, each block in `ys` emitted

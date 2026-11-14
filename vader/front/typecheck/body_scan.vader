@@ -5,7 +5,7 @@
 // never a type, so it answers the same at a definition and at a call site.
 //
 // The walk is `inspect`'s (`toolchain/ast`), which reaches every node. A `yield`
-// or a `break` can sit wherever a value does: `total += next() ?? break` puts
+// or a `break` can sit wherever a value does: `total += next() else break` puts
 // the `break` in the right operand of the `+` that a compound assignment
 // desugars to. The walk does not enter a lambda body, nor a `defer` body, which
 // runs at scope exit as a fn of its own: their `yield` does not colour the
@@ -35,7 +35,7 @@ export fn_is_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool {
     if source.id == AST.UNASSIGNED_NODE_ID {
         return body_yields(source)
     }
-    return typed.generator_bodies[source.id] ?? remember_generator(typed, source)
+    return typed.generator_bodies[source.id] else remember_generator(typed, source)
 }
 
 remember_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool {
@@ -45,7 +45,7 @@ remember_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool {
 }
 
 body_yields :: fn(fn_decl: AST.FnDecl) -> bool {
-    body :: fn_decl.body ?? return false
+    body :: fn_decl.body else return false
     return has_yield(body)
 }
 
@@ -128,7 +128,7 @@ break_leaves_loop :: fn(b: AST.BreakStmt, probe: BodyProbe) -> bool {
     if probe.kind != .LoopExit {
         return false
     }
-    named :: b.label ?? return probe.bare_counts
+    named :: b.label else return probe.bare_counts
     return probe.label != null && named == probe.label
 }
 

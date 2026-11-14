@@ -81,7 +81,7 @@ native_line :: fn(line: string) -> string {
 
 // `message` without the ` at pc=N` it may end on.
 without_pc :: fn(message: string) -> string {
-    halves :: message.split_last(" at pc=") ?? return message
+    halves :: message.split_last(" at pc=") else return message
     if halves.1 == "" || !halves.1.chars().all_match(is_digit) {
         return message
     }

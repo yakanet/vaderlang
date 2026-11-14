@@ -120,7 +120,7 @@ test_sockaddr_round_trips_an_ipv4_address :: fn() -> void {
 
 @test
 test_sockaddr_round_trips_an_ipv6_address :: fn() -> void {
-    address :: parse_socket_address("[2001:db8::7334]:443") ?? return assert(false, "an address")
+    address :: parse_socket_address("[2001:db8::7334]:443") else return assert(false, "an address")
     encoded :: sockaddr_of(address)
     assert_eq(encoded.len(), SOCKADDR_IN6_BYTES)
     decoded :: address_of(encoded)

@@ -46,8 +46,8 @@ union_trait_member :: fn(
     if traits.len() == 0 {
         return null
     }
-    found :: tag_member(traits[0], u, method, typed) ?? return null
-    refusal :: union_dispatch_refusal(u, traits, found, span, typed) ?? return found.member
+    found :: tag_member(traits[0], u, method, typed) else return null
+    refusal :: union_dispatch_refusal(u, traits, found, span, typed) else return found.member
     diags.push(refusal)
     return TypeMember { ...found.member, .refused = true }
 }
@@ -70,7 +70,7 @@ trait_value_member :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> TypeMember | null {
-    found :: tag_member(recv, recv, name, typed) ?? return null
+    found :: tag_member(recv, recv, name, typed) else return null
     if found.self_hazard == "" {
         return found.member
     }
@@ -97,11 +97,11 @@ tag_member :: fn(
     name: string,
     typed: TypedProgram,
 ) -> TagMember | null {
-    decl :: trait_member_decl(trait_ty, name, typed) ?? return null
+    decl :: trait_member_decl(trait_ty, name, typed) else return null
     if decl.type_params.len() > 0 {
         return null
     }
-    sig :: try_trait_method(trait_ty, name, typed) ?? return null
+    sig :: try_trait_method(trait_ty, name, typed) else return null
     member :: TypeMember {
         .ty         = substitute_self(sig, owner),
         .decl       = decl,
@@ -159,7 +159,7 @@ union_dispatch_traits :: fn(
 ) -> TraitType[] {
     out: TraitType[]: []
     for m in impl_candidates(typed, u.variants[0], "::${method}") {
-        sym :: m.trait_symbol ?? continue
+        sym :: m.trait_symbol else continue
         if trait_key != "" && m.trait_key != trait_key {
             continue
         }
@@ -169,7 +169,7 @@ union_dispatch_traits :: fn(
         if !array_members_have_bodies(u, m.trait_key, method, typed) {
             continue
         }
-        found :: union_trait_instance(u, sym, typed) ?? continue
+        found :: union_trait_instance(u, sym, typed) else continue
         out.push(found)
     }
     return out
@@ -189,7 +189,7 @@ array_members_have_bodies :: fn(
             continue
         }
         for m in trait_members(typed, v, trait_key, method) {
-            decl :: m.decl ?? return false
+            decl :: m.decl else return false
             if AST.body_source(decl).body == null {
                 return false
             }
@@ -214,12 +214,12 @@ union_trait_instance :: fn(u: UnionType, sym: Symbol, typed: TypedProgram) -> Tr
     }
     per_variant: Type[][]: []
     for v in u.variants {
-        written :: resolve_struct_trait_args(v, key, typed) ?? NO_TYPES
+        written :: resolve_struct_trait_args(v, key, typed) else NO_TYPES
         per_variant.push(with_trait_defaults(v, written, sym, typed))
     }
     args: Type[]: []
     for i in 0..<per_variant[0].len() {
-        args.push(shared_argument(u.variants, per_variant, i) ?? return null)
+        args.push(shared_argument(u.variants, per_variant, i) else return null)
     }
     return TraitType { .symbol = sym, .args = args }
 }

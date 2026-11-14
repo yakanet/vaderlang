@@ -109,7 +109,7 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
     no_split :: parsed.bool_flag("no-split")
-    seed_targets :: seed_target_list(seed_flag, no_split) ?? return 2
+    seed_targets :: seed_target_list(seed_flag, no_split) else return 2
     if run && emit != "executable" {
         eprintln("vader ${RUN_COMMAND}: `--emit=${emit}` produces no program to run")
         return 2
@@ -204,16 +204,16 @@ binary_to_run :: fn(input: ProjectInput, selected: string, request: BuildRequest
     match input {
         is FileInput -> { return output_path(request.out, strip_input_suffix(input.file)) }
         is ManifestProject -> {
-            entry :: sole_entry(RUN_COMMAND, input.dir, input.entries) ?? return 2
+            entry :: sole_entry(RUN_COMMAND, input.dir, input.entries) else return 2
             return entry_binary(input.dir, entry.name, request)
         }
         is DrivenProject -> {
             // The driver declares the entries: it runs once to describe them all,
             // which compiles nothing.
-            project :: described_project(RUN_COMMAND, input.dir, .Describe, "") ?? return 1
+            project :: described_project(RUN_COMMAND, input.dir, .Describe, "") else return 1
             described :: project_entries(input.dir, project.entries)
-            entries :: chosen_entries(RUN_COMMAND, input.dir, described, selected) ?? return 1
-            entry :: sole_entry(RUN_COMMAND, input.dir, entries) ?? return 2
+            entries :: chosen_entries(RUN_COMMAND, input.dir, described, selected) else return 1
+            entry :: sole_entry(RUN_COMMAND, input.dir, entries) else return 2
             return entry_binary(input.dir, entry.name, request)
         }
     }
@@ -304,14 +304,14 @@ build_file :: fn(file: Path, request: BuildRequest) -> i32 {
     if request.emit == "c" && request.seed_targets.len() > 0 {
         return emit_c_for_targets(file, output_path(request.out, stem), request)
     }
-    b :: prepared_program(file, request, "build") ?? return 1
+    b :: prepared_program(file, request, "build") else return 1
     return emit_program(b, file, stem, request)
 }
 
 // Build a `.virt` text bytecode dump: its bytecode is already there, so there
 // is nothing to prepare and nothing to split.
 build_virt :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
-    module :: virt_module(file) ?? return 1
+    module :: virt_module(file) else return 1
     b :: CfgBytecode {
         .entry = main_function_name(module),
         .pre_diags = [],
@@ -386,7 +386,7 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
     targets :: request.seed_targets
     mods: CfgBytecode[]: []
     for t in targets {
-        b :: prepared_program(file, BuildRequest { ...request, .target = t }, "build") ?? return 1
+        b :: prepared_program(file, BuildRequest { ...request, .target = t }, "build") else return 1
         mods.push(b)
     }
     universe :: union_of_string_pools(mods)
@@ -517,7 +517,7 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             continue
         }
         for i in 0..<targets.len() {
-            text :: unit_named(progs[i], name) ?? continue
+            text :: unit_named(progs[i], name) else continue
             if ensure_target_dir(out, targets[i].to_string()) != 0 {
                 return 1
             }

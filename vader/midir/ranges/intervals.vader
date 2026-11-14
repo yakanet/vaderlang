@@ -18,7 +18,7 @@ import "vader/support/integer"
 ///              past `i64.max`, its bits.
 /// @param t     its type.
 constant_interval :: fn(bits: i64, t: Type) -> Interval {
-    whole :: held_values(t) ?? return interval(bits, bits)
+    whole :: held_values(t) else return interval(bits, bits)
     if bits < 0 && whole.hi_open {
         return Interval {
             .lo = I64_MAX,

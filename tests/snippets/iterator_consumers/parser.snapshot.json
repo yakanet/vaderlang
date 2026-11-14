@@ -2274,8 +2274,7 @@
                         ]
                       }
                     }
-                  ],
-                  "coalesce": true
+                  ]
                 },
                 "field": "x"
               }
@@ -2393,8 +2392,7 @@
                                     ]
                                   }
                                 }
-                              ],
-                              "coalesce": true
+                              ]
                             },
                             "field": "x"
                           }
@@ -4021,8 +4019,7 @@
                                   "value": "0n"
                                 }
                               }
-                            ],
-                            "coalesce": true
+                            ]
                           }
                         }
                       ]

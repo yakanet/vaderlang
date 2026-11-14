@@ -59,10 +59,10 @@ evaluate_string_lit :: fn(
             is AST.StringLitText -> { sb.append(part.value) }
             is AST.StringLitInterp -> {
                 inner :: evaluate_expr(part.expr, context)
-                value :: inner.value ?? return inner
+                value :: inner.value else return inner
                 if value is EnumValue {
                     shown :: display_enum(value, part.expr, context)
-                    text :: shown.value ?? return shown
+                    text :: shown.value else return shown
                     sb.append(interp_value(text))
                     continue
                 }

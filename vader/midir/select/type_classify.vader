@@ -66,7 +66,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
 /// @param elements  the tuple's element types, in order.
 export tuple_shape_name :: fn(elements: Type[]) -> string {
     exact :: type_key_join(elements, "_")
-    return spelled_shape(exact) ?? "${elements.len()}_${fnv1a_hex(exact)}"
+    return spelled_shape(exact) else "${elements.len()}_${fnv1a_hex(exact)}"
 }
 
 /// A captured local's slot type as a C-safe identifier fragment, the name of
@@ -75,7 +75,7 @@ export tuple_shape_name :: fn(elements: Type[]) -> string {
 ///
 /// @param slot_key  the slot type's `type_intern_key`.
 export cell_shape_name :: fn(slot_key: string) -> string =
-    spelled_shape(slot_key) ?? fnv1a_hex(slot_key)
+    spelled_shape(slot_key) else fnv1a_hex(slot_key)
 
 // `exact` spelled for the reader, then the head of its hash ; null when the
 // spelling is too long to keep.
@@ -247,7 +247,7 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
     if name == "CPointer" {
         return .Pointer
     }
-    parsed :: parse_val_type(name) ?? return .Any
+    parsed :: parse_val_type(name) else return .Any
     return parsed
 }
 

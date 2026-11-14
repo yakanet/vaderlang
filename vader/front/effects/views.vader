@@ -164,7 +164,7 @@ view_returners :: fn(
         ctx :: body_ctx(body, facts, index, components)
         effects :: evaluate_roots(body.skeleton, ctx)
         for r in body.roots {
-            c :: root_case(body, r, effects, index.paths) ?? continue
+            c :: root_case(body, r, effects, index.paths) else continue
             if c.holds_view() && c.returns_it() {
                 out.push(body.node)
                 break

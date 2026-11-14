@@ -35,8 +35,8 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     }
 
     cached :: typed_project_for(state, file_path)
-    entry :: cached.project.modules[cached.project.entry] ?? return JsonArray { .items = [] }
-    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonArray { .items = [] }
+    entry :: cached.project.modules[cached.project.entry] else return JsonArray { .items = [] }
+    sf :: source_file_for_path(entry.module.files, file_path) else return JsonArray { .items = [] }
 
     // Anchor on the range start.
     [line, col] :: state.span_point(

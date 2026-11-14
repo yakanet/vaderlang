@@ -105,7 +105,7 @@ export find_build_driver :: fn(root: string) -> string | null {
 ///
 /// @return the directory holding `vader/pipeline`, or `""`.
 export compiler_source_home :: fn() -> string {
-    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
+    home :: get_env(TOOLCHAIN_HOME_VAR) else ""
     if home == "" {
         return ""
     }
@@ -207,7 +207,7 @@ driver_input_key :: fn(driver_path: string) -> string {
         is string  -> src.hash()
         is IOError -> 0
     }
-    return "${driver_hash}-${compiler_digest() ?? ""}"
+    return "${driver_hash}-${compiler_digest() else ""}"
 }
 
 /// True when the driver of the project `root` compiled in one profile can be
@@ -411,7 +411,7 @@ signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
 // True when the declared return type is spelled `i32`. Textual on purpose: this
 // runs on a parsed, un-resolved AST, where there is no type to compare against.
 returns_i32 :: fn(f: AST.FnDecl) -> bool {
-    rt :: f.return_type ?? return false
+    rt :: f.return_type else return false
     if rt is AST.IdentExpr {
         return rt.name == "i32"
     }
@@ -437,7 +437,7 @@ returns_i32 :: fn(f: AST.FnDecl) -> bool {
 /// @error          H6001 when the driver declares no `build`: surfaced as a
 ///                 compile error on the generated entry's call to it.
 export run_build_driver :: fn(command: string, root: string, request: DriverRequest) -> i32 {
-    driver :: find_build_driver(root) ?? return 1
+    driver :: find_build_driver(root) else return 1
     problem :: validate_driver(driver)
     if problem is Diagnostic {
         eprintln(dump_diagnostics_with_file([problem]))
@@ -529,7 +529,7 @@ relay_driver_output :: fn(request: DriverRequest, stdout: string, stderr: string
 ///
 /// @param root  the project folder, holding a `build.vader`.
 export driver_is_compiled :: fn(root: string) -> bool {
-    driver :: find_build_driver(root) ?? return false
+    driver :: find_build_driver(root) else return false
     key :: driver_input_key(driver)
     release :: runs_release_driver(root, key, DriverRequest { .mode = .Describe })
     return driver_is_current(root, release, key)
@@ -617,7 +617,7 @@ build_driver_binary :: fn(
     binary: Path,
     request: BuildRequest,
 ) -> i32 {
-    b :: prepared_program(entry, request, command) ?? return 1
+    b :: prepared_program(entry, request, command) else return 1
     return emit_program(b, entry, binary, request)
 }
 

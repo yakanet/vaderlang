@@ -89,7 +89,7 @@ check_one_binary_per_name :: fn(
     if fields.len() == 0 {
         return
     }
-    span :: symbol.defined_at ?? return
+    span :: symbol.defined_at else return
     previous :: "`${first.symbol.name}` in `${first.symbol.module_name}`"
     differing :: fields.join(", ")
     detail :: "`${library.name}` is already described by ${previous}, which differs on ${differing}"
@@ -119,14 +119,14 @@ evaluate_library :: fn(
     constants: ProjectConstants,
     diags: Diagnostic[],
 ) -> CLibrary | null {
-    owner :: constants.typed.modules[symbol.module] ?? return null
-    declaration :: owner.const_decls[symbol.id] ?? return null
+    owner :: constants.typed.modules[symbol.module] else return null
+    declaration :: owner.const_decls[symbol.id] else return null
     context :: ComptimeContext {
         .typed = owner,
         .bindings = Map<i32, ComptimeValue> {},
         .project = constants,
     }
-    result :: evaluate_project_const(symbol, context, declaration.span) ?? return null
+    result :: evaluate_project_const(symbol, context, declaration.span) else return null
     value :: result.value
     if value == null {
         if result.diag != null {
@@ -152,11 +152,11 @@ resolved_library :: fn(value: ComptimeValue, folder: string) -> CLibrary | null 
     if value !is StructValue {
         return null
     }
-    name :: string_field(value, "name") ?? return null
-    headers :: strings_field(value, "headers") ?? return null
-    include :: string_field(value, "include") ?? return null
-    archives :: strings_field(value, "archives") ?? return null
-    system :: strings_field(value, "system") ?? return null
+    name :: string_field(value, "name") else return null
+    headers :: strings_field(value, "headers") else return null
+    include :: string_field(value, "include") else return null
+    archives :: strings_field(value, "archives") else return null
+    system :: strings_field(value, "system") else return null
     resolved: string[]: []
     for archive in archives {
         resolved.push(path_beside(folder, archive))
@@ -185,7 +185,7 @@ path_beside :: fn(folder: string, relative: string) -> string =
 
 // The string field `name` of `value`, or null when it is absent or not a string.
 string_field :: fn(value: StructValue, name: string) -> string | null {
-    field :: value.fields[name] ?? return null
+    field :: value.fields[name] else return null
     if field is StringValue {
         return field.value
     }
@@ -195,7 +195,7 @@ string_field :: fn(value: StructValue, name: string) -> string | null {
 // The strings of the array field `name` of `value`, or null when it is absent or
 // not an array of strings.
 strings_field :: fn(value: StructValue, name: string) -> string[] | null {
-    field :: value.fields[name] ?? return null
+    field :: value.fields[name] else return null
     if field !is ArrayValue {
         return null
     }

@@ -25,7 +25,7 @@ broadcast_type_param_bounds :: fn(
         record_struct_bounds(typed, shared, struct_bounds)
     }
     for [id, lm] in project.modules {
-        typed :: per_module[id] ?? continue
+        typed :: per_module[id] else continue
         for file in lm.module.files {
             inherit_struct_bounds(file.program.decls, typed.resolved, struct_bounds, shared)
         }
@@ -47,12 +47,12 @@ record_struct_bounds :: fn(
         if sym.kind != .Struct {
             continue
         }
-        decl :: typed.struct_decls[sym.id] ?? continue
+        decl :: typed.struct_decls[sym.id] else continue
         bounds: ArgBound[]: []
         for i in 0..<decl.type_params.len() {
             tp :: decl.type_params[i]
-            tp_sym :: typed.resolved.idents[tp.span.hash()] ?? continue
-            bound :: shared[tp_sym.id] ?? continue
+            tp_sym :: typed.resolved.idents[tp.span.hash()] else continue
+            bound :: shared[tp_sym.id] else continue
             bounds.push(ArgBound {
                 .position = i,
                 .name = tp.name,
@@ -83,8 +83,8 @@ inherit_struct_bounds :: fn(
         if head !is AST.GenericInstExpr || head.callee !is AST.IdentExpr {
             continue
         }
-        owner :: resolved.idents[head.callee.span.hash()] ?? continue
-        bounds :: struct_bounds[owner.id] ?? continue
+        owner :: resolved.idents[head.callee.span.hash()] else continue
+        bounds :: struct_bounds[owner.id] else continue
         for bound in bounds {
             if bound.position >= head.type_args.len() {
                 continue
@@ -93,7 +93,7 @@ inherit_struct_bounds :: fn(
             if arg !is AST.IdentExpr {
                 continue
             }
-            sym :: resolved.idents[arg.span.hash()] ?? continue
+            sym :: resolved.idents[arg.span.hash()] else continue
             if sym.kind == .TypeParam {
                 shared[sym.id] = with_struct_traits(shared[sym.id], sym.name, bound.traits)
             }
@@ -153,7 +153,7 @@ record_type_param_bound :: fn(
     if sym.kind != .TypeParam || out[sym.id] != null {
         return
     }
-    bound :: resolved.type_param_bounds[sym.id] ?? return
+    bound :: resolved.type_param_bounds[sym.id] else return
     traits: TraitType[]: []
     collect_bound_trait_types(bound, resolved, traits)
     out[sym.id] = TypeParamBound {

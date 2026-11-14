@@ -65,8 +65,8 @@ export generator_state_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> Genera
 // The `generator` whose state struct `state` is, found where the state is defined:
 // at the generator's name, which keys `generator_states`.
 generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl | null {
-    site :: state.symbol.defined_at ?? return null
-    generator :: typed.generator_states[site.hash()] ?? return null
+    site :: state.symbol.defined_at else return null
+    generator :: typed.generator_states[site.hash()] else return null
     return generator.decl
 }
 
@@ -90,12 +90,12 @@ register_generator_iter_impls :: fn(
         sink: Diagnostic[]: []
         for [_, bucket] in owner.resolved.fn_overloads {
             for sym in bucket {
-                fn_decl :: owner.fn_decls[sym.id] ?? continue
+                fn_decl :: owner.fn_decls[sym.id] else continue
                 if !fn_is_generator(owner, fn_decl) {
                     continue
                 }
                 returned :: lookup_return_type(fn_decl, owner)
-                elem :: generator_element_type(fn_decl, returned, sink) ?? continue
+                elem :: generator_element_type(fn_decl, returned, sink) else continue
                 states[fn_decl.name_span.hash()] = GeneratorState {
                     .decl = fn_decl,
                     .symbol = gen_state_symbol(fn_decl, owner, factory),
@@ -126,8 +126,8 @@ generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_
     // Cheap program-level bail: a generator-free program skips the per-call
     // callee probe entirely.
     if typed.generator_states.is_empty() { return null }
-    decl :: recorded_decl(typed, c) ?? return null
-    state :: generator_state_of(decl, typed) ?? return null
-    elem :: core_trait_arg(concrete_ret, TRAIT_ITERATOR) ?? return mk_struct(state.symbol, [])
+    decl :: recorded_decl(typed, c) else return null
+    state :: generator_state_of(decl, typed) else return null
+    elem :: core_trait_arg(concrete_ret, TRAIT_ITERATOR) else return mk_struct(state.symbol, [])
     return mk_struct(state.symbol, [elem])
 }

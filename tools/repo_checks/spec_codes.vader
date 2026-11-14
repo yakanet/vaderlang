@@ -57,7 +57,7 @@ registry_codes :: fn(text: string) -> RegisteredCode[] {
             current = null
             continue
         }
-        id :: code_id(line) ?? continue
+        id :: code_id(line) else continue
         if current != null {
             out.push(RegisteredCode { .id = id, .enum_name = current })
         }
@@ -80,7 +80,7 @@ enum_header :: fn(line: string) -> string | null {
 
 // The id of the code `line` declares, `.id = "T3001"`; null for another line.
 code_id :: fn(line: string) -> string | null {
-    halves :: line.split_first(ID_OPENING) ?? return null
+    halves :: line.split_first(ID_OPENING) else return null
     rest :: halves.1
     if rest.byte_len() < 6 || rest.byte_at(5) != '"' {
         return null
@@ -126,7 +126,7 @@ import "std/testing"
 
 @test
 test_every_registry_enum_holds_only_codes_of_its_own_family :: fn() -> void {
-    registry :: read_or_fail(REGISTRY) ?? return
+    registry :: read_or_fail(REGISTRY) else return
     codes :: registry_codes(registry)
     assert(codes.len() > 0, "the registry declares codes")
     families :: FAMILIES
@@ -142,7 +142,7 @@ test_every_registry_enum_holds_only_codes_of_its_own_family :: fn() -> void {
 
 @test
 test_spec_names_no_diagnostic_code :: fn() -> void {
-    text :: read_or_fail(SPEC) ?? return
+    text :: read_or_fail(SPEC) else return
     letters :: FAMILIES.map((f) -> f.letter).collect().join("")
     assert_none(cited_codes(text, letters), "diagnostic codes in SPEC.md")
 }
@@ -150,8 +150,8 @@ test_spec_names_no_diagnostic_code :: fn() -> void {
 @test
 test_a_code_is_read_from_its_variant :: fn() -> void {
     line :: "    Mismatch { .id = \"T3001\", .message = \"type mismatch\" },"
-    assert_eq(code_id(line) ?? "", "T3001")
-    assert_eq(enum_header("export LexerCode :: enum(CodeInfo) {") ?? "", "LexerCode")
+    assert_eq(code_id(line) else "", "T3001")
+    assert_eq(enum_header("export LexerCode :: enum(CodeInfo) {") else "", "LexerCode")
     assert(enum_header("export CodeInfo :: struct {") == null, "a struct opens no enum")
 }
 

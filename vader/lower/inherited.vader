@@ -74,9 +74,9 @@ member_source :: fn(
         .typed = typed,
         .subst = subst,
     }
-    inherited :: member.inherits ?? return own
+    inherited :: member.inherits else return own
     trait_sym :: impl_entry.trait_symbol
-    owner :: project.typed.modules[trait_sym.module] ?? return own
+    owner :: project.typed.modules[trait_sym.module] else return own
     trait_args :: impl_entry.trait_args.map((t: Type) -> substitute(t, subst)).collect()
     bindings :: trait_param_bindings(trait_sym, trait_args, self_type, owner)
     read :: merge_subst(subst, substitution_of(bindings))

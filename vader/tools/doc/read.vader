@@ -46,13 +46,13 @@ IndexEntry :: struct {
 ///
 /// @param dir  the folder of the data.
 export documented_modules :: fn(dir: string) -> string[] {
-    index :: read_doc_index(dir) ?? return []
+    index :: read_doc_index(dir) else return []
     return index.modules.map((m: IndexModule) -> m.path).collect()
 }
 
 // The index under `dir`, null when it is missing or does not read.
 read_doc_index :: fn(dir: string) -> DocIndex | null {
-    index :: read_json(join_path(dir, INDEX_FILE)) ?? return null
+    index :: read_json(join_path(dir, INDEX_FILE)) else return null
     return DocIndex {
         .modules = items_at(index, "modules").map(module_entry_of).collect(),
         .entries = items_at(index, "entries").map(index_entry_of).collect(),
@@ -78,7 +78,7 @@ index_entry_of :: fn(item: JsonValue) -> IndexEntry = IndexEntry {
 
 // The module `path` under `dir`, null when its file is missing or does not read.
 read_doc_module :: fn(dir: string, path: string) -> DocModule | null {
-    module :: read_json(module_file(dir, path)) ?? return null
+    module :: read_json(module_file(dir, path)) else return null
     return module_of(module)
 }
 

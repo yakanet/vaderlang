@@ -131,7 +131,7 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: i64) -> bc.Bc
                 }
                 locals.push_all(callee.locals)
             }
-            base :: known ?? fresh
+            base :: known else fresh
             // The arguments sit on the stack, the last on top.
             k :: callee.signature.params.len()
             for j in 0..<k {
@@ -192,7 +192,7 @@ has_call :: fn(f: bc.BcFunction) -> bool = f.body.any_match((op) -> op is bc.Cal
 
 @test
 test_inline_leaf_replaces_a_call_with_the_leaf_body :: fn() -> void {
-    parsed :: leaf_module("  i32.const 7\n  call 0\n  return\n") ?? return
+    parsed :: leaf_module("  i32.const 7\n  call 0\n  return\n") else return
     module :: inline_leaf_calls(parsed)
     assert(!has_call(module.functions[3]), "the call to `square` is gone")
     assert_eq(exec_value(module), 49)
@@ -200,7 +200,7 @@ test_inline_leaf_replaces_a_call_with_the_leaf_body :: fn() -> void {
 
 @test
 test_inline_leaf_keeps_the_overflow_trap_of_a_checked_op :: fn() -> void {
-    parsed :: leaf_module("  i32.const 65536\n  call 0\n  return\n") ?? return
+    parsed :: leaf_module("  i32.const 65536\n  call 0\n  return\n") else return
     module :: inline_leaf_calls(parsed)
     assert(!has_call(module.functions[3]), "a checked multiply does not keep the call")
     assert("i32.mul overflow" in trap_message(module), "the inlined multiply stops")
@@ -208,13 +208,13 @@ test_inline_leaf_keeps_the_overflow_trap_of_a_checked_op :: fn() -> void {
 
 @test
 test_inline_leaf_keeps_a_call_to_a_body_that_can_trap :: fn() -> void {
-    parsed :: leaf_module("  i32.const 8\n  call 1\n  return\n") ?? return
+    parsed :: leaf_module("  i32.const 8\n  call 1\n  return\n") else return
     assert(has_call(inline_leaf_calls(parsed).functions[3]), "`halve` divides, so its call stays")
 }
 
 @test
 test_inline_leaf_keeps_a_call_to_a_body_reading_a_local_before_writing_it :: fn() -> void {
-    parsed :: leaf_module("  i32.const 8\n  call 2\n  return\n") ?? return
+    parsed :: leaf_module("  i32.const 8\n  call 2\n  return\n") else return
     assert(has_call(inline_leaf_calls(parsed).functions[3]), "`stale` reads `acc` first")
 }
 
@@ -222,7 +222,7 @@ test_inline_leaf_keeps_a_call_to_a_body_reading_a_local_before_writing_it :: fn(
 test_inline_leaf_shares_one_block_of_locals_per_leaf :: fn() -> void {
     parsed :: leaf_module(
         "  i32.const 2\n  call 0\n  i32.const 3\n  call 0\n  i32.add\n  return\n",
-    ) ?? return
+    ) else return
     module :: inline_leaf_calls(parsed)
     assert_eq(module.functions[3].locals.len(), 1)
     assert_eq(exec_value(module), 13)
@@ -230,7 +230,7 @@ test_inline_leaf_shares_one_block_of_locals_per_leaf :: fn() -> void {
 
 @test
 test_inline_leaf_keeps_the_pc_vader_dump_shows :: fn() -> void {
-    parsed :: leaf_module("  i32.const 7\n  call 0\n  return\n") ?? return
+    parsed :: leaf_module("  i32.const 7\n  call 0\n  return\n") else return
     main :: inline_leaf_calls(parsed).functions[3]
     // `i32.const 7`, the call at pc 1 expanded into four ops, the return at pc 2.
     assert_eq(main.source_pc.len(), main.body.len())

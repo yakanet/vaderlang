@@ -101,7 +101,7 @@ export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null = mir
 /// @param types       the module type table.
 /// @param type_index  the slot; `-1` is absent.
 export mirror_at :: fn(types: BcType[], type_index: i32) -> BcStruct | null {
-    t :: struct_at(types, type_index) ?? return null
+    t :: struct_at(types, type_index) else return null
     if t.c_name == "" {
         return null
     }
@@ -123,7 +123,7 @@ c_field_width_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
     if depth >= NEST_CAP {
         return null
     }
-    nested :: nested_mirror(f, types) ?? return null
+    nested :: nested_mirror(f, types) else return null
     inner :: c_struct_layout_at(nested.fields, types, depth + 1)
     if inner.unknown_field != null {
         return null
@@ -141,10 +141,10 @@ c_field_align_at :: fn(f: BcField, types: BcType[], depth: i32) -> i64 | null {
     if depth >= NEST_CAP {
         return null
     }
-    nested :: nested_mirror(f, types) ?? return null
+    nested :: nested_mirror(f, types) else return null
     strictest: i64 = 1
     for inner_f in nested.fields {
-        a :: c_field_align_at(inner_f, types, depth + 1) ?? return null
+        a :: c_field_align_at(inner_f, types, depth + 1) else return null
         if a > strictest {
             strictest = a
         }

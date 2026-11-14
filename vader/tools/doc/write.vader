@@ -71,7 +71,7 @@ remove_previous_modules :: fn(dir: string) -> void {
     if index !is JsonObject {
         return
     }
-    modules :: index.entries["modules"] ?? return
+    modules :: index.entries["modules"] else return
     if modules !is JsonArray {
         return
     }
@@ -79,7 +79,7 @@ remove_previous_modules :: fn(dir: string) -> void {
         if m !is JsonObject {
             continue
         }
-        path :: m.entries["path"] ?? continue
+        path :: m.entries["path"] else continue
         if path !is JsonString {
             continue
         }

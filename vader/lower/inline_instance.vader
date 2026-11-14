@@ -96,7 +96,7 @@ declared_bindings :: fn(
             if !is_local_binding(symbol.kind) {
                 continue
             }
-            at :: symbol.defined_at ?? continue
+            at :: symbol.defined_at else continue
             if starts_within(decl.span, at) {
                 found.push(symbol)
             }
@@ -127,7 +127,7 @@ synthetic_label :: fn(project: LowerProjectCtx, prefix: string) -> string =
 /// @param instance  the inlined instance.
 /// @param symbol    a symbol as the resolver recorded it.
 clone_of :: fn(instance: InlineInstance, symbol: Symbol) -> Symbol =
-    instance.clones[symbol.id] ?? symbol
+    instance.clones[symbol.id] else symbol
 
 /// `symbol` as the lowering in `ctx` names it: the instance's clone when `ctx`
 /// lowers an inlined body that declares it, `symbol` itself otherwise.
@@ -135,7 +135,7 @@ clone_of :: fn(instance: InlineInstance, symbol: Symbol) -> Symbol =
 /// @param ctx     the fn-body context; its `instance` decides.
 /// @param symbol  a symbol as the resolver recorded it.
 instance_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Symbol {
-    instance :: ctx.instance ?? return symbol
+    instance :: ctx.instance else return symbol
     return clone_of(instance, symbol)
 }
 
@@ -145,7 +145,7 @@ instance_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Symbol {
 /// @param span  the identifier's span.
 /// @return      null when the resolver recorded nothing at `span`.
 resolve_ident :: fn(ctx: FnLowerCtx, span: Span) -> Symbol | null {
-    symbol :: ctx.typed.resolved.idents[span.hash()] ?? return null
+    symbol :: ctx.typed.resolved.idents[span.hash()] else return null
     return instance_symbol(ctx, symbol)
 }
 
@@ -155,7 +155,7 @@ resolve_ident :: fn(ctx: FnLowerCtx, span: Span) -> Symbol | null {
 /// @param name_span  the binding's name span.
 /// @return           null when no symbol is defined at `name_span`.
 resolve_binding :: fn(ctx: FnLowerCtx, name_span: Span) -> Symbol | null {
-    symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span) ?? return null
+    symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, name_span) else return null
     return instance_symbol(ctx, symbol)
 }
 
@@ -169,7 +169,7 @@ instance_label :: fn(ctx: FnLowerCtx, label: string | null) -> string | null {
     if label == null {
         return null
     }
-    instance :: ctx.instance ?? return label
+    instance :: ctx.instance else return label
     return label + instance.label_suffix
 }
 
@@ -179,7 +179,7 @@ instance_label :: fn(ctx: FnLowerCtx, label: string | null) -> string | null {
 /// @param project  the project context, which records every clone.
 /// @param symbol   any symbol.
 origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
-    project.clone_origins[symbol.id] ?? symbol.id
+    project.clone_origins[symbol.id] else symbol.id
 
 // ---- lowering an instance -----------------------------------------------------
 
@@ -189,7 +189,7 @@ bind_instance_param :: fn(
     ctx: FnLowerCtx, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
     slot: Type,
 ) -> LoweredStmt {
-    symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
+    symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) else panic(
         "inlined call: parameter `${p.name}` has no symbol",
     )
     return cell_aware_let(ctx, clone_of(instance, symbol), p.name, value, slot, p.span)
@@ -209,7 +209,7 @@ instance_ctx :: fn(
 // `body` lowered under `inner`, an instance's ctx. Meanwhile the instance's
 // callee counts as being inlined, so it is not inlined again from inside itself.
 lower_instance_body :: fn(ctx: FnLowerCtx, inner: FnLowerCtx, body: AST.BlockExpr) -> LoweredBlock {
-    instance :: inner.instance ?? panic("an instance body lowered with no instance")
+    instance :: inner.instance else panic("an instance body lowered with no instance")
     entered :: ctx.project.inlining_callees.add(instance.callee_id)
     lowered :: lower_block(inner, body, false, null)
     if entered {

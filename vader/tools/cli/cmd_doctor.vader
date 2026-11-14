@@ -105,7 +105,7 @@ collect_checks :: fn(cc: string) -> Check[] {
     // `$VADER_HOME` as set, and what it resolves to: asked once, because THREE
     // checks report on it and a report that contradicts itself about which probe
     // answered is worse than no report.
-    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
+    home :: get_env(TOOLCHAIN_HOME_VAR) else ""
     home_lib :: home_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     out: Check[]: [
         check_compiler(),
@@ -329,7 +329,7 @@ resolve_program :: fn(name: string) -> string | null {
         }
         return null
     }
-    raw :: get_env("PATH") ?? return null
+    raw :: get_env("PATH") else return null
     separator :: if ";" in raw { ";" } else { ":" }
     for dir in raw.split(separator) {
         // POSIX reads an empty entry as the working directory; so does this.

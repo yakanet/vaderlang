@@ -77,13 +77,13 @@ export verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagn
             if d !is LoweredFnDecl {
                 continue
             }
-            body :: d.body ?? continue
+            body :: d.body else continue
             if !mangles.add(d.mangled) {
                 diags.push(internal_error(.FunctionDefinedTwice, body.span,
                     "`${d.mangled}` has a second body"))
                 continue
             }
-            symbol :: d.origin.symbol ?? continue
+            symbol :: d.origin.symbol else continue
             // `mangles` lets each mangle through once, so a symbol filed before
             // holds another one.
             first :: symbols.get_or_put(symbol.id, d.mangled)

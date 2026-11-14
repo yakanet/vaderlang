@@ -100,13 +100,13 @@ export parse_ip :: fn(text: string) -> IpAddress | null {
 ///   parse_socket_address("127.0.0.1:8080")   // 127.0.0.1, port 8080
 ///   parse_socket_address("localhost:8080")   // null: a name, not an address
 export parse_socket_address :: fn(text: string) -> SocketAddress | null {
-    [host, port_text] :: text.split_last(":") ?? return null
-    port :: parse_port(port_text) ?? return null
+    [host, port_text] :: text.split_last(":") else return null
+    port :: parse_port(port_text) else return null
     if host.starts_with("[") && host.ends_with("]") {
-        ip :: parse_ipv6(host.byte_slice(1, host.byte_len() - 1)) ?? return null
+        ip :: parse_ipv6(host.byte_slice(1, host.byte_len() - 1)) else return null
         return SocketAddress { .ip = ip, .port = port }
     }
-    ip :: parse_ipv4(host) ?? return null
+    ip :: parse_ipv4(host) else return null
     return SocketAddress { .ip = ip, .port = port }
 }
 
@@ -128,7 +128,7 @@ parse_ipv4 :: fn(text: string) -> Ipv4 | null {
     }
     octets: u8[]: []
     for part in parts {
-        octets.push(parse_octet(part) ?? return null)
+        octets.push(parse_octet(part) else return null)
     }
     return Ipv4 { .octets = octets }
 }
@@ -150,14 +150,14 @@ parse_ipv6 :: fn(text: string) -> Ipv6 | null {
     if halves.len() > 2 {
         return null
     }
-    head :: parse_groups(halves[0]) ?? return null
+    head :: parse_groups(halves[0]) else return null
     if halves.len() == 1 {
         if head.len() != IPV6_GROUPS {
             return null
         }
         return Ipv6 { .octets = octets_of(head) }
     }
-    tail :: parse_groups(halves[1]) ?? return null
+    tail :: parse_groups(halves[1]) else return null
     // `::` stands for one group at least.
     if head.len() + tail.len() >= IPV6_GROUPS {
         return null
@@ -336,9 +336,9 @@ test_parse_ip_refuses_what_is_no_ipv6_address :: fn() -> void {
 
 @test
 test_parse_socket_address_reads_both_families :: fn() -> void {
-    v4 :: parse_socket_address("127.0.0.1:8080") ?? return assert(false, "an IPv4 address")
+    v4 :: parse_socket_address("127.0.0.1:8080") else return assert(false, "an IPv4 address")
     assert_eq(v4.to_string(), "127.0.0.1:8080")
-    v6 :: parse_socket_address("[::1]:443") ?? return assert(false, "an IPv6 address")
+    v6 :: parse_socket_address("[::1]:443") else return assert(false, "an IPv6 address")
     assert_eq(v6.to_string(), "[::1]:443")
 }
 

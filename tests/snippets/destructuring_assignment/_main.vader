@@ -56,7 +56,7 @@ main :: fn() -> i32 {
     m["k"] = 1
     z := 0
     [m["k"], z] = [30, 40]
-    println("map:     k=${m["k"] ?? -1} z=${z}")
+    println("map:     k=${m["k"] else -1} z=${z}")
 
     c1 := 1
     c2 := 2

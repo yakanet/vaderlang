@@ -32,7 +32,7 @@ Holder :: struct {
 
 LIMITS :: [10, 20, 30]
 
-follow :: fn(n: Node) -> Node = n.next ?? n
+follow :: fn(n: Node) -> Node = n.next else n
 
 main :: fn() -> i32 {
     p :: Point { .x = 1, .y = 2 }

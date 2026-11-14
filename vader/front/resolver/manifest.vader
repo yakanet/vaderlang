@@ -61,7 +61,7 @@ export read_manifest :: fn(project_root: string) -> Manifest {
     if !exists(manifest_path) {
         return Manifest {}
     }
-    return parse_manifest(try_read(manifest_path) ?? "")
+    return parse_manifest(try_read(manifest_path) else "")
 }
 
 try_read :: fn(path: string) -> string | null {
@@ -127,7 +127,7 @@ export parse_manifest :: fn(text: string) -> Manifest {
 // The string the key `key` of `object` holds, empty when the key is absent.
 // Anything else goes to `problems`.
 string_at :: fn(object: JsonObject, key: string, problems: string[]) -> string {
-    found :: object.entries[key] ?? return ""
+    found :: object.entries[key] else return ""
     if found !is JsonString {
         problems.push("`${key}` is not a string")
         return ""
@@ -138,7 +138,7 @@ string_at :: fn(object: JsonObject, key: string, problems: string[]) -> string {
 // The strings the array `key` of `object` holds, empty when the key is absent.
 // What is not an array of strings goes to `problems`.
 string_list :: fn(object: JsonObject, key: string, problems: string[]) -> string[] {
-    found :: object.entries[key] ?? return []
+    found :: object.entries[key] else return []
     if found !is JsonArray {
         problems.push("`${key}` is not an array of strings")
         return []
@@ -370,7 +370,7 @@ test_read_manifest_reports_a_version_that_is_not_a_string :: fn() -> void {
 @test
 test_the_editor_schema_describes_exactly_the_manifest_keys :: fn() -> void {
     // Tests run with the repo root as cwd, as above.
-    schema :: parse(try_read("editors/common/vader.schema.json") ?? "")
+    schema :: parse(try_read("editors/common/vader.schema.json") else "")
     if schema !is JsonObject {
         assert(false, "the schema is a JSON object, read from the repo root")
         return

@@ -111,7 +111,7 @@ test_a_control_byte_is_part_of_no_name_and_no_value :: fn() -> void {
 test_a_long_field_name_is_kept_whole :: fn() -> void {
     long :: "x" * 300
     request :: request_of(whole(with_fields("${long}: 1\r\n")))
-    assert_eq(request.headers.get(long) ?? "", "1")
+    assert_eq(request.headers.get(long) else "", "1")
     assert(request.headers.get("x" * 255) == null, "no shorter name stands for it")
 }
 
@@ -309,7 +309,7 @@ test_trailer_fields_are_no_fields_of_the_request :: fn() -> void {
     assert(drain(request.body), "the trailer fields are read")
     assert(request.headers.get("X-Admin") == null, "and add no field")
     assert(request.headers.get("Content-Length") == null, "nor a length")
-    assert_eq(request.headers.get("Host") ?? "", "h")
+    assert_eq(request.headers.get("Host") else "", "h")
 }
 
 @test

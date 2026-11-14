@@ -24,7 +24,7 @@ fill :: fn(store: IndexSet<string, i32>) -> void {
     store.set_at("b", 2)
 }
 
-peek :: fn(store: Index<string, i32 | null>, key: string) -> i32 = store[key] ?? -1
+peek :: fn(store: Index<string, i32 | null>, key: string) -> i32 = store[key] else -1
 
 pair_into :: fn<C: IndexSet<string, i32>>(c: C) -> void {
     [c["x"], c["y"]] = [3, 4]
@@ -51,6 +51,6 @@ main :: fn() -> i32 {
     put_wide(wide)
     put_wider(wide)
     k: i64: 9000000000
-    println("${wide[k] ?? -1} ${wide[k + 1] ?? -1} ${wide.len()}")
+    println("${wide[k] else -1} ${wide[k + 1] else -1} ${wide.len()}")
     return 0
 }

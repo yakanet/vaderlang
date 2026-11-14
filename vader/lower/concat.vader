@@ -43,7 +43,7 @@ import "vader/lower/ir"
 get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     cached :: ctx.project.concat_fn_syms[n]
     if cached is Symbol { return cached }
-    sym :: synthesize_concat_fn(ctx, n) ?? return null
+    sym :: synthesize_concat_fn(ctx, n) else return null
     ctx.project.concat_fn_syms[n] = sym
     return sym
 }
@@ -72,20 +72,20 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // `byte_len` and `new_byte_buffer` are `@intrinsic` free fns, each an op ;
     // `write_string` is the `Buffer` impl member resolved directly, avoiding the
     // `write_string_at` call layer + its redundant `byte_len`.
-    blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return null
-    alloc_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
+    blen_sym :: resolve_writer_fn(ctx, "byte_len") else return null
+    alloc_sym :: resolve_writer_fn(ctx, "new_byte_buffer") else return null
     // `finish_buffer` is resolved for its SIGNATURE only: its first parameter is
     // where the `Buffer` type comes from. The call goes to the impl member below.
-    finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
-    buffer_type :: writer_buffer(ctx, finish_sym) ?? return null
+    finish_sym :: resolve_writer_fn(ctx, "finish_buffer") else return null
+    buffer_type :: writer_buffer(ctx, finish_sym) else return null
     // The two other `Buffer` operations are the impl members, not the
     // expression-bodied free wrappers around them (`finish_buffer`). Each wrapper is
     // a one-line forward, but a Vader fn is a GC shadow-stack frame: it builds a
     // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it,
     // and `cc` cannot elide that, because the collector reads that global. So a
     // 13-byte concat used to push four nested frames to do one buffer's work.
-    intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") ?? return null
-    wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
+    intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") else return null
+    wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") else return null
     // Harvest the free fns for materialisation: else the synthesised call has an
     // unresolved (non-materialised) callee. The impl members are surfaced by
     // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).

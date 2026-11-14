@@ -108,12 +108,12 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: D
     if e.target !is AST.IdentExpr {
         return no_member_type(e, "", diags)
     }
-    target_sym :: resolved.idents[e.target.span.hash()] ?? return TY_UNRESOLVED
+    target_sym :: resolved.idents[e.target.span.hash()] else return TY_UNRESOLVED
     target :: redirect_import(target_sym, resolved)
     if target.kind != .ImportBinding {
         return no_member_type(e, not_a_namespace(target), diags)
     }
-    members :: resolved.namespace_member_types[target_sym.id] ?? return TY_UNRESOLVED
+    members :: resolved.namespace_member_types[target_sym.id] else return TY_UNRESOLVED
     ty :: members[e.field]
     if ty is null {
         // A PRIVATE member is R2008 ; a genuinely ABSENT one is R2007, the same
@@ -134,8 +134,8 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule) -> Type 
     if e.target !is AST.IdentExpr {
         return null
     }
-    namespace :: resolved.idents[e.target.span.hash()] ?? return null
-    members :: resolved.namespace_member_types[namespace.id] ?? return null
+    namespace :: resolved.idents[e.target.span.hash()] else return null
+    members :: resolved.namespace_member_types[namespace.id] else return null
     return members[e.field]
 }
 
@@ -226,8 +226,8 @@ instantiate_named :: fn(
 }
 
 instance_of_named :: fn(target: Symbol, args: Type[], resolved: ResolvedModule) -> Type {
-    aliased :: resolved.alias_types[target.id] ?? return type_from_symbol(target, args)
-    params :: resolved.alias_params[target.id] ?? return aliased
+    aliased :: resolved.alias_types[target.id] else return type_from_symbol(target, args)
+    params :: resolved.alias_params[target.id] else return aliased
     return substitute_alias_args(aliased, params, args)
 }
 
@@ -249,7 +249,7 @@ lower_call_in_type_position :: fn(
     args: Type[]: []
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
     if e.callee is AST.IdentExpr {
-        target :: lookup_type_name(e.callee, resolved) ?? return TY_UNRESOLVED
+        target :: lookup_type_name(e.callee, resolved) else return TY_UNRESOLVED
         return instantiate_named(target, args, e.span, resolved, diags)
     }
     return TY_UNRESOLVED
@@ -272,11 +272,11 @@ lower_generic_inst :: fn(
     args :: written_type_args(e.type_args, resolved, diags)
     callee :: e.callee
     if callee is AST.IdentExpr {
-        target :: lookup_type_name(callee, resolved) ?? return TY_UNRESOLVED
+        target :: lookup_type_name(callee, resolved) else return TY_UNRESOLVED
         return instantiate_named(target, args, e.span, resolved, diags)
     }
     if callee is AST.FieldExpr {
-        target :: namespace_member_declaration(callee, resolved, diags) ?? return TY_UNRESOLVED
+        target :: namespace_member_declaration(callee, resolved, diags) else return TY_UNRESOLVED
         return instantiate_named(target, args, e.span, resolved, diags)
     }
     diags.push(typecheck_error(.ExpectedKnownType, callee.span,
@@ -292,8 +292,8 @@ namespace_member_declaration :: fn(
     if namespace_member_type(e, resolved, diags) is UnresolvedType {
         return null
     }
-    namespace :: resolved.idents[e.target.span.hash()] ?? return null
-    members :: resolved.namespace_member_symbols[namespace.id] ?? return null
+    namespace :: resolved.idents[e.target.span.hash()] else return null
+    members :: resolved.namespace_member_symbols[namespace.id] else return null
     return members[e.field]
 }
 
@@ -345,14 +345,14 @@ names_int_base :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e !is AST.IdentExpr || e.name != INT_BASE_NAME {
         return false
     }
-    sym :: resolved.idents[e.span.hash()] ?? return false
+    sym :: resolved.idents[e.span.hash()] else return false
     return sym.kind == .BuiltinType && sym.name == INT_BASE_NAME
 }
 
 // The range type `lo..=hi` or `lo..<hi` : its bounds integer literals, the least
 // first, within `i64` but for the greatest, which reaches up to `u64.max`.
 range_type :: fn(e: AST.RangeExpr, diags: Diagnostic[]) -> Type {
-    lo :: range_bound(e.lower, diags) ?? return TY_UNRESOLVED
+    lo :: range_bound(e.lower, diags) else return TY_UNRESOLVED
     upper :: e.upper
     if upper is AST.IntLitExpr && is_past_i64(upper) {
         if lo < 0 {
@@ -362,7 +362,7 @@ range_type :: fn(e: AST.RangeExpr, diags: Diagnostic[]) -> Type {
         }
         return RangeType { .bounds = reaching_past_i64(lo, upper, e.inclusive) }
     }
-    written_hi :: range_bound(e.upper, diags) ?? return TY_UNRESOLVED
+    written_hi :: range_bound(e.upper, diags) else return TY_UNRESOLVED
     hi :: greatest_below(written_hi, e.inclusive)
     if hi == null || lo > hi {
         diags.push(typecheck_error(.MalformedRangeType, e.span, "the range holds no integer"))
@@ -452,7 +452,7 @@ type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
     // SymbolKind (Fn, Local, Param, ...) names a value, not a type -> unresolved.
     @partial match sym.kind {
         .BuiltinType -> {
-            builtin :: primitive_from_name(sym.name) ?? return TY_UNRESOLVED
+            builtin :: primitive_from_name(sym.name) else return TY_UNRESOLVED
             return builtin
         }
         .Struct    -> { return mk_struct(sym, args) }
@@ -514,9 +514,9 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
         if primitive_from_name(e.name) !is null {
             return true
         }
-        named :: resolved.idents[e.span.hash()] ?? return false
+        named :: resolved.idents[e.span.hash()] else return false
         // A renamed import (`{ Weekday as Day }`) names its target.
-        sym :: resolved.imports_to[named.id] ?? named
+        sym :: resolved.imports_to[named.id] else named
         return names_a_type(sym, resolved) || resolved.alias_types[named.id] !is null
     }
     if e is AST.FieldExpr {
@@ -579,7 +579,7 @@ lower_first_param_type :: fn(src: string) -> string {
     parsed :: parse_source(src, "t.vader")
     fn_decl :: parsed.program.decls[0]
     if fn_decl is AST.FnDecl {
-        ty :: fn_decl.params[0].ty ?? return "<no annotation>"
+        ty :: fn_decl.params[0].ty else return "<no annotation>"
         diags: Diagnostic[]: []
         return display_type(type_from_expr(ty, rm, diags))
     }

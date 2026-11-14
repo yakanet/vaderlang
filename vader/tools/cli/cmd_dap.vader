@@ -49,7 +49,7 @@ compile_for_dap :: fn(program: string, no_hooks: bool) -> DapProgram {
     // search roots and the modules it generates, unless `no_hooks`.
     project_root :: find_project_root(program)
     if !no_hooks && project_root != null && is_driven_project(project_root) {
-        _ :: prepared_project("dap", project_root, "") ?? return DapProgram {
+        _ :: prepared_project("dap", project_root, "") else return DapProgram {
             .state = null,
             .entry_index = -1,
             .error = "the build driver of `${project_root.to_native()}` describes no project; "

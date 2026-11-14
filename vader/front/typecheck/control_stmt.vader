@@ -169,7 +169,7 @@ check_loop_jump :: fn(
         }
     }
     // T3015: `break`/`continue` outside any loop. Kept on `ctx.loop_depth`. A null
-    // ctx is an expression-nested block (`x ?? break`), where the walk-global loop
+    // ctx is an expression-nested block (`x else break`), where the walk-global loop
     // stack answers instead ; lambdas do not reset that stack, so it can miss a
     // jump written in a lambda inside a loop.
     if ctx is null {

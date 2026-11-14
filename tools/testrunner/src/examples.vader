@@ -46,7 +46,7 @@ example_run :: fn(name: string) -> ExampleRun | null = match name {
 // The examples, with the phases of `phases` each runs, pushed on `found`.
 find_examples :: fn(found: Discovery, phases: string[]) -> void {
     for name in entries_where(found, EXAMPLES, is_dir) {
-        run :: example_run(name) ?? continue
+        run :: example_run(name) else continue
         kept: string[]: []
         if phases.contains(EXAMPLE_PHASE) {
             kept.push(EXAMPLE_PHASE)
@@ -78,7 +78,7 @@ check_example :: fn(
 ) -> StageReport | CaseFailure {
     began :: monotonic()
     name :: case.name.trim_prefix("${EXAMPLES}/")
-    run :: example_run(name) ?? return CaseFailure { .message = "`${name}` has no run" }
+    run :: example_run(name) else return CaseFailure { .message = "`${name}` has no run" }
     native :: stage.phase == NATIVE_EXAMPLE_PHASE
     ran :: if native { native_example_run(name, run, scratch) } else { vm_example_run(name, run) }
     if ran is CaseFailure {

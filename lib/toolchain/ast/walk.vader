@@ -151,7 +151,7 @@ take_first :: fn(n: Node, accept: fn(Expr) -> bool, found: Expr[]) -> Walk {
 }
 
 inspect_maybe :: fn(n: Node | null, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool {
-    present :: n ?? return false
+    present :: n else return false
     return inspect(present, visit, leave)
 }
 
@@ -362,7 +362,7 @@ inspect_enum :: fn(e: EnumDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void
         return true
     }
     for v in e.variants {
-        data :: v.data ?? continue
+        data :: v.data else continue
         if inspect_items(data, visit, leave) {
             return true
         }

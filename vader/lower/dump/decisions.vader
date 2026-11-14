@@ -43,7 +43,7 @@ pooled_text :: fn(pooled: PooledConst) -> string {
     if pooled.element {
         place = "${place}, element 0"
     }
-    rebuilt_by :: pooled.rebuilt_by ?? return place
+    rebuilt_by :: pooled.rebuilt_by else return place
     return "${place}, built again by ${rebuilt_by} for a use that reads it fresh"
 }
 
@@ -54,7 +54,7 @@ vtable_lines :: fn(names: DumpNames, module: LoweredModule) -> string[] {
         if decl !is LoweredFnDecl {
             continue
         }
-        entry :: vtable_entry_of(decl) ?? continue
+        entry :: vtable_entry_of(decl) else continue
         slot :: "${trait_text(names, entry.trait_name)}.${entry.method_name}"
         rows.push("vtable ${slot} for ${display_type(entry.struct_type)}  "
             + declared_line(names, decl.mangled))
@@ -69,7 +69,7 @@ dependency_lines :: fn(
 ) -> string[] {
     lowered: string[]: []
     for decl in module.decls {
-        lowered.push(dependency_line(names, decl) ?? continue)
+        lowered.push(dependency_line(names, decl) else continue)
     }
     lines :: storage_lines(project, module.module_id)
     lines.push_all(sort(lowered, compare_ascending))

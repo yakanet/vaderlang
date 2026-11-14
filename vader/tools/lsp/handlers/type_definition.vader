@@ -29,14 +29,14 @@ import "vader/tools/lsp/analysis"
 /// a typed value or the value's type has no declaration to jump to.
 export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
 
-    cursor :: typed_cursor(state, file_path, position_line(params), position_character(params)) ?? return JsonNull {}
-    found :: expr_under(cursor) ?? return JsonNull {}
-    ty :: cursor.typed.expr_types[found.id] ?? return JsonNull {}
+    cursor :: typed_cursor(state, file_path, position_line(params), position_character(params)) else return JsonNull {}
+    found :: expr_under(cursor) else return JsonNull {}
+    ty :: cursor.typed.expr_types[found.id] else return JsonNull {}
 
-    sym :: type_symbol(ty) ?? return JsonNull {}
-    da :: sym.defined_at ?? return JsonNull {}
+    sym :: type_symbol(ty) else return JsonNull {}
+    da :: sym.defined_at else return JsonNull {}
     li :: state.line_index_for_path(da.start.file)
     return location_json(da.start.file.to_uri().to_string(), da.span_to_range_json(li))
 }

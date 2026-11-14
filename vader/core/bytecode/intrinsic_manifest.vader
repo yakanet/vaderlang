@@ -72,7 +72,7 @@ export is_display_to_string :: fn(mangled: string) -> bool {
 ///
 /// @param mangled  the host import's mangled name.
 export is_unsigned_display :: fn(mangled: string) -> bool {
-    kind :: strip_core_member(mangled, DISPLAY_SUFFIX) ?? return false
+    kind :: strip_core_member(mangled, DISPLAY_SUFFIX) else return false
     return is_unsigned_int_name(kind)
 }
 

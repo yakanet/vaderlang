@@ -36,7 +36,7 @@ ensure_closure_analysis :: fn(project: LowerProjectCtx, typed: TypedProgram) -> 
     if !project.closure_modules.add(path) {
         return
     }
-    loaded :: project.loaded.modules[path] ?? return
+    loaded :: project.loaded.modules[path] else return
     analyze_module(project, loaded, typed)
 }
 
@@ -68,7 +68,7 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
                 }
                 is AST.StructDecl -> {
                     for field in decl.fields {
-                        value :: field.default ?? continue
+                        value :: field.default else continue
                         analyze_host(ctx, value)
                     }
                 }
@@ -85,7 +85,7 @@ analyze_fn_bodies :: fn(ctx: WalkCtx, fns: AST.FnDecl[]) -> void {
 }
 
 analyze_fn_body :: fn(ctx: WalkCtx, f: AST.FnDecl) -> void {
-    body :: f.body ?? return
+    body :: f.body else return
     analyze_host(ctx, body)
 }
 
@@ -155,13 +155,13 @@ enter_node :: fn(n: AST.Node, w: BodyWalk) -> AST.Walk = match n {
 }
 
 add_let :: fn(l: AST.LetStmt, w: BodyWalk) -> AST.Walk {
-    c :: w.captures ?? return .Descend
+    c :: w.captures else return .Descend
     add_local_to_scope(l.binding, c.scope, w.ctx.symbol_index)
     return .Descend
 }
 
 add_loop_var :: fn(for_stmt: AST.ForStmt, w: BodyWalk) -> AST.Walk {
-    c :: w.captures ?? return .Descend
+    c :: w.captures else return .Descend
     form :: for_stmt.form
     if form !is AST.InFor {
         return .Descend
@@ -183,7 +183,7 @@ add_loop_var :: fn(for_stmt: AST.ForStmt, w: BodyWalk) -> AST.Walk {
 // Without them the names read as free variables, and a lambda around them captures
 // a symbol the enclosing fn has no local for.
 add_match_bindings :: fn(m: AST.MatchExpr, w: BodyWalk) -> AST.Walk {
-    c :: w.captures ?? return .Descend
+    c :: w.captures else return .Descend
     add_header_binding(m.binding, c.scope, w)
     for arm in m.arms {
         add_pattern_bindings(arm.pattern, c.scope, w.ctx.symbol_index)
@@ -192,7 +192,7 @@ add_match_bindings :: fn(m: AST.MatchExpr, w: BodyWalk) -> AST.Walk {
 }
 
 add_fallback_binding :: fn(f: AST.FallbackExpr, w: BodyWalk) -> AST.Walk {
-    c :: w.captures ?? return .Descend
+    c :: w.captures else return .Descend
     add_header_binding(f.binding, c.scope, w)
     return .Descend
 }
@@ -202,13 +202,13 @@ add_header_binding :: fn(
     scope: Set<i32>,
     w: BodyWalk,
 ) -> void {
-    named :: binding ?? return
+    named :: binding else return
     add_symbol_at(named.name_span, scope, w.ctx.symbol_index)
 }
 
 record_ident_capture :: fn(ident: AST.IdentExpr, w: BodyWalk) -> AST.Walk {
-    c :: w.captures ?? return .Descend
-    symbol :: w.ctx.typed.resolved.idents[ident.span.hash()] ?? return .Descend
+    c :: w.captures else return .Descend
+    symbol :: w.ctx.typed.resolved.idents[ident.span.hash()] else return .Descend
     // An alias of a generic fn has no slot : each use names the fn.
     if is_capturable(symbol) && symbol.id !in c.scope && w.ctx.typed.fn_aliases[symbol.id] == null {
         add_capture(w.ctx, c, symbol, ident)
@@ -288,7 +288,7 @@ add_symbol_at :: fn(
     scope: Set<i32>,
     symbol_index: Map<u64, Symbol>,
 ) -> void {
-    symbol :: symbol_index[span.hash()] ?? return
+    symbol :: symbol_index[span.hash()] else return
     scope.add(symbol.id)
 }
 
@@ -371,7 +371,7 @@ collect_captures :: fn(body: AST.Node, scope: Set<i32>, w: BodyWalk) -> Capture[
 // Fold a nested body's captures into the enclosing body's, skipping the symbols the
 // enclosing body declares: those are shared, no captures of its own.
 fold_captures :: fn(captures: Capture[], w: BodyWalk) -> void {
-    outer :: w.captures ?? return
+    outer :: w.captures else return
     for capture in captures {
         if capture.symbol.id !in outer.scope && outer.seen.add(capture.symbol.id) {
             outer.list.push(capture)

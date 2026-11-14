@@ -155,13 +155,13 @@ export CallSites :: struct {
 /// @param span   where it is written.
 note_instantiation_site :: fn(typed: TypedProgram, id: i64, span: Span) -> void {
     typed.call_sites.instantiation_spans[id] = span
-    caller :: current_fn_id(typed) ?? return
+    caller :: current_fn_id(typed) else return
     typed.call_sites.instantiation_callers[id] = caller
 }
 
 // The declaration id of the function being checked ; null at module level.
 current_fn_id :: fn(typed: TypedProgram) -> i64 | null {
-    ctx :: typed.current_fn_ctx ?? return null
+    ctx :: typed.current_fn_ctx else return null
     if ctx.fn_id == 0 {
         return null
     }
@@ -315,7 +315,7 @@ record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: C
 // List the call `node` under the function being checked ; a module-level
 // initialiser is in none.
 file_in_fn :: fn(typed: TypedProgram, node: i64) -> void {
-    fn_id :: current_fn_id(typed) ?? return
+    fn_id :: current_fn_id(typed) else return
     nodes :: typed.call_sites.calls_in_fn[fn_id]
     if nodes == null {
         typed.call_sites.calls_in_fn[fn_id] = [node]
@@ -335,7 +335,7 @@ note_call_bindings :: fn(
     bindings: Map<i32, Type>,
 ) -> void {
     default_free_bindings(bindings)
-    callee :: typed.call_sites.calls[c.id] ?? return
+    callee :: typed.call_sites.calls[c.id] else return
     if bindings.len() == 0 {
         return
     }
@@ -374,7 +374,7 @@ names_impl_param :: fn(bindings: Map<i32, Type>, impl_params: Set<i32>) -> bool 
 in_order :: fn(quantifier: TypeParamType[], bindings: Map<i32, Type>) -> Type[] {
     out: Type[]: []
     for tp in quantifier {
-        out.push(bindings[tp.symbol.id] ?? TY_UNRESOLVED)
+        out.push(bindings[tp.symbol.id] else TY_UNRESOLVED)
     }
     return out
 }
@@ -382,7 +382,7 @@ in_order :: fn(quantifier: TypeParamType[], bindings: Map<i32, Type>) -> Type[] 
 // Pin every free literal type `bindings` holds to its default (`{integer}` -> `i32`).
 default_free_bindings :: fn(bindings: Map<i32, Type>) -> void {
     for k in bindings.keys() {
-        v :: bindings[k] ?? continue
+        v :: bindings[k] else continue
         bindings[k] = default_if_free(v)
     }
 }
@@ -398,7 +398,7 @@ callee_of_call :: fn(
     if callee_ty !is FnType {
         return ERRONEOUS_CALLEE
     }
-    return typed.callees[c.callee.id] ?? named_callee(typed, c.callee, named)
+    return typed.callees[c.callee.id] else named_callee(typed, c.callee, named)
 }
 
 named_callee :: fn(typed: TypedProgram, callee: AST.Expr, named: AST.FnDecl | null) -> Callee {
@@ -420,7 +420,7 @@ calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
     if callee !is AST.IdentExpr {
         return true
     }
-    sym :: typed.resolved.idents[callee.span.hash()] ?? return false
+    sym :: typed.resolved.idents[callee.span.hash()] else return false
     return match sym.kind {
         .Param | .Local | .Binding | .Const -> true
         .Fn | .Struct | .GeneratorState | .Enum | .Trait | .Impl | .TypeAlias -> false
@@ -487,7 +487,7 @@ converts_array_to_iterator :: fn(source: Type, target: Type) -> bool =
 /// @return        null when the conversion runs no `into`.
 conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Callee | null {
     if converts_array_to_iterator(source, target) {
-        array_into :: into_impl_method(typed, source, target) ?? return UNSETTLED_CALLEE
+        array_into :: into_impl_method(typed, source, target) else return UNSETTLED_CALLEE
         return member_callee(array_into.decl, source)
     }
     if equals_type(source, target) {
@@ -496,7 +496,7 @@ conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Call
     if source is DistinctType && equals_type(source.backing, target) {
         return null
     }
-    method :: into_converting(typed, source, target) ?? return null
+    method :: into_converting(typed, source, target) else return null
     return member_callee(method.decl, source)
 }
 
@@ -552,7 +552,7 @@ counts_in_place :: fn(typed: TypedProgram, iter: AST.Expr) -> bool {
     if iter !is AST.RangeExpr {
         return false
     }
-    lower :: typed.expr_types[iter.lower.id] ?? return false
+    lower :: typed.expr_types[iter.lower.id] else return false
     return is_counting_type(lower)
 }
 
@@ -642,7 +642,7 @@ distinct_equality :: fn(t: DistinctType, typed: TypedProgram) -> Callee {
 // The variants of `left` that `right` holds too : those a union `==` compares.
 shared_variants :: fn(left: Type, right: Type) -> Type[] {
     shared: Type[]: []
-    for variant in union_variants(left) ?? [left] {
+    for variant in union_variants(left) else [left] {
         if counterpart(right, variant) != null {
             shared.push(variant)
         }

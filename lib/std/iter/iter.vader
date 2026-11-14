@@ -551,8 +551,8 @@ import "std/testing"
 }
 
 @test test_last :: fn() -> void {
-    assert_eq((0..<3).last() ?? -1, 2)
-    assert_eq((0..<0).last() ?? -1, -1)
+    assert_eq((0..<3).last() else -1, 2)
+    assert_eq((0..<0).last() else -1, -1)
 }
 
 @test test_count_of_an_array :: fn() -> void {
@@ -809,22 +809,22 @@ test_min_of_nothing_is_null :: fn() -> void {
 
 @test
 test_min_takes_the_least :: fn() -> void {
-    assert_eq([3, 1, 2].min() ?? -1, 1)
+    assert_eq([3, 1, 2].min() else -1, 1)
 }
 
 @test
 test_max_takes_the_greatest :: fn() -> void {
-    assert_eq(["pear", "fig", "apple"].max() ?? "", "pear")
+    assert_eq(["pear", "fig", "apple"].max() else "", "pear")
 }
 
 @test
 test_min_by_takes_the_least_key :: fn() -> void {
-    assert_eq(["pear", "fig", "apple", "kiwi"].min_by((s: string) -> s.byte_len()) ?? "", "fig")
+    assert_eq(["pear", "fig", "apple", "kiwi"].min_by((s: string) -> s.byte_len()) else "", "fig")
 }
 
 @test
 test_max_by_keeps_the_first_of_equal_keys :: fn() -> void {
-    assert_eq(["pear", "fig", "kiwi"].max_by((s: string) -> s.byte_len()) ?? "", "pear")
+    assert_eq(["pear", "fig", "kiwi"].max_by((s: string) -> s.byte_len()) else "", "pear")
 }
 
 @test

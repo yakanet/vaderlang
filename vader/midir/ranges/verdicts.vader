@@ -156,7 +156,7 @@ walking_state :: fn(states: (RangeState | null)[] | null, id: BlockId) -> RangeS
     if states == null {
         return null
     }
-    entry :: states[i32(id)] ?? return null
+    entry :: states[i32(id)] else return null
     return copy_range_state(entry)
 }
 
@@ -226,7 +226,7 @@ index_verdict :: fn(
     array: LocalId,
     index: LocalId,
 ) -> RangeVerdict {
-    iv :: interval_of(ctx, s, index) ?? return .Unproven
+    iv :: interval_of(ctx, s, index) else return .Unproven
     if !iv.hi_open && iv.hi < 0 {
         return .CertainFault
     }
@@ -241,7 +241,7 @@ index_verdict :: fn(
         if bound != null && bound <= -1 {
             return .Proven
         }
-        length :: interval_of(ctx, s, n) ?? continue
+        length :: interval_of(ctx, s, n) else continue
         if !iv.hi_open && iv.hi < length.lo {
             return .Proven
         }

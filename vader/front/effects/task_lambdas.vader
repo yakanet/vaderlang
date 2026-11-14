@@ -80,7 +80,7 @@ called_touch :: fn(t: Touch, at: Span, label: string) -> Touch = Touch {
     .at = at,
     .by = "`${label}`",
     .access = null,
-    .made = t.made ?? t.at,
+    .made = t.made else t.at,
 }
 
 // The calls of the body that run a lambda of it, by lambda.
@@ -89,7 +89,7 @@ lambda_calls :: fn(ctx: TaskCtx, body: TaskBody) -> LambdaCalls[] {
     out: LambdaCalls[]: []
     for site in body.s.sites {
         for read in ctx.run_values(body.shape, site) {
-            lambda :: names.called_lambda(read) ?? continue
+            lambda :: names.called_lambda(read) else continue
             out.add_run(lambda, LambdaRun { .at = site.at, .read = read })
         }
     }
@@ -123,7 +123,7 @@ run_values :: fn(ctx: TaskCtx, shape: BodyShape, site: Site) -> AST.Expr[] {
     }
     for k in ctx.run_args(site) {
         if k < site.sources.len() {
-            source :: site.sources[k] ?? continue
+            source :: site.sources[k] else continue
             out.push(source)
         }
     }
@@ -164,13 +164,13 @@ bound_lambda :: fn(names: Bindings, name: AST.IdentExpr) -> AST.LambdaExpr | nul
 
 // The value the constant local `name` is bound to ; null for any other name.
 bound_value :: fn(names: Bindings, name: AST.IdentExpr) -> AST.Expr | null {
-    sym :: names.typed.resolved.idents[name.span.hash()] ?? return null
+    sym :: names.typed.resolved.idents[name.span.hash()] else return null
     for l in names.lets {
         b :: l.binding
         if l.mutable || b !is AST.SimpleBinding {
             continue
         }
-        bound :: names.typed.resolved.idents[b.name_span.hash()] ?? continue
+        bound :: names.typed.resolved.idents[b.name_span.hash()] else continue
         if bound.id == sym.id {
             return l.value
         }
@@ -230,9 +230,9 @@ call_args_label :: fn(c: AST.CallExpr) -> string {
 // local, which the body reads nowhere but where such a call names a lambda,
 // `reads`, and writes nowhere.
 only_called :: fn(body: TaskBody, g: LambdaCalls, reads: Set<Span>) -> bool {
-    slot :: body.slot_used_at(callee_base(g.runs[0].read).span) ?? return false
+    slot :: body.slot_used_at(callee_base(g.runs[0].read).span) else return false
     for r in g.runs {
-        used :: body.slot_used_at(callee_base(r.read).span) ?? return false
+        used :: body.slot_used_at(callee_base(r.read).span) else return false
         if used != slot {
             return false
         }

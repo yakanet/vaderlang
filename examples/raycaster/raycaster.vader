@@ -520,7 +520,8 @@ load_sounds :: fn() -> Sounds = Sounds {
 // The sound in the WAV file `data`. The files are the build's, so one that does
 // not decode is a broken build.
 decode_sound :: fn(data: u8[]) -> Sound =
-    load_sound_from_memory(".wav", data) ?? panic("a sound baked into the program does not decode")
+    load_sound_from_memory(".wav", data)
+        else panic("a sound baked into the program does not decode")
 
 unload_sounds :: fn(sounds: Sounds) -> void {
     unload_sound(sounds.shot)

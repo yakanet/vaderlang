@@ -117,8 +117,8 @@ main :: fn() -> i32 {
     squares_none :: a.map(square)
     println("none ${first_over(1000, a.map(square))} ${first_over(1000, squares_none)}")
     far :: pts.filter((p) -> p.x > 6)
-    near :: (pts.filter((p) -> p.x > 6).find((p) -> p.y > 14) ?? Point { .x = 0, .y = 0 }).x
-    println("find struct ${near} ${(far.find((p) -> p.y > 14) ?? Point { .x = 0, .y = 0 }).x}")
+    near :: (pts.filter((p) -> p.x > 6).find((p) -> p.y > 14) else Point { .x = 0, .y = 0 }).x
+    println("find struct ${near} ${(far.find((p) -> p.y > 14) else Point { .x = 0, .y = 0 }).x}")
     thirds :: pts.filter((p) -> p.x % 3 == 0)
     println("collect struct ${pts.filter((p) -> p.x % 3 == 0).collect().len()} ${thirds.collect().len()}")
 
@@ -146,6 +146,6 @@ main :: fn() -> i32 {
     println("twice ${drained_twice(a.map((i) -> i + 1))}")
     println("array fold ${a.fold(i64(0), (acc, x) -> acc + i64(x))}")
     println("range sum ${(0..<5).map((i) -> i * 3).sum()}")
-    println("find_map ${a.find_map((x) -> if x > 4 { x * 100 } else { null }) ?? 0}")
+    println("find_map ${a.find_map((x) -> if x > 4 { x * 100 } else { null }) else 0}")
     return 0
 }

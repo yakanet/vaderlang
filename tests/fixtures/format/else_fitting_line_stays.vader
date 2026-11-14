@@ -1,0 +1,21 @@
+// tests/fixtures/format/else_fitting_line_stays: a call before `else
+// return ...` that fits in exactly 100 columns stays inline, and so does one whose
+// fallback explodes: only its head `return Foo {` shares the line of the call.
+
+module "else_fitting_line_stays"
+
+Foo :: struct {
+    a: i32
+    b: i32
+}
+
+f :: fn(a: i32, b: i32, c: i32) -> i32 | null = null
+
+g :: fn(first_parameter: i32, second_parameter: i32, third_parameter: i32) -> Foo | null {
+    exactly_one_hundred_columns_wide :: f(first_parameter, second_parameter, 10000) else return null
+    with_struct :: f(exactly_one_hundred_columns_wide, second_parameter, 1) else return Foo {
+        .a = 1,
+        .b = 2,
+    }
+    return Foo { .a = with_struct, .b = 0 }
+}

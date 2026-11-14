@@ -237,7 +237,7 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
     out: LoweredStmt[]: []
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
-    trailing :: user_body.trailing ?? return out
+    trailing :: user_body.trailing else return out
     out.push(LoweredExprStmt { .span = trailing.span, .expr = trailing })
     return out
 }
@@ -252,13 +252,13 @@ into_iterator :: fn(
     element: Type,
     span: Span,
 ) -> LoweredExpr {
-    iterator :: iterator_of(ctx, element) ?? return iterable
+    iterator :: iterator_of(ctx, element) else return iterable
     return recorded_conversion(ctx, site, .IterInto, iterable, iterator, span)
 }
 
 // `Iterator<element>`, the trait value a step loop dispatches `next` on.
 iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
-    trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR) ?? return null
+    trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR) else return null
     return mk_trait(trait_sym, [element])
 }
 
@@ -267,7 +267,7 @@ iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
 // applied to the lowered iterator type (a destructured or unnamed variable has
 // no binding entry).
 resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -> Type =
-    concrete_local_type(ctx.types, binding_key) ?? iterated_element(iter_type, ctx.typed)
+    concrete_local_type(ctx.types, binding_key) else iterated_element(iter_type, ctx.typed)
 
 // Erase a concrete `$genstate_<fn>` iterator (a `generator`'s Direction-A call
 // result) back to the trait `Iterator<element>`, so an un-fused for-in dispatches
@@ -284,7 +284,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -
 // coercion over adding another erase site.
 erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type: Type) -> Type {
     if !is_gen_state_struct(iter_type) { return iter_type }
-    return iterator_of(ctx, element_type) ?? iter_type
+    return iterator_of(ctx, element_type) else iter_type
 }
 
 // Build the per-iter `.next()` step call. Trait-typed iter ->
@@ -302,7 +302,7 @@ build_step_call :: fn(
         trait_key :: core_trait_key(TRAIT_ITERATOR)
         return virtual_call(ctx, trait_key, METHOD_NEXT, iter_ref, [], step_union, span)
     }
-    next :: step_member(ctx, node, iter_type) ?? return LoweredUnreachable {
+    next :: step_member(ctx, node, iter_type) else return LoweredUnreachable {
         .span = span,
         .type = step_union,
         .reason = "no Iterator impl on ${display_type(iter_type)}",
@@ -493,7 +493,7 @@ try_lower_for_over_type :: fn(
         }
         return walk_enum_values(ctx, for_stmt, in_form, walked, values, var_type)
     }
-    held :: instance_range(ctx, walked) ?? return null
+    held :: instance_range(ctx, walked) else return null
     return counted_walk(ctx, for_stmt, in_form, held.bounds, range_representation(held), var_type)
 }
 
@@ -623,7 +623,7 @@ counter_width :: fn(lower: Type, upper: Type) -> Type {
 try_lower_for_in_int_range :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
 ) -> LoweredStmt | null {
-    range :: extract_range(in_form.iter) ?? return null
+    range :: extract_range(in_form.iter) else return null
     raw_lower :: ctx.types.expr_type(range.lower)
     raw_upper :: ctx.types.expr_type(range.upper)
     if !is_counting_type(raw_lower) { return null }
@@ -816,7 +816,7 @@ compare_counter :: fn(
 // literal `hi + 1` overflows. A `char` counter steps on 32 bits, past the last
 // codepoint.
 may_be_type_max :: fn(hi: LoweredExpr, t: Type) -> bool {
-    held :: integer_representation(t) ?? return false
+    held :: integer_representation(t) else return false
     if hi !is LoweredIntLit {
         return true
     }

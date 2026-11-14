@@ -34,7 +34,7 @@ evaluate_assert_decls :: fn(
             }
             verdict :: assert_verdict(result.value)
             if verdict == .Fails {
-                diags.push(comptime_error(.AssertFailed, decl.span, decl.message ?? ""))
+                diags.push(comptime_error(.AssertFailed, decl.span, decl.message else ""))
             }
             program.asserts.push(AssertCheck { .span = decl.span, .verdict = verdict })
         }

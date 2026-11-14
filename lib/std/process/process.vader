@@ -227,7 +227,7 @@ launch_child :: fn(
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }
     }
-    child :: start_child(argv, piped_input, options) ?? return ProcessError {
+    child :: start_child(argv, piped_input, options) else return ProcessError {
         .msg = "spawn: failed to launch \"${argv[0]}\"",
     }
     return child
@@ -688,7 +688,7 @@ create_child :: fn(
     true,
     CREATE_UNICODE_ENVIRONMENT,
     environment_block(options.env),
-    to_wide(options.cwd ?? current_working_directory()),
+    to_wide(options.cwd else current_working_directory()),
     si,
     pi,
 )
@@ -980,7 +980,7 @@ await_child :: fn(child: ChildProcess) -> void {
 ///               launch, or `close_input`), reads no more input (it closed its
 ///               stdin, or ended), or the write fails.
 export write_input :: fn(child: ChildProcess, data: u8[]) -> null | ProcessError {
-    pipe :: child.in_pipe ?? return ProcessError {
+    pipe :: child.in_pipe else return ProcessError {
         .msg = "\"${child.program}\" has no stdin to write",
     }
     rest := data
@@ -1022,7 +1022,7 @@ write_some :: fn(pipe: Descriptor, bytes: u8[]) -> i64 {
 ///
 /// @param child  what `spawn_interactive` returned.
 export close_input :: fn(child: ChildProcess) -> void {
-    pipe :: child.in_pipe ?? return
+    pipe :: child.in_pipe else return
     close_descriptor(pipe)
     child.in_pipe = null
 }
@@ -1103,7 +1103,7 @@ run_attached :: fn(argv: string[]) -> i32 | ProcessError {
     if !init_actions(actions, null) {
         return cannot_launch(argv[0])
     }
-    pid :: spawn_with(argv, actions, []) ?? return cannot_launch(argv[0])
+    pid :: spawn_with(argv, actions, []) else return cannot_launch(argv[0])
     st: i32[]: [0]
     if sys_waitpid(pid, st, 0) < 0 {
         return ProcessError { .msg = "`${argv[0]}` could not be waited for" }
@@ -1222,7 +1222,7 @@ environment_command :: fn() -> string[] = ["cmd", "/c", "set"]
 // The last component of the folder a child prints: what a link on its way (the
 // temporary folder of macOS) leaves unchanged.
 last_component :: fn(path: string) -> string {
-    halves :: path.trim().replace_all("\\", "/").split_last("/") ?? return path.trim()
+    halves :: path.trim().replace_all("\\", "/").split_last("/") else return path.trim()
     return halves.1
 }
 

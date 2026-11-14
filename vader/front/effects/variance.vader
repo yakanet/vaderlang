@@ -67,7 +67,7 @@ note_widened :: fn(
     param: i64,
     arg: AST.Expr,
 ) -> void {
-    widened :: ctx.typed.widened_arguments[arg.id] ?? return
+    widened :: ctx.typed.widened_arguments[arg.id] else return
     site :: WideningSite {
         .arg = arg.id,
         .span = arg.span,
@@ -171,7 +171,7 @@ export widening_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) 
 // What the callee may do that a wider element would take advantage of.
 widening_detail :: fn(site: WideningSite, paths: PathTable) -> string {
     callee :: display_callee(site.callee)
-    breaking :: site.breaking ?? return "${callee} may do anything with it"
+    breaking :: site.breaking else return "${callee} may do anything with it"
     target :: argument_label(site, paths, breaking.path)
     return "${callee} ${what_it_may_do(breaking.effect, target)}"
 }

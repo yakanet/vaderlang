@@ -220,7 +220,7 @@ parse_level :: fn(rows: string[]) -> Level | LevelError {
         }
         for x in 0..<width {
             c :: row[i64(x)]
-            cell :: cell_of(c) ?? return LevelError {
+            cell :: cell_of(c) else return LevelError {
                 .message = "unknown cell `${c}`",
                 .row = y,
                 .column = x,
@@ -323,7 +323,7 @@ place_doors :: fn(level: Level) -> Level | LevelError {
             if level.cell_at(x, y) != .Door {
                 continue
             }
-            axis :: door_axis(level, x, y) ?? return LevelError {
+            axis :: door_axis(level, x, y) else return LevelError {
                 .message = "a door needs a wall on two opposite sides",
                 .row = y,
                 .column = x,

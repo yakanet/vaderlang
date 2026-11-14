@@ -204,7 +204,7 @@ specs_by_name :: fn() -> Map<string, DecoratorSpec> {
 /// @param name   the decorator's name, without the `@`.
 /// @param place  where it is written.
 export decorator_on :: fn(name: string, place: DecoratorPlace) -> bool {
-    spec :: decorator_spec(name) ?? return false
+    spec :: decorator_spec(name) else return false
     return place in spec.places
 }
 
@@ -214,7 +214,7 @@ import "std/testing"
 
 @test
 test_decorator_spec_finds_a_known_name :: fn() -> void {
-    spec :: decorator_spec("singleton") ?? return assert(false, "singleton is known")
+    spec :: decorator_spec("singleton") else return assert(false, "singleton is known")
     assert_eq(spec.usage, "@singleton")
 }
 

@@ -27,7 +27,7 @@ import "vader/lower/ir"
 // The gate functions of the program the module `module` belongs to, or null when
 // it never loads the scheduler, and so runs on one thread.
 gate_runtime_of :: fn(project_ctx: LowerProjectCtx, module: string) -> GateRuntime | null {
-    program :: project_ctx.evaluated.modules[module] ?? return null
+    program :: project_ctx.evaluated.modules[module] else return null
     return program.typed.gate_runtime
 }
 
@@ -35,7 +35,7 @@ gate_runtime_of :: fn(project_ctx: LowerProjectCtx, module: string) -> GateRunti
 // scheduler. A constant gets its gate after the fixpoint of the lowering, too late
 // to harvest them then: the constant harvests them as its value is lowered.
 register_gate_fns :: fn(ctx: FnLowerCtx) -> void {
-    fns :: ctx.typed.gate_runtime ?? return
+    fns :: ctx.typed.gate_runtime else return
     register_nongeneric_imported_fn(ctx, fns.gate_or_new)
     register_nongeneric_imported_fn(ctx, fns.run_gated)
 }
@@ -100,6 +100,6 @@ gate_build_fn :: fn(
 // The signature of the gate function `sym`.
 gate_fn_type :: fn(project_ctx: LowerProjectCtx, sym: Symbol) -> FnType {
     program :: project_ctx.evaluated.modules[sym.module]
-        ?? panic("lower: no module `${sym.module}` for `${sym.name}`")
-    return fn_signature(program.typed, sym) ?? panic("lower: `${sym.name}` has no signature")
+        else panic("lower: no module `${sym.module}` for `${sym.name}`")
+    return fn_signature(program.typed, sym) else panic("lower: `${sym.name}` has no signature")
 }

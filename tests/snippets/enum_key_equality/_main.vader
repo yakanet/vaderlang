@@ -41,13 +41,13 @@ main :: fn() -> i32 {
     by_color :: Map<Color, i32> {}
     by_color[.Red] = 1
     by_color[.Blue] = 3
-    println("${by_color[.Red] ?? -1} ${by_color[.Green] ?? -1} ${by_color[.Blue] ?? -1}")
+    println("${by_color[.Red] else -1} ${by_color[.Green] else -1} ${by_color[.Blue] else -1}")
 
     by_status :: Map<HttpStatus, string> {}
     by_status[.NotFound] = "gone"
     by_status[.Ok] = "here"
     by_status[.NotFound] = "missing"
-    println("${by_status[.NotFound] ?? "?"} ${by_status[.Ok] ?? "?"} ${by_status.len()}")
+    println("${by_status[.NotFound] else "?"} ${by_status[.Ok] else "?"} ${by_status.len()}")
     println(
         "${same_through_trait(Color.Red, Color.Red)} ${same_through_trait(Color.Red, Color.Blue)}",
     )
@@ -61,6 +61,6 @@ main :: fn() -> i32 {
         }
     }
     rank: i32: 2
-    println("${walked[.Blue] ?? -1} ${by_color[Color(rank)] ?? -1} ${has_blue(walked)}")
+    println("${walked[.Blue] else -1} ${by_color[Color(rank)] else -1} ${has_blue(walked)}")
     return 0
 }

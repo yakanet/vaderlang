@@ -61,8 +61,8 @@ import "std/testing"
 @test
 test_peek_leaves_the_element :: fn() -> void {
     it :: [1, 2, 3].peekable()
-    assert_eq(it.peek() ?? -1, 1)
-    assert_eq(it.peek() ?? -1, 1)
+    assert_eq(it.peek() else -1, 1)
+    assert_eq(it.peek() else -1, 1)
     assert(it.collect().content_equals([1, 2, 3]), "the peeked element is still taken")
 }
 
@@ -74,13 +74,13 @@ test_peek_follows_next :: fn() -> void {
             break
         }
     }
-    assert_eq(it.peek() ?? -1, 2)
+    assert_eq(it.peek() else -1, 2)
 }
 
 @test
 test_peek_at_the_end_is_null :: fn() -> void {
     it :: [1].map((x: i32) -> x * 10).peekable()
-    assert_eq(it.peek() ?? -1, 10)
+    assert_eq(it.peek() else -1, 10)
     assert_eq(it.count(), 1)
     assert(it.peek() == null, "nothing left to peek")
 }

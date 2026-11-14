@@ -140,7 +140,7 @@ field_tags :: fn(ctx: TagContext, type_id: i32, field: i32) -> u8 {
             return tags_of_type(ctx, t.fields[field].type_index)
         }
         if t is bc.BcUnion {
-            layout :: bc.union_layout_struct(types, type_id) ?? return TAGS_ANY
+            layout :: bc.union_layout_struct(types, type_id) else return TAGS_ANY
             return field_tags(ctx, layout, field)
         }
     }
@@ -199,7 +199,7 @@ infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: i64) -> Fu
     merge_block(blocks, 0, 0, start)
     state: u8[]: [0] * blocks.width
     for blocks.work.len() > 0 {
-        b :: blocks.work.remove_last() ?? break
+        b :: blocks.work.remove_last() else break
         blocks.queued[b] = false
         walk_block(ctx, f, blocks, b, slots, state, null)
     }
@@ -233,7 +233,7 @@ new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: i64) -> Blo
     leader: bool[]: [false] * n
     leader[0] = true
     for pc in 0..<n {
-        e :: effect_of(module, f, f.body[pc]) ?? continue
+        e :: effect_of(module, f, f.body[pc]) else continue
         if e.flow == .Jump || e.flow == .Fork {
             target :: f.jump_table[pc]
             if in_range(target, n) {
@@ -303,7 +303,7 @@ walk_block :: fn(
             }
         }
         op :: f.body[pc]
-        e :: effect_of(ctx.module, f, op) ?? return
+        e :: effect_of(ctx.module, f, op) else return
         d = transfer(ctx, op, state, slots, d, e)
         if record == null && (e.flow == .Jump || e.flow == .Fork) {
             target :: i64(f.jump_table[pc])
@@ -507,7 +507,7 @@ check_module_tags :: fn(module: bc.BytecodeModule, facts: FunctionTags[]) -> Ver
             }
             op :: f.body[pc]
             for back in 1..=KEPT_CELLS {
-                want :: accepted_tags(op, back) ?? continue
+                want :: accepted_tags(op, back) else continue
                 have :: stack_tags(ft, pc, back)
                 if !tags_within(have, want) {
                     met :: display_tags(have)

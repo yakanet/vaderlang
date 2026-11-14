@@ -69,7 +69,7 @@ Tally :: struct {
 }
 
 Tally implements Index<string, i32> {
-    at :: fn(self, k: string) -> i32 = self.counts[k] ?? 0
+    at :: fn(self, k: string) -> i32 = self.counts[k] else 0
 }
 
 Tally implements IndexSet<string, i32> {

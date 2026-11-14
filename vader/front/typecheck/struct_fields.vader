@@ -37,7 +37,7 @@ export struct_field_info :: fn(
     struct_id: i32,
     name: string,
 ) -> StructFieldInfo | null {
-    fields :: typed.struct_fields[struct_id] ?? return null
+    fields :: typed.struct_fields[struct_id] else return null
     return fields[name]
 }
 
@@ -55,7 +55,7 @@ export owner_in_instance :: fn(
     if field.owner.args.len() == 0 {
         return field.owner
     }
-    decl :: typed.struct_decls[st.symbol.id] ?? return field.owner
+    decl :: typed.struct_decls[st.symbol.id] else return field.owner
     bindings :: type_param_bindings(decl.type_params, st.args, typed)
     return StructType {
         .symbol = field.owner.symbol,
@@ -70,7 +70,7 @@ export owner_in_instance :: fn(
 /// @param name       the field.
 /// @return           -1 when the struct or the field has no entry.
 export struct_field_index :: fn(typed: TypedProgram, struct_id: i32, name: string) -> i64 {
-    fields :: typed.struct_fields[struct_id] ?? return -1
+    fields :: typed.struct_fields[struct_id] else return -1
     at: i64 = 0
     for [field_name, _] in fields {
         if field_name == name {

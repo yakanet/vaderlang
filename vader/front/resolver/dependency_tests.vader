@@ -30,7 +30,7 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFi
     for f in files {
         for d in f.program.decls {
             if !AST.decl_is_public(d) && declares_type(d) {
-                private_types.add(declared_name(d) ?? continue)
+                private_types.add(declared_name(d) else continue)
             }
         }
     }
@@ -108,7 +108,7 @@ private_type_of :: fn(d: AST.Decl, private_types: Set<string>) -> string | null 
     if d !is AST.ImplDecl {
         return null
     }
-    owner :: type_head_name(d.for_type) ?? return null
+    owner :: type_head_name(d.for_type) else return null
     if owner in private_types {
         return owner
     }
@@ -138,7 +138,7 @@ is_reached :: fn(d: AST.Decl, reachable: Set<string>, private_types: Set<string>
     if name != null {
         return name in reachable
     }
-    owner :: private_type_of(d, private_types) ?? return true
+    owner :: private_type_of(d, private_types) else return true
     return owner in reachable
 }
 
@@ -163,7 +163,7 @@ left_of :: fn(source: string) -> string {
             }
             continue
         }
-        names.push(declared_name(d) ?? continue)
+        names.push(declared_name(d) else continue)
     }
     return names.join(" ")
 }

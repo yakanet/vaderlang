@@ -308,7 +308,7 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
 /// @param elem  the array's concrete element value class.
 /// @return      the typed store op, or `null` to fall back to `ArraySet`.
 export slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
-    w :: slot_width_for(elem) ?? return null
+    w :: slot_width_for(elem) else return null
     return match w {
         .I32   -> StoreSlotI32 { .bounds_safe = bounds_safe }
         .I64   -> StoreSlotI64 { .bounds_safe = bounds_safe }
@@ -324,7 +324,7 @@ export slot_store_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
 /// @param elem  the array's concrete element value class (the static read type).
 /// @return      the typed load op, or `null` to fall back to `ArrayGet`.
 export slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
-    w :: slot_width_for(elem) ?? return null
+    w :: slot_width_for(elem) else return null
     return match w {
         .I32   -> LoadSlotI32 { .bounds_safe = bounds_safe }
         .I64   -> LoadSlotI64 { .bounds_safe = bounds_safe }

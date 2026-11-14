@@ -371,9 +371,9 @@
 [75:53-75:57] kw_null        "null"
 [75:58-75:59] rbrace         "}"
 [75:59-75:60] rparen         ")"
-[75:61-75:63] question_question "??"
-[75:64-75:65] int_literal    "5" =5n
-[75:66-75:67] rbrace         "}"
+[75:61-75:65] kw_else        "else"
+[75:66-75:67] int_literal    "5" =5n
+[75:68-75:69] rbrace         "}"
 [76:1-76:1  ] newline        "\n"
 [76:5-76:11 ] kw_return      "return"
 [76:12-76:13] ident          "k"

@@ -49,7 +49,7 @@ IgnoreRule :: struct {
 export parse_ignore_rules :: fn(text: string) -> IgnoreRules {
     rules: IgnoreRule[]: []
     for line in text.split("\n") {
-        rule :: ignore_rule(line) ?? continue
+        rule :: ignore_rule(line) else continue
         rules.push(rule)
     }
     return IgnoreRules { .rules = rules }

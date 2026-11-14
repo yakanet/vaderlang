@@ -23,7 +23,7 @@
   expr 22:38    IdentExpr      :: Celsius
   expr 27:44    FallbackExpr   :: Label
   expr 27:44    IdentExpr      :: Label | null
-  expr 27:49    StructLitExpr  :: Celsius
+  expr 27:51    StructLitExpr  :: Celsius
   expr 30:11    StructLitExpr  :: Celsius
   expr 33:44    FieldExpr      :: string
   expr 33:44    IdentExpr      :: Label
@@ -70,8 +70,8 @@
   expr 62:12    IdentExpr      :: Map<string, Label>
   expr 62:12    IndexExpr      :: Label | null
   expr 62:14    StringLitExpr  :: string
-  expr 62:22    StructLitExpr  :: Label
-  expr 62:38    StringLitExpr  :: string
+  expr 62:24    StructLitExpr  :: Label
+  expr 62:40    StringLitExpr  :: string
   expr 63:13    StringLitExpr  :: string
   expr 63:21    FieldExpr      :: string
   expr 63:21    IdentExpr      :: Label

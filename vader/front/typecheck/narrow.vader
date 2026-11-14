@@ -93,10 +93,12 @@ export NarrowState :: struct {
 
 
 // Current kill generation for a binding slot ; 0 until first bumped.
-cur_narrow_gen :: fn(typed: TypedProgram, sym_id: i32) -> i32 = typed.narrow.kill_gens[sym_id] ?? 0
+cur_narrow_gen :: fn(typed: TypedProgram, sym_id: i32) -> i32 =
+    typed.narrow.kill_gens[sym_id] else 0
 
 // Current kill generation for a field-chain slot ; 0 until first bumped.
-cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 = typed.narrow.field_kill_gens[key] ?? 0
+cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 =
+    typed.narrow.field_kill_gens[key] else 0
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
@@ -131,7 +133,7 @@ pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> v
 /// from an older kill generation (retired by a reassignment) counts as
 /// absent.
 narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
-    cur :: typed.narrow.bindings[sym_id] ?? return static_ty
+    cur :: typed.narrow.bindings[sym_id] else return static_ty
     if cur.gen != cur_narrow_gen(typed, sym_id) {
         return static_ty
     }
@@ -200,7 +202,7 @@ resolve_field_chain_static :: fn(
     if key == "" {
         return null
     }
-    static_ty :: typed.expr_types[e.id] ?? return null
+    static_ty :: typed.expr_types[e.id] else return null
     if static_ty is UnresolvedType {
         return null
     }
@@ -226,7 +228,7 @@ field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     if cur !is AST.IdentExpr {
         return ""
     }
-    sym :: typed.resolved.idents[cur.span.hash()] ?? return ""
+    sym :: typed.resolved.idents[cur.span.hash()] else return ""
     fields: string[]: []
     i := parts_leaf_first.len() - 1
     for i >= 0 {
@@ -266,7 +268,7 @@ pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot | null
 /// `static_ty` when no narrowing is active for that field slot. An
 /// entry from an older kill generation counts as absent.
 narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
-    cur :: typed.narrow.fields[key] ?? return static_ty
+    cur :: typed.narrow.fields[key] else return static_ty
     if cur.gen != cur_field_narrow_gen(typed, key) {
         return static_ty
     }
@@ -308,7 +310,7 @@ invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: Typed
         if typed.narrow.bindings.is_empty() && typed.narrow.fields.is_empty() {
             return
         }
-        sym :: typed.resolved.idents[target.span.hash()] ?? return
+        sym :: typed.resolved.idents[target.span.hash()] else return
         cur :: typed.narrow.bindings[sym.id]
         if cur != null {
             g :: cur_narrow_gen(typed, sym.id)
@@ -413,7 +415,7 @@ retire_narrowings_across_call :: fn(typed: TypedProgram) -> void {
 /// @param typed  the program's typing tables.
 retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProgram) -> void {
     retire_narrowings_across_call(typed)
-    rebinds :: typed.resolved.loop_rebinds[loop.span.hash()] ?? return
+    rebinds :: typed.resolved.loop_rebinds[loop.span.hash()] else return
     for sym_id in rebinds {
         retire_binding(typed, sym_id)
     }

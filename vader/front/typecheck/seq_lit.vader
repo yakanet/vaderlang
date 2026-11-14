@@ -46,7 +46,8 @@ infer_seq_lit :: fn(
             return infer_against_array(e, expected, typed, diags)
         }
         is TraitType    -> {
-            element :: iterator_slot_element(expected) ?? return infer_no_expected(e, typed, diags)
+            element :: iterator_slot_element(expected)
+                else return infer_no_expected(e, typed, diags)
             return infer_against_array(e, ArrayType { .element = element }, typed, diags)
         }
         is DistinctType -> {
@@ -171,7 +172,7 @@ infer_against_array :: fn(
 // `E[]`, so its elements, an empty literal's included, take `E`, a type parameter
 // as a `T[]` slot's. Null for any other trait, and for an erased element.
 iterator_slot_element :: fn(slot: TraitType) -> Type | null {
-    element :: core_trait_arg(slot, TRAIT_ITERATOR) ?? return null
+    element :: core_trait_arg(slot, TRAIT_ITERATOR) else return null
     if element is UnresolvedType {
         return null
     }

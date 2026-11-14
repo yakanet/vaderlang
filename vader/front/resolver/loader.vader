@@ -168,7 +168,7 @@ export load_project_with_overlay :: fn(
     // mean every command remembering to ask. `host_target()` reads the running
     // platform, which is the right default: a build with no `--target=` is a
     // build for this machine.
-    view :: selection ?? host_target()
+    view :: selection else host_target()
     bake_target :: baked_target_of(view)
     effective_target :: selected_target_of(view)
     modules :: Map<string, LoadedModule> {}
@@ -224,7 +224,7 @@ export load_project_with_overlay :: fn(
             // `seed_entry` re-implementing the rule. Falls back to the discovered
             // module if resolution somehow misses, which it cannot: `paths[0]`
             // matches by construction.
-            entry_resolved :: resolve_in(ctx, entry_module.name) ?? entry_module
+            entry_resolved :: resolve_in(ctx, entry_module.name) else entry_module
             queue: DiscoveredModule[]: [entry_resolved]
             core :: resolve_in(ctx, "std/core")
             if core is DiscoveredModule {
@@ -236,7 +236,7 @@ export load_project_with_overlay :: fn(
             drain_load_queue(ctx, queue)
             extra_queue: DiscoveredModule[]: []
             for seed in extra_seeds {
-                found :: resolve_in(ctx, seed) ?? continue
+                found :: resolve_in(ctx, seed) else continue
                 extra_queue.push(found)
             }
             drain_load_queue(ctx, extra_queue)
@@ -336,11 +336,11 @@ export search_roots :: fn(
 // What the project `project_root` declares: its `vader.json`, or the roots its
 // driver declared (`register_project_roots`); empty for a file on its own.
 manifest_at :: fn(project_root: string | null) -> Manifest {
-    root :: project_root ?? return Manifest {}
+    root :: project_root else return Manifest {}
     if exists(join_path(root, MANIFEST_FILENAME)) {
         return read_manifest(root)
     }
-    declared :: declared_roots()[root] ?? return Manifest {}
+    declared :: declared_roots()[root] else return Manifest {}
     return Manifest { .include_paths = declared }
 }
 
@@ -365,7 +365,7 @@ export register_project_roots :: fn(project_root: string, roots: string[]) -> vo
 
 // `path` with `/` separators, null kept.
 posix_or_null :: fn(path: string | null) -> string | null {
-    given :: path ?? return null
+    given :: path else return null
     return given.to_posix()
 }
 
@@ -382,7 +382,7 @@ posix_or_null :: fn(path: string | null) -> string | null {
 /// @param folder  the folder its files sit in, `/`-separated.
 export entry_namespace :: fn(name: string, folder: string) -> IncludePath {
     alone :: IncludePath { .dir = folder, .prefix = name, .origin = .Build }
-    cut :: name.index_of('/') ?? return alone
+    cut :: name.index_of('/') else return alone
     trimmed :: folder.trim_suffix("/")
     if trimmed != name && !trimmed.ends_with("/${name}") {
         return alone
@@ -449,7 +449,7 @@ resolve_in :: fn(ctx: LoadState, name: string) -> DiscoveredModule | null =
 // declares the enums the constants name; loads it first if the natural BFS did
 // not, so that `VADER_OS` is available to a program that never imported anything.
 load_baked_target :: fn(ctx: LoadState, baked_for: Target) -> void {
-    std_target :: resolve_in(ctx, "std/target") ?? return
+    std_target :: resolve_in(ctx, "std/target") else return
     if !has_module(ctx.modules, std_target.folder) {
         drain_load_queue(ctx, [std_target])
     }
@@ -479,9 +479,9 @@ drain_load_queue :: fn(ctx: LoadState, queue: DiscoveredModule[]) -> void {
         id :: m.folder
         if has_module(ctx.modules, id) { continue }
         ingest_module(ctx, m)
-        ingested :: ctx.modules[id] ?? continue
+        ingested :: ctx.modules[id] else continue
         for edge in ingested.collected.import_paths {
-            dep :: ctx.index[edge.path] ?? continue
+            dep :: ctx.index[edge.path] else continue
             if !has_module(ctx.modules, dep.folder) {
                 queue.push(dep)
             }
@@ -859,7 +859,7 @@ collect_files :: fn(
 
 merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnostic[]) -> void {
     for [name, sym] in src.symbols {
-        existing :: dst.symbols.put_absent(name, sym) ?? continue
+        existing :: dst.symbols.put_absent(name, sym) else continue
         // Fn-vs-fn is legitimate : it goes to `fn_overloads` below;
         // the primary slot keeps its first-wins binding
         // (`add_fn_symbol`'s policy), the overloads land in the bucket.
@@ -885,7 +885,7 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
     }
     for [name, bucket] in src.fn_overloads {
         // A name new to `dst` takes the source bucket itself.
-        existing :: dst.fn_overloads.put_absent(name, bucket) ?? continue
+        existing :: dst.fn_overloads.put_absent(name, bucket) else continue
         for s in bucket {
             existing.push(s)
         }
@@ -1017,6 +1017,6 @@ test_load_keeps_docs_when_asked :: fn() -> void {
 
 // The vaderdoc of the entry module's first declaration.
 entry_doc :: fn(project: LoadedProject) -> string {
-    entry :: project.modules[project.entry] ?? return "no entry module"
+    entry :: project.modules[project.entry] else return "no entry module"
     return doc_text(decl_doc(entry.module.files[0].program.decls[0]))
 }

@@ -111,7 +111,7 @@ borrowed_range :: fn(ctx: FnLowerCtx, e: Expr) -> RangeType | null {
     if !ctx.types.subst.binds_refinement {
         return null
     }
-    target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) ?? return null
+    target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) else return null
     if e is CallExpr && !calls_borrowed_member(recorded_callee(ctx, e, .Call)) {
         return null
     }
@@ -166,7 +166,7 @@ checked_into :: fn(
     reason: string,
     span: Span,
 ) -> LoweredExpr {
-    known :: source ?? return converted(value, result, span)
+    known :: source else return converted(value, result, span)
     if decided_inside(known, runs) == true {
         return converted(value, result, span)
     }
@@ -247,9 +247,9 @@ lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
     negated :: binary.op == .NotIn
     value :: lower_expr(ctx, binary.left)
     runs :: tested_runs(ctx, ctx.types.raw_expr_type(binary.right))
-        ?? return stub(span, TY_BOOL, "`in` over a type with no integer bounds")
+        else return stub(span, TY_BOOL, "`in` over a type with no integer bounds")
     source :: values_of(ctx, binary.left, value)
-        ?? return stub(span, TY_BOOL, "`in` on a value of no integer type")
+        else return stub(span, TY_BOOL, "`in` on a value of no integer type")
     outcome :: decided_inside(source, runs)
     if outcome != null {
         return decided(value, outcome != negated, span)
@@ -276,7 +276,7 @@ tested_runs :: fn(ctx: FnLowerCtx, t: Type) -> Interval[] | null {
     if is_char(t) {
         return CHAR_VALUES
     }
-    held :: instance_range(ctx, t) ?? return null
+    held :: instance_range(ctx, t) else return null
     return [held.bounds]
 }
 
@@ -326,8 +326,8 @@ widened_values :: fn(e: LoweredExpr) -> Interval | null {
     if e !is LoweredCast {
         return null
     }
-    inner :: cast_source_values(e.value) ?? return null
-    outer :: lowered_values(e.type) ?? return null
+    inner :: cast_source_values(e.value) else return null
+    outer :: lowered_values(e.type) else return null
     if !interval_within(inner, outer) {
         return null
     }
@@ -347,7 +347,7 @@ cast_source_values :: fn(e: LoweredExpr) -> Interval | null {
 reachable_runs :: fn(source: Interval, runs: Interval[]) -> Interval[] {
     out: Interval[]: []
     for run in runs {
-        met :: interval_meet(run, source) ?? continue
+        met :: interval_meet(run, source) else continue
         out.push(met)
     }
     return out

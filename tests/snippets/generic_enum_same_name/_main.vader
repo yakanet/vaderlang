@@ -19,6 +19,6 @@ main :: fn() -> i32 {
     by_alpha[.Omega] = i64(A.Status.Omega)
     by_beta[.Gamma] = i64(B.Status.Gamma)
     by_beta[.Beta] = as_int(B.Status.Beta)
-    println("${by_alpha[.Omega] ?? -1} ${by_beta[.Gamma] ?? -1} ${by_beta[.Beta] ?? -1}")
+    println("${by_alpha[.Omega] else -1} ${by_beta[.Gamma] else -1} ${by_beta[.Beta] else -1}")
     return 0
 }

@@ -1417,8 +1417,7 @@
                                   "value": "6n"
                                 }
                               }
-                            ],
-                            "coalesce": true
+                            ]
                           }
                         },
                         {
@@ -1581,8 +1580,7 @@
                                   "value": "6n"
                                 }
                               }
-                            ],
-                            "coalesce": true
+                            ]
                           }
                         },
                         {

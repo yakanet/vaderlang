@@ -180,8 +180,7 @@
                   "value": "0n"
                 }
               }
-            ],
-            "coalesce": true
+            ]
           }
         },
         "decorators": [],
@@ -262,8 +261,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {
@@ -386,8 +384,7 @@
                               "label": null
                             }
                           }
-                        ],
-                        "coalesce": true
+                        ]
                       }
                     }
                   }
@@ -463,8 +460,7 @@
                       }
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             }
           ],
@@ -588,8 +584,7 @@
                             "trailing": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   }
                 ],
@@ -1090,8 +1085,7 @@
                         "value": "0n"
                       }
                     }
-                  ],
-                  "coalesce": true
+                  ]
                 },
                 "right": {
                   "kind": "IntLitExpr",

@@ -139,7 +139,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
     table :: wire_imports(project)
     index :: IndexBuilder {}
     for [id, typed] in result.all_modules {
-        mod :: project.modules[id] ?? continue
+        mod :: project.modules[id] else continue
 
         for [_, sym] in typed.resolved.declarations {
             if !is_comptime_helper(typed, sym) {
@@ -192,8 +192,8 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 if sp.hash() in index.named {
                     continue
                 }
-                named :: typed.resolved.idents[sp.hash()] ?? continue
-                sym :: typed.resolved.fallback_names[named.id] ?? named
+                named :: typed.resolved.idents[sp.hash()] else continue
+                sym :: typed.resolved.fallback_names[named.id] else named
                 key :: target_key(typed, resolve_import_redirect(sym, table))
                 if is_local_kind(sym.kind) {
                     index.confined.add(key)
@@ -208,7 +208,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 if p.name_span.start.file != f.program.file {
                     continue
                 }
-                sym :: typed.resolved.idents[p.span.hash()] ?? continue
+                sym :: typed.resolved.idents[p.span.hash()] else continue
                 key :: target_key(typed, sym)
                 index.confined.add(key)
                 add_named(index, RefSite {
@@ -236,7 +236,7 @@ is_local_kind :: fn(k: SymbolKind) -> bool =
 // The `__comptime_NAME` fn behind a `NAME :: @comptime ...` const: compiler-internal,
 // declared at the `@comptime` token, which names nothing a user would rename.
 is_comptime_helper :: fn(typed: TypedProgram, sym: Symbol) -> bool {
-    decl :: typed.fn_decls[sym.id] ?? return false
+    decl :: typed.fn_decls[sym.id] else return false
     return decl.comptime_synthetic
 }
 
@@ -266,7 +266,7 @@ add_symbol_site :: fn(
     canon: Symbol,
     is_decl: bool,
 ) -> void {
-    span :: sym.defined_at ?? return
+    span :: sym.defined_at else return
     add_named(index, RefSite {
         .span = span,
         .key = target_key(typed, canon),
@@ -370,7 +370,7 @@ names_through_alias :: fn(typed: TypedProgram, e: AST.Expr) -> bool {
     if name !is AST.IdentExpr {
         return false
     }
-    sym :: typed.resolved.idents[name.span.hash()] ?? return false
+    sym :: typed.resolved.idents[name.span.hash()] else return false
     return typed.fn_aliases[sym.id] != null
 }
 
@@ -396,7 +396,7 @@ callee_name_span :: fn(callee: AST.Expr) -> Span | null {
 // `NS.f` names the fn `f` of the module `NS` aliases, called or not ; a call's was
 // recorded first, so only a value's is added here.
 add_namespace_member :: fn(index: IndexBuilder, typed: TypedProgram, e: AST.FieldExpr) -> void {
-    decl :: lookup_callee_fn_decl(e, typed) ?? return
+    decl :: lookup_callee_fn_decl(e, typed) else return
     add_named(index, RefSite { .span = e.field_span, .key = fn_key(decl) })
 }
 

@@ -47,8 +47,8 @@ export TypedCursor :: struct {
 /// @param character  0-based character, in the negotiated encoding.
 export typed_cursor :: fn(state: ServerState, file_path: string, line: i32, character: i32) -> TypedCursor | null {
     cached :: typed_project_for(state, file_path)
-    entry :: cached.project.modules[cached.project.entry] ?? return null
-    sf :: source_file_for_path(entry.module.files, file_path) ?? return null
+    entry :: cached.project.modules[cached.project.entry] else return null
+    sf :: source_file_for_path(entry.module.files, file_path) else return null
     [l, column] :: state.span_point(file_path, line, character)
     return TypedCursor {
         .decls = sf.program.decls,
@@ -243,7 +243,7 @@ binding_step :: fn(n: AST.Node, typed: TypedProgram, st: FindBindingState) -> AS
 // The header's binding names the scrutinee : `match v :: f()` binds `v` to
 // `f()`'s value, narrowed afterwards in each arm.
 header_binding :: fn(m: AST.MatchExpr, typed: TypedProgram, st: FindBindingState) -> AST.Walk {
-    binding :: m.binding ?? return .Descend
+    binding :: m.binding else return .Descend
     return found_binding(binding_type_at(binding, m.scrutinee, typed, st.line, st.col), st)
 }
 

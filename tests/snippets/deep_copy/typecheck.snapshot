@@ -12,7 +12,7 @@
   expr 35:33    FallbackExpr   :: Node
   expr 35:33    FieldExpr      :: Node | null
   expr 35:33    IdentExpr      :: Node
-  expr 35:43    IdentExpr      :: Node
+  expr 35:45    IdentExpr      :: Node
   expr 38:10    StructLitExpr  :: Point
   expr 39:10    StructLitExpr  :: Shape
   expr 40:17    StringLitExpr  :: string

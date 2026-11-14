@@ -91,9 +91,9 @@ impl_side :: fn<V>(
 impl_side_list :: fn(
     typed: TypedProgram, table: Map<string, string[]>, t: Type, suffix: string,
 ) -> string[] {
-    base :: table["${dispatch_key(t)}${suffix}"] ?? []
-    own_key :: own_impl_key(typed, t) ?? return base
-    own :: table["${own_key}${suffix}"] ?? return base
+    base :: table["${dispatch_key(t)}${suffix}"] else []
+    own_key :: own_impl_key(typed, t) else return base
+    own :: table["${own_key}${suffix}"] else return base
     out: string[]: []
     out.push_all(own)
     for name in base {
@@ -126,8 +126,8 @@ registered_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> Imp
     }
     found :: typed.impl_tables.impl_methods["${dispatch_key(t)}${suffix}"]
     base: ImplMethod[]: if found == null { NO_IMPL_METHODS } else { found }
-    own_key :: own_impl_key(typed, t) ?? return base
-    own :: typed.impl_tables.impl_methods["${own_key}${suffix}"] ?? return base
+    own_key :: own_impl_key(typed, t) else return base
+    own :: typed.impl_tables.impl_methods["${own_key}${suffix}"] else return base
     out: ImplMethod[]: []
     out.push_all(own)
     for member in base {
@@ -156,14 +156,14 @@ settled_members :: fn(members: ImplMethod[], typed: TypedProgram) -> ImplMethod[
 // `m` with the return its trait's default gives, read at the impl's arguments with
 // `Self` read as the impl's type ; as registered while the default is unsettled.
 settled_member :: fn(m: ImplMethod, typed: TypedProgram) -> ImplMethod {
-    source :: m.return_of ?? return m
-    trait_sym :: m.trait_symbol ?? return m
+    source :: m.return_of else return m
+    trait_sym :: m.trait_symbol else return m
     ty :: m.ty
     if ty !is FnType {
         return m
     }
-    inferred :: typed.impl_tables.default_returns[source.id] ?? return m
-    trait_decl :: typed.trait_decls[trait_sym.id] ?? return m
+    inferred :: typed.impl_tables.default_returns[source.id] else return m
+    trait_decl :: typed.trait_decls[trait_sym.id] else return m
     bound :: substitute_type_params(inferred, trait_decl.type_params, m.trait_args, typed)
     settled :: FnType { ...ty, .return_type = substitute_self(bound, m.for_type) }
     return ImplMethod { ...m, .ty = settled }
@@ -249,8 +249,8 @@ hides_trait_instance :: fn(
 /// @param t          the receiver.
 /// @param trait_key  the trait asked about.
 export has_instance_impl :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
-    own_key :: own_impl_key(typed, t) ?? return false
-    own :: typed.impl_tables.struct_implemented_traits[own_key] ?? return false
+    own_key :: own_impl_key(typed, t) else return false
+    own :: typed.impl_tables.struct_implemented_traits[own_key] else return false
     return trait_key in own
 }
 
@@ -293,7 +293,7 @@ into_impl_method :: fn(
     }
     // One generic impl per target base : two would overlap (R2030).
     key :: "${dispatch_key(source)}${into_toward_suffix(target)}"
-    found :: typed.impl_tables.impl_methods[key] ?? return null
+    found :: typed.impl_tables.impl_methods[key] else return null
     return found[0]
 }
 
@@ -310,7 +310,7 @@ has_type_arguments :: fn(t: Type) -> bool = t is ArrayType || (t is StructType &
 /// @param source  the converted value's type.
 /// @param target  the type it converts into.
 into_converting :: fn(typed: TypedProgram, source: Type, target: Type) -> ImplMethod | null {
-    method :: into_impl_method(typed, source, target) ?? return null
+    method :: into_impl_method(typed, source, target) else return null
     signature :: impl_member_type(method, source, typed)
     if signature !is FnType || !is_assignable(signature.return_type, target) {
         return null
@@ -383,7 +383,7 @@ implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedProgram)
         }
         return false
     }
-    impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
+    impl_args :: resolve_struct_trait_args(t, key, typed) else return true
     have :: with_trait_defaults(t, impl_args, wanted.symbol, typed)
     return struct_args_compatible(have, asked)
 }
@@ -397,8 +397,8 @@ with_trait_defaults :: fn(
     sym: Symbol,
     typed: TypedProgram,
 ) -> Type[] {
-    decl :: typed.trait_decls[sym.id] ?? return args
-    owner :: typed.trait_decl_owners[sym.id] ?? typed.resolved
+    decl :: typed.trait_decls[sym.id] else return args
+    owner :: typed.trait_decl_owners[sym.id] else typed.resolved
     out: Type[]: []
     for a in pad_trait_default_args(args, decl.type_params, owner) {
         out.push(substitute_self(a, self_ty))
@@ -413,7 +413,7 @@ with_trait_defaults :: fn(
 /// @param t          the type that failed the check.
 /// @param trait_key  the trait it was checked against.
 unmet_impl_bound_note :: fn(t: Type, trait_key: string, typed: TypedProgram) -> string {
-    unmet :: blocking_bound(t, trait_key, typed) ?? return ""
+    unmet :: blocking_bound(t, trait_key, typed) else return ""
     return impl_bound_note(unmet)
 }
 
@@ -459,13 +459,13 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
     if args.len() == 0 || has_instance_impl(t, trait_key, typed) {
         return null
     }
-    impls :: typed.impl_tables.impl_bounds[dispatch_key(t)] ?? return null
+    impls :: typed.impl_tables.impl_bounds[dispatch_key(t)] else return null
     first: UnmetBound | null = null
     for impl_ in impls {
         if impl_.trait_key != trait_key {
             continue
         }
-        unmet :: first_unmet_bound(args, impl_.bounds, typed) ?? return null
+        unmet :: first_unmet_bound(args, impl_.bounds, typed) else return null
         if first == null {
             first = unmet
         }
@@ -476,7 +476,7 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
 // The first bound the impl keyed `impl_key` puts on `t`'s base that `t`'s arguments
 // leave unmet ; null when they meet them all, or when that impl puts none.
 unmet_bound_of :: fn(t: Type, impl_key: u64, typed: TypedProgram) -> UnmetBound | null {
-    impls :: typed.impl_tables.impl_bounds[dispatch_key(t)] ?? return null
+    impls :: typed.impl_tables.impl_bounds[dispatch_key(t)] else return null
     for impl_ in impls {
         if impl_.impl_key == impl_key {
             return first_unmet_bound(type_arguments(t), impl_.bounds, typed)
@@ -495,7 +495,7 @@ first_unmet_bound :: fn(
         }
         arg :: args[bound.position]
         for required in bound.traits {
-            reason :: unmet_bound_reason(arg, required, typed) ?? continue
+            reason :: unmet_bound_reason(arg, required, typed) else continue
             return UnmetBound {
                 .bound = bound,
                 .required = required,
@@ -545,7 +545,7 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
 // Whether `t`'s bound names `trait_key`, read from the project table, where a
 // parameter an impl borrows from its struct also carries the struct's bound.
 bound_names_trait :: fn(t: TypeParamType, trait_key: string, typed: TypedProgram) -> bool {
-    bound :: typed.type_param_bound_traits[t.symbol.id] ?? return false
+    bound :: typed.type_param_bound_traits[t.symbol.id] else return false
     for trait_ty in bound.traits {
         if trait_key_of(trait_ty.symbol) == trait_key {
             return true
@@ -601,7 +601,7 @@ export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedPr
 /// @param trait_key  the trait.
 struct_trait_arg_lists :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[][] {
     base :: trait_arg_lists_at(typed, dispatch_key(t), trait_key)
-    own_key :: own_impl_key(typed, t) ?? return base
+    own_key :: own_impl_key(typed, t) else return base
     own :: trait_arg_lists_at(typed, own_key, trait_key)
     if own.len() == 0 {
         return base
@@ -627,8 +627,8 @@ implements_more_than_once :: fn(t: Type, trait_key: string, typed: TypedProgram)
     struct_trait_arg_lists(t, trait_key, typed).len() > 1
 
 trait_arg_lists_at :: fn(typed: TypedProgram, key: string, trait_key: string) -> Type[][] {
-    per_type :: typed.impl_tables.struct_trait_args[key] ?? return NO_ARG_LISTS
-    lists :: per_type[trait_key] ?? return NO_ARG_LISTS
+    per_type :: typed.impl_tables.struct_trait_args[key] else return NO_ARG_LISTS
+    lists :: per_type[trait_key] else return NO_ARG_LISTS
     return lists
 }
 
@@ -658,7 +658,7 @@ resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram)
             if t is StructType { return t.args }
         }
     }
-    raw :: lookup_struct_trait_args(t, trait_key, typed) ?? return null
+    raw :: lookup_struct_trait_args(t, trait_key, typed) else return null
     return resolve_trait_args_for(t, raw, typed)
 }
 

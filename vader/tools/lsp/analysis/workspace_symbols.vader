@@ -236,7 +236,7 @@ file_symbols :: fn(
 disk_symbols :: fn(
     state: ServerState, path: string, source: string, module: string,
 ) -> WorkspaceSymbol[] {
-    header :: parse_module_header(source, path) ?? return []
+    header :: parse_module_header(source, path) else return []
     if header.name != module {
         return []
     }
@@ -275,7 +275,7 @@ workspace_roots :: fn(state: ServerState) -> IncludePath[] {
         return []
     }
     uri :: join_path(root, "workspace.vader").to_uri().to_string()
-    roots :: document_roots(state, uri) ?? return []
+    roots :: document_roots(state, uri) else return []
     return roots.paths
 }
 

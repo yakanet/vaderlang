@@ -26,7 +26,7 @@
   expr 23:36    IdentExpr      :: string[]
   expr 23:36    IndexExpr      :: string
   expr 23:42    IdentExpr      :: i64
-  expr 24:19    StringLitExpr  :: string
+  expr 24:21    StringLitExpr  :: string
   expr 25:12    IdentExpr      :: string
   expr 29:5     BinaryExpr     :: bool
   expr 29:5     BinaryExpr     :: bool

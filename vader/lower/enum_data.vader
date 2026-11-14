@@ -38,7 +38,7 @@ import "vader/support/integer"
 lower_enum_data_slot :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr {
-    data :: enum_type.data ?? return stub(span, TY_UNRESOLVED, "enum without variant data")
+    data :: enum_type.data else return stub(span, TY_UNRESOLVED, "enum without variant data")
     return LoweredIndex {
         .span   = span,
         .type   = data,
@@ -67,8 +67,8 @@ lower_enum_data_read :: fn(
     if node !in ctx.project.typed.fresh.uses {
         return slot
     }
-    data :: enum_type.data ?? return slot
-    declared :: ctx.typed.struct_fields[data.symbol.id] ?? return slot
+    data :: enum_type.data else return slot
+    declared :: ctx.typed.struct_fields[data.symbol.id] else return slot
     prelude: LoweredStmt[]: []
     source :: bind_to_local(ctx, slot, data, "data", span, prelude)
     fields: LoweredStructLitField[]: []
@@ -191,10 +191,10 @@ materialize_enum_tables :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for {
-        due :: project_ctx.enum_table_queue.pop() ?? break
+        due :: project_ctx.enum_table_queue.pop() else break
         owner :: due.enum_type.symbol
-        module_typed :: typed.modules[owner.module] ?? continue
-        decl :: module_typed.enum_decls[owner.id] ?? continue
+        module_typed :: typed.modules[owner.module] else continue
+        decl :: module_typed.enum_decls[owner.id] else continue
         table :: if due.kind == .Data {
             lower_data_table(decl, due, module_typed, project_ctx)
         } else {
@@ -211,7 +211,7 @@ materialize_enum_tables :: fn(
 lower_data_table :: fn(
     decl: EnumDecl, due: EnumTable, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredConstDecl | null {
-    data :: due.enum_type.data ?? return null
+    data :: due.enum_type.data else return null
     table_type :: mk_array(data)
     entry :: table_entry(decl, due, typed)
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, entry.subst, table_type)
@@ -224,7 +224,7 @@ lower_data_table :: fn(
                 .name         = data.symbol.name,
                 .implicit_dot = false,
             },
-            .items     = v.data ?? [],
+            .items     = v.data else [],
         }
         value :: lower_struct_lit(fn_ctx, literal, data)
         if !is_bakeable_value(value) {

@@ -72,13 +72,13 @@ below_top_through :: fn(
     y_hi: i64,
     t: Interval,
 ) -> bool {
-    zi :: interval_of(ctx, s, z) ?? return false
+    zi :: interval_of(ctx, s, z) else return false
     if zi.hi_open {
-        room :: checked_add(64, false, c, y_hi) ?? return false
+        room :: checked_add(64, false, c, y_hi) else return false
         return room <= 0 && holds_values_of(ctx, z, t)
     }
-    top :: checked_add(64, false, zi.hi, c) ?? return false
-    total :: checked_add(64, false, top, y_hi) ?? return false
+    top :: checked_add(64, false, zi.hi, c) else return false
+    total :: checked_add(64, false, top, y_hi) else return false
     return total <= t.hi
 }
 
@@ -98,12 +98,12 @@ held_above_bottom :: fn(
         if fact_right(key) != x_local {
             continue
         }
-        zi :: interval_of(ctx, s, fact_left(key)) ?? continue
+        zi :: interval_of(ctx, s, fact_left(key)) else continue
         if zi.lo_open {
             continue
         }
-        floor :: checked_sub(64, false, zi.lo, c) ?? continue
-        bottom :: checked_add(64, false, floor, y.lo) ?? continue
+        floor :: checked_sub(64, false, zi.lo, c) else continue
+        bottom :: checked_add(64, false, floor, y.lo) else continue
         if bottom >= t.lo {
             return true
         }
@@ -113,6 +113,6 @@ held_above_bottom :: fn(
 
 // Whether `local` holds values of an integer type with the values of `t`.
 holds_values_of :: fn(ctx: RangeContext, local: LocalId, t: Interval) -> bool {
-    own :: type_of(ctx, local) ?? return false
+    own :: type_of(ctx, local) else return false
     return same_interval(own, t)
 }

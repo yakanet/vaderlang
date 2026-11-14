@@ -117,7 +117,9 @@ serve_paced :: fn(
                 pace.stop.last()
             }
         }
-        request :: read_request(source, limits) ?? return ConnectionEnd { .reason = .ClientDone }
+        request :: read_request(source, limits) else is null {
+            return ConnectionEnd { .reason = .ClientDone }
+        }
         if request is HttpError {
             return refuse(wire, request)
         }
@@ -176,7 +178,7 @@ await_request :: fn(source: BufferedReader, pace: Pace, first: bool) -> Connecti
 // there is one to answer with. No further request is read: where it would
 // start is not known.
 refuse :: fn(writer: Writer, error: HttpError) -> ConnectionEnd {
-    status :: status_of(error) ?? return ConnectionEnd { .reason = .Failed, .error = error }
+    status :: status_of(error) else return ConnectionEnd { .reason = .Failed, .error = error }
     // The client may be gone already: the connection ends the same.
     write_response(writer, Response { .status = status }, null)
     if error.kind == .TimedOut {

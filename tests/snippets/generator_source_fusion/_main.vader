@@ -58,7 +58,7 @@ main :: fn() -> i32 {
     lazy_squares :: squares(6)
     println("odd squares lazy: ${lazy_squares.filter(odd).count()}")
     found :: squares(10).find((x) -> x > 30)
-    println("find fused: ${found ?? -1}")
+    println("find fused: ${found else -1}")
     total := 0
     for x in pairs_until(4, 99).map(double) {
         if x == 2 {

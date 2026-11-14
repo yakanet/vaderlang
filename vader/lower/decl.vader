@@ -40,7 +40,7 @@ lower_impl_member_list :: fn(
     if impl_decl.for_type is GenericInstExpr { return out }
     if impl_decl.for_type is ArrayTypeExpr { return out }
     // An impl whose trait does not resolve has no entry ; resolution reported it.
-    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
+    impl_entry :: project_ctx.impls.entry_of(impl_decl) else return out
     self_type :: impl_self_type(impl_entry)
     for member in impl_decl.members {
         // A member with type parameters of its own is lowered per call
@@ -209,7 +209,7 @@ lowered_fn_of :: fn(
         .body        = null,
         .origin      = entry,
     }
-    body :: fn_decl.body ?? return bodyless
+    body :: fn_decl.body else return bodyless
     if fn_is_generator(typed, fn_decl) {
         return LoweredFnDecl {
             ...bodyless,
@@ -230,7 +230,7 @@ lower_fn_body :: fn(
     fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
     entry: MonoEntry, subst: Substitution, return_type: Type,
 ) -> LoweredBlock | null {
-    body :: fn_decl.body ?? return null
+    body :: fn_decl.body else return null
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
     block :: lower_block(fn_ctx, body, true, null)
     return promote_cell_params(fn_ctx, fn_decl.params, block)
@@ -286,9 +286,9 @@ lower_struct_decl :: fn(
 ) -> LoweredDecl | null {
     if struct_decl.type_params.len() > 0 { return null }
     sym :: decl_symbol(typed.resolved, struct_decl)
-        ?? panic("lower: struct `${struct_decl.name}` has no declaration symbol")
+        else panic("lower: struct `${struct_decl.name}` has no declaration symbol")
     declared :: typed.struct_fields[sym.id]
-        ?? panic("lower: struct `${struct_decl.name}` has no recorded fields")
+        else panic("lower: struct `${struct_decl.name}` has no recorded fields")
     fields: LoweredStructField[]: []
     for [name, field] in declared {
         fields.push(LoweredStructField { .name = name, .type = laid_out_unions(field.ty) })
@@ -349,8 +349,8 @@ lower_const_value :: fn(
 lookup_comptime_value :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> ComptimeValue | null {
-    program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
-    symbol :: symbol_declared_at(typed.resolved, const_decl.name_span) ?? return null
+    program :: project_ctx.evaluated.modules[typed.resolved.path] else return null
+    symbol :: symbol_declared_at(typed.resolved, const_decl.name_span) else return null
     return program.comptime_decls[symbol.id]
 }
 

@@ -128,7 +128,7 @@ test_task_primitive_descriptor_waits_park :: fn() -> void {
         "std/runtime/wait.wait_writable",
         "std/runtime/wait.wait_writable_for",
     ] {
-        primitive :: task_primitive(key) ?? return assert(false, "${key} is a primitive")
+        primitive :: task_primitive(key) else return assert(false, "${key} is a primitive")
         assert(primitive.parks, "${key} parks")
     }
 }

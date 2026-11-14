@@ -25,12 +25,12 @@ own_args_of :: fn(ctx: FnLowerCtx, callee: DirectFn, entry: ImplEntry) -> Type[]
     if callee.decl.type_params.len() == 0 {
         return null
     }
-    owner :: typed_by_display_path(ctx.project, entry.module) ?? return null
-    params :: declared_type_params(callee.decl, owner) ?? return null
-    recorded :: callee.bindings ?? return null
+    owner :: typed_by_display_path(ctx.project, entry.module) else return null
+    params :: declared_type_params(callee.decl, owner) else return null
+    recorded :: callee.bindings else return null
     out: Type[]: []
     for tp in params {
-        out.push(recorded[tp.id] ?? return null)
+        out.push(recorded[tp.id] else return null)
     }
     return out
 }
@@ -53,7 +53,7 @@ member_instance :: fn(
     if own_args.len() != member.type_params.len() {
         return null
     }
-    owner :: typed_by_display_path(ctx.project, entry.module) ?? return null
+    owner :: typed_by_display_path(ctx.project, entry.module) else return null
     type_args: Type[]: []
     for a in own_args {
         type_args.push(ctx.types.apply(a))

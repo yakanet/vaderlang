@@ -72,11 +72,12 @@ SITE_SETTINGS: string[]: ["BASE_PATH", "VADER_DOC_TITLE", "VADER_DOC_SOURCE_URL"
 // written or served, 1 when the build fails, 2 when something it needs is
 // missing.
 build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i32 {
-    template :: doc_template_root() ?? return missing("the site's template is not in the toolchain")
-    grammar :: grammar_file(template) ?? return missing("the toolchain holds no grammar of Vader")
-    install :: site_install(template) ?? return 2
-    copy :: site_copy(install, template, data_dir) ?? return 2
-    out :: absolute_path(out_dir ?? join_path(copy, "build"))
+    template :: doc_template_root()
+        else return missing("the site's template is not in the toolchain")
+    grammar :: grammar_file(template) else return missing("the toolchain holds no grammar of Vader")
+    install :: site_install(template) else return 2
+    copy :: site_copy(install, template, data_dir) else return 2
+    out :: absolute_path(out_dir else join_path(copy, "build"))
     env :: site_env(absolute_path(data_dir), grammar, out)
     if env == null {
         return missing("a folder holds a `'`, which the build's variables cannot carry")
@@ -87,7 +88,7 @@ build_doc_site :: fn(data_dir: string, out_dir: string | null, open: bool) -> i3
         return missing("cannot write `${env_file.to_native()}`: ${written.message()}")
     }
     stamp_file :: join_path(copy, SITE_STAMP_FILE)
-    data :: Doc.doc_data_key(data_dir) ?? tree_digest(data_dir)
+    data :: Doc.doc_data_key(data_dir) else tree_digest(data_dir)
     digests :: [
         "data ${data}",
         "template ${tree_digest(template)}",
@@ -141,7 +142,7 @@ site_stamp :: fn(env: string, digests: string[]) -> string {
     lines: string[]: [env.trim()]
     lines.push_all(digests)
     for name in SITE_SETTINGS {
-        lines.push("${name} ${get_env(name) ?? ""}")
+        lines.push("${name} ${get_env(name) else ""}")
     }
     return lines.join("\n") + "\n"
 }
@@ -254,11 +255,11 @@ node_engines :: fn(template: string) -> string {
     if manifest !is Json.JsonObject {
         return "*"
     }
-    engines :: manifest.entries["engines"] ?? return "*"
+    engines :: manifest.entries["engines"] else return "*"
     if engines !is Json.JsonObject {
         return "*"
     }
-    node :: engines.entries["node"] ?? return "*"
+    node :: engines.entries["node"] else return "*"
     if node !is Json.JsonString {
         return "*"
     }
@@ -327,18 +328,18 @@ npm_argv :: fn(args: string[]) -> string[] {
 // null without the variable that names it.
 user_cache_root :: fn() -> string | null {
     if current_os() == .Windows {
-        local :: get_env("LOCALAPPDATA") ?? return null
+        local :: get_env("LOCALAPPDATA") else return null
         return join_path(local, "vader/cache")
     }
     if current_os() == .Darwin {
-        home :: get_env("HOME") ?? return null
+        home :: get_env("HOME") else return null
         return join_path(home, "Library/Caches/vader")
     }
-    xdg :: get_env("XDG_CACHE_HOME") ?? ""
+    xdg :: get_env("XDG_CACHE_HOME") else ""
     if xdg != "" {
         return join_path(xdg, "vader")
     }
-    home :: get_env("HOME") ?? return null
+    home :: get_env("HOME") else return null
     return join_path(home, ".cache/vader")
 }
 
@@ -446,7 +447,7 @@ test_doc_site_takes_the_node_its_template_accepts :: fn() -> void {
 
 @test
 test_doc_site_env_quotes_each_folder :: fn() -> void {
-    env :: site_env("/d", "/g", "/o") ?? ""
+    env :: site_env("/d", "/g", "/o") else ""
     assert_eq(env, "VADER_DOC_DATA='/d'\nVADER_DOC_GRAMMAR='/g'\nVADER_DOC_OUT='/o'\n")
 }
 

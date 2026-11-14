@@ -223,7 +223,7 @@ rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
 t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
     for d in decls {
         if d is AST.FnDecl {
-            found :: AST.find_expr(d, pred) ?? continue
+            found :: AST.find_expr(d, pred) else continue
             return found
         }
     }

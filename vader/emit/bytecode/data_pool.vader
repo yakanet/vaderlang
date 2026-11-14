@@ -85,7 +85,7 @@ baked_value :: fn(ctx: EmitterCtx, el: LoweredExpr) -> BcDataValue {
     }
     name :: representation_name(el.type)
     bits :: data_item_bits(el, name)
-        ?? panic("emit/bytecode: `baked_value` met a leaf `is_bakeable_array` does not admit")
+        else panic("emit/bytecode: `baked_value` met a leaf `is_bakeable_array` does not admit")
     return BcValPrim { .kind = array_kind_from_name(name), .bits = u64(bits) }
 }
 

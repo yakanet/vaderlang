@@ -152,7 +152,7 @@ export into_a_map :: fn(m: Map<string, Point>, p: Point) -> void {
 export concatenates :: fn(a: Point[], b: Point[]) -> Point[] = a + b
 
 export bumps_an_entry :: fn(m: Map<string, Point>) -> void {
-    p :: m["a"] ?? return
+    p :: m["a"] else return
     p.x = 1
 }
 

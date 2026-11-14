@@ -26,7 +26,7 @@ RECEIVER_FIELD :: "receiver"
 /// @param type  its type : the member's signature without its receiver.
 /// @return      a closure over the receiver.
 try_lower_method_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: FnType) -> LoweredExpr | null {
-    callee :: recorded_callee(ctx, e, .MethodValue) ?? return null
+    callee :: recorded_callee(ctx, e, .MethodValue) else return null
     receiver :: lower_expr(ctx, e.target)
     lifted :: fresh_method_symbol(ctx, false)
     env :: fresh_method_symbol(ctx, true)

@@ -381,12 +381,12 @@
 [61:14-61:26] string_part    "find fused: " ="find fused: "
 [61:26-61:28] interp_open    "${"
 [61:28-61:33] ident          "found"
-[61:34-61:36] question_question "??"
-[61:37-61:38] minus          "-"
-[61:38-61:39] int_literal    "1" =1n
-[61:39-61:40] interp_close   "}"
-[61:40-61:41] string_end     "\""
-[61:41-61:42] rparen         ")"
+[61:34-61:38] kw_else        "else"
+[61:39-61:40] minus          "-"
+[61:40-61:41] int_literal    "1" =1n
+[61:41-61:42] interp_close   "}"
+[61:42-61:43] string_end     "\""
+[61:43-61:44] rparen         ")"
 [62:1-62:1  ] newline        "\n"
 [62:5-62:10 ] ident          "total"
 [62:11-62:13] decl_var       ":="

@@ -91,7 +91,7 @@ distinct_over_reference :: fn(t: Type) -> bool =
 // a box compare is already `==` : an integer, `bool`, `char`, `string`, an enum. Not
 // a float (`nan`, `-0.0`), nor a struct, a tuple, a distinct or a type parameter.
 compares_by_bits :: fn(t: Type) -> bool {
-    for v in union_variants(t) ?? [t] {
+    for v in union_variants(t) else [t] {
         bits :: v is EnumType || v is RangeType || v is PrimitiveType && !is_float_name(v.name)
         if !bits {
             return false
@@ -124,11 +124,11 @@ value_eq :: fn(
         is UnionType -> variant_disjunction(ctx, left, left_ty, right, right_ty, span)
         is TupleType -> field_conjunction(ctx, left, right, left_ty, span)
         is StructType | ArrayType ->
-            equals_call(ctx, left, left_ty, right, span) ?? no_equals(left_ty, span)
+            equals_call(ctx, left, left_ty, right, span) else no_equals(left_ty, span)
         // Its own `Equals` when it has one, its backing's rule otherwise.
         is DistinctType ->
             equals_call(ctx, left, left_ty, right, span)
-                ?? value_eq(ctx, left, left_ty.backing, right, left_ty.backing, span)
+                else value_eq(ctx, left, left_ty.backing, right, left_ty.backing, span)
         // An erased type parameter: the boxed receiver's tag picks the impl.
         is AnyType | TypeParamType -> virtual_equals(ctx, left, right, span)
         is InferVar -> leaked_infer_var(left_ty)
@@ -144,7 +144,7 @@ equals_call :: fn(
     ctx: FnLowerCtx, left: LoweredExpr, t: Type, right: LoweredExpr, span: Span,
 ) -> LoweredExpr | null {
     equals_key :: core_trait_key(TRAIT_EQUALS)
-    member :: resolve_impl_member(ctx, t, equals_key, METHOD_EQUALS) ?? return null
+    member :: resolve_impl_member(ctx, t, equals_key, METHOD_EQUALS) else return null
     return build_member_call_or_inline(member, [left, right], TY_BOOL, span)
 }
 
@@ -189,8 +189,8 @@ variant_disjunction :: fn(
     span: Span,
 ) -> LoweredExpr {
     terms: LoweredExpr[]: []
-    for l_variant in union_variants(left_ty) ?? [left_ty] {
-        r_variant :: counterpart(right_ty, l_variant) ?? continue
+    for l_variant in union_variants(left_ty) else [left_ty] {
+        r_variant :: counterpart(right_ty, l_variant) else continue
         parts: LoweredExpr[]: []
         holds_test(left, left_ty, l_variant, span, parts)
         holds_test(right, right_ty, r_variant, span, parts)

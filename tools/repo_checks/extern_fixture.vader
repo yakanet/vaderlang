@@ -50,7 +50,7 @@ import "std/testing"
 
 @test
 test_the_extern_fixture_imports_every_module_with_an_extern :: fn() -> void {
-    fixture :: read_or_fail(EXTERN_FIXTURE) ?? return
+    fixture :: read_or_fail(EXTERN_FIXTURE) else return
     check :: (file: string, text: string, found: string[]) -> check_imported(
         fixture,
         file,

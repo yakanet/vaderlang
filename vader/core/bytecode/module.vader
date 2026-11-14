@@ -216,7 +216,7 @@ export BcImport :: struct {
 ///
 /// @param imp  the import.
 export library_name :: fn(imp: BcImport) -> string {
-    library :: imp.library ?? return ""
+    library :: imp.library else return ""
     return library.name
 }
 

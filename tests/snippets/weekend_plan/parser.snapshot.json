@@ -1266,8 +1266,7 @@
                                   "value": "6n"
                                 }
                               }
-                            ],
-                            "coalesce": true
+                            ]
                           }
                         },
                         {

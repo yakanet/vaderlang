@@ -7,6 +7,7 @@ module "vader/front/parser"
 
 import "std/string"
 import "std/char"
+import "std/iter"
 import "std/string_builder"
 import "vader/front/lexer"
 import "vader/support/diagnostics"
@@ -547,7 +548,7 @@ parse_assert_decl :: fn(p: Parser) -> AssertDecl | null {
     message: string | null = null
     message_span: Span | null = null
     if dec.args.len() == 2 {
-        message = p.static_assert_message(dec.args[1]) ?? return null
+        message = p.static_assert_message(dec.args[1]) else return null
         message_span = dec.args[1].span
     }
     return AssertDecl {
@@ -662,7 +663,7 @@ check_guard_arity :: fn(p: Parser, decorators: Decorator[]) -> void {
 // `@c_struct` names the C type at most once, as a plain string: a reader that
 // met anything else would take the struct for an ordinary one, in silence.
 check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
-    d :: find_decorator(decorators, "c_struct") ?? return
+    d :: find_decorator(decorators, "c_struct") else return
     if d.args.len() > 1 {
         p.error(.DecoratorArgumentCount, d.span,
             "`@c_struct` takes at most one argument : the C type, when it is not the struct's own name")
@@ -677,7 +678,7 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
 // `@c_header` names one header, as a plain string: a reader that met anything
 // else would find no header and synthesise the prototype, in silence.
 check_c_header_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
-    d :: find_decorator(decorators, "c_header") ?? return
+    d :: find_decorator(decorators, "c_header") else return
     if d.args.len() != 1 {
         p.error(.DecoratorArgumentCount, d.span,
             "`@c_header` takes one argument : the header, as in a C `#include`")
@@ -1503,7 +1504,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
                 literal :: IntLitExpr { .span = lit_tok.span, .value = val, .negative = minus_tok != null }
                 value = int_literal_value(literal)
             }
-            value_span = p.span_of(minus_tok ?? lit_tok, lit_tok)
+            value_span = p.span_of(minus_tok else lit_tok, lit_tok)
         }
         variants.push(EnumVariant {
             .span       = v_tok.span,
@@ -1672,7 +1673,7 @@ comptime_helper_marker :: fn(decorators: Decorator[], value: Expr) -> Span | nul
     if is_bare_nullary_call(value) {
         return null
     }
-    comptime :: find_decorator(decorators, "comptime") ?? return null
+    comptime :: find_decorator(decorators, "comptime") else return null
     if has_type_shape(value) {
         return null
     }
@@ -1841,7 +1842,7 @@ reject_removed_const :: fn(p: Parser) -> void {
 // parses, and diagnosed only when a name follows: a missing one is already
 // `expect`'s error. `hint` turns the written name into the detail.
 reject_as_binder :: fn(p: Parser, code: ParserCode, hint: fn(string) -> string) -> void {
-    as_tok :: p.match_kind(.KwAs) ?? return
+    as_tok :: p.match_kind(.KwAs) else return
     name_tok :: p.expect(.Ident, "binding name after `as`")
     if name_tok.kind == .Ident {
         p.error(code, p.span_of(as_tok, name_tok), hint(name_tok.text))
@@ -1867,7 +1868,7 @@ place_text :: fn(e: Expr) -> string | null {
         return e.name
     }
     if e is FieldExpr {
-        target :: place_text(e.target) ?? return null
+        target :: place_text(e.target) else return null
         return "${target}.${e.field}"
     }
     return null
@@ -2036,7 +2037,7 @@ parse_range_type :: fn(p: Parser) -> TypeExpr {
 parse_range_bound :: fn(p: Parser) -> Expr {
     minus :: p.match_kind(.Minus)
     literal :: p.expect(.IntLit, "integer literal as a range bound")
-    return number_literal(literal, p.span_of(minus ?? literal, literal), minus != null)
+    return number_literal(literal, p.span_of(minus else literal, literal), minus != null)
 }
 
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
@@ -2321,14 +2322,19 @@ parse_let :: fn(p: Parser) -> LetStmt {
 
 // `x :: e else ...` : the clauses see `e` under the declared name, a binding of its
 // own, minted at the empty span right after the declared name, where no other
-// binding starts.
+// binding starts. Only when a clause spells the name, wherever and in whatever
+// scope: an unread binding costs a copy of `e`, and a slot in the state of a
+// generator, while one bound for nothing changes no meaning.
 name_fallback :: fn(value: Expr, name_tok: Token) -> void {
-    if value !is FallbackExpr || value.coalesce {
+    if value !is FallbackExpr || value.coalesce || !clauses_name(value, name_tok.text) {
         return
     }
     at :: Span { .start = name_tok.span.end, .end = name_tok.span.end }
     value.binding = SimpleBinding { .span = at, .name = name_tok.text, .name_span = at }
 }
+
+clauses_name :: fn(f: FallbackExpr, name: string) =
+    f.clauses.any_match((c) -> find_expr(c.body, (e) -> e is IdentExpr && e.name == name) != null)
 
 // Lookahead : after the leading `[`, scan past the matching `]` and check
 // whether the next significant token starts a let-destructure (`::`, `:=`, or
@@ -3910,7 +3916,7 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr {
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     // A missing body is reported by `parse_block`.
     tail :: p.parse_fn_body_tail()
-    body :: tail.body ?? p.parse_block()
+    body :: tail.body else p.parse_block()
     return LambdaExpr {
         .span        = Span { .start = start.span.start, .end = body.span.end },
         .params      = sig.params,
@@ -4093,7 +4099,6 @@ is_literal_start :: fn(t: Token) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/iter"
 import "std/testing"
 
 // Parse+lex diagnostic count for a source: a syntax-only regression probe
@@ -4235,7 +4240,7 @@ first_enum :: fn(src: string) -> EnumDecl | null {
 }
 
 first_variant_value :: fn(src: string) -> i64 | null {
-    e :: first_enum(src) ?? return null
+    e :: first_enum(src) else return null
     return e.variants[0].value
 }
 
@@ -4376,7 +4381,7 @@ decl_doc_texts :: fn(src: string) -> string {
 
 // The name `parse_module_header` reads in `source`, `<none>` when it reads none.
 header_name :: fn(source: string) -> string {
-    header :: parse_module_header(source, "header.vader") ?? return "<none>"
+    header :: parse_module_header(source, "header.vader") else return "<none>"
     return header.name
 }
 
@@ -4446,7 +4451,7 @@ compound_operator_text :: fn(statement: string) -> string {
     if decl !is FnDecl {
         return ""
     }
-    body :: decl.body ?? return ""
+    body :: decl.body else return ""
     stmt :: body.stmts[0]
     if stmt !is AssignStmt {
         return ""

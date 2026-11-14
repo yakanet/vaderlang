@@ -48,7 +48,7 @@ file_header :: fn(file: SourceFile) -> string {
 
 // Where the header of `file` ends: at its `module` line, at its end without one.
 header_end :: fn(file: SourceFile) -> i64 {
-    module_decl :: file.program.module ?? return file.content.byte_len()
+    module_decl :: file.program.module else return file.content.byte_len()
     return module_decl.span.start.offset
 }
 

@@ -217,7 +217,7 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: i64) -> Op | null {
             if op is CheckedArith {
                 lhs :: i64(left.value)
                 rhs :: i64(right.value)
-                folded :: checked_arith(op.op, op.kind, lhs, rhs) ?? return null
+                folded :: checked_arith(op.op, op.kind, lhs, rhs) else return null
                 return I32Const { .value = i32(folded) }
             }
         }
@@ -228,7 +228,7 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: i64) -> Op | null {
             if op is I64Sub { return I64Const { .value = left.value -% right.value } }
             if op is I64Mul { return I64Const { .value = left.value *% right.value } }
             if op is CheckedArith {
-                folded :: checked_arith(op.op, op.kind, left.value, right.value) ?? return null
+                folded :: checked_arith(op.op, op.kind, left.value, right.value) else return null
                 return I64Const { .value = folded }
             }
         }

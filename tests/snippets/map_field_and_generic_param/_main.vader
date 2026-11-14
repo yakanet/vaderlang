@@ -23,7 +23,7 @@ bump :: fn<K: Hash & Equals, V>(m: Map<K, V>, k: K, v: V) -> void {
 main :: fn() -> i32 {
     c :: Counts { .by_name = Map<string, i32> {} }
     c.by_name["x"] = 7
-    v :: c.by_name["x"] ?? return 1
+    v :: c.by_name["x"] else return 1
     println("field: x=${v}")
     bump(c.by_name, "y", 1)
     println("generic parameter: len=${c.by_name.len()}")

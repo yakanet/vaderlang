@@ -185,7 +185,7 @@ export Type ::
 ///
 /// @param name  a scalar type's name (`is_scalar_type_name`).
 export mk_primitive :: fn(name: string) -> Type {
-    m :: machine_integer_named(name) ?? return PrimitiveType { .name = name }
+    m :: machine_integer_named(name) else return PrimitiveType { .name = name }
     return machine_integer_type(m)
 }
 
@@ -629,7 +629,7 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
 }
 
 /// The variants of `t` when it is a union, `null` otherwise:
-/// `union_variants(t) ?? [t]` reads any type as its list of variants.
+/// `union_variants(t) else [t]` reads any type as its list of variants.
 ///
 /// @param t  the type to read.
 export union_variants :: fn(t: Type) -> Type[] | null {
@@ -861,7 +861,7 @@ export scalar_backing :: fn(t: Type) -> PrimitiveType | RangeType | null {
 /// its variant data (`Info(variant)`) ; null otherwise.
 export enum_data_of :: fn(src: Type, target: Type) -> StructType | null {
     if src is EnumType {
-        data :: src.data ?? return null
+        data :: src.data else return null
         if is_assignable(data, target) { return data }
     }
     return null

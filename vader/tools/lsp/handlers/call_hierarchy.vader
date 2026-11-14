@@ -32,7 +32,7 @@ import "vader/tools/lsp/protocol"
 /// @return        a one-item `CallHierarchyItem[]`, or `JsonNull` when the cursor
 ///                is not on a fn.
 export handle_prepare_call_hierarchy :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: fn_target(cursor_target(state, params)) ?? return JsonNull {}
+    target :: fn_target(cursor_target(state, params)) else return JsonNull {}
     return JsonArray { .items = [call_item_json(target, target.decl, target.decl_path)] }
 }
 
@@ -43,7 +43,7 @@ export handle_prepare_call_hierarchy :: fn(state: ServerState, params: JsonValue
 /// @return        a `CallHierarchyIncomingCall[]` : each caller with the ranges
 ///                of its calls.
 export handle_incoming_calls :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: fn_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    target :: fn_target(item_target(state, params)) else return JsonArray { .items = [] }
     groups :: CallGroups {}
     for s in reference_sites(state, target.uri, target.project, target.index, target.site) {
         if s.is_decl {
@@ -51,7 +51,7 @@ export handle_incoming_calls :: fn(state: ServerState, params: JsonValue) -> Jso
         }
         path :: s.span.start.file
         index :: doc_index_for(state, target.indices, path)
-        caller :: enclosing_fn(index, s.span.start.offset) ?? continue
+        caller :: enclosing_fn(index, s.span.start.offset) else continue
         groups.record_call(path, caller, s.span)
     }
     return groups.calls_json(target, "from")
@@ -64,7 +64,7 @@ export handle_incoming_calls :: fn(state: ServerState, params: JsonValue) -> Jso
 /// @return        a `CallHierarchyOutgoingCall[]` : each callee with the ranges
 ///                of the calls in the item's body.
 export handle_outgoing_calls :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: fn_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    target :: fn_target(item_target(state, params)) else return JsonArray { .items = [] }
     // The calls in the body first, then the declaration of each callee : one
     // pass over the project's sites for each, not one per call.
     calls: RefSite[]: []
@@ -84,9 +84,9 @@ export handle_outgoing_calls :: fn(state: ServerState, params: JsonValue) -> Jso
     }
     groups :: CallGroups {}
     for call in calls {
-        at :: declared[call.key] ?? continue
+        at :: declared[call.key] else continue
         index :: doc_index_for(state, target.indices, at.start.file)
-        callee :: index.entry_at_offset(at.start.offset) ?? continue
+        callee :: index.entry_at_offset(at.start.offset) else continue
         groups.record_call(at.start.file, callee, call.span)
     }
     return groups.calls_json(target, "to")

@@ -201,7 +201,7 @@ export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null
 ///
 /// @param decs  the decorators of an `@extern` declaration or of one parameter.
 export c_type_of :: fn(decs: Decorator[]) -> string {
-    d :: find_decorator(decs, "c_type") ?? return ""
+    d :: find_decorator(decs, "c_type") else return ""
     return sole_string_argument(d)
 }
 
@@ -211,11 +211,11 @@ export c_type_of :: fn(decs: Decorator[]) -> string {
 ///
 /// @param decl  the bodyless function declaration.
 export extern_symbol_of :: fn(decl: FnDecl) -> string {
-    d :: find_decorator(decl.decorators, "extern") ?? return decl.name
+    d :: find_decorator(decl.decorators, "extern") else return decl.name
     if d.args.len() == 0 {
         return decl.name
     }
-    return string_literal_text(d.args[d.args.len() - 1]) ?? decl.name
+    return string_literal_text(d.args[d.args.len() - 1]) else decl.name
 }
 
 /// The header an `@extern` declaration's own `@c_header` names, verbatim with
@@ -223,7 +223,7 @@ export extern_symbol_of :: fn(decl: FnDecl) -> string {
 ///
 /// @param decl  the bodyless function declaration.
 export c_header_of :: fn(decl: FnDecl) -> string {
-    d :: find_decorator(decl.decorators, "c_header") ?? return ""
+    d :: find_decorator(decl.decorators, "c_header") else return ""
     return sole_string_argument(d)
 }
 
@@ -273,7 +273,7 @@ export c_variadic_start :: fn(decl: FnDecl) -> i64 {
 /// @param decs         the struct's decorators.
 /// @param struct_name  the name the struct declares, never its mangled form.
 export c_struct_spelling :: fn(decs: Decorator[], struct_name: string) -> string {
-    d :: find_decorator(decs, "c_struct") ?? return ""
+    d :: find_decorator(decs, "c_struct") else return ""
     if d.args.len() == 0 {
         return struct_name
     }
@@ -286,7 +286,7 @@ sole_string_argument :: fn(d: Decorator) -> string {
     if d.args.len() != 1 {
         return ""
     }
-    return string_literal_text(d.args[0]) ?? ""
+    return string_literal_text(d.args[0]) else ""
 }
 
 // ---- Declarations ---------------------------------------------------------
@@ -432,7 +432,7 @@ export FnDecl :: struct {
 /// bodyless.
 ///
 /// @param fd  a function declaration.
-export body_source :: fn(fd: FnDecl) -> FnDecl = fd.inherits ?? fd
+export body_source :: fn(fd: FnDecl) -> FnDecl = fd.inherits else fd
 
 /// One parameter of a function, lambda or trait method.
 export FnParam :: struct {

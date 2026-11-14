@@ -60,7 +60,7 @@ main :: fn() -> i32 {
         "${part_of_day(12)} ${part_of_day(5)} ${part_of_day(20)} ${low_bits(-3)} ${six_later(20)}",
     )
     taken: Hour[]: [0, 1, 2]
-    println("first free ${first_free(taken) ?? 0}")
+    println("first free ${first_free(taken) else 0}")
     count: i32 = c.hour + 1
     count = count * 1000
     println("count ${count}")

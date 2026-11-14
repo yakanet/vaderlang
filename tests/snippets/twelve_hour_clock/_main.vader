@@ -101,8 +101,8 @@ tick :: fn(h: Hour) -> Hour {
 main :: fn() -> i32 {
     println("${split(5)} ${split(18)}")
     println("${twelve_hour(0)} ${twelve_hour(15)} ${twelve_hour(7)} ${dial(Clock { .hour = 20 })}")
-    println("${breakfast(7) ?? 6} ${breakfast(11) == null} ${tick(13)} ${tick(23)}")
-    println("${daylight(3) == null} ${daylight(12) ?? 6} ${after_dark(22)} ${after_dark(9)}")
+    println("${breakfast(7) else 6} ${breakfast(11) == null} ${tick(13)} ${tick(23)}")
+    println("${daylight(3) == null} ${daylight(12) else 6} ${after_dark(22)} ${after_dark(9)}")
     println("${next_hour(9)} ${shifted(23, 1)} ${shifted(4, 7)} ${rewind(23)} ${rewind(8)}")
     return 0
 }

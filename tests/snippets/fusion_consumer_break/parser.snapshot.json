@@ -245,8 +245,7 @@
                       "value": "-1n"
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             },
             {
@@ -327,8 +326,7 @@
                       "value": "-1n"
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             }
           ],
@@ -462,8 +460,7 @@
                       "value": "-1n"
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             },
             {
@@ -553,8 +550,7 @@
                       "value": "-1n"
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             }
           ],

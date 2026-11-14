@@ -24,7 +24,7 @@ Celsius implements Into<string> {
 
 Holder :: struct { l: Label }
 
-fallback :: fn(x: Label | null) -> Label = x ?? Celsius { .v = 4 }
+fallback :: fn(x: Label | null) -> Label = x else Celsius { .v = 4 }
 
 labels :: fn() -> Iterator<Label> {
     yield Celsius { .v = 5 }
@@ -59,7 +59,7 @@ main :: fn() -> i32 {
     println("field [${h.l.text}]")
     m :: Map<string, Label> {}
     m["k"] = Celsius { .v = 8 }
-    got :: m["k"] ?? Label { .text = "absent" }
+    got :: m["k"] else Label { .text = "absent" }
     println("map [${got.text}]")
     n := 0
     pair :: [Celsius { .v = 13 }, 1]

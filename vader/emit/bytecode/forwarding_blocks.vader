@@ -84,7 +84,7 @@ goes_on_or_out :: fn(
             size = body.len()
         }
     }
-    body :: loops[innermost] ?? return false
+    body :: loops[innermost] else return false
     if target == innermost {
         return true
     }

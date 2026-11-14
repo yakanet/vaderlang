@@ -27,7 +27,7 @@ word_under_cursor :: fn(li: LineIndex, params: JsonValue) -> VirtCursor | null {
         return null
     }
     words :: line_words(li.source, li.line_starts[line])
-    word :: word_at(words, li_offset(li, line, position_character(params))) ?? return null
+    word :: word_at(words, li_offset(li, line, position_character(params))) else return null
     return VirtCursor {
         .line  = line,
         .words = words,
@@ -119,12 +119,12 @@ test_line_words_stop_at_the_comment :: fn() -> void {
     words :: line_words(text, 18)
     assert_eq(words.len(), 3)
     assert_eq(word_text(text, words[1]), "25")
-    assert_eq(word_at(words, 32) ?? 9, 1)
+    assert_eq(word_at(words, 32) else 9, 1)
 }
 
 @test
 test_code_end_after_the_last_operand :: fn() -> void {
-    assert_eq(code_end("fn 0 m () -> void\n  local.get 1  \nend\n", 18) ?? 0, 31)
+    assert_eq(code_end("fn 0 m () -> void\n  local.get 1  \nend\n", 18) else 0, 31)
 }
 
 @test

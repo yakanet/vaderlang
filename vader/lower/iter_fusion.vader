@@ -105,7 +105,7 @@ try_lower_chain_fusion :: fn(
     // whose operands the call site bound.
     consumed :: consumed_chain(ctx, in_form.iter)
     found :: if consumed != null { consumed } else { descend_chain(ctx, in_form.iter, false) }
-    chain :: found ?? return null
+    chain :: found else return null
     if consumed == null {
         // Bare ranges already hit the int-range fast path ; bypassing would lose
         // `default_if_free` + counter-name fidelity. A bare array keeps the
@@ -127,7 +127,7 @@ try_lower_chain_fusion :: fn(
         .pattern        = lb.pattern,
     }
     stmts: LoweredStmt[]: []
-    bound :: consumed ?? bind_chain_operands(ctx, chain, stmts)
+    bound :: consumed else bind_chain_operands(ctx, chain, stmts)
     emitted :: emit_fused_chain(ctx, bound, for_stmt.span, body_template)
     stmts.push_all(exit_block(frame, for_stmt.span, emitted))
     return LoweredExprStmt {
@@ -142,7 +142,7 @@ try_lower_chain_fusion :: fn(
 // the fused element covers better: destructuring, an unresolved binding, and a
 // generic body whose `T` no instance substitution has bound.
 fused_loop_element_type :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, span: Span, chain: IterChain) -> Type =
-    concrete_local_type(ctx.types, loop_var_type_key(loop_var, span)) ?? chain_element_type(chain)
+    concrete_local_type(ctx.types, loop_var_type_key(loop_var, span)) else chain_element_type(chain)
 
 BodyTemplate :: struct {
     binding_name:   string
@@ -168,7 +168,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     if !(t is StructType) { return null }
     if is_gen_state_struct(t) { return null }
     if !struct_implements_trait(t, core_trait_key(TRAIT_ITERATOR), ctx.typed) { return null }
-    elem :: opaque_iter_element(ctx, t) ?? return null
+    elem :: opaque_iter_element(ctx, t) else return null
     return mk_opaque_iter_chain(expr, elem, expr.span)
 }
 
@@ -265,7 +265,7 @@ bare_array_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 // impl on its own instance (`MonType[] implements Into<Iterator<MonType>>`), as
 // the typecheck recorded it : iterating the raw array would skip it.
 converts_through_own_into :: fn(ctx: FnLowerCtx, array: Type, expr: AST.Expr) -> bool {
-    entry :: recorded_impl_at(ctx, expr, .Into, array) ?? return false
+    entry :: recorded_impl_at(ctx, expr, .Into, array) else return false
     return entry.instance
 }
 
@@ -291,7 +291,7 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
         // free-fn UFCS dispatch (the typer stashed the receiver type under its id).
         // The callee's target is the receiver ; the first arg (if any) is the transform.
         is AST.FieldExpr -> {
-            recv_ty :: ctx.typed.ufcs_receiver_types[callee.id] ?? return null
+            recv_ty :: ctx.typed.ufcs_receiver_types[callee.id] else return null
             fn_arg :: if call.args.len() > 0 { call.args[0].value } else { null }
             return FluentCombinator { .receiver = callee.target, .fn_arg = fn_arg }
         }
@@ -323,7 +323,7 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
     // instead of materialising an iterator. A free fn named `into`, or the `into`
     // of an impl on the array's own instance, runs code of its own: iterating the
     // raw array would skip it.
-    source :: receiver_of_call(call) ?? return null
+    source :: receiver_of_call(call) else return null
     array :: ctx.types.expr_type(source)
     if array !is ArrayType || !runs_array_into(ctx, call, array) {
         return null
@@ -377,8 +377,8 @@ bind_chain_operands :: fn(
 // A loop body may run before either bound is read : `hi` is read at every step,
 // and a range that is `chain`'s second source starts after the first one's loop.
 bind_range_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
-    lower :: chain.range_lower ?? return chain
-    upper :: chain.range_upper ?? return chain
+    lower :: chain.range_lower else return chain
+    upper :: chain.range_upper else return chain
     lo_value :: lower_expr(ctx, lower)
     lo :: bind_unless_invariant(ctx, lo_value, "fuse_lo", chain.span, out)
     hi_value :: lower_expr(ctx, upper)
@@ -389,7 +389,7 @@ bind_range_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[])
 // Always bound to a fresh `fuse_arr`, invariant or not: the local the loop reads
 // its length and every element from.
 bind_array_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
-    src :: chain.array_expr ?? return chain
+    src :: chain.array_expr else return chain
     arr :: lower_expr(ctx, src)
     bound :: bind_to_local(ctx, arr, arr.type, "fuse_arr", chain.span, out)
     return IterChain { ...chain, .bound_source = bound }
@@ -397,7 +397,7 @@ bind_array_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) 
 
 // The iterator is the loop's cursor, so it always gets a local of its own.
 bind_opaque_iter_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
-    src :: chain.iter_expr ?? return chain
+    src :: chain.iter_expr else return chain
     iter :: lower_expr(ctx, src)
     bound :: bind_to_local(ctx, iter, iter.type, "fuse_iter", chain.span, out)
     return IterChain { ...chain, .bound_source = bound }
@@ -407,8 +407,8 @@ bind_opaque_iter_operand :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredSt
 // argument: prepared for its parameter's slot as a call would, and bound to the
 // combinator's own param symbol, which its inlined body reads.
 bind_layer_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
-    src :: chain.source ?? return chain
-    layer :: chain.gen_layer ?? return chain
+    src :: chain.source else return chain
+    layer :: chain.gen_layer else return chain
     source :: bind_chain_operands(ctx, src, out)
     extra_sources: GenSourceBinding[]: []
     for extra in layer.extra_sources {
@@ -461,10 +461,10 @@ emit_fused_opaque_iter :: fn(
     template: BodyTemplate,
 ) -> LoweredStmt[] {
     span :: chain.span
-    iter_ref :: chain.bound_source ?? panic(UNBOUND_CHAIN)
+    iter_ref :: chain.bound_source else panic(UNBOUND_CHAIN)
     element_type :: chain.element_type
 
-    shape :: resolve_step_shape(ctx, element_type) ?? return []
+    shape :: resolve_step_shape(ctx, element_type) else return []
     step_type :: shape.type
 
     step_symbol :: fresh_synthetic_symbol(ctx, "fuse_step")
@@ -512,8 +512,8 @@ emit_fused_range :: fn(
 ) -> LoweredStmt[] {
     span :: range_chain.span
     int_type :: range_chain.element_type
-    lo :: range_chain.bound_lower ?? panic(UNBOUND_CHAIN)
-    hi :: range_chain.bound_upper ?? panic(UNBOUND_CHAIN)
+    lo :: range_chain.bound_lower else panic(UNBOUND_CHAIN)
+    hi :: range_chain.bound_upper else panic(UNBOUND_CHAIN)
 
     // The counter runs on the loop variable itself : nothing but the loop rebinds
     // it (T3041).
@@ -565,7 +565,7 @@ emit_fused_array :: fn(
 ) -> LoweredStmt[] {
     span :: array_chain.span
     elem_type :: array_chain.element_type
-    arr_ref :: array_chain.bound_source ?? panic(UNBOUND_CHAIN)
+    arr_ref :: array_chain.bound_source else panic(UNBOUND_CHAIN)
 
     len_sym :: fresh_synthetic_symbol(ctx, "fuse_len")
     idx_sym :: fresh_synthetic_symbol(ctx, "fuse_i")

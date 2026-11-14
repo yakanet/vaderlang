@@ -72,19 +72,19 @@ learn_equal :: fn(ctx: RangeContext, s: RangeState, x: LocalId, y: LocalId) -> b
 // `x - y <= c`: the fact itself, `x` at most `c` above the greatest `y`, and
 // `y` at least `c` below the least `x`.
 learn_difference :: fn(ctx: RangeContext, s: RangeState, x: LocalId, y: LocalId, c: i64) -> bool {
-    xi :: interval_of(ctx, s, x) ?? return true
-    yi :: interval_of(ctx, s, y) ?? return true
+    xi :: interval_of(ctx, s, x) else return true
+    yi :: interval_of(ctx, s, y) else return true
     if !yi.hi_open {
         top :: checked_add(64, false, yi.hi, c)
         if top != null {
-            narrowed :: interval_meet(xi, interval_from_ends(null, top)) ?? return false
+            narrowed :: interval_meet(xi, interval_from_ends(null, top)) else return false
             set_interval(ctx, s, x, narrowed)
         }
     }
     if !xi.lo_open {
         floor :: checked_sub(64, false, xi.lo, c)
         if floor != null {
-            narrowed :: interval_meet(yi, interval_from_ends(floor, null)) ?? return false
+            narrowed :: interval_meet(yi, interval_from_ends(floor, null)) else return false
             set_interval(ctx, s, y, narrowed)
         }
     }
@@ -104,11 +104,11 @@ test_ranges_branch_narrows_both_sides :: fn() -> void {
     set_interval(ctx, s, LocalId(1), interval(0, 10))
     taken :: copy_range_state(s)
     assert(learn_comparison(ctx, taken, test_binop(.Lt, 9, 0, 1), true), "l0 < l1 can hold")
-    below :: interval_of(ctx, taken, LocalId(0)) ?? ANY_INTEGER
+    below :: interval_of(ctx, taken, LocalId(0)) else ANY_INTEGER
     assert(below.hi == 9, "l0 below the greatest l1")
     other :: copy_range_state(s)
     assert(learn_comparison(ctx, other, test_binop(.Lt, 9, 0, 1), false), "l0 >= l1 can hold")
-    above :: interval_of(ctx, other, LocalId(0)) ?? ANY_INTEGER
+    above :: interval_of(ctx, other, LocalId(0)) else ANY_INTEGER
     assert(above.lo == 0, "l0 at least the least l1")
 }
 

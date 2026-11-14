@@ -47,7 +47,7 @@ populate_imported_fn_overloads :: fn(
                 // A modifier drops its source name from that path's wildcard, so
                 // the UFCS table must drop it too: else `{ x as _ }` leaves
                 // `recv.x()` callable while `x(recv)` is R2006.
-                push_module_exported_fns(other, entry_typed, table, fw.excludes[path] ?? [])
+                push_module_exported_fns(other, entry_typed, table, fw.excludes[path] else [])
             }
         }
         if core != null {
@@ -78,14 +78,14 @@ file_overload_table :: fn(
 // param, in the file that bound it. `symbol_targets` is module-wide, so the
 // owning file comes from the local symbol's own span.
 push_renamed_imports :: fn(entry_typed: TypedProgram) -> void {
-    targets :: entry_typed.import_targets ?? return
+    targets :: entry_typed.import_targets else return
     for [sym_id, st] in targets.symbol_targets {
-        ty :: entry_typed.external_types[st.symbol.id] ?? continue
+        ty :: entry_typed.external_types[st.symbol.id] else continue
         if ty !is FnType {
             continue
         }
-        local :: import_binding_by_id(sym_id, entry_typed) ?? continue
-        where :: local.defined_at ?? continue
+        local :: import_binding_by_id(sym_id, entry_typed) else continue
+        where :: local.defined_at else continue
         // A renamed import binds the same declaration under a new local name,
         // so the decl travels with it exactly as a wildcard's does.
         push_overload(
@@ -127,7 +127,7 @@ push_module_exported_fns :: fn(
             if sym.visibility != .Public {
                 continue
             }
-            ty :: from.decl_types[sym.id] ?? continue
+            ty :: from.decl_types[sym.id] else continue
             if ty is FnType {
                 if name !in excluded {
                     // The DECL travels with the type: it is what carries
@@ -163,7 +163,7 @@ push_module_exported_fns :: fn(
         if sym.kind != .Const && sym.kind != .Enum && sym.kind != .TypeAlias && sym.kind != .Struct {
             continue
         }
-        cty :: from.decl_types[sym.id] ?? continue
+        cty :: from.decl_types[sym.id] else continue
         into.external_types[sym.id] = cty
     }
 }
@@ -203,10 +203,10 @@ resolver_imports :: fn(targets: ImportTargetTable) -> Map<i32, Symbol> {
 // The gate functions of `std/runtime/scheduler`, or null when the program does not
 // load it.
 scheduler_gate_runtime :: fn(project: LoadedProject) -> GateRuntime | null {
-    id :: find_scheduler_module_id(project) ?? return null
-    loaded :: project.modules[id] ?? return null
-    gate_or_new :: loaded.collected.symbols[GATE_OR_NEW] ?? return null
-    run_gated :: loaded.collected.symbols[RUN_GATED] ?? return null
+    id :: find_scheduler_module_id(project) else return null
+    loaded :: project.modules[id] else return null
+    gate_or_new :: loaded.collected.symbols[GATE_OR_NEW] else return null
+    run_gated :: loaded.collected.symbols[RUN_GATED] else return null
     return GateRuntime { .gate_or_new = gate_or_new, .run_gated = run_gated }
 }
 
@@ -226,8 +226,8 @@ populate_core_symbols :: fn(
     // the same act; shipping one without the other is what made `VADER_OS`
     // assignable to a `string`.
     populate_baked_symbols(entry_typed, project, per_module)
-    core_id :: find_core_module_id(project) ?? return
-    core_loaded :: project.modules[core_id] ?? return
+    core_id :: find_core_module_id(project) else return
+    core_loaded :: project.modules[core_id] else return
     core_typed :: per_module[core_id]
     // EXPERIMENT (complete fix): seed core symbols into EVERY module's typed
     // program, not just the entry.
@@ -246,10 +246,10 @@ populate_baked_symbols :: fn(
     project: LoadedProject,
     per_module: Map<string, TypedProgram>,
 ) -> void {
-    baked_loaded :: project.modules[BAKED_FOLDER] ?? return
-    baked_typed :: per_module[BAKED_FOLDER] ?? return
+    baked_loaded :: project.modules[BAKED_FOLDER] else return
+    baked_typed :: per_module[BAKED_FOLDER] else return
     for [_, sym] in baked_loaded.collected.symbols {
-        t :: baked_typed.decl_types[sym.id] ?? continue
+        t :: baked_typed.decl_types[sym.id] else continue
         entry_typed.external_types[sym.id] = t
         for [_, other] in per_module {
             other.external_types[sym.id] = t
@@ -272,7 +272,7 @@ populate_core_symbols_into :: fn(
         return
     }
     for [_, sym] in core_loaded.collected.symbols {
-        t :: core_typed.decl_types[sym.id] ?? continue
+        t :: core_typed.decl_types[sym.id] else continue
         typed.external_types[sym.id] = t
     }
     // Well-known struct slots : Range (`a..b`) + Field (`@fields`), synthesised

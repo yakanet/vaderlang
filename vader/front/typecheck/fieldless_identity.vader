@@ -47,6 +47,6 @@ note_fieldless_identity :: fn(
 
 // A non-generic struct with no field: the CFG construction shares its literals.
 is_shareable_struct :: fn(t: StructType, typed: TypedProgram) -> bool {
-    fields :: typed.struct_fields[t.symbol.id] ?? return false
+    fields :: typed.struct_fields[t.symbol.id] else return false
     return t.args.len() == 0 && fields.len() == 0
 }

@@ -32,7 +32,7 @@ AST :: import "toolchain/ast"
 /// @return        a one-item `TypeHierarchyItem[]`, or `JsonNull` when the cursor
 ///                is not on a type.
 export handle_prepare_type_hierarchy :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: type_target(cursor_target(state, params)) ?? return JsonNull {}
+    target :: type_target(cursor_target(state, params)) else return JsonNull {}
     return JsonArray { .items = [type_item_json(target, target.decl, target.decl_path)] }
 }
 
@@ -43,7 +43,7 @@ export handle_prepare_type_hierarchy :: fn(state: ServerState, params: JsonValue
 /// @param params  the request params (`item`).
 /// @return        a `TypeHierarchyItem[]`.
 export handle_supertypes :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: type_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    target :: type_target(item_target(state, params)) else return JsonArray { .items = [] }
     walk :: TypeWalk { .target = target }
     if target.decl.kind == .Trait {
         for head in required_heads(target.decl) {
@@ -62,7 +62,7 @@ export handle_supertypes :: fn(state: ServerState, params: JsonValue) -> JsonVal
 /// @param params  the request params (`item`).
 /// @return        a `TypeHierarchyItem[]`.
 export handle_subtypes :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: type_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    target :: type_target(item_target(state, params)) else return JsonArray { .items = [] }
     walk :: TypeWalk { .target = target }
     if target.decl.kind == .Trait {
         walk.implementing_types()
@@ -87,7 +87,7 @@ type_target :: fn(target: DeclTarget | null) -> DeclTarget | null {
 required_heads :: fn(d: DeclEntry) -> Span[] {
     node :: d.node
     if node is AST.TraitDecl {
-        req :: node.requires ?? return []
+        req :: node.requires else return []
         return heads_of(req, .BitAnd)
     }
     return []
@@ -128,7 +128,7 @@ push_heads :: fn(e: AST.Expr, op: AST.BinaryOp, out: Span[]) -> void {
         push_heads(e.right, op, out)
         return
     }
-    head :: head_span(e) ?? return
+    head :: head_span(e) else return
     out.push(head)
 }
 
@@ -149,7 +149,7 @@ head_span :: fn(e: AST.Expr) -> Span | null {
 
 // Whether `head` starts where `site` does.
 starts_at :: fn(head: Span | null, site: Span) -> bool {
-    h :: head ?? return false
+    h :: head else return false
     return h.start.offset == site.start.offset
 }
 
@@ -196,7 +196,7 @@ implementing_types :: fn(self: TypeWalk) -> void {
         }
         for d in self.program_of(s.span.start.file).decls {
             if d is AST.ImplDecl && d.trait_name_span.start.offset == s.span.start.offset {
-                head :: head_span(d.for_type) ?? continue
+                head :: head_span(d.for_type) else continue
                 self.add_type_at(view.index, s.span.start.file, head)
             }
             if d is AST.TraitDecl && requires_head_at(d, s.span) {
@@ -230,7 +230,7 @@ view :: fn(self: TypeWalk) -> ReferenceView {
 
 // Whether the trait `d` requires, among its heads, the one at `site`.
 requires_head_at :: fn(d: AST.TraitDecl, site: Span) -> bool {
-    req :: d.requires ?? return false
+    req :: d.requires else return false
     for head in heads_of(req, .BitAnd) {
         if head.start.offset == site.start.offset {
             return true
@@ -243,11 +243,11 @@ requires_head_at :: fn(d: AST.TraitDecl, site: Span) -> bool {
 // there is no type. The path is given apart : a span of the document index's
 // AST names its file by URI.
 add_type_at :: fn(self: TypeWalk, index: ReferenceIndex, path: string, at: Span) -> void {
-    site :: site_at(index, path, at.start.line, at.start.column) ?? return
+    site :: site_at(index, path, at.start.line, at.start.column) else return
     if site.key !in index.types {
         return
     }
-    decl :: declaration_site(index, site.key) ?? return
+    decl :: declaration_site(index, site.key) else return
     self.add_declared(decl.span)
 }
 
@@ -259,7 +259,7 @@ add_declared :: fn(self: TypeWalk, at: Span) -> void {
         return
     }
     index :: doc_index_for(self.target.state, self.target.indices, start.file)
-    decl :: index.entry_at_offset(start.offset) ?? return
+    decl :: index.entry_at_offset(start.offset) else return
     self.found[key] = TypeHit { .path = start.file, .decl = decl }
 }
 

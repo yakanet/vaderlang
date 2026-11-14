@@ -223,7 +223,7 @@ compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
         if strings[i] == "" {
             ids.push(0)
         } else {
-            ids.push(index[strings[i]] ?? 0)
+            ids.push(index[strings[i]] else 0)
         }
     }
     return ids

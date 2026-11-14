@@ -27,12 +27,12 @@ evaluate_binary_expr :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> Ev
         return vm_required(expr.span, "operator implemented by a type")
     }
     left_result :: evaluate_expr(expr.left, context)
-    left :: left_result.value ?? return left_result
+    left :: left_result.value else return left_result
     if settles_alone(expr.op, left) {
         return ok(left)
     }
     right_result :: evaluate_expr(expr.right, context)
-    right :: right_result.value ?? return right_result
+    right :: right_result.value else return right_result
     // Width of the node's resolved type: the type `+`, `-` and `*` are checked
     // against, and the width the wrapping and bitwise operators wrap at, so a
     // comptime fold matches the run time. Empty string: unknown / non-integer,
@@ -124,7 +124,7 @@ checked_result :: fn(span: Span, value: i64 | null, type_name: string) -> EvalRe
 // The width of the integer type `type_name` ; 64 bits for an unknown one, which
 // folds unbounded at `i64` rather than at a guessed width.
 int_bits_of :: fn(type_name: string) -> i64 {
-    m :: machine_integer_named(type_name) ?? return 64
+    m :: machine_integer_named(type_name) else return 64
     return m.bits
 }
 
@@ -183,7 +183,7 @@ combine_binary :: fn(
 /// @return         the result value or a diagnostic.
 evaluate_unary_expr :: fn(expr: AST.UnaryExpr, context: ComptimeContext) -> EvalResult {
     inner :: evaluate_expr(expr.operand, context)
-    operand :: inner.value ?? return inner
+    operand :: inner.value else return inner
     rname :: resolved_int_name(context, expr.id)
     combined :: match expr.op {
         .Neg    -> unary_neg(expr, operand, rname)
@@ -222,7 +222,7 @@ result_type_name :: fn(iv: IntValue, rname: string) -> string {
 /// @param v          the value, an `i64` carrying the integer.
 /// @param type_name  a machine integer's name ; any other leaves `v` as it is.
 export wrap_to_width :: fn(v: i64, type_name: string) -> i64 {
-    m :: machine_integer_named(type_name) ?? return v
+    m :: machine_integer_named(type_name) else return v
     if m.bits == 64 {
         return v
     }
@@ -252,7 +252,7 @@ mask_shift_amount :: fn(rhs: ComptimeValue, rname: string) -> ComptimeValue {
 }
 
 shift_amount_mask :: fn(rname: string) -> i64 {
-    m :: machine_integer_named(rname) ?? return 63
+    m :: machine_integer_named(rname) else return 63
     if m.bits <= 32 {
         return 31
     }

@@ -58,7 +58,7 @@ export check_project :: fn(
 // names, not types, so it runs beside the checker rather than inside it. Spans
 // point at each module's own file, so the LSP still filters to the open document.
 lint_dead_code :: fn(project: LoadedProject, diags: Diagnostic[]) -> void {
-    entry :: project.modules[project.entry] ?? return
+    entry :: project.modules[project.entry] else return
     lint_module(entry, diags)
     for [id, loaded] in project.modules {
         if id != project.entry && !loaded.trimmed {

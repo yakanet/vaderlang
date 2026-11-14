@@ -95,7 +95,7 @@ index_functions :: fn(
 ) -> CalleeIndex {
     index :: CalleeIndex { .project = project }
     for [id, loaded] in project.modules {
-        typed :: modules[id] ?? continue
+        typed :: modules[id] else continue
         for file in loaded.module.files {
             index.impls.collect_impls(file.program.decls, typed.resolved, typed)
             for d in file.program.decls {
@@ -107,12 +107,12 @@ index_functions :: fn(
                         }
                     }
                     is AST.ConstDecl  -> {
-                        sym :: loaded.collected.symbols[d.name] ?? continue
+                        sym :: loaded.collected.symbols[d.name] else continue
                         index.constants.push(constant_initialiser(d, sym, typed))
                     }
                     is AST.StructDecl -> { index.register_defaults(d, typed) }
                     is AST.EnumDecl   -> {
-                        data :: declared_enum_data(d, typed) ?? continue
+                        data :: declared_enum_data(d, typed) else continue
                         index.variant_data.add(data.symbol.id)
                     }
                     is AST.AssertDecl | AST.ImportDecl | AST.TraitDecl | AST.TypeAliasDecl -> {}
@@ -134,7 +134,7 @@ constant_initialiser :: fn(decl: AST.ConstDecl, sym: Symbol, typed: TypedProgram
 // Note each default of `decl`'s fields.
 register_defaults :: fn(index: CalleeIndex, decl: AST.StructDecl, typed: TypedProgram) -> void {
     for field in decl.fields {
-        value :: field.default ?? continue
+        value :: field.default else continue
         index.defaults.push(Initialiser { .value = value, .typed = typed })
     }
 }
@@ -177,9 +177,9 @@ inherited_function :: fn(
     impl_: AST.ImplDecl,
     modules: Map<string, TypedProgram>,
 ) -> Function | null {
-    inherited :: member.inherits ?? return null
-    entry :: index.impls.entry_of(impl_) ?? return null
-    owner :: modules[entry.trait_symbol.module] ?? return null
+    inherited :: member.inherits else return null
+    entry :: index.impls.entry_of(impl_) else return null
+    owner :: modules[entry.trait_symbol.module] else return null
     return Function { .decl = inherited, .typed = owner }
 }
 
@@ -263,14 +263,14 @@ intrinsic_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -
 // Whether a value of type `t` may reach something a function could change
 // (`is_value_only_type`) ; true when the type is not known.
 holds_references :: fn(t: Type | null) -> bool {
-    known :: t ?? return true
+    known :: t else return true
     return !is_value_only_type(known)
 }
 
 // Whether `decl`, a function of the project, is a generator: its body runs as the
 // iterator its call returns is pulled.
 is_generator :: fn(index: CalleeIndex, decl: AST.FnDecl) -> bool {
-    node :: index.nodes[decl.id] ?? return false
+    node :: index.nodes[decl.id] else return false
     f :: index.functions[node]
     return fn_is_generator(f.typed, f.decl)
 }
@@ -299,7 +299,7 @@ direct_targets :: fn(index: CalleeIndex, callee: DirectFn) -> CallTarget[] {
     if !callee.per_instance {
         return [own]
     }
-    entry :: index.impls.member_entry(callee.decl) ?? return [own]
+    entry :: index.impls.member_entry(callee.decl) else return [own]
     out: CallTarget[]: [own]
     out.push_all(index.member_targets(entry.trait_key, callee.decl.name))
     return out
@@ -315,7 +315,7 @@ target_of_decl :: fn(index: CalleeIndex, decl: AST.FnDecl) -> CallTarget {
     if node != null {
         return CalleeNode { .node = node }
     }
-    return index.summarised[decl.id] ?? AnyCallee {}
+    return index.summarised[decl.id] else AnyCallee {}
 }
 
 // The member `member` of every impl of the trait `trait_key`, an inherited one
@@ -435,7 +435,8 @@ import "std/testing"
 
 @test
 test_intrinsic_effects_push_resizes_and_stores :: fn() -> void {
-    effects :: intrinsic_effects(PathTable {}, "${core_trait_key(@type_name(ArrayOps))}.push") ?? []
+    effects :: intrinsic_effects(PathTable {}, "${core_trait_key(@type_name(ArrayOps))}.push")
+        else []
     assert_eq(effects.len(), 2)
     assert(effects[0].accesses[0].effect == .Resized, "push resizes its receiver")
     assert(effects[1].accesses[0].effect == .Stored, "push keeps its value")

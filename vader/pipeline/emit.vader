@@ -258,7 +258,7 @@ export MissingArchive :: struct {
 export native_flags :: fn(module: BytecodeModule) -> NativeFlags {
     flags :: NativeFlags {}
     for declaration in module.imports {
-        library :: declaration.library ?? continue
+        library :: declaration.library else continue
         push_library_flags(flags, library)
     }
     return flags
@@ -478,7 +478,7 @@ export named_cc :: fn(flag: string) -> string | null {
     if flag != "" {
         return flag
     }
-    from_env :: get_env("CC") ?? return null
+    from_env :: get_env("CC") else return null
     if from_env == "" {
         return null
     }
@@ -535,9 +535,9 @@ export link_native :: fn(
             .reasons = native.missing.map((missing) -> missing_archive_message(missing)).collect(),
         }
     }
-    stem :: intermediate_stem(out) ?? return LinkFailure {}
+    stem :: intermediate_stem(out) else return LinkFailure {}
     c_file :: "${stem}.c".to_path()
-    c_files :: write_c_units(c_file, c) ?? return LinkFailure {}
+    c_files :: write_c_units(c_file, c) else return LinkFailure {}
     argv :: cc_argv(
         cc,
         c_files,
@@ -562,7 +562,7 @@ export link_native :: fn(
     // Name the file that EXISTS, not the `-o` we asked for: on Windows they
     // differ, and naming one the user cannot find is worse than naming the
     // platform's own convention.
-    binary :: linked_binary(out.as_string()) ?? out.as_string()
+    binary :: linked_binary(out.as_string()) else out.as_string()
     return NativeLink { .binary = binary, .c_file = c_file }
 }
 

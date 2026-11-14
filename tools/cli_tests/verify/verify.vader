@@ -89,7 +89,7 @@ disagreements :: fn(stderr: string) -> string[] {
     line :: compile(REPORTED_LINE).unwrap()
     listed: string[]: []
     for text in stderr.split("\n") {
-        found :: line.find(text) ?? continue
+        found :: line.find(text) else continue
         listed.push(found.groups[1])
     }
     return listed
@@ -107,7 +107,7 @@ is_explained :: fn(disagreement: string) -> bool {
 
 // `disagreement` without the position that closes it.
 without_position :: fn(disagreement: string) -> string {
-    split :: disagreement.split_first("  [") ?? return disagreement
+    split :: disagreement.split_first("  [") else return disagreement
     return split.0
 }
 

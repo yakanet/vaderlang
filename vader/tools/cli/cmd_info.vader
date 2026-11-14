@@ -69,7 +69,7 @@ project_info :: fn(dir: string, may_compile: bool, no_hooks: bool) -> ProjectInf
         eprintln(not_a_folder("info", dir))
         return 1
     }
-    described_by :: project_description("info", dir, ", so it describes no project") ?? return 1
+    described_by :: project_description("info", dir, ", so it describes no project") else return 1
     if no_hooks && described_by == DRIVER_FILENAME {
         eprintln(ignored_driver("info", dir, ""))
         return 1
@@ -90,7 +90,7 @@ project_info :: fn(dir: string, may_compile: bool, no_hooks: bool) -> ProjectInf
 // compiled as it stands, unless `may_compile`.
 declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> Manifest | i32 {
     if described_by == MANIFEST_FILENAME {
-        manifest :: checked_manifest("info", dir) ?? return 1
+        manifest :: checked_manifest("info", dir) else return 1
         return manifest
     }
     if !may_compile && !driver_is_compiled(dir) {
@@ -98,7 +98,7 @@ declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> 
             + "as it stands; `vader build` compiles it")
         return DRIVER_NOT_COMPILED_EXIT
     }
-    described :: described_project("info", dir, .Describe, "") ?? return 1
+    described :: described_project("info", dir, .Describe, "") else return 1
     return described
 }
 

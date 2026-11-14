@@ -823,8 +823,7 @@
                                     "label": null
                                   }
                                 }
-                              ],
-                              "coalesce": true
+                              ]
                             },
                             "spread": false
                           }

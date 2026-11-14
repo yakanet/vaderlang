@@ -35,7 +35,7 @@ export reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
     if n < 2 || stmts[n - 2] !is LoweredLet {
         return
     }
-    counted :: counted_loop_of(stmts[n - 1]) ?? return
+    counted :: counted_loop_of(stmts[n - 1]) else return
     if !runs_every_turn(counted) {
         return
     }
@@ -83,11 +83,11 @@ counted_loop_of :: fn(st: LoweredStmt) -> CountedLoop | null {
 
 counted_loop_in :: fn(st: LoweredStmt, lets: LoweredLet[]) -> CountedLoop | null {
     if st is LoweredLoop {
-        turns :: st.turns ?? return null
+        turns :: st.turns else return null
         hoisted_turns :: LoopTurns {
             ...turns,
-            .start = hoisted(turns.start, lets) ?? return null,
-            .bound = hoisted(turns.bound, lets) ?? return null,
+            .start = hoisted(turns.start, lets) else return null,
+            .bound = hoisted(turns.bound, lets) else return null,
         }
         return CountedLoop { .body = st.body, .turns = hoisted_turns }
     }
@@ -145,7 +145,7 @@ has_top_level_push :: fn(body: LoweredBlock, out: Symbol) -> bool {
             return true
         }
     }
-    t :: body.trailing ?? return false
+    t :: body.trailing else return false
     return is_push_onto(t, out)
 }
 
@@ -243,15 +243,15 @@ hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr | null {
         return e
     }
     if e is LoweredIdent {
-        defined :: defining_let(lets, e.symbol) ?? return e
+        defined :: defining_let(lets, e.symbol) else return e
         return hoisted(defined.value, lets)
     }
     if e is LoweredArrayLen {
-        target :: hoisted(e.target, lets) ?? return null
+        target :: hoisted(e.target, lets) else return null
         return LoweredArrayLen { ...e, .target = target }
     }
     if e is LoweredFieldAccess {
-        target :: hoisted(e.target, lets) ?? return null
+        target :: hoisted(e.target, lets) else return null
         return LoweredFieldAccess { ...e, .target = target }
     }
     return null

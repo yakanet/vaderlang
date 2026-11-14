@@ -45,7 +45,7 @@ main :: fn() -> i32 {
 
     println("any_match = ${source("xs", xs).map(adder(1)).any_match(above(100))}")
     println("all_match = ${source("xs", xs).map(adder(1)).all_match(above(0))}")
-    println("find = ${source("xs", xs).map(adder(1)).find(above(3)) ?? 0}")
+    println("find = ${source("xs", xs).map(adder(1)).find(above(3)) else 0}")
     println("on empty = ${source("empty", empty).map(adder(1)).any_match(above(0))}")
     println("count = ${source("xs", xs).map(adder(1)).filter(above(2)).count()}")
     println("take = ${source("xs", xs).take(limit(2)).count()}")

@@ -94,7 +94,7 @@ equals_primop :: fn(left: LoweredExpr, right: LoweredExpr, span: Span) = Lowered
 // The callee of a plain call : the fn the typecheck recorded, else the callee
 // expression itself, a value of fn type.
 lower_callee :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr {
-    symbol :: recorded_fn_symbol(ctx, call) ?? return lower_expr(ctx, call.callee)
+    symbol :: recorded_fn_symbol(ctx, call) else return lower_expr(ctx, call.callee)
     return fn_reference(ctx, symbol, call.callee.span, ctx.types.expr_type(call.callee))
 }
 
@@ -112,8 +112,8 @@ try_lower_static_member_call :: fn(
     call: CallExpr,
     type: Type,
 ) -> LoweredExpr | null {
-    field :: as_field_expr(call.callee) ?? return null
-    found :: ctx.typed.static_members[field.id] ?? return null
+    field :: as_field_expr(call.callee) else return null
+    found :: ctx.typed.static_members[field.id] else return null
     callee :: recorded_callee(ctx, call, .Call)
     owner :: ctx.types.apply(owner_at_call(callee, found.owner))
     member :: callee_target(ctx, callee, owner)
@@ -136,7 +136,7 @@ owner_at_call :: fn(callee: Callee | null, written: Type) -> Type {
     if callee !is DirectFn {
         return written
     }
-    bindings :: callee.bindings ?? return written
+    bindings :: callee.bindings else return written
     return substitute_map(written, bindings)
 }
 
@@ -147,7 +147,7 @@ owner_at_call :: fn(callee: Callee | null, written: Type) -> Type {
 try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee :: call.callee
     if callee is FieldExpr {
-        namespace_symbol :: as_namespace_binding(ctx, callee.target) ?? return null
+        namespace_symbol :: as_namespace_binding(ctx, callee.target) else return null
         // `nsM.T(x)`: the typer typed the callee as the metatype and resolved
         // the call as a cast (infer_call -> TypeMetaType, call.vader). Lower it as
         // a cast to the result `type` (shared with the direct-ident cast path),
@@ -161,7 +161,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
             }
         }
         member_symbol :: recorded_fn_symbol(ctx, call)
-            ?? resolve_namespace_member(ctx, namespace_symbol, callee.field)
+            else resolve_namespace_member(ctx, namespace_symbol, callee.field)
         // A GENERIC member (`io.println` -> `println<T: Display>`) must harvest
         // its monomorphic instance + point the callee at the mangle, exactly
         // as the direct-ident path does: otherwise the bare member symbol is
@@ -229,7 +229,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
 // whose value isn't a foldable scalar: the caller keeps a real reference.
 // Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
 fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
-    folded :: fold_const_value(ctx, sym, type, span) ?? return null
+    folded :: fold_const_value(ctx, sym, type, span) else return null
     // The value carries its own variant's type ; a read typed as a union boxes it,
     // as reading the const's slot would: `==` and `is` dispatch on that type.
     if type is UnionType && !equals_type(folded.type, type) {
@@ -283,7 +283,7 @@ fold_const_value :: fn(
 // module's compound const reached via `M.CONST` needs the same routing as a
 // bare reference (its decl is materialised on demand, not lowered eagerly).
 try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
-    ns_sym :: as_namespace_binding(ctx, e.target) ?? return null
+    ns_sym :: as_namespace_binding(ctx, e.target) else return null
     member :: resolve_namespace_member(ctx, ns_sym, e.field)
     if member.kind != .Const { return null }
     folded :: fold_const_symbol(ctx, member, type, e.span)

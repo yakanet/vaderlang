@@ -55,9 +55,9 @@ concurrency_case :: fn(name: string, dir: string) -> Case | string {
     if source is IOError {
         return source.msg
     }
-    expected :: header_value(source, EXPECT_OPENING) ?? return "no `${EXPECT_OPENING}` line"
+    expected :: header_value(source, EXPECT_OPENING) else return "no `${EXPECT_OPENING}` line"
     case :: Case { ...fixture_case(name, dir), .expected_tasks = expected }
-    named :: header_value(source, TARGET_OPENING) ?? return case
+    named :: header_value(source, TARGET_OPENING) else return case
     target :: parse_target(named)
     if target is TargetParseError {
         return "`${TARGET_OPENING}${named}`: ${target.reason}"
@@ -83,6 +83,6 @@ import "std/testing"
 @test
 test_a_header_line_gives_its_value :: fn() -> void {
     source :: "// C01: a task\n//\n// expect: T3128 T3129 \nmodule \"snippet\"\n"
-    assert_eq(header_value(source, EXPECT_OPENING) ?? "", "T3128 T3129")
+    assert_eq(header_value(source, EXPECT_OPENING) else "", "T3128 T3129")
     assert(header_value(source, TARGET_OPENING) == null, "no `// target:` line")
 }

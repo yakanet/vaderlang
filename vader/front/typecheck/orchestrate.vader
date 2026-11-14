@@ -196,7 +196,7 @@ check_project_modules :: fn(
         if id == project.entry {
             continue
         }
-        other_typed :: per_module[id] ?? continue
+        other_typed :: per_module[id] else continue
         declare_module(
             concat_file_decls(other.module.files),
             other_typed.resolved,
@@ -301,7 +301,7 @@ check_project_modules :: fn(
         if id == project.entry {
             continue
         }
-        other_typed :: per_module[id] ?? continue
+        other_typed :: per_module[id] else continue
         populate_external_types(other_typed, project, per_module)
         // The pre-settle populate (so settle's own UFCS sees cross-module
         // overloads) captured expr-bodied callees' returns while still `?` ;
@@ -358,7 +358,7 @@ collect_direct_imports :: fn(
     // there: using the loader's own result instead of re-resolving through the
     // now-deleted parallel resolver (#11).
     // Toolchain-shipped modules are filtered HERE rather than at the lookup: every
-    // value of this map is a key of `project.modules`, so a later `?? null` read
+    // value of this map is a key of `project.modules`, so a later `else null` read
     // could not fail and only cost a second lookup per import.
     //
     // Excluded by where a module came FROM, never by a `std/` name prefix: `lib/`
@@ -371,7 +371,7 @@ collect_direct_imports :: fn(
     }
     seen :: Map<string, bool> {}
     for edge in entry_loaded.collected.import_paths {
-        target_id :: id_by_name[edge.path] ?? continue
+        target_id :: id_by_name[edge.path] else continue
         if target_id == project.entry { continue }
         if seen[target_id] !is null   { continue }
         seen[target_id] = true
@@ -466,7 +466,7 @@ namespace_fn_overloads_of :: fn(
     mod_id: string, into: TypedProgram, per_module: Map<string, TypedProgram>,
 ) -> Map<string, FnCandidate[]> {
     table :: Map<string, FnCandidate[]> {}
-    from :: per_module[mod_id] ?? return table
+    from :: per_module[mod_id] else return table
     push_module_exported_fns(from, into, table, [])
     return table
 }

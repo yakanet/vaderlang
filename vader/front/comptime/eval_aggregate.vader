@@ -47,25 +47,25 @@ evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> 
             return vm_required(item.span, "struct literal spread")
         }
         result :: evaluate_expr(item.value, context)
-        value :: result.value ?? return result
+        value :: result.value else return result
         fields[item.name] = value
     }
     t :: context.typed.expr_types[expr.id]
-        ?? return vm_required(expr.span, "struct of no known type")
+        else return vm_required(expr.span, "struct of no known type")
     if t !is StructType {
         return vm_required(expr.span, "struct literal of a type that is not a struct")
     }
     declared :: context.typed.struct_fields[t.symbol.id]
-        ?? return vm_required(expr.span, "struct of no known declaration")
+        else return vm_required(expr.span, "struct of no known declaration")
     for [name, field] in declared {
         default :: field.decl.default
         if name in fields || default == null {
             continue
         }
         owner_context :: declaring_context(field.owner.symbol.module, context)
-            ?? return vm_required(expr.span, "struct of no known module")
+            else return vm_required(expr.span, "struct of no known module")
         result :: evaluate_expr(default, owner_context)
-        value :: result.value ?? return result
+        value :: result.value else return result
         fields[name] = value
     }
     return ok(StructValue { .type = t, .fields = fields })
@@ -74,7 +74,7 @@ evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> 
 // `.Variant`, against the enum the typecheck gave it.
 evaluate_dot_variant :: fn(expr: AST.DotVariantExpr, context: ComptimeContext) -> EvalResult {
     t :: context.typed.expr_types[expr.id]
-        ?? return vm_required(expr.span, "enum variant of no known type")
+        else return vm_required(expr.span, "enum variant of no known type")
     if t !is EnumType {
         return vm_required(expr.span, "variant of a type that is not an enum")
     }
@@ -87,7 +87,7 @@ variant_value :: fn(enum_type: EnumType, variant: string, span: Span) -> EvalRes
     if enum_type.data != null {
         return vm_required(span, "variant of an enum with variant data")
     }
-    value :: enum_type.indices[variant] ?? return vm_required(span, "unknown enum variant")
+    value :: enum_type.indices[variant] else return vm_required(span, "unknown enum variant")
     return ok(EnumValue {
         .enum_type = enum_type,
         .variant = variant,
@@ -99,7 +99,7 @@ variant_value :: fn(enum_type: EnumType, variant: string, span: Span) -> EvalRes
 // struct value.
 evaluate_field :: fn(expr: AST.FieldExpr, context: ComptimeContext) -> EvalResult {
     target :: evaluate_expr(expr.target, context)
-    value :: target.value ?? return target
+    value :: target.value else return target
     if value is TypeValue {
         if value.value is EnumType {
             return variant_value(value.value, expr.field, expr.span)
@@ -107,7 +107,7 @@ evaluate_field :: fn(expr: AST.FieldExpr, context: ComptimeContext) -> EvalResul
         return vm_required(expr.span, "field of a type that is not an enum")
     }
     if value is StructValue {
-        field :: value.fields[expr.field] ?? return vm_required(expr.span, "unknown field")
+        field :: value.fields[expr.field] else return vm_required(expr.span, "unknown field")
         return ok(field)
     }
     return vm_required(expr.span, "field of a value that is not a struct")
@@ -121,13 +121,13 @@ evaluate_match :: fn(expr: AST.MatchExpr, context: ComptimeContext) -> EvalResul
         return vm_required(expr.span, "match naming its scrutinee")
     }
     scrutinee_result :: evaluate_expr(expr.scrutinee, context)
-    scrutinee :: scrutinee_result.value ?? return scrutinee_result
+    scrutinee :: scrutinee_result.value else return scrutinee_result
     for arm in expr.arms {
         if arm.guard != null {
             return vm_required(arm.span, "match arm guard")
         }
         holds :: pattern_holds(arm.pattern, scrutinee)
-            ?? return vm_required(arm.span, "match pattern")
+            else return vm_required(arm.span, "match pattern")
         if holds {
             return evaluate_expr(arm.body, context)
         }
@@ -150,7 +150,7 @@ pattern_holds :: fn(pattern: AST.Pattern, value: ComptimeValue) -> bool | null {
         }
         is AST.OrPattern          -> {
             for alternative in pattern.patterns {
-                holds :: pattern_holds(alternative, value) ?? return null
+                holds :: pattern_holds(alternative, value) else return null
                 if holds {
                     return true
                 }
@@ -182,10 +182,10 @@ display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -
         return vm_required(part.span, "enum without a `Display` member")
     }
     impl_context :: declaring_context(value.enum_type.symbol.module, context)
-        ?? return vm_required(part.span, "enum of no known module")
+        else return vm_required(part.span, "enum of no known module")
     bindings :: Map<i32, ComptimeValue> {}
     result :: evaluate_with_arguments(callee.decl, [value], bindings, impl_context, part.span)
-    text :: result.value ?? return result
+    text :: result.value else return result
     if text !is StringValue {
         return vm_required(part.span, "enum `Display` giving no string")
     }
@@ -220,13 +220,13 @@ evaluate_project_const :: fn(
     context: ComptimeContext,
     span: Span,
 ) -> EvalResult | null {
-    project :: context.project ?? return null
+    project :: context.project else return null
     known :: project.values[symbol.id]
     if known != null {
         return ok(known)
     }
-    owner_context :: declaring_context(symbol.module, context) ?? return null
-    declaration :: owner_context.typed.const_decls[symbol.id] ?? return null
+    owner_context :: declaring_context(symbol.module, context) else return null
+    declaration :: owner_context.typed.const_decls[symbol.id] else return null
     cycle :: cycle_closed_by(project.evaluating, symbol)
     if cycle != null {
         return fail(comptime_error(.DependencyCycle, declaration.span, display_cycle(cycle)))

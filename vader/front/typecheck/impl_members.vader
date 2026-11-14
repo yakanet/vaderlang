@@ -20,7 +20,7 @@ check_impl_members :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    trait_decl :: typed.trait_decls[trait_type.symbol.id] ?? return
+    trait_decl :: typed.trait_decls[trait_type.symbol.id] else return
     for member in id.members {
         trait_method :: lookup_trait_method(trait_decl, member.name)
         if trait_method != null {
@@ -77,7 +77,7 @@ check_member_signature :: fn(
     if trait_method.type_params.len() > 0 {
         return
     }
-    want :: try_trait_method(trait_type, member.name, typed, for_ty) ?? return
+    want :: try_trait_method(trait_type, member.name, typed, for_ty) else return
     got :: typed.impl_method_decl_types[member.id]
     if want !is FnType || got !is FnType {
         return
@@ -233,7 +233,7 @@ declare_impl_return :: fn(
         }
     }
     // A written `-> Self` names `for_ty` too.
-    declared :: fd.return_type ?? return declare_fn_return(fd, typed.resolved, diags)
+    declared :: fd.return_type else return declare_fn_return(fd, typed.resolved, diags)
     return type_with_self(declared, for_ty, typed.resolved, diags)
 }
 

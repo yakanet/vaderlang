@@ -52,14 +52,14 @@ try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) 
 /// @param target  the slot's type.
 note_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target: Type) -> void {
     typed.into_coercions[value.id] = target
-    record_site(typed, value, .Into, conversion_callee(typed, source, target) ?? BUILTIN_CALLEE)
+    record_site(typed, value, .Into, conversion_callee(typed, source, target) else BUILTIN_CALLEE)
 }
 
 try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     if got !is ArrayType {
         return false
     }
-    element :: core_trait_arg(expected, TRAIT_ITERATOR) ?? return false
+    element :: core_trait_arg(expected, TRAIT_ITERATOR) else return false
     // An erased parameter (`erase_type_params`) accepts any element ; anything
     // else, a type parameter included, must be the array's own.
     return element is UnresolvedType || equals_type(got.element, element)
@@ -154,8 +154,8 @@ fits_or_implements :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool
 // `Display` slot, `T: Iterator<i32>` an `Iterator<i32>` one, as an impl's
 // (`implements_trait_instance`).
 bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedProgram) -> bool {
-    bound :: typed.resolved.type_param_bounds[param.symbol.id] ?? return false
-    bound_args :: bounded_trait_args(bound, trait_key_of(wanted.symbol), typed) ?? return false
+    bound :: typed.resolved.type_param_bounds[param.symbol.id] else return false
+    bound_args :: bounded_trait_args(bound, trait_key_of(wanted.symbol), typed) else return false
     if wanted.args.len() == 0 || bound_args.len() == 0 {
         return true
     }

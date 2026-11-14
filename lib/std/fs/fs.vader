@@ -409,11 +409,11 @@ list_dir :: fn(path: string) -> ListedEntry[] | IOError
 
 @target(.Linux, .Darwin)
 list_dir :: fn(path: string) -> ListedEntry[] | IOError {
-    d :: sys_opendir(path) ?? return last_io_error("cannot read directory")
+    d :: sys_opendir(path) else return last_io_error("cannot read directory")
     defer sys_closedir(d)
     out: ListedEntry[]: []
     for {
-        p :: sys_readdir(d) ?? break
+        p :: sys_readdir(d) else break
         name :: dirent_name(p)
         if name != "." && name != ".." {
             kind :: path.kind_of_dirent(name, dirent_kind(p))

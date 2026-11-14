@@ -43,7 +43,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         return 1
     }
     filter_values :: parsed.string_flags("filter")
-    filters :: read_test_filters(filter_values) ?? return 1
+    filters :: read_test_filters(filter_values) else return 1
     reporter :: TestReporter {
         .format = report_format(parsed.string_flag("reporter", "text")),
         .listing = parsed.bool_flag("list"),

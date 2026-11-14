@@ -82,8 +82,8 @@ note_heading :: fn(outline: SpecOutline, chapter: string, line: string) -> strin
         outline.titles[opened.0] = forms
         return opened.0
     }
-    heading :: section_heading(line) ?? return chapter
-    titles :: outline.titles[chapter] ?? return chapter
+    heading :: section_heading(line) else return chapter
+    titles :: outline.titles[chapter] else return chapter
     titles.add_all(cited_forms(heading))
     return chapter
 }
@@ -159,7 +159,7 @@ cited_titles :: fn(text: string, at: i64) -> [string[], i64] {
     separator := " *"
     for text.matches_at(end, separator) {
         start :: end + separator.byte_len()
-        close :: title_end(text, start) ?? break
+        close :: title_end(text, start) else break
         titles.push(plain(text.byte_slice(start, close)))
         end = close + 1
         separator = ", *"
@@ -181,7 +181,7 @@ title_end :: fn(text: string, at: i64) -> i64 | null {
             return i
         }
         if b == '`' {
-            close :: text.index_of('`', i + 1) ?? return null
+            close :: text.index_of('`', i + 1) else return null
             i = close + 1
         } else {
             i += 1
@@ -195,8 +195,8 @@ title_end :: fn(text: string, at: i64) -> i64 | null {
 same_chapter_citations :: fn(line: string) -> [string, string][] {
     out: [string, string][]: []
     for piece in after_each(line, SAME_CHAPTER_OPENING) {
-        close :: title_end(piece, 0) ?? continue
-        closing :: SAME_CHAPTER_CLOSINGS.find((c) -> piece.matches_at(close, c)) ?? continue
+        close :: title_end(piece, 0) else continue
+        closing :: SAME_CHAPTER_CLOSINGS.find((c) -> piece.matches_at(close, c)) else continue
         written :: "${SAME_CHAPTER_OPENING}${piece.byte_slice(0, close + closing.byte_len())}"
         out.push([plain(piece.byte_slice(0, close)), written])
     }
@@ -205,7 +205,7 @@ same_chapter_citations :: fn(line: string) -> [string, string][] {
 
 // Whether the sections `citation` names exist in `outline`.
 cites_existing :: fn(outline: SpecOutline, citation: Citation) -> bool {
-    titles :: outline.titles[citation.chapter] ?? return false
+    titles :: outline.titles[citation.chapter] else return false
     return citation.titles.all_match((t) -> t in titles)
 }
 
@@ -238,7 +238,7 @@ import "std/testing"
 
 @test
 test_every_section_a_file_cites_exists :: fn() -> void {
-    spec :: read_or_fail(SPEC) ?? return
+    spec :: read_or_fail(SPEC) else return
     outline :: spec_outline(spec)
     check :: (file: string, text: string, found: string[]) -> check_citations(
         outline,
@@ -268,7 +268,7 @@ test_a_star_inside_code_does_not_close_a_title :: fn() -> void {
 @test
 test_a_heading_is_cited_by_its_title_or_what_its_colon_opens :: fn() -> void {
     assert_eq(cited_forms("Identity: `===` and `!==`").join("|"), "Identity: === and !==|Identity")
-    assert_eq(section_heading("### Casts") ?? "", "Casts")
+    assert_eq(section_heading("### Casts") else "", "Casts")
     assert(section_heading("####### Too deep") == null, "seven marks open no section")
     opened :: chapter_heading("## 4. Types")
     assert(opened != null && opened.0 == "4" && opened.1 == "Types", "a numbered chapter")

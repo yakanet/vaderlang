@@ -89,7 +89,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     // slot, and remapping it would point at the universe's first entry.
     remap: i32[]: []
     for i in 0..<m.types.len() {
-        remap.push(slot_of[keys[i]] ?? -1)
+        remap.push(slot_of[keys[i]] else -1)
     }
 
     // The new table, in universe order. A slot this module has no type for is
@@ -105,7 +105,7 @@ export rebase_types :: fn(m: BytecodeModule, keys: string[], universe: string[])
     }
     types: BcType[]: []
     for i in 0..<universe.len() {
-        types.push(by_slot[i32(i)] ?? placeholder_for(universe[i]))
+        types.push(by_slot[i32(i)] else placeholder_for(universe[i]))
     }
 
     fns: BcFunction[]: []

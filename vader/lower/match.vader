@@ -163,7 +163,7 @@ arm_predicate :: fn(
     span :: arm.pattern.span
     scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span)
-    arm_guard :: arm.guard ?? return core
+    arm_guard :: arm.guard else return core
     // A pattern settled false leaves the guard dead : it may read a binding at a
     // type the scrutinee never has.
     if core != null && is_false_literal(core) {
@@ -309,7 +309,7 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
     // unresolved here (earlier diagnostics apply) -> unreachable.
     @partial match resolved {
         is EnumType -> {
-            index :: resolved.indices[name] ?? return LoweredUnreachable {
+            index :: resolved.indices[name] else return LoweredUnreachable {
                 .span = span,
                 .type = TY_UNRESOLVED,
                 .reason = "unknown variant `${name}` on `${resolved.symbol.name}`",
@@ -402,13 +402,15 @@ narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, sp
 // `unresolved` when the target isn't a struct (a non-struct in a struct-field
 // pattern is an upstream typecheck error) or the field/decl is missing.
 struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) -> Type =
-    laid_out_unions(declared_struct_field_type(target_type, field_name, ctx.typed) ?? TY_UNRESOLVED)
+    laid_out_unions(
+        declared_struct_field_type(target_type, field_name, ctx.typed) else TY_UNRESOLVED,
+    )
 
 // Resolve a pattern binding's Symbol via the shared per-module
 // `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh
 // synthetic only when the resolver wrote none: defensive against
 // cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
-    found :: resolve_binding(ctx, name_span) ?? return fresh_synthetic_symbol(ctx, name)
+    found :: resolve_binding(ctx, name_span) else return fresh_synthetic_symbol(ctx, name)
     return found
 }

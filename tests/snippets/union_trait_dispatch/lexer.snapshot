@@ -373,8 +373,8 @@
 [72:51-72:52] lbracket       "["
 [72:52-72:53] ident          "k"
 [72:53-72:54] rbracket       "]"
-[72:55-72:57] question_question "??"
-[72:58-72:59] int_literal    "0" =0n
+[72:55-72:59] kw_else        "else"
+[72:60-72:61] int_literal    "0" =0n
 [73:1-73:1  ] newline        "\n"
 [73:1-73:2  ] rbrace         "}"
 [74:1-74:1  ] newline        "\n"

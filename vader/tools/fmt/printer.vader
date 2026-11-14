@@ -127,7 +127,7 @@ text_width :: fn(s: string) -> i64 = s.len()
 // The column after writing `text` from column `start` : a text that spans lines
 // ends on its last line, counted from column 0.
 end_column :: fn(start: i64, text: string) -> i64 {
-    newline :: text.last_index_of('\n') ?? return start + text.text_width()
+    newline :: text.last_index_of('\n') else return start + text.text_width()
     return text.byte_slice(newline + 1, text.byte_len()).text_width()
 }
 
@@ -166,7 +166,7 @@ write_padding :: fn(self: Printer, used: i64, target: i64) -> void {
 // gap is measured up to the node's first leading comment, so a comment written
 // right under the previous node stays attached to it.
 opens_gap :: fn(self: Printer, prev_end: i32, offset: i64, line: i32) -> bool {
-    top :: self.comments.first_line_before(offset) ?? line
+    top :: self.comments.first_line_before(offset) else line
     return top > prev_end + 1
 }
 
@@ -908,7 +908,7 @@ variant_last_line :: fn(v: p.EnumVariant) -> i32 {
 
 // Single-line width of a variant's `{ ... }` block ; `0` without one.
 variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
-    data :: v.data ?? return 0
+    data :: v.data else return 0
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_inline_list(data, "{", "}", true, emit_struct_lit_item)
@@ -1182,7 +1182,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
 
 // The value `d` was written with : the operand of its `@comptime` when the parser
 // gave it a helper to call, its value otherwise.
-written_value :: fn(d: p.ConstDecl) -> p.Expr = d.comptime_body ?? d.value
+written_value :: fn(d: p.ConstDecl) -> p.Expr = d.comptime_body else d.value
 
 // Whether `d` was written `NAME :: @comptime <expr>`, its `@comptime` after `::`.
 is_inline_comptime :: fn(d: p.ConstDecl) -> bool =
@@ -1403,7 +1403,7 @@ emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
 // The augmented-assignment symbol (`"+="`, `"-="`, ...) of a compound
 // assignment, or `null` so the caller renders the plain `=`.
 compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
-    op :: p.compound_assign_op(s) ?? return null
+    op :: p.compound_assign_op(s) else return null
     return "${p.binary_op_symbol(op)}="
 }
 
@@ -1494,26 +1494,61 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
 }
 
 // `left else ...` : each clause after the one before, `else is T` with its
-// braces ; `left ?? fallback` as written.
+// braces, where the source puts its line breaks ; `left ?? fallback` as written.
 emit_fallback :: fn(self: Printer, e: p.FallbackExpr) -> void {
     if e.coalesce {
         self.emit_coalesce(e)
         return
     }
-    self.emit_else_operand(e.left, true)
-    for c in e.clauses {
-        self.write(" else ")
-        test :: c.test
-        if test != null {
-            self.write("is ")
-            self.emit_type_expr(test)
-            self.write(" ")
-        }
-        match body :: c.body {
-            is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(body)
-            is p.Expr -> self.emit_else_operand(body, false)
-        }
+    // A left operand that closes on a delimiter decides its layout knowing the
+    // ` else ...` that shares its last line, and explodes rather than run past
+    // `MAX_LINE`.
+    first :: e.clauses[0]
+    first_place :: self.operator_place(first.op_span, e.left.span.end, clause_start(first))
+    shares_line :: !self.flat && first_place.at == .Inline
+    if shares_line && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
+        self.trailing = clause_tail_width(self.source, first)
     }
+    self.emit_else_operand(e.left, true)
+    left_end := e.left.span.end
+    for c in e.clauses {
+        start :: clause_start(c)
+        place :: self.operator_place(c.op_span, left_end, start)
+        self.write_operator(place, "else", start)
+        self.emit_clause(c)
+        if place.at != .Inline {
+            self.depth -= 1
+        }
+        left_end = c.span.end
+    }
+}
+
+// What follows `else` in a clause : `is T { ... }`, a value or a statement.
+emit_clause :: fn(self: Printer, c: p.FallbackClause) -> void {
+    test :: c.test
+    if test != null {
+        self.write("is ")
+        self.emit_type_expr(test)
+        self.write(" ")
+    }
+    match body :: c.body {
+        is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(body)
+        is p.Expr -> self.emit_else_operand(body, false)
+    }
+}
+
+clause_start :: fn(c: p.FallbackClause) -> Position {
+    test :: c.test else return fallback_start(c.body)
+    return test.span.start
+}
+
+// Width of ` else ` and the first line of the clause, laid out on its own : all
+// of a short clause, the head of one that explodes (`return Foo {`).
+clause_tail_width :: fn(source: string, c: p.FallbackClause) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.write(" else ")
+    sub.emit_clause(c)
+    return first_line_len(sub.finish())
 }
 
 // An operand of `else` keeps the parentheses its source needs : one that binds
@@ -1724,7 +1759,7 @@ holds_own_comment :: fn<T>(
     items: T[],
     span_of: fn(T) -> Span,
 ) -> bool {
-    end :: bounds.end ?? return false
+    end :: bounds.end else return false
     inside :: (offset: i64) -> items.any_match((it) -> span_of(it).holds_offset(offset))
     return self.comments.holds_comment(bounds.start, end.offset, inside)
 }
@@ -1900,7 +1935,7 @@ write_name :: fn(self: Printer, text: string, at: Span) -> void {
 
 // Note that the text written since the byte `start` is the name `node` wrote.
 note_name :: fn(self: Printer, start: i64, node: Span | p.FieldExpr) -> void {
-    names :: self.names ?? return
+    names :: self.names else return
     names.push(WrittenName {
         .start = start,
         .end = self.buf.byte_len(),
@@ -2109,9 +2144,12 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
 }
 
 // `??` binds looser than every binary operator ; `else` binds tighter than a
-// comparison and looser than the rest.
+// comparison and looser than the rest. A last clause that leaves takes all that
+// follows as its value: `(x else return 1) > 0` is not `x else return (1 > 0)`.
 fallback_operand_needs_parens :: fn(operand: p.FallbackExpr, parent_op: p.BinaryOp) -> bool =
-    operand.coalesce || binary_precedence(parent_op) > binary_precedence(.Eq)
+    operand.coalesce
+        || operand.clauses[operand.clauses.len() - 1].body is p.ReturnStmt | p.BreakStmt | p.ContinueStmt
+        || binary_precedence(parent_op) > binary_precedence(.Eq)
 
 // Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
 // `vader/front/parser/parser.vader::infix_for` (the only authority on what the

@@ -234,7 +234,7 @@ declaration_index :: fn(collected: CollectedModule) -> Map<u64, Symbol> {
 }
 
 index_declaration :: fn(index: Map<u64, Symbol>, symbol: Symbol) -> void {
-    defined :: symbol.defined_at ?? return
+    defined :: symbol.defined_at else return
     index[defined.hash()] = symbol
 }
 
@@ -255,7 +255,7 @@ export symbol_declared_at :: fn(resolved: ResolvedModule, name_span: Span) -> Sy
 /// @return          null for an impl, an assert or an import, which name
 ///                  nothing, and in the cases `symbol_declared_at` lists.
 export decl_symbol :: fn(resolved: ResolvedModule, decl: Decl) -> Symbol | null {
-    name_span :: decl_name_span(decl) ?? return null
+    name_span :: decl_name_span(decl) else return null
     return symbol_declared_at(resolved, name_span)
 }
 
@@ -305,8 +305,8 @@ export file_root_scope :: fn(
 binding_clashes :: fn(collected: CollectedModule, imports: FileImports) -> Diagnostic[] {
     out: Diagnostic[]: []
     for [name, binding] in imports.bindings {
-        declared :: collected.symbols[name] ?? continue
-        span :: binding.defined_at ?? continue
+        declared :: collected.symbols[name] else continue
+        span :: binding.defined_at else continue
         if declared.kind != .Fn {
             out.push(resolver_error(.DuplicateImportBinding, span, "`${name}`"))
         }

@@ -152,8 +152,8 @@ export implemented_trait_args :: fn(
     for_type: Type,
     typed: TypedProgram,
 ) -> Type[] {
-    decl :: typed.trait_decls[trait_sym.id] ?? return written
-    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
+    decl :: typed.trait_decls[trait_sym.id] else return written
+    owner :: typed.trait_decl_owners[trait_sym.id] else typed.resolved
     padded :: pad_trait_default_args(written, decl.type_params, owner)
     out: Type[]: []
     for t in padded {
@@ -177,10 +177,10 @@ export trait_param_bindings :: fn(
     self_type: Type,
     typed: TypedProgram,
 ) -> Map<i32, Type> {
-    decl :: typed.trait_decls[trait_sym.id] ?? return Map<i32, Type> {}
+    decl :: typed.trait_decls[trait_sym.id] else return Map<i32, Type> {}
     bindings :: type_param_bindings(decl.type_params, args, typed)
-    owner :: typed.trait_decl_owners[trait_sym.id] ?? typed.resolved
-    self_param :: owner.trait_self_params[trait_sym.id] ?? return bindings
+    owner :: typed.trait_decl_owners[trait_sym.id] else typed.resolved
+    self_param :: owner.trait_self_params[trait_sym.id] else return bindings
     bindings[self_param.id] = self_type
     return bindings
 }
@@ -192,7 +192,7 @@ export trait_param_bindings :: fn(
 /// @param decl      the impl.
 /// @param resolved  the module that declares `decl`.
 impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symbol | null {
-    bound :: resolved.idents[decl.trait_name_span.hash()] ?? return null
+    bound :: resolved.idents[decl.trait_name_span.hash()] else return null
     target :: redirect_import(bound, resolved)
     return if target.kind == .Trait { target } else { null }
 }
@@ -203,7 +203,7 @@ collect_impl :: fn(
     resolved: ResolvedModule,
     typed: TypedProgram | null,
 ) -> void {
-    trait_sym :: impl_trait_symbol(impl_, resolved) ?? return
+    trait_sym :: impl_trait_symbol(impl_, resolved) else return
     scratch: Diagnostic[]: []
     for_type :: type_from_expr(impl_.for_type, resolved, scratch)
     target :: impl_base_key(for_type)
@@ -273,7 +273,7 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     gi :: impl_.for_type
     if gi is GenericInstExpr {
         for ta in gi.type_args {
-            bound :: resolved.idents[ta.span.hash()] ?? continue
+            bound :: resolved.idents[ta.span.hash()] else continue
             if bound.kind == .TypeParam {
                 return true
             }
@@ -290,7 +290,7 @@ export impl_type_params_of :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> T
     gi :: impl_.for_type
     if gi is GenericInstExpr {
         for ta in gi.type_args {
-            bound :: resolved.idents[ta.span.hash()] ?? continue
+            bound :: resolved.idents[ta.span.hash()] else continue
             if bound.kind == .TypeParam && !out.any_match((tp) -> tp.symbol.id == bound.id) {
                 out.push(TypeParamType { .symbol = bound })
             }
@@ -308,7 +308,7 @@ NO_IMPLS: ImplEntry[]: []
 /// @param target     an `impl_base_key`.
 /// @param trait_key  a `trait_key`.
 export impls_of :: fn(self: ImplRegistry, target: string, trait_key: string) -> ImplEntry[] {
-    found :: self.by_target["${target}::${trait_key}"] ?? return NO_IMPLS
+    found :: self.by_target["${target}::${trait_key}"] else return NO_IMPLS
     return found
 }
 
@@ -316,7 +316,7 @@ export impls_of :: fn(self: ImplRegistry, target: string, trait_key: string) -> 
 ///
 /// @param target  an `impl_base_key`.
 export impls_on :: fn(self: ImplRegistry, target: string) -> ImplEntry[] {
-    found :: self.by_base[target] ?? return NO_IMPLS
+    found :: self.by_base[target] else return NO_IMPLS
     return found
 }
 

@@ -622,8 +622,8 @@ test_map_get_or_put_reuses_a_tombstone :: fn() -> void {
 test_map_put_absent_stores_only_a_new_key :: fn() -> void {
     m :: Map<string, i64> {}
     assert(m.put_absent("a", 1) == null, "a new key is stored")
-    assert_eq(m.put_absent("a", 2) ?? -1, 1)
-    assert_eq(m["a"] ?? -1, 1)
+    assert_eq(m.put_absent("a", 2) else -1, 1)
+    assert_eq(m["a"] else -1, 1)
     assert_eq(m.len(), 1)
 }
 
@@ -635,7 +635,7 @@ test_map_put_absent_reuses_a_tombstone :: fn() -> void {
     }
     m.remove(3)
     assert(m.put_absent(3, 30) == null, "a removed key is absent")
-    assert_eq(m[3] ?? -1, 30)
+    assert_eq(m[3] else -1, 30)
     assert_eq(m.tombs, 0)
 }
 
@@ -648,7 +648,7 @@ test_map_put_absent_grows_on_the_insertion_past_three_quarters :: fn() -> void {
     assert_eq(m.index.len(), 16)
     m.put_absent(12, 12)
     assert_eq(m.index.len(), 32)
-    assert_eq(m[12] ?? -1, 12)
+    assert_eq(m[12] else -1, 12)
 }
 
 @test
@@ -664,7 +664,7 @@ test_map_get_or_put_with_builds_only_on_a_miss :: fn() -> void {
         []
     }).push("y")
     assert_eq(built, 1)
-    assert_eq((m.get("a") ?? []).len(), 2)
+    assert_eq((m.get("a") else []).len(), 2)
 }
 
 @test
@@ -678,7 +678,7 @@ test_map_get_or_put_with_survives_a_make_that_inserts :: fn() -> void {
     })
     assert_eq(got, 100)
     assert_eq(m.len(), 40)
-    assert_eq(m.get(0) ?? -1, 100)
+    assert_eq(m.get(0) else -1, 100)
 }
 
 @test
@@ -759,8 +759,8 @@ test_map_keys_walk_allows_writing_present_keys :: fn() -> void {
     m["a"] = 1
     m["b"] = 2
     for k in m.keys() {
-        m[k] = (m[k] ?? 0) * 10
+        m[k] = (m[k] else 0) * 10
     }
-    assert_eq(m["a"] ?? 0, 10)
-    assert_eq(m["b"] ?? 0, 20)
+    assert_eq(m["a"] else 0, 10)
+    assert_eq(m["b"] else 0, 20)
 }

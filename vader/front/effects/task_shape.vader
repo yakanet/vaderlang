@@ -30,7 +30,7 @@ BodyShape :: struct {
 // The shape of `decl`'s body.
 shape_of :: fn(decl: AST.FnDecl) -> BodyShape {
     shape :: BodyShape {}
-    body :: decl.body ?? return shape
+    body :: decl.body else return shape
     AST.inspect(body, (n) -> {
         match n {
             is AST.ForStmt    -> {
@@ -165,11 +165,11 @@ in_region :: fn(body: TaskBody, door: Door, region: Region, p: i64, root: i64) -
     if p >= door.site.at.end.offset {
         return !region.joins.any_match((j) -> ended_by(j, p))
     }
-    wraps :: region.wraps ?? return false
+    wraps :: region.wraps else return false
     if !holds_offset(wraps, p) {
         return false
     }
-    fresh :: region.repeats ?? wraps
+    fresh :: region.repeats else wraps
     return !body.bound_inside(root, fresh)
 }
 
@@ -206,7 +206,7 @@ escaping_lambdas :: fn(ctx: TaskCtx, body: TaskBody) -> Span[] {
 // Whether `l` is the lambda a door hands its task.
 is_entry :: fn(body: TaskBody, l: AST.LambdaExpr) -> bool {
     for door in body.doors {
-        entry :: door.entry ?? continue
+        entry :: door.entry else continue
         if same_span(entry.span, l.span) {
             return true
         }
@@ -223,7 +223,7 @@ runs_at_its_call :: fn(ctx: TaskCtx, body: TaskBody, l: AST.LambdaExpr) -> bool 
     }
     for site in body.s.sites {
         for q in 0..<site.sources.len() {
-            source :: site.sources[q] ?? continue
+            source :: site.sources[q] else continue
             if !same_span(source.span, l.span) {
                 continue
             }
@@ -274,7 +274,7 @@ keeps_param :: fn(ctx: TaskCtx, target: CallTarget, q: i64) -> bool {
 // lambda that may run later, at the earliest past the door.
 effective_offset :: fn(body: TaskBody, door: Door, escaping: Span[], at: Span, p: i64) -> i64 {
     for other in body.doors {
-        entry :: other.entry ?? continue
+        entry :: other.entry else continue
         if body.is_other_task(door, other) && inside(entry.span, at) {
             return other.site.at.start.offset
         }
@@ -293,7 +293,7 @@ is_other_task :: fn(body: TaskBody, door: Door, other: Door) -> bool {
     if same_span(other.site.at, door.site.at) {
         return false
     }
-    entry :: other.entry ?? return true
+    entry :: other.entry else return true
     return !contains(entry.span, door.site.at)
 }
 
@@ -314,13 +314,13 @@ join_points :: fn(body: TaskBody, door: Door) -> JoinPoint[] {
     out: JoinPoint[]: []
     handle :: body.handle_of(door)
     for site in body.s.sites {
-        waits :: body.index.door_of(site.callee) ?? continue
-        q :: waits.joins ?? continue
+        waits :: body.index.door_of(site.callee) else continue
+        q :: waits.joins else continue
         if q >= site.sources.len() {
             continue
         }
-        source :: site.sources[q] ?? continue
-        block :: body.block_around(site.at) ?? continue
+        source :: site.sources[q] else continue
+        block :: body.block_around(site.at) else continue
         if !body.joins_on_every_path(block, site.at) {
             continue
         }
@@ -334,8 +334,8 @@ join_points :: fn(body: TaskBody, door: Door) -> JoinPoint[] {
             out.push(join_point(block, door, site.at))
             continue
         }
-        loop :: body.joining_loop(door, site, q, block) ?? continue
-        around :: body.block_around(loop.span) ?? continue
+        loop :: body.joining_loop(door, site, q, block) else continue
+        around :: body.block_around(loop.span) else continue
         if around.stmts.any_match((s) -> same_span(s.span, loop.span)) {
             out.push(JoinPoint { ...join_point(around, door, loop.span), .by_loop = true })
         }
@@ -425,7 +425,7 @@ joining_loop :: fn(
     q: i64,
     block: AST.BlockExpr,
 ) -> AST.ForStmt | null {
-    source :: site.sources[q] ?? return null
+    source :: site.sources[q] else return null
     for loop in body.shape.loops {
         if !same_span(loop.body.span, block.span) {
             continue
@@ -454,7 +454,7 @@ holds_door_task :: fn(body: TaskBody, door: Door, site: Site, q: i64, source: AS
 
 // Whether the argument `q` of `site` may hold what the call of `door` returns.
 shares_root_with_door :: fn(body: TaskBody, door: Door, site: Site, q: i64) -> bool {
-    arg :: site.args[q] ?? return false
+    arg :: site.args[q] else return false
     held :: body.roots_at(door.site.result)
     return body.roots_at(arg).any_match((r) -> held.any_match((h) -> same_root(h, r)))
 }
@@ -464,7 +464,7 @@ shares_root_with_door :: fn(body: TaskBody, door: Door, site: Site, q: i64) -> b
 // one: each element of a literal is reached on every path, which an array the task
 // may be pushed onto does not promise.
 walks_handle :: fn(body: TaskBody, door: Door, iter: AST.Expr) -> bool {
-    literal :: walked_literal(body, iter) ?? return false
+    literal :: walked_literal(body, iter) else return false
     handle :: body.handle_of(door)
     return literal.elements.any_match((e) -> body.is_door_task(door, handle, e))
 }
@@ -497,7 +497,7 @@ handle_of :: fn(body: TaskBody, door: Door) -> i32 | null {
         }
         b :: l.binding
         if b is AST.SimpleBinding {
-            sym :: body.typed.resolved.idents[b.name_span.hash()] ?? return null
+            sym :: body.typed.resolved.idents[b.name_span.hash()] else return null
             return sym.id
         }
     }
@@ -506,11 +506,11 @@ handle_of :: fn(body: TaskBody, door: Door) -> i32 | null {
 
 // Whether `e` is a name bound to the symbol `id`.
 names_symbol :: fn(body: TaskBody, e: AST.Expr, id: i32 | null) -> bool {
-    wanted :: id ?? return false
+    wanted :: id else return false
     if e !is AST.IdentExpr {
         return false
     }
-    sym :: body.typed.resolved.idents[e.span.hash()] ?? return false
+    sym :: body.typed.resolved.idents[e.span.hash()] else return false
     return sym.id == wanted
 }
 
@@ -533,7 +533,7 @@ joins_on_every_path :: fn(body: TaskBody, block: AST.BlockExpr, call: Span) -> b
             return stmt_reaches(s, call)
         }
     }
-    trailing :: block.trailing ?? return false
+    trailing :: block.trailing else return false
     return expr_reaches(trailing, call)
 }
 

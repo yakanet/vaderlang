@@ -100,7 +100,7 @@ export filename :: fn(self: Path) -> string = filename_on(string(self), current_
 filename_on :: fn(s: string, os: Os) -> string {
     path :: without_trailing_separators(s, os)
     root :: root_length(path, os)
-    cut :: last_separator(path, root) ?? return path.byte_slice(root, path.byte_len())
+    cut :: last_separator(path, root) else return path.byte_slice(root, path.byte_len())
     return path.byte_slice(cut + 1, path.byte_len())
 }
 
@@ -117,7 +117,7 @@ export parent :: fn(self: Path) -> Path = Path(parent_on(string(self), current_o
 parent_on :: fn(s: string, os: Os) -> string {
     path :: without_trailing_separators(s, os)
     root :: root_length(path, os)
-    cut :: last_separator(path, root) ?? return path.byte_slice(0, root)
+    cut :: last_separator(path, root) else return path.byte_slice(0, root)
     return without_trailing_separators(path.byte_slice(0, cut), os)
 }
 
@@ -146,7 +146,7 @@ extension_dot :: fn(fname: string) -> i64 | null = fname.last_index_of('.', 1)
 ///   "dir/.gitignore".to_path().name()      // ".gitignore"
 export name :: fn(self: Path) -> string {
     fname :: self.filename()
-    idx :: extension_dot(fname) ?? return fname
+    idx :: extension_dot(fname) else return fname
     return fname.byte_slice(0, idx)
 }
 
@@ -165,7 +165,7 @@ export name :: fn(self: Path) -> string {
 ///   "dir/.gitignore".to_path().extension()      // ""
 export extension :: fn(self: Path) -> string {
     fname :: self.filename()
-    idx :: extension_dot(fname) ?? return ""
+    idx :: extension_dot(fname) else return ""
     return fname.byte_slice(idx + 1, fname.byte_len())
 }
 
@@ -214,8 +214,8 @@ prefix_length :: fn(s: string, os: Os) -> i64 {
     if n < 3 || s.byte_at(0) != '/' || s.byte_at(1) != '/' || s.byte_at(2) == '/' {
         return 0
     }
-    after_host :: next_separator(s, 2) ?? return n
-    return next_separator(s, after_host + 1) ?? n
+    after_host :: next_separator(s, 2) else return n
+    return next_separator(s, after_host + 1) else n
 }
 
 // The bytes of the root `s` opens with: its drive or share, and the `/` after.
@@ -377,7 +377,7 @@ normalize_on :: fn(s: string, os: Os) -> string {
     kept: string[]: []
     start := root
     for start <= n {
-        end :: next_separator(s, start) ?? n
+        end :: next_separator(s, start) else n
         segment :: s.byte_slice(start, end)
         start = end + 1
         if segment.is_empty() || segment == "." {

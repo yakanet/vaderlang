@@ -81,7 +81,7 @@ cmd_doc :: fn(args: string[]) -> i32 {
     }
     // The project folder, the working directory without a project: where the
     // path is read from by default, and the data written.
-    home :: project.project_root ?? "."
+    home :: project.project_root else "."
     if searching {
         return search_data(parsed, project, home)
     }
@@ -94,7 +94,7 @@ cmd_doc :: fn(args: string[]) -> i32 {
     for line in refreshed.problems {
         eprintln(line)
     }
-    status :: refreshed.status ?? return 1
+    status :: refreshed.status else return 1
     println("vader doc: ${status}")
     if site {
         return build_doc_site(data, site_dir, open)
@@ -120,7 +120,7 @@ search_data :: fn(parsed: ParsedArgs, project: EntryInProject | null, home: stri
         if inputs is i32 {
             return inputs
         }
-        dirs.push(searchable_data(inputs, home, DOC_DATA_DIR) ?? return 2)
+        dirs.push(searchable_data(inputs, home, DOC_DATA_DIR) else return 2)
     }
     library :: Doc.doc_scope(resolve_sidecar(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER))
     if library is string {
@@ -142,7 +142,7 @@ search_data :: fn(parsed: ParsedArgs, project: EntryInProject | null, home: stri
             doc_include_paths(rest, home),
             compiler,
         )
-        dirs.push(searchable_data(inputs, home, DOC_LIBRARY_DATA_DIR) ?? return 2)
+        dirs.push(searchable_data(inputs, home, DOC_LIBRARY_DATA_DIR) else return 2)
     }
     // Colour for a terminal only: a pipe or a file gets the text as it is.
     colored :: TTY.is_tty(.Stdout) && TTY.should_colorize()
@@ -299,7 +299,7 @@ doc_project :: fn(parsed: ParsedArgs) -> EntryInProject | i32 {
             return 1
         }
         is ManifestProject -> {
-            entry :: sole_entry("doc", input.dir, input.entries) ?? return 2
+            entry :: sole_entry("doc", input.dir, input.entries) else return 2
             return EntryInProject { .file = entry.file, .project_root = input.dir }
         }
     }

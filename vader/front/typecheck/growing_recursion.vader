@@ -67,9 +67,9 @@ reject_growing_recursion :: fn(
                 if callee !is DirectFn {
                     continue
                 }
-                bindings :: callee.bindings ?? continue
-                span :: sites.instantiation_spans[id] ?? continue
-                caller :: sites.instantiation_callers[id] ?? continue
+                bindings :: callee.bindings else continue
+                span :: sites.instantiation_spans[id] else continue
+                caller :: sites.instantiation_callers[id] else continue
                 graph.add_instantiation(growing, caller, callee.decl, bindings, span)
             }
         }

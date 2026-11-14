@@ -57,13 +57,13 @@ check_module_impl_coherence :: fn(
     by_base: Map<string, ImplShape[]>,
     diags: Diagnostic[],
 ) -> void {
-    tp :: per_module[id] ?? return
-    loaded :: project.modules[id] ?? return
+    tp :: per_module[id] else return
+    loaded :: project.modules[id] else return
     for decl in concat_file_decls(loaded.module.files) {
         if decl is AST.ImplDecl {
             // A trait is told apart by its declaration, not by the name an
             // import gave it ; one that does not resolve is reported elsewhere.
-            trait_sym :: impl_trait_symbol(decl, tp.resolved) ?? continue
+            trait_sym :: impl_trait_symbol(decl, tp.resolved) else continue
             trait_key :: trait_key_of(trait_sym)
             for_ty :: type_from_expr(decl.for_type, tp.resolved, diag_sink())
             if has_builtin_impl(for_ty, trait_key) {
@@ -76,7 +76,7 @@ check_module_impl_coherence :: fn(
             if reject_overlapping_impl(decl, for_ty, trait_key, args, by_base, diags) {
                 continue
             }
-            key :: coherence_key(for_ty, trait_key, args) ?? continue
+            key :: coherence_key(for_ty, trait_key, args) else continue
             if !seen.add(key) {
                 // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
                 // the R2018 orphan rule), so it's built with `resolver_error`.
@@ -197,8 +197,8 @@ check_module_fn_redefinitions :: fn(
     per_module: Map<string, TypedProgram>,
     diags: Diagnostic[],
 ) -> void {
-    tp :: per_module[id] ?? return
-    loaded :: project.modules[id] ?? return
+    tp :: per_module[id] else return
+    loaded :: project.modules[id] else return
     // Group fn decls by name (cheap: no type resolution) ; resolve signatures
     // only for names with >=2 decls. Signatures come from the AST, the
     // authoritative source of declared params, not from `decl_types`.
@@ -226,7 +226,7 @@ check_module_fn_redefinitions :: fn(
         }
         seen :: Map<string, bool> {}
         for fd in group {
-            key :: fn_signature_key(fd, tp.resolved) ?? continue
+            key :: fn_signature_key(fd, tp.resolved) else continue
             // A matching canonical signature key is a redefinition, not an overload.
             if seen[key] != null {
                 diags.push(
@@ -244,7 +244,7 @@ check_module_fn_redefinitions :: fn(
     }
     // Reported on the import : it belongs to one file, the fn to the module.
     for sig in imported {
-        keys :: module_keys[sig.local] ?? continue
+        keys :: module_keys[sig.local] else continue
         if keys[sig.key] != null {
             diags.push(
                 typecheck_error(
@@ -289,8 +289,8 @@ imported_fn_sigs :: fn(
             continue
         }
         // namespace import, not a free-fn binding
-        st :: targets.symbol_targets[sym_id] ?? continue
-        owner :: per_module[st.module_id] ?? continue
+        st :: targets.symbol_targets[sym_id] else continue
+        owner :: per_module[st.module_id] else continue
         ty :: owner.decl_types[st.symbol.id]
         if ty is FnType {
             out.push(ImportedFnSig {
@@ -309,7 +309,7 @@ imported_fn_sigs :: fn(
 fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | null {
     params: Type[]: []
     for p in fd.params {
-        pty :: p.ty ?? return null
+        pty :: p.ty else return null
         params.push(type_from_expr(pty, resolved, diag_sink()))
     }
     return canonical_args_key(params)

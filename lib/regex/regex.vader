@@ -720,7 +720,7 @@ SLOT_UNSET: i64: -1
 // and 1 are always written: the program opens with `InstSave 0` and saves slot 1
 // right before its only `InstMatch`.
 run_at :: fn(p: Pattern, input: string, start: i64) -> Match | null {
-    groups :: run_vm(p, input, start, false) ?? return null
+    groups :: run_vm(p, input, start, false) else return null
     return Match {
         .start  = groups[0],
         .end    = groups[1],

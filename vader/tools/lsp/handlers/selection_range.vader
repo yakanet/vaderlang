@@ -22,7 +22,7 @@ import "vader/tools/lsp/protocol"
 /// @return        a `SelectionRange[]`, one per position ; `JsonNull` for a
 ///                document the server does not hold.
 export handle_selection_range :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    idx :: state.index_for(position_uri(params)) ?? return JsonNull {}
+    idx :: state.index_for(position_uri(params)) else return JsonNull {}
     positions :: get_field(params, "positions")
     out: JsonValue[]: []
     if positions is JsonArray {

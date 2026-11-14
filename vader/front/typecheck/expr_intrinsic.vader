@@ -95,11 +95,11 @@ check_type_value :: fn(arg: AST.Expr, got: Type, diags: Diagnostic[]) -> void {
 infer_field_intrinsic :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    recv_ty :: typed.expr_types[e.args[0].id] ?? return TY_UNRESOLVED
+    recv_ty :: typed.expr_types[e.args[0].id] else return TY_UNRESOLVED
     if recv_ty !is UnionType && struct_backing(recv_ty) == null {
         return TY_UNRESOLVED
     }
-    field_name :: AST.string_literal_text(e.args[1]) ?? return TY_UNRESOLVED
+    field_name :: AST.string_literal_text(e.args[1]) else return TY_UNRESOLVED
     access :: AST.FieldExpr {
         .span = e.span,
         .target = e.args[0],
@@ -108,7 +108,7 @@ infer_field_intrinsic :: fn(
         .is_numeric = false,
     }
     return try_union_common_field_dispatch(recv_ty, access, typed, diags)
-        ?? resolve_struct_field(recv_ty, access, typed, diags)
+        else resolve_struct_field(recv_ty, access, typed, diags)
 }
 
 // `@fields(T)` and `@field_index(T, ...)` read the fields of a struct: a `T` known
@@ -116,7 +116,7 @@ infer_field_intrinsic :: fn(
 check_struct_argument :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    owner :: typed.type_expr_types[e.args[0].span.hash()] ?? return
+    owner :: typed.type_expr_types[e.args[0].span.hash()] else return
     if is_known_non_struct(owner) {
         diags.push(typecheck_error(.TypeMismatch, e.args[0].span,
             "`@${e.name}` reads the fields of a struct, got `${display_type(owner)}`"))
@@ -140,12 +140,12 @@ is_known_non_struct :: fn(t: Type) -> bool = match t {
 check_field_index :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    owner :: typed.type_expr_types[e.args[0].span.hash()] ?? return
-    name :: AST.string_literal_text(e.args[1]) ?? return
+    owner :: typed.type_expr_types[e.args[0].span.hash()] else return
+    name :: AST.string_literal_text(e.args[1]) else return
     if owner !is StructType {
         return
     }
-    fields :: typed.struct_fields[owner.symbol.id] ?? return
+    fields :: typed.struct_fields[owner.symbol.id] else return
     if fields[name] != null {
         return
     }

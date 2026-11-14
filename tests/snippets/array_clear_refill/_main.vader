@@ -37,7 +37,7 @@ main :: fn() -> i32 {
     seen().push("x")
     seen().push("y")
     popped :: seen().remove_last()
-    println("popped=${popped ?? "<null>"} left=${seen().len()}")
+    println("popped=${popped else "<null>"} left=${seen().len()}")
 
     // A clear must not disturb a genuine slice view of the same elements.
     src: i32[]: [1, 2, 3, 4, 5]

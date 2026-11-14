@@ -91,7 +91,7 @@ door_of :: fn(index: CalleeIndex, callee: Callee) -> TaskPrimitive | null {
 /// @param callee  what a call settles on.
 /// @param q       the parameter's position.
 holds_lock_for :: fn(index: CalleeIndex, callee: Callee, q: i64) -> bool {
-    door :: index.door_of(callee) ?? return false
+    door :: index.door_of(callee) else return false
     return door.exclusive == q
 }
 
@@ -101,7 +101,7 @@ intrinsic_sending :: fn(index: CalleeIndex, callee: Callee, q: i64) -> Sending |
     if callee !is DirectFn {
         return null
     }
-    door :: index.doors[callee.decl.id] ?? return null
+    door :: index.doors[callee.decl.id] else return null
     if door.runs == q {
         return Sending { .runs = true, .launcher = callee.decl.name }
     }
@@ -117,7 +117,7 @@ intrinsic_sending :: fn(index: CalleeIndex, callee: Callee, q: i64) -> Sending |
 
 // Whether `callee` hands something to a task, or holds a lock for a lambda.
 opens_door :: fn(index: CalleeIndex, callee: Callee) -> bool {
-    door :: index.door_of(callee) ?? return false
+    door :: index.door_of(callee) else return false
     return door.runs != null || door.gives != null || door.exclusive != null
 }
 

@@ -164,7 +164,7 @@ walks_values :: fn(t: Type, typed: TypedProgram) -> bool {
     if is_valued_enum(t) || is_integer_param(t, typed) {
         return true
     }
-    values :: integer_values(t) ?? return false
+    values :: integer_values(t) else return false
     return !values.hi_open
 }
 
@@ -233,7 +233,7 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
         // or its `Into` toward one (`string`) ; a range, under its integer's.
         is EnumType | PrimitiveType | RangeType -> {
             elements :: typed.impl_tables.iter_element_types
-            return impl_side(typed, elements, iter_ty, "") ?? TY_UNRESOLVED
+            return impl_side(typed, elements, iter_ty, "") else TY_UNRESOLVED
         }
         is TraitType  -> {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
@@ -248,7 +248,7 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             // in that body, and it is what LSP hover and the typecheck snapshots
             // read. Concretising it is the LOWERER's job, per instance: the entry's
             // `Substitution` binds `T`, and `resolve_element_type` applies it.
-            return core_trait_arg(iter_ty, TRAIT_ITERATOR) ?? TY_UNRESOLVED
+            return core_trait_arg(iter_ty, TRAIT_ITERATOR) else TY_UNRESOLVED
         }
         _                   -> { return TY_UNRESOLVED }
     }
@@ -314,7 +314,7 @@ test_for_in_array_narrows_binding :: fn() -> void {
 
 first_for_in_binding_span :: fn(src: string) -> Span | null {
     parsed :: parse_source(with_integers(src), "t.vader")
-    f :: first_fn_decl(parsed.program.decls) ?? return null
+    f :: first_fn_decl(parsed.program.decls) else return null
     b :: f.body
     if b is AST.BlockExpr {
         for s in b.stmts {

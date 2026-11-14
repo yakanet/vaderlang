@@ -69,7 +69,7 @@ INCLUDE_PATHS_FLAG :: "--include-paths="
 /// @param request  what the CLI asks.
 /// @return         the arguments to place after the driver binary.
 export driver_request_args :: fn(request: DriverRequest) -> string[] {
-    args :: [request.build.project_root ?? "", request.toolchain_root]
+    args :: [request.build.project_root else "", request.toolchain_root]
     match request.mode {
         .Build    -> {}
         .Check    -> { args.push(CHECK_FLAG) }
@@ -238,7 +238,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
     args :: ["driver"]
     args.push_all(driver_request_args(sent))
     received :: parse_driver_request(args)
-    assert_eq(received.build.project_root ?? "", "/p")
+    assert_eq(received.build.project_root else "", "/p")
     assert_eq(received.toolchain_root, "/t")
     assert(received.mode == .Prepare, "the mode crosses")
     assert_eq(received.selected, "tool")
@@ -247,7 +247,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
     assert_eq(received.build.cc, "")
     assert_eq(received.build.ldflags, "-L lib -lm")
     assert_eq(received.build.emit, "c")
-    assert_eq((received.build.target ?? host_target()).to_string(), "linux-x86_64")
+    assert_eq((received.build.target else host_target()).to_string(), "linux-x86_64")
     assert(received.build.no_split, "`--no-split` crosses")
     assert(!received.build.verify, "`--verify` was not asked")
     assert(received.build.verify_bounds, "the bounds verification crosses")
@@ -257,7 +257,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
 @test
 test_driver_request_defaults_to_a_debug_build_of_every_entry :: fn() -> void {
     received :: parse_driver_request(["driver", "/p"])
-    assert_eq(received.build.project_root ?? "", "/p")
+    assert_eq(received.build.project_root else "", "/p")
     assert_eq(received.toolchain_root, "")
     assert(received.mode == .Build, "a build")
     assert(!received.build.release, "in debug")

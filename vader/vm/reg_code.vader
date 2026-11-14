@@ -279,7 +279,7 @@ import "std/testing"
 @test
 test_pack_operands_round_trip :: fn() -> void {
     for [a, b, c] in [[-1, 0, 7], [0x1F_FFFF, -0x10_0000, 0xF_FFFF], [-0x20_0000, 5, -1]] {
-        w :: pack_operands(a, b, c) ?? 0
+        w :: pack_operands(a, b, c) else 0
         assert_eq(operand_a(w), a)
         assert_eq(operand_b(w), b)
         assert_eq(operand_c(w), c)
@@ -289,7 +289,7 @@ test_pack_operands_round_trip :: fn() -> void {
 @test
 test_boxed_counts_keep_a_long_array_new :: fn() -> void {
     c :: boxed_counts(4096, 1)
-    w :: pack_operands(0, 0, c) ?? 0
+    w :: pack_operands(0, 0, c) else 0
     assert_eq(boxed_pops(operand_c(w)), 4096)
     assert_eq(boxed_pushes(operand_c(w)), 1)
 }

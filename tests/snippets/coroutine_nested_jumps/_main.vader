@@ -14,7 +14,7 @@ below :: fn(i: i32, n: i32) -> i32 | null = if i < n { i } else { null }
 // `continue` in the initializer of a `let`.
 evens :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n {
-        v :: even(i) ?? continue
+        v :: even(i) else continue
         yield v
     }
 }
@@ -22,7 +22,7 @@ evens :: fn(n: i32) -> Iterator<i32> {
 // `continue` in a yielded value: the statement after the `yield` is skipped too.
 evens_with_tail :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n {
-        yield even(i) ?? continue
+        yield even(i) else continue
         println("tail ${i}")
     }
 }
@@ -30,7 +30,7 @@ evens_with_tail :: fn(n: i32) -> Iterator<i32> {
 // `break` leaves the loop and the body after it still runs.
 until_three :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n {
-        v :: below(i, 3) ?? break
+        v :: below(i, 3) else break
         yield v
     }
     yield 100
@@ -39,7 +39,7 @@ until_three :: fn(n: i32) -> Iterator<i32> {
 // `return` ends the stream.
 stop_at_three :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n {
-        v :: below(i, 3) ?? return
+        v :: below(i, 3) else return
         yield v
     }
     yield 100

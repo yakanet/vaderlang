@@ -213,8 +213,8 @@ import "std/testing"
 test_headers_find_a_name_in_any_case :: fn() -> void {
     headers :: Headers {}
     headers.add("Content-Type", "text/plain")
-    assert_eq(headers.get("content-type") ?? "", "text/plain")
-    assert_eq(headers.get("CONTENT-TYPE") ?? "", "text/plain")
+    assert_eq(headers.get("content-type") else "", "text/plain")
+    assert_eq(headers.get("CONTENT-TYPE") else "", "text/plain")
     assert(headers.get("Content-Length") == null, "an absent name is null")
 }
 
@@ -225,7 +225,7 @@ test_headers_keep_the_lines_of_one_name_in_order :: fn() -> void {
     headers.add("Host", "example.org")
     headers.add("accept", "text/plain")
     assert_eq(headers.get_all("Accept").join(" | "), "text/html | text/plain")
-    assert_eq(headers.get("Accept") ?? "", "text/html")
+    assert_eq(headers.get("Accept") else "", "text/html")
 }
 
 @test
@@ -244,7 +244,7 @@ test_headers_remove_leaves_the_other_names :: fn() -> void {
     headers.add("Host", "example.org")
     headers.remove("accept")
     assert_eq(headers.count(), 1)
-    assert_eq(headers.get("Host") ?? "", "example.org")
+    assert_eq(headers.get("Host") else "", "example.org")
 }
 
 @test

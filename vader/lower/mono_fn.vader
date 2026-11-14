@@ -40,7 +40,7 @@ drain_generic_fn_instances :: fn(
     // until none holds work.
     for pending_instances(project_ctx) {
         for {
-            inst :: project_ctx.fn_instance_queue.pop() ?? break
+            inst :: project_ctx.fn_instance_queue.pop() else break
             built :: build_fn_instance_decl(inst, typed, project_ctx, diags)
             match built {
                 is null -> {}
@@ -51,11 +51,11 @@ drain_generic_fn_instances :: fn(
         // members (`Map<Any, bool>.Contains.contains__Any__bool`), deduped
         // via `materialized_impl_keys`.
         for {
-            recv :: project_ctx.generic_impl_recv_queue.pop() ?? break
+            recv :: project_ctx.generic_impl_recv_queue.pop() else break
             materialize_impl_members_for(recv, typed, project_ctx, project)
         }
         for {
-            inst :: project_ctx.member_instance_queue.pop() ?? break
+            inst :: project_ctx.member_instance_queue.pop() else break
             materialize_member_instance(inst, project_ctx, project)
         }
     }
@@ -160,8 +160,8 @@ build_fn_instance_decl :: fn(
     // body, so they append nothing.
     synth_start :: project_ctx.synth_decls.len()
     owner_module_id :: inst.owner_module
-    owner_typed :: typed.modules[owner_module_id] ?? return null
-    fn_decl :: owner_typed.fn_decls[inst.fn_symbol.id] ?? return null
+    owner_typed :: typed.modules[owner_module_id] else return null
+    fn_decl :: owner_typed.fn_decls[inst.fn_symbol.id] else return null
     // Monomorphization flavor, see `fn_instance_flavor`, a 3-way classifier shared
     // with the call site so the registered instance mangle reconciles with this body:
     //   Mono: a body needing its instance's real types (`fn_needs_concrete_instances`)
@@ -237,7 +237,7 @@ build_fn_instance_decl :: fn(
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
 // sound: its reads route through the runtime-dispatched op.
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
-    rt :: fn_decl.return_type ?? return false
+    rt :: fn_decl.return_type else return false
     if rt is ArrayTypeExpr {
         id :: rt.element
         if id is IdentExpr {
@@ -292,8 +292,8 @@ fn_instance_flavor :: fn(
 // on its mangle, so its suffix is irrelevant. The suffix the call site derives from
 // this MUST equal the flavor the materialiser computes for the same instance.
 call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) -> InstanceFlavor {
-    owner_typed :: ctx.project.typed.modules[fn_sym.module] ?? return .Erased
-    fd :: owner_typed.fn_decls[fn_sym.id] ?? return .Erased
+    owner_typed :: ctx.project.typed.modules[fn_sym.module] else return .Erased
+    fd :: owner_typed.fn_decls[fn_sym.id] else return .Erased
     return fn_instance_flavor(ctx.project.impls, fd, owner_typed, type_args)
 }
 
@@ -345,9 +345,9 @@ materialize_nongeneric_imported_fns :: fn(
     // fixpoint loop re-enters this fn after surfacing harvests further free
     // fns, and the queue holds only the entries no earlier pass emitted.
     for {
-        fn_sym :: project_ctx.nongeneric_imported_queue.pop() ?? break
-        module_typed :: typed.modules[fn_sym.module] ?? continue
-        fn_decl :: module_typed.fn_decls[fn_sym.id] ?? continue
+        fn_sym :: project_ctx.nongeneric_imported_queue.pop() else break
+        module_typed :: typed.modules[fn_sym.module] else continue
+        fn_decl :: module_typed.fn_decls[fn_sym.id] else continue
         // Bodyless externs are surfaced up front in `lower_project`'s stdlib
         // branch: skip to avoid a duplicate import entry for the same symbol.
         if fn_decl.body == null {
@@ -381,13 +381,13 @@ materialize_nongeneric_imported_consts :: fn(
     // queue, so the materialise and surface fixpoint re-enters without
     // re-lowering earlier entries.
     for {
-        const_sym :: project_ctx.nongeneric_imported_const_queue.pop() ?? break
+        const_sym :: project_ctx.nongeneric_imported_const_queue.pop() else break
         if const_sym.id in project_ctx.awaiting_value {
             project_ctx.awaited_consts.push(const_sym)
             continue
         }
-        module_typed :: typed.modules[const_sym.module] ?? continue
-        const_decl :: module_typed.const_decls[const_sym.id] ?? continue
+        module_typed :: typed.modules[const_sym.module] else continue
+        const_decl :: module_typed.const_decls[const_sym.id] else continue
         synth_start :: project_ctx.synth_decls.len()
         lowered :: lower_const_decl(const_decl, module_typed, project_ctx, diags)
         if lowered != null {

@@ -15,7 +15,7 @@ Connection :: struct {
 
 // Takes a line off the read buffer.
 read_lines :: fn(conn: Connection, events: Channel<string>) -> void {
-    line :: conn.read_buffer.remove_last() ?? return
+    line :: conn.read_buffer.remove_last() else return
     events.send(line)
 }
 

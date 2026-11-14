@@ -35,7 +35,6 @@
   snippet.chained :: fn(n: i32) -> string {  // snippet$chained
       s: string = {
           __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          s: IOError | null | string = __coalesce_0
           if __coalesce_0 is null {
               {
                   return "absent"
@@ -59,7 +58,6 @@
   snippet.leave :: fn(n: i32) -> i32 {  // snippet$leave
       v: i32 = {
           __coalesce_0: i32 | null = snippet.lookup(n)
-          v: i32 | null = __coalesce_0
           if __coalesce_0 is null {
               return -1
               @unreachable("`??` fallback diverges")
@@ -79,7 +77,6 @@
               n: i32 = __for_arr_0[__for_i_2]
               v: i32 = {
                   __coalesce_3: i32 | null = snippet.lookup(n)
-                  v: i32 | null = __coalesce_3
                   if __coalesce_3 is null {
                       continue
                       @unreachable("`??` fallback diverges")

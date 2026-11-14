@@ -21,9 +21,9 @@ import "toolchain/span"
 /// caller's kind-check filter the wrong shape).
 follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
     if sym.kind != .ImportBinding { return sym }
-    targets :: ctx.typed.import_targets ?? return sym
+    targets :: ctx.typed.import_targets else return sym
     if targets is ImportTargetTable {
-        st :: targets.symbol_targets[sym.id] ?? return sym
+        st :: targets.symbol_targets[sym.id] else return sym
         if st is SymbolTarget { return st.symbol }
     }
     return sym
@@ -32,11 +32,11 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
 // A call to a top-level generic fn lowers to a direct call to its monomorphized
 // instance, at the type arguments the typecheck recorded (`emit_generic_fn_call`).
 try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    callee_ident :: as_ident(call.callee) ?? return null
+    callee_ident :: as_ident(call.callee) else return null
     // An overloaded name binds to its first declaration ; the overload the
     // typecheck picked is the one this call instantiates.
     fn_sym :: recorded_fn_symbol(ctx, call)
-        ?? follow_import_binding(ctx, resolve_ident(ctx, callee_ident.span) ?? return null)
+        else follow_import_binding(ctx, resolve_ident(ctx, callee_ident.span) else return null)
     if fn_sym.kind != .Fn { return null }
     callee_ty :: ctx.types.expr_type(callee_ident)
     if callee_ty !is FnType {
@@ -54,7 +54,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
 emit_generic_fn_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, params: Type[], callee_span: Span,
 ) -> LoweredExpr | null {
-    mangled :: recorded_instance_mangle(ctx, call, .Call, fn_sym) ?? return null
+    mangled :: recorded_instance_mangle(ctx, call, .Call, fn_sym) else return null
     lowered_args :: lower_call_args(ctx, call.args, params, 0)
     return LoweredCall {
         .span = call.span,
@@ -74,7 +74,7 @@ emit_generic_fn_call :: fn(
 recorded_instance_mangle :: fn(
     ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Symbol,
 ) -> string | null {
-    type_args :: recorded_type_args(ctx, node, role, fn_sym) ?? return null
+    type_args :: recorded_type_args(ctx, node, role, fn_sym) else return null
     if !all_concrete(type_args) {
         return null
     }

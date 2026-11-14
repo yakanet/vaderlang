@@ -36,12 +36,12 @@ import "vader/support/integer"
 /// @param value  the value's type.
 /// @param slot   the slot's type, or null when unknown.
 stored_conversion :: fn(value: Type, slot: Type | null) -> MachineInteger | null {
-    known :: slot ?? return null
+    known :: slot else return null
     if value is RangeType && known is RangeType && same_interval(value.bounds, known.bounds) {
         return null
     }
-    held :: held_integer(value) ?? return null
-    target :: integer_member(known, held) ?? return null
+    held :: held_integer(value) else return null
+    target :: integer_member(known, held) else return null
     if target.name == held.name {
         return null
     }
@@ -58,7 +58,7 @@ integer_member :: fn(slot: Type, held: MachineInteger) -> MachineInteger | null 
     }
     found: MachineInteger | null = null
     for v in slot.variants {
-        candidate :: held_integer(v) ?? continue
+        candidate :: held_integer(v) else continue
         if candidate.name == held.name {
             return candidate
         }
@@ -84,7 +84,7 @@ narrower :: fn(candidate: MachineInteger, found: MachineInteger | null) -> bool 
 /// @param slot   the type of the slot it moves into, or null when unknown.
 /// @return       the local holding the value as the slot does.
 held_in :: fn(fn_ctx: FnCtx, value: LocalId, slot: Type | null, span: Span) -> LocalId {
-    target :: stored_conversion(fn_ctx.locals[i64(value)].type, slot) ?? return value
+    target :: stored_conversion(fn_ctx.locals[i64(value)].type, slot) else return value
     return cast_local(fn_ctx, value, machine_integer_type(target), "cast", span)
 }
 
@@ -105,7 +105,7 @@ held_use_in :: fn(
     slot: Type | null,
     span: Span,
 ) -> LocalId {
-    target :: stored_conversion(use, slot) ?? return read_as(fn_ctx, value, use, span)
+    target :: stored_conversion(use, slot) else return read_as(fn_ctx, value, use, span)
     stored :: held_integer(fn_ctx.locals[i64(value)].type)
     if stored != null && stored.name == target.name {
         return value
@@ -144,8 +144,8 @@ narrowed_read :: fn(held: Type, use: Type) -> bool {
     if held is RangeType && use is RangeType && same_interval(held.bounds, use.bounds) {
         return false
     }
-    stored :: held_integer(held) ?? return false
-    used :: held_integer(use) ?? return false
+    stored :: held_integer(held) else return false
+    used :: held_integer(use) else return false
     return stored.name != used.name
 }
 
@@ -165,7 +165,7 @@ computation_width :: fn(left: Type, right: Type | null, result: Type) -> RangeTy
     if left is RangeType && same_bounds(left, right) && same_bounds(left, result) {
         return null
     }
-    width :: computation_integer(left, right, result) ?? return null
+    width :: computation_integer(left, right, result) else return null
     return machine_integer_type(width)
 }
 
@@ -180,7 +180,7 @@ same_bounds :: fn(left: RangeType, other: Type | null) -> bool {
 
 // The machine integer of `computation_width`.
 computation_integer :: fn(left: Type, right: Type | null, result: Type) -> MachineInteger | null {
-    l :: held_integer(left) ?? return null
+    l :: held_integer(left) else return null
     as_integer :: held_integer(result)
     r :: operand_width(right, l)
     if r == null {
@@ -211,7 +211,7 @@ operand_width :: fn(right: Type | null, left: MachineInteger) -> MachineInteger 
 /// @param result  the operation's type.
 /// @param width   the integer it is computed in (`computation_width`), or null.
 computed_type :: fn(result: Type, width: RangeType | null) -> Type {
-    known :: width ?? return result
+    known :: width else return result
     if !is_stored_as_integer(result) {
         return result
     }
@@ -238,7 +238,7 @@ SlotTypes :: struct {
 /// Note the fields of the struct `d` lays out.
 note_struct_fields :: fn(slots: SlotTypes, d: CFGStructDecl) -> void {
     slots.fields[layout_key(d.origin, d.mangled)] = d.fields
-    sym :: d.origin.symbol ?? return
+    sym :: d.origin.symbol else return
     if d.origin.type_arguments.len() == 0 {
         slots.plain_fields[sym.id] = d.fields
     }
@@ -251,7 +251,7 @@ note_struct_fields :: fn(slots: SlotTypes, d: CFGStructDecl) -> void {
 /// @param origin   what the struct was laid out from.
 /// @param mangled  its mangled name.
 export layout_key :: fn(origin: MonoEntry, mangled: string) -> string {
-    sym :: origin.symbol ?? return mangled
+    sym :: origin.symbol else return mangled
     return type_intern_key(mk_struct(sym, origin.type_arguments))
 }
 
@@ -284,7 +284,7 @@ params_of :: fn(slots: SlotTypes, callee: Symbol) -> Type[] {
     if function != null {
         return slots.function_params[function]
     }
-    imported :: import_called(slots.callees, callee) ?? return []
+    imported :: import_called(slots.callees, callee) else return []
     return slots.import_params[imported]
 }
 
@@ -298,7 +298,7 @@ literal_slots :: fn(slots: SlotTypes, t: Type) -> Type[] {
     if tuple != null {
         return tuple.elements
     }
-    fields :: laid_out_fields(slots, t) ?? return []
+    fields :: laid_out_fields(slots, t) else return []
     out: Type[]: []
     for f in fields {
         out.push(f.type)
@@ -315,12 +315,12 @@ literal_slots :: fn(slots: SlotTypes, t: Type) -> Type[] {
 field_slot :: fn(slots: SlotTypes, t: Type, name: string) -> Type | null {
     if t is UnionType {
         for v in t.variants {
-            found :: field_slot(slots, v, name) ?? continue
+            found :: field_slot(slots, v, name) else continue
             return found
         }
         return null
     }
-    fields :: laid_out_fields(slots, t) ?? return null
+    fields :: laid_out_fields(slots, t) else return null
     for f in fields {
         if f.name == name {
             return f.type
@@ -343,7 +343,7 @@ laid_out_fields :: fn(slots: SlotTypes, t: Type) -> CFGStructField[] | null {
 ///
 /// @param t  the array's type.
 element_slot :: fn(t: Type) -> Type | null {
-    array :: array_backing(t) ?? return null
+    array :: array_backing(t) else return null
     return array.element
 }
 

@@ -271,7 +271,7 @@ current_block :: fn(s: FnState) -> CBlock {
     }
     node :: s.open_nodes[s.open_nodes.len() - 1]
     if node is CIf {
-        return node.else_block ?? node.then_block
+        return node.else_block else node.then_block
     }
     return node.body
 }

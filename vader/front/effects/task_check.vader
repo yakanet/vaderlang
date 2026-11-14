@@ -78,7 +78,7 @@ check_door :: fn(
         if !body.in_region(door, region, p, s.root) {
             continue
         }
-        t :: strongest_clash(paths, task, s) ?? continue
+        t :: strongest_clash(paths, task, s) else continue
         // A clash with a write the crossings share is that fault's too: each task
         // returning its part ends both.
         held :: shared.find((w) -> w.holds(paths, t))
@@ -174,7 +174,7 @@ strength :: fn(k: TouchKind) -> i32 = match k {
 // The group of `s`: the other task that makes it, or the touch alone.
 group_of :: fn(body: TaskBody, door: Door, s: Touch) -> string {
     for other in body.doors {
-        entry :: other.entry ?? continue
+        entry :: other.entry else continue
         if body.is_other_task(door, other) && inside(entry.span, s.at) {
             return "task ${entry.span.start.offset} ${s.root}"
         }
@@ -210,7 +210,7 @@ keep_outermost :: fn(
     }
     folded: Folded[]: []
     for group in order {
-        c :: kept[group] ?? continue
+        c :: kept[group] else continue
         same :: folded.find((f) -> f.first.fault.detail == c.fault.detail)
         if same == null {
             folded.push(Folded { .first = c })
@@ -232,7 +232,7 @@ holds_strictly :: fn(outer: Span, inner: Span) -> bool =
 
 // How the detail names what a door hands a task to run.
 entry_label :: fn(door: Door) -> string {
-    q :: door.param ?? return "what the task runs"
+    q :: door.param else return "what the task runs"
     if q < door.site.sources.len() {
         source :: door.site.sources[q]
         if source is AST.IdentExpr {
@@ -253,7 +253,7 @@ by_another_task :: fn(body: TaskBody, door: Door, s: Touch) -> bool {
         return true
     }
     for other in body.doors {
-        entry :: other.entry ?? continue
+        entry :: other.entry else continue
         if body.is_other_task(door, other) && inside(entry.span, s.at) {
             return true
         }
@@ -403,7 +403,7 @@ check_rebinds :: fn(
     out: TaskFault[],
     seen: Set<string>,
 ) -> void {
-    entry :: door.entry ?? return
+    entry :: door.entry else return
     line :: door.site.at.start.line
     for c in body.captured_slots(entry) {
         root :: body.root_of_slot(c.slot)

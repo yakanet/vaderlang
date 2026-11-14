@@ -25,7 +25,7 @@ slot_value_text :: fn(names: DumpNames, value: LoweredExpr, slot: Type, indent: 
     if value is LoweredBlock {
         return braced_text(names, value, indent)
     }
-    return bare_literal_text(value) ?? expr_text(names, value, indent)
+    return bare_literal_text(value) else expr_text(names, value, indent)
 }
 
 // @partial: only the numeric and char literals have a bare spelling to give.

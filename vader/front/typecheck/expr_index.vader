@@ -113,7 +113,7 @@ dispatched_index_args :: fn(
     diags: Diagnostic[],
 ) -> Type[] | null {
     method :: index_method(trait_key)
-    args :: dispatched_trait_args(e, target, trait_key, method, typed, diags) ?? return null
+    args :: dispatched_trait_args(e, target, trait_key, method, typed, diags) else return null
     record_site(typed, e, index_role(trait_key), dispatched_callee(target, trait_key, method, args))
     if target is TypeParamType {
         keep_instances_concrete(typed)
@@ -133,7 +133,7 @@ dispatched_trait_args :: fn(
 ) -> Type[] | null {
     if target is UnionType {
         span :: e.target.span
-        member :: union_trait_member(target, trait_key, method, span, typed, diags) ?? return null
+        member :: union_trait_member(target, trait_key, method, span, typed, diags) else return null
         // A refused dispatch is already reported : its key and element are unknown.
         if member.refused {
             return [TY_UNRESOLVED, TY_UNRESOLVED]
@@ -146,8 +146,8 @@ dispatched_trait_args :: fn(
 // The `<key, value>` arguments of `trait_key` when `target` dispatches through it.
 trait_dispatch_args :: fn(target: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
     if target is TypeParamType {
-        bound :: typed.resolved.type_param_bounds[target.symbol.id] ?? return null
-        args :: bounded_trait_args(bound, trait_key, typed) ?? return null
+        bound :: typed.resolved.type_param_bounds[target.symbol.id] else return null
+        args :: bounded_trait_args(bound, trait_key, typed) else return null
         return if args.len() < 2 { null } else { args }
     }
     if target is TraitType && trait_key_of(target.symbol) == trait_key && target.args.len() >= 2 {
@@ -366,7 +366,7 @@ index_param :: fn(target: Type, table: Map<string, Type>, typed: TypedProgram) -
     if target !is StructType {
         return null
     }
-    tmpl :: impl_side(typed, table, target, "") ?? return null
+    tmpl :: impl_side(typed, table, target, "") else return null
     return substitute_struct_args(tmpl, target, typed)
 }
 

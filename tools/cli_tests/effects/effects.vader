@@ -55,8 +55,8 @@ test_the_frozen_checks_see_the_constants_and_singletons_of_another_module :: fn(
     dumped :: run_vader(["dump", "--stage=effects", IMPORTED]).unwrap()
     assert_eq(dumped.exit, 0)
     assert("# Diagnostics" !in dumped.stdout, dumped.stdout)
-    frozen :: dumped.stdout.split_first("# frozen\n") ?? ["", ""]
-    sites :: frozen.1.split_first("\n\n") ?? ["", ""]
+    frozen :: dumped.stdout.split_first("# frozen\n") else ["", ""]
+    sites :: frozen.1.split_first("\n\n") else ["", ""]
     expected :: "  app 22:30 copy CFG\n  app 24:27 copy CAPS\nwrite fault: 0, call fault: 0, "
         + "unknown call: 0, copy: 2, copy elided: 0, binding shared: 0, copy unread: 0, "
         + "view kept: 0, view returned: 0"

@@ -147,9 +147,9 @@ import "std/testing"
 @test
 test_checked_add_narrow :: fn() -> void {
     assert(checked_add(8, true, 250, 10) == null, "u8 250 + 10")
-    assert_eq(checked_add(8, true, 250, 5) ?? -1, 255)
+    assert_eq(checked_add(8, true, 250, 5) else -1, 255)
     assert(checked_add(32, false, 0x7FFF_FFFF, 1) == null, "i32 max + 1")
-    assert_eq(checked_add(32, true, 0x7FFF_FFFF, 1) ?? 0, 0x8000_0000)
+    assert_eq(checked_add(32, true, 0x7FFF_FFFF, 1) else 0, 0x8000_0000)
     assert(checked_add(32, true, 0xFFFF_FFFF, 1) == null, "u32 max + 1")
 }
 
@@ -157,7 +157,7 @@ test_checked_add_narrow :: fn() -> void {
 test_checked_sub_narrow :: fn() -> void {
     assert(checked_sub(8, true, 3, 4) == null, "u8 3 - 4")
     assert(checked_sub(32, false, -0x8000_0000, 1) == null, "i32 min - 1")
-    assert_eq(checked_sub(32, false, -0x7FFF_FFFF, 1) ?? 0, -0x8000_0000)
+    assert_eq(checked_sub(32, false, -0x7FFF_FFFF, 1) else 0, -0x8000_0000)
 }
 
 @test
@@ -166,7 +166,7 @@ test_checked_mul_narrow :: fn() -> void {
     assert(checked_mul(8, false, 64, 2) == null, "i8 64 * 2")
     assert(checked_mul(16, true, 256, 256) == null, "u16 256 * 256")
     assert(checked_mul(32, true, 0xFFFF_FFFF, 0xFFFF_FFFF) == null, "u32 max * max")
-    assert_eq(checked_mul(32, true, 0x1_0000, 0xFFFF) ?? 0, 0xFFFF_0000)
+    assert_eq(checked_mul(32, true, 0x1_0000, 0xFFFF) else 0, 0xFFFF_0000)
 }
 
 @test
@@ -177,14 +177,14 @@ test_checked_64_bit :: fn() -> void {
     assert(checked_mul(64, false, 3_037_000_500, 3_037_000_500) == null, "i64 square past max")
     assert(checked_sub(64, true, 0, 1) == null, "u64 0 - 1")
     assert(checked_add(64, true, -1, 1) == null, "u64 max + 1")
-    assert_eq(checked_mul(64, true, 1 << 32, 1 << 31) ?? 0, I64_MIN)
+    assert_eq(checked_mul(64, true, 1 << 32, 1 << 31) else 0, I64_MIN)
 }
 
 @test
 test_checked_negation :: fn() -> void {
     assert(checked_negation(8, false, -128) == null, "i8 -(-128)")
-    assert_eq(checked_negation(8, false, 127) ?? 0, -127)
+    assert_eq(checked_negation(8, false, 127) else 0, -127)
     assert(checked_negation(64, false, I64_MIN) == null, "i64 -min")
     assert(checked_negation(8, true, 1) == null, "u8 -1")
-    assert_eq(checked_negation(64, true, 0) ?? -1, 0)
+    assert_eq(checked_negation(64, true, 0) else -1, 0)
 }

@@ -62,7 +62,7 @@ publishes_for :: fn(message: JsonValue, uri: string) -> bool =
         && string_at(message, ["params", "uri"]) == uri
 
 // The code of the diagnostic `diagnostic`.
-code_of :: fn(diagnostic: JsonValue) -> string = string_member(diagnostic, "code") ?? ""
+code_of :: fn(diagnostic: JsonValue) -> string = string_member(diagnostic, "code") else ""
 
 // The diagnostics of `diagnostics` a resolver or a typecheck reports.
 errors :: fn(diagnostics: JsonValue[]) -> JsonValue[] =
@@ -119,7 +119,7 @@ DOCUMENT :: "lsp-test.vader"
 ///
 /// @param location  a location the server answered, its `uri` read.
 export is_in_document :: fn(location: JsonValue) -> bool {
-    uri :: string_member(location, "uri") ?? ""
+    uri :: string_member(location, "uri") else ""
     return uri.ends_with(DOCUMENT)
 }
 
@@ -127,7 +127,7 @@ export is_in_document :: fn(location: JsonValue) -> bool {
 ///
 /// @param uri  a `file` URI.
 export file_of :: fn(uri: string) -> string {
-    parts :: uri.split_last("/") ?? return uri
+    parts :: uri.split_last("/") else return uri
     return parts.1
 }
 
@@ -203,7 +203,7 @@ export write_files :: fn(dir: string, files: [string, string][]) -> void {
 // parameters it needs and ignores the others, so each request carries them all.
 query_request :: fn(id: i64, uri: string, query: Query) -> string {
     at :: spot_json(query.at)
-    until :: query.until ?? query.at
+    until :: query.until else query.at
     range :: """{"start":${at},"end":${spot_json(until)}}"""
     document :: """{"uri":${quoted(uri)}}"""
     item :: """{"uri":${quoted(uri)},"selectionRange":{"start":${at},"end":${at}}}"""
@@ -232,7 +232,7 @@ spot_json :: fn(spot: Spot) -> string = """{"line":${spot.line},"character":${sp
 export result_of :: fn(messages: JsonValue[], id: i64) -> JsonValue {
     for message in messages {
         if answers(message, id) {
-            return member(message, "result") ?? JsonNull {}
+            return member(message, "result") else JsonNull {}
         }
     }
     return JsonNull {}
@@ -245,7 +245,7 @@ export result_of :: fn(messages: JsonValue[], id: i64) -> JsonValue {
 /// @param needle  the text looked for: its first occurrence.
 /// @param into    how many characters past its start, in codepoints.
 export position_of :: fn(source: string, needle: string, into: i64 = 0) -> Spot {
-    parts :: source.split_first(needle) ?? panic("no `${needle}` in the source")
+    parts :: source.split_first(needle) else panic("no `${needle}` in the source")
     lines :: (parts.0 + needle.byte_slice(0, prefix_bytes(needle, into))).split("\n")
     return Spot { .line = lines.len() - 1, .character = utf16_length(lines[lines.len() - 1]) }
 }
@@ -397,7 +397,7 @@ request :: fn(client: Client, method: string, params: string) -> JsonValue {
     head :: """{"jsonrpc":"2.0","id":${id},"method":${quoted(method)}"""
     client.send("${head},\"params\":${params}}")
     answer :: client.awaited((m) -> answers(m, id), "answer to `${method}`")
-    return member(answer, "result") ?? JsonNull {}
+    return member(answer, "result") else JsonNull {}
 }
 
 // Whether `message` is the answer to the request `id`.

@@ -256,7 +256,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             }
         }
         is bc.CallIndirect -> {
-            t_fn :: fn_type_of(module, op.type_id) ?? return false
+            t_fn :: fn_type_of(module, op.type_id) else return false
             count :: t_fn.params.len()
             flush(t, pc)
             base :: pop_to(t, count + 1)
@@ -378,7 +378,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             if !is_boxed(op) {
                 return false
             }
-            e :: effect_of(module, f, op) ?? return false
+            e :: effect_of(module, f, op) else return false
             boxed(t, pc, op, e.pops, e.pushes)
         }
     }
@@ -713,8 +713,8 @@ drop_last_op :: fn(t: Translation) -> void {
 
 // Push a scalar constant ; `collect_constants` gave it a register.
 push_constant :: fn(t: Translation, c: bc.ConstOp) -> void {
-    scalar :: scalar_of(c) ?? panic("reg_translate: a string has no constant register")
-    k :: t.constants[scalar] ?? panic("reg_translate: constant missing from the prepass")
+    scalar :: scalar_of(c) else panic("reg_translate: a string has no constant register")
+    k :: t.constants[scalar] else panic("reg_translate: constant missing from the prepass")
     t.stack.push(Pending { .kind = .Constant, .register = i32(t.code.slots + k) })
 }
 
@@ -758,7 +758,7 @@ collect_constants :: fn(
 add_constant :: fn(
     c: bc.ConstOp, consts: i64[], tags: StackTag[], indices: Map<Scalar, i64>,
 ) -> void {
-    scalar :: scalar_of(c) ?? return
+    scalar :: scalar_of(c) else return
     fresh :: consts.len()
     if indices.put_absent(scalar, fresh) == null {
         consts.push(scalar.bits)

@@ -606,7 +606,7 @@ export element_count :: fn(a: ArrayVal) -> i64 {
 ///
 /// @param a  the array; mutated in place.
 export own_bytes :: fn(a: ArrayVal) -> void {
-    raw :: a.raw ?? return
+    raw :: a.raw else return
     fresh: Value[]: [] * raw.length
     for j in 0..<raw.length {
         fresh.push(element_at(a, j))

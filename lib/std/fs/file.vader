@@ -487,7 +487,7 @@ read_rest :: fn(f: File, chunk: i64) -> string {
     out: u8[]: []
     into: u8[]: [0] * chunk
     for {
-        got :: f.read(into) ?? return out.bytes_to_string()
+        got :: f.read(into) else is null { return out.bytes_to_string() }
         if got is IOError {
             assert(false, "the read succeeds")
             return ""

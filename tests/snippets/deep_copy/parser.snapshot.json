@@ -241,8 +241,7 @@
                   "name": "n"
                 }
               }
-            ],
-            "coalesce": true
+            ]
           }
         },
         "decorators": [],

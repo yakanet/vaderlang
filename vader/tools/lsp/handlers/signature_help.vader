@@ -28,18 +28,18 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     uri  :: position_uri(params)
     line :: cursor_field(params, "line")
     char :: cursor_field(params, "character")
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
 
     cached :: typed_project_for(state, file_path)
     project :: cached.project
     result :: cached.result
-    entry :: project.modules[project.entry] ?? return JsonNull {}
-    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonNull {}
+    entry :: project.modules[project.entry] else return JsonNull {}
+    sf :: source_file_for_path(entry.module.files, file_path) else return JsonNull {}
 
     [target_line, target_col] :: state.span_point(file_path, line, char)
-    call :: find_enclosing_call(sf.program.decls, target_line, target_col) ?? return JsonNull {}
+    call :: find_enclosing_call(sf.program.decls, target_line, target_col) else return JsonNull {}
 
-    sig :: build_signature(call, result.typed) ?? return JsonNull {}
+    sig :: build_signature(call, result.typed) else return JsonNull {}
     active :: active_param_index(call, target_line, target_col) + receiver_slots(call, result.typed)
 
     sigs: JsonValue[]: [sig]
@@ -58,7 +58,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
 /// Resolve `call.callee` to its `FnDecl` and render it as a
 /// SignatureInformation. Returns `null` on miss (no fn behind the callee).
 build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | null {
-    fn_decl :: lookup_fn_decl(call.callee, typed) ?? return null
+    fn_decl :: lookup_fn_decl(call.callee, typed) else return null
     label :: render_signature_label(fn_decl)
     params: JsonValue[]: []
     for p in fn_decl.params {

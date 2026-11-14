@@ -117,7 +117,7 @@ test_slot_align_of_a_narrow_scalar_is_its_width :: fn() -> void {
 
 slot_size_test_enum :: fn(repr: string) -> Type = EnumType {
     .symbol = slot_size_test_sym(),
-    .repr = machine_integer_named(repr) ?? panic("`${repr}` is no machine integer"),
+    .repr = machine_integer_named(repr) else panic("`${repr}` is no machine integer"),
     .indices = Map<string, i64> {},
 }
 

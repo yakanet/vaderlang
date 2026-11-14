@@ -31,7 +31,7 @@ Button :: struct {
 }
 
 press :: fn(b: Button) -> string {
-    handler :: b.on_click ?? return "nothing"
+    handler :: b.on_click else return "nothing"
     return handler(b.label)
 }
 

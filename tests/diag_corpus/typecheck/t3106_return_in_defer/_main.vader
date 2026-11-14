@@ -25,7 +25,7 @@ bare :: fn(x: i32) -> i32 {
 
 through_coalesce :: fn(x: i32) -> i32 {
     defer {
-        y :: maybe(x) ?? return
+        y :: maybe(x) else return
         _ :: y
     }
     return x

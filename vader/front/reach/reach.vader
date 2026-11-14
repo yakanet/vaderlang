@@ -72,7 +72,7 @@ export is_wired_root :: fn(decorators: AST.Decorator[], name: string) -> bool {
 /// @param name   the referencing name.
 /// @param refs   what it references ; kept as the edge list when `name` is new.
 export register_refs :: fn(edges: Map<string, string[]>, name: string, refs: string[]) -> void {
-    current :: edges.put_absent(name, refs) ?? return
+    current :: edges.put_absent(name, refs) else return
     for r in refs {
         current.push(r)
     }
@@ -100,7 +100,7 @@ export bfs_reachable :: fn(
         if !reachable.add(n) {
             continue
         }
-        nrefs :: refs_by_name[n] ?? continue
+        nrefs :: refs_by_name[n] else continue
         for r in nrefs {
             work.push(r)
         }

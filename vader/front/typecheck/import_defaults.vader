@@ -46,7 +46,7 @@ publish_default_resolutions :: fn(
 // ---- the walk -------------------------------------------------------------
 
 copy_maybe_resolutions :: fn(e: AST.Expr | null, from: TypedProgram, into: TypedProgram) -> void {
-    present :: e ?? return
+    present :: e else return
     AST.inspect(present, (n) -> copy_node_resolutions(n, from, into))
 }
 
@@ -132,7 +132,7 @@ copy_binding_resolutions :: fn(b: AST.LetBinding, from: TypedProgram, into: Type
 // variable cannot be given (its counter is a bare `let`).
 copy_span :: fn(span: Span, from: TypedProgram, into: TypedProgram) -> void {
     key :: span.hash()
-    sym :: from.resolved.idents[key] ?? return
+    sym :: from.resolved.idents[key] else return
     into.resolved.idents[key] = sym
     if sym.id in from.resolved.rebind_free {
         into.resolved.rebind_free.add(sym.id)

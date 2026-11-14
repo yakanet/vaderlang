@@ -50,7 +50,7 @@ export evaluate_project :: fn(
 // living there (e.g. a std/core formatter table moved to a sibling file) and its
 // readers emit an unreachable. Mirrors `lower.vader::module_decls`.
 lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
-    module_loaded :: loaded.modules[module_id] ?? return null
+    module_loaded :: loaded.modules[module_id] else return null
     files :: module_loaded.module.files
     if files.len() == 0 { return null }
     return concat_file_decls(files)
@@ -106,7 +106,7 @@ evaluate_module_decls :: fn(
             if AST.decorators_have(decl.decorators, "comptime") {
                 continue
             }
-            symbol :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span) else continue
             if program.comptime_decls[symbol.id] !is null {
                 continue
             }

@@ -49,7 +49,7 @@ PushCache :: struct {
 /// @param pc  the `Loop` opener's pc.
 /// @return    the plan, or `null` when nothing is liftable here.
 pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
-    sc :: scope_ending_for_opener(s.scopes, pc) ?? return null
+    sc :: scope_ending_for_opener(s.scopes, pc) else return null
     slot := -1
     kind := ArrayKind.I32
     pushes := 0
@@ -244,9 +244,9 @@ pc_emit_writeback :: fn(s: FnState, n: i32) -> void {
 // are non-null for this kind, so the fallbacks are unreachable rather than
 // meaningful.
 pc_fill_of :: fn(k: ArrayKind) -> SlotFill =
-    typed_array_fill_for(k) ?? SlotFill { .cty = "int32_t", .val = .I32 }
+    typed_array_fill_for(k) else SlotFill { .cty = "int32_t", .val = .I32 }
 
-pc_helper_of :: fn(k: ArrayKind) -> string = push_helper_for(k) ?? "vader_array_push_i32"
+pc_helper_of :: fn(k: ArrayKind) -> string = push_helper_for(k) else "vader_array_push_i32"
 
 // ---- region state ---------------------------------------------------------
 

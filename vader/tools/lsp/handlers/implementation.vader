@@ -45,7 +45,7 @@ import "vader/front/resolver"
 /// @return        a JSON array of `Location`, or `JsonNull`.
 export handle_implementation :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return JsonNull {}
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return JsonNull {}
     project :: union_project_for(state, file_path)
     [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
     name :: target_group_name_at(project, file_path, line, column)
@@ -84,14 +84,14 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
 // implement the method. `JsonNull` when the cursor names neither, or nothing
 // implements it.
 trait_implementations :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    target :: cursor_target(state, params) ?? return JsonNull {}
+    target :: cursor_target(state, params) else return JsonNull {}
     out: JsonValue[]: []
     if target.decl.kind == .Trait {
         for impl in (TypeWalk { .target = target }).impls_of() {
             out.push(span_location(target, impl.for_type.span))
         }
     } else if target.decl.kind == .Fn {
-        owner :: owning_trait(target) ?? return JsonNull {}
+        owner :: owning_trait(target) else return JsonNull {}
         for impl in (TypeWalk { .target = owner }).impls_of() {
             for m in impl.members {
                 // A member declared for the impl from its trait (an inherited
@@ -116,12 +116,12 @@ owning_trait :: fn(target: DeclTarget) -> DeclTarget | null {
         return null
     }
     idx :: doc_index_for(target.state, target.indices, target.decl_path)
-    declared :: idx.find_toplevel(owner) ?? return null
+    declared :: idx.find_toplevel(owner) else return null
     if declared.kind != .Trait {
         return null
     }
     at :: declared.name_span.start
-    site :: site_at(target.index, target.decl_path, at.line, at.column) ?? return null
+    site :: site_at(target.index, target.decl_path, at.line, at.column) else return null
     return DeclTarget {
         ...target,
         .site = site,
@@ -140,7 +140,7 @@ target_group_name_at :: fn(
     project: LoadedProject, file_path: string, line: i32, col: i32,
 ) -> string {
     for [_, lm] in project.modules {
-        sf :: source_file_for_path(lm.module.files, file_path) ?? continue
+        sf :: source_file_for_path(lm.module.files, file_path) else continue
         for d in sf.program.decls {
             if d is AST.FnDecl {
                 if !AST.decorators_have(d.decorators, "target") {
@@ -159,6 +159,6 @@ target_group_name_at :: fn(
 // declaration), more for a body. Returns 0 when there is no `@target` at all:
 // callers pair it with `AST.decorators_have`, which separates the two cases.
 target_selector_count :: fn(decorators: AST.Decorator[]) -> i64 {
-    target :: AST.find_decorator(decorators, "target") ?? return 0
+    target :: AST.find_decorator(decorators, "target") else return 0
     return target.args.len()
 }

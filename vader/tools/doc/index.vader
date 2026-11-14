@@ -165,7 +165,7 @@ index_module :: fn(checked: DocCheck, loaded: LoadedModule, base: string) -> Doc
         }
         files.push(ctx.path)
         for d in file.program.decls {
-            decl :: doc_decl(ctx, d) ?? continue
+            decl :: doc_decl(ctx, d) else continue
             decls.push(decl)
         }
     }
@@ -192,7 +192,7 @@ doc_decl :: fn(ctx: FileContext, d: Decl) -> DocDecl | null {
     if !decl_is_public(d) {
         return null
     }
-    name_span :: decl_name_span(d) ?? return null
+    name_span :: decl_name_span(d) else return null
     function :: decl_function(ctx, d)
     return DocDecl {
         .name = name_span.text_in(ctx.file.content),
@@ -220,7 +220,7 @@ decl_function :: fn(ctx: FileContext, d: Decl) -> DocFunction | null {
 // Whether no caller can reach the impl `d`: the type it is for names a type its
 // module declares without `export`, which no export may name either (T3052).
 is_hidden_impl :: fn(ctx: FileContext, d: ImplDecl) -> bool {
-    typed :: ctx.typed ?? return false
+    typed :: ctx.typed else return false
     return Tc.first_unexported_type(Tc.type_from_expr(d.for_type, typed.resolved, [])) != null
 }
 
@@ -247,13 +247,13 @@ impl_decl :: fn(ctx: FileContext, d: ImplDecl) -> DocDecl {
 assign_ids :: fn(module: string, decls: DocDecl[]) -> void {
     counts :: Map<string, i64> {}
     for d in decls {
-        counts[d.name] = (counts[d.name] ?? 0) + 1
+        counts[d.name] = (counts[d.name] else 0) + 1
     }
     seen :: Map<string, i64> {}
     for d in decls {
-        n :: seen[d.name] ?? 0
+        n :: seen[d.name] else 0
         seen[d.name] = n + 1
-        d.id = doc_id(module, d.name) + overload_suffix(counts[d.name] ?? 0, n)
+        d.id = doc_id(module, d.name) + overload_suffix(counts[d.name] else 0, n)
         for m in d.members {
             m.id = "${d.id}.${m.name}"
         }
@@ -304,7 +304,7 @@ targets_of :: fn(d: Decl, target_decls: FnDecl[]) -> string[] {
         if body.name != d.name {
             continue
         }
-        selectors :: target_selectors(body.decorators) ?? continue
+        selectors :: target_selectors(body.decorators) else continue
         if selectors.is_bare && has_body(body) {
             return []
         }

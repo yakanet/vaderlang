@@ -68,7 +68,7 @@ export ensure_described :: fn(self: ServerState, root: string) -> bool {
         ])
         if started is ProcessError {
             warn_undescribed(root, "`vader info` could not be started")
-            settle(self, root, known, known.roots ?? [])
+            settle(self, root, known, known.roots else [])
         } else {
             known.job = started
         }
@@ -91,8 +91,8 @@ export is_describing_any :: fn(self: ServerState) -> bool {
 /// describes, or say why there are none. Never waits.
 export poll_descriptions :: fn(self: ServerState) -> void {
     for [root, known] in self.driven {
-        job :: known.job ?? continue
-        finished :: job.poll() ?? continue
+        job :: known.job else continue
+        finished :: job.poll() else is null { continue }
         known.job = null
         answer :: description_of(finished)
         if finished is ProcessResult && finished.exit == DRIVER_NOT_COMPILED_EXIT {
@@ -102,7 +102,7 @@ export poll_descriptions :: fn(self: ServerState) -> void {
             // The roots known before stay: a `build.vader` being edited fails
             // often, and its last good answer serves better. A first failure
             // settles on none, so that diagnostics flow again.
-            settle(self, root, known, known.roots ?? [])
+            settle(self, root, known, known.roots else [])
         } else {
             known.warned = false
             settle(self, root, known, answer)
@@ -135,7 +135,7 @@ modified_at :: fn(path: string) -> i64 {
 // stay, or none for a first run, so that diagnostics flow, and the user is told
 // once that a build lets the editor see the driver's roots.
 await_build :: fn(self: ServerState, root: string, known: DrivenProject) -> void {
-    settle(self, root, known, known.roots ?? [])
+    settle(self, root, known, known.roots else [])
     if known.warned {
         return
     }
@@ -180,7 +180,7 @@ settle :: fn(self: ServerState, root: string, known: DrivenProject, roots: strin
     register_project_roots(root, roots)
     forget_project_analyses(self, root)
     for [uri, _] in self.docs {
-        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? continue
+        path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else continue
         if is_inside(path, root) {
             self.dirty[uri] = true
         }

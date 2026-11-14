@@ -27,8 +27,8 @@ VirtOut :: import "vader/emit/virt"
 /// @param params  the `textDocument/inlayHint` params.
 export handle_virt_inlay_hint :: fn(state: ServerState, params: JsonValue) -> string {
     uri :: position_uri(params)
-    li :: state.virt_line_index_for(uri) ?? return "[]"
-    listing :: state.virt_listing_for(uri) ?? return "[]"
+    li :: state.virt_line_index_for(uri) else return "[]"
+    listing :: state.virt_listing_for(uri) else return "[]"
     first :: range_field(params, "start", "line")
     last :: range_field(params, "end", "line")
     module :: listing.module
@@ -47,7 +47,7 @@ export handle_virt_inlay_hint :: fn(state: ServerState, params: JsonValue) -> st
             if label == "" {
                 continue
             }
-            end :: code_end(li.source, li.line_starts[lines[k]]) ?? continue
+            end :: code_end(li.source, li.line_starts[lines[k]]) else continue
             if !empty {
                 sb.append(",")
             }

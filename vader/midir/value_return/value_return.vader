@@ -93,7 +93,7 @@ choose_functions :: fn(
             }
             // `S | null` built at every return: one more value than the tuple
             // case, the tag, and a rebuild at each call site.
-            shape :: nullable_return_of(f) ?? continue
+            shape :: nullable_return_of(f) else continue
             chosen[f.mangled] = ReturnShape {
                 .elements = shape.fields,
                 .rebuilt = shape.struct_type,
@@ -141,7 +141,7 @@ rewrite_return_block :: fn(
     if t !is TermReturn {
         return b
     }
-    returned :: term_return_single(t) ?? return b
+    returned :: term_return_single(t) else return b
     // The common shape: the tuple is built right here, so its field locals ARE
     // the values to hand back and the `struct.new` becomes unread: DCE drops
     // it, and that is where the allocation goes.

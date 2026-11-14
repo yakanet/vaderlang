@@ -24,7 +24,7 @@ AST :: import "toolchain/ast"
 enum_for_bare_variant :: fn(
     expected: Type | null, variant: string, typed: TypedProgram,
 ) -> Type | null {
-    slot :: expected ?? return null
+    slot :: expected else return null
     lifted :: lift_enum_placeholder(slot, typed)
     // Union expected: descend into variants and pick the first enum
     // that carries `.variant`. Lets `fn() -> Direction | Error { return .North }`

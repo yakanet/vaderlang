@@ -51,7 +51,7 @@ lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr | null {
 export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr {
     @partial match expr {
         is AST.IdentExpr -> {
-            replacement :: lookup_subst(subst, expr.name) ?? return clone_ident(expr)
+            replacement :: lookup_subst(subst, expr.name) else return clone_ident(expr)
             return substitute_type_expr(replacement, new_subst())
         }
         is AST.BinaryExpr -> {

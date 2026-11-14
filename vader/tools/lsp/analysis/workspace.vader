@@ -58,7 +58,7 @@ export reference_view :: fn(
     if kept != null && kept.entry_path == project.entry_path && kept.key == target.key {
         return kept.view
     }
-    view :: wider_view(state, uri, project, index, target) ?? local
+    view :: wider_view(state, uri, project, index, target) else local
     state.usages = UsagesCache {
         .entry_path = project.entry_path,
         .key        = target.key,
@@ -83,7 +83,7 @@ export reference_sites :: fn(
 wider_view :: fn(
     state: ServerState, uri: string, project: ProjectCache, index: ReferenceIndex, target: RefSite,
 ) -> ReferenceView | null {
-    roots :: document_roots(state, uri) ?? return null
+    roots :: document_roots(state, uri) else return null
     name :: span_text(state, target.span)
     spelling :: import_spelling(index, target.key)
     extra :: modules_mentioning(state, roots.paths, name, spelling, project.module_name_index)
@@ -93,7 +93,7 @@ wider_view :: fn(
     wide :: state.check_with_modules(project.entry_path, extra)
     wide_index :: build_reference_index(wide.project, wide.result)
     at :: target.span.start
-    again :: site_at(wide_index, at.file, at.line, at.column) ?? return null
+    again :: site_at(wide_index, at.file, at.line, at.column) else return null
     return ReferenceView { .index = wide_index, .sites = sites_of(wide_index, again.key) }
 }
 
@@ -112,7 +112,7 @@ sites_of :: fn(index: ReferenceIndex, key: i64) -> RefSite[] {
 // a file may name the target without one : a member, reached through its type,
 // or a prelude export.
 import_spelling :: fn(index: ReferenceIndex, key: i64) -> string {
-    module :: index.exports[key] ?? return ""
+    module :: index.exports[key] else return ""
     if module == PRELUDE {
         return ""
     }
@@ -168,7 +168,7 @@ file_names :: fn(
     if !mentions_word(text, name) || spelling !in text {
         return false
     }
-    header :: parse_module_header(text, path) ?? return false
+    header :: parse_module_header(text, path) else return false
     return header.name == module
 }
 

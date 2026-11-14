@@ -74,7 +74,7 @@ BufferedReader implements Reader {
             if into.len() >= self.capacity {
                 return self.source.read(into)
             }
-            got :: self.refill() ?? return null
+            got :: self.refill() else is null { return null }
             if got is IOError {
                 return got
             }
@@ -103,7 +103,7 @@ export read_line :: fn(
     r: BufferedReader,
     max: i64 = LINE_LIMIT_DEFAULT,
 ) -> string | null | IOError {
-    line :: r.take_through('\n', max) ?? return null
+    line :: r.take_through('\n', max) else is null { return null }
     if line is IOError {
         return line
     }
@@ -131,7 +131,7 @@ line_break_of :: fn(line: u8[]) -> i64 {
 /// @param max  the longest line taken, in bytes.
 export lines :: fn(r: BufferedReader, max: i64 = LINE_LIMIT_DEFAULT) -> Iterator<string> {
     for {
-        line :: r.read_line(max) ?? break
+        line :: r.read_line(max) else is null { break }
         if line is IOError {
             r.error = line
             return
@@ -150,7 +150,7 @@ export lines :: fn(r: BufferedReader, max: i64 = LINE_LIMIT_DEFAULT) -> Iterator
 /// @error            `IOError` when the source cannot be read, and
 ///                   `.InvalidInput` for a run longer than `max`.
 export read_until :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | null | IOError {
-    run :: r.take_through(delimiter, max) ?? return null
+    run :: r.take_through(delimiter, max) else is null { return null }
     if run is IOError {
         return run
     }
@@ -174,7 +174,7 @@ export read_until :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | nu
 ///   reader.read_through('\n', 16)   // [97, 13, 10]
 ///   reader.read_through('\n', 16)   // [98]: the source ended first
 export read_through :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | null | IOError {
-    run :: r.take_through(delimiter, max) ?? return null
+    run :: r.take_through(delimiter, max) else is null { return null }
     if run is IOError {
         return run
     }
@@ -202,7 +202,7 @@ take_through :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | null | 
         }
         unread :: r.buffer[r.next..<r.filled]
         at :: unread.index_of(delimiter)
-        taken :: at ?? unread.len()
+        taken :: at else unread.len()
         if run.len() + taken > max {
             return IOError {
                 .msg = "more than ${max} bytes before the delimiter",
@@ -260,7 +260,7 @@ export read_to_end :: fn(r: BufferedReader, max: i64) -> u8[] | IOError {
     out: u8[]: []
     for {
         if r.next == r.filled {
-            got :: r.refill() ?? break
+            got :: r.refill() else is null { break }
             if got is IOError {
                 return got
             }
@@ -294,7 +294,7 @@ export peek :: fn(r: BufferedReader, count: i64) -> u8[] | null | IOError {
         r.compact()
     }
     for r.filled - r.next < count {
-        got :: r.source.read(r.buffer[r.filled..<r.capacity]) ?? break
+        got :: r.source.read(r.buffer[r.filled..<r.capacity]) else is null { break }
         if got is IOError {
             return got
         }
@@ -311,7 +311,7 @@ export peek :: fn(r: BufferedReader, count: i64) -> u8[] | null | IOError {
 // null at its end.
 refill :: fn(r: BufferedReader) -> i64 | null | IOError {
     r.reserve()
-    got :: r.source.read(r.buffer) ?? return null
+    got :: r.source.read(r.buffer) else is null { return null }
     if got is IOError {
         return got
     }

@@ -158,7 +158,7 @@ type_generic_call :: fn(
 settle_generic_member_dispatch :: fn(
     c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    callee :: typed.call_sites.calls[c.id] ?? return
+    callee :: typed.call_sites.calls[c.id] else return
     if callee is TraitMember {
         report_generic_member_at_run_time(c, callee.member, "on a trait value", diags)
         return
@@ -308,8 +308,8 @@ seed_ufcs_infer :: fn(ctx: CallInference, vars: Map<i32, Type>) -> void {
     if callee !is AST.FieldExpr {
         return
     }
-    receiver_param :: ctx.typed.ufcs_receiver_types[callee.id] ?? return
-    target_ty :: ctx.typed.expr_types[callee.target.id] ?? return
+    receiver_param :: ctx.typed.ufcs_receiver_types[callee.id] else return
+    target_ty :: ctx.typed.expr_types[callee.target.id] else return
     pattern :: substitute_map(receiver_param, vars)
     unify_argument_infer(pattern, target_ty, ctx.typed, ctx.solutions, ctx.held)
 }
@@ -331,7 +331,7 @@ unify_struct_to_trait_infer :: fn(
     if actual is TypeParamType {
         // The argument then converts at each instance, from its concrete type.
         keep_instances_concrete(typed)
-        bound :: typed.type_param_bound_traits[actual.symbol.id] ?? return
+        bound :: typed.type_param_bound_traits[actual.symbol.id] else return
         for t in bound.traits {
             if t.symbol.id == pattern.symbol.id {
                 unify_infer_each(pattern.args, t.args, solutions, held)
@@ -339,7 +339,7 @@ unify_struct_to_trait_infer :: fn(
         }
         return
     }
-    impl_args :: resolve_struct_trait_args(actual, trait_key_of(pattern.symbol), typed) ?? return
+    impl_args :: resolve_struct_trait_args(actual, trait_key_of(pattern.symbol), typed) else return
     unify_infer_each(pattern.args, impl_args, solutions, held)
 }
 
@@ -426,7 +426,7 @@ zonk_module_tables :: fn(typed: TypedProgram) -> void {
         if callee !is DirectFn {
             continue
         }
-        bindings :: callee.bindings ?? continue
+        bindings :: callee.bindings else continue
         zonk_table(bindings, solutions)
     }
 }
@@ -441,7 +441,7 @@ zonk_table :: fn<K: Hash & Equals>(
         }
     }
     for k in stale {
-        t :: table[k] ?? continue
+        t :: table[k] else continue
         table[k] = zonk(t, solutions)
     }
 }

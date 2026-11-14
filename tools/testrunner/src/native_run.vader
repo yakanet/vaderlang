@@ -39,7 +39,7 @@ check_native :: fn(ctx: WorkerContext, case: Case, dir: string) -> StageReport |
         return actual
     }
     report :: report_of(case, NATIVE_STAGE, actual, false, began)
-    detail :: report.detail ?? return report
+    detail :: report.detail else return report
     return StageReport { ...report, .detail = "${detail}(the binary is kept: ${binary})\n" }
 }
 

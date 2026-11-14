@@ -103,14 +103,14 @@ ENV_TOGGLES: EnvToggle[]: [
 check_environment :: fn() -> Check[] {
     out: Check[]: []
     for setting in GC_SETTINGS {
-        raw :: get_env(setting.name) ?? continue
+        raw :: get_env(setting.name) else continue
         if raw == "" {
             continue
         }
         out.push(check_ok(env_check_name(setting.name), setting.effect, "${setting.name}=${raw}"))
     }
     for toggle in ENV_TOGGLES {
-        raw :: get_env(toggle.name) ?? continue
+        raw :: get_env(toggle.name) else continue
         if !toggle.is_on(raw) {
             continue
         }

@@ -1460,8 +1460,7 @@
                             }
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     },
                     "right": {
                       "kind": "IntLitExpr",

@@ -76,7 +76,7 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     cutoff :: @max(u64) / b
     last :: @max(u64) % b
     for c in s {
-        d :: hex_digit_value(c) ?? return ParseError { .msg = "invalid digit" }
+        d :: hex_digit_value(c) else return ParseError { .msg = "invalid digit" }
         if d >= base {
             return ParseError { .msg = "invalid digit" }
         }

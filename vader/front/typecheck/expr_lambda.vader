@@ -91,7 +91,7 @@ infer_lambda :: fn(
     if e.body.trailing is null && body !is NeverType {
         // No expectation reads as "promises nothing", which the void gate below
         // already rejects, so the two cases need only one test.
-        promised :: expected_ret ?? TY_VOID
+        promised :: expected_ret else TY_VOID
         if !is_void(promised) && promised !is UnresolvedType {
             diags.push(
                 typecheck_error(

@@ -31,11 +31,11 @@ ForwardingGraph :: struct {
 propagate_type_param_observation :: fn(
     modules: Map<string, TypedProgram>, diags: Diagnostic[],
 ) -> void {
-    forwarding :: forwarding_graph(modules) ?? return
+    forwarding :: forwarding_graph(modules) else return
     solve_reachability(Graph { .successors = forwarding.successors }, forwarding.observing)
     for [_, typed] in modules {
         for [caller, _] in typed.call_sites.calls_in_fn {
-            node :: forwarding.nodes[caller] ?? continue
+            node :: forwarding.nodes[caller] else continue
             if forwarding.observing[node] {
                 typed.fn_observes_type_params[caller] = true
             }
@@ -52,11 +52,11 @@ reject_observing_impl_forwards :: fn(
 ) -> void {
     for [_, typed] in modules {
         for [call, span] in typed.impl_param_forwards {
-            callee :: typed.call_sites.calls[call] ?? continue
+            callee :: typed.call_sites.calls[call] else continue
             if callee !is DirectFn {
                 continue
             }
-            node :: forwarding.nodes[callee.decl.id] ?? continue
+            node :: forwarding.nodes[callee.decl.id] else continue
             if !forwarding.observing[node] {
                 continue
             }
@@ -92,7 +92,7 @@ forwarding_graph :: fn(modules: Map<string, TypedProgram>) -> ForwardingGraph | 
     for [_, typed] in modules {
         for [caller, calls] in typed.call_sites.calls_in_fn {
             for call in calls {
-                callee :: typed.call_sites.calls[call] ?? continue
+                callee :: typed.call_sites.calls[call] else continue
                 if callee is DirectFn && forwards_type_params(callee) {
                     from :: node_of(forwarding, caller)
                     to :: node_of(forwarding, callee.decl.id)
@@ -118,7 +118,7 @@ node_of :: fn(forwarding: ForwardingGraph, id: i64) -> i32 {
 // Whether the call to `callee` hands it a type naming one of the enclosing body's
 // own type parameters.
 forwards_type_params :: fn(callee: DirectFn) -> bool {
-    bindings :: callee.bindings ?? return false
+    bindings :: callee.bindings else return false
     for [_, bound] in bindings {
         if type_contains_type_param(bound) {
             return true

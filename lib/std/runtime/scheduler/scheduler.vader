@@ -135,7 +135,7 @@ export InitGate :: struct {
 /// `gate`, or a new gate when there is none yet.
 ///
 /// @param gate  the gate of a value, null until its first build.
-export gate_or_new :: fn(gate: InitGate | null) -> InitGate = gate ?? InitGate {}
+export gate_or_new :: fn(gate: InitGate | null) -> InitGate = gate else InitGate {}
 
 /// Run `build` holding `gate`, once no other thread holds it ; false, without
 /// running it, when the running thread holds it already.

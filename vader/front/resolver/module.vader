@@ -168,7 +168,7 @@ export holds_build_driver :: fn(dir: string) -> bool {
     if text is IOError {
         return false
     }
-    header :: parse_module_header(text, path) ?? return false
+    header :: parse_module_header(text, path) else return false
     return header.name == DRIVER_MODULE
 }
 
@@ -257,7 +257,7 @@ export normalized_path :: fn(path: string) -> string =
 export resolve_sidecar :: fn(subdir: string, marker: string) -> string = sidecar_root(
     subdir,
     marker,
-) ?? subdir
+) else subdir
 
 /// The toolchain's `<base>/subdir`, or null when it does not hold `marker`,
 /// i.e. when the running binary is not part of a bundle. `<base>` is
@@ -339,7 +339,7 @@ export TOOLCHAIN_HOME_VAR :: "VADER_HOME"
 /// @param marker  file proving the candidate really is that resource.
 /// @return        the resolved root, or null when unset or unusable.
 export home_root :: fn(subdir: string, marker: string) -> string | null {
-    home :: get_env(TOOLCHAIN_HOME_VAR) ?? return null
+    home :: get_env(TOOLCHAIN_HOME_VAR) else return null
     if home == "" {
         return null
     }
@@ -418,7 +418,7 @@ test_a_registered_toolchain_root_provides_its_sidecars :: fn() -> void {
     found :: sidecar_root("kit", "marker")
     register_toolchain_root("")
     if get_env(TOOLCHAIN_HOME_VAR) == null {
-        assert_eq(found ?? "", join_path(toolchain, "kit"))
+        assert_eq(found else "", join_path(toolchain, "kit"))
     }
 }
 

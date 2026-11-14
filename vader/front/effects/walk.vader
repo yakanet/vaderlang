@@ -91,14 +91,14 @@ skeleton_of :: fn(
     }
     for i in 0..<decl.params.len() {
         p :: decl.params[i]
-        sym :: typed.resolved.idents[p.span.hash()] ?? continue
+        sym :: typed.resolved.idents[p.span.hash()] else continue
         ctx.param_positions[sym.id] = i
         if holds_references(typed.param_types[p.span.hash()]) {
             ctx.slots[sym.id] = i
             ctx.seen_names.add(sym.id)
         }
     }
-    body :: decl.body ?? return ctx.s
+    body :: decl.body else return ctx.s
     result :: ctx.block_value(body)
     ctx.escape(result, ctx.result_effect, body.span)
     ctx.note_frozen_body(node, null)
@@ -125,7 +125,7 @@ stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
 }
 
 return_stmt :: fn(ctx: WalkCtx, s: AST.ReturnStmt) -> void {
-    value :: s.value ?? return
+    value :: s.value else return
     ctx.escape(ctx.value(value), ctx.return_effect(), s.span)
 }
 
@@ -140,7 +140,7 @@ return_effect :: fn(ctx: WalkCtx) -> Effect {
 
 // A generator hands out what it yields through the iterator its call returns.
 yielded :: fn(ctx: WalkCtx, value: i64 | null, at: Span) -> void {
-    held :: value ?? return
+    held :: value else return
     ctx.s.add_mark(held, ROOT, .Returned, at, ctx.index.paths.path_to(ITEM))
 }
 
@@ -275,7 +275,7 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: i64 | null) -> void 
         ctx.escape(value, .Stored, name.span)
         return
     }
-    sym :: ctx.typed.resolved.idents[name.span.hash()] ?? return
+    sym :: ctx.typed.resolved.idents[name.span.hash()] else return
     ctx.s.rebinds.push(Use { .slot = slot, .name = sym.name, .at = name.span })
     ctx.bind_copy(slot, value, name.span, sym)
 }
@@ -315,7 +315,7 @@ bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: i64 | null) -> void {
 // The binding whose name sits at `span` now holds `value` too, a copy of what it
 // holds of a frozen value.
 bind_symbol :: fn(ctx: WalkCtx, span: Span, value: i64 | null) -> void {
-    sym :: ctx.typed.resolved.idents[span.hash()] ?? return
+    sym :: ctx.typed.resolved.idents[span.hash()] else return
     ctx.bind_copy(ctx.local_slot(sym, span), value, span, sym)
 }
 
@@ -334,8 +334,8 @@ local_slot :: fn(ctx: WalkCtx, sym: Symbol, span: Span) -> i64 {
 // `value` is now a part of `holder`, at `path` below it: the task check reads it as
 // a flow, the summary as the store its marks already record.
 store :: fn(ctx: WalkCtx, value: i64 | null, holder: i64 | null, path: i32, at: Span) -> void {
-    into :: value ?? return
-    from :: holder ?? return
+    into :: value else return
+    from :: holder else return
     ctx.s.stores.push(Flow { .into = into, .from = from, .path = path })
     ctx.s.stored_at.push(at)
 }
@@ -343,7 +343,7 @@ store :: fn(ctx: WalkCtx, value: i64 | null, holder: i64 | null, path: i32, at: 
 // `literal` holds the part `path` of `value`, `under` below its own value. The
 // summary records that part as kept, at `at` ; the task check follows it.
 hold :: fn(ctx: WalkCtx, literal: i64, value: i64 | null, path: i32, under: i32, at: Span) -> void {
-    from :: value ?? return
+    from :: value else return
     ctx.s.held_marks.push(ctx.s.marks.len())
     ctx.s.add_mark(from, path, .Stored, at)
     ctx.s.held.push(Flow { .into = literal, .from = from, .path = path, .under = under })
@@ -370,7 +370,7 @@ escape :: fn(ctx: WalkCtx, value: i64 | null, effect: Effect, at: Span) -> void 
 narrowed :: fn(
     ctx: WalkCtx, value: i64 | null, from: Type | null, to: Type | null,
 ) -> i64 | null {
-    view :: ctx.index.view ?? return value
+    view :: ctx.index.view else return value
     if !may_hold_view(from, view) || may_hold_view(to, view) {
         return value
     }
@@ -379,13 +379,13 @@ narrowed :: fn(
 
 // A slot holding what `value` holds one `step` down, null when `value` is.
 step_slot :: fn(ctx: WalkCtx, value: i64 | null, step: string) -> i64 | null {
-    from :: value ?? return null
+    from :: value else return null
     return ctx.path_slot(from, ctx.index.paths.path_to(step))
 }
 
 // A slot holding what `value` holds at `path` below it, null when `value` is.
 path_slot :: fn(ctx: WalkCtx, value: i64 | null, path: i32) -> i64 | null {
-    from :: value ?? return null
+    from :: value else return null
     slot :: ctx.s.fresh_slot()
     ctx.s.add_flow(slot, from, path)
     if from in ctx.pure {
@@ -401,7 +401,7 @@ union_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
     count := 0
     pure := true
     for v in values {
-        held :: v ?? continue
+        held :: v else continue
         if first == null {
             first = held
         }
@@ -415,7 +415,7 @@ union_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
     }
     slot :: ctx.s.fresh_slot()
     for v in values {
-        held :: v ?? continue
+        held :: v else continue
         ctx.s.add_flow(slot, held)
     }
     if pure {
@@ -428,7 +428,7 @@ union_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
 // A branch that holds nothing lent may still be shared, a lambda's parameter: a
 // join of frozen values with one gets a slot of its own, outside `pure`.
 one_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
-    joined :: ctx.union_of(values) ?? return null
+    joined :: ctx.union_of(values) else return null
     if joined !in ctx.pure || values.all_match((v) -> v != null) {
         return joined
     }
@@ -453,13 +453,13 @@ call :: fn(
     fn_args: (LambdaArg | ParamArg | null)[] = [],
     called: i64 | null = null,
 ) -> i64 | null {
-    c :: callee ?? return null
+    c :: callee else return null
     targets :: ctx.call_targets(c, called)
     if targets.len() == 0 {
         return null
     }
     for q in 0..<sources.len() {
-        source :: sources[q] ?? continue
+        source :: sources[q] else continue
         ctx.note_known_writes(targets, q, source)
         ctx.note_widened(c, targets, q, source)
     }
@@ -488,7 +488,7 @@ param_named :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
     if e !is AST.IdentExpr {
         return null
     }
-    sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
+    sym :: ctx.typed.resolved.idents[e.span.hash()] else return null
     return ctx.param_positions[sym.id]
 }
 
@@ -503,8 +503,8 @@ note_appended :: fn(ctx: WalkCtx, targets: CallTarget[], args: (i64 | null)[], a
     if known !is KnownEffects || known.params.len() != 2 || !grows(known.params[0]) {
         return
     }
-    into :: args[1] ?? return
-    from :: args[0] ?? return
+    into :: args[1] else return
+    from :: args[0] else return
     for a in known.params[1].accesses {
         if a.effect == .Stored {
             ctx.store(into, from, ctx.appended_path(a.path), at)

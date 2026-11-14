@@ -25,15 +25,15 @@ Virt :: import "vader/front/virt"
 /// @param params  the `textDocument/definition` params.
 export handle_virt_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    li :: state.virt_line_index_for(uri) ?? return JsonNull {}
+    li :: state.virt_line_index_for(uri) else return JsonNull {}
     text :: li.source
-    cursor :: word_under_cursor(li, params) ?? return JsonNull {}
+    cursor :: word_under_cursor(li, params) else return JsonNull {}
     if cursor.word == 0 {
         return JsonNull {}
     }
-    listing :: state.virt_listing_for(uri) ?? return JsonNull {}
-    function :: function_at(listing, i64(cursor.line)) ?? return JsonNull {}
-    k :: op_at(listing.functions[function].ops, i64(cursor.line)) ?? return JsonNull {}
+    listing :: state.virt_listing_for(uri) else return JsonNull {}
+    function :: function_at(listing, i64(cursor.line)) else return JsonNull {}
+    k :: op_at(listing.functions[function].ops, i64(cursor.line)) else return JsonNull {}
     head :: word_text(text, cursor.words[0])
     target :: if head == "br" || head == "br_if" || head == "end" {
         label :: word_text(text, cursor.words[cursor.word])
@@ -71,7 +71,7 @@ operand_line :: fn(listing: Virt.VirtListing, function: i64, k: i64, operand: i6
     if operand >= refs.len() {
         return null
     }
-    ref :: refs[operand] ?? return null
+    ref :: refs[operand] else return null
     if ref.index < 0 {
         return null
     }

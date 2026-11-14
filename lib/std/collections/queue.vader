@@ -150,9 +150,9 @@ test_queue_pops_in_pushed_order :: fn() -> void {
     q :: Queue<string> {}
     q.push("a")
     q.push("b")
-    assert_eq(q.pop() ?? "none", "a")
-    assert_eq(q.pop() ?? "none", "b")
-    assert_eq(q.pop() ?? "none", "none")
+    assert_eq(q.pop() else "none", "a")
+    assert_eq(q.pop() else "none", "b")
+    assert_eq(q.pop() else "none", "none")
 }
 
 @test
@@ -160,7 +160,7 @@ test_queue_peek_leaves_the_item :: fn() -> void {
     q :: Queue<i32> {}
     q.push(7)
     q.push(3)
-    assert_eq(q.peek() ?? -1, 7)
+    assert_eq(q.peek() else -1, 7)
     assert_eq(q.len(), 2)
 }
 
@@ -183,7 +183,7 @@ test_queue_reuses_the_place_of_a_popped_item :: fn() -> void {
     q.push(4)
     q.push(5)
     assert_eq(q.items.len(), 4)
-    assert_eq(q.pop() ?? -1, 2)
+    assert_eq(q.pop() else -1, 2)
 }
 
 @test
@@ -197,7 +197,7 @@ test_queue_keeps_its_order_when_a_wrapped_ring_grows :: fn() -> void {
     q.push(5)
     out: i32[]: []
     for {
-        x :: q.pop() ?? break
+        x :: q.pop() else break
         out.push(x)
     }
     assert_eq("${out}", "[1, 2, 3, 4, 5]")

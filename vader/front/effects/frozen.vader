@@ -78,7 +78,7 @@ export FrozenSite :: struct {
     /// conversion that read variant data (`Info(...)`).
     root: string
     origin: FrozenOrigin
-    /// A binding that takes a frozen value or another one, `x :: f() ?? CONST`: its
+    /// A binding that takes a frozen value or another one, `x :: f() else CONST`: its
     /// copy belongs where the frozen value is chosen, not at the binding.
     mixed: bool = false
     /// For a fault, the calls from the site down to the write, and the write.
@@ -218,9 +218,9 @@ frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
         return null
     }
     source :: ctx.typed.expr_types[c.args[0].value.id]
-    target :: ctx.typed.expr_types[c.id] ?? return null
+    target :: ctx.typed.expr_types[c.id] else return null
     if source is EnumType {
-        data :: enum_data_of(source, target) ?? return null
+        data :: enum_data_of(source, target) else return null
         return ctx.pure_source(ctx.variant_data_use(c, data))
     }
     if (source is TypeParamType || source is AnyType) && target is StructType
@@ -243,7 +243,7 @@ bind_copy :: fn(ctx: WalkCtx, slot: i64, value: i64 | null, span: Span, sym: Sym
     if value == null || value !in ctx.pure {
         ctx.seen_names.add(sym.id)
     }
-    from :: value ?? return
+    from :: value else return
     binding :: FrozenRoot {
         .root = ctx.s.add_copy(slot, from),
         .span = span,
@@ -345,7 +345,7 @@ fields_may_be_written :: fn(
     if !seen.add(t.symbol.id) {
         return false
     }
-    fields :: typed.struct_fields[t.symbol.id] ?? return true
+    fields :: typed.struct_fields[t.symbol.id] else return true
     for [_, field] in fields {
         if may_be_written(written, field.ty, typed, seen) {
             return true
@@ -381,8 +381,8 @@ spread_fresh :: fn(frozen: FrozenSites) -> void {
         pending.push(constant)
     }
     for pending.len() > 0 {
-        constant :: pending.remove_last() ?? break
-        for use in frozen.kept_by_constants[constant] ?? [] {
+        constant :: pending.remove_last() else break
+        for use in frozen.kept_by_constants[constant] else [] {
             if frozen.mark_fresh(use) {
                 pending.push(use.symbol)
             }
@@ -420,11 +420,11 @@ decide :: fn(
     effects: RootEffects,
     settled: TraceCtx,
 ) -> void {
-    c :: root_case(body, r, effects, settled.index.paths) ?? return
+    c :: root_case(body, r, effects, settled.index.paths) else return
     frozen.note_kept_by_constant(c, r)
     named :: c.named_use()
     view :: named.is_view()
-    kind :: frozen.outcome(c, r, view) ?? return
+    kind :: frozen.outcome(c, r, view) else return
     site :: FrozenSite {
         .span = r.span,
         .module = body.typed.resolved.display_path,
@@ -459,7 +459,7 @@ named_use :: fn(c: RootCase) -> FrozenRoot {
 root_case :: fn(
     body: FrozenBody, r: FrozenRoot, effects: RootEffects, paths: PathTable,
 ) -> RootCase | null {
-    took :: held_by(r, effects) ?? return null
+    took :: held_by(r, effects) else return null
     // A binding narrowed away from a byte array holds no view it took.
     held :: took.filter((h) -> !body.root_record(h.param).is_view() || reaches(paths, h)).collect()
     if held.is_empty() {
@@ -497,8 +497,8 @@ outcome :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot, view: bool) -> Fr
 // A use in a constant's initialiser that the constant's value keeps, with a type
 // some write reaches: a fresh value of that constant reads it fresh too.
 note_kept_by_constant :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot) -> void {
-    constant :: c.body.initialises ?? return
-    use :: r.constant ?? return
+    constant :: c.body.initialises else return
+    use :: r.constant else return
     if !frozen.hands_on_written(c, is_kept) {
         return
     }
@@ -517,7 +517,7 @@ reads_fresh :: fn(frozen: FrozenSites, c: RootCase, kind: FrozenKind) -> bool = 
 // frozen value is chosen, which also serves a binding that takes it or another
 // value.
 read_fresh :: fn(frozen: FrozenSites, use: FrozenRoot) -> void {
-    constant :: use.constant ?? return
+    constant :: use.constant else return
     frozen.mark_fresh(constant)
 }
 
@@ -597,7 +597,7 @@ written_at :: fn(frozen: FrozenSites, c: RootCase, h: Root, a: Access) -> bool {
 type_below :: fn(paths: PathTable, typed: TypedProgram, t: Type | null, path: i32) -> Type | null {
     at := t
     for step in paths.steps_of(path) {
-        at = step_type(typed, at, paths.step_names[step]) ?? return at
+        at = step_type(typed, at, paths.step_names[step]) else return at
     }
     return at
 }
@@ -609,7 +609,7 @@ step_type :: fn(typed: TypedProgram, t: Type | null, name: string) -> Type | nul
         return null
     }
     if name == ELEMENT {
-        arr :: array_backing(t) ?? return null
+        arr :: array_backing(t) else return null
         return arr.element
     }
     return declared_struct_field_type(t, name, typed)
@@ -626,7 +626,7 @@ fault_chain :: fn(
     kind: FrozenKind,
     view: bool,
 ) -> FaultChain | null {
-    set :: fault_set(effects, r.root, kind) ?? return null
+    set :: fault_set(effects, r.root, kind) else return null
     paths :: settled.index.paths
     for i in 0..<set.accesses.len() {
         a :: set.accesses[i]

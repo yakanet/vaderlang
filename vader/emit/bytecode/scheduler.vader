@@ -62,9 +62,9 @@ can_pass_through_stack :: fn(
     cur: Instruction, next: Instruction,
     use_count: i32[],
 ) -> bool {
-    dst :: dst_of(cur) ?? return false
+    dst :: dst_of(cur) else return false
     if use_count[i64(dst)] != 1 { return false }
-    first_op :: first_stack_operand(next) ?? return false
+    first_op :: first_stack_operand(next) else return false
     return first_op == dst
 }
 
@@ -72,9 +72,9 @@ can_pass_through_terminator :: fn(
     cur: Instruction, t: Terminator,
     use_count: i32[],
 ) -> bool {
-    dst :: dst_of(cur) ?? return false
+    dst :: dst_of(cur) else return false
     if use_count[i64(dst)] != 1 { return false }
-    first_op :: first_terminator_operand(t) ?? return false
+    first_op :: first_terminator_operand(t) else return false
     return first_op == dst
 }
 
@@ -93,8 +93,8 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrBinOp     -> { return ins.lhs }
         is InstrUnOp      -> { return ins.operand }
         is InstrCall      -> { return ins.args.first() }
-        is InstrCallIndirect -> { return ins.args.first() ?? ins.callee }
-        is InstrVirtualCall -> { return ins.args.first() ?? ins.receiver }
+        is InstrCallIndirect -> { return ins.args.first() else ins.callee }
+        is InstrVirtualCall -> { return ins.args.first() else ins.receiver }
         is InstrFieldGet      -> { return ins.target }
         is InstrFieldSet      -> { return ins.target }
         is InstrUnionFieldGet -> { return ins.target }

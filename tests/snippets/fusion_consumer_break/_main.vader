@@ -21,16 +21,16 @@ over_ten :: fn(v: i32) -> bool = v > 10
 above_one :: fn(v: i32) -> bool = v > 1
 
 flat_map_find :: fn() -> void {
-    fused :: [1, 2].flat_map(spread).find(over_ten) ?? -1
+    fused :: [1, 2].flat_map(spread).find(over_ten) else -1
     it :: [1, 2].flat_map(spread)
-    lazy :: it.find(over_ten) ?? -1
+    lazy :: it.find(over_ten) else -1
     println("flat_map.find: ${fused} | ${lazy}")
 }
 
 chain_find :: fn() -> void {
-    fused :: [1, 2].chain([3, 4]).find(above_one) ?? -1
+    fused :: [1, 2].chain([3, 4]).find(above_one) else -1
     it :: [1, 2].chain([3, 4])
-    lazy :: it.find(above_one) ?? -1
+    lazy :: it.find(above_one) else -1
     println("chain.find: ${fused} | ${lazy}")
 }
 

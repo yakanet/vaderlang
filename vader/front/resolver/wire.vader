@@ -49,8 +49,8 @@ wire_module :: fn(
     project: LoadedProject, out: ImportTargetTable,
 ) -> void {
     for [sym_id, info] in loaded.collected.imports {
-        target_id :: path_index[info.path] ?? continue
-        target_loaded :: project.modules[target_id] ?? continue
+        target_id :: path_index[info.path] else continue
+        target_loaded :: project.modules[target_id] else continue
         match imported :: info.imported_name {
             is null -> { out.namespace_targets[sym_id] = target_id }
             is string -> {
@@ -80,7 +80,7 @@ wire_module :: fn(
 /// can detect the "still an import-binding" case via `sym.kind`.
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
     if sym.kind != .ImportBinding { return sym }
-    st :: table.symbol_targets[sym.id] ?? return sym
+    st :: table.symbol_targets[sym.id] else return sym
     return st.symbol
 }
 

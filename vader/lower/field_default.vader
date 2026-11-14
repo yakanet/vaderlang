@@ -50,7 +50,7 @@ default_site :: fn(
     }
     owner :: owner_in_instance(field, st, ctx.typed)
     owner_decl :: ctx.typed.struct_decls[owner.symbol.id]
-        ?? panic("lower: no declaration recorded for `${owner.symbol.name}`")
+        else panic("lower: no declaration recorded for `${owner.symbol.name}`")
     return DefaultSite {
         .ctx = ctx_in_owning_module(ctx, owner.symbol.module, owner_decl, owner.args),
         .owner = owner,

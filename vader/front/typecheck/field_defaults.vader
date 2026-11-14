@@ -59,8 +59,8 @@ settle_literal_defaults :: fn(
 reject_default_cycle :: fn(
     decl: AST.StructDecl, fill: DefaultFill, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
-    closing :: fill_omitted_defaults(sym.id, [], fill, typed) ?? return
+    sym :: symbol_declared_at(typed.resolved, decl.name_span) else return
+    closing :: fill_omitted_defaults(sym.id, [], fill, typed) else return
     detail :: cycle_detail(fill, closing)
     diags.push(typecheck_error(.FieldDefaultsFillEachOther, closing.span, detail))
     for d in fill.filling {
@@ -89,7 +89,7 @@ cycle_detail :: fn(fill: DefaultFill, closing: FillingDefault) -> string {
 fill_omitted_defaults :: fn(
     struct_id: i32, provided: string[], fill: DefaultFill, typed: TypedProgram,
 ) -> FillingDefault | null {
-    fields :: typed.struct_fields[struct_id] ?? return null
+    fields :: typed.struct_fields[struct_id] else return null
     for [name, field] in fields {
         if name in provided {
             continue
@@ -99,7 +99,7 @@ fill_omitted_defaults :: fn(
         if field.owner.symbol.module != typed.resolved.path {
             continue
         }
-        default :: field.decl.default ?? continue
+        default :: field.decl.default else continue
         key :: field.decl.span.hash()
         if key in fill.filled {
             continue
@@ -119,8 +119,8 @@ fill_omitted_defaults :: fn(
         reads :: value_reads(default, typed)
         fill.consts.push_all(reads.consts)
         for lit in reads.literals {
-            lit_struct :: literal_struct(lit, typed) ?? continue
-            written :: written_fields(lit, lit_struct, typed) ?? continue
+            lit_struct :: literal_struct(lit, typed) else continue
+            written :: written_fields(lit, lit_struct, typed) else continue
             closing :: fill_omitted_defaults(lit_struct.symbol.id, written, fill, typed)
             if closing != null {
                 return closing
@@ -142,9 +142,9 @@ written_fields :: fn(lit: AST.StructLitExpr, st: StructType, typed: TypedProgram
     out: string[]: []
     for item in lit.items {
         if item is AST.StructLitSpread {
-            got :: typed.expr_types[item.expr.id] ?? return null
+            got :: typed.expr_types[item.expr.id] else return null
             decl :: typed.struct_decls[st.symbol.id]
-            given :: spread_source_fields(item, got, st, decl, typed, diag_sink()) ?? return null
+            given :: spread_source_fields(item, got, st, decl, typed, diag_sink()) else return null
             out.push_all(given)
             continue
         }
@@ -159,11 +159,11 @@ written_fields :: fn(lit: AST.StructLitExpr, st: StructType, typed: TypedProgram
 check_field_defaults :: fn(
     decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
+    sym :: symbol_declared_at(typed.resolved, decl.name_span) else return
     // The defaults the declaration writes: each is checked once, where it is written.
     for f in decl.fields {
-        dv :: f.default ?? continue
-        field :: struct_field_info(typed, sym.id, f.name) ?? continue
+        dv :: f.default else continue
+        field :: struct_field_info(typed, sym.id, f.name) else continue
         got :: check_expr(dv, field.ty, typed, diags)
         emit_mismatch_if(got, field.ty, f.span, dv, .TypeMismatch, typed, diags)
     }

@@ -342,67 +342,67 @@ reg_call :: fn(
             .OrBool  -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) != 0 || bits_of(bits, base, operand_c(w)) != 0) }
             .NotBool -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) == 0) }
             .AddCheckedI32 -> {
-                sum :: checked_registers(.Add, .I32, bits, base, w) ?? return checked_trap(f.kinds[pc], .Add, f, pc)
+                sum :: checked_registers(.Add, .I32, bits, base, w) else return checked_trap(f.kinds[pc], .Add, f, pc)
                 set_i32(bits, tags, base, operand_a(w), i32(sum))
             }
             .SubCheckedI32 -> {
-                difference :: checked_registers(.Sub, .I32, bits, base, w) ?? return checked_trap(f.kinds[pc], .Sub, f, pc)
+                difference :: checked_registers(.Sub, .I32, bits, base, w) else return checked_trap(f.kinds[pc], .Sub, f, pc)
                 set_i32(bits, tags, base, operand_a(w), i32(difference))
             }
             .MulCheckedI32 -> {
-                product :: checked_registers(.Mul, .I32, bits, base, w) ?? return checked_trap(f.kinds[pc], .Mul, f, pc)
+                product :: checked_registers(.Mul, .I32, bits, base, w) else return checked_trap(f.kinds[pc], .Mul, f, pc)
                 set_i32(bits, tags, base, operand_a(w), i32(product))
             }
             .NegCheckedI32 -> {
-                negated :: bc.checked_neg(.I32, bits_of(bits, base, operand_b(w))) ?? return checked_neg_trap(f.kinds[pc], f, pc)
+                negated :: bc.checked_neg(.I32, bits_of(bits, base, operand_b(w))) else return checked_neg_trap(f.kinds[pc], f, pc)
                 set_i32(bits, tags, base, operand_a(w), i32(negated))
             }
             .AddCheckedI64 -> {
-                sum :: checked_registers(.Add, .I64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Add, f, pc)
+                sum :: checked_registers(.Add, .I64, bits, base, w) else return checked_trap(f.kinds[pc], .Add, f, pc)
                 set_i64(bits, tags, base, operand_a(w), sum)
             }
             .SubCheckedI64 -> {
-                difference :: checked_registers(.Sub, .I64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Sub, f, pc)
+                difference :: checked_registers(.Sub, .I64, bits, base, w) else return checked_trap(f.kinds[pc], .Sub, f, pc)
                 set_i64(bits, tags, base, operand_a(w), difference)
             }
             .MulCheckedI64 -> {
-                product :: checked_registers(.Mul, .I64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Mul, f, pc)
+                product :: checked_registers(.Mul, .I64, bits, base, w) else return checked_trap(f.kinds[pc], .Mul, f, pc)
                 set_i64(bits, tags, base, operand_a(w), product)
             }
             .NegCheckedI64 -> {
-                negated :: bc.checked_neg(.I64, bits_of(bits, base, operand_b(w))) ?? return checked_neg_trap(f.kinds[pc], f, pc)
+                negated :: bc.checked_neg(.I64, bits_of(bits, base, operand_b(w))) else return checked_neg_trap(f.kinds[pc], f, pc)
                 set_i64(bits, tags, base, operand_a(w), negated)
             }
             .AddCheckedU64 -> {
-                sum :: checked_registers(.Add, .U64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Add, f, pc)
+                sum :: checked_registers(.Add, .U64, bits, base, w) else return checked_trap(f.kinds[pc], .Add, f, pc)
                 set_i64(bits, tags, base, operand_a(w), sum)
             }
             .SubCheckedU64 -> {
-                difference :: checked_registers(.Sub, .U64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Sub, f, pc)
+                difference :: checked_registers(.Sub, .U64, bits, base, w) else return checked_trap(f.kinds[pc], .Sub, f, pc)
                 set_i64(bits, tags, base, operand_a(w), difference)
             }
             .MulCheckedU64 -> {
-                product :: checked_registers(.Mul, .U64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Mul, f, pc)
+                product :: checked_registers(.Mul, .U64, bits, base, w) else return checked_trap(f.kinds[pc], .Mul, f, pc)
                 set_i64(bits, tags, base, operand_a(w), product)
             }
             .AddChecked -> {
                 kind :: f.kinds[pc]
-                sum :: checked_registers(.Add, kind, bits, base, w) ?? return checked_trap(kind, .Add, f, pc)
+                sum :: checked_registers(.Add, kind, bits, base, w) else return checked_trap(kind, .Add, f, pc)
                 set_integer(bits, tags, base, operand_a(w), kind, sum)
             }
             .SubChecked -> {
                 kind :: f.kinds[pc]
-                difference :: checked_registers(.Sub, kind, bits, base, w) ?? return checked_trap(kind, .Sub, f, pc)
+                difference :: checked_registers(.Sub, kind, bits, base, w) else return checked_trap(kind, .Sub, f, pc)
                 set_integer(bits, tags, base, operand_a(w), kind, difference)
             }
             .MulChecked -> {
                 kind :: f.kinds[pc]
-                product :: checked_registers(.Mul, kind, bits, base, w) ?? return checked_trap(kind, .Mul, f, pc)
+                product :: checked_registers(.Mul, kind, bits, base, w) else return checked_trap(kind, .Mul, f, pc)
                 set_integer(bits, tags, base, operand_a(w), kind, product)
             }
             .NegChecked -> {
                 kind :: f.kinds[pc]
-                negated :: bc.checked_neg(kind, bits_of(bits, base, operand_b(w))) ?? return checked_neg_trap(kind, f, pc)
+                negated :: bc.checked_neg(kind, bits_of(bits, base, operand_b(w))) else return checked_neg_trap(kind, f, pc)
                 set_integer(bits, tags, base, operand_a(w), kind, negated)
             }
             .ToI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w))) }
@@ -531,12 +531,12 @@ reg_call :: fn(
             }
             .StringByteLen -> {
                 at :: base + i64(operand_b(w))
-                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_len", "string")
+                s :: string_at(m, at) else return receiver_trap(m, at, f, pc, "byte_len", "string")
                 set_i32(bits, tags, base, operand_a(w), i32(s.byte_len()))
             }
             .StringByteAt -> {
                 at :: base + i64(operand_b(w))
-                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_at", "string")
+                s :: string_at(m, at) else return receiver_trap(m, at, f, pc, "byte_at", "string")
                 index :: i32_of(bits, base, operand_c(w))
                 if index < 0 || i64(index) >= s.byte_len() {
                     return Trap { .message = "byte index out of bounds" }
@@ -545,12 +545,13 @@ reg_call :: fn(
             }
             .StringIsAscii -> {
                 at :: base + i64(operand_b(w))
-                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "is_ascii", "string")
+                s :: string_at(m, at) else return receiver_trap(m, at, f, pc, "is_ascii", "string")
                 set_bool(bits, tags, base, operand_a(w), s.is_ascii())
             }
             .StringByteSlice -> {
                 at :: base + i64(operand_a(w))
-                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_slice", "string")
+                s :: string_at(m, at)
+                    else return receiver_trap(m, at, f, pc, "byte_slice", "string")
                 start :: bits_of(bits, base, operand_b(w))
                 end :: bits_of(bits, base, operand_c(w))
                 m.refs[at] = StringVal(s.byte_slice(start, end))
@@ -624,12 +625,14 @@ reg_call :: fn(
             }
             .Length -> {
                 at :: base + i64(operand_b(w))
-                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.len", "array")
+                array :: array_at(m, at)
+                    else return receiver_trap(m, at, f, pc, "array.len", "array")
                 set_i32(bits, tags, base, operand_a(w), i32(element_count(array)))
             }
             .Append -> {
                 at :: base + i64(operand_a(w))
-                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.push", "array")
+                array :: array_at(m, at)
+                    else return receiver_trap(m, at, f, pc, "array.push", "array")
                 // Tested here: `own_bytes` sets up its GC frame before its own test,
                 // and almost no array pushed to reads a string's bytes.
                 if array.raw != null {
@@ -848,7 +851,7 @@ set_field :: fn(m: RegMachine, base: i64, obj: i32, value: i32, field: i32, f: R
 try_get_element :: fn(
     m: RegMachine, base: i64, dst: i32, array_reg: i32, index_reg: i32,
 ) -> bool {
-    array :: array_at(m, base + i64(array_reg)) ?? return false
+    array :: array_at(m, base + i64(array_reg)) else return false
     index :: i32(m.bits[base + i64(index_reg)])
     raw :: array.raw
     if raw != null {
@@ -871,7 +874,7 @@ try_get_element :: fn(
 try_set_element :: fn(
     m: RegMachine, base: i64, array_reg: i32, index_reg: i32, value: i32,
 ) -> bool {
-    array :: array_at(m, base + i64(array_reg)) ?? return false
+    array :: array_at(m, base + i64(array_reg)) else return false
     index :: i32(m.bits[base + i64(index_reg)])
     if array.raw != null || index < 0 || i64(index) >= array.elements.len() {
         return false
@@ -893,7 +896,7 @@ element_trap :: fn(
 ) -> Trap {
     label :: element_label(op)
     at :: base + i64(array_reg)
-    array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, label, "array")
+    array :: array_at(m, at) else return receiver_trap(m, at, f, pc, label, "array")
     index :: i32(m.bits[base + i64(index_reg)])
     origin :: f.origin[pc]
     return Trap { .message = "${label} index ${index} out of bounds (len=${element_count(array)}) at pc=${origin}" }
@@ -912,7 +915,7 @@ set_element :: fn(
     op: RegOp,
 ) -> Trap | null {
     at :: base + i64(array_reg)
-    array :: array_at(m, at) ?? return element_trap(m, base, array_reg, index_reg, f, pc, op)
+    array :: array_at(m, at) else return element_trap(m, base, array_reg, index_reg, f, pc, op)
     index :: i32(m.bits[base + i64(index_reg)])
     if index < 0 || i64(index) >= element_count(array) {
         return element_trap(m, base, array_reg, index_reg, f, pc, op)
@@ -1077,7 +1080,7 @@ run_boxed :: fn(
 
 // Where a debugged thread stands as it calls the host.
 note_host_call :: fn(m: RegMachine, pc: i64, depth: i64) -> void {
-    session :: m.debug ?? return
+    session :: m.debug else return
     session.host_pc = pc
     session.host_depth = depth
 }
@@ -1120,7 +1123,7 @@ serve_import :: fn(
         return deep_copy_value(state.bc.types, args[0], origin)
     }
     // A thread primitive by a thread of the host (`guest_threads.vader`).
-    return serve_thread_primitive(state, m, id, args, origin, is_comptime) ?? dispatch_import(
+    return serve_thread_primitive(state, m, id, args, origin, is_comptime) else dispatch_import(
         info,
         args,
         0,
@@ -1245,7 +1248,7 @@ unwind :: fn(state: VmState, code: RegModule, m: RegMachine, is_comptime: bool) 
 // The `Line` op at `pc`: stop when its source line carries a breakpoint or ends
 // the step in progress: at the line's first op only.
 stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegFunction, pc: i64, depth: i64) -> void {
-    position :: state.bc.functions[f.index].debug[f.origin[pc]] ?? return
+    position :: state.bc.functions[f.index].debug[f.origin[pc]] else return
     if position.line == session.last_line {
         return
     }
@@ -1271,7 +1274,7 @@ parked_stack :: fn(state: VmState, m: RegMachine | null) -> PauseFrame[] {
     if m == null {
         return []
     }
-    session :: m.debug ?? return []
+    session :: m.debug else return []
     return call_stack(state, m, session.host_pc, session.host_depth)
 }
 
@@ -1429,7 +1432,7 @@ main_module :: fn(header: string[], body: string[]) -> bc.BytecodeModule | null 
 
 // The message `module` traps with, or "" when it runs to its end.
 trap_message :: fn(module: bc.BytecodeModule) -> string {
-    state :: prepared(module) ?? return ""
+    state :: prepared(module) else return ""
     result :: exec(state, [])
     if result is Trap {
         return result.message
@@ -1439,7 +1442,7 @@ trap_message :: fn(module: bc.BytecodeModule) -> string {
 
 @test
 test_array_element_reads_within_bounds :: fn() -> void {
-    module :: array_module(["local.get 0", "i32.const 1", "load_slot_i32", "return"]) ?? return
+    module :: array_module(["local.get 0", "i32.const 1", "load_slot_i32", "return"]) else return
     assert_eq(exec_value(module), 2)
 }
 
@@ -1448,13 +1451,13 @@ test_array_element_write_reads_back :: fn() -> void {
     module :: array_module([
         "local.get 0", "i32.const 2", "i32.const 9", "store_slot_i32",
         "local.get 0", "i32.const 2", "load_slot_i32", "return",
-    ]) ?? return
+    ]) else return
     assert_eq(exec_value(module), 9)
 }
 
 @test
 test_array_element_read_out_of_bounds_traps :: fn() -> void {
-    module :: array_module(["local.get 0", "i32.const 5", "load_slot_i32", "return"]) ?? return
+    module :: array_module(["local.get 0", "i32.const 5", "load_slot_i32", "return"]) else return
     expected :: "load_slot index 5 out of bounds (len=3)"
     assert(expected in trap_message(module), "a[5] traps")
 }
@@ -1463,7 +1466,7 @@ test_array_element_read_out_of_bounds_traps :: fn() -> void {
 test_array_element_write_out_of_bounds_traps :: fn() -> void {
     module :: array_module([
         "local.get 0", "i32.const 5", "i32.const 9", "store_slot_i32", "i32.const 0", "return",
-    ]) ?? return
+    ]) else return
     expected :: "store_slot index 5 out of bounds (len=3)"
     assert(expected in trap_message(module), "a[5] = 9 traps")
 }
@@ -1508,13 +1511,13 @@ string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null = string_module
 @test
 test_string_bytes_read_in_place :: fn() -> void {
     // "héllo" = 68 C3 A9 6C 6C 6F: six bytes, 0xA9 at 2.
-    module :: string_byte_module(2) ?? return
+    module :: string_byte_module(2) else return
     assert_eq(exec_value(module), 6 + 0xA9)
 }
 
 @test
 test_string_byte_out_of_bounds_traps :: fn() -> void {
-    module :: string_byte_module(6) ?? return
+    module :: string_byte_module(6) else return
     assert_eq(trap_message(module), "byte index out of bounds")
 }
 
@@ -1536,7 +1539,7 @@ char_conversion_module :: fn() -> bc.BytecodeModule | null {
 
 // Whether `main`, translated, runs `op`.
 main_runs :: fn(module: bc.BytecodeModule, op: RegOp) -> bool {
-    state :: prepared(module) ?? return false
+    state :: prepared(module) else return false
     for each in state.reg.functions[0].ops {
         if each == op {
             return true
@@ -1577,7 +1580,7 @@ test_struct_type_check_runs_in_registers :: fn() -> void {
         r"end $L1",
         "i32.const 0",
         "return",
-    ]) ?? return
+    ]) else return
     assert_eq(exec_value(module), 1)
     assert(main_runs(module, .IsStruct), "`type_check` on a struct runs as `IsStruct`")
 }
@@ -1598,13 +1601,13 @@ test_struct_type_check_reads_the_tag_of_a_reused_register :: fn() -> void {
         r"end $L0",
         "i32.const 0",
         "return",
-    ]) ?? return
+    ]) else return
     assert_eq(exec_value(module), 0)
 }
 
 @test
 test_char_conversion_runs_in_registers :: fn() -> void {
-    module :: char_conversion_module() ?? return
+    module :: char_conversion_module() else return
     assert_eq(exec_value(module), 0xE9)
     assert(main_runs(module, .ToChar), "`u32.to_char` runs as `ToChar`")
 }
@@ -1632,16 +1635,16 @@ test_string_byte_slice_runs_in_registers :: fn() -> void {
         "call.import 1",
         "u8.to_i32",
         "return",
-    ]) ?? return
+    ]) else return
     assert_eq(exec_value(module), 0xA9)
     assert(main_runs(module, .StringByteSlice), "`byte_slice` runs as `StringByteSlice`")
 }
 
 @test
 test_string_byte_slice_clamps_its_bounds :: fn() -> void {
-    past_the_end :: slice_length_module(4, 99) ?? return
+    past_the_end :: slice_length_module(4, 99) else return
     assert_eq(exec_value(past_the_end), 2)
-    end_before_start :: slice_length_module(5, 2) ?? return
+    end_before_start :: slice_length_module(5, 2) else return
     assert_eq(exec_value(end_before_start), 0)
 }
 
@@ -1666,7 +1669,7 @@ test_string_is_ascii_runs_in_registers :: fn() -> void {
         r"end $L0",
         "i32.const 0",
         "return",
-    ]) ?? return
+    ]) else return
     assert_eq(exec_value(module), 1)
     assert(main_runs(module, .StringIsAscii), "`is_ascii` runs as `StringIsAscii`")
 }

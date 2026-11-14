@@ -118,7 +118,7 @@ observed :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: LoweredExpr
 /// @param role     the part the site plays at it.
 /// @param lowered  what the lowering made of it.
 observe_lowered :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: LoweredExpr) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     compare(ctx, verifier, node, role, observed_of(ctx, verifier, lowered))
 }
 
@@ -128,7 +128,7 @@ observe_lowered :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: Lowe
 /// @param role  the part the site plays at it.
 /// @param what  how it runs instead: a primitive operation, a counter loop.
 observe_no_call :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, what: string) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     compare(ctx, verifier, node, role, ObservedNoCall { .what = what })
 }
 
@@ -137,7 +137,7 @@ observe_no_call :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, what: string)
 ///
 /// @param binary  the operator's node.
 observe_built_in_operator :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     on_reference :: compares_identity(ctx.types.expr_type(binary.left))
     built_in :: ObservedNoCall { .what = "primitive", .on_reference = on_reference }
     compare(ctx, verifier, binary, .Operator, built_in)
@@ -164,7 +164,7 @@ compares_identity :: fn(t: Type) -> bool {
 /// @param role    the part the site plays at it.
 /// @param symbol  the callee, an impl member by its mangle or a function.
 observe_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, symbol: Symbol) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     compare(ctx, verifier, node, role, observed_symbol(ctx, verifier, symbol))
 }
 
@@ -182,7 +182,7 @@ observe_virtual :: fn(
     trait_key: string,
     member: string,
 ) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     compare(ctx, verifier, node, role, ObservedVirtual { .trait_key = trait_key, .member = member })
 }
 
@@ -192,7 +192,7 @@ observe_virtual :: fn(
 /// @param decl  the inlined function.
 /// @param name  what the report calls it.
 observe_inlined :: fn(ctx: FnLowerCtx, node: Expr, decl: FnDecl, name: string) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     compare(ctx, verifier, node, .Call, ObservedFn { .decl = decl, .name = name })
 }
 
@@ -215,7 +215,7 @@ observe_contains :: fn(ctx: FnLowerCtx, binary: BinaryExpr, contains: RecordedTa
 /// @param binary   the `==`'s node.
 /// @param lowered  the comparison, with its prelude.
 observe_equality :: fn(ctx: FnLowerCtx, binary: BinaryExpr, lowered: LoweredExpr) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     parts: ObservedCallee[]: []
     collect_calls(ctx, verifier, lowered, parts)
     compare(ctx, verifier, binary, .Operator, gathered(parts))
@@ -235,7 +235,7 @@ observe_replacement :: fn(
     before: LoweredExpr,
     after: LoweredExpr,
 ) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     if after === before {
         compare(ctx, verifier, node, role, ObservedNoCall { .what = "unchanged" })
         return
@@ -272,7 +272,7 @@ note_member_origin :: fn(
     decl: FnDecl,
     trait_key: string,
 ) -> void {
-    verifier :: ctx.project.callee_verifier ?? return
+    verifier :: ctx.project.callee_verifier else return
     verifier.members.get_or_put_with(
         mangled,
         () -> ObservedFn {
@@ -388,7 +388,7 @@ collect_calls :: fn(
             collect_calls(ctx, verifier, lowered.value, parts)
         }
         is LoweredBlock                     -> {
-            trailing :: lowered.trailing ?? return
+            trailing :: lowered.trailing else return
             collect_calls(ctx, verifier, trailing, parts)
         }
         _                                   -> {}
@@ -422,7 +422,7 @@ agrees :: fn(recorded: Callee, observed: ObservedCallee) -> bool = match recorde
 // The same declaration ; an `@intrinsic` one served by an operation.
 direct_agrees :: fn(recorded: DirectFn, observed: ObservedCallee) -> bool {
     if observed is ObservedFn {
-        decl :: observed.decl ?? return false
+        decl :: observed.decl else return false
         return decl.id == recorded.decl.id
     }
     if observed is ObservedNoCall {
@@ -457,7 +457,7 @@ each_part_agrees :: fn(trait_key: string, member: string, parts: ObservedCallee[
 }
 
 implements_member :: fn(observed: ObservedFn, trait_key: string, member: string) -> bool {
-    decl :: observed.decl ?? return false
+    decl :: observed.decl else return false
     return observed.trait_key == trait_key && decl.name == member
 }
 
@@ -510,7 +510,7 @@ called_parts :: fn(observed: ObservedCallee) -> ObservedCallee[] = match observe
 ///
 /// @param project  the lowering project context, whose verifier accumulates them.
 render_callee_report :: fn(project: LowerProjectCtx) -> string {
-    verifier :: project.callee_verifier ?? return ""
+    verifier :: project.callee_verifier else return ""
     header :: "\n[${VERIFY_CALLEES_VAR}] sites where the lowering chose another callee "
         + "than the record"
     observations :: "${verifier.observed} observations"

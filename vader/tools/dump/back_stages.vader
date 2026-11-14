@@ -167,7 +167,7 @@ library_constants :: fn(
     for [_, m] in lowered.modules {
         for d in m.decls {
             if d is LoweredFnDecl && d.origin.decl is FnDecl {
-                constants[d.mangled] = by_declaration[d.origin.decl.id] ?? continue
+                constants[d.mangled] = by_declaration[d.origin.decl.id] else continue
             }
         }
     }

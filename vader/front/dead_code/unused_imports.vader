@@ -68,11 +68,11 @@ export check_unused_imports :: fn(
                     continue
                 }
                 // An import of a module that did not load has its own error.
-                imported :: by_name[d.path] ?? continue
+                imported :: by_name[d.path] else continue
                 if brings_a_name(d, imported, names) {
                     continue
                 }
-                walked :: run ?? impls_run(file, typed, module_of_file)
+                walked :: run else impls_run(file, typed, module_of_file)
                 run = walked
                 if walked.runs_an_impl_of(d.path, imported) || loads_an_impl(project, by_name, loaded, d.path) {
                     continue
@@ -152,7 +152,7 @@ note_site :: fn(
 ) -> AST.Walk {
     if n is AST.Expr {
         for table in tables {
-            callee :: table[n.id] ?? continue
+            callee :: table[n.id] else continue
             note_callee_run(callee, module_of_file, run)
         }
     }
@@ -165,7 +165,7 @@ note_callee_run :: fn(callee: Callee, module_of_file: Map<string, string>, run: 
             if callee.decl.materialized {
                 run.inherited = true
             } else {
-                declaring :: module_of_file[callee.decl.span.start.file] ?? return
+                declaring :: module_of_file[callee.decl.span.start.file] else return
                 run.modules.add(declaring)
             }
         }
@@ -220,7 +220,7 @@ brings_a_name :: fn(d: AST.ImportDecl, imported: LoadedModule, names: Set<string
         is AST.DestructureImport -> {
             for entry in binding.names {
                 dropped.push(entry.name)
-                alias :: entry.alias ?? continue
+                alias :: entry.alias else continue
                 if alias != "_" && alias in names {
                     return true
                 }
@@ -254,7 +254,7 @@ loads_an_impl :: fn(
         if name in without {
             continue
         }
-        lost :: by_name[name] ?? continue
+        lost :: by_name[name] else continue
         if declares_an_impl(lost) {
             return true
         }
@@ -273,7 +273,7 @@ loaded_from :: fn(
     path: string,
 ) -> Set<string> {
     reached :: Set<string> {}
-    entry :: project.modules[project.entry] ?? return reached
+    entry :: project.modules[project.entry] else return reached
     walk_imports(by_name, entry.module.module_name, null, "", reached)
     forced: string[]: []
     for [name, _] in by_name {
@@ -312,7 +312,7 @@ walk_imports :: fn(
         if !reached.add(name) {
             continue
         }
-        loaded :: by_name[name] ?? continue
+        loaded :: by_name[name] else continue
         for edge in loaded.collected.import_paths {
             if name == importer && edge.path == path {
                 continue

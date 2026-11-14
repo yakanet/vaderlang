@@ -113,7 +113,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         worklist.push(dst)
     }
     for {
-        src :: worklist.remove_last() ?? break
+        src :: worklist.remove_last() else break
         consumers :: res.alias_from[src]
         if consumers !is null {
             for dst in consumers {
@@ -186,7 +186,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: Map<LocalI
     live :: compute_liveness(fn_)
     // Seed : intersect `live.live_in[header]` with locals defined in the loop body.
     for [header, _] in loops {
-        body :: loops[header] ?? continue
+        body :: loops[header] else continue
         defs_in_body :: Set<LocalId> {}
         for b_id in body {
             block :: fn_.blocks[i32(b_id)]
@@ -208,7 +208,7 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: Map<LocalI
     work: LocalId[]: []
     for l in carried { work.push(l) }
     for {
-        cur :: work.remove_last() ?? break
+        cur :: work.remove_last() else break
         producers :: alias_of[cur]
         if producers !is null {
             for p in producers {
@@ -302,7 +302,7 @@ compute_escaping :: fn(fn_: CFGFunction) -> EscapeResult {
     work: LocalId[]: []
     for l in escaping { work.push(l) }
     for {
-        cur :: work.remove_last() ?? break
+        cur :: work.remove_last() else break
         sources :: alias_of[cur]
         if sources !is null {
             for s in sources {

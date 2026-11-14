@@ -39,15 +39,15 @@
   expr 104:16   CallExpr       :: 6..=9 | null
   expr 104:16   FallbackExpr   :: 6..=9
   expr 104:16   IdentExpr      :: fn(Hour) -> 6..=9 | null
-  expr 104:37   BinaryExpr     :: bool
-  expr 104:37   CallExpr       :: 6..=9 | null
-  expr 104:37   IdentExpr      :: fn(Hour) -> 6..=9 | null
+  expr 104:39   BinaryExpr     :: bool
+  expr 104:39   CallExpr       :: 6..=9 | null
+  expr 104:39   IdentExpr      :: fn(Hour) -> 6..=9 | null
   expr 104:5    CallExpr       :: void
   expr 104:5    IdentExpr      :: fn(T) -> void
-  expr 104:62   CallExpr       :: Hour
-  expr 104:62   IdentExpr      :: fn(Hour) -> Hour
-  expr 104:74   CallExpr       :: Hour
-  expr 104:74   IdentExpr      :: fn(Hour) -> Hour
+  expr 104:64   CallExpr       :: Hour
+  expr 104:64   IdentExpr      :: fn(Hour) -> Hour
+  expr 104:76   CallExpr       :: Hour
+  expr 104:76   IdentExpr      :: fn(Hour) -> Hour
   expr 105:13   StringLitExpr  :: string
   expr 105:16   BinaryExpr     :: bool
   expr 105:16   CallExpr       :: 6..=20 | null
@@ -57,10 +57,10 @@
   expr 105:39   IdentExpr      :: fn(Hour) -> 6..=20 | null
   expr 105:5    CallExpr       :: void
   expr 105:5    IdentExpr      :: fn(T) -> void
-  expr 105:60   CallExpr       :: 1..=24
-  expr 105:60   IdentExpr      :: fn(Hour) -> 1..=24
-  expr 105:78   CallExpr       :: 1..=24
-  expr 105:78   IdentExpr      :: fn(Hour) -> 1..=24
+  expr 105:62   CallExpr       :: 1..=24
+  expr 105:62   IdentExpr      :: fn(Hour) -> 1..=24
+  expr 105:80   CallExpr       :: 1..=24
+  expr 105:80   IdentExpr      :: fn(Hour) -> 1..=24
   expr 106:13   StringLitExpr  :: string
   expr 106:16   CallExpr       :: Hour
   expr 106:16   IdentExpr      :: fn(Hour) -> Hour

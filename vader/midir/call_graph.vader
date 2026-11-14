@@ -158,7 +158,7 @@ callee_node :: fn(index: CalleeIndex, callee: Symbol) -> i32 {
     if function != null {
         return function
     }
-    extern_position :: import_called(r.slots.callees, callee) ?? return index.unknown
+    extern_position :: import_called(r.slots.callees, callee) else return index.unknown
     return i32(r.functions.len()) + extern_position
 }
 
@@ -183,7 +183,7 @@ instruction_callees :: fn(index: CalleeIndex, ins: Instruction) -> i32[] = match
 // The nodes a virtual call may land on. A key no vtable row carries lands on
 // nothing the graph can see.
 virtual_callees :: fn(index: CalleeIndex, ins: InstrVirtualCall) -> i32[] =
-    index.virtual_targets[vtable_key(ins.trait_name, ins.method)] ?? [index.unknown]
+    index.virtual_targets[vtable_key(ins.trait_name, ins.method)] else [index.unknown]
 
 // The callees of one node, each once, in the order its body first reaches them ;
 // the functions it takes as a value or an address go into `taken`.
@@ -211,7 +211,7 @@ node_callees :: fn(index: CalleeIndex, node: CallNode, taken: TakenFunctions) ->
 
 // Record the function `ins` makes a value or an address of, if any.
 note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) -> void {
-    target :: taken_function(ins) ?? return
+    target :: taken_function(ins) else return
     node :: taken_node(index, target)
     if ins is InstrFnAddr {
         taken.as_addresses.add(node)
@@ -240,7 +240,7 @@ export taken_function :: fn(ins: Instruction) -> Symbol | null = match ins {
 // The node of a function taken as a value or an address: by mangle, then by symbol
 // id, as emit resolves a `fn.ref` or a `fn.addr`.
 taken_node :: fn(index: CalleeIndex, target: Symbol) -> i32 =
-    function_called(index.resolution.slots.callees, target) ?? index.unknown
+    function_called(index.resolution.slots.callees, target) else index.unknown
 
 // The members of `set`, in the order they were added.
 nodes_of :: fn(set: Set<i32>) -> i32[] {

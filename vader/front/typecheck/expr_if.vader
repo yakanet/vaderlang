@@ -56,7 +56,7 @@ settle_branch :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    free :: free_member(t) ?? return t
+    free :: free_member(t) else return t
     if t is UnionType && !settles_through(value) {
         return t
     }
@@ -64,9 +64,9 @@ settle_branch :: fn(
         if is_refinement(sibling) && t is FreeIntType {
             return free_range(value, t, typed, diags)
         }
-        to :: family_member(sibling, free) ?? continue
+        to :: family_member(sibling, free) else continue
         settle_free_value(value, to, typed, diags)
-        return settled_type(t, to) ?? t
+        return settled_type(t, to) else t
     }
     return t
 }
@@ -76,7 +76,7 @@ settle_branch :: fn(
 // (`union_literal_member`: `u8 | null` offers its `u8`).
 family_member :: fn(sibling: Type, free: Type) -> Type | null {
     if sibling is UnionType {
-        member :: union_literal_member(free, sibling) ?? return null
+        member :: union_literal_member(free, sibling) else return null
         if literal_family_holds(free, member) {
             return member
         }
@@ -203,7 +203,7 @@ or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
             return or_leaves(cond.left, typed, out) && or_leaves(cond.right, typed, out)
         }
     }
-    leaf :: detect_is_narrow(cond, typed, diag_sink()) ?? return false
+    leaf :: detect_is_narrow(cond, typed, diag_sink()) else return false
     out.push(leaf)
     return true
 }
@@ -263,7 +263,7 @@ push_cond_narrows_into :: fn(
         push_guard_call(cond, truth, typed, pushed)
         return
     }
-    leaf :: detect_is_narrow(cond, typed, diags) ?? return
+    leaf :: detect_is_narrow(cond, typed, diags) else return
     side_ty :: side_of(truth, leaf.then_ty, leaf.else_ty)
     pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, side_ty))
 }
@@ -280,7 +280,7 @@ push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) 
         if !same_slot(n, leaves[0]) {
             return
         }
-        positive :: positive_of(n) ?? return
+        positive :: positive_of(n) else return
         tys.push(positive)
     }
     pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of_paths(tys)))
@@ -336,7 +336,7 @@ detect_is_narrow :: fn(
     // and degrades (the compiler's own `build_if` `e.else_block.span`).
     if cond is AST.UnaryExpr {
         if cond.op == .Not {
-            inner :: detect_is_narrow(cond.operand, typed, diags) ?? return null
+            inner :: detect_is_narrow(cond.operand, typed, diags) else return null
             return swapped(inner)
         }
     }
@@ -346,7 +346,7 @@ detect_is_narrow :: fn(
     if cond.op == .Eq || cond.op == .Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
-            sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
+            sym :: typed.resolved.idents[ident_side.span.hash()] else return null
             // Subtract from the binding's CURRENT flow-narrowed type, not its
             // declared type, so nested / sequential guards compose : an outer
             // `!(x is null)` must survive an inner `!(x is T)`. Falls back to
@@ -397,7 +397,7 @@ detect_is_narrow :: fn(
     narrowed :: type_from_expr(cond.right, typed.resolved, diags)
     // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
     if cond.left is AST.IdentExpr {
-        sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
+        sym :: typed.resolved.idents[cond.left.span.hash()] else return null
         // Current flow-narrowed base (see the `== null` path) so nested guards
         // compose instead of resetting to the declared union each time.
         base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
@@ -412,7 +412,7 @@ detect_is_narrow :: fn(
     // after a divergent `if x.y is null { return }` guard degrades: the
     // `convert_function` `body :: d.body ; body.span` drop.
     if cond.left is AST.FieldExpr {
-        field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
+        field_info :: resolve_field_chain_static(cond.left, typed) else return null
         // Compose against the field's current flow-narrowed type so chained
         // `if x.f is A {...} else if x.f is B {...}` guards refine instead of
         // resetting to the declared type (mirrors the ident path).
@@ -450,7 +450,7 @@ matched_within :: fn(current: Type, narrowed: Type, else_ty: Type) -> Type {
     if narrowed is TraitType {
         return narrowed
     }
-    return left_by_complement(current, else_ty) ?? narrowed
+    return left_by_complement(current, else_ty) else narrowed
 }
 
 // What a slot of type `current` holds once the complement `else_ty` of a test is

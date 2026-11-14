@@ -160,7 +160,7 @@ export check_dead_code :: fn(
     seed_refs: string[]: []
     flaggable: DeadDecl[]: []
     for d in decls {
-        nd :: collect_decl_refs(d, seed_refs) ?? continue
+        nd :: collect_decl_refs(d, seed_refs) else continue
         register_refs(refs_by_name, nd.name, nd.refs)
         if is_root_decl(nd.visibility, nd.decorators, nd.name, module_name) {
             root_names.push(nd.name)
@@ -231,7 +231,7 @@ dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExpor
     seed_refs: string[]: []
     flaggable: DeadExport[]: []
     for d in decls {
-        nd :: collect_decl_refs(d, seed_refs) ?? continue
+        nd :: collect_decl_refs(d, seed_refs) else continue
         register_refs(refs_by_name, nd.name, nd.refs)
         if is_wired_root(nd.decorators, nd.name) {
             root_names.push(nd.name)

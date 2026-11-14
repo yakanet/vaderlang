@@ -268,7 +268,7 @@ is_folder_module :: fn(facts: FileFacts[]) -> bool {
 /// @param module  the name the entry module declares.
 find_tests :: fn(lp: LoweredProject, module: string) -> DiscoveredTest[] {
     out: DiscoveredTest[]: []
-    entry :: lp.modules[lp.entry] ?? return out
+    entry :: lp.modules[lp.entry] else return out
     for d in entry.decls {
         if d is LoweredFnDecl {
             if d.body == null {

@@ -36,7 +36,7 @@ cmd_eject :: fn(args: string[]) -> i32 {
         return 1
     }
     dir :: action_input(parsed).as_string()
-    manifest :: ejectable_manifest(dir) ?? return 1
+    manifest :: ejectable_manifest(dir) else return 1
     driver :: join_path(dir, DRIVER_FILENAME)
     written :: write_file(driver, render_driver(manifest))
     if written is IOError {
@@ -70,12 +70,12 @@ ejectable_manifest :: fn(dir: string) -> Manifest | null {
         eprintln(not_a_folder("eject", dir))
         return null
     }
-    described_by :: project_description("eject", dir, ", so there is nothing to eject") ?? return null
+    described_by :: project_description("eject", dir, ", so there is nothing to eject") else return null
     if described_by == DRIVER_FILENAME {
         eprintln("vader eject: `${dir.to_native()}` is already built by its `${DRIVER_FILENAME}`")
         return null
     }
-    manifest :: checked_manifest("eject", dir) ?? return null
+    manifest :: checked_manifest("eject", dir) else return null
     // A folder holds one module, and the driver's is `build`: it cannot sit
     // beside the project's own sources.
     at_root :: sources_at_root(dir)

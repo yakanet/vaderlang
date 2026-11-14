@@ -33,7 +33,7 @@ AST :: import "toolchain/ast"
 // merged node keeps the winner's body verbatim, spans included, so the body's own
 // span is what identifies it: the declaration's name does not.
 body_survives :: fn(fd: AST.FnDecl, kept: SourceFile[]) -> bool {
-    b :: fd.body ?? return false
+    b :: fd.body else return false
     for f in kept {
         for d in f.program.decls {
             if d is AST.FnDecl {
@@ -147,7 +147,7 @@ export select_target_bodies :: fn(
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl {
-                sel :: target_selectors(d.decorators) ?? continue
+                sel :: target_selectors(d.decorators) else continue
                 if sel.is_bare {
                     bare[d.name] = true
                 } else {
@@ -202,7 +202,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl {
-                sel :: target_selectors(d.decorators) ?? continue
+                sel :: target_selectors(d.decorators) else continue
                 if !sel.is_bare {
                     continue
                 }
@@ -366,7 +366,7 @@ report_uncovered :: fn(
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl {
-                sel :: target_selectors(d.decorators) ?? continue
+                sel :: target_selectors(d.decorators) else continue
                 if !sel.is_bare {
                     continue
                 }
@@ -383,7 +383,7 @@ report_uncovered :: fn(
                 if is_host_bound(d) {
                     continue
                 }
-                have :: covered[d.name] ?? "(none)"
+                have :: covered[d.name] else "(none)"
                 diags.push(
                     resolver_error(
                         .NoTargetBodyCoversTarget,
@@ -416,12 +416,12 @@ resolve_decl :: fn(
         return d
     }
     if d is AST.FnDecl {
-        sel :: target_selectors(d.decorators) ?? return d
+        sel :: target_selectors(d.decorators) else return d
         if sel.is_bare {
             // The bare declaration. It carries the envelope either way: on its own
             // when nothing specialised matches, or with the winner's body grafted
             // on when one does.
-            w :: winners[d.name] ?? return d
+            w :: winners[d.name] else return d
             return graft_body(d, w)
         }
         // A specialised body never survives on its own: the winner was folded

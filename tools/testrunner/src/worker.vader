@@ -111,7 +111,7 @@ check_phase :: fn(
     input: DumpInput,
     dir: string,
 ) -> StageReport | CaseFailure {
-    stage :: stage_named(phase) ?? return CaseFailure { .message = "no stage `${phase}`" }
+    stage :: stage_named(phase) else return CaseFailure { .message = "no stage `${phase}`" }
     dump :: stage.dump
     if dump != null {
         return check_stage(case, stage, dump, input, ctx.update)
@@ -200,7 +200,7 @@ report_of :: fn(
     update: bool,
     began: Monotonic,
 ) -> StageReport {
-    path :: "${case.dir}/${case.snapshot ?? stage.snapshot}"
+    path :: "${case.dir}/${case.snapshot else stage.snapshot}"
     expected :: read_file_string(path)
     result :: verdict_of(expected, actual, path, update)
     return StageReport {
@@ -268,7 +268,7 @@ ast_as_json :: fn(dump: string) -> string {
         return dump
     }
     body :: dump.trim_prefix(head)
-    halves :: body.split_first("\n# Diagnostics\n") ?? [body, ""]
+    halves :: body.split_first("\n# Diagnostics\n") else [body, ""]
     lines: JsonValue[]: []
     for line in halves.1.split("\n") {
         if line != "" {
@@ -295,12 +295,12 @@ import "std/testing"
 @test
 test_a_differing_stage_shows_its_diff :: fn() -> void {
     detail :: failure_detail(.Differ, "a\n", "b\n", "s/lexer.snapshot")
-    assert_eq(detail ?? "", "--- s/lexer.snapshot\n+++ actual\n@@ -1 +1 @@\n-a\n+b\n")
+    assert_eq(detail else "", "--- s/lexer.snapshot\n+++ actual\n@@ -1 +1 @@\n-a\n+b\n")
 }
 
 @test
 test_a_stage_without_snapshot_shows_its_text :: fn() -> void {
-    assert_eq(failure_detail(.Missing, "", "text\n", "s/vm.snapshot") ?? "", "text\n")
+    assert_eq(failure_detail(.Missing, "", "text\n", "s/vm.snapshot") else "", "text\n")
 }
 
 @test

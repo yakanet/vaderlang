@@ -192,17 +192,17 @@ test_adapter_reason_none_for_two_doubles :: fn() -> void {
 
 @test
 test_adapter_reason_for_an_f32_argument :: fn() -> void {
-    assert_eq(adapter_reason(extern_of([.F32], []), []) ?? "", "argument 0 is an `f32`")
+    assert_eq(adapter_reason(extern_of([.F32], []), []) else "", "argument 0 is an `f32`")
 }
 
 @test
 test_adapter_reason_for_mixed_arguments :: fn() -> void {
-    assert_eq(adapter_reason(extern_of([.I32, .F64], [.F64]), []) ?? "", "it mixes floating and integer arguments")
+    assert_eq(adapter_reason(extern_of([.I32, .F64], [.F64]), []) else "", "it mixes floating and integer arguments")
 }
 
 @test
 test_adapter_reason_for_a_double_from_words :: fn() -> void {
-    assert_eq(adapter_reason(extern_of([], [.F64]), []) ?? "", "it returns an `f64` from integer arguments")
+    assert_eq(adapter_reason(extern_of([], [.F64]), []) else "", "it returns an `f64` from integer arguments")
 }
 
 @test
@@ -213,6 +213,6 @@ test_adapter_symbol_prefixes_the_mangle :: fn() -> void {
 @test
 test_adapter_reason_for_a_library_of_archives :: fn() -> void {
     imp :: bc.BcImport { ...extern_of([], []), .library = CLibrary { .name = "g", .archives = ["libg.a"] } }
-    reason :: adapter_reason(imp, []) ?? ""
+    reason :: adapter_reason(imp, []) else ""
     assert(reason.starts_with("its binding `g` ships static archives"), "an archive is not opened")
 }

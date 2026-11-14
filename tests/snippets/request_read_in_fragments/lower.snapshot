@@ -83,8 +83,9 @@
                   line: IOError | string = {
                       __coalesce_0: IOError | null | string = std.io.read_line(r, max)
                       if __coalesce_0 is null {
-                          break
-                          @unreachable("`??` fallback diverges")
+                          {
+                              break
+                          }
                       } else {
                           (IOError | string)(__coalesce_0)
                       } :IOError | string

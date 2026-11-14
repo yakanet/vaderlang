@@ -30,17 +30,17 @@ labelled :: fn(hints: JsonValue[]) -> string[] {
 }
 
 hint_entry :: fn(hint: JsonValue) -> string {
-    label :: string_at(hint, ["label"]) ?? ""
+    label :: string_at(hint, ["label"]) else ""
     return "${label} ${position_at(hint, ["position"])}"
 }
 
 // The hints of `hints` whose label starts with `prefix`.
 starting_with :: fn(hints: JsonValue[], prefix: string) -> JsonValue[] =
-    hints.filter((hint) -> (string_at(hint, ["label"]) ?? "").starts_with(prefix)).collect()
+    hints.filter((hint) -> (string_at(hint, ["label"]) else "").starts_with(prefix)).collect()
 
 // Whether the boolean `key` of `hint` is true.
 flag :: fn(hint: JsonValue, key: string) -> bool {
-    value :: member(hint, key) ?? JsonNull {}
+    value :: member(hint, key) else JsonNull {}
     if value is JsonBool {
         return value.value
     }
@@ -233,7 +233,7 @@ test_inlay_hints_reach_a_lambda_in_a_fallback_not_one_bound_to_a_constant :: fn(
         labelled(returns).join(", "),
         "-> i32 ${display_spot(position_of(source, "-> x * 5"))}",
     )
-    labels :: hints.map((hint) -> string_at(hint, ["label"]) ?? "").collect()
+    labels :: hints.map((hint) -> string_at(hint, ["label"]) else "").collect()
     assert(labels.contains("fn(i32) -> i32"), labels.join(", "))
 }
 
@@ -338,8 +338,8 @@ test_hover_documents_every_op_of_the_text_bytecode :: fn() -> void {
         }
     }
     assert_eq(undocumented.join(" "), "")
-    at :: ordered.index_of("local.get") ?? panic("no `local.get` among the ops")
-    shown :: string_at(results[at], ["contents", "value"]) ?? ""
+    at :: ordered.index_of("local.get") else panic("no `local.get` among the ops")
+    shown :: string_at(results[at], ["contents", "value"]) else ""
     assert("```\nlocal.get <slot>\n```" in shown, shown)
     assert("Push the value of local `<slot>`." in shown, shown)
     assert(results[ordered.len()] is JsonNull, stringify(results[ordered.len()]))
@@ -378,7 +378,7 @@ test_inlay_hints_over_a_plain_dump_name_what_annotate_names :: fn() -> void {
 hint_shown :: fn(hint: JsonValue) -> string {
     line :: int_at(hint, ["position", "line"])
     character :: int_at(hint, ["position", "character"])
-    return "${line}:${character}:${string_at(hint, ["label"]) ?? ""}"
+    return "${line}:${character}:${string_at(hint, ["label"]) else ""}"
 }
 
 @test

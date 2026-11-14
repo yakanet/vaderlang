@@ -58,7 +58,7 @@ trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
     }
     admitted: Type[]: []
     needs_trait_lookup := false
-    for variant in union_variants(scrutinee) ?? [scrutinee] {
+    for variant in union_variants(scrutinee) else [scrutinee] {
         if variant is StructType {
             needs_trait_lookup = true
         } else if variant is TraitType | AnyType | TypeParamType {
@@ -124,7 +124,7 @@ holds_type :: fn(ctx: FnLowerCtx, held: Type, check: Type) -> bool | null = matc
 
 holds_some_variant :: fn(ctx: FnLowerCtx, held: Type, variants: Type[]) -> bool | null {
     for variant in variants {
-        answer :: holds_type(ctx, held, variant) ?? return null
+        answer :: holds_type(ctx, held, variant) else return null
         if answer {
             return true
         }
@@ -443,7 +443,7 @@ runs_array_repeat :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> bool {
 }
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
-    info :: op_trait_method(binary.op) ?? return null
+    info :: op_trait_method(binary.op) else return null
     if info is OpTraitInfo {
         left_ty :: ctx.types.expr_type(binary.left)
         target :: operator_target(ctx, binary, info, left_ty)
@@ -595,7 +595,7 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
 }
 
 try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
-    operand :: null_compared_operand(binary) ?? return null
+    operand :: null_compared_operand(binary) else return null
     operand_type :: ctx.types.expr_type(operand)
     if is_union_with_null(operand_type) {
         check :: type_check(lower_expr(ctx, operand), TY_NULL, binary.span)

@@ -3,7 +3,7 @@
 // Hides the `(TypedProgram,
 // Substitution)` pair behind a single accessor: lower passes call
 // `expr_type(view, e)` rather than `substitute(typed.expr_types[e.id]
-// ?? TY_UNRESOLVED, subst)`. The boundary lets future changes (e.g.
+// else TY_UNRESOLVED, subst)`. The boundary lets future changes (e.g.
 // materialising substituted bodies on `MonoEntry`) touch one file.
 
 module "vader/lower"
@@ -89,7 +89,7 @@ iterated_element :: fn(iter_type: Type, typed: TypedProgram) -> Type =
 /// @param typed      the module being lowered.
 /// @return           null when it records no single argument list.
 recorded_trait_args :: fn(concrete: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
-    recorded :: lookup_struct_trait_args(concrete, trait_key, typed) ?? return null
+    recorded :: lookup_struct_trait_args(concrete, trait_key, typed) else return null
     laid_out: Type[]: []
     for t in recorded {
         laid_out.push(laid_out_unions(t))
@@ -134,7 +134,7 @@ clause_type :: fn(self: EntryTypes, clause: FallbackClause) -> Type =
 /// @return      the recorded type, no substitution applied; `TY_UNRESOLVED`
 ///              on a miss.
 raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
-    raw :: self.typed.expr_types[expr.id] ?? return TY_UNRESOLVED
+    raw :: self.typed.expr_types[expr.id] else return TY_UNRESOLVED
     return raw
 }
 
@@ -170,7 +170,7 @@ local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
 /// @param key   the span hash the type was recorded under.
 /// @return      the concrete type, or null when the caller must fall back.
 concrete_local_type :: fn(self: EntryTypes, key: u64) -> Type | null {
-    raw :: self.typed.local_types[key] ?? return null
+    raw :: self.typed.local_types[key] else return null
     if raw is UnresolvedType {
         return null
     }
@@ -203,7 +203,7 @@ type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// @param type_expr  the `TypeExpr` AST node.
 /// @return           the recorded type ; `TY_UNRESOLVED` on a miss.
 raw_type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
-    raw :: self.typed.type_expr_types[type_expr.span.hash()] ?? return TY_UNRESOLVED
+    raw :: self.typed.type_expr_types[type_expr.span.hash()] else return TY_UNRESOLVED
     return raw
 }
 
@@ -217,7 +217,7 @@ raw_type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// @param type_expr  the `TypeExpr` AST node.
 recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
     recorded :: self.typed.expr_types[type_expr.id]
-        ?? panic("lower: type expression at ${source_position(type_expr.span)} is not recorded")
+        else panic("lower: type expression at ${source_position(type_expr.span)} is not recorded")
     return apply(self, recorded)
 }
 
@@ -231,7 +231,7 @@ recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// @param name           the field.
 declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type {
     field :: struct_field_info(typed, struct_symbol.id, name)
-        ?? panic("lower: no type recorded for `${struct_symbol.name}.${name}`")
+        else panic("lower: no type recorded for `${struct_symbol.name}.${name}`")
     return laid_out_unions(field.ty)
 }
 
@@ -296,7 +296,7 @@ type_param_t :: fn() = Symbol {
     subst :: new_substitution()
     subst.type_params[7] = TY_STRING
     view :: make_entry_types(typed, subst)
-    got :: concrete_local_type(view, LOOP_VAR_KEY) ?? TY_UNRESOLVED
+    got :: concrete_local_type(view, LOOP_VAR_KEY) else TY_UNRESOLVED
     assert_eq(display_type(got), "string")
 }
 

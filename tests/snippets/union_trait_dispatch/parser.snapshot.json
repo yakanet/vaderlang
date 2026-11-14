@@ -836,8 +836,7 @@
                       "value": "0n"
                     }
                   }
-                ],
-                "coalesce": true
+                ]
               }
             },
             "decorators": [],

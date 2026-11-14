@@ -97,7 +97,7 @@ find_extern_fixtures :: fn(found: Discovery) -> void {
             found.problems.push("${dir}/${FIXTURE_ENTRY}: ${source.msg}")
             continue
         }
-        modules :: header_value(source, MODULES_OPENING) ?? ""
+        modules :: header_value(source, MODULES_OPENING) else ""
         found.cases.push(
             Case {
                 .name = "externs/${name}",

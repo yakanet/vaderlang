@@ -154,7 +154,7 @@ find_impl_trait_decl :: fn(
     project: LoadedProject,
 ) -> TraitLookup {
     unresolved :: TraitLookup { .trait_decl = null, .other_kind = "" }
-    sym :: name_in_file_scope(name, loaded, scope, name_index) ?? return unresolved
+    sym :: name_in_file_scope(name, loaded, scope, name_index) else return unresolved
     if sym.kind != .Trait {
         // @partial: only a type declaration is reported by its kind ; any other
         // binding reads as an unresolved type name.
@@ -166,7 +166,7 @@ find_impl_trait_decl :: fn(
         }
         return TraitLookup { .trait_decl = null, .other_kind = other_kind }
     }
-    owner :: project.modules[sym.module] ?? return unresolved
+    owner :: project.modules[sym.module] else return unresolved
     for decl in concat_file_decls(owner.module.files) {
         if decl is AST.TraitDecl {
             if decl.name == sym.name {
@@ -185,13 +185,13 @@ name_in_file_scope :: fn(
     scope: Map<string, Symbol>,
     name_index: Map<string, LoadedModule>,
 ) -> Symbol | null {
-    own :: scope[name] ?? return null
+    own :: scope[name] else return null
     if own.kind != .ImportBinding {
         return own
     }
-    info :: loaded.collected.imports[own.id] ?? return null
-    imported :: info.imported_name ?? return null
-    target :: name_index[info.path] ?? return null
+    info :: loaded.collected.imports[own.id] else return null
+    imported :: info.imported_name else return null
+    target :: name_index[info.path] else return null
     return target.collected.symbols[imported]
 }
 

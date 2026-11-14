@@ -135,7 +135,7 @@ range_conversion_allowed :: fn(src: Type, target: RangeType) -> bool {
     if is_free_numeric(src) {
         return src is FreeIntType
     }
-    values :: integer_values(strip_distinct(src)) ?? return false
+    values :: integer_values(strip_distinct(src)) else return false
     return interval_meet(values, target.bounds) != null
 }
 

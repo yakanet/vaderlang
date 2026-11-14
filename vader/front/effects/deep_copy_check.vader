@@ -24,15 +24,15 @@ DEEP_COPY_KEY :: "std/core.deep_copy"
 /// @param checked  its typecheck, which recorded the calls.
 export deep_copy_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) -> Diagnostic[] {
     out: Diagnostic[]: []
-    copy :: summary.index.deep_copy ?? return out
+    copy :: summary.index.deep_copy else return out
     for typed in checked.all_modules.values() {
         for [id, callee] in typed.call_sites.calls {
             if callee is DirectFn && callee.decl.id == copy {
-                bindings :: callee.bindings ?? continue
-                span :: typed.call_sites.instantiation_spans[id] ?? continue
+                bindings :: callee.bindings else continue
+                span :: typed.call_sites.instantiation_spans[id] else continue
                 for [_, copied] in bindings {
                     walk :: FunctionSearch { .typed = typed }
-                    path :: walk.function_path(copied) ?? continue
+                    path :: walk.function_path(copied) else continue
                     detail :: function_detail(copied, path)
                     out.push(typecheck_error(.FunctionValueDeepCopied, span, detail))
                 }
@@ -75,10 +75,10 @@ struct_path :: fn(walk: FunctionSearch, t: StructType) -> string | null {
         return null
     }
     walk.seen.add(key)
-    fields :: walk.typed.struct_fields[t.symbol.id] ?? return null
+    fields :: walk.typed.struct_fields[t.symbol.id] else return null
     for [name, _] in fields {
-        field :: declared_struct_field_type(t, name, walk.typed) ?? continue
-        found :: walk.function_path(field) ?? continue
+        field :: declared_struct_field_type(t, name, walk.typed) else continue
+        found :: walk.function_path(field) else continue
         return ".${name}${found}"
     }
     return null
@@ -86,7 +86,7 @@ struct_path :: fn(walk: FunctionSearch, t: StructType) -> string | null {
 
 tuple_path :: fn(walk: FunctionSearch, t: TupleType) -> string | null {
     for i in 0..<t.elements.len() {
-        found :: walk.function_path(t.elements[i]) ?? continue
+        found :: walk.function_path(t.elements[i]) else continue
         return ".${i}${found}"
     }
     return null
@@ -96,14 +96,14 @@ tuple_path :: fn(walk: FunctionSearch, t: TupleType) -> string | null {
 // them, and the path is the same.
 first_path :: fn(walk: FunctionSearch, variants: Type[]) -> string | null {
     for v in variants {
-        found :: walk.function_path(v) ?? continue
+        found :: walk.function_path(v) else continue
         return found
     }
     return null
 }
 
 below :: fn(step: string, found: string | null) -> string | null {
-    rest :: found ?? return null
+    rest :: found else return null
     return "${step}${rest}"
 }
 

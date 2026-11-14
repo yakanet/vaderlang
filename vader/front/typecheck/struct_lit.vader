@@ -47,7 +47,7 @@ reject_partial_type_args :: fn(
     if name !is AST.GenericInstExpr {
         return
     }
-    decl :: typed.struct_decls[st.symbol.id] ?? return
+    decl :: typed.struct_decls[st.symbol.id] else return
     declared :: decl.type_params.len()
     if name.type_args.len() == declared {
         return
@@ -69,8 +69,8 @@ reject_unmet_struct_bounds :: fn(
     if st.args.len() == 0 {
         return
     }
-    bounds :: typed.struct_bounds[st.symbol.id] ?? return
-    unmet :: first_unmet_bound(st.args, bounds, typed) ?? return
+    bounds :: typed.struct_bounds[st.symbol.id] else return
+    unmet :: first_unmet_bound(st.args, bounds, typed) else return
     detail :: unmet_bound_detail(unmet.bound.name, st.symbol.name, unmet.required, unmet.reason)
     diags.push(typecheck_error(.TraitNotSatisfied, span, detail))
 }
@@ -171,11 +171,11 @@ base_spread_fields :: fn(
     if got !is StructType {
         return null
     }
-    base :: spread_base_of(st, got.symbol, typed, Set<i32> {}) ?? return null
+    base :: spread_base_of(st, got.symbol, typed, Set<i32> {}) else return null
     if !is_assignable(got, spread_slot(base, st, decl)) {
         return null
     }
-    fields :: typed.struct_fields[got.symbol.id] ?? return null
+    fields :: typed.struct_fields[got.symbol.id] else return null
     return fields.keys().collect()
 }
 
@@ -238,7 +238,7 @@ check_field :: fn(
 check_missing_fields :: fn(
     span: Span, st: StructType, provided: string[], typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    fields :: typed.struct_fields[st.symbol.id] ?? return
+    fields :: typed.struct_fields[st.symbol.id] else return
     missing: string[]: []
     for [name, field] in fields {
         if field.decl.default == null && name !in provided {

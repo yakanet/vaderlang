@@ -66,7 +66,7 @@ run_case :: fn(slot: Slot, case: Case, events: Channel<Progress>) -> void {
     defer events.send(CaseEnded { .case = key })
     todo := case.phases
     for todo.len() > 0 {
-        worker :: worker_of(slot) ?? return
+        worker :: worker_of(slot) else return
         from :: worker.err.len()
         reports :: run_on(worker, Case { ...case, .phases = todo })
         for report in reports.stages {
@@ -215,7 +215,7 @@ worker_of :: fn(slot: Slot) -> Worker | null {
 
 // Close the stdin of the slot's worker, which then exits, and wait for it.
 stop_worker :: fn(slot: Slot) -> void {
-    worker :: slot.worker ?? return
+    worker :: slot.worker else return
     worker.child.close_input()
     exit_of(worker.child)
 }

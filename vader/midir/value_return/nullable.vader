@@ -45,7 +45,7 @@ nullable_return_of :: fn(f: CFGFunction) -> NullableReturn | null {
     if !has_null_variant(f.return_type) {
         return null
     }
-    built :: returns_fresh_composite(f) ?? return null
+    built :: returns_fresh_composite(f) else return null
     // The tag crosses alongside the fields, so it spends from the same budget.
     if value_abi_sum_leaves(nullable_results(built.fields)) < 0 {
         return null
@@ -82,8 +82,8 @@ returns_fresh_composite :: fn(f: CFGFunction) -> NullableReturn | null {
         if t !is TermReturn {
             continue
         }
-        returned :: term_return_single(t) ?? return null
-        built :: return_source(b.instructions, returned) ?? return null
+        returned :: term_return_single(t) else return null
+        built :: return_source(b.instructions, returned) else return null
         if built is ReturnsNull {
             continue
         }
@@ -124,7 +124,7 @@ return_source :: fn(instrs: Instruction[], returned: LocalId) -> ReturnSource | 
     n :: instrs.len()
     for i in 0..<n {
         ins :: instrs[n - 1 - i]
-        d :: dst_of(ins) ?? continue
+        d :: dst_of(ins) else continue
         if d != returned {
             continue
         }
@@ -159,7 +159,7 @@ rewrite_nullable_return :: fn(
     if t.values.len() != 1 {
         return b
     }
-    built :: return_source(b.instructions, t.values[0]) ?? return b
+    built :: return_source(b.instructions, t.values[0]) else return b
     instrs: Instruction[]: []
     instrs.push_all(b.instructions)
     values: LocalId[]: []

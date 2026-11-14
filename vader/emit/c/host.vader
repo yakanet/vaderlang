@@ -275,7 +275,7 @@ signedness_assert :: fn(
     c_name: string,
     c_field: string,
 ) -> CTopLevel | null {
-    v :: c_field_val_type(f, types) ?? return null
+    v :: c_field_val_type(f, types) else return null
     if !is_integer_val(v) {
         return null
     }
@@ -611,7 +611,7 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
         // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
         // `@c_out` decides `void*` vs `const void*`, through
         // `BcSignature.param_c_out`, and `@c_type` names what it points to.
-        return pointer_to(param_c_type(imp, j) ?? "void", writes)
+        return pointer_to(param_c_type(imp, j) else "void", writes)
     }
     mirror :: mirrored_c_struct(types, sig.param_types[j])
     if mirror != "" {
@@ -632,7 +632,7 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
     if is_abi_nullable_pointer(types, sig.param_types[j]) {
         return "void*"
     }
-    return param_c_type(imp, j) ?? extern_c_type(sig.params[j])
+    return param_c_type(imp, j) else extern_c_type(sig.params[j])
 }
 
 // The C type the foreign symbol declares for the result of `imp`.
@@ -649,12 +649,12 @@ extern_result_type :: fn(imp: BcImport, types: BcType[]) -> string {
     if mirror != "" {
         return mirror
     }
-    return c_result_type(imp) ?? extern_c_type(bc_single_result(imp.signature))
+    return c_result_type(imp) else extern_c_type(bc_single_result(imp.signature))
 }
 
 // The C type of the temporary a `@c_address` scalar parameter is spilled to.
 spilled_c_type :: fn(imp: BcImport, j: i64) -> string =
-    param_c_type(imp, j) ?? c_type_for_val_bare(imp.signature.params[j])
+    param_c_type(imp, j) else c_type_for_val_bare(imp.signature.params[j])
 
 // The address of `p<j>`, the temporary a `@c_address` scalar is spilled to. Typed
 // when `@c_type` names the C type, so that a header checks it against its
@@ -677,7 +677,7 @@ c_type_asserts :: fn(imports: BcImport[], types: BcType[]) -> CTopLevel[] {
     for imp in imports {
         sig :: imp.signature
         for j in 0..<sig.params.len() {
-            spelling :: param_c_type(imp, j) ?? continue
+            spelling :: param_c_type(imp, j) else continue
             if is_abi_array(types, sig.param_types[j]) {
                 element :: val_type_of_field(types, array_element_tag(types, sig.param_types[j]))
                 push_pointee_assert(spelling, element, seen, out)
@@ -685,7 +685,7 @@ c_type_asserts :: fn(imports: BcImport[], types: BcType[]) -> CTopLevel[] {
                 push_c_type_assert(spelling, sig.params[j], seen, out)
             }
         }
-        spelling :: c_result_type(imp) ?? continue
+        spelling :: c_result_type(imp) else continue
         push_c_type_assert(spelling, bc_single_result(sig), seen, out)
     }
     return out
@@ -1199,7 +1199,7 @@ read_back :: fn(imp: BcImport, forwarded: CExpression) -> CExpression {
 // Argument `a` of parameter `j`, converted to the `@c_type` the callee declares
 // for it when it declares one.
 renamed_argument :: fn(imp: BcImport, j: i64, a: CExpression) -> CExpression {
-    spelling :: param_c_type(imp, j) ?? return a
+    spelling :: param_c_type(imp, j) else return a
     return cast(spelling, a)
 }
 
@@ -1305,7 +1305,7 @@ interned :: fn(text: CExpression) -> CExpression =
 /// @param type_index  the slot ; `-1` is absent.
 /// @return            e.g. `"struct timespec"`, or `""`.
 mirrored_c_struct :: fn(types: BcType[], type_index: i32) -> string {
-    mirror :: mirror_at(types, type_index) ?? return ""
+    mirror :: mirror_at(types, type_index) else return ""
     return mirror.c_name
 }
 

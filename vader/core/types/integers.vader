@@ -77,7 +77,7 @@ export representation_name :: fn(t: Type) -> string {
     if t is EnumType {
         return t.repr.name
     }
-    integer :: integer_representation(t) ?? return display_type(t)
+    integer :: integer_representation(t) else return display_type(t)
     return integer.name
 }
 
@@ -135,7 +135,7 @@ export is_counting_type :: fn(t: Type) -> bool = match t {
 ///
 /// @param t  any type.
 export held_values :: fn(t: Type) -> Interval | null {
-    held :: held_integer(t) ?? return null
+    held :: held_integer(t) else return null
     return held.values
 }
 
@@ -163,7 +163,7 @@ export integer_set :: fn(t: Type) -> Interval[] | null {
     if backing is PrimitiveType && backing.name == "char" {
         return CHAR_VALUES
     }
-    values :: integer_values(backing) ?? return null
+    values :: integer_values(backing) else return null
     if values.lo_open || values.hi_open {
         return null
     }
@@ -309,22 +309,22 @@ import "std/testing"
 test_integer_singletons_agree_with_the_machine_table :: fn() -> void {
     singletons :: [TY_I32, TY_I64]
     for t in singletons {
-        m :: machine_integer_named(t.name) ?? return assert(false, "${t.name} is in the table")
+        m :: machine_integer_named(t.name) else return assert(false, "${t.name} is in the table")
         assert(same_interval(m.values, t.bounds), "${t.name} has its machine bounds")
     }
 }
 
 @test
 test_held_values_reads_the_storage :: fn() -> void {
-    u8_iv :: held_values(mk_primitive("u8")) ?? ANY_INTEGER
+    u8_iv :: held_values(mk_primitive("u8")) else ANY_INTEGER
     assert(same_interval(u8_iv, interval(0, 255)), "u8")
-    i8_iv :: held_values(mk_primitive("i8")) ?? ANY_INTEGER
+    i8_iv :: held_values(mk_primitive("i8")) else ANY_INTEGER
     assert(same_interval(i8_iv, interval(-128, 127)), "i8")
-    i64_iv :: held_values(TY_I64) ?? ANY_INTEGER
+    i64_iv :: held_values(TY_I64) else ANY_INTEGER
     assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
-    u64_iv :: held_values(mk_primitive("u64")) ?? ANY_INTEGER
+    u64_iv :: held_values(mk_primitive("u64")) else ANY_INTEGER
     assert(u64_iv.hi_open && !u64_iv.lo_open && u64_iv.lo == 0, "u64 ends")
-    hour_iv :: held_values(RangeType { .bounds = interval(0, 23) }) ?? ANY_INTEGER
+    hour_iv :: held_values(RangeType { .bounds = interval(0, 23) }) else ANY_INTEGER
     assert(same_interval(hour_iv, interval(0, 255)), "a range is held in its u8")
     assert(held_values(TY_CHAR) == null, "char is no integer")
 }

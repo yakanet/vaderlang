@@ -33,7 +33,7 @@ check_extern_symbols :: fn(
             if decl !is FnDecl || decl.body != null {
                 continue
             }
-            extern_decorator :: find_decorator(decl.decorators, "extern") ?? continue decl
+            extern_decorator :: find_decorator(decl.decorators, "extern") else continue decl
             if c_variadic_start(decl) >= 0 && !owns_prototype(decl, libraries) {
                 detail :: "`${decl.name}` is variadic: name the header declaring `${extern_symbol_of(decl)}` with `@c_header`, or in its `CLibrary`'s `headers`"
                 diags.push(comptime_error(.VariadicExternWithoutHeader, extern_decorator.span, detail))

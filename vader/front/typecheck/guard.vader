@@ -105,7 +105,7 @@ is_guard_candidate :: fn(fd: AST.FnDecl, typed: TypedProgram) -> bool {
         return false
     }
     for p in fd.params {
-        declared :: typed.param_types[p.span.hash()] ?? continue
+        declared :: typed.param_types[p.span.hash()] else continue
         if is_narrowable(declared) {
             return true
         }
@@ -166,12 +166,12 @@ is_narrowable :: fn(t: Type) -> bool =
 /// @param body  its body, the condition its trailing expression.
 proved_facts :: fn(fd: AST.FnDecl, body: AST.BlockExpr, typed: TypedProgram) -> GuardFact[] {
     facts: GuardFact[]: []
-    cond :: body.trailing ?? return facts
-    recorded :: typed.expr_types[cond.id] ?? return facts
+    cond :: body.trailing else return facts
+    recorded :: typed.expr_types[cond.id] else return facts
     if !is_bool(recorded) {
         return facts
     }
-    params :: param_slots(fd, typed) ?? return facts
+    params :: param_slots(fd, typed) else return facts
     return facts_of(cond, params, typed)
 }
 
@@ -186,7 +186,7 @@ guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
     if typed.const_walk.typing.len() > 0 {
         return null
     }
-    body :: decl.body ?? return null
+    body :: decl.body else return null
     position :: set_walk_aside(typed)
     check_fn_body(decl, body, typed, diag_sink())
     resume_walk(typed, position)
@@ -208,7 +208,7 @@ ensured_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(
 // The condition the decorator `name` declares on `fd` ; none where it does not
 // state exactly one (P1032).
 declared_condition :: fn(fd: AST.FnDecl, name: string) -> AST.Expr | null {
-    decorator :: AST.find_decorator(fd.decorators, name) ?? return null
+    decorator :: AST.find_decorator(fd.decorators, name) else return null
     if decorator.args.len() != 1 {
         return null
     }
@@ -226,8 +226,8 @@ contract_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardContract | null
     if known != null {
         return known
     }
-    cond :: guard_condition(decl) ?? return null
-    owner :: typed.shared_guards.owners[decl.id] ?? return null
+    cond :: guard_condition(decl) else return null
+    owner :: typed.shared_guards.owners[decl.id] else return null
     if predicate_problem(decl, owner) != "" {
         return null
     }
@@ -244,8 +244,8 @@ ensures_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardContract | null 
     if known != null {
         return known
     }
-    cond :: ensured_condition(decl) ?? return null
-    owner :: typed.shared_guards.owners[decl.id] ?? return null
+    cond :: ensured_condition(decl) else return null
+    owner :: typed.shared_guards.owners[decl.id] else return null
     if ensures_problem(decl, owner) != "" {
         return null
     }
@@ -275,7 +275,7 @@ read_once :: fn(
 // The contract `cond` states for `decl`, read in the module declaring it.
 read_contract :: fn(decl: AST.FnDecl, cond: AST.Expr, owner: TypedProgram) -> GuardContract | null {
     check_expr(cond, TY_BOOL, owner, diag_sink())
-    params :: param_slots(decl, owner) ?? return null
+    params :: param_slots(decl, owner) else return null
     return GuardContract {
         .decl = decl,
         .facts = facts_of(cond, params, owner),
@@ -295,7 +295,7 @@ hold_to_contract :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    cond :: guard_condition(fd) ?? return
+    cond :: guard_condition(fd) else return
     problem :: predicate_problem(fd, typed)
     ctx.guard = admitted(fd, cond, problem, typed, diags, () -> contract_of(fd, typed))
 }
@@ -312,7 +312,7 @@ hold_to_ensures :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    cond :: ensured_condition(fd) ?? return
+    cond :: ensured_condition(fd) else return
     problem :: ensures_problem(fd, typed)
     ctx.ensures = admitted(fd, cond, problem, typed, diags, () -> ensures_of(fd, typed))
 }
@@ -333,7 +333,7 @@ admitted :: fn(
         return null
     }
     check_expr(cond, TY_BOOL, typed, diags)
-    contract :: read() ?? return null
+    contract :: read() else return null
     if contract.facts.len() == 0 {
         diags.push(typecheck_error(.MisshapenGuard, cond.span,
             "the condition proves nothing of the parameters of `${fd.name}`"))
@@ -418,7 +418,7 @@ check_ensured_exit :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    ensured :: contract ?? return
+    ensured :: contract else return
     if value != null {
         check_ensured_value(ensured, value, how, typed, diags)
         return
@@ -477,8 +477,8 @@ check_guard_branches :: fn(
 // narrow is not read, which only refuses more.
 each_branch_value :: fn(e: AST.IfExpr, typed: TypedProgram, visit: fn(AST.Expr) -> void) -> bool {
     then_branch :: branch_of(e.then_block.trailing, then_is_divergent(e.then_block, typed))
-        ?? return false
-    else_branch :: branch_of(else_value_of(e), else_is_divergent(e, typed)) ?? return false
+        else return false
+    else_branch :: branch_of(else_value_of(e), else_is_divergent(e, typed)) else return false
     visit_branch(e.cond, true, then_branch, typed, visit)
     visit_branch(e.cond, false, else_branch, typed, visit)
     return true
@@ -549,7 +549,7 @@ check_body_value :: fn(
     if contract != null && is_body_of(block, contract) && block.trailing != null {
         check_guard_return(contract, block.trailing, typed, diags)
     }
-    ensured :: ctx.ensures ?? return
+    ensured :: ctx.ensures else return
     if !is_body_of(block, ensured) || result is NeverType {
         return
     }
@@ -558,7 +558,7 @@ check_body_value :: fn(
 
 // Whether `block` is the body of the fn `contract` belongs to.
 is_body_of :: fn(block: AST.BlockExpr, contract: GuardContract) -> bool {
-    body :: contract.decl.body ?? return false
+    body :: contract.decl.body else return false
     return body.id == block.id
 }
 
@@ -578,8 +578,8 @@ end_of :: fn(block: AST.BlockExpr) -> Span {
 /// @return        whether the write was refused.
 /// @error         T3113.
 reject_guard_param_write :: fn(target: AST.IdentExpr, typed: TypedProgram, diags: Diagnostic[]) -> bool {
-    contract :: typed.guards.verifying ?? return false
-    sym :: typed.resolved.idents[target.span.hash()] ?? return false
+    contract :: typed.guards.verifying else return false
+    sym :: typed.resolved.idents[target.span.hash()] else return false
     if sym.id !in contract.params.symbols {
         return false
     }
@@ -603,9 +603,9 @@ described :: fn(t: Type) -> string {
 param_slots :: fn(fd: AST.FnDecl, typed: TypedProgram) -> ParamSlots | null {
     params :: ParamSlots { .symbols = [], .declared = [] }
     for p in fd.params {
-        sym :: typed.resolved.idents[p.span.hash()] ?? return null
+        sym :: typed.resolved.idents[p.span.hash()] else return null
         params.symbols.push(sym.id)
-        params.declared.push(typed.param_types[p.span.hash()] ?? return null)
+        params.declared.push(typed.param_types[p.span.hash()] else return null)
     }
     return params
 }
@@ -667,8 +667,8 @@ side_of :: fn(truth: bool, then_ty: Type, else_ty: Type) -> Type {
 /// @param call  a call in a condition, already checked.
 /// @return      null when the callee is no guard here.
 guard_narrowings :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow[] | null {
-    decl :: recorded_decl(typed, call) ?? return null
-    facts :: callee_guard_facts(decl, typed) ?? return null
+    decl :: recorded_decl(typed, call) else return null
+    facts :: callee_guard_facts(decl, typed) else return null
     return argument_narrowings(call, decl, facts, typed)
 }
 
@@ -681,8 +681,8 @@ guard_narrowings :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow[] | 
 /// @param call    a call written as a statement, already checked.
 /// @param pushed  receives the records that unwind them (`pop_narrows`).
 push_ensured_call :: fn(call: AST.CallExpr, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
-    decl :: recorded_decl(typed, call) ?? return
-    contract :: ensures_of(decl, typed) ?? return
+    decl :: recorded_decl(typed, call) else return
+    contract :: ensures_of(decl, typed) else return
     for n in argument_narrowings(call, decl, contract.facts, typed) {
         if n.field_key != "" || n.sym_id in typed.resolved.closure_rebound {
             continue
@@ -702,8 +702,8 @@ argument_narrowings :: fn(
     offset :: receiver_offset(call, decl, typed)
     out: IsNarrow[]: []
     for fact in facts {
-        arg :: guard_argument(call, offset, fact.index) ?? continue
-        slot :: slot_of(arg, typed) ?? continue
+        arg :: guard_argument(call, offset, fact.index) else continue
+        slot :: slot_of(arg, typed) else continue
         current :: slot.current
         if current is UnresolvedType {
             continue
@@ -725,7 +725,7 @@ callee_guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] |
     if decl.id in typed.guards.candidates {
         return guard_facts(decl, typed)
     }
-    contract :: contract_of(decl, typed) ?? return null
+    contract :: contract_of(decl, typed) else return null
     return contract.facts
 }
 
@@ -735,7 +735,7 @@ callee_guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] |
 ///
 /// @param call  a call in a condition, already checked.
 guard_narrowing :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow | null {
-    narrowings :: guard_narrowings(call, typed) ?? return null
+    narrowings :: guard_narrowings(call, typed) else return null
     return narrowings.first()
 }
 
@@ -743,7 +743,7 @@ guard_narrowing :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow | nul
 ///
 /// @param pushed  receives the records that unwind them (`pop_narrows`).
 push_guard_call :: fn(call: AST.CallExpr, truth: bool, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
-    narrowings :: guard_narrowings(call, typed) ?? return
+    narrowings :: guard_narrowings(call, typed) else return
     for n in narrowings {
         side :: side_of(truth, n.then_ty, n.else_ty)
         pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, side))

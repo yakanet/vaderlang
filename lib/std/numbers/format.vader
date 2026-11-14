@@ -132,7 +132,7 @@ export format :: fn(self: f64, f: DecimalFormat) -> string {
     if !is_finite(self) {
         return "${self}"
     }
-    places :: max(f.decimals ?? 0, 0)
+    places :: max(f.decimals else 0, 0)
     d :: rounded_for(shortest_digits(self), f, places)
     sign :: sign_text(self < 0.0 && d.digits != ZERO_DIGITS.digits, f.sign)
     return "${sign}${notation_text(d, f, places)}"
@@ -152,13 +152,13 @@ ZERO_DIGITS :: DecimalDigits { .digits = "0", .point = 1 }
 // (`-123.45`, `0.000123`, `1e+21`, `1.5e-7`) with the sign left out.
 shortest_digits :: fn(x: f64) -> DecimalDigits {
     text :: "${x}".trim_prefix("-")
-    cut :: text.split_first("e") ?? return digits_of(text, 0)
+    cut :: text.split_first("e") else return digits_of(text, 0)
     return digits_of(cut.0, exponent_value(cut.1))
 }
 
 // The digits of `mantissa`, a decimal text like `123.45`, times ten to `exponent`.
 digits_of :: fn(mantissa: string, exponent: i64) -> DecimalDigits {
-    sides :: mantissa.split_first(".") ?? [mantissa, ""]
+    sides :: mantissa.split_first(".") else [mantissa, ""]
     return trimmed("${sides.0}${sides.1}", sides.0.byte_len() + exponent)
 }
 

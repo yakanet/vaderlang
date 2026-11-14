@@ -44,7 +44,7 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) 
             if d !is LoweredFnDecl {
                 continue
             }
-            slot :: d.origin.vtable_slot ?? continue
+            slot :: d.origin.vtable_slot else continue
             if slot.trait_key != equals_key || slot.method != METHOD_EQUALS || d.params.len() != 2 {
                 continue
             }

@@ -49,7 +49,7 @@ check_pattern_bound_exprs :: fn(
 
 // The symbol the resolver minted for a `match` header's binding ; null without one.
 header_symbol :: fn(binding: AST.SimpleBinding | null, typed: TypedProgram) -> Symbol | null {
-    present :: binding ?? return null
+    present :: binding else return null
     return typed.resolved.idents[present.name_span.hash()]
 }
 
@@ -359,7 +359,7 @@ covering :: fn(
     if uncovered.len() == 0 {
         return uncovered
     }
-    taken :: pattern_values(pattern) ?? return uncovered
+    taken :: pattern_values(pattern) else return uncovered
     if !meets_any(whole, taken) {
         return uncovered
     }
@@ -408,15 +408,15 @@ display_values :: fn(gap: Interval) -> string {
 // any other pattern, a bound no integer or `char` literal, and an empty range.
 pattern_values :: fn(p: AST.Pattern) -> Interval | null {
     if p is AST.LiteralPattern {
-        value :: literal_scalar(p.value) ?? return null
+        value :: literal_scalar(p.value) else return null
         return interval(value, value)
     }
     if p !is AST.RangePattern {
         return null
     }
-    lo :: literal_scalar(p.lower) ?? return null
-    written_hi :: literal_scalar(p.upper) ?? return null
-    hi :: greatest_below(written_hi, p.inclusive) ?? return null
+    lo :: literal_scalar(p.lower) else return null
+    written_hi :: literal_scalar(p.upper) else return null
+    hi :: greatest_below(written_hi, p.inclusive) else return null
     if hi < lo {
         return null
     }
@@ -554,8 +554,8 @@ arm_narrow_for :: fn(
 // other scrutinee, and for a pattern taking no integer value ; `char` and a
 // distinct are not narrowed to a range (`inside_of`).
 taken_values :: fn(p: AST.Pattern, counted: Type | null) -> Type | null {
-    target :: counted ?? return null
-    taken :: arm_values(p) ?? return null
+    target :: counted else return null
+    taken :: arm_values(p) else return null
     return inside_of(target, RangeType { .bounds = taken })
 }
 
@@ -567,7 +567,7 @@ arm_values :: fn(p: AST.Pattern) -> Interval | null {
     }
     hull: Interval | null = null
     for sub in p.patterns {
-        values :: pattern_values(sub) ?? return null
+        values :: pattern_values(sub) else return null
         if hull == null {
             hull = values
         } else {
@@ -584,7 +584,7 @@ left_values :: fn(remaining: Type, counted: Type | null, uncovered: Interval[] |
         || !equals_type(remaining, counted) {
         return remaining
     }
-    return inside_of(counted, RangeType { .bounds = uncovered[0] }) ?? remaining
+    return inside_of(counted, RangeType { .bounds = uncovered[0] }) else remaining
 }
 
 is_overlap_checkable :: fn(t: Type) -> bool {
@@ -603,7 +603,7 @@ scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
     if scrut !is AST.IdentExpr {
         return -1
     }
-    sym :: typed.resolved.idents[scrut.span.hash()] ?? return -1
+    sym :: typed.resolved.idents[scrut.span.hash()] else return -1
     return sym.id
 }
 
@@ -661,7 +661,7 @@ bind_struct_pattern :: fn(
         }
         return
     }
-    declared :: typed.struct_fields[st.symbol.id] ?? return
+    declared :: typed.struct_fields[st.symbol.id] else return
     for field in sp.fields {
         found :: declared[field.name]
         if found == null {
@@ -814,7 +814,7 @@ range_target :: fn(scrut: Type, rest: Type) -> Type {
 // Whether a range can match a value of `t`: `t` is an integer or a `char`, or a
 // union holding one.
 offers_range :: fn(t: Type) -> bool {
-    for v in union_variants(t) ?? [t] {
+    for v in union_variants(t) else [t] {
         if v is UnresolvedType || is_integer_or_char(v) {
             return true
         }
@@ -828,7 +828,7 @@ range_variant :: fn(target: Type, low: Type) -> Type | null {
     if target !is UnionType {
         return target
     }
-    v :: counterpart(target, low) ?? return null
+    v :: counterpart(target, low) else return null
     if is_integer_or_char(v) {
         return v
     }

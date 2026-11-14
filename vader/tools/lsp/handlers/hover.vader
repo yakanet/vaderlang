@@ -55,7 +55,7 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     line :: position_line(params)
     character :: position_character(params)
 
-    idx :: state.index_for(uri) ?? return JsonNull {}
+    idx :: state.index_for(uri) else return JsonNull {}
     builtin :: builtin_hover(idx.decorator_name_at(line, character))
     if builtin != null {
         return builtin
@@ -132,7 +132,7 @@ decl_hover :: fn(hit: ExternalHit, instance: string) -> JsonValue {
         parts.push(format_vaderdoc(doc))
     }
     // A URI that names no file is shown as it is.
-    shown :: parse_uri(hit.uri).and_then(u -> u.to_path()).or_null() ?? hit.uri
+    shown :: parse_uri(hit.uri).and_then(u -> u.to_path()).or_null() else hit.uri
     parts.push("*${shown.to_path().filename()}*")
     return markdown_hover(parts.join("\n\n"))
 }
@@ -157,10 +157,10 @@ generic_instance :: fn(
     if !hit.target.generic || is_declaration_site(uri, idx, hit, line, character) {
         return ""
     }
-    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return ""
-    cursor :: typed_cursor(state, path, line, character) ?? return ""
-    found :: expr_under(cursor) ?? return ""
-    ty :: cursor.typed.expr_types[found.id] ?? return ""
+    path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return ""
+    cursor :: typed_cursor(state, path, line, character) else return ""
+    found :: expr_under(cursor) else return ""
+    ty :: cursor.typed.expr_types[found.id] else return ""
     return display_type(ty)
 }
 
@@ -169,7 +169,7 @@ is_declaration_site :: fn(uri: string, idx: DocIndex, hit: ExternalHit, line: i3
     if hit.uri != uri {
         return false
     }
-    at :: idx.span_at(line, character) ?? return false
+    at :: idx.span_at(line, character) else return false
     return at.start.offset == hit.target.name_span.start.offset
 }
 
@@ -214,7 +214,7 @@ builtin_hover :: fn(name: string) -> JsonValue | null {
     if deco != null {
         return markdown_hover(["decorator", code_fence(deco.usage), "---", deco.doc].join("\n\n"))
     }
-    intrinsic :: Parser.intrinsic_spec(name) ?? return null
+    intrinsic :: Parser.intrinsic_spec(name) else return null
     return markdown_hover(["intrinsic", code_fence(intrinsic.signature), "---", intrinsic.doc].join("\n\n"))
 }
 
@@ -269,8 +269,8 @@ bullets :: fn(items: string[]) -> string {
 /// inferred type at (line, character), `name: T` on a named value. Returns
 /// `null` on miss so the caller can fall through to the decl hover.
 try_typed_hover :: fn(self: ServerState, uri: string, idx: DocIndex, line: i32, character: i32) -> JsonValue | null {
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() ?? return null
-    cursor :: typed_cursor(self, file_path, line, character) ?? return null
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else return null
+    cursor :: typed_cursor(self, file_path, line, character) else return null
     // Binding-name hover first : when the cursor sits on a `let` /
     // `::` binding name, show the RHS's inferred type instead of the
     // (often `?` placeholder) declared type. Useful when the user
@@ -280,8 +280,8 @@ try_typed_hover :: fn(self: ServerState, uri: string, idx: DocIndex, line: i32, 
     if binding_ty != null {
         return type_hover(idx.name_at(line, character), binding_ty)
     }
-    found :: expr_under(cursor) ?? return null
-    ty :: cursor.typed.expr_types[found.id] ?? return null
+    found :: expr_under(cursor) else return null
+    ty :: cursor.typed.expr_types[found.id] else return null
     return type_hover(expr_name(found), ty)
 }
 

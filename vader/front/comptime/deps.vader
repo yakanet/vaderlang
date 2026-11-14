@@ -86,16 +86,16 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
 // later in source order) still wire correctly.
 populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
-        record :: nodes.by_id[id] ?? continue
-        symbol :: symbol_declared_at(typed.resolved, record.decl.name_span) ?? continue
+        record :: nodes.by_id[id] else continue
+        symbol :: symbol_declared_at(typed.resolved, record.decl.name_span) else continue
         nodes.by_symbol[symbol.id] = id
     }
     for id in nodes.order {
-        record :: nodes.by_id[id] ?? continue
+        record :: nodes.by_id[id] else continue
         deps_seen :: Set<i64> {}
         // A const the parser gave a `__comptime_` helper calls it ; what it reads
         // is the value it was written with, which the helper holds.
-        written :: record.decl.comptime_body ?? record.decl.value
+        written :: record.decl.comptime_body else record.decl.value
         AST.inspect(written, (n) -> dependency_step(n, typed, nodes, deps_seen, record))
         nodes.by_id[id] = record
     }
@@ -123,7 +123,7 @@ visit :: fn(
     order: AST.ConstDecl[],
     diags: Diagnostic[],
 ) -> void {
-    c :: color[id] ?? return
+    c :: color[id] else return
     if c == 2 { return }
     if c == 1 {
         emit_cycle(id, path, nodes, cyclic, diags)
@@ -171,7 +171,7 @@ emit_cycle :: fn(
 cycle_names :: fn(start: i64, path: i64[], id: i64, nodes: Nodes) -> string {
     parts: string[]: []
     for i in start..<path.len() {
-        record :: nodes.by_id[path[i]] ?? continue
+        record :: nodes.by_id[path[i]] else continue
         parts.push(record.decl.name)
     }
     rec_tail :: nodes.by_id[id]
@@ -205,11 +205,11 @@ add_dependency :: fn(
     ident: AST.IdentExpr, typed: TypedProgram, nodes: Nodes,
     seen: Set<i64>, record: NodeRecord,
 ) -> void {
-    symbol :: typed.resolved.idents[ident.span.hash()] ?? return
+    symbol :: typed.resolved.idents[ident.span.hash()] else return
     if symbol.kind != .Const {
         return
     }
-    dependency_id :: nodes.by_symbol[symbol.id] ?? return
+    dependency_id :: nodes.by_symbol[symbol.id] else return
     if seen.add(dependency_id) {
         record.dependency_ids.push(dependency_id)
     }

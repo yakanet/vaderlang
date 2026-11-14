@@ -2655,8 +2655,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {
@@ -2818,8 +2817,7 @@
                             "label": null
                           }
                         }
-                      ],
-                      "coalesce": true
+                      ]
                     }
                   },
                   {

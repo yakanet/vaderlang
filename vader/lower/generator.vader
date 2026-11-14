@@ -36,7 +36,7 @@ import "vader/lower/ir"
 /// typechecker (T3056) already guaranteed the shape ; fall back to `TY_VOID`
 /// defensively if something slipped through.
 generator_element_of :: fn(return_type: Type) -> Type =
-    core_trait_arg(return_type, TRAIT_ITERATOR) ?? TY_VOID
+    core_trait_arg(return_type, TRAIT_ITERATOR) else TY_VOID
 
 // A zero value of `ty` for a local `g$State` field's initial slot: overwritten
 // in `next()` before its first read, but `struct.new` needs every field set.

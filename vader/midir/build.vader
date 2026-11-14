@@ -531,7 +531,7 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
                     "the typecheck should have refused it (T3041)"))
             return
         }
-        value :: build_held(fn_ctx, s.value, fn_ctx.locals[i64(slot_opt)].type) ?? return
+        value :: build_held(fn_ctx, s.value, fn_ctx.locals[i64(slot_opt)].type) else return
         emit(fn_ctx, InstrMove { .dst = slot_opt, .src = value, .span = s.span })
         return
     }
@@ -585,7 +585,7 @@ place_slot :: fn(
     holder: LocalId | null,
     place: LoweredFieldAccess | LoweredUnionField | LoweredIndex,
 ) -> Type {
-    held :: holder ?? return place.type
+    held :: holder else return place.type
     holder_type :: fn_ctx.locals[i64(held)].type
     slots :: fn_ctx.project.slots
     laid_out :: match place {
@@ -593,7 +593,7 @@ place_slot :: fn(
         is LoweredUnionField  -> field_slot(slots, holder_type, place.field)
         is LoweredIndex       -> element_slot(holder_type)
     }
-    return laid_out ?? place.type
+    return laid_out else place.type
 }
 
 // A loop with no condition starts its body in its header. A header that only
@@ -753,7 +753,7 @@ stored_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     if local != null {
         return stored_slot(fn_ctx, local, e)
     }
-    value :: build_module_ident(fn_ctx, e) ?? return null
+    value :: build_module_ident(fn_ctx, e) else return null
     return stored_slot(fn_ctx, value, e)
 }
 
@@ -768,7 +768,7 @@ stored_slot :: fn(fn_ctx: FnCtx, slot: LocalId, e: LoweredIdent) -> LocalId {
 }
 
 build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
-    stored :: stored_ident(fn_ctx, e) ?? return null
+    stored :: stored_ident(fn_ctx, e) else return null
     return read_as(fn_ctx, stored, e.type, e.span)
 }
 
@@ -829,9 +829,9 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
             params :: params_of(fn_ctx.project.slots, callee_id.symbol)
             args :: if slots is Set<i64> {
-                build_extern_args(fn_ctx, e.args, params, slots, callee_id.symbol.name) ?? return null
+                build_extern_args(fn_ctx, e.args, params, slots, callee_id.symbol.name) else return null
             } else {
-                build_args(fn_ctx, e.args, params) ?? return null
+                build_args(fn_ctx, e.args, params) else return null
             }
             dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
@@ -844,8 +844,8 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
             return end_after_no_return(fn_ctx, e, dst)
         }
     }
-    callee :: build_expr(fn_ctx, e.callee) ?? return null
-    args :: build_args(fn_ctx, e.args, param_types_of(e.callee.type)) ?? return null
+    callee :: build_expr(fn_ctx, e.callee) else return null
+    args :: build_args(fn_ctx, e.args, param_types_of(e.callee.type)) else return null
     dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
         .dst = dst, .callee = callee, .args = args,
@@ -892,7 +892,7 @@ build_extern_args :: fn(
     for i in 0..<args.len() {
         a :: args[i]
         if !slots.contains(i) {
-            local :: build_held(fn_ctx, a, type_at(params, i)) ?? return null
+            local :: build_held(fn_ctx, a, type_at(params, i)) else return null
             out.push(local)
             continue
         }
@@ -920,15 +920,15 @@ build_extern_args :: fn(
 build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[], params: Type[]) -> LocalId[] | null {
     out: LocalId[]: []
     for i in 0..<args.len() {
-        local :: build_held(fn_ctx, args[i], type_at(params, i)) ?? return null
+        local :: build_held(fn_ctx, args[i], type_at(params, i)) else return null
         out.push(local)
     }
     return out
 }
 
 build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
-    receiver :: build_expr(fn_ctx, e.receiver) ?? return null
-    args :: build_args(fn_ctx, e.args, e.param_types) ?? return null
+    receiver :: build_expr(fn_ctx, e.receiver) else return null
+    args :: build_args(fn_ctx, e.args, e.param_types) else return null
     dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
     emit(fn_ctx, InstrVirtualCall {
         .dst = dst, .trait_name = e.trait_name, .method = e.method,
@@ -939,13 +939,13 @@ build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null
 }
 
 build_field_access :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
-    stored :: stored_field(fn_ctx, e) ?? return null
+    stored :: stored_field(fn_ctx, e) else return null
     return read_as(fn_ctx, stored, e.type, e.span)
 }
 
 // The field `e` reads, as its holder stores it (`field_read_type`).
 stored_field :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target) ?? return null
+    target :: build_expr(fn_ctx, e.target) else return null
     read :: field_read_type(fn_ctx, target, e)
     dst :: fresh_tmp(fn_ctx, "field", read)
     emit(fn_ctx, InstrFieldGet {
@@ -955,13 +955,13 @@ stored_field :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
 }
 
 build_union_field :: fn(fn_ctx: FnCtx, e: LoweredUnionField) -> LocalId | null {
-    stored :: stored_union_field(fn_ctx, e) ?? return null
+    stored :: stored_union_field(fn_ctx, e) else return null
     return read_as(fn_ctx, stored, e.type, e.span)
 }
 
 // The common field `e` reads, as its holder stores it (`field_read_type`).
 stored_union_field :: fn(fn_ctx: FnCtx, e: LoweredUnionField) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target) ?? return null
+    target :: build_expr(fn_ctx, e.target) else return null
     read :: field_read_type(fn_ctx, target, e)
     dst :: fresh_tmp(fn_ctx, "field", read)
     emit(fn_ctx, InstrUnionFieldGet {
@@ -1006,7 +1006,7 @@ build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
 // result's integer.
 build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
     width :: computation_width(e.operand.type, null, e.type)
-    operand :: build_held(fn_ctx, e.operand, width) ?? return null
+    operand :: build_held(fn_ctx, e.operand, width) else return null
     computed :: computed_type(e.type, width)
     dst :: fresh_tmp(fn_ctx, "unop", computed)
     emit(fn_ctx, InstrUnOp {
@@ -1024,8 +1024,8 @@ build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
         check_unshared_identity(fn_ctx.project, e)
     }
     width :: binary_width(fn_ctx, e)
-    lhs :: build_held(fn_ctx, e.left, width) ?? return null
-    rhs :: build_held(fn_ctx, e.right, width) ?? return null
+    lhs :: build_held(fn_ctx, e.left, width) else return null
+    rhs :: build_held(fn_ctx, e.right, width) else return null
     computed :: computed_type(e.type, width)
     dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), computed)
     emit(fn_ctx, InstrBinOp {
@@ -1066,17 +1066,17 @@ narrowed_local_width :: fn(fn_ctx: FnCtx, e: LoweredExpr, constant: Type) -> Ran
     if e !is LoweredIdent {
         return null
     }
-    slot :: fn_ctx.local_by_sym_id[e.symbol.id] ?? return null
+    slot :: fn_ctx.local_by_sym_id[e.symbol.id] else return null
     stored :: fn_ctx.locals[i64(slot)].type
     if !narrowed_read(stored, e.type) {
         return null
     }
-    held :: held_integer(stored) ?? return null
-    return computation_width(stored, constant, TY_BOOL) ?? machine_integer_type(held)
+    held :: held_integer(stored) else return null
+    return computation_width(stored, constant, TY_BOOL) else machine_integer_type(held)
 }
 
 build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
-    lhs :: build_expr(fn_ctx, e.left) ?? return null
+    lhs :: build_expr(fn_ctx, e.left) else return null
 
     is_and :: e.op == .And
     // Destination-passing : `&&` / `||` is a phi-slot builder like `build_if`
@@ -1309,7 +1309,7 @@ branch_on_cond :: fn(
         }
     }
     unreached :: CondReach { .on_true = false, .on_false = false }
-    local :: build_expr(fn_ctx, cond) ?? return unreached
+    local :: build_expr(fn_ctx, cond) else return unreached
     if fn_ctx.current is null {
         return unreached
     }
@@ -1376,7 +1376,7 @@ build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
     field_locals: LocalId[]: []
     field_slots :: literal_slots(fn_ctx.project.slots, e.type)
     for i in 0..<e.fields.len() {
-        local :: build_held(fn_ctx, e.fields[i].value, type_at(field_slots, i)) ?? return null
+        local :: build_held(fn_ctx, e.fields[i].value, type_at(field_slots, i)) else return null
         field_locals.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "struct", e.type)
@@ -1420,7 +1420,7 @@ shared_object :: fn(ctx: ProjectCtx, e: LoweredStructLit) -> LoweredIndex | null
 }
 
 is_shared_struct :: fn(ctx: ProjectCtx, t: StructType) -> bool {
-    fields :: ctx.slots.plain_fields[t.symbol.id] ?? return false
+    fields :: ctx.slots.plain_fields[t.symbol.id] else return false
     return fields.len() == 0 && t.symbol.id !in ctx.identity_compared
 }
 
@@ -1442,7 +1442,7 @@ build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
     elems: LocalId[]: []
     slot :: element_slot(e.type)
     for el in e.elements {
-        local :: build_held(fn_ctx, el, slot) ?? return null
+        local :: build_held(fn_ctx, el, slot) else return null
         elems.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "arr", e.type)
@@ -1454,7 +1454,7 @@ build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
 }
 
 build_cast :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
-    value :: build_cast_source(fn_ctx, e) ?? return null
+    value :: build_cast_source(fn_ctx, e) else return null
     return cast_local(fn_ctx, value, e.type, "cast", e.span)
 }
 
@@ -1484,7 +1484,7 @@ build_stored :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
 }
 
 build_type_check :: fn(fn_ctx: FnCtx, e: LoweredTypeCheck) -> LocalId | null {
-    value :: build_expr(fn_ctx, e.value) ?? return null
+    value :: build_expr(fn_ctx, e.value) else return null
     dst :: fresh_tmp(fn_ctx, "type_check", e.type)
     emit(fn_ctx, InstrTypeCheck {
         .dst = dst, .value = value, .check_type = e.check_type, .span = e.span,
@@ -1500,7 +1500,7 @@ build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: stri
 }
 
 build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | null {
-    args :: build_args(fn_ctx, e.args, e.param_types) ?? return null
+    args :: build_args(fn_ctx, e.args, e.param_types) else return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "intrinsic", e.type) }
     emit(fn_ctx, InstrIntrinsic {
         .span = e.span,
@@ -1513,7 +1513,7 @@ build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | 
 }
 
 build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target) ?? return null
+    target :: build_expr(fn_ctx, e.target) else return null
     dst :: fresh_tmp(fn_ctx, "len", e.type)
     emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span })
     return dst
@@ -1562,7 +1562,7 @@ build_global_get :: fn(fn_ctx: FnCtx, e: LoweredGlobalGet) -> LocalId | null {
 }
 
 build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
-    value :: build_held(fn_ctx, e.value, e.value_type) ?? return null
+    value :: build_held(fn_ctx, e.value, e.value_type) else return null
     dst :: fresh_tmp(fn_ctx, "cell", e.type)
     emit(fn_ctx, InstrCellNew {
         .dst = dst, .value = value, .value_type = e.value_type, .span = e.span,
@@ -1571,13 +1571,13 @@ build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
 }
 
 build_cell_get :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
-    stored :: stored_cell(fn_ctx, e) ?? return null
+    stored :: stored_cell(fn_ctx, e) else return null
     return read_as(fn_ctx, stored, e.type, e.span)
 }
 
 // The value of the cell `e` reads, as the cell stores it (`read_type`).
 stored_cell :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target) ?? return null
+    target :: build_expr(fn_ctx, e.target) else return null
     dst :: fresh_tmp(fn_ctx, "cell_get", read_type(e.value_type, e.type))
     emit(fn_ctx, InstrCellGet {
         .dst = dst, .cell = target, .value_type = e.value_type, .span = e.span,
@@ -1586,7 +1586,7 @@ stored_cell :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
 }
 
 build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null {
-    env :: build_expr(fn_ctx, e.env) ?? return null
+    env :: build_expr(fn_ctx, e.env) else return null
     dst :: fresh_tmp(fn_ctx, "closure", e.type)
     emit(fn_ctx, InstrMakeClosure {
         .dst = dst,
@@ -1608,17 +1608,17 @@ build_held :: fn(fn_ctx: FnCtx, e: LoweredExpr, slot: Type | null) -> LocalId | 
         return null
     }
     if e is LoweredIntLit {
-        target :: stored_conversion(e.type, slot) ?? return build_expr(fn_ctx, e)
+        target :: stored_conversion(e.type, slot) else return build_expr(fn_ctx, e)
         if holds_value(target.values, e.value) {
             constant :: ConstInt { .value = e.value }
             return emit_const(fn_ctx, machine_integer_type(target), constant, e.span)
         }
     }
     if !is_stored_as_integer(e.type) {
-        value :: build_expr(fn_ctx, e) ?? return null
+        value :: build_expr(fn_ctx, e) else return null
         return held_in(fn_ctx, value, slot, e.span)
     }
-    stored :: build_stored(fn_ctx, e) ?? return null
+    stored :: build_stored(fn_ctx, e) else return null
     return held_use_in(fn_ctx, stored, e.type, slot, e.span)
 }
 

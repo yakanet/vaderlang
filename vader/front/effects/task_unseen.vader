@@ -30,8 +30,8 @@ check_unknown_calls :: fn(
     line :: door.site.at.start.line
     entry :: door.entry
     if entry == null {
-        q :: door.param ?? return
-        node :: ctx.named_fn_node(body, door.site, q) ?? return
+        q :: door.param else return
+        node :: ctx.named_fn_node(body, door.site, q) else return
         chain :: ctx.reach[node].unknown
         if chain.len() > 0 {
             out.push(unknown_fault(door.site.at, line, chain))
@@ -113,7 +113,7 @@ unseen_values :: fn(
         if k >= site.sources.len() || k < site.fn_args.len() && site.fn_args[k] != null {
             continue
         }
-        source :: site.sources[k] ?? continue
+        source :: site.sources[k] else continue
         if ctx.fn_node_of(typed, source) == null && !ctx.sees_value(s, names, source) {
             out.push(Unseen { .at = source.span, .label = callee_label(source) })
         }
@@ -136,8 +136,8 @@ taken :: fn(ctx: TaskCtx, s: Skeleton, names: Bindings, e: AST.Expr) -> bool {
     if value !is AST.CallExpr {
         return false
     }
-    site :: s.sites.find((site) -> same_span(site.at, value.span)) ?? return false
-    door :: ctx.index.door_of(site.callee) ?? return false
+    site :: s.sites.find((site) -> same_span(site.at, value.span)) else return false
+    door :: ctx.index.door_of(site.callee) else return false
     return door.takes
 }
 

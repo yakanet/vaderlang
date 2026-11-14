@@ -51,7 +51,7 @@ export dump_lowered :: fn(project: LoweredProject, typed: TypedProject, scope: s
     dependencies: string[]: []
     names :: new_dump_names(project, typed)
     for module_id in sort(project.modules.keys().collect(), compare_ascending) {
-        module :: project.modules[module_id] ?? continue
+        module :: project.modules[module_id] else continue
         if !module_in_scope(module.display_path, scope) {
             lowered :: dependency_lines(names, project, module)
             if lowered.len() > 0 {

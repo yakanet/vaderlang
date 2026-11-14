@@ -125,7 +125,7 @@ try_fold_static_intrinsic :: fn(
     }
     if name == "field_count" || name == "variant_count" {
         if intrinsic.args.len() != 1 { return null }
-        arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
+        arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) else return null
         ty :: arg_ty_or_unresolved(arg_or_null)
         if ty is UnresolvedType { return null }
         cnt :: if name == "field_count" { lower_field_count(ctx, ty) } else { lower_variant_count(ty) }
@@ -141,7 +141,7 @@ try_fold_static_intrinsic :: fn(
         return null
     }
     if intrinsic.args.len() != 1 { return null }
-    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) else return null
     ty :: arg_ty_or_unresolved(arg_or_null)
     if ty is UnresolvedType { return null }
     if name == "size_of" {
@@ -169,7 +169,7 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
     greatest :: intrinsic.name == "max"
     bounded :: ctx.types.raw_type_expr_type(intrinsic.args[0])
     if is_char(bounded) {
-        hull :: type_bounds(bounded) ?? return null
+        hull :: type_bounds(bounded) else return null
         return LoweredCharLit {
             .span = intrinsic.span,
             .type = bounded,
@@ -177,14 +177,14 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
         }
     }
     if bounded is EnumType {
-        hull :: type_bounds(bounded) ?? return null
+        hull :: type_bounds(bounded) else return null
         return LoweredIntLit {
             .span = intrinsic.span,
             .type = bounded,
             .value = integer_bound(hull, greatest),
         }
     }
-    held :: instance_range(ctx, bounded) ?? return null
+    held :: instance_range(ctx, bounded) else return null
     return LoweredIntLit {
         .span = intrinsic.span,
         .type = type,
@@ -198,7 +198,7 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
 // same value lands whether the call is folded at comptime or here.
 lower_field_count :: fn(ctx: FnLowerCtx, t: Type) -> i64 {
     if t is StructType {
-        fields :: ctx.typed.struct_fields[t.symbol.id] ?? return 0
+        fields :: ctx.typed.struct_fields[t.symbol.id] else return 0
         return fields.len()
     }
     if t is TupleType { return t.elements.len() }
@@ -213,9 +213,9 @@ lower_variant_count :: fn(t: Type) -> i64 {
 
 try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr | null {
     if intrinsic.args.len() != 2 { return null }
-    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) else return null
     ty :: arg_ty_or_unresolved(arg_or_null)
-    name :: string_literal_text(intrinsic.args[1]) ?? return null
+    name :: string_literal_text(intrinsic.args[1]) else return null
     if ty !is StructType {
         return null
     }
@@ -284,7 +284,7 @@ try_fold_fields :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
     if intrinsic.args.len() != 1 { return null }
-    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) else return null
     target_ty :: arg_ty_or_unresolved(arg_or_null)
     target_struct: StructType | null = null
     if target_ty is StructType { target_struct = target_ty }
@@ -370,7 +370,7 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     if arg is IdentExpr {
         // The resolver's own symbol, not an instance's clone: the tables below are
         // keyed by its id.
-        sym :: ctx.typed.resolved.idents[arg.span.hash()] ?? return raw
+        sym :: ctx.typed.resolved.idents[arg.span.hash()] else return raw
         aliased :: ctx.typed.let_type_aliases[sym.id]
         if !(aliased is null) { return aliased }
         v :: ctx.project.comptime_value_by_symbol_id[sym.id]

@@ -50,7 +50,7 @@ hints_of :: fn(client: Client, uri: string) -> string {
     hints :: request(client, "textDocument/inlayHint", on_document(uri, ",\"range\":${WHOLE_FILE}"))
     shown: string[]: []
     for hint in array_at(hints, []) {
-        label :: string_member(hint, "label") ?? ""
+        label :: string_member(hint, "label") else ""
         shown.push("${label}@${int_at(hint, ["position", "line"])}")
     }
     return shown.join(" ")
@@ -85,7 +85,7 @@ editor_uri :: fn(path: string) -> string {
 
 // Whether `message` answers the request `id`, the JSON of its id, with an error.
 refuses :: fn(message: JsonValue, id: string) -> bool =
-    stringify(member(message, "id") ?? JsonNull {}) == id && member(message, "error") != null
+    stringify(member(message, "id") else JsonNull {}) == id && member(message, "error") != null
 
 // Whether `message` asks the client to register a capability.
 registers :: fn(message: JsonValue) -> bool =
@@ -126,12 +126,12 @@ test_the_server_asks_to_watch_files_only_when_the_client_can_register :: fn() ->
     registration :: watching.awaited(registers, "registration")
     registered :: array_at(registration, ["params", "registrations"])
     assert_eq(registered.len(), 1)
-    assert_eq(string_member(registered[0], "method") ?? "", "workspace/didChangeWatchedFiles")
+    assert_eq(string_member(registered[0], "method") else "", "workspace/didChangeWatchedFiles")
     watchers :: array_at(registered[0], ["registerOptions", "watchers"])
-    patterns :: watchers.map((w) -> string_member(w, "globPattern") ?? "").collect()
+    patterns :: watchers.map((w) -> string_member(w, "globPattern") else "").collect()
     assert_eq(patterns.join(" "), "**/*.vader **/vader.json")
     // The client's answer is a response, not a request to refuse.
-    id :: stringify(member(registration, "id") ?? JsonNull {})
+    id :: stringify(member(registration, "id") else JsonNull {})
     watching.send("""{"jsonrpc":"2.0","id":${id},"result":null}""")
     close_client(watching)
     assert_eq(watching.session.messages.filter((m) -> refuses(m, id)).count(), 0)
@@ -219,7 +219,7 @@ test_an_open_document_is_found_again_whichever_way_the_client_spells_its_uri :: 
     assert_eq(error_places(diagnostics_of(client, file_uri("${dir}/b.vader"))), "")
     position :: r""","position":{"line":2,"character":17}"""
     found :: request(client, "textDocument/definition", on_document(uri, position))
-    assert_eq(string_member(found, "uri") ?? "", file_uri("${dir}/a.vader"))
+    assert_eq(string_member(found, "uri") else "", file_uri("${dir}/a.vader"))
     assert_eq(int_at(found, ["range", "start", "line"]), 2)
     close_client(client)
 }

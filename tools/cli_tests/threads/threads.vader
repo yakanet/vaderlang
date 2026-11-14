@@ -87,7 +87,7 @@ run_case :: fn(
     if engine == .Vm {
         return ran_of(run_vader(["run", FIXTURE], options))
     }
-    binary :: native_build(engine) ?? return null
+    binary :: native_build(engine) else return null
     return ran_of(run_command([binary], options))
 }
 
@@ -108,7 +108,7 @@ expect_clean :: fn(
     feed: Feed | null = null,
 ) -> void {
     for engine in ENGINES {
-        ran :: run_case(engine, name, env, feed) ?? continue
+        ran :: run_case(engine, name, env, feed) else continue
         said :: "`${name}` on ${engine_name(engine)}: exit ${ran.exit}\n${ran.stderr}"
         assert(ran.exit == 0 && ran.stderr == "", said)
         assert_eq(ran.stdout, stdout)
@@ -119,7 +119,7 @@ expect_clean :: fn(
 // `stdout`, with `said` in its stderr.
 expect_stop :: fn(name: string, stdout: string, said: string) -> void {
     for engine in ENGINES {
-        ran :: run_case(engine, name) ?? continue
+        ran :: run_case(engine, name) else continue
         assert(ran.exit != 0, "`${name}` on ${engine_name(engine)} exits with an error")
         assert_eq(ran.stdout, stdout)
         assert(said in ran.stderr, "`${name}` on ${engine_name(engine)}: ${ran.stderr}")
@@ -130,8 +130,8 @@ expect_stop :: fn(name: string, stdout: string, said: string) -> void {
 // engine: it exits with 1, having printed `stdout`, and names them in `stderr`.
 expect_cancelled_at_exit :: fn(name: string, stdout: string, stderr: string) -> void {
     for engine in ENGINES {
-        ran :: run_case(engine, name) ?? continue
-        assert_eq(ran.exit ?? -1, 1)
+        ran :: run_case(engine, name) else continue
+        assert_eq(ran.exit else -1, 1)
         assert_eq(ran.stdout, stdout)
         assert_eq(ran.stderr, stderr)
     }
@@ -214,10 +214,10 @@ test_parked_threads_stay_rooted_under_every_mode_of_the_collector :: fn() -> voi
         modes :: if engine == .Vm { VM_GC_MODES } else { GC_MODES }
         for mode in modes {
             env: [string, string | null][]: if mode == "" { [] } else { [[mode, "1"]] }
-            ran :: run_case(engine, "parked_roots", env) ?? continue
+            ran :: run_case(engine, "parked_roots", env) else continue
             assert(ran.stderr == "", "${engine_name(engine)} under `${mode}`: ${ran.stderr}")
             assert_eq(ran.stdout, PARKED_ROOTS)
-            assert_eq(ran.exit ?? -1, 0)
+            assert_eq(ran.exit else -1, 0)
         }
     }
 }
@@ -240,7 +240,7 @@ test_each_thread_runs_its_own_defers_when_it_panics :: fn() -> void {
 test_a_switch_inside_a_call_to_c_stops_the_program :: fn() -> void {
     // Native only: the VM hands no Vader function to C.
     for engine in [Engine.Debug, Engine.Release] {
-        ran :: run_case(engine, "switch_in_callback") ?? continue
+        ran :: run_case(engine, "switch_in_callback") else continue
         assert(ran.exit != 0, "${engine_name(engine)} exits with an error")
         assert_eq(ran.stdout, "back from qsort\n")
         assert("a switch inside a call to C" in ran.stderr, ran.stderr)

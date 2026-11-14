@@ -53,9 +53,9 @@ expand :: fn(x: SpreadExpansion, struct_id: i32) -> void {
     if struct_id in x.done {
         return
     }
-    spreads :: x.typed.struct_spreads[struct_id] ?? return
-    decl :: x.typed.struct_decls[struct_id] ?? return
-    written :: x.typed.struct_fields[struct_id] ?? return
+    spreads :: x.typed.struct_spreads[struct_id] else return
+    decl :: x.typed.struct_decls[struct_id] else return
+    written :: x.typed.struct_fields[struct_id] else return
     x.expanding.add(struct_id)
     received: Map<string, StructFieldInfo>[]: []
     for i in 0..<decl.spreads.len() {
@@ -95,7 +95,7 @@ spread_fields :: fn(
         return received
     }
     x.expand(base.symbol.id)
-    fields :: x.typed.struct_fields[base.symbol.id] ?? return received
+    fields :: x.typed.struct_fields[base.symbol.id] else return received
     if base.symbol.module != derived.module {
         hidden :: first_internal_field(fields)
         if hidden != null {
@@ -165,7 +165,7 @@ laid_out :: fn(
         if member.name in given {
             continue
         }
-        out[member.name] = written[member.name] ?? continue
+        out[member.name] = written[member.name] else continue
     }
     return out
 }
@@ -214,7 +214,7 @@ spread_base_of :: fn(
     if !seen.add(st.symbol.id) {
         return null
     }
-    spreads :: typed.struct_spreads[st.symbol.id] ?? return null
+    spreads :: typed.struct_spreads[st.symbol.id] else return null
     for written in spreads.bases {
         base :: substitute_struct_args(written, st, typed)
         if base !is StructType {
@@ -223,7 +223,7 @@ spread_base_of :: fn(
         if base.symbol.id == source.id {
             return base
         }
-        found :: spread_base_of(base, source, typed, seen) ?? continue
+        found :: spread_base_of(base, source, typed, seen) else continue
         return found
     }
     return null

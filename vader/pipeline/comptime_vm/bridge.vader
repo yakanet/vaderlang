@@ -93,7 +93,7 @@ array_to_comptime :: fn(
     ty: Type,
     span: Span,
 ) -> Ct.ComptimeValue | Diagnostic {
-    array_type :: array_instance_type(ty) ?? return unsupported(span, "an array")
+    array_type :: array_instance_type(ty) else return unsupported(span, "an array")
     elements: Ct.ComptimeValue[]: []
     for i in 0..<Vm.element_count(array) {
         element :: Vm.element_at(array, i)
@@ -112,8 +112,8 @@ array_to_comptime :: fn(
 // are, the runtime value telling neither apart.
 array_instance_type :: fn(ty: Type) -> ArrayType | null {
     found: ArrayType | null = null
-    for candidate in union_variants(ty) ?? [ty] {
-        array_type :: array_backing(candidate) ?? continue
+    for candidate in union_variants(ty) else [ty] {
+        array_type :: array_backing(candidate) else continue
         if found != null {
             return null
         }
@@ -131,9 +131,9 @@ struct_to_comptime :: fn(
     ty: Type,
     span: Span,
 ) -> Ct.ComptimeValue | Diagnostic {
-    layout :: struct_at(ctx.layouts, value.type_id) ?? return unsupported(span, "a struct")
+    layout :: struct_at(ctx.layouts, value.type_id) else return unsupported(span, "a struct")
     arity :: value.fields.len()
-    instance :: instance_type(ty, layout, arity) ?? return unsupported(span, "a struct")
+    instance :: instance_type(ty, layout, arity) else return unsupported(span, "a struct")
     fields :: Map<string, Ct.ComptimeValue> {}
     for i in 0..<arity {
         [name, field_ty] :: field_at(instance, layout, i, ctx.program)
@@ -155,7 +155,7 @@ field_at :: fn(instance: Type, layout: BcStruct, i: i64, typed: TypedProgram) ->
         return ["_${i}", tuple.elements[i]]
     }
     name :: layout.fields[i].name
-    return [name, declared_struct_field_type(instance, name, typed) ?? TY_UNRESOLVED]
+    return [name, declared_struct_field_type(instance, name, typed) else TY_UNRESOLVED]
 }
 
 // The type among `ty`, or among its variants when it is a union, that a value laid
@@ -164,7 +164,7 @@ field_at :: fn(instance: Type, layout: BcStruct, i: i64, typed: TypedProgram) ->
 // Null when none is, or several are.
 instance_type :: fn(ty: Type, layout: BcStruct, arity: i64) -> Type | null {
     found: Type | null = null
-    for candidate in union_variants(ty) ?? [ty] {
+    for candidate in union_variants(ty) else [ty] {
         if lays_out_as(candidate, layout, arity) {
             if found != null {
                 return null
@@ -179,7 +179,7 @@ lays_out_as :: fn(t: Type, layout: BcStruct, arity: i64) -> bool {
     if t is StructType {
         return t.symbol.id == layout.symbol_id
     }
-    tuple :: tuple_backing(t) ?? return false
+    tuple :: tuple_backing(t) else return false
     return layout.symbol_id < 0 && tuple.elements.len() == arity
 }
 

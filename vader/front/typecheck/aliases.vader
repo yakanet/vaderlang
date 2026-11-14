@@ -46,7 +46,7 @@ settle_pending_aliases :: fn(typed: TypedProgram, pending: AST.Decl[]) -> AST.De
 // settle yet. Any other decl has nothing to register.
 register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
     if decl is AST.TypeAliasDecl {
-        sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return true
+        sym :: symbol_declared_at(typed.resolved, decl.name_span) else return true
         aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
         typed.resolved.alias_types[sym.id] = aliased
         typed.resolved.alias_params[sym.id] = quantifier_of(decl.type_params, typed.resolved)
@@ -69,8 +69,8 @@ settle_project_aliases :: fn(
     for {
         progressed := false
         for id in unsettled.keys() {
-            pending :: unsettled[id] ?? continue
-            typed :: per_module[id] ?? continue
+            pending :: unsettled[id] else continue
+            typed :: per_module[id] else continue
             if pending.len() == 0 {
                 continue
             }
@@ -121,7 +121,7 @@ can_settle_now :: fn(
     per_module: Map<string, TypedProgram>, unsettled: Map<string, AST.Decl[]>,
 ) -> bool {
     for [id, pending] in unsettled {
-        typed :: per_module[id] ?? continue
+        typed :: per_module[id] else continue
         for decl in pending {
             if decl is AST.TypeAliasDecl {
                 return true
@@ -150,11 +150,11 @@ register_enum_types :: fn(
 ) -> void {
     collected :: Map<i32, Type> {}
     for [id, typed] in per_module {
-        loaded :: project.modules[id] ?? continue
+        loaded :: project.modules[id] else continue
         for file in loaded.module.files {
             for decl in file.program.decls {
                 if decl is AST.EnumDecl {
-                    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue
+                    sym :: symbol_declared_at(typed.resolved, decl.name_span) else continue
                     collected[sym.id] = build_enum_type(sym, decl, typed.resolved, diag_sink())
                 }
             }
@@ -169,7 +169,7 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     if !is_type_expr(cd.value, typed.resolved) {
         return false
     }
-    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return true
+    sym :: symbol_declared_at(typed.resolved, cd.name_span) else return true
     aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
     // `alias_for` (decl.vader, same module) is the shared distinct promotion rule ;
     // this cross-project pass is the authoritative writer of `alias_types`.

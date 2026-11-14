@@ -29,7 +29,7 @@ declared :: fn(stdout: string) -> string {
     described :: parse(stdout).unwrap()
     out: string[]: []
     for key in ["includePaths", "entries", "assets"] {
-        out.push("${key}: ${stringify(member(described, key) ?? JsonNull {})}")
+        out.push("${key}: ${stringify(member(described, key) else JsonNull {})}")
     }
     return out.join("\n")
 }

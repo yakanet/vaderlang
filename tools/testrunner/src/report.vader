@@ -149,7 +149,7 @@ note :: fn(tally: Tally, run: CaseRun, case: string, report: StageReport) -> voi
         .Differ | .Missing | .Failed -> {
             tally.failures += 1
             label :: "${failure_label(report.result)}: ${report.phase}"
-            run.problems.push("${label}\n${report.detail ?? ""}")
+            run.problems.push("${label}\n${report.detail else ""}")
         }
     }
 }

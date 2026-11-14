@@ -34,7 +34,7 @@ tail_of :: fn(uri: string) -> string {
 
 // The files a workspace edit changes, as URIs.
 changed_files :: fn(edit: JsonValue) -> string[] {
-    changes :: member(edit, "changes") ?? panic("no `changes` in ${stringify(edit)}")
+    changes :: member(edit, "changes") else panic("no `changes` in ${stringify(edit)}")
     if changes is JsonObject {
         return changes.entries.keys().collect()
     }
@@ -61,7 +61,7 @@ all_edits :: fn(edit: JsonValue) -> JsonValue[] {
 // The code action of `actions` titled `title`; none fails the test.
 action_titled :: fn(actions: JsonValue, title: string) -> JsonValue {
     titled :: array_at(actions, []).find((action) -> string_member(action, "title") == title)
-    return titled ?? panic("no code action titled `${title}` in ${stringify(actions)}")
+    return titled else panic("no code action titled `${title}` in ${stringify(actions)}")
 }
 
 // Whether `pattern`, a regular expression, matches somewhere in `text`.
@@ -73,7 +73,7 @@ has_match :: fn(text: string, pattern: string) -> bool {
 // The range of each of `edits` reads `name` in `source`.
 assert_names :: fn(source: string, edits: JsonValue[], name: string) -> void {
     for edit in edits {
-        range :: member(edit, "range") ?? panic("no range in ${stringify(edit)}")
+        range :: member(edit, "range") else panic("no range in ${stringify(edit)}")
         assert_eq(text_at(source, range), name)
     }
 }
@@ -134,9 +134,9 @@ test_code_action_converts_a_two_arm_match_to_if_else :: fn() -> void {
     )
     assert(results[0] is JsonArray, stringify(results[0]))
     converted :: action_titled(results[0], "Convert match to if")
-    assert_eq(string_member(converted, "kind") ?? "", "refactor.rewrite")
-    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
-    text :: string_member(edits[0], "newText") ?? ""
+    assert_eq(string_member(converted, "kind") else "", "refactor.rewrite")
+    edits :: sole_file_edits(member(converted, "edit") else JsonNull {})
+    text :: string_member(edits[0], "newText") else ""
     assert("if x == 0" in text, text)
     assert("else" in text, text)
 }
@@ -168,8 +168,8 @@ test_code_action_converts_a_two_is_arm_match_without_a_wildcard_to_if :: fn() ->
         [ask("textDocument/codeAction", 5, 4)],
     )
     converted :: action_titled(results[0], "Convert match to if")
-    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
-    text :: string_member(edits[0], "newText") ?? ""
+    edits :: sole_file_edits(member(converted, "edit") else JsonNull {})
+    text :: string_member(edits[0], "newText") else ""
     assert("cell is null" in text, text)
     assert("else" in text, text)
 }
@@ -197,9 +197,9 @@ test_code_action_converts_an_if_else_if_chain_to_match :: fn() -> void {
         [ask("textDocument/codeAction", 3, 4)],
     )
     converted :: action_titled(results[0], "Convert if to match")
-    assert_eq(string_member(converted, "kind") ?? "", "refactor.rewrite")
-    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
-    text :: string_member(edits[0], "newText") ?? ""
+    assert_eq(string_member(converted, "kind") else "", "refactor.rewrite")
+    edits :: sole_file_edits(member(converted, "edit") else JsonNull {})
+    text :: string_member(edits[0], "newText") else ""
     assert("match v {" in text, text)
     assert(has_match(text, r"is i32\s+->"), text)
     // The `->` of the `_` arm may be padded to align with the longer arm's arrow.
@@ -228,8 +228,8 @@ test_code_action_converts_a_free_call_to_method_syntax :: fn() -> void {
         [ask("textDocument/codeAction", 8, 11)],
     )
     converted :: action_titled(results[0], "Convert to method call")
-    edits :: sole_file_edits(member(converted, "edit") ?? JsonNull {})
-    text :: string_member(edits[0], "newText") ?? ""
+    edits :: sole_file_edits(member(converted, "edit") else JsonNull {})
+    text :: string_member(edits[0], "newText") else ""
     assert("n.dbl()" in text, text)
 }
 
@@ -255,7 +255,7 @@ test_find_usages_and_rename_reach_the_modules_importing_the_declarations :: fn()
         Project { .name = "shapes/shapes.vader", .files = files },
     )
     where :: array_at(results[0], []).map(
-        (l) -> "${tail_of(string_member(l, "uri") ?? "")}:${start_of(l)}",
+        (l) -> "${tail_of(string_member(l, "uri") else "")}:${start_of(l)}",
     ).collect()
     assert_eq(
         sorted(where).join(" "),
@@ -305,7 +305,7 @@ test_references_stay_in_the_file_the_cursor_is_in :: fn() -> void {
     sites :: array_at(results[1], [])
     assert_eq(sites.len(), 3)
     for site in sites {
-        assert((string_member(site, "uri") ?? "").ends_with("/lsp-test.vader"), stringify(site))
+        assert((string_member(site, "uri") else "").ends_with("/lsp-test.vader"), stringify(site))
     }
 }
 
@@ -608,7 +608,7 @@ test_a_parameter_is_renamed_and_hovered_from_its_declaration :: fn() -> void {
     assert_renamed(src, results[0], "factor", ["factor  the", "factor: i32", "factor\n"])
     assert_renamed(src, results[1], "xs", ["xs      the", "xs: i32[]", "xs {"])
     assert_renamed(src, results[2], "n", ["n: i32)", "n * 2"])
-    assert_eq(string_at(results[3], ["contents", "value"]) ?? "", "```\nfactor: i32\n```")
+    assert_eq(string_at(results[3], ["contents", "value"]) else "", "```\nfactor: i32\n```")
 }
 
 // `listener` names the declaration and, in the clauses of its `else`, the value

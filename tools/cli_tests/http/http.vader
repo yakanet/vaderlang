@@ -46,7 +46,7 @@ talking :: fn() -> Talk | null {
     if !has_curl() {
         return null
     }
-    binary :: server_binary() ?? return null
+    binary :: server_binary() else return null
     server :: spawn_start([binary])
     if server is ProcessError {
         assert(false, "the server does not start: ${server.msg}")
@@ -89,14 +89,14 @@ import "std/testing"
 
 @test
 test_curl_reads_a_response :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     assert_eq(asked(talk, [], ["/a"]), "GET /a 0\n")
 }
 
 @test
 test_curl_sends_two_requests_on_one_connection :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     // After each answer, how many connections its request opened.
     assert_eq(
@@ -107,14 +107,14 @@ test_curl_sends_two_requests_on_one_connection :: fn() -> void {
 
 @test
 test_curl_sends_a_body_with_its_length :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     assert_eq(asked(talk, ["--data", "hello=world"], ["/post"]), "POST /post 11\n")
 }
 
 @test
 test_curl_sends_a_body_in_chunks :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     flags :: ["--header", "Transfer-Encoding: chunked", "--data", "abcdefghij"]
     assert_eq(asked(talk, flags, ["/chunked"]), "POST /chunked 10\n")
@@ -122,14 +122,14 @@ test_curl_sends_a_body_in_chunks :: fn() -> void {
 
 @test
 test_curl_reads_the_head_alone_of_an_answer_to_head :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     assert_eq(asked(talk, ["--head"], ["/head"]), "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\n")
 }
 
 @test
 test_curl_in_http_1_0_reads_an_answer_that_ends_its_connection :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     assert_eq(
         asked(talk, ["--http1.0", "--include"], ["/old"]),
@@ -139,7 +139,7 @@ test_curl_in_http_1_0_reads_an_answer_that_ends_its_connection :: fn() -> void {
 
 @test
 test_curl_reads_back_a_body_sent_as_it_is_read :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     size :: 300_000
     sent :: body_file("http_echo", size)
@@ -150,7 +150,7 @@ test_curl_reads_back_a_body_sent_as_it_is_read :: fn() -> void {
 
 @test
 test_curl_is_told_to_send_the_body_it_held_back :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     size :: 2 * 1024 * 1024
     flags :: [
@@ -168,7 +168,7 @@ test_curl_is_told_to_send_the_body_it_held_back :: fn() -> void {
 
 @test
 test_curl_keeps_its_connection_past_a_body_nobody_read :: fn() -> void {
-    talk :: talking() ?? return
+    talk :: talking() else return
     defer talk.server.kill()
     flags :: ["--data", "a body the server leaves", "--write-out", "%{num_connects}\n"]
     assert_eq(asked(talk, flags, ["/ignored", "/ignored"]), "ignored\n1\nignored\n0\n")

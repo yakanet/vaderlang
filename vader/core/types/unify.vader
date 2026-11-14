@@ -117,7 +117,7 @@ export unify_type_param :: fn(
             return
         }
         is UnionType -> {
-            for pair in union_leftovers(param_type.variants, union_variants(arg_type) ?? [arg_type]) {
+            for pair in union_leftovers(param_type.variants, union_variants(arg_type) else [arg_type]) {
                 unify_type_param(pair.pattern, pair.actual, out)
             }
             return
@@ -153,7 +153,7 @@ export UnionLeftover :: struct {
 ///
 /// @param pattern  the pattern's variants.
 /// @param actual   the argument's variants: a single one for an argument that is
-///                 not a union (`union_variants(t) ?? [t]`).
+///                 not a union (`union_variants(t) else [t]`).
 /// @return         the pairs to unify, in pattern order.
 export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[] {
     used :: actual.len().filled(() -> false)
@@ -257,7 +257,7 @@ export unify_infer :: fn(
             }
         }
         is UnionType -> {
-            for pair in union_leftovers(pattern.variants, union_variants(actual) ?? [actual]) {
+            for pair in union_leftovers(pattern.variants, union_variants(actual) else [actual]) {
                 unify_infer(pair.pattern, pair.actual, solutions, held)
             }
         }
@@ -419,7 +419,7 @@ zonk_in :: fn(t: Type, solutions: Map<i32, Type>) -> Type = @partial match t {
 }
 
 zonk_var :: fn(v: InferVar, solutions: Map<i32, Type>) -> Type {
-    solved :: solutions[v.id] ?? return v
+    solved :: solutions[v.id] else return v
     return zonk_in(solved, solutions)
 }
 
@@ -473,7 +473,7 @@ test_unify_infer_keeps_a_held_binding :: fn() -> void {
     held.add(0)
     solutions[0] = mk_array(TY_I64)
     unify_infer(v, mk_array(TY_I32), solutions, held)
-    assert_eq(display_type(solutions[0] ?? TY_UNRESOLVED), "i64[]")
+    assert_eq(display_type(solutions[0] else TY_UNRESOLVED), "i64[]")
 }
 
 @test

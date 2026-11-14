@@ -64,7 +64,7 @@ settle_reach :: fn(ctx: TaskCtx, callers: i32[][]) -> Reach[] {
         }
     }
     for work.len() > 0 {
-        callee :: work.remove_last() ?? break
+        callee :: work.remove_last() else break
         up: i32[]: []
         up.push_all(callers[callee])
         up.push_all(handed_by[callee])
@@ -203,8 +203,8 @@ check_main_thread :: fn(ctx: TaskCtx, body: TaskBody, door: Door, out: TaskFault
     line :: door.site.at.start.line
     entry :: door.entry
     if entry == null {
-        q :: door.param ?? return
-        node :: ctx.named_fn_node(body, door.site, q) ?? return
+        q :: door.param else return
+        node :: ctx.named_fn_node(body, door.site, q) else return
         chain :: ctx.reach[node].main_thread
         if chain.len() > 0 {
             out.push(main_thread_fault(door.site.at, line, chain))
@@ -240,7 +240,7 @@ check_exclusive :: fn(ctx: TaskCtx, body: TaskBody, out: TaskFault[]) -> void {
             if !ctx.index.holds_lock_for(site.callee, q) {
                 continue
             }
-            block :: body.lambda_source(site, q) ?? continue
+            block :: body.lambda_source(site, q) else continue
             ctx.check_parks(body, block, out)
             ctx.check_kept(body, block, out)
         }
@@ -271,8 +271,8 @@ check_parks :: fn(ctx: TaskCtx, body: TaskBody, block: AST.LambdaExpr, out: Task
 // for what it hands back ; after it, for a call that hands back nothing.
 outside_lock_help :: fn(body: TaskBody, site: Site, callee: string) -> string {
     before :: "call `${callee}` before the block, and store its result under the lock"
-    call :: body.shape.calls.find((c) -> same_span(c.span, site.at)) ?? return before
-    handed_back :: body.typed.expr_types[call.id] ?? return before
+    call :: body.shape.calls.find((c) -> same_span(c.span, site.at)) else return before
+    handed_back :: body.typed.expr_types[call.id] else return before
     if is_void(handed_back) {
         return "call `${callee}` after the block, on what the block returns"
     }
@@ -315,7 +315,7 @@ check_kept_store :: fn(
     }
     value :: body.roots_at(flow.into)
     holder :: body.roots_at(flow.from)
-    from_guarded :: value.find((r) -> r.param in guarded) ?? return
+    from_guarded :: value.find((r) -> r.param in guarded) else return
     if holder.any_match((r) -> !body.bound_inside(r.param, block.span)) {
         out.push(kept_past_lock(at, ctx.root_name(body, from_guarded.param)))
     }
@@ -330,7 +330,7 @@ note_stored_doors :: fn(ctx: TaskCtx, body: TaskBody) -> void {
             if !ctx.index.holds_lock_for(site.callee, q) {
                 continue
             }
-            block :: body.lambda_source(site, q) ?? continue
+            block :: body.lambda_source(site, q) else continue
             guarded :: body.lambda_param_roots(block)
             if guarded.len() == 0 {
                 continue

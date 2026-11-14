@@ -26,7 +26,7 @@ emit_body :: fn(names: DumpNames, lines: string[], block: LoweredBlock, indent: 
     for stmt in block.stmts {
         lines.push("${indent}${stmt_text(names, stmt, indent)}")
     }
-    trailing :: block.trailing ?? return
+    trailing :: block.trailing else return
     lines.push("${indent}${expr_text(names, trailing, indent)}")
 }
 
@@ -301,7 +301,7 @@ Branch :: struct {
 }
 
 branch_of :: fn(names: DumpNames, block: LoweredBlock, indent: string) -> Branch {
-    value :: lone_value(block) ?? return Branch { .braced = braced_text(names, block, indent) }
+    value :: lone_value(block) else return Branch { .braced = braced_text(names, block, indent) }
     inner :: "${indent}${INDENT_STEP}"
     text :: expr_text(names, value, inner)
     braced :: "{\n${inner}${text}\n${indent}}"
@@ -350,8 +350,8 @@ if_text :: fn(names: DumpNames, e: LoweredIf, indent: string, may_inline: bool) 
 }
 
 inline_pair :: fn(then_branch: Branch, else_branch: Branch) -> string | null {
-    then_text :: then_branch.inline ?? return null
-    else_text :: else_branch.inline ?? return null
+    then_text :: then_branch.inline else return null
+    else_text :: else_branch.inline else return null
     return "{ ${then_text} } else { ${else_text} }"
 }
 
