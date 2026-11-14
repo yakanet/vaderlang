@@ -1,0 +1,459 @@
+// vader/lower/coroutine_settle: bring every `yield` of a generator body up to
+// statement level, ahead of the state split.
+//
+// The split (`coroutine.vader`) cuts a body into states at its statements: a
+// `yield` resumes at the statement after it. A `yield` inside an expression (an
+// `else` clause, an `if` or a block used as a value, an operand) has no
+// statement to resume at, so the statement holding it is rewritten first:
+//
+//   - a block used as a value runs its statements in place and leaves its
+//     trailing value ;
+//   - an `if` used as a value becomes an `if` statement whose branches store
+//     their value in a fresh local, read where the `if` stood ;
+//   - `a && b` and `a || b` whose right side holds a `yield` become that `if` ;
+//   - any other operand holding a `yield` runs first, and the operands evaluated
+//     before it are stored in fresh locals, so they keep their order.
+//
+// A statement whose expressions hold no `yield` is kept as it is. The fresh
+// locals and the statements hoisted out of a block need no scope of their own:
+// the split stores every local of a generator in its state.
+
+module "vader/lower"
+
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/lower/ir"
+
+/// Rewrite `body` so that every `yield` in it is a statement.
+///
+/// @param ctx   the generator's fn-lowering context, which mints the locals.
+/// @param body  the generator body, lowered in generator mode.
+/// @return      the same body, its `yield`s at statement level.
+settle_yields :: fn(ctx: FnLowerCtx, body: LoweredBlock) -> LoweredBlock = settle_block(ctx, body)
+
+// A block in statement position: its trailing value is dropped, as the split
+// drops it.
+settle_block :: fn(ctx: FnLowerCtx, b: LoweredBlock) -> LoweredBlock {
+    stmts: LoweredStmt[]: []
+    settle_stmts(ctx, b.stmts, stmts)
+    trailing :: b.trailing
+    if trailing == null || !holds_yield(trailing) {
+        return LoweredBlock { ...b, .stmts = stmts }
+    }
+    settle_stmt(ctx, LoweredExprStmt { .span = trailing.span, .expr = trailing }, stmts)
+    return LoweredBlock { ...b, .stmts = stmts, .trailing = null }
+}
+
+settle_stmts :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[], out: LoweredStmt[]) -> void {
+    for s in stmts {
+        settle_stmt(ctx, s, out)
+    }
+}
+
+settle_stmt :: fn(ctx: FnLowerCtx, s: LoweredStmt, out: LoweredStmt[]) -> void {
+    match s {
+        is LoweredLet -> {
+            out.push(LoweredLet { ...s, .value = settle_operand(ctx, s.value, out) })
+        }
+        is LoweredAssign -> {
+            // The place is evaluated before the value: its operands are stored
+            // first when the value yields.
+            target :: settle_place(ctx, s.target, holds_yield(s.value), out)
+            out.push(
+                LoweredAssign {
+                    ...s,
+                    .target = target,
+                    .value = settle_operand(ctx, s.value, out),
+                },
+            )
+        }
+        is LoweredCellSet -> {
+            target :: settle_ahead(ctx, s.target, holds_yield(s.value), out)
+            out.push(
+                LoweredCellSet {
+                    ...s,
+                    .target = target,
+                    .value = settle_operand(ctx, s.value, out),
+                },
+            )
+        }
+        is LoweredGlobalSet -> {
+            out.push(LoweredGlobalSet { ...s, .value = settle_operand(ctx, s.value, out) })
+        }
+        is LoweredExprStmt -> { settle_expr_stmt(ctx, s, out) }
+        is LoweredReturn -> {
+            value :: s.value
+            if value == null {
+                out.push(s)
+            } else {
+                out.push(LoweredReturn { ...s, .value = settle_operand(ctx, value, out) })
+            }
+        }
+        is LoweredYield -> {
+            out.push(LoweredYield { ...s, .value = settle_operand(ctx, s.value, out) })
+        }
+        is LoweredLoop -> { out.push(settle_loop(ctx, s)) }
+        is LoweredLabelledBlock -> {
+            out.push(LoweredLabelledBlock { ...s, .body = settle_block(ctx, s.body) })
+        }
+        is LoweredBreak | LoweredContinue | LoweredDeferPush | LoweredDeferPopExec -> {
+            out.push(s)
+        }
+    }
+}
+
+// An `if` or a block in statement position is split as it stands: only a
+// condition holding a `yield` moves out. Any other expression is a value
+// nobody reads.
+settle_expr_stmt :: fn(ctx: FnLowerCtx, s: LoweredExprStmt, out: LoweredStmt[]) -> void {
+    e :: s.expr
+    if e is LoweredBlock {
+        out.push(LoweredExprStmt { ...s, .expr = settle_block(ctx, e) })
+        return
+    }
+    if e is LoweredIf {
+        settle_if_stmt(ctx, e, settle_operand(ctx, e.cond, out), out)
+        return
+    }
+    if !holds_yield(e) {
+        out.push(s)
+        return
+    }
+    value :: settle_value(ctx, e, out)
+    if value !is LoweredBlock || value.stmts.len() > 0 || value.trailing != null {
+        out.push(LoweredExprStmt { ...s, .expr = value })
+    }
+}
+
+// `e` as a statement, its condition settled into `cond` already.
+settle_if_stmt :: fn(ctx: FnLowerCtx, e: LoweredIf, cond: LoweredExpr, out: LoweredStmt[]) -> void {
+    else_block :: e.else_block
+    out.push(
+        LoweredExprStmt {
+            .span = e.span,
+            .expr = LoweredIf {
+                ...e,
+                .cond = cond,
+                .then_block = settle_block(ctx, e.then_block),
+                .else_block = if else_block == null { null } else { settle_block(ctx, else_block) },
+            },
+        },
+    )
+}
+
+// A condition holding a `yield` runs at the top of each turn, the loop leaving
+// when it is false: the split re-enters the body there, after the step, as it
+// would have evaluated the condition.
+settle_loop :: fn(ctx: FnLowerCtx, s: LoweredLoop) -> LoweredLoop {
+    body :: settle_block(ctx, s.body)
+    step: LoweredStmt[]: []
+    settle_stmts(ctx, s.step, step)
+    cond :: s.cond
+    if cond == null || !holds_yield(cond) {
+        return LoweredLoop { ...s, .body = body, .step = step }
+    }
+    head: LoweredStmt[]: []
+    test :: settle_value(ctx, cond, head)
+    head.push(
+        LoweredExprStmt {
+            .span = cond.span,
+            .expr = LoweredIf {
+                .span = cond.span,
+                .type = TY_VOID,
+                .cond = test,
+                .then_block = mk_void_block([], cond.span),
+                .else_block = mk_void_block(
+                    [LoweredBreak { .span = cond.span, .label = s.label }],
+                    cond.span,
+                ),
+            },
+        },
+    )
+    for st in body.stmts {
+        head.push(st)
+    }
+    return LoweredLoop {
+        ...s,
+        .cond = null,
+        .body = LoweredBlock { ...body, .stmts = head },
+        .step = step,
+        .turns = null,
+    }
+}
+
+// `e` as an operand: unchanged when it holds no `yield`, its settled value
+// otherwise.
+settle_operand :: fn(ctx: FnLowerCtx, e: LoweredExpr, out: LoweredStmt[]) -> LoweredExpr =
+    if holds_yield(e) { settle_value(ctx, e, out) } else { e }
+
+// `e` as an operand an operand holding a `yield` follows: its value is stored
+// first, so the `yield` cannot change it.
+settle_ahead :: fn(
+    ctx: FnLowerCtx,
+    e: LoweredExpr,
+    yield_follows: bool,
+    out: LoweredStmt[],
+) -> LoweredExpr {
+    value :: settle_operand(ctx, e, out)
+    return if yield_follows { store(ctx, value, out) } else { value }
+}
+
+// An assignment's place: a local stays the place it names, a field or an element
+// stores its operands when the value yields.
+settle_place :: fn(
+    ctx: FnLowerCtx,
+    place: LoweredExpr,
+    yield_follows: bool,
+    out: LoweredStmt[],
+) -> LoweredExpr {
+    if place is LoweredIdent {
+        return place
+    }
+    settled: LoweredExpr[]: []
+    for operand in operands_of(place) {
+        settled.push(settle_ahead(ctx, operand, yield_follows, out))
+    }
+    return with_operands(place, settled)
+}
+
+// The value of `e`, which holds a `yield`: the statements it needs go to `out`,
+// in order, and the expression returned reads what they computed.
+settle_value :: fn(ctx: FnLowerCtx, e: LoweredExpr, out: LoweredStmt[]) -> LoweredExpr {
+    if e is LoweredBlock {
+        settle_stmts(ctx, e.stmts, out)
+        trailing :: e.trailing else return mk_void_block([], e.span)
+        return settle_operand(ctx, trailing, out)
+    }
+    if e is LoweredIf {
+        return settle_if(ctx, e, out)
+    }
+    if e is LoweredBinary && holds_yield(e.right) {
+        if e.op == .And {
+            return settle_if(ctx, branch_on(e, e.right, bool_lit(e, false)), out)
+        }
+        if e.op == .Or {
+            return settle_if(ctx, branch_on(e, bool_lit(e, true), e.right), out)
+        }
+    }
+    operands :: operands_of(e)
+    last := operands.len() - 1
+    for last >= 0 && !holds_yield(operands[last]) {
+        last -= 1
+    }
+    settled: LoweredExpr[]: []
+    for i in 0..<operands.len() {
+        operand :: operands[i]
+        settled.push(
+            if i < last && !names_callee(e, i) {
+                store(ctx, settle_operand(ctx, operand, out), out)
+            } else if i == last {
+                settle_value(ctx, operand, out)
+            } else {
+                operand
+            },
+        )
+    }
+    return with_operands(e, settled)
+}
+
+// An `if` holding a `yield`: when a branch holds it, the `if` becomes a
+// statement whose branches store their value in a fresh local.
+settle_if :: fn(ctx: FnLowerCtx, e: LoweredIf, out: LoweredStmt[]) -> LoweredExpr {
+    cond :: settle_operand(ctx, e.cond, out)
+    else_block :: e.else_block
+    if !holds_yield(e.then_block) && (else_block == null || !holds_yield(else_block)) {
+        return LoweredIf { ...e, .cond = cond }
+    }
+    if else_block == null || e.type is NeverType || is_void(e.type) {
+        settle_if_stmt(ctx, e, cond, out)
+        return finished_if(e)
+    }
+    slot :: fresh_synthetic_symbol(ctx, "yielded")
+    out.push(
+        LoweredExprStmt {
+            .span = e.span,
+            .expr = LoweredIf {
+                .span = e.span,
+                .type = TY_VOID,
+                .cond = cond,
+                .then_block = store_block(ctx, e.then_block, slot, e.type),
+                .else_block = store_block(ctx, else_block, slot, e.type),
+            },
+        },
+    )
+    return LoweredIdent { .span = e.span, .type = e.type, .symbol = slot }
+}
+
+// What an `if` turned statement leaves where it stood: nothing, or never a value
+// when no branch completes.
+finished_if :: fn(e: LoweredIf) -> LoweredExpr {
+    if e.type is NeverType {
+        return LoweredUnreachable {
+            .span = e.span,
+            .type = e.type,
+            .reason = "no branch of the `if` completes",
+        }
+    }
+    return mk_void_block([], e.span)
+}
+
+// A branch of an `if` used as a value, made a statement block that stores its
+// value in `slot` ; a branch that leaves stores nothing.
+store_block :: fn(ctx: FnLowerCtx, b: LoweredBlock, slot: Symbol, type: Type) -> LoweredBlock {
+    stmts: LoweredStmt[]: []
+    settle_stmts(ctx, b.stmts, stmts)
+    trailing :: b.trailing else return mk_void_block(stmts, b.span)
+    value :: settle_operand(ctx, trailing, stmts)
+    if value is LoweredUnreachable || value.type is NeverType {
+        stmts.push(LoweredExprStmt { .span = value.span, .expr = value })
+    } else {
+        stmts.push(
+            LoweredLet {
+                .span = value.span,
+                .name = slot.name,
+                .symbol = slot,
+                .type = type,
+                .value = value,
+            },
+        )
+    }
+    return mk_void_block(stmts, b.span)
+}
+
+// The callee a direct call names is where the call goes, not a value it reads:
+// stored, it would make the call indirect.
+names_callee :: fn(e: LoweredExpr, operand: i64) =
+    e is LoweredCall && operand == 0 && e.callee is LoweredIdent
+
+// `value` stored in a fresh local, read back ; what no statement can change is
+// read as it stands.
+store :: fn(ctx: FnLowerCtx, value: LoweredExpr, out: LoweredStmt[]) -> LoweredExpr {
+    if is_literal(value) || value is LoweredDataConst | LoweredTypeConst {
+        return value
+    }
+    if value is LoweredIdent && !is_variable(value.symbol) {
+        return value
+    }
+    return bind_to_local(ctx, value, value.type, "operand", value.span, out)
+}
+
+// A local, a parameter or a binding: what a statement may assign.
+is_variable :: fn(symbol: Symbol) =
+    symbol.kind == .Local || symbol.kind == .Param || symbol.kind == .Binding
+        || symbol.kind == .Synthetic
+
+branch_on :: fn(e: LoweredBinary, when_true: LoweredExpr, when_false: LoweredExpr) = LoweredIf {
+    .span = e.span,
+    .type = e.type,
+    .cond = e.left,
+    .then_block = value_block(when_true),
+    .else_block = value_block(when_false),
+}
+
+value_block :: fn(e: LoweredExpr) = LoweredBlock {
+    .span = e.span,
+    .type = e.type,
+    .stmts = [],
+    .trailing = e,
+}
+
+bool_lit :: fn(e: LoweredBinary, value: bool) = LoweredBoolLit {
+    .span = e.span,
+    .type = e.type,
+    .value = value,
+}
+
+holds_yield :: fn(e: LoweredExpr) -> bool {
+    found := false
+    for_each_stmt_node_in_expr(e, (s) ->
+        if s is LoweredYield {
+            found = true
+        })
+    return found
+}
+
+// ---- operands -------------------------------------------------------------
+
+// The operands of `e`, in the order they are evaluated. `with_operands` puts
+// them back: both list every operand of every form, so a form added later
+// breaks the build here instead of losing its operands to the rewrite.
+operands_of :: fn(e: LoweredExpr) -> LoweredExpr[] = match e {
+    is LoweredCall -> prepended(e.callee, e.args)
+    is LoweredVirtualCall -> prepended(e.receiver, e.args)
+    is LoweredIntrinsicCall -> e.args
+    is LoweredFieldAccess -> [e.target]
+    is LoweredUnionField -> [e.target]
+    is LoweredIndex -> [e.target, e.index]
+    is LoweredUnary -> [e.operand]
+    is LoweredBinary -> [e.left, e.right]
+    is LoweredStructLit -> field_values(e.fields)
+    is LoweredArrayLit -> e.elements
+    is LoweredCast -> [e.value]
+    is LoweredTypeCheck -> [e.value]
+    is LoweredArrayLen -> [e.target]
+    is LoweredArrayPush -> [e.target, e.value]
+    is LoweredArraySlice -> [e.target, e.lo, e.hi]
+    is LoweredCellNew -> [e.value]
+    is LoweredCellGet -> [e.target]
+    is LoweredMakeClosure -> [e.env]
+    is LoweredIf | LoweredBlock -> []
+    is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit -> []
+    is LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredTypeConst -> []
+    is LoweredUnreachable | LoweredGlobalGet -> []
+}
+
+with_operands :: fn(e: LoweredExpr, ops: LoweredExpr[]) -> LoweredExpr = match e {
+    is LoweredCall -> LoweredCall { ...e, .callee = ops[0], .args = ops[1..<ops.len()] }
+    is LoweredVirtualCall -> LoweredVirtualCall {
+        ...e,
+        .receiver = ops[0],
+        .args = ops[1..<ops.len()],
+    }
+    is LoweredIntrinsicCall -> LoweredIntrinsicCall { ...e, .args = ops }
+    is LoweredFieldAccess -> LoweredFieldAccess { ...e, .target = ops[0] }
+    is LoweredUnionField -> LoweredUnionField { ...e, .target = ops[0] }
+    is LoweredIndex -> LoweredIndex { ...e, .target = ops[0], .index = ops[1] }
+    is LoweredUnary -> LoweredUnary { ...e, .operand = ops[0] }
+    is LoweredBinary -> LoweredBinary { ...e, .left = ops[0], .right = ops[1] }
+    is LoweredStructLit -> LoweredStructLit { ...e, .fields = with_field_values(e.fields, ops) }
+    is LoweredArrayLit -> LoweredArrayLit { ...e, .elements = ops }
+    is LoweredCast -> LoweredCast { ...e, .value = ops[0] }
+    is LoweredTypeCheck -> LoweredTypeCheck { ...e, .value = ops[0] }
+    is LoweredArrayLen -> LoweredArrayLen { ...e, .target = ops[0] }
+    is LoweredArrayPush -> LoweredArrayPush { ...e, .target = ops[0], .value = ops[1] }
+    is LoweredArraySlice -> LoweredArraySlice { ...e, .target = ops[0], .lo = ops[1], .hi = ops[2] }
+    is LoweredCellNew -> LoweredCellNew { ...e, .value = ops[0] }
+    is LoweredCellGet -> LoweredCellGet { ...e, .target = ops[0] }
+    is LoweredMakeClosure -> LoweredMakeClosure { ...e, .env = ops[0] }
+    is LoweredIf | LoweredBlock -> e
+    is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit -> e
+    is LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredTypeConst -> e
+    is LoweredUnreachable | LoweredGlobalGet -> e
+}
+
+prepended :: fn(first: LoweredExpr, rest: LoweredExpr[]) -> LoweredExpr[] {
+    out: LoweredExpr[]: [first]
+    for e in rest {
+        out.push(e)
+    }
+    return out
+}
+
+field_values :: fn(fields: LoweredStructLitField[]) -> LoweredExpr[] {
+    out: LoweredExpr[]: []
+    for f in fields {
+        out.push(f.value)
+    }
+    return out
+}
+
+with_field_values :: fn(
+    fields: LoweredStructLitField[],
+    values: LoweredExpr[],
+) -> LoweredStructLitField[] {
+    out: LoweredStructLitField[]: []
+    for i in 0..<fields.len() {
+        out.push(LoweredStructLitField { ...fields[i], .value = values[i] })
+    }
+    return out
+}

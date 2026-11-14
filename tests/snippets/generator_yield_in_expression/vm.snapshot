@@ -1,0 +1,11 @@
+# stdout
+marked: 0 -1 2 -1 4
+filled: 100 -1 100 102 -1 100
+classified: 0 -1 1000 2 -100 2000 4
+match: 0 99 1 2 0
+order: 0 15
+short: 60 0 61 0 52 11
+countdown: 73 3 72 2 71 1 70 0
+written: 0 70
+# exit
+0

@@ -412,7 +412,7 @@ for_each_stmt_node_in_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void)
 ///
 /// @param e      the expression.
 /// @param visit  called once per statement.
-for_each_stmt_node_in_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
+export for_each_stmt_node_in_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
     match e {
         is LoweredCall        -> {
             for_each_stmt_node_in_expr(e.callee, visit)

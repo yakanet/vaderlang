@@ -1,0 +1,154 @@
+// A `yield` written inside an expression of a generator suspends it there, as a
+// `yield` statement does: in an `else` clause, in a branch of an `if` or a `match`
+// used as a value, in an operand. The operands evaluated before it keep the value
+// they had, the ones after it see what ran while it was suspended, and `&&` / `||`
+// still skip their right side.
+module "snippet"
+
+import "std/console"
+
+even :: fn(i: i32) -> i32 | null = if i % 2 == 0 { i } else { null }
+
+Odd :: struct { n: i32 }
+
+Odd implements Error {
+    message :: fn(self) = "odd ${self.n}"
+}
+
+checked :: fn(i: i32) -> i32 | Odd | null {
+    if i == 3 {
+        return null
+    }
+    return if i % 2 == 0 { i } else { Odd { .n = i } }
+}
+
+pair :: fn(a: i32, b: i32) = a * 10 + b
+
+// A clause that yields, then leaves.
+evens_marked :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: even(i) else {
+            yield -1
+            continue
+        }
+        yield v
+    }
+}
+
+// A clause that yields, then gives the value.
+evens_filled :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: even(i) else {
+            yield -1
+            0
+        }
+        yield v + 100
+    }
+}
+
+// A chain of clauses, each one yielding before it gives its value.
+classified :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: checked(i) else is Odd {
+            yield -i
+            1000
+        } else {
+            yield -100
+            2000
+        }
+        yield v
+    }
+}
+
+// A branch of a `match` used as a value.
+by_match :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        v :: match i % 3 {
+            0 -> 0
+            1 -> {
+                yield 99
+                1
+            }
+            _ -> 2
+        }
+        yield v
+    }
+}
+
+// The left operand is read before the `yield`, the right one after it.
+operand_order :: fn() -> Iterator<i32> {
+    x := 1
+    total :: pair(x, {
+        x = 5
+        yield 0
+        x
+    })
+    yield total
+}
+
+// `&&` and `||` skip a right side that would yield.
+short_circuit :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        both :: i > 1 && {
+            yield 50 + i
+            true
+        }
+        either :: i > 1 || {
+            yield 60 + i
+            false
+        }
+        yield if both { 1 } else { 0 } + if either { 10 } else { 0 }
+    }
+}
+
+// A loop condition that yields runs before every turn.
+counted_down :: fn() -> Iterator<i32> {
+    left := 3
+    for left >= 0 && {
+        yield 70 + left
+        true
+    } {
+        yield left
+        left -= 1
+    }
+}
+
+// The element written to is chosen before the value yields.
+written :: fn() -> Iterator<i32> {
+    cells: i32[]: [0, 0]
+    at := 0
+    cells[at] = {
+        at = 1
+        yield 0
+        7
+    }
+    yield cells[0] * 10 + cells[1]
+}
+
+drain :: fn(label: string, it: Iterator<i32>) -> void {
+    out := ""
+    for v in it {
+        out = out + " ${v}"
+    }
+    println("${label}:${out}")
+}
+
+main :: fn() -> i32 {
+    // Taken from an array, a stream is boxed: a generator its consumer calls
+    // directly is fused into it instead.
+    labels :: ["marked", "filled", "classified", "match", "order", "short", "countdown", "written"]
+    streams: Iterator<i32>[]: [
+        evens_marked(5),
+        evens_filled(4),
+        classified(5),
+        by_match(4),
+        operand_order(),
+        short_circuit(3),
+        counted_down(),
+        written(),
+    ]
+    for i in 0..<labels.len() {
+        drain(labels[i], streams[i])
+    }
+    return 0
+}

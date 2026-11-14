@@ -1,0 +1,2291 @@
+module _main
+type 0 scalar null
+type 1 scalar i32
+type 2 union 1,0
+type 3 union 1,0,4
+type 4 struct snippet$Odd { n:1 }
+type 5 ref std_core$Iterator
+type 6 scalar string
+type 7 scalar void
+type 8 struct snippet$$genstate_evens_marked { s0:1,s1:1,s2:2,s3:1,s4:1,state:1 }
+type 9 union 1,10
+type 10 struct std_core$Stop {  }
+type 11 struct snippet$$genstate_evens_filled { s0:1,s1:1,s2:2,s3:1,s4:1,state:1 }
+type 12 struct snippet$$genstate_classified { s0:1,s1:1,s2:3,s3:1,s4:1,s5:1,state:1 }
+type 13 struct snippet$$genstate_by_match { s0:1,s1:1,s2:1,s3:1,s4:1,s5:1,state:1 }
+type 14 struct snippet$$genstate_operand_order { s0:1,s1:1,s2:1,state:1 }
+type 15 struct snippet$$genstate_short_circuit { s0:1,s1:1,s2:18,s3:18,s4:18,s5:18,state:1 }
+type 16 struct snippet$$genstate_counted_down { s0:1,s1:18,state:1 }
+type 17 struct snippet$$genstate_written { s0:19,s1:1,s2:19,s3:1,state:1 }
+type 18 scalar bool
+type 19 array 1
+type 20 struct std_core$Buffer {  }
+type 21 scalar i64
+type 22 scalar u8
+type 23 array 22
+type 24 array 6
+type 25 ref $genstate_evens_marked
+type 26 ref $genstate_evens_filled
+type 27 ref $genstate_classified
+type 28 ref $genstate_by_match
+type 29 ref $genstate_operand_order
+type 30 ref $genstate_short_circuit
+type 31 ref $genstate_counted_down
+type 32 ref $genstate_written
+type 33 array 5
+type 34 array 10
+string 0 ""
+string 1 " "
+string 2 ":"
+string 3 "marked"
+string 4 "filled"
+string 5 "classified"
+string 6 "match"
+string 7 "order"
+string 8 "short"
+string 9 "countdown"
+string 10 "written"
+string 11 "\n"
+data 0 structs 10 0 1
+import 0 byte_len std_core$byte_len result_type=21 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=23 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=21 param_types=1,23,21 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
+import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=7 () -> void
+impl 8 std_core$Iterator
+impl 11 std_core$Iterator
+impl 12 std_core$Iterator
+impl 13 std_core$Iterator
+impl 14 std_core$Iterator
+impl 15 std_core$Iterator
+impl 16 std_core$Iterator
+impl 17 std_core$Iterator
+impl 20 std_core$ByteAccess
+impl 4 std_core$Error
+vtable std_core$Iterator.next 8 13
+vtable std_core$Iterator.next 11 14
+vtable std_core$Iterator.next 12 15
+vtable std_core$Iterator.next 13 16
+vtable std_core$Iterator.next 14 17
+vtable std_core$Iterator.next 15 18
+vtable std_core$Iterator.next 16 19
+vtable std_core$Iterator.next 17 20
+export main 12
+
+fn 0 snippet$even (i32) -> any
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.rem
+  i32.const 0
+  i32.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    retag 1   ; i32
+    return
+  end $L0
+  return.lit null.const
+end
+
+fn 1 snippet$checked (i32) -> any
+  local.get 0   ; arg 0
+  i32.const 3
+  i32.eq
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.rem
+  i32.const 0
+  i32.eq
+  if $L1 void
+    local.get 0   ; arg 0
+    retag 1   ; i32
+    return
+  end $L1
+  local.get 0   ; arg 0
+  struct.new 4   ; snippet$Odd
+  return
+end
+
+fn 2 snippet$pair (i32,i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 10
+  i32.checked_mul
+  local.get 1   ; arg 1
+  i32.checked_add
+  return
+end
+
+fn 3 snippet$evens_marked (i32) -> any
+  local $k_2 any
+  null.const
+  local.set 1   ; $k_2
+  local.get 0   ; arg 0
+  i32.const 0
+  local.get 1   ; $k_2
+  i32.const 0
+  i32.const 0
+  i32.const 12
+  struct.new 8   ; snippet$$genstate_evens_marked
+  return
+end
+
+fn 4 snippet$evens_filled (i32) -> any
+  local $k_2 any
+  null.const
+  local.set 1   ; $k_2
+  local.get 0   ; arg 0
+  i32.const 0
+  local.get 1   ; $k_2
+  i32.const 0
+  i32.const 0
+  i32.const 11
+  struct.new 11   ; snippet$$genstate_evens_filled
+  return
+end
+
+fn 5 snippet$classified (i32) -> any
+  local $k_2 any
+  null.const
+  local.set 1   ; $k_2
+  local.get 0   ; arg 0
+  i32.const 0
+  local.get 1   ; $k_2
+  i32.const 0
+  i32.const 0
+  i32.const 0
+  i32.const 15
+  struct.new 12   ; snippet$$genstate_classified
+  return
+end
+
+fn 6 snippet$by_match (i32) -> any
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.const 0
+  i32.const 0
+  i32.const 0
+  i32.const 0
+  i32.const 14
+  struct.new 13   ; snippet$$genstate_by_match
+  return
+end
+
+fn 7 snippet$operand_order () -> any
+  i32.const 0
+  i32.const 0
+  i32.const 0
+  i32.const 4
+  struct.new 14   ; snippet$$genstate_operand_order
+  return
+end
+
+fn 8 snippet$short_circuit (i32) -> any
+  local.get 0   ; arg 0
+  i32.const 0
+  bool.const false
+  bool.const false
+  bool.const false
+  bool.const false
+  i32.const 15
+  struct.new 15   ; snippet$$genstate_short_circuit
+  return
+end
+
+fn 9 snippet$counted_down () -> any
+  i32.const 0
+  bool.const false
+  i32.const 12
+  struct.new 16   ; snippet$$genstate_counted_down
+  return
+end
+
+fn 10 snippet$written () -> any
+  local $k_0 ref
+  local $k_2 ref
+  null.const
+  local.set 0   ; $k_0
+  null.const
+  local.set 1   ; $k_2
+  local.get 0   ; $k_0
+  i32.const 0
+  local.get 1   ; $k_2
+  i32.const 0
+  i32.const 4
+  struct.new 17   ; snippet$$genstate_written
+  return
+end
+
+fn 11 snippet$drain (string,any) -> void
+  local out string
+  local __iter_0 any
+  local __step_1 any
+  local v i32
+  local __buf_2 ref
+  local __off_3 i64
+  local $cast_17 i64
+  local $call_19 string
+  string.const 0   ; ""
+  local.set 2   ; out
+  local.get 1   ; arg 1
+  local.set 3   ; __iter_0
+  loop $L0 void
+    local.get 3   ; __iter_0
+    virtual.call 1 std_core$Iterator.next -> any
+    local.tee 4   ; __step_1
+    type_check 10   ; std_core$Stop
+    if $L1 void
+    else
+      local.get 4   ; __step_1
+      ref.cast 1   ; i32
+      local.set 5   ; v
+      i64.const 21
+      buffer.new
+      local.set 6   ; __buf_2
+      i64.const 0
+      local.set 7   ; __off_3
+      local.get 6   ; __buf_2
+      local.get 7   ; __off_3
+      string.const 1   ; " "
+      call 24   ; std_core$write_string_at
+      local.set 7   ; __off_3
+      local.get 5   ; v
+      i32.to_i64
+      local.set 8   ; $cast_17
+      local.get 6   ; __buf_2
+      local.get 7   ; __off_3
+      local.get 8   ; $cast_17
+      call 25   ; std_core$write_int
+      local.set 7   ; __off_3
+      local.get 6   ; __buf_2
+      local.get 7   ; __off_3
+      call 23   ; std_core$finish_buffer
+      local.set 9   ; $call_19
+      local.get 2   ; out
+      local.get 9   ; $call_19
+      call 21   ; concat_2
+      local.set 2   ; out
+      br $L0
+    end $L1
+  end $L0
+  local.get 0   ; arg 0
+  string.const 2   ; ":"
+  local.get 2   ; out
+  call 22   ; concat_3
+  call 29   ; std_console$println__string
+  return
+end
+
+fn 12 snippet$main () -> i32
+  local labels ref
+  local $call_11 ref
+  local $call_13 ref
+  local $call_15 ref
+  local $call_17 ref
+  local $call_18 ref
+  local $call_20 ref
+  local $call_21 ref
+  local $call_22 ref
+  local i i64
+  local __for_hi_0 i64
+  local $idx_30 string
+  local $idx_31 any
+  string.const 3   ; "marked"
+  string.const 4   ; "filled"
+  string.const 5   ; "classified"
+  string.const 6   ; "match"
+  string.const 7   ; "order"
+  string.const 8   ; "short"
+  string.const 9   ; "countdown"
+  string.const 10   ; "written"
+  array.new 24 8   ; string[]
+  local.set 0   ; labels
+  i32.const 5
+  call 3   ; snippet$evens_marked
+  local.set 1   ; $call_11
+  i32.const 4
+  call 4   ; snippet$evens_filled
+  local.set 2   ; $call_13
+  i32.const 5
+  call 5   ; snippet$classified
+  local.set 3   ; $call_15
+  i32.const 4
+  call 6   ; snippet$by_match
+  local.set 4   ; $call_17
+  call 7   ; snippet$operand_order
+  local.set 5   ; $call_18
+  i32.const 3
+  call 8   ; snippet$short_circuit
+  local.set 6   ; $call_20
+  call 9   ; snippet$counted_down
+  local.set 7   ; $call_21
+  call 10   ; snippet$written
+  local.set 8   ; $call_22
+  local.get 1   ; $call_11
+  local.get 2   ; $call_13
+  local.get 3   ; $call_15
+  local.get 4   ; $call_17
+  local.get 5   ; $call_18
+  local.get 6   ; $call_20
+  local.get 7   ; $call_21
+  local.get 8   ; $call_22
+  array.new 33 8   ; ref std_core$Iterator[]
+  local.set 1   ; $call_11
+  i64.const 0
+  local.set 9   ; i
+  local.get 0   ; labels
+  array.len
+  local.set 10   ; __for_hi_0
+  loop $L0 void
+    local.get 9   ; i
+    local.get 10   ; __for_hi_0
+    i64.lt
+    if $L1 void
+      local.get 0   ; labels
+      local.get 9   ; i
+      array.get 24   ; string[]
+      ref.cast 6   ; string
+      local.set 11   ; $idx_30
+      local.get 1   ; $call_11
+      local.get 9   ; i
+      array.get 33   ; ref std_core$Iterator[]
+      local.set 12   ; $idx_31
+      local.get 11   ; $idx_30
+      local.get 12   ; $idx_31
+      call 11   ; snippet$drain
+      local.get 9   ; i
+      i64.const 1
+      i64.add
+      local.set 9   ; i
+      br $L0
+    end $L1
+  end $L0
+  return.lit i32.const 0
+end
+
+fn 13 snippet$$genstate_evens_marked$Iterator$next (ref) -> any
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local $field_32 i32
+  local $add_43 i32
+  local $cast_54 i32
+  local $call_67 any
+  loop $L0 void
+    local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 8 5   ; snippet$$genstate_evens_marked.state
+      br $L0
+    end $L1
+    local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 8 5   ; snippet$$genstate_evens_marked.state
+    else
+      local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 8 1   ; arg 0 snippet$$genstate_evens_marked.s1
+        ref.cast 1   ; i32
+        local.set 1   ; $field_12
+        local.field 0 8 0   ; arg 0 snippet$$genstate_evens_marked.s0
+        ref.cast 1   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 11
+          struct.set 8 5   ; snippet$$genstate_evens_marked.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 8 5   ; snippet$$genstate_evens_marked.state
+        end $L4
+      else
+        local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 8 1   ; arg 0 snippet$$genstate_evens_marked.s1
+          ref.cast 1   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 8 1   ; snippet$$genstate_evens_marked.s1
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 8 5   ; snippet$$genstate_evens_marked.state
+        else
+          local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 8 5   ; snippet$$genstate_evens_marked.state
+            local.field 0 8 4   ; arg 0 snippet$$genstate_evens_marked.s4
+            ref.cast 1   ; i32
+            retag 1   ; i32
+            return
+          end $L6
+          local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+          ref.cast 1   ; i32
+          i32.const 5
+          i32.eq
+          if $L7 void
+            local.field 0 8 3   ; arg 0 snippet$$genstate_evens_marked.s3
+            ref.cast 1   ; i32
+            local.set 4   ; $field_32
+            local.get 0   ; arg 0
+            local.get 4   ; $field_32
+            struct.set 8 4   ; snippet$$genstate_evens_marked.s4
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 8 5   ; snippet$$genstate_evens_marked.state
+          else
+            local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+            ref.cast 1   ; i32
+            i32.const 6
+            i32.eq
+            if $L8 void
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 8 5   ; snippet$$genstate_evens_marked.state
+            else
+              local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+              ref.cast 1   ; i32
+              i32.const 7
+              i32.eq
+              if $L9 void
+                local.field 0 8 1   ; arg 0 snippet$$genstate_evens_marked.s1
+                ref.cast 1   ; i32
+                i32.const 1
+                i32.add
+                local.set 5   ; $add_43
+                local.get 0   ; arg 0
+                local.get 5   ; $add_43
+                struct.set 8 1   ; snippet$$genstate_evens_marked.s1
+                local.get 0   ; arg 0
+                i32.const 2
+                struct.set 8 5   ; snippet$$genstate_evens_marked.state
+              else
+                local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+                ref.cast 1   ; i32
+                i32.const 8
+                i32.eq
+                if $L10 void
+                  local.get 0   ; arg 0
+                  i32.const 7
+                  struct.set 8 5   ; snippet$$genstate_evens_marked.state
+                  i32.const -1
+                  retag 1   ; i32
+                  return
+                end $L10
+                local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+                ref.cast 1   ; i32
+                i32.const 9
+                i32.eq
+                if $L11 void
+                  local.field 0 8 2   ; arg 0 snippet$$genstate_evens_marked.s2
+                  ref.cast 1   ; i32
+                  local.set 6   ; $cast_54
+                  local.get 0   ; arg 0
+                  local.get 6   ; $cast_54
+                  struct.set 8 3   ; snippet$$genstate_evens_marked.s3
+                  local.get 0   ; arg 0
+                  i32.const 5
+                  struct.set 8 5   ; snippet$$genstate_evens_marked.state
+                else
+                  local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+                  ref.cast 1   ; i32
+                  i32.const 10
+                  i32.eq
+                  if $L12 void
+                    local.field 0 8 2   ; arg 0 snippet$$genstate_evens_marked.s2
+                    type_check 0   ; null
+                    if $L13 void
+                      local.get 0   ; arg 0
+                      i32.const 8
+                      struct.set 8 5   ; snippet$$genstate_evens_marked.state
+                    else
+                      local.get 0   ; arg 0
+                      i32.const 9
+                      struct.set 8 5   ; snippet$$genstate_evens_marked.state
+                    end $L13
+                  else
+                    local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+                    ref.cast 1   ; i32
+                    i32.const 11
+                    i32.eq
+                    if $L14 void
+                      local.field 0 8 1   ; arg 0 snippet$$genstate_evens_marked.s1
+                      ref.cast 1   ; i32
+                      call 0   ; snippet$even
+                      local.set 7   ; $call_67
+                      local.get 0   ; arg 0
+                      local.get 7   ; $call_67
+                      struct.set 8 2   ; snippet$$genstate_evens_marked.s2
+                      local.get 0   ; arg 0
+                      i32.const 10
+                      struct.set 8 5   ; snippet$$genstate_evens_marked.state
+                    else
+                      local.field 0 8 5   ; arg 0 snippet$$genstate_evens_marked.state
+                      ref.cast 1   ; i32
+                      i32.const 12
+                      i32.eq
+                      if $L15 void
+                      else
+                        data.const 0 34   ; pool[0] std_core$Stop[]
+                        i64.const 0
+                        array.get 34   ; std_core$Stop[]
+                        return
+                      end $L15
+                      local.get 0   ; arg 0
+                      i32.const 0
+                      struct.set 8 1   ; snippet$$genstate_evens_marked.s1
+                      local.get 0   ; arg 0
+                      i32.const 2
+                      struct.set 8 5   ; snippet$$genstate_evens_marked.state
+                    end $L14
+                  end $L12
+                end $L11
+              end $L9
+            end $L8
+          end $L7
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 14 snippet$$genstate_evens_filled$Iterator$next (ref) -> any
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local $field_34 i32
+  local $cast_50 i32
+  local $call_63 any
+  loop $L0 void
+    local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 11 5   ; snippet$$genstate_evens_filled.state
+      br $L0
+    end $L1
+    local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 11 5   ; snippet$$genstate_evens_filled.state
+    else
+      local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 11 1   ; arg 0 snippet$$genstate_evens_filled.s1
+        ref.cast 1   ; i32
+        local.set 1   ; $field_12
+        local.field 0 11 0   ; arg 0 snippet$$genstate_evens_filled.s0
+        ref.cast 1   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 10
+          struct.set 11 5   ; snippet$$genstate_evens_filled.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 11 5   ; snippet$$genstate_evens_filled.state
+        end $L4
+      else
+        local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 11 1   ; arg 0 snippet$$genstate_evens_filled.s1
+          ref.cast 1   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 11 1   ; snippet$$genstate_evens_filled.s1
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 11 5   ; snippet$$genstate_evens_filled.state
+        else
+          local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 11 5   ; snippet$$genstate_evens_filled.state
+            local.field 0 11 4   ; arg 0 snippet$$genstate_evens_filled.s4
+            ref.cast 1   ; i32
+            i32.const 100
+            i32.checked_add
+            retag 1   ; i32
+            return
+          end $L6
+          local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+          ref.cast 1   ; i32
+          i32.const 5
+          i32.eq
+          if $L7 void
+            local.field 0 11 3   ; arg 0 snippet$$genstate_evens_filled.s3
+            ref.cast 1   ; i32
+            local.set 4   ; $field_34
+            local.get 0   ; arg 0
+            local.get 4   ; $field_34
+            struct.set 11 4   ; snippet$$genstate_evens_filled.s4
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 11 5   ; snippet$$genstate_evens_filled.state
+          else
+            local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+            ref.cast 1   ; i32
+            i32.const 6
+            i32.eq
+            if $L8 void
+              local.get 0   ; arg 0
+              i32.const 0
+              struct.set 11 3   ; snippet$$genstate_evens_filled.s3
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 11 5   ; snippet$$genstate_evens_filled.state
+            else
+              local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+              ref.cast 1   ; i32
+              i32.const 7
+              i32.eq
+              if $L9 void
+                local.get 0   ; arg 0
+                i32.const 6
+                struct.set 11 5   ; snippet$$genstate_evens_filled.state
+                i32.const -1
+                retag 1   ; i32
+                return
+              end $L9
+              local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+              ref.cast 1   ; i32
+              i32.const 8
+              i32.eq
+              if $L10 void
+                local.field 0 11 2   ; arg 0 snippet$$genstate_evens_filled.s2
+                ref.cast 1   ; i32
+                local.set 5   ; $cast_50
+                local.get 0   ; arg 0
+                local.get 5   ; $cast_50
+                struct.set 11 3   ; snippet$$genstate_evens_filled.s3
+                local.get 0   ; arg 0
+                i32.const 5
+                struct.set 11 5   ; snippet$$genstate_evens_filled.state
+              else
+                local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+                ref.cast 1   ; i32
+                i32.const 9
+                i32.eq
+                if $L11 void
+                  local.field 0 11 2   ; arg 0 snippet$$genstate_evens_filled.s2
+                  type_check 0   ; null
+                  if $L12 void
+                    local.get 0   ; arg 0
+                    i32.const 7
+                    struct.set 11 5   ; snippet$$genstate_evens_filled.state
+                  else
+                    local.get 0   ; arg 0
+                    i32.const 8
+                    struct.set 11 5   ; snippet$$genstate_evens_filled.state
+                  end $L12
+                else
+                  local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+                  ref.cast 1   ; i32
+                  i32.const 10
+                  i32.eq
+                  if $L13 void
+                    local.field 0 11 1   ; arg 0 snippet$$genstate_evens_filled.s1
+                    ref.cast 1   ; i32
+                    call 0   ; snippet$even
+                    local.set 6   ; $call_63
+                    local.get 0   ; arg 0
+                    local.get 6   ; $call_63
+                    struct.set 11 2   ; snippet$$genstate_evens_filled.s2
+                    local.get 0   ; arg 0
+                    i32.const 9
+                    struct.set 11 5   ; snippet$$genstate_evens_filled.state
+                  else
+                    local.field 0 11 5   ; arg 0 snippet$$genstate_evens_filled.state
+                    ref.cast 1   ; i32
+                    i32.const 11
+                    i32.eq
+                    if $L14 void
+                    else
+                      data.const 0 34   ; pool[0] std_core$Stop[]
+                      i64.const 0
+                      array.get 34   ; std_core$Stop[]
+                      return
+                    end $L14
+                    local.get 0   ; arg 0
+                    i32.const 0
+                    struct.set 11 1   ; snippet$$genstate_evens_filled.s1
+                    local.get 0   ; arg 0
+                    i32.const 2
+                    struct.set 11 5   ; snippet$$genstate_evens_filled.state
+                  end $L13
+                end $L11
+              end $L10
+            end $L8
+          end $L7
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 15 snippet$$genstate_classified$Iterator$next (ref) -> any
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local $field_32 i32
+  local $field_48 i32
+  local $cast_64 i32
+  local $call_84 any
+  loop $L0 void
+    local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 12 6   ; snippet$$genstate_classified.state
+      br $L0
+    end $L1
+    local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 12 6   ; snippet$$genstate_classified.state
+    else
+      local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 12 1   ; arg 0 snippet$$genstate_classified.s1
+        ref.cast 1   ; i32
+        local.set 1   ; $field_12
+        local.field 0 12 0   ; arg 0 snippet$$genstate_classified.s0
+        ref.cast 1   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 14
+          struct.set 12 6   ; snippet$$genstate_classified.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 12 6   ; snippet$$genstate_classified.state
+        end $L4
+      else
+        local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 12 1   ; arg 0 snippet$$genstate_classified.s1
+          ref.cast 1   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 12 1   ; snippet$$genstate_classified.s1
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 12 6   ; snippet$$genstate_classified.state
+        else
+          local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 12 6   ; snippet$$genstate_classified.state
+            local.field 0 12 5   ; arg 0 snippet$$genstate_classified.s5
+            ref.cast 1   ; i32
+            retag 1   ; i32
+            return
+          end $L6
+          local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+          ref.cast 1   ; i32
+          i32.const 5
+          i32.eq
+          if $L7 void
+            local.field 0 12 3   ; arg 0 snippet$$genstate_classified.s3
+            ref.cast 1   ; i32
+            local.set 4   ; $field_32
+            local.get 0   ; arg 0
+            local.get 4   ; $field_32
+            struct.set 12 5   ; snippet$$genstate_classified.s5
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 12 6   ; snippet$$genstate_classified.state
+          else
+            local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+            ref.cast 1   ; i32
+            i32.const 6
+            i32.eq
+            if $L8 void
+              local.get 0   ; arg 0
+              i32.const 1000
+              struct.set 12 3   ; snippet$$genstate_classified.s3
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 12 6   ; snippet$$genstate_classified.state
+            else
+              local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+              ref.cast 1   ; i32
+              i32.const 7
+              i32.eq
+              if $L9 void
+                local.get 0   ; arg 0
+                i32.const 6
+                struct.set 12 6   ; snippet$$genstate_classified.state
+                local.field 0 12 1   ; arg 0 snippet$$genstate_classified.s1
+                ref.cast 1   ; i32
+                i32.checked_neg
+                retag 1   ; i32
+                return
+              end $L9
+              local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+              ref.cast 1   ; i32
+              i32.const 8
+              i32.eq
+              if $L10 void
+                local.field 0 12 4   ; arg 0 snippet$$genstate_classified.s4
+                ref.cast 1   ; i32
+                local.set 5   ; $field_48
+                local.get 0   ; arg 0
+                local.get 5   ; $field_48
+                struct.set 12 3   ; snippet$$genstate_classified.s3
+                local.get 0   ; arg 0
+                i32.const 5
+                struct.set 12 6   ; snippet$$genstate_classified.state
+              else
+                local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                ref.cast 1   ; i32
+                i32.const 9
+                i32.eq
+                if $L11 void
+                  local.get 0   ; arg 0
+                  i32.const 2000
+                  struct.set 12 4   ; snippet$$genstate_classified.s4
+                  local.get 0   ; arg 0
+                  i32.const 8
+                  struct.set 12 6   ; snippet$$genstate_classified.state
+                else
+                  local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                  ref.cast 1   ; i32
+                  i32.const 10
+                  i32.eq
+                  if $L12 void
+                    local.get 0   ; arg 0
+                    i32.const 9
+                    struct.set 12 6   ; snippet$$genstate_classified.state
+                    i32.const -100
+                    retag 1   ; i32
+                    return
+                  end $L12
+                  local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                  ref.cast 1   ; i32
+                  i32.const 11
+                  i32.eq
+                  if $L13 void
+                    local.field 0 12 2   ; arg 0 snippet$$genstate_classified.s2
+                    ref.cast 1   ; i32
+                    local.set 6   ; $cast_64
+                    local.get 0   ; arg 0
+                    local.get 6   ; $cast_64
+                    struct.set 12 4   ; snippet$$genstate_classified.s4
+                    local.get 0   ; arg 0
+                    i32.const 8
+                    struct.set 12 6   ; snippet$$genstate_classified.state
+                  else
+                    local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                    ref.cast 1   ; i32
+                    i32.const 12
+                    i32.eq
+                    if $L14 void
+                      local.field 0 12 2   ; arg 0 snippet$$genstate_classified.s2
+                      type_check 0   ; null
+                      if $L15 void
+                        local.get 0   ; arg 0
+                        i32.const 10
+                        struct.set 12 6   ; snippet$$genstate_classified.state
+                      else
+                        local.get 0   ; arg 0
+                        i32.const 11
+                        struct.set 12 6   ; snippet$$genstate_classified.state
+                      end $L15
+                    else
+                      local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                      ref.cast 1   ; i32
+                      i32.const 13
+                      i32.eq
+                      if $L16 void
+                        local.field 0 12 2   ; arg 0 snippet$$genstate_classified.s2
+                        type_check 4   ; snippet$Odd
+                        if $L17 void
+                          local.get 0   ; arg 0
+                          i32.const 7
+                          struct.set 12 6   ; snippet$$genstate_classified.state
+                        else
+                          local.get 0   ; arg 0
+                          i32.const 12
+                          struct.set 12 6   ; snippet$$genstate_classified.state
+                        end $L17
+                      else
+                        local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                        ref.cast 1   ; i32
+                        i32.const 14
+                        i32.eq
+                        if $L18 void
+                          local.field 0 12 1   ; arg 0 snippet$$genstate_classified.s1
+                          ref.cast 1   ; i32
+                          call 1   ; snippet$checked
+                          local.set 7   ; $call_84
+                          local.get 0   ; arg 0
+                          local.get 7   ; $call_84
+                          struct.set 12 2   ; snippet$$genstate_classified.s2
+                          local.get 0   ; arg 0
+                          i32.const 13
+                          struct.set 12 6   ; snippet$$genstate_classified.state
+                        else
+                          local.field 0 12 6   ; arg 0 snippet$$genstate_classified.state
+                          ref.cast 1   ; i32
+                          i32.const 15
+                          i32.eq
+                          if $L19 void
+                          else
+                            data.const 0 34   ; pool[0] std_core$Stop[]
+                            i64.const 0
+                            array.get 34   ; std_core$Stop[]
+                            return
+                          end $L19
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          struct.set 12 1   ; snippet$$genstate_classified.s1
+                          local.get 0   ; arg 0
+                          i32.const 2
+                          struct.set 12 6   ; snippet$$genstate_classified.state
+                        end $L18
+                      end $L16
+                    end $L14
+                  end $L13
+                end $L11
+              end $L10
+            end $L8
+          end $L7
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 16 snippet$$genstate_by_match$Iterator$next (ref) -> any
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local $field_32 i32
+  local $field_42 i32
+  local $mod_80 i32
+  loop $L0 void
+    local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 13 6   ; snippet$$genstate_by_match.state
+      br $L0
+    end $L1
+    local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 13 6   ; snippet$$genstate_by_match.state
+    else
+      local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 13 1   ; arg 0 snippet$$genstate_by_match.s1
+        ref.cast 1   ; i32
+        local.set 1   ; $field_12
+        local.field 0 13 0   ; arg 0 snippet$$genstate_by_match.s0
+        ref.cast 1   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 13
+          struct.set 13 6   ; snippet$$genstate_by_match.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 13 6   ; snippet$$genstate_by_match.state
+        end $L4
+      else
+        local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 13 1   ; arg 0 snippet$$genstate_by_match.s1
+          ref.cast 1   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 13 1   ; snippet$$genstate_by_match.s1
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 13 6   ; snippet$$genstate_by_match.state
+        else
+          local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 13 6   ; snippet$$genstate_by_match.state
+            local.field 0 13 5   ; arg 0 snippet$$genstate_by_match.s5
+            ref.cast 1   ; i32
+            retag 1   ; i32
+            return
+          end $L6
+          local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+          ref.cast 1   ; i32
+          i32.const 5
+          i32.eq
+          if $L7 void
+            local.field 0 13 3   ; arg 0 snippet$$genstate_by_match.s3
+            ref.cast 1   ; i32
+            local.set 4   ; $field_32
+            local.get 0   ; arg 0
+            local.get 4   ; $field_32
+            struct.set 13 5   ; snippet$$genstate_by_match.s5
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 13 6   ; snippet$$genstate_by_match.state
+          else
+            local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+            ref.cast 1   ; i32
+            i32.const 6
+            i32.eq
+            if $L8 void
+              local.get 0   ; arg 0
+              i32.const 0
+              struct.set 13 3   ; snippet$$genstate_by_match.s3
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 13 6   ; snippet$$genstate_by_match.state
+            else
+              local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+              ref.cast 1   ; i32
+              i32.const 7
+              i32.eq
+              if $L9 void
+                local.field 0 13 4   ; arg 0 snippet$$genstate_by_match.s4
+                ref.cast 1   ; i32
+                local.set 5   ; $field_42
+                local.get 0   ; arg 0
+                local.get 5   ; $field_42
+                struct.set 13 3   ; snippet$$genstate_by_match.s3
+                local.get 0   ; arg 0
+                i32.const 5
+                struct.set 13 6   ; snippet$$genstate_by_match.state
+              else
+                local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                ref.cast 1   ; i32
+                i32.const 8
+                i32.eq
+                if $L10 void
+                  local.get 0   ; arg 0
+                  i32.const 1
+                  struct.set 13 4   ; snippet$$genstate_by_match.s4
+                  local.get 0   ; arg 0
+                  i32.const 7
+                  struct.set 13 6   ; snippet$$genstate_by_match.state
+                else
+                  local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                  ref.cast 1   ; i32
+                  i32.const 9
+                  i32.eq
+                  if $L11 void
+                    local.get 0   ; arg 0
+                    i32.const 8
+                    struct.set 13 6   ; snippet$$genstate_by_match.state
+                    i32.const 99
+                    retag 1   ; i32
+                    return
+                  end $L11
+                  local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                  ref.cast 1   ; i32
+                  i32.const 10
+                  i32.eq
+                  if $L12 void
+                    local.get 0   ; arg 0
+                    i32.const 2
+                    struct.set 13 4   ; snippet$$genstate_by_match.s4
+                    local.get 0   ; arg 0
+                    i32.const 7
+                    struct.set 13 6   ; snippet$$genstate_by_match.state
+                  else
+                    local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                    ref.cast 1   ; i32
+                    i32.const 11
+                    i32.eq
+                    if $L13 void
+                      local.field 0 13 2   ; arg 0 snippet$$genstate_by_match.s2
+                      ref.cast 1   ; i32
+                      i32.const 1
+                      i32.eq
+                      if $L14 void
+                        local.get 0   ; arg 0
+                        i32.const 9
+                        struct.set 13 6   ; snippet$$genstate_by_match.state
+                      else
+                        local.get 0   ; arg 0
+                        i32.const 10
+                        struct.set 13 6   ; snippet$$genstate_by_match.state
+                      end $L14
+                    else
+                      local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                      ref.cast 1   ; i32
+                      i32.const 12
+                      i32.eq
+                      if $L15 void
+                        local.field 0 13 2   ; arg 0 snippet$$genstate_by_match.s2
+                        ref.cast 1   ; i32
+                        i32.const 0
+                        i32.eq
+                        if $L16 void
+                          local.get 0   ; arg 0
+                          i32.const 6
+                          struct.set 13 6   ; snippet$$genstate_by_match.state
+                        else
+                          local.get 0   ; arg 0
+                          i32.const 11
+                          struct.set 13 6   ; snippet$$genstate_by_match.state
+                        end $L16
+                      else
+                        local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                        ref.cast 1   ; i32
+                        i32.const 13
+                        i32.eq
+                        if $L17 void
+                          local.field 0 13 1   ; arg 0 snippet$$genstate_by_match.s1
+                          ref.cast 1   ; i32
+                          i32.const 3
+                          i32.rem
+                          local.set 6   ; $mod_80
+                          local.get 0   ; arg 0
+                          local.get 6   ; $mod_80
+                          struct.set 13 2   ; snippet$$genstate_by_match.s2
+                          local.get 0   ; arg 0
+                          i32.const 12
+                          struct.set 13 6   ; snippet$$genstate_by_match.state
+                        else
+                          local.field 0 13 6   ; arg 0 snippet$$genstate_by_match.state
+                          ref.cast 1   ; i32
+                          i32.const 14
+                          i32.eq
+                          if $L18 void
+                          else
+                            data.const 0 34   ; pool[0] std_core$Stop[]
+                            i64.const 0
+                            array.get 34   ; std_core$Stop[]
+                            return
+                          end $L18
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          struct.set 13 1   ; snippet$$genstate_by_match.s1
+                          local.get 0   ; arg 0
+                          i32.const 2
+                          struct.set 13 6   ; snippet$$genstate_by_match.state
+                        end $L17
+                      end $L15
+                    end $L13
+                  end $L12
+                end $L10
+              end $L9
+            end $L8
+          end $L7
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 17 snippet$$genstate_operand_order$Iterator$next (ref) -> any
+  local $field_13 i32
+  local $field_14 i32
+  local $call_15 i32
+  local $field_26 i32
+  loop $L0 void
+    local.field 0 14 3   ; arg 0 snippet$$genstate_operand_order.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 14 3   ; snippet$$genstate_operand_order.state
+      br $L0
+    end $L1
+    local.field 0 14 3   ; arg 0 snippet$$genstate_operand_order.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 14 3   ; snippet$$genstate_operand_order.state
+      local.field 0 14 2   ; arg 0 snippet$$genstate_operand_order.s2
+      ref.cast 1   ; i32
+      retag 1   ; i32
+      return
+    end $L2
+    local.field 0 14 3   ; arg 0 snippet$$genstate_operand_order.state
+    ref.cast 1   ; i32
+    i32.const 2
+    i32.eq
+    if $L3 void
+      local.field 0 14 1   ; arg 0 snippet$$genstate_operand_order.s1
+      ref.cast 1   ; i32
+      local.set 1   ; $field_13
+      local.field 0 14 0   ; arg 0 snippet$$genstate_operand_order.s0
+      ref.cast 1   ; i32
+      local.set 2   ; $field_14
+      local.get 1   ; $field_13
+      local.get 2   ; $field_14
+      call 2   ; snippet$pair
+      local.set 3   ; $call_15
+      local.get 0   ; arg 0
+      local.get 3   ; $call_15
+      struct.set 14 2   ; snippet$$genstate_operand_order.s2
+      local.get 0   ; arg 0
+      i32.const 1
+      struct.set 14 3   ; snippet$$genstate_operand_order.state
+    else
+      local.field 0 14 3   ; arg 0 snippet$$genstate_operand_order.state
+      ref.cast 1   ; i32
+      i32.const 3
+      i32.eq
+      if $L4 void
+        local.get 0   ; arg 0
+        i32.const 2
+        struct.set 14 3   ; snippet$$genstate_operand_order.state
+        i32.const 0
+        retag 1   ; i32
+        return
+      end $L4
+      local.field 0 14 3   ; arg 0 snippet$$genstate_operand_order.state
+      ref.cast 1   ; i32
+      i32.const 4
+      i32.eq
+      if $L5 void
+      else
+        data.const 0 34   ; pool[0] std_core$Stop[]
+        i64.const 0
+        array.get 34   ; std_core$Stop[]
+        return
+      end $L5
+      local.get 0   ; arg 0
+      i32.const 1
+      struct.set 14 0   ; snippet$$genstate_operand_order.s0
+      local.field 0 14 0   ; arg 0 snippet$$genstate_operand_order.s0
+      ref.cast 1   ; i32
+      local.set 4   ; $field_26
+      local.get 0   ; arg 0
+      local.get 4   ; $field_26
+      struct.set 14 1   ; snippet$$genstate_operand_order.s1
+      local.get 0   ; arg 0
+      i32.const 5
+      struct.set 14 0   ; snippet$$genstate_operand_order.s0
+      local.get 0   ; arg 0
+      i32.const 3
+      struct.set 14 3   ; snippet$$genstate_operand_order.state
+    end $L3
+    br $L0
+  end $L0
+end
+
+fn 18 snippet$$genstate_short_circuit$Iterator$next (ref) -> any
+  local $field_12 i32
+  local $field_13 i32
+  local $add_22 i32
+  local if_res i32
+  local if_res i32
+  local $field_40 bool
+  local $field_57 i32
+  local $field_70 bool
+  local $field_82 i32
+  loop $L0 void
+    local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 15 6   ; snippet$$genstate_short_circuit.state
+      br $L0
+    end $L1
+    local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 15 6   ; snippet$$genstate_short_circuit.state
+    else
+      local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 15 1   ; arg 0 snippet$$genstate_short_circuit.s1
+        ref.cast 1   ; i32
+        local.set 1   ; $field_12
+        local.field 0 15 0   ; arg 0 snippet$$genstate_short_circuit.s0
+        ref.cast 1   ; i32
+        local.set 2   ; $field_13
+        local.get 1   ; $field_12
+        local.get 2   ; $field_13
+        i32.lt
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 14
+          struct.set 15 6   ; snippet$$genstate_short_circuit.state
+        else
+          local.get 0   ; arg 0
+          i32.const 1
+          struct.set 15 6   ; snippet$$genstate_short_circuit.state
+        end $L4
+      else
+        local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L5 void
+          local.field 0 15 1   ; arg 0 snippet$$genstate_short_circuit.s1
+          ref.cast 1   ; i32
+          i32.const 1
+          i32.add
+          local.set 3   ; $add_22
+          local.get 0   ; arg 0
+          local.get 3   ; $add_22
+          struct.set 15 1   ; snippet$$genstate_short_circuit.s1
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 15 6   ; snippet$$genstate_short_circuit.state
+        else
+          local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+          ref.cast 1   ; i32
+          i32.const 4
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 15 6   ; snippet$$genstate_short_circuit.state
+            local.field 0 15 3   ; arg 0 snippet$$genstate_short_circuit.s3
+            ref.cast 18   ; bool
+            if $L7 void
+              i32.const 1
+              local.set 4   ; if_res
+            else
+              i32.const 0
+              local.set 4   ; if_res
+            end $L7
+            local.field 0 15 5   ; arg 0 snippet$$genstate_short_circuit.s5
+            ref.cast 18   ; bool
+            if $L8 void
+              i32.const 10
+              local.set 5   ; if_res
+              local.get 4   ; if_res
+              local.get 5   ; if_res
+              i32.checked_add
+              retag 1   ; i32
+              return
+            end $L8
+            i32.const 0
+            local.set 5   ; if_res
+            local.get 4   ; if_res
+            local.get 5   ; if_res
+            i32.checked_add
+            retag 1   ; i32
+            return
+          end $L6
+          local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+          ref.cast 1   ; i32
+          i32.const 5
+          i32.eq
+          if $L9 void
+            local.field 0 15 4   ; arg 0 snippet$$genstate_short_circuit.s4
+            ref.cast 18   ; bool
+            local.set 6   ; $field_40
+            local.get 0   ; arg 0
+            local.get 6   ; $field_40
+            struct.set 15 5   ; snippet$$genstate_short_circuit.s5
+            local.get 0   ; arg 0
+            i32.const 4
+            struct.set 15 6   ; snippet$$genstate_short_circuit.state
+          else
+            local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+            ref.cast 1   ; i32
+            i32.const 6
+            i32.eq
+            if $L10 void
+              local.get 0   ; arg 0
+              bool.const true
+              struct.set 15 4   ; snippet$$genstate_short_circuit.s4
+              local.get 0   ; arg 0
+              i32.const 5
+              struct.set 15 6   ; snippet$$genstate_short_circuit.state
+            else
+              local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+              ref.cast 1   ; i32
+              i32.const 7
+              i32.eq
+              if $L11 void
+                local.get 0   ; arg 0
+                bool.const false
+                struct.set 15 4   ; snippet$$genstate_short_circuit.s4
+                local.get 0   ; arg 0
+                i32.const 5
+                struct.set 15 6   ; snippet$$genstate_short_circuit.state
+              else
+                local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                ref.cast 1   ; i32
+                i32.const 8
+                i32.eq
+                if $L12 void
+                  local.get 0   ; arg 0
+                  i32.const 7
+                  struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                  local.field 0 15 1   ; arg 0 snippet$$genstate_short_circuit.s1
+                  ref.cast 1   ; i32
+                  local.set 7   ; $field_57
+                  i32.const 60
+                  local.get 7   ; $field_57
+                  i32.checked_add
+                  retag 1   ; i32
+                  return
+                end $L12
+                local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                ref.cast 1   ; i32
+                i32.const 9
+                i32.eq
+                if $L13 void
+                  local.field 0 15 1   ; arg 0 snippet$$genstate_short_circuit.s1
+                  ref.cast 1   ; i32
+                  i32.const 1
+                  i32.gt
+                  if $L14 void
+                    local.get 0   ; arg 0
+                    i32.const 6
+                    struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                  else
+                    local.get 0   ; arg 0
+                    i32.const 8
+                    struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                  end $L14
+                else
+                  local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                  ref.cast 1   ; i32
+                  i32.const 10
+                  i32.eq
+                  if $L15 void
+                    local.field 0 15 2   ; arg 0 snippet$$genstate_short_circuit.s2
+                    ref.cast 18   ; bool
+                    local.set 8   ; $field_70
+                    local.get 0   ; arg 0
+                    local.get 8   ; $field_70
+                    struct.set 15 3   ; snippet$$genstate_short_circuit.s3
+                    local.get 0   ; arg 0
+                    i32.const 9
+                    struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                  else
+                    local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                    ref.cast 1   ; i32
+                    i32.const 11
+                    i32.eq
+                    if $L16 void
+                      local.get 0   ; arg 0
+                      bool.const true
+                      struct.set 15 2   ; snippet$$genstate_short_circuit.s2
+                      local.get 0   ; arg 0
+                      i32.const 10
+                      struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                    else
+                      local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                      ref.cast 1   ; i32
+                      i32.const 12
+                      i32.eq
+                      if $L17 void
+                        local.get 0   ; arg 0
+                        i32.const 11
+                        struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                        local.field 0 15 1   ; arg 0 snippet$$genstate_short_circuit.s1
+                        ref.cast 1   ; i32
+                        local.set 9   ; $field_82
+                        i32.const 50
+                        local.get 9   ; $field_82
+                        i32.checked_add
+                        retag 1   ; i32
+                        return
+                      end $L17
+                      local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                      ref.cast 1   ; i32
+                      i32.const 13
+                      i32.eq
+                      if $L18 void
+                        local.get 0   ; arg 0
+                        bool.const false
+                        struct.set 15 2   ; snippet$$genstate_short_circuit.s2
+                        local.get 0   ; arg 0
+                        i32.const 10
+                        struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                      else
+                        local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                        ref.cast 1   ; i32
+                        i32.const 14
+                        i32.eq
+                        if $L19 void
+                          local.field 0 15 1   ; arg 0 snippet$$genstate_short_circuit.s1
+                          ref.cast 1   ; i32
+                          i32.const 1
+                          i32.gt
+                          if $L20 void
+                            local.get 0   ; arg 0
+                            i32.const 12
+                            struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                          else
+                            local.get 0   ; arg 0
+                            i32.const 13
+                            struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                          end $L20
+                        else
+                          local.field 0 15 6   ; arg 0 snippet$$genstate_short_circuit.state
+                          ref.cast 1   ; i32
+                          i32.const 15
+                          i32.eq
+                          if $L21 void
+                          else
+                            data.const 0 34   ; pool[0] std_core$Stop[]
+                            i64.const 0
+                            array.get 34   ; std_core$Stop[]
+                            return
+                          end $L21
+                          local.get 0   ; arg 0
+                          i32.const 0
+                          struct.set 15 1   ; snippet$$genstate_short_circuit.s1
+                          local.get 0   ; arg 0
+                          i32.const 2
+                          struct.set 15 6   ; snippet$$genstate_short_circuit.state
+                        end $L19
+                      end $L18
+                    end $L16
+                  end $L15
+                end $L13
+              end $L11
+            end $L10
+          end $L9
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 19 snippet$$genstate_counted_down$Iterator$next (ref) -> any
+  local $sub_checked_14 i32
+  local $field_49 i32
+  loop $L0 void
+    local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 16 2   ; snippet$$genstate_counted_down.state
+      br $L0
+    end $L1
+    local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 11
+      struct.set 16 2   ; snippet$$genstate_counted_down.state
+    else
+      local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+      ref.cast 1   ; i32
+      i32.const 2
+      i32.eq
+      if $L3 void
+        local.field 0 16 0   ; arg 0 snippet$$genstate_counted_down.s0
+        ref.cast 1   ; i32
+        i32.const 1
+        i32.checked_sub
+        local.set 1   ; $sub_checked_14
+        local.get 0   ; arg 0
+        local.get 1   ; $sub_checked_14
+        struct.set 16 0   ; snippet$$genstate_counted_down.s0
+        local.get 0   ; arg 0
+        i32.const 1
+        struct.set 16 2   ; snippet$$genstate_counted_down.state
+      else
+        local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+        ref.cast 1   ; i32
+        i32.const 3
+        i32.eq
+        if $L4 void
+          local.get 0   ; arg 0
+          i32.const 2
+          struct.set 16 2   ; snippet$$genstate_counted_down.state
+          local.field 0 16 0   ; arg 0 snippet$$genstate_counted_down.s0
+          ref.cast 1   ; i32
+          retag 1   ; i32
+          return
+        end $L4
+        local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+        ref.cast 1   ; i32
+        i32.const 4
+        i32.eq
+        if $L5 void
+          local.get 0   ; arg 0
+          i32.const 3
+          struct.set 16 2   ; snippet$$genstate_counted_down.state
+        else
+          local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+          ref.cast 1   ; i32
+          i32.const 5
+          i32.eq
+          if $L6 void
+            local.get 0   ; arg 0
+            i32.const 3
+            struct.set 16 2   ; snippet$$genstate_counted_down.state
+          else
+            local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+            ref.cast 1   ; i32
+            i32.const 6
+            i32.eq
+            if $L7 void
+              local.get 0   ; arg 0
+              i32.const 0
+              struct.set 16 2   ; snippet$$genstate_counted_down.state
+            else
+              local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+              ref.cast 1   ; i32
+              i32.const 7
+              i32.eq
+              if $L8 void
+                local.field 0 16 1   ; arg 0 snippet$$genstate_counted_down.s1
+                ref.cast 18   ; bool
+                if $L9 void
+                  local.get 0   ; arg 0
+                  i32.const 4
+                  struct.set 16 2   ; snippet$$genstate_counted_down.state
+                else
+                  local.get 0   ; arg 0
+                  i32.const 6
+                  struct.set 16 2   ; snippet$$genstate_counted_down.state
+                end $L9
+              else
+                local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+                ref.cast 1   ; i32
+                i32.const 8
+                i32.eq
+                if $L10 void
+                  local.get 0   ; arg 0
+                  bool.const true
+                  struct.set 16 1   ; snippet$$genstate_counted_down.s1
+                  local.get 0   ; arg 0
+                  i32.const 7
+                  struct.set 16 2   ; snippet$$genstate_counted_down.state
+                else
+                  local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+                  ref.cast 1   ; i32
+                  i32.const 9
+                  i32.eq
+                  if $L11 void
+                    local.get 0   ; arg 0
+                    i32.const 8
+                    struct.set 16 2   ; snippet$$genstate_counted_down.state
+                    local.field 0 16 0   ; arg 0 snippet$$genstate_counted_down.s0
+                    ref.cast 1   ; i32
+                    local.set 2   ; $field_49
+                    i32.const 70
+                    local.get 2   ; $field_49
+                    i32.checked_add
+                    retag 1   ; i32
+                    return
+                  end $L11
+                  local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+                  ref.cast 1   ; i32
+                  i32.const 10
+                  i32.eq
+                  if $L12 void
+                    local.get 0   ; arg 0
+                    bool.const false
+                    struct.set 16 1   ; snippet$$genstate_counted_down.s1
+                    local.get 0   ; arg 0
+                    i32.const 7
+                    struct.set 16 2   ; snippet$$genstate_counted_down.state
+                  else
+                    local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+                    ref.cast 1   ; i32
+                    i32.const 11
+                    i32.eq
+                    if $L13 void
+                      local.field 0 16 0   ; arg 0 snippet$$genstate_counted_down.s0
+                      ref.cast 1   ; i32
+                      i32.const 0
+                      i32.ge
+                      if $L14 void
+                        local.get 0   ; arg 0
+                        i32.const 9
+                        struct.set 16 2   ; snippet$$genstate_counted_down.state
+                      else
+                        local.get 0   ; arg 0
+                        i32.const 10
+                        struct.set 16 2   ; snippet$$genstate_counted_down.state
+                      end $L14
+                    else
+                      local.field 0 16 2   ; arg 0 snippet$$genstate_counted_down.state
+                      ref.cast 1   ; i32
+                      i32.const 12
+                      i32.eq
+                      if $L15 void
+                      else
+                        data.const 0 34   ; pool[0] std_core$Stop[]
+                        i64.const 0
+                        array.get 34   ; std_core$Stop[]
+                        return
+                      end $L15
+                      local.get 0   ; arg 0
+                      i32.const 3
+                      struct.set 16 0   ; snippet$$genstate_counted_down.s0
+                      local.get 0   ; arg 0
+                      i32.const 1
+                      struct.set 16 2   ; snippet$$genstate_counted_down.state
+                    end $L13
+                  end $L12
+                end $L10
+              end $L8
+            end $L7
+          end $L6
+        end $L5
+      end $L3
+    end $L2
+    br $L0
+  end $L0
+end
+
+fn 20 snippet$$genstate_written$Iterator$next (ref) -> any
+  local $mul_checked_13 i32
+  local $idx_16 i32
+  local $field_21 ref
+  local $field_22 i32
+  local $arr_35 ref
+  local $field_37 ref
+  local $field_38 i32
+  loop $L0 void
+    local.field 0 17 4   ; arg 0 snippet$$genstate_written.state
+    ref.cast 1   ; i32
+    i32.const 0
+    i32.eq
+    if $L1 void
+      local.get 0   ; arg 0
+      i32.const -1
+      struct.set 17 4   ; snippet$$genstate_written.state
+      br $L0
+    end $L1
+    local.field 0 17 4   ; arg 0 snippet$$genstate_written.state
+    ref.cast 1   ; i32
+    i32.const 1
+    i32.eq
+    if $L2 void
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 17 4   ; snippet$$genstate_written.state
+      local.field 0 17 0   ; arg 0 snippet$$genstate_written.s0
+      i32.const 0
+      load_slot_i32
+      i32.const 10
+      i32.checked_mul
+      local.set 1   ; $mul_checked_13
+      local.field 0 17 0   ; arg 0 snippet$$genstate_written.s0
+      i32.const 1
+      load_slot_i32
+      local.set 2   ; $idx_16
+      local.get 1   ; $mul_checked_13
+      local.get 2   ; $idx_16
+      i32.checked_add
+      retag 1   ; i32
+      return
+    end $L2
+    local.field 0 17 4   ; arg 0 snippet$$genstate_written.state
+    ref.cast 1   ; i32
+    i32.const 2
+    i32.eq
+    if $L3 void
+      local.field 0 17 2   ; arg 0 snippet$$genstate_written.s2
+      local.set 3   ; $field_21
+      local.field 0 17 3   ; arg 0 snippet$$genstate_written.s3
+      ref.cast 1   ; i32
+      local.set 4   ; $field_22
+      local.get 3   ; $field_21
+      local.get 4   ; $field_22
+      i32.const 7
+      store_slot_i32
+      local.get 0   ; arg 0
+      i32.const 1
+      struct.set 17 4   ; snippet$$genstate_written.state
+    else
+      local.field 0 17 4   ; arg 0 snippet$$genstate_written.state
+      ref.cast 1   ; i32
+      i32.const 3
+      i32.eq
+      if $L4 void
+        local.get 0   ; arg 0
+        i32.const 2
+        struct.set 17 4   ; snippet$$genstate_written.state
+        i32.const 0
+        retag 1   ; i32
+        return
+      end $L4
+      local.field 0 17 4   ; arg 0 snippet$$genstate_written.state
+      ref.cast 1   ; i32
+      i32.const 4
+      i32.eq
+      if $L5 void
+      else
+        data.const 0 34   ; pool[0] std_core$Stop[]
+        i64.const 0
+        array.get 34   ; std_core$Stop[]
+        return
+      end $L5
+      i32.const 0
+      i32.const 0
+      array.new 19 2   ; i32[]
+      local.set 5   ; $arr_35
+      local.get 0   ; arg 0
+      local.get 5   ; $arr_35
+      struct.set 17 0   ; snippet$$genstate_written.s0
+      local.get 0   ; arg 0
+      i32.const 0
+      struct.set 17 1   ; snippet$$genstate_written.s1
+      local.field 0 17 0   ; arg 0 snippet$$genstate_written.s0
+      local.set 6   ; $field_37
+      local.get 0   ; arg 0
+      local.get 6   ; $field_37
+      struct.set 17 2   ; snippet$$genstate_written.s2
+      local.field 0 17 1   ; arg 0 snippet$$genstate_written.s1
+      ref.cast 1   ; i32
+      local.set 7   ; $field_38
+      local.get 0   ; arg 0
+      local.get 7   ; $field_38
+      struct.set 17 3   ; snippet$$genstate_written.s3
+      local.get 0   ; arg 0
+      i32.const 1
+      struct.set 17 1   ; snippet$$genstate_written.s1
+      local.get 0   ; arg 0
+      i32.const 3
+      struct.set 17 4   ; snippet$$genstate_written.state
+    end $L3
+    br $L0
+  end $L0
+end
+
+fn 21 concat_2 (string,string) -> string
+  local c0 i64
+  local $call_4 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 22 concat_3 (string,string,string) -> string
+  local c0 i64
+  local $call_5 i64
+  local $call_8 i64
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 3   ; c0
+  local.get 4   ; $call_5
+  i64.add
+  local.set 4   ; $call_5
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 5   ; $call_8
+  local.get 4   ; $call_5
+  local.get 5   ; $call_8
+  i64.add
+  local.tee 5   ; $call_8
+  buffer.new
+  local.tee 6   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 3   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 4   ; $call_5
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 6   ; buf
+  local.get 5   ; $call_8
+  buffer_to_string
+  return
+end
+
+fn 23 std_core$finish_buffer (ref,i64) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 24 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 25 std_core$write_int (ref,i64,i64) -> i64
+  local neg bool
+  local ndigits i64
+  local m i64
+  local $cast_36 u8
+  local $add_checked_37 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    store_u8
+    local.get 1   ; arg 1
+    i64.const 1
+    i64.checked_add
+    return
+  end $L0
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.lt
+  local.set 3   ; neg
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2   ; arg 2
+    i64.checked_neg
+    local.set 2   ; arg 2
+  end $L1
+  i64.const 0
+  local.set 4   ; ndigits
+  local.get 2   ; arg 2
+  local.set 5   ; m
+  loop $L2 void
+    local.get 5   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_add
+      local.set 4   ; ndigits
+      local.get 5   ; m
+      i64.const 10
+      i64.div
+      local.set 5   ; m
+      br $L2
+    end $L3
+  end $L2
+  local.get 3   ; neg
+  if $L4 void
+    local.get 4   ; ndigits
+    i64.const 1
+    i64.checked_add
+    local.set 5   ; m
+  else
+    local.get 4   ; ndigits
+    local.set 5   ; m
+  end $L4
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  local.set 4   ; ndigits
+  loop $L5 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_sub
+      local.set 4   ; ndigits
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.rem
+      i64.checked_neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 6   ; $cast_36
+      i32.const 48
+      local.get 6   ; $cast_36
+      u8.checked_add
+      local.set 7   ; $add_checked_37
+      local.get 0   ; arg 0
+      local.get 4   ; ndigits
+      local.get 7   ; $add_checked_37
+      store_u8
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.div
+      local.set 2   ; arg 2
+      br $L5
+    end $L6
+  end $L5
+  local.get 3   ; neg
+  if $L7 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 45
+    store_u8
+    local.get 1   ; arg 1
+    local.get 5   ; m
+    i64.checked_add
+    return
+  end $L7
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  return
+end
+
+fn 26 std_console$write (u8,string) -> void
+  local buf ref
+  local sent i64
+  local $len_7 i64
+  local $len_9 i64
+  local chunk ref
+  local $len_12 i64
+  local n i32
+  local $cast_17 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 27   ; std_console$write_text
+  if $L0 void
+    return
+  end $L0
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L1 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_7
+    local.get 3   ; sent
+    local.get 4   ; $len_7
+    i64.ge
+    if $L2 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_9
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_9
+      array.slice 23   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_12
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_12
+      call 28   ; std_console$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L3 void
+        return
+      end $L3
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_17
+      local.get 3   ; sent
+      local.get 9   ; $cast_17
+      i64.checked_add
+      local.set 3   ; sent
+      br $L1
+    end $L2
+  end $L1
+  return
+end
+
+fn 27 std_console$write_text (u8,string) -> bool
+  return.lit bool.const false
+end
+
+fn 28 std_console$write_bytes (u8,ref,i64) -> i32
+  local fd i32
+  local written i64
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.set 3   ; fd
+  else
+    i32.const 2
+    local.set 3   ; fd
+  end $L0
+  local.get 3   ; fd
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  local.tee 4   ; written
+  i64.const 0
+  i64.lt
+  if $L1 void
+    call.import 3   ; system_posix$sys_last_errno
+    i32.const 32
+    i32.eq
+    if $L2 void
+      call.import 4   ; system_posix$sys_end_on_broken_pipe
+      local.get 4   ; written
+      i64.to_i32
+      return
+    end $L2
+    local.get 4   ; written
+    i64.to_i32
+    return
+  end $L1
+  local.get 4   ; written
+  i64.to_i32
+  return
+end
+
+fn 29 std_console$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 11   ; "\n"
+  call 21   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 26   ; std_console$write
+  return
+end

@@ -146,12 +146,15 @@ lower_generator_fn :: fn(
         .states = [], .field_map = Map<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx,
     }
+    // The split resumes at statements: a `yield` inside an expression comes up first.
+    settled :: settle_yields(fn_ctx, lowered_body)
+
     // Spill: params first, then every local (v1: spill-all) -> `g$State` fields.
     for p in params { gb_add_field(gb, p.symbol, p.type) }
-    gb_collect_block(gb, lowered_body)
+    gb_collect_block(gb, settled)
 
     // Route local/param refs to `self.<field>`, then split at yields into states.
-    routed :: gb_route_block(gb, lowered_body)
+    routed :: gb_route_block(gb, settled)
     entry_state :: gb_build(gb, routed)
 
     // Synthesize the `g$State` struct (spilled fields + `state: i32` resume
