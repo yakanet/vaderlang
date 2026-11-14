@@ -856,3 +856,7 @@ fn 17 snippet_lib$pick (ref,i32) -> (i32,i32)
   local.get 3   ; $idx_11
   return
 end
+
+# Diagnostics
+[15:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `v :: ... else ...`
+[20:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `r :: ... else ...`

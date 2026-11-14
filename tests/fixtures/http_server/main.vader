@@ -26,20 +26,16 @@ answer :: fn(request: Request) -> Response {
     }
     reader :: BufferedReader { .source = request.body }
     content :: reader.read_to_end(COUNTED_AT_MOST)
-    if content is IOError {
-        return new_response(STATUS_BAD_REQUEST, "the body could not be read\n")
-    }
+        else return new_response(STATUS_BAD_REQUEST, "the body could not be read\n")
     return new_response(STATUS_OK, "${request.method} ${request.target} ${content.len()}\n")
 }
 
 main :: fn() -> i32 {
-    listener :: listen(loopback(0))
-    if listener is IOError {
+    listener :: listen(loopback(0)) else {
         eprintln("cannot listen: ${listener.msg}")
         return 1
     }
-    address :: listener.local_address()
-    if address is IOError {
+    address :: listener.local_address() else {
         eprintln("no address: ${address.msg}")
         return 1
     }

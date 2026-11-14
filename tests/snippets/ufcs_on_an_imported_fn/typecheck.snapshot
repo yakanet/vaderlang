@@ -6,66 +6,64 @@
   expr 14:16    CallExpr       :: string
   expr 14:16    IdentExpr      :: fn() -> string
   expr 15:14    CallExpr       :: IOError | null
+  expr 15:14    FallbackExpr   :: null
   expr 15:14    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
   expr 15:25    IdentExpr      :: string
   expr 15:31    StringLitExpr  :: string
-  expr 16:17    IdentExpr      :: IOError
-  expr 16:5     IfExpr         :: void
-  expr 16:8     BinaryExpr     :: bool
-  expr 16:8     IdentExpr      :: IOError | null
-  expr 17:17    StringLitExpr  :: string
-  expr 17:34    FieldExpr      :: string
-  expr 17:34    IdentExpr      :: IOError
-  expr 17:9     CallExpr       :: void
-  expr 17:9     IdentExpr      :: fn(T) -> void
-  expr 21:10    CallExpr       :: IOError | string
-  expr 21:10    FieldExpr      :: fn(i64) -> IOError | string
-  expr 21:10    IdentExpr      :: string
-  expr 22:13    IdentExpr      :: string
-  expr 22:5     IfExpr         :: void
-  expr 22:8     BinaryExpr     :: bool
-  expr 22:8     IdentExpr      :: IOError | string
+  expr 15:53    IdentExpr      :: IOError
+  expr 16:17    StringLitExpr  :: string
+  expr 16:34    FieldExpr      :: string
+  expr 16:34    IdentExpr      :: IOError
+  expr 16:9     CallExpr       :: void
+  expr 16:9     IdentExpr      :: fn(T) -> void
+  expr 20:10    CallExpr       :: IOError | string
+  expr 20:10    FieldExpr      :: fn(i64) -> IOError | string
+  expr 20:10    IdentExpr      :: string
+  expr 21:13    IdentExpr      :: string
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: IOError | string
+  expr 22:17    StringLitExpr  :: string
+  expr 22:31    CallExpr       :: i64
+  expr 22:31    FieldExpr      :: fn() -> i64
+  expr 22:31    IdentExpr      :: string
+  expr 22:9     CallExpr       :: void
+  expr 22:9     IdentExpr      :: fn(T) -> void
   expr 232:62   IdentExpr      :: i64
-  expr 23:17    StringLitExpr  :: string
-  expr 23:31    CallExpr       :: i64
-  expr 23:31    FieldExpr      :: fn() -> i64
-  expr 23:31    IdentExpr      :: string
-  expr 23:9     CallExpr       :: void
-  expr 23:9     IdentExpr      :: fn(T) -> void
-  expr 26:14    CallExpr       :: IOError | string
-  expr 26:14    FieldExpr      :: fn(i64) -> IOError | string
-  expr 26:14    IdentExpr      :: string
-  expr 27:17    IdentExpr      :: IOError
-  expr 27:5     IfExpr         :: void
-  expr 27:8     BinaryExpr     :: bool
-  expr 27:8     IdentExpr      :: IOError | string
-  expr 28:17    StringLitExpr  :: string
-  expr 28:31    FieldExpr      :: string
-  expr 28:31    IdentExpr      :: IOError
-  expr 28:9     CallExpr       :: void
-  expr 28:9     IdentExpr      :: fn(T) -> void
-  expr 30:14    CallExpr       :: IOError | string
-  expr 30:14    FieldExpr      :: fn(i64) -> IOError | string
-  expr 30:14    IdentExpr      :: string
-  expr 31:17    IdentExpr      :: IOError
-  expr 31:5     IfExpr         :: void
-  expr 31:8     BinaryExpr     :: bool
-  expr 31:8     IdentExpr      :: IOError | string
-  expr 32:17    StringLitExpr  :: string
-  expr 32:31    FieldExpr      :: string
-  expr 32:31    IdentExpr      :: IOError
-  expr 32:9     CallExpr       :: void
-  expr 32:9     IdentExpr      :: fn(T) -> void
-  expr 34:16    CallExpr       :: IOError | null
-  expr 34:16    IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
-  expr 34:23    IdentExpr      :: string
-  expr 35:19    IdentExpr      :: IOError
-  expr 35:5     IfExpr         :: void
-  expr 35:8     BinaryExpr     :: bool
-  expr 35:8     IdentExpr      :: IOError | null
-  expr 36:17    StringLitExpr  :: string
-  expr 36:36    FieldExpr      :: string
-  expr 36:36    IdentExpr      :: IOError
-  expr 36:9     CallExpr       :: void
-  expr 36:9     IdentExpr      :: fn(T) -> void
+  expr 25:14    CallExpr       :: IOError | string
+  expr 25:14    FieldExpr      :: fn(i64) -> IOError | string
+  expr 25:14    IdentExpr      :: string
+  expr 26:17    IdentExpr      :: IOError
+  expr 26:5     IfExpr         :: void
+  expr 26:8     BinaryExpr     :: bool
+  expr 26:8     IdentExpr      :: IOError | string
+  expr 27:17    StringLitExpr  :: string
+  expr 27:31    FieldExpr      :: string
+  expr 27:31    IdentExpr      :: IOError
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(T) -> void
+  expr 29:14    CallExpr       :: IOError | string
+  expr 29:14    FieldExpr      :: fn(i64) -> IOError | string
+  expr 29:14    IdentExpr      :: string
+  expr 30:17    IdentExpr      :: IOError
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: IOError | string
+  expr 31:17    StringLitExpr  :: string
+  expr 31:31    FieldExpr      :: string
+  expr 31:31    IdentExpr      :: IOError
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(T) -> void
+  expr 33:16    CallExpr       :: IOError | null
+  expr 33:16    IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
+  expr 33:23    IdentExpr      :: string
+  expr 34:19    IdentExpr      :: IOError
+  expr 34:5     IfExpr         :: void
+  expr 34:8     BinaryExpr     :: bool
+  expr 34:8     IdentExpr      :: IOError | null
+  expr 35:17    StringLitExpr  :: string
+  expr 35:36    FieldExpr      :: string
+  expr 35:36    IdentExpr      :: IOError
+  expr 35:9     CallExpr       :: void
+  expr 35:9     IdentExpr      :: fn(T) -> void
   expr 374:60   StructLitExpr  :: RemoveOptions

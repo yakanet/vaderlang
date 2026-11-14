@@ -282,6 +282,7 @@ export WarningCode :: enum(CodeInfo) {
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
     IdentityOfFieldlessStruct   { .id = "W0020", .message = "identity comparison of a struct with no field" },
     BlockAfterElseValue         { .id = "W0021", .message = "a block follows the value of an `else` on its line, so it runs whatever the `else` took" },
+    GuardAfterBinding           { .id = "W0022", .message = "a guard on the failure of the value just bound is the `else` of its binding" },
 }
 
 /// `H6xxx`: the build driver (`build.vader`) and the hooks it registers.

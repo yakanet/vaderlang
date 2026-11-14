@@ -785,12 +785,11 @@ lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
         return prepend_stmts_to_block(effects_of(cond), taken_branch(ctx, if_expr, known, type))
     }
     then_block :: lower_block(ctx, if_expr.then_block, false, null)
-    else_block :: lower_if_else(ctx, if_expr.else_branch)
     // Else-less `if` : the body's value is unobservable (the typechecker
     // widens to `T | void`, but `void` has no representation), so force
     // the if to `void` and convert the then-block's trailing expression
     // into an `ExprStmt`.
-    if else_block is null {
+    else_block :: lower_if_else(ctx, if_expr.else_branch) else {
         then_void :: voidify_block(then_block)
         return LoweredIf {
             .span = if_expr.span, .type = TY_VOID,

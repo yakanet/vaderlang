@@ -10,16 +10,14 @@ import "std/io"
 // the native run and the interpreter compare byte for byte.
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_snippet_file_read_write_seek"
-    w :: create(path)
-    if w is IOError {
+    w :: create(path) else {
         println("create failed: ${w.msg}")
         return 1
     }
     w.write("one\r\ntwo\nthree")
     w.close()
 
-    f :: open(path, OpenOptions { .write = true })
-    if f is IOError {
+    f :: open(path, OpenOptions { .write = true }) else {
         println("open failed: ${f.msg}")
         return 1
     }

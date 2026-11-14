@@ -169,10 +169,7 @@ export LEVELS: Level[]: @comptime [
 // file that is missing, that does not parse, or whose level has no exit switch or
 // several, stops the build, naming the file and why.
 load_level :: fn(path: string) -> Level {
-    text :: read_file_string(path)
-    if text is IOError {
-        panic("cannot read `${path}`: ${text.message()}")
-    }
+    text :: read_file_string(path) else panic("cannot read `${path}`: ${text.message()}")
     rows: string[]: []
     for line in text.split("\n") {
         row :: line.right_trim()

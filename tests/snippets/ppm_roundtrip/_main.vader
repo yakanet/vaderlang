@@ -13,23 +13,19 @@ main :: fn() -> i32 {
     px: u8[]: [0x00, 0x80, 0xff, 0x10, 0x20, 0x30, 0xc3, 0x28, 0xa9, 0x7f, 0x01, 0xfe]
     img :: Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px }
 
-    enc :: encode(img)
-    if enc is PpmError {
+    enc :: encode(img) else {
         println("encode failed")
         return 1
     }
-    wr :: write_file(path, enc)
-    if wr is Error {
+    wr :: write_file(path, enc) else is Error {
         println("write failed: ${wr.message()} path=[${path}]")
         return 1
     }
-    raw :: read_file_bytes(path, READ_LIMIT_DEFAULT)
-    if raw is Error {
+    raw :: read_file_bytes(path, READ_LIMIT_DEFAULT) else {
         println("read failed: ${raw.message()}")
         return 1
     }
-    dec :: decode(raw)
-    if dec is PpmError {
+    dec :: decode(raw) else {
         println("decode failed")
         return 1
     }

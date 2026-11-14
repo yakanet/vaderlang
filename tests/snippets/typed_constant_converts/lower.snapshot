@@ -33,11 +33,12 @@
       value
   }
   snippet.__comptime_NOTE_TEXT :: fn() -> string {  // snippet$__comptime_NOTE_TEXT
-      read: IOError | string = std.fs.read_file_string("note.txt", i64(16777216))
-      if read is IOError {
-          std.abort.panic(concat_2("cannot read `note.txt`: ", std.io.IOError.message(IOError(read))))
+      read: string = {
+          __fallback_0: IOError | string = std.fs.read_file_string("note.txt", i64(16777216))
+          read: IOError | string = __fallback_0
+          if __fallback_0 is IOError { std.abort.panic(concat_2("cannot read `note.txt`: ", std.io.IOError.message(IOError(read)))) } else { string(__fallback_0) } :string
       }
-      string(read)
+      read
   }
   snippet.NOTE_TEXT: string: "from a file"  // snippet$NOTE_TEXT
   __const_snippet$NOTE :: fn() -> Label {

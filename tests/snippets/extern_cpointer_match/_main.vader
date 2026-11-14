@@ -35,8 +35,7 @@ c_fclose :: fn(f: CPointer) -> i32
 
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_cpointer_probe"
-    wrote :: write_file(path, "x")
-    if wrote is IOError {
+    wrote :: write_file(path, "x") else is IOError {
         println("setup failed: ${wrote.msg}")
         return 1
     }

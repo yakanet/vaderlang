@@ -3,37 +3,51 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       path: string = concat_2(std.env.temp_dir(), "/vader_héllo_zoé_日本.txt")
-      written: IOError | null = std.fs.write_file(path, [u8(104), u8(101), u8(108), u8(108), u8(111)] :u8[])
-      if written is Error {
-          std.console.println<string>(concat_2("write failed: ", @vcall(std.core.Error.message, Error(written))))
-          return 1
+      written: null = {
+          __fallback_0: IOError | null = std.fs.write_file(path, [u8(104), u8(101), u8(108), u8(108), u8(111)] :u8[])
+          written: IOError | null = __fallback_0
+          if __fallback_0 is Error {
+              {
+                  std.console.println<string>(concat_2("write failed: ", @vcall(std.core.Error.message, Error(written))))
+                  return 1
+              }
+          } else {
+              null(__fallback_0)
+          } :null
       }
-      read_back: IOError | u8[] = std.fs.read_file_bytes(path, i64(16777216))
-      if read_back is Error {
-          std.console.println<string>(concat_2("read failed: ", @vcall(std.core.Error.message, Error(read_back))))
-          return 1
+      read_back: u8[] = {
+          __fallback_1: IOError | u8[] = std.fs.read_file_bytes(path, i64(16777216))
+          read_back: IOError | u8[] = __fallback_1
+          if __fallback_1 is IOError {
+              {
+                  std.console.println<string>(concat_2("read failed: ", std.io.IOError.message(IOError(read_back))))
+                  return 1
+              }
+          } else {
+              u8[](__fallback_1)
+          } :u8[]
       }
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(15))
-          __off_1: i64 = 0
-          __off_1 = std.core.write_string_at(__buf_0, __off_1, "roundtrip=")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, @array.len(u8[](read_back)) == i64(5))
-          std.core.finish_buffer(__buf_0, __off_1)
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(15))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "roundtrip=")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, @array.len(read_back) == i64(5))
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.console.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(12))
-          __off_3: i64 = 0
-          __off_3 = std.core.write_string_at(__buf_2, __off_3, "exists=")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, std.fs.exists(path))
-          std.core.finish_buffer(__buf_2, __off_3)
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(12))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "exists=")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, std.fs.exists(path))
+          std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
       std.console.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(13))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, "removed=")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, !std.fs.exists(path))
-          std.core.finish_buffer(__buf_4, __off_5)
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(13))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "removed=")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, !std.fs.exists(path))
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       return 0
   }

@@ -164,43 +164,45 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local path string
-  local w any
-  local $field_9 string
-  local $struct_23 ref
-  local $cast_76 ref
-  local $arr_79 ref
-  local line any
+  local w ref
   local __fallback_0 any
-  local $cast_93 ref
-  local __off_1 i64
-  local $type_check_111 bool
+  local w any
+  local $field_11 string
+  local $struct_25 ref
+  local $arr_75 ref
+  local r ref
+  local $cast_89 ref
+  local __off_3 i64
+  local $type_check_107 bool
   call 14   ; std_env$temp_dir
   string.const 0   ; "/vader_snippet_file_read_write_seek"
   call 3   ; concat_2
   local.tee 0   ; path
   call 17   ; std_fs$create
-  local.tee 1   ; w
+  local.tee 2   ; __fallback_0
+  local.set 3   ; w
+  local.get 2   ; __fallback_0
   type_check 4   ; std_io$IOError
   if $L0 void
-    local.get 1   ; w
+    local.get 3   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 0   ; std_io$IOError.msg
     ref.cast 5   ; string
-    local.set 2   ; $field_9
+    local.set 4   ; $field_11
     string.const 1   ; "create failed: "
-    local.get 2   ; $field_9
+    local.get 4   ; $field_11
     call 3   ; concat_2
     call 13   ; std_console$println__string
     return.lit i32.const 1
   end $L0
-  local.get 1   ; w
+  local.get 2   ; __fallback_0
   ref.cast 15   ; std_fs$File
+  local.tee 1   ; w
   string.const 2   ; "one\r\ntwo\nthree"
   retag 5   ; string
   call 46   ; std_fs$File$std_io$Writer$write
   drop
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   call 18   ; std_fs$close
   drop
   bool.const true
@@ -210,213 +212,205 @@ fn 0 snippet$main () -> i32
   bool.const false
   bool.const false
   struct.new 16   ; std_fs$OpenOptions
-  local.set 3   ; $struct_23
+  local.set 5   ; $struct_25
   local.get 0   ; path
-  local.get 3   ; $struct_23
+  local.get 5   ; $struct_25
   call 19   ; std_fs$open
-  local.tee 1   ; w
+  local.tee 2   ; __fallback_0
+  local.set 3   ; w
+  local.get 2   ; __fallback_0
   type_check 4   ; std_io$IOError
   if $L1 void
-    local.get 1   ; w
+    local.get 3   ; w
     ref.cast 4   ; std_io$IOError
     struct.get 4 0   ; std_io$IOError.msg
     ref.cast 5   ; string
-    local.set 2   ; $field_9
+    local.set 4   ; $field_11
     string.const 3   ; "open failed: "
-    local.get 2   ; $field_9
+    local.get 4   ; $field_11
     call 3   ; concat_2
     call 13   ; std_console$println__string
     return.lit i32.const 1
   end $L1
+  local.get 2   ; __fallback_0
+  ref.cast 15   ; std_fs$File
+  local.set 1   ; w
   i32.const 0
   array.new 9 1   ; u8[]
   i64.const 2
   array.repeat
-  local.set 3   ; $struct_23
+  local.set 5   ; $struct_25
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
-  local.get 3   ; $struct_23
+  local.get 5   ; $struct_25
   call 45   ; std_fs$File$std_io$Reader$read
   type_check 3   ; i64
   if $L2 void
-    local.get 3   ; $struct_23
+    local.get 5   ; $struct_25
     call.import 3   ; std_core$bytes_to_string
-    local.set 2   ; $field_9
+    local.set 4   ; $field_11
     string.const 4   ; "read: "
-    local.get 2   ; $field_9
+    local.get 4   ; $field_11
     call 3   ; concat_2
     call 13   ; std_console$println__string
   end $L2
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   i64.const 0
   i32.const 1
   call 20   ; std_fs$seek
   call 1   ; snippet$position
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 5   ; "position: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   string.const 6   ; "E"
   retag 5   ; string
   call 46   ; std_fs$File$std_io$Writer$write
   drop
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   i64.const 0
   i32.const 1
   call 20   ; std_fs$seek
   call 1   ; snippet$position
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 7   ; "after the write: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   i64.const 0
   i32.const 2
   call 20   ; std_fs$seek
   call 1   ; snippet$position
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 8   ; "end: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   call 21   ; std_fs$size
   call 1   ; snippet$position
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 9   ; "size: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   i64.const 0
   i32.const 0
   call 20   ; std_fs$seek
   drop
-  local.get 1   ; w
-  ref.cast 15   ; std_fs$File
-  local.set 4   ; $cast_76
   array.new 9 0   ; u8[]
-  local.set 5   ; $arr_79
-  local.get 4   ; $cast_76
+  local.set 6   ; $arr_75
+  local.get 1   ; w
   i64.const 4
   null.const
-  local.get 5   ; $arr_79
+  local.get 6   ; $arr_75
   i64.const 0
   i64.const 0
   struct.new 31   ; std_io$BufferedReader
-  local.tee 4   ; $cast_76
-  local.set 5   ; $arr_79
+  local.tee 6   ; $arr_75
+  local.set 7   ; r
   block $L3 void
     loop $L4 void
-      local.get 5   ; $arr_79
+      local.get 7   ; r
       i64.const 1048576
       call 49   ; std_io$read_line
-      local.tee 7   ; __fallback_0
+      local.tee 3   ; w
       type_check 0   ; null
       if $L5 void
       else
-        local.get 7   ; __fallback_0
-        local.tee 6   ; line
+        local.get 3   ; w
+        local.tee 2   ; __fallback_0
         type_check 4   ; std_io$IOError
         if $L6 void
-          local.get 6   ; line
+          local.get 2   ; __fallback_0
           ref.cast 4   ; std_io$IOError
-          local.set 8   ; $cast_93
-          local.get 5   ; $arr_79
-          local.get 8   ; $cast_93
+          local.set 8   ; $cast_89
+          local.get 7   ; r
+          local.get 8   ; $cast_89
           struct.set 31 2   ; std_io$BufferedReader.error
           br $L3
         end $L6
-        local.get 6   ; line
+        local.get 2   ; __fallback_0
         ref.cast 5   ; string
-        local.set 2   ; $field_9
+        local.set 4   ; $field_11
         string.const 10   ; "line: "
-        local.get 2   ; $field_9
+        local.get 4   ; $field_11
         call 3   ; concat_2
         call 13   ; std_console$println__string
         br $L4
       end $L5
     end $L4
   end $L3
-  local.field 4 31 2   ; $cast_76 std_io$BufferedReader.error
+  local.field 6 31 2   ; $arr_75 std_io$BufferedReader.error
   call 2   ; snippet$outcome
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 11   ; "error: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   i64.const 17
   buffer.new
-  local.set 5   ; $arr_79
+  local.set 7   ; r
   i64.const 0
-  local.set 9   ; __off_1
-  local.get 5   ; $arr_79
-  local.get 9   ; __off_1
+  local.set 9   ; __off_3
+  local.get 7   ; r
+  local.get 9   ; __off_3
   string.const 12   ; "at the end: "
   call 6   ; std_core$write_string_at
-  local.set 9   ; __off_1
-  local.get 4   ; $cast_76
+  local.set 9   ; __off_3
+  local.get 6   ; $arr_75
   i64.const 1048576
   call 49   ; std_io$read_line
   type_check 0   ; null
-  local.set 10   ; $type_check_111
-  local.get 5   ; $arr_79
-  local.get 9   ; __off_1
-  local.get 10   ; $type_check_111
+  local.set 10   ; $type_check_107
+  local.get 7   ; r
+  local.get 9   ; __off_3
+  local.get 10   ; $type_check_107
   call 8   ; std_core$write_bool
-  local.set 9   ; __off_1
-  local.get 5   ; $arr_79
-  local.get 9   ; __off_1
+  local.set 9   ; __off_3
+  local.get 7   ; r
+  local.get 9   ; __off_3
   call 5   ; std_core$finish_buffer
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   call 18   ; std_fs$close
   call 2   ; snippet$outcome
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 13   ; "close: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
   call 18   ; std_fs$close
   call 2   ; snippet$outcome
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   string.const 14   ; "close again: "
-  local.get 2   ; $field_9
+  local.get 4   ; $field_11
   call 3   ; concat_2
   call 13   ; std_console$println__string
   local.get 1   ; w
-  ref.cast 15   ; std_fs$File
-  local.get 3   ; $struct_23
+  local.get 5   ; $struct_25
   call 45   ; std_fs$File$std_io$Reader$read
-  local.tee 1   ; w
+  local.tee 2   ; __fallback_0
   type_check 4   ; std_io$IOError
   if $L7 void
-    local.get 1   ; w
+    local.get 2   ; __fallback_0
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
     call 60   ; std_io$IOErrorKind$std_core$Display$to_string
-    local.set 2   ; $field_9
+    local.set 4   ; $field_11
     string.const 15   ; "read after close: "
-    local.get 2   ; $field_9
+    local.get 4   ; $field_11
     call 3   ; concat_2
     call 13   ; std_console$println__string
   end $L7
   call 14   ; std_env$temp_dir
   string.const 16   ; "/vader_snippet_file_absent"
   call 3   ; concat_2
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   bool.const true
   bool.const false
   bool.const false
@@ -424,25 +418,25 @@ fn 0 snippet$main () -> i32
   bool.const false
   bool.const false
   struct.new 16   ; std_fs$OpenOptions
-  local.set 3   ; $struct_23
-  local.get 2   ; $field_9
-  local.get 3   ; $struct_23
+  local.set 1   ; w
+  local.get 4   ; $field_11
+  local.get 1   ; w
   call 19   ; std_fs$open
-  local.tee 1   ; w
+  local.tee 2   ; __fallback_0
   type_check 4   ; std_io$IOError
   if $L8 void
-    local.get 1   ; w
+    local.get 2   ; __fallback_0
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
     call 60   ; std_io$IOErrorKind$std_core$Display$to_string
-    local.set 2   ; $field_9
+    local.set 4   ; $field_11
     string.const 17   ; "missing: "
-    local.get 2   ; $field_9
+    local.get 4   ; $field_11
     call 3   ; concat_2
     call 13   ; std_console$println__string
   end $L8
   call 14   ; std_env$temp_dir
-  local.set 2   ; $field_9
+  local.set 4   ; $field_11
   bool.const true
   bool.const false
   bool.const false
@@ -450,29 +444,29 @@ fn 0 snippet$main () -> i32
   bool.const false
   bool.const false
   struct.new 16   ; std_fs$OpenOptions
-  local.set 3   ; $struct_23
-  local.get 2   ; $field_9
-  local.get 3   ; $struct_23
+  local.set 1   ; w
+  local.get 4   ; $field_11
+  local.get 1   ; w
   call 19   ; std_fs$open
-  local.tee 1   ; w
+  local.tee 2   ; __fallback_0
   type_check 4   ; std_io$IOError
   if $L9 void
-    local.get 1   ; w
+    local.get 2   ; __fallback_0
     ref.cast 4   ; std_io$IOError
     struct.get 4 1   ; std_io$IOError.kind
     call 60   ; std_io$IOErrorKind$std_core$Display$to_string
-    local.set 2   ; $field_9
+    local.set 4   ; $field_11
     string.const 18   ; "directory: "
-    local.get 2   ; $field_9
+    local.get 4   ; $field_11
     call 3   ; concat_2
     call 13   ; std_console$println__string
   end $L9
   bool.const false
   bool.const false
   struct.new 17   ; std_fs$RemoveOptions
-  local.set 3   ; $struct_23
+  local.set 1   ; w
   local.get 0   ; path
-  local.get 3   ; $struct_23
+  local.get 1   ; w
   call 22   ; std_fs$remove
   drop
   return.lit i32.const 0

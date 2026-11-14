@@ -10,39 +10,65 @@
           .maxval = u32(255),
           .pixels = px,
       }
-      enc: PpmError | u8[] = images.ppm.encode(img)
-      if enc is PpmError {
-          std.console.println<string>("encode failed")
-          return 1
+      enc: u8[] = {
+          __fallback_0: PpmError | u8[] = images.ppm.encode(img)
+          if __fallback_0 is PpmError {
+              {
+                  std.console.println<string>("encode failed")
+                  return 1
+              }
+          } else {
+              u8[](__fallback_0)
+          } :u8[]
       }
-      wr: IOError | null = std.fs.write_file(path, u8[](enc))
-      if wr is Error {
-          std.console.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
-          return 1
+      wr: null = {
+          __fallback_1: IOError | null = std.fs.write_file(path, enc)
+          wr: IOError | null = __fallback_1
+          if __fallback_1 is Error {
+              {
+                  std.console.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
+                  return 1
+              }
+          } else {
+              null(__fallback_1)
+          } :null
       }
-      raw: IOError | u8[] = std.fs.read_file_bytes(path, i64(16777216))
-      if raw is Error {
-          std.console.println<string>(concat_2("read failed: ", @vcall(std.core.Error.message, Error(raw))))
-          return 1
+      raw: u8[] = {
+          __fallback_2: IOError | u8[] = std.fs.read_file_bytes(path, i64(16777216))
+          raw: IOError | u8[] = __fallback_2
+          if __fallback_2 is IOError {
+              {
+                  std.console.println<string>(concat_2("read failed: ", std.io.IOError.message(IOError(raw))))
+                  return 1
+              }
+          } else {
+              u8[](__fallback_2)
+          } :u8[]
       }
-      dec: Ppm | PpmError = images.ppm.decode(u8[](raw))
-      if dec is PpmError {
-          std.console.println<string>("decode failed")
-          return 1
+      dec: Ppm = {
+          __fallback_3: Ppm | PpmError = images.ppm.decode(raw)
+          if __fallback_3 is PpmError {
+              {
+                  std.console.println<string>("decode failed")
+                  return 1
+              }
+          } else {
+              Ppm(__fallback_3)
+          } :Ppm
       }
-      ok: bool = (((Ppm(dec).width == u32(2)) && (Ppm(dec).height == u32(2))) && (Ppm(dec).maxval == u32(255))) && (@array.len(Ppm(dec).pixels) == i64(12))
+      ok: bool = (((dec.width == u32(2)) && (dec.height == u32(2))) && (dec.maxval == u32(255))) && (@array.len(dec.pixels) == i64(12))
       {
           i: i64 = 0
-          __for_hi_0: i64 = @array.len(Ppm(dec).pixels)
-          for i < __for_hi_0 {
-              if Ppm(dec).pixels[i] != px[i] {
+          __for_hi_4: i64 = @array.len(dec.pixels)
+          for i < __for_hi_4 {
+              if dec.pixels[i] != px[i] {
                   ok = false
               }
           } @step {
               i = i +% i64(1)
           }
       }
-      std.console.println<string>(images.ppm.Ppm.to_string(Ppm(dec)))
+      std.console.println<string>(images.ppm.Ppm.to_string(dec))
       if ok {
           std.console.println<string>("OK")
       } else {

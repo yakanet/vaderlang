@@ -13,8 +13,6 @@ import "std/string"
 /// The toolchain's version, as `vader --version` prints it.
 export VADER_VERSION :: @comptime {
     read :: read_file_string("VERSION")
-    if read is IOError {
-        panic("cannot read `vader/support/version/VERSION`: ${read.message()}")
-    }
+        else panic("cannot read `vader/support/version/VERSION`: ${read.message()}")
     return read.trim()
 }

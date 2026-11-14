@@ -9,22 +9,19 @@
   expr 12:1     IdentExpr      :: fn() -> string
   expr 12:13    CallExpr       :: string
   expr 13:13    CallExpr       :: IOError | string
+  expr 13:13    FallbackExpr   :: string
   expr 13:13    IdentExpr      :: fn(string, i64) -> IOError | string
   expr 13:30    StringLitExpr  :: string
   expr 13:33    IdentExpr      :: string
-  expr 14:16    IdentExpr      :: IOError
-  expr 14:5     IfExpr         :: void
-  expr 14:8     BinaryExpr     :: bool
-  expr 14:8     IdentExpr      :: IOError | string
-  expr 15:15    StringLitExpr  :: string
-  expr 15:31    IdentExpr      :: string
-  expr 15:49    CallExpr       :: string
-  expr 15:49    FieldExpr      :: fn() -> string
-  expr 15:49    IdentExpr      :: IOError
-  expr 15:9     CallExpr       :: never
-  expr 15:9     IdentExpr      :: fn(string) -> void
-  expr 17:12    IdentExpr      :: string
-  expr 21:13    IdentExpr      :: string
-  expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 14:14    CallExpr       :: never
+  expr 14:14    IdentExpr      :: fn(string) -> void
+  expr 14:20    StringLitExpr  :: string
+  expr 14:36    IdentExpr      :: string
+  expr 14:54    CallExpr       :: string
+  expr 14:54    FieldExpr      :: fn() -> string
+  expr 14:54    IdentExpr      :: IOError
+  expr 15:12    IdentExpr      :: string
+  expr 19:13    IdentExpr      :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
   expr 232:62   IdentExpr      :: i64

@@ -1,0 +1,52 @@
+// A guard on the failure of the value just bound, which leaves, is the `else`
+// of its binding: W0022 on `a` (bare `else`), on `b` (`else is IOError`, whose
+// `null` is the success) and on `c` (a comment in between changes nothing).
+// Quiet: a test of a success, a guard that does not follow its binding, a
+// mutable binding, a guard that does not leave, and a left that ends with a `}`.
+module "snippet"
+
+import "std/io"
+
+find :: fn(n: i32) -> i32 | null = if n > 0 { n } else { null }
+read :: fn() -> i32 | IOError = 4
+write :: fn() -> null | IOError = null
+
+main :: fn() -> i32 {
+    a :: find(1)
+    if a == null {
+        return 1
+    }
+    b :: write()
+    if b is IOError {
+        return 2
+    }
+    c :: read()
+    // Nothing to read is no input.
+    if c is IOError {
+        return 3
+    }
+    d :: read()
+    if d is i32 {
+        return d
+    }
+    e :: find(2)
+    total := a + c
+    if e == null {
+        return 4
+    }
+    f := find(3)
+    if f == null {
+        return 5
+    }
+    total += f
+    f = null
+    g :: find(4)
+    if g == null {
+        total += 1
+    }
+    h :: if total > 0 { find(5) } else { null }
+    if h == null {
+        return 6
+    }
+    return total + e + h
+}

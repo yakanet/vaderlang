@@ -14,10 +14,7 @@ import "std/iter"
 import "std/string"
 
 OPS_REFERENCE :: @comptime {
-    read :: read_file_string("ops.md")
-    if read is IOError {
-        panic("cannot read `ops.md`: ${read.message()}")
-    }
+    read :: read_file_string("ops.md") else panic("cannot read `ops.md`: ${read.message()}")
     return read
 }
 

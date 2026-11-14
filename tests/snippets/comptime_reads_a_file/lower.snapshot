@@ -6,11 +6,12 @@
     const GREETING: string  inline
   snippet.FILENAME: string: "data"  // snippet$FILENAME
   snippet.__comptime_GREETING :: fn() -> string {  // snippet$__comptime_GREETING
-      read: IOError | string = std.fs.read_file_string("data.txt", i64(16777216))
-      if read is IOError {
-          std.abort.panic(concat_2("cannot read `data.txt`: ", std.io.IOError.message(IOError(read))))
+      read: string = {
+          __fallback_0: IOError | string = std.fs.read_file_string("data.txt", i64(16777216))
+          read: IOError | string = __fallback_0
+          if __fallback_0 is IOError { std.abort.panic(concat_2("cannot read `data.txt`: ", std.io.IOError.message(IOError(read)))) } else { string(__fallback_0) } :string
       }
-      string(read)
+      read
   }
   snippet.GREETING: string: "Hello from file!"  // snippet$GREETING
   snippet.main :: fn() -> i32 {  // snippet$main

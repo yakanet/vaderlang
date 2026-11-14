@@ -11,14 +11,12 @@ import "std/fs"
 import "std/io"
 
 describe :: fn(path: string) -> string {
-    r :: read_file_string(path)
-    if r is IOError { return "unreadable (${r.message()} / ${r.msg})" }
+    r :: read_file_string(path) else return "unreadable (${r.message()} / ${r.msg})"
     return "ok"
 }
 
 catch_all :: fn(path: string) -> string {
-    r :: read_file_string(path)
-    if r is IOError {
+    r :: read_file_string(path) else {
         e: Error: r
         return "caught by trait: ${e.message()}"
     }

@@ -318,51 +318,53 @@ static int64_t vader_host_system_posix$sys_fd_size(int32_t a0) {
 static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 
 static vader_string_t snippet$describe(vader_string_t l0) {
-    vader_box_t l1 = vader_box_null();
-    vader_string_t l2 = 0;
+    vader_box_t l1 = vader_box_null(), l2 = vader_box_null();
     vader_string_t l3 = 0;
+    vader_string_t l4 = 0;
     void* t0 = NULL;
     vader_string_t t1 = 0;
-    vader_box_t* gc_roots[1] = { &l1 };
+    vader_box_t* gc_roots[2] = { &l1, &l2 };
     void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l2, &l3, &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l3, &l4, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
+        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = std_fs$read_file_string(l0, INT64_C(16777216));
+    l2 = l1;
     if (!(l1.tag == 11u)) {
         { vader_gc_top = gc_frame.prev; return 4u; }
     }
-    t0 = l1.payload.obj;
-    l2 = std_io$IOError$std_core$Error$message(t0);
-    t0 = l1.payload.obj;
-    l3 = ((vader_struct_std_io$IOError_t*) t0)->f_msg;
-    t1 = concat_5(1u, l2, 2u, l3, 3u);
+    t0 = l2.payload.obj;
+    l3 = std_io$IOError$std_core$Error$message(t0);
+    t0 = l2.payload.obj;
+    l4 = ((vader_struct_std_io$IOError_t*) t0)->f_msg;
+    t1 = concat_5(1u, l3, 2u, l4, 3u);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet$catch_all(vader_string_t l0) {
-    vader_box_t l1 = vader_box_null();
-    vader_string_t l2 = 0;
-    vader_string_t t0 = 0;
-    void* t1 = NULL;
-    vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &t1 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l2, &t0 };
+    vader_box_t l1 = vader_box_null(), l2 = vader_box_null();
+    vader_string_t l3 = 0;
+    void* t0 = NULL;
+    vader_string_t t1 = 0;
+    vader_box_t* gc_roots[2] = { &l1, &l2 };
+    void** gc_raw_roots[1] = { &t0 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l3, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = std_fs$read_file_string(l0, INT64_C(16777216));
-    if (!(l1.tag == 11u)) {
-        t0 = l1.payload.s;
-        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    l2 = l1;
+    if (l1.tag == 11u) {
+        t0 = l2.payload.obj;
+        l3 = std_core$Error$message$$dispatch(vader_ref_box(t0));
+        t1 = concat_2(5u, l3);
+        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t1 = l1.payload.obj;
-    l2 = std_core$Error$message$$dispatch(vader_ref_box(t1));
-    t0 = concat_2(5u, l2);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = l1.payload.s;
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet$main(void) {

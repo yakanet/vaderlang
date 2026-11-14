@@ -158,46 +158,76 @@
       return 0
   }
   snippet.get_or<char> :: fn(m: Map<char, i32>, k: char, dflt: i32) -> i32 {  // snippet$get_or__char
-      v: i32 | null = std.collections.Map<char, i32>.at(m, k)
-      if v is null {
-          return dflt
+      v: i32 = {
+          __fallback_0: i32 | null = std.collections.Map<char, i32>.at(m, k)
+          if __fallback_0 is null {
+              return dflt
+              @unreachable("an `else` clause leaves")
+          } else {
+              i32(__fallback_0)
+          } :i32
       }
-      return i32(v)
+      return v
   }
   snippet.get_or<i16> :: fn(m: Map<i16, i32>, k: i16, dflt: i32) -> i32 {  // snippet$get_or__i16
-      v: i32 | null = std.collections.Map<i16, i32>.at(m, k)
-      if v is null {
-          return dflt
+      v: i32 = {
+          __fallback_0: i32 | null = std.collections.Map<i16, i32>.at(m, k)
+          if __fallback_0 is null {
+              return dflt
+              @unreachable("an `else` clause leaves")
+          } else {
+              i32(__fallback_0)
+          } :i32
       }
-      return i32(v)
+      return v
   }
   snippet.get_or<i64> :: fn(m: Map<i64, i32>, k: i64, dflt: i32) -> i32 {  // snippet$get_or__i64
-      v: i32 | null = std.collections.Map<i64, i32>.at(m, k)
-      if v is null {
-          return dflt
+      v: i32 = {
+          __fallback_0: i32 | null = std.collections.Map<i64, i32>.at(m, k)
+          if __fallback_0 is null {
+              return dflt
+              @unreachable("an `else` clause leaves")
+          } else {
+              i32(__fallback_0)
+          } :i32
       }
-      return i32(v)
+      return v
   }
   snippet.get_or<u16> :: fn(m: Map<u16, i32>, k: u16, dflt: i32) -> i32 {  // snippet$get_or__u16
-      v: i32 | null = std.collections.Map<u16, i32>.at(m, k)
-      if v is null {
-          return dflt
+      v: i32 = {
+          __fallback_0: i32 | null = std.collections.Map<u16, i32>.at(m, k)
+          if __fallback_0 is null {
+              return dflt
+              @unreachable("an `else` clause leaves")
+          } else {
+              i32(__fallback_0)
+          } :i32
       }
-      return i32(v)
+      return v
   }
   snippet.get_or<u64> :: fn(m: Map<u64, i32>, k: u64, dflt: i32) -> i32 {  // snippet$get_or__u64
-      v: i32 | null = std.collections.Map<u64, i32>.at(m, k)
-      if v is null {
-          return dflt
+      v: i32 = {
+          __fallback_0: i32 | null = std.collections.Map<u64, i32>.at(m, k)
+          if __fallback_0 is null {
+              return dflt
+              @unreachable("an `else` clause leaves")
+          } else {
+              i32(__fallback_0)
+          } :i32
       }
-      return i32(v)
+      return v
   }
   snippet.get_or<u8> :: fn(m: Map<u8, i32>, k: u8, dflt: i32) -> i32 {  // snippet$get_or__u8
-      v: i32 | null = std.collections.Map<u8, i32>.at(m, k)
-      if v is null {
-          return dflt
+      v: i32 = {
+          __fallback_0: i32 | null = std.collections.Map<u8, i32>.at(m, k)
+          if __fallback_0 is null {
+              return dflt
+              @unreachable("an `else` clause leaves")
+          } else {
+              i32(__fallback_0)
+          } :i32
       }
-      return i32(v)
+      return v
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)

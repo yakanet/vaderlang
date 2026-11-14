@@ -47,6 +47,7 @@ check_block :: fn(
         }
         push_statement_narrows(stmt, typed, divergent_narrows)
     }
+    warn_guards_after_bindings(block.stmts, typed, diags)
     if diverged && first_unreachable_span is null {
         if block.trailing !is null {
             first_unreachable_span = block.trailing.span

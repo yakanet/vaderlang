@@ -9,101 +9,90 @@
   expr 14:12    StructLitExpr  :: Ppm
   expr 14:68    IdentExpr      :: u8[]
   expr 16:12    CallExpr       :: PpmError | u8[]
+  expr 16:12    FallbackExpr   :: u8[]
   expr 16:12    IdentExpr      :: fn(Ppm) -> PpmError | u8[]
   expr 16:19    IdentExpr      :: Ppm
-  expr 17:15    IdentExpr      :: PpmError
-  expr 17:5     IfExpr         :: void
-  expr 17:8     BinaryExpr     :: bool
-  expr 17:8     IdentExpr      :: PpmError | u8[]
-  expr 18:17    StringLitExpr  :: string
-  expr 18:9     CallExpr       :: void
-  expr 18:9     IdentExpr      :: fn(T) -> void
-  expr 21:11    CallExpr       :: IOError | null
-  expr 21:11    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
-  expr 21:22    IdentExpr      :: string
-  expr 21:28    IdentExpr      :: u8[]
-  expr 22:14    IdentExpr      :: Error
-  expr 22:5     IfExpr         :: void
-  expr 22:8     BinaryExpr     :: bool
-  expr 22:8     IdentExpr      :: IOError | null
-  expr 23:17    StringLitExpr  :: string
-  expr 23:34    CallExpr       :: string
-  expr 23:34    FieldExpr      :: fn() -> string
-  expr 23:34    IdentExpr      :: Error
-  expr 23:56    IdentExpr      :: string
-  expr 23:9     CallExpr       :: void
-  expr 23:9     IdentExpr      :: fn(T) -> void
-  expr 26:12    CallExpr       :: IOError | u8[]
-  expr 26:12    IdentExpr      :: fn(string, i64) -> IOError | u8[]
-  expr 26:28    IdentExpr      :: string
-  expr 26:34    IdentExpr      :: i64
-  expr 27:15    IdentExpr      :: Error
-  expr 27:5     IfExpr         :: void
-  expr 27:8     BinaryExpr     :: bool
-  expr 27:8     IdentExpr      :: IOError | u8[]
-  expr 28:17    StringLitExpr  :: string
-  expr 28:33    CallExpr       :: string
-  expr 28:33    FieldExpr      :: fn() -> string
-  expr 28:33    IdentExpr      :: Error
-  expr 28:9     CallExpr       :: void
-  expr 28:9     IdentExpr      :: fn(T) -> void
-  expr 31:12    CallExpr       :: Ppm | PpmError
-  expr 31:12    IdentExpr      :: fn(u8[]) -> Ppm | PpmError
-  expr 31:19    IdentExpr      :: u8[]
-  expr 32:15    IdentExpr      :: PpmError
-  expr 32:5     IfExpr         :: void
-  expr 32:8     BinaryExpr     :: bool
-  expr 32:8     IdentExpr      :: Ppm | PpmError
-  expr 33:17    StringLitExpr  :: string
-  expr 33:9     CallExpr       :: void
-  expr 33:9     IdentExpr      :: fn(T) -> void
-  expr 37:11    BinaryExpr     :: bool
-  expr 37:11    BinaryExpr     :: bool
-  expr 37:11    BinaryExpr     :: bool
-  expr 37:11    BinaryExpr     :: bool
-  expr 37:11    FieldExpr      :: u32
-  expr 37:11    IdentExpr      :: Ppm
-  expr 37:24    CallExpr       :: u32
-  expr 37:24    IdentExpr      :: type
-  expr 37:34    BinaryExpr     :: bool
-  expr 37:34    FieldExpr      :: u32
-  expr 37:34    IdentExpr      :: Ppm
-  expr 37:48    CallExpr       :: u32
-  expr 37:48    IdentExpr      :: type
-  expr 38:12    BinaryExpr     :: bool
-  expr 38:12    FieldExpr      :: u32
-  expr 38:12    IdentExpr      :: Ppm
-  expr 38:26    CallExpr       :: u32
-  expr 38:26    IdentExpr      :: type
-  expr 38:38    BinaryExpr     :: bool
-  expr 38:38    CallExpr       :: i64
-  expr 38:38    FieldExpr      :: fn() -> i64
-  expr 38:38    FieldExpr      :: u8[]
-  expr 38:38    IdentExpr      :: Ppm
-  expr 39:14    RangeExpr      :: Range<i64>
-  expr 39:18    CallExpr       :: i64
-  expr 39:18    FieldExpr      :: fn() -> i64
-  expr 39:18    FieldExpr      :: u8[]
-  expr 39:18    IdentExpr      :: Ppm
-  expr 40:12    BinaryExpr     :: bool
-  expr 40:12    FieldExpr      :: u8[]
-  expr 40:12    IdentExpr      :: Ppm
-  expr 40:12    IndexExpr      :: u8
-  expr 40:23    IdentExpr      :: i64
-  expr 40:29    IdentExpr      :: u8[]
-  expr 40:29    IndexExpr      :: u8
-  expr 40:32    IdentExpr      :: i64
-  expr 40:37    IdentExpr      :: bool
-  expr 40:9     IfExpr         :: void
-  expr 42:13    StringLitExpr  :: string
-  expr 42:16    IdentExpr      :: Ppm
-  expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn(T) -> void
-  expr 43:13    CallExpr       :: void
-  expr 43:13    IdentExpr      :: fn(T) -> void
-  expr 43:21    StringLitExpr  :: string
-  expr 43:36    CallExpr       :: void
-  expr 43:36    IdentExpr      :: fn(T) -> void
-  expr 43:44    StringLitExpr  :: string
-  expr 43:5     IfExpr         :: void
-  expr 43:8     IdentExpr      :: bool
+  expr 17:17    StringLitExpr  :: string
+  expr 17:9     CallExpr       :: void
+  expr 17:9     IdentExpr      :: fn(T) -> void
+  expr 20:11    CallExpr       :: IOError | null
+  expr 20:11    FallbackExpr   :: null
+  expr 20:11    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
+  expr 20:22    IdentExpr      :: string
+  expr 20:28    IdentExpr      :: u8[]
+  expr 20:41    IdentExpr      :: Error
+  expr 21:17    StringLitExpr  :: string
+  expr 21:34    CallExpr       :: string
+  expr 21:34    FieldExpr      :: fn() -> string
+  expr 21:34    IdentExpr      :: Error
+  expr 21:56    IdentExpr      :: string
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void
+  expr 24:12    CallExpr       :: IOError | u8[]
+  expr 24:12    FallbackExpr   :: u8[]
+  expr 24:12    IdentExpr      :: fn(string, i64) -> IOError | u8[]
+  expr 24:28    IdentExpr      :: string
+  expr 24:34    IdentExpr      :: i64
+  expr 25:17    StringLitExpr  :: string
+  expr 25:33    CallExpr       :: string
+  expr 25:33    FieldExpr      :: fn() -> string
+  expr 25:33    IdentExpr      :: IOError
+  expr 25:9     CallExpr       :: void
+  expr 25:9     IdentExpr      :: fn(T) -> void
+  expr 28:12    CallExpr       :: Ppm | PpmError
+  expr 28:12    FallbackExpr   :: Ppm
+  expr 28:12    IdentExpr      :: fn(u8[]) -> Ppm | PpmError
+  expr 28:19    IdentExpr      :: u8[]
+  expr 29:17    StringLitExpr  :: string
+  expr 29:9     CallExpr       :: void
+  expr 29:9     IdentExpr      :: fn(T) -> void
+  expr 33:11    BinaryExpr     :: bool
+  expr 33:11    BinaryExpr     :: bool
+  expr 33:11    BinaryExpr     :: bool
+  expr 33:11    BinaryExpr     :: bool
+  expr 33:11    FieldExpr      :: u32
+  expr 33:11    IdentExpr      :: Ppm
+  expr 33:24    CallExpr       :: u32
+  expr 33:24    IdentExpr      :: type
+  expr 33:34    BinaryExpr     :: bool
+  expr 33:34    FieldExpr      :: u32
+  expr 33:34    IdentExpr      :: Ppm
+  expr 33:48    CallExpr       :: u32
+  expr 33:48    IdentExpr      :: type
+  expr 34:12    BinaryExpr     :: bool
+  expr 34:12    FieldExpr      :: u32
+  expr 34:12    IdentExpr      :: Ppm
+  expr 34:26    CallExpr       :: u32
+  expr 34:26    IdentExpr      :: type
+  expr 34:38    BinaryExpr     :: bool
+  expr 34:38    CallExpr       :: i64
+  expr 34:38    FieldExpr      :: fn() -> i64
+  expr 34:38    FieldExpr      :: u8[]
+  expr 34:38    IdentExpr      :: Ppm
+  expr 35:14    RangeExpr      :: Range<i64>
+  expr 35:18    CallExpr       :: i64
+  expr 35:18    FieldExpr      :: fn() -> i64
+  expr 35:18    FieldExpr      :: u8[]
+  expr 35:18    IdentExpr      :: Ppm
+  expr 36:12    BinaryExpr     :: bool
+  expr 36:12    FieldExpr      :: u8[]
+  expr 36:12    IdentExpr      :: Ppm
+  expr 36:12    IndexExpr      :: u8
+  expr 36:23    IdentExpr      :: i64
+  expr 36:29    IdentExpr      :: u8[]
+  expr 36:29    IndexExpr      :: u8
+  expr 36:32    IdentExpr      :: i64
+  expr 36:37    IdentExpr      :: bool
+  expr 36:9     IfExpr         :: void
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    IdentExpr      :: Ppm
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    CallExpr       :: void
+  expr 39:13    IdentExpr      :: fn(T) -> void
+  expr 39:21    StringLitExpr  :: string
+  expr 39:36    CallExpr       :: void
+  expr 39:36    IdentExpr      :: fn(T) -> void
+  expr 39:44    StringLitExpr  :: string
+  expr 39:5     IfExpr         :: void
+  expr 39:8     IdentExpr      :: bool

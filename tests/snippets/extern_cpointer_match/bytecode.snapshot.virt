@@ -115,9 +115,10 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local path string
+  local __fallback_0 any
   local wrote any
-  local $field_10 string
-  local $struct_41 ref
+  local $field_12 string
+  local $struct_44 ref
   call 8   ; std_env$temp_dir
   string.const 0   ; "/vader_cpointer_probe"
   call 1   ; concat_2
@@ -125,16 +126,18 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "x"
   retag 2   ; string
   call 11   ; std_fs$write_file
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
+  local.set 2   ; wrote
+  local.get 1   ; __fallback_0
   type_check 15   ; std_io$IOError
   if $L0 void
-    local.get 1   ; wrote
+    local.get 2   ; wrote
     ref.cast 15   ; std_io$IOError
     struct.get 15 0   ; std_io$IOError.msg
     ref.cast 2   ; string
-    local.set 2   ; $field_10
+    local.set 3   ; $field_12
     string.const 2   ; "setup failed: "
-    local.get 2   ; $field_10
+    local.get 3   ; $field_12
     call 1   ; concat_2
     call 7   ; std_console$println__string
     return.lit i32.const 1
@@ -142,17 +145,17 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   string.const 3   ; "rb"
   call.import 0   ; snippet$c_fopen
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
   type_check 4   ; pointer
   if $L1 void
     string.const 4   ; "matched CPointer"
     call 7   ; std_console$println__string
-    local.get 1   ; wrote
+    local.get 1   ; __fallback_0
     ref.cast 4   ; pointer
     call.import 1   ; snippet$c_fclose
     drop
   else
-    local.get 1   ; wrote
+    local.get 1   ; __fallback_0
     type_check 0   ; null
     if $L2 void
     else
@@ -168,17 +171,17 @@ fn 0 snippet$main () -> i32
   call 1   ; concat_2
   string.const 3   ; "rb"
   call.import 0   ; snippet$c_fopen
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
   type_check 4   ; pointer
   if $L3 void
     string.const 8   ; "unexpectedly opened"
     call 7   ; std_console$println__string
-    local.get 1   ; wrote
+    local.get 1   ; __fallback_0
     ref.cast 4   ; pointer
     call.import 1   ; snippet$c_fclose
     drop
   else
-    local.get 1   ; wrote
+    local.get 1   ; __fallback_0
     type_check 0   ; null
     if $L4 void
     else
@@ -190,9 +193,9 @@ fn 0 snippet$main () -> i32
   bool.const false
   bool.const false
   struct.new 16   ; std_fs$RemoveOptions
-  local.set 3   ; $struct_41
+  local.set 4   ; $struct_44
   local.get 0   ; path
-  local.get 3   ; $struct_41
+  local.get 4   ; $struct_44
   call 12   ; std_fs$remove
   drop
   return.lit i32.const 0

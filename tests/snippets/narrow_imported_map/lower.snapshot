@@ -82,3 +82,7 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
+
+# Diagnostics
+[15:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `v :: ... else ...`
+[20:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `r :: ... else ...`

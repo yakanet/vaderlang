@@ -121,11 +121,12 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local path string
+  local __fallback_0 any
   local wrote any
-  local $field_10 string
-  local __buf_1 ref
-  local __off_2 i64
-  local $call_27 i64
+  local $field_12 string
+  local __buf_2 ref
+  local __off_3 i64
+  local $call_30 i64
   call 16   ; std_env$temp_dir
   string.const 0   ; "/vader_default_naming_a_std_constant"
   call 2   ; concat_2
@@ -133,16 +134,18 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "0123456789"
   retag 4   ; string
   call 19   ; std_fs$write_file
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
+  local.set 2   ; wrote
+  local.get 1   ; __fallback_0
   type_check 15   ; std_io$IOError
   if $L0 void
-    local.get 1   ; wrote
+    local.get 2   ; wrote
     ref.cast 15   ; std_io$IOError
     struct.get 15 0   ; std_io$IOError.msg
     ref.cast 4   ; string
-    local.set 2   ; $field_10
+    local.set 3   ; $field_12
     string.const 2   ; "setup failed: "
-    local.get 2   ; $field_10
+    local.get 3   ; $field_12
     call 2   ; concat_2
     call 15   ; std_console$println__string
     return.lit i32.const 1
@@ -154,70 +157,70 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   i64.const 16777216
   call 21   ; std_fs$read_file_string
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
   type_check 4   ; string
   if $L1 void
     i64.const 26
     buffer.new
-    local.set 3   ; __buf_1
+    local.set 4   ; __buf_2
     i64.const 0
-    local.set 4   ; __off_2
-    local.get 3   ; __buf_1
-    local.get 4   ; __off_2
+    local.set 5   ; __off_3
+    local.get 4   ; __buf_2
+    local.get 5   ; __off_3
     string.const 3   ; "bare: "
     call 6   ; std_core$write_string_at
-    local.set 4   ; __off_2
-    local.get 1   ; wrote
+    local.set 5   ; __off_3
+    local.get 1   ; __fallback_0
     ref.cast 4   ; string
     call 4   ; std_core$len
-    local.set 5   ; $call_27
-    local.get 3   ; __buf_1
-    local.get 4   ; __off_2
-    local.get 5   ; $call_27
+    local.set 6   ; $call_30
+    local.get 4   ; __buf_2
+    local.get 5   ; __off_3
+    local.get 6   ; $call_30
     call 7   ; std_core$write_int
-    local.set 4   ; __off_2
-    local.get 3   ; __buf_1
-    local.get 4   ; __off_2
+    local.set 5   ; __off_3
+    local.get 4   ; __buf_2
+    local.get 5   ; __off_3
     call 5   ; std_core$finish_buffer
     call 15   ; std_console$println__string
   end $L1
   local.get 0   ; path
   i64.const 16777216
   call 21   ; std_fs$read_file_string
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
   type_check 4   ; string
   if $L2 void
     i64.const 26
     buffer.new
-    local.set 3   ; __buf_1
+    local.set 4   ; __buf_2
     i64.const 0
-    local.set 4   ; __off_2
-    local.get 3   ; __buf_1
-    local.get 4   ; __off_2
+    local.set 5   ; __off_3
+    local.get 4   ; __buf_2
+    local.get 5   ; __off_3
     string.const 4   ; "ufcs: "
     call 6   ; std_core$write_string_at
-    local.set 4   ; __off_2
-    local.get 1   ; wrote
+    local.set 5   ; __off_3
+    local.get 1   ; __fallback_0
     ref.cast 4   ; string
     call 4   ; std_core$len
-    local.set 5   ; $call_27
-    local.get 3   ; __buf_1
-    local.get 4   ; __off_2
-    local.get 5   ; $call_27
+    local.set 6   ; $call_30
+    local.get 4   ; __buf_2
+    local.get 5   ; __off_3
+    local.get 6   ; $call_30
     call 7   ; std_core$write_int
-    local.set 4   ; __off_2
-    local.get 3   ; __buf_1
-    local.get 4   ; __off_2
+    local.set 5   ; __off_3
+    local.get 4   ; __buf_2
+    local.get 5   ; __off_3
     call 5   ; std_core$finish_buffer
     call 15   ; std_console$println__string
   end $L2
   local.get 0   ; path
   i64.const 4
   call 21   ; std_fs$read_file_string
-  local.tee 1   ; wrote
+  local.tee 1   ; __fallback_0
   type_check 15   ; std_io$IOError
   if $L3 void
-    local.get 1   ; wrote
+    local.get 1   ; __fallback_0
     ref.cast 15   ; std_io$IOError
     struct.get 15 0   ; std_io$IOError.msg
     ref.cast 4   ; string

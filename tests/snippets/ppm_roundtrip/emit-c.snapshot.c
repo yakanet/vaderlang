@@ -473,23 +473,23 @@ static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 
 static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
-    vader_string_t l4 = 0;
+    vader_string_t l5 = 0;
     void* l1 = NULL;
-    void* l3 = NULL;
-    vader_box_t l2 = vader_box_null();
-    bool l5, l6;
-    int64_t l7, l8;
-    uint8_t l9, l10;
+    void* l2 = NULL;
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
+    bool l6, l7;
+    int64_t l8, l9;
+    uint8_t l10, l11;
     vader_string_t t0 = 0;
     void* t1 = NULL;
     uint32_t t2;
     int64_t t3;
     vader_box_t t4 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l2, &t4 };
-    void** gc_raw_roots[3] = { &l1, &l3, &t1 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l4, &t0 };
+    vader_box_t* gc_roots[3] = { &l3, &l4, &t4 };
+    void** gc_raw_roots[3] = { &l1, &l2, &t1 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l5, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     t0 = std_env$temp_dir();
@@ -515,79 +515,76 @@ static int32_t snippet$main(void) {
     _a1_obj->f_maxval = (uint32_t) 255;
     _a1_obj->f_pixels = l1;
     t1 = (void*) _a1_obj;
-    l2 = images_ppm$encode(t1);
-    if (l2.tag == 26u) {
+    l3 = images_ppm$encode(t1);
+    if (l3.tag == 26u) {
         std_console$println__string(2u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    l3 = l2.payload.obj;
-    l2 = std_fs$write_file(l0, vader_ref_box(l3));
-    if ((l2.tag == 30u) || (l2.tag == 26u) || (l2.tag == 14u)) {
-        l4 = std_core$Error$message$$dispatch(l2);
-        t0 = concat_5(3u, l4, 4u, l0, 5u);
+    l2 = l3.payload.obj;
+    l3 = std_fs$write_file(l0, vader_ref_box(l2));
+    l4 = l3;
+    if ((l3.tag == 30u) || (l3.tag == 26u) || (l3.tag == 14u)) {
+        l5 = std_core$Error$message$$dispatch(l4);
+        t0 = concat_5(3u, l5, 4u, l0, 5u);
         std_console$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    l2 = std_fs$read_file_bytes(l0, INT64_C(16777216));
-    if ((l2.tag == 30u) || (l2.tag == 26u) || (l2.tag == 14u)) {
-        l0 = std_core$Error$message$$dispatch(l2);
+    l3 = std_fs$read_file_bytes(l0, INT64_C(16777216));
+    l4 = l3;
+    if (l3.tag == 14u) {
+        t1 = l4.payload.obj;
+        l0 = std_io$IOError$std_core$Error$message(t1);
         t0 = concat_2(6u, l0);
         std_console$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    t1 = l2.payload.obj;
-    l2 = images_ppm$decode(t1);
-    if (l2.tag == 26u) {
+    t1 = l3.payload.obj;
+    l3 = images_ppm$decode(t1);
+    if (l3.tag == 26u) {
         std_console$println__string(7u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    t1 = l2.payload.obj;
-    t2 = ((vader_struct_images_ppm$Ppm_t*) t1)->f_width;
+    l2 = l3.payload.obj;
+    t2 = ((vader_struct_images_ppm$Ppm_t*) l2)->f_width;
     if (t2 == INT32_C(2)) {
-        t1 = l2.payload.obj;
-        t2 = ((vader_struct_images_ppm$Ppm_t*) t1)->f_height;
-        l5 = t2 == INT32_C(2);
-    } else {
-        l5 = false;
-    }
-    if (l5) {
-        t1 = l2.payload.obj;
-        t2 = ((vader_struct_images_ppm$Ppm_t*) t1)->f_maxval;
-        l6 = t2 == INT32_C(255);
+        t2 = ((vader_struct_images_ppm$Ppm_t*) l2)->f_height;
+        l6 = t2 == INT32_C(2);
     } else {
         l6 = false;
     }
     if (l6) {
-        t1 = l2.payload.obj;
-        t3 = vader_array_length(((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) t1)->f_pixels));
-        l5 = t3 == INT64_C(12);
+        t2 = ((vader_struct_images_ppm$Ppm_t*) l2)->f_maxval;
+        l7 = t2 == INT32_C(255);
     } else {
-        l5 = false;
+        l7 = false;
     }
-    l7 = INT64_C(0);
-    t1 = l2.payload.obj;
-    l8 = vader_array_length(((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) t1)->f_pixels));
-    while ((l7 < l8)) {
-        t1 = l2.payload.obj;
-        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) t1)->f_pixels);
+    if (l7) {
+        t3 = vader_array_length(((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) l2)->f_pixels));
+        l6 = t3 == INT64_C(12);
+    } else {
+        l6 = false;
+    }
+    l8 = INT64_C(0);
+    l9 = vader_array_length(((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) l2)->f_pixels));
+    while ((l8 < l9)) {
+        vader_array_t* _a2_slotarr = ((vader_array_t*) ((vader_struct_images_ppm$Ppm_t*) l2)->f_pixels);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l7)
-        t4 = vader_array_read_u8(_a2_slotarr, vader_array_offset(_a2_slotarr) + (size_t) l7, 7u);
-        l9 = ((uint8_t) t4.payload.i);
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
+        t4 = vader_array_read_u8(_a2_slotarr, vader_array_offset(_a2_slotarr) + (size_t) l8, 7u);
+        l10 = ((uint8_t) t4.payload.i);
         vader_array_t* _a3_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l7)
-        t4 = vader_array_read_u8(_a3_slotarr, vader_array_offset(_a3_slotarr) + (size_t) l7, 7u);
-        l10 = ((uint8_t) t4.payload.i);
-        if (l9 != l10) {
-            l5 = false;
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l8)
+        t4 = vader_array_read_u8(_a3_slotarr, vader_array_offset(_a3_slotarr) + (size_t) l8, 7u);
+        l11 = ((uint8_t) t4.payload.i);
+        if (l10 != l11) {
+            l6 = false;
         }
-        l7 = (l7 + INT64_C(1));
+        l8 = (l8 + INT64_C(1));
     }
-    t1 = l2.payload.obj;
-    t0 = images_ppm$Ppm$std_core$Display$to_string(t1);
+    t0 = images_ppm$Ppm$std_core$Display$to_string(l2);
     std_console$println__string(t0);
-    if (l5) {
+    if (l6) {
         std_console$println__string(8u);
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     }

@@ -394,3 +394,6 @@ fn 9 std_console$println__string (string) -> void
   call 6   ; std_console$write
   return
 end
+
+# Diagnostics
+[25:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `pair :: ... else ...`

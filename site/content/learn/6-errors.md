@@ -41,21 +41,15 @@ The rules: §10 *Error unions* and §10 *`Error` trait*.
 
 ## Passing an error on
 
-A test with `is` and a `return` hand the error to the caller. Past the test, the value has its success type.
+`else return x` hands the error to the caller: inside the `else`, `x` is the error, and past it, `x` has its success type.
 
 ```vader
 # module "main"
 # import "std/console"
 # import "std/string"
 total :: fn(a: string, b: string) -> i32 | ParseError {
-    x :: parse_int(a)
-    if x is ParseError {
-        return x
-    }
-    y :: parse_int(b)
-    if y is ParseError {
-        return y
-    }
+    x :: parse_int(a) else return x
+    y :: parse_int(b) else return y
     return x + y
 }
 # main :: fn() -> i32 {

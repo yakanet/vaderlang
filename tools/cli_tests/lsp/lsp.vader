@@ -384,8 +384,7 @@ awaited :: fn(
     what: string,
     from: i64 = 0,
 ) -> JsonValue {
-    found :: client.session.wait_for(wanted, from)
-    if found == null {
+    found :: client.session.wait_for(wanted, from) else {
         received :: client.session.messages.map((m) -> stringify(m)).collect().join("\n")
         panic("no ${what}; received:\n${received}")
     }

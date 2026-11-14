@@ -343,10 +343,7 @@ literal_field_type :: fn(ctx: FnLowerCtx, st: StructType, field: StructField) ->
 // neither a value nor a default: both are compiler invariants for a
 // synthesised build (fail loud, never a silent wrong-slot write).
 build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLitField[], span: Span) -> LoweredExpr {
-    st :: struct_backing(type)
-    if st == null {
-        panic("build_core_struct_lit: not a struct type")
-    }
+    st :: struct_backing(type) else panic("build_core_struct_lit: not a struct type")
     declared :: ctx.typed.struct_fields[st.symbol.id]
         else panic("build_core_struct_lit: struct fields not indexed for ${st.symbol.name}")
     ordered: LoweredStructLitField[]: []
@@ -359,9 +356,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
             continue
         }
         default :: field_decl.default
-        if default == null {
-            panic("build_core_struct_lit: missing field `${field_decl.name}` for ${st.symbol.name}")
-        }
+            else panic("build_core_struct_lit: missing field `${field_decl.name}` for ${st.symbol.name}")
         current :: default_site(ctx, st, field, site)
         site = current
         field_type :: literal_field_type(ctx, st, field_decl)

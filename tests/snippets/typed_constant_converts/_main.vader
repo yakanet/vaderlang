@@ -29,10 +29,7 @@ string implements Into<Label> {
 ROOM: Label: Celsius { .degrees = 21 }
 
 NOTE_TEXT :: @comptime {
-    read :: read_file_string("note.txt")
-    if read is IOError {
-        panic("cannot read `note.txt`: ${read.message()}")
-    }
+    read :: read_file_string("note.txt") else panic("cannot read `note.txt`: ${read.message()}")
     return read
 }
 

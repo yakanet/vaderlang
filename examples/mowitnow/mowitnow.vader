@@ -23,9 +23,7 @@ import "std/string_builder"
 // Compile-time bake: the canonical test input is embedded next to the source.
 DEFAULT_INPUT :: @comptime {
     read :: read_file_string("mowitnow_input.txt")
-    if read is IOError {
-        panic("cannot read `mowitnow_input.txt`: ${read.message()}")
-    }
+        else panic("cannot read `mowitnow_input.txt`: ${read.message()}")
     return read
 }
 

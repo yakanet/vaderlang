@@ -15,13 +15,11 @@ import "std/io"
 main :: fn() -> i32 {
     name :: "vader_rd_café_日本.txt"
     path :: "${temp_dir()}/${name}"
-    written :: write_file(path, [104, 105])
-    if written is Error {
+    written :: write_file(path, [104, 105]) else is Error {
         println("write failed: ${written.message()}")
         return 1
     }
-    entries :: read_dir(temp_dir())
-    if entries is IOError {
+    entries :: read_dir(temp_dir()) else {
         println("read_dir failed: ${entries.msg}")
         return 1
     }

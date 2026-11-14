@@ -73,104 +73,90 @@
               },
               "type": null,
               "value": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "read_file_string"
-                },
-                "args": [
-                  {
-                    "name": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "interp",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "FILENAME"
+                "kind": "FallbackExpr",
+                "left": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "read_file_string"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "IdentExpr",
+                              "name": "FILENAME"
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "value": ".txt"
                           }
-                        },
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                },
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "panic"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": ".txt"
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "cannot read `"
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "IdentExpr",
+                                  "name": "FILENAME"
+                                }
+                              },
+                              {
+                                "kind": "text",
+                                "value": ".txt`: "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "FieldExpr",
+                                    "target": {
+                                      "kind": "IdentExpr",
+                                      "name": "read"
+                                    },
+                                    "field": "message"
+                                  },
+                                  "args": []
+                                }
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
-                    },
-                    "spread": false
+                    }
                   }
-                ]
-              }
-            },
-            {
-              "kind": "ExprStmt",
-              "expr": {
-                "kind": "IfExpr",
-                "cond": {
-                  "kind": "BinaryExpr",
-                  "op": "is",
-                  "left": {
-                    "kind": "IdentExpr",
-                    "name": "read"
-                  },
-                  "right": {
-                    "kind": "IdentExpr",
-                    "name": "IOError"
-                  }
-                },
-                "then": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "panic"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "text",
-                              "value": "cannot read `"
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "FILENAME"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ".txt`: "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "FieldExpr",
-                                  "target": {
-                                    "kind": "IdentExpr",
-                                    "name": "read"
-                                  },
-                                  "field": "message"
-                                },
-                                "args": []
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                },
-                "else": null
+                ],
+                "binding": "read"
               }
             }
           ],

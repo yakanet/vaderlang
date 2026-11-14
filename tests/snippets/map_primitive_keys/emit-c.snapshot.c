@@ -553,66 +553,66 @@ static int32_t snippet$get_or__char(void* l0, uint32_t l1, int32_t l2) {
     vader_box_t l3;
     int32_t t0;
     l3 = std_collections$Map$std_core$Index$at__char__i32(l0, l1);
-    if (!(l3.tag == 0u)) {
-        t0 = ((int32_t) l3.payload.i);
-        return t0;
+    if (l3.tag == 0u) {
+        return l2;
     }
-    return l2;
+    t0 = ((int32_t) l3.payload.i);
+    return t0;
 }
 
 static int32_t snippet$get_or__i16(void* l0, int16_t l1, int32_t l2) {
     vader_box_t l3;
     int32_t t0;
     l3 = std_collections$Map$std_core$Index$at__i16__i32(l0, l1);
-    if (!(l3.tag == 0u)) {
-        t0 = ((int32_t) l3.payload.i);
-        return t0;
+    if (l3.tag == 0u) {
+        return l2;
     }
-    return l2;
+    t0 = ((int32_t) l3.payload.i);
+    return t0;
 }
 
 static int32_t snippet$get_or__i64(void* l0, int64_t l1, int32_t l2) {
     vader_box_t l3;
     int32_t t0;
     l3 = std_collections$Map$std_core$Index$at__i64__i32(l0, l1);
-    if (!(l3.tag == 0u)) {
-        t0 = ((int32_t) l3.payload.i);
-        return t0;
+    if (l3.tag == 0u) {
+        return l2;
     }
-    return l2;
+    t0 = ((int32_t) l3.payload.i);
+    return t0;
 }
 
 static int32_t snippet$get_or__u16(void* l0, uint16_t l1, int32_t l2) {
     vader_box_t l3;
     int32_t t0;
     l3 = std_collections$Map$std_core$Index$at__u16__i32(l0, l1);
-    if (!(l3.tag == 0u)) {
-        t0 = ((int32_t) l3.payload.i);
-        return t0;
+    if (l3.tag == 0u) {
+        return l2;
     }
-    return l2;
+    t0 = ((int32_t) l3.payload.i);
+    return t0;
 }
 
 static int32_t snippet$get_or__u64(void* l0, uint64_t l1, int32_t l2) {
     vader_box_t l3;
     int32_t t0;
     l3 = std_collections$Map$std_core$Index$at__u64__i32(l0, l1);
-    if (!(l3.tag == 0u)) {
-        t0 = ((int32_t) l3.payload.i);
-        return t0;
+    if (l3.tag == 0u) {
+        return l2;
     }
-    return l2;
+    t0 = ((int32_t) l3.payload.i);
+    return t0;
 }
 
 static int32_t snippet$get_or__u8(void* l0, uint8_t l1, int32_t l2) {
     vader_box_t l3;
     int32_t t0;
     l3 = std_collections$Map$std_core$Index$at__u8__i32(l0, l1);
-    if (!(l3.tag == 0u)) {
-        t0 = ((int32_t) l3.payload.i);
-        return t0;
+    if (l3.tag == 0u) {
+        return l2;
     }
-    return l2;
+    t0 = ((int32_t) l3.payload.i);
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

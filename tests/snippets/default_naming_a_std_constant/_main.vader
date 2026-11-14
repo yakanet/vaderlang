@@ -17,8 +17,7 @@ import "std/io"
 
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_default_naming_a_std_constant"
-    wrote :: write_file(path, "0123456789")
-    if wrote is IOError {
+    wrote :: write_file(path, "0123456789") else is IOError {
         println("setup failed: ${wrote.msg}")
         return 1
     }

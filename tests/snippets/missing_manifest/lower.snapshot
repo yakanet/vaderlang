@@ -2,19 +2,32 @@
 
 ## snippet
   snippet.describe :: fn(path: string) -> string {  // snippet$describe
-      r: IOError | string = std.fs.read_file_string(path, i64(16777216))
-      if r is IOError {
-          return concat_5("unreadable (", std.io.IOError.message(IOError(r)), " / ", IOError(r).msg, ")")
+      r: string = {
+          __fallback_0: IOError | string = std.fs.read_file_string(path, i64(16777216))
+          r: IOError | string = __fallback_0
+          if __fallback_0 is IOError {
+              return concat_5("unreadable (", std.io.IOError.message(IOError(r)), " / ", IOError(r).msg, ")")
+              @unreachable("an `else` clause leaves")
+          } else {
+              string(__fallback_0)
+          } :string
       }
       return "ok"
   }
   snippet.catch_all :: fn(path: string) -> string {  // snippet$catch_all
-      r: IOError | string = std.fs.read_file_string(path, i64(16777216))
-      if r is IOError {
-          e: Error = IOError(r)
-          return concat_2("caught by trait: ", @vcall(std.core.Error.message, e))
+      r: string = {
+          __fallback_0: IOError | string = std.fs.read_file_string(path, i64(16777216))
+          r: IOError | string = __fallback_0
+          if __fallback_0 is IOError {
+              {
+                  e: Error = IOError(r)
+                  return concat_2("caught by trait: ", @vcall(std.core.Error.message, e))
+              }
+          } else {
+              string(__fallback_0)
+          } :string
       }
-      return string(r)
+      return r
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.console.println<string>(snippet.describe("/no/such/manifest.toml"))

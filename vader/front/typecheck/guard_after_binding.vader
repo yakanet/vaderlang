@@ -1,0 +1,123 @@
+// vader/front/typecheck/guard_after_binding: W0022, a guard on the failure of the
+// value just bound, which only leaves, where the binding's `else` says it in one.
+//
+// `x :: f()` followed by `if x == null { return }` or `if x is E { ... }` (E a
+// failure: `null`, an error type, `Error`) whose body ends by leaving reads as
+// `x :: f() else ...` / `else is E { ... }`, same meaning. Left alone: a guard
+// that does not follow its binding, a mutable or annotated binding, a left that
+// is an `if`, a `match`, a block or an `else` already (`x :: if c { a } else
+// { b } else return` would read as a branch of the `if`), and a body holding a
+// `yield`, which a clause cannot suspend in.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "vader/core/types"
+import "vader/support/diagnostics"
+
+/// Warn on each binding of `stmts` that the guard right after it should be the
+/// `else` of.
+///
+/// @param stmts  the statements of a block, already type-checked.
+/// @param typed  the typed program the statements were checked into.
+/// @param diags  where the warnings go.
+warn_guards_after_bindings :: fn(stmts: AST.Stmt[], typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for i in 1..<stmts.len() {
+        decl :: stmts[i - 1]
+        guard :: stmts[i]
+        if decl !is AST.LetStmt || guard !is AST.ExprStmt {
+            continue
+        }
+        test :: guard.expr
+        if test !is AST.IfExpr {
+            continue
+        }
+        name :: foldable_binding(decl) else continue
+        bound :: typed.expr_types[decl.value.id] else continue
+        fold :: guard_on_failure(test, name, bound, typed) else continue
+        diags.push(warning(.GuardAfterBinding, guard.span, folded_form(name, bound, fold, typed)))
+    }
+}
+
+// The name `decl` binds when a guard on it could be its `else`.
+foldable_binding :: fn(decl: AST.LetStmt) -> string | null {
+    binding :: decl.binding
+    if decl.mutable || decl.ty != null || binding !is AST.SimpleBinding {
+        return null
+    }
+    if decl.value is AST.IfExpr | AST.MatchExpr | AST.BlockExpr | AST.FallbackExpr {
+        return null
+    }
+    return binding.name
+}
+
+// What `guard` tests `name`, of type `bound`, for, and what that leaves of
+// `bound`, when `bound` holds both that failure and something else and the guard
+// leaves through a body a clause can hold ; null otherwise.
+guard_on_failure :: fn(
+    guard: AST.IfExpr,
+    name: string,
+    bound: Type,
+    typed: TypedProgram,
+) -> GuardFold | null {
+    tested :: tested_failure(guard.cond, name, typed) else return null
+    kept :: subtract_type_with_impls(bound, tested, typed)
+    if kept is NeverType || equals_type(kept, bound) {
+        return null
+    }
+    if guard.else_branch != null || !then_is_divergent(guard.then_block, typed) {
+        return null
+    }
+    if has_yield(guard.then_block) {
+        return null
+    }
+    return GuardFold { .tested = tested, .kept = kept }
+}
+
+// A guard that can be its binding's `else`: the failure it tests, and what is left.
+GuardFold :: struct {
+    tested: Type
+    kept: Type
+}
+
+// The fold to write: a bare `else` when it takes exactly what the guard tests,
+// `else is T` otherwise.
+folded_form :: fn(name: string, bound: Type, fold: GuardFold, typed: TypedProgram) -> string {
+    bare :: union_of(bare_else_failures(bound, typed))
+    if equals_type(subtract_type_with_impls(bound, bare, typed), fold.kept) {
+        return "write `${name} :: ... else ...`"
+    }
+    return "write `${name} :: ... else is ${display_type(fold.tested)} { ... }`"
+}
+
+// The type `cond` tests `name` for when it is `name == null` or `name is T`, T a
+// failure ; null for any other condition.
+tested_failure :: fn(cond: AST.Expr, name: string, typed: TypedProgram) -> Type | null {
+    if cond !is AST.BinaryExpr || !is_ident_named(cond.left, name) {
+        return null
+    }
+    if cond.op == .Eq && cond.right is AST.NullLitExpr {
+        return TY_NULL
+    }
+    if cond.op != .Is {
+        return null
+    }
+    // `infer_binary` resolved the operand when it checked the condition.
+    tested :: typed.expr_types[cond.right.id] else return null
+    for variant in union_variants(tested) else [tested] {
+        if !is_failure(variant, typed) {
+            return null
+        }
+    }
+    return tested
+}
+
+is_ident_named :: fn(e: AST.Expr, name: string) = e is AST.IdentExpr && e.name == name
+
+// Whether a value of `t` is a failure an `else` is written for.
+is_failure :: fn(t: Type, typed: TypedProgram) -> bool {
+    if t is TraitType {
+        return is_core_trait(t, TRAIT_ERROR)
+    }
+    return is_null_type(t) || is_known_error(t, typed)
+}

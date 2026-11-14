@@ -926,11 +926,10 @@ check_wildcard_ambiguity :: fn(self: ResolveState, name: string, span: Span, s: 
 // of a call: a name only functions of several wildcard imports provide is then
 // an overload, which the call's arguments resolve.
 walk_ident :: fn(self: ResolveState, e: AST.IdentExpr, called: bool) -> void {
-    v :: self.scope.lookup(e.name)
     // R2006: the root scope must carry the core prelude (`build_core_seed`,
     // folded in by `file_root_scope`) ; otherwise bare references to `Range`,
     // `Display`, `Iterator`, ... would over-fire here.
-    if v == null {
+    v :: self.scope.lookup(e.name) else {
         self.diags.push(resolver_error(.UnresolvedIdent, e.span, "`${e.name}`"))
         return
     }

@@ -523,9 +523,8 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
 build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
     target :: s.target
     if target is LoweredIdent {
-        slot_opt :: fn_ctx.local_by_sym_id[target.symbol.id]
         // Reported as a read of such a name is (`build_ident`), not dropped.
-        if slot_opt is null {
+        slot_opt :: fn_ctx.local_by_sym_id[target.symbol.id] else {
             fn_ctx.project.diags.push(lower_error(.UnresolvedIdent, target.span,
                 "`${target.symbol.name}` is assigned but has no local in this function: " +
                     "the typecheck should have refused it (T3041)"))

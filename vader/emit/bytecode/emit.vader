@@ -1130,14 +1130,12 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // it.
         skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
         emit_first_get(ctx, pos, ins.target, ins.span)
-        field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
         // No such struct field at emit time: an upstream pass produced a field
         // access that is not a real load. Fail loud, like the FnRef panic above
         // and the MakeClosure one below: emitting nothing here would truncate
         // the function in silence.
-        if field_slot == null {
-            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}'")
-        }
+        field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
+            else panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` (local ${ins.target} `${target_local.name}`) in '${ctx.fn_.mangled}'")
 
         field_index :: i32(field_slot)
         // Fuse `local.get N ; struct.get T F` -> `local.field N T F`
@@ -1164,9 +1162,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
-        if field_slot == null {
-            panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}'. The field-set target isn't a real struct member ; upstream lowering bug")
-        }
+            else panic("emit/bytecode/emit: no field `${ins.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}'. The field-set target isn't a real struct member ; upstream lowering bug")
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
         emit_retag_into(ctx, ins.value, boxed_field(ctx.project, type_index, field_slot), ins.span)
@@ -1415,9 +1411,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // order ; the per-name Op handles its own stack discipline.
         emit_operands_into(ctx, pos, ins.args, [], ins.span)
         op_opt :: intrinsic_op_for_name(ins.name)
-        if op_opt == null {
-            panic("emit/bytecode/emit: unhandled intrinsic `${ins.name}` in '${ctx.fn_.mangled}'. No dedicated Op ; add a case to intrinsic_op_for_name")
-        }
+            else panic("emit/bytecode/emit: unhandled intrinsic `${ins.name}` in '${ctx.fn_.mangled}'. No dedicated Op ; add a case to intrinsic_op_for_name")
         // Unknown intrinsic at emit time: the args were already pushed and
         // a bare `Return` would truncate the function in silence. Fail loud,
         // like the field-get / FnRef / MakeClosure gaps above.

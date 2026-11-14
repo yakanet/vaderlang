@@ -235,13 +235,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl {
-                sel :: target_selectors(d.decorators)
-                // Two statements, not `sel == null || sel.is_bare`: narrowing
-                // crosses `&&` but NOT `||` (TODO), so the second operand would
-                // still see `Os[] | null` and fail with T3009.
-                if sel == null {
-                    continue
-                }
+                sel :: target_selectors(d.decorators) else continue
                 if sel.is_bare {
                     continue
                 }

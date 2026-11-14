@@ -11,9 +11,7 @@ import "std/io"
 FILENAME :: "data"
 GREETING :: @comptime {
     read :: read_file_string("${FILENAME}.txt")
-    if read is IOError {
-        panic("cannot read `${FILENAME}.txt`: ${read.message()}")
-    }
+        else panic("cannot read `${FILENAME}.txt`: ${read.message()}")
     return read
 }
 

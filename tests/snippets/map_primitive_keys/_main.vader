@@ -12,8 +12,7 @@ import "std/console"
 import "std/collections"
 
 get_or :: fn<K: Hash & Equals>(m: Map<K, i32>, k: K, dflt: i32) -> i32 {
-    v :: m[k]
-    if v == null { return dflt }
+    v :: m[k] else return dflt
     return v
 }
 

@@ -5,10 +5,17 @@
   snippet.c_fclose :: fn(f: CPointer) -> i32  // snippet$c_fclose
   snippet.main :: fn() -> i32 {  // snippet$main
       path: string = concat_2(std.env.temp_dir(), "/vader_cpointer_probe")
-      wrote: IOError | null = std.fs.write_file(path, "x")
-      if wrote is IOError {
-          std.console.println<string>(concat_2("setup failed: ", IOError(wrote).msg))
-          return 1
+      wrote: null = {
+          __fallback_0: IOError | null = std.fs.write_file(path, "x")
+          wrote: IOError | null = __fallback_0
+          if __fallback_0 is IOError {
+              {
+                  std.console.println<string>(concat_2("setup failed: ", IOError(wrote).msg))
+                  return 1
+              }
+          } else {
+              null(__fallback_0)
+          } :null
       }
       r: CPointer | null = snippet.c_fopen(path, "rb")
       {

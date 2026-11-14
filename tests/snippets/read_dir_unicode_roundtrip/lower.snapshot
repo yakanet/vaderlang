@@ -4,46 +4,60 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       name: string = "vader_rd_café_日本.txt"
       path: string = concat_3(std.env.temp_dir(), "/", name)
-      written: IOError | null = std.fs.write_file(path, [u8(104), u8(105)] :u8[])
-      if written is Error {
-          std.console.println<string>(concat_2("write failed: ", @vcall(std.core.Error.message, Error(written))))
-          return 1
+      written: null = {
+          __fallback_0: IOError | null = std.fs.write_file(path, [u8(104), u8(105)] :u8[])
+          written: IOError | null = __fallback_0
+          if __fallback_0 is Error {
+              {
+                  std.console.println<string>(concat_2("write failed: ", @vcall(std.core.Error.message, Error(written))))
+                  return 1
+              }
+          } else {
+              null(__fallback_0)
+          } :null
       }
-      entries: IOError | string[] = std.fs.read_dir(std.env.temp_dir())
-      if entries is IOError {
-          std.console.println<string>(concat_2("read_dir failed: ", IOError(entries).msg))
-          return 1
+      entries: string[] = {
+          __fallback_1: IOError | string[] = std.fs.read_dir(std.env.temp_dir())
+          entries: IOError | string[] = __fallback_1
+          if __fallback_1 is IOError {
+              {
+                  std.console.println<string>(concat_2("read_dir failed: ", IOError(entries).msg))
+                  return 1
+              }
+          } else {
+              string[](__fallback_1)
+          } :string[]
       }
       listed: bool = false
       reopened: bool = false
       {
-          __for_arr_0: string[] = string[](entries)
-          __for_len_1: i64 = @array.len(__for_arr_0)
-          __for_i_2: i64 = 0
-          for __for_i_2 < __for_len_1 {
-              e: string = __for_arr_0[__for_i_2]
+          __for_arr_2: string[] = entries
+          __for_len_3: i64 = @array.len(__for_arr_2)
+          __for_i_4: i64 = 0
+          for __for_i_4 < __for_len_3 {
+              e: string = __for_arr_2[__for_i_4]
               if e != name {
                   continue
               }
               listed = true
               reopened = !(std.fs.read_file_bytes(concat_3(std.env.temp_dir(), "/", e), i64(16777216)) is IOError)
           } @step {
-              __for_i_2 = __for_i_2 +% i64(1)
+              __for_i_4 = __for_i_4 +% i64(1)
           }
       }
       std.console.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(i64(12))
-          __off_4: i64 = 0
-          __off_4 = std.core.write_string_at(__buf_3, __off_4, "listed=")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, listed)
-          std.core.finish_buffer(__buf_3, __off_4)
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(12))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "listed=")
+          __off_6 = std.core.write_bool(__buf_5, __off_6, listed)
+          std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.console.println<string>({
-          __buf_5: Buffer = std.core.new_byte_buffer(i64(14))
-          __off_6: i64 = 0
-          __off_6 = std.core.write_string_at(__buf_5, __off_6, "reopened=")
-          __off_6 = std.core.write_bool(__buf_5, __off_6, reopened)
-          std.core.finish_buffer(__buf_5, __off_6)
+          __buf_7: Buffer = std.core.new_byte_buffer(i64(14))
+          __off_8: i64 = 0
+          __off_8 = std.core.write_string_at(__buf_7, __off_8, "reopened=")
+          __off_8 = std.core.write_bool(__buf_7, __off_8, reopened)
+          std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       std.fs.remove(path, RemoveOptions { .recursive = false, .force = false })
       return 0

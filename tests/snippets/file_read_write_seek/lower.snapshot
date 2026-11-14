@@ -3,37 +3,51 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       path: string = concat_2(std.env.temp_dir(), "/vader_snippet_file_read_write_seek")
-      w: File | IOError = std.fs.create(path)
-      if w is IOError {
-          std.console.println<string>(concat_2("create failed: ", IOError(w).msg))
-          return 1
+      w: File = {
+          __fallback_0: File | IOError = std.fs.create(path)
+          w: File | IOError = __fallback_0
+          if __fallback_0 is IOError {
+              {
+                  std.console.println<string>(concat_2("create failed: ", IOError(w).msg))
+                  return 1
+              }
+          } else {
+              File(__fallback_0)
+          } :File
       }
-      std.fs.File.write(File(w), "one\r\ntwo\nthree")
-      std.fs.close(File(w))
-      f: File | IOError = std.fs.open(path, OpenOptions {
-          .read = true,
-          .write = true,
-          .append = false,
-          .create = false,
-          .truncate = false,
-          .create_new = false,
-      })
-      if f is IOError {
-          std.console.println<string>(concat_2("open failed: ", IOError(f).msg))
-          return 1
+      std.fs.File.write(w, "one\r\ntwo\nthree")
+      std.fs.close(w)
+      f: File = {
+          __fallback_1: File | IOError = std.fs.open(path, OpenOptions {
+              .read = true,
+              .write = true,
+              .append = false,
+              .create = false,
+              .truncate = false,
+              .create_new = false,
+          })
+          f: File | IOError = __fallback_1
+          if __fallback_1 is IOError {
+              {
+                  std.console.println<string>(concat_2("open failed: ", IOError(f).msg))
+                  return 1
+              }
+          } else {
+              File(__fallback_1)
+          } :File
       }
       first: u8[] = @array.repeat([u8(0)] :u8[], 2)
-      if std.fs.File.read(File(f), first) is i64 {
+      if std.fs.File.read(f, first) is i64 {
           std.console.println<string>(concat_2("read: ", std.core.bytes_to_string(first)))
       }
-      std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
-      std.fs.File.write(File(f), "E")
-      std.console.println<string>(concat_2("after the write: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(1)))))
-      std.console.println<string>(concat_2("end: ", snippet.position(std.fs.seek(File(f), i64(0), SeekFrom(2)))))
-      std.console.println<string>(concat_2("size: ", snippet.position(std.fs.size(File(f)))))
-      std.fs.seek(File(f), i64(0), SeekFrom(0))
+      std.console.println<string>(concat_2("position: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(1)))))
+      std.fs.File.write(f, "E")
+      std.console.println<string>(concat_2("after the write: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(1)))))
+      std.console.println<string>(concat_2("end: ", snippet.position(std.fs.seek(f, i64(0), SeekFrom(2)))))
+      std.console.println<string>(concat_2("size: ", snippet.position(std.fs.size(f))))
+      std.fs.seek(f, i64(0), SeekFrom(0))
       reader: BufferedReader = BufferedReader {
-          .source = File(f),
+          .source = f,
           .capacity = i64(4),
           .error = null,
           .buffer = [] :u8[],
@@ -43,7 +57,7 @@
       {
           r: BufferedReader = reader
           max: i64 = 1048576
-          $exit$i10: {
+          $exit$i12: {
               for {
                   line: IOError | string = {
                       __fallback_0: IOError | null | string = std.io.read_line(r, max)
@@ -57,7 +71,7 @@
                   }
                   if line is IOError {
                       r.error = IOError(line)
-                      break $exit$i10
+                      break $exit$i12
                   }
                   line: string = string(line)
                   std.console.println<string>(concat_2("line: ", line))
@@ -66,15 +80,15 @@
       }
       std.console.println<string>(concat_2("error: ", snippet.outcome(reader.error)))
       std.console.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(17))
-          __off_1: i64 = 0
-          __off_1 = std.core.write_string_at(__buf_0, __off_1, "at the end: ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, std.io.read_line(reader, i64(1048576)) is null)
-          std.core.finish_buffer(__buf_0, __off_1)
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(17))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "at the end: ")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std.io.read_line(reader, i64(1048576)) is null)
+          std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      std.console.println<string>(concat_2("close: ", snippet.outcome(std.fs.close(File(f)))))
-      std.console.println<string>(concat_2("close again: ", snippet.outcome(std.fs.close(File(f)))))
-      after: i64 | IOError | null = std.fs.File.read(File(f), first)
+      std.console.println<string>(concat_2("close: ", snippet.outcome(std.fs.close(f))))
+      std.console.println<string>(concat_2("close again: ", snippet.outcome(std.fs.close(f))))
+      after: i64 | IOError | null = std.fs.File.read(f, first)
       if after is IOError {
           std.console.println<string>(concat_2("read after close: ", std.io.IOErrorKind.to_string(IOError(after).kind)))
       }

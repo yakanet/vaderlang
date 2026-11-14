@@ -101,46 +101,30 @@
               },
               "type": null,
               "value": {
-                "kind": "IndexExpr",
-                "target": {
-                  "kind": "IdentExpr",
-                  "name": "m"
-                },
-                "index": {
-                  "kind": "IdentExpr",
-                  "name": "k"
-                }
-              }
-            },
-            {
-              "kind": "ExprStmt",
-              "expr": {
-                "kind": "IfExpr",
-                "cond": {
-                  "kind": "BinaryExpr",
-                  "op": "eq",
-                  "left": {
+                "kind": "FallbackExpr",
+                "left": {
+                  "kind": "IndexExpr",
+                  "target": {
                     "kind": "IdentExpr",
-                    "name": "v"
+                    "name": "m"
                   },
-                  "right": {
-                    "kind": "NullLitExpr"
+                  "index": {
+                    "kind": "IdentExpr",
+                    "name": "k"
                   }
                 },
-                "then": {
-                  "kind": "BlockExpr",
-                  "stmts": [
-                    {
+                "clauses": [
+                  {
+                    "test": null,
+                    "body": {
                       "kind": "ReturnStmt",
                       "value": {
                         "kind": "IdentExpr",
                         "name": "dflt"
                       }
                     }
-                  ],
-                  "trailing": null
-                },
-                "else": null
+                  }
+                ]
               }
             },
             {

@@ -59,10 +59,7 @@ export frames_of :: fn(text: string) -> Frames {
     rest := text
     for {
         parts :: rest.split_first(HEADER_END) else break
-        length :: body_length(parts.0)
-        if length == null {
-            panic("no `Content-Length` in the header `${parts.0}`")
-        }
+        length :: body_length(parts.0) else panic("no `Content-Length` in the header `${parts.0}`")
         if parts.1.byte_len() < length {
             break
         }

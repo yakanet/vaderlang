@@ -25,13 +25,10 @@ READER :: r"""
     import "std/abort"
     import "std/console"
     import "std/fs"
-    import "std/io"
 
     DATA :: @comptime {
         read :: read_file_bytes("data.bin", 1024)
-        if read is IOError {
-            panic("cannot read `data.bin`: ${read.message()}")
-        }
+            else panic("cannot read `data.bin`: ${read.message()}")
         return read
     }
 
@@ -70,14 +67,10 @@ ASSETS :: r"""
     import "std/abort"
     import "std/console"
     import "std/fs"
-    import "std/io"
 
     export ICON :: @comptime {
         println("reading the icon")
-        read :: read_file_bytes("icon.bin")
-        if read is IOError {
-            panic("cannot read `icon.bin`: ${read.message()}")
-        }
+        read :: read_file_bytes("icon.bin") else panic("cannot read `icon.bin`: ${read.message()}")
         return read
     }
     """

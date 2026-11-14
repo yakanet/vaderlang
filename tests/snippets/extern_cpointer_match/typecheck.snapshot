@@ -9,53 +9,51 @@
   expr 37:16    CallExpr       :: string
   expr 37:16    IdentExpr      :: fn() -> string
   expr 38:14    CallExpr       :: IOError | null
+  expr 38:14    FallbackExpr   :: null
   expr 38:14    IdentExpr      :: fn(string, string | u8[]) -> IOError | null
   expr 38:25    IdentExpr      :: string
   expr 38:31    StringLitExpr  :: string
-  expr 39:17    IdentExpr      :: IOError
-  expr 39:5     IfExpr         :: void
-  expr 39:8     BinaryExpr     :: bool
-  expr 39:8     IdentExpr      :: IOError | null
-  expr 40:17    StringLitExpr  :: string
-  expr 40:34    FieldExpr      :: string
-  expr 40:34    IdentExpr      :: IOError
-  expr 40:9     CallExpr       :: void
-  expr 40:9     IdentExpr      :: fn(T) -> void
-  expr 43:10    CallExpr       :: CPointer | null
-  expr 43:10    IdentExpr      :: fn(string, string) -> CPointer | null
-  expr 43:18    IdentExpr      :: string
-  expr 43:24    StringLitExpr  :: string
-  expr 44:11    IdentExpr      :: CPointer | null
-  expr 44:5     MatchExpr      :: i32 | void
-  expr 46:13    CallExpr       :: void
-  expr 46:13    IdentExpr      :: fn(T) -> void
-  expr 46:21    StringLitExpr  :: string
-  expr 47:13    CallExpr       :: i32
-  expr 47:13    IdentExpr      :: fn(CPointer) -> i32
-  expr 47:22    IdentExpr      :: CPointer
-  expr 49:24    CallExpr       :: void
-  expr 49:24    IdentExpr      :: fn(T) -> void
-  expr 49:32    StringLitExpr  :: string
-  expr 51:13    StringLitExpr  :: string
-  expr 51:5     CallExpr       :: void
-  expr 51:5     IdentExpr      :: fn(T) -> void
-  expr 53:16    CallExpr       :: CPointer | null
-  expr 53:16    IdentExpr      :: fn(string, string) -> CPointer | null
-  expr 53:24    StringLitExpr  :: string
-  expr 53:27    CallExpr       :: string
-  expr 53:27    IdentExpr      :: fn() -> string
-  expr 53:68    StringLitExpr  :: string
-  expr 54:11    IdentExpr      :: CPointer | null
-  expr 54:5     MatchExpr      :: i32 | void
-  expr 56:13    CallExpr       :: void
-  expr 56:13    IdentExpr      :: fn(T) -> void
-  expr 56:21    StringLitExpr  :: string
-  expr 57:13    CallExpr       :: i32
-  expr 57:13    IdentExpr      :: fn(CPointer) -> i32
-  expr 57:22    IdentExpr      :: CPointer
-  expr 59:24    CallExpr       :: void
-  expr 59:24    IdentExpr      :: fn(T) -> void
-  expr 59:32    StringLitExpr  :: string
-  expr 61:12    IdentExpr      :: string
-  expr 61:5     CallExpr       :: IOError | null
-  expr 61:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null
+  expr 38:44    IdentExpr      :: IOError
+  expr 39:17    StringLitExpr  :: string
+  expr 39:34    FieldExpr      :: string
+  expr 39:34    IdentExpr      :: IOError
+  expr 39:9     CallExpr       :: void
+  expr 39:9     IdentExpr      :: fn(T) -> void
+  expr 42:10    CallExpr       :: CPointer | null
+  expr 42:10    IdentExpr      :: fn(string, string) -> CPointer | null
+  expr 42:18    IdentExpr      :: string
+  expr 42:24    StringLitExpr  :: string
+  expr 43:11    IdentExpr      :: CPointer | null
+  expr 43:5     MatchExpr      :: i32 | void
+  expr 45:13    CallExpr       :: void
+  expr 45:13    IdentExpr      :: fn(T) -> void
+  expr 45:21    StringLitExpr  :: string
+  expr 46:13    CallExpr       :: i32
+  expr 46:13    IdentExpr      :: fn(CPointer) -> i32
+  expr 46:22    IdentExpr      :: CPointer
+  expr 48:24    CallExpr       :: void
+  expr 48:24    IdentExpr      :: fn(T) -> void
+  expr 48:32    StringLitExpr  :: string
+  expr 50:13    StringLitExpr  :: string
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 52:16    CallExpr       :: CPointer | null
+  expr 52:16    IdentExpr      :: fn(string, string) -> CPointer | null
+  expr 52:24    StringLitExpr  :: string
+  expr 52:27    CallExpr       :: string
+  expr 52:27    IdentExpr      :: fn() -> string
+  expr 52:68    StringLitExpr  :: string
+  expr 53:11    IdentExpr      :: CPointer | null
+  expr 53:5     MatchExpr      :: i32 | void
+  expr 55:13    CallExpr       :: void
+  expr 55:13    IdentExpr      :: fn(T) -> void
+  expr 55:21    StringLitExpr  :: string
+  expr 56:13    CallExpr       :: i32
+  expr 56:13    IdentExpr      :: fn(CPointer) -> i32
+  expr 56:22    IdentExpr      :: CPointer
+  expr 58:24    CallExpr       :: void
+  expr 58:24    IdentExpr      :: fn(T) -> void
+  expr 58:32    StringLitExpr  :: string
+  expr 60:12    IdentExpr      :: string
+  expr 60:5     CallExpr       :: IOError | null
+  expr 60:5     IdentExpr      :: fn(string, RemoveOptions) -> IOError | null

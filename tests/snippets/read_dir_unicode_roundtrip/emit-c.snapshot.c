@@ -524,20 +524,20 @@ static vader_string_t std_core$Error$message$$dispatch(vader_box_t recv);
 static int32_t snippet$main(void) {
     vader_string_t l0 = 0;
     vader_string_t l1 = 0;
-    vader_string_t l4 = 0;
+    vader_string_t l5 = 0;
     void* l2 = NULL;
-    vader_box_t l3 = vader_box_null();
-    bool l5, l6;
-    int64_t l7, l8;
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
+    bool l6, l7;
+    int64_t l8, l9;
     vader_string_t t0 = 0;
     vader_string_t t3 = 0;
     void* t1 = NULL;
     vader_box_t t2 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l3, &t2 };
+    vader_box_t* gc_roots[3] = { &l3, &l4, &t2 };
     void** gc_raw_roots[2] = { &l2, &t1 };
-    vader_string_t* gc_atom_roots[5] = { &l0, &l1, &l4, &t0, &t3 };
+    vader_string_t* gc_atom_roots[5] = { &l0, &l1, &l5, &t0, &t3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
+        vader_gc_top, 3u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l0 = 1u;
@@ -548,54 +548,56 @@ static int32_t snippet$main(void) {
     ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(104);
     l2 = (void*) _a0_arr;
     l3 = std_fs$write_file(l1, vader_ref_box(l2));
+    l4 = l3;
     if ((l3.tag == 33u) || (l3.tag == 13u)) {
-        l4 = std_core$Error$message$$dispatch(l3);
-        t0 = concat_2(3u, l4);
+        l5 = std_core$Error$message$$dispatch(l4);
+        t0 = concat_2(3u, l5);
         std_console$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     t0 = std_env$temp_dir();
     l3 = std_fs$read_dir(t0);
+    l4 = l3;
     if (l3.tag == 13u) {
-        t1 = l3.payload.obj;
-        l4 = ((vader_struct_std_io$IOError_t*) t1)->f_msg;
-        t0 = concat_2(4u, l4);
+        t1 = l4.payload.obj;
+        l5 = ((vader_struct_std_io$IOError_t*) t1)->f_msg;
+        t0 = concat_2(4u, l5);
         std_console$println__string(t0);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-    l5 = false;
-    l6 = false;
     l2 = l3.payload.obj;
-    l7 = vader_array_length(((vader_array_t*) l2));
-    l8 = INT64_C(0);
-    while ((l8 < l7)) {
+    l6 = false;
+    l7 = false;
+    l8 = vader_array_length(((vader_array_t*) l2));
+    l9 = INT64_C(0);
+    while ((l9 < l8)) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
-        t2 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l8];
-        l4 = t2.payload.s;
-        if (l4 != l0) {
-            l8 = (l8 + INT64_C(1));
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l9)
+        t2 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l9];
+        l5 = t2.payload.s;
+        if (l5 != l0) {
+            l9 = (l9 + INT64_C(1));
             continue;
         }
-        l5 = true;
+        l6 = true;
         t0 = std_env$temp_dir();
-        t3 = concat_3(t0, 2u, l4);
+        t3 = concat_3(t0, 2u, l5);
         t2 = std_fs$read_file_bytes(t3, INT64_C(16777216));
-        l6 = !(t2.tag == 13u);
-        l8 = (l8 + INT64_C(1));
+        l7 = !(t2.tag == 13u);
+        l9 = (l9 + INT64_C(1));
     }
     l2 = (void*) vader_buffer_new((size_t) INT64_C(12));
-    l7 = INT64_C(0);
-    l7 = std_core$write_string_at(l2, l7, 5u);
-    l7 = std_core$write_bool(l2, l7, l5);
-    t0 = std_core$finish_buffer(l2, l7);
+    l8 = INT64_C(0);
+    l8 = std_core$write_string_at(l2, l8, 5u);
+    l8 = std_core$write_bool(l2, l8, l6);
+    t0 = std_core$finish_buffer(l2, l8);
     std_console$println__string(t0);
     l2 = (void*) vader_buffer_new((size_t) INT64_C(14));
-    l7 = INT64_C(0);
-    l7 = std_core$write_string_at(l2, l7, 6u);
-    l7 = std_core$write_bool(l2, l7, l6);
-    t0 = std_core$finish_buffer(l2, l7);
+    l8 = INT64_C(0);
+    l8 = std_core$write_string_at(l2, l8, 6u);
+    l8 = std_core$write_bool(l2, l8, l7);
+    t0 = std_core$finish_buffer(l2, l8);
     std_console$println__string(t0);
     vader_struct_std_fs$RemoveOptions_t* _a2_obj = (vader_struct_std_fs$RemoveOptions_t*) vader_gc_alloc(sizeof(vader_struct_std_fs$RemoveOptions_t));
     vader_obj_header_init(_a2_obj, 18u);

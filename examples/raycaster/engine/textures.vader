@@ -52,14 +52,8 @@ Picture :: struct {
 // The picture in the PPM file at `path`, relative to this source file. A file
 // that is missing, or not a P6 PPM with 8-bit samples, stops the build.
 load_picture :: fn(path: string) -> Picture {
-    data :: read_file_bytes(path)
-    if data is IOError {
-        panic("cannot read `${path}`: ${data.message()}")
-    }
-    image :: decode(data)
-    if image is PpmError {
-        panic("`${path}`: ${image.msg}")
-    }
+    data :: read_file_bytes(path) else panic("cannot read `${path}`: ${data.message()}")
+    image :: decode(data) else panic("`${path}`: ${image.msg}")
     if image.maxval != 255 {
         panic("`${path}` has maxval ${image.maxval}: expected 255")
     }

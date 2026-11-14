@@ -21,3 +21,6 @@
   expr 28:12    BinaryExpr     :: i32
   expr 28:12    IdentExpr      :: i32
   expr 28:16    IdentExpr      :: i32
+
+# Diagnostics
+[25:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `pair :: ... else ...`

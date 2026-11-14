@@ -127,15 +127,16 @@ export main 0
 fn 0 snippet$main () -> i32
   local path string
   local px ref
-  local enc any
-  local $cast_28 ref
-  local $vcall_34 string
+  local enc ref
+  local __fallback_0 any
+  local wr any
+  local $vcall_37 string
   local ok bool
   local and_res bool
   local i i64
-  local __for_hi_0 i64
-  local $idx_89 u8
-  local $idx_90 u8
+  local __for_hi_4 i64
+  local $idx_91 u8
+  local $idx_92 u8
   call 12   ; std_env$temp_dir
   string.const 0   ; "/vader_ppm_roundtrip.ppm"
   call 1   ; concat_2
@@ -160,27 +161,29 @@ fn 0 snippet$main () -> i32
   local.get 1   ; px
   struct.new 24   ; images_ppm$Ppm
   call 36   ; images_ppm$encode
-  local.tee 2   ; enc
+  local.tee 3   ; __fallback_0
   type_check 26   ; images_ppm$PpmError
   if $L0 void
     string.const 1   ; "encode failed"
     call 11   ; std_console$println__string
     return.lit i32.const 1
   end $L0
-  local.get 2   ; enc
+  local.get 3   ; __fallback_0
   ref.cast 6   ; u8[]
-  local.set 3   ; $cast_28
+  local.set 2   ; enc
   local.get 0   ; path
-  local.get 3   ; $cast_28
+  local.get 2   ; enc
   call 15   ; std_fs$write_file
-  local.tee 2   ; enc
+  local.tee 3   ; __fallback_0
+  local.set 4   ; wr
+  local.get 3   ; __fallback_0
   type_check 30   ; ref std_core$Error
   if $L1 void
-    local.get 2   ; enc
+    local.get 4   ; wr
     virtual.call 1 std_core$Error.message -> string
-    local.set 4   ; $vcall_34
+    local.set 5   ; $vcall_37
     string.const 2   ; "write failed: "
-    local.get 4   ; $vcall_34
+    local.get 5   ; $vcall_37
     string.const 3   ; " path=["
     local.get 0   ; path
     string.const 4   ; "]"
@@ -191,11 +194,14 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   i64.const 16777216
   call 16   ; std_fs$read_file_bytes
-  local.tee 2   ; enc
-  type_check 30   ; ref std_core$Error
+  local.tee 3   ; __fallback_0
+  local.set 4   ; wr
+  local.get 3   ; __fallback_0
+  type_check 14   ; std_io$IOError
   if $L2 void
-    local.get 2   ; enc
-    virtual.call 1 std_core$Error.message -> string
+    local.get 4   ; wr
+    ref.cast 14   ; std_io$IOError
+    call 50   ; std_io$IOError$std_core$Error$message
     local.set 0   ; path
     string.const 5   ; "read failed: "
     local.get 0   ; path
@@ -203,103 +209,93 @@ fn 0 snippet$main () -> i32
     call 11   ; std_console$println__string
     return.lit i32.const 1
   end $L2
-  local.get 2   ; enc
+  local.get 3   ; __fallback_0
   ref.cast 6   ; u8[]
   call 37   ; images_ppm$decode
-  local.tee 2   ; enc
+  local.tee 3   ; __fallback_0
   type_check 26   ; images_ppm$PpmError
   if $L3 void
     string.const 6   ; "decode failed"
     call 11   ; std_console$println__string
     return.lit i32.const 1
   end $L3
-  local.get 2   ; enc
+  local.get 3   ; __fallback_0
   ref.cast 24   ; images_ppm$Ppm
-  struct.get 24 0   ; images_ppm$Ppm.width
+  local.set 2   ; enc
+  local.field 2 24 0   ; enc images_ppm$Ppm.width
   ref.cast 28   ; u32
   i32.const 2
   i32.eq
   if $L4 void
-    local.get 2   ; enc
-    ref.cast 24   ; images_ppm$Ppm
-    struct.get 24 1   ; images_ppm$Ppm.height
+    local.field 2 24 1   ; enc images_ppm$Ppm.height
     ref.cast 28   ; u32
     i32.const 2
     i32.eq
-    local.set 5   ; ok
+    local.set 6   ; ok
   else
     bool.const false
-    local.set 5   ; ok
+    local.set 6   ; ok
   end $L4
-  local.get 5   ; ok
+  local.get 6   ; ok
   if $L5 void
-    local.get 2   ; enc
-    ref.cast 24   ; images_ppm$Ppm
-    struct.get 24 2   ; images_ppm$Ppm.maxval
+    local.field 2 24 2   ; enc images_ppm$Ppm.maxval
     ref.cast 28   ; u32
     i32.const 255
     i32.eq
-    local.set 6   ; and_res
+    local.set 7   ; and_res
   else
     bool.const false
-    local.set 6   ; and_res
+    local.set 7   ; and_res
   end $L5
-  local.get 6   ; and_res
+  local.get 7   ; and_res
   if $L6 void
-    local.get 2   ; enc
-    ref.cast 24   ; images_ppm$Ppm
-    struct.get 24 3   ; images_ppm$Ppm.pixels
+    local.field 2 24 3   ; enc images_ppm$Ppm.pixels
     array.len
     i64.const 12
     i64.eq
-    local.set 5   ; ok
+    local.set 6   ; ok
   else
     bool.const false
-    local.set 5   ; ok
+    local.set 6   ; ok
   end $L6
   i64.const 0
-  local.set 7   ; i
-  local.get 2   ; enc
-  ref.cast 24   ; images_ppm$Ppm
-  struct.get 24 3   ; images_ppm$Ppm.pixels
+  local.set 8   ; i
+  local.field 2 24 3   ; enc images_ppm$Ppm.pixels
   array.len
-  local.set 8   ; __for_hi_0
+  local.set 9   ; __for_hi_4
   loop $L7 void
-    local.get 7   ; i
-    local.get 8   ; __for_hi_0
+    local.get 8   ; i
+    local.get 9   ; __for_hi_4
     i64.lt
     if $L8 void
-      local.get 2   ; enc
-      ref.cast 24   ; images_ppm$Ppm
-      struct.get 24 3   ; images_ppm$Ppm.pixels
-      local.get 7   ; i
+      local.field 2 24 3   ; enc images_ppm$Ppm.pixels
+      local.get 8   ; i
       array.get 6   ; u8[]
       ref.cast 7   ; u8
-      local.set 9   ; $idx_89
+      local.set 10   ; $idx_91
       local.get 1   ; px
-      local.get 7   ; i
+      local.get 8   ; i
       array.get 6   ; u8[]
       ref.cast 7   ; u8
-      local.set 10   ; $idx_90
-      local.get 9   ; $idx_89
-      local.get 10   ; $idx_90
+      local.set 11   ; $idx_92
+      local.get 10   ; $idx_91
+      local.get 11   ; $idx_92
       i32.ne
       if $L9 void
         bool.const false
-        local.set 5   ; ok
+        local.set 6   ; ok
       end $L9
-      local.get 7   ; i
+      local.get 8   ; i
       i64.const 1
       i64.add
-      local.set 7   ; i
+      local.set 8   ; i
       br $L7
     end $L8
   end $L7
   local.get 2   ; enc
-  ref.cast 24   ; images_ppm$Ppm
   call 44   ; images_ppm$Ppm$std_core$Display$to_string
   call 11   ; std_console$println__string
-  local.get 5   ; ok
+  local.get 6   ; ok
   if $L10 void
     string.const 7   ; "OK"
     call 11   ; std_console$println__string

@@ -80,57 +80,62 @@ vtable std_core$Error.message 11 33
 export main 2
 
 fn 0 snippet$describe (string) -> string
+  local __fallback_0 any
   local r any
-  local $call_7 string
-  local $field_10 string
+  local $call_9 string
+  local $field_12 string
   local.get 0   ; arg 0
   i64.const 16777216
   call 10   ; std_fs$read_file_string
-  local.tee 1   ; r
+  local.tee 1   ; __fallback_0
+  local.set 2   ; r
+  local.get 1   ; __fallback_0
   type_check 11   ; std_io$IOError
   if $L0 void
   else
     return.lit string.const 3   ; "ok"
   end $L0
-  local.get 1   ; r
+  local.get 2   ; r
   ref.cast 11   ; std_io$IOError
   call 33   ; std_io$IOError$std_core$Error$message
-  local.set 2   ; $call_7
-  local.get 1   ; r
+  local.set 3   ; $call_9
+  local.get 2   ; r
   ref.cast 11   ; std_io$IOError
   struct.get 11 0   ; std_io$IOError.msg
   ref.cast 1   ; string
-  local.set 3   ; $field_10
+  local.set 4   ; $field_12
   string.const 0   ; "unreadable ("
-  local.get 2   ; $call_7
+  local.get 3   ; $call_9
   string.const 1   ; " / "
-  local.get 3   ; $field_10
+  local.get 4   ; $field_12
   string.const 2   ; ")"
   call 3   ; concat_5
   return
 end
 
 fn 1 snippet$catch_all (string) -> string
+  local __fallback_0 any
   local r any
-  local $vcall_8 string
+  local $vcall_10 string
   local.get 0   ; arg 0
   i64.const 16777216
   call 10   ; std_fs$read_file_string
-  local.tee 1   ; r
+  local.tee 1   ; __fallback_0
+  local.set 2   ; r
+  local.get 1   ; __fallback_0
   type_check 11   ; std_io$IOError
   if $L0 void
-  else
-    local.get 1   ; r
-    ref.cast 1   ; string
+    local.get 2   ; r
+    ref.cast 11   ; std_io$IOError
+    virtual.call 1 std_core$Error.message -> string
+    local.set 3   ; $vcall_10
+    string.const 4   ; "caught by trait: "
+    local.get 3   ; $vcall_10
+    call 4   ; concat_2
     return
   end $L0
-  local.get 1   ; r
-  ref.cast 11   ; std_io$IOError
-  virtual.call 1 std_core$Error.message -> string
-  local.set 2   ; $vcall_8
-  string.const 4   ; "caught by trait: "
-  local.get 2   ; $vcall_8
-  call 4   ; concat_2
+  local.get 1   ; __fallback_0
+  ref.cast 1   ; string
   return
 end
 

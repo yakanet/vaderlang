@@ -138,9 +138,7 @@ lower_generator_fn :: fn(
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
     shape :: resolve_step_shape(fn_ctx, element_ty)
-    if shape == null {
-        panic("generator lowering: no `Iterator` step type in std/core")
-    }
+        else panic("generator lowering: no `Iterator` step type in std/core")
 
     gb :: GenBuild {
         .self_sym = self_sym, .state_ty = state_ty,

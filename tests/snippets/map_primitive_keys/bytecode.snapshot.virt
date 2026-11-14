@@ -645,104 +645,98 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 snippet$get_or__char (ref,char,i32) -> i32
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 27   ; std_collections$Map$std_core$Index$at__char__i32
-  local.tee 3   ; v
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
-  else
-    local.get 3   ; v
-    ref.cast 1   ; i32
+    local.get 2   ; arg 2
     return
   end $L0
-  local.get 2   ; arg 2
+  local.get 3   ; __fallback_0
+  ref.cast 1   ; i32
   return
 end
 
 fn 2 snippet$get_or__i16 (ref,i16,i32) -> i32
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 25   ; std_collections$Map$std_core$Index$at__i16__i32
-  local.tee 3   ; v
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
-  else
-    local.get 3   ; v
-    ref.cast 1   ; i32
+    local.get 2   ; arg 2
     return
   end $L0
-  local.get 2   ; arg 2
+  local.get 3   ; __fallback_0
+  ref.cast 1   ; i32
   return
 end
 
 fn 3 snippet$get_or__i64 (ref,i64,i32) -> i32
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 29   ; std_collections$Map$std_core$Index$at__i64__i32
-  local.tee 3   ; v
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
-  else
-    local.get 3   ; v
-    ref.cast 1   ; i32
+    local.get 2   ; arg 2
     return
   end $L0
-  local.get 2   ; arg 2
+  local.get 3   ; __fallback_0
+  ref.cast 1   ; i32
   return
 end
 
 fn 4 snippet$get_or__u16 (ref,u16,i32) -> i32
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 23   ; std_collections$Map$std_core$Index$at__u16__i32
-  local.tee 3   ; v
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
-  else
-    local.get 3   ; v
-    ref.cast 1   ; i32
+    local.get 2   ; arg 2
     return
   end $L0
-  local.get 2   ; arg 2
+  local.get 3   ; __fallback_0
+  ref.cast 1   ; i32
   return
 end
 
 fn 5 snippet$get_or__u64 (ref,u64,i32) -> i32
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 31   ; std_collections$Map$std_core$Index$at__u64__i32
-  local.tee 3   ; v
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
-  else
-    local.get 3   ; v
-    ref.cast 1   ; i32
+    local.get 2   ; arg 2
     return
   end $L0
-  local.get 2   ; arg 2
+  local.get 3   ; __fallback_0
+  ref.cast 1   ; i32
   return
 end
 
 fn 6 snippet$get_or__u8 (ref,u8,i32) -> i32
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 21   ; std_collections$Map$std_core$Index$at__u8__i32
-  local.tee 3   ; v
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
-  else
-    local.get 3   ; v
-    ref.cast 1   ; i32
+    local.get 2   ; arg 2
     return
   end $L0
-  local.get 2   ; arg 2
+  local.get 3   ; __fallback_0
+  ref.cast 1   ; i32
   return
 end
 

@@ -214,12 +214,7 @@ handled_by_clause :: fn(
         }
         return tested
     }
-    failures: Type[]: []
-    for variant in union_variants(remaining) else [remaining] {
-        if is_null_type(variant) || is_known_error(variant, typed) {
-            failures.push(variant)
-        }
-    }
+    failures :: bare_else_failures(remaining, typed)
     if failures.len() == 0 {
         diags.push(
             typecheck_error(
@@ -230,6 +225,17 @@ handled_by_clause :: fn(
         )
     }
     return union_of(failures)
+}
+
+// The members of `t` a bare `else` takes: the `null` and the known errors.
+bare_else_failures :: fn(t: Type, typed: TypedProgram) -> Type[] {
+    failures: Type[]: []
+    for variant in union_variants(t) else [t] {
+        if is_null_type(variant) || is_known_error(variant, typed) {
+            failures.push(variant)
+        }
+    }
+    return failures
 }
 
 // Whether a value of `t` is an `Error` whatever the program : a struct or an enum

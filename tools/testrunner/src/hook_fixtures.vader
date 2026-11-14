@@ -215,10 +215,7 @@ without_executable_suffix :: fn(text: string) -> string {
 // `text` with each match of `pattern`, a constant of this file, replaced by
 // `with`.
 replace_matches :: fn(text: string, pattern: string, with: string) -> string {
-    compiled :: compile(pattern)
-    if compiled is RegexError {
-        panic("`${pattern}`: ${compiled.msg}")
-    }
+    compiled :: compile(pattern) else panic("`${pattern}`: ${compiled.msg}")
     return compiled.replace_all(text, with)
 }
 

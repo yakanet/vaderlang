@@ -121,11 +121,13 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local path string
-  local $arr_9 ref
+  local $arr_10 ref
+  local __fallback_0 any
   local written any
-  local $vcall_15 string
-  local __off_1 i64
-  local $eq_37 bool
+  local $vcall_17 string
+  local __buf_2 ref
+  local __off_3 i64
+  local $eq_42 bool
   call 11   ; std_env$temp_dir
   string.const 0   ; "/vader_héllo_zoé_日本.txt"
   call 1   ; concat_2
@@ -136,18 +138,20 @@ fn 0 snippet$main () -> i32
   i32.const 108
   i32.const 111
   array.new 6 5   ; u8[]
-  local.set 1   ; $arr_9
+  local.set 1   ; $arr_10
   local.get 0   ; path
-  local.get 1   ; $arr_9
+  local.get 1   ; $arr_10
   call 14   ; std_fs$write_file
-  local.tee 2   ; written
+  local.tee 2   ; __fallback_0
+  local.set 3   ; written
+  local.get 2   ; __fallback_0
   type_check 33   ; ref std_core$Error
   if $L0 void
-    local.get 2   ; written
+    local.get 3   ; written
     virtual.call 1 std_core$Error.message -> string
-    local.set 3   ; $vcall_15
+    local.set 4   ; $vcall_17
     string.const 1   ; "write failed: "
-    local.get 3   ; $vcall_15
+    local.get 4   ; $vcall_17
     call 1   ; concat_2
     call 10   ; std_console$println__string
     return.lit i32.const 1
@@ -155,98 +159,102 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   i64.const 16777216
   call 15   ; std_fs$read_file_bytes
-  local.tee 2   ; written
-  type_check 33   ; ref std_core$Error
+  local.tee 2   ; __fallback_0
+  local.set 3   ; written
+  local.get 2   ; __fallback_0
+  type_check 13   ; std_io$IOError
   if $L1 void
-  else
-    i64.const 15
-    buffer.new
-    local.set 1   ; $arr_9
-    i64.const 0
-    local.set 4   ; __off_1
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    string.const 3   ; "roundtrip="
-    call 4   ; std_core$write_string_at
-    local.set 4   ; __off_1
-    local.get 2   ; written
-    ref.cast 6   ; u8[]
-    array.len
-    i64.const 5
-    i64.eq
-    local.set 5   ; $eq_37
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    local.get 5   ; $eq_37
-    call 5   ; std_core$write_bool
-    local.set 4   ; __off_1
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    call 3   ; std_core$finish_buffer
+    local.get 3   ; written
+    ref.cast 13   ; std_io$IOError
+    call 53   ; std_io$IOError$std_core$Error$message
+    local.set 4   ; $vcall_17
+    string.const 2   ; "read failed: "
+    local.get 4   ; $vcall_17
+    call 1   ; concat_2
     call 10   ; std_console$println__string
-    i64.const 12
-    buffer.new
-    local.set 1   ; $arr_9
-    i64.const 0
-    local.set 4   ; __off_1
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    string.const 4   ; "exists="
-    call 4   ; std_core$write_string_at
-    local.set 4   ; __off_1
-    local.get 0   ; path
-    call 17   ; std_fs$exists
-    local.set 5   ; $eq_37
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    local.get 5   ; $eq_37
-    call 5   ; std_core$write_bool
-    local.set 4   ; __off_1
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    call 3   ; std_core$finish_buffer
-    call 10   ; std_console$println__string
-    bool.const false
-    bool.const false
-    struct.new 16   ; std_fs$RemoveOptions
-    local.set 1   ; $arr_9
-    local.get 0   ; path
-    local.get 1   ; $arr_9
-    call 18   ; std_fs$remove
-    drop
-    i64.const 13
-    buffer.new
-    local.set 1   ; $arr_9
-    i64.const 0
-    local.set 4   ; __off_1
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    string.const 5   ; "removed="
-    call 4   ; std_core$write_string_at
-    local.set 4   ; __off_1
-    local.get 0   ; path
-    call 17   ; std_fs$exists
-    bool.not
-    local.set 5   ; $eq_37
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    local.get 5   ; $eq_37
-    call 5   ; std_core$write_bool
-    local.set 4   ; __off_1
-    local.get 1   ; $arr_9
-    local.get 4   ; __off_1
-    call 3   ; std_core$finish_buffer
-    call 10   ; std_console$println__string
-    return.lit i32.const 0
+    return.lit i32.const 1
   end $L1
-  local.get 2   ; written
-  virtual.call 1 std_core$Error.message -> string
-  local.set 0   ; path
-  string.const 2   ; "read failed: "
-  local.get 0   ; path
-  call 1   ; concat_2
+  local.get 2   ; __fallback_0
+  ref.cast 6   ; u8[]
+  local.set 1   ; $arr_10
+  i64.const 15
+  buffer.new
+  local.set 5   ; __buf_2
+  i64.const 0
+  local.set 6   ; __off_3
+  local.get 5   ; __buf_2
+  local.get 6   ; __off_3
+  string.const 3   ; "roundtrip="
+  call 4   ; std_core$write_string_at
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_10
+  array.len
+  i64.const 5
+  i64.eq
+  local.set 7   ; $eq_42
+  local.get 5   ; __buf_2
+  local.get 6   ; __off_3
+  local.get 7   ; $eq_42
+  call 5   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 5   ; __buf_2
+  local.get 6   ; __off_3
+  call 3   ; std_core$finish_buffer
   call 10   ; std_console$println__string
-  return.lit i32.const 1
+  i64.const 12
+  buffer.new
+  local.set 1   ; $arr_10
+  i64.const 0
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_10
+  local.get 6   ; __off_3
+  string.const 4   ; "exists="
+  call 4   ; std_core$write_string_at
+  local.set 6   ; __off_3
+  local.get 0   ; path
+  call 17   ; std_fs$exists
+  local.set 7   ; $eq_42
+  local.get 1   ; $arr_10
+  local.get 6   ; __off_3
+  local.get 7   ; $eq_42
+  call 5   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_10
+  local.get 6   ; __off_3
+  call 3   ; std_core$finish_buffer
+  call 10   ; std_console$println__string
+  bool.const false
+  bool.const false
+  struct.new 16   ; std_fs$RemoveOptions
+  local.set 1   ; $arr_10
+  local.get 0   ; path
+  local.get 1   ; $arr_10
+  call 18   ; std_fs$remove
+  drop
+  i64.const 13
+  buffer.new
+  local.set 1   ; $arr_10
+  i64.const 0
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_10
+  local.get 6   ; __off_3
+  string.const 5   ; "removed="
+  call 4   ; std_core$write_string_at
+  local.set 6   ; __off_3
+  local.get 0   ; path
+  call 17   ; std_fs$exists
+  bool.not
+  local.set 7   ; $eq_42
+  local.get 1   ; $arr_10
+  local.get 6   ; __off_3
+  local.get 7   ; $eq_42
+  call 5   ; std_core$write_bool
+  local.set 6   ; __off_3
+  local.get 1   ; $arr_10
+  local.get 6   ; __off_3
+  call 3   ; std_core$finish_buffer
+  call 10   ; std_console$println__string
+  return.lit i32.const 0
 end
 
 fn 1 concat_2 (string,string) -> string

@@ -12,8 +12,7 @@ import "std/io"
 
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_ufcs_import_probe"
-    wrote :: write_file(path, "0123456789")
-    if wrote is IOError {
+    wrote :: write_file(path, "0123456789") else is IOError {
         println("setup failed: ${wrote.msg}")
         return 1
     }

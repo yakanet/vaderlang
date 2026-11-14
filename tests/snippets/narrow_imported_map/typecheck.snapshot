@@ -43,3 +43,6 @@
   expr 17:27    FieldExpr      :: i32[]
   expr 17:27    IdentExpr      :: Wrap
   expr 17:27    IndexExpr      :: i32
+
+# Diagnostics
+[20:5] warning[W0022] a guard on the failure of the value just bound is the `else` of its binding: write `r :: ... else ...`

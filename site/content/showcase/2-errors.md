@@ -13,10 +13,7 @@ import "std/string"
 sum_of :: fn(text: string) -> i32 | ParseError {
     total := 0
     for field in text.split(",") {
-        n :: parse_int(field.trim())
-        if n is ParseError {
-            return n
-        }
+        n :: parse_int(field.trim()) else return n
         total += n
     }
     return total

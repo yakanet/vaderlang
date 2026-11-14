@@ -11,13 +11,11 @@ import "std/fs"
 // machine): only that the round trip survived.
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_héllo_zoé_日本.txt"
-    written :: write_file(path, [104, 101, 108, 108, 111])
-    if written is Error {
+    written :: write_file(path, [104, 101, 108, 108, 111]) else is Error {
         println("write failed: ${written.message()}")
         return 1
     }
-    read_back :: read_file_bytes(path, READ_LIMIT_DEFAULT)
-    if read_back is Error {
+    read_back :: read_file_bytes(path, READ_LIMIT_DEFAULT) else {
         println("read failed: ${read_back.message()}")
         return 1
     }

@@ -20,10 +20,7 @@ import "std/math"
 
 /// The sprite's PNG, read when the program is compiled.
 SPRITE :: @comptime {
-    read :: read_file_bytes("sprite.png")
-    if read is IOError {
-        panic("cannot read `sprite.png`: ${read.message()}")
-    }
+    read :: read_file_bytes("sprite.png") else panic("cannot read `sprite.png`: ${read.message()}")
     return read
 }
 
@@ -36,9 +33,8 @@ main :: fn() -> i32 {
     init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Vader + raylib")
     defer close_window()
     set_target_fps(60)
-    sprite :: load_texture_from_memory(".png", SPRITE)
     // raylib only logs the failure among its own lines.
-    if sprite == null {
+    sprite :: load_texture_from_memory(".png", SPRITE) else {
         eprintln("cannot decode sprite.png")
         return 1
     }
