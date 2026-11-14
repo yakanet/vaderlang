@@ -1891,19 +1891,13 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
-        match b :: last.body {
-            is null          -> {
-                return FieldFixture { .typed = result.typed, .field = null }
-            }
-            is AST.BlockExpr -> {
-                hit :: AST.find_expr(b, (e) -> e is AST.FieldExpr)
-                field: AST.FieldExpr | null = null
-                if hit is AST.FieldExpr {
-                    field = hit
-                }
-                return FieldFixture { .typed = result.typed, .field = field }
-            }
+        b :: last.body else return FieldFixture { .typed = result.typed, .field = null }
+        hit :: AST.find_expr(b, (e) -> e is AST.FieldExpr)
+        field: AST.FieldExpr | null = null
+        if hit is AST.FieldExpr {
+            field = hit
         }
+        return FieldFixture { .typed = result.typed, .field = field }
     }
     return FieldFixture { .typed = result.typed, .field = null }
 }

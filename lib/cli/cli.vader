@@ -308,22 +308,16 @@ find_spec :: fn(specs: FlagSpec[], name: string, long: bool) -> FlagSpec | null 
 /// @param self  parser output.
 /// @param name  canonical flag name (not an alias: the parser normalises).
 export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
-    match v :: self.flags[name] {
-        is null   -> { return false }
-        is string -> { return v == "true" }
-    }
+    v :: self.flags[name] else return false
+    return v == "true"
 }
 
 /// Read a string flag, falling back to `default` when absent.
 /// @param self     parser output.
 /// @param name     canonical flag name (not an alias).
 /// @param default  value returned when `name` wasn't on the command line.
-export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> string {
-    match v :: self.flags[name] {
-        is null   -> { return default }
-        is string -> { return v }
-    }
-}
+export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> string =
+    self.flags[name] else default
 
 /// Read every value of a `repeatable` flag, in command-line order.
 /// @param self  parser output.

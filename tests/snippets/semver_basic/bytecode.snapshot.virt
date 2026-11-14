@@ -53,8 +53,8 @@ string 13 "version core must be M.N.P"
 string 14 "version core: "
 string 15 "empty clause"
 string 16 "-"
-string 17 "hyphen upper: "
-string 18 "hyphen lower: "
+string 17 "hyphen lower: "
+string 18 "hyphen upper: "
 string 19 "clause produced no terms"
 string 20 "empty numeric identifier"
 string 21 "non-digit in numeric identifier"
@@ -1299,33 +1299,26 @@ fn 17 semver$parse_clause (string) -> any
   local n i64
   local i i64
   local $add_checked_22 i64
-  local $idx_26 string
-  local $add_checked_28 i64
-  local $idx_29 string
-  local __scrut_0 any
-  local parsed any
-  local __for_arr_1 ref
-  local __for_len_2 i64
-  local __for_i_3 i64
-  local t ref
-  local $add_checked_54 i64
+  local glued ref
+  local $idx_27 string
+  local $add_checked_29 i64
+  local $idx_30 string
+  local __fallback_0 any
+  local glued any
+  local $add_checked_44 i64
+  local lo_part ref
+  local __fallback_1 any
   local lo_part any
+  local $call_56 string
+  local hi_part ref
   local $add_checked_62 i64
+  local __fallback_2 any
   local hi_part any
-  local $cast_69 ref
-  local $cast_70 ref
-  local __for_arr_4 ref
-  local __for_len_5 i64
-  local __for_i_6 i64
-  local t ref
-  local $call_87 string
-  local $call_94 string
-  local __scrut_7 any
+  local $call_70 string
+  local $call_74 ref
+  local parsed ref
+  local __fallback_3 any
   local parsed any
-  local __for_arr_8 ref
-  local __for_len_9 i64
-  local __for_i_10 i64
-  local t ref
   fn.ref 68 34   ; std_char$is_white_char fn
   local.set 1   ; $fn_ref_1
   local.get 0   ; arg 0
@@ -1379,66 +1372,40 @@ fn 17 semver$parse_clause (string) -> any
             local.get 4   ; i
             array.get 31   ; string[]
             ref.cast 2   ; string
-            local.set 6   ; $idx_26
+            local.set 7   ; $idx_27
             local.get 4   ; i
             i64.const 1
             i64.checked_add
-            local.set 7   ; $add_checked_28
+            local.set 8   ; $add_checked_29
             local.get 1   ; $fn_ref_1
-            local.get 7   ; $add_checked_28
+            local.get 8   ; $add_checked_29
             array.get 31   ; string[]
             ref.cast 2   ; string
-            local.set 8   ; $idx_29
-            local.get 6   ; $idx_26
-            local.get 8   ; $idx_29
+            local.set 9   ; $idx_30
+            local.get 7   ; $idx_27
+            local.get 9   ; $idx_30
             call 2   ; concat_2
             call 24   ; semver$parse_token
-            local.tee 9   ; __scrut_0
-            local.set 10   ; parsed
-            local.get 9   ; __scrut_0
-            type_check 24   ; semver$RangeTerm[]
-            if $L6 void
-              local.get 10   ; parsed
-              ref.cast 24   ; semver$RangeTerm[]
-              local.tee 11   ; __for_arr_1
-              array.len
-              local.set 12   ; __for_len_2
-              i64.const 0
-              local.set 13   ; __for_i_3
-              loop $L7 void
-                local.get 13   ; __for_i_3
-                local.get 12   ; __for_len_2
-                i64.lt
-                if $L8 void
-                  local.get 11   ; __for_arr_1
-                  local.get 13   ; __for_i_3
-                  array.get 24   ; semver$RangeTerm[]
-                  local.set 14   ; t
-                  local.get 2   ; terms
-                  local.get 14   ; t
-                  array.push 25 2   ; semver$RangeTerm terms
-                  local.get 13   ; __for_i_3
-                  i64.const 1
-                  i64.add
-                  local.set 13   ; __for_i_3
-                  br $L7
-                end $L8
-              end $L7
-              local.get 4   ; i
-              i64.const 2
-              i64.checked_add
-              local.set 4   ; i
-              br $L1
-            end $L6
-            local.get 9   ; __scrut_0
+            local.tee 10   ; __fallback_0
+            local.set 11   ; glued
+            local.get 10   ; __fallback_0
             type_check 13   ; std_string$ParseError
-            if $L9 void
-            else
-              unreachable
-            end $L9
-            local.get 10   ; parsed
-            ref.cast 13   ; std_string$ParseError
-            return
+            if $L6 void
+              local.get 11   ; glued
+              ref.cast 13   ; std_string$ParseError
+              return
+            end $L6
+            local.get 10   ; __fallback_0
+            ref.cast 24   ; semver$RangeTerm[]
+            local.set 6   ; glued
+            local.get 2   ; terms
+            local.get 6   ; glued
+            array.push_all
+            local.get 4   ; i
+            i64.const 2
+            i64.checked_add
+            local.set 4   ; i
+            br $L1
           end $L5
         end $L4
       end $L3
@@ -1447,175 +1414,119 @@ fn 17 semver$parse_clause (string) -> any
       i64.checked_add
       local.get 3   ; n
       i64.lt
-      if $L10 void
+      if $L7 void
         local.get 4   ; i
         i64.const 1
         i64.checked_add
-        local.set 15   ; $add_checked_54
+        local.set 12   ; $add_checked_44
         local.get 1   ; $fn_ref_1
-        local.get 15   ; $add_checked_54
+        local.get 12   ; $add_checked_44
         array.get 31   ; string[]
         ref.cast 2   ; string
         string.const 16   ; "-"
         string.eq
-        if $L11 void
+        if $L8 void
           local.get 1   ; $fn_ref_1
           local.get 4   ; i
           array.get 31   ; string[]
           ref.cast 2   ; string
           call 25   ; semver$parse_partial
-          local.set 16   ; lo_part
-          local.get 4   ; i
-          i64.const 2
-          i64.checked_add
-          local.set 17   ; $add_checked_62
-          local.get 1   ; $fn_ref_1
-          local.get 17   ; $add_checked_62
-          array.get 31   ; string[]
-          ref.cast 2   ; string
-          call 25   ; semver$parse_partial
-          local.set 18   ; hi_part
-          local.get 16   ; lo_part
-          type_check 27   ; semver$PartialVersion
-          if $L12 void
-            local.get 18   ; hi_part
-            type_check 27   ; semver$PartialVersion
-            if $L13 void
-              local.get 16   ; lo_part
-              ref.cast 27   ; semver$PartialVersion
-              local.set 19   ; $cast_69
-              local.get 18   ; hi_part
-              ref.cast 27   ; semver$PartialVersion
-              local.set 20   ; $cast_70
-              local.get 19   ; $cast_69
-              local.get 20   ; $cast_70
-              call 26   ; semver$expand_hyphen
-              local.tee 21   ; __for_arr_4
-              array.len
-              local.set 22   ; __for_len_5
-              i64.const 0
-              local.set 23   ; __for_i_6
-              loop $L14 void
-                local.get 23   ; __for_i_6
-                local.get 22   ; __for_len_5
-                i64.lt
-                if $L15 void
-                  local.get 21   ; __for_arr_4
-                  local.get 23   ; __for_i_6
-                  array.get 24   ; semver$RangeTerm[]
-                  local.set 24   ; t
-                  local.get 2   ; terms
-                  local.get 24   ; t
-                  array.push 25 2   ; semver$RangeTerm terms
-                  local.get 23   ; __for_i_6
-                  i64.const 1
-                  i64.add
-                  local.set 23   ; __for_i_6
-                  br $L14
-                end $L15
-              end $L14
-              local.get 4   ; i
-              i64.const 3
-              i64.checked_add
-              local.set 4   ; i
-              br $L1
-            end $L13
-            local.get 18   ; hi_part
-            type_check 13   ; std_string$ParseError
-            if $L16 void
-            else
-              unreachable
-            end $L16
-            local.get 18   ; hi_part
+          local.tee 14   ; __fallback_1
+          local.set 15   ; lo_part
+          local.get 14   ; __fallback_1
+          type_check 13   ; std_string$ParseError
+          if $L9 void
+            local.get 15   ; lo_part
             ref.cast 13   ; std_string$ParseError
             call 62   ; std_string$ParseError$std_core$Error$message
-            local.set 25   ; $call_87
-            string.const 17   ; "hyphen upper: "
-            local.get 25   ; $call_87
+            local.set 16   ; $call_56
+            string.const 17   ; "hyphen lower: "
+            local.get 16   ; $call_56
             call 2   ; concat_2
             struct.new 13   ; std_string$ParseError
             return
-          end $L12
-          local.get 16   ; lo_part
+          end $L9
+          local.get 14   ; __fallback_1
+          ref.cast 27   ; semver$PartialVersion
+          local.set 13   ; lo_part
+          local.get 4   ; i
+          i64.const 2
+          i64.checked_add
+          local.set 18   ; $add_checked_62
+          local.get 1   ; $fn_ref_1
+          local.get 18   ; $add_checked_62
+          array.get 31   ; string[]
+          ref.cast 2   ; string
+          call 25   ; semver$parse_partial
+          local.tee 19   ; __fallback_2
+          local.set 20   ; hi_part
+          local.get 19   ; __fallback_2
           type_check 13   ; std_string$ParseError
-          if $L17 void
-          else
-            unreachable
-          end $L17
-          local.get 16   ; lo_part
-          ref.cast 13   ; std_string$ParseError
-          call 62   ; std_string$ParseError$std_core$Error$message
-          local.set 26   ; $call_94
-          string.const 18   ; "hyphen lower: "
-          local.get 26   ; $call_94
-          call 2   ; concat_2
-          struct.new 13   ; std_string$ParseError
-          return
-        end $L11
-      end $L10
+          if $L10 void
+            local.get 20   ; hi_part
+            ref.cast 13   ; std_string$ParseError
+            call 62   ; std_string$ParseError$std_core$Error$message
+            local.set 21   ; $call_70
+            string.const 18   ; "hyphen upper: "
+            local.get 21   ; $call_70
+            call 2   ; concat_2
+            struct.new 13   ; std_string$ParseError
+            return
+          end $L10
+          local.get 19   ; __fallback_2
+          ref.cast 27   ; semver$PartialVersion
+          local.set 17   ; hi_part
+          local.get 13   ; lo_part
+          local.get 17   ; hi_part
+          call 26   ; semver$expand_hyphen
+          local.set 22   ; $call_74
+          local.get 2   ; terms
+          local.get 22   ; $call_74
+          array.push_all
+          local.get 4   ; i
+          i64.const 3
+          i64.checked_add
+          local.set 4   ; i
+          br $L1
+        end $L8
+      end $L7
       local.get 1   ; $fn_ref_1
       local.get 4   ; i
       array.get 31   ; string[]
       ref.cast 2   ; string
       call 24   ; semver$parse_token
-      local.tee 27   ; __scrut_7
-      local.set 28   ; parsed
-      local.get 27   ; __scrut_7
-      type_check 24   ; semver$RangeTerm[]
-      if $L18 void
-        local.get 28   ; parsed
-        ref.cast 24   ; semver$RangeTerm[]
-        local.tee 29   ; __for_arr_8
-        array.len
-        local.set 30   ; __for_len_9
-        i64.const 0
-        local.set 31   ; __for_i_10
-        loop $L19 void
-          local.get 31   ; __for_i_10
-          local.get 30   ; __for_len_9
-          i64.lt
-          if $L20 void
-            local.get 29   ; __for_arr_8
-            local.get 31   ; __for_i_10
-            array.get 24   ; semver$RangeTerm[]
-            local.set 32   ; t
-            local.get 2   ; terms
-            local.get 32   ; t
-            array.push 25 2   ; semver$RangeTerm terms
-            local.get 31   ; __for_i_10
-            i64.const 1
-            i64.add
-            local.set 31   ; __for_i_10
-            br $L19
-          end $L20
-        end $L19
-        local.get 4   ; i
-        i64.const 1
-        i64.checked_add
-        local.set 4   ; i
-        br $L1
-      end $L18
-      local.get 27   ; __scrut_7
+      local.tee 24   ; __fallback_3
+      local.set 25   ; parsed
+      local.get 24   ; __fallback_3
       type_check 13   ; std_string$ParseError
-      if $L21 void
-      else
-        unreachable
-      end $L21
-      local.get 28   ; parsed
-      ref.cast 13   ; std_string$ParseError
-      return
+      if $L11 void
+        local.get 25   ; parsed
+        ref.cast 13   ; std_string$ParseError
+        return
+      end $L11
+      local.get 24   ; __fallback_3
+      ref.cast 24   ; semver$RangeTerm[]
+      local.set 23   ; parsed
+      local.get 2   ; terms
+      local.get 23   ; parsed
+      array.push_all
+      local.get 4   ; i
+      i64.const 1
+      i64.checked_add
+      local.set 4   ; i
+      br $L1
     end $L2
   end $L1
   local.get 2   ; terms
   array.len
   i64.const 0
   i64.eq
-  if $L22 void
+  if $L12 void
   else
     local.get 2   ; terms
     struct.new 19   ; semver$RangeClause
     return
-  end $L22
+  end $L12
   string.const 19   ; "clause produced no terms"
   struct.new 13   ; std_string$ParseError
   return
@@ -1660,8 +1571,7 @@ fn 18 semver$prerelease_dash (string) -> any
 end
 
 fn 19 semver$parse_numeric_id (string) -> any
-  local __scrut_0 any
-  local v any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 3   ; std_core$is_empty_1
   if $L0 void
@@ -1695,24 +1605,16 @@ fn 19 semver$parse_numeric_id (string) -> any
   end $L2
   local.get 0   ; arg 0
   call 58   ; std_string$parse_int
-  local.tee 1   ; __scrut_0
-  local.set 2   ; v
-  local.get 1   ; __scrut_0
-  type_check 1   ; i32
+  local.tee 1   ; __fallback_0
+  type_check 13   ; std_string$ParseError
   if $L4 void
-    local.get 2   ; v
-    ref.cast 1   ; i32
-    retag 1   ; i32
+    string.const 23   ; "numeric identifier overflow"
+    struct.new 13   ; std_string$ParseError
     return
   end $L4
-  local.get 1   ; __scrut_0
-  type_check 13   ; std_string$ParseError
-  if $L5 void
-  else
-    unreachable
-  end $L5
-  string.const 23   ; "numeric identifier overflow"
-  struct.new 13   ; std_string$ParseError
+  local.get 1   ; __fallback_0
+  ref.cast 1   ; i32
+  retag 1   ; i32
   return
 end
 
@@ -1923,13 +1825,14 @@ fn 24 semver$parse_token (string) -> any
   local $call_16 string
   local b0 u8
   local $call_28 i64
-  local __scrut_0 any
+  local __fallback_0 any
   local p any
-  local $call_55 string
+  local $call_52 string
+  local p ref
+  local $field_92 i32
+  local $field_93 i32
   local $field_94 i32
-  local $field_96 i32
-  local $field_98 i32
-  local $struct_103 ref
+  local $struct_97 ref
   local.get 0   ; arg 0
   call 3   ; std_core$is_empty_1
   if $L0 void
@@ -2020,159 +1923,125 @@ fn 24 semver$parse_token (string) -> any
   if $L7 void
     local.get 1   ; $call_16
     call 25   ; semver$parse_partial
-    local.tee 4   ; __scrut_0
+    local.tee 4   ; __fallback_0
     local.set 5   ; p
-    local.get 4   ; __scrut_0
-    type_check 27   ; semver$PartialVersion
+    local.get 4   ; __fallback_0
+    type_check 13   ; std_string$ParseError
     if $L8 void
       local.get 5   ; p
-      ref.cast 27   ; semver$PartialVersion
-      call 32   ; semver$expand_caret
+      ref.cast 13   ; std_string$ParseError
+      call 62   ; std_string$ParseError$std_core$Error$message
+      local.set 6   ; $call_52
+      string.const 33   ; "caret: "
+      local.get 6   ; $call_52
+      call 2   ; concat_2
+      struct.new 13   ; std_string$ParseError
       return
     end $L8
-    local.get 4   ; __scrut_0
-    type_check 13   ; std_string$ParseError
-    if $L9 void
-    else
-      unreachable
-    end $L9
-    local.get 5   ; p
-    ref.cast 13   ; std_string$ParseError
-    call 62   ; std_string$ParseError$std_core$Error$message
-    local.set 6   ; $call_55
-    string.const 33   ; "caret: "
-    local.get 6   ; $call_55
-    call 2   ; concat_2
-    struct.new 13   ; std_string$ParseError
+    local.get 4   ; __fallback_0
+    ref.cast 27   ; semver$PartialVersion
+    call 32   ; semver$expand_caret
     return
   end $L7
   local.get 2   ; b0
   i32.const 126
   i32.eq
-  if $L10 void
+  if $L9 void
     local.get 1   ; $call_16
     call 25   ; semver$parse_partial
-    local.tee 4   ; __scrut_0
+    local.tee 4   ; __fallback_0
     local.set 5   ; p
-    local.get 4   ; __scrut_0
-    type_check 27   ; semver$PartialVersion
-    if $L11 void
-      local.get 5   ; p
-      ref.cast 27   ; semver$PartialVersion
-      call 33   ; semver$expand_tilde
-      return
-    end $L11
-    local.get 4   ; __scrut_0
+    local.get 4   ; __fallback_0
     type_check 13   ; std_string$ParseError
-    if $L12 void
-    else
-      unreachable
-    end $L12
+    if $L10 void
+      local.get 5   ; p
+      ref.cast 13   ; std_string$ParseError
+      call 62   ; std_string$ParseError$std_core$Error$message
+      local.set 1   ; $call_16
+      string.const 34   ; "tilde: "
+      local.get 1   ; $call_16
+      call 2   ; concat_2
+      struct.new 13   ; std_string$ParseError
+      return
+    end $L10
+    local.get 4   ; __fallback_0
+    ref.cast 27   ; semver$PartialVersion
+    call 33   ; semver$expand_tilde
+    return
+  end $L9
+  local.get 0   ; arg 0
+  call 25   ; semver$parse_partial
+  local.tee 4   ; __fallback_0
+  local.set 5   ; p
+  local.get 4   ; __fallback_0
+  type_check 13   ; std_string$ParseError
+  if $L11 void
     local.get 5   ; p
     ref.cast 13   ; std_string$ParseError
     call 62   ; std_string$ParseError$std_core$Error$message
     local.set 1   ; $call_16
-    string.const 34   ; "tilde: "
+    string.const 35   ; "bare: "
     local.get 1   ; $call_16
     call 2   ; concat_2
     struct.new 13   ; std_string$ParseError
     return
-  end $L10
-  local.get 0   ; arg 0
-  call 25   ; semver$parse_partial
-  local.tee 4   ; __scrut_0
-  local.set 5   ; p
-  local.get 4   ; __scrut_0
-  type_check 27   ; semver$PartialVersion
-  if $L13 void
-    local.get 5   ; p
-    ref.cast 27   ; semver$PartialVersion
-    struct.get 27 0   ; semver$PartialVersion.major
+  end $L11
+  local.get 4   ; __fallback_0
+  ref.cast 27   ; semver$PartialVersion
+  local.set 7   ; p
+  local.field 7 27 0   ; p semver$PartialVersion.major
+  ref.cast 1   ; i32
+  i32.const 0
+  i32.ge
+  if $L12 void
+    local.field 7 27 1   ; p semver$PartialVersion.minor
     ref.cast 1   ; i32
     i32.const 0
     i32.ge
-    if $L14 void
-      local.get 5   ; p
-      ref.cast 27   ; semver$PartialVersion
-      struct.get 27 1   ; semver$PartialVersion.minor
+    if $L13 void
+      local.field 7 27 2   ; p semver$PartialVersion.patch
       ref.cast 1   ; i32
       i32.const 0
       i32.ge
-      if $L15 void
-        local.get 5   ; p
-        ref.cast 27   ; semver$PartialVersion
-        struct.get 27 2   ; semver$PartialVersion.patch
+      if $L14 void
+        local.field 7 27 0   ; p semver$PartialVersion.major
         ref.cast 1   ; i32
+        local.set 8   ; $field_92
+        local.field 7 27 1   ; p semver$PartialVersion.minor
+        ref.cast 1   ; i32
+        local.set 9   ; $field_93
+        local.field 7 27 2   ; p semver$PartialVersion.patch
+        ref.cast 1   ; i32
+        local.set 10   ; $field_94
+        local.field 7 27 3   ; p semver$PartialVersion.prerelease
+        ref.cast 2   ; string
+        local.set 1   ; $call_16
+        local.field 7 27 4   ; p semver$PartialVersion.build
+        ref.cast 2   ; string
+        local.set 6   ; $call_52
+        local.get 8   ; $field_92
+        local.get 9   ; $field_93
+        local.get 10   ; $field_94
+        local.get 1   ; $call_16
+        local.get 6   ; $call_52
+        struct.new 3   ; semver$Version
+        local.set 11   ; $struct_97
         i32.const 0
-        i32.ge
-        if $L16 void
-          local.get 5   ; p
-          ref.cast 27   ; semver$PartialVersion
-          struct.get 27 0   ; semver$PartialVersion.major
-          ref.cast 1   ; i32
-          local.set 7   ; $field_94
-          local.get 5   ; p
-          ref.cast 27   ; semver$PartialVersion
-          struct.get 27 1   ; semver$PartialVersion.minor
-          ref.cast 1   ; i32
-          local.set 8   ; $field_96
-          local.get 5   ; p
-          ref.cast 27   ; semver$PartialVersion
-          struct.get 27 2   ; semver$PartialVersion.patch
-          ref.cast 1   ; i32
-          local.set 9   ; $field_98
-          local.get 5   ; p
-          ref.cast 27   ; semver$PartialVersion
-          struct.get 27 3   ; semver$PartialVersion.prerelease
-          ref.cast 2   ; string
-          local.set 1   ; $call_16
-          local.get 5   ; p
-          ref.cast 27   ; semver$PartialVersion
-          struct.get 27 4   ; semver$PartialVersion.build
-          ref.cast 2   ; string
-          local.set 6   ; $call_55
-          local.get 7   ; $field_94
-          local.get 8   ; $field_96
-          local.get 9   ; $field_98
-          local.get 1   ; $call_16
-          local.get 6   ; $call_55
-          struct.new 3   ; semver$Version
-          local.set 10   ; $struct_103
-          i32.const 0
-          local.get 10   ; $struct_103
-          struct.new 25   ; semver$RangeTerm
-          array.new 24 1   ; semver$RangeTerm[]
-          return
-        end $L16
-        local.get 5   ; p
-        ref.cast 27   ; semver$PartialVersion
-        call 30   ; semver$expand_xrange
+        local.get 11   ; $struct_97
+        struct.new 25   ; semver$RangeTerm
+        array.new 24 1   ; semver$RangeTerm[]
         return
-      end $L15
-      local.get 5   ; p
-      ref.cast 27   ; semver$PartialVersion
+      end $L14
+      local.get 7   ; p
       call 30   ; semver$expand_xrange
       return
-    end $L14
-    local.get 5   ; p
-    ref.cast 27   ; semver$PartialVersion
+    end $L13
+    local.get 7   ; p
     call 30   ; semver$expand_xrange
     return
-  end $L13
-  local.get 4   ; __scrut_0
-  type_check 13   ; std_string$ParseError
-  if $L17 void
-  else
-    unreachable
-  end $L17
-  local.get 5   ; p
-  ref.cast 13   ; std_string$ParseError
-  call 62   ; std_string$ParseError$std_core$Error$message
-  local.set 1   ; $call_16
-  string.const 35   ; "bare: "
-  local.get 1   ; $call_16
-  call 2   ; concat_2
-  struct.new 13   ; std_string$ParseError
+  end $L12
+  local.get 7   ; p
+  call 30   ; semver$expand_xrange
   return
 end
 
@@ -2180,10 +2049,10 @@ fn 25 semver$parse_partial (string) -> any
   local sections ref
   local parts ref
   local result ref
-  local __scrut_0 any
+  local v i32
+  local __fallback_0 any
   local v any
-  local $cast_38 i32
-  local $call_42 string
+  local $call_41 string
   local.get 0   ; arg 0
   call 3   ; std_core$is_empty_1
   if $L0 void
@@ -2237,170 +2106,149 @@ fn 25 semver$parse_partial (string) -> any
     array.get 31   ; string[]
     ref.cast 2   ; string
     call 19   ; semver$parse_numeric_id
-    local.tee 4   ; __scrut_0
-    local.set 5   ; v
-    local.get 4   ; __scrut_0
-    type_check 1   ; i32
+    local.tee 5   ; __fallback_0
+    local.set 6   ; v
+    local.get 5   ; __fallback_0
+    type_check 13   ; std_string$ParseError
     if $L4 void
-      local.get 5   ; v
-      ref.cast 1   ; i32
-      local.set 6   ; $cast_38
-      local.get 3   ; result
-      local.get 6   ; $cast_38
-      struct.set 27 0   ; semver$PartialVersion.major
-    else
-      local.get 4   ; __scrut_0
-      type_check 13   ; std_string$ParseError
-      if $L5 void
-      else
-        unreachable
-      end $L5
-      local.get 5   ; v
+      local.get 6   ; v
       ref.cast 13   ; std_string$ParseError
       call 62   ; std_string$ParseError$std_core$Error$message
-      local.set 7   ; $call_42
+      local.set 7   ; $call_41
       string.const 38   ; "major: "
-      local.get 7   ; $call_42
+      local.get 7   ; $call_41
       call 2   ; concat_2
       struct.new 13   ; std_string$ParseError
       return
     end $L4
+    local.get 5   ; __fallback_0
+    ref.cast 1   ; i32
+    local.set 4   ; v
+    local.get 3   ; result
+    local.get 4   ; v
+    struct.set 27 0   ; semver$PartialVersion.major
   end $L3
   local.get 2   ; parts
   array.len
   i64.const 2
   i64.ge
-  if $L6 void
+  if $L5 void
     local.get 2   ; parts
     i32.const 1
     array.get 31   ; string[]
     ref.cast 2   ; string
     call 29   ; semver$is_x_token
-    if $L7 void
+    if $L6 void
     else
       local.get 2   ; parts
       i32.const 1
       array.get 31   ; string[]
       ref.cast 2   ; string
       call 19   ; semver$parse_numeric_id
-      local.tee 4   ; __scrut_0
-      local.set 5   ; v
-      local.get 4   ; __scrut_0
-      type_check 1   ; i32
-      if $L8 void
-        local.get 5   ; v
-        ref.cast 1   ; i32
-        local.set 6   ; $cast_38
-        local.get 3   ; result
-        local.get 6   ; $cast_38
-        struct.set 27 1   ; semver$PartialVersion.minor
-      else
-        local.get 4   ; __scrut_0
-        type_check 13   ; std_string$ParseError
-        if $L9 void
-        else
-          unreachable
-        end $L9
-        local.get 5   ; v
+      local.tee 5   ; __fallback_0
+      local.set 6   ; v
+      local.get 5   ; __fallback_0
+      type_check 13   ; std_string$ParseError
+      if $L7 void
+        local.get 6   ; v
         ref.cast 13   ; std_string$ParseError
         call 62   ; std_string$ParseError$std_core$Error$message
-        local.set 7   ; $call_42
+        local.set 7   ; $call_41
         string.const 39   ; "minor: "
-        local.get 7   ; $call_42
+        local.get 7   ; $call_41
         call 2   ; concat_2
         struct.new 13   ; std_string$ParseError
         return
-      end $L8
-    end $L7
-  end $L6
+      end $L7
+      local.get 5   ; __fallback_0
+      ref.cast 1   ; i32
+      local.set 4   ; v
+      local.get 3   ; result
+      local.get 4   ; v
+      struct.set 27 1   ; semver$PartialVersion.minor
+    end $L6
+  end $L5
   local.get 2   ; parts
   array.len
   i64.const 3
   i64.ge
-  if $L10 void
+  if $L8 void
     local.get 2   ; parts
     i32.const 2
     array.get 31   ; string[]
     ref.cast 2   ; string
     call 29   ; semver$is_x_token
-    if $L11 void
+    if $L9 void
     else
       local.get 2   ; parts
       i32.const 2
       array.get 31   ; string[]
       ref.cast 2   ; string
       call 19   ; semver$parse_numeric_id
-      local.tee 4   ; __scrut_0
-      local.set 5   ; v
-      local.get 4   ; __scrut_0
-      type_check 1   ; i32
-      if $L12 void
-        local.get 5   ; v
-        ref.cast 1   ; i32
-        local.set 6   ; $cast_38
-        local.get 3   ; result
-        local.get 6   ; $cast_38
-        struct.set 27 2   ; semver$PartialVersion.patch
-      else
-        local.get 4   ; __scrut_0
-        type_check 13   ; std_string$ParseError
-        if $L13 void
-        else
-          unreachable
-        end $L13
-        local.get 5   ; v
+      local.tee 5   ; __fallback_0
+      local.set 6   ; v
+      local.get 5   ; __fallback_0
+      type_check 13   ; std_string$ParseError
+      if $L10 void
+        local.get 6   ; v
         ref.cast 13   ; std_string$ParseError
         call 62   ; std_string$ParseError$std_core$Error$message
-        local.set 7   ; $call_42
+        local.set 7   ; $call_41
         string.const 40   ; "patch: "
-        local.get 7   ; $call_42
+        local.get 7   ; $call_41
         call 2   ; concat_2
         struct.new 13   ; std_string$ParseError
         return
-      end $L12
-    end $L11
-  end $L10
+      end $L10
+      local.get 5   ; __fallback_0
+      ref.cast 1   ; i32
+      local.set 4   ; v
+      local.get 3   ; result
+      local.get 4   ; v
+      struct.set 27 2   ; semver$PartialVersion.patch
+    end $L9
+  end $L8
   local.get 1   ; sections
   call 15   ; semver$validate_sections
-  local.tee 4   ; __scrut_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
-  if $L14 void
+  if $L11 void
   else
-    local.get 4   ; __scrut_0
+    local.get 5   ; __fallback_0
     ref.cast 13   ; std_string$ParseError
     return
-  end $L14
+  end $L11
   local.field 1 16 1   ; sections semver$VersionSections.prerelease
-  local.tee 4   ; __scrut_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
-  if $L15 void
+  if $L12 void
     string.const 8   ; ""
-    local.set 7   ; $call_42
+    local.set 7   ; $call_41
   else
-    local.get 4   ; __scrut_0
+    local.get 5   ; __fallback_0
     ref.cast 2   ; string
-    local.set 7   ; $call_42
-  end $L15
+    local.set 7   ; $call_41
+  end $L12
   local.get 3   ; result
-  local.get 7   ; $call_42
+  local.get 7   ; $call_41
   struct.set 27 3   ; semver$PartialVersion.prerelease
   local.field 1 16 2   ; sections semver$VersionSections.build
-  local.tee 4   ; __scrut_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
-  if $L16 void
+  if $L13 void
     string.const 8   ; ""
-    local.set 7   ; $call_42
+    local.set 7   ; $call_41
     local.get 3   ; result
-    local.get 7   ; $call_42
+    local.get 7   ; $call_41
     struct.set 27 4   ; semver$PartialVersion.build
     local.get 3   ; result
     return
-  end $L16
-  local.get 4   ; __scrut_0
+  end $L13
+  local.get 5   ; __fallback_0
   ref.cast 2   ; string
-  local.set 7   ; $call_42
+  local.set 7   ; $call_41
   local.get 3   ; result
-  local.get 7   ; $call_42
+  local.get 7   ; $call_41
   struct.set 27 4   ; semver$PartialVersion.build
   local.get 3   ; result
   return
@@ -2768,10 +2616,10 @@ fn 30 semver$expand_xrange (ref) -> ref
 end
 
 fn 31 semver$parse_comparator_token (u8,string) -> any
-  local __scrut_0 any
+  local v ref
+  local __fallback_0 any
   local v any
-  local $cast_10 ref
-  local $call_16 string
+  local $call_12 string
   local.get 1   ; arg 1
   call 3   ; std_core$is_empty_1
   if $L0 void
@@ -2781,34 +2629,28 @@ fn 31 semver$parse_comparator_token (u8,string) -> any
   end $L0
   local.get 1   ; arg 1
   call 11   ; semver$parse
-  local.tee 2   ; __scrut_0
-  local.set 3   ; v
-  local.get 2   ; __scrut_0
-  type_check 3   ; semver$Version
+  local.tee 3   ; __fallback_0
+  local.set 4   ; v
+  local.get 3   ; __fallback_0
+  type_check 13   ; std_string$ParseError
   if $L1 void
-    local.get 3   ; v
-    ref.cast 3   ; semver$Version
-    local.set 4   ; $cast_10
-    local.get 0   ; arg 0
-    local.get 4   ; $cast_10
-    struct.new 25   ; semver$RangeTerm
-    array.new 24 1   ; semver$RangeTerm[]
+    local.get 4   ; v
+    ref.cast 13   ; std_string$ParseError
+    call 62   ; std_string$ParseError$std_core$Error$message
+    local.set 5   ; $call_12
+    string.const 45   ; "comparator: "
+    local.get 5   ; $call_12
+    call 2   ; concat_2
+    struct.new 13   ; std_string$ParseError
     return
   end $L1
-  local.get 2   ; __scrut_0
-  type_check 13   ; std_string$ParseError
-  if $L2 void
-  else
-    unreachable
-  end $L2
-  local.get 3   ; v
-  ref.cast 13   ; std_string$ParseError
-  call 62   ; std_string$ParseError$std_core$Error$message
-  local.set 5   ; $call_16
-  string.const 45   ; "comparator: "
-  local.get 5   ; $call_16
-  call 2   ; concat_2
-  struct.new 13   ; std_string$ParseError
+  local.get 3   ; __fallback_0
+  ref.cast 3   ; semver$Version
+  local.set 2   ; v
+  local.get 0   ; arg 0
+  local.get 2   ; v
+  struct.new 25   ; semver$RangeTerm
+  array.new 24 1   ; semver$RangeTerm[]
   return
 end
 

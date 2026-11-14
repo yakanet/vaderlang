@@ -231,13 +231,11 @@ main :: fn(argv: string[]) -> i32 {
             return 1
         }
         is string -> {
-            match out :: run(raw) {
-                is string     -> println(out)
-                is ParseError -> {
-                    eprintln("parse error: ${out.message()}")
-                    return 1
-                }
+            out :: run(raw) else {
+                eprintln("parse error: ${out.message()}")
+                return 1
             }
+            println(out)
         }
     }
     return 0
