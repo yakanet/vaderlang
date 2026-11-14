@@ -190,6 +190,7 @@ export ParserCode :: enum(CodeInfo) {
     PatternBindsName           { .id = "P1037", .message = "a match pattern cannot bind a name" },
     RestNotLast                { .id = "P1038", .message = "`...rest` must be the last element" },
     MisshapenMatchBinding      { .id = "P1039", .message = "a `match` header binds one constant name" },
+    AssignmentAfterElse        { .id = "P1040", .message = "an assignment cannot follow the value of an `else`" },
 }
 
 // R-codes belong to the resolver pass (name-binding).
@@ -281,6 +282,7 @@ export WarningCode :: enum(CodeInfo) {
     InferredExportReturnType    { .id = "W0017", .message = "exported function leaves its return type to inference" },
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
     IdentityOfFieldlessStruct   { .id = "W0020", .message = "identity comparison of a struct with no field" },
+    BlockAfterElseValue         { .id = "W0021", .message = "a block follows the value of an `else` on its line, so it runs whatever the `else` took" },
 }
 
 /// `H6xxx`: the build driver (`build.vader`) and the hooks it registers.

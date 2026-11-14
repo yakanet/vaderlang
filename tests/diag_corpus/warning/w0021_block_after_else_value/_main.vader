@@ -1,0 +1,11 @@
+// The block after `else null` on its line is a statement of its own, which runs
+// whatever the `else` took; `else is null { ... }` was likely meant: W0021.
+module "snippet"
+
+f :: fn() -> i32 | null = null
+
+main :: fn() -> i32 {
+    count := 0
+    a :: f() else null { count += 1 }
+    return count + (a else 0)
+}

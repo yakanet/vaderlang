@@ -1,0 +1,1 @@
+[9:20] error[P1040] an assignment cannot follow the value of an `else`: a clause gives a value or leaves with `return`, `break` or `continue`

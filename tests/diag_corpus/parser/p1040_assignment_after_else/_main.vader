@@ -1,0 +1,11 @@
+// `f() else count += 1` reads as an assignment in a clause, but a clause gives a
+// value or leaves: the assignment would target `f() else count`: P1040.
+module "snippet"
+
+f :: fn() -> i32 | null = null
+
+main :: fn() -> i32 {
+    count :: 0
+    f() else count += 1
+    return count
+}

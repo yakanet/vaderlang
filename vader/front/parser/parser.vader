@@ -2182,6 +2182,11 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     // Expression statement (with optional `=` or compound assignment).
     start :: p.peek()
     expr :: p.parse_expr(0)
+    if p.refuses_assignment_after_else(expr) {
+        p.advance()
+        p.parse_expr(0)
+        return ExprStmt { .span = expr.span, .expr = expr }
+    }
     if p.match_kind(.Assign) != null {
         value :: p.parse_expr(0)
         return AssignStmt {
@@ -2209,6 +2214,21 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
         }
     }
     return ExprStmt { .span = expr.span, .expr = expr }
+}
+
+// `f() else count += 1` reads as an assignment in a clause, but parses as one to
+// `f() else count` : a clause gives a value or leaves. Reported here, and the
+// assignment dropped, so no later pass reports the odd target.
+refuses_assignment_after_else :: fn(p: Parser, target: Expr) -> bool {
+    if target !is FallbackExpr || target.coalesce {
+        return false
+    }
+    if !p.check(.Assign) && !p.peek().kind.compound_op().matched {
+        return false
+    }
+    detail :: "a clause gives a value or leaves with `return`, `break` or `continue`"
+    p.error(.AssignmentAfterElse, p.peek().span, detail)
+    return true
 }
 
 /** Maps a `*Assign` token kind to the underlying `BinaryOp` ; returns
