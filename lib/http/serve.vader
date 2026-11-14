@@ -709,3 +709,90 @@ Endless implements Reader {
         return into.len()
     }
 }
+
+// Send `wire` to `stream` a byte at a time, `every` apart, until the server
+// answers; then what it answers, to the end of the connection.
+dripped :: fn(stream: TcpStream, wire: string, every: Duration) -> string {
+    first: u8[]: [0] * 1
+    for byte in wire.bytes() {
+        stream.write([byte])
+        stream.read_by(instant_in(every))
+        got :: stream.read(first)
+        if got is i64 {
+            stream.read_by(null)
+            return first.bytes_to_string() + rest_of(stream)
+        }
+        if got !is IOError || got.kind != .TimedOut {
+            return "the connection ended with no answer"
+        }
+    }
+    return "no answer"
+}
+
+// A head that comes a byte at a time and never ends.
+SLOW_HEAD :: "GET /a HTTP/1.1\r\nX-Slow: "
+
+@test
+test_a_head_sent_a_byte_at_a_time_is_held_to_its_time_in_all :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    options :: ServeOptions { .timeouts = Timeouts { .head = 500.millis() } }
+    server :: launch(() -> serve(listener, naming, options))
+    stream :: calling(address) ?? return
+    // Each byte comes well within the time of a head, and the bytes take four
+    // times as long: only the head as a whole runs out of it.
+    assert_eq(dripped(stream, SLOW_HEAD + "a" * 100, 20.millis()), REQUEST_TIMEOUT)
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_the_next_head_of_a_kept_connection_is_held_to_its_time_in_all :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    options :: ServeOptions { .timeouts = Timeouts { .head = 500.millis() } }
+    server :: launch(() -> serve(listener, naming, options))
+    stream :: calling(address) ?? return
+    stream.write(get("/a"))
+    assert_eq(some_of(stream, named("/a").byte_len()), named("/a"))
+    assert_eq(dripped(stream, SLOW_HEAD + "a" * 100, 20.millis()), REQUEST_TIMEOUT)
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_body_announced_and_never_sent_ends_its_connection :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    echoing :: fn(request: Request) -> Response = Response { .body = request.body }
+    options :: ServeOptions { .timeouts = Timeouts { .body = 100.millis() } }
+    server :: launch(() -> serve(listener, echoing, options))
+    stream :: calling(address) ?? return
+    stream.write("POST /a HTTP/1.1\r\nHost: h\r\nContent-Length: 1000000\r\n\r\n")
+    assert_eq(rest_of(stream), REQUEST_TIMEOUT)
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_a_chunk_size_that_is_no_size_ends_its_connection_at_once :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    ignoring :: fn(request: Request) -> Response = Response {}
+    server :: launch(() -> serve(listener, ignoring))
+    stream :: calling(address) ?? return
+    stream.write("POST /a HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\n\r\n")
+    // The size comes in a read of its own, after the server has begun to wait
+    // for it.
+    sleep(20.millis())
+    stream.write("zz\r\n")
+    // The size is no size: the body cannot be read past, and the connection
+    // ends now, not when the time of a body has passed.
+    assert_eq(rest_of(stream), EMPTY_OK)
+    stream.close()
+    listener.close()
+    server.join()
+}

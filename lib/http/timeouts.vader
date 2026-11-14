@@ -137,6 +137,17 @@ stalled_after :: fn(
 REQUEST_TIMEOUT :: "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
 
 @test
+test_a_server_holds_its_clients_to_time_unless_told_otherwise :: fn() -> void {
+    options :: ServeOptions {}
+    assert_eq(seconds_of(options.timeouts.head), "60")
+    assert_eq(seconds_of(options.timeouts.idle), "75")
+    assert_eq(seconds_of(options.timeouts.body), "60")
+    assert_eq(seconds_of(options.timeouts.write), "60")
+    assert_eq(seconds_of(options.timeouts.linger), "5")
+    assert_eq(seconds_of(options.grace), "30")
+}
+
+@test
 test_each_step_of_a_connection_is_given_its_time :: fn() -> void {
     deadlines :: NotedDeadlines {}
     timeouts :: Timeouts {
