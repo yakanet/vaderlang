@@ -109,6 +109,17 @@ export close :: fn(listener: TcpListener) -> null | IOError {
     return close_once(listener.socket, listener.closed)
 }
 
+/// Whether `listener` was closed: every `accept` fails from then on.
+///
+/// @param listener  the listening socket.
+/// @example
+///   listener :: listen(loopback(0))
+///   if listener is TcpListener {
+///       listener.close()
+///       listener.is_closed()   // true
+///   }
+export is_closed :: fn(listener: TcpListener) -> bool = listener.closed.load()
+
 // ---- a connection ---------------------------------------------------------
 
 /// One end of a TCP connection: a `Reader` of what the other end sends and a
@@ -1235,6 +1246,14 @@ test_a_closed_stream_refuses_reads_and_writes :: fn() -> void {
     assert(stream.read([0] * 8) is IOError, "a read after close")
     assert(stream.close() == null, "a second close does nothing")
     listener.close()
+}
+
+@test
+test_a_closed_listener_says_so :: fn() -> void {
+    listener :: loopback_listener() ?? return
+    assert(!listener.is_closed(), "a listener just made is open")
+    listener.close()
+    assert(listener.is_closed(), "a listener closed says so")
 }
 
 // What a read of `stream` answers once something ends it.

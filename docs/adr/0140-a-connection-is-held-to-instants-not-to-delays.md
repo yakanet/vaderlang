@@ -112,15 +112,22 @@ pile up nowhere (CVE-2026-93491).
 A connection whose client sends its requests back to back starved the
 others: 0142 closes it (`test_a_connection_that_never_waits_lets_the_others_be_served`).
 
-Open when this review was written:
+Open when this review was written, and closed by 0143:
 
 - Nothing caps the connections served at a time. Each slow client holds a
   task and a descriptor until its time runs out, and enough of them exhaust
   the process (CVE-2021-21293, CVE-2025-63561, CVE-2026-16756, CVE-2026-27630,
   CVE-2026-70399). Out of descriptors, `serve` waits (0139); it does not stop.
+  0143 caps them (`test_a_connection_past_the_most_served_waits_for_one_to_end`).
 - Nothing bounds how long a connection lives, nor how many requests it
   carries: a client that asks once within each wait between two requests
-  keeps it (CVE-2022-22354, CVE-2024-25039).
+  keeps it (CVE-2022-22354, CVE-2024-25039). 0143 bounds both
+  (`test_a_connection_carries_no_more_requests_than_the_server_allows`,
+  `test_a_connection_past_its_lifetime_ends_with_the_request_under_way` in
+  timeouts.vader).
+
+Still open:
+
 - The time of a body is counted from each read, and that of a response from
   each write: a client that sends, or takes, a byte now and then keeps its
   connection (CVE-2020-21266, CVE-2021-22050, CVE-2026-35665). nginx is the

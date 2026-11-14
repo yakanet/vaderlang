@@ -39,6 +39,9 @@ export Timeouts :: struct {
     /// closed with bytes unread is reset, and the reset may reach the client
     /// before the response it was to read (RFC 9112, section 9.6).
     linger: Duration | null = 5.seconds()
+    /// To keep a connection, in all: the response to the first request that
+    /// comes after it says `Connection: close`, and ends it.
+    lifetime: Duration | null = 3600.seconds()
 }
 
 // ---- how the loop applies it ----------------------------------------------
@@ -53,11 +56,13 @@ Deadlines :: trait {
 }
 
 // How `serve` holds a connection: the timeouts of its client, what applies
-// them, and what stops it between two requests.
+// them, what stops it between two requests, and how many requests it carries
+// at most.
 Pace :: struct {
     deadlines: Deadlines
     timeouts: Timeouts
     stop: Stop = Stop {}
+    requests: i64 | null = null
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -122,17 +127,25 @@ stalled_after :: fn(
     wire: string,
     handler: fn(Request) -> Response,
     stop: Stop = Stop {},
-) -> Served {
-    out :: BytesWriter {}
-    source :: StallingReader { .content = BytesReader { .content = wire } }
-    pace :: Pace {
+) -> Served = paced_by(
+    wire,
+    handler,
+    Pace {
         .deadlines = NotedDeadlines {},
         .timeouts = Timeouts {},
         .stop = stop,
-    }
+    },
+)
+
+// What a connection that sends `wire`, then nothing, comes to under `pace`.
+paced_by :: fn(wire: string, handler: fn(Request) -> Response, pace: Pace) -> Served {
+    out :: BytesWriter {}
+    source :: StallingReader { .content = BytesReader { .content = wire } }
     end :: serve_paced(source, out, handler, Limits {}, pace)
     return Served { .end = end, .written = out.written.bytes_to_string() }
 }
+
+EMPTY_OK_CLOSED :: "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
 
 REQUEST_TIMEOUT :: "HTTP/1.1 408 Request Timeout\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
 
@@ -144,7 +157,38 @@ test_a_server_holds_its_clients_to_time_unless_told_otherwise :: fn() -> void {
     assert_eq(seconds_of(options.timeouts.body), "60")
     assert_eq(seconds_of(options.timeouts.write), "60")
     assert_eq(seconds_of(options.timeouts.linger), "5")
+    assert_eq(seconds_of(options.timeouts.lifetime), "3600")
     assert_eq(seconds_of(options.grace), "30")
+}
+
+@test
+test_a_connection_ends_with_the_last_request_it_may_carry :: fn() -> void {
+    targets: string[]: []
+    seeing :: fn(request: Request) -> Response {
+        targets.push(request.target)
+        return Response {}
+    }
+    pace :: Pace {
+        .deadlines = NotedDeadlines {},
+        .timeouts = Timeouts {},
+        .requests = 2,
+    }
+    two :: paced_by("GET /a HTTP/1.1\r\nHost: h\r\n\r\n" + GET_NEXT + GET_NEXT, seeing, pace)
+    assert(two.end.reason == .Closed, "the second request was the last")
+    assert_eq(two.written, EMPTY_OK + EMPTY_OK_CLOSED)
+    assert_eq(targets.join(" "), "/a /next")
+}
+
+@test
+test_a_connection_past_its_lifetime_ends_with_the_request_under_way :: fn() -> void {
+    ignoring :: fn(request: Request) -> Response = Response {}
+    pace :: Pace {
+        .deadlines = NotedDeadlines {},
+        .timeouts = Timeouts { .lifetime = 0.seconds() },
+    }
+    aged :: paced_by(GET_NEXT + GET_NEXT, ignoring, pace)
+    assert(aged.end.reason == .Closed, "the connection had lived its time")
+    assert_eq(aged.written, EMPTY_OK_CLOSED)
 }
 
 @test

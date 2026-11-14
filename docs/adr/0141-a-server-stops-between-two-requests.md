@@ -65,3 +65,5 @@ A flag that `serve` raises for all its connections at once is refused by the
 check of tasks, which takes a value kept in a struct for one a task may
 write, atomics included: each connection holds its own state, which `serve`
 reaches through its list of connections.
+
+A connection also stops itself through that state, at the limits of 0143.

@@ -40,6 +40,12 @@ export ServeOptions :: struct {
     /// How long the exchanges under way are given to finish once no further
     /// connection is accepted, in all; null for as long as they take.
     grace: Duration | null = 30.seconds()
+    /// The most connections served at a time, one at least; null for no
+    /// limit. The next one waits to be accepted until a connection ends.
+    connections: i64 | null = 512
+    /// The most requests a connection carries, one at least: the response to
+    /// the last says `Connection: close`, and ends it. Null for no limit.
+    requests: i64 | null = 1000
 }
 
 // ---- serving a listener ---------------------------------------------------
@@ -62,13 +68,19 @@ export ServeOptions :: struct {
 /// passed. Cancelling the task that runs the call cuts them all at once.
 /// None is left when the call returns.
 ///
+/// No more than `options.connections` are served at a time: the next one is
+/// accepted once one of them ends. A connection carries `options.requests`
+/// requests at most, and takes no further one once it has lived
+/// `options.timeouts.lifetime`: the response to its last says
+/// `Connection: close`.
+///
 /// A process that has as many open sockets as it may does not end the call:
 /// the next connection is accepted once the process can open one.
 ///
 /// @param listener  where the connections arrive.
 /// @param handler   what answers a request, with a final response.
-/// @param options   how much of a request is read, and how long its client
-///                  may take.
+/// @param options   how much of a request is read, how long its client may
+///                  take, and how many connections and requests are served.
 /// @return          why no further connection was accepted: the listener was
 ///                  closed, or the system refused.
 /// @example
@@ -86,12 +98,12 @@ export serve :: fn(
     defer cut(serving)
     accept :: () -> listener.accept()
     for {
+        make_room(listener, serving, options.connections)
         stream :: patiently(accept)
         if stream is IOError {
             wind_down(serving, options.grace)
             return stream
         }
-        serving.remove_where((connection) -> connection.task.is_ready())
         // A connection keeps its options for as long as it is served: each is
         // handed a copy, which no other task holds.
         own :: options.deep_copy()
@@ -110,6 +122,22 @@ export serve :: fn(
 // milliseconds.
 FIRST_PAUSE_MILLIS: i64: 5
 LONGEST_PAUSE_MILLIS: i64: 1000
+
+// How long `make_room` waits before it looks again, in milliseconds.
+ROOM_PAUSE_MILLIS: i64: 10
+
+// Forget the connections of `serving` that ended, and wait while `most` are
+// still served, unless `listener` is closed meanwhile: the next `accept` then
+// says so.
+make_room :: fn(listener: TcpListener, serving: Connection[], most: i64 | null) -> void {
+    for {
+        serving.remove_where((connection) -> connection.task.is_ready())
+        if most == null || serving.len() < max(most, 1) || listener.is_closed() {
+            return
+        }
+        sleep(ROOM_PAUSE_MILLIS.millis())
+    }
+}
 
 // What `accept` gives, asked again for as long as it fails for want of a
 // descriptor: one comes back when a connection closes. The wait doubles each
@@ -145,6 +173,7 @@ serve_stream :: fn(
         .deadlines = stream,
         .timeouts = options.timeouts,
         .stop = stop,
+        .requests = options.requests,
     }
     end :: serve_paced(stream, stream, handler, options.limits, pace)
     if lingers(end) {
@@ -180,8 +209,9 @@ linger :: fn(stream: TcpStream, time: Duration | null) -> void {
 // ---- stopping -------------------------------------------------------------
 
 // Where a connection is, which it and `serve` both move: `WAITING` for a
-// request, `SERVING` one, or `STOPPED` by `serve`. A connection stopped as it
-// waited is cancelled; one stopped as it served ends after its exchange.
+// request, `SERVING` one, or `STOPPED`, by `serve` or by its own limits. A
+// connection stopped as it waited is cancelled; one stopped as it served ends
+// after its exchange.
 Stop :: struct {
     state: AtomicInt = AtomicInt {}
 }
@@ -191,7 +221,7 @@ SERVING: i64: 1
 STOPPED: i64: 2
 
 // Whether the connection may wait for a request after the one it served:
-// not once `serve` stops.
+// not once it is stopped.
 waits :: fn(stop: Stop) -> bool =
     stop.state.compare_and_set(SERVING, WAITING) || stop.state.load() == WAITING
 
@@ -199,9 +229,24 @@ waits :: fn(stop: Stop) -> bool =
 // once `serve` has stopped it.
 begins :: fn(stop: Stop) -> bool = stop.state.compare_and_set(WAITING, SERVING)
 
-// Whether the exchange under way is the last of its connection, `serve`
-// having stopped.
+// Whether the exchange under way is the last of its connection.
 stopping :: fn(stop: Stop) -> bool = stop.state.load() == STOPPED
+
+// Make the exchange under way the last of its connection.
+last :: fn(stop: Stop) -> void {
+    stop.state.compare_and_set(SERVING, STOPPED)
+}
+
+// Whether the request that begins is the last `pace` lets its connection
+// carry: the `taken`-th, on a connection served since `began`.
+is_last :: fn(pace: Pace, taken: i64, began: Monotonic) -> bool {
+    most :: pace.requests
+    if most != null && taken >= most {
+        return true
+    }
+    lifetime :: pace.timeouts.lifetime
+    return lifetime != null && began.since() >= lifetime
+}
 
 // Stop the connections of `serving`: those waiting for a request at once,
 // the others after the exchange they serve. They are waited for, `grace` in
@@ -222,16 +267,15 @@ wind_down :: fn(serving: Connection[], grace: Duration | null) -> void {
 
 // Stop `connection`: cancelled if it waits for a request. Each move of the
 // connection between waiting and serving fails one of the attempts, which is
-// then made again.
+// then made again. One that stopped itself, serving its last exchange, is
+// left to end it.
 halt :: fn(connection: Connection) -> void {
     state :: connection.stop.state
-    for !connection.task.is_ready() {
+    for !connection.task.is_ready() && state.load() != STOPPED {
         if state.compare_and_set(WAITING, STOPPED) {
             return connection.task.cancel()
         }
-        if state.compare_and_set(SERVING, STOPPED) {
-            return
-        }
+        state.compare_and_set(SERVING, STOPPED)
     }
 }
 
@@ -468,6 +512,37 @@ test_closing_the_listener_lets_an_exchange_under_way_finish :: fn() -> void {
 }
 
 @test
+test_a_connection_carries_no_more_requests_than_the_server_allows :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming, ServeOptions { .requests = 2 }))
+    stream :: calling(address) ?? return
+    stream.write(get("/a") + get("/b") + get("/c"))
+    assert_eq(rest_of(stream), named("/a") + named("/b", true))
+    stream.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_the_last_exchange_a_connection_may_carry_finishes_as_the_server_stops :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    reading :: AtomicBool {}
+    echo :: fn(request: Request) -> Response {
+        reading.store(true)
+        return new_response(STATUS_OK, text_of(request.body))
+    }
+    server :: launch(() -> serve(listener, echo, ServeOptions { .requests = 1 }))
+    stream :: half_posted(address, reading) ?? return
+    listener.close()
+    stream.write("llo")
+    assert_eq(rest_of(stream), named("hello", true))
+    stream.close()
+    assert(server.join() is IOError, "the call tells why it accepts no more")
+}
+
+@test
 test_an_exchange_past_the_grace_is_cut :: fn() -> void {
     listener :: listening() ?? return
     address :: address_of(listener) ?? return
@@ -627,6 +702,48 @@ test_a_process_out_of_descriptors_is_waited_for :: fn() -> void {
     assert_eq(asked[0], 4)
     // Three waits, of 5, 10 and 20 ms.
     assert(began.since() >= 35.millis(), "each failure is waited out, longer each time")
+}
+
+@test
+test_a_server_bounds_its_connections_unless_told_otherwise :: fn() -> void {
+    options :: ServeOptions {}
+    assert(options.connections == 512, "512 connections at a time")
+    assert(options.requests == 1000, "1000 requests a connection")
+}
+
+@test
+test_a_connection_past_the_most_served_waits_for_one_to_end :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming, ServeOptions { .connections = 1 }))
+    first :: calling(address) ?? return
+    first.write(get("/1"))
+    assert_eq(some_of(first, named("/1").byte_len()), named("/1"))
+    // The system takes the second connection; the server leaves it waiting.
+    second :: calling(address) ?? return
+    second.write(get("/2", true))
+    second.read_by(instant_in(300.millis()))
+    assert_eq(some_of(second, 1), "ended after 0 bytes")
+    second.read_by(null)
+    first.close()
+    assert_eq(rest_of(second), named("/2", true))
+    second.close()
+    listener.close()
+    server.join()
+}
+
+@test
+test_closing_the_listener_of_a_full_server_ends_the_call :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    server :: launch(() -> serve(listener, naming, ServeOptions { .connections = 1 }))
+    kept :: calling(address) ?? return
+    kept.write(get("/a"))
+    assert_eq(some_of(kept, named("/a").byte_len()), named("/a"))
+    listener.close()
+    ended :: server.timeout(10.seconds())
+    assert(ended is IOError, "a full server stops when its listener is closed")
+    kept.close()
 }
 
 @test
@@ -817,7 +934,9 @@ test_a_connection_that_never_waits_lets_the_others_be_served :: fn() -> void {
         }
         return Response {}
     }
-    server :: launch(() -> serve(listener, noting))
+    // No cap on the requests of a connection: the busy one would end at it,
+    // and let the other be served, whether it gave way or not.
+    server :: launch(() -> serve(listener, noting, ServeOptions { .requests = null }))
     other :: calling(address) ?? return
     // The other connection is served once first: from then on it waits for
     // its next request, which only its socket can wake it for.

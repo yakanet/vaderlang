@@ -12,6 +12,7 @@
 module "http"
 
 import "std/io"
+import "std/time"
 
 // ---- the end of a connection ----------------------------------------------
 
@@ -103,15 +104,19 @@ serve_paced :: fn(
 ) -> ConnectionEnd {
     source :: BufferedReader { .source = reader }
     wire :: Wire { .sink = writer, .pace = pace }
-    first := true
+    began :: monotonic()
+    taken: i64 = 0
     for {
         if pace != null {
-            ending :: await_request(source, pace, first)
+            ending :: await_request(source, pace, taken == 0)
             if ending != null {
                 return ending
             }
+            taken += 1
+            if is_last(pace, taken, began) {
+                pace.stop.last()
+            }
         }
-        first = false
         request :: read_request(source, limits) ?? return ConnectionEnd { .reason = .ClientDone }
         if request is HttpError {
             return refuse(wire, request)
