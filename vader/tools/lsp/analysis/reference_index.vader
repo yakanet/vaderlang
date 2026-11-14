@@ -192,7 +192,8 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 if sp.hash() in index.named {
                     continue
                 }
-                sym :: typed.resolved.idents[sp.hash()] ?? continue
+                named :: typed.resolved.idents[sp.hash()] ?? continue
+                sym :: typed.resolved.fallback_names[named.id] ?? named
                 key :: target_key(typed, resolve_import_redirect(sym, table))
                 if is_local_kind(sym.kind) {
                     index.confined.add(key)

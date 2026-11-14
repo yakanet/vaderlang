@@ -140,6 +140,7 @@ enter_node :: fn(n: AST.Node, w: BodyWalk) -> AST.Walk = match n {
     is AST.LetStmt -> add_let(n, w)
     is AST.ForStmt -> add_loop_var(n, w)
     is AST.MatchExpr -> add_match_bindings(n, w)
+    is AST.FallbackExpr -> add_fallback_binding(n, w)
     is AST.LambdaExpr -> process_lambda(n, w)
     is AST.DeferStmt -> walk_defer(n, w)
     // A type or a pattern names no local.
@@ -148,7 +149,7 @@ enter_node :: fn(n: AST.Node, w: BodyWalk) -> AST.Walk = match n {
         | AST.ReturnStmt | AST.YieldStmt | AST.BreakStmt | AST.ContinueStmt | AST.IntLitExpr
         | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
         | AST.StringLitExpr | AST.DotVariantExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr
-        | AST.UnaryExpr | AST.BinaryExpr | AST.FallbackExpr | AST.IfExpr | AST.BlockExpr
+        | AST.UnaryExpr | AST.BinaryExpr | AST.IfExpr | AST.BlockExpr
         | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr
         | AST.IntrinsicCallExpr -> .Descend
 }
@@ -183,14 +184,26 @@ add_loop_var :: fn(for_stmt: AST.ForStmt, w: BodyWalk) -> AST.Walk {
 // a symbol the enclosing fn has no local for.
 add_match_bindings :: fn(m: AST.MatchExpr, w: BodyWalk) -> AST.Walk {
     c :: w.captures ?? return .Descend
-    binding :: m.binding
-    if binding != null {
-        add_symbol_at(binding.name_span, c.scope, w.ctx.symbol_index)
-    }
+    add_header_binding(m.binding, c.scope, w)
     for arm in m.arms {
         add_pattern_bindings(arm.pattern, c.scope, w.ctx.symbol_index)
     }
     return .Descend
+}
+
+add_fallback_binding :: fn(f: AST.FallbackExpr, w: BodyWalk) -> AST.Walk {
+    c :: w.captures ?? return .Descend
+    add_header_binding(f.binding, c.scope, w)
+    return .Descend
+}
+
+add_header_binding :: fn(
+    binding: AST.SimpleBinding | null,
+    scope: Set<i32>,
+    w: BodyWalk,
+) -> void {
+    named :: binding ?? return
+    add_symbol_at(named.name_span, scope, w.ctx.symbol_index)
 }
 
 record_ident_capture :: fn(ident: AST.IdentExpr, w: BodyWalk) -> AST.Walk {

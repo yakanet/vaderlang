@@ -1,0 +1,58 @@
+// In `x :: e else ...`, the clauses see `e` as `x`, narrowed to what each one
+// handles : an `IOError` in `else is IOError`, `null` and the errors in a bare
+// `else`. A lambda in a clause captures that value ; after the declaration, `x`
+// is what no clause handled, and a `:=` one is rebound like any other.
+
+module "snippet"
+
+import "std/console"
+import "std/io"
+
+open_thing :: fn(n: i32) -> string | IOError | null {
+    if n == 0 {
+        return null
+    }
+    if n < 0 {
+        return IOError { .msg = "negative ${n}", .kind = .Other, .code = 1 }
+    }
+    return "thing ${n}"
+}
+
+describe :: fn(n: i32) -> string {
+    s :: open_thing(n) else is null {
+        return "absent"
+    } else is IOError {
+        return "failed: ${s.msg}"
+    }
+    return s
+}
+
+with_closure :: fn(n: i32) -> string {
+    s := open_thing(n) else {
+        report :: () -> "${s == null}"
+        report()
+    }
+    s = s + "!"
+    return s
+}
+
+typed :: fn(n: i32) -> string {
+    s: string: open_thing(n) else is IOError {
+        s.msg
+    } else {
+        "nothing"
+    }
+    return s
+}
+
+main :: fn() -> i32 {
+    println(describe(1))
+    println(describe(0))
+    println(describe(-3))
+    println(with_closure(2))
+    println(with_closure(0))
+    println(with_closure(-1))
+    println(typed(-5))
+    println(typed(0))
+    return 0
+}

@@ -1,0 +1,127 @@
+# Lower
+
+## snippet
+  snippet.open_thing :: fn(n: i32) -> IOError | null | string {  // snippet$open_thing
+      if n == 0 {
+          return null
+      }
+      if n < 0 {
+          return IOError {
+              .msg = {
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
+                  __off_1: i64 = 0
+                  __off_1 = std.core.write_string_at(__buf_0, __off_1, "negative ")
+                  __off_1 = std.core.write_int(__buf_0, __off_1, n)
+                  std.core.finish_buffer(__buf_0, __off_1)
+              } :string,
+              .kind = IOErrorKind(0),
+              .code = 1,
+          }
+      }
+      return {
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "thing ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, n)
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string
+  }
+  snippet.describe :: fn(n: i32) -> string {  // snippet$describe
+      s: string = {
+          __coalesce_0: IOError | null | string = snippet.open_thing(n)
+          s: IOError | null | string = __coalesce_0
+          if __coalesce_0 is null {
+              {
+                  return "absent"
+              }
+          } else if __coalesce_0 is IOError {
+              {
+                  return concat_2("failed: ", IOError(s).msg)
+              }
+          } else {
+              string(__coalesce_0)
+          } :string
+      }
+      return s
+  }
+  snippet.with_closure :: fn(n: i32) -> string {  // snippet$with_closure
+      s: string = {
+          __coalesce_0: IOError | null | string = snippet.open_thing(n)
+          s: IOError | null | string = __coalesce_0
+          if __coalesce_0 is IOError | null {
+              {
+                  report: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = s }
+                  __lambda_snippet_0(report)
+              } :string
+          } else {
+              string(__coalesce_0)
+          } :string
+      }
+      s = concat_2(s, "!")
+      return s
+  }
+  snippet.typed :: fn(n: i32) -> string {  // snippet$typed
+      s: string = {
+          __coalesce_0: IOError | null | string = snippet.open_thing(n)
+          s: IOError | null | string = __coalesce_0
+          if __coalesce_0 is IOError {
+              {
+                  IOError(s).msg
+              } :string
+          } else if __coalesce_0 is null {
+              {
+                  "nothing"
+              } :string
+          } else {
+              string(__coalesce_0)
+          } :string
+      }
+      return s
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(snippet.describe(1))
+      std.console.println<string>(snippet.describe(0))
+      std.console.println<string>(snippet.describe(-3))
+      std.console.println<string>(snippet.with_closure(2))
+      std.console.println<string>(snippet.with_closure(0))
+      std.console.println<string>(snippet.with_closure(-1))
+      std.console.println<string>(snippet.typed(-5))
+      std.console.println<string>(snippet.typed(0))
+      return 0
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: IOError | null | string }
+  __lambda_snippet_0 :: fn(__env_1: __lambda_env_snippet_1) -> string {
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(5))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_bool(__buf_0, __off_1, (IOError | null)(__env_1.cap_0) is null)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+  std/io
+    struct std.io.IOError  // std_io$IOError

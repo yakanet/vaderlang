@@ -2264,6 +2264,7 @@ parse_typed_let :: fn(p: Parser) -> LetStmt {
         p.expect(.Assign, "`=` or `:` after type annotation")
     }
     value :: p.parse_expr(0)
+    name_fallback(value, name_tok)
     binding :: SimpleBinding {
         .span      = name_tok.span,
         .name      = name_tok.text,
@@ -2283,6 +2284,7 @@ parse_let :: fn(p: Parser) -> LetStmt {
     decl_tok :: p.advance()  // `::` or `:=`
     mutable :: decl_tok.kind == .DeclVar
     value :: p.parse_expr(0)
+    name_fallback(value, name_tok)
     binding :: SimpleBinding {
         .span      = name_tok.span,
         .name      = name_tok.text,
@@ -2295,6 +2297,17 @@ parse_let :: fn(p: Parser) -> LetStmt {
         .ty      = null,
         .value   = value,
     }
+}
+
+// `x :: e else ...` : the clauses see `e` under the declared name, a binding of its
+// own, minted at the empty span right after the declared name, where no other
+// binding starts.
+name_fallback :: fn(value: Expr, name_tok: Token) -> void {
+    if value !is FallbackExpr || value.coalesce {
+        return
+    }
+    at :: Span { .start = name_tok.span.end, .end = name_tok.span.end }
+    value.binding = SimpleBinding { .span = at, .name = name_tok.text, .name_span = at }
 }
 
 // Lookahead : after the leading `[`, scan past the matching `]` and check

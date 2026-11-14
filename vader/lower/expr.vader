@@ -714,6 +714,16 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
         .type = left_ty, .value = lower_expr(ctx, e.left),
     }
     tmp_ref :: LoweredIdent { .span = e.span, .type = left_ty, .symbol = tmp }
+    stmts: LoweredStmt[]: [let_stmt]
+    // `x :: e else ...` binds `x` to the one evaluation above, in a slot of its own :
+    // a lambda in a clause may capture it, while the tests need the bare value.
+    binding :: e.binding
+    if binding != null {
+        bound :: resolve_ident(ctx, binding.name_span)
+        if bound is Symbol {
+            stmts.push(cell_aware_let(ctx, bound, bound.name, tmp_ref, left_ty, e.span))
+        }
+    }
     rest := left_ty
     for clause in e.clauses {
         rest = subtract_type_with_impls(rest, ctx.types.clause_type(clause), ctx.typed)
@@ -731,7 +741,7 @@ lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
             .else_block = wrap_as_block(chain, e.span),
         }
     }
-    return LoweredBlock { .span = e.span, .type = result, .stmts = [let_stmt], .trailing = chain }
+    return LoweredBlock { .span = e.span, .type = result, .stmts = stmts, .trailing = chain }
 }
 
 // The value of a fallback when no clause takes it : `_t` cast to the result, less

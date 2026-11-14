@@ -49,6 +49,9 @@ export ResolvedModule :: struct {
     /// `:=`), or the variable of a `for ... in`. Consumed by
     /// let_assign.vader::check_assign to surface T3041.
     immutable_locals: Map<i32, ConstLocal>
+    /// The declaration a name in the clauses of its `else` stands for, keyed by the
+    /// clause name's symbol id : one name to the reader, two bindings here.
+    fallback_names: Map<i32, Symbol> = Map<i32, Symbol> {}
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
     /// for a module that was not body-walked, which claims nothing.
     rebind_free: Set<i32> = Set<i32> {}
@@ -194,6 +197,7 @@ export resolve_module_files :: fn(
         .import_bindings  = bindings,
         .idents           = resolved.idents,
         .immutable_locals = resolved.immutable_locals,
+        .fallback_names   = resolved.fallback_names,
         .rebind_free      = resolved.rebind_free,
         .loop_rebinds     = resolved.loop_rebinds,
         .closure_rebound  = resolved.closure_rebound,

@@ -274,6 +274,8 @@ local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram
             + "turn ; copy it into a `:=` local to change it"
         .MatchHeader  -> "`${ident.name}` names the scrutinee of its `match` ; "
             + "copy it into a `:=` local to change it"
+        .FallbackName -> "`${ident.name}` names the value its `else` falls back from ; "
+            + "copy it into a `:=` local to change it"
     }
 }
 

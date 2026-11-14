@@ -1,0 +1,11 @@
+# stdout
+thing 1
+absent
+failed: negative -3
+thing 2!
+true!
+false!
+negative -5
+nothing
+# exit
+0

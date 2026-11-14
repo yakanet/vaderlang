@@ -141,6 +141,13 @@ infer_fallback :: fn(
     diags: Diagnostic[],
 ) -> Type {
     left_ty :: check_expr(e.left, null, typed, diags)
+    // `x :: e else ...` : `x` is `left` in the clauses, each narrowing it to what it
+    // handles.
+    binding :: e.binding
+    bound :: header_symbol(binding, typed)
+    if binding != null && bound != null {
+        assign_binding_types(binding, left_ty, typed, diags)
+    }
     remaining := left_ty
     for c in e.clauses {
         handled :: handled_by_clause(e, c, remaining, typed, diags)
@@ -150,22 +157,38 @@ infer_fallback :: fn(
     result := remaining
     has_value := false
     for c in e.clauses {
+        prev: NarrowSlot | null = null
+        if bound != null {
+            prev = push_narrow(typed, bound.id, typed.expr_types[c.id] ?? TY_NEVER)
+        }
+        got :: check_clause_body(c.body, remaining, typed, diags)
+        if bound != null {
+            pop_narrow(typed, bound.id, prev)
+        }
         body :: c.body
-        if body is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt {
-            check_stmt(body, typed, diags, null)
-            continue
+        if body is AST.Expr && got !is NeverType {
+            has_value = true
+            result = fallback_result(e, body, got, remaining, result, typed, diags)
         }
-        got :: check_expr(body, remaining, typed, diags)
-        if got is NeverType {
-            continue
-        }
-        has_value = true
-        result = fallback_result(e, body, got, remaining, result, typed, diags)
     }
     if remaining is NeverType && !has_value && !e.coalesce {
         diags.push(typecheck_error(.FallbackLeavesNothing, e.span, ""))
     }
     return result
+}
+
+// The type a clause body gives : `never` for a statement that leaves.
+check_clause_body :: fn(
+    body: AST.FallbackBody,
+    remaining: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if body is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt {
+        check_stmt(body, typed, diags, null)
+        return TY_NEVER
+    }
+    return check_expr(body, remaining, typed, diags)
 }
 
 // What `c` takes away from `remaining`, the values of `left` no clause before it

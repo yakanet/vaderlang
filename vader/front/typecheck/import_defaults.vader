@@ -65,6 +65,11 @@ copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram)
                 copy_binding_resolutions(n.binding, from, into)
             }
         }
+        is AST.FallbackExpr -> {
+            if n.binding != null {
+                copy_binding_resolutions(n.binding, from, into)
+            }
+        }
         is AST.LambdaExpr -> {
             for p in n.params {
                 copy_span(p.span, from, into)
@@ -81,7 +86,7 @@ copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram)
         is AST.FieldExpr | AST.CallExpr | AST.StringLitExpr | AST.IntLitExpr | AST.BoolLitExpr
             | AST.NullLitExpr | AST.CharLitExpr | AST.FloatLitExpr | AST.ExprStmt | AST.BlockExpr
             | AST.ReturnStmt | AST.IfExpr | AST.DotVariantExpr | AST.StructLitExpr | AST.UnaryExpr
-            | AST.AssignStmt | AST.IndexExpr | AST.FallbackExpr | AST.GenericInstExpr
+            | AST.AssignStmt | AST.IndexExpr | AST.GenericInstExpr
             | AST.SeqLitExpr | AST.RangeExpr | AST.IntrinsicCallExpr | AST.ArrayTypeExpr
             | AST.FnTypeExpr | AST.CastExpr | AST.BreakStmt | AST.ContinueStmt
             | AST.YieldStmt | AST.DeferStmt | AST.DestructureAssignStmt | AST.IsPattern

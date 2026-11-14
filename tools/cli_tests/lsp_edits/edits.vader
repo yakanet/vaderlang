@@ -610,3 +610,36 @@ test_a_parameter_is_renamed_and_hovered_from_its_declaration :: fn() -> void {
     assert_renamed(src, results[2], "n", ["n: i32)", "n * 2"])
     assert_eq(string_at(results[3], ["contents", "value"]) ?? "", "```\nfactor: i32\n```")
 }
+
+// `listener` names the declaration and, in the clauses of its `else`, the value
+// the `else` falls back from: two bindings, one name to rename.
+FALLBACK_NAME_SOURCE :: r"""
+    module "main"
+
+    import "std/io"
+
+    open :: fn() -> i32 | IOError = 3
+
+    main :: fn() -> i32 {
+        listener :: open() else {
+            return listener.code
+        }
+        return listener
+    }
+    """
+
+@test
+test_a_name_is_renamed_inside_the_clauses_of_its_else :: fn() -> void {
+    src :: FALLBACK_NAME_SOURCE
+    results :: drive(
+        "fallback_name_rename",
+        src,
+        [
+            ask_at("textDocument/rename", position_of(src, "listener ::")),
+            ask_at("textDocument/rename", position_of(src, "listener.code")),
+        ],
+    )
+    needles :: ["listener ::", "listener.code", "listener\n"]
+    assert_renamed(src, results[0], "listener", needles)
+    assert_renamed(src, results[1], "listener", needles)
+}

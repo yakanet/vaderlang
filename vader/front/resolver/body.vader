@@ -44,6 +44,8 @@ export ConstLocal :: enum {
     LoopVariable
     /// The name a `match` header gives its scrutinee.
     MatchHeader
+    /// The declared name, inside the clauses of its `else`.
+    FallbackName
 }
 
 /// Resolution output. `idents` keys every resolved `AST.IdentExpr`
@@ -60,6 +62,9 @@ export ResolvedFile :: struct {
     /// variable of a `for ... in`. `name :=` ones don't appear here. Read by
     /// typecheck's check_assign for T3041.
     immutable_locals: Map<i32, ConstLocal>
+    /// The declaration a name in the clauses of its `else` stands for, keyed by the
+    /// clause name's symbol id : one name to the reader, two bindings here.
+    fallback_names: Map<i32, Symbol> = Map<i32, Symbol> {}
     /// Locals, parameters and pattern bindings no assignment of the file rebinds,
     /// `::` or not. Two reads of one yield the same value: within one iteration,
     /// for a `for` loop variable, which the loop itself advances. A symbol missing
@@ -139,6 +144,7 @@ export resolve_module_programs :: fn(
     return ResolvedFile {
         .idents = state.idents,
         .immutable_locals = state.immutable_locals,
+        .fallback_names = state.fallback_names,
         .rebind_free = state.rebind_free_locals(),
         .loop_rebinds = state.loop_rebinds,
         .closure_rebound = state.closure_rebound,
@@ -153,6 +159,7 @@ export resolve_module_programs :: fn(
 ResolveState :: struct {
     idents:           Map<u64, Symbol>
     immutable_locals: Map<i32, ConstLocal>
+    fallback_names:   Map<i32, Symbol> = Map<i32, Symbol> {}
     type_param_bounds: Map<i32, AST.Expr>
     /// W0015 candidates, in declaration order: one entry per `:=` statement.
     mutable_decls:    MutableDecl[]
@@ -649,6 +656,7 @@ walk_let :: fn(self: ResolveState, s: AST.LetStmt) -> void {
     self.walk_expr(s.value)
     bound: Symbol[]: []
     self.bind_let_binding(s.binding, bound)
+    self.note_fallback_name(s.value, bound)
     if !s.mutable {
         for sym in bound {
             self.immutable_locals[sym.id] = .Declared
@@ -657,6 +665,16 @@ walk_let :: fn(self: ResolveState, s: AST.LetStmt) -> void {
         // `_ := f()` binds nothing, so there is no name to name.
         self.mutable_decls.push(MutableDecl { .syms = bound, .span = binding_span(s.binding) })
     }
+}
+
+// `x :: e else ...` : the `x` of the clauses stands for the declared `x`.
+note_fallback_name :: fn(self: ResolveState, value: AST.Expr, bound: Symbol[]) -> void {
+    if value !is AST.FallbackExpr || bound.len() != 1 {
+        return
+    }
+    binding :: value.binding ?? return
+    named :: self.idents[binding.name_span.hash()] ?? return
+    self.fallback_names[named.id] = bound[0]
 }
 
 // A `for ... in` variable : a constant binding the loop alone gives a value each
@@ -900,6 +918,8 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
         }
         is AST.FallbackExpr -> {
             self.walk_expr(e.left)
+            self.scope.push()
+            self.bind_header_name(e.binding, .FallbackName)
             for c in e.clauses {
                 self.walk_opt_expr(c.test)
                 match body :: c.body {
@@ -907,6 +927,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
                     is AST.Expr -> { self.walk_expr(body) }
                 }
             }
+            self.scope.pop()
         }
         is AST.IfExpr -> { self.walk_if(e) }
         is AST.MatchExpr -> { self.walk_match(e) }
@@ -966,12 +987,7 @@ walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {
     // at the `x` token so the type-checker can find the symbol from the
     // MatchExpr alone (mirrors the param / type-param declarations above).
     self.scope.push()
-    binding :: e.binding
-    if binding != null {
-        sym :: self.bind_local(.Local, binding.name, binding.name_span)
-        self.idents[binding.name_span.hash()] = sym
-        self.immutable_locals[sym.id] = .MatchHeader
-    }
+    self.bind_header_name(e.binding, .MatchHeader)
     for arm in e.arms {
         self.scope.push()
         self.bind_pattern(arm.pattern)
@@ -980,6 +996,20 @@ walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {
         self.scope.pop()
     }
     self.scope.pop()
+}
+
+// The name `match x :: e` or `x :: e else ...` gives the value its arms or clauses
+// test, a constant. Registered in `idents` at its own span so the type-checker
+// finds the symbol from the node alone.
+bind_header_name :: fn(
+    self: ResolveState,
+    binding: AST.SimpleBinding | null,
+    why: ConstLocal,
+) -> void {
+    named :: binding ?? return
+    sym :: self.bind_local(.Local, named.name, named.name_span)
+    self.idents[named.name_span.hash()] = sym
+    self.immutable_locals[sym.id] = why
 }
 
 bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {

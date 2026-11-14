@@ -268,7 +268,11 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> i64 | null {
 
 // What a fallback yields: `left` itself, or one of its clauses.
 fallback_expr_value :: fn(ctx: WalkCtx, e: AST.FallbackExpr) -> i64 | null {
-    values: (i64 | null)[]: [ctx.value(e.left)]
+    left :: ctx.value(e.left)
+    if e.binding != null {
+        ctx.bind(e.binding, left)
+    }
+    values: (i64 | null)[]: [left]
     for c in e.clauses {
         values.push(ctx.fallback_value(c.body))
     }
