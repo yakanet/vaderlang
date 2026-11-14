@@ -4,6 +4,8 @@
 
 Accepted, shipped 2026-07-13. Distilled 2026-08-30 from `docs/ERROR_HANDLING.md`,
 which this record replaces.
+Amended by 0144: a fallback `else` can early-return the bad case from an
+expression.
 
 ## Context
 

@@ -297,10 +297,10 @@ From the tightest (level 1) to the loosest:
 | 7     | `^`                                    | left           |
 | 8     | `\|`                                   | left           |
 | 9     | `..<`, `..=`                           | non-assoc      |
-| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `is`, `!is`, `in`, `!in` | non-assoc      |
-| 11    | `&&`                                   | left           |
-| 12    | `\|\|`                                 | left           |
-| 13    | `??` (null-coalescing)                 | left (non-chaining) |
+| 10    | `else` (fallback)                      | one chain      |
+| 11    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `is`, `!is`, `in`, `!in` | non-assoc      |
+| 12    | `&&`                                   | left           |
+| 13    | `\|\|`                                 | left           |
 | 14    | `=` (statement-level only)             | n/a            |
 
 Non-associative operators do not chain: `a == b == c` is a parse error; write `(a == b) == c`.
@@ -444,10 +444,10 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 A newline ends a statement, except in these five cases, where it is ignored:
 
 1. Inside an open `(` or `[`, and inside a `${...}` interpolation. Inside a `{ }` block, newlines still separate statements, even when the block is inside brackets (the body of a lambda passed as an argument).
-2. After an operator that still needs its operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+%`, `-%`, `*%`, `??`, `..<`, `..=`, and the spread `...`. A newline after `!` is not ignored.
+2. After an operator that still needs its operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+%`, `-%`, `*%`, `else`, `..<`, `..=`, and the spread `...`. A newline after `!` is not ignored.
 3. After a comma.
 4. After a token that needs a right-hand side: `=`, `:`, `->`, `::`, `:=`, and the compound assignments `+=` `-=` `*=` `/=` `%=` `+%=` `-%=` `*%=`.
-5. Before an operator with no prefix form. When the next line starts with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, it continues the previous expression, in a `{ }` block too. Comment lines in between are skipped. A compound assignment (`+=`, `*=`, ...) does not continue the previous line, nor do `-`, `~`, `!` and `.`, which can start an expression.
+5. Before an operator with no prefix form. When the next line starts with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `else`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, it continues the previous expression, in a `{ }` block too. Comment lines in between are skipped. A compound assignment (`+=`, `*=`, ...) does not continue the previous line, nor do `-`, `~`, `!` and `.`, which can start an expression.
 
 There is no backslash continuation: a `\` at the end of a line is a lexical error. To break a long expression, use parentheses or break before or after a binary operator.
 
@@ -475,7 +475,7 @@ label :: if verbose {
     "${n}"
 }
 name :: first_name(user)
-    ?? return "anonymous"
+    else return "anonymous"
 
 // OK: break after comma
 list :: [
@@ -1273,28 +1273,50 @@ must_greet :: fn(a: Animal | null) -> string {
 
 Comparing with `null` a value that can never be `null` is an error, as `n is null` would be.
 
-#### Null-coalescing `??`
+#### Fallback `else`
 
-`left ?? fallback` evaluates `left` once and gives its value when it is not `null`; otherwise it evaluates `fallback`. The result has the type of `left` without `null`. A `left` that cannot hold `null` is an error, a `T | Error` included.
+`left else fallback` evaluates `left` once. When `left` is a failure, it gives the fallback; otherwise it gives the value of `left`. A failure is `null`, or a value whose type implements `Error` (§10 *`Error` trait*). The result has the type of `left` without its failures.
 
 The fallback is one of:
 
-- a value, assignable to the type of the result;
-- a divergent statement, typed `never`: `return`, `return <expr>`, `break` or `continue`;
+- a value, assignable to the type of the result; a written `null` adds `null` back to the result;
+- a divergent statement: `return`, `return <expr>`, `break` or `continue`;
 - a block `{ ... }`, whose trailing expression or divergence gives the value.
 
 ```vader
-port :: settings["port"] ?? 8080
-node :: resolve(sym) ?? return null
-v    :: cache[k] ?? {
+port :: settings["port"] else 8080
+node :: resolve(sym) else return null
+text :: read_file_string(path) else ""
+v    :: cache[k] else {
     log("miss ${k}")
     continue
 }
 ```
 
-`??` can appear wherever a value can. It binds looser than every other binary operator, `||` included (§3 *Operator precedence*): `a ?? b + c` is `a ?? (b + c)`.
+`else is T { ... }` handles the type `T` alone, and its braces are required. Clauses chain: each one tests the value of `left`, in order, and handles what the clauses before it left. A bare `else` after an `else is` chain takes the failures that remain.
 
-`or_else` in `std/option` takes the fallback as a function, which receives the error on a `T | Error`.
+```vader
+config :: load(path) else is NotFound { defaults() } else {
+    return null
+}
+```
+
+On a declaration `x :: left else ...`, the clauses see the failure under the declared name, narrowed to what each one handles:
+
+```vader
+count :: parse_int(text) else return count    // returns the `ParseError`
+```
+
+The rules:
+
+- A bare `else` handles `null` and the members of `left`'s type known to implement `Error`. A type parameter, a trait value or `any` may hold an error or not: write `else is Error` to handle it.
+- A clause with nothing left to handle is an error, a bare `else` on a `left` that holds no failure included.
+- When every value of `left` goes to a clause that leaves, the fallback has no value: an error.
+- `a else b else c` is an error, since the first `else` handled every failure of `a`. A fallback on `b` is written `a else (b else c)` or `a else { b else c }`.
+- A clause gives a value or leaves: `f() else count += 1` is an error.
+- The compiler warns when a block follows a value fallback on the same line, `x else y { ... }`: the block runs whatever the `else` took, and an `is` may be missing.
+
+`else` can appear wherever a value can. It binds looser than arithmetic and ranges, and tighter than comparisons, `&&` and `||` (§3 *Operator precedence*): `a else b + c` is `a else (b + c)`, and `m[k] else false && ready` is `(m[k] else false) && ready`. A `return` takes all that follows it: `(x else return 1) > 0` needs its parentheses.
 
 ### Enums
 
@@ -2918,15 +2940,16 @@ The standard library's errors (`IOError`, `ParseError`, ...) implement it. In a 
 
 ### Error propagation
 
-An error propagates by a test and a `return`; past the test, the value is narrowed to its success type (§3 *Type tests and narrowing*):
+An error propagates by a fallback that returns it (§4 *Fallback `else`*), or by a test and a `return`; past either, the value is narrowed to its success type (§3 *Type tests and narrowing*):
 
 ```vader
 process :: fn(path: string) -> string | Error {
-    raw :: read_file(path)
-    if raw is Error { return raw }    // raw is `string` below
+    raw :: read_file(path) else return raw    // raw is `string` below
     return parse(raw)
 }
 ```
+
+Nothing propagates on its own: the `return` and what it returns are written.
 
 ### Explicit match
 
