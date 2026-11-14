@@ -67,10 +67,9 @@ export concat_file_decls :: fn(files: SourceFile[]) -> Decl[] {
 /// against a list of roots, which is what this replaces.
 @displayable
 export ModuleOrigin :: enum(u8) {
-    /// This build named it: the entry's own folder, a `--include-paths` flag (in a
-    /// driven build the compiler's own sources arrive this way), the project root,
-    /// a `vader.json includePaths` entry holding no library marker, the generated
-    /// tree.
+    /// This build named it: the entry's own folder, a `--include-paths` flag, the
+    /// project root, a `vader.json includePaths` entry holding no library marker,
+    /// the generated tree.
     ///
     /// The ENTRY is always this, whatever it sits under: a root exists because the
     /// caller named that file. `paths[0]` is that root and first match wins, so the
@@ -225,8 +224,7 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string = sidecar
 
 /// The toolchain's `<base>/subdir`, or null when it does not hold `marker`,
 /// i.e. when the running binary is not part of a bundle. `<base>` is
-/// `$VADER_HOME`, else the folder the process was told
-/// (`register_toolchain_root`), else the executable's own.
+/// `$VADER_HOME`, else the executable's own folder.
 ///
 /// Separate from `resolve_sidecar` because the distinction is load-bearing for
 /// namespace reservation: a bundle's library root is AUTHORITATIVE (the toolchain
@@ -239,43 +237,15 @@ export sidecar_root :: fn(subdir: string, marker: string) -> string | null {
     if home != null {
         return home
     }
-    candidate :: join_path(toolchain_base(), subdir)
+    candidate :: join_path(current_executable_location().dir_of(), subdir)
     if exists(join_path(candidate, marker)) {
         return candidate
     }
     return null
 }
 
-// Where the toolchain sits when `$VADER_HOME` does not say: the folder the
-// process was told, else the executable's own.
-toolchain_base :: fn() -> string {
-    told :: registered_toolchain().path
-    if told != "" {
-        return told
-    }
-    return current_executable_location().dir_of()
-}
-
-// The toolchain folder a process was told it belongs to; empty when none was.
-ToolchainFolder :: struct {
-    path: string = ""
-}
-
-@singleton
-registered_toolchain :: fn() -> ToolchainFolder = ToolchainFolder {}
-
-/// Declare the folder holding the toolchain (its `lib/` and `runtime/`), for a
-/// process that does not run from it: a build driver, compiled into its
-/// project's `build/driver/`, is told it by the CLI that runs it. `sidecar_root`
-/// probes it after `$VADER_HOME`, in place of the executable's own folder.
-///
-/// @param dir  the toolchain folder; empty leaves the executable's folder.
-export register_toolchain_root :: fn(dir: string) -> void {
-    registered_toolchain().path = dir
-}
-
 /// Environment variable naming the toolchain's own directory: the one holding
-/// `lib/`, `runtime/` and (in a bundle) `src/`.
+/// `lib/` and `runtime/`.
 ///
 /// Optional. Without it the toolchain is found beside the binary, then relative
 /// to the working directory, and those two are all a bare binary has, which is
@@ -344,15 +314,6 @@ export origin_of_root :: fn(dir: string) -> ModuleOrigin {
 /// Directory name a bundled library root goes by, beside the binary.
 export LIBRARY_ROOT_DIR :: "lib"
 
-/// The one module under the library root allowed to import `vader/**`: the
-/// build-driver contract, which exists to drive the compiler.
-///
-/// A driver LINKS the compiler (a hook shares its compilation unit: type indices
-/// and atom ids are per-unit), so this cannot be a library that merely reads the
-/// language's shapes. `toolchain/span` and `toolchain/ast` are those, and they
-/// import nothing from `vader/`, which is what lets a library depend on them.
-export DRIVER_CONTRACT_MODULE :: "toolchain/build"
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/target"
@@ -371,19 +332,6 @@ test_a_path_from_the_root_takes_the_working_drive :: fn() -> void {
     cwd :: current_working_directory()
     drive :: if current_os() == .Windows { cwd.byte_slice(0, 2) } else { "" }
     assert_eq(absolute_path("/x"), "${drive}/x")
-}
-
-@test
-test_a_registered_toolchain_root_provides_its_sidecars :: fn() -> void {
-    toolchain :: join_path(temp_dir(), "vader_registered_toolchain_probe")
-    create_dir(join_path(toolchain, "kit"))
-    write_file(join_path(toolchain, "kit/marker"), "")
-    register_toolchain_root(toolchain)
-    found :: sidecar_root("kit", "marker")
-    register_toolchain_root("")
-    if get_env(TOOLCHAIN_HOME_VAR) == null {
-        assert_eq(found else "", join_path(toolchain, "kit"))
-    }
 }
 
 @test

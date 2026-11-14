@@ -694,16 +694,15 @@ parse_file :: fn(content: string, path: string, keep_docs: bool) -> ParsedSource
 }
 
 // Assemble the plain (unrooted) include-paths for a project: GCC `-I` style,
-// first-match-wins: the `--include-paths` flag entries (a driven build injects the
-// compiler's own sources through these), then a BUNDLED library root when the
-// binary is part of one, then the project folder itself, then each `vader.json
-// includePaths` entry joined onto it, then the cwd-relative library fallback.
+// first-match-wins: the `--include-paths` flag entries, then a BUNDLED library
+// root when the binary is part of one, then the project folder itself, then each
+// `vader.json includePaths` entry joined onto it, then the cwd-relative library
+// fallback.
 //
 // The bundled root outranks the project to RESERVE the namespaces `lib/` ships,
 // which are ordinary directory names (`std`, and in time `json`, `cli`, ...).
 // Project-first, a project declaring `module "cli"` wins over the shipped `cli`,
-// and in a DRIVEN build, where the compiler's sources compile in the same unit,
-// `vader/tools/cli` would then be built against the user's module.
+// and every module of `lib/` importing `cli` is then built against the user's.
 //
 // Only the BUNDLED root is promoted, never the cwd-relative fallback: a bundle's
 // root is authoritative (the marker proves the toolchain planted it) where a bare
@@ -924,9 +923,8 @@ test_project_include_paths_labels_a_manifest_library_root :: fn() -> void {
 
 @test
 test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
-    // A `--include-paths` flag is whatever the caller pointed at, including, in a
-    // driven build, the compiler's own sources. Never the toolchain's, so R2034
-    // does not fire on the compiler importing itself through that root.
+    // A `--include-paths` flag is whatever the caller pointed at, never the
+    // toolchain's own root.
     paths :: project_include_paths(null, Manifest {}, ["some/where"])
     assert(paths.len() >= 1, "the flag is a root")
     assert_eq(paths[0].dir, "some/where")

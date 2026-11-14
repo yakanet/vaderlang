@@ -224,9 +224,9 @@ if [ "$dist" = 1 ]; then
   esac
   out="dist/vader-${os}-${arch}"
 
-  step "[dist] Bundling $out  (vader + lib/ + src/vader + runtime/c + third_party/ + doc-template/)"
+  step "[dist] Bundling $out  (vader + lib/ + runtime/c + third_party/ + doc-template/)"
   rm -rf "$out"
-  mkdir -p "$out/runtime" "$out/src"
+  mkdir -p "$out/runtime"
   cp build/vader "$out/vader"
   # `lib/` holds every namespace the toolchain ships FOR CONSUMPTION, copied
   # WHOLE rather than namespace by namespace: a named list silently stops
@@ -234,21 +234,7 @@ if [ "$dist" = 1 ]; then
   # be missing from a bundle while the checkout was fine.
   # The loader's library probe (`sidecar_root`) finds `<exe>/lib` by the
   # `std/io/io.vader` marker.
-  #
-  # The compiler's sources go to `src/`, NOT into `lib/`: they must ship (a
-  # `build.vader` is compiled, and an import resolves from source), but the
-  # compiler is not a library: it is the implementation a driver links. Keeping
-  # it out of `lib/` makes that structural rather than policed.
   cp -R lib "$out/lib"
-  cp -R vader "$out/src/vader"
-  # Drop the human front-ends -- see bootstrap/dist-exclude.txt, which carries the
-  # list, the reason it names what to DROP, and the trim-then-filter rule its three
-  # readers share.
-  sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' bootstrap/dist-exclude.txt \
-    | grep -Ev '^(#|$)' \
-    | while read -r excluded; do
-        rm -rf "$out/src/vader/$excluded"
-      done
   cp -R runtime/c "$out/runtime/"
   cp -R third_party "$out/third_party"
   cp -R tools/doc-site "$out/doc-template"

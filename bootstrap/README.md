@@ -22,4 +22,3 @@ On Windows, `bootstrap\build.ps1` does the same: see [`README.md`](../README.md)
 | `build.sh`, `build.ps1` | the three-stage build |
 | `verify.sh` | the fixed-point check |
 | `seed.sh` | `check` and `regenerate` |
-| `dist-exclude.txt` | the directories of `vader/` a bundle leaves out |

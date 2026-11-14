@@ -35,9 +35,6 @@ export DocInputs :: struct {
     entry: string
     /// The project folder, null for none.
     project_root: string | null
-    /// The folders the load searches beside the project's roots, as
-    /// `--include-paths` names them.
-    include_paths: string[]
     /// The lines of the key beside the files: the compiler, the entry, the
     /// project and its `vader.json`, the roots searched, the scope. Empty when
     /// the compiler cannot be read: no stamp is then written or matched.
@@ -46,25 +43,21 @@ export DocInputs :: struct {
 
 /// Take what the data of `scope` depends on, beside the files the load reads.
 ///
-/// @param scope          the modules documented (`doc_scope`).
-/// @param entry          the file the load starts from.
-/// @param project_root   the project folder, null for none.
-/// @param include_paths  the folders the load searches beside the project's
-///                       roots.
-/// @param compiler       a digest of the running compiler, null when it cannot
-///                       be read.
+/// @param scope         the modules documented (`doc_scope`).
+/// @param entry         the file the load starts from.
+/// @param project_root  the project folder, null for none.
+/// @param compiler      a digest of the running compiler, null when it cannot
+///                      be read.
 export doc_inputs :: fn(
     scope: DiscoveredModule[],
     entry: string,
     project_root: string | null,
-    include_paths: string[],
     compiler: string | null,
 ) -> DocInputs {
     inputs :: DocInputs {
         .scope = scope,
         .entry = entry,
         .project_root = project_root,
-        .include_paths = include_paths,
         .header = [],
     }
     digest :: compiler else return inputs
@@ -77,7 +70,7 @@ export doc_inputs :: fn(
     // would put the working directory in the key.
     entry_folder :: normalized_path(dir_of(entry))
     ignored: Diagnostic[]: []
-    for searched in search_roots(entry, include_paths, project_root, doc_overlay(), ignored).paths {
+    for searched in search_roots(entry, [], project_root, doc_overlay(), ignored).paths {
         folder :: normalized_path(searched.dir)
         if entry != SYNTHETIC_ENTRY || folder != entry_folder {
             inputs.header.push("root ${folder} ${searched.prefix} ${searched.merge}")

@@ -87,10 +87,10 @@ cmd_graph :: fn(args: string[]) -> i32 {
 //
 // Two tests, the asymmetry `collect.vader::diagnose_import_path` also depends on:
 // provenance says who is the LIBRARY, the module name says who is the COMPILER.
-// `ModuleOrigin` has no `.Compiler` variant, and in a driven build `vader/*`
-// arrives through `--include-paths` as `.Build`, so provenance alone draws the
-// whole compiler as the user's project. Unless the entry is itself `vader/*`, in
-// which case the compiler IS what is being drawn.
+// `ModuleOrigin` has no `.Compiler` variant, and `vader/*` loads as `.Build` in
+// a checkout, so provenance alone draws the whole compiler as the user's
+// project. Unless the entry is itself `vader/*`, in which case the compiler IS
+// what is being drawn.
 is_project_module :: fn(origin: ModuleOrigin, name: string, entry_is_compiler: bool) =
     origin != .Toolchain && (entry_is_compiler || !name.starts_with("vader/"))
 

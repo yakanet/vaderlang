@@ -7,9 +7,8 @@
 // (`entry_main_name`, `gather_pipeline_diags`, `in_scope_diag_files`,
 // `dump_scope`, `scope_or_entry`, `canonicalise`, `module_name_from_file`).
 //
-// Every driver runs this one chain: the CLI (`vader/tools/cli`), a project's build
-// driver (`toolchain/build`) and the bootstrap entry (`vader/bootstrap`). It
-// imports none of them.
+// Two programs run this one chain: the CLI (`vader/tools/cli`) and the
+// bootstrap entry (`vader/bootstrap`). It imports neither of them.
 
 module "vader/pipeline"
 

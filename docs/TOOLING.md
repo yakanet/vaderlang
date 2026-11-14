@@ -266,13 +266,12 @@ A `vader.json` project is built by a driver compiled into `vader`: nothing is co
 
 ## Toolchain
 
-A toolchain is the `vader` binary and three folders, each looked for under `$VADER_HOME`, then beside the binary:
+A toolchain is the `vader` binary and two folders, each looked for under `$VADER_HOME`, then beside the binary:
 
 - `lib/`, the library root (SPEC §11 *Library root*), recognised by its `std/io/io.vader`;
-- `runtime/c/`, the C runtime of native builds, recognised by its `vader.h`;
-- the compiler's sources, which drivers are compiled with: `vader/` in a checkout of the compiler, `src/vader/` in a bundle.
+- `runtime/c/`, the C runtime of native builds, recognised by its `vader.h`.
 
-Failing both, `lib/` and `runtime/c/` are looked for in the working directory, and the compiler's sources in the project folder. A bundle, `dist/vader-<os>-<arch>/`, holds the binary, the three folders and `third_party/`, and works from any directory.
+Failing both, they are looked for in the working directory. A bundle, `dist/vader-<os>-<arch>/`, holds the binary, the two folders and `third_party/`, and works from any directory.
 
 ## Tests
 

@@ -2,10 +2,10 @@
 // lays it out, driving builds and holding its namespaces.
 //
 // A bundle is a layout, not a project: the binary at its root, then one library
-// root `lib/`, the compiler's sources under `src/vader/` and `runtime/c/` beside
-// them. `$VADER_HOME` cannot stand in for it, since the shape on disk is what
-// these check: the binary is copied, never linked, as the toolchain is found from
-// where the binary is, and a link would lead back to the repository.
+// root `lib/` and `runtime/c/` beside it. `$VADER_HOME` cannot stand in for it,
+// since the shape on disk is what these check: the binary is copied, never
+// linked, as the toolchain is found from where the binary is, and a link would
+// lead back to the repository.
 
 module "tools/cli_tests/bundle"
 
@@ -14,16 +14,11 @@ import "std/fs"
 import "std/io"
 import "std/path"
 import "std/process"
-import "std/string"
 import "std/target"
 import "tools/cli_tests/cli"
 
-// What the trim of a `dist/` bundle leaves out of `vader/`, one folder a line.
-DIST_EXCLUDE :: "bootstrap/dist-exclude.txt"
-
 // A bundle staged in a fresh folder `name` tells apart, laid out as `dist/` is:
-// every namespace of `lib/`, the folders of `vader/` the trim keeps, and
-// `runtime/c/`. A copy that fails fails the test.
+// every namespace of `lib/` and `runtime/c/`. A copy that fails fails the test.
 staged_bundle :: fn(name: string) -> string {
     dir :: scratch_dir(name)
     binary :: "${dir}/${Path(vader_binary()).filename()}"
@@ -41,30 +36,8 @@ staged_bundle :: fn(name: string) -> string {
             panic(copied.message())
         }
     }
-    trimmed :: excluded_folders()
-    folders :: read_dir("vader") else panic(folders.message())
-    for folder in folders {
-        if !trimmed.contains(folder) {
-            copied :: copy_tree("vader/${folder}", "${dir}/src/vader/${folder}") else is Error {
-                panic(copied.message())
-            }
-        }
-    }
     runtime :: copy_tree("runtime/c", "${dir}/runtime/c") else is Error { panic(runtime.message()) }
     return dir
-}
-
-// The folders of `vader/` a bundle leaves out.
-excluded_folders :: fn() -> string[] {
-    out: string[]: []
-    excluded :: read_file_string(DIST_EXCLUDE) else panic(excluded.message())
-    for line in excluded.split("\n") {
-        folder :: line.trim()
-        if folder != "" && !folder.starts_with("#") {
-            out.push(folder)
-        }
-    }
-    return out
 }
 
 // What the `vader` of the bundle in `bundle` did with `args`, run in `dir`.
@@ -102,8 +75,8 @@ test_a_bundle_drives_a_build_with_nothing_beside_the_project :: fn() -> void {
 test_a_bundled_namespace_outranks_a_project_module_of_the_same_name :: fn() -> void {
     // The namespaces of `lib/` are ordinary folder names, and the roots are
     // searched first match first: a project declaring the module of one of them
-    // must not win over the one shipped, which the compiler's own sources build
-    // against in a driven build. Only the bundled root comes before the project.
+    // must not win over the one shipped. Only the bundled root comes before the
+    // project.
     bundle :: staged_bundle("bundle_namespace")
     create_dir("${bundle}/lib/reserved")
     write_file(

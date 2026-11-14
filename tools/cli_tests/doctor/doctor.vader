@@ -164,22 +164,6 @@ test_a_stale_vader_home_is_ignored_and_doctor_says_so :: fn() -> void {
 }
 
 @test
-test_a_vader_home_that_only_starts_the_path_of_the_root_is_not_credited :: fn() -> void {
-    // The report asks the resolver which probe answered: with the variable at
-    // `.../pro` and the sources at `.../proj`, a comparison of the text would
-    // credit the variable.
-    workspace :: scratch_dir("doctor_prefix_home")
-    project :: "${workspace}/proj"
-    create_dir(project)
-    create_dir("${project}/vader")
-    create_dir("${project}/vader/pipeline")
-    json :: doctor_json([["VADER_HOME", "${workspace}/pro"]], project)
-    assert_eq(said(json.report, "compiler-sources", "status"), "ok")
-    assert("VADER_HOME" !in said(json.report, "compiler-sources", "summary"), "found otherwise")
-    assert_eq(said(json.report, "toolchain-home", "status"), "warn")
-}
-
-@test
 test_vader_home_points_the_command_at_a_toolchain_that_is_not_beside_it :: fn() -> void {
     // A project in a folder with no toolchain in sight runs all the same, and the
     // doctor says which probe answered.

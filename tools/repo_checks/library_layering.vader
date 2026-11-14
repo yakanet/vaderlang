@@ -3,8 +3,9 @@
 //
 // A project's build driver is compiled from `lib/` alone (ADR 0148): a module of
 // the library that imported one of `vader/` would drag the compiler into every
-// driver, which nothing in the compiler would notice, since the whole tree
-// builds either way.
+// driver. R2034 refuses such an import only in a module a build reaches as a
+// library: not in one compiled as the entry (`vader test lib/...`), nor in one
+// no build imports. This reads every file of `lib/`.
 
 module "tools/repo_checks"
 

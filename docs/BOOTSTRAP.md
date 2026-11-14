@@ -89,12 +89,9 @@ flowchart TD
    tree's own, so the age of the seed never reaches it.
 
 `--dist` then assembles a bundle, `dist/vader-darwin-arm64/` or
-`dist/vader-linux-x64/` for instance: the binary, `lib/`, the
-compiler's sources under `src/vader/` (a project's `build.vader` is compiled
-against them), `runtime/c/` and `third_party/`. The directories of `vader/` that
-no build reaches (the human front-ends, the bootstrap entry) are left out; the
-list is `bootstrap/dist-exclude.txt`. The binary looks for `lib/` and `runtime/c/`
-next to itself, so the bundle runs from any directory.
+`dist/vader-linux-x64/` for instance: the binary, `lib/`, `runtime/c/` and
+`third_party/`. The binary looks for `lib/` and `runtime/c/` next to itself, so
+the bundle runs from any directory.
 
 ## The fixed point
 

@@ -48,8 +48,7 @@ BuildSetup :: enum(u8) {
     /// as it is, and holding the extra search roots.
     Manifest,
     /// A `build.vader`, which `vader build` finds and runs so the project decides
-    /// its own compilation (SPEC §11). Needs the compiler's own sources
-    /// reachable: `vader doctor` reports that as `compiler-sources`.
+    /// its own compilation (SPEC §11).
     Driver,
 }
 

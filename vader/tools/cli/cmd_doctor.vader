@@ -28,7 +28,6 @@ import "std/path"
 import "std/process"
 import "std/string"
 TTY :: import "std/tty"
-import "toolchain/project"
 import "vader/pipeline"
 import "vader/front/resolver"
 import "std/collections"
@@ -101,9 +100,8 @@ cmd_doctor :: fn(args: string[]) -> i32 {
 // The executable location is asked once, so the report cannot contradict itself:
 // it is both what the probes used and what the "looked under ..." messages name.
 collect_checks :: fn(cc: string) -> Check[] {
-    cwd :: current_working_directory()
     exe_dir :: current_executable_location().dir_of()
-    // `$VADER_HOME` as set, and what it resolves to: asked once, because THREE
+    // `$VADER_HOME` as set, and what it resolves to: asked once, because two
     // checks report on it and a report that contradicts itself about which probe
     // answered is worse than no report.
     home :: get_env(TOOLCHAIN_HOME_VAR) else ""
@@ -113,7 +111,6 @@ collect_checks :: fn(cc: string) -> Check[] {
         check_cc(cc),
         check_toolchain_home(home, home_lib),
         check_library_root(exe_dir, home_lib),
-        check_compiler_sources(cwd, exe_dir),
         check_runtime_headers(),
     ]
     out.push_all(check_environment())
@@ -137,8 +134,7 @@ has_failure :: fn(checks: Check[]) -> bool {
 // It can degrade: `current_executable_location` falls back to `"."` when the OS
 // query fails, and that is worth saying out loud rather than printing as a path,
 // because every probe made BESIDE the binary then silently becomes a probe of the
-// working directory, which is the `library-root` and `compiler-sources` answers
-// two lines below.
+// working directory, which is the `library-root` answer two lines below.
 check_compiler :: fn() -> Check {
     location :: current_executable_location()
     if location == "." {
@@ -264,31 +260,6 @@ check_library_root :: fn(exe_dir: string, from_home: string | null) -> Check {
         "not found: no `std/...` import will resolve",
         "looked for the marker `${LIBRARY_ROOT_MARKER}` under "
             + "${join_path(exe_dir, LIBRARY_ROOT_DIR).to_native()} and ${under_cwd}",
-    )
-}
-
-// What a `build.vader` project needs: the compiler's own modules, since the
-// driver links the compiler. A plain build never touches them, which is why this
-// warns rather than fails.
-check_compiler_sources :: fn(cwd: string, exe_dir: string) -> Check {
-    root :: compiler_source_root(cwd)
-    if exists(join_path(root, COMPILER_SOURCE_MARKER)) {
-        // Same reason `library-root` names its branch: `$VADER_HOME` supplies
-        // these too, and "found" without saying from where is what makes a
-        // redirected toolchain invisible. Asked of the function that RESOLVES
-        // it, never inferred from the path, see `compiler_source_home`.
-        via :: if root == compiler_source_home() { " through ${TOOLCHAIN_HOME_VAR}" } else { "" }
-        return check_ok(
-            "compiler-sources",
-            "found${via}: a `${DRIVER_FILENAME}` project can be driven",
-            root.to_native(),
-        )
-    }
-    return check_warn(
-        "compiler-sources",
-        "missing: a plain build works, a driven one does not",
-        "looked for `${COMPILER_SOURCE_MARKER}` under ${exe_dir.to_native()} and "
-            + "${join_path(exe_dir, BUNDLED_SOURCE_DIR).to_native()}",
     )
 }
 

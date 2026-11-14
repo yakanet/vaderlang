@@ -56,4 +56,7 @@ the child another one reads: the bound is a task that sleeps, then kills a copy
 of the child, the same process. A wait with a deadline in `std/process` would
 replace it; it needs the scheduler to end a park at a given time.
 
-The compiler's sources are no longer needed to build a driver.
+The compiler's sources are no longer needed to build a driver, and a bundle no
+longer ships them. No module of `lib/` imports the compiler, `toolchain/build`
+included: R2034 refuses it where a build reaches the module as a library, and a
+check of the repository reads every file of `lib/`.

@@ -1,177 +1,32 @@
-// vader/pipeline/driver_request: what the CLI asks of a build driver, and what
-// the driver tells it back.
+// vader/pipeline/driver_request: what a command asks of a driven build, and
+// the project the build describes back.
 //
-// The CLI runs a project's `build.vader` as a child process and passes its
-// request as the driver's `args`. A driver run with `--describe` or `--prepare`
-// answers with the project as it described it, in the shape of a `vader.json`,
-// written to a file the CLI names and reads back at once: `vader info` shows it,
-// and `run`, `dump`, `lint` and `graph` take their entry and the project's
-// module search roots from it. The CLI and `toolchain/build` both read this
-// file, so the two halves of the exchange cannot drift.
+// A command that finds a `build.vader` serves the build of its driver with
+// this request; the driver itself learns only the mode (ADR 0148). A build
+// run with `--describe` or `--prepare` writes the project as the driver
+// described it, in the shape of a `vader.json`, to a file the command names
+// and reads back at once: `vader info` shows it, and `run`, `dump`, `lint` and
+// `graph` take their entry and the project's module search roots from it.
 
 module "vader/pipeline"
 
 import "std/env"
 import "std/fs"
 import "std/io"
-import "std/string"
 import "toolchain/project"
 import "vader/front/resolver"
-import "vader/support/target"
 
-/// The CLI's request to a driver: what to do with the entries, and the build
-/// options a `vader build` of a file would take.
+/// A command's request to a driven build: what to do with the entries, and the
+/// build options a `vader build` of a file would take.
 export DriverRequest :: struct {
-    /// The folder holding the compiler that started the build, and therefore
-    /// its `lib/` and `runtime/c/`.
-    toolchain_root: string = ""
-    mode:           DriverMode = .Build
+    mode: DriverMode = .Build
     /// The entry `--entry` names, empty for every entry.
-    selected:       string = ""
-    /// Where a driver run with `--describe` or `--prepare` writes the project.
-    description:    string = ""
+    selected: string = ""
+    /// Where a build run with `--describe` or `--prepare` writes the project.
+    description: string = ""
     /// The build options; `project_root` names the project folder, and an
     /// empty `cc` the default C compiler.
-    build:          BuildRequest = BuildRequest {}
-}
-
-CHECK_FLAG :: "--check"
-PREPARE_FLAG :: "--prepare"
-DESCRIBE_FLAG :: "--describe"
-DESCRIPTION_FLAG :: "--description="
-ENTRY_FLAG :: "--entry="
-RELEASE_FLAG :: "--release"
-VERIFY_FLAG :: "--verify"
-VERIFY_BOUNDS_FLAG :: "--verify-bounds"
-NO_SPLIT_FLAG :: "--no-split"
-CC_FLAG :: "--cc="
-LDFLAGS_FLAG :: "--ldflags="
-EMIT_FLAG :: "--emit="
-TARGET_FLAG :: "--target="
-OUT_FLAG :: "--out="
-INCLUDE_PATHS_FLAG :: "--include-paths="
-
-/// The arguments that carry a request to a driver: the project root, the
-/// toolchain root, then the flags.
-///
-/// @param request  what the CLI asks.
-/// @return         the arguments to place after the driver binary.
-export driver_request_args :: fn(request: DriverRequest) -> string[] {
-    args :: [request.build.project_root else "", request.toolchain_root]
-    match request.mode {
-        .Build    -> {}
-        .Check    -> { args.push(CHECK_FLAG) }
-        .Prepare  -> { args.push(PREPARE_FLAG) }
-        .Describe -> { args.push(DESCRIBE_FLAG) }
-    }
-    if request.selected != "" {
-        args.push("${ENTRY_FLAG}${request.selected}")
-    }
-    if request.description != "" {
-        args.push("${DESCRIPTION_FLAG}${request.description}")
-    }
-    args.push_all(build_request_args(request.build))
-    return args
-}
-
-// The flags that carry the build options of `build`, `seed_targets` and
-// `runtime_root` aside: they never cross to a driver.
-build_request_args :: fn(build: BuildRequest) -> string[] {
-    args: string[]: []
-    if build.release {
-        args.push(RELEASE_FLAG)
-    }
-    if build.verify {
-        args.push(VERIFY_FLAG)
-    }
-    if build.verify_bounds {
-        args.push(VERIFY_BOUNDS_FLAG)
-    }
-    if build.no_split {
-        args.push(NO_SPLIT_FLAG)
-    }
-    if build.cc != "" {
-        args.push("${CC_FLAG}${build.cc}")
-    }
-    if build.ldflags != "" {
-        args.push("${LDFLAGS_FLAG}${build.ldflags}")
-    }
-    if build.emit != "executable" {
-        args.push("${EMIT_FLAG}${build.emit}")
-    }
-    if build.target is Target {
-        args.push("${TARGET_FLAG}${build.target}")
-    }
-    if build.out != "" {
-        args.push("${OUT_FLAG}${build.out}")
-    }
-    if build.include_paths.len() > 0 {
-        args.push("${INCLUDE_PATHS_FLAG}${build.include_paths.join(",")}")
-    }
-    return args
-}
-
-/// The request a driver's `args` carry.
-///
-/// A driver run by hand may carry fewer: each missing root is empty, and no
-/// flag asks for a debug build of every entry. An argument this does not know
-/// is ignored, a `--target` that names no platform among them.
-///
-/// @param args  the driver's argv, `args[0]` being the driver binary.
-/// @return      the request.
-export parse_driver_request :: fn(args: string[]) -> DriverRequest {
-    request :: DriverRequest {}
-    if args.len() > 1 && args[1] != "" {
-        request.build.project_root = args[1]
-    }
-    if args.len() > 2 {
-        request.toolchain_root = args[2]
-    }
-    for i in 3..<args.len() {
-        arg :: args[i]
-        if arg == CHECK_FLAG {
-            request.mode = .Check
-        } else if arg == PREPARE_FLAG {
-            request.mode = .Prepare
-        } else if arg == DESCRIBE_FLAG {
-            request.mode = .Describe
-        } else if arg.starts_with(ENTRY_FLAG) {
-            request.selected = arg.trim_prefix(ENTRY_FLAG)
-        } else if arg.starts_with(DESCRIPTION_FLAG) {
-            request.description = arg.trim_prefix(DESCRIPTION_FLAG)
-        } else {
-            read_build_arg(request.build, arg)
-        }
-    }
-    return request
-}
-
-// Apply the build flag `arg` to `build`, when it is one.
-read_build_arg :: fn(build: BuildRequest, arg: string) -> void {
-    if arg == RELEASE_FLAG {
-        build.release = true
-    } else if arg == VERIFY_FLAG {
-        build.verify = true
-    } else if arg == VERIFY_BOUNDS_FLAG {
-        build.verify_bounds = true
-    } else if arg == NO_SPLIT_FLAG {
-        build.no_split = true
-    } else if arg.starts_with(CC_FLAG) {
-        build.cc = arg.trim_prefix(CC_FLAG)
-    } else if arg.starts_with(LDFLAGS_FLAG) {
-        build.ldflags = arg.trim_prefix(LDFLAGS_FLAG)
-    } else if arg.starts_with(EMIT_FLAG) {
-        build.emit = arg.trim_prefix(EMIT_FLAG)
-    } else if arg.starts_with(TARGET_FLAG) {
-        platform :: parse_target(arg.trim_prefix(TARGET_FLAG))
-        if platform is Target {
-            build.target = platform
-        }
-    } else if arg.starts_with(OUT_FLAG) {
-        build.out = arg.trim_prefix(OUT_FLAG)
-    } else if arg.starts_with(INCLUDE_PATHS_FLAG) {
-        build.include_paths = arg.trim_prefix(INCLUDE_PATHS_FLAG).split(",")
-    }
+    build: BuildRequest = BuildRequest {}
 }
 
 // ---- the project a driver describes --------------------------------------
@@ -201,54 +56,6 @@ export read_driver_description :: fn(path: string) -> Manifest | IOError {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-
-@test
-test_driver_request_round_trips_through_args :: fn() -> void {
-    sent :: DriverRequest {
-        .toolchain_root = "/t",
-        .mode = .Prepare,
-        .selected = "tool",
-        .description = "/tmp/project.json",
-        .build = BuildRequest {
-            .project_root = "/p",
-            .release = true,
-            .ldflags = "-L lib -lm",
-            .emit = "c",
-            .target = Target { .os = .Linux, .arch = .X86_64 },
-            .no_split = true,
-            .verify_bounds = true,
-            .include_paths = ["a", "b"],
-        },
-    }
-    args :: ["driver"]
-    args.push_all(driver_request_args(sent))
-    received :: parse_driver_request(args)
-    assert_eq(received.build.project_root else "", "/p")
-    assert_eq(received.toolchain_root, "/t")
-    assert(received.mode == .Prepare, "the mode crosses")
-    assert_eq(received.selected, "tool")
-    assert_eq(received.description, "/tmp/project.json")
-    assert(received.build.release, "the profile crosses")
-    assert_eq(received.build.cc, "")
-    assert_eq(received.build.ldflags, "-L lib -lm")
-    assert_eq(received.build.emit, "c")
-    assert_eq((received.build.target else host_target()).to_string(), "linux-x86_64")
-    assert(received.build.no_split, "`--no-split` crosses")
-    assert(!received.build.verify, "`--verify` was not asked")
-    assert(received.build.verify_bounds, "the bounds verification crosses")
-    assert_eq(received.build.include_paths.join(","), "a,b")
-}
-
-@test
-test_driver_request_defaults_to_a_debug_build_of_every_entry :: fn() -> void {
-    received :: parse_driver_request(["driver", "/p"])
-    assert_eq(received.build.project_root else "", "/p")
-    assert_eq(received.toolchain_root, "")
-    assert(received.mode == .Build, "a build")
-    assert(!received.build.release, "in debug")
-    assert(received.build.target == null, "for the host")
-    assert_eq(received.selected, "")
-}
 
 @test
 test_driver_description_reads_back_as_a_manifest :: fn() -> void {

@@ -371,8 +371,7 @@ diagnose_import_path :: fn(
     // A shipped library must not import the compiler. `lib/` hosts what the
     // toolchain ships, and none of it may depend on what INTERPRETS Vader, or a
     // program importing a library would drag the compiler into its runtime
-    // closure. Two exemptions: `toolchain/build` is the driver contract and a
-    // driver links the compiler by design, and the compiler may import itself.
+    // closure. The compiler alone may import itself.
     //
     // Note the asymmetry: PROVENANCE decides who is a library (a user module may
     // legitimately be called `json`; only who provided it says whether it is ours)
@@ -390,10 +389,9 @@ diagnose_import_path :: fn(
     // resolve.
     if raw_path.starts_with("vader/")
         && !from_module_name.starts_with("vader/")
-        && from_module_name != DRIVER_CONTRACT_MODULE
         && importer_origin(index, from_module_name) == .Toolchain {
         diags.push(resolver_error(.CompilerImportFromLibrary, span,
-            "`${from_module_name}` is shipped under the library root, so it cannot import `${raw_path}`, only `${DRIVER_CONTRACT_MODULE}` may"))
+            "`${from_module_name}` is shipped under the library root, so it cannot import `${raw_path}`"))
         return null
     }
     // Empty index = mono-file caller (no module graph) ; skip the

@@ -111,7 +111,7 @@ tar -xzf vader-linux-x64.tar.gz && ./vader-linux-x64/vader --version
 tar -xf vader-windows-x64.zip && vader-windows-x64\vader.exe --version
 ```
 
-The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle, it loads `lib/` (the namespaces it ships: `std/`, `toolchain/` and the libraries), `src/vader/` (the compiler's own sources, which compiling a project's `build.vader` needs) and `runtime/c/` from next to itself, so keep the extracted folder intact. If you would rather move the binary on its own, set `VADER_HOME` to the extracted folder: it takes precedence over the search beside the binary.
+The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle, it loads `lib/` (the namespaces it ships: `std/`, `toolchain/` and the libraries) and `runtime/c/` from next to itself, so keep the extracted folder intact. If you would rather move the binary on its own, set `VADER_HOME` to the extracted folder: it takes precedence over the search beside the binary.
 
 On macOS, Gatekeeper blocks the unsigned binary on first launch: strip the quarantine attribute:
 
@@ -172,7 +172,7 @@ Anything the action doesn't recognise is an error rather than a silently ignored
 | `vader test [path]`                            | ✓       | Discover and run `@test` functions under `[path]` (default cwd). Each runs as a separate VM entry; failures report message + source span. Name override: `@test("readable name") my_test :: fn() -> void { … }`. Exits non-zero on any failure.                            |
 | `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text).                                                                                                                                                                                                     |
 | `vader graph <file> [--format=…] [--scope=…]` | ✓       | Print the project's module import graph, read off the loader, so it is the graph a build actually resolves. `--format=mermaid` (default, `graph TB`) renders with no tool installed; `--format=dot` pipes to Graphviz. `--scope=project` (default) hides library modules; `--scope=all` keeps them. |
-| `vader doctor [--json]`                        | ✓       | Check that this toolchain can build: the `cc` it would invoke (resolved and run), the library root and which branch found it, the compiler sources a `build.vader` needs, the C runtime header, and any runtime variable in force. Exits 1 on a failure, 0 on warnings. |
+| `vader doctor [--json]`                        | ✓       | Check that this toolchain can build: the `cc` it would invoke (resolved and run), the library root and which branch found it, the C runtime header, and any runtime variable in force. Exits 1 on a failure, 0 on warnings. |
 
 ### Common options
 

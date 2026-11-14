@@ -3,8 +3,7 @@
 //
 // `lib/` holds what the toolchain ships, and none of it may depend on what
 // interprets Vader, or a program importing a library would drag the compiler
-// into its run time; `toolchain/build` alone may, since a driver links the
-// compiler by design (R2034). Stating it takes a file under a library root,
+// into its run time (R2034). Stating it takes a file under a library root,
 // which no fixture of a corpus can be: each test stages a root of its own, and
 // runs the command from the folder above it, which makes that `lib/` the root.
 
@@ -46,7 +45,7 @@ test_a_shipped_library_cannot_import_the_compiler :: fn() -> void {
     write_file("${dir}/app.vader", app)
     ran :: run_vader(["run", "app.vader"], RunOptions { .cwd = dir }) else panic(ran.message())
     assert("R2034" in ran.stderr, ran.stderr)
-    assert("only `toolchain/build` may" in ran.stderr, ran.stderr)
+    assert("cannot import `vader/pipeline`" in ran.stderr, ran.stderr)
 }
 
 @test

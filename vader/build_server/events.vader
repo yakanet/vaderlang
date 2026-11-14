@@ -343,7 +343,8 @@ drained :: fn(session: BuildSession) -> i32 {
 
 @test
 test_build_events_with_an_unknown_entry_reports_h6009 :: fn() -> void {
-    request :: parse_driver_request(["driver", "/tmp/proj", "", "--entry=tool"])
+    request :: request_for("/tmp/proj")
+    request.selected = "tool"
     session :: test_session(request, [ManifestEntry { .name = "app", .path = "src/main.vader" }])
     // The choice is checked before any front end runs, so nothing is compiled.
     assert_eq(drained(session), 1)
@@ -353,7 +354,8 @@ test_build_events_with_an_unknown_entry_reports_h6009 :: fn() -> void {
 
 @test
 test_build_events_with_one_output_for_two_entries_reports_h6011 :: fn() -> void {
-    request :: parse_driver_request(["driver", "/tmp/proj", "", "--out=/tmp/app"])
+    request :: request_for("/tmp/proj")
+    request.build.out = "/tmp/app"
     entries :: [
         ManifestEntry { .name = "app", .path = "src/main.vader" },
         ManifestEntry { .name = "tool", .path = "tool.vader" },
@@ -367,7 +369,7 @@ test_build_events_with_one_output_for_two_entries_reports_h6011 :: fn() -> void 
 
 @test
 test_build_events_without_entries_reports_h6003 :: fn() -> void {
-    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session :: test_session(request_for("/tmp/proj"), [])
     assert_eq(drained(session), 1)
     assert_eq(session.diagnostics.len(), 1)
     assert_eq(session.diagnostics[0].code.id, "H6003")
@@ -376,7 +378,7 @@ test_build_events_without_entries_reports_h6003 :: fn() -> void {
 @test
 test_build_events_after_a_configuration_error_compiles_nothing :: fn() -> void {
     session :: test_session(
-        parse_driver_request(["driver", "/tmp/proj"]),
+        request_for("/tmp/proj"),
         [ManifestEntry { .name = "app", .path = "src/main.vader" }],
     )
     session.report_driver(.DuplicateEntryName, "twice")

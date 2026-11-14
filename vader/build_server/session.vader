@@ -194,6 +194,11 @@ output_request :: fn(session: BuildSession) -> BuildRequest = BuildRequest {
 import "std/abort"
 import "std/testing"
 
+// The request of a build of the project in `root`, with every default.
+request_for :: fn(root: string) -> DriverRequest = DriverRequest {
+    .build = BuildRequest { .project_root = root },
+}
+
 // A session for `request`, configured with `entries` and nothing else, reading
 // every module.
 test_session :: fn(request: DriverRequest, entries: ManifestEntry[]) -> BuildSession {
@@ -213,7 +218,7 @@ test_session :: fn(request: DriverRequest, entries: ManifestEntry[]) -> BuildSes
 
 @test
 test_new_session_takes_the_project_from_the_request :: fn() -> void {
-    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session :: test_session(request_for("/tmp/proj"), [])
     assert_eq(session.project_root, "/tmp/proj")
     assert_eq(description_span(session).start.file, "/tmp/proj/build.vader")
 }
@@ -230,20 +235,20 @@ test_new_session_refuses_a_module_pattern_that_does_not_parse :: fn() -> void {
         .cc = "cc",
         .ldflags = "",
     }
-    request :: parse_driver_request(["driver", "/tmp/proj"])
+    request :: request_for("/tmp/proj")
     assert(new_session(request, "build.vader", configure) is GlobError, "a trailing backslash")
 }
 
 @test
 test_a_double_star_reads_every_module :: fn() -> void {
-    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session :: test_session(request_for("/tmp/proj"), [])
     assert(session.reads_module("app"), "a top-level module")
     assert(session.reads_module("std/io"), "a nested one")
 }
 
 @test
 test_close_session_reports_a_module_no_round_wrote_h6014 :: fn() -> void {
-    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session :: test_session(request_for("/tmp/proj"), [])
     session.entered_rounds = true
     session.queue_module("gen/late", "late :: fn() -> i32 = 1")
     session.queue_module("gen/late", "late :: fn() -> i32 = 2")
@@ -257,7 +262,7 @@ test_close_session_reports_a_module_no_round_wrote_h6014 :: fn() -> void {
 
 @test
 test_close_session_leaves_the_modules_of_a_stream_that_compiled_nothing :: fn() -> void {
-    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session :: test_session(request_for("/tmp/proj"), [])
     session.queue_module("gen/early", "early :: fn() -> i32 = 1")
     assert_eq(close_session(session, 0), 0)
     assert_eq(session.diagnostics.len(), 0)
@@ -265,7 +270,7 @@ test_close_session_leaves_the_modules_of_a_stream_that_compiled_nothing :: fn() 
 
 @test
 test_close_session_fails_on_an_error :: fn() -> void {
-    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session :: test_session(request_for("/tmp/proj"), [])
     session.diagnostics.push(hook_error(.HookReport, empty_span(), "a report"))
     assert_eq(close_session(session, 0), 1)
     assert_eq(session.printed, 1)

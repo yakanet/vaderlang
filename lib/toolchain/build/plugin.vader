@@ -10,7 +10,8 @@
 // the build, its entries, target and output, is the driver's.
 //
 // A shipped plugin lives in a module of its own: importing `toolchain/build`
-// links the compiler, which a program importing only the library must not drag.
+// brings the driver's side of the build protocol, which a program importing
+// only the library must not drag.
 
 module "toolchain/build"
 
@@ -97,7 +98,8 @@ Nested implements BuildPlugin {
     }
 }
 
-@test test_plugins_hear_the_stream_in_the_order_they_were_plugged :: fn() -> void {
+@test
+test_plugins_hear_the_stream_in_the_order_they_were_plugged :: fn() -> void {
     ctx :: scripted_context(ScriptedLink { .events = [CompleteFrame { .code = 1 }] })
     log: string[]: []
     ctx.use(Recorder { .name = "a", .log = log })
@@ -108,7 +110,8 @@ Nested implements BuildPlugin {
     assert_eq(log[1], "b complete 1")
 }
 
-@test test_a_build_started_from_a_plugin_is_refused :: fn() -> void {
+@test
+test_a_build_started_from_a_plugin_is_refused :: fn() -> void {
     ctx :: scripted_context(ScriptedLink { .events = [CompleteFrame { .code = 0 }] })
     reported: string[]: []
     ctx.use(Nested { .reported = reported })
@@ -117,7 +120,8 @@ Nested implements BuildPlugin {
     assert_eq(reported[0], "H6013")
 }
 
-@test test_a_description_tells_the_plugins_nothing :: fn() -> void {
+@test
+test_a_description_tells_the_plugins_nothing :: fn() -> void {
     ctx :: scripted_context(ScriptedLink { .events = [CompleteFrame { .code = 0 }] })
     ctx.asked_mode = .Describe
     log: string[]: []

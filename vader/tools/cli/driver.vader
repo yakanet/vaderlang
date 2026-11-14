@@ -51,18 +51,9 @@ Server :: import "vader/build_server"
 /// as machine-written in a directory listing.
 export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
 
-/// Subdirectory of a `dist/` bundle holding the compiler's own sources.
-///
-/// The bundled binary is named `vader`, so the sources cannot live at
-/// `<bundle>/vader/`, hence one level of indirection. `bootstrap/build.sh
-/// --dist` writes them here and `compiler_source_root` looks for them here.
-export BUNDLED_SOURCE_DIR :: "src"
-
-/// Directory proving a candidate root really holds the compiler's sources.
-///
-/// A module the driver's own closure needs, so a root that lacks it is genuinely
-/// unusable rather than merely incomplete.
-export COMPILER_SOURCE_MARKER :: "vader/pipeline"
+// The module a driver's entry imports: the contract between a `build.vader`
+// and the build it drives.
+DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
 /// Locate the project's build driver.
 ///
@@ -81,96 +72,6 @@ export find_build_driver :: fn(root: string) -> string | null {
         return null
     }
     return join_path(root, DRIVER_FILENAME)
-}
-
-// ---- compiler-source resolution -------------------------------------------
-
-/// The compiler's own sources under `$VADER_HOME`, or `""` when it does not
-/// supply them (unset, or holding neither layout).
-///
-/// Both layouts are accepted: a checkout holds `vader/` at its root, a bundle
-/// holds `src/vader/`. A value holding neither is ignored exactly as it is in
-/// `resolver::sidecar_root`: `vader doctor` is what reports it.
-///
-/// Split out so the REPORT and the RESOLUTION ask the same question. `doctor`
-/// first inferred the answer by testing whether the resolved root started with
-/// `$VADER_HOME`, which is a string prefix, not a path: with the variable set to
-/// `.../vaderlang` and the sources at `.../vaderlang2`, it claimed the sources came
-/// through the variable. Comparing against what this returns cannot say that.
-///
-/// @return the directory holding `vader/pipeline`, or `""`.
-export compiler_source_home :: fn() -> string {
-    home :: get_env(TOOLCHAIN_HOME_VAR) else ""
-    if home == "" {
-        return ""
-    }
-    if exists(join_path(home, COMPILER_SOURCE_MARKER)) {
-        return home
-    }
-    bundled :: join_path(home, BUNDLED_SOURCE_DIR)
-    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
-        return bundled
-    }
-    return ""
-}
-
-/// Include-path root under which the COMPILER's own modules resolve.
-///
-/// A driver imports `toolchain/build`, which the library root already provides,
-/// but that module imports `vader/pipeline`, and `vader/` is not an include-path
-/// root anywhere. This is what supplies it, injected for driver builds only.
-///
-/// Mirrors `resolver::resolve_sidecar`'s shape: prefer a location tied to the
-/// running binary, and fall back to `root`, which is what a checkout gives,
-/// where `vader/` sits at the project root. Returns a root CONTAINING `vader/`,
-/// not `vader/` itself, since include paths are searched by module name.
-///
-/// Two binary-relative layouts, in order:
-///
-///   * `<binary dir>/vader/`: a checkout whose binary sits at the root.
-///   * `<binary dir>/src/vader/`: the `dist/` bundle. Two reasons for the
-///     indirection, and the second is why it is `src/` and not `lib/`: the
-///     bundled binary is itself NAMED `vader`, so the sources cannot sit at
-///     `<binary dir>/vader/` without colliding with it; and the compiler is not
-///     a library the toolchain ships for consumption, it is the implementation a
-///     driver links, so `lib/` (which holds `std/`, `toolchain/` and the rest)
-///     is the wrong neighbourhood for it. Keeping it out also makes the layering
-///     structural rather than policed: nothing under `lib/` is the compiler.
-///
-/// The marker is `vader/pipeline`, and it must stay a module the driver's own
-/// closure needs. It used to be `vader/hooks` (the contract itself) which broke
-/// the moment that moved out to `toolchain/build`: both probes then missed and the
-/// function fell through to `root`, which a CHECKOUT masks (the repo root does
-/// hold `vader/`) and a BUNDLE does not. The dist-bundle test of
-/// `tools/cli_tests/bundle` is what catches it.
-///
-/// @param root  invocation directory, used as the checkout fallback.
-/// @return      a directory under which `vader/pipeline/` is expected to resolve.
-export compiler_source_root :: fn(root: string) -> string {
-    // `$VADER_HOME` first, the same precedence it gets in every other sidecar
-    // probe (`resolver::sidecar_root`). Both layouts are accepted under it: a
-    // checkout holds `vader/` at its root, a bundle holds `src/vader/`. A value
-    // holding neither is ignored here exactly as it is there: `vader doctor`
-    // is what reports it.
-    from_home :: compiler_source_home()
-    if from_home != "" {
-        return from_home
-    }
-    beside_binary :: current_executable_location().dir_of()
-    if exists(join_path(beside_binary, COMPILER_SOURCE_MARKER)) {
-        return beside_binary
-    }
-    bundled :: join_path(beside_binary, BUNDLED_SOURCE_DIR)
-    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
-        return bundled
-    }
-    // NOT a walk up the filesystem. An unbounded search would find some
-    // unrelated checkout's `vader/` and compile the driver against a different
-    // AST than the binary running it: the same reason `find_build_driver` looks
-    // in one directory only. Either the sources sit beside the binary (a bundle)
-    // or at the project root (a checkout); anything else is a setup the user
-    // should be told about rather than guessed around.
-    return root
 }
 
 // ---- caching the driver binary --------------------------------------------
@@ -272,7 +173,7 @@ export render_driver_entry :: fn(fingerprint: string) -> string {
     out.append("\n")
     out.append("module \"${DRIVER_MODULE}\"\n")
     out.append("\n")
-    out.append("import \"toolchain/build\"\n")
+    out.append("import \"${DRIVER_CONTRACT_MODULE}\"\n")
     out.append("\n")
     out.append("main :: fn(args: string[]) -> i32 {\n")
     out.append("    return run_driver(\"${fingerprint}\", build, args)\n")
@@ -599,14 +500,6 @@ import "std/testing"
 @test test_entry_sits_beside_the_driver :: fn() -> void {
     // Same folder as the driver, so both contribute to one multi-file module.
     assert_eq(driver_entry_path("/some-project"), "/some-project/vader_build_entry.vader")
-}
-
-@test test_compiler_source_root_falls_back_to_root :: fn() -> void {
-    // No compiler sources beside a bogus binary location, so the checkout fallback
-    // wins, which is what a clone gives.
-    root :: compiler_source_root("/some-project")
-    assert(root == "/some-project" || exists(join_path(root, COMPILER_SOURCE_MARKER)),
-        "either the fallback root, or a real sidecar layout")
 }
 
 @test test_validate_driver_missing_build :: fn() -> void {

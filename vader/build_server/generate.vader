@@ -249,7 +249,6 @@ sweep_generated :: fn(dir: string) -> i64 {
 
 import "std/env"
 import "std/testing"
-import "vader/pipeline"
 
 // Why a flush produced nothing: the four causes, spelled out for a CI log.
 //
@@ -274,7 +273,7 @@ flush_diagnosis :: fn(session: BuildSession, fresh: string[]) -> string {
 
 // A session of a project at `root`.
 session_at :: fn(root: string) -> BuildSession =
-    test_session(parse_driver_request(["driver", root]), [])
+    test_session(request_for(root), [])
 
 @test test_render_declares_the_module :: fn() -> void {
     src :: render_generated_module("gen/serde", "to_json :: fn() -> string = \"{}\"\n")
