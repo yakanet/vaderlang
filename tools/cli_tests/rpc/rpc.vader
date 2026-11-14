@@ -150,10 +150,7 @@ export open_session :: fn(
     args: string[],
     options: RunOptions = RunOptions {},
 ) -> Session | ProcessError {
-    child :: spawn_vader(args, options)
-    if child is ProcessError {
-        return child
-    }
+    child :: spawn_vader(args, options) else return child
     return Session { .child = child }
 }
 

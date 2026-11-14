@@ -122,9 +122,9 @@ detail_ctx :: fn(state: ServerState, fp: string | null) -> DetailCtx {
     cached :: typed_project_for(state, fp)
     typed :: cached.result.typed
     entry :: cached.project.modules[cached.project.entry]
-    if entry == null { return DetailCtx { .typed = typed, .decls = [] } }
+        else return DetailCtx { .typed = typed, .decls = [] }
     sf :: source_file_for_path(entry.module.files, fp)
-    if sf == null { return DetailCtx { .typed = typed, .decls = [] } }
+        else return DetailCtx { .typed = typed, .decls = [] }
     return DetailCtx { .typed = typed, .decls = sf.program.decls }
 }
 
@@ -142,7 +142,7 @@ decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -
     if d.kind != .Local { return d.signature }
     if typed == null { return d.signature }
     ty :: find_binding_rhs_type_at(decls, d.name_span.start.line, d.name_span.start.column, typed)
-    if ty == null { return d.signature }
+        else return d.signature
     if ty is UnresolvedType || is_free_numeric(ty) { return d.signature }
     return display_type(ty)
 }

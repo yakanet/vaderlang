@@ -200,6 +200,8 @@ pipeline_messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         yield CompleteMessage { .code = 1 }
         return
     }
+    // A `yield` in the clause of an `else` would sit inside an expression, where
+    // the generator cannot suspend.
     chosen :: chosen_entries(ctx, request)
     if chosen == null {
         yield CompleteMessage { .code = 1 }
@@ -366,8 +368,7 @@ write_description :: fn(ctx: BuildContext, entries: ManifestEntry[]) -> i32 {
         .entries = entries,
         .assets = ctx.assets,
     }
-    written :: write_driver_description(path, project)
-    if written is IOError {
+    written :: write_driver_description(path, project) else is IOError {
         eprintln("vader: cannot write `${path.to_native()}`: ${written.message()}")
         return 1
     }

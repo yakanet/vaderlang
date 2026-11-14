@@ -182,8 +182,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // A collection dispatching through `Contains` at run time (a value of the
         // trait, a union of its implementors, an erased bounded `T`) has no impl to
         // call : its tag picks one.
-        contains :: recorded_target(ctx, binary, .Operator, coll_type)
-        if contains == null {
+        contains :: recorded_target(ctx, binary, .Operator, coll_type) else {
             observe_no_call(ctx, binary, .Operator, "stub")
             return stub(binary.span, type, "`in` / `not in` lowering deferred")
         }
@@ -290,10 +289,7 @@ lower_logical :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredE
         .left = left,
         .right = right,
     }
-    right_known :: settled_bool(right)
-    if right_known == null {
-        return whole
-    }
+    right_known :: settled_bool(right) else return whole
     // `a && true` is `a` ; a right side that runs something only once `a` let it
     // keeps the operator.
     pure_right :: effects_of(right).len() == 0

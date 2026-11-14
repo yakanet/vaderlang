@@ -78,13 +78,8 @@ QUOTED_HEADER :: r"""
 built_output :: fn(source: string, flags: string[], binary: string) -> string | ProcessError {
     argv :: ["build"] + flags + ["--out=${binary}", source]
     built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
-    if built is ProcessError {
-        return built
-    }
-    ran :: succeeded(run_command([binary]))
-    if ran is ProcessError {
-        return ran
-    }
+        else return built
+    ran :: succeeded(run_command([binary])) else return ran
     return ran.stdout
 }
 
@@ -151,10 +146,7 @@ assert_each_refused :: fn(answers: (ProcessResult | ProcessError)[], said: strin
 // `with_archive`; or why it could not be made.
 stage_clibrary :: fn(name: string, with_archive: bool) -> string | ProcessError {
     dir :: scratch_dir("ffi_${name}")
-    copied :: copy_tree(CLIBRARY, dir)
-    if copied is IOError {
-        return ProcessError { .msg = copied.msg }
-    }
+    copied :: copy_tree(CLIBRARY, dir) else is IOError { return ProcessError { .msg = copied.msg } }
     if !with_archive {
         return dir
     }
@@ -166,14 +158,9 @@ stage_clibrary :: fn(name: string, with_archive: bool) -> string | ProcessError 
         run_command(
             [host_cc(), "-c", "-I", "${greeter}/include", "${greeter}/greeter.c", "-o", object],
         ),
-    )
-    if compiled is ProcessError {
-        return compiled
-    }
+    ) else return compiled
     archived :: succeeded(run_command(["ar", "rcs", "${lib}/libgreeter.a", object]))
-    if archived is ProcessError {
-        return archived
-    }
+        else return archived
     return dir
 }
 

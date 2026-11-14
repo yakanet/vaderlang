@@ -54,8 +54,7 @@ check_project_modules :: fn(
     core_seed: Map<string, Symbol>,
     mod_index: Map<string, LoadedModule>,
 ) -> CheckResult {
-    entry_loaded :: project.modules[project.entry]
-    if entry_loaded is null {
+    entry_loaded :: project.modules[project.entry] else {
         return CheckResult {
             .typed = empty_fallback(project),
             .impls = empty_impls(),
@@ -386,11 +385,7 @@ collect_direct_imports :: fn(
 empty_impls :: fn() -> ImplRegistry { return ImplRegistry {} }
 
 empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
-    loaded :: project.modules[project.entry]
-    if loaded == null {
-        // Defensive: load_project guarantees entry is loaded.
-        return new_typed_program(synth_resolved())
-    }
+    loaded :: project.modules[project.entry] else return new_typed_program(synth_resolved())
     rm :: resolve_module(loaded.module.files[0].program, project.entry, project.factory)
     return new_typed_program(rm)
 }

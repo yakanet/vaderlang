@@ -37,14 +37,12 @@ ScanScope :: struct {
 // and every file or folder that cannot be read.
 findings_in :: fn(scope: ScanScope, check: fn(string, string, string[]) -> void) -> string[] {
     found: string[]: []
-    files :: scanned_files(scope)
-    if files is IOError {
+    files :: scanned_files(scope) else {
         found.push(files.msg)
         return found
     }
     for file in files {
-        text :: read_file_string(file)
-        if text is IOError {
+        text :: read_file_string(file) else {
             found.push("${file}: ${text.msg}")
             continue
         }
@@ -62,10 +60,7 @@ scanned_files :: fn(scope: ScanScope) -> string[] | IOError {
             continue
         }
         options :: WalkOptions { .descend = (e) -> descends(e, scope) }
-        walker :: walk(root, options)
-        if walker is IOError {
-            return walker
-        }
+        walker :: walk(root, options) else return walker
         for entry in walker {
             if entry.kind == .File && is_scanned(entry, scope) {
                 out.push(entry.path)
@@ -129,8 +124,7 @@ assert_none :: fn(found: string[], rule: string) -> void {
 // The text of `path`; null after failing the running test when it cannot be
 // read.
 read_or_fail :: fn(path: string) -> string | null {
-    text :: read_file_string(path)
-    if text is IOError {
+    text :: read_file_string(path) else {
         fail("${path}: ${text.msg}")
         return null
     }

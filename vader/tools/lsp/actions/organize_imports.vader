@@ -232,8 +232,7 @@ test_organize_sorts_alphabetically :: fn() -> void {
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(organize_imports_applicable(decls, ctx), "two contiguous imports organise")
-    r :: organize_imports_apply(decls, ctx)
-    if r == null {
+    r :: organize_imports_apply(decls, ctx) else {
         assert(false, "expected an edit")
         return
     }
@@ -252,8 +251,7 @@ test_organize_interleaves_every_origin :: fn() -> void {
     src :: "module \"t\"\n\nimport \"vader/grid\"\nimport \"json\"\nimport \"std/io\"\nimport \"toolchain/ast\"\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
-    r :: organize_imports_apply(decls, ctx)
-    if r == null {
+    r :: organize_imports_apply(decls, ctx) else {
         assert(false, "expected an edit")
         return
     }
@@ -266,8 +264,7 @@ test_organize_merges_same_path :: fn() -> void {
     src :: "module \"t\"\n\nimport \"std/string\" { split as cut }\nimport \"std/string\" { join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
-    r :: organize_imports_apply(decls, ctx)
-    if r == null {
+    r :: organize_imports_apply(decls, ctx) else {
         assert(false, "expected an edit")
         return
     }
@@ -279,8 +276,7 @@ test_organize_dedups_names :: fn() -> void {
     src :: "module \"t\"\n\nimport \"std/string\" { split as cut, split as cut, join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
-    r :: organize_imports_apply(decls, ctx)
-    if r == null {
+    r :: organize_imports_apply(decls, ctx) else {
         assert(false, "expected an edit")
         return
     }
@@ -319,8 +315,7 @@ test_organize_keeps_namespace_alias :: fn() -> void {
     src :: "module \"t\"\n\nG :: import \"vader/grid\"\nimport \"std/string\" { split as cut }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
-    r :: organize_imports_apply(decls, ctx)
-    if r == null {
+    r :: organize_imports_apply(decls, ctx) else {
         assert(false, "expected an edit")
         return
     }
@@ -332,8 +327,7 @@ test_organize_roundtrip_reparses :: fn() -> void {
     src :: "module \"t\"\n\nimport \"vader/geometry\" { Span as S }\nimport \"std/string\" { split as cut }\nimport \"std/string\" { join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
-    r :: organize_imports_apply(decls, ctx)
-    if r == null {
+    r :: organize_imports_apply(decls, ctx) else {
         assert(false, "expected an edit")
         return
     }

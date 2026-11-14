@@ -119,10 +119,7 @@ export VirtListing :: struct {
 ///                reader, never a partial module.
 /// @error         `VirtParseError` as `parse_virt_listing` reports it.
 export parse_virt_bc :: fn(source: string) -> BytecodeModule | VirtParseError {
-    listing :: parse_virt_listing(source)
-    if listing is VirtParseError {
-        return listing
-    }
+    listing :: parse_virt_listing(source) else is VirtParseError { return listing }
     return listing.module
 }
 
@@ -218,9 +215,9 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             if head == "module" { module_name = parse_module_name(cleaned) continue }
             if head == "type" {
                 failed :: positioned(parse_type_decl_bc(cleaned, types), line_index, cleaned)
-                if failed is VirtParseError {
-                    return failed
-                }
+                    else is VirtParseError {
+                        return failed
+                    }
                 type_lines.push(here)
                 continue
             }
@@ -229,52 +226,46 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             // after it: the pool analogue of the pc shift fixed for instructions.
             if head == "string" {
                 failed :: positioned(parse_string_decl(cleaned, strings), line_index, cleaned)
-                if failed is VirtParseError {
-                    return failed
-                }
+                    else is VirtParseError {
+                        return failed
+                    }
                 string_lines.push(here)
                 continue
             }
             if head == "data" {
                 failed :: positioned(
                     parse_data_decl_bc(cleaned, data_pool, strings), line_index, cleaned,
-                )
-                if failed is VirtParseError {
-                    return failed
-                }
+                ) else is VirtParseError { return failed }
                 data_lines.push(here)
                 continue
             }
             if head == "global" {
                 failed :: positioned(parse_global_decl_bc(cleaned, globals), line_index, cleaned)
-                if failed is VirtParseError {
-                    return failed
-                }
+                    else is VirtParseError {
+                        return failed
+                    }
                 global_lines.push(here)
                 continue
             }
             if head == "import" {
                 failed :: positioned(
                     parse_import_decl_bc(cleaned, imports, types), line_index, cleaned,
-                )
-                if failed is VirtParseError {
-                    return failed
-                }
+                ) else is VirtParseError { return failed }
                 import_lines.push(here)
                 continue
             }
             if head == "impl" {
                 failed :: positioned(parse_impl_decl_bc(cleaned, impl_table), line_index, cleaned)
-                if failed is VirtParseError {
-                    return failed
-                }
+                    else is VirtParseError {
+                        return failed
+                    }
                 continue
             }
             if head == "vtable" {
                 failed :: positioned(parse_vtable_decl_bc(cleaned, vtables), line_index, cleaned)
-                if failed is VirtParseError {
-                    return failed
-                }
+                    else is VirtParseError {
+                        return failed
+                    }
                 continue
             }
             if head == "export" {
@@ -385,9 +376,7 @@ parse_global_decl_bc :: fn(cleaned: string, globals: BcGlobal[]) -> DirectiveErr
         return DirectiveError { .reason = "expected `global <index> <type> <name>`" }
     }
     type_id :: parse_int_in_base(words[2], 10)
-    if type_id is ParseError {
-        return DirectiveError { .reason = "global type index \"${words[2]}\" is not a number" }
-    }
+        else return DirectiveError { .reason = "global type index \"${words[2]}\" is not a number" }
     globals.push(BcGlobal { .name = words[3], .type_id = i32(type_id) })
     return null
 }
@@ -412,8 +401,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// @return         `null` when a type was appended, else why it could not be.
 parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | null {
     after_type :: cleaned.trim_prefix("type ").trim()
-    first_space :: after_type.index_of(' ')
-    if first_space == null {
+    first_space :: after_type.index_of(' ') else {
         return DirectiveError {
             .reason = "expected `type <index> <kind> ...`, got no kind after the index",
         }
@@ -421,10 +409,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
     rest :: after_type.byte_slice(first_space + 1, after_type.byte_len()).trim()
 
     if rest.starts_with("struct ") {
-        parsed :: parse_struct_type_bc(rest)
-        if parsed is DirectiveError {
-            return parsed
-        }
+        parsed :: parse_struct_type_bc(rest) else is DirectiveError { return parsed }
         // Its index is its identity here: the data section names a baked struct
         // by type index, and `type_id_for_symbol` resolves it against this field.
         types.push(BcStruct {
@@ -443,8 +428,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | n
     }
     if rest.starts_with("array ") {
         element_text :: rest.trim_prefix("array ").trim()
-        parsed :: parse_int_in_base(element_text, 10)
-        if parsed is ParseError {
+        parsed :: parse_int_in_base(element_text, 10) else {
             return DirectiveError {
                 .reason = "array type: element index \"${element_text}\" is not a number",
             }
@@ -527,16 +511,14 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
         if inner.byte_len() > 0 {
             for part in inner.split(",") {
                 pt :: part.trim()
-                colon :: pt.index_of(':')
-                if colon == null {
+                colon :: pt.index_of(':') else {
                     return DirectiveError {
                         .reason = "struct `${name}`: field `${pt}` has no `name:type` separator",
                     }
                 }
                 fname :: pt.byte_slice(0, colon).trim()
                 tidtext :: pt.byte_slice(colon + 1, pt.byte_len()).trim()
-                tid :: parse_int_in_base(tidtext, 10)
-                if tid is ParseError {
+                tid :: parse_int_in_base(tidtext, 10) else {
                     detail :: "field `${fname}` type index \"${tidtext}\" is not a number"
                     return DirectiveError { .reason = "struct `${name}`: ${detail}" }
                 }
@@ -749,13 +731,11 @@ read_library_attribute :: fn(library: CLibrary, attr: string) -> void {
 
 parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("impl ").trim()
-    space :: after.index_of(' ')
-    if space == null {
+    space :: after.index_of(' ') else {
         return DirectiveError { .reason = "expected `impl <type-index> <trait>`, got `${after}`" }
     }
     type_id_text :: after.byte_slice(0, space).trim()
-    parsed :: parse_int_in_base(type_id_text, 10)
-    if parsed is ParseError {
+    parsed :: parse_int_in_base(type_id_text, 10) else {
         return DirectiveError { .reason = "impl: type index \"${type_id_text}\" is not a number" }
     }
     trait_name :: after.byte_slice(space + 1, after.byte_len()).trim()
@@ -765,27 +745,22 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveE
 
 parse_vtable_decl_bc :: fn(cleaned: string, vtables: VtableRow[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("vtable ").trim()
-    last_space :: after.last_index_of(' ')
-    if last_space == null {
+    last_space :: after.last_index_of(' ') else {
         return DirectiveError {
             .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`",
         }
     }
     fn_text :: after.byte_slice(last_space + 1, after.byte_len()).trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
-    if fn_parsed is ParseError {
-        return DirectiveError { .reason = "vtable: fn index \"${fn_text}\" is not a number" }
-    }
+        else return DirectiveError { .reason = "vtable: fn index \"${fn_text}\" is not a number" }
     head :: after.byte_slice(0, last_space).trim()
-    second_space :: head.last_index_of(' ')
-    if second_space == null {
+    second_space :: head.last_index_of(' ') else {
         return DirectiveError {
             .reason = "vtable: expected a key and a type index before the fn index, got `${head}`",
         }
     }
     type_text :: head.byte_slice(second_space + 1, head.byte_len()).trim()
-    type_parsed :: parse_int_in_base(type_text, 10)
-    if type_parsed is ParseError {
+    type_parsed :: parse_int_in_base(type_text, 10) else {
         return DirectiveError {
             .reason = "vtable: receiver type index \"${type_text}\" is not a number",
         }
@@ -812,8 +787,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports: BcExport[]) -> i32 {
     after :: cleaned.trim_prefix("export ").trim()
     parts :: after.split(" ")
     if parts.len() < 2 { return -1 }
-    parsed :: parse_int_in_base(parts[1], 10)
-    if parsed is ParseError { return -1 }
+    parsed :: parse_int_in_base(parts[1], 10) else return -1
     if parts[0] == "main" { return i32(parsed) }
     exports.push(BcExport { .extern_name = parts[0], .fn_index = i32(parsed) })
     return -1
@@ -828,8 +802,7 @@ parse_data_decl_bc :: fn(
     cleaned: string, data_pool: BcDataEntry[], strings: string[],
 ) -> DirectiveError | null {
     after :: cleaned.trim_prefix("data ")
-    sp1 :: after.index_of(' ')
-    if sp1 == null {
+    sp1 :: after.index_of(' ') else {
         return DirectiveError {
             .reason = "expected `data <index> <kind> <payload>`, got `${after}`",
         }
@@ -1138,8 +1111,7 @@ import "std/testing"
         end
         export main 0
         """
-    m :: parse_virt_bc(src)
-    if m is VirtParseError {
+    m :: parse_virt_bc(src) else is VirtParseError {
         assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
         return
     }
@@ -1184,8 +1156,7 @@ test_parse_virt_bc_reads_a_shared_struct :: fn() -> void {
         type 1 struct Task shared { result:0 }
         type 2 struct Pair { lhs:0 }
         """
-    m :: parse_virt_bc(src)
-    if m is VirtParseError {
+    m :: parse_virt_bc(src) else is VirtParseError {
         assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
         return
     }
@@ -1202,8 +1173,7 @@ test_parse_virt_bc_reads_every_header_of_an_import :: fn() -> void {
         type 0 scalar i32
         import 0 extern getpid demo_getpid headers=<unistd.h>,my%20lib.h () -> i32
         """
-    m :: parse_virt_bc(src)
-    if m is VirtParseError {
+    m :: parse_virt_bc(src) else is VirtParseError {
         assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
         return
     }
@@ -1231,8 +1201,7 @@ test_parse_virt_bc_reads_every_header_of_an_import :: fn() -> void {
         "end",
         "export main 0",
     ]
-    listing :: parse_virt_listing(lines.join("\n"))
-    if listing is VirtParseError {
+    listing :: parse_virt_listing(lines.join("\n")) else is VirtParseError {
         assert(false, "well-formed dump should parse: ${listing.reason}")
         return
     }
@@ -1285,8 +1254,7 @@ test_parse_virt_bc_reads_every_header_of_an_import :: fn() -> void {
     // module, then a report. The report parses as neither directive nor op, so
     // the reader has to recognise it as the end rather than choke on it.
     src :: "module demo\ntype 0 scalar i32\nfn 0 main () -> i32\n  return\nend\nexport main 0\n\n# Diagnostics\n[21:10] warning[W0001] use of deprecated declaration: `old_helper`\n"
-    m :: parse_virt_bc(src)
-    if m is VirtParseError {
+    m :: parse_virt_bc(src) else is VirtParseError {
         assert(false, "a trailing diagnostics block should end the module, not fail it: ${m.reason}")
         return
     }

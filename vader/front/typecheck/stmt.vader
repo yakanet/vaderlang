@@ -259,8 +259,7 @@ recursion_detail :: fn(fn_decl: AST.FnDecl) -> string {
 }
 
 patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
-    sym :: symbol_declared_at(typed.resolved, fn_decl.name_span)
-    if sym == null {
+    sym :: symbol_declared_at(typed.resolved, fn_decl.name_span) else {
         // An impl member has no symbol: its type is keyed by its node id.
         cur :: typed.impl_method_decl_types[fn_decl.id]
         if cur is FnType {

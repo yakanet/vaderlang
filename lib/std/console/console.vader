@@ -186,8 +186,7 @@ export read_line :: fn() -> string | IOError {
     // One byte at a time: stdin is a stream, and reading ahead of the newline
     // would consume input the next caller expects to still be there.
     for 0..<LINE_LIMIT_DEFAULT {
-        b :: read_ready(1)
-        if b is IOError {
+        b :: read_ready(1) else {
             // The end of input after part of a line is a final line without its
             // newline; with nothing read, or on a failed read, the error stands.
             if b.kind == .EndOfInput && out.len() > 0 {
@@ -220,10 +219,7 @@ export read_line :: fn() -> string | IOError {
 export read_stdin :: fn(n: i64) -> string | IOError {
     out: u8[]: [] * n
     for out.len() < n {
-        chunk :: read_ready(read_size(n - out.len()))
-        if chunk is IOError {
-            return chunk
-        }
+        chunk :: read_ready(read_size(n - out.len())) else return chunk
         out.push_all(chunk)
     }
     return out.bytes_to_string()
@@ -254,10 +250,7 @@ export read_available :: fn(max: i64) -> string | IOError {
     if max <= 0 {
         return IOError { .msg = "`max` is not positive: ${max}", .kind = .InvalidInput }
     }
-    bytes :: read_ready(max)
-    if bytes is IOError {
-        return bytes
-    }
+    bytes :: read_ready(max) else return bytes
     return bytes.bytes_to_string()
 }
 
@@ -269,8 +262,7 @@ export read_available :: fn(max: i64) -> string | IOError {
 export read_stdin_to_end :: fn() -> string | IOError {
     out: u8[]: []
     for {
-        chunk :: read_ready(READ_CHUNK)
-        if chunk is IOError {
+        chunk :: read_ready(READ_CHUNK) else {
             if chunk.kind == .EndOfInput {
                 return out.bytes_to_string()
             }

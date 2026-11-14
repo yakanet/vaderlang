@@ -99,10 +99,7 @@ export parse :: fn(s: string) -> Version | ParseError {
         return ParseError { .msg = "empty version string" }
     }
     sections :: sections_of(s)
-    core :: parse_core(sections.core)
-    if core is ParseError {
-        return core
-    }
+    core :: parse_core(sections.core) else return core
     sections_error :: validate_sections(sections)
     if sections_error != null {
         return sections_error
@@ -161,10 +158,7 @@ sections_of :: fn(s: string) -> VersionSections {
     halves :: s.split_last("+")
     head :: if halves == null { s } else { halves.0 }
     build: string | null: if halves == null { null } else { halves.1 }
-    dash :: prerelease_dash(head)
-    if dash == null {
-        return VersionSections { .core = head, .build = build }
-    }
+    dash :: prerelease_dash(head) else return VersionSections { .core = head, .build = build }
     return VersionSections {
         .core       = head.byte_slice(0, dash),
         .prerelease = head.byte_slice(dash + 1, head.byte_len()),
@@ -190,9 +184,7 @@ parse_core :: fn(core: string) -> Version | ParseError {
     triple: i32[]: []
     for piece in pieces {
         value :: parse_numeric_id(piece)
-        if value is ParseError {
-            return ParseError { .msg = "version core: ${value.message()}" }
-        }
+            else return ParseError { .msg = "version core: ${value.message()}" }
         triple.push(value)
     }
     return Version {
@@ -274,10 +266,7 @@ validate_sections :: fn(sections: VersionSections) -> ParseError | null {
             return pre_error
         }
     }
-    build :: sections.build
-    if build == null {
-        return null
-    }
+    build :: sections.build else return null
     return validate_identifiers(build, validate_build_id)
 }
 

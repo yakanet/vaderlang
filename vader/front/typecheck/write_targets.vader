@@ -44,8 +44,7 @@ check_destructuring_assign :: fn(
             }
         }
         value_ty :: check_expr(s.value, rest_slot, typed, diags)
-        arr :: array_backing(value_ty)
-        if arr == null {
+        arr :: array_backing(value_ty) else {
             if value_ty !is UnresolvedType {
                 got :: display_type(default_if_free(value_ty))
                 diags.push(typecheck_error(
@@ -93,8 +92,7 @@ check_destructuring_assign :: fn(
         }
     }
     value_ty :: check_expr(s.value, mk_tuple(slot_types), typed, diags)
-    elem_types :: destructure_element_types(value_ty, s.targets.len())
-    if elem_types == null {
+    elem_types :: destructure_element_types(value_ty, s.targets.len()) else {
         diags.push(typecheck_error(
             .CannotDestructure, s.value.span,
             "cannot destructure `${display_type(value_ty)}` into ${s.targets.len()} elements"))

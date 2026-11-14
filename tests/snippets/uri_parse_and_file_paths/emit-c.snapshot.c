@@ -797,17 +797,17 @@ static void std_console$println__string(vader_string_t l0) {
 
 static vader_box_t std_uri$parse_uri(vader_string_t l0) {
     int64_t l1, l2, l3, l5, l6;
-    vader_box_t l4 = vader_box_null(), l7 = vader_box_null(), l9 = vader_box_null(), l10 = vader_box_null(), l11 = vader_box_null();
-    void* l8 = NULL;
-    vader_string_t l12 = 0;
-    vader_string_t l13 = 0;
+    vader_box_t l4 = vader_box_null(), l7 = vader_box_null(), l8 = vader_box_null(), l11 = vader_box_null(), l12 = vader_box_null();
+    vader_string_t l9 = 0;
+    void* l10 = NULL;
     void* t0 = NULL;
     bool t1;
     uint8_t t2;
     vader_string_t t3 = 0;
-    vader_box_t* gc_roots[5] = { &l4, &l7, &l9, &l10, &l11 };
-    void** gc_raw_roots[2] = { &l8, &t0 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l12, &l13, &t3 };
+    vader_string_t t4 = 0;
+    vader_box_t* gc_roots[5] = { &l4, &l7, &l8, &l11, &l12 };
+    void** gc_raw_roots[2] = { &l10, &t0 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l9, &t3, &t4 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 5u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
@@ -830,8 +830,9 @@ static vader_box_t std_uri$parse_uri(vader_string_t l0) {
         l5 = std_uri$end_of(l0, l5, 11u);
         l6 = vader_chk_add(i64, l3, INT64_C(2));
         l7 = std_uri$parse_authority(l0, l6, l5);
+        l8 = l7;
         if (l7.tag == 14u) {
-            t0 = l7.payload.obj;
+            t0 = l8.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t0 = l7.payload.obj;
@@ -839,53 +840,56 @@ static vader_box_t std_uri$parse_uri(vader_string_t l0) {
         l3 = l5;
     }
     l5 = std_uri$end_of(l0, l3, 12u);
-    l8 = (void*) &vader_fn_static_std_uri$is_path_byte;
-    l7 = std_uri$normalized(l0, l3, l5, l8);
+    l10 = (void*) &vader_fn_static_std_uri$is_path_byte;
+    l7 = std_uri$normalized(l0, l3, l5, l10);
+    l8 = l7;
     if (l7.tag == 14u) {
-        t0 = l7.payload.obj;
+        t0 = l8.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
+    l9 = l7.payload.s;
     l3 = l5;
-    l9 = vader_box_obj(0u, NULL);
+    l7 = vader_box_obj(0u, NULL);
     if ((l3 < l2)) {
         t2 = vader_host_std_core$byte_at(l0, l3);
         if (t2 == INT32_C(63)) {
             l5 = vader_chk_add(i64, l3, INT64_C(1));
             l5 = std_uri$end_of(l0, l5, 13u);
             l6 = vader_chk_add(i64, l3, INT64_C(1));
-            l8 = (void*) &vader_fn_static_std_uri$is_query_byte;
-            l10 = std_uri$normalized(l0, l6, l5, l8);
-            if (l10.tag == 14u) {
-                t0 = l10.payload.obj;
+            l10 = (void*) &vader_fn_static_std_uri$is_query_byte;
+            l8 = std_uri$normalized(l0, l6, l5, l10);
+            l11 = l8;
+            if (l8.tag == 14u) {
+                t0 = l11.payload.obj;
                 { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
-            t3 = l10.payload.s;
-            l9 = vader_box_string(2u, t3);
+            t3 = l8.payload.s;
+            l7 = vader_box_string(2u, t3);
             l3 = l5;
         }
     }
-    l10 = vader_box_obj(0u, NULL);
+    l8 = vader_box_obj(0u, NULL);
     if ((l3 < l2)) {
         l3 = vader_chk_add(i64, l3, INT64_C(1));
-        l8 = (void*) &vader_fn_static_std_uri$is_query_byte;
-        l11 = std_uri$normalized(l0, l3, l2, l8);
+        l10 = (void*) &vader_fn_static_std_uri$is_query_byte;
+        l11 = std_uri$normalized(l0, l3, l2, l10);
+        l12 = l11;
         if (l11.tag == 14u) {
-            t0 = l11.payload.obj;
+            t0 = l12.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t3 = l11.payload.s;
-        l10 = vader_box_string(2u, t3);
+        l8 = vader_box_string(2u, t3);
     }
     t3 = vader_host_std_core$byte_slice(l0, INT64_C(0), l1);
-    l12 = std_string$to_lower(t3);
-    l13 = l7.payload.s;
+    t4 = std_string$to_lower(t3);
     vader_struct_std_uri$Uri_t* _a1_obj = (vader_struct_std_uri$Uri_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$Uri_t));
     vader_obj_header_init(_a1_obj, 13u);
-    _a1_obj->f_scheme = l12;
+    _a1_obj->f_scheme = t4;
     _a1_obj->f_authority = l4;
-    _a1_obj->f_path = l13;
-    _a1_obj->f_query = l9;
-    _a1_obj->f_fragment = l10;
+    _a1_obj->f_path = l9;
+    _a1_obj->f_query = l7;
+    _a1_obj->f_fragment = l8;
     t0 = (void*) _a1_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -977,20 +981,20 @@ static int64_t std_uri$end_of(vader_string_t l0, int64_t l1, vader_string_t l2) 
 }
 
 static vader_box_t std_uri$parse_authority(vader_string_t l0, int64_t l1, int64_t l2) {
-    vader_box_t l3 = vader_box_null(), l4 = vader_box_null(), l8 = vader_box_null();
-    int64_t l5, l6, l10;
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null(), l8 = vader_box_null(), l9 = vader_box_null();
+    int64_t l5, l6, l11;
     void* l7 = NULL;
-    bool l9;
-    vader_string_t l11 = 0;
+    bool l10;
+    vader_string_t l12 = 0;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     int64_t t2;
     uint8_t t3;
-    vader_box_t* gc_roots[3] = { &l3, &l4, &l8 };
+    vader_box_t* gc_roots[4] = { &l3, &l4, &l8, &l9 };
     void** gc_raw_roots[2] = { &l7, &t0 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l11, &t1 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l12, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 3u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 4u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l3 = std_uri$byte_offset_of(l0, (uint8_t) 64, l1, l2);
@@ -1000,8 +1004,9 @@ static vader_box_t std_uri$parse_authority(vader_string_t l0, int64_t l1, int64_
         l6 = ((int64_t) l3.payload.i);
         l7 = (void*) &vader_fn_static_std_uri$is_userinfo_byte;
         l8 = std_uri$normalized(l0, l1, l6, l7);
+        l9 = l8;
         if (l8.tag == 14u) {
-            t0 = l8.payload.obj;
+            t0 = l9.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t1 = l8.payload.s;
@@ -1012,11 +1017,11 @@ static vader_box_t std_uri$parse_authority(vader_string_t l0, int64_t l1, int64_
     l6 = l2;
     if ((l5 < l2)) {
         t3 = vader_host_std_core$byte_at(l0, l5);
-        l9 = t3 == INT32_C(91);
+        l10 = t3 == INT32_C(91);
     } else {
-        l9 = false;
+        l10 = false;
     }
-    if (l9) {
+    if (l10) {
         l3 = std_uri$byte_offset_of(l0, (uint8_t) 93, l5, l2);
         if (l3.tag == 0u) {
             vader_struct_std_uri$UriError_t* _a0_obj = (vader_struct_std_uri$UriError_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$UriError_t));
@@ -1042,32 +1047,34 @@ static vader_box_t std_uri$parse_authority(vader_string_t l0, int64_t l1, int64_
     } else {
         l3 = std_uri$last_byte_offset_of(l0, (uint8_t) 58, l5, l2);
         if (l3.tag == 0u) {
-            l10 = l2;
+            l11 = l2;
         } else {
-            l10 = ((int64_t) l3.payload.i);
+            l11 = ((int64_t) l3.payload.i);
         }
-        l6 = l10;
+        l6 = l11;
     }
     l7 = (void*) &vader_fn_static_std_uri$is_host_byte;
     l3 = std_uri$normalized(l0, l5, l6, l7);
+    l8 = l3;
     if (l3.tag == 14u) {
-        t0 = l3.payload.obj;
+        t0 = l8.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
+    l12 = l3.payload.s;
     l8 = std_uri$parse_port(l0, l6, l2);
-    if (!(l8.tag == 14u)) {
-        t1 = l3.payload.s;
-        l11 = std_uri$lower_outside_escapes(t1);
-        l3 = l8;
-        vader_struct_std_uri$Authority_t* _a2_obj = (vader_struct_std_uri$Authority_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$Authority_t));
-        vader_obj_header_init(_a2_obj, 17u);
-        _a2_obj->f_userinfo = l4;
-        _a2_obj->f_host = l11;
-        _a2_obj->f_port = l3;
-        t0 = (void*) _a2_obj;
+    l9 = l8;
+    if (l8.tag == 14u) {
+        t0 = l9.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = l8.payload.obj;
+    l3 = l8;
+    l12 = std_uri$lower_outside_escapes(l12);
+    vader_struct_std_uri$Authority_t* _a2_obj = (vader_struct_std_uri$Authority_t*) vader_gc_alloc(sizeof(vader_struct_std_uri$Authority_t));
+    vader_obj_header_init(_a2_obj, 17u);
+    _a2_obj->f_userinfo = l4;
+    _a2_obj->f_host = l12;
+    _a2_obj->f_port = l3;
+    t0 = (void*) _a2_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 

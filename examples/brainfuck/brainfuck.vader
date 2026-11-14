@@ -254,12 +254,10 @@ compile_brainfuck :: fn(tokens: char[], partner: i32[]) -> string {
 // The compiled program, prepared for a run, or the message saying why it cannot
 // run. `compile_brainfuck` writes every line, so either failure is its bug.
 load_program :: fn(text: string) -> VmState | string {
-    module :: parse_virt_bc(text)
-    if module is VirtParseError {
+    module :: parse_virt_bc(text) else is VirtParseError {
         return display_virt_parse_error(module, "brainfuck", "<compiled program>")
     }
-    state :: prepare(module)
-    if state is VerifyError {
+    state :: prepare(module) else is VerifyError {
         return "brainfuck: the compiled program is malformed: ${display_verify_error(state)}"
     }
     return state
@@ -307,8 +305,7 @@ main :: fn(argv: string[]) -> i32 {
         return 1
     }
     path :: args.positionals[0]
-    src :: read_file_string(path)
-    if src is Error {
+    src :: read_file_string(path) else is Error {
         eprintln("brainfuck: cannot read ${path}")
         return 1
     }

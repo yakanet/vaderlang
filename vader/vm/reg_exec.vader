@@ -1417,8 +1417,7 @@ array_module :: fn(ops: string[]) -> bc.BytecodeModule | null {
 
 // `text` parsed as a module, the test failing when it does not parse.
 parse_test_module :: fn(text: string) -> bc.BytecodeModule | null {
-    parsed :: parse_virt_bc(text)
-    if parsed is VirtParseError {
+    parsed :: parse_virt_bc(text) else is VirtParseError {
         assert(false, "the test module parses: ${parsed.reason}")
         return null
     }

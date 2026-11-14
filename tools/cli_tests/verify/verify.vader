@@ -122,8 +122,7 @@ test_verify_finds_nothing_in_the_examples :: fn() -> void {
     out :: "${scratch_dir("verify_examples")}/out.virt"
     for input in example_inputs() {
         for flags in entry_flags(input) {
-            built :: build_verified(input, out, flags)
-            if built is ProcessError {
+            built :: build_verified(input, out, flags) else {
                 fail("`${input}` ${flags.join(" ")}: ${built.msg}")
                 return
             }

@@ -69,8 +69,7 @@ export build_ffi_adapters :: fn(
     if exists(kept.join_path(BUILT_MARK)) {
         return kept.join_path(file)
     }
-    dir :: create_unique_dir(adapters, "${print}.")
-    if dir is IOError {
+    dir :: create_unique_dir(adapters, "${print}.") else {
         return AdapterBuildError {
             .message = "cannot be written under `${adapters.to_native()}`: ${dir.message()}",
         }
@@ -82,8 +81,7 @@ export build_ffi_adapters :: fn(
     argv :: flags + header_check_flags(cc_flavour(cc))
     for k in 0..<units.units.len() {
         source :: dir.join_path("${units.names[k]}.c")
-        written :: write_file(source, units.units[k])
-        if written is IOError {
+        written :: write_file(source, units.units[k]) else is IOError {
             discard(dir)
             return AdapterBuildError { .message = "cannot be written to `${source.to_native()}`: ${written.message()}" }
         }
@@ -92,8 +90,7 @@ export build_ffi_adapters :: fn(
     argv.push_all(links)
     argv.push("-o")
     argv.push(library)
-    compiled :: spawn(argv)
-    if compiled is ProcessError {
+    compiled :: spawn(argv) else {
         discard(dir)
         why :: "${compiled.message()}\n${compiled.stderr}".trim()
         return AdapterBuildError { .message = "need a C compiler, and `${cc}` did not run: ${why}" }
@@ -103,8 +100,7 @@ export build_ffi_adapters :: fn(
         _ :: remove(library)
         return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir.to_native()}`):\n${compiled.stderr}" }
     }
-    marked :: write_file(built, "")
-    if marked is IOError {
+    marked :: write_file(built, "") else is IOError {
         discard(dir)
         return AdapterBuildError { .message = "cannot be written to `${built.to_native()}`: ${marked.message()}" }
     }
@@ -213,10 +209,7 @@ include_dirs :: fn(flags: string[]) -> string[] {
 
 // The headers directly inside the folder `dir`.
 headers_in :: fn(dir: string) -> string[] {
-    entries :: read_dir(dir)
-    if entries is IOError {
-        return []
-    }
+    entries :: read_dir(dir) else return []
     return entries.filter((name) -> name.ends_with(".h")).map((name) -> dir.join_path(name)).collect()
 }
 
@@ -254,8 +247,7 @@ export attach_ffi_adapters :: fn(
         project_root else entry_dir,
         cc_or_default(""),
         entry_dir,
-    )
-    if built is AdapterBuildError {
+    ) else is AdapterBuildError {
         imp :: state.bc.imports[adapted[0]]
         reason :: VM.adapter_reason(imp, state.bc.types) else ""
         return "extern `${imp.extern_name}` is called through an adapter (${reason}), and the adapters "

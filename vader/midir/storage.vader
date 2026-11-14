@@ -182,10 +182,7 @@ same_bounds :: fn(left: RangeType, other: Type | null) -> bool {
 computation_integer :: fn(left: Type, right: Type | null, result: Type) -> MachineInteger | null {
     l :: held_integer(left) else return null
     as_integer :: held_integer(result)
-    r :: operand_width(right, l)
-    if r == null {
-        return null
-    }
+    r :: operand_width(right, l) else return null
     if r.name == l.name && (as_integer == null || as_integer.name == l.name) {
         return null
     }

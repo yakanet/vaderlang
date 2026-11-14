@@ -20,8 +20,7 @@ cmd_help :: fn(args: string[]) -> i32 {
         return 0
     }
     name :: args[0]
-    cmd :: find_command(name)
-    if cmd == null {
+    cmd :: find_command(name) else {
         eprintln("vader help: unknown action \"${name}\"")
         return 1
     }

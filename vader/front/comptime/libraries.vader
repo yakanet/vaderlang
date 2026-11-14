@@ -48,8 +48,7 @@ evaluate_extern_libraries :: fn(
             if symbol.id in failed {
                 continue
             }
-            library :: evaluate_library(symbol, constants, diags)
-            if library == null {
+            library :: evaluate_library(symbol, constants, diags) else {
                 failed.add(symbol.id)
                 continue
             }
@@ -80,8 +79,7 @@ check_one_binary_per_name :: fn(
     if library.name == "" {
         return
     }
-    first :: first_of_name[library.name]
-    if first == null {
+    first :: first_of_name[library.name] else {
         first_of_name[library.name] = NamedLibrary { .symbol = symbol, .library = library }
         return
     }
@@ -127,8 +125,7 @@ evaluate_library :: fn(
         .project = constants,
     }
     result :: evaluate_project_const(symbol, context, declaration.span) else return null
-    value :: result.value
-    if value == null {
+    value :: result.value else {
         if result.diag != null {
             diags.push(result.diag)
         }

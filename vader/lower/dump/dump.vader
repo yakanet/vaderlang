@@ -109,8 +109,7 @@ emit_fn :: fn(names: DumpNames, lines: string[], decl: LoweredFnDecl, indent: st
     signature :: "fn(${params_text(decl.params)}) -> ${display_type(decl.return_type)}"
     head :: "${indent}${declared_text(names, decl.mangled)} :: ${signature}"
     comment :: mangle_comment(names, decl.mangled)
-    body :: decl.body
-    if body == null {
+    body :: decl.body else {
         lines.push("${head}${comment}")
         return
     }

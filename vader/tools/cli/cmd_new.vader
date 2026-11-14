@@ -92,27 +92,13 @@ cmd_new :: fn(args: string[]) -> i32 {
         intro("vader new ${VADER_VERSION}")
     }
     chosen :: choose_target(parsed.action_file().as_string())
-    if chosen is PromptError {
-        return refuse(asking, unanswered(chosen))
-    }
+        else return refuse(asking, unanswered(chosen))
     // Checked before the other questions: a name typed on the command line that
     // cannot take the project should not wait for two more answers to be refused.
-    target :: resolve_target(chosen)
-    if target is ScaffoldError {
-        return refuse(asking, target.msg)
-    }
-    setup :: choose_build(parsed)
-    if setup is PromptError {
-        return refuse(asking, unanswered(setup))
-    }
-    wants_git :: choose_git(parsed)
-    if wants_git is PromptError {
-        return refuse(asking, unanswered(wants_git))
-    }
-    written :: scaffold(target, setup)
-    if written is ScaffoldError {
-        return refuse(asking, written.msg)
-    }
+    target :: resolve_target(chosen) else is ScaffoldError { return refuse(asking, target.msg) }
+    setup :: choose_build(parsed) else return refuse(asking, unanswered(setup))
+    wants_git :: choose_git(parsed) else return refuse(asking, unanswered(wants_git))
+    written :: scaffold(target, setup) else is ScaffoldError { return refuse(asking, written.msg) }
     complaint := ""
     if wants_git {
         complaint = init_git(target.dir) else ""
@@ -175,10 +161,7 @@ choose_target :: fn(typed: string) -> string | PromptError {
 // Why the folder answered cannot take the project, null when it can: the
 // question is asked again instead of failing once every other is answered.
 target_problem :: fn(answer: string) -> string | null {
-    target :: resolve_target(answer)
-    if target is ScaffoldError {
-        return target.msg
-    }
+    target :: resolve_target(answer) else is ScaffoldError { return target.msg }
     return null
 }
 
@@ -192,10 +175,7 @@ choose_build :: fn(parsed: ParsedArgs) -> BuildSetup | PromptError {
     if !TTY.is_tty() {
         return .Manifest
     }
-    picked :: select("How should this project build?", build_choices())
-    if picked is PromptError {
-        return picked
-    }
+    picked :: select("How should this project build?", build_choices()) else return picked
     return setup_named(NEW_BUILD_SETUPS[picked].name)
 }
 
@@ -286,8 +266,7 @@ resolve_target :: fn(raw: string) -> NewProject | ScaffoldError {
         if !is_dir(raw) {
             return ScaffoldError { .msg = "`${raw.to_native()}` exists and is not a directory" }
         }
-        entries :: read_dir(raw)
-        if entries is IOError {
+        entries :: read_dir(raw) else {
             return ScaffoldError {
                 .msg = "`${raw.to_native()}` cannot be read: ${entries.message()}",
             }
@@ -331,8 +310,7 @@ directory_name :: fn(path: string) -> string {
 // intrinsic is `mkdir -p`, and an existing directory is success.
 scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
     source_dir :: join_path(project.dir, SOURCE_DIR)
-    made :: create_dir(source_dir)
-    if made is IOError {
+    made :: create_dir(source_dir) else is IOError {
         return ScaffoldError {
             .msg = "cannot create `${source_dir.to_native()}`: ${made.message()}",
         }
@@ -341,33 +319,23 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
         manifest :: write_one(
             join_path(project.dir, MANIFEST_FILENAME),
             render_manifest(project.name),
-        )
-        if manifest is ScaffoldError {
-            return manifest
-        }
+        ) else is ScaffoldError { return manifest }
     }
     if setup == .Driver {
         driver :: write_one(
             join_path(project.dir, DRIVER_FILENAME),
             render_driver(scaffolded_manifest(project.name)),
-        )
-        if driver is ScaffoldError {
-            return driver
-        }
+        ) else is ScaffoldError { return driver }
     }
     entry :: write_one(
         join_path(source_dir, ENTRY_FILENAME),
         render_entry(project.name),
-    )
-    if entry is ScaffoldError {
-        return entry
-    }
+    ) else is ScaffoldError { return entry }
     return write_one(join_path(project.dir, ".gitignore"), render_gitignore())
 }
 
 write_one :: fn(path: string, content: string) -> null | ScaffoldError {
-    res :: write_file(path, content)
-    if res is IOError {
+    res :: write_file(path, content) else is IOError {
         return ScaffoldError { .msg = "cannot write `${path.to_native()}`: ${res.message()}" }
     }
     return null
@@ -414,8 +382,7 @@ render_gitignore :: fn() -> string = "build/\n"
 // `--git`, and it WARNS rather than fails: the scaffold is already on disk by the
 // time this runs, so refusing after the fact would leave a project plus an error.
 init_git :: fn(dir: string) -> string | null {
-    res :: spawn(["git", "init", dir])
-    if res is ProcessError {
+    res :: spawn(["git", "init", dir]) else {
         hint :: "the project is written, initialise it yourself"
         return "vader new: `git init` could not run (${res.msg}): ${hint}"
     }

@@ -10,7 +10,6 @@
 module "tools/cli_tests/native"
 
 import "std/fs"
-import "std/io"
 import "std/option"
 import "std/process"
 import "std/string"
@@ -88,10 +87,7 @@ build_and_run :: fn(
     source: string,
     args: string[] = [],
 ) -> Ran | ProcessError {
-    binary :: build_binary(name, flags, source)
-    if binary is ProcessError {
-        return binary
-    }
+    binary :: build_binary(name, flags, source) else return binary
     return ran_of(run_command([binary] + args))
 }
 
@@ -100,10 +96,7 @@ vm_run :: fn(program: string, args: string[] = []) -> Ran =
 
 // The `# stdout` section of the `vm.snapshot` of the snippet in `dir`.
 vm_stdout :: fn(dir: string) -> string {
-    snapshot :: read_file_string("${dir}/vm.snapshot")
-    if snapshot is IOError {
-        return ""
-    }
+    snapshot :: read_file_string("${dir}/vm.snapshot") else return ""
     after :: snapshot.split_first("# stdout\n") else return ""
     section :: after.1.split_first("\n# ") else return after.1
     return "${section.0}\n"

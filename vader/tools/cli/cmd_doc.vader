@@ -248,8 +248,7 @@ refresh_data :: fn(inputs: Doc.DocInputs, home: string, out_dir: string) -> Refr
         )
         return Refreshed { .problems = problems, .status = null }
     }
-    written :: Doc.write_doc_data(out_dir, documented.modules)
-    if written is IOError {
+    written :: Doc.write_doc_data(out_dir, documented.modules) else is IOError {
         problems.push("vader doc: cannot write `${out_dir.to_native()}`: ${written.message()}")
         return Refreshed { .problems = problems, .status = null }
     }

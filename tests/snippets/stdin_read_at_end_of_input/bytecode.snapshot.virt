@@ -284,9 +284,11 @@ end
 fn 6 std_console$read_line () -> any
   local out ref
   local __for_discard_0 i64
+  local b ref
+  local __fallback_1 any
   local b any
-  local $sub_checked_29 i64
-  local $idx_37 u8
+  local $sub_checked_31 i64
+  local $idx_38 u8
   array.new 7 0   ; u8[]
   local.set 0   ; out
   i64.const 0
@@ -298,10 +300,12 @@ fn 6 std_console$read_line () -> any
     if $L1 void
       i64.const 1
       call 9   ; std_console$read_ready
-      local.tee 2   ; b
+      local.tee 3   ; __fallback_1
+      local.set 4   ; b
+      local.get 3   ; __fallback_1
       type_check 10   ; std_io$IOError
       if $L2 void
-        local.get 2   ; b
+        local.get 4   ; b
         ref.cast 10   ; std_io$IOError
         struct.get 10 1   ; std_io$IOError.kind
         i32.const 13
@@ -317,16 +321,17 @@ fn 6 std_console$read_line () -> any
             retag 2   ; string
             return
           end $L4
-          local.get 2   ; b
+          local.get 4   ; b
           ref.cast 10   ; std_io$IOError
           return
         end $L3
-        local.get 2   ; b
+        local.get 4   ; b
         ref.cast 10   ; std_io$IOError
         return
       end $L2
-      local.get 2   ; b
+      local.get 3   ; __fallback_1
       ref.cast 7   ; u8[]
+      local.tee 2   ; b
       i32.const 0
       array.get 7   ; u8[]
       ref.cast 6   ; u8
@@ -342,9 +347,9 @@ fn 6 std_console$read_line () -> any
           array.len
           i64.const 1
           i64.checked_sub
-          local.set 3   ; $sub_checked_29
+          local.set 5   ; $sub_checked_31
           local.get 0   ; out
-          local.get 3   ; $sub_checked_29
+          local.get 5   ; $sub_checked_31
           array.get 7   ; u8[]
           ref.cast 6   ; u8
           i32.const 13
@@ -369,13 +374,12 @@ fn 6 std_console$read_line () -> any
         return
       end $L5
       local.get 2   ; b
-      ref.cast 7   ; u8[]
       i32.const 0
       array.get 7   ; u8[]
       ref.cast 6   ; u8
-      local.set 4   ; $idx_37
+      local.set 6   ; $idx_38
       local.get 0   ; out
-      local.get 4   ; $idx_37
+      local.get 6   ; $idx_38
       array.push 6   ; u8
       local.get 1   ; __for_discard_0
       i64.const 1
@@ -393,34 +397,37 @@ end
 
 fn 7 std_console$read_stdin_to_end () -> any
   local out ref
+  local chunk ref
+  local __fallback_0 any
   local chunk any
-  local $cast_12 ref
   array.new 7 0   ; u8[]
   local.set 0   ; out
   loop $L0 void
     i64.const 65536
     call 9   ; std_console$read_ready
-    local.tee 1   ; chunk
+    local.tee 2   ; __fallback_0
+    local.set 3   ; chunk
+    local.get 2   ; __fallback_0
     type_check 10   ; std_io$IOError
     if $L1 void
     else
-      local.get 1   ; chunk
+      local.get 2   ; __fallback_0
       ref.cast 7   ; u8[]
-      local.set 2   ; $cast_12
+      local.set 1   ; chunk
       local.get 0   ; out
-      local.get 2   ; $cast_12
+      local.get 1   ; chunk
       array.push_all
       br $L0
     end $L1
   end $L0
-  local.get 1   ; chunk
+  local.get 3   ; chunk
   ref.cast 10   ; std_io$IOError
   struct.get 10 1   ; std_io$IOError.kind
   i32.const 13
   i32.eq
   if $L2 void
   else
-    local.get 1   ; chunk
+    local.get 3   ; chunk
     ref.cast 10   ; std_io$IOError
     return
   end $L2

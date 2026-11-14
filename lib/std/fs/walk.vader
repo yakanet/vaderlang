@@ -74,10 +74,7 @@ export walk :: fn(root: string, options: WalkOptions = WalkOptions {}) -> Walker
     if root.has_nul() {
         return NUL_IN_PATH
     }
-    listed :: root.list_dir()
-    if listed is IOError {
-        return listed
-    }
+    listed :: root.list_dir() else return listed
     return Walker {
         .root = root,
         .options = options,
@@ -95,8 +92,7 @@ Walker implements Into<Iterator<WalkEntry>> {
             entry :: pending.remove_last() else break
             yield entry
             if entry.kind == .Directory && self.options.descend(entry) {
-                listed :: entry.path.list_dir()
-                if listed is IOError {
+                listed :: entry.path.list_dir() else {
                     self.errors.push(listed)
                     continue
                 }
@@ -147,14 +143,8 @@ by_name_descending :: fn(a: ListedEntry, b: ListedEntry) -> bool = a.name > b.na
 /// @example
 ///   sources :: glob_files("src", "**/*.vader")
 export glob_files :: fn(root: string, pattern: string) -> string[] | GlobError | IOError {
-    glob :: parse_glob(pattern)
-    if glob is GlobError {
-        return glob
-    }
-    w :: walk(root)
-    if w is IOError {
-        return w
-    }
+    glob :: parse_glob(pattern) else return glob
+    w :: walk(root) else return w
     found: string[]: []
     for entry in w {
         if entry.kind != .Directory && glob.matches(entry.relative) {
@@ -185,10 +175,7 @@ probe_tree :: fn(name: string) -> string {
 
 // The relative paths a walk of `root` yields with their depths, in its order.
 walked :: fn(root: string, options: WalkOptions = WalkOptions {}) -> string {
-    w :: walk(root, options)
-    if w is IOError {
-        return "error: ${w.msg}"
-    }
+    w :: walk(root, options) else return "error: ${w.msg}"
     out: string[]: []
     for entry in w {
         out.push("${entry.relative}:${entry.depth}")
@@ -207,8 +194,7 @@ test_walk_yields_the_tree_in_preorder_by_name :: fn() -> void {
 test_walk_entries_carry_their_path_and_kind :: fn() -> void {
     root :: probe_tree("kinds")
     defer root.remove(RemoveOptions { .recursive = true })
-    w :: walk(root)
-    if w is IOError {
+    w :: walk(root) else {
         assert(false, "the root is walked")
         return
     }
@@ -266,8 +252,7 @@ test_walk_skips_an_unreadable_directory_and_keeps_why :: fn() -> void {
     defer root.remove(RemoveOptions { .recursive = true })
     sys_chmod("${root}/b/d", 0)
     defer sys_chmod("${root}/b/d", 0o755)
-    w :: walk(root)
-    if w is IOError {
+    w :: walk(root) else {
         assert(false, "the root is walked")
         return
     }

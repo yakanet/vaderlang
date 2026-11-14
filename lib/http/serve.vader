@@ -99,8 +99,7 @@ export serve :: fn(
     accept :: () -> listener.accept()
     for {
         make_room(listener, serving, options.connections)
-        stream :: patiently(accept)
-        if stream is IOError {
+        stream :: patiently(accept) else {
             wind_down(serving, options.grace)
             return stream
         }
@@ -318,8 +317,7 @@ import "std/testing"
 // A listener on a free port of the loopback address; null, the test having
 // failed, when the system refuses.
 listening :: fn() -> TcpListener | null {
-    listener :: listen(loopback(0))
-    if listener is IOError {
+    listener :: listen(loopback(0)) else {
         assert(false, "cannot listen: ${listener.msg}")
         return null
     }
@@ -329,8 +327,7 @@ listening :: fn() -> TcpListener | null {
 // Where `listener` listens; null, the test having failed, when the system
 // does not tell.
 address_of :: fn(listener: TcpListener) -> SocketAddress | null {
-    address :: listener.local_address()
-    if address is IOError {
+    address :: listener.local_address() else {
         assert(false, "no address: ${address.msg}")
         return null
     }
@@ -339,8 +336,7 @@ address_of :: fn(listener: TcpListener) -> SocketAddress | null {
 
 // A connection to `address`; null, the test having failed, when there is none.
 calling :: fn(address: SocketAddress) -> TcpStream | null {
-    stream :: connect(address)
-    if stream is IOError {
+    stream :: connect(address) else {
         assert(false, "cannot connect: ${stream.msg}")
         return null
     }
@@ -367,10 +363,7 @@ rest_of :: fn(stream: TcpStream) -> string {
 
 read_to_the_end :: fn(stream: TcpStream) -> string {
     reader :: BufferedReader { .source = stream }
-    rest :: reader.read_to_end(65536)
-    if rest is IOError {
-        return "error: ${rest.msg}"
-    }
+    rest :: reader.read_to_end(65536) else return "error: ${rest.msg}"
     return rest.bytes_to_string()
 }
 
@@ -594,10 +587,7 @@ test_a_client_that_keeps_its_side_open_is_given_its_time_to_close :: fn() -> voi
     address :: address_of(listener) else return
     client :: calling(address) else return
     client.write(get("/a", true))
-    accepted :: listener.accept()
-    if accepted is IOError {
-        return assert(false, "no connection: ${accepted.msg}")
-    }
+    accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     options :: ServeOptions { .timeouts = Timeouts { .linger = 50.millis() } }
     began :: monotonic()
     serve_stream(accepted, naming, options, Stop {})
@@ -663,10 +653,7 @@ test_a_connection_cut_before_it_was_served_is_closed :: fn() -> void {
     listener :: listening() else return
     address :: address_of(listener) else return
     client :: calling(address) else return
-    accepted :: listener.accept()
-    if accepted is IOError {
-        return assert(false, "no connection: ${accepted.msg}")
-    }
+    accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     // Nothing parks between the launch and the cut: the task has not started.
     stop :: Stop {}
     cut(
@@ -803,10 +790,7 @@ test_a_client_that_stops_reading_is_let_go :: fn() -> void {
     options :: ServeOptions { .timeouts = Timeouts { .write = 50.millis() } }
     stream :: calling(address) else return
     stream.write(get("/a"))
-    accepted :: listener.accept()
-    if accepted is IOError {
-        return assert(false, "no connection: ${accepted.msg}")
-    }
+    accepted :: listener.accept() else return assert(false, "no connection: ${accepted.msg}")
     pace :: Pace { .deadlines = accepted, .timeouts = options.timeouts }
     end :: serve_paced(accepted, accepted, endless, options.limits, pace)
     assert(end.reason == .TimedOut, "the response stopped at a write nobody took")

@@ -751,9 +751,7 @@ union_member_for_free :: fn(
         return first_param
     }
     member :: union_literal_member(free_ty, first_param)
-    if member == null {
-        return settle_ambiguous_literal(receiver, free_ty, first_param, diags)
-    }
+        else return settle_ambiguous_literal(receiver, free_ty, first_param, diags)
     return member
 }
 
@@ -914,8 +912,7 @@ try_enum_variant_dispatch :: fn(
         )
         return TY_UNRESOLVED
     }
-    idx :: target_ty.indices[e.field]
-    if idx is null {
+    idx :: target_ty.indices[e.field] else {
         diags.push(
             typecheck_error(
                 .UnknownEnumVariant,
@@ -1112,8 +1109,7 @@ resolve_struct_field :: fn(
     // `struct_backing` accepts a struct-backed distinct newtype (`Color :: Rgb`)
     // too : `color.r` forwards to the backing struct's fields while the distinct
     // keeps its nominal identity for trait-impl dispatch.
-    st :: struct_backing(target_ty)
-    if st == null {
+    st :: struct_backing(target_ty) else {
         // Checked before the shape-based diagnostics: "the name is behind an
         // alias" explains the miss, where "non-struct type" only describes it.
         if report_namespace_alias_method(e, target_ty, typed, diags) {
@@ -1149,8 +1145,7 @@ resolve_struct_field :: fn(
         )
         return TY_UNRESOLVED
     }
-    fields :: typed.struct_fields[st.symbol.id]
-    if fields == null {
+    fields :: typed.struct_fields[st.symbol.id] else {
         // A generator's state struct has no declaration and no field the source
         // can name : a member that reached here is a method no overload took.
         if is_gen_state_struct(st) {
@@ -1160,8 +1155,7 @@ resolve_struct_field :: fn(
         // (`type_from_symbol`), whose misses are reported on their own path.
         return TY_UNRESOLVED
     }
-    found :: fields[e.field]
-    if found == null {
+    found :: fields[e.field] else {
         if report_namespace_alias_method(e, target_ty, typed, diags) {
             return TY_UNRESOLVED
         }

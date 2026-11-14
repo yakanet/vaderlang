@@ -145,8 +145,7 @@ bound_by_slot :: fn(
     diags: Diagnostic[],
 ) -> Type | null {
     if open {
-        slot :: slot_fn_type(settled_slot(expected, typed))
-        if slot == null {
+        slot :: slot_fn_type(settled_slot(expected, typed)) else {
             report_unbound(role, site.span, decl, diags)
             return null
         }

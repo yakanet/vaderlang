@@ -546,9 +546,7 @@ run_for_value :: fn(state: VmState, mangled: string, is_comptime: bool) -> Value
 // The index of the fn named `mangled`, or the trap of a name no fn carries.
 entry_named :: fn(state: VmState, mangled: string) -> i32 | Trap {
     idx :: state.fn_index_by_name[mangled]
-    if idx == null {
-        return Trap { .message = "no function named '${mangled}'" }
-    }
+        else return Trap { .message = "no function named '${mangled}'" }
     return idx
 }
 

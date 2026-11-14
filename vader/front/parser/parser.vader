@@ -4249,8 +4249,7 @@ header_arity :: fn(src: string) -> i64 {
 @test test_enum_variant_data_then_value :: fn() -> void {
     src :: "module \"t\"\nE :: enum(Info) {\n    A { .code = 200, .reason = \"OK\" } = 200,\n    B,\n}\n"
     assert_eq(parse_error_count(src), 0)
-    e :: first_enum(src)
-    if e == null {
+    e :: first_enum(src) else {
         assert(false, "an enum should parse")
         return
     }

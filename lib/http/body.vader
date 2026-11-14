@@ -34,19 +34,13 @@ declared_body :: fn(
         if lengths.len() > 0 {
             return malformed("a transfer coding and a content length together")
         }
-        refused :: only_chunked(codings, is_request)
-        if refused is HttpError {
-            return refused
-        }
+        refused :: only_chunked(codings, is_request) else is HttpError { return refused }
         return ChunkedBody { .source = reader, .limits = limits }
     }
     if lengths.len() == 0 {
         return null
     }
-    length :: content_length(lengths)
-    if length is HttpError {
-        return length
-    }
+    length :: content_length(lengths) else return length
     return LengthBody { .source = reader, .left = length }
 }
 
@@ -56,10 +50,7 @@ content_length :: fn(values: string[]) -> i64 | HttpError {
     found: i64 = -1
     for value in values {
         for part in value.split(",") {
-            length :: decimal(trimmed(part.bytes()))
-            if length is HttpError {
-                return length
-            }
+            length :: decimal(trimmed(part.bytes())) else return length
             if found >= 0 && found != length {
                 return malformed("two content lengths that differ")
             }
@@ -72,9 +63,7 @@ content_length :: fn(values: string[]) -> i64 | HttpError {
 // `1*DIGIT` as a number, refused when it does not fit.
 decimal :: fn(digits: u8[]) -> i64 | HttpError {
     value :: parse_int_in_base(digits.bytes_to_string(), 10)
-    if value is ParseError {
-        return malformed("a content length is digits alone, and a number that can be counted")
-    }
+        else return malformed("a content length is digits alone, and a number that can be counted")
     return value
 }
 
@@ -93,10 +82,7 @@ LengthBody implements Reader {
         if into.len() == 0 {
             return 0
         }
-        got :: self.source.read(into[0..<min(into.len(), self.left)])
-        if got is IOError {
-            return got
-        }
+        got :: self.source.read(into[0..<min(into.len(), self.left)]) else is IOError { return got }
         if got == null {
             return IOError {
                 .msg = "the message ended ${self.left} bytes before its declared length",

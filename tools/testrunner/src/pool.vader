@@ -203,8 +203,7 @@ worker_of :: fn(slot: Slot) -> Worker | null {
     if current != null {
         return current
     }
-    child :: spawn_interactive(slot.command)
-    if child is ProcessError {
+    child :: spawn_interactive(slot.command) else {
         eprintln("testrunner: ${child.msg}")
         return null
     }

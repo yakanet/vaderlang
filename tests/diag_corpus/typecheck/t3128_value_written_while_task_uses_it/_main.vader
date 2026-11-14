@@ -1,11 +1,23 @@
 // T3128 : the task pushes into `scores` while the code after the launch reads it,
-// before the join.
+// before the join. Quiet when the join is the left of an `else`, which always runs.
 module "snippet"
 
 import "std/task"
+import "std/time"
 
 fill :: fn(scores: i64[]) -> void {
     scores.push(1)
+}
+
+counted :: fn(scores: i64[]) -> i64 {
+    scores.push(1)
+    return 1
+}
+
+joined_on_the_left_of_else :: fn() -> i64 {
+    scores: i64[]: []
+    got :: launch(() -> counted(scores)).timeout(1.seconds()) else return -1
+    return scores.len() + got
 }
 
 main :: fn() -> i32 {
@@ -13,5 +25,5 @@ main :: fn() -> i32 {
     t :: launch(() -> fill(scores))
     n :: scores.len()
     t.join()
-    return i32(n)
+    return i32(n + joined_on_the_left_of_else())
 }

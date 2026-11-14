@@ -911,12 +911,12 @@ end
 
 fn 11 semver$parse (string) -> any
   local sections ref
+  local core ref
+  local __fallback_0 any
   local core any
-  local sections_error any
-  local __spread_0 ref
-  local $field_17 i32
-  local $field_18 i32
   local $field_19 i32
+  local $field_20 i32
+  local $field_21 i32
   local if_res string
   local if_res string
   local.get 0   ; arg 0
@@ -932,66 +932,68 @@ fn 11 semver$parse (string) -> any
   local.field 1 16 0   ; sections semver$VersionSections.core
   ref.cast 2   ; string
   call 14   ; semver$parse_core
-  local.tee 2   ; core
+  local.tee 3   ; __fallback_0
+  local.set 4   ; core
+  local.get 3   ; __fallback_0
   type_check 13   ; std_string$ParseError
   if $L1 void
-    local.get 2   ; core
+    local.get 4   ; core
     ref.cast 13   ; std_string$ParseError
     return
   end $L1
+  local.get 3   ; __fallback_0
+  ref.cast 3   ; semver$Version
+  local.set 2   ; core
   local.get 1   ; sections
   call 15   ; semver$validate_sections
-  local.tee 3   ; sections_error
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L2 void
   else
-    local.get 3   ; sections_error
+    local.get 3   ; __fallback_0
     ref.cast 13   ; std_string$ParseError
     return
   end $L2
-  local.get 2   ; core
-  ref.cast 3   ; semver$Version
-  local.set 4   ; __spread_0
-  local.field 4 3 0   ; __spread_0 semver$Version.major
+  local.field 2 3 0   ; core semver$Version.major
   ref.cast 1   ; i32
-  local.set 5   ; $field_17
-  local.field 4 3 1   ; __spread_0 semver$Version.minor
+  local.set 5   ; $field_19
+  local.field 2 3 1   ; core semver$Version.minor
   ref.cast 1   ; i32
-  local.set 6   ; $field_18
-  local.field 4 3 2   ; __spread_0 semver$Version.patch
+  local.set 6   ; $field_20
+  local.field 2 3 2   ; core semver$Version.patch
   ref.cast 1   ; i32
-  local.set 7   ; $field_19
+  local.set 7   ; $field_21
   local.field 1 16 1   ; sections semver$VersionSections.prerelease
-  local.tee 2   ; core
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L3 void
     string.const 8   ; ""
     local.set 8   ; if_res
   else
-    local.get 2   ; core
+    local.get 3   ; __fallback_0
     ref.cast 2   ; string
     local.set 8   ; if_res
   end $L3
   local.field 1 16 2   ; sections semver$VersionSections.build
-  local.tee 2   ; core
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L4 void
     string.const 8   ; ""
     local.set 9   ; if_res
-    local.get 5   ; $field_17
-    local.get 6   ; $field_18
-    local.get 7   ; $field_19
+    local.get 5   ; $field_19
+    local.get 6   ; $field_20
+    local.get 7   ; $field_21
     local.get 8   ; if_res
     local.get 9   ; if_res
     struct.new 3   ; semver$Version
     return
   end $L4
-  local.get 2   ; core
+  local.get 3   ; __fallback_0
   ref.cast 2   ; string
   local.set 9   ; if_res
-  local.get 5   ; $field_17
-  local.get 6   ; $field_18
-  local.get 7   ; $field_19
+  local.get 5   ; $field_19
+  local.get 6   ; $field_20
+  local.get 7   ; $field_21
   local.get 8   ; if_res
   local.get 9   ; if_res
   struct.new 3   ; semver$Version
@@ -1070,10 +1072,9 @@ fn 13 semver$sections_of (string) -> ref
   local halves any
   local head string
   local build any
-  local $cast_19 i64
-  local $call_20 string
+  local dash i64
+  local $call_21 string
   local $call_24 i64
-  local $call_25 string
   local.get 0   ; arg 0
   string.const 11   ; "+"
   call 51   ; std_string$split_last
@@ -1107,37 +1108,35 @@ fn 13 semver$sections_of (string) -> ref
   local.tee 1   ; halves
   type_check 0   ; null
   if $L2 void
-  else
-    local.get 1   ; halves
-    ref.cast 5   ; i64
-    local.set 4   ; $cast_19
     local.get 2   ; head
-    i64.const 0
-    local.get 4   ; $cast_19
-    call.import 2   ; std_core$byte_slice
-    local.set 5   ; $call_20
-    local.get 1   ; halves
-    ref.cast 5   ; i64
-    i64.const 1
-    i64.checked_add
-    local.set 4   ; $cast_19
-    local.get 2   ; head
-    call.import 0   ; std_core$byte_len
-    local.set 6   ; $call_24
-    local.get 2   ; head
-    local.get 4   ; $cast_19
-    local.get 6   ; $call_24
-    call.import 2   ; std_core$byte_slice
-    local.set 7   ; $call_25
-    local.get 5   ; $call_20
-    local.get 7   ; $call_25
-    retag 2   ; string
+    null.const
     local.get 3   ; build
     struct.new 16   ; semver$VersionSections
     return
   end $L2
+  local.get 1   ; halves
+  ref.cast 5   ; i64
+  local.set 4   ; dash
   local.get 2   ; head
-  null.const
+  i64.const 0
+  local.get 4   ; dash
+  call.import 2   ; std_core$byte_slice
+  local.set 5   ; $call_21
+  local.get 4   ; dash
+  i64.const 1
+  i64.checked_add
+  local.set 4   ; dash
+  local.get 2   ; head
+  call.import 0   ; std_core$byte_len
+  local.set 6   ; $call_24
+  local.get 2   ; head
+  local.get 4   ; dash
+  local.get 6   ; $call_24
+  call.import 2   ; std_core$byte_slice
+  local.set 2   ; head
+  local.get 5   ; $call_21
+  local.get 2   ; head
+  retag 2   ; string
   local.get 3   ; build
   struct.new 16   ; semver$VersionSections
   return
@@ -1148,11 +1147,12 @@ fn 14 semver$parse_core (string) -> any
   local triple ref
   local __for_len_1 i64
   local __for_i_2 i64
+  local value i32
+  local __fallback_3 any
   local value any
-  local $call_24 string
-  local $cast_27 i32
-  local $idx_33 i32
+  local $call_26 string
   local $idx_35 i32
+  local $idx_37 i32
   local.get 0   ; arg 0
   string.const 12   ; "."
   call 50   ; std_string$split
@@ -1182,24 +1182,26 @@ fn 14 semver$parse_core (string) -> any
       array.get 31   ; string[]
       ref.cast 2   ; string
       call 19   ; semver$parse_numeric_id
-      local.tee 5   ; value
+      local.tee 6   ; __fallback_3
+      local.set 7   ; value
+      local.get 6   ; __fallback_3
       type_check 13   ; std_string$ParseError
       if $L3 void
-        local.get 5   ; value
+        local.get 7   ; value
         ref.cast 13   ; std_string$ParseError
         call 62   ; std_string$ParseError$std_core$Error$message
-        local.set 6   ; $call_24
+        local.set 8   ; $call_26
         string.const 14   ; "version core: "
-        local.get 6   ; $call_24
+        local.get 8   ; $call_26
         call 2   ; concat_2
         struct.new 13   ; std_string$ParseError
         return
       end $L3
-      local.get 5   ; value
+      local.get 6   ; __fallback_3
       ref.cast 1   ; i32
-      local.set 7   ; $cast_27
+      local.set 5   ; value
       local.get 2   ; triple
-      local.get 7   ; $cast_27
+      local.get 5   ; value
       array.push 1   ; i32
       local.get 4   ; __for_i_2
       i64.const 1
@@ -1211,18 +1213,18 @@ fn 14 semver$parse_core (string) -> any
   local.get 2   ; triple
   i32.const 0
   load_slot_i32
-  local.set 7   ; $cast_27
+  local.set 5   ; value
   local.get 2   ; triple
   i32.const 1
   load_slot_i32
-  local.set 8   ; $idx_33
+  local.set 9   ; $idx_35
   local.get 2   ; triple
   i32.const 2
   load_slot_i32
-  local.set 9   ; $idx_35
-  local.get 7   ; $cast_27
-  local.get 8   ; $idx_33
+  local.set 10   ; $idx_37
+  local.get 5   ; value
   local.get 9   ; $idx_35
+  local.get 10   ; $idx_37
   string.const 8   ; ""
   string.const 8   ; ""
   struct.new 3   ; semver$Version
@@ -1259,18 +1261,17 @@ fn 15 semver$validate_sections (ref) -> any
   local.tee 1   ; pre
   type_check 0   ; null
   if $L2 void
-  else
-    local.get 1   ; pre
-    ref.cast 2   ; string
-    local.set 2   ; $cast_4
-    fn.ref 22 22   ; semver$validate_build_id fn
-    local.set 3   ; $fn_ref_5
-    local.get 2   ; $cast_4
-    local.get 3   ; $fn_ref_5
-    call 20   ; semver$validate_identifiers
-    return
+    return.lit null.const
   end $L2
-  return.lit null.const
+  local.get 1   ; pre
+  ref.cast 2   ; string
+  local.set 2   ; $cast_4
+  fn.ref 22 22   ; semver$validate_build_id fn
+  local.set 3   ; $fn_ref_5
+  local.get 2   ; $cast_4
+  local.get 3   ; $fn_ref_5
+  call 20   ; semver$validate_identifiers
+  return
 end
 
 fn 16 semver$wildcard_range () -> ref

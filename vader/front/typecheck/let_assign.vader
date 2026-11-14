@@ -298,13 +298,11 @@ import "vader/front/parser"
 test_let_simple_binding_records_local_type :: fn() -> void {
     src :: "f :: fn() -> i32 { x :: 42 }"
     out :: check_source_bodies(src)
-    sb :: first_simple_binding(src)
-    if sb is null {
+    sb :: first_simple_binding(src) else {
         assert(false, "expected SimpleBinding")
         return
     }
-    ty :: out.typed.local_types[sb.name_span.hash()]
-    if ty is null {
+    ty :: out.typed.local_types[sb.name_span.hash()] else {
         assert(false, "binding should have a type")
         return
     }
@@ -316,13 +314,11 @@ test_let_simple_binding_records_local_type :: fn() -> void {
 test_let_with_annotation_narrows_free_int :: fn() -> void {
     src :: "f :: fn() -> i64 { x: i64 = 5 }"
     out :: check_source_bodies(src)
-    sb :: first_simple_binding(src)
-    if sb is null {
+    sb :: first_simple_binding(src) else {
         assert(false, "expected SimpleBinding")
         return
     }
-    ty :: out.typed.local_types[sb.name_span.hash()]
-    if ty is null {
+    ty :: out.typed.local_types[sb.name_span.hash()] else {
         assert(false, "binding should have a type")
         return
     }

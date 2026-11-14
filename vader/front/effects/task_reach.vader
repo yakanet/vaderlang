@@ -201,8 +201,7 @@ display_chain :: fn(chain: string[]) -> string {
 // the fn it runs.
 check_main_thread :: fn(ctx: TaskCtx, body: TaskBody, door: Door, out: TaskFault[]) -> void {
     line :: door.site.at.start.line
-    entry :: door.entry
-    if entry == null {
+    entry :: door.entry else {
         q :: door.param else return
         node :: ctx.named_fn_node(body, door.site, q) else return
         chain :: ctx.reach[node].main_thread

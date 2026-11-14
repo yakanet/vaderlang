@@ -65,10 +65,7 @@ drain :: fn(body: Reader, limits: Limits = Limits {}) -> bool {
     chunk: u8[]: [0] * COPY_CHUNK
     left: i64 = limits.unread_body
     for {
-        got :: body.read(chunk)
-        if got is IOError {
-            return false
-        }
+        got :: body.read(chunk) else is IOError { return false }
         if got == null {
             return true
         }
@@ -175,10 +172,7 @@ read_once :: fn(body: ExchangeBody, into: u8[]) -> i64 | null | IOError {
         if body.exchange.answered {
             return IOError { .msg = "the content of the request was never asked for" }
         }
-        written :: writer.write(CONTINUE_RESPONSE)
-        if written is IOError {
-            return written
-        }
+        written :: writer.write(CONTINUE_RESPONSE) else is IOError { return written }
         body.exchange.continue_on = null
     }
     pace :: body.exchange.pace

@@ -20,7 +20,6 @@ import "json"
 import "std/collections"
 import "std/env"
 import "std/fs"
-import "std/io"
 import "std/option"
 import "std/path"
 import "std/process"
@@ -124,10 +123,7 @@ description_key :: fn(root: string) -> string {
 
 // The modification time of `path`, 0 when it cannot be read.
 modified_at :: fn(path: string) -> i64 {
-    stamp :: modification_time(path)
-    if stamp is IOError {
-        return 0
-    }
+    stamp :: modification_time(path) else return 0
     return stamp
 }
 

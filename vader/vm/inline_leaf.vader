@@ -181,10 +181,10 @@ leaf_module :: fn(main_body: string) -> bc.BytecodeModule | null {
     stale :: "fn 2 stale (i32) -> i32\n  local acc i32\n  local.get 1\n  drop\n  local.get 0\n  return\nend\n"
     main :: "fn 3 main () -> i32\n${main_body}end\nexport main 3\n"
     parsed :: parse_virt_bc("module demo\ntype 0 scalar i32\n${square}${halve}${stale}${main}")
-    if parsed is VirtParseError {
-        assert(false, "the test module parses: ${parsed.reason}")
-        return null
-    }
+        else is VirtParseError {
+            assert(false, "the test module parses: ${parsed.reason}")
+            return null
+        }
     return parsed
 }
 

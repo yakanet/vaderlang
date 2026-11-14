@@ -76,8 +76,7 @@ unknown_action :: fn(action: string) -> i32 {
 // Parse one action's zone against its own flags plus the common ones, reporting
 // every error under the action's name.
 parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
-    cmd :: find_command(name)
-    if cmd == null {
+    cmd :: find_command(name) else {
         eprintln("vader: unknown action \"${name}\"")
         return 1
     }

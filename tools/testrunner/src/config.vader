@@ -57,15 +57,13 @@ PLATFORMS: string[]: ["darwin", "linux", "win32"]
 
 // The `_config.json` of the snippet in `dir`, or what is wrong with it.
 read_config :: fn(dir: string) -> SnippetConfig | ConfigProblems {
-    text :: read_file_string("${dir}/${CONFIG_FILE}")
-    if text is IOError {
+    text :: read_file_string("${dir}/${CONFIG_FILE}") else {
         if text.kind == .NotFound {
             return SnippetConfig {}
         }
         return ConfigProblems { .messages = [text.msg] }
     }
-    parsed :: parse(text)
-    if parsed is JsonError {
+    parsed :: parse(text) else {
         return ConfigProblems { .messages = ["not JSON (${parsed.msg} at byte ${parsed.pos})"] }
     }
     if parsed !is JsonObject {
@@ -117,8 +115,7 @@ listed_modules :: fn(value: JsonValue | null, problems: string[]) -> string[] {
     if value == null {
         return []
     }
-    listed :: strings_of(value)
-    if listed == null {
+    listed :: strings_of(value) else {
         problems.push("`modules` is a list of module paths")
         return []
     }

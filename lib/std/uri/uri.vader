@@ -85,35 +85,23 @@ export parse_uri :: fn(text: string) -> Uri | UriError {
     authority: Authority | null = null
     if text.matches_at(next, "//") {
         end :: text.end_of(next + 2, "/?#")
-        parsed :: text.parse_authority(next + 2, end)
-        if parsed is UriError {
-            return parsed
-        }
+        parsed :: text.parse_authority(next + 2, end) else return parsed
         authority = parsed
         next = end
     }
     path_end :: text.end_of(next, "?#")
-    path :: text.normalized(next, path_end, is_path_byte)
-    if path is UriError {
-        return path
-    }
+    path :: text.normalized(next, path_end, is_path_byte) else return path
     next = path_end
     query: string | null = null
     if next < n && text.byte_at(next) == '?' {
         query_end :: text.end_of(next + 1, "#")
-        read :: text.normalized(next + 1, query_end, is_query_byte)
-        if read is UriError {
-            return read
-        }
+        read :: text.normalized(next + 1, query_end, is_query_byte) else return read
         query = read
         next = query_end
     }
     fragment: string | null = null
     if next < n {
-        read :: text.normalized(next + 1, n, is_query_byte)
-        if read is UriError {
-            return read
-        }
+        read :: text.normalized(next + 1, n, is_query_byte) else return read
         fragment = read
     }
     return Uri {
@@ -207,10 +195,7 @@ parse_authority :: fn(text: string, from: i64, to: i64) -> Authority | UriError 
     userinfo: string | null = null
     host_from: i64 = from
     if at != null {
-        read :: text.normalized(from, at, is_userinfo_byte)
-        if read is UriError {
-            return read
-        }
+        read :: text.normalized(from, at, is_userinfo_byte) else return read
         userinfo = read
         host_from = at + 1
     }
@@ -227,14 +212,8 @@ parse_authority :: fn(text: string, from: i64, to: i64) -> Authority | UriError 
     } else {
         host_end = text.last_byte_offset_of(':', host_from, to) else to
     }
-    host :: text.normalized(host_from, host_end, is_host_byte)
-    if host is UriError {
-        return host
-    }
-    port :: text.parse_port(host_end, to)
-    if port is UriError {
-        return port
-    }
+    host :: text.normalized(host_from, host_end, is_host_byte) else return host
+    port :: text.parse_port(host_end, to) else is UriError { return port }
     return Authority {
         .userinfo = userinfo,
         .host = host.lower_outside_escapes(),
@@ -582,17 +561,13 @@ import "std/testing"
 
 // The display of what `parse_uri` reads in `text`, or why it refuses it.
 reread :: fn(text: string) -> string {
-    u :: parse_uri(text)
-    if u is UriError {
-        return "error at ${u.offset}: ${u.msg}"
-    }
+    u :: parse_uri(text) else return "error at ${u.offset}: ${u.msg}"
     return "${u}"
 }
 
 @test
 test_parse_uri_splits_the_components :: fn() -> void {
-    u :: parse_uri("https://me:pw@Example.COM:8443/a/b?x=1&y=2#frag")
-    if u is UriError {
+    u :: parse_uri("https://me:pw@Example.COM:8443/a/b?x=1&y=2#frag") else {
         assert(false, "a valid URI")
         return
     }
@@ -600,8 +575,7 @@ test_parse_uri_splits_the_components :: fn() -> void {
     assert_eq(u.path, "/a/b")
     assert_eq(u.query else "none", "x=1&y=2")
     assert_eq(u.fragment else "none", "frag")
-    authority :: u.authority
-    if authority == null {
+    authority :: u.authority else {
         assert(false, "an authority")
         return
     }
@@ -660,14 +634,8 @@ test_a_relative_path_is_made_absolute :: fn() -> void {
 
 // The path the `file` URI `text` names on `os`, or why it names none.
 path_of :: fn(text: string, os: Os) -> string {
-    u :: parse_uri(text)
-    if u is UriError {
-        return "error: ${u.msg}"
-    }
-    p :: u.file_path(os)
-    if p is UriError {
-        return "error: ${p.msg}"
-    }
+    u :: parse_uri(text) else return "error: ${u.msg}"
+    p :: u.file_path(os) else return "error: ${p.msg}"
     return p
 }
 

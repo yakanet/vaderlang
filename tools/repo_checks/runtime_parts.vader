@@ -38,10 +38,7 @@ is_built_here :: fn(name: string) -> bool {
 // declaration missing from `rt/internal.h` produces.
 part_problem :: fn(path: string) -> string | null {
     argv :: [host_cc(), "-std=c11", "-fsyntax-only", "-Werror=implicit-function-declaration", path]
-    parsed :: run_command(argv)
-    if parsed is ProcessError {
-        return "${path}: ${parsed.msg}"
-    }
+    parsed :: run_command(argv) else return "${path}: ${parsed.msg}"
     if parsed.exit == 0 {
         return null
     }

@@ -44,9 +44,7 @@ program_bytecode :: fn(case: Case) -> string | CaseFailure {
     }
     if host_target() == SNAPSHOT_TARGET {
         pinned :: read_file_string("${case.dir}/${BYTECODE_SNAPSHOT}")
-        if pinned is IOError {
-            return CaseFailure { .message = "`${BYTECODE_SNAPSHOT}`: ${pinned.msg}" }
-        }
+            else return CaseFailure { .message = "`${BYTECODE_SNAPSHOT}`: ${pinned.msg}" }
         return pinned
     }
     // The snapshot holds the `@target` bodies of its own platform.

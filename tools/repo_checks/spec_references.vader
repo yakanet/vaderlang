@@ -121,10 +121,7 @@ section_heading :: fn(line: string) -> string | null {
 // colon.
 cited_forms :: fn(heading: string) -> string[] {
     title :: plain(heading)
-    halves :: title.split_first(": ")
-    if halves == null {
-        return [title]
-    }
+    halves :: title.split_first(": ") else return [title]
     return [title, halves.0]
 }
 

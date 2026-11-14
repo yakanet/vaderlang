@@ -350,7 +350,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     // bound once ahead of the loops.
     data_arg :: if arg_is_data { fluent.fn_arg } else { null }
     subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, data_arg, chain_element_type(source))
-    if subst_opt is null { return null }
+        else return null
     arg_sym :: if arg_is_data { combinator_arg_sym(ctx, decl, owner) } else { null }
     if arg_is_data && arg_sym is null { return null }
     arg_slot :: if arg_is_data { combinator_arg_slot(owner, callee_sym, subst_opt) } else { null }

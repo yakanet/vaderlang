@@ -20,8 +20,7 @@ AST :: import "toolchain/ast"
 /// says. A `.Type` argument bypasses `check_expr`: no `expr_types` entry is made
 /// for its inner ident.
 infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
-    spec :: intrinsic_spec(e.name)
-    if spec is null {
+    spec :: intrinsic_spec(e.name) else {
         // Parser already rejects unknown @name ; defensive only.
         for a in e.args { check_expr(a, null, typed, diags) }
         return TY_UNRESOLVED

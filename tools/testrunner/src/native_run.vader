@@ -87,21 +87,18 @@ ProgramBytes :: struct {
 run_binary :: fn(binary: string) -> string | CaseFailure {
     // Not `spawn`: its child would share the worker's stdin, which carries the
     // runner's requests.
-    child :: spawn_interactive([binary])
-    if child is ProcessError {
-        return CaseFailure { .message = child.msg }
-    }
+    child :: spawn_interactive([binary]) else return CaseFailure { .message = child.msg }
     child.close_input()
     written :: ProgramBytes {}
-    // Bound before the test: the task analysis sees `timeout` join its task
-    // only then.
+    // Bound: the task analysis sees `timeout` join its task on a statement of
+    // its own.
     drained :: launch(() -> drain(child, written)).timeout(PROGRAM_TIMEOUT_SECONDS.seconds())
-    if drained is TimeoutError {
-        child.kill()
-        return CaseFailure {
-            .message = "`${binary}` ran for more than ${PROGRAM_TIMEOUT_SECONDS} s",
+        else is TimeoutError {
+            child.kill()
+            return CaseFailure {
+                .message = "`${binary}` ran for more than ${PROGRAM_TIMEOUT_SECONDS} s",
+            }
         }
-    }
     return run_text(written.out.bytes_to_string(), written.err.bytes_to_string(), exit_of(child))
 }
 

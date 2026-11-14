@@ -118,8 +118,7 @@ main :: fn(argv: string[]) -> i32 {
         println(thumbnail(frame, 48, 14))
         if out_dir != null {
             path :: to_path(out_dir) / "shot_${index + 1}.ppm"
-            written :: write_ppm(frame, path.as_string())
-            if written is IOError {
+            written :: write_ppm(frame, path.as_string()) else is IOError {
                 eprintln("cannot write `${path.as_string()}`: ${written.message()}")
                 return 1
             }
@@ -208,9 +207,6 @@ write_ppm :: fn(frame: Frame, path: string) -> null | IOError {
         .maxval = 255,
         .pixels = raster,
     }
-    data :: encode(image)
-    if data is PpmError {
-        return IOError { .msg = data.msg }
-    }
+    data :: encode(image) else return IOError { .msg = data.msg }
     return write_file(path, data)
 }

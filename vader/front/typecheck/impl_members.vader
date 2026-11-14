@@ -151,9 +151,7 @@ ufcs_method_type :: fn(
         // Quantified over the impl's parameters, then the trait member's own.
         of_impl :: impl_type_params_of(impl_, typed.resolved)
         inherited :: inherited_signature(fd, trait_type, for_ty, typed)
-        if inherited == null {
-            return mk_fn([], TY_UNRESOLVED, of_impl)
-        }
+            else return mk_fn([], TY_UNRESOLVED, of_impl)
         return FnType { ...inherited, .type_params = of_impl + inherited.type_params }
     }
     rest: Type[]: []

@@ -189,10 +189,7 @@ take_through :: fn(r: BufferedReader, delimiter: u8, max: i64) -> u8[] | null | 
     run: u8[]: []
     for {
         if r.next == r.filled {
-            got :: r.refill()
-            if got is IOError {
-                return got
-            }
+            got :: r.refill() else is IOError { return got }
             if got == null {
                 if run.len() == 0 {
                     return null
@@ -235,10 +232,7 @@ export read_exact :: fn(r: BufferedReader, count: i64) -> u8[] | IOError {
     out: u8[]: [0] * count
     done: i64 = 0
     for done < count {
-        got :: r.read(out[done..<count])
-        if got is IOError {
-            return got
-        }
+        got :: r.read(out[done..<count]) else is IOError { return got }
         if got == null {
             return IOError {
                 .msg = "end of input after ${done} of ${count} bytes",

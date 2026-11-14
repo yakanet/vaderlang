@@ -849,16 +849,16 @@ static int64_t std_core$write_int(void* l0, int64_t l1, int64_t l2) {
 
 static vader_box_t semver$parse(vader_string_t l0) {
     void* l1 = NULL;
-    void* l4 = NULL;
-    vader_box_t l2 = vader_box_null(), l3 = vader_box_null();
+    void* l2 = NULL;
+    vader_box_t l3 = vader_box_null(), l4 = vader_box_null();
     int32_t l5, l6, l7;
     vader_string_t l8 = 0;
     vader_string_t l9 = 0;
     bool t0;
     void* t1 = NULL;
     vader_string_t t2 = 0;
-    vader_box_t* gc_roots[2] = { &l2, &l3 };
-    void** gc_raw_roots[3] = { &l1, &l4, &t1 };
+    vader_box_t* gc_roots[2] = { &l3, &l4 };
+    void** gc_raw_roots[3] = { &l1, &l2, &t1 };
     vader_string_t* gc_atom_roots[4] = { &l0, &l8, &l9, &t2 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
@@ -874,28 +874,29 @@ static vader_box_t semver$parse(vader_string_t l0) {
     }
     l1 = semver$sections_of(l0);
     t2 = ((vader_struct_semver$VersionSections_t*) l1)->f_core;
-    l2 = semver$parse_core(t2);
-    if (l2.tag == 13u) {
-        t1 = l2.payload.obj;
+    l3 = semver$parse_core(t2);
+    l4 = l3;
+    if (l3.tag == 13u) {
+        t1 = l4.payload.obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
+    l2 = l3.payload.obj;
     l3 = semver$validate_sections(l1);
     if (!(l3.tag == 0u)) {
         t1 = l3.payload.obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    l4 = l2.payload.obj;
-    l5 = ((vader_struct_semver$Version_t*) l4)->f_major;
-    l6 = ((vader_struct_semver$Version_t*) l4)->f_minor;
-    l7 = ((vader_struct_semver$Version_t*) l4)->f_patch;
-    l2 = ((vader_struct_semver$VersionSections_t*) l1)->f_prerelease;
-    if (l2.tag == 0u) {
+    l5 = ((vader_struct_semver$Version_t*) l2)->f_major;
+    l6 = ((vader_struct_semver$Version_t*) l2)->f_minor;
+    l7 = ((vader_struct_semver$Version_t*) l2)->f_patch;
+    l3 = ((vader_struct_semver$VersionSections_t*) l1)->f_prerelease;
+    if (l3.tag == 0u) {
         l8 = 0u;
     } else {
-        l8 = l2.payload.s;
+        l8 = l3.payload.s;
     }
-    l2 = ((vader_struct_semver$VersionSections_t*) l1)->f_build;
-    if (l2.tag == 0u) {
+    l3 = ((vader_struct_semver$VersionSections_t*) l1)->f_build;
+    if (l3.tag == 0u) {
         l9 = 0u;
         vader_struct_semver$Version_t* _a1_obj = (vader_struct_semver$Version_t*) vader_gc_alloc(sizeof(vader_struct_semver$Version_t));
         vader_obj_header_init(_a1_obj, 3u);
@@ -907,7 +908,7 @@ static vader_box_t semver$parse(vader_string_t l0) {
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    l9 = l2.payload.s;
+    l9 = l3.payload.s;
     vader_struct_semver$Version_t* _a2_obj = (vader_struct_semver$Version_t*) vader_gc_alloc(sizeof(vader_struct_semver$Version_t));
     vader_obj_header_init(_a2_obj, 3u);
     _a2_obj->f_major = l5;
@@ -983,16 +984,14 @@ static void* semver$sections_of(vader_string_t l0) {
     vader_box_t l1 = vader_box_null(), l3 = vader_box_null();
     vader_string_t l2 = 0;
     vader_string_t l5 = 0;
-    vader_string_t l7 = 0;
     int64_t l4, l6;
     void* t0 = NULL;
     vader_string_t t1 = 0;
-    int64_t t2;
     vader_box_t* gc_roots[2] = { &l1, &l3 };
     void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[5] = { &l0, &l2, &l5, &l7, &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l2, &l5, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
+        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = std_string$split_last(l0, 11u);
@@ -1010,25 +1009,24 @@ static void* semver$sections_of(vader_string_t l0) {
         l3 = vader_box_string(2u, t1);
     }
     l1 = semver$prerelease_dash(l2);
-    if (!(l1.tag == 0u)) {
-        l4 = ((int64_t) l1.payload.i);
-        l5 = vader_host_std_core$byte_slice(l2, INT64_C(0), l4);
-        t2 = ((int64_t) l1.payload.i);
-        l4 = vader_chk_add(i64, t2, INT64_C(1));
-        l6 = vader_host_std_core$byte_len(l2);
-        l7 = vader_host_std_core$byte_slice(l2, l4, l6);
+    if (l1.tag == 0u) {
         vader_struct_semver$VersionSections_t* _a0_obj = (vader_struct_semver$VersionSections_t*) vader_gc_alloc(sizeof(vader_struct_semver$VersionSections_t));
         vader_obj_header_init(_a0_obj, 16u);
-        _a0_obj->f_core = l5;
-        _a0_obj->f_prerelease = vader_box_string(2u, l7);
+        _a0_obj->f_core = l2;
+        _a0_obj->f_prerelease = vader_box_obj(0u, NULL);
         _a0_obj->f_build = l3;
         t0 = (void*) _a0_obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
+    l4 = ((int64_t) l1.payload.i);
+    l5 = vader_host_std_core$byte_slice(l2, INT64_C(0), l4);
+    l4 = vader_chk_add(i64, l4, INT64_C(1));
+    l6 = vader_host_std_core$byte_len(l2);
+    l2 = vader_host_std_core$byte_slice(l2, l4, l6);
     vader_struct_semver$VersionSections_t* _a1_obj = (vader_struct_semver$VersionSections_t*) vader_gc_alloc(sizeof(vader_struct_semver$VersionSections_t));
     vader_obj_header_init(_a1_obj, 16u);
-    _a1_obj->f_core = l2;
-    _a1_obj->f_prerelease = vader_box_obj(0u, NULL);
+    _a1_obj->f_core = l5;
+    _a1_obj->f_prerelease = vader_box_string(2u, l2);
     _a1_obj->f_build = l3;
     t0 = (void*) _a1_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1038,18 +1036,18 @@ static vader_box_t semver$parse_core(vader_string_t l0) {
     void* l1 = NULL;
     void* l2 = NULL;
     int64_t l3, l4;
-    vader_box_t l5 = vader_box_null();
-    vader_string_t l6 = 0;
-    int32_t l7, l8, l9;
+    int32_t l5, l9, l10;
+    vader_box_t l6 = vader_box_null(), l7 = vader_box_null();
+    vader_string_t l8 = 0;
     int64_t t0;
     void* t1 = NULL;
     vader_box_t t2 = vader_box_null();
     vader_string_t t3 = 0;
-    vader_box_t* gc_roots[2] = { &l5, &t2 };
+    vader_box_t* gc_roots[3] = { &l6, &l7, &t2 };
     void** gc_raw_roots[3] = { &l1, &l2, &t1 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l6, &t3 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l8, &t3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l1 = std_string$split(l0, 12u);
@@ -1071,34 +1069,35 @@ static vader_box_t semver$parse_core(vader_string_t l0) {
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
         t2 = vader_array_box_slots(_a2_slotarr->buf)[vader_array_offset(_a2_slotarr) + (size_t) l4];
         t3 = t2.payload.s;
-        l5 = semver$parse_numeric_id(t3);
-        if (l5.tag == 13u) {
-            t1 = l5.payload.obj;
-            l6 = std_string$ParseError$std_core$Error$message(t1);
-            t3 = concat_2(14u, l6);
+        l6 = semver$parse_numeric_id(t3);
+        l7 = l6;
+        if (l6.tag == 13u) {
+            t1 = l7.payload.obj;
+            l8 = std_string$ParseError$std_core$Error$message(t1);
+            t3 = concat_2(14u, l8);
             vader_struct_std_string$ParseError_t* _a3_obj = (vader_struct_std_string$ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string$ParseError_t));
             vader_obj_header_init(_a3_obj, 13u);
             _a3_obj->f_msg = t3;
             t1 = (void*) _a3_obj;
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        l7 = ((int32_t) l5.payload.i);
-        vader_array_push_i32((vader_array_t*) l2, l7);
+        l5 = ((int32_t) l6.payload.i);
+        vader_array_push_i32((vader_array_t*) l2, l5);
         l4 = (l4 + INT64_C(1));
     }
     vader_array_t* _a4_slotarr = ((vader_array_t*) l2);
     VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(0))
-    l7 = ((int32_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) INT32_C(0)];
+    l5 = ((int32_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) INT32_C(0)];
     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(1))
-    l8 = ((int32_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) INT32_C(1)];
+    l9 = ((int32_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) INT32_C(1)];
     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(2))
-    l9 = ((int32_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) INT32_C(2)];
+    l10 = ((int32_t*) _a4_slotarr->buf->slots)[vader_array_offset(_a4_slotarr) + (size_t) INT32_C(2)];
     vader_struct_semver$Version_t* _a5_obj = (vader_struct_semver$Version_t*) vader_gc_alloc(sizeof(vader_struct_semver$Version_t));
     vader_obj_header_init(_a5_obj, 3u);
-    _a5_obj->f_major = l7;
-    _a5_obj->f_minor = l8;
-    _a5_obj->f_patch = l9;
+    _a5_obj->f_major = l5;
+    _a5_obj->f_minor = l9;
+    _a5_obj->f_patch = l10;
     _a5_obj->f_prerelease = 0u;
     _a5_obj->f_build = 0u;
     t1 = (void*) _a5_obj;
@@ -1129,13 +1128,13 @@ static vader_box_t semver$validate_sections(void* l0) {
         }
     }
     l1 = ((vader_struct_semver$VersionSections_t*) l0)->f_build;
-    if (!(l1.tag == 0u)) {
-        l2 = l1.payload.s;
-        l3 = (void*) &vader_fn_static_semver$validate_build_id;
-        t1 = semver$validate_identifiers(l2, l3);
-        { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    if (l1.tag == 0u) {
+        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+    l2 = l1.payload.s;
+    l3 = (void*) &vader_fn_static_semver$validate_build_id;
+    t1 = semver$validate_identifiers(l2, l3);
+    { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* semver$wildcard_range(void) {

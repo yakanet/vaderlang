@@ -269,7 +269,7 @@ promote_cell_params :: fn(
     prologue: LoweredStmt[]: []
     for ast_param in params {
         sym :: lookup_local_symbol(fn_ctx.project, fn_ctx.typed.resolved, ast_param.span)
-        if sym is null { continue }
+            else continue
         if !lives_in_cell(fn_ctx, sym.id) { continue }
         param_type :: fn_ctx.types.param_type(ast_param)
         raw_read :: LoweredIdent { .span = ast_param.span, .type = param_type, .symbol = sym }
@@ -340,9 +340,7 @@ lower_const_value :: fn(
     fn_ctx: FnLowerCtx, type_val: Type,
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
-    if baked == null {
-        return lower_for_slot(fn_ctx, const_decl.value, type_val, const_decl.span)
-    }
+        else return lower_for_slot(fn_ctx, const_decl.value, type_val, const_decl.span)
     return comptime_value_to_lowered(fn_ctx, baked, default_if_free(type_val), const_decl.span)
 }
 

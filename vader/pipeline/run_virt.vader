@@ -29,13 +29,11 @@ export run_virt_text :: fn(
     forward: string[],
     io: VM.ProgramIo | null,
 ) -> i32 {
-    module :: parse_virt_bc(text)
-    if module is VirtParseError {
+    module :: parse_virt_bc(text) else is VirtParseError {
         write_run_failure(io, module.display_virt_parse_error("vader run", path.to_native()))
         return 1
     }
-    state :: VM.prepare(module)
-    if state is VM.VerifyError {
+    state :: VM.prepare(module) else is VM.VerifyError {
         write_run_failure(io, "vader run: ${VM.display_verify_error(state)}")
         return 1
     }

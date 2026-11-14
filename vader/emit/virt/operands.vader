@@ -72,8 +72,7 @@ import "std/testing"
 test_operand_refs_of_a_field_read :: fn() -> void {
     refs :: operand_refs(StructGet { .type_id = 7, .field_index = 2 })
     assert_eq(refs.len(), 2)
-    first :: refs[0]
-    if first == null {
+    first :: refs[0] else {
         assert(false, "the type operand points at the type table")
         return
     }

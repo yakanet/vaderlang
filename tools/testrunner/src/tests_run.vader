@@ -34,18 +34,13 @@ check_tests :: fn(case: Case) -> StageReport | CaseFailure {
     }
     entry :: TestEntry { .path = case.dir.to_path(), .module = facts[0].declared }
     diagnostics: Diagnostic[]: []
-    lowered :: entry.lower_tests(REPOSITORY, diagnostics)
-    if lowered == null {
-        return does_not_compile(diagnostics)
-    }
+    lowered :: entry.lower_tests(REPOSITORY, diagnostics) else return does_not_compile(diagnostics)
     unfound :: not_found(facts, lowered.tests)
     if unfound.len() > 0 {
         return tests_failure("declared, and not found by the compile: ${unfound.join(", ")}")
     }
     state :: lowered.compile_tests(lowered.tests, REPOSITORY, diagnostics)
-    if state == null {
-        return does_not_compile(diagnostics)
-    }
+        else return does_not_compile(diagnostics)
     if state is ModuleRefused {
         return tests_failure(state.message)
     }

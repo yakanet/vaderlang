@@ -73,8 +73,7 @@ lower_extern_through_values :: fn(
         own :: Symbol { ...p.symbol, .id = next_synthetic_id(ctx) }
         own_params.push(LoweredParam { ...p, .symbol = own })
         arg :: synth_ident(own, p.type, span)
-        enum_type :: data_enum_of(p.type, typed)
-        if enum_type == null {
+        enum_type :: data_enum_of(p.type, typed) else {
             import_params.push(p)
             args.push(arg)
             continue

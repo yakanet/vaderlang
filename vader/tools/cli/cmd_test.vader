@@ -151,8 +151,7 @@ DOES_NOT_COMPILE :: "the module does not compile"
 // value is one filter, but `-` stands for the lines of stdin, a blank line
 // none.
 read_test_filters :: fn(values: string[]) -> TestFilter[] | null {
-    texts :: filter_texts(values)
-    if texts is IOError {
+    texts :: filter_texts(values) else {
         eprintln("vader test: --filter -: ${texts.msg}")
         return null
     }
@@ -176,10 +175,7 @@ filter_texts :: fn(values: string[]) -> string[] | IOError {
             texts.push(value)
             continue
         }
-        input :: read_stdin_to_end()
-        if input is IOError {
-            return input
-        }
+        input :: read_stdin_to_end() else return input
         for line in input.split("\n") {
             text :: line.trim()
             if text != "" {

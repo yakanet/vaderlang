@@ -10,7 +10,6 @@ module "vader/tools/doc"
 import "json"
 import "std/collections"
 import "std/fs"
-import "std/io"
 import "std/iter"
 import "std/string"
 import "toolchain/ast"
@@ -191,14 +190,8 @@ example_source_line :: fn(value: JsonValue) -> string {
 
 // The JSON in the file `path`, null when it is missing or does not parse.
 read_json :: fn(path: string) -> JsonValue | null {
-    text :: read_file_string(path)
-    if text is IOError {
-        return null
-    }
-    value :: parse(text)
-    if value is JsonError {
-        return null
-    }
+    text :: read_file_string(path) else return null
+    value :: parse(text) else return null
     return value
 }
 

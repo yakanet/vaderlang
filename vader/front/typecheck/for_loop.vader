@@ -209,12 +209,12 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
                 return TY_UNRESOLVED
             }
             elem :: impl_side(typed, typed.impl_tables.iter_element_types, iter_ty, "")
-            if elem == null {
-                if iter_ty.args.len() >= 1 {
-                    return iter_ty.args[0]
+                else {
+                    if iter_ty.args.len() >= 1 {
+                        return iter_ty.args[0]
+                    }
+                    return TY_UNRESOLVED
                 }
-                return TY_UNRESOLVED
-            }
             // The element is recorded in the struct's own parameters
             // (`Range<T> implements Iterator<T>` records Range's `T`) : the
             // receiver's arguments take their place.
@@ -299,13 +299,11 @@ import "vader/front/parser"
 test_for_in_array_narrows_binding :: fn() -> void {
     src :: "f :: fn(xs: i32[]) -> void { for x in xs { } }"
     out :: check_source_bodies(src)
-    sp :: first_for_in_binding_span(src)
-    if sp is null {
+    sp :: first_for_in_binding_span(src) else {
         assert(false, "expected a for-in")
         return
     }
-    ty :: out.typed.local_types[sp.hash()]
-    if ty is null {
+    ty :: out.typed.local_types[sp.hash()] else {
         assert(false, "for-in binding should have a type")
         return
     }

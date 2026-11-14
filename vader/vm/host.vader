@@ -513,8 +513,7 @@ dispatch_extern :: fn(
         // declares a real C struct and marshals by field name; nothing here can
         // build one at run time.
         if v is StructVal {
-            fields :: mirrored_struct_fields(types, info.signature.param_types, i)
-            if fields == null {
+            fields :: mirrored_struct_fields(types, info.signature.param_types, i) else {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a struct the type table does not describe" }
             }
             layout :: bc.c_struct_layout(fields, types)
@@ -566,8 +565,7 @@ dispatch_extern :: fn(
             slot_words.push(data.len())
             push_little_endian(data, i64(w), width)
         } else if v is ArrayVal {
-            elem :: lent_element_val_type(types, v.type_id)
-            if elem == null {
+            elem :: lent_element_val_type(types, v.type_id) else {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only C scalar elements are covered)" }
             }
             // NULL, as the native lend passes an empty array: a callee that

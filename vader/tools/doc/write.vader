@@ -32,19 +32,10 @@ export write_doc_data :: fn(dir: string, modules: DocModule[]) -> null | IOError
     remove_previous_modules(dir)
     for m in modules {
         path :: module_file(dir, m.path)
-        made :: create_dir(dir_of(path))
-        if made is IOError {
-            return made
-        }
-        written :: write_json(path, module_json(m))
-        if written is IOError {
-            return written
-        }
+        made :: create_dir(dir_of(path)) else is IOError { return made }
+        written :: write_json(path, module_json(m)) else is IOError { return written }
     }
-    made :: create_dir(dir)
-    if made is IOError {
-        return made
-    }
+    made :: create_dir(dir) else is IOError { return made }
     return write_json(join_path(dir, INDEX_FILE), index_json(modules))
 }
 
@@ -63,10 +54,7 @@ write_json :: fn(path: string, value: JsonValue) -> null | IOError =
 // A missing or unreadable index lists none.
 remove_previous_modules :: fn(dir: string) -> void {
     modules_dir :: Path(join_path(dir, "modules")).normalize()
-    text :: read_file_string(join_path(dir, INDEX_FILE))
-    if text is IOError {
-        return
-    }
+    text :: read_file_string(join_path(dir, INDEX_FILE)) else return
     index :: parse(text)
     if index !is JsonObject {
         return

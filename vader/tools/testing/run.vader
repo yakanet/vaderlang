@@ -100,8 +100,7 @@ export compile_tests :: fn(
     if any_error_diag(diagnostics) {
         return null
     }
-    state :: prepare(module)
-    if state is VerifyError {
+    state :: prepare(module) else is VerifyError {
         return ModuleRefused { .message = display_verify_error(state) }
     }
     problem :: attach_ffi_adapters(state, project_root, lowered.entry.path)

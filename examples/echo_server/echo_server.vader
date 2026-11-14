@@ -35,10 +35,7 @@ echo :: fn(stream: TcpStream) -> i64 {
 serve :: fn(listener: TcpListener, connections: i64) -> i64 {
     serving: Task<i64>[]: []
     for serving.len() < connections {
-        stream :: listener.accept()
-        if stream is IOError {
-            break
-        }
+        stream :: listener.accept() else break
         serving.push(launch(() -> echo(stream)))
     }
     total: i64 = 0
@@ -63,13 +60,11 @@ exchange :: fn(stream: TcpStream, message: string) -> string {
 }
 
 main :: fn() -> i32 {
-    listener :: listen(loopback(0))
-    if listener is IOError {
+    listener :: listen(loopback(0)) else {
         eprintln("cannot listen: ${listener.msg}")
         return 1
     }
-    address :: listener.local_address()
-    if address is IOError {
+    address :: listener.local_address() else {
         eprintln("no address: ${address.msg}")
         return 1
     }
@@ -77,8 +72,7 @@ main :: fn() -> i32 {
     server :: launch(() -> serve(listener, messages.len()))
     streams: TcpStream[]: []
     for _ in messages {
-        stream :: connect(address)
-        if stream is IOError {
+        stream :: connect(address) else {
             eprintln("cannot connect: ${stream.msg}")
             return 1
         }

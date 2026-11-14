@@ -316,8 +316,7 @@ record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: C
 // initialiser is in none.
 file_in_fn :: fn(typed: TypedProgram, node: i64) -> void {
     fn_id :: current_fn_id(typed) else return
-    nodes :: typed.call_sites.calls_in_fn[fn_id]
-    if nodes == null {
+    nodes :: typed.call_sites.calls_in_fn[fn_id] else {
         typed.call_sites.calls_in_fn[fn_id] = [node]
         return
     }

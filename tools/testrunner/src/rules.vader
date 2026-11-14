@@ -104,10 +104,7 @@ lazy_locals_problem :: fn(case: Case, stage: Stage, lowered: string) -> string |
         return null
     }
     path :: entry_path(case)
-    source :: read_file_string(path)
-    if source is IOError {
-        return "`${path}`: ${source.msg}"
-    }
+    source :: read_file_string(path) else return "`${path}`: ${source.msg}"
     written :: lines_opening(source, " ::")
     kept :: lines_opening(lowered, ": Iterator<")
     if kept == written {

@@ -39,15 +39,13 @@ evaluate_intrinsic_call :: fn(
 intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "${expr.name}: argument is not a type") }
+        else return arg_error(expr, "${expr.name}: argument is not a type")
     // Its value is a variant, which the VM builds.
     if arg_type is EnumType {
         return vm_required(expr.span, "@${expr.name} of an enum")
     }
     values :: type_bounds(arg_type)
-    if values == null {
-        return arg_error(expr, "${expr.name}: `${display_type(arg_type)}` has no bounds")
-    }
+        else return arg_error(expr, "${expr.name}: `${display_type(arg_type)}` has no bounds")
     bound :: integer_bound(values, expr.name == "max")
     if is_char(arg_type) {
         return ok(CharValue { .value = u32(bound) })
@@ -70,7 +68,7 @@ intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "field_count: argument is not a type") }
+        else return arg_error(expr, "field_count: argument is not a type")
     return ok(int_val_typed(type_field_count(arg_type, context), "i64"))
 }
 
@@ -87,7 +85,7 @@ type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
 intrinsic_variant_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "variant_count: argument is not a type") }
+        else return arg_error(expr, "variant_count: argument is not a type")
     return ok(int_val_typed(type_variant_count(arg_type), "i64"))
 }
 
@@ -102,9 +100,9 @@ type_variant_count :: fn(t: Type) -> i64 {
 intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 2 { return REPORTED_BY_TYPECHECK }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "field_index: first argument is not a type") }
+        else return arg_error(expr, "field_index: first argument is not a type")
     name :: AST.string_literal_text(expr.args[1])
-    if name == null { return arg_error(expr, "field_index: field name must be a static string literal") }
+        else return arg_error(expr, "field_index: field name must be a static string literal")
     if arg_type is StructType {
         if context.typed.struct_fields[arg_type.symbol.id] == null {
             return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
@@ -123,7 +121,7 @@ intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -
         return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "size_of: argument is not a type") }
+        else return arg_error(expr, "size_of: argument is not a type")
     return ok(int_val_typed(byte_size(arg_type), "i64"))
 }
 
@@ -132,7 +130,7 @@ intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) 
         return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "align_of: argument is not a type") }
+        else return arg_error(expr, "align_of: argument is not a type")
     return ok(int_val_typed(byte_align(arg_type), "i64"))
 }
 
@@ -141,7 +139,7 @@ intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
         return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "type_name: argument is not a type") }
+        else return arg_error(expr, "type_name: argument is not a type")
     return ok(string_val(display_type(arg_type)))
 }
 
@@ -150,7 +148,7 @@ intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
         return REPORTED_BY_TYPECHECK
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    if arg_type == null { return arg_error(expr, "type_kind: argument is not a type") }
+        else return arg_error(expr, "type_kind: argument is not a type")
     return ok(string_val(type_kind_label(arg_type)))
 }
 

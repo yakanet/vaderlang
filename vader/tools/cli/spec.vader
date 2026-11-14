@@ -668,14 +668,12 @@ import "std/testing"
         assert(!(("[" in noun) || ("<" in noun)), "`${c.name}`: the brackets are stripped")
         assert(!(" " in noun), "`${c.name}`: the noun is one word")
     }
-    build :: find_command("build")
-    if build == null {
+    build :: find_command("build") else {
         assert(false, "`build` should be a known action")
         return
     }
     assert_eq(positional_noun(build), "path")
-    lsp :: find_command("lsp")
-    if lsp == null {
+    lsp :: find_command("lsp") else {
         assert(false, "`lsp` should be a known action")
         return
     }
@@ -685,8 +683,7 @@ import "std/testing"
 }
 
 @test test_find_command_hits_and_misses :: fn() -> void {
-    build :: find_command("build")
-    if build == null {
+    build :: find_command("build") else {
         assert(false, "`build` should be a known action")
         return
     }

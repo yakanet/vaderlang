@@ -90,7 +90,7 @@ lift_fn :: fn(
 // a recovery path past an earlier diagnostic).
 lookup_captures :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Capture[] {
     found :: ctx.project.closures.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)]
-    if found == null { return [] }
+        else return []
     return runtime_captures(ctx, found)
 }
 

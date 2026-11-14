@@ -49,8 +49,7 @@ find_doc_fixtures :: fn(found: Discovery) -> void {
 check_doc :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
     project :: "${dir}/project"
-    staged :: copy_sources(entry_path(case), project)
-    if staged is IOError {
+    staged :: copy_sources(entry_path(case), project) else is IOError {
         return doc_failure("`${project}`: ${staged.msg}")
     }
     options :: RunOptions { .cwd = project, .env = toolchain_env() }

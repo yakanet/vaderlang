@@ -7,8 +7,8 @@ VADER_ARCH = .X86_64
 
 # Selected body
 main$normalize <- main-windows.vader:4
-std_console$read_ready <- lib/std/console/console.vader:323
-std_console$system_poll_stdin <- lib/std/console/console.vader:406
+std_console$read_ready <- lib/std/console/console.vader:315
+std_console$system_poll_stdin <- lib/std/console/console.vader:398
 std_console$write_bytes <- lib/std/console/console.vader:61
 std_console$write_text <- lib/std/console/console.vader:84
 std_io$io_error_of <- lib/std/io/io.vader:141

@@ -47,8 +47,7 @@ talking :: fn() -> Talk | null {
         return null
     }
     binary :: server_binary() else return null
-    server :: spawn_start([binary])
-    if server is ProcessError {
+    server :: spawn_start([binary]) else {
         assert(false, "the server does not start: ${server.msg}")
         return null
     }

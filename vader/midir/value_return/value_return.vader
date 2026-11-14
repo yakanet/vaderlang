@@ -219,13 +219,11 @@ emit_rewritten_block :: fn(
             instrs.push(ins)
             continue
         }
-        dst :: call_single_dst(ins)
-        if dst == null {
+        dst :: call_single_dst(ins) else {
             instrs.push(ins)
             continue
         }
-        shape :: callee_shape(ins.callee, chosen, by_symbol)
-        if shape == null {
+        shape :: callee_shape(ins.callee, chosen, by_symbol) else {
             instrs.push(ins)
             continue
         }
@@ -247,8 +245,7 @@ emit_rewritten_block :: fn(
             forwarded_symbol(ins.callee, shape.forward_to)
         }
         instrs.push(InstrCall { ...ins, .dsts = fields, .callee = callee })
-        rebuilt :: shape.rebuilt
-        if rebuilt == null {
+        rebuilt :: shape.rebuilt else {
             // The object is rebuilt on the spot. A caller that only destructures
             // it leaves the `struct.new` unread: DCE removes it, and nothing was
             // allocated. A caller that keeps the object pays what it already paid.

@@ -234,8 +234,7 @@ t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | n
 test_roundtrip_match_to_if :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
     parsed :: Parse.parse_source(src, "rt.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -246,8 +245,7 @@ test_roundtrip_match_to_if :: fn() -> void {
 test_roundtrip_if_to_match :: fn() -> void {
     src :: CONVERTIBLE_IF_CHAIN
     parsed :: Parse.parse_source(src, "rt.vader")
-    ifx :: tif_find_if(parsed.program.decls)
-    if ifx == null {
+    ifx :: tif_find_if(parsed.program.decls) else {
         assert(false, "expected an if")
         return
     }
@@ -258,8 +256,7 @@ test_roundtrip_if_to_match :: fn() -> void {
 test_roundtrip_ufcs :: fn() -> void {
     src :: "g :: fn() -> i32 {\n    return max(a, b)\n}\n"
     parsed :: Parse.parse_source(src, "rt.vader")
-    c :: tu_find_call(parsed.program.decls)
-    if c == null {
+    c :: tu_find_call(parsed.program.decls) else {
         assert(false, "expected a call")
         return
     }

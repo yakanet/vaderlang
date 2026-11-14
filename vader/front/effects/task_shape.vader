@@ -560,6 +560,8 @@ expr_reaches :: fn(e: AST.Expr, call: Span) -> bool {
         is AST.BinaryExpr -> binary_reaches(e, call)
         is AST.UnaryExpr  -> expr_reaches(e.operand, call)
         is AST.CastExpr   -> expr_reaches(e.value, call)
+        // The left of `else` runs always, its clauses on some paths.
+        is AST.FallbackExpr -> expr_reaches(e.left, call)
         _                 -> false
     }
 }

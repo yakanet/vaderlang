@@ -91,10 +91,7 @@ export parse_glob :: fn(pattern: string, options: GlobOptions = GlobOptions {}) 
     tokens: GlobToken[]: []
     i: i64 = 0
     for i < chars.len() {
-        next :: token_at(chars, i, options)
-        if next is GlobError {
-            return next
-        }
+        next :: token_at(chars, i, options) else return next
         [token, after] :: next
         tokens.push(token)
         i = after
@@ -242,10 +239,7 @@ bracket_token :: fn(chars: char[], i: i64, pathname: bool) -> [GlobToken, i64] |
             }
             return [bracket, j + 1]
         }
-        class :: class_at(chars, j)
-        if class is GlobError {
-            return class
-        }
+        class :: class_at(chars, j) else is GlobError { return class }
         if class != null {
             [named, after_class] :: class
             if range_end_at(chars, after_class) != null {
@@ -255,18 +249,12 @@ bracket_token :: fn(chars: char[], i: i64, pathname: bool) -> [GlobToken, i64] |
             j = after_class
             continue
         }
-        low :: endpoint_at(chars, j)
-        if low is GlobError {
-            return low
-        }
+        low :: endpoint_at(chars, j) else is GlobError { return low }
         if low == null {
             return itself
         }
         [low_char, after_low] :: low
-        high :: range_end_at(chars, after_low)
-        if high is GlobError {
-            return high
-        }
+        high :: range_end_at(chars, after_low) else is GlobError { return high }
         if high == null {
             ranges.push(GlobRange { .low = low_char, .high = low_char })
             j = after_low
@@ -292,9 +280,7 @@ class_at :: fn(chars: char[], j: i64) -> [PosixClass, i64] | GlobError | null {
     [start, close] :: bounds
     name :: chars_between(chars, start, close)
     class :: posix_class_named(name)
-    if class == null {
-        return GlobError { .msg = "POSIX names no class `[:${name}:]`", .offset = j }
-    }
+        else return GlobError { .msg = "POSIX names no class `[:${name}:]`", .offset = j }
     return [class, close + 2]
 }
 
@@ -471,8 +457,7 @@ import "std/testing"
 
 // Whether `pattern`, which must compile, matches `text`.
 glob_matches :: fn(pattern: string, text: string, options: GlobOptions = GlobOptions {}) -> bool {
-    g :: parse_glob(pattern, options)
-    if g is GlobError {
+    g :: parse_glob(pattern, options) else {
         assert(false, "`${pattern}` should compile: ${g.msg}")
         return false
     }

@@ -112,10 +112,7 @@ export CcFlavour :: enum(u8) {
 /// @param cc  the C compiler this build invokes.
 /// @return    the toolchain family, `Unknown` when the probe fails.
 cc_flavour :: fn(cc: string) -> CcFlavour {
-    r :: spawn([cc, "--version"])
-    if r is ProcessError {
-        return .Unknown
-    }
+    r :: spawn([cc, "--version"]) else return .Unknown
     if r.exit != 0 {
         return .Unknown
     }
@@ -444,8 +441,7 @@ export cc_argv :: fn(
 ///
 /// @return 0 on success; 1 after printing why, so a caller can just propagate.
 export write_out :: fn(path: Path, content: string) -> i32 {
-    wr :: write_file(path.as_string(), content)
-    if wr is IOError {
+    wr :: write_file(path.as_string(), content) else is IOError {
         eprintln("vader build: cannot write `${path.to_native()}`: ${wr.message()}")
         return 1
     }
@@ -552,9 +548,7 @@ export link_native :: fn(
     )
     kept :: "(generated C kept at ${c_file.to_native()})"
     res :: spawn(argv)
-    if res is ProcessError {
-        return LinkFailure { .reasons = ["${res.message()}\n${res.stderr}${kept}"] }
-    }
+        else return LinkFailure { .reasons = ["${res.message()}\n${res.stderr}${kept}"] }
     if res.exit != 0 {
         failed :: "${cc} failed (exit ${res.exit})\n${res.stderr}\n${kept}"
         return LinkFailure { .reasons = [failed] }

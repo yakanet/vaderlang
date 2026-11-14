@@ -98,8 +98,7 @@ method_call :: fn(
     args: LoweredExpr[],
     ret: Type,
 ) -> LoweredExpr {
-    target :: method_target(ctx, callee, e, held, args.len())
-    if target == null {
+    target :: method_target(ctx, callee, e, held, args.len()) else {
         return LoweredUnreachable {
             .span = e.span,
             .type = ret,

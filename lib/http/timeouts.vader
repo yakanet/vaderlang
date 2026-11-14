@@ -113,8 +113,7 @@ StallingReader :: struct {
 
 StallingReader implements Reader {
     read :: fn(self, into: u8[]) -> i64 | null | IOError {
-        got :: self.content.read(into)
-        if got == null {
+        got :: self.content.read(into) else is null {
             return IOError { .msg = "timed out", .kind = .TimedOut }
         }
         return got
@@ -327,8 +326,7 @@ test_a_handler_is_told_its_body_timed_out :: fn() -> void {
         fn(request: Request) -> Response {
             buffer: u8[]: [0] * 16
             for {
-                got :: request.body.read(buffer)
-                if got is IOError {
+                got :: request.body.read(buffer) else is IOError {
                     seen.push("${got.kind}")
                     break
                 }

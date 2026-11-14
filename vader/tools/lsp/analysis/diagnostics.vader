@@ -28,8 +28,7 @@ import "vader/tools/lsp/protocol"
 /// diagnostics to the client. Non-file URIs and empty docs short-circuit to an empty
 /// array: the client clears any stale squiggles either way.
 export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void {
-    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
-    if file_path == null {
+    file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null() else {
         clear_diagnostics_for_uri(uri)
         return
     }

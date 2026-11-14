@@ -149,8 +149,7 @@ laid_out :: fn(
                 if name in out {
                     continue
                 }
-                own :: written[name]
-                if own == null {
+                own :: written[name] else {
                     x.report_received_leak(decl, member, field)
                     out[name] = field
                     continue
@@ -182,8 +181,7 @@ given_names :: fn(
     first_giver :: Map<string, i64> {}
     for i in 0..<received.len() {
         for [name, _] in received[i] {
-            earlier :: first_giver[name]
-            if earlier == null {
+            earlier :: first_giver[name] else {
                 first_giver[name] = i
                 continue
             }

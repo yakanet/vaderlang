@@ -69,8 +69,7 @@ find_target_fixtures :: fn(found: Discovery) -> void {
         }
         for snapshot in snapshots {
             label :: snapshot.trim_suffix(TARGET_SNAPSHOT_SUFFIX)
-            target :: parse_target(label)
-            if target is TargetParseError {
+            target :: parse_target(label) else {
                 found.problems.push("${dir}/${snapshot}: ${target.reason}")
                 continue
             }
@@ -92,8 +91,7 @@ find_target_fixtures :: fn(found: Discovery) -> void {
 find_extern_fixtures :: fn(found: Discovery) -> void {
     for name in entry_folders(found, EXTERNS_CORPUS, FIXTURE_ENTRY) {
         dir :: "${EXTERNS_CORPUS}/${name}"
-        source :: read_file_string("${dir}/${FIXTURE_ENTRY}")
-        if source is IOError {
+        source :: read_file_string("${dir}/${FIXTURE_ENTRY}") else {
             found.problems.push("${dir}/${FIXTURE_ENTRY}: ${source.msg}")
             continue
         }

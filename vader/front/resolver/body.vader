@@ -401,8 +401,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
 // signature keeps the builtin `Self`, which each reader of a trait signature
 // substitutes.
 walk_member_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
-    trait_self :: self.trait_self
-    if trait_self == null {
+    trait_self :: self.trait_self else {
         self.walk_body(body)
         return
     }
@@ -418,8 +417,7 @@ walk_member_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
 // the `Display` of an `@displayable` enum, parsed under a file name of its own
 // (`<displayable>:`, see `displayable.vader`) and appended to the enum's file.
 walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
-    written_in :: self.file_scopes[body.span.start.file]
-    if written_in == null {
+    written_in :: self.file_scopes[body.span.start.file] else {
         self.walk_block(body)
         return
     }

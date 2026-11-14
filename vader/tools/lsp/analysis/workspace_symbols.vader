@@ -212,19 +212,13 @@ file_symbols :: fn(
     if open != null {
         return symbols_of(open, path, module)
     }
-    mtime :: modification_time(path)
-    if mtime is IOError {
-        return []
-    }
+    mtime :: modification_time(path) else return []
     known :: state.symbols[path]
     if known != null && known.mtime == mtime {
         kept[path] = known
         return known.symbols
     }
-    source :: read_file_string(path)
-    if source is IOError {
-        return []
-    }
+    source :: read_file_string(path) else return []
     symbols :: disk_symbols(state, path, source, module)
     kept[path] = FileSymbols { .mtime = mtime, .symbols = symbols }
     return symbols

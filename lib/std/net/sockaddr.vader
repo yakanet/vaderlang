@@ -111,10 +111,7 @@ test_sockaddr_round_trips_an_ipv4_address :: fn() -> void {
     // The port in network order: 8080 is 0x1F90.
     assert_eq(encoded[2], 0x1F)
     assert_eq(encoded[3], 0x90)
-    decoded :: address_of(encoded)
-    if decoded is IOError {
-        return assert(false, "not decoded: ${decoded.msg}")
-    }
+    decoded :: address_of(encoded) else return assert(false, "not decoded: ${decoded.msg}")
     assert_eq(decoded.to_string(), "192.168.1.20:8080")
 }
 
@@ -123,9 +120,6 @@ test_sockaddr_round_trips_an_ipv6_address :: fn() -> void {
     address :: parse_socket_address("[2001:db8::7334]:443") else return assert(false, "an address")
     encoded :: sockaddr_of(address)
     assert_eq(encoded.len(), SOCKADDR_IN6_BYTES)
-    decoded :: address_of(encoded)
-    if decoded is IOError {
-        return assert(false, "not decoded: ${decoded.msg}")
-    }
+    decoded :: address_of(encoded) else return assert(false, "not decoded: ${decoded.msg}")
     assert_eq(decoded.to_string(), "[2001:db8::7334]:443")
 }

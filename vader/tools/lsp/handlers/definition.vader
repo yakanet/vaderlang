@@ -141,8 +141,7 @@ member_by_type :: fn(
         return chosen
     }
     ty :: member_owner_type(sf, cached.result.typed, nm_span, l, at_cursor) else return null
-    sym :: type_symbol(ty)
-    if sym == null {
+    sym :: type_symbol(ty) else {
         // A BUILT-IN receiver has no declaring symbol, so `type_symbol` (which
         // answers for the nominal types only) declines. Arrays still have an
         // owner: the traits an intrinsic `T[] implements ...` block names.

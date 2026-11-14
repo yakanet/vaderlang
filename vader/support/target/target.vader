@@ -114,13 +114,9 @@ export parse_target :: fn(s: string) -> Target | TargetParseError {
     }
     [os_part, arch_part] :: parts
     os :: parse_os(os_part)
-    if os == null {
-        return TargetParseError { .reason = "unknown operating system", .fragment = os_part }
-    }
+        else return TargetParseError { .reason = "unknown operating system", .fragment = os_part }
     arch :: parse_arch(arch_part)
-    if arch == null {
-        return TargetParseError { .reason = "unknown architecture", .fragment = arch_part }
-    }
+        else return TargetParseError { .reason = "unknown architecture", .fragment = arch_part }
     return Target { .os = os, .arch = arch }
 }
 

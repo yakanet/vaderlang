@@ -204,10 +204,7 @@ pattern_predicate :: fn(
             inner :: pattern.inner
             if inner is StructPattern && !is_false_literal(test) {
                 narrowed :: narrow_target(target, target_type, check_type, span)
-                fields :: struct_pattern_predicate(ctx, inner, narrowed, span)
-                if fields == null {
-                    return test
-                }
+                fields :: struct_pattern_predicate(ctx, inner, narrowed, span) else return test
                 return and_all(span, [test, fields])
             }
             return test
@@ -265,7 +262,7 @@ pattern_predicate :: fn(
             parts: LoweredExpr[]: []
             for sub in pattern.patterns {
                 sub_pred :: pattern_predicate(ctx, sub, target, target_type, span)
-                if sub_pred == null { return null }
+                    else return null
                 parts.push(sub_pred)
             }
             return or_all(span, parts)

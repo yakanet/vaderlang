@@ -71,8 +71,7 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
     prog: DapProgram | null = null
     running := true
     for running {
-        frame :: read_frame()
-        if frame is TransportError { return 1 }
+        frame :: read_frame() else return 1
         body :: frame
         msg :: parse(body)
         if !(msg is JsonObject) { continue }
@@ -141,8 +140,7 @@ run_program :: fn(prog: DapProgram | null, seq_cell: i32[], bps: Map<string, Set
         emit_event(seq_cell, "terminated", empty_body())
         return
     }
-    state :: prog.state
-    if state == null {
+    state :: prog.state else {
         emit_output(seq_cell, "stderr", prog.error)
         close_session(seq_cell, 1)
         return
@@ -203,10 +201,7 @@ close_session :: fn(seq_cell: i32[], exit_code: i32) -> void {
 // Answer the client until it disconnects, once nothing is left to run.
 answer_until_disconnect :: fn(seq_cell: i32[]) -> void {
     for {
-        frame :: read_frame()
-        if frame is TransportError {
-            return
-        }
+        frame :: read_frame() else return
         msg :: parse(frame)
         if !(msg is JsonObject) {
             continue
@@ -232,8 +227,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: Map<string, Set<i32>>)
     view :: PauseView { .threads = ctx.threads }
     show_stack(view, ctx.thread_id, ctx.frames)
     for {
-        frame :: read_frame()
-        if frame is TransportError { return .Continue }
+        frame :: read_frame() else return .Continue
         msg :: parse(frame)
         if !(msg is JsonObject) { continue }
         command :: get_string(msg, "command")

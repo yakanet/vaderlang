@@ -30,20 +30,14 @@ import "system/windows"
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`: `"file too large"`.
 export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> u8[] | IOError {
-    f :: open(path)
-    if f is IOError {
-        return f
-    }
+    f :: open(path) else return f
     defer f.close()
     out: u8[] = []
     length :: system_size(f.handle)
     if reads_whole(length, max_bytes) {
         // Its size and one byte more, so that a read short of it shows the end.
         whole: u8[]: [0] * (length + 1)
-        got :: read_into(f.handle, whole)
-        if got is IOError {
-            return got
-        }
+        got :: read_into(f.handle, whole) else return got
         if got <= length {
             return whole[0..<got]
         }
@@ -55,10 +49,7 @@ export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) 
         if out.len() > max_bytes {
             return IOError { .msg = "file too large" }
         }
-        n :: system_read(f.handle, chunk, READ_CHUNK)
-        if n is IOError {
-            return n
-        }
+        n :: system_read(f.handle, chunk, READ_CHUNK) else return n
         if n == 0 {
             return out
         }
@@ -77,10 +68,7 @@ reads_whole :: fn(size: i64, max_bytes: i64) =
 read_into :: fn(handle: Fd | Handle, into: u8[]) -> i64 | IOError {
     got: i64 = 0
     for got < into.len() {
-        n :: system_read(handle, into[got..<into.len()], into.len() - got)
-        if n is IOError {
-            return n
-        }
+        n :: system_read(handle, into[got..<into.len()], into.len() - got) else return n
         if n == 0 {
             return got
         }
@@ -115,10 +103,7 @@ export READ_LIMIT_DEFAULT: i64: 16 * 1024 * 1024
 /// @param content  what the file holds afterwards.
 /// @error          `IOError` if the file can't be opened or written.
 export write_file :: fn(path: string, content: u8[] | string) -> null | IOError {
-    f :: path.create()
-    if f is IOError {
-        return f
-    }
+    f :: path.create() else return f
     written :: f.write(content)
     // Closed either way, and its failure reported: some file systems keep for
     // `close` a write that never reached the disk.
@@ -214,10 +199,7 @@ UNIQUE_DIR_ATTEMPTS :: 64
 ///   # import "std/env"
 ///   work :: create_unique_dir(temp_dir(), "build.")   // ".../build.9f3a61c20b5d7e44"
 export create_unique_dir :: fn(parent: string, prefix: string) -> string | IOError {
-    made :: create_dir(parent)
-    if made is IOError {
-        return made
-    }
+    made :: create_dir(parent) else is IOError { return made }
     seed :: u64(i64(monotonic()))
     for attempt in 0..<UNIQUE_DIR_ATTEMPTS {
         path :: "${parent}/${prefix}${scrambled(seed +% u64(attempt)).to_hex()}"
@@ -248,8 +230,7 @@ scrambled :: fn(n: u64) -> u64 {
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`.
 export read_file_string :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> string | IOError {
-    r :: read_file_bytes(path, max_bytes)
-    if r is IOError { return r }
+    r :: read_file_bytes(path, max_bytes) else return r
     return r.bytes_to_string()
 }
 
@@ -307,10 +288,7 @@ export modification_time :: fn(path: string) -> i64 | IOError
 
 @target(.Linux, .Darwin)
 modification_time :: fn(path: string) -> i64 | IOError {
-    cells :: path.stat_cells(true)
-    if cells is IOError {
-        return cells
-    }
+    cells :: path.stat_cells(true) else return cells
     return cells[2]
 }
 
@@ -385,10 +363,7 @@ export read_dir :: fn(path: string) -> string[] | IOError {
     if path.has_nul() {
         return NUL_IN_PATH
     }
-    listed :: path.list_dir()
-    if listed is IOError {
-        return listed
-    }
+    listed :: path.list_dir() else return listed
     names: string[]: []
     for entry in listed {
         names.push(entry.name)
@@ -429,10 +404,7 @@ kind_of_dirent :: fn(dir: string, name: string, kind: i32) -> EntryKind {
     if kind != PATH_MISSING {
         return kind_of(i64(kind))
     }
-    cells :: "${dir}/${name}".stat_cells(false)
-    if cells is IOError {
-        return .Other
-    }
+    cells :: "${dir}/${name}".stat_cells(false) else return .Other
     return kind_of(cells[0])
 }
 

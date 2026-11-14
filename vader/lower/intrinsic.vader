@@ -294,8 +294,7 @@ try_fold_fields :: fn(
             .reason = "@fields target is not a struct",
         }
     }
-    field_type_opt :: find_core_type(ctx, STRUCT_FIELD, [])
-    if field_type_opt is null {
+    field_type_opt :: find_core_type(ctx, STRUCT_FIELD, []) else {
         return LoweredUnreachable {
             .span = intrinsic.span, .type = type,
             .reason = "@fields needs std/core::Field",

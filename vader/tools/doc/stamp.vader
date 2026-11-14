@@ -159,10 +159,7 @@ Stamp :: struct {
 
 // The stamp under `dir`, null when there is none.
 read_stamp :: fn(dir: string) -> Stamp | null {
-    text :: read_file_string(join_path(dir, STAMP_FILE))
-    if text is IOError {
-        return null
-    }
+    text :: read_file_string(join_path(dir, STAMP_FILE)) else return null
     lines :: text.trim().split("\n")
     stamp :: Stamp { .key = lines[0], .folders = [], .left_out = [] }
     for i in 1..<lines.len() {
@@ -216,10 +213,7 @@ disk_lines :: fn(folders: string[]) -> string[] {
     lines: string[]: []
     for folder in folders {
         lines.push("folder ${folder}")
-        names :: read_dir(folder)
-        if names is IOError {
-            continue
-        }
+        names :: read_dir(folder) else continue
         for path in source_files_in(folder, names) {
             content :: read_file_string(path)
             if content is IOError || content == "" {
@@ -249,10 +243,7 @@ manifest_hash :: fn(root: string) -> string {
     if root == "" {
         return ""
     }
-    text :: read_file_string(join_path(root, MANIFEST_FILENAME))
-    if text is IOError {
-        return ""
-    }
+    text :: read_file_string(join_path(root, MANIFEST_FILENAME)) else return ""
     return "${text.hash()}"
 }
 

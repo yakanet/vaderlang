@@ -86,10 +86,7 @@ system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError
 
 @target(.Linux, .Darwin)
 system_metadata :: fn(path: string, follow_links: bool) -> Metadata | IOError {
-    cells :: path.stat_cells(follow_links)
-    if cells is IOError {
-        return cells
-    }
+    cells :: path.stat_cells(follow_links) else return cells
     return Metadata {
         .kind = kind_of(cells[0]),
         .size = cells[1],
@@ -191,10 +188,7 @@ system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError
 
 @target(.Linux, .Darwin)
 system_set_read_only :: fn(path: string, read_only: bool) -> null | IOError {
-    cells :: path.stat_cells(true)
-    if cells is IOError {
-        return cells
-    }
+    cells :: path.stat_cells(true) else return cells
     mode :: u32(mode_with(cells[3], read_only))
     return failure_unless(sys_chmod(path, mode) == 0, "cannot change permissions")
 }
@@ -276,19 +270,10 @@ export copy_tree :: fn(from: string, to: string) -> null | IOError {
     if !is_dir(from) {
         return from.copy(to)
     }
-    made :: create_dir(to)
-    if made is IOError {
-        return made
-    }
-    names :: read_dir(from)
-    if names is IOError {
-        return names
-    }
+    made :: create_dir(to) else is IOError { return made }
+    names :: read_dir(from) else return names
     for name in names {
-        copied :: copy_tree("${from}/${name}", "${to}/${name}")
-        if copied is IOError {
-            return copied
-        }
+        copied :: copy_tree("${from}/${name}", "${to}/${name}") else is IOError { return copied }
     }
     return null
 }
@@ -320,14 +305,8 @@ system_copy :: fn(from: string, to: string) -> null | IOError
 
 @target(.Linux, .Darwin)
 system_copy :: fn(from: string, to: string) -> null | IOError {
-    cells :: from.stat_cells(true)
-    if cells is IOError {
-        return cells
-    }
-    copied :: from.copy_content(to)
-    if copied is IOError {
-        return copied
-    }
+    cells :: from.stat_cells(true) else return cells
+    copied :: from.copy_content(to) else is IOError { return copied }
     return failure_unless(sys_chmod(to, u32(cells[3])) == 0, "cannot copy permissions")
 }
 
@@ -341,15 +320,9 @@ system_copy :: fn(from: string, to: string) -> null | IOError {
 
 // Write what the file `from` holds to a new file `to`, chunk after chunk.
 copy_content :: fn(from: string, to: string) -> null | IOError {
-    input :: from.open()
-    if input is IOError {
-        return input
-    }
+    input :: from.open() else return input
     defer input.close()
-    output :: to.create()
-    if output is IOError {
-        return output
-    }
+    output :: to.create() else return output
     copied :: input.copy_chunks(output)
     // Closed either way, and its failure reported: some file systems keep for
     // `close` a write that never reached the disk.
@@ -368,10 +341,7 @@ copy_chunks :: fn(input: File, output: File) -> null | IOError {
         if n is IOError {
             return n
         }
-        written :: output.write(chunk[0..<n])
-        if written is IOError {
-            return written
-        }
+        written :: output.write(chunk[0..<n]) else is IOError { return written }
     }
 }
 
@@ -418,10 +388,7 @@ system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError
 
 @target(.Linux, .Darwin)
 system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
-    cells :: path.stat_cells(false)
-    if cells is IOError {
-        return cells
-    }
+    cells :: path.stat_cells(false) else return cells
     if kind_of(cells[0]) == .Directory {
         return path.remove_directory(options)
     }
@@ -457,15 +424,9 @@ system_remove :: fn(path: string, options: RemoveOptions) -> null | IOError {
 // Remove the directory `path`, what it holds first under `recursive`.
 remove_directory :: fn(path: string, options: RemoveOptions) -> null | IOError {
     if options.recursive {
-        names :: read_dir(path)
-        if names is IOError {
-            return names
-        }
+        names :: read_dir(path) else return names
         for name in names {
-            removed :: remove("${path}/${name}", options)
-            if removed is IOError {
-                return removed
-            }
+            removed :: remove("${path}/${name}", options) else is IOError { return removed }
         }
     }
     return path.system_remove_directory()
@@ -502,10 +463,7 @@ probe_dir :: fn(name: string) -> string {
 
 // What `metadata` reports of `path`'s kind, `.Other` when it fails.
 kind_at :: fn(path: string, options: MetadataOptions) -> EntryKind {
-    entry :: path.metadata(options)
-    if entry is IOError {
-        return .Other
-    }
+    entry :: path.metadata(options) else return .Other
     return entry.kind
 }
 
@@ -515,8 +473,7 @@ test_metadata_of_a_file_and_a_directory :: fn() -> void {
     defer dir.remove(RemoveOptions { .recursive = true })
     file :: "${dir}/a.txt"
     write_file(file, "hello")
-    entry :: file.metadata()
-    if entry is IOError {
+    entry :: file.metadata() else {
         assert(false, "the file is probed")
         return
     }

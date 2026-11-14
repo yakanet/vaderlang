@@ -337,9 +337,7 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
         lower_for_slot(ctx, return_stmt.value, ctx.return_type, span)
     }
     drain :: pop_defers_to_fn_root(ctx, span)
-    if drain == null {
-        return LoweredReturn { .span = span, .value = value }
-    }
+        else return LoweredReturn { .span = span, .value = value }
     exit: LoweredStmt[]: []
     read :: evaluate_then_drain(ctx, value, drain, "result", exit)
     exit.push(LoweredReturn { .span = span, .value = read })
@@ -526,9 +524,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
         return comptime_for_reject(ctx, span, "`@comptime for` does not support `[k, v]` destructure")
     }
     binding_symbol :: resolve_binding(ctx, loop_var_span(in_form.loop_var, span))
-    if binding_symbol is null {
-        return comptime_for_reject(ctx, span, "`@comptime for` binding not resolved")
-    }
+        else return comptime_for_reject(ctx, span, "`@comptime for` binding not resolved")
     iter_lowered :: lower_expr(ctx, in_form.iter)
     arr_lit: LoweredArrayLit | null = null
     if iter_lowered is LoweredArrayLit { arr_lit = iter_lowered }

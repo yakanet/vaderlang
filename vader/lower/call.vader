@@ -247,8 +247,7 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
 fold_const_value :: fn(
     ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span,
 ) -> LoweredExpr | null {
-    baked :: lookup_const_baked_value(ctx, sym)
-    if baked == null {
+    baked :: lookup_const_baked_value(ctx, sym) else {
         // Bake missed. Gate on Const kind so the common baked-miss (every
         // local / param read) skips `try_fold_unbaked_const`'s module lookups.
         if sym.kind == .Const { return try_fold_unbaked_const(ctx, sym, type) }

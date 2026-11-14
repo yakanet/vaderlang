@@ -131,8 +131,7 @@ scope_of :: fn(input: DumpInput) -> string[] =
 
 // The source of `input`, or the output of a stage that cannot read it.
 read_source :: fn(input: DumpInput) -> string | StageOutput {
-    source :: read_file_string(input.file.as_string())
-    if source is IOError {
+    source :: read_file_string(input.file.as_string()) else {
         return StageOutput {
             .err = "vader: cannot read `${input.file.to_native()}`: ${source.message()}\n",
             .code = 1,

@@ -203,8 +203,7 @@ tm_find_match :: fn(decls: AST.Decl[]) -> AST.MatchExpr | null {
 test_match_to_if_converts_literal :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -219,8 +218,7 @@ test_match_to_if_converts_literal :: fn() -> void {
 test_match_to_if_converts_is_pattern :: fn() -> void {
     src :: "g :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 -> v\n        _ -> 0\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -234,8 +232,7 @@ test_match_to_if_converts_is_pattern :: fn() -> void {
 test_match_to_if_declines_three_arms :: fn() -> void {
     src :: "h :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        1 -> 2\n        _ -> 3\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -249,8 +246,7 @@ test_match_to_if_two_is_arms :: fn() -> void {
     // no binding, so it drops to the `else`.
     src :: "classify :: fn(cell: i32 | null) -> i32 {\n    match cell {\n        is null -> println(\"none\")\n        is i32 -> println(\"got value\")\n    }\n    return 0\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -275,8 +271,7 @@ f :: fn(ns: i32 | null) -> i32 {
 }
 """
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -300,8 +295,7 @@ g :: fn(v: i32 | string) -> void {
 }
 """
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -317,8 +311,7 @@ test_match_to_if_declines_header_binding :: fn() -> void {
     // The header names the scrutinee `s` for both arms: an `if` has no place for it.
     src :: "k :: fn(v: i32 | string) -> i32 {\n    return match s :: v {\n        is i32 -> 0\n        is string -> s.byte_len()\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -343,8 +336,7 @@ f :: fn(cell: i32 | null) -> i32 {
 }
 """
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }
@@ -370,8 +362,7 @@ f :: fn(cell: i32 | null) -> i32 {
 }
 """
     parsed :: Parse.parse_source(src, "t.vader")
-    m :: tm_find_match(parsed.program.decls)
-    if m == null {
+    m :: tm_find_match(parsed.program.decls) else {
         assert(false, "expected a match")
         return
     }

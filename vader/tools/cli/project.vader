@@ -236,8 +236,7 @@ described_project :: fn(
     if run_build_driver(command, dir, request) != 0 {
         return null
     }
-    project :: read_driver_description(path)
-    if project is IOError {
+    project :: read_driver_description(path) else {
         eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir.to_native()}` described "
             + "no project; does it drain `ctx.messages()`?")
         return null

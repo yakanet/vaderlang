@@ -1030,14 +1030,13 @@ fn 15 std_uri$parse_uri (string) -> any
   local next i64
   local authority any
   local $add_checked_18 i64
-  local $add_checked_23 i64
+  local $add_checked_24 i64
+  local __fallback_0 any
   local parsed any
-  local $fn_ref_32 ref
-  local query any
+  local path string
+  local $fn_ref_35 ref
   local read any
   local read any
-  local $call_69 string
-  local $cast_70 string
   local.get 0   ; arg 0
   call 18   ; std_uri$scheme_length
   local.tee 1   ; scheme_end
@@ -1075,19 +1074,21 @@ fn 15 std_uri$parse_uri (string) -> any
     local.get 3   ; next
     i64.const 2
     i64.checked_add
-    local.set 6   ; $add_checked_23
+    local.set 6   ; $add_checked_24
     local.get 0   ; arg 0
-    local.get 6   ; $add_checked_23
+    local.get 6   ; $add_checked_24
     local.get 5   ; $add_checked_18
     call 20   ; std_uri$parse_authority
-    local.tee 7   ; parsed
+    local.tee 7   ; __fallback_0
+    local.set 8   ; parsed
+    local.get 7   ; __fallback_0
     type_check 14   ; std_uri$UriError
     if $L2 void
-      local.get 7   ; parsed
+      local.get 8   ; parsed
       ref.cast 14   ; std_uri$UriError
       return
     end $L2
-    local.get 7   ; parsed
+    local.get 7   ; __fallback_0
     ref.cast 17   ; std_uri$Authority
     local.set 4   ; authority
     local.get 5   ; $add_checked_18
@@ -1099,23 +1100,28 @@ fn 15 std_uri$parse_uri (string) -> any
   call 19   ; std_uri$end_of
   local.set 5   ; $add_checked_18
   fn.ref 21 18   ; std_uri$is_path_byte fn
-  local.set 8   ; $fn_ref_32
+  local.set 10   ; $fn_ref_35
   local.get 0   ; arg 0
   local.get 3   ; next
   local.get 5   ; $add_checked_18
-  local.get 8   ; $fn_ref_32
+  local.get 10   ; $fn_ref_35
   call 22   ; std_uri$normalized
-  local.tee 7   ; parsed
+  local.tee 7   ; __fallback_0
+  local.set 8   ; parsed
+  local.get 7   ; __fallback_0
   type_check 14   ; std_uri$UriError
   if $L3 void
-    local.get 7   ; parsed
+    local.get 8   ; parsed
     ref.cast 14   ; std_uri$UriError
     return
   end $L3
+  local.get 7   ; __fallback_0
+  ref.cast 2   ; string
+  local.set 9   ; path
   local.get 5   ; $add_checked_18
   local.set 3   ; next
   null.const
-  local.set 9   ; query
+  local.set 7   ; __fallback_0
   local.get 3   ; next
   local.get 2   ; n
   i64.lt
@@ -1138,31 +1144,33 @@ fn 15 std_uri$parse_uri (string) -> any
       local.get 3   ; next
       i64.const 1
       i64.checked_add
-      local.set 6   ; $add_checked_23
+      local.set 6   ; $add_checked_24
       fn.ref 23 18   ; std_uri$is_query_byte fn
-      local.set 8   ; $fn_ref_32
+      local.set 10   ; $fn_ref_35
       local.get 0   ; arg 0
-      local.get 6   ; $add_checked_23
+      local.get 6   ; $add_checked_24
       local.get 5   ; $add_checked_18
-      local.get 8   ; $fn_ref_32
+      local.get 10   ; $fn_ref_35
       call 22   ; std_uri$normalized
-      local.tee 10   ; read
+      local.tee 8   ; parsed
+      local.set 11   ; read
+      local.get 8   ; parsed
       type_check 14   ; std_uri$UriError
       if $L6 void
-        local.get 10   ; read
+        local.get 11   ; read
         ref.cast 14   ; std_uri$UriError
         return
       end $L6
-      local.get 10   ; read
+      local.get 8   ; parsed
       ref.cast 2   ; string
       retag 2   ; string
-      local.set 9   ; query
+      local.set 7   ; __fallback_0
       local.get 5   ; $add_checked_18
       local.set 3   ; next
     end $L5
   end $L4
   null.const
-  local.set 10   ; read
+  local.set 8   ; parsed
   local.get 3   ; next
   local.get 2   ; n
   i64.lt
@@ -1172,38 +1180,35 @@ fn 15 std_uri$parse_uri (string) -> any
     i64.checked_add
     local.set 3   ; next
     fn.ref 23 18   ; std_uri$is_query_byte fn
-    local.set 8   ; $fn_ref_32
+    local.set 10   ; $fn_ref_35
     local.get 0   ; arg 0
     local.get 3   ; next
     local.get 2   ; n
-    local.get 8   ; $fn_ref_32
+    local.get 10   ; $fn_ref_35
     call 22   ; std_uri$normalized
     local.tee 11   ; read
+    local.set 12   ; read
+    local.get 11   ; read
     type_check 14   ; std_uri$UriError
     if $L8 void
-      local.get 11   ; read
+      local.get 12   ; read
       ref.cast 14   ; std_uri$UriError
       return
     end $L8
     local.get 11   ; read
     ref.cast 2   ; string
     retag 2   ; string
-    local.set 10   ; read
+    local.set 8   ; parsed
   end $L7
   local.get 0   ; arg 0
   i64.const 0
   local.get 1   ; scheme_end
   call.import 2   ; std_core$byte_slice
   call 45   ; std_string$to_lower
-  local.set 12   ; $call_69
-  local.get 7   ; parsed
-  ref.cast 2   ; string
-  local.set 13   ; $cast_70
-  local.get 12   ; $call_69
   local.get 4   ; authority
-  local.get 13   ; $cast_70
-  local.get 9   ; query
-  local.get 10   ; read
+  local.get 9   ; path
+  local.get 7   ; __fallback_0
+  local.get 8   ; parsed
   struct.new 13   ; std_uri$Uri
   return
 end
@@ -1341,12 +1346,13 @@ fn 20 std_uri$parse_authority (string,i64,i64) -> any
   local at any
   local userinfo any
   local host_from i64
-  local $cast_10 i64
-  local $fn_ref_11 ref
+  local $cast_11 i64
+  local $fn_ref_12 ref
+  local __fallback_0 any
   local read any
   local and_res bool
   local if_res i64
-  local $call_59 string
+  local host string
   local.get 0   ; arg 0
   i32.const 64
   local.get 1   ; arg 1
@@ -1363,22 +1369,24 @@ fn 20 std_uri$parse_authority (string,i64,i64) -> any
   else
     local.get 3   ; at
     ref.cast 4   ; i64
-    local.set 6   ; $cast_10
+    local.set 6   ; $cast_11
     fn.ref 29 18   ; std_uri$is_userinfo_byte fn
-    local.set 7   ; $fn_ref_11
+    local.set 7   ; $fn_ref_12
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    local.get 6   ; $cast_10
-    local.get 7   ; $fn_ref_11
+    local.get 6   ; $cast_11
+    local.get 7   ; $fn_ref_12
     call 22   ; std_uri$normalized
-    local.tee 8   ; read
+    local.tee 8   ; __fallback_0
+    local.set 9   ; read
+    local.get 8   ; __fallback_0
     type_check 14   ; std_uri$UriError
     if $L1 void
-      local.get 8   ; read
+      local.get 9   ; read
       ref.cast 14   ; std_uri$UriError
       return
     end $L1
-    local.get 8   ; read
+    local.get 8   ; __fallback_0
     ref.cast 2   ; string
     retag 2   ; string
     local.set 4   ; userinfo
@@ -1389,7 +1397,7 @@ fn 20 std_uri$parse_authority (string,i64,i64) -> any
     local.set 5   ; host_from
   end $L0
   local.get 2   ; arg 2
-  local.set 6   ; $cast_10
+  local.set 6   ; $cast_11
   local.get 5   ; host_from
   local.get 2   ; arg 2
   i64.lt
@@ -1399,12 +1407,12 @@ fn 20 std_uri$parse_authority (string,i64,i64) -> any
     call.import 1   ; std_core$byte_at
     i32.const 91
     i32.eq
-    local.set 9   ; and_res
+    local.set 10   ; and_res
   else
     bool.const false
-    local.set 9   ; and_res
+    local.set 10   ; and_res
   end $L2
-  local.get 9   ; and_res
+  local.get 10   ; and_res
   if $L3 void
     local.get 0   ; arg 0
     i32.const 93
@@ -1423,18 +1431,18 @@ fn 20 std_uri$parse_authority (string,i64,i64) -> any
     ref.cast 4   ; i64
     i64.const 1
     i64.checked_add
-    local.tee 6   ; $cast_10
+    local.tee 6   ; $cast_11
     local.get 2   ; arg 2
     i64.lt
     if $L5 void
       local.get 0   ; arg 0
-      local.get 6   ; $cast_10
+      local.get 6   ; $cast_11
       call.import 1   ; std_core$byte_at
       i32.const 58
       i32.ne
       if $L6 void
         string.const 14   ; "port expected after an IP literal"
-        local.get 6   ; $cast_10
+        local.get 6   ; $cast_11
         struct.new 14   ; std_uri$UriError
         return
       end $L6
@@ -1449,51 +1457,56 @@ fn 20 std_uri$parse_authority (string,i64,i64) -> any
     type_check 0   ; null
     if $L7 void
       local.get 2   ; arg 2
-      local.set 10   ; if_res
+      local.set 11   ; if_res
     else
       local.get 3   ; at
       ref.cast 4   ; i64
-      local.set 10   ; if_res
+      local.set 11   ; if_res
     end $L7
-    local.get 10   ; if_res
-    local.set 6   ; $cast_10
+    local.get 11   ; if_res
+    local.set 6   ; $cast_11
   end $L3
   fn.ref 31 18   ; std_uri$is_host_byte fn
-  local.set 7   ; $fn_ref_11
+  local.set 7   ; $fn_ref_12
   local.get 0   ; arg 0
   local.get 5   ; host_from
-  local.get 6   ; $cast_10
-  local.get 7   ; $fn_ref_11
+  local.get 6   ; $cast_11
+  local.get 7   ; $fn_ref_12
   call 22   ; std_uri$normalized
   local.tee 3   ; at
+  local.set 8   ; __fallback_0
+  local.get 3   ; at
   type_check 14   ; std_uri$UriError
   if $L8 void
-    local.get 3   ; at
+    local.get 8   ; __fallback_0
     ref.cast 14   ; std_uri$UriError
     return
   end $L8
+  local.get 3   ; at
+  ref.cast 2   ; string
+  local.set 12   ; host
   local.get 0   ; arg 0
-  local.get 6   ; $cast_10
+  local.get 6   ; $cast_11
   local.get 2   ; arg 2
   call 32   ; std_uri$parse_port
-  local.tee 8   ; read
+  local.tee 8   ; __fallback_0
+  local.set 9   ; read
+  local.get 8   ; __fallback_0
   type_check 14   ; std_uri$UriError
   if $L9 void
-  else
-    local.get 3   ; at
-    ref.cast 2   ; string
-    call 33   ; std_uri$lower_outside_escapes
-    local.set 11   ; $call_59
-    local.get 8   ; read
-    local.set 3   ; at
-    local.get 4   ; userinfo
-    local.get 11   ; $call_59
-    local.get 3   ; at
-    struct.new 17   ; std_uri$Authority
+    local.get 9   ; read
+    ref.cast 14   ; std_uri$UriError
     return
   end $L9
-  local.get 8   ; read
-  ref.cast 14   ; std_uri$UriError
+  local.get 8   ; __fallback_0
+  local.set 3   ; at
+  local.get 12   ; host
+  call 33   ; std_uri$lower_outside_escapes
+  local.set 12   ; host
+  local.get 4   ; userinfo
+  local.get 12   ; host
+  local.get 3   ; at
+  struct.new 17   ; std_uri$Authority
   return
 end
 

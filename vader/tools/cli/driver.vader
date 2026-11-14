@@ -223,10 +223,7 @@ driver_is_current :: fn(root: string, release: bool, key: string) -> bool {
     if linked_binary(driver_binary_path(root, release)) == null {
         return false
     }
-    recorded :: read_file_string(driver_stamp_path(root, release))
-    if recorded is IOError {
-        return false
-    }
+    recorded :: read_file_string(driver_stamp_path(root, release)) else return false
     return recorded.trim() == key
 }
 
@@ -459,8 +456,7 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
             return build_code
         }
     }
-    exe :: linked_binary(binary)
-    if exe == null {
+    exe :: linked_binary(binary) else {
         eprintln("vader ${command}: the driver build left no binary at ${binary.to_native()}")
         return 1
     }
@@ -561,8 +557,7 @@ rebuild_driver :: fn(
     ldflags: string,
 ) -> i32 {
     entry :: driver_entry_path(root)
-    written :: write_file(entry, render_driver_entry())
-    if written is IOError {
+    written :: write_file(entry, render_driver_entry()) else is IOError {
         eprintln("vader ${command}: cannot write the build entry at ${entry.to_native()}: "
             + written.msg)
         return 1
@@ -571,8 +566,7 @@ rebuild_driver :: fn(
     // not litter the directory the user works in. `create_dir` makes the path
     // rather than requiring it to exist.
     artefacts :: driver_dir(root, release)
-    made :: create_dir(artefacts)
-    if made is IOError {
+    made :: create_dir(artefacts) else is IOError {
         eprintln("vader ${command}: cannot create ${artefacts.to_native()}: ${made.msg}")
         remove_entry(entry)
         return 1

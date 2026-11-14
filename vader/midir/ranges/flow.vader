@@ -115,8 +115,7 @@ flow_out :: fn(ctx: RangeContext, flow: RangeFlow, block: BasicBlock, s: RangeSt
     if t !is TermCondBranch {
         return false
     }
-    cmp :: branch_comparison(ctx, block, t.cond)
-    if cmp == null {
+    cmp :: branch_comparison(ctx, block, t.cond) else {
         taken :: merge_into(ctx, flow, t.then_block, s)
         return merge_into(ctx, flow, t.else_block, s) || taken
     }
@@ -136,8 +135,7 @@ flow_out :: fn(ctx: RangeContext, flow: RangeFlow, block: BasicBlock, s: RangeSt
 // @return  whether that state changed.
 merge_into :: fn(ctx: RangeContext, flow: RangeFlow, target: BlockId, edge: RangeState) -> bool {
     at :: i32(target)
-    old :: flow.states[at]
-    if old == null {
+    old :: flow.states[at] else {
         flow.states[at] = edge
         flow.dirty[at] = true
         return true

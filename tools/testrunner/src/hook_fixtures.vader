@@ -63,8 +63,7 @@ find_hook_fixtures :: fn(found: Discovery) -> void {
 check_hook :: fn(case: Case, dir: string, update: bool) -> StageReport | CaseFailure {
     began :: monotonic()
     project :: "${dir}/project"
-    staged :: copy_sources(case.dir, project)
-    if staged is IOError {
+    staged :: copy_sources(case.dir, project) else is IOError {
         return hook_failure("`${project}`: ${staged.msg}")
     }
     options :: RunOptions {
@@ -146,10 +145,7 @@ generated_text :: fn(project: string) -> string =
 // The files under `root` that `keep` takes, each under a `--- <path>` header, the
 // path relative to `root`, in path order; "" when `root` cannot be read.
 tree_text :: fn(root: string, keep: fn(WalkEntry) -> bool) -> string {
-    walker :: walk(root)
-    if walker is IOError {
-        return ""
-    }
+    walker :: walk(root) else return ""
     paths: string[]: []
     for entry in walker {
         if entry.kind == .File && keep(entry) {
@@ -170,10 +166,7 @@ tree_text :: fn(root: string, keep: fn(WalkEntry) -> bool) -> string {
 
 // Whether a file under `src` declares a `@test`.
 declares_tests :: fn(src: string) -> bool {
-    walker :: walk(src)
-    if walker is IOError {
-        return false
-    }
+    walker :: walk(src) else return false
     for entry in walker {
         if entry.name.ends_with(".vader") && file_facts(entry.path.to_path()).has_tests {
             return true

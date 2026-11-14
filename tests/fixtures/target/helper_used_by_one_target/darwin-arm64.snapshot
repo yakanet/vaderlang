@@ -7,8 +7,8 @@ VADER_ARCH = .Arm64
 
 # Selected body
 main$normalize <- main.vader:20
-std_console$read_ready <- lib/std/console/console.vader:305
-std_console$system_poll_stdin <- lib/std/console/console.vader:392
+std_console$read_ready <- lib/std/console/console.vader:297
+std_console$system_poll_stdin <- lib/std/console/console.vader:384
 std_console$write_bytes <- lib/std/console/console.vader:47
 std_console$write_text <- lib/std/console/console.vader:81
 std_io$io_error_of <- lib/std/io/io.vader:137

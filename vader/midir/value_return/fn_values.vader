@@ -28,9 +28,7 @@ scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction
         return [f]
     }
     copy_mangle :: shape.forward_to
-    if copy_mangle == null {
-        return [rewrite_callee(f, shape.elements, shape.rebuilt != null)]
-    }
+        else return [rewrite_callee(f, shape.elements, shape.rebuilt != null)]
     return [
         forwarding_body(f, copy_mangle),
         rewrite_callee(

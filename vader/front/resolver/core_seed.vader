@@ -232,8 +232,7 @@ test_a_project_under_a_std_core_folder_is_not_the_prelude :: fn() -> void {
     entry :: join_path(dir, "_main.vader")
     write_file(entry, "module \"repro\"\n\nmain :: fn() -> i32 = 0\n")
     project :: load_project(entry, [], null)
-    core :: project.modules[find_core_module_id(project) else ""]
-    if core == null {
+    core :: project.modules[find_core_module_id(project) else ""] else {
         fail("the prelude is loaded")
         return
     }

@@ -78,8 +78,7 @@ find_owner :: fn(out: Map<string, i64>, target: i64) -> string {
 ///              T3037 for a variant, with or without a block, that leaves a
 ///              required field unset.
 check_variant_data :: fn(decl: EnumDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    data :: declared_enum_data(decl, typed)
-    if data == null {
+    data :: declared_enum_data(decl, typed) else {
         for v in decl.variants {
             if v.data !is null {
                 diags.push(typecheck_error(.VariantDataWithoutEnumData, v.span, "`${v.name}`"))

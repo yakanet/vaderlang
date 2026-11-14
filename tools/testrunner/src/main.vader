@@ -170,10 +170,7 @@ run_all :: fn(
     ticker.cancel()
     ticker.join()
     events.close()
-    total :: reporter.join()
-    if total is Cancelled {
-        return 1
-    }
+    total :: reporter.join() else return 1
     print_tally(total, count, k, began.since())
     if total.failed.len() > 0 {
         return 1

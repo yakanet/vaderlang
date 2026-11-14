@@ -106,8 +106,7 @@ evaluate_layer :: fn(
     stage_diags: Diagnostic[]: []
     cfg :: stage_to_cfg(loaded, typed, evaluated, pending, stage_diags)
     module :: emit_bytecode_from_cfg(cfg, "comptime", default_emit_options())
-    state :: Vm.prepare(module)
-    if state is Vm.VerifyError {
+    state :: Vm.prepare(module) else is Vm.VerifyError {
         // The staged bytecode is the compiler's own output, so this is an emitter
         // bug ; every decl waiting on it is left un-baked, and says why.
         for vr in pending {
@@ -214,8 +213,7 @@ bake_decl :: fn(
         }
         return [mangle]
     }
-    program :: evaluated.typed.modules[vr.module_id]
-    if program == null {
+    program :: evaluated.typed.modules[vr.module_id] else {
         diags.push(comptime_error(.CannotEvaluate, vr.span, "the module declaring it is not typed"))
         return [mangle]
     }

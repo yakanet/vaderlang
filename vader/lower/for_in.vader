@@ -111,8 +111,7 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
             },
         }
     }
-    shape :: resolve_step_shape(ctx, element_type)
-    if shape is null {
+    shape :: resolve_step_shape(ctx, element_type) else {
         return LoweredExprStmt {
             .span = span,
             .expr = LoweredUnreachable {

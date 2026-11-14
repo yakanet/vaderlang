@@ -145,10 +145,7 @@ named_from_here :: fn(ctx: TextCtx, file: string) -> string {
 
 // `path` as the filesystem resolves it, as written when it does not resolve.
 resolved :: fn(path: string) -> string {
-    real :: real_path(path)
-    if real is IOError {
-        return path
-    }
+    real :: real_path(path) else return path
     return real
 }
 

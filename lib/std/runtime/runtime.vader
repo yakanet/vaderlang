@@ -99,18 +99,12 @@ resident_bytes :: fn() -> i64 | null {
 // `/proc/self/statm` holds sizes in pages, the resident set second.
 @target(.Linux)
 resident_bytes :: fn() -> i64 | null {
-    statm :: read_file_string("/proc/self/statm")
-    if statm is IOError {
-        return peak_resident_bytes()
-    }
+    statm :: read_file_string("/proc/self/statm") else return peak_resident_bytes()
     fields :: statm.split(" ")
     if fields.len() < 2 {
         return peak_resident_bytes()
     }
-    pages :: parse_int_in_base(fields[1], 10)
-    if pages is ParseError {
-        return peak_resident_bytes()
-    }
+    pages :: parse_int_in_base(fields[1], 10) else return peak_resident_bytes()
     return pages * sys_sysconf(SC_PAGESIZE)
 }
 

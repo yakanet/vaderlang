@@ -164,10 +164,7 @@ export find_project_root :: fn(start: string) -> string | null =
 /// @param dir  the folder to look in.
 export holds_build_driver :: fn(dir: string) -> bool {
     path :: join_path(dir, DRIVER_FILENAME)
-    text :: read_file_string(path)
-    if text is IOError {
-        return false
-    }
+    text :: read_file_string(path) else return false
     header :: parse_module_header(text, path) else return false
     return header.name == DRIVER_MODULE
 }

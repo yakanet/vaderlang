@@ -142,10 +142,7 @@ export run_command :: fn(
     argv: string[],
     options: RunOptions = RunOptions {},
 ) -> ProcessResult | ProcessError {
-    child :: spawn_command(argv, options)
-    if child is ProcessError {
-        return child
-    }
+    child :: spawn_command(argv, options) else return child
     defer child.kill()
     input :: options.stdin
     if input != null {
@@ -232,10 +229,7 @@ export scratch_dir :: fn(name: string) -> string {
 /// @param to    where the copy goes, a path that does not exist yet.
 /// @error       `IOError` when a file cannot be copied.
 export copy_sources :: fn(from: string, to: string) -> null | IOError {
-    copied :: copy_tree(from, to)
-    if copied is IOError {
-        return copied
-    }
+    copied :: copy_tree(from, to) else is IOError { return copied }
     return remove("${to}/build", RemoveOptions { .recursive = true, .force = true })
 }
 
@@ -290,9 +284,7 @@ export build_binary :: fn(name: string, flags: string[], source: string) -> stri
     binary :: executable_path("${scratch_dir(name)}/${name}")
     argv :: ["build"] + flags + ["--out=${binary}", source]
     built :: succeeded(run_vader(argv, RunOptions { .timeout = LONG_TIMEOUT }))
-    if built is ProcessError {
-        return built
-    }
+        else return built
     return binary
 }
 
@@ -405,15 +397,9 @@ export stale_vader :: fn() -> string | null {
 /// @return        the path of that file; null when none is newer, or when
 ///                `binary` cannot be read.
 export newer_source :: fn(binary: string, roots: string[]) -> string | null {
-    built :: modification_time(binary)
-    if built is IOError {
-        return null
-    }
+    built :: modification_time(binary) else return null
     for root in roots {
-        walker :: walk(root)
-        if walker is IOError {
-            continue
-        }
+        walker :: walk(root) else continue
         for entry in walker {
             if !entry.name.ends_with(".vader") {
                 continue
@@ -440,8 +426,7 @@ test_the_vader_of_the_repository_is_found_from_any_folder :: fn() -> void {
 @test
 test_a_command_reads_what_it_is_given_and_reports_its_exit :: fn() -> void {
     // `sort` of Windows reads lines that end with CRLF.
-    ran :: run_command(["sort"], RunOptions { .stdin = "b\r\na\r\n" })
-    if ran is ProcessError {
+    ran :: run_command(["sort"], RunOptions { .stdin = "b\r\na\r\n" }) else {
         fail(ran.msg)
         return
     }

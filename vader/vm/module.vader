@@ -101,10 +101,7 @@ prepare_for :: fn(module: bc.BytecodeModule, debug: bool) -> VmState | VerifyErr
 }
 
 prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | VerifyError {
-    depths :: verify_module(bc_mod)
-    if depths is VerifyError {
-        return depths
-    }
+    depths :: verify_module(bc_mod) else is VerifyError { return depths }
     facts :: infer_module_tags(bc_mod, depths)
     mistyped :: check_module_tags(bc_mod, facts)
     if mistyped != null {
@@ -118,10 +115,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
             import_ids.push(bc.intrinsic_id_for(imp.mangled_name))
         }
     }
-    reg :: translate_module(bc_mod, import_ids, facts, debug)
-    if reg is VerifyError {
-        return reg
-    }
+    reg :: translate_module(bc_mod, import_ids, facts, debug) else is VerifyError { return reg }
     by_name :: Map<string, i32> {}
     for i in 0..<bc_mod.functions.len() {
         by_name[bc_mod.functions[i].name] = i32(i)
@@ -175,15 +169,13 @@ test_virt_roundtrip :: fn() -> void {
         + "  local.get 0\n  local.get 1\n  i32.add\n  i32.const 2\n  i32.mul\n  return\nend\n\n"
         + "fn 1 main () -> i32\n"
         + "  i32.const 40\n  i32.const 1\n  call 0\n  return\nend\n"
-    original :: parse_virt_bc(source)
-    if original is VirtParseError {
+    original :: parse_virt_bc(source) else is VirtParseError {
         assert(false, "the listing should parse: line ${original.line_number}: ${original.reason}")
         return
     }
     assert(exec_value(original) == 82, "the parsed module should exec to 82")
 
-    round_tripped :: parse_virt_bc(write_virt(original))
-    if round_tripped is VirtParseError {
+    round_tripped :: parse_virt_bc(write_virt(original)) else is VirtParseError {
         assert(false, "own dump should parse back: line "
             + "${round_tripped.line_number}: ${round_tripped.reason}")
         return
@@ -229,8 +221,7 @@ test_exec_comptime_value_refuses_a_build_machine_host :: fn() -> void {
 
 // `module` prepared for a run, failing the test when the verifier rejects it.
 prepared :: fn(module: bc.BytecodeModule) -> VmState | null {
-    state :: prepare(module)
-    if state is VerifyError {
+    state :: prepare(module) else is VerifyError {
         assert(false, "rejected by the verifier: ${display_verify_error(state)}")
         return null
     }

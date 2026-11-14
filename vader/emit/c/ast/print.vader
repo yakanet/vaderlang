@@ -270,8 +270,7 @@ write_if :: fn(out: StringBuilder, node: CIf, depth: i32) -> void {
 // next to the condition it describes ; one trailing it, below the shared
 // closing brace, innermost arm first.
 write_else_chain :: fn(out: StringBuilder, node: CIf, label: string, depth: i32) -> void {
-    arm :: node.else_block
-    if arm == null {
+    arm :: node.else_block else {
         write_closer(out, label, depth)
         return
     }

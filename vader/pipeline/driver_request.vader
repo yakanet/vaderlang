@@ -206,10 +206,7 @@ export write_driver_description :: fn(path: string, project: Manifest) -> null |
 ///              wrong.
 /// @error       the `IOError` of a file the driver did not write.
 export read_driver_description :: fn(path: string) -> Manifest | IOError {
-    text :: read_file_string(path)
-    if text is IOError {
-        return text
-    }
+    text :: read_file_string(path) else return text
     return parse_manifest(text)
 }
 

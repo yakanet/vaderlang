@@ -915,10 +915,7 @@ export spawn :: fn(
     argv: string[],
     options: SpawnOptions = SpawnOptions {},
 ) -> ProcessResult | ProcessError {
-    child :: spawn_start(argv, options)
-    if child is ProcessError {
-        return child
-    }
+    child :: spawn_start(argv, options) else return child
     // A cancelled task runs its defers: the child does not outlive the wait.
     defer child.kill()
     return child.wait()
@@ -1230,18 +1227,17 @@ last_component :: fn(path: string) -> string {
 test_a_child_starts_in_the_folder_its_options_name :: fn() -> void {
     folder :: temp_dir()
     printed :: spawn(working_directory_command(), SpawnOptions { .cwd = folder })
-    if printed is ProcessError {
-        fail(printed.msg)
-        return
-    }
+        else {
+            fail(printed.msg)
+            return
+        }
     assert_eq(last_component(printed.stdout), last_component(folder))
 }
 
 @test
 test_a_child_sees_the_environment_its_options_change :: fn() -> void {
     changes: [string, string | null][]: [["VADER_SPAWN_TEST", "set"], ["PATH", null]]
-    listed :: spawn(environment_command(), SpawnOptions { .env = changes })
-    if listed is ProcessError {
+    listed :: spawn(environment_command(), SpawnOptions { .env = changes }) else {
         fail(listed.msg)
         return
     }
@@ -1254,8 +1250,7 @@ test_a_child_sees_the_environment_its_options_change :: fn() -> void {
 // lines that end with CRLF.
 @test
 test_an_interactive_child_reads_its_input_until_it_is_closed :: fn() -> void {
-    child :: spawn_interactive(["sort"])
-    if child is ProcessError {
+    child :: spawn_interactive(["sort"]) else {
         fail("sort launches")
         return
     }
@@ -1326,10 +1321,10 @@ test_write_input_of_a_child_that_reads_no_more_is_an_error :: fn() -> void {
         return
     }
     child :: spawn_interactive(["sh", "-c", "exec 0<&-; echo closed; exec sleep 5"])
-    if child is ProcessError {
-        fail("sh launches")
-        return
-    }
+        else {
+            fail("sh launches")
+            return
+        }
     defer child.kill()
     assert_eq(answer_of(child, 7), "closed\n")
     assert(

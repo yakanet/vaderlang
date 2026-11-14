@@ -76,9 +76,7 @@ exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
 // elements, or a narrower window of the string bytes it reads.
 view_of :: fn(array: ArrayVal, type_id: i32, lo: i64, hi: i64) -> ArrayVal {
     raw :: array.raw
-    if raw == null {
-        return ArrayVal { .type_id = type_id, .elements = array.elements[lo..<hi] }
-    }
+        else return ArrayVal { .type_id = type_id, .elements = array.elements[lo..<hi] }
     return ArrayVal {
         .type_id = type_id,
         .elements = array.elements,

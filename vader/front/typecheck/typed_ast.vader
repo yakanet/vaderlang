@@ -39,9 +39,7 @@ export declared_type_at :: fn(typed: TypedProgram, name_span: Span) -> Type | nu
 /// @return       null when neither table holds it.
 export declared_fn_type :: fn(typed: TypedProgram, fd: AST.FnDecl) -> Type | null {
     sym :: symbol_declared_at(typed.resolved, fd.name_span)
-    if sym == null {
-        return typed.impl_method_decl_types[fd.id]
-    }
+        else return typed.impl_method_decl_types[fd.id]
     return typed.decl_types[sym.id]
 }
 

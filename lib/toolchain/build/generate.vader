@@ -205,14 +205,12 @@ export flush_generated :: fn(ctx: BuildContext) -> string[] {
         if exists(path) {
             continue
         }
-        made :: create_dir(dir)
-        if made is IOError {
+        made :: create_dir(dir) else is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
                 "`${dir.to_native()}` for module `${g.name}`: ${made.msg}"))
             continue
         }
-        written :: write_file(path, content)
-        if written is IOError {
+        written :: write_file(path, content) else is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
                 "`${path.to_native()}`: ${written.msg}"))
             continue
@@ -247,10 +245,7 @@ export sweep_generated :: fn(dir: string) -> i64 {
     }
     // `match` arms are expressions here, so an early exit takes the narrowing
     // `if` form rather than an arm.
-    listing :: read_dir(dir)
-    if listing is IOError {
-        return 0
-    }
+    listing :: read_dir(dir) else return 0
     removed: i64 = 0
     for entry in listing {
         path :: join_path(dir, entry)
@@ -261,17 +256,11 @@ export sweep_generated :: fn(dir: string) -> i64 {
         if !path.ends_with(".vader") {
             continue
         }
-        content :: read_file_string(path)
-        if content is IOError {
-            continue
-        }
+        content :: read_file_string(path) else continue
         if !content.starts_with(GENERATED_BANNER) {
             continue
         }
-        dropped :: remove(path)
-        if dropped is IOError {
-            continue
-        }
+        dropped :: remove(path) else is IOError { continue }
         removed += 1
     }
     return removed

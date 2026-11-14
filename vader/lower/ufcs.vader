@@ -36,8 +36,7 @@ try_lower_method_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowe
         return null
     }
     receiver :: lower_expr(ctx, field.target)
-    target :: method_target(ctx, callee, field, receiver, call.args.len())
-    if target == null {
+    target :: method_target(ctx, callee, field, receiver, call.args.len()) else {
         ctx.bound_operands[field.target.id] = receiver
         plain :: lower_plain_call(ctx, call, type)
         ctx.bound_operands.remove(field.target.id)
@@ -345,8 +344,7 @@ register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> 
 // for a generic fn, the fn itself otherwise. A fn of a module lowered lazily is
 // harvested either way, so its body is emitted.
 ufcs_callee_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Symbol) -> Symbol {
-    mangled :: recorded_instance_mangle(ctx, node, role, fn_sym)
-    if mangled == null {
+    mangled :: recorded_instance_mangle(ctx, node, role, fn_sym) else {
         register_nongeneric_imported_fn(ctx, fn_sym)
         return fn_sym
     }

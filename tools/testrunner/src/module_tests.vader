@@ -36,8 +36,7 @@ find_module_tests :: fn(found: Discovery) -> void {
                 },
             )
         }
-        unwalked :: unwalked_tests(root, files)
-        if unwalked is IOError {
+        unwalked :: unwalked_tests(root, files) else {
             found.problems.push("${root}: ${unwalked.msg}")
             continue
         }
@@ -50,10 +49,7 @@ find_module_tests :: fn(found: Discovery) -> void {
 // The `.vader` files under `root` that hold a test and are not among `walked`,
 // the files of the folders the loader walks; or why `root` cannot be read.
 unwalked_tests :: fn(root: string, walked: Path[]) -> string[] | IOError {
-    walker :: walk(root)
-    if walker is IOError {
-        return walker
-    }
+    walker :: walk(root) else return walker
     known :: Set<string> {}
     for path in walked {
         known.add(path.as_string())

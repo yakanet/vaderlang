@@ -114,8 +114,7 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: D
         return no_member_type(e, not_a_namespace(target), diags)
     }
     members :: resolved.namespace_member_types[target_sym.id] else return TY_UNRESOLVED
-    ty :: members[e.field]
-    if ty is null {
+    ty :: members[e.field] else {
         // A PRIVATE member is R2008 ; a genuinely ABSENT one is R2007, the same
         // answer the unqualified form gives. The miss must be reported : an
         // unresolved type in `is Alias.Nope` interns as `ref _`, which matches

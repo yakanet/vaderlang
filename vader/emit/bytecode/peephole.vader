@@ -715,8 +715,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_i32_maps_to_i32 :: fn() -> void {
-    target :: convert_target_of(.I32)
-    if target is null {
+    target :: convert_target_of(.I32) else {
         assert_eq("expected non-null target", "")
         return
     }
@@ -726,8 +725,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_i64_widths_collapse_to_i64 :: fn() -> void {
-    target :: convert_target_of(.U64)
-    if target is null {
+    target :: convert_target_of(.U64) else {
         assert_eq("expected non-null target", "")
         return
     }

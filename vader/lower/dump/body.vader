@@ -327,8 +327,7 @@ if_text :: fn(names: DumpNames, e: LoweredIf, indent: string, may_inline: bool) 
     for {
         head :: "if ${expr_text(names, current.cond, indent)}"
         then_branch :: branch_of(names, current.then_block, indent)
-        else_block :: current.else_block
-        if else_block == null {
+        else_block :: current.else_block else {
             arms.push("${head} ${then_branch.braced}")
             break
         }

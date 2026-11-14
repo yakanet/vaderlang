@@ -543,8 +543,7 @@ write_named :: fn(w: TypeWriter, sym: Symbol, args: Type[]) -> void {
 // The name of the nominal type `sym` declares, noted when names are. The position
 // is measured only then: `byte_len` walks the builder.
 write_nominal :: fn(w: TypeWriter, sym: Symbol) -> void {
-    names :: w.names
-    if names == null {
+    names :: w.names else {
         w.sb.append(nominal_name(sym, w.qualified))
         return
     }

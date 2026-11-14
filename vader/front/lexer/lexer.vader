@@ -293,8 +293,7 @@ note_line_comment :: fn(l: Lexer, start: i64, column: i32) -> void {
         .text = l.src.byte_slice(start + 3, l.pos),
         .span = l.span_since(start, l.line, column),
     }
-    doc :: l.open_doc
-    if doc == null {
+    doc :: l.open_doc else {
         l.open_doc = AST.DocComment { .lines = [line] }
         return
     }

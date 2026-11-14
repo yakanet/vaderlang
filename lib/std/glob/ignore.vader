@@ -98,10 +98,7 @@ ignore_rule :: fn(raw: string) -> IgnoreRule | null {
     if pattern == "" {
         return null
     }
-    glob :: parse_glob(rooted_pattern(pattern))
-    if glob is GlobError {
-        return null
-    }
+    glob :: parse_glob(rooted_pattern(pattern)) else return null
     return IgnoreRule {
         .glob = glob,
         .negated = line.starts_with("!"),

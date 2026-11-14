@@ -56,8 +56,7 @@ export cmd_check :: fn(args: string[]) -> i32 {
     target_flag :: parsed.string_flag("target", "")
     target: Target | null = null
     if target_flag != "" {
-        parsed_target :: parse_target(target_flag)
-        if parsed_target is TargetParseError {
+        parsed_target :: parse_target(target_flag) else {
             eprintln("vader check --target=${target_flag}: ${parsed_target.reason} "
                 + "`${parsed_target.fragment}`")
             return 2

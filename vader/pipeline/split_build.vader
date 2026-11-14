@@ -89,8 +89,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     }
     // A failure is reported in the units' order, whichever task ran it.
     for o in sort(outcomes, (x, y) -> x.index < y.index) {
-        r :: o.result
-        if r is ProcessError {
+        r :: o.result else {
             eprintln("vader build: ${r.message()}")
             eprint(r.stderr)
             eprintln("(generated C kept in ${folder_of(work).to_native()})")
@@ -109,8 +108,7 @@ build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRe
     link_jobs :: cc_parallelism(cc_jobs)
     lres :: spawn(
         cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links, os),
-    )
-    if lres is ProcessError {
+    ) else {
         eprintln("vader build: ${lres.message()}")
         eprint(lres.stderr)
         return 1

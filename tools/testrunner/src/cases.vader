@@ -307,8 +307,7 @@ case_path :: fn(case: Case) -> string {
 // The entries of `root` whose path `keep` takes, in name order; the problem of a
 // `root` that cannot be read goes to `found`.
 entries_where :: fn(found: Discovery, root: string, keep: fn(string) -> bool) -> string[] {
-    listed :: read_dir(root)
-    if listed is IOError {
+    listed :: read_dir(root) else {
         found.problems.push("${root}: ${listed.msg}")
         return []
     }
@@ -405,10 +404,7 @@ host_platform :: fn() -> string = match host_target().os {
 // The C files beside the snippet in `dir` that define the foreign symbols of its
 // `@extern` declarations, in name order.
 helper_c_files :: fn(dir: string) -> string[] {
-    listed :: read_dir(dir)
-    if listed is IOError {
-        return []
-    }
+    listed :: read_dir(dir) else return []
     helpers :: listed.filter(is_helper_c)
     return sort(helpers.map((name) -> "${dir}/${name}").collect(), (a, b) -> a < b)
 }

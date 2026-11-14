@@ -65,9 +65,9 @@ translate_module :: fn(
     functions: RegFunction[]: [] * module.functions.len()
     for i in 0..<module.functions.len() {
         code :: translate_function(module, import_ids, i32(i), facts[i], debug)
-        if code is VerifyError {
-            return code
-        }
+            else is VerifyError {
+                return code
+            }
         functions.push(code)
     }
     return RegModule { .functions = functions }
@@ -147,10 +147,14 @@ translate_function :: fn(
     }
     for k in 0..<t.code.ops.len() {
         word :: pack_operands(operand_of(t, k, 0), operand_of(t, k, 1), operand_of(t, k, 2))
-        if word == null {
-            message :: "an operand is past the register engine's encoding"
-            return VerifyError { .function = f.name, .pc = t.code.origin[k], .message = message }
-        }
+            else {
+                message :: "an operand is past the register engine's encoding"
+                return VerifyError {
+                    .function = f.name,
+                    .pc = t.code.origin[k],
+                    .message = message,
+                }
+            }
         t.code.words.push(word)
     }
     return t.code

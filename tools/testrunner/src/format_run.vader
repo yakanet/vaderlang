@@ -80,10 +80,7 @@ check_fixture :: fn(case: Case, update: bool) -> StageReport | CaseFailure {
 // Check what `vader fmt` makes of every `.vader` file of the folder of `case`.
 check_folder :: fn(case: Case) -> StageReport | CaseFailure {
     began :: monotonic()
-    listed :: read_dir(case.dir)
-    if listed is IOError {
-        return format_failure("`${case.dir}`: ${listed.msg}")
-    }
+    listed :: read_dir(case.dir) else return format_failure("`${case.dir}`: ${listed.msg}")
     sources :: sort(listed.filter((name) -> name.ends_with(".vader")).collect(), (a, b) -> a < b)
     problems: string[]: []
     for name in sources {
@@ -110,10 +107,7 @@ check_folder :: fn(case: Case) -> StageReport | CaseFailure {
 
 // What `vader fmt` makes of the file at `path`, or what keeps it from the stage.
 formatted_file :: fn(path: string) -> string | CaseFailure {
-    source :: read_file_string(path)
-    if source is IOError {
-        return format_failure("`${path}`: ${source.msg}")
-    }
+    source :: read_file_string(path) else return format_failure("`${path}`: ${source.msg}")
     return formatted_text(source, path)
 }
 

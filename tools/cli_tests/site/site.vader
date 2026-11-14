@@ -53,8 +53,7 @@ blocks_of :: fn(text: string) -> Block[] {
     adjacent := false
     i: i64 = 0
     for i < lines.len() {
-        language :: fence_language(lines[i])
-        if language == null {
+        language :: fence_language(lines[i]) else {
             if lines[i].trim() != "" {
                 adjacent = false
             }

@@ -40,8 +40,7 @@ export fire :: fn(player: Player, level: Level, noises: Noise[]) -> void {
     player.since_shot = 0.0
     noises.push(.Shot)
     wall :: cast_ray(level, player.x, player.y, player.direction_x, player.direction_y)
-    target :: target_of(player, level, wall.distance)
-    if target == null {
+    target :: target_of(player, level, wall.distance) else {
         level.leave_on_shot(player, wall.distance - PUFF_OFFSET, .Puff)
         return
     }

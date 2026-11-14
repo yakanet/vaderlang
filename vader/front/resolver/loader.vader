@@ -324,9 +324,7 @@ export search_roots :: fn(
     // The entry's declared name is what roots its namespace, so the include-paths
     // cannot be built before this scan.
     module :: seed_entry(entry_folder_of(entry), overlay, diags)
-    if module == null {
-        return SearchRoots { .entry = null, .paths = plain }
-    }
+        else return SearchRoots { .entry = null, .paths = plain }
     return SearchRoots {
         .entry = module,
         .paths = include_paths(entry_namespace(module.name, module.folder), plain, generated),

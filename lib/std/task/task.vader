@@ -206,10 +206,7 @@ export try_join_all :: fn<T>(tasks: Task<T>[]) -> T[] | Error {
     group :: watch(tasks)
     defer stop_waiting_all(tasks)
     for _ in 0..<tasks.len() {
-        settled :: outcome(tasks[next_ended(group)])
-        if settled is Error {
-            return settled
-        }
+        settled :: outcome(tasks[next_ended(group)]) else is Error { return settled }
     }
     out: T[]: []
     for task in tasks {
@@ -610,10 +607,10 @@ test_try_join_all_gives_back_the_first_error_to_end :: fn() -> void {
 @test
 test_try_join_all_gives_back_every_result :: fn() -> void {
     outcome :: try_join_all([launch(() -> after_yields(1, 2)), launch(() -> after_yields(2, 1))])
-    if outcome is Error {
-        fail("no task failed: ${outcome.message()}")
-        return
-    }
+        else is Error {
+            fail("no task failed: ${outcome.message()}")
+            return
+        }
     assert_eq(outcome.len(), 2)
 }
 

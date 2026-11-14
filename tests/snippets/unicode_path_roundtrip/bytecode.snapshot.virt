@@ -14,7 +14,7 @@ type 11 union 2,6
 type 12 union 13,0
 type 13 struct std_io$IOError { msg:2,kind:7,code:1 }
 type 14 union 13,6
-type 15 struct __defer_env_std_fs_1 { cap_0:17 }
+type 15 struct __defer_env_std_fs_1 { cap_0:18 }
 type 16 struct std_fs$RemoveOptions { recursive:5,force:5 }
 type 17 union 18,13
 type 18 struct std_fs$File { handle:20,closed:5 }
@@ -550,47 +550,51 @@ fn 13 std_env$get_env (string) -> any
 end
 
 fn 14 std_fs$write_file (string,any) -> any
+  local f ref
+  local __fallback_0 any
   local f any
-  local written any
   local.get 0   ; arg 0
   call 19   ; std_fs$create
-  local.tee 2   ; f
+  local.tee 3   ; __fallback_0
+  local.set 4   ; f
+  local.get 3   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L0 void
-    local.get 2   ; f
+    local.get 4   ; f
     ref.cast 13   ; std_io$IOError
     return
   end $L0
-  local.get 2   ; f
+  local.get 3   ; __fallback_0
   ref.cast 18   ; std_fs$File
+  local.tee 2   ; f
   local.get 1   ; arg 1
   call 45   ; std_fs$File$std_io$Writer$write
-  local.set 3   ; written
+  local.set 3   ; __fallback_0
   local.get 2   ; f
-  ref.cast 18   ; std_fs$File
   call 20   ; std_fs$close
-  local.set 2   ; f
-  local.get 3   ; written
+  local.set 4   ; f
+  local.get 3   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L1 void
   else
-    local.get 2   ; f
+    local.get 4   ; f
     return
   end $L1
-  local.get 3   ; written
+  local.get 3   ; __fallback_0
   ref.cast 13   ; std_io$IOError
   return
 end
 
 fn 15 std_fs$read_file_bytes (string,i64) -> any
-  local $struct_8 ref
+  local f ref
+  local __fallback_0 any
   local f any
+  local out ref
   local length i64
-  local $arr_23 ref
-  local $add_checked_25 i64
-  local got any
-  local __result_1 ref
-  local $slice_66 ref
+  local $arr_25 ref
+  local $add_checked_27 i64
+  local __result_3 ref
+  local $slice_68 ref
   bool.const true
   bool.const false
   bool.const false
@@ -598,124 +602,122 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
   bool.const false
   bool.const false
   struct.new 19   ; std_fs$OpenOptions
-  local.set 2   ; $struct_8
+  local.set 2   ; f
   local.get 0   ; arg 0
-  local.get 2   ; $struct_8
+  local.get 2   ; f
   call 21   ; std_fs$open
-  local.tee 3   ; f
+  local.tee 3   ; __fallback_0
+  local.set 4   ; f
+  local.get 3   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L0 void
-    local.get 3   ; f
+    local.get 4   ; f
     ref.cast 13   ; std_io$IOError
     return
   end $L0
-  local.get 3   ; f
+  local.get 3   ; __fallback_0
+  ref.cast 18   ; std_fs$File
+  local.tee 2   ; f
   struct.new 15   ; __defer_env_std_fs_1
   make_closure 16 34   ; __defer_std_fs_0 fn
   defer.push
   array.new 6 0   ; u8[]
-  local.set 2   ; $struct_8
-  local.get 3   ; f
-  ref.cast 18   ; std_fs$File
-  struct.get 18 0   ; std_fs$File.handle
+  local.set 5   ; out
+  local.field 2 18 0   ; f std_fs$File.handle
   call 22   ; std_fs$system_size
-  local.tee 4   ; length
+  local.tee 6   ; length
   local.get 1   ; arg 1
   call 23   ; std_fs$reads_whole
   if $L1 void
     i32.const 0
     array.new 6 1   ; u8[]
-    local.set 5   ; $arr_23
-    local.get 4   ; length
+    local.set 7   ; $arr_25
+    local.get 6   ; length
     i64.const 1
     i64.checked_add
-    local.set 6   ; $add_checked_25
-    local.get 5   ; $arr_23
-    local.get 6   ; $add_checked_25
+    local.set 8   ; $add_checked_27
+    local.get 7   ; $arr_25
+    local.get 8   ; $add_checked_27
     array.repeat
-    local.set 5   ; $arr_23
-    local.get 3   ; f
-    ref.cast 18   ; std_fs$File
-    struct.get 18 0   ; std_fs$File.handle
-    local.get 5   ; $arr_23
+    local.set 7   ; $arr_25
+    local.field 2 18 0   ; f std_fs$File.handle
+    local.get 7   ; $arr_25
     call 24   ; std_fs$read_into
-    local.tee 7   ; got
+    local.tee 3   ; __fallback_0
+    local.set 4   ; f
+    local.get 3   ; __fallback_0
     type_check 13   ; std_io$IOError
     if $L2 void
-      local.get 7   ; got
+      local.get 4   ; f
       ref.cast 13   ; std_io$IOError
-      local.set 8   ; __result_1
+      local.set 9   ; __result_3
       defer.pop_exec 1
-      local.get 8   ; __result_1
+      local.get 9   ; __result_3
       return
     end $L2
-    local.get 7   ; got
+    local.get 3   ; __fallback_0
     ref.cast 4   ; i64
-    local.get 4   ; length
+    local.tee 8   ; $add_checked_27
+    local.get 6   ; length
     i64.le
     if $L3 void
-      local.get 7   ; got
-      ref.cast 4   ; i64
-      local.set 4   ; length
-      local.get 5   ; $arr_23
+      local.get 7   ; $arr_25
       i64.const 0
-      local.get 4   ; length
+      local.get 8   ; $add_checked_27
       array.slice 6   ; u8[]
-      local.set 8   ; __result_1
+      local.set 9   ; __result_3
       defer.pop_exec 1
-      local.get 8   ; __result_1
+      local.get 9   ; __result_3
       return
     end $L3
-    local.get 5   ; $arr_23
-    local.set 2   ; $struct_8
+    local.get 7   ; $arr_25
+    local.set 5   ; out
   end $L1
   i32.const 0
   array.new 6 1   ; u8[]
   i64.const 65536
   array.repeat
-  local.set 5   ; $arr_23
+  local.set 7   ; $arr_25
   loop $L4 void
-    local.get 2   ; $struct_8
+    local.get 5   ; out
     array.len
     local.get 1   ; arg 1
     i64.gt
     if $L5 void
     else
-      local.get 3   ; f
-      ref.cast 18   ; std_fs$File
-      struct.get 18 0   ; std_fs$File.handle
-      local.get 5   ; $arr_23
+      local.field 2 18 0   ; f std_fs$File.handle
+      local.get 7   ; $arr_25
       i64.const 65536
       call 25   ; std_fs$system_read
-      local.tee 7   ; got
+      local.tee 3   ; __fallback_0
+      local.set 4   ; f
+      local.get 3   ; __fallback_0
       type_check 13   ; std_io$IOError
       if $L6 void
-        local.get 7   ; got
+        local.get 4   ; f
         ref.cast 13   ; std_io$IOError
-        local.set 8   ; __result_1
+        local.set 9   ; __result_3
         defer.pop_exec 1
-        local.get 8   ; __result_1
+        local.get 9   ; __result_3
         return
       end $L6
-      local.get 7   ; got
+      local.get 3   ; __fallback_0
       ref.cast 4   ; i64
+      local.tee 6   ; length
       i64.const 0
       i64.eq
       if $L7 void
         defer.pop_exec 1
-        local.get 2   ; $struct_8
+        local.get 5   ; out
         return
       end $L7
-      local.get 7   ; got
-      ref.cast 4   ; i64
-      local.set 4   ; length
-      local.get 5   ; $arr_23
+      local.get 7   ; $arr_25
       i64.const 0
-      local.get 4   ; length
+      local.get 6   ; length
       array.slice 6   ; u8[]
-      local.set 9   ; $slice_66
-      local.get 2   ; $struct_8
-      local.get 9   ; $slice_66
+      local.set 10   ; $slice_68
+      local.get 5   ; out
+      local.get 10   ; $slice_68
       array.push_all
       br $L4
     end $L5
@@ -724,15 +726,14 @@ fn 15 std_fs$read_file_bytes (string,i64) -> any
   i32.const 0
   i32.const 0
   struct.new 13   ; std_io$IOError
-  local.set 2   ; $struct_8
+  local.set 2   ; f
   defer.pop_exec 1
-  local.get 2   ; $struct_8
+  local.get 2   ; f
   return
 end
 
 fn 16 __defer_std_fs_0 (ref) -> void
   local.field 0 15 0   ; arg 0 __defer_env_std_fs_1.cap_0
-  ref.cast 18   ; std_fs$File
   call 20   ; std_fs$close
   drop
   return
@@ -817,6 +818,7 @@ end
 
 fn 21 std_fs$open (string,ref) -> any
   local refusal any
+  local handle any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 29   ; std_fs$refusal_of
@@ -832,16 +834,17 @@ fn 21 std_fs$open (string,ref) -> any
   local.get 1   ; arg 1
   call 30   ; std_fs$system_open
   local.tee 2   ; refusal
+  local.set 3   ; handle
+  local.get 2   ; refusal
   type_check 13   ; std_io$IOError
   if $L1 void
-  else
-    local.get 2   ; refusal
-    bool.const false
-    struct.new 18   ; std_fs$File
+    local.get 3   ; handle
+    ref.cast 13   ; std_io$IOError
     return
   end $L1
   local.get 2   ; refusal
-  ref.cast 13   ; std_io$IOError
+  bool.const false
+  struct.new 18   ; std_fs$File
   return
 end
 
@@ -879,11 +882,12 @@ end
 fn 24 std_fs$read_into (any,ref) -> any
   local got i64
   local $len_4 i64
-  local $len_6 i64
-  local $slice_7 ref
-  local $sub_checked_9 i64
+  local n i64
+  local $len_7 i64
+  local $slice_8 ref
+  local $sub_checked_10 i64
+  local __fallback_0 any
   local n any
-  local $cast_17 i64
   i64.const 0
   local.set 2   ; got
   loop $L0 void
@@ -896,30 +900,33 @@ fn 24 std_fs$read_into (any,ref) -> any
     if $L1 void
       local.get 1   ; arg 1
       array.len
-      local.set 4   ; $len_6
+      local.set 5   ; $len_7
       local.get 1   ; arg 1
       local.get 2   ; got
-      local.get 4   ; $len_6
+      local.get 5   ; $len_7
       array.slice 6   ; u8[]
-      local.set 5   ; $slice_7
+      local.set 6   ; $slice_8
       local.get 1   ; arg 1
       array.len
       local.get 2   ; got
       i64.checked_sub
-      local.set 6   ; $sub_checked_9
+      local.set 7   ; $sub_checked_10
       local.get 0   ; arg 0
-      local.get 5   ; $slice_7
-      local.get 6   ; $sub_checked_9
+      local.get 6   ; $slice_8
+      local.get 7   ; $sub_checked_10
       call 25   ; std_fs$system_read
-      local.tee 7   ; n
+      local.tee 8   ; __fallback_0
+      local.set 9   ; n
+      local.get 8   ; __fallback_0
       type_check 13   ; std_io$IOError
       if $L2 void
-        local.get 7   ; n
+        local.get 9   ; n
         ref.cast 13   ; std_io$IOError
         return
       end $L2
-      local.get 7   ; n
+      local.get 8   ; __fallback_0
       ref.cast 4   ; i64
+      local.tee 4   ; n
       i64.const 0
       i64.eq
       if $L3 void
@@ -927,11 +934,8 @@ fn 24 std_fs$read_into (any,ref) -> any
         retag 4   ; i64
         return
       end $L3
-      local.get 7   ; n
-      ref.cast 4   ; i64
-      local.set 8   ; $cast_17
       local.get 2   ; got
-      local.get 8   ; $cast_17
+      local.get 4   ; n
       i64.checked_add
       local.set 2   ; got
       br $L0
@@ -983,18 +987,21 @@ fn 26 std_fs$has_nul (string) -> bool
 end
 
 fn 27 std_fs$system_remove (string,ref) -> any
+  local __fallback_0 any
   local cells any
   local.get 0   ; arg 0
   bool.const false
   call 32   ; std_fs$stat_cells
-  local.tee 2   ; cells
+  local.tee 2   ; __fallback_0
+  local.set 3   ; cells
+  local.get 2   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L0 void
-    local.get 2   ; cells
+    local.get 3   ; cells
     ref.cast 13   ; std_io$IOError
     return
   end $L0
-  local.get 2   ; cells
+  local.get 2   ; __fallback_0
   ref.cast 25   ; i64[]
   i32.const 0
   load_slot_i64
@@ -1221,57 +1228,62 @@ fn 33 std_fs$kind_of (i64) -> u8
 end
 
 fn 34 std_fs$remove_directory (string,ref) -> any
+  local __fallback_0 any
   local names any
-  local __for_arr_0 ref
-  local __for_len_1 i64
-  local __for_i_2 i64
+  local __for_arr_1 ref
+  local __for_len_2 i64
+  local __for_i_3 i64
   local name string
   local.field 1 16 0   ; arg 1 std_fs$RemoveOptions.recursive
   ref.cast 5   ; bool
   if $L0 void
     local.get 0   ; arg 0
     call 40   ; std_fs$read_dir
-    local.tee 2   ; names
+    local.tee 2   ; __fallback_0
+    local.set 3   ; names
+    local.get 2   ; __fallback_0
     type_check 13   ; std_io$IOError
     if $L1 void
-      local.get 2   ; names
+      local.get 3   ; names
       ref.cast 13   ; std_io$IOError
       return
     end $L1
-    local.get 2   ; names
+    local.get 2   ; __fallback_0
     ref.cast 27   ; string[]
-    local.tee 3   ; __for_arr_0
+    local.tee 4   ; __for_arr_1
     array.len
-    local.set 4   ; __for_len_1
+    local.set 5   ; __for_len_2
     i64.const 0
-    local.set 5   ; __for_i_2
+    local.set 6   ; __for_i_3
     loop $L2 void
-      local.get 5   ; __for_i_2
-      local.get 4   ; __for_len_1
+      local.get 6   ; __for_i_3
+      local.get 5   ; __for_len_2
       i64.lt
       if $L3 void
-        local.get 3   ; __for_arr_0
-        local.get 5   ; __for_i_2
+        local.get 4   ; __for_arr_1
+        local.get 6   ; __for_i_3
         array.get 27   ; string[]
         ref.cast 2   ; string
-        local.set 6   ; name
+        local.set 7   ; name
         local.get 0   ; arg 0
         string.const 22   ; "/"
-        local.get 6   ; name
+        local.get 7   ; name
         call 2   ; concat_3
         local.get 1   ; arg 1
         call 18   ; std_fs$remove
-        local.tee 2   ; names
+        local.tee 2   ; __fallback_0
+        local.set 3   ; names
+        local.get 2   ; __fallback_0
         type_check 13   ; std_io$IOError
         if $L4 void
-          local.get 2   ; names
+          local.get 3   ; names
           ref.cast 13   ; std_io$IOError
           return
         end $L4
-        local.get 5   ; __for_i_2
+        local.get 6   ; __for_i_3
         i64.const 1
         i64.add
-        local.set 5   ; __for_i_2
+        local.set 6   ; __for_i_3
         br $L2
       end $L3
     end $L2
@@ -1449,12 +1461,13 @@ fn 39 std_fs$link_flag (bool) -> i32
 end
 
 fn 40 std_fs$read_dir (string) -> any
+  local listed ref
+  local __fallback_0 any
   local listed any
   local names ref
-  local __for_arr_0 ref
-  local __for_len_1 i64
-  local __for_i_2 i64
-  local $field_20 string
+  local __for_len_2 i64
+  local __for_i_3 i64
+  local $field_23 string
   local.get 0   ; arg 0
   call 26   ; std_fs$has_nul
   if $L0 void
@@ -1465,44 +1478,48 @@ fn 40 std_fs$read_dir (string) -> any
   end $L0
   local.get 0   ; arg 0
   call 42   ; std_fs$list_dir
-  local.tee 1   ; listed
+  local.tee 2   ; __fallback_0
+  local.set 3   ; listed
+  local.get 2   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L1 void
-    local.get 1   ; listed
+    local.get 3   ; listed
     ref.cast 13   ; std_io$IOError
     return
   end $L1
-  array.new 27 0   ; string[]
-  local.set 2   ; names
-  local.get 1   ; listed
+  local.get 2   ; __fallback_0
   ref.cast 29   ; std_fs$ListedEntry[]
-  local.tee 3   ; __for_arr_0
+  local.tee 1   ; listed
   array.len
-  local.set 4   ; __for_len_1
+  array.reserve 27   ; string[]
+  local.set 4   ; names
+  local.get 1   ; listed
+  array.len
+  local.set 5   ; __for_len_2
   i64.const 0
-  local.set 5   ; __for_i_2
+  local.set 6   ; __for_i_3
   loop $L2 void
-    local.get 5   ; __for_i_2
-    local.get 4   ; __for_len_1
+    local.get 6   ; __for_i_3
+    local.get 5   ; __for_len_2
     i64.lt
     if $L3 void
-      local.get 3   ; __for_arr_0
-      local.get 5   ; __for_i_2
+      local.get 1   ; listed
+      local.get 6   ; __for_i_3
       array.get 29   ; std_fs$ListedEntry[]
       struct.get 30 0   ; std_fs$ListedEntry.name
       ref.cast 2   ; string
-      local.set 6   ; $field_20
-      local.get 2   ; names
-      local.get 6   ; $field_20
-      array.push 2 2   ; string names
-      local.get 5   ; __for_i_2
+      local.set 7   ; $field_23
+      local.get 4   ; names
+      local.get 7   ; $field_23
+      array.push 2 4   ; string names
+      local.get 6   ; __for_i_3
       i64.const 1
       i64.add
-      local.set 5   ; __for_i_2
+      local.set 6   ; __for_i_3
       br $L2
     end $L3
   end $L2
-  local.get 2   ; names
+  local.get 4   ; names
   return
 end
 
@@ -1599,7 +1616,7 @@ fn 43 __defer_std_fs_2 (ref) -> void
 end
 
 fn 44 std_fs$kind_of_dirent (string,string,i32) -> u8
-  local cells any
+  local __fallback_0 any
   local.get 2   ; arg 2
   i32.const 0
   i32.ne
@@ -1615,29 +1632,29 @@ fn 44 std_fs$kind_of_dirent (string,string,i32) -> u8
   call 2   ; concat_3
   bool.const false
   call 32   ; std_fs$stat_cells
-  local.tee 3   ; cells
+  local.tee 3   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L1 void
-  else
-    local.get 3   ; cells
-    ref.cast 25   ; i64[]
-    i32.const 0
-    load_slot_i64
-    call 33   ; std_fs$kind_of
-    return
+    return.lit i32.const 3
   end $L1
-  return.lit i32.const 3
+  local.get 3   ; __fallback_0
+  ref.cast 25   ; i64[]
+  i32.const 0
+  load_slot_i64
+  call 33   ; std_fs$kind_of
+  return
 end
 
 fn 45 std_fs$File$std_io$Writer$write (ref,any) -> any
   local bytes ref
   local done i64
   local $len_10 i64
-  local $field_12 any
-  local $len_13 i64
-  local $slice_14 ref
+  local n i64
+  local $field_13 any
+  local $len_14 i64
+  local $slice_15 ref
+  local __fallback_0 any
   local n any
-  local $cast_26 i64
   local.field 0 18 1   ; arg 0 std_fs$File.closed
   ref.cast 5   ; bool
   if $L0 void
@@ -1660,27 +1677,30 @@ fn 45 std_fs$File$std_io$Writer$write (ref,any) -> any
     i64.lt
     if $L2 void
       local.field 0 18 0   ; arg 0 std_fs$File.handle
-      local.set 5   ; $field_12
+      local.set 6   ; $field_13
       local.get 2   ; bytes
       array.len
-      local.set 6   ; $len_13
+      local.set 7   ; $len_14
       local.get 2   ; bytes
       local.get 3   ; done
-      local.get 6   ; $len_13
+      local.get 7   ; $len_14
       array.slice 6   ; u8[]
-      local.set 7   ; $slice_14
-      local.get 5   ; $field_12
-      local.get 7   ; $slice_14
+      local.set 8   ; $slice_15
+      local.get 6   ; $field_13
+      local.get 8   ; $slice_15
       call 46   ; std_fs$system_write
-      local.tee 8   ; n
+      local.tee 9   ; __fallback_0
+      local.set 10   ; n
+      local.get 9   ; __fallback_0
       type_check 13   ; std_io$IOError
       if $L3 void
-        local.get 8   ; n
+        local.get 10   ; n
         ref.cast 13   ; std_io$IOError
         return
       end $L3
-      local.get 8   ; n
+      local.get 9   ; __fallback_0
       ref.cast 4   ; i64
+      local.tee 5   ; n
       i64.const 0
       i64.eq
       if $L4 void
@@ -1690,11 +1710,8 @@ fn 45 std_fs$File$std_io$Writer$write (ref,any) -> any
         struct.new 13   ; std_io$IOError
         return
       end $L4
-      local.get 8   ; n
-      ref.cast 4   ; i64
-      local.set 9   ; $cast_26
       local.get 3   ; done
-      local.get 9   ; $cast_26
+      local.get 5   ; n
       i64.checked_add
       local.set 3   ; done
       br $L1

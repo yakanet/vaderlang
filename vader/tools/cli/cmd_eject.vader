@@ -38,8 +38,7 @@ cmd_eject :: fn(args: string[]) -> i32 {
     dir :: action_input(parsed).as_string()
     manifest :: ejectable_manifest(dir) else return 1
     driver :: join_path(dir, DRIVER_FILENAME)
-    written :: write_file(driver, render_driver(manifest))
-    if written is IOError {
+    written :: write_file(driver, render_driver(manifest)) else is IOError {
         eprintln("vader eject: cannot write `${driver.to_native()}`: ${written.message()}")
         return 1
     }
@@ -50,8 +49,7 @@ cmd_eject :: fn(args: string[]) -> i32 {
             + "a folder holding both is refused")
         return 0
     }
-    removed :: remove(manifest_path)
-    if removed is IOError {
+    removed :: remove(manifest_path) else is IOError {
         eprintln("vader eject: cannot remove `${manifest_path.to_native()}`: ${removed.message()}")
         return 1
     }
@@ -90,10 +88,7 @@ ejectable_manifest :: fn(dir: string) -> Manifest | null {
 
 // The `.vader` files directly inside `dir`, by name.
 sources_at_root :: fn(dir: string) -> string[] {
-    names :: read_dir(dir)
-    if names is IOError {
-        return []
-    }
+    names :: read_dir(dir) else return []
     sources: string[]: []
     for name in names {
         if name.ends_with(".vader") && !is_dir(join_path(dir, name)) {

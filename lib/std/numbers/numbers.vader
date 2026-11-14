@@ -45,10 +45,7 @@ export hex_digit_value :: fn(c: char) -> i32 | null = match c {
 /// @error       `ParseError` on empty input, any out-of-base digit, or a value
 ///              past the greatest `i64` (carries `.msg = "overflow"`).
 export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
-    magnitude :: parse_uint_in_base(s, base)
-    if magnitude is ParseError {
-        return magnitude
-    }
+    magnitude :: parse_uint_in_base(s, base) else return magnitude
     if magnitude > u64(@max(i64)) {
         return ParseError { .msg = "overflow" }
     }

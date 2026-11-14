@@ -2419,8 +2419,7 @@ emit_block_expr :: fn(self: Printer, block: p.BlockExpr) -> void {
     }
     // Empty block.
     if b.stmts.len() == 0 {
-        tr :: b.trailing
-        if tr == null {
+        tr :: b.trailing else {
             // If the source carried an inner comment (e.g. `{ // skip
             // }`), render it as a multi-line block so the comment
             // survives. `flush_leading_comments` ends each
@@ -2518,10 +2517,7 @@ trailing_if_as_statement :: fn(b: p.BlockExpr) -> p.BlockExpr {
 
 // Whether the chain of `else if`s of `x` ends with no `else`: it yields no value.
 has_no_final_else :: fn(x: p.IfExpr) -> bool {
-    branch :: x.else_branch
-    if branch == null {
-        return true
-    }
+    branch :: x.else_branch else return true
     if branch is p.IfElseIf {
         return has_no_final_else(branch.branch)
     }

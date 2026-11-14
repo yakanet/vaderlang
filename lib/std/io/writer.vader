@@ -60,10 +60,7 @@ BufferedWriter implements Writer {
     write :: fn(self, content: u8[] | string) -> null | IOError {
         bytes :: content.bytes_of()
         if self.buffer.len() + bytes.len() > self.capacity {
-            flushed :: self.flush()
-            if flushed is IOError {
-                return flushed
-            }
+            flushed :: self.flush() else is IOError { return flushed }
         }
         // The buffer would only add a copy.
         if bytes.len() >= self.capacity {

@@ -46,8 +46,7 @@ export InvalidFilter :: struct {
 export parse_test_filters :: fn(texts: string[]) -> TestFilter[] | InvalidFilter {
     filters: TestFilter[]: []
     for text in texts {
-        filter :: parse_test_filter(text)
-        if filter is GlobError {
+        filter :: parse_test_filter(text) else is GlobError {
             return InvalidFilter { .text = text, .reason = filter.msg }
         }
         if filter != null {
@@ -71,10 +70,7 @@ export parse_test_filter :: fn(text: string) -> TestFilter | GlobError | null {
     }
     globs: Glob[]: []
     for part in coordinate_parts(text) {
-        glob :: parse_glob(part, FILTER_GLOB)
-        if glob is GlobError {
-            return glob
-        }
+        glob :: parse_glob(part, FILTER_GLOB) else return glob
         globs.push(glob)
     }
     if globs.len() == 1 {

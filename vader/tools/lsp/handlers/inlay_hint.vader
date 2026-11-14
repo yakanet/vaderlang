@@ -39,9 +39,7 @@ import "toolchain/span"
 export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     file_path :: parse_uri(uri).and_then(u -> u.to_path()).or_null()
-    if file_path == null {
-        return JsonArray { .items = [] }
-    }
+        else return JsonArray { .items = [] }
     cached :: typed_project_for(state, file_path)
     project :: cached.project
     result :: cached.result

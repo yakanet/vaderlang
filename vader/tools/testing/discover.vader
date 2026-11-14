@@ -154,10 +154,7 @@ export entry_files :: fn(entry: Path) -> Path[] {
     if !is_dir(folder) {
         return [entry]
     }
-    listed :: read_dir(folder)
-    if listed is IOError {
-        return []
-    }
+    listed :: read_dir(folder) else return []
     return source_files_in(folder, listed).map((f) -> f.to_path()).collect()
 }
 
@@ -168,8 +165,7 @@ export entry_files :: fn(entry: Path) -> Path[] {
 ///
 /// @param f  a `.vader` file.
 export file_facts :: fn(f: Path) -> FileFacts {
-    src :: read_file_string(f.as_string())
-    if src is IOError {
+    src :: read_file_string(f.as_string()) else {
         return FileFacts {
             .declared = "",
             .has_tests = true,

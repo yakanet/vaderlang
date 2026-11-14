@@ -159,8 +159,7 @@ CONVERTIBLE_IF_CHAIN :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i
 test_if_to_match_converts :: fn() -> void {
     src :: CONVERTIBLE_IF_CHAIN
     parsed :: Parse.parse_source(src, "t.vader")
-    ifx :: tif_find_if(parsed.program.decls)
-    if ifx == null {
+    ifx :: tif_find_if(parsed.program.decls) else {
         assert(false, "expected an if")
         return
     }
@@ -178,8 +177,7 @@ test_if_to_match_converts :: fn() -> void {
 test_if_to_match_declines_two_branches :: fn() -> void {
     src :: "g :: fn(v: i32 | string) -> i32 {\n    return if v is i32 {\n        v\n    } else {\n        0\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    ifx :: tif_find_if(parsed.program.decls)
-    if ifx == null {
+    ifx :: tif_find_if(parsed.program.decls) else {
         assert(false, "expected an if")
         return
     }
@@ -191,8 +189,7 @@ test_if_to_match_declines_two_branches :: fn() -> void {
 test_if_to_match_declines_no_else :: fn() -> void {
     src :: "h :: fn(v: i32 | string) -> i32 {\n    if v is i32 {\n        return v\n    } else if v == \"\" {\n        return 1\n    }\n    return 0\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
-    ifx :: tif_find_if(parsed.program.decls)
-    if ifx == null {
+    ifx :: tif_find_if(parsed.program.decls) else {
         assert(false, "expected an if")
         return
     }

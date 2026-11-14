@@ -78,8 +78,7 @@ try_read :: fn(path: string) -> string | null {
 /// @return      the fields it declares; `problems` says what it gets wrong.
 export parse_manifest :: fn(text: string) -> Manifest {
     manifest :: Manifest {}
-    parsed :: parse(text)
-    if parsed is JsonError {
+    parsed :: parse(text) else {
         manifest.problems.push("${parsed.message()} at byte ${parsed.pos}")
         return manifest
     }

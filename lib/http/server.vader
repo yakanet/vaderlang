@@ -154,8 +154,7 @@ await_request :: fn(source: BufferedReader, pace: Pace, first: bool) -> Connecti
     }
     waited :: if first { pace.timeouts.head } else { pace.timeouts.idle }
     pace.deadlines.read_within(waited)
-    next :: source.peek(1)
-    if next is IOError {
+    next :: source.peek(1) else is IOError {
         failure :: transport(next)
         if failure.kind == .TimedOut {
             return ConnectionEnd { .reason = .TimedOut }
@@ -205,8 +204,7 @@ answer :: fn(
         return apologise(writer, request, malformed("a handler answers with a final response"))
     }
     out :: CountingWriter { .sink = writer }
-    written :: write_response(out, returned, request)
-    if written is HttpError {
+    written :: write_response(out, returned, request) else is HttpError {
         // The client stalled when it is the body of its request, or a write to
         // it, that ran out of time. A source of the handler's own that did is
         // a failure as another.
@@ -937,21 +935,13 @@ whole_responses :: fn(written: string, may_be_cut: bool) -> i64 | null {
     reader :: whole(written)
     count: i64 = 0
     for {
-        left :: reader.peek(1)
-        if left is IOError {
-            return null
-        }
+        left :: reader.peek(1) else is IOError { return null }
         if left == null {
             return count
         }
-        response :: read_response(reader, asking(.Post))
-        if response is HttpError {
-            return cut_or_null(count, may_be_cut)
-        }
+        response :: read_response(reader, asking(.Post)) else return cut_or_null(count, may_be_cut)
         content :: BufferedReader { .source = response.body }.read_to_end(1024 * 1024)
-        if content is IOError {
-            return cut_or_null(count, may_be_cut)
-        }
+            else return cut_or_null(count, may_be_cut)
         if !is_interim(response.status) {
             count += 1
         }

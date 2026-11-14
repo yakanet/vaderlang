@@ -32,8 +32,7 @@ greet :: fn(request: Request, visits: AtomicInt) -> Response {
 
 // Send `request` to the server at `address`, and print what it answers.
 send_request :: fn(address: SocketAddress, method: string, request: string) -> void {
-    stream :: connect(address)
-    if stream is IOError {
+    stream :: connect(address) else {
         eprintln("cannot connect: ${stream.msg}")
         return
     }
@@ -45,8 +44,7 @@ send_request :: fn(address: SocketAddress, method: string, request: string) -> v
 
     """.replace_all("\n", "\r\n"))
     reader :: BufferedReader { .source = stream }
-    answer :: reader.read_to_end(4096)
-    if answer is IOError {
+    answer :: reader.read_to_end(4096) else {
         eprintln("cannot read: ${answer.msg}")
         return
     }
@@ -55,8 +53,7 @@ send_request :: fn(address: SocketAddress, method: string, request: string) -> v
 }
 
 main :: fn() -> i32 {
-    listener :: listen(loopback(0))
-    if listener is IOError {
+    listener :: listen(loopback(0)) else {
         eprintln("cannot listen: ${listener.msg}")
         return 1
     }
@@ -65,8 +62,7 @@ main :: fn() -> i32 {
         () -> serve(listener, fn(request: Request) -> Response = greet(request, visits)),
     )
 
-    address :: listener.local_address()
-    if address is IOError {
+    address :: listener.local_address() else {
         eprintln("no address: ${address.msg}")
         return 1
     }

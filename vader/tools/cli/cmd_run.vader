@@ -10,7 +10,6 @@ module "vader/tools/cli"
 
 import "std/console"
 import "std/fs"
-import "std/io"
 import "std/path"
 import "std/string"
 import "vader/pipeline"
@@ -55,8 +54,7 @@ run_file :: fn(path: Path, forward: string[], project_root: string | null) -> i3
 // `@extern`s, as a source run has. The exit code of its `main`, or 1 after
 // saying why it could not run.
 run_virt :: fn(path: Path, forward: string[]) -> i32 {
-    source :: read_file_string(path.as_string())
-    if source is IOError {
+    source :: read_file_string(path.as_string()) else {
         eprintln("vader run: cannot read ${path.to_native()}")
         return 1
     }
@@ -84,8 +82,7 @@ run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -
     // round-trip. The former `dump_bytecode -> parse_virt_bc` hop was both
     // pointless overhead and lossy (dump_bytecode drops the data pool).
     // `run_virt` still parses real `.virt` files ; this is the source path.
-    state :: prepare(module)
-    if state is VerifyError {
+    state :: prepare(module) else is VerifyError {
         eprintln("vader run: ${display_verify_error(state)}")
         return 1
     }

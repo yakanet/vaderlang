@@ -155,8 +155,7 @@ check_compiler :: fn() -> Check {
 // and RUNNING it is the other half: a name found on PATH may still be a stub, a
 // broken symlink, or an unsigned binary the OS refuses.
 check_cc :: fn(cc: string) -> Check {
-    resolved :: resolve_program(cc)
-    if resolved == null {
+    resolved :: resolve_program(cc) else {
         // Naming one that IS there turns a dead end into a next step: a user who
         // passed `--cc` at all is the one who needs it most, since the host
         // default (`pipeline::default_cc`) is what they overrode.
@@ -175,8 +174,7 @@ check_cc :: fn(cc: string) -> Check {
             "`${fallback}` is on PATH; `${cc}` is what this build would invoke",
         )
     }
-    res :: spawn([resolved, "--version"])
-    if res is ProcessError {
+    res :: spawn([resolved, "--version"]) else {
         return check_fail("cc", "found, but would not run", "${resolved.to_native()}: ${res.msg}")
     }
     if res.exit != 0 {

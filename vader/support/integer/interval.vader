@@ -203,8 +203,7 @@ lesser_upper :: fn(a: Interval, b: Interval) -> Interval {
 export interval_remove :: fn(set: Interval[], removed: Interval) -> Interval[] {
     out: Interval[]: []
     for part in set {
-        met :: interval_meet(part, removed)
-        if met == null {
+        met :: interval_meet(part, removed) else {
             out.push(part)
             continue
         }

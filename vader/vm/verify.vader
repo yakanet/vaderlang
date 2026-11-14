@@ -47,10 +47,7 @@ export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at p
 export verify_module :: fn(module: bc.BytecodeModule) -> i64[] | VerifyError {
     depths: i64[]: [] * module.functions.len()
     for f in module.functions {
-        found :: verify_function(module, f)
-        if found is VerifyError {
-            return found
-        }
+        found :: verify_function(module, f) else is VerifyError { return found }
         depths.push(found)
     }
     return depths
@@ -292,9 +289,9 @@ VIRT_HEAD :: r"module t" + "\n" + r"type 0 scalar null" + "\n" + r"type 1 scalar
 // Verify a one-function module whose `-> i32` body is `body` ; "" when accepted.
 rejection :: fn(body: string) -> string {
     module :: parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + body + "end\n")
-    if module is VirtParseError {
-        return "fixture does not parse"
-    }
+        else is VirtParseError {
+            return "fixture does not parse"
+        }
     found :: verify_module(module)
     return if found is VerifyError { found.message } else { "" }
 }

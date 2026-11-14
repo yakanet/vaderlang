@@ -35,8 +35,7 @@ check_return :: fn(
         }
         return
     }
-    v :: s.value
-    if v is null {
+    v :: s.value else {
         match effective {
             is null -> {}
             _       -> {

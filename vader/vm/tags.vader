@@ -549,13 +549,10 @@ import "vader/front/virt"
 // locals are `locals` ; "" when accepted.
 tag_rejection :: fn(locals: string, body: string) -> string {
     module :: parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + locals + body + "end\n")
-    if module is VirtParseError {
-        return "fixture does not parse"
-    }
-    depths :: verify_module(module)
-    if depths is VerifyError {
-        return "fixture does not verify"
-    }
+        else is VirtParseError {
+            return "fixture does not parse"
+        }
+    depths :: verify_module(module) else is VerifyError { return "fixture does not verify" }
     found :: check_module_tags(module, infer_module_tags(module, depths))
     return if found is VerifyError { found.message } else { "" }
 }

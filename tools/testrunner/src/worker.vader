@@ -54,15 +54,11 @@ run_worker :: fn(update: bool, scratch: string) -> i32 {
         .cc = cc_or_default(""),
     }
     for {
-        line :: read_line()
-        if line is IOError {
-            return 0
-        }
+        line :: read_line() else return 0
         if line == "" {
             continue
         }
-        case :: read_request(line)
-        if case == null {
+        case :: read_request(line) else {
             // A runner waits for the `done` of what it sent.
             print(error_record("", "not a request: ${line}"))
             print(done_record("", 0))
@@ -153,13 +149,11 @@ enter_case :: fn(ctx: WorkerContext, case: Case) -> string | CaseFailure {
     dir :: "${ctx.scratch}/${case.name}"
     temp :: "${dir}/tmp"
     remove_tree(dir)
-    made :: create_dir(temp)
-    if made is IOError {
+    made :: create_dir(temp) else is IOError {
         return CaseFailure { .message = "`${temp}`: ${made.msg}" }
     }
     for name in TEMP_VARIABLES {
-        exported :: set_env(name, temp)
-        if exported is IOError {
+        exported :: set_env(name, temp) else is IOError {
             return CaseFailure { .message = "`${name}`: ${exported.msg}" }
         }
     }

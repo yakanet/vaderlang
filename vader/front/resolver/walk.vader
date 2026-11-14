@@ -70,10 +70,7 @@ walk_folder :: fn(
     root_dirs: Set<string>,
     visit: fn(string, string, string[]) -> void,
 ) -> void {
-    entries :: read_dir(dir)
-    if entries is IOError {
-        return
-    }
+    entries :: read_dir(dir) else return
     files: string[]: []
     for entry in entries {
         path :: join_path(dir, entry)

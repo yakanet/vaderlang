@@ -87,8 +87,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
     build_target: Target | null = null
     if target_flag != "" {
-        parsed_target :: parse_target(target_flag)
-        if parsed_target is TargetParseError {
+        parsed_target :: parse_target(target_flag) else {
             eprintln("vader build --target=${target_flag}: ${parsed_target.reason} "
                 + "`${parsed_target.fragment}`")
             return 2
@@ -227,15 +226,13 @@ entry_binary :: fn(dir: string, name: string, request: BuildRequest) -> Path =
 // process's terminal, and answer its exit code; 1 after saying why it did not
 // run to an exit.
 run_built :: fn(binary: Path, program_args: string[]) -> i32 {
-    exe :: linked_binary(binary.as_string())
-    if exe == null {
+    exe :: linked_binary(binary.as_string()) else {
         eprintln("vader ${RUN_COMMAND}: the build left no program at `${binary.to_native()}`")
         return 1
     }
     argv :: [launchable(exe)]
     argv.push_all(program_args)
-    outcome :: run_attached(argv)
-    if outcome is ProcessError {
+    outcome :: run_attached(argv) else {
         eprintln("vader ${RUN_COMMAND}: ${outcome.message()}")
         return 1
     }
@@ -349,13 +346,11 @@ ready_to_emit :: fn(b: CfgBytecode, command: string, file: Path) -> bool {
 
 // Read a `.virt` text dump and reconstruct its `BytecodeModule`, or say why not.
 virt_module :: fn(file: Path) -> BytecodeModule | null {
-    src :: read_file_string(file.as_string())
-    if src is IOError {
+    src :: read_file_string(file.as_string()) else {
         eprintln("vader build: cannot read ${file.to_native()}")
         return null
     }
-    module :: parse_virt_bc(src)
-    if module is VirtParseError {
+    module :: parse_virt_bc(src) else is VirtParseError {
         eprintln(module.display_virt_parse_error("vader build", file.to_native()))
         return null
     }
@@ -560,8 +555,7 @@ parse_target_list :: fn(spec: string) -> Target[] | null {
         if part == "" {
             continue
         }
-        parsed :: parse_target(part)
-        if parsed is TargetParseError {
+        parsed :: parse_target(part) else {
             eprintln("vader build --seed-targets: ${parsed.reason} `${parsed.fragment}`")
             return null
         }
@@ -599,8 +593,7 @@ union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
 /// @return        0, or 1 after reporting why the directory could not be made.
 ensure_target_dir :: fn(out: Path, target: string) -> i32 {
     dir :: "${out.parent()}/${target}"
-    mk :: create_dir(dir)
-    if mk is IOError {
+    mk :: create_dir(dir) else is IOError {
         eprintln("vader build --seed-targets: cannot create `${dir.to_native()}`: ${mk.message()}")
         return 1
     }

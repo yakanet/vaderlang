@@ -42,12 +42,19 @@
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string)
                   if (entry.kind == EntryKind(1)) && self.options.descend(entry) {
-                      listed: IOError | ListedEntry[] = std.fs.list_dir(entry.path)
-                      if listed is IOError {
-                          @array.push(self.errors, IOError(listed))
-                          continue
+                      listed: ListedEntry[] = {
+                          __fallback_1: IOError | ListedEntry[] = std.fs.list_dir(entry.path)
+                          listed: IOError | ListedEntry[] = __fallback_1
+                          if __fallback_1 is IOError {
+                              {
+                                  @array.push(self.errors, IOError(listed))
+                                  continue
+                              }
+                          } else {
+                              ListedEntry[](__fallback_1)
+                          } :ListedEntry[]
                       }
-                      std.fs.push_entries(pending, ListedEntry[](listed), entry.path, entry.relative, entry.depth + i64(1))
+                      std.fs.push_entries(pending, listed, entry.path, entry.relative, entry.depth + i64(1))
                   }
               }
           }

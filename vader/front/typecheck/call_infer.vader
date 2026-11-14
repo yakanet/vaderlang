@@ -99,8 +99,7 @@ type_generic_call :: fn(
     bindings :: Map<i32, Type> {}
     unsolved: Symbol[]: []
     for v in own {
-        solved :: solutions[v.id]
-        if solved == null {
+        solved :: solutions[v.id] else {
             unsolved.push(v.origin)
             solutions[v.id] = mk_type_param(v.origin)
             continue

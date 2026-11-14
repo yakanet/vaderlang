@@ -181,10 +181,7 @@ parse_groups :: fn(text: string) -> u16[] | null {
         if part.byte_len() > 4 {
             return null
         }
-        value :: parse_uint_in_base(part, 16)
-        if value is ParseError {
-            return null
-        }
+        value :: parse_uint_in_base(part, 16) else return null
         groups.push(u16(value))
     }
     return groups

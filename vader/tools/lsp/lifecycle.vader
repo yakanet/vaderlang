@@ -240,8 +240,7 @@ import "std/testing"
 
 // Parse `text` and negotiate ; fails the test if `text` isn't valid JSON.
 negotiate_from :: fn(text: string) -> PositionEncoding {
-    r :: parse(text)
-    if r is JsonError { return .Utf16 }   // unreachable in these tests
+    r :: parse(text) else return .Utf16   // unreachable in these tests
     return negotiate_position_encoding(r)
 }
 
@@ -264,8 +263,7 @@ negotiate_from :: fn(text: string) -> PositionEncoding {
 
 // Parse `text` and read `workspace.inlayHint.refreshSupport`.
 refresh_support_from :: fn(text: string) -> bool {
-    r :: parse(text)
-    if r is JsonError { return false }
+    r :: parse(text) else return false
     return read_inlay_refresh_support(r)
 }
 

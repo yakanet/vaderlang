@@ -42,10 +42,7 @@ converted_by :: fn(
     ctx: WalkCtx, callee: Callee | null, held: i64 | null, source: AST.Expr,
 ) -> i64 | null {
     conversion :: callee else return held
-    result :: ctx.call(conversion, [held], source.span, [source])
-    if result == null {
-        return held
-    }
+    result :: ctx.call(conversion, [held], source.span, [source]) else return held
     return result
 }
 
@@ -397,8 +394,7 @@ struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
 // it ; all of `source` when its fields are not known.
 spread :: fn(ctx: WalkCtx, literal: i64, source: AST.Expr, named: Set<string>) -> void {
     slot :: ctx.value(source) else return
-    fields :: ctx.struct_fields_of(source)
-    if fields == null {
+    fields :: ctx.struct_fields_of(source) else {
         ctx.hold(literal, slot, EVERYWHERE, ROOT, source.span)
         return
     }

@@ -24,10 +24,7 @@ infer_range :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    element :: range_element(expected, typed)
-    if element == null {
-        return infer_range_from_bounds(e, typed, diags)
-    }
+    element :: range_element(expected, typed) else return infer_range_from_bounds(e, typed, diags)
     lower :: check_expr(e.lower, element, typed, diags)
     upper :: check_expr(e.upper, element, typed, diags)
     emit_mismatch_if(lower, element, e.lower.span, null, .TypeMismatch, typed, diags)

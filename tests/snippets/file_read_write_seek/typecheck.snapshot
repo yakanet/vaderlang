@@ -101,6 +101,7 @@
   expr 35:5     IdentExpr      :: File
   expr 36:15    StructLitExpr  :: BufferedReader
   expr 36:42    IdentExpr      :: File
+  expr 374:60   StructLitExpr  :: RemoveOptions
   expr 37:17    CallExpr       :: Iterator<string>
   expr 37:17    FieldExpr      :: fn(i64) -> Iterator<string>
   expr 37:17    IdentExpr      :: BufferedReader
@@ -108,7 +109,6 @@
   expr 38:26    IdentExpr      :: string
   expr 38:9     CallExpr       :: void
   expr 38:9     IdentExpr      :: fn(T) -> void
-  expr 404:60   StructLitExpr  :: RemoveOptions
   expr 40:13    StringLitExpr  :: string
   expr 40:23    CallExpr       :: string
   expr 40:23    IdentExpr      :: fn(IOError | null) -> string

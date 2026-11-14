@@ -30,22 +30,15 @@ read_request :: fn(
     if line is HttpError {
         return line
     }
-    start :: parse_request_line(line)
-    if start is HttpError {
-        return start
-    }
-    headers :: read_fields(reader, limits, false)
-    if headers is HttpError {
-        return headers
-    }
+    start :: parse_request_line(line) else return start
+    headers :: read_fields(reader, limits, false) else return headers
     if start.version == .Http11 {
         hosts :: headers.get_all(HOST)
         if hosts.len() != 1 || !is_host(hosts[0]) {
             return malformed("an HTTP/1.1 request names one host, as `host` or `host:port`")
         }
     }
-    body :: declared_body(reader, start.version, true, headers, limits)
-    if body is HttpError {
+    body :: declared_body(reader, start.version, true, headers, limits) else is HttpError {
         return body
     }
     return Request {
@@ -98,10 +91,7 @@ parse_request_line :: fn(line: u8[]) -> RequestLine | HttpError {
     if !is_target(target) {
         return malformed("the request target is empty or holds a byte no URI has")
     }
-    version :: parse_version(rest[second + 1..<rest.len()])
-    if version is HttpError {
-        return version
-    }
+    version :: parse_version(rest[second + 1..<rest.len()]) else return version
     method :: method_named(name.bytes_to_string()) else return HttpError {
         .kind = .MethodNotImplemented,
         .msg = "method `${name.bytes_to_string()}` is not implemented",
@@ -127,26 +117,16 @@ read_response :: fn(
     request: Request,
     limits: Limits = Limits {},
 ) -> Response | HttpError {
-    line :: read_head_line(reader, limits.start_line, .Malformed)
-    if line is HttpError {
-        return line
-    }
+    line :: read_head_line(reader, limits.start_line, .Malformed) else is HttpError { return line }
     if line == null {
         return incomplete("the connection ended before the response")
     }
-    start :: parse_status_line(line)
-    if start is HttpError {
-        return start
-    }
-    headers :: read_fields(reader, limits, true)
-    if headers is HttpError {
-        return headers
-    }
+    start :: parse_status_line(line) else return start
+    headers :: read_fields(reader, limits, true) else return headers
     if is_bodiless(request.method, start.status) {
         return start.response(headers, LengthBody { .source = reader, .left = 0 })
     }
-    body :: declared_body(reader, start.version, false, headers, limits)
-    if body is HttpError {
+    body :: declared_body(reader, start.version, false, headers, limits) else is HttpError {
         return body
     }
     if body != null {
@@ -178,10 +158,7 @@ parse_status_line :: fn(line: u8[]) -> StatusLine | HttpError {
     if line.len() < STATUS_LINE_HEAD || line[8] != ' ' || line[12] != ' ' {
         return malformed("a status line is a version, three digits and a space")
     }
-    version :: parse_version(line[0..<8])
-    if version is HttpError {
-        return version
-    }
+    version :: parse_version(line[0..<8]) else return version
     code: u16 = 0
     for digit in line[9..<12] {
         if !is_digit_byte(digit) {
@@ -219,8 +196,7 @@ read_head_line :: fn(
     too_long: HttpErrorKind,
 ) -> u8[] | null | HttpError {
     // The carriage return is one of the bytes before the line feed.
-    run :: reader.read_through('\n', max + 1)
-    if run is IOError {
+    run :: reader.read_through('\n', max + 1) else is IOError {
         if run.kind == .InvalidInput {
             return HttpError { .kind = too_long, .msg = "a line of more than ${max} bytes" }
         }
@@ -277,8 +253,7 @@ read_fields :: fn(reader: BufferedReader, limits: Limits, unfold: bool) -> Heade
     headers :: Headers {}
     taken: i64 = 0
     for {
-        line :: read_head_line(reader, limits.fields - taken, .FieldsTooLarge)
-        if line is HttpError {
+        line :: read_head_line(reader, limits.fields - taken, .FieldsTooLarge) else is HttpError {
             return line
         }
         if line == null {
@@ -310,10 +285,7 @@ read_fields :: fn(reader: BufferedReader, limits: Limits, unfold: bool) -> Heade
                 .msg = "more than ${limits.field_count} field lines",
             }
         }
-        header :: parse_field(line)
-        if header is HttpError {
-            return header
-        }
+        header :: parse_field(line) else return header
         headers.lines.push(header)
     }
 }
@@ -365,9 +337,7 @@ whole :: fn(text: string) = cut(text, 4096)
 // All of `body`, as text.
 text_of :: fn(body: Reader) -> string {
     rest :: BufferedReader { .source = body }.read_to_end(1024 * 1024)
-    if rest is IOError {
-        return "error: ${rest.msg}"
-    }
+        else return "error: ${rest.msg}"
     return rest.bytes_to_string()
 }
 

@@ -171,8 +171,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         name :: if eq == null { body } else { body.byte_slice(0, eq) }
         inline_value :: if eq == null { "" } else { body.byte_slice(eq + 1, body.byte_len()) }
 
-        spec :: find_spec(specs, name, long)
-        if spec == null {
+        spec :: find_spec(specs, name, long) else {
             errors.push("unknown flag ${a}")
             i += 1
             continue
@@ -345,10 +344,7 @@ export string_flags :: fn(self: ParsedArgs, name: string) -> string[] = self.rep
 /// @param default  value returned when `name` is absent or somehow unparseable.
 export int_flag :: fn(self: ParsedArgs, name: string, default: i32) -> i32 {
     v :: self.flags[name] else return default
-    n :: parse_int(v)
-    if n is ParseError {
-        return default
-    }
+    n :: parse_int(v) else return default
     return n
 }
 

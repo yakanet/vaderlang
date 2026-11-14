@@ -319,8 +319,7 @@ erasure :: fn(lines: i32) -> string {
 // step, folded with the reason, and come back as the error.
 wait_key :: fn(step: Step, frame: string) -> KeyPress | PromptError {
     step.draw(frame)
-    press :: next_press(step.reader)
-    if press is PromptError {
+    press :: next_press(step.reader) else {
         step.stopped(press.message)
         return press
     }
@@ -478,9 +477,7 @@ export select :: fn(question: string, choices: Choice[]) -> i64 | PromptError {
     cursor: i64 = 0
     for {
         press :: step.wait_key(render_select(question, choices, cursor, render_width(), g))
-        if press is PromptError {
-            return press
-        }
+            else return press
         if press.key == .Enter {
             step.answered(choices[cursor].label)
             return cursor
@@ -563,10 +560,7 @@ export multiselect :: fn(question: string, choices: Choice[]) -> i64[] | PromptE
     cursor: i64 = 0
     for {
         frame :: render_multiselect(question, choices, checked, cursor, render_width(), g)
-        press :: step.wait_key(frame)
-        if press is PromptError {
-            return press
-        }
+        press :: step.wait_key(frame) else return press
         if press.key == .Enter {
             indices :: checked_indices(checked)
             step.answered(checked_labels(choices, indices))
@@ -623,9 +617,7 @@ export confirm :: fn(question: string, default_yes: bool) -> bool | PromptError 
     yes := default_yes
     for {
         press :: step.wait_key(render_confirm(question, yes, render_width(), g))
-        if press is PromptError {
-            return press
-        }
+            else return press
         answer :: confirm_answer(press, yes)
         if answer is bool {
             step.answered(yes_or_no(answer))
@@ -741,14 +733,10 @@ export text :: fn(
     problem := ""
     for {
         frame :: render_text(question, typed, default_value, problem, render_width(), g)
-        press :: step.wait_key(frame)
-        if press is PromptError {
-            return press
-        }
+        press :: step.wait_key(frame) else return press
         if press.key == .Enter {
             answer :: entered(typed, default_value)
-            refusal :: check(answer)
-            if refusal == null {
+            refusal :: check(answer) else {
                 step.answered(answer)
                 return answer
             }

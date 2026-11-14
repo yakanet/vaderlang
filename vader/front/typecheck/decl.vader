@@ -1241,8 +1241,7 @@ declare_fn_param :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    ty :: p.ty
-    if ty == null {
+    ty :: p.ty else {
         // SPEC §4 : top-level fn signatures must be fully annotated, except
         // `self` which carries the implicit `Self` type, bound at body time.
         if p.name == "self" {
@@ -1263,8 +1262,7 @@ declare_fn_return :: fn(
     resolved: ResolvedModule,
     diags: Diagnostic[],
 ) -> Type {
-    rt :: decl.return_type
-    if rt == null {
+    rt :: decl.return_type else {
         // Expression-bodied without annotation : inference defers to body
         // checking. Block-bodied without annotation : default to void.
         if decl.is_expression_bodied {

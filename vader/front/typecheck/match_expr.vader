@@ -652,8 +652,7 @@ bind_struct_pattern :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    st :: struct_backing(scrut)
-    if st == null {
+    st :: struct_backing(scrut) else {
         if scrut !is UnresolvedType {
             diags.push(typecheck_error(
                 .TypeMismatch, sp.span,
@@ -663,8 +662,7 @@ bind_struct_pattern :: fn(
     }
     declared :: typed.struct_fields[st.symbol.id] else return
     for field in sp.fields {
-        found :: declared[field.name]
-        if found == null {
+        found :: declared[field.name] else {
             diags.push(typecheck_error(
                 .MemberDoesNotExist, field.name_span,
                 "`${field.name}` on ${display_type(scrut)}"))
@@ -751,8 +749,7 @@ check_range_pattern :: fn(
     }
     low :: repin_operand(pat.lower, lower, target, typed, diags)
     high :: repin_operand(pat.upper, upper, target, typed, diags)
-    ordered :: range_variant(target, low)
-    if ordered == null {
+    ordered :: range_variant(target, low) else {
         variants :: "an integer or `char` variant of `${display_type(written)}`"
         diags.push(
             typecheck_error(

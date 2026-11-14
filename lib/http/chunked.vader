@@ -105,18 +105,14 @@ ChunkedBody implements Reader {
             return 0
         }
         if self.left == 0 {
-            size :: self.open_chunk()
-            if size is IOError {
-                return self.failed(size)
-            }
+            size :: self.open_chunk() else return self.failed(size)
             if size == 0 {
                 self.done = true
                 return null
             }
             self.left = size
         }
-        got :: self.source.read(into[0..<min(into.len(), self.left)])
-        if got is IOError {
+        got :: self.source.read(into[0..<min(into.len(), self.left)]) else is IOError {
             return self.failed(got)
         }
         if got == null {
@@ -139,26 +135,19 @@ failed :: fn(body: ChunkedBody, error: IOError) -> IOError {
 // chunk, whose trailer fields and final empty line are read with it.
 open_chunk :: fn(body: ChunkedBody) -> i64 | IOError {
     if body.data_ended {
-        ending :: body.source.read_exact(2)
-        if ending is IOError {
-            return ending
-        }
+        ending :: body.source.read_exact(2) else return ending
         if ending[0] != '\r' || ending[1] != '\n' {
             return bad_chunk("the data of a chunk is not followed by a line break")
         }
         body.data_ended = false
     }
-    line :: read_head_line(body.source, body.limits.chunk_line, .Malformed)
-    if line is HttpError {
+    line :: read_head_line(body.source, body.limits.chunk_line, .Malformed) else is HttpError {
         return chunk_io_error(line)
     }
     if line == null {
         return ended_early("before its last chunk")
     }
-    size :: chunk_size(line)
-    if size is IOError {
-        return size
-    }
+    size :: chunk_size(line) else return size
     body.padding += max(0, line.len() - max(size, 1))
     if body.padding > body.limits.chunk_extensions {
         return bad_chunk("the chunks spend more on their extensions than they carry")
@@ -166,10 +155,7 @@ open_chunk :: fn(body: ChunkedBody) -> i64 | IOError {
     if size > 0 {
         return size
     }
-    trailers :: read_fields(body.source, body.limits, false)
-    if trailers is HttpError {
-        return chunk_io_error(trailers)
-    }
+    trailers :: read_fields(body.source, body.limits, false) else return chunk_io_error(trailers)
     return 0
 }
 
@@ -187,9 +173,7 @@ chunk_size :: fn(line: u8[]) -> i64 | IOError {
         return bad_chunk("what follows the size of a chunk is no extension")
     }
     size :: parse_int_in_base(line[0..<digits].bytes_to_string(), 16)
-    if size is ParseError {
-        return bad_chunk("the size of a chunk is too large to count")
-    }
+        else return bad_chunk("the size of a chunk is too large to count")
     return size
 }
 
@@ -317,10 +301,7 @@ chunked_failure :: fn(wire: string, limits: Limits = Limits {}) -> IOErrorKind |
     if request !is Request {
         return .Other
     }
-    rest :: BufferedReader { .source = request.body }.read_to_end(1024 * 1024)
-    if rest is IOError {
-        return rest.kind
-    }
+    rest :: BufferedReader { .source = request.body }.read_to_end(1024 * 1024) else return rest.kind
     return null
 }
 

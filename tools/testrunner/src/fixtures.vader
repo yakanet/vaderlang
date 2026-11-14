@@ -51,17 +51,11 @@ fixture_case :: fn(name: string, dir: string) -> Case = Case {
 // The fixture of the concurrency corpus in `dir`, named `name`, as its header
 // describes it; or what is wrong with that header.
 concurrency_case :: fn(name: string, dir: string) -> Case | string {
-    source :: read_file_string("${dir}/${SNIPPET_ENTRY}")
-    if source is IOError {
-        return source.msg
-    }
+    source :: read_file_string("${dir}/${SNIPPET_ENTRY}") else return source.msg
     expected :: header_value(source, EXPECT_OPENING) else return "no `${EXPECT_OPENING}` line"
     case :: Case { ...fixture_case(name, dir), .expected_tasks = expected }
     named :: header_value(source, TARGET_OPENING) else return case
-    target :: parse_target(named)
-    if target is TargetParseError {
-        return "`${TARGET_OPENING}${named}`: ${target.reason}"
-    }
+    target :: parse_target(named) else return "`${TARGET_OPENING}${named}`: ${target.reason}"
     return Case { ...case, .target = target }
 }
 

@@ -102,8 +102,7 @@ import "std/testing"
 
 @test
 test_op_doc_finds_an_op :: fn() -> void {
-    doc :: op_doc("drop")
-    if doc == null {
+    doc :: op_doc("drop") else {
         assert(false, "`drop` is documented")
         return
     }
@@ -113,8 +112,7 @@ test_op_doc_finds_an_op :: fn() -> void {
 
 @test
 test_op_doc_entry_shared_by_widths :: fn() -> void {
-    doc :: op_doc("i64.add")
-    if doc == null {
+    doc :: op_doc("i64.add") else {
         assert(false, "`i64.add` is documented")
         return
     }
@@ -123,8 +121,7 @@ test_op_doc_entry_shared_by_widths :: fn() -> void {
 
 @test
 test_op_doc_conversion :: fn() -> void {
-    doc :: op_doc("u64.to_i32")
-    if doc == null {
+    doc :: op_doc("u64.to_i32") else {
         assert(false, "a conversion is documented")
         return
     }
@@ -133,8 +130,7 @@ test_op_doc_conversion :: fn() -> void {
 
 @test
 test_op_doc_checked_op :: fn() -> void {
-    doc :: op_doc("u64.checked_sub")
-    if doc == null {
+    doc :: op_doc("u64.checked_sub") else {
         assert(false, "a checked op is documented")
         return
     }

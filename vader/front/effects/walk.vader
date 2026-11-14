@@ -270,8 +270,7 @@ assign :: fn(ctx: WalkCtx, place: AST.Expr, value: i64 | null) -> void {
 // `name = value`: a local or a parameter now holds `value` too ; a module constant,
 // which the typecheck refuses to rebind (T3041), keeps it.
 assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: i64 | null) -> void {
-    slot :: ctx.ident_value(name)
-    if slot == null {
+    slot :: ctx.ident_value(name) else {
         ctx.escape(value, .Stored, name.span)
         return
     }

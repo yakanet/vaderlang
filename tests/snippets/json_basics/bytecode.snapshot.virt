@@ -4893,6 +4893,7 @@ end
 fn 56 json$parse (string) -> any
   local p ref
   local v any
+  local v any
   local.get 0   ; arg 0
   i64.const 0
   struct.new 30   ; json$Parser
@@ -4900,9 +4901,11 @@ fn 56 json$parse (string) -> any
   i32.const 0
   call 58   ; json$parse_value
   local.tee 2   ; v
+  local.set 3   ; v
+  local.get 2   ; v
   type_check 24   ; json$JsonError
   if $L0 void
-    local.get 2   ; v
+    local.get 3   ; v
     ref.cast 24   ; json$JsonError
     return
   end $L0
@@ -4937,6 +4940,7 @@ end
 
 fn 58 json$parse_value (ref,i32) -> any
   local c char
+  local __fallback_0 any
   local s any
   local or_res bool
   local.get 1   ; arg 1
@@ -4966,17 +4970,18 @@ fn 58 json$parse_value (ref,i32) -> any
   if $L2 void
     local.get 0   ; arg 0
     call 64   ; json$parse_string
-    local.tee 3   ; s
+    local.tee 3   ; __fallback_0
+    local.set 4   ; s
+    local.get 3   ; __fallback_0
     type_check 24   ; json$JsonError
     if $L3 void
-    else
-      local.get 3   ; s
-      ref.cast 1   ; string
-      struct.new 28   ; json$JsonString
+      local.get 4   ; s
+      ref.cast 24   ; json$JsonError
       return
     end $L3
-    local.get 3   ; s
-    ref.cast 24   ; json$JsonError
+    local.get 3   ; __fallback_0
+    ref.cast 1   ; string
+    struct.new 28   ; json$JsonString
     return
   end $L2
   local.get 2   ; c
@@ -4986,16 +4991,17 @@ fn 58 json$parse_value (ref,i32) -> any
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     call 65   ; json$parse_object
-    local.tee 3   ; s
+    local.tee 3   ; __fallback_0
+    local.set 4   ; s
+    local.get 3   ; __fallback_0
     type_check 24   ; json$JsonError
     if $L5 void
-    else
-      local.get 3   ; s
-      ref.cast 27   ; json$JsonObject
+      local.get 4   ; s
+      ref.cast 24   ; json$JsonError
       return
     end $L5
-    local.get 3   ; s
-    ref.cast 24   ; json$JsonError
+    local.get 3   ; __fallback_0
+    ref.cast 27   ; json$JsonObject
     return
   end $L4
   local.get 2   ; c
@@ -5005,16 +5011,17 @@ fn 58 json$parse_value (ref,i32) -> any
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     call 66   ; json$parse_array
-    local.tee 3   ; s
+    local.tee 3   ; __fallback_0
+    local.set 4   ; s
+    local.get 3   ; __fallback_0
     type_check 24   ; json$JsonError
     if $L7 void
-    else
-      local.get 3   ; s
-      ref.cast 22   ; json$JsonArray
+      local.get 4   ; s
+      ref.cast 24   ; json$JsonError
       return
     end $L7
-    local.get 3   ; s
-    ref.cast 24   ; json$JsonError
+    local.get 3   ; __fallback_0
+    ref.cast 22   ; json$JsonArray
     return
   end $L6
   local.get 2   ; c
@@ -5022,27 +5029,28 @@ fn 58 json$parse_value (ref,i32) -> any
   i32.eq
   if $L8 void
     bool.const true
-    local.set 4   ; or_res
+    local.set 5   ; or_res
   else
     local.get 2   ; c
     char.const 102
     i32.eq
-    local.set 4   ; or_res
+    local.set 5   ; or_res
   end $L8
-  local.get 4   ; or_res
+  local.get 5   ; or_res
   if $L9 void
     local.get 0   ; arg 0
     call 67   ; json$parse_bool
-    local.tee 3   ; s
+    local.tee 3   ; __fallback_0
+    local.set 4   ; s
+    local.get 3   ; __fallback_0
     type_check 24   ; json$JsonError
     if $L10 void
-    else
-      local.get 3   ; s
-      ref.cast 23   ; json$JsonBool
+      local.get 4   ; s
+      ref.cast 24   ; json$JsonError
       return
     end $L10
-    local.get 3   ; s
-    ref.cast 24   ; json$JsonError
+    local.get 3   ; __fallback_0
+    ref.cast 23   ; json$JsonBool
     return
   end $L9
   local.get 2   ; c
@@ -5051,16 +5059,17 @@ fn 58 json$parse_value (ref,i32) -> any
   if $L11 void
     local.get 0   ; arg 0
     call 68   ; json$parse_null
-    local.tee 3   ; s
+    local.tee 3   ; __fallback_0
+    local.set 4   ; s
+    local.get 3   ; __fallback_0
     type_check 24   ; json$JsonError
     if $L12 void
-    else
-      local.get 3   ; s
-      ref.cast 25   ; json$JsonNull
+      local.get 4   ; s
+      ref.cast 24   ; json$JsonError
       return
     end $L12
-    local.get 3   ; s
-    ref.cast 24   ; json$JsonError
+    local.get 3   ; __fallback_0
+    ref.cast 25   ; json$JsonNull
     return
   end $L11
   local.get 2   ; c
@@ -5068,13 +5077,13 @@ fn 58 json$parse_value (ref,i32) -> any
   i32.eq
   if $L13 void
     bool.const true
-    local.set 4   ; or_res
+    local.set 5   ; or_res
   else
     local.get 2   ; c
     call 91   ; std_char$is_digit
-    local.set 4   ; or_res
+    local.set 5   ; or_res
   end $L13
-  local.get 4   ; or_res
+  local.get 5   ; or_res
   if $L14 void
   else
     local.get 0   ; arg 0
@@ -5084,16 +5093,17 @@ fn 58 json$parse_value (ref,i32) -> any
   end $L14
   local.get 0   ; arg 0
   call 69   ; json$parse_number
-  local.tee 3   ; s
+  local.tee 3   ; __fallback_0
+  local.set 4   ; s
+  local.get 3   ; __fallback_0
   type_check 24   ; json$JsonError
   if $L15 void
-  else
-    local.get 3   ; s
-    ref.cast 26   ; json$JsonNumber
+    local.get 4   ; s
+    ref.cast 24   ; json$JsonError
     return
   end $L15
-  local.get 3   ; s
-  ref.cast 24   ; json$JsonError
+  local.get 3   ; __fallback_0
+  ref.cast 26   ; json$JsonNumber
   return
 end
 
@@ -5255,90 +5265,93 @@ fn 63 json$peek_byte (ref) -> char
 end
 
 fn 64 json$parse_string (ref) -> any
+  local __fallback_0 any
   local opening any
   local start i64
   local scan i64
-  local __for_hi_0 i64
+  local __for_hi_1 i64
   local b u8
-  local $add_checked_20 i64
+  local $add_checked_23 i64
   local sb ref
-  local $call_29 string
+  local $call_32 string
   local.get 0   ; arg 0
   char.const 34
   call 75   ; json$expect_byte
-  local.tee 1   ; opening
+  local.tee 1   ; __fallback_0
+  local.set 2   ; opening
+  local.get 1   ; __fallback_0
   type_check 24   ; json$JsonError
   if $L0 void
-    local.get 1   ; opening
+    local.get 2   ; opening
     ref.cast 24   ; json$JsonError
     return
   end $L0
   local.field 0 30 1   ; arg 0 json$Parser.pos
   ref.cast 7   ; i64
-  local.set 2   ; start
+  local.set 3   ; start
   local.field 0 30 1   ; arg 0 json$Parser.pos
   ref.cast 7   ; i64
-  local.set 3   ; scan
+  local.set 4   ; scan
   local.field 0 30 0   ; arg 0 json$Parser.src
   ref.cast 1   ; string
   call.import 0   ; std_core$byte_len
-  local.set 4   ; __for_hi_0
+  local.set 5   ; __for_hi_1
   loop $L1 void
-    local.get 3   ; scan
-    local.get 4   ; __for_hi_0
+    local.get 4   ; scan
+    local.get 5   ; __for_hi_1
     i64.lt
     if $L2 void
       local.field 0 30 0   ; arg 0 json$Parser.src
       ref.cast 1   ; string
-      local.get 3   ; scan
+      local.get 4   ; scan
       call.import 1   ; std_core$byte_at
-      local.tee 5   ; b
+      local.tee 6   ; b
       i32.const 34
       i32.eq
       if $L3 void
-        local.get 3   ; scan
+        local.get 4   ; scan
         i64.const 1
         i64.checked_add
-        local.set 6   ; $add_checked_20
+        local.set 7   ; $add_checked_23
         local.get 0   ; arg 0
-        local.get 6   ; $add_checked_20
+        local.get 7   ; $add_checked_23
         struct.set 30 1   ; json$Parser.pos
         local.field 0 30 0   ; arg 0 json$Parser.src
         ref.cast 1   ; string
-        local.get 2   ; start
-        local.get 3   ; scan
+        local.get 3   ; start
+        local.get 4   ; scan
         call.import 2   ; std_core$byte_slice
         retag 1   ; string
         return
       end $L3
-      local.get 5   ; b
+      local.get 6   ; b
       i32.const 92
       i32.eq
       if $L4 void
         array.new 45 0   ; string[]
         struct.new 31   ; std_string__builder$StringBuilder
-        local.set 7   ; sb
+        local.set 8   ; sb
         local.field 0 30 0   ; arg 0 json$Parser.src
         ref.cast 1   ; string
-        local.get 2   ; start
-        local.get 3   ; scan
+        local.get 3   ; start
+        local.get 4   ; scan
         call.import 2   ; std_core$byte_slice
-        local.set 8   ; $call_29
-        local.get 7   ; sb
-        local.get 8   ; $call_29
+        local.set 9   ; $call_32
+        local.get 8   ; sb
+        local.get 9   ; $call_32
         call 93   ; std_string__builder$append
         local.get 0   ; arg 0
-        local.get 3   ; scan
+        local.get 4   ; scan
         struct.set 30 1   ; json$Parser.pos
         local.get 0   ; arg 0
-        local.get 7   ; sb
+        local.get 8   ; sb
         call 76   ; json$parse_string_with_escapes
         return
       end $L4
-      local.get 3   ; scan
+      local.get 4   ; scan
       i64.const 1
       i64.add
-      local.set 3   ; scan
+      local.set 4   ; scan
       br $L1
     end $L2
   end $L1
@@ -5349,41 +5362,46 @@ fn 64 json$parse_string (ref) -> any
 end
 
 fn 65 json$parse_object (ref,i32) -> any
+  local __fallback_0 any
   local opening any
-  local $arr_7 ref
-  local $arr_8 ref
-  local $arr_9 ref
+  local $arr_10 ref
+  local $arr_11 ref
+  local $arr_12 ref
+  local key string
+  local __fallback_2 any
   local colon any
-  local $add_checked_32 i32
   local value any
-  local $cast_37 string
-  local $cast_38 any
+  local $add_checked_42 i32
+  local __fallback_3 any
+  local value any
   local c char
   local.get 0   ; arg 0
   char.const 123
   call 75   ; json$expect_byte
-  local.tee 2   ; opening
+  local.tee 2   ; __fallback_0
+  local.set 3   ; opening
+  local.get 2   ; __fallback_0
   type_check 24   ; json$JsonError
   if $L0 void
-    local.get 2   ; opening
+    local.get 3   ; opening
     ref.cast 24   ; json$JsonError
     return
   end $L0
   array.new 45 0   ; string[]
-  local.set 3   ; $arr_7
+  local.set 4   ; $arr_10
   array.new 48 0   ; ref[]
-  local.set 4   ; $arr_8
+  local.set 5   ; $arr_11
   array.new 49 0   ; i32[]
-  local.set 5   ; $arr_9
-  local.get 3   ; $arr_7
-  local.get 4   ; $arr_8
-  local.get 5   ; $arr_9
+  local.set 6   ; $arr_12
+  local.get 4   ; $arr_10
+  local.get 5   ; $arr_11
+  local.get 6   ; $arr_12
   i64.const 0
   i64.const 0
   i64.const 0
   i64.const 0
   struct.new 46   ; std_collections$Map__string__Any
-  local.set 3   ; $arr_7
+  local.set 4   ; $arr_10
   local.get 0   ; arg 0
   call 59   ; json$skip_ws
   local.get 0   ; arg 0
@@ -5397,7 +5415,7 @@ fn 65 json$parse_object (ref,i32) -> any
     if $L2 void
       local.get 0   ; arg 0
       call 70   ; json$advance
-      local.get 3   ; $arr_7
+      local.get 4   ; $arr_10
       struct.new 27   ; json$JsonObject
       return
     end $L2
@@ -5411,47 +5429,53 @@ fn 65 json$parse_object (ref,i32) -> any
       call 59   ; json$skip_ws
       local.get 0   ; arg 0
       call 64   ; json$parse_string
-      local.tee 2   ; opening
+      local.tee 2   ; __fallback_0
+      local.set 3   ; opening
+      local.get 2   ; __fallback_0
       type_check 24   ; json$JsonError
       if $L5 void
-        local.get 2   ; opening
+        local.get 3   ; opening
         ref.cast 24   ; json$JsonError
         return
       end $L5
+      local.get 2   ; __fallback_0
+      ref.cast 1   ; string
+      local.set 7   ; key
       local.get 0   ; arg 0
       call 59   ; json$skip_ws
       local.get 0   ; arg 0
       char.const 58
       call 75   ; json$expect_byte
-      local.tee 6   ; colon
+      local.tee 8   ; __fallback_2
+      local.set 9   ; colon
+      local.get 8   ; __fallback_2
       type_check 24   ; json$JsonError
       if $L6 void
-        local.get 6   ; colon
+        local.get 9   ; colon
         ref.cast 24   ; json$JsonError
         return
       end $L6
       local.get 1   ; arg 1
       i32.const 1
       i32.checked_add
-      local.set 7   ; $add_checked_32
+      local.set 11   ; $add_checked_42
       local.get 0   ; arg 0
-      local.get 7   ; $add_checked_32
+      local.get 11   ; $add_checked_42
       call 58   ; json$parse_value
-      local.tee 8   ; value
+      local.tee 12   ; __fallback_3
+      local.set 13   ; value
+      local.get 12   ; __fallback_3
       type_check 24   ; json$JsonError
       if $L7 void
-        local.get 8   ; value
+        local.get 13   ; value
         ref.cast 24   ; json$JsonError
         return
       end $L7
-      local.get 2   ; opening
-      ref.cast 1   ; string
-      local.set 9   ; $cast_37
-      local.get 8   ; value
-      local.set 10   ; $cast_38
-      local.get 3   ; $arr_7
-      local.get 9   ; $cast_37
-      local.get 10   ; $cast_38
+      local.get 12   ; __fallback_3
+      local.set 10   ; value
+      local.get 4   ; $arr_10
+      local.get 7   ; key
+      local.get 10   ; value
       call 98   ; std_collections$Map$std_core$IndexSet$set_at__string__Any
       local.get 0   ; arg 0
       call 59   ; json$skip_ws
@@ -5465,7 +5489,7 @@ fn 65 json$parse_object (ref,i32) -> any
       end $L8
       local.get 0   ; arg 0
       call 63   ; json$peek_byte
-      local.tee 11   ; c
+      local.tee 14   ; c
       char.const 44
       i32.eq
       if $L9 void
@@ -5473,7 +5497,7 @@ fn 65 json$parse_object (ref,i32) -> any
         call 70   ; json$advance
         br $L3
       end $L9
-      local.get 11   ; c
+      local.get 14   ; c
       char.const 125
       i32.eq
       if $L10 void
@@ -5485,7 +5509,7 @@ fn 65 json$parse_object (ref,i32) -> any
       end $L10
       local.get 0   ; arg 0
       call 70   ; json$advance
-      local.get 3   ; $arr_7
+      local.get 4   ; $arr_10
       struct.new 27   ; json$JsonObject
       return
     end $L4
@@ -5497,23 +5521,26 @@ fn 65 json$parse_object (ref,i32) -> any
 end
 
 fn 66 json$parse_array (ref,i32) -> any
+  local __fallback_0 any
   local opening any
   local items ref
-  local $add_checked_16 i32
-  local $cast_21 any
+  local $add_checked_20 i32
+  local v any
   local c char
   local.get 0   ; arg 0
   char.const 91
   call 75   ; json$expect_byte
-  local.tee 2   ; opening
+  local.tee 2   ; __fallback_0
+  local.set 3   ; opening
+  local.get 2   ; __fallback_0
   type_check 24   ; json$JsonError
   if $L0 void
-    local.get 2   ; opening
+    local.get 3   ; opening
     ref.cast 24   ; json$JsonError
     return
   end $L0
   array.new 41 0   ; union[]
-  local.set 3   ; items
+  local.set 4   ; items
   local.get 0   ; arg 0
   call 59   ; json$skip_ws
   local.get 0   ; arg 0
@@ -5527,7 +5554,7 @@ fn 66 json$parse_array (ref,i32) -> any
     if $L2 void
       local.get 0   ; arg 0
       call 70   ; json$advance
-      local.get 3   ; items
+      local.get 4   ; items
       struct.new 22   ; json$JsonArray
       return
     end $L2
@@ -5540,21 +5567,23 @@ fn 66 json$parse_array (ref,i32) -> any
       local.get 1   ; arg 1
       i32.const 1
       i32.checked_add
-      local.set 4   ; $add_checked_16
+      local.set 5   ; $add_checked_20
       local.get 0   ; arg 0
-      local.get 4   ; $add_checked_16
+      local.get 5   ; $add_checked_20
       call 58   ; json$parse_value
-      local.tee 2   ; opening
+      local.tee 3   ; opening
+      local.set 6   ; v
+      local.get 3   ; opening
       type_check 24   ; json$JsonError
       if $L5 void
-        local.get 2   ; opening
+        local.get 6   ; v
         ref.cast 24   ; json$JsonError
         return
       end $L5
-      local.get 2   ; opening
-      local.set 5   ; $cast_21
-      local.get 3   ; items
-      local.get 5   ; $cast_21
+      local.get 3   ; opening
+      local.set 2   ; __fallback_0
+      local.get 4   ; items
+      local.get 2   ; __fallback_0
       array.push 29   ; union
       local.get 0   ; arg 0
       call 59   ; json$skip_ws
@@ -5568,7 +5597,7 @@ fn 66 json$parse_array (ref,i32) -> any
       end $L6
       local.get 0   ; arg 0
       call 63   ; json$peek_byte
-      local.tee 6   ; c
+      local.tee 7   ; c
       char.const 44
       i32.eq
       if $L7 void
@@ -5578,7 +5607,7 @@ fn 66 json$parse_array (ref,i32) -> any
         call 59   ; json$skip_ws
         br $L3
       end $L7
-      local.get 6   ; c
+      local.get 7   ; c
       char.const 93
       i32.eq
       if $L8 void
@@ -5590,7 +5619,7 @@ fn 66 json$parse_array (ref,i32) -> any
       end $L8
       local.get 0   ; arg 0
       call 70   ; json$advance
-      local.get 3   ; items
+      local.get 4   ; items
       struct.new 22   ; json$JsonArray
       return
     end $L4

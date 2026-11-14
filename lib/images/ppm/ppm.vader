@@ -212,8 +212,7 @@ import "std/testing"
 @test test_roundtrip_8bit :: fn() -> void {
     px: u8[]: [0, 64, 128, 255, 1, 2, 3, 4, 5, 250, 200, 100]
     img :: Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px }
-    enc :: encode(img)
-    if enc is PpmError {
+    enc :: encode(img) else {
         assert(false, "encode failed")
         return
     }
@@ -234,8 +233,7 @@ import "std/testing"
 @test test_roundtrip_16bit :: fn() -> void {
     px: u8[]: [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc]
     img :: Ppm { .width = 1, .height = 1, .maxval = 65535, .pixels = px }
-    enc :: encode(img)
-    if enc is PpmError {
+    enc :: encode(img) else {
         assert(false, "encode 16-bit failed")
         return
     }

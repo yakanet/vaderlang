@@ -148,8 +148,7 @@ register_member :: fn(
     typed: TypedProgram,
     modules: Map<string, TypedProgram>,
 ) -> void {
-    inherited :: index.inherited_function(member, impl_, modules)
-    if inherited == null {
+    inherited :: index.inherited_function(member, impl_, modules) else {
         index.register(member, typed)
         return
     }
@@ -333,8 +332,7 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
         if entry.trait_key != trait_key {
             continue
         }
-        decl :: entry.decl.members.find((m) -> m.name == member)
-        if decl == null {
+        decl :: entry.decl.members.find((m) -> m.name == member) else {
             out.push(AnyCallee {})
             continue
         }
