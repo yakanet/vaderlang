@@ -124,6 +124,10 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
     // end rather than after the last: a build that fails never reaches its own
     // cleanup, and the guarantee that matters is about the build starting now.
     sweep_generated(generated_root_of(session))
+    // What the driver asked for before the stream started is written now, so the
+    // first round reads it: a module generated from data, which the entries
+    // import.
+    flush_generated(session)
     code := 0
     output_dir :: project_output_dir(session.project_root, output.release, output.target)
     binaries :: binary_folder(output.out, output_dir)

@@ -1,0 +1,32 @@
+// A driver that generates code from data rather than from the project's
+// declarations: a `gen/version` module, asked for before the stream starts,
+// which `src/main.vader` imports. It is written before the first round, so the
+// entry compiles against it the first time and the build takes one round.
+
+module "build"
+
+import "std/console"
+import "toolchain/build"
+
+VERSION :: "1.4.2"
+
+build :: fn(args: string[]) -> i32 {
+    ctx :: new_build_context(args)
+    ctx.add_entry("app", "src/main.vader")
+    ctx.emit_module("gen/version", "export VERSION :: \"${VERSION}\"\n")
+
+    rounds := 0
+    exit := 0
+    for msg in ctx.messages() {
+        if msg is PhaseMessage {
+            if msg.phase == .Typechecked {
+                rounds += 1
+            }
+        }
+        if msg is CompleteMessage {
+            exit = msg.code
+        }
+    }
+    println("driver: ${rounds} round(s), ${ctx.generated_files_of().len()} generated file(s)")
+    return exit
+}

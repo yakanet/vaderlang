@@ -1,0 +1,7 @@
+# stdout
+driver: 1 round(s), 1 generated file(s)
+# stderr
+vader build: wrote <project>/build/driver/debug/driver
+vader build: wrote <project>/build/debug-<host>/app (split: <n> objects compiled in parallel)
+# exit
+0

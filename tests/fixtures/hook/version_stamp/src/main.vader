@@ -1,0 +1,9 @@
+module "app"
+
+import "gen/version"
+import "std/console"
+
+main :: fn() -> i32 {
+    println("app ${VERSION}")
+    return 0
+}
