@@ -796,3 +796,45 @@ test_a_chunk_size_that_is_no_size_ends_its_connection_at_once :: fn() -> void {
     listener.close()
     server.join()
 }
+
+// How many requests the busy connection of the next test sends ahead.
+SENT_AHEAD: i64: 2000
+
+@test
+test_a_connection_that_never_waits_lets_the_others_be_served :: fn() -> void {
+    listener :: listening() ?? return
+    address :: address_of(listener) ?? return
+    served :: AtomicInt {}
+    // How many requests of the busy connection were served before the other
+    // one's; -1 until it is.
+    before :: AtomicInt {}
+    before.store(-1)
+    noting :: fn(request: Request) -> Response {
+        if request.target == "/other" {
+            before.store(served.load())
+        } else if request.target == "/busy" {
+            served.fetch_add(1)
+        }
+        return Response {}
+    }
+    server :: launch(() -> serve(listener, noting))
+    other :: calling(address) ?? return
+    // The other connection is served once first: from then on it waits for
+    // its next request, which only its socket can wake it for.
+    other.write(get("/first"))
+    assert_eq(some_of(other, EMPTY_OK.byte_len()), EMPTY_OK)
+    busy :: calling(address) ?? return
+    // The busy connection always has a request to read, and room to write
+    // the response: nothing makes it wait.
+    busy.write(get("/busy") * SENT_AHEAD)
+    for served.load() == 0 {
+        sleep(1.millis())
+    }
+    other.write(get("/other", true))
+    assert_eq(rest_of(other), "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+    assert(before.load() < SENT_AHEAD, "served after ${before.load()} requests of the busy one")
+    busy.close()
+    other.close()
+    listener.close()
+    server.join()
+}

@@ -318,6 +318,47 @@ cancel_and_wait :: fn<T>(tasks: Task<T>[]) -> void {
 ///   sleep(20.millis())
 export sleep :: fn(d: Duration) -> void = sleep_for(i64(d))
 
+/// Let the other tasks run, once every so many calls.
+///
+/// The tasks share one thread and give way to one another only where they
+/// park: a task whose reads and writes never have to wait, a socket that
+/// always has bytes to give, would keep the thread for as long as that lasts.
+/// What reads or writes on behalf of a task calls this at each call, and so
+/// does a loop that computes without parking.
+///
+/// @example
+///   total := 0
+///   for i in 0..<100_000 {
+///       total += i
+///       give_way_now_and_then()
+///   }
+export give_way_now_and_then :: fn() -> void {
+    // One count for all the tasks: one that waits often gives way a little
+    // sooner than it has to.
+    if (turns().steps.fetch_add(1) + 1) % STEPS_PER_TURN == 0 {
+        yield_now()
+    }
+}
+
+// How many calls of `give_way_now_and_then` one turn given way is for.
+STEPS_PER_TURN: i64: 128
+
+// The calls of `give_way_now_and_then`. Tasks write it, so it is atomic.
+Turns :: struct {
+    steps: AtomicInt = AtomicInt {}
+}
+
+@singleton
+turns :: fn() -> Turns = Turns {}
+
+// Let the ready threads run first. A thread that wakes itself and then parks
+// is run again after them, and the runtime asks the system meanwhile for the
+// threads it can wake.
+yield_now :: fn() -> void {
+    wake(current_thread())
+    park()
+}
+
 // ---- deadlines ------------------------------------------------------------
 
 /// What `timeout` gives back when the task did not end in time.
@@ -392,11 +433,17 @@ import "std/testing"
     sleep(nanos(0))
 }
 
-// Let the other ready threads run once.
-yield_now :: fn() -> void {
-    wake(current_thread())
-    park()
+@test test_a_task_that_never_waits_gives_way_now_and_then :: fn() -> void {
+    ran :: AtomicBool {}
+    other :: launch(() -> ran.store(true))
+    // Nothing else parks this task: only the count lets the other one run.
+    for _ in 0..<STEPS_PER_TURN {
+        give_way_now_and_then()
+    }
+    assert(ran.load(), "the other task ran")
+    other.join()
 }
+
 
 park_forever :: fn() -> void {
     for {

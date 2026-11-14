@@ -109,13 +109,11 @@ socket: a head sent in small pieces costs no more than one sent whole
 (CVE-2010-0295), and requests sent ahead to a client that reads no response
 pile up nowhere (CVE-2026-93491).
 
+A connection whose client sends its requests back to back starved the
+others: 0142 closes it (`test_a_connection_that_never_waits_lets_the_others_be_served`).
+
 Open when this review was written:
 
-- A client that sends its requests back to back, and reads the responses as
-  they come, never lets its connection park: as tasks give way only where
-  they park, every other connection, and `accept`, wait until it stops. On
-  the loopback address, a request on another connection got no answer in 4 s
-  while one connection did so.
 - Nothing caps the connections served at a time. Each slow client holds a
   task and a descriptor until its time runs out, and enough of them exhaust
   the process (CVE-2021-21293, CVE-2025-63561, CVE-2026-16756, CVE-2026-27630,

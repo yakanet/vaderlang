@@ -4152,6 +4152,7 @@ A task that may reach an `@extern` function marked `@main_thread` is an error (Â
 - With `VADER_VIRTUAL_CLOCK` set, the clock counts the sleeps alone: with no task ready, it jumps to the end of the nearest one, so what a program prints depends on the order of its deadlines, never on how long its work took. Of two sleeps that end together, the one that began first ends first. It suits tests that do no real I/O.
 - A read of stdin (`std/console`) may park, and so may `poll_stdin(d)`, which waits at most `d` for stdin to have something to read: a block that holds a lock can make neither. Both park the task while the others run. A write or a file read blocks the program: no other task runs meanwhile.
 - `spawn` (`std/process`) parks the calling task while its child runs, and a task cancelled meanwhile kills its child.
+- A task gives way to the others only where it parks. A loop that computes without parking calls `give_way_now_and_then()` (`std/task`), which lets the other tasks run every so many calls; a read, a write and an `accept` of a TCP socket (`std/net`) already do, so a connection that never has to wait keeps no other task from running.
 
 ### Combinators
 

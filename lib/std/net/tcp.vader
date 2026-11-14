@@ -75,6 +75,8 @@ export listen :: fn(address: SocketAddress, backlog: i32 = 128) -> TcpListener |
 ///                  refuses: `.NoDescriptor` when the process has as many open
 ///                  sockets as it may, which a later call may not meet.
 export accept :: fn(listener: TcpListener) -> TcpStream | IOError {
+    // Before the checks: the listener may be closed while others run.
+    give_way_now_and_then()
     if listener.closed.load() {
         return SOCKET_CLOSED
     }
@@ -163,6 +165,9 @@ export connect :: fn(address: SocketAddress) -> TcpStream | IOError {
 
 TcpStream implements Reader {
     read :: fn(self, into: u8[]) -> i64 | null | IOError {
+        // Before the checks: the stream may be closed, or its deadline pass,
+        // while others run.
+        give_way_now_and_then()
         if self.closed.load() {
             return SOCKET_CLOSED
         }
@@ -179,6 +184,8 @@ TcpStream implements Reader {
 
 TcpStream implements Writer {
     write :: fn(self, content: u8[] | string) -> null | IOError {
+        // Before the checks, as `read` does.
+        give_way_now_and_then()
         if self.closed.load() {
             return SOCKET_CLOSED
         }
@@ -1283,4 +1290,37 @@ test_ipv6_loopback_carries_bytes :: fn() -> void {
     stream.close()
     assert_eq(counted(server), 3)
     listener.close()
+}
+
+@test
+test_a_stream_closed_while_its_reader_gives_way_reads_as_closed :: fn() -> void {
+    ends :: connected_ends() ?? return
+    ends.client.write("x" * 4096)
+    one: u8[]: [0] * 1
+    // The bytes are there: the reads that follow find one each, and do not
+    // wait. One of them gives way, and the stream is closed meanwhile.
+    assert_eq(read_of_one(ends.server, one), "x")
+    closer :: launch(() -> ends.server.close())
+    for {
+        got :: ends.server.read(one)
+        if got is IOError {
+            assert_eq(got.msg, SOCKET_CLOSED.msg)
+            break
+        }
+        if got == null {
+            assert(false, "the stream ended before it was closed")
+            break
+        }
+    }
+    closer.join()
+    close_ends(ends)
+}
+
+// What one read of `stream` into `into` gives, as text.
+read_of_one :: fn(stream: TcpStream, into: u8[]) -> string {
+    got :: stream.read(into)
+    if got !is i64 {
+        return "no byte"
+    }
+    return bytes_to_string(into[0..<got])
 }
