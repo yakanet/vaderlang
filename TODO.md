@@ -702,6 +702,12 @@ Architectural prerequisite for full mono → comptime migration. Built bottom-up
 - [~] Rewrite `[T: Trait]` enforcement to `@satisfies(T, Trait)` via the comptime engine.
 - [ ] Trait method dispatch on bounded type-param via comptime predicates.
 
+##### Code built at compile time from data
+
+- [ ] **Unroll a `@comptime for` over a derived table, and fold a variant's data** (idea, 2026-11-14). `lookup_keyword` (`lib/toolchain/lexer/keywords.vader`) searches `KEYWORD_KINDS`, folded from the `keyword` each `TokenKind` carries. Natively it costs what the hand-written 24-arm `match` did, since the C compiler unrolls a constant table, but the VM runs it twice as slowly (ADR 0146). Written as `@comptime for k in KEYWORD_KINDS { if k.keyword == text { return k } }`, it would be that `match`, generated from the data. Two pieces are missing:
+  - `@comptime for` unrolls only an array literal written at the site: over a `@comptime` constant it is M5010. It should take any array known at compile time, and an enum walk (`@comptime for k in TokenKind`).
+  - Over a literal, `k.keyword` on a known variant stays a read of the enum's data table (`TokenKind$data[i64(TokenKind(11))].keyword`) instead of folding to `"fn"`.
+
 ##### Open questions deferred
 - Q8: comptime evaluation budget (decide once Layer 2 lands).
 - Q10: hygienic macros vs `@comptime for`-only (`@comptime for` covers ~95 %).
