@@ -1,7 +1,9 @@
 // toolchain/lexer/keywords: the keyword table.
 //
-// `lookup_keyword` returns the dedicated `TokenKind` for a keyword text, or
-// `Ident` to mean "not a keyword: keep it as an identifier".
+// Folded at compile time from the data of `TokenKind`, the one place a
+// keyword's text is written. `lookup_keyword` returns the dedicated `TokenKind`
+// for a keyword text, or `Ident` to mean "not a keyword: keep it as an
+// identifier".
 
 module "toolchain/lexer"
 
@@ -9,53 +11,57 @@ module "toolchain/lexer"
 ///
 /// @param text  an identifier as the lexer read it.
 /// @return      the keyword's own kind, `Ident` when `text` is no keyword.
-export lookup_keyword :: fn(text: string) -> TokenKind = match text {
-    "fn"         -> .KwFn
-    "struct"     -> .KwStruct
-    "trait"      -> .KwTrait
-    "implements" -> .KwImplements
-    "enum"       -> .KwEnum
-    "if"         -> .KwIf
-    "else"       -> .KwElse
-    "match"      -> .KwMatch
-    "is"         -> .KwIs
-    "for"        -> .KwFor
-    "in"         -> .KwIn
-    "return"     -> .KwReturn
-    "yield"      -> .KwYield
-    "defer"      -> .KwDefer
-    "break"      -> .KwBreak
-    "continue"   -> .KwContinue
-    "import"     -> .KwImport
-    "as"         -> .KwAs
-    "export"     -> .KwExport
-    "true"       -> .KwTrue
-    "false"      -> .KwFalse
-    "null"       -> .KwNull
-    "self"       -> .KwSelf
-    "const"      -> .KwConst
-    _            -> .Ident
+export lookup_keyword :: fn(text: string) -> TokenKind {
+    for k in KEYWORD_KINDS {
+        if k.keyword == text {
+            return k
+        }
+    }
+    return .Ident
 }
 
-/// Every keyword's source text: the single list tooling consults for the
-/// keyword set (LSP completion, ...). Kept in lock-step with `lookup_keyword` by
-/// `test_keywords_match_lookup`. Excludes the `module` soft keyword, which
-/// `lookup_keyword` deliberately does not recognise (it is contextual).
-export KEYWORDS :: [
-    "fn", "struct", "trait", "implements", "enum", "if", "else", "match", "is",
-    "for", "in", "return", "yield", "defer", "break", "continue", "import", "as",
-    "export", "true", "false", "null", "self", "const",
-]
+/// Every keyword's source text, in declaration order: the list tooling consults
+/// for the keyword set (LSP completion, ...). Excludes the `module` soft
+/// keyword, which no `TokenKind` spells (it is contextual).
+export KEYWORDS :: @comptime {
+    out: string[]: []
+    for k in KEYWORD_KINDS {
+        out.push(k.keyword)
+    }
+    return out
+}
+
+// The keyword kinds, in declaration order.
+KEYWORD_KINDS :: @comptime {
+    out: TokenKind[]: []
+    for k in TokenKind {
+        if is_keyword(k) {
+            out.push(k)
+        }
+    }
+    return out
+}
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
-@test test_keywords_match_lookup :: fn() -> void {
-    // Every KEYWORDS entry must be a keyword whose kind spells it: pins the
-    // tooling list and the lexer table to the kinds' data.
-    for kw in KEYWORDS {
-        assert_eq(lookup_keyword(kw).keyword, kw)
+@test
+test_lookup_keyword_finds_every_keyword_kind :: fn() -> void {
+    for k in TokenKind {
+        if is_keyword(k) {
+            assert_eq(lookup_keyword(k.keyword), k)
+        }
     }
 }
 
+@test
+test_lookup_keyword_leaves_the_module_soft_keyword_an_identifier :: fn() -> void {
+    assert_eq(lookup_keyword("module"), .Ident)
+}
+
+@test
+test_keywords_lists_the_keyword_texts_in_declaration_order :: fn() -> void {
+    assert_eq(KEYWORDS[0], "fn")
+    assert_eq(KEYWORDS.last() else "", "const")
+}
