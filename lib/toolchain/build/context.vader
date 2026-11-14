@@ -31,6 +31,7 @@ module "toolchain/build"
 import "toolchain/diagnostics"
 import "std/console"
 import "std/path"
+import "toolchain/project"
 import "vader/pipeline"
 import "vader/front/resolver"
 import "toolchain/span"
@@ -111,14 +112,6 @@ export BuildContext :: struct {
     @internal
     session:        BuildSession | null = null
 }
-
-/// Where generated modules land, relative to the project root.
-///
-/// The resolver's own constant, restated here so a driver reading this contract
-/// does not have to reach into `vader/front/resolver` for it, and so there is exactly
-/// one string. Gitignored by convention (`build/` already is): the generated tree
-/// is a build artefact, reproducible from the driver plus the sources it reads.
-export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 
 /// Build a context carrying the defaults a driver would otherwise restate.
 ///

@@ -19,6 +19,7 @@ import "std/fs"
 import "std/path"
 import "std/string"
 import "std/string_builder"
+import "toolchain/project"
 import "vader/front/resolver"
 import "vader/pipeline"
 

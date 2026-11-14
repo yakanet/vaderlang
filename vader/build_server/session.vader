@@ -14,6 +14,7 @@ import "std/glob"
 import "std/iter"
 import "std/string" { join as join_strings }
 import "toolchain/diagnostics"
+import "toolchain/project"
 import "toolchain/protocol"
 import "toolchain/span"
 import "vader/front/resolver"

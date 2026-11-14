@@ -15,21 +15,9 @@ import "std/env"
 import "std/fs"
 import "std/io"
 import "std/string"
+import "toolchain/project"
 import "vader/front/resolver"
 import "vader/support/target"
-
-/// What a driver run does once its entries are added.
-export DriverMode :: enum {
-    /// Compile the entries and write their outputs.
-    Build,
-    /// Run the front end, generation included, and the lowering; link nothing.
-    Check,
-    /// Write the project for the CLI, then run the front end, generation
-    /// included, for the one entry chosen; stop there when several are.
-    Prepare,
-    /// Write the project for the CLI and compile nothing.
-    Describe,
-}
 
 /// The CLI's request to a driver: what to do with the entries, and the build
 /// options a `vader build` of a file would take.

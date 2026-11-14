@@ -23,6 +23,7 @@ import "std/path"
 import "std/sort"
 import "std/string"
 import "toolchain/diagnostics"
+import "toolchain/project"
 import "vader/front/resolver"
 
 /// What the data depends on beside the files the load reads, taken before the

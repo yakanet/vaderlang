@@ -1,0 +1,179 @@
+// toolchain/project: what a project folder is, to the compiler and to its driver.
+//
+// A project is a folder: a `vader.json` describes it, or a `build.vader` drives
+// its build. Both halves of a driven build read what is here: `vader` loads,
+// resolves and builds the project, and its driver, a process of its own that
+// carries only `lib/toolchain` (ADR 0145), adds the entries and the assets and
+// checks them as it goes. Nothing here imports the compiler.
+
+module "toolchain/project"
+
+import "std/char"
+import "std/iter"
+import "std/string"
+
+// ---- files ----------------------------------------------------------------
+
+/// The file that describes a project folder. A command is handed the folder;
+/// only the language server and the debugger look for it, walking up from a
+/// file.
+export MANIFEST_FILENAME :: "vader.json"
+
+/// The file through which a project drives its own build.
+export DRIVER_FILENAME :: "build.vader"
+
+/// Module a project's build driver declares, and its entry shim shares.
+///
+/// The dead-code lint has to know that `DRIVER_ENTRY` in this module is an
+/// entry point: nothing in the project calls it, its only caller being a shim
+/// that exists during a driven build alone.
+export DRIVER_MODULE :: "build"
+
+/// Function a build driver must declare: reserved in `DRIVER_MODULE` the way
+/// `main` is reserved in a program, with no decorator involved.
+export DRIVER_ENTRY :: "build"
+
+/// Where a driven build's generated modules live, relative to the project root.
+///
+/// When this folder exists under the project root, the loader reads it as one
+/// more root of the project, so `vader run`, `test`, `lint`, `dump` and the
+/// language server see generated code exactly as `vader build` does. A driver
+/// asks for modules; `vader` writes them here.
+///
+/// Under `build/` so a checkout's existing ignore rules already cover it.
+export GENERATED_ROOT_DIR :: "build/generated"
+
+// ---- a driven build -------------------------------------------------------
+
+/// What a driver run does once its entries are added.
+export DriverMode :: enum {
+    /// Compile the entries and write their outputs.
+    Build,
+    /// Run the front end, generation included, and the lowering; link nothing.
+    Check,
+    /// Write the project for the CLI, then run the front end, generation
+    /// included, for the one entry chosen; stop there when several are.
+    Prepare,
+    /// Write the project for the CLI and compile nothing.
+    Describe,
+}
+
+// ---- entries and assets ---------------------------------------------------
+
+/// One program of a project: `"<name>": "<entry file>"` in the `entries` of a
+/// `vader.json`, or what a driver's `add_entry` adds.
+export ManifestEntry :: struct {
+    /// What the binary is called.
+    name: string
+    /// The entry file, relative to the project root.
+    path: string
+}
+
+/// Why `name` cannot name an entry, whose binary bears it, on every platform: a
+/// project builds the same wherever it is checked out, and for whichever target.
+///
+/// A name holds ASCII letters, digits, `_` and `-`, does not start with `-`,
+/// which would read as an option, and is none of the names Windows reserves for
+/// a device (`con`, `nul`, `com1`...), whatever its case.
+///
+/// @param name  the entry's name, as the project declares it.
+/// @return      why, worded to follow the name, or null when it can name a
+///              binary.
+export entry_name_problem :: fn(name: string) -> string | null {
+    if !is_portable_name(name) {
+        return "cannot name a binary: use ASCII letters, digits, `_` and `-`, not starting with `-`"
+    }
+    if is_windows_device_name(name) {
+        return "cannot name a binary: Windows reserves it for a device"
+    }
+    return null
+}
+
+/// The entry of `entries` whose binary would be the file of one named `name`:
+/// the same name, in any case, since a file system may ignore it.
+///
+/// @param entries  the entries declared so far.
+/// @param name     the name of the next one.
+export entry_named :: fn(entries: ManifestEntry[], name: string) -> ManifestEntry | null {
+    lower :: name.to_lower()
+    for entry in entries {
+        if entry.name.to_lower() == lower {
+            return entry
+        }
+    }
+    return null
+}
+
+// Whether `name` holds only characters every platform accepts in a file name,
+// and none a command line mistakes for an option.
+is_portable_name :: fn(name: string) -> bool {
+    if name == "" || name.starts_with("-") {
+        return false
+    }
+    return name.chars().all_match((c) -> c.is_alphanumeric() || c == '_' || c == '-')
+}
+
+// Whether Windows reserves `name` for a device, whatever its case: `con`, `prn`,
+// `aux`, `nul`, and `com` or `lpt` with one digit. No file bears one, with an
+// extension or without.
+is_windows_device_name :: fn(name: string) -> bool {
+    lower :: name.to_lower()
+    if lower in ["con", "prn", "aux", "nul"] {
+        return true
+    }
+    numbered :: lower.byte_len() == 4 && (lower.starts_with("com") || lower.starts_with("lpt"))
+    return numbered && lower.byte_at(3) in '0'..='9'
+}
+
+/// What is wrong with an asset of a project, which a build copies beside its
+/// binaries under the same relative path.
+///
+/// @param asset  the file or folder, as the project names it.
+/// @return       why it cannot be copied, worded to follow the project file's
+///               path, or null when it names something inside the project.
+export asset_problem :: fn(asset: string) -> string | null {
+    if leaves_project(asset) {
+        return "asset `${asset}` is not inside the project; name it relative to the project folder"
+    }
+    return null
+}
+
+// Whether `path` names something outside the project root it is relative to:
+// an absolute path, a drive, or a `..` step. A manifest goes from one OS to
+// another, so `\` is a separator here whatever the host.
+leaves_project :: fn(path: string) -> bool {
+    posix :: path.replace_chars_where((c: char) -> c == '\\', "/")
+    return posix.starts_with("/") || ":" in posix || ".." in posix.split("/")
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_entry_name_takes_letters_digits_underscore_and_dash :: fn() -> void {
+    for name in ["app", "my-app", "tool_2", "A1", "console", "com10"] {
+        assert(entry_name_problem(name) == null, "`${name}` names a binary")
+    }
+}
+
+@test
+test_entry_name_refuses_any_other_byte :: fn() -> void {
+    for name in ["../../x", "a/b", "a\\b", "my app", "caf\u{e9}", "a.b", "", "-x"] {
+        assert(entry_name_problem(name) != null, "`${name}` does not name a binary")
+    }
+}
+
+@test
+test_entry_name_refuses_a_windows_device :: fn() -> void {
+    for name in ["nul", "CON", "com1", "Lpt9"] {
+        assert(entry_name_problem(name) != null, "Windows reserves `${name}`")
+    }
+}
+
+@test
+test_leaves_project_reads_both_separators_on_every_host :: fn() -> void {
+    assert(leaves_project(r"..\x"), "a `..` step written with a backslash")
+    assert(leaves_project("../x"), "a `..` step")
+    assert(!leaves_project(r"assets\x"), "a folder of the project")
+}

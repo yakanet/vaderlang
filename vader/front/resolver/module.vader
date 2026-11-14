@@ -27,40 +27,7 @@ import "std/path"
 import "std/string"
 import "toolchain/ast"
 import "toolchain/parser"
-
-/// The file through which a project drives its own build. Here, beside
-/// `MANIFEST_FILENAME`, because the CLI and the driver contract both name it.
-export DRIVER_FILENAME :: "build.vader"
-
-/// The file that describes a project folder. A command is handed the folder;
-/// only the language server and the debugger look for it, walking up from a
-/// file (`find_project_root`).
-export MANIFEST_FILENAME :: "vader.json"
-
-/// Module a project's build driver declares, and the entry shim shares.
-///
-/// Lives here, not in `vader/tools/cli`, because two passes need it and only one of
-/// them may import a front-end: the CLI writes the shim, and the dead-code lint
-/// has to know that `DRIVER_ENTRY` in this module is an ENTRY POINT. Without
-/// that, `build` reads as unreachable: nothing in the project calls it, since
-/// its only caller is a shim that exists solely during a driven build.
-export DRIVER_MODULE :: "build"
-
-/// Function a build driver must declare: reserved in `DRIVER_MODULE` the way
-/// `main` is reserved in a program, with no decorator involved.
-export DRIVER_ENTRY :: "build"
-
-/// Where a driven build's generated modules live, relative to the project root.
-///
-/// Owned by the resolver because the resolver is what READS them: when this
-/// directory exists under the project root, it becomes a merge root
-/// (`lazy::IncludePath.merge`), so `vader run` / `test` / `lint` / `dump` and the
-/// LSP see generated code exactly as `vader build` does. A build driver writes
-/// here (`toolchain/build`), it does not decide the location: the two halves have to
-/// agree, and only one of them can be authoritative.
-///
-/// Under `build/` so a checkout's existing ignore rules already cover it.
-export GENERATED_ROOT_DIR :: "build/generated"
+import "toolchain/project"
 
 /// A loaded source file in a module: raw text plus its parsed AST.
 export SourceFile :: struct {

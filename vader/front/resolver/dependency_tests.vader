@@ -13,6 +13,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "toolchain/project"
 import "vader/front/reach"
 AST :: import "toolchain/ast"
 

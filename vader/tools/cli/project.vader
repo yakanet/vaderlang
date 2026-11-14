@@ -18,6 +18,7 @@ import "std/iter"
 import "std/path"
 import "std/string"
 Time :: import "std/time"
+import "toolchain/project"
 import "vader/front/resolver"
 import "vader/pipeline"
 
