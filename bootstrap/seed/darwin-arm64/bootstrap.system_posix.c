@@ -19,7 +19,7 @@ vader_string_t system_posix$up_to_nul(void* l0) {
     while ((l2 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 507u);
+        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 508u);
         t1 = ((uint8_t) t0.payload.i);
         if (t1 == INT32_C(0)) {
             l1 = l2;

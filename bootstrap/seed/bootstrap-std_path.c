@@ -103,7 +103,7 @@ static vader_box_t std_path$last_separator(vader_string_t l0, int64_t l1) {
             if (!(t0 == INT32_C(47))) {
                 continue;
             }
-            return vader_box_i64(506u, l2);
+            return vader_box_i64(507u, l2);
         }
         break;
     }
@@ -133,7 +133,7 @@ static vader_box_t std_path$next_separator(vader_string_t l0, int64_t l1) {
     while ((l2 < l3)) {
         t0 = vader_host_std_core$byte_at(l0, l2);
         if (t0 == INT32_C(47)) {
-            return vader_box_i64(506u, l2);
+            return vader_box_i64(507u, l2);
         }
         l2 = (l2 + INT64_C(1));
     }
@@ -178,7 +178,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
     }
     l3 = std_path$root_length(l0, l1);
     l4 = std_path$is_anchored(l0, l1);
-    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 502u);
+    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 503u);
     l5 = (void*) _a0_arr;
     l6 = l3;
     while ((l6 <= l2)) {
@@ -225,7 +225,7 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
             l13 = !(l4);
         }
         if (l13) {
-            vader_array_push_scalar((vader_array_t*) l5, vader_box_string(502u, l9));
+            vader_array_push_scalar((vader_array_t*) l5, vader_box_string(503u, l9));
         }
     }
     if (l3 == INT64_C(0)) {
@@ -234,10 +234,10 @@ static vader_string_t std_path$normalize_on(vader_string_t l0, uint8_t l1) {
             { vader_gc_top = gc_frame.prev; return 432u; }
         }
     }
-    vader_array_t* _a2_arr = vader_array_new(26u, 0u, 0u, 502u);
+    vader_array_t* _a2_arr = vader_array_new(26u, 0u, 0u, 503u);
     t4 = (void*) _a2_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a3_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a3_obj, 881u);
+    vader_obj_header_init(_a3_obj, 882u);
     _a3_obj->f_parts = t4;
     l14 = (void*) _a3_obj;
     l9 = vader_host_std_core$byte_slice(l0, INT64_C(0), l3);
@@ -366,7 +366,7 @@ vader_string_t std_path$to_native(vader_string_t l0) {
     t0 = vader_host_std_target$current_os();
     if (!(t0 != INT32_C(0))) {
         l1 = (void*) &vader_fn_static___lambda_std_path_0;
-        t1 = std_string$replace_chars_where(l0, l1, 1038u);
+        t1 = std_string$replace_chars_where(l0, l1, 1043u);
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }

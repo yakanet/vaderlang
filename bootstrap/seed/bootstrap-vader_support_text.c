@@ -82,10 +82,10 @@ vader_string_t vader_support_text$sanitise_ident(vader_string_t l0) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 502u);
+    vader_array_t* _a0_arr = vader_array_new(26u, 0u, 0u, 503u);
     t0 = (void*) _a0_arr;
     vader_struct_std_string__builder$StringBuilder_t* _a1_obj = (vader_struct_std_string__builder$StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string__builder$StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 881u);
+    vader_obj_header_init(_a1_obj, 882u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
     l2 = vader_host_std_core$byte_len(l0);
