@@ -821,6 +821,23 @@ void* std_sort$sort__string(void* l0, void* l1) {
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+void* std_sort$sort__toolchain_diagnostics_Diagnostic(void* l0, void* l1) {
+    int64_t l2;
+    void* l3 = NULL;
+    void* l4 = NULL;
+    void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    l2 = vader_array_length(((vader_array_t*) l0));
+    l3 = std_core$clone__toolchain_diagnostics_Diagnostic(l0);
+    if (!((l2 < INT64_C(2)))) {
+        l4 = std_core$clone__toolchain_diagnostics_Diagnostic(l0);
+        std_sort$merge_sort_range__Any(l3, l4, INT64_C(0), l2, l1);
+        { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 void* std_sort$sort__vader_core_symbol_Symbol(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
@@ -883,23 +900,6 @@ void* std_sort$sort__vader_midir_ranges_RangeSite(void* l0, void* l1) {
     l3 = std_core$clone__vader_midir_ranges_RangeSite(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_core$clone__vader_midir_ranges_RangeSite(l0);
-        std_sort$merge_sort_range__Any(l3, l4, INT64_C(0), l2, l1);
-        { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
-    }
-    { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-void* std_sort$sort__vader_support_diagnostics_Diagnostic(void* l0, void* l1) {
-    int64_t l2;
-    void* l3 = NULL;
-    void* l4 = NULL;
-    void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    l2 = vader_array_length(((vader_array_t*) l0));
-    l3 = std_core$clone__vader_support_diagnostics_Diagnostic(l0);
-    if (!((l2 < INT64_C(2)))) {
-        l4 = std_core$clone__vader_support_diagnostics_Diagnostic(l0);
         std_sort$merge_sort_range__Any(l3, l4, INT64_C(0), l2, l1);
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
     }

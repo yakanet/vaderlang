@@ -41,7 +41,7 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
     vader_gc_top = &gc_frame;
     t0 = std_io$describe_io_error_kind(l1, l0);
     vader_struct_std_io$IOError_t* _a0_obj = (vader_struct_std_io$IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io$IOError_t));
-    vader_obj_header_init(_a0_obj, 883u);
+    vader_obj_header_init(_a0_obj, 884u);
     _a0_obj->f_msg = t0;
     _a0_obj->f_kind = l1;
     _a0_obj->f_code = l2;
@@ -52,47 +52,47 @@ static void* std_io$classified_error(vader_string_t l0, uint8_t l1, int32_t l2) 
 static vader_string_t std_io$describe_io_error_kind(uint8_t l0, vader_string_t l1) {
     vader_string_t l2;
     if (l0 == INT32_C(1)) {
-        l2 = 2155u;
+        l2 = 2226u;
         return l2;
     }
     if (l0 == INT32_C(2)) {
-        l2 = 2649u;
+        l2 = 2680u;
     } else if (l0 == INT32_C(3)) {
-        l2 = 2346u;
+        l2 = 2412u;
     } else if (l0 == INT32_C(4)) {
-        l2 = 1647u;
+        l2 = 1733u;
     } else if (l0 == INT32_C(5)) {
-        l2 = 2584u;
+        l2 = 2619u;
     } else if (l0 == INT32_C(6)) {
-        l2 = 2368u;
+        l2 = 2434u;
     } else if (l0 == INT32_C(7)) {
-        l2 = 3304u;
+        l2 = 3314u;
     } else if (l0 == INT32_C(8)) {
-        l2 = 1775u;
+        l2 = 1856u;
     } else if (l0 == INT32_C(9)) {
-        l2 = 2575u;
+        l2 = 2610u;
     } else if (l0 == INT32_C(10)) {
-        l2 = 2358u;
+        l2 = 2424u;
     } else if (l0 == INT32_C(11)) {
-        l2 = 1981u;
+        l2 = 2056u;
     } else if (l0 == INT32_C(12)) {
-        l2 = 1742u;
+        l2 = 1824u;
     } else if (l0 == INT32_C(13)) {
-        l2 = 2024u;
+        l2 = 2097u;
     } else if (l0 == INT32_C(14)) {
-        l2 = 1928u;
+        l2 = 2005u;
     } else if (l0 == INT32_C(15)) {
-        l2 = 1929u;
+        l2 = 2006u;
     } else if (l0 == INT32_C(16)) {
-        l2 = 1640u;
+        l2 = 1726u;
     } else if (l0 == INT32_C(17)) {
-        l2 = 1641u;
+        l2 = 1727u;
     } else if (l0 == INT32_C(18)) {
-        l2 = 2586u;
+        l2 = 2621u;
     } else if (l0 == INT32_C(19)) {
-        l2 = 2960u;
+        l2 = 2970u;
     } else if (l0 == INT32_C(20)) {
-        l2 = 2965u;
+        l2 = 2975u;
     } else {
         if (!(l0 == INT32_C(0))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");

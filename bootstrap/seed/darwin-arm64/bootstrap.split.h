@@ -22,6 +22,8 @@ typedef struct vader_struct___defer_env_std_runtime_scheduler_3_t vader_struct__
 typedef struct vader_struct___defer_env_vader_vm_23_t vader_struct___defer_env_vader_vm_23_t;
 typedef struct vader_struct___defer_env_vader_vm_25_t vader_struct___defer_env_vader_vm_25_t;
 typedef struct vader_struct___lambda_env_toolchain_ast_1_t vader_struct___lambda_env_toolchain_ast_1_t;
+typedef struct vader_struct___lambda_env_toolchain_parser_1_t vader_struct___lambda_env_toolchain_parser_1_t;
+typedef struct vader_struct___lambda_env_toolchain_parser_3_t vader_struct___lambda_env_toolchain_parser_3_t;
 typedef struct vader_struct___lambda_env_vader_core_types_1_t vader_struct___lambda_env_vader_core_types_1_t;
 typedef struct vader_struct___lambda_env_vader_core_types_4_t vader_struct___lambda_env_vader_core_types_4_t;
 typedef struct vader_struct___lambda_env_vader_core_types_7_t vader_struct___lambda_env_vader_core_types_7_t;
@@ -108,8 +110,6 @@ typedef struct vader_struct___lambda_env_vader_front_effects_93_t vader_struct__
 typedef struct vader_struct___lambda_env_vader_front_effects_95_t vader_struct___lambda_env_vader_front_effects_95_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_97_t vader_struct___lambda_env_vader_front_effects_97_t;
 typedef struct vader_struct___lambda_env_vader_front_effects_99_t vader_struct___lambda_env_vader_front_effects_99_t;
-typedef struct vader_struct___lambda_env_vader_front_parser_1_t vader_struct___lambda_env_vader_front_parser_1_t;
-typedef struct vader_struct___lambda_env_vader_front_parser_3_t vader_struct___lambda_env_vader_front_parser_3_t;
 typedef struct vader_struct___lambda_env_vader_front_reach_1_t vader_struct___lambda_env_vader_front_reach_1_t;
 typedef struct vader_struct___lambda_env_vader_front_resolver_3_t vader_struct___lambda_env_vader_front_resolver_3_t;
 typedef struct vader_struct___lambda_env_vader_front_resolver_5_t vader_struct___lambda_env_vader_front_resolver_5_t;
@@ -161,6 +161,7 @@ typedef struct vader_struct___lambda_env_vader_midir_15_t vader_struct___lambda_
 typedef struct vader_struct___lambda_env_vader_midir_17_t vader_struct___lambda_env_vader_midir_17_t;
 typedef struct vader_struct___lambda_env_vader_midir_19_t vader_struct___lambda_env_vader_midir_19_t;
 typedef struct vader_struct___lambda_env_vader_midir_22_t vader_struct___lambda_env_vader_midir_22_t;
+typedef struct vader_struct___lambda_env_vader_midir_24_t vader_struct___lambda_env_vader_midir_24_t;
 typedef struct vader_struct___lambda_env_vader_midir_3_t vader_struct___lambda_env_vader_midir_3_t;
 typedef struct vader_struct___lambda_env_vader_midir_5_t vader_struct___lambda_env_vader_midir_5_t;
 typedef struct vader_struct___lambda_env_vader_midir_7_t vader_struct___lambda_env_vader_midir_7_t;
@@ -295,6 +296,7 @@ typedef struct vader_struct_std_collections$Map__string__string___t vader_struct
 typedef struct vader_struct_std_collections$Map__string__toolchain_ast_ArrayTypeExpr___toolchain_ast_BinaryExpr___toolchain_ast_BlockExpr___toolchain_ast_BoolLitExpr___toolchain_ast_CallExpr___toolchain_ast_CastExpr___toolchain_ast_CharLitExpr___toolchain_ast_DotVariantExpr___toolchain_ast_FallbackExpr___toolchain_ast_FieldExpr___toolchain_ast_FloatLitExpr___toolchain_ast_FnTypeExpr___toolchain_ast_GenericInstExpr___toolchain_ast_IdentExpr___toolchain_ast_IfExpr___toolchain_ast_IndexExpr___toolchain_ast_IntLitExpr___toolchain_ast_IntrinsicCallExpr___toolchain_ast_LambdaExpr___toolchain_ast_MatchExpr___toolchain_ast_NullLitExpr___toolchain_ast_RangeExpr___toolchain_ast_SeqLitExpr___toolchain_ast_StringLitExpr___toolchain_ast_StructLitExpr___toolchain_ast_UnaryExpr_t vader_struct_std_collections$Map__string__toolchain_ast_ArrayTypeExpr___toolchain_ast_BinaryExpr___toolchain_ast_BlockExpr___toolchain_ast_BoolLitExpr___toolchain_ast_CallExpr___toolchain_ast_CastExpr___toolchain_ast_CharLitExpr___toolchain_ast_DotVariantExpr___toolchain_ast_FallbackExpr___toolchain_ast_FieldExpr___toolchain_ast_FloatLitExpr___toolchain_ast_FnTypeExpr___toolchain_ast_GenericInstExpr___toolchain_ast_IdentExpr___toolchain_ast_IfExpr___toolchain_ast_IndexExpr___toolchain_ast_IntLitExpr___toolchain_ast_IntrinsicCallExpr___toolchain_ast_LambdaExpr___toolchain_ast_MatchExpr___toolchain_ast_NullLitExpr___toolchain_ast_RangeExpr___toolchain_ast_SeqLitExpr___toolchain_ast_StringLitExpr___toolchain_ast_StructLitExpr___toolchain_ast_UnaryExpr_t;
 typedef struct vader_struct_std_collections$Map__string__toolchain_ast_FnDecl_t vader_struct_std_collections$Map__string__toolchain_ast_FnDecl_t;
 typedef struct vader_struct_std_collections$Map__string__toolchain_ast_FnDecl___t vader_struct_std_collections$Map__string__toolchain_ast_FnDecl___t;
+typedef struct vader_struct_std_collections$Map__string__toolchain_parser_DecoratorSpec_t vader_struct_std_collections$Map__string__toolchain_parser_DecoratorSpec_t;
 typedef struct vader_struct_std_collections$Map__string__toolchain_span_Span_t vader_struct_std_collections$Map__string__toolchain_span_Span_t;
 typedef struct vader_struct_std_collections$Map__string__vader_core_symbol_Symbol_t vader_struct_std_collections$Map__string__vader_core_symbol_Symbol_t;
 typedef struct vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t vader_struct_std_collections$Map__string__vader_core_symbol_Symbol___t;
@@ -305,7 +307,6 @@ typedef struct vader_struct_std_collections$Map__string__vader_front_comptime_Ev
 typedef struct vader_struct_std_collections$Map__string__vader_front_comptime_NamedLibrary_t vader_struct_std_collections$Map__string__vader_front_comptime_NamedLibrary_t;
 typedef struct vader_struct_std_collections$Map__string__vader_front_comptime_VmRequiredDecl_t vader_struct_std_collections$Map__string__vader_front_comptime_VmRequiredDecl_t;
 typedef struct vader_struct_std_collections$Map__string__vader_front_effects_Candidate_t vader_struct_std_collections$Map__string__vader_front_effects_Candidate_t;
-typedef struct vader_struct_std_collections$Map__string__vader_front_parser_DecoratorSpec_t vader_struct_std_collections$Map__string__vader_front_parser_DecoratorSpec_t;
 typedef struct vader_struct_std_collections$Map__string__vader_front_resolver_DiscoveredModule_t vader_struct_std_collections$Map__string__vader_front_resolver_DiscoveredModule_t;
 typedef struct vader_struct_std_collections$Map__string__vader_front_resolver_FileScope_t vader_struct_std_collections$Map__string__vader_front_resolver_FileScope_t;
 typedef struct vader_struct_std_collections$Map__string__vader_front_resolver_LoadedModule_t vader_struct_std_collections$Map__string__vader_front_resolver_LoadedModule_t;
@@ -447,7 +448,7 @@ typedef struct vader_struct_toolchain_ast$ReturnStmt_t vader_struct_toolchain_as
 typedef struct vader_struct_toolchain_ast$SeqLitExpr_t vader_struct_toolchain_ast$SeqLitExpr_t;
 typedef struct vader_struct_toolchain_ast$SimpleBinding_t vader_struct_toolchain_ast$SimpleBinding_t;
 typedef struct vader_struct_toolchain_ast$StringLitExpr_t vader_struct_toolchain_ast$StringLitExpr_t;
-typedef struct vader_struct_toolchain_ast$StringLitInterp_t vader_struct_toolchain_ast$StringLitInterp_t;
+typedef struct vader_struct_toolchain_ast$StringLitInterpolation_t vader_struct_toolchain_ast$StringLitInterpolation_t;
 typedef struct vader_struct_toolchain_ast$StringLitText_t vader_struct_toolchain_ast$StringLitText_t;
 typedef struct vader_struct_toolchain_ast$StructDecl_t vader_struct_toolchain_ast$StructDecl_t;
 typedef struct vader_struct_toolchain_ast$StructField_t vader_struct_toolchain_ast$StructField_t;
@@ -468,6 +469,31 @@ typedef struct vader_struct_toolchain_ast$WildcardImport_t vader_struct_toolchai
 typedef struct vader_struct_toolchain_ast$WildcardPattern_t vader_struct_toolchain_ast$WildcardPattern_t;
 typedef struct vader_struct_toolchain_ast$WildcardTarget_t vader_struct_toolchain_ast$WildcardTarget_t;
 typedef struct vader_struct_toolchain_ast$YieldStmt_t vader_struct_toolchain_ast$YieldStmt_t;
+typedef struct vader_struct_toolchain_diagnostics$Channel_t vader_struct_toolchain_diagnostics$Channel_t;
+typedef struct vader_struct_toolchain_diagnostics$CodeInfo_t vader_struct_toolchain_diagnostics$CodeInfo_t;
+typedef struct vader_struct_toolchain_diagnostics$Diagnostic_t vader_struct_toolchain_diagnostics$Diagnostic_t;
+typedef struct vader_struct_toolchain_lexer$DocRun_t vader_struct_toolchain_lexer$DocRun_t;
+typedef struct vader_struct_toolchain_lexer$InterpolationFrame_t vader_struct_toolchain_lexer$InterpolationFrame_t;
+typedef struct vader_struct_toolchain_lexer$LexedSource_t vader_struct_toolchain_lexer$LexedSource_t;
+typedef struct vader_struct_toolchain_lexer$Lexer_t vader_struct_toolchain_lexer$Lexer_t;
+typedef struct vader_struct_toolchain_lexer$TextBlock_t vader_struct_toolchain_lexer$TextBlock_t;
+typedef struct vader_struct_toolchain_lexer$TextBlockLine_t vader_struct_toolchain_lexer$TextBlockLine_t;
+typedef struct vader_struct_toolchain_lexer$Token_t vader_struct_toolchain_lexer$Token_t;
+typedef struct vader_struct_toolchain_parser$CommaList__Any_t vader_struct_toolchain_parser$CommaList__Any_t;
+typedef struct vader_struct_toolchain_parser$CommaList__toolchain_ast_CallArg_t vader_struct_toolchain_parser$CommaList__toolchain_ast_CallArg_t;
+typedef struct vader_struct_toolchain_parser$CommaList__toolchain_ast_ImportName_t vader_struct_toolchain_parser$CommaList__toolchain_ast_ImportName_t;
+typedef struct vader_struct_toolchain_parser$CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t vader_struct_toolchain_parser$CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t;
+typedef struct vader_struct_toolchain_parser$CompoundOpResult_t vader_struct_toolchain_parser$CompoundOpResult_t;
+typedef struct vader_struct_toolchain_parser$DecoratorSpec_t vader_struct_toolchain_parser$DecoratorSpec_t;
+typedef struct vader_struct_toolchain_parser$FnBodyTail_t vader_struct_toolchain_parser$FnBodyTail_t;
+typedef struct vader_struct_toolchain_parser$FnSignature_t vader_struct_toolchain_parser$FnSignature_t;
+typedef struct vader_struct_toolchain_parser$InfixOpDescr_t vader_struct_toolchain_parser$InfixOpDescr_t;
+typedef struct vader_struct_toolchain_parser$IntrinsicSpec_t vader_struct_toolchain_parser$IntrinsicSpec_t;
+typedef struct vader_struct_toolchain_parser$ModuleHeader_t vader_struct_toolchain_parser$ModuleHeader_t;
+typedef struct vader_struct_toolchain_parser$NodeIdFactory_t vader_struct_toolchain_parser$NodeIdFactory_t;
+typedef struct vader_struct_toolchain_parser$ParsedSource_t vader_struct_toolchain_parser$ParsedSource_t;
+typedef struct vader_struct_toolchain_parser$Parser_t vader_struct_toolchain_parser$Parser_t;
+typedef struct vader_struct_toolchain_parser$StringLitInfo_t vader_struct_toolchain_parser$StringLitInfo_t;
 typedef struct vader_struct_toolchain_span$Position_t vader_struct_toolchain_span$Position_t;
 typedef struct vader_struct_toolchain_span$Span_t vader_struct_toolchain_span$Span_t;
 typedef struct vader_struct_vader_core_bytecode$ArrayClear_t vader_struct_vader_core_bytecode$ArrayClear_t;
@@ -851,28 +877,6 @@ typedef struct vader_struct_vader_front_effects$Unseen_t vader_struct_vader_fron
 typedef struct vader_struct_vader_front_effects$Use_t vader_struct_vader_front_effects$Use_t;
 typedef struct vader_struct_vader_front_effects$WalkCtx_t vader_struct_vader_front_effects$WalkCtx_t;
 typedef struct vader_struct_vader_front_effects$WideningSite_t vader_struct_vader_front_effects$WideningSite_t;
-typedef struct vader_struct_vader_front_lexer$DocRun_t vader_struct_vader_front_lexer$DocRun_t;
-typedef struct vader_struct_vader_front_lexer$InterpFrame_t vader_struct_vader_front_lexer$InterpFrame_t;
-typedef struct vader_struct_vader_front_lexer$LexedSource_t vader_struct_vader_front_lexer$LexedSource_t;
-typedef struct vader_struct_vader_front_lexer$Lexer_t vader_struct_vader_front_lexer$Lexer_t;
-typedef struct vader_struct_vader_front_lexer$TextBlock_t vader_struct_vader_front_lexer$TextBlock_t;
-typedef struct vader_struct_vader_front_lexer$TextBlockLine_t vader_struct_vader_front_lexer$TextBlockLine_t;
-typedef struct vader_struct_vader_front_lexer$Token_t vader_struct_vader_front_lexer$Token_t;
-typedef struct vader_struct_vader_front_parser$CommaList__Any_t vader_struct_vader_front_parser$CommaList__Any_t;
-typedef struct vader_struct_vader_front_parser$CommaList__toolchain_ast_CallArg_t vader_struct_vader_front_parser$CommaList__toolchain_ast_CallArg_t;
-typedef struct vader_struct_vader_front_parser$CommaList__toolchain_ast_ImportName_t vader_struct_vader_front_parser$CommaList__toolchain_ast_ImportName_t;
-typedef struct vader_struct_vader_front_parser$CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t vader_struct_vader_front_parser$CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t;
-typedef struct vader_struct_vader_front_parser$CompoundOpResult_t vader_struct_vader_front_parser$CompoundOpResult_t;
-typedef struct vader_struct_vader_front_parser$DecoratorSpec_t vader_struct_vader_front_parser$DecoratorSpec_t;
-typedef struct vader_struct_vader_front_parser$FnBodyTail_t vader_struct_vader_front_parser$FnBodyTail_t;
-typedef struct vader_struct_vader_front_parser$FnSignature_t vader_struct_vader_front_parser$FnSignature_t;
-typedef struct vader_struct_vader_front_parser$InfixOpDescr_t vader_struct_vader_front_parser$InfixOpDescr_t;
-typedef struct vader_struct_vader_front_parser$IntrinsicSpec_t vader_struct_vader_front_parser$IntrinsicSpec_t;
-typedef struct vader_struct_vader_front_parser$ModuleHeader_t vader_struct_vader_front_parser$ModuleHeader_t;
-typedef struct vader_struct_vader_front_parser$NodeIdFactory_t vader_struct_vader_front_parser$NodeIdFactory_t;
-typedef struct vader_struct_vader_front_parser$ParsedSource_t vader_struct_vader_front_parser$ParsedSource_t;
-typedef struct vader_struct_vader_front_parser$Parser_t vader_struct_vader_front_parser$Parser_t;
-typedef struct vader_struct_vader_front_parser$StringLitInfo_t vader_struct_vader_front_parser$StringLitInfo_t;
 typedef struct vader_struct_vader_front_resolver$CollectedModule_t vader_struct_vader_front_resolver$CollectedModule_t;
 typedef struct vader_struct_vader_front_resolver$DeferredModule_t vader_struct_vader_front_resolver$DeferredModule_t;
 typedef struct vader_struct_vader_front_resolver$DiscoveredModule_t vader_struct_vader_front_resolver$DiscoveredModule_t;
@@ -1196,9 +1200,6 @@ typedef struct vader_struct_vader_pipeline$LoweredEntry_t vader_struct_vader_pip
 typedef struct vader_struct_vader_pipeline_check$CheckedProject_t vader_struct_vader_pipeline_check$CheckedProject_t;
 typedef struct vader_struct_vader_pipeline_comptime__vm$BakeScope_t vader_struct_vader_pipeline_comptime__vm$BakeScope_t;
 typedef struct vader_struct_vader_pipeline_comptime__vm$StagedDecl_t vader_struct_vader_pipeline_comptime__vm$StagedDecl_t;
-typedef struct vader_struct_vader_support_diagnostics$Channel_t vader_struct_vader_support_diagnostics$Channel_t;
-typedef struct vader_struct_vader_support_diagnostics$CodeInfo_t vader_struct_vader_support_diagnostics$CodeInfo_t;
-typedef struct vader_struct_vader_support_diagnostics$Diagnostic_t vader_struct_vader_support_diagnostics$Diagnostic_t;
 typedef struct vader_struct_vader_support_fixpoint$Graph_t vader_struct_vader_support_fixpoint$Graph_t;
 typedef struct vader_struct_vader_support_fixpoint$TarjanWalk_t vader_struct_vader_support_fixpoint$TarjanWalk_t;
 typedef struct vader_struct_vader_support_integer$Interval_t vader_struct_vader_support_integer$Interval_t;
@@ -1337,6 +1338,14 @@ struct vader_struct___lambda_env_toolchain_ast_1_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
+};
+struct vader_struct___lambda_env_toolchain_parser_1_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+};
+struct vader_struct___lambda_env_toolchain_parser_3_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_core_types_1_t {
     vader_obj_header_t header;
@@ -1715,14 +1724,6 @@ struct vader_struct___lambda_env_vader_front_effects_99_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_front_parser_1_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_front_parser_3_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
 struct vader_struct___lambda_env_vader_front_reach_1_t {
     vader_obj_header_t header;
     void* f_cap_0;
@@ -1973,6 +1974,11 @@ struct vader_struct___lambda_env_vader_midir_22_t {
     void* f_cap_0;
     int64_t f_cap_1;
     void* f_cap_2;
+};
+struct vader_struct___lambda_env_vader_midir_24_t {
+    vader_obj_header_t header;
+    int32_t f_cap_0;
+    vader_box_t f_cap_1;
 };
 struct vader_struct___lambda_env_vader_midir_3_t {
     vader_obj_header_t header;
@@ -3150,6 +3156,16 @@ struct vader_struct_std_collections$Map__string__toolchain_ast_FnDecl___t {
     int64_t f_size;
     int64_t f_tombs;
 };
+struct vader_struct_std_collections$Map__string__toolchain_parser_DecoratorSpec_t {
+    vader_obj_header_t header;
+    void* f_ekeys;
+    void* f_evals;
+    void* f_index;
+    int64_t f_mask;
+    int64_t f_grow_at;
+    int64_t f_size;
+    int64_t f_tombs;
+};
 struct vader_struct_std_collections$Map__string__toolchain_span_Span_t {
     vader_obj_header_t header;
     void* f_ekeys;
@@ -3241,16 +3257,6 @@ struct vader_struct_std_collections$Map__string__vader_front_comptime_VmRequired
     int64_t f_tombs;
 };
 struct vader_struct_std_collections$Map__string__vader_front_effects_Candidate_t {
-    vader_obj_header_t header;
-    void* f_ekeys;
-    void* f_evals;
-    void* f_index;
-    int64_t f_mask;
-    int64_t f_grow_at;
-    int64_t f_size;
-    int64_t f_tombs;
-};
-struct vader_struct_std_collections$Map__string__vader_front_parser_DecoratorSpec_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -4350,7 +4356,7 @@ struct vader_struct_toolchain_ast$StringLitExpr_t {
     int64_t f_id;
     void* f_parts;
 };
-struct vader_struct_toolchain_ast$StringLitInterp_t {
+struct vader_struct_toolchain_ast$StringLitInterpolation_t {
     vader_obj_header_t header;
     vader_box_t f_expr;
     void* f_span;
@@ -4501,6 +4507,183 @@ struct vader_struct_toolchain_ast$YieldStmt_t {
     void* f_span;
     int64_t f_id;
     vader_box_t f_value;
+};
+struct vader_struct_toolchain_diagnostics$Channel_t {
+    vader_obj_header_t header;
+    bool f_files;
+    vader_string_t f_base;
+    bool f_user;
+};
+struct vader_struct_toolchain_diagnostics$CodeInfo_t {
+    vader_obj_header_t header;
+    vader_string_t f_id;
+    vader_string_t f_message;
+};
+struct vader_struct_toolchain_diagnostics$Diagnostic_t {
+    vader_obj_header_t header;
+    uint8_t f_severity;
+    void* f_code;
+    vader_string_t f_detail;
+    void* f_primary;
+};
+struct vader_struct_toolchain_lexer$DocRun_t {
+    vader_obj_header_t header;
+    void* f_doc;
+    int64_t f_followed_by;
+};
+struct vader_struct_toolchain_lexer$InterpolationFrame_t {
+    vader_obj_header_t header;
+    int32_t f_brace_depth;
+    bool f_triple;
+    vader_box_t f_block;
+};
+struct vader_struct_toolchain_lexer$LexedSource_t {
+    vader_obj_header_t header;
+    vader_string_t f_file;
+    void* f_tokens;
+    void* f_errors;
+    void* f_doc_runs;
+    void* f_comments;
+};
+struct vader_struct_toolchain_lexer$Lexer_t {
+    vader_obj_header_t header;
+    vader_string_t f_src;
+    vader_string_t f_file;
+    int64_t f_pos;
+    int32_t f_line;
+    int32_t f_col;
+    int32_t f_paren_depth;
+    void* f_enclosing_paren_depths;
+    uint8_t f_last_kind;
+    vader_box_t f_pending_newline;
+    int32_t f_malformed_utf8_runs;
+    int64_t f_malformed_utf8_at;
+    void* f_tokens;
+    void* f_errors;
+    void* f_interpolation_stack;
+    bool f_include_doc_comments;
+    void* f_doc_runs;
+    vader_box_t f_open_doc;
+    void* f_comments;
+};
+struct vader_struct_toolchain_lexer$TextBlock_t {
+    vader_obj_header_t header;
+    void* f_lines;
+    int64_t f_common;
+    bool f_at_line_start;
+    int64_t f_pending_from;
+    int64_t f_part_len;
+    void* f_part_lines;
+};
+struct vader_struct_toolchain_lexer$TextBlockLine_t {
+    vader_obj_header_t header;
+    int64_t f_part;
+    int64_t f_offset;
+};
+struct vader_struct_toolchain_lexer$Token_t {
+    vader_obj_header_t header;
+    uint8_t f_kind;
+    vader_string_t f_text;
+    void* f_span;
+    vader_box_t f_value;
+};
+struct vader_struct_toolchain_parser$CommaList__Any_t {
+    vader_obj_header_t header;
+    void* f_items;
+    bool f_trailing_comma;
+};
+struct vader_struct_toolchain_parser$CommaList__toolchain_ast_CallArg_t {
+    vader_obj_header_t header;
+    void* f_items;
+    bool f_trailing_comma;
+};
+struct vader_struct_toolchain_parser$CommaList__toolchain_ast_ImportName_t {
+    vader_obj_header_t header;
+    void* f_items;
+    bool f_trailing_comma;
+};
+struct vader_struct_toolchain_parser$CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t {
+    vader_obj_header_t header;
+    void* f_items;
+    bool f_trailing_comma;
+};
+struct vader_struct_toolchain_parser$CompoundOpResult_t {
+    vader_obj_header_t header;
+    bool f_matched;
+    uint8_t f_op;
+};
+struct vader_struct_toolchain_parser$DecoratorSpec_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    vader_string_t f_usage;
+    void* f_places;
+    vader_string_t f_doc;
+};
+struct vader_struct_toolchain_parser$FnBodyTail_t {
+    vader_obj_header_t header;
+    vader_box_t f_body;
+    bool f_is_expression_bodied;
+};
+struct vader_struct_toolchain_parser$FnSignature_t {
+    vader_obj_header_t header;
+    void* f_params;
+    void* f_span;
+    bool f_trailing_comma;
+};
+struct vader_struct_toolchain_parser$InfixOpDescr_t {
+    vader_obj_header_t header;
+    bool f_has;
+    int32_t f_left_bp;
+    int32_t f_right_bp;
+    uint8_t f_op;
+    bool f_non_assoc;
+};
+struct vader_struct_toolchain_parser$IntrinsicSpec_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    void* f_args;
+    vader_string_t f_result;
+    vader_string_t f_signature;
+    vader_string_t f_doc;
+};
+struct vader_struct_toolchain_parser$ModuleHeader_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    void* f_name_span;
+};
+struct vader_struct_toolchain_parser$NodeIdFactory_t {
+    vader_obj_header_t header;
+    int64_t f_next;
+};
+struct vader_struct_toolchain_parser$ParsedSource_t {
+    vader_obj_header_t header;
+    void* f_program;
+    void* f_tokens;
+    void* f_errors;
+    void* f_comments;
+};
+struct vader_struct_toolchain_parser$Parser_t {
+    vader_obj_header_t header;
+    void* f_tokens;
+    vader_string_t f_file;
+    int32_t f_pos;
+    void* f_errors;
+    int32_t f_bracket_depth;
+    int32_t f_no_struct_lit_at;
+    int32_t f_no_bare_lambda_at;
+    vader_box_t f_shr_pending_half;
+    vader_box_t f_split_half;
+    int32_t f_split_at;
+    void* f_pending_decls;
+    int32_t f_expr_depth;
+    bool f_depth_exceeded;
+    void* f_doc_runs;
+    int64_t f_doc_cursor;
+};
+struct vader_struct_toolchain_parser$StringLitInfo_t {
+    vader_obj_header_t header;
+    vader_string_t f_text;
+    void* f_span;
 };
 struct vader_struct_toolchain_span$Position_t {
     vader_obj_header_t header;
@@ -6461,165 +6644,6 @@ struct vader_struct_vader_front_effects$WideningSite_t {
     int64_t f_param;
     uint8_t f_verdict;
     vader_box_t f_breaking;
-};
-struct vader_struct_vader_front_lexer$DocRun_t {
-    vader_obj_header_t header;
-    void* f_doc;
-    int64_t f_followed_by;
-};
-struct vader_struct_vader_front_lexer$InterpFrame_t {
-    vader_obj_header_t header;
-    int32_t f_brace_depth;
-    bool f_triple;
-    vader_box_t f_block;
-};
-struct vader_struct_vader_front_lexer$LexedSource_t {
-    vader_obj_header_t header;
-    vader_string_t f_file;
-    void* f_tokens;
-    void* f_errors;
-    void* f_doc_runs;
-    void* f_comments;
-};
-struct vader_struct_vader_front_lexer$Lexer_t {
-    vader_obj_header_t header;
-    vader_string_t f_src;
-    vader_string_t f_file;
-    int64_t f_pos;
-    int32_t f_line;
-    int32_t f_col;
-    int32_t f_paren_depth;
-    void* f_enclosing_paren_depths;
-    uint8_t f_last_kind;
-    vader_box_t f_pending_newline;
-    int32_t f_malformed_utf8_runs;
-    int64_t f_malformed_utf8_at;
-    void* f_tokens;
-    void* f_errors;
-    void* f_interp_stack;
-    bool f_include_doc_comments;
-    void* f_doc_runs;
-    vader_box_t f_open_doc;
-    void* f_comments;
-};
-struct vader_struct_vader_front_lexer$TextBlock_t {
-    vader_obj_header_t header;
-    void* f_lines;
-    int64_t f_common;
-    bool f_at_line_start;
-    int64_t f_pending_from;
-    int64_t f_part_len;
-    void* f_part_lines;
-};
-struct vader_struct_vader_front_lexer$TextBlockLine_t {
-    vader_obj_header_t header;
-    int64_t f_part;
-    int64_t f_offset;
-};
-struct vader_struct_vader_front_lexer$Token_t {
-    vader_obj_header_t header;
-    uint8_t f_kind;
-    vader_string_t f_text;
-    void* f_span;
-    vader_box_t f_value;
-};
-struct vader_struct_vader_front_parser$CommaList__Any_t {
-    vader_obj_header_t header;
-    void* f_items;
-    bool f_trailing_comma;
-};
-struct vader_struct_vader_front_parser$CommaList__toolchain_ast_CallArg_t {
-    vader_obj_header_t header;
-    void* f_items;
-    bool f_trailing_comma;
-};
-struct vader_struct_vader_front_parser$CommaList__toolchain_ast_ImportName_t {
-    vader_obj_header_t header;
-    void* f_items;
-    bool f_trailing_comma;
-};
-struct vader_struct_vader_front_parser$CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t {
-    vader_obj_header_t header;
-    void* f_items;
-    bool f_trailing_comma;
-};
-struct vader_struct_vader_front_parser$CompoundOpResult_t {
-    vader_obj_header_t header;
-    bool f_matched;
-    uint8_t f_op;
-};
-struct vader_struct_vader_front_parser$DecoratorSpec_t {
-    vader_obj_header_t header;
-    vader_string_t f_name;
-    vader_string_t f_usage;
-    void* f_places;
-    vader_string_t f_doc;
-};
-struct vader_struct_vader_front_parser$FnBodyTail_t {
-    vader_obj_header_t header;
-    vader_box_t f_body;
-    bool f_is_expression_bodied;
-};
-struct vader_struct_vader_front_parser$FnSignature_t {
-    vader_obj_header_t header;
-    void* f_params;
-    void* f_span;
-    bool f_trailing_comma;
-};
-struct vader_struct_vader_front_parser$InfixOpDescr_t {
-    vader_obj_header_t header;
-    bool f_has;
-    int32_t f_left_bp;
-    int32_t f_right_bp;
-    uint8_t f_op;
-    bool f_non_assoc;
-};
-struct vader_struct_vader_front_parser$IntrinsicSpec_t {
-    vader_obj_header_t header;
-    vader_string_t f_name;
-    void* f_args;
-    vader_string_t f_result;
-    vader_string_t f_signature;
-    vader_string_t f_doc;
-};
-struct vader_struct_vader_front_parser$ModuleHeader_t {
-    vader_obj_header_t header;
-    vader_string_t f_name;
-    void* f_name_span;
-};
-struct vader_struct_vader_front_parser$NodeIdFactory_t {
-    vader_obj_header_t header;
-    int64_t f_next;
-};
-struct vader_struct_vader_front_parser$ParsedSource_t {
-    vader_obj_header_t header;
-    void* f_program;
-    void* f_tokens;
-    void* f_errors;
-    void* f_comments;
-};
-struct vader_struct_vader_front_parser$Parser_t {
-    vader_obj_header_t header;
-    void* f_tokens;
-    vader_string_t f_file;
-    int32_t f_pos;
-    void* f_errors;
-    int32_t f_bracket_depth;
-    int32_t f_no_struct_lit_at;
-    int32_t f_no_bare_lambda_at;
-    vader_box_t f_shr_pending_half;
-    vader_box_t f_split_half;
-    int32_t f_split_at;
-    void* f_pending_decls;
-    int32_t f_expr_depth;
-    bool f_depth_exceeded;
-    void* f_doc_runs;
-    int64_t f_doc_cursor;
-};
-struct vader_struct_vader_front_parser$StringLitInfo_t {
-    vader_obj_header_t header;
-    vader_string_t f_text;
-    void* f_span;
 };
 struct vader_struct_vader_front_resolver$CollectedModule_t {
     vader_obj_header_t header;
@@ -8925,24 +8949,6 @@ struct vader_struct_vader_pipeline_comptime__vm$StagedDecl_t {
     vader_string_t f_callee;
     void* f_reached;
 };
-struct vader_struct_vader_support_diagnostics$Channel_t {
-    vader_obj_header_t header;
-    bool f_files;
-    vader_string_t f_base;
-    bool f_user;
-};
-struct vader_struct_vader_support_diagnostics$CodeInfo_t {
-    vader_obj_header_t header;
-    vader_string_t f_id;
-    vader_string_t f_message;
-};
-struct vader_struct_vader_support_diagnostics$Diagnostic_t {
-    vader_obj_header_t header;
-    uint8_t f_severity;
-    void* f_code;
-    vader_string_t f_detail;
-    void* f_primary;
-};
 struct vader_struct_vader_support_fixpoint$Graph_t {
     vader_obj_header_t header;
     void* f_successors;
@@ -9316,7 +9322,7 @@ bool std_core$is_empty_1(vader_string_t l0);
 void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1);
 void std_core$codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* __o0, int64_t* __o1);
 vader_box_t std_core$parse_f64(vader_string_t l0);
-void* std_core$$array$Add$add__vader_support_diagnostics_Diagnostic(void* l0, void* l1);
+void* std_core$$array$Add$add__toolchain_diagnostics_Diagnostic(void* l0, void* l1);
 void* std_core$$array$Add$add__string(void* l0, void* l1);
 void* std_core$$array$Add$add__toolchain_ast_AssertDecl___toolchain_ast_ConstDecl___toolchain_ast_EnumDecl___toolchain_ast_FnDecl___toolchain_ast_ImplDecl___toolchain_ast_ImportDecl___toolchain_ast_StructDecl___toolchain_ast_TraitDecl___toolchain_ast_TypeAliasDecl(void* l0, void* l1);
 void* std_core$$array$Add$add__vader_core_types_TypeParamType(void* l0, void* l1);
@@ -9325,7 +9331,7 @@ bool std_core$$array$Contains$contains__string(void* l0, vader_string_t l1);
 bool std_core$$array$Contains$contains__bool(void* l0, bool l1);
 bool std_core$$array$Contains$contains__vader_core_bytecode_ValType(void* l0, uint8_t l1);
 bool std_core$$array$Contains$contains__i64(void* l0, int64_t l1);
-bool std_core$$array$Contains$contains__vader_front_parser_DecoratorPlace(void* l0, uint8_t l1);
+bool std_core$$array$Contains$contains__toolchain_parser_DecoratorPlace(void* l0, uint8_t l1);
 vader_string_t std_core$u64$Display$to_string(uint64_t l0);
 vader_string_t std_core$char$Display$to_string(uint32_t l0);
 vader_string_t std_core$f64$Display$to_string(double l0);
@@ -9351,12 +9357,12 @@ void* std_core$clone___string__vader_midir_ranges_RangeTally_(void* l0);
 void* std_core$clone__i32(void* l0);
 void* std_core$clone__i64(void* l0);
 void* std_core$clone__string(void* l0);
+void* std_core$clone__toolchain_diagnostics_Diagnostic(void* l0);
 void* std_core$clone__u8(void* l0);
 void* std_core$clone__vader_core_symbol_Symbol(void* l0);
 void* std_core$clone__vader_front_effects_LambdaCalls(void* l0);
 void* std_core$clone__vader_lower_PendingFnInstance(void* l0);
 void* std_core$clone__vader_midir_ranges_RangeSite(void* l0);
-void* std_core$clone__vader_support_diagnostics_Diagnostic(void* l0);
 void* std_core$clone__vader_vm_ArrayVal___bool___char___f64___vader_vm_FnVal___i32___i64___vader_vm_NullVal___vader_vm_ObjVal___string___vader_vm_StructVal___vader_vm_TypeVal(void* l0);
 void* std_core$clone__vader_vm_GuestThread(void* l0);
 void* std_core$filled__bool(int64_t l0, void* l1);
@@ -9438,19 +9444,19 @@ int64_t std_string__builder$byte_len(void* l0);
 vader_string_t std_string__builder$StringBuilder$std_core$Display$to_string(void* l0);
 vader_string_t std_target$Os$std_core$Display$to_string(uint8_t l0);
 vader_string_t std_target$Arch$std_core$Display$to_string(uint8_t l0);
-bool vader_support_diagnostics$any_error_diag(void* l0);
-vader_string_t vader_support_diagnostics$dump_diagnostics_with_file(void* l0);
-bool vader_support_diagnostics$diag_less_with_file(void* l0, void* l1);
-bool vader_support_diagnostics$diag_less(void* l0, void* l1);
-void* vader_support_diagnostics$internal_error(uint8_t l0, void* l1, vader_string_t l2);
-void* vader_support_diagnostics$resolver_error(uint8_t l0, void* l1, vader_string_t l2);
-void* vader_support_diagnostics$warning(uint8_t l0, void* l1, vader_string_t l2);
-void* vader_support_diagnostics$typecheck_error(uint8_t l0, void* l1, vader_string_t l2);
-void* vader_support_diagnostics$comptime_error(uint8_t l0, void* l1, vader_string_t l2);
-void* vader_support_diagnostics$lower_error(uint8_t l0, void* l1, vader_string_t l2);
-vader_string_t vader_support_diagnostics$wildcard_clash_detail(vader_string_t l0, void* l1);
-void* vader_support_diagnostics$lexer_error(uint8_t l0, void* l1, vader_string_t l2);
-void* vader_support_diagnostics$parser_error(uint8_t l0, void* l1, vader_string_t l2);
+bool toolchain_diagnostics$any_error_diag(void* l0);
+vader_string_t toolchain_diagnostics$dump_diagnostics_with_file(void* l0);
+bool toolchain_diagnostics$diag_less_with_file(void* l0, void* l1);
+bool toolchain_diagnostics$diag_less(void* l0, void* l1);
+void* toolchain_diagnostics$internal_error(uint8_t l0, void* l1, vader_string_t l2);
+void* toolchain_diagnostics$resolver_error(uint8_t l0, void* l1, vader_string_t l2);
+void* toolchain_diagnostics$warning(uint8_t l0, void* l1, vader_string_t l2);
+void* toolchain_diagnostics$typecheck_error(uint8_t l0, void* l1, vader_string_t l2);
+void* toolchain_diagnostics$comptime_error(uint8_t l0, void* l1, vader_string_t l2);
+void* toolchain_diagnostics$lower_error(uint8_t l0, void* l1, vader_string_t l2);
+vader_string_t toolchain_diagnostics$wildcard_clash_detail(vader_string_t l0, void* l1);
+void* toolchain_diagnostics$lexer_error(uint8_t l0, void* l1, vader_string_t l2);
+void* toolchain_diagnostics$parser_error(uint8_t l0, void* l1, vader_string_t l2);
 void* vader_front_resolver$load_project(vader_string_t l0, void* l1, vader_box_t l2, vader_box_t l3, bool l4, bool l5);
 void* vader_front_resolver$build_core_seed(void* l0);
 void* vader_front_resolver$module_index_by_name(void* l0);
@@ -10151,11 +10157,11 @@ void* std_sort$sort___string__vader_midir_ranges_RangeTally_(void* l0, void* l1)
 void* std_sort$sort__i32(void* l0, void* l1);
 void* std_sort$sort__i64(void* l0, void* l1);
 void* std_sort$sort__string(void* l0, void* l1);
+void* std_sort$sort__toolchain_diagnostics_Diagnostic(void* l0, void* l1);
 void* std_sort$sort__vader_core_symbol_Symbol(void* l0, void* l1);
 void* std_sort$sort__vader_front_effects_LambdaCalls(void* l0, void* l1);
 void* std_sort$sort__vader_lower_PendingFnInstance(void* l0, void* l1);
 void* std_sort$sort__vader_midir_ranges_RangeSite(void* l0, void* l1);
-void* std_sort$sort__vader_support_diagnostics_Diagnostic(void* l0, void* l1);
 void* std_sort$sort__vader_vm_GuestThread(void* l0, void* l1);
 void std_abort$todo(vader_string_t l0);
 void std_abort$unreachable(vader_string_t l0);
@@ -10200,24 +10206,24 @@ vader_box_t toolchain_ast$find_expr(vader_box_t l0, void* l1);
 uint8_t __lambda_toolchain_ast_0(void* l0, vader_box_t l1);
 vader_string_t toolchain_ast$binary_op_symbol(uint8_t l0);
 uint8_t toolchain_ast$take_first(vader_box_t l0, void* l1, void* l2);
-void* vader_front_parser$new_node_id_factory(void);
-vader_box_t vader_front_parser$parse_module_header(vader_string_t l0, vader_string_t l1);
-void vader_front_parser$assign_program_ids(void* l0, void* l1);
-int64_t vader_front_parser$mint(void* l0);
-void* vader_front_parser$parse_source_with_docs(vader_string_t l0, vader_string_t l1);
-void* vader_front_parser$parse_source(vader_string_t l0, vader_string_t l1);
-vader_box_t vader_front_parser$intrinsic_spec(vader_string_t l0);
-uint8_t vader_front_parser$arg_kind(void* l0, int64_t l1);
-bool vader_front_parser$is_evaluated(uint8_t l0);
-bool vader_front_parser$decorator_on(vader_string_t l0, uint8_t l1);
-void vader_front_parser$specs_by_name$keep(void);
-vader_string_t __lambda_vader_front_parser_0(void* l0, vader_string_t l1);
-vader_string_t __lambda_vader_front_parser_2(void* l0, vader_string_t l1);
-vader_string_t vader_front_parser$is_binding_hint(vader_box_t l0, vader_string_t l1, bool l2);
-vader_string_t __lambda_vader_front_parser_4(vader_string_t l0);
-vader_string_t __lambda_vader_front_parser_5(vader_string_t l0);
-void* __const_vader_front_parser$INTRINSICS(void);
-void* __const_vader_front_parser$DECORATORS(void);
+void* toolchain_parser$new_node_id_factory(void);
+vader_box_t toolchain_parser$parse_module_header(vader_string_t l0, vader_string_t l1);
+void toolchain_parser$assign_program_ids(void* l0, void* l1);
+int64_t toolchain_parser$mint(void* l0);
+void* toolchain_parser$parse_source_with_docs(vader_string_t l0, vader_string_t l1);
+void* toolchain_parser$parse_source(vader_string_t l0, vader_string_t l1);
+vader_box_t toolchain_parser$intrinsic_spec(vader_string_t l0);
+uint8_t toolchain_parser$arg_kind(void* l0, int64_t l1);
+bool toolchain_parser$is_evaluated(uint8_t l0);
+bool toolchain_parser$decorator_on(vader_string_t l0, uint8_t l1);
+void toolchain_parser$specs_by_name$keep(void);
+vader_string_t __lambda_toolchain_parser_0(void* l0, vader_string_t l1);
+vader_string_t __lambda_toolchain_parser_2(void* l0, vader_string_t l1);
+vader_string_t toolchain_parser$is_binding_hint(vader_box_t l0, vader_string_t l1, bool l2);
+vader_string_t __lambda_toolchain_parser_4(vader_string_t l0);
+vader_string_t __lambda_toolchain_parser_5(vader_string_t l0);
+void* __const_toolchain_parser$INTRINSICS(void);
+void* __const_toolchain_parser$DECORATORS(void);
 void* vader_core_symbol$make(void* l0, uint8_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, uint8_t l5, vader_box_t l6);
 bool vader_core_symbol$is_type_kind(uint8_t l0);
 bool vader_core_symbol$is_frozen_const(void* l0);
@@ -10321,7 +10327,9 @@ void __lambda_vader_midir_21(void* l0, int32_t l1);
 vader_box_t vader_midir$term_return_single(void* l0);
 bool vader_midir$has_bit(void* l0, int64_t l1, int32_t l2);
 void vader_midir$set_bit(void* l0, int64_t l1, int32_t l2);
+void __lambda_vader_midir_23(void* l0, vader_box_t l1);
 bool vader_midir$writes_local(vader_box_t l0, int32_t l1);
+bool vader_midir$names_variable(vader_box_t l0, int32_t l1);
 bool vader_midir$BlockId$std_core$Equals$equals(int32_t l0, int32_t l1);
 bool vader_midir$LocalId$std_core$Equals$equals(int32_t l0, int32_t l1);
 uint64_t vader_midir$BlockId$std_core$Hash$hash(int32_t l0);
@@ -10554,10 +10562,10 @@ bool std_char$is_digit(uint32_t l0);
 bool std_char$is_white_char(uint32_t l0);
 bool std_char$is_alpha(uint32_t l0);
 bool std_char$is_alphanumeric(uint32_t l0);
-void* vader_front_lexer$tokenize_opening(vader_string_t l0, vader_string_t l1, int64_t l2);
-void* vader_front_lexer$tokenize_with_docs(vader_string_t l0, vader_string_t l1);
-void* vader_front_lexer$tokenize(vader_string_t l0, vader_string_t l1);
-vader_string_t vader_front_lexer$kind_name(uint8_t l0);
+void* toolchain_lexer$tokenize_opening(vader_string_t l0, vader_string_t l1, int64_t l2);
+void* toolchain_lexer$tokenize_with_docs(vader_string_t l0, vader_string_t l1);
+void* toolchain_lexer$tokenize(vader_string_t l0, vader_string_t l1);
+vader_string_t toolchain_lexer$TokenKind$std_core$Display$to_string(uint8_t l0);
 uint64_t std_core$string$Hash$hash$$wrapper(vader_string_t l0);
 
 vader_box_t vader_fn_tramp___lambda_std_path_0(void* env, vader_box_t a0);
@@ -10566,10 +10574,10 @@ vader_box_t vader_fn_tramp___lambda_std_path_1(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static___lambda_std_path_1;
 vader_box_t vader_fn_tramp_std_string$compare_ascending(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_std_string$compare_ascending;
-vader_box_t vader_fn_tramp_vader_support_diagnostics$diag_less_with_file(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static_vader_support_diagnostics$diag_less_with_file;
-vader_box_t vader_fn_tramp_vader_support_diagnostics$diag_less(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static_vader_support_diagnostics$diag_less;
+vader_box_t vader_fn_tramp_toolchain_diagnostics$diag_less_with_file(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static_toolchain_diagnostics$diag_less_with_file;
+vader_box_t vader_fn_tramp_toolchain_diagnostics$diag_less(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static_toolchain_diagnostics$diag_less;
 vader_box_t vader_fn_tramp_vader_front_resolver$declared_roots$keep(void* env);
 extern vader_fn_t vader_fn_static_vader_front_resolver$declared_roots$keep;
 vader_box_t vader_fn_tramp___lambda_vader_front_resolver_0(void* env);
@@ -10696,12 +10704,12 @@ vader_box_t vader_fn_tramp_std_tty$stdout_is_tty$keep(void* env);
 extern vader_fn_t vader_fn_static_std_tty$stdout_is_tty$keep;
 vader_box_t vader_fn_tramp_toolchain_ast$ignore_node(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_toolchain_ast$ignore_node;
-vader_box_t vader_fn_tramp_vader_front_parser$specs_by_name$keep(void* env);
-extern vader_fn_t vader_fn_static_vader_front_parser$specs_by_name$keep;
-vader_box_t vader_fn_tramp___lambda_vader_front_parser_4(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_front_parser_4;
-vader_box_t vader_fn_tramp___lambda_vader_front_parser_5(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_front_parser_5;
+vader_box_t vader_fn_tramp_toolchain_parser$specs_by_name$keep(void* env);
+extern vader_fn_t vader_fn_static_toolchain_parser$specs_by_name$keep;
+vader_box_t vader_fn_tramp___lambda_toolchain_parser_4(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_toolchain_parser_4;
+vader_box_t vader_fn_tramp___lambda_toolchain_parser_5(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_toolchain_parser_5;
 vader_box_t vader_fn_tramp___lambda_vader_support_fixpoint_0(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_support_fixpoint_0;
 vader_box_t vader_fn_tramp_vader_midir$instruction_runs_code(void* env, vader_box_t a0);
@@ -10809,8 +10817,8 @@ vader_box_t vader_fn_lift___defer_vader_vm_22(void* env);
 vader_box_t vader_fn_lift___defer_vader_vm_24(void* env);
 vader_box_t vader_fn_lift___lambda_vader_front_comptime_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_toolchain_ast_0(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_parser_0(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_front_parser_2(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_toolchain_parser_0(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_toolchain_parser_2(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_front_reach_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_support_fixpoint_1(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_lower_optimise_0(void* env, vader_box_t a0);
@@ -10824,6 +10832,7 @@ vader_box_t vader_fn_lift___lambda_vader_midir_14(void* env, vader_box_t a0, vad
 vader_box_t vader_fn_lift___lambda_vader_midir_16(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_18(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_21(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_midir_23(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_optimise_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_optimise_2(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___defer_std_runtime_scheduler_0(void* env);
@@ -10846,7 +10855,7 @@ bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 3351u
+#define VADER_COMPTIME_ATOM_COUNT 3361u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

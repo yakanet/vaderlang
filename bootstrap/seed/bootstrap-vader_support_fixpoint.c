@@ -88,7 +88,7 @@ static void* vader_support_fixpoint$components_bottom_up(void* l0) {
     vader_array_t* _a8_arr = vader_array_new(28u, 0u, 8u, 508u);
     l7 = (void*) _a8_arr;
     vader_struct_vader_support_fixpoint$TarjanWalk_t* _a9_obj = (vader_struct_vader_support_fixpoint$TarjanWalk_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_fixpoint$TarjanWalk_t));
-    vader_obj_header_init(_a9_obj, 1712u);
+    vader_obj_header_init(_a9_obj, 1713u);
     _a9_obj->f_order = l2;
     _a9_obj->f_low = l3;
     _a9_obj->f_on_stack = l4;
@@ -298,7 +298,7 @@ static void* vader_support_fixpoint$pop_component(void* l0, int32_t l1) {
         }
         break;
     }
-    vader_host_std_abort$panic(2931u);
+    vader_host_std_abort$panic(2942u);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }
@@ -309,7 +309,7 @@ static void* vader_support_fixpoint$reachability_step(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct___lambda_env_vader_support_fixpoint_2_t* _a0_obj = (vader_struct___lambda_env_vader_support_fixpoint_2_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_support_fixpoint_2_t));
-    vader_obj_header_init(_a0_obj, 686u);
+    vader_obj_header_init(_a0_obj, 687u);
     _a0_obj->f_cap_0 = l1;
     _a0_obj->f_cap_1 = l0;
     t0 = (void*) _a0_obj;

@@ -19,7 +19,7 @@ int32_t vader_bootstrap$main(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) l0));
     if ((t0 < INT64_C(3))) {
-        std_console$eprintln__string(3087u);
+        std_console$eprintln__string(3097u);
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
@@ -29,11 +29,11 @@ int32_t vader_bootstrap$main(void* l0) {
     l1 = std_path$to_path(t2);
     vader_array_t* _a1_arr = vader_array_new(26u, 0u, 0u, 504u);
     l2 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(368u, 0u, 13u, 1720u);
+    vader_array_t* _a2_arr = vader_array_new(368u, 0u, 13u, 1721u);
     l3 = (void*) _a2_arr;
     vader_struct_vader_pipeline$BuildRequest_t* _a3_obj = (vader_struct_vader_pipeline$BuildRequest_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline$BuildRequest_t));
-    vader_obj_header_init(_a3_obj, 1701u);
-    _a3_obj->f_emit = 1818u;
+    vader_obj_header_init(_a3_obj, 1705u);
+    _a3_obj->f_emit = 1899u;
     _a3_obj->f_out = 0u;
     _a3_obj->f_release = true;
     _a3_obj->f_verify = false;
