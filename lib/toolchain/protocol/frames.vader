@@ -55,8 +55,7 @@ export ModuleFile :: struct {
 
 /// The pipeline reached a phase.
 export PhaseFrame :: struct {
-    /// The rank of the phase in `Phase`, of `toolchain/build`.
-    phase: i32
+    phase: Phase
 }
 
 /// The pipeline ended.
@@ -73,8 +72,11 @@ export ConfigureFrame :: struct {
     entries: ConfiguredEntry[]
     include_paths: string[]
     assets: string[]
-    /// The rank of the target in `BuildTarget`, of `toolchain/build`.
-    target: i32
+    /// Glob patterns over module names (`app/**`): `vader` sends a
+    /// `TypecheckedFrame` for a module one of them matches, and none when
+    /// there is no pattern.
+    modules: string[]
+    target: BuildTarget
     cc: string
     ldflags: string
 }
@@ -106,6 +108,36 @@ export NextFrame :: struct {}
 /// The driver pulls no more events: its loop ended before the stream did.
 export StopFrame :: struct {}
 
+// ---- phases and targets ---------------------------------------------------
+
+/// Where the pipeline is, ordered as the stages run.
+///
+/// Every variant has an emission site: draining `messages()` walks the whole
+/// build, so there is no reserved half of this enum. `BeforeEmit` is the one to
+/// know about: it is the last point at which leaving the loop produces nothing,
+/// which is how a driver that only wants to observe declines to build.
+export Phase :: enum(u8) {
+    /// Every module parsed, collected, resolved and typechecked.
+    Typechecked,
+    /// `@comptime` values evaluated, generic instances harvested.
+    Evaluated,
+    /// Last point before output. `break` here writes nothing; `break` after
+    /// leaves a partial binary.
+    BeforeEmit,
+    /// The lowered tree exists: desugared, before CFG and bytecode.
+    Lowered,
+    /// The output file has been written.
+    OutputWritten,
+}
+
+/// What a drained `messages()` leaves behind.
+export BuildTarget :: enum(u8) {
+    /// Link a binary per entry.
+    Native,
+    /// Produce nothing: for a driver that drains the stream purely to observe.
+    None,
+}
+
 /// A frame that does not read: a malformed or truncated stream, or a frame the
 /// reader does not expect.
 export ProtocolError :: struct {
@@ -132,7 +164,7 @@ server_payload :: fn(frame: ServerFrame) -> string {
         }
         is PhaseFrame       -> {
             out.write_field("phase")
-            out.write_integer(frame.phase)
+            out.write_integer(i64(frame.phase))
         }
         is CompleteFrame    -> {
             out.write_field("complete")
@@ -155,7 +187,8 @@ driver_payload :: fn(frame: DriverFrame) -> string {
             }
             out.write_strings(frame.include_paths)
             out.write_strings(frame.assets)
-            out.write_integer(frame.target)
+            out.write_strings(frame.modules)
+            out.write_integer(i64(frame.target))
             out.write_field(frame.cc)
             out.write_field(frame.ldflags)
         }
@@ -261,8 +294,11 @@ read_typechecked :: fn(r: FieldReader) -> TypecheckedFrame | ProtocolError {
 }
 
 read_phase :: fn(r: FieldReader) -> PhaseFrame | ProtocolError {
-    phase :: r.read_i32() else return phase
-    return PhaseFrame { .phase = phase }
+    rank :: r.read_integer() else return rank
+    if rank !in Phase {
+        return ProtocolError { .msg = "${rank} is no phase" }
+    }
+    return PhaseFrame { .phase = Phase(rank) }
 }
 
 read_complete :: fn(r: FieldReader) -> CompleteFrame | ProtocolError {
@@ -281,7 +317,11 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
     }
     include_paths :: r.read_strings() else return include_paths
     assets :: r.read_strings() else return assets
-    target :: r.read_i32() else return target
+    modules :: r.read_strings() else return modules
+    rank :: r.read_integer() else return rank
+    if rank !in BuildTarget {
+        return ProtocolError { .msg = "${rank} is no build target" }
+    }
     cc :: r.read_field() else return cc
     ldflags :: r.read_field() else return ldflags
     return ConfigureFrame {
@@ -289,7 +329,8 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
         .entries = entries,
         .include_paths = include_paths,
         .assets = assets,
-        .target = target,
+        .modules = modules,
+        .target = BuildTarget(rank),
         .cc = cc,
         .ldflags = ldflags,
     }
@@ -429,8 +470,8 @@ test_typechecked_frame_round_trips :: fn() -> void {
 
 @test
 test_phase_and_complete_frames_round_trip :: fn() -> void {
-    phase :: decode_server_frame(server_payload(PhaseFrame { .phase = 3 }))
-    assert(phase is PhaseFrame && phase.phase == 3, "the phase reads back")
+    phase :: decode_server_frame(server_payload(PhaseFrame { .phase = .Lowered }))
+    assert(phase is PhaseFrame && phase.phase == .Lowered, "the phase reads back")
     complete :: decode_server_frame(server_payload(CompleteFrame { .code = -1 }))
     assert(complete is CompleteFrame && complete.code == -1, "a negative code reads back")
 }
@@ -442,7 +483,8 @@ test_configure_frame_round_trips :: fn() -> void {
         .entries = [ConfiguredEntry { .name = "app", .path = "src/main.vader" }],
         .include_paths = [r"$VADER_HOME/third_party", "vendor"],
         .assets = [],
-        .target = 1,
+        .modules = ["app/**"],
+        .target = .None,
         .cc = "clang",
         .ldflags = "-lm -lpthread",
     }
@@ -457,7 +499,8 @@ test_configure_frame_round_trips :: fn() -> void {
     assert_eq(received.entries[0].path, "src/main.vader")
     assert_eq(received.include_paths.join(","), r"$VADER_HOME/third_party,vendor")
     assert_eq(received.assets.len(), 0)
-    assert_eq(received.target, 1)
+    assert_eq(received.modules.join(","), "app/**")
+    assert(received.target == .None, "the target reads back")
     assert_eq(received.cc, "clang")
     assert_eq(received.ldflags, "-lm -lpthread")
 }
@@ -495,6 +538,11 @@ test_next_and_stop_frames_round_trip :: fn() -> void {
 test_decode_refuses_a_frame_of_the_other_side :: fn() -> void {
     assert(decode_server_frame("4:next") is ProtocolError, "`vader` sends no `next`")
     assert(decode_driver_frame("5:phase1:3") is ProtocolError, "a driver sends no `phase`")
+}
+
+@test
+test_decode_refuses_a_phase_out_of_range :: fn() -> void {
+    assert(decode_server_frame("5:phase1:9") is ProtocolError, "no ninth phase")
 }
 
 @test

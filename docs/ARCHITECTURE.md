@@ -60,10 +60,13 @@ the trait: the type checker checks it once there, `Self` a type parameter bounde
 by the trait, and the lowerer reads it for each impl as it reads a generic
 function for each instance (`vader/lower/inherited.vader`).
 
-A project's `build.vader` drives the same pipeline through `toolchain/build`
-(`lib/toolchain/build/drive.vader`): per generation round the front end runs once,
-the driver reads each module's typed declarations and phase boundaries from that
-run, which the back end lowers.
+A project's `build.vader` drives the same pipeline through `toolchain/build`, and
+`vader` runs it (`vader/build_server`, ADR 0145): per generation round the front end
+runs once, the driver reads each module's typed declarations and phase boundaries
+from that run, which the back end lowers. Between two events, what the driver did
+(modules to generate, reports) reaches the build, which writes the generated
+modules at `BeforeEmit`. A `vader.json` is served by the same build, its driver
+standing in `vader` itself (`manifest_peer`).
 
 ## Lexer: interpolated strings
 

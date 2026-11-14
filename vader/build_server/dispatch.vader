@@ -1,0 +1,263 @@
+// vader/build_server/dispatch: a build served to its driver, one event at a time.
+//
+// Lock-step, as the stream is: the driver opens with its `ConfigureFrame`, then
+// for each event `vader` sends, the driver answers with its requests (modules
+// to generate, reports) and closes with `NextFrame`, or `StopFrame` when its
+// loop is over. Whatever stands on the other side is a `DriverPeer`: the driver
+// a `vader.json` stands for, in this process (`ManifestPeer`), or a driver
+// process behind its pipes.
+
+module "vader/build_server"
+
+import "std/console"
+import "std/glob"
+import "std/iter"
+import "toolchain/diagnostics"
+import "toolchain/protocol"
+import "vader/front/resolver"
+import "vader/pipeline"
+
+// ---- peers ----------------------------------------------------------------
+
+/// The driver a build is served to: what `vader` tells it, and what it answers.
+export DriverPeer :: trait {
+    /// Hand the driver an event.
+    send :: fn(self, frame: ServerFrame) -> null | ProtocolError
+    /// The driver's next frame, waited for.
+    receive :: fn(self) -> DriverFrame | ProtocolError
+}
+
+/// The driver a `vader.json` stands for, in `vader`'s own process: it configures
+/// the build from the file, reads no module, and lets every event pass.
+export ManifestPeer :: struct {
+    /// The file, read and found without problems: its reader checks the entry
+    /// names and the assets.
+    manifest: Manifest
+    /// The C toolchain the command named, which a `vader.json` does not change.
+    cc: string
+    ldflags: string
+    @internal
+    configured: bool = false
+}
+
+ManifestPeer implements DriverPeer {
+    send :: fn(self, frame: ServerFrame) -> null | ProtocolError = null
+
+    receive :: fn(self) -> DriverFrame | ProtocolError {
+        if self.configured {
+            return NextFrame {}
+        }
+        self.configured = true
+        return ConfigureFrame {
+            .fingerprint = "",
+            .entries = configured_entries(self.manifest.entries),
+            .include_paths = self.manifest.include_paths,
+            .assets = self.manifest.assets,
+            .modules = [],
+            .target = .Native,
+            .cc = self.cc,
+            .ldflags = self.ldflags,
+        }
+    }
+}
+
+/// The driver of a `vader.json` project, for the build `request` asks.
+///
+/// @param request   what the command asks ; its C toolchain is the build's.
+/// @param manifest  the project's file, read and found without problems.
+export manifest_peer :: fn(request: DriverRequest, manifest: Manifest) -> ManifestPeer =
+    ManifestPeer {
+        .manifest = manifest,
+        .cc = cc_or_default(request.build.cc),
+        .ldflags = request.build.ldflags,
+    }
+
+// ---- serving --------------------------------------------------------------
+
+/// Serve the build a driver configures, as the command asked: its events go to
+/// the driver, its requests to the build, until the stream ends or the driver
+/// stops pulling it.
+///
+/// @param peer              the driver.
+/// @param request           what the command asks.
+/// @param description_file  the file describing the project, relative to it:
+///                          `vader.json`, `build.vader`.
+/// @return                  the build's exit code: 1 once its diagnostics hold an
+///                          error, the driver's reports included, or when the
+///                          driver breaks the protocol.
+export serve :: fn(peer: DriverPeer, request: DriverRequest, description_file: string) -> i32 {
+    opening :: peer.receive() else is ProtocolError {
+        return protocol_failure(opening.msg)
+    }
+    if opening !is ConfigureFrame {
+        return protocol_failure("the driver opened with another frame than its configuration")
+    }
+    session :: new_session(request, description_file, opening) else is GlobError {
+        return protocol_failure("a module pattern does not parse: ${session.message()}")
+    }
+    code := 0
+    for event in build_events(session) {
+        sent :: peer.send(frame_of(event)) else is ProtocolError {
+            return protocol_failure(sent.msg)
+        }
+        answered :: answer(peer, session) else is ProtocolError {
+            return protocol_failure(answered.msg)
+        }
+        if event is CompleteFrame {
+            code = event.code
+        }
+        if answered is StopFrame {
+            break
+        }
+    }
+    return close_session(session, code)
+}
+
+// Take the driver's requests until it lets the build go on: the frame that
+// closed them, `NextFrame` or `StopFrame`.
+answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame | ProtocolError {
+    for {
+        frame :: peer.receive() else is ProtocolError {
+            return frame
+        }
+        match frame {
+            is EmitModuleFrame       -> session.queue_module(frame.name, frame.source)
+            is ReportFrame           -> {
+                reported :: take_report(session, frame) else is ProtocolError {
+                    return reported
+                }
+            }
+            is NextFrame | StopFrame -> {
+                return frame
+            }
+            is ConfigureFrame        -> {
+                return ProtocolError { .msg = "the driver configured its build twice" }
+            }
+        }
+    }
+}
+
+// The report of the driver, under the hook code it names.
+take_report :: fn(session: BuildSession, frame: ReportFrame) -> null | ProtocolError {
+    for code in HookCode {
+        if CodeInfo(code).id == frame.code {
+            session.diagnostics.push(hook_error(code, frame.span, frame.detail))
+            return null
+        }
+    }
+    return ProtocolError { .msg = "`${frame.code}` is no hook code" }
+}
+
+frame_of :: fn(event: BuildEvent) -> ServerFrame = match event {
+    is ModuleTypechecked -> TypecheckedFrame {
+        .module_name = event.module_name,
+        .files = event.files.map((f) -> ModuleFile { .path = f.path, .text = f.content }).collect(),
+    }
+    is PhaseFrame        -> event
+    is CompleteFrame     -> event
+}
+
+protocol_failure :: fn(problem: string) -> i32 {
+    eprintln("vader: the build driver broke the protocol: ${problem}")
+    return 1
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+
+// A driver that answers each event with the frames a test lined up, and writes
+// down what it was sent.
+ScriptedPeer :: struct {
+    answers: DriverFrame[]
+    sent: ServerFrame[] = []
+    at: i64 = 0
+}
+
+ScriptedPeer implements DriverPeer {
+    send :: fn(self, frame: ServerFrame) -> null | ProtocolError {
+        self.sent.push(frame)
+        return null
+    }
+
+    receive :: fn(self) -> DriverFrame | ProtocolError {
+        if self.at >= self.answers.len() {
+            return ProtocolError { .msg = "the script is over" }
+        }
+        frame :: self.answers[self.at]
+        self.at += 1
+        return frame
+    }
+}
+
+// A configuration with no entry, reading every module.
+entryless :: fn() -> ConfigureFrame = ConfigureFrame {
+    .fingerprint = "",
+    .entries = [],
+    .include_paths = [],
+    .assets = [],
+    .modules = ["**"],
+    .target = .Native,
+    .cc = "cc",
+    .ldflags = "",
+}
+
+@test
+test_serve_ends_a_build_without_entries_on_its_failure :: fn() -> void {
+    peer :: ScriptedPeer { .answers = [entryless(), NextFrame {}] }
+    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    assert_eq(peer.sent.len(), 1)
+    assert(peer.sent[0] is CompleteFrame, "the stream is its end alone")
+}
+
+@test
+test_a_report_is_taken_under_its_hook_code :: fn() -> void {
+    report :: ReportFrame {
+        .code = "H6004",
+        .span = empty_span(),
+        .detail = "a rule of the project",
+    }
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    assert(take_report(session, report) == null, "`H6004` is a hook code")
+    assert_eq(session.diagnostics[0].code.id, "H6004")
+    assert_eq(session.diagnostics[0].detail, "a rule of the project")
+}
+
+@test
+test_a_report_under_another_code_is_refused :: fn() -> void {
+    report :: ReportFrame {
+        .code = "T3001",
+        .span = empty_span(),
+        .detail = "a forged type error",
+    }
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    assert(take_report(session, report) is ProtocolError, "a driver reports under hook codes")
+    assert_eq(session.diagnostics.len(), 0)
+}
+
+@test
+test_serve_refuses_a_driver_that_does_not_open_with_its_configuration :: fn() -> void {
+    peer :: ScriptedPeer { .answers = [NextFrame {}] }
+    assert_eq(serve(peer, parse_driver_request(["driver", "/tmp/proj"]), "build.vader"), 1)
+    assert_eq(peer.sent.len(), 0)
+}
+
+@test
+test_a_manifest_peer_configures_then_lets_every_event_pass :: fn() -> void {
+    manifest :: Manifest {
+        .include_paths = ["vendor"],
+        .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
+        .assets = [],
+    }
+    peer :: manifest_peer(parse_driver_request(["driver", "/tmp/proj"]), manifest)
+    opening :: peer.receive()
+    if opening !is ConfigureFrame {
+        assert(false, "the peer opens with its configuration")
+        return
+    }
+    assert_eq(opening.entries[0].name, "app")
+    assert_eq(opening.include_paths[0], "vendor")
+    assert_eq(opening.modules.len(), 0)
+    assert(peer.receive() is NextFrame, "then it lets the build go on")
+}

@@ -11,6 +11,7 @@
 module "toolchain/build"
 
 AST :: import "toolchain/ast"
+Protocol :: import "toolchain/protocol"
 
 // ---- events ---------------------------------------------------------------
 
@@ -51,25 +52,9 @@ export CompleteMessage :: struct {
 
 // ---- phases ---------------------------------------------------------------
 
-/// Where the pipeline is, ordered as the stages run.
-///
-/// Every variant has an emission site: draining `messages()` walks the whole
-/// build, so there is no reserved half of this enum. `BeforeEmit` is the one to
-/// know about: it is the last point at which leaving the loop produces nothing,
-/// which is how a driver that only wants to observe declines to build.
-export Phase :: enum(u8) {
-    /// Every module parsed, collected, resolved and typechecked.
-    Typechecked,
-    /// `@comptime` values evaluated, generic instances harvested.
-    Evaluated,
-    /// Last point before output. `break` here writes nothing; `break` after
-    /// leaves a partial binary.
-    BeforeEmit,
-    /// The lowered tree exists: desugared, before CFG and bytecode.
-    Lowered,
-    /// The output file has been written.
-    OutputWritten,
-}
+/// Where the pipeline is, ordered as the stages run: the `Phase` of
+/// `toolchain/protocol`, which `vader` sends.
+export Phase :: Protocol.Phase
 
 /// Render a phase as the name a driver would print in a log line.
 export display_phase :: fn(p: Phase) -> string = match p {

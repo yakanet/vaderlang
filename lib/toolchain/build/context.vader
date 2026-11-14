@@ -15,9 +15,9 @@
 //     }
 //
 // This file is the CONTRACT: what a driver fills in, and what it reads back.
-// Draining the stream is `drive.vader`; writing generated modules is
-// `generate.vader`; what a driver plugs into its build is `plugin.vader`; the
-// driver a `vader.json` stands for is `manifest.vader`.
+// Draining the stream is `drive.vader`; queueing generated modules is
+// `generate.vader`; what a driver plugs into its build is `plugin.vader`.
+// `vader` runs the build itself (`vader/build_server`).
 // They share this module, so nothing crosses a boundary.
 //
 // `build` is a reserved name in `build.vader`, the way `main` is in a program:
@@ -34,6 +34,8 @@ import "std/path"
 import "vader/pipeline"
 import "vader/front/resolver"
 import "toolchain/span"
+Protocol :: import "toolchain/protocol"
+import "vader/build_server"
 
 // ---- context --------------------------------------------------------------
 
@@ -57,15 +59,6 @@ export BuildContext :: struct {
     /// folder when it starts with `$VADER_HOME`, searched after the project
     /// folder. Left empty by `new_build_context`.
     include_paths:  string[]
-    /// Where generated modules land, relative to `project_root`.
-    ///
-    /// `@internal`, and deliberately not part of the configuration surface: the
-    /// RESOLVER decides where generated modules are read from
-    /// (`resolver::GENERATED_ROOT_DIR`, probed under the project root), so a
-    /// driver that could move where it writes would write somewhere the compiler
-    /// never looks. One of the two halves has to be authoritative.
-    @internal
-    generated_root: string
     /// What the command asked, read from `args` or handed over in process:
     /// the binaries go to `build/<profile>-<target>/<name>` under
     /// `project_root`, or to `--out`.
@@ -79,24 +72,16 @@ export BuildContext :: struct {
     /// system builds; a driver that only observes leaves the loop at
     /// `BeforeEmit` rather than setting this.
     target:         BuildTarget
-    /// C emitted by a `.C`-targeted drain, in the order of the entries.
+    /// Modules the driver emitted since the build last took them, which it does
+    /// before each event: those of the current round are written once it
+    /// reaches `BeforeEmit`.
     @internal
-    c_sources:      string[] = []
-    /// Modules the driver asked for in the CURRENT round, awaiting a flush.
-    /// Emptied by `flush_generated` once the round reaches `BeforeEmit`: the
-    /// driver has had every chance to emit by then.
-    @internal
-    pending:        GeneratedModule[] = []
-    /// Generated files written this build, in the order they landed. The sweep
-    /// runs before the first round, so this set is authoritative for this run.
+    pending:        Protocol.EmitModuleFrame[] = []
+    /// Generated files the build wrote, in the order they landed, known once
+    /// the stream ended. The sweep runs before the first round, so this set is
+    /// authoritative for this run.
     @internal
     generated:      string[] = []
-    /// True once a stream reached its generation rounds, so a module still
-    /// pending at the driver's exit is one no round wrote. A stream that
-    /// compiles nothing (a description, a run waiting for its entry, a refused
-    /// configuration) leaves it false.
-    @internal
-    entered_rounds: bool = false
     /// Entries, in the order `add_entry` added them. Read by the driver loop,
     /// never written directly: the order is what makes a build reproducible,
     /// so it stays behind `add_entry`.
@@ -114,12 +99,17 @@ export BuildContext :: struct {
     /// stream prints them, and the driver's exit what is left.
     @internal
     diagnostics:    Diagnostic[] = []
-    /// How many of `diagnostics` are printed already, so none prints twice.
+    /// How many of `diagnostics` the build took or the driver's exit printed,
+    /// so none prints twice.
     @internal
     printed:        i64 = 0
     /// The plugins `use` received, in that order (`plugin.vader`).
     @internal
     plugins:        BuildPlugin[] = []
+    /// The build the last `messages()` opened, which the driver's exit closes
+    /// when the driver left its loop before the end.
+    @internal
+    session:        BuildSession | null = null
 }
 
 /// Where generated modules land, relative to the project root.
@@ -167,12 +157,11 @@ DriverContexts :: struct {
 @singleton
 driver_contexts :: fn() -> DriverContexts = DriverContexts {}
 
-// A context for a request already in hand: `new_build_context` reads it from
-// `args`, `build_from_manifest` receives it from the CLI.
+// A context for a request already in hand, which `new_build_context` reads from
+// `args`.
 new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildContext {
     .project_root   = request.build.project_root else "",
     .include_paths  = [],
-    .generated_root = DEFAULT_GENERATED_ROOT,
     .request        = request,
     .cc             = cc_or_default(request.build.cc),
     .ldflags        = request.build.ldflags,
@@ -188,42 +177,9 @@ new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildCont
 /// @param ctx  the context the driver configured.
 export mode :: fn(ctx: BuildContext) -> DriverMode = ctx.request.mode
 
-/// What a drained `messages()` leaves behind.
-export BuildTarget :: enum(u8) {
-    /// Link a binary per entry.
-    Native,
-    /// Emit C only, collected by `emit_c`.
-    C,
-    /// Produce nothing: for a driver that drains the stream purely to observe.
-    None,
-}
-
-// The roots the front end takes as flags: the CLI's `--include-paths`. The
-// compiler's own `lib/` is the loader's to find, through the toolchain the CLI
-// named (`register_toolchain_root`). What the driver configured reaches the
-// loader at the rank of a manifest's `includePaths` (`register_project_roots`),
-// or, with no project to register it under, follows here, relative to the
-// working directory.
-search_roots :: fn(ctx: BuildContext) -> string[] {
-    roots: string[]: []
-    roots.push_all(ctx.request.build.include_paths)
-    if project_of(ctx) == null {
-        library :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-        for p in ctx.include_paths {
-            roots.push(manifest_root("", p, library))
-        }
-    }
-    return roots
-}
-
-// The project the front end compiles in: `project_root`, null when the CLI
-// passed none.
-project_of :: fn(ctx: BuildContext) -> string | null {
-    if ctx.project_root == "" {
-        return null
-    }
-    return ctx.project_root
-}
+/// What a drained `messages()` leaves behind: the `BuildTarget` of
+/// `toolchain/protocol`, which a driver sends.
+export BuildTarget :: Protocol.BuildTarget
 
 // Where to anchor a diagnostic about the DRIVER's behaviour: no entry added, two
 // entries of one name, a module name it built badly. The faulty
@@ -331,11 +287,6 @@ import "std/testing"
 @test test_new_context_bare_args_leaves_root_empty :: fn() -> void {
     ctx :: new_build_context(["driver"])
     assert_eq(ctx.project_root, "")
-}
-
-@test test_new_context_defaults_generated_root :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
-    assert_eq(ctx.generated_root, DEFAULT_GENERATED_ROOT)
 }
 
 @test test_new_context_has_no_include_paths :: fn() -> void {

@@ -2,7 +2,7 @@
 // `build.vader` a `vader.json` stands for.
 //
 // A `vader.json` is built by the minimal driver compiled into `vader`
-// (`toolchain/build::build_from_manifest`). Ejecting writes that driver out as
+// (`vader/build_server::manifest_peer`). Ejecting writes that driver out as
 // the project's own `build.vader`, the same search roots, entries and assets in
 // code, for a project whose build has to go further than the file can say. The
 // `vader.json` goes, since a folder holding both is refused; with

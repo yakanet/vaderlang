@@ -1,0 +1,382 @@
+// vader/build_server/events: the build a driver drives, as a stream of events.
+//
+// Draining the stream IS the build. One stream loops over generation rounds:
+//
+// ```
+// Typechecked (per module) -> Typechecked -> Evaluated -> BeforeEmit
+//                                                         | `vader` writes the generated modules,
+//                                                         | another round if any landed
+//                                             Lowered -> OutputWritten -> Complete
+// ```
+//
+// The stream yields; whoever pulls it decides what happens between two events:
+// a driver in this process (`toolchain/build`), or the dispatcher for one
+// behind a pipe. What the driver did in between reaches the session
+// (`queue_module`, the diagnostics) before the stream resumes, which is why the
+// generated modules are written AFTER `BeforeEmit` is pulled.
+
+module "vader/build_server"
+
+import "std/collections"
+import "std/console"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/string" { join as join_strings }
+import "toolchain/diagnostics"
+import "toolchain/protocol"
+import "vader/front/resolver"
+import "vader/pipeline"
+
+// ---- events ---------------------------------------------------------------
+
+/// What the build hands its driver: a module that passed type checking, a phase
+/// reached, the end.
+export BuildEvent :: ModuleTypechecked | PhaseFrame | CompleteFrame
+
+/// A module passed type checking, with the files of it the driver has not
+/// received yet.
+export ModuleTypechecked :: struct {
+    module_name: string
+    /// As the loader read them, their parsed tree included. A module a round
+    /// generated into comes back with the generated file alone.
+    files: SourceFile[]
+}
+
+// ---- the stream -----------------------------------------------------------
+
+/// Run the build the session describes, and yield what the pipeline produces.
+///
+/// Nothing compiles until the first event is pulled. Each entry runs through
+/// the front end (`load -> resolve + typecheck -> comptime`), yielding one
+/// `ModuleTypechecked` per module the driver reads (`reads_module`), then the
+/// phases, and last one `CompleteFrame` for the whole build.
+///
+/// Every file is delivered ONCE per entry, however many generation rounds the
+/// entry takes: a module with nothing new is not yielded at all. The "once" is
+/// per ENTRY, not per build: two entries sharing a module both deliver it.
+///
+/// The modules queued before `BeforeEmit` is pulled are written then, and the
+/// phases from `Typechecked` to `BeforeEmit` repeat while a round writes one;
+/// the back end runs after the last round.
+///
+/// What the command asked shapes the stream: `--entry` narrows the entries to
+/// one; a check lowers after the last generation round and links nothing; the
+/// preparation of a run writes the project for the CLI and stops after the last
+/// generation round; a description writes the project as declared and compiles
+/// nothing. A build writes each binary to `build/<profile>-<target>/<name>`, or
+/// to `--out` for its one entry, copies the assets beside them, and stops at the
+/// first entry that fails. Every mode writes the generated modules.
+///
+/// @param session  the build ; its diagnostics gather what goes wrong.
+/// @return         a lazy stream of events, in pipeline order. The code of the
+///                 `CompleteFrame` is the pipeline's: `close_session` adds what
+///                 the diagnostics say.
+/// @error          H6003 when the driver added no entry ; H6009 when `--entry`
+///                 names none of them ; H6011 when `--out` names one output for
+///                 several entries ; H6006 when generation never settles ; H6008
+///                 when a generated module cannot be written. All land on the
+///                 session's diagnostics.
+export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
+    // An error already in the session means the driver's configuration holds
+    // less than it wrote: what is left is neither described nor compiled.
+    if any_error_diag(session.diagnostics) {
+        yield CompleteFrame { .code = 1 }
+        return
+    }
+    request :: session.request
+    output :: output_request(session)
+    if request.mode == .Describe {
+        yield CompleteFrame { .code = write_description(session, session.entries) }
+        return
+    }
+    if session.entries.len() == 0 {
+        session.report_driver(.NoEntry, "call `ctx.add_entry(...)` before iterating `messages()`")
+        yield CompleteFrame { .code = 1 }
+        return
+    }
+    chosen :: chosen_entries(session) else {
+        yield CompleteFrame { .code = 1 }
+        return
+    }
+    writes_outputs :: request.mode == .Build && session.target == .Native
+    if writes_outputs && output.out != "" && chosen.len() > 1 {
+        detail :: "`--out` names one output and ${chosen.len()} entries are built; "
+            + "choose one with `--entry`"
+        session.report_driver(.OutputForSeveralEntries, detail)
+        yield CompleteFrame { .code = 1 }
+        return
+    }
+    if write_description(session, chosen) != 0 {
+        yield CompleteFrame { .code = 1 }
+        return
+    }
+    // A run among several entries with none named needs nothing compiled: the
+    // CLI asks the user to choose first.
+    if request.mode == .Prepare && chosen.len() > 1 {
+        yield CompleteFrame { .code = 0 }
+        return
+    }
+    // Generated modules of an EARLIER build would still resolve, and (file
+    // names being content hashes) a module whose text changed would sit beside
+    // its own previous version and collide with it. Swept BEFORE the first front
+    // end rather than after the last: a build that fails never reaches its own
+    // cleanup, and the guarantee that matters is about the build starting now.
+    sweep_generated(generated_root_of(session))
+    code := 0
+    output_dir :: project_output_dir(session.project_root, output.release, output.target)
+    binaries :: binary_folder(output.out, output_dir)
+    if writes_outputs && !ensure_dir(binaries) {
+        yield CompleteFrame { .code = 1 }
+        return
+    }
+    session.entered_rounds = true
+    writes_binaries :: writes_outputs && output.emit == "executable"
+    project :: output.project_root
+    // The loader reads the driver's roots where it reads a manifest's.
+    if project != null {
+        register_project_roots(project, session.include_paths)
+    }
+    roots :: search_roots(session)
+    for chosen_entry in chosen {
+        entry :: Path(join_path(session.project_root, chosen_entry.path))
+        // What is tracked is the FILE, not the module, and that precision is
+        // load-bearing: when a driver emits into a module it also reads (the
+        // `@derive` shape: read `app`'s structs, generate into `app`), the next
+        // round re-delivers that module carrying ONLY the generated file. A
+        // rule over the hand-written declarations therefore fires exactly once.
+        // File paths are stable across rounds: a generated one IS its own
+        // content hash.
+        delivered :: Set<string> {}
+        round := 0
+        for {
+            // The pipeline stays live to the end of the round, which is what
+            // lets the back end reuse it instead of re-running ~45% of the
+            // build. The generated tree is not passed: the loader derives it
+            // from the project root, so what this build reads is what `vader
+            // run` and the LSP read too.
+            pipeline :: prepare_evaluated_project_with(entry, roots, project, output.target)
+            for [_, loaded] in pipeline.loaded.modules {
+                if !session.reads_module(loaded.module.module_name) {
+                    continue
+                }
+                fresh :: undelivered_files(loaded.module.files, delivered)
+                // Nothing new in this module: say nothing about it at all,
+                // rather than yield an event the driver would have to skip. The
+                // front end may have dropped every declaration of a file (the
+                // unused ones of `lib/`), which leaves nothing new either.
+                if !fresh.any_match((f) -> f.program.decls.len() > 0) {
+                    continue
+                }
+                yield ModuleTypechecked { .module_name = loaded.module.module_name, .files = fresh }
+            }
+            yield PhaseFrame { .phase = .Typechecked }
+            yield PhaseFrame { .phase = .Evaluated }
+            // Last exit before anything is written. A driver that only observes
+            // leaves here, and one that generates has had every chance to queue
+            // its modules by now, which is why the flush FOLLOWS this yield
+            // instead of preceding it.
+            yield PhaseFrame { .phase = .BeforeEmit }
+            regenerated :: flush_generated(session)
+            if regenerated.len() > 0 {
+                round += 1
+                if round < MAX_GENERATION_ROUNDS {
+                    continue
+                }
+                // Not a hang: a driver whose emitted text never stabilises. The
+                // detail names what was still moving, since that is the only
+                // clue to which rule is unstable.
+                moving :: join_strings(regenerated, "`, `")
+                detail :: "`${moving}` still changed after ${MAX_GENERATION_ROUNDS} rounds"
+                session.report_driver(.GenerationDidNotSettle, detail)
+                code = 1
+                break
+            }
+            // Nothing moved: this is the fixed point, and the last round's
+            // pipeline is the one the back end gets. The command that follows a
+            // preparation reports on the program itself, so this run reports
+            // only on the driver.
+            if request.mode == .Prepare || session.target == .None {
+                break
+            }
+            lowered :: lower_to_entry_from(pipeline, output.verify)
+            yield PhaseFrame { .phase = .Lowered }
+            if request.mode == .Check {
+                session.diagnostics.push_all(lowered.pre_diags)
+                session.diagnostics.push_all(lowered.lower_diags)
+                if any_error_diag(lowered.pre_diags) || any_error_diag(lowered.lower_diags) {
+                    code = 1
+                }
+                break
+            }
+            stem :: project_entry_stem(
+                session.project_root,
+                chosen_entry.name,
+                output.release,
+                output.target,
+            )
+            built :: emit_one(session, lowered, entry, stem, output)
+            if built != 0 {
+                code = built
+            }
+            yield PhaseFrame { .phase = .OutputWritten }
+            break
+        }
+        // A check reports on every entry; a build stops at the first failure.
+        if code != 0 && writes_outputs {
+            break
+        }
+    }
+    if code == 0 && writes_binaries {
+        if !copy_assets(session.project_root, session.assets, binaries) {
+            code = 1
+        }
+    }
+    yield CompleteFrame { .code = code }
+}
+
+// The folder a build writes its binaries to: that of `--out` when `out_flag`
+// names one, else the project's `output_dir`.
+binary_folder :: fn(out_flag: string, output_dir: string) -> string {
+    if out_flag != "" {
+        return folder_of(Path(out_flag))
+    }
+    return output_dir
+}
+
+// Write the description the command asked for, the project as declared with
+// `entries`: 0, or 1 after saying why it could not be written. Nothing to do
+// when none was asked.
+write_description :: fn(session: BuildSession, entries: ManifestEntry[]) -> i32 {
+    path :: session.request.description
+    if path == "" {
+        return 0
+    }
+    project :: Manifest {
+        .include_paths = session.include_paths,
+        .entries = entries,
+        .assets = session.assets,
+    }
+    written :: write_driver_description(path, project) else is IOError {
+        eprintln("vader: cannot write `${path.to_native()}`: ${written.message()}")
+        return 1
+    }
+    return 0
+}
+
+// The entries this build compiles: every one, or the one `--entry` names. Null
+// after reporting H6009 when it names none. Only the driver knows its entries,
+// so it chooses; the CLI takes the answer as it comes.
+chosen_entries :: fn(session: BuildSession) -> ManifestEntry[] | null {
+    selected :: session.request.selected
+    if selected == "" {
+        return session.entries
+    }
+    for entry in session.entries {
+        if entry.name == selected {
+            return [entry]
+        }
+    }
+    names :: session.entries.map((e) -> e.name).collect()
+    detail :: "`${selected}` is none of `${join_strings(names, "`, `")}`"
+    session.report_driver(.UnknownEntry, detail)
+    return null
+}
+
+// The files not delivered yet, marking them delivered as it goes. Empty when the
+// module has nothing new.
+undelivered_files :: fn(files: SourceFile[], delivered: Set<string>) -> SourceFile[] {
+    fresh: SourceFile[]: []
+    for f in files {
+        if delivered.add(f.path) {
+            fresh.push(f)
+        }
+    }
+    return fresh
+}
+
+// Carry one lowered entry to its output. Diagnostics land on the session so they
+// interleave with the driver's own reports in order.
+emit_one :: fn(
+    session: BuildSession,
+    lowered: LoweredEntry,
+    entry: Path,
+    stem: Path,
+    output: BuildRequest,
+) -> i32 {
+    cfg :: prepare_program_from(lowered, entry, output)
+    session.diagnostics.push_all(cfg.pre_diags)
+    session.diagnostics.push_all(cfg.lower_diags)
+    // BOTH bags, as `flush_build_diags` does for `vader build <file>`: a lowering
+    // error still leaves bytecode behind, so gating on `pre_diags` alone would
+    // emit C from it, link a binary, and report success: a silently wrong build.
+    if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
+        return 1
+    }
+    problem :: entry_problem(cfg, entry)
+    if problem != null {
+        eprintln("vader build: ${problem}")
+        return 1
+    }
+    return emit_program(cfg, entry, stem, output)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Pull the whole stream, and give the code of its end.
+drained :: fn(session: BuildSession) -> i32 {
+    code := -1
+    for event in build_events(session) {
+        if event is CompleteFrame {
+            code = event.code
+        }
+    }
+    return code
+}
+
+@test
+test_build_events_with_an_unknown_entry_reports_h6009 :: fn() -> void {
+    request :: parse_driver_request(["driver", "/tmp/proj", "", "--entry=tool"])
+    session :: test_session(request, [ConfiguredEntry { .name = "app", .path = "src/main.vader" }])
+    // The choice is checked before any front end runs, so nothing is compiled.
+    assert_eq(drained(session), 1)
+    assert_eq(session.diagnostics.len(), 1)
+    assert_eq(session.diagnostics[0].code.id, "H6009")
+}
+
+@test
+test_build_events_with_one_output_for_two_entries_reports_h6011 :: fn() -> void {
+    request :: parse_driver_request(["driver", "/tmp/proj", "", "--out=/tmp/app"])
+    entries :: [
+        ConfiguredEntry { .name = "app", .path = "src/main.vader" },
+        ConfiguredEntry { .name = "tool", .path = "tool.vader" },
+    ]
+    session :: test_session(request, entries)
+    // Refused before any front end runs, so nothing is compiled.
+    assert_eq(drained(session), 1)
+    assert_eq(session.diagnostics.len(), 1)
+    assert_eq(session.diagnostics[0].code.id, "H6011")
+}
+
+@test
+test_build_events_without_entries_reports_h6003 :: fn() -> void {
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    assert_eq(drained(session), 1)
+    assert_eq(session.diagnostics.len(), 1)
+    assert_eq(session.diagnostics[0].code.id, "H6003")
+}
+
+@test
+test_build_events_after_a_configuration_error_compiles_nothing :: fn() -> void {
+    session :: test_session(
+        parse_driver_request(["driver", "/tmp/proj"]),
+        [ConfiguredEntry { .name = "app", .path = "src/main.vader" }],
+    )
+    session.report_driver(.DuplicateEntryName, "twice")
+    // The entry is not compiled: its front end would add a report of its own,
+    // the file not being there.
+    assert_eq(drained(session), 1)
+    assert_eq(session.diagnostics.len(), 1)
+}

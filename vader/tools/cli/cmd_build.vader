@@ -27,7 +27,7 @@ import "vader/core/bytecode"
 import "vader/front/virt"
 import "vader/vm"
 import "vader/pipeline"
-Build :: import "toolchain/build"
+Server :: import "vader/build_server"
 import "vader/emit/c"
 import "std/sort"
 
@@ -273,8 +273,8 @@ strip_input_suffix :: fn(file: Path) -> Path =
     }
 
 // Build or check the `vader.json` project through the driver that file stands
-// for (`build_from_manifest`), run in this process: the engine every
-// `build.vader` drives, with no driver to compile.
+// for (`manifest_peer`), served in this process: the build every `build.vader`
+// drives, with no driver to compile.
 run_manifest_project :: fn(
     project: ManifestProject,
     selected: string,
@@ -286,7 +286,8 @@ run_manifest_project :: fn(
         .selected = selected,
         .build = BuildRequest { ...request, .project_root = project.dir },
     }
-    return Build.build_from_manifest(driver_request, project.manifest)
+    peer :: Server.manifest_peer(driver_request, project.manifest)
+    return Server.serve(peer, driver_request, MANIFEST_FILENAME)
 }
 
 // Build one entry file as `request` asks, its outputs named after it without

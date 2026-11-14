@@ -275,13 +275,13 @@ test_scan_output_refuses_a_malformed_header :: fn() -> void {
 
 @test
 test_frame_length_reads_the_header_line_of_a_server_frame :: fn() -> void {
-    framed_text :: encode_server_frame(PhaseFrame { .phase = 2 })
+    framed_text :: encode_server_frame(PhaseFrame { .phase = .BeforeEmit })
     newline :: framed_text.index_of('\n') else panic("a frame has a header line")
     length :: frame_length(framed_text.byte_slice(0, newline)) else panic("${length.msg}")
     payload :: framed_text.byte_slice(newline + 1, framed_text.byte_len())
     assert_eq(length, payload.byte_len())
     received :: decode_server_frame(payload)
-    assert(received is PhaseFrame && received.phase == 2, "the frame reads back")
+    assert(received is PhaseFrame && received.phase == .BeforeEmit, "the frame reads back")
 }
 
 @test

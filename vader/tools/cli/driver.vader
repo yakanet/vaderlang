@@ -48,7 +48,7 @@ import "vader/front/resolver"
 import "toolchain/span"
 import "vader/pipeline"
 import "vader/support/text"
-Build :: import "toolchain/build"
+Server :: import "vader/build_server"
 
 // ---- discovery ------------------------------------------------------------
 
@@ -251,7 +251,7 @@ export render_driver_entry :: fn() -> string {
     // The banner is what `sweep_generated` deletes on; this shim escapes the
     // sweep only because it is written at the project root, outside the
     // generated tree.
-    out.append("${Build.GENERATED_BANNER}\n")
+    out.append("${Server.GENERATED_BANNER}\n")
     out.append("//\n")
     out.append("// Entry shim for this project's `${DRIVER_FILENAME}`: it shares that file's\n")
     out.append("// module so it can call `build` without an import, and gives the lowerer the\n")

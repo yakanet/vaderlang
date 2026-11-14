@@ -1,0 +1,281 @@
+// vader/build_server/session: one driven build, as `vader` runs it.
+//
+// A project's build driver configures a build and hears its events; `vader`
+// runs it (ADR 0145). A session holds what the command asked, what the driver
+// configured (its `ConfigureFrame`), and what the build produced so far: the
+// diagnostics, the modules the driver asked for and no round wrote yet, the
+// files written. `events.vader` drives the pipeline over a session, and
+// `generate.vader` writes the modules a driver generates.
+
+module "vader/build_server"
+
+import "std/console"
+import "std/glob"
+import "std/iter"
+import "std/string" { join as join_strings }
+import "toolchain/diagnostics"
+import "toolchain/protocol"
+import "toolchain/span"
+import "vader/front/resolver"
+import "vader/pipeline"
+
+// ---- session --------------------------------------------------------------
+
+/// One driven build: what the command asked, what the driver configured, and
+/// what the build produced so far.
+export BuildSession :: struct {
+    /// The project folder, as the command named it. NOT guaranteed absolute:
+    /// join onto it rather than assuming a prefix.
+    project_root: string
+    /// The file describing the project (`build.vader`, `vader.json`), relative
+    /// to `project_root`: a diagnostic about the driver's behaviour points at
+    /// its head.
+    description_file: string
+    /// Where generated modules land, relative to `project_root`: the folder the
+    /// loader reads them from.
+    generated_root: string = GENERATED_ROOT_DIR
+    request: DriverRequest
+    /// In the order the driver added them, which fixes the order modules are
+    /// read and keeps a build byte-identical across runs.
+    entries: ManifestEntry[]
+    include_paths: string[]
+    assets: string[]
+    target: BuildTarget
+    cc: string
+    ldflags: string
+    /// The modules whose declarations the driver reads (`ConfigureFrame.modules`).
+    module_filter: Glob[]
+    /// Diagnostics of the build and the driver's reports, in the order they came.
+    diagnostics: Diagnostic[] = []
+    /// How many of `diagnostics` are printed, so none prints twice.
+    printed: i64 = 0
+    /// Modules the driver asked for in the current round, written at its end.
+    pending: GeneratedModule[] = []
+    /// Files written for the generated modules, in the order they landed.
+    generated: string[] = []
+    /// Whether the stream reached its generation rounds, after which a module
+    /// still queued at the end is one no round wrote. A stream that compiles
+    /// nothing (a description, a run waiting for its entry, a refused
+    /// configuration) never does.
+    entered_rounds: bool = false
+}
+
+/// A session for a build the command asked and a driver configured.
+///
+/// @param request           what the command asks.
+/// @param description_file  the file describing the project, relative to it.
+/// @param configure         what the driver configured.
+/// @error                   `GlobError` when a pattern of `configure.modules`
+///                          does not parse.
+export new_session :: fn(
+    request: DriverRequest,
+    description_file: string,
+    configure: ConfigureFrame,
+) -> BuildSession | GlobError {
+    filter: Glob[]: []
+    for pattern in configure.modules {
+        glob :: parse_glob(pattern) else return glob
+        filter.push(glob)
+    }
+    return BuildSession {
+        .project_root = request.build.project_root else "",
+        .description_file = description_file,
+        .request = request,
+        .entries = manifest_entries(configure.entries),
+        .include_paths = configure.include_paths,
+        .assets = configure.assets,
+        .target = configure.target,
+        .cc = configure.cc,
+        .ldflags = configure.ldflags,
+        .module_filter = filter,
+    }
+}
+
+/// The entries of a project, as a driver configures them.
+///
+/// @param entries  those of a `vader.json` or of a context, in their order.
+export configured_entries :: fn(entries: ManifestEntry[]) -> ConfiguredEntry[] =
+    entries.map((e) -> ConfiguredEntry { .name = e.name, .path = e.path }).collect()
+
+// The entries a driver configured, as the build reads them.
+manifest_entries :: fn(entries: ConfiguredEntry[]) -> ManifestEntry[] =
+    entries.map((e) -> ManifestEntry { .name = e.name, .path = e.path }).collect()
+
+/// Whether the driver reads the declarations of the module `name`.
+///
+/// @param session  the build.
+/// @param name     a module name, as an `import` spells it.
+reads_module :: fn(session: BuildSession, name: string) -> bool =
+    session.module_filter.any_match((glob) -> glob.matches(name))
+
+// ---- diagnostics ----------------------------------------------------------
+
+/// The head of the file describing the project: where a diagnostic about the
+/// driver's behaviour points, the faulty line being unknown.
+///
+/// @param session  the build.
+description_span :: fn(session: BuildSession) -> Span =
+    file_head_span(join_path(session.project_root, session.description_file))
+
+// A diagnostic about the driver's behaviour, at the head of the file describing
+// the project.
+report_driver :: fn(session: BuildSession, code: HookCode, detail: string) -> void =
+    session.diagnostics.push(hook_error(code, description_span(session), detail))
+
+/// The exit code of a build whose pipeline answered `code`: 1 once the session
+/// holds an error, the driver's reports included.
+///
+/// @param session  the build.
+/// @param code     what the pipeline answered.
+export session_outcome :: fn(session: BuildSession, code: i32) -> i32 {
+    if any_error_diag(session.diagnostics) {
+        return 1
+    }
+    return code
+}
+
+/// End the build: report the modules no round wrote, print the diagnostics not
+/// printed yet, and give its exit code. Closing it again prints what came since.
+///
+/// The diagnostics print sorted by file and position, without duplicates,
+/// which is what makes a driven build's output reproducible.
+///
+/// @param session  the build.
+/// @param code     what the pipeline answered.
+/// @return         `code`, or 1 once the session holds an error.
+/// @error          H6014 when the stream ran its rounds and modules are still
+///                 queued: emitted after the last `BeforeEmit`. A build that
+///                 failed already says why they are missing.
+export close_session :: fn(session: BuildSession, code: i32) -> i32 {
+    if session.entered_rounds && session.pending.len() > 0 && !any_error_diag(session.diagnostics) {
+        names :: session.pending.map((g) -> g.name).distinct().collect()
+        detail :: "no round followed the emission of `${join_strings(names, "`, `")}`"
+        session.report_driver(.NoRoundAfterGeneration, detail)
+    }
+    session.pending.clear()
+    if session.printed < session.diagnostics.len() {
+        unprinted :: session.diagnostics[session.printed..<session.diagnostics.len()]
+        eprintln(dump_diagnostics_with_file(unprinted))
+        session.printed = session.diagnostics.len()
+    }
+    return session_outcome(session, code)
+}
+
+// ---- roots ----------------------------------------------------------------
+
+// The project the front end compiles in, null when the command named none.
+project_of :: fn(session: BuildSession) -> string | null {
+    if session.project_root == "" {
+        return null
+    }
+    return session.project_root
+}
+
+// The roots the front end takes as flags: the command's `--include-paths`. The
+// compiler's own `lib/` is the loader's to find, through the toolchain the
+// command named. What the driver configured reaches the loader at the rank of
+// a manifest's `includePaths` (`register_project_roots`), or, with no project
+// to register it under, follows here, relative to the working directory.
+search_roots :: fn(session: BuildSession) -> string[] {
+    roots: string[]: []
+    roots.push_all(session.request.build.include_paths)
+    if project_of(session) == null {
+        library :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
+        for p in session.include_paths {
+            roots.push(manifest_root("", p, library))
+        }
+    }
+    return roots
+}
+
+// What the outputs of this build are: the command's build options, with the
+// driver's C toolchain. The project is the driver's, whatever the options name;
+// the C runtime is found beside the toolchain the command named.
+output_request :: fn(session: BuildSession) -> BuildRequest = BuildRequest {
+    ...session.request.build,
+    .cc = session.cc,
+    .ldflags = session.ldflags,
+    .project_root = project_of(session),
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/abort"
+import "std/testing"
+
+// A session for `request`, configured with `entries` and nothing else, reading
+// every module.
+test_session :: fn(request: DriverRequest, entries: ConfiguredEntry[]) -> BuildSession {
+    configure :: ConfigureFrame {
+        .fingerprint = "",
+        .entries = entries,
+        .include_paths = [],
+        .assets = [],
+        .modules = ["**"],
+        .target = .Native,
+        .cc = "cc",
+        .ldflags = "",
+    }
+    session :: new_session(request, "build.vader", configure) else panic("${session.message()}")
+    return session
+}
+
+@test
+test_new_session_takes_the_project_from_the_request :: fn() -> void {
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    assert_eq(session.project_root, "/tmp/proj")
+    assert_eq(description_span(session).start.file, "/tmp/proj/build.vader")
+}
+
+@test
+test_new_session_refuses_a_module_pattern_that_does_not_parse :: fn() -> void {
+    configure :: ConfigureFrame {
+        .fingerprint = "",
+        .entries = [],
+        .include_paths = [],
+        .assets = [],
+        .modules = ["app\\"],
+        .target = .Native,
+        .cc = "cc",
+        .ldflags = "",
+    }
+    request :: parse_driver_request(["driver", "/tmp/proj"])
+    assert(new_session(request, "build.vader", configure) is GlobError, "a trailing backslash")
+}
+
+@test
+test_a_double_star_reads_every_module :: fn() -> void {
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    assert(session.reads_module("app"), "a top-level module")
+    assert(session.reads_module("std/io"), "a nested one")
+}
+
+@test
+test_close_session_reports_a_module_no_round_wrote_h6014 :: fn() -> void {
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session.entered_rounds = true
+    session.queue_module("gen/late", "late :: fn() -> i32 = 1")
+    session.queue_module("gen/late", "late :: fn() -> i32 = 2")
+    assert_eq(close_session(session, 0), 1)
+    assert_eq(session.diagnostics.len(), 1)
+    assert_eq(session.diagnostics[0].code.id, "H6014")
+    assert_eq(session.diagnostics[0].detail, "no round followed the emission of `gen/late`")
+    assert_eq(close_session(session, 0), 1)
+    assert_eq(session.diagnostics.len(), 1)
+}
+
+@test
+test_close_session_leaves_the_modules_of_a_stream_that_compiled_nothing :: fn() -> void {
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session.queue_module("gen/early", "early :: fn() -> i32 = 1")
+    assert_eq(close_session(session, 0), 0)
+    assert_eq(session.diagnostics.len(), 0)
+}
+
+@test
+test_close_session_fails_on_an_error :: fn() -> void {
+    session :: test_session(parse_driver_request(["driver", "/tmp/proj"]), [])
+    session.diagnostics.push(hook_error(.HookReport, empty_span(), "a report"))
+    assert_eq(close_session(session, 0), 1)
+    assert_eq(session.printed, 1)
+}
