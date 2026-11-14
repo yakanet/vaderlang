@@ -52,10 +52,10 @@ export KEYWORDS :: [
 import "std/testing"
 
 @test test_keywords_match_lookup :: fn() -> void {
-    // Every KEYWORDS entry must be a real keyword: pins the tooling list to
-    // the lexer authority so a bogus or renamed entry breaks here.
+    // Every KEYWORDS entry must be a keyword whose kind spells it: pins the
+    // tooling list and the lexer table to the kinds' data.
     for kw in KEYWORDS {
-        assert(lookup_keyword(kw) != .Ident, "KEYWORDS entry is not a keyword: ${kw}")
+        assert_eq(lookup_keyword(kw).keyword, kw)
     }
 }
 

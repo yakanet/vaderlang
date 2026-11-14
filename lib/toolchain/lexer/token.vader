@@ -8,7 +8,16 @@ module "toolchain/lexer"
 
 import "toolchain/span"
 
-export TokenKind :: enum(u8) {
+/// The data a token kind carries.
+export TokenInfo :: struct {
+    /// The source text of a keyword kind, empty for any other kind.
+    keyword: string = ""
+}
+
+/// What a token is. A kind prints as its variant's name, which is how the token
+/// dump shows it; a keyword kind also carries its source text.
+@displayable
+export TokenKind :: enum(TokenInfo) {
     // Layout
     Eof,
     Newline,
@@ -28,13 +37,30 @@ export TokenKind :: enum(u8) {
     InterpolationClose,
 
     // Keywords
-    KwFn, KwStruct, KwTrait, KwImplements, KwEnum,
-    KwIf, KwElse, KwMatch, KwIs, KwFor, KwIn,
-    KwReturn, KwYield, KwDefer, KwBreak, KwContinue,
-    KwImport, KwAs, KwExport,
-    KwTrue, KwFalse, KwNull,
-    KwSelf,
-    KwConst,
+    KwFn         { .keyword = "fn" },
+    KwStruct     { .keyword = "struct" },
+    KwTrait      { .keyword = "trait" },
+    KwImplements { .keyword = "implements" },
+    KwEnum       { .keyword = "enum" },
+    KwIf         { .keyword = "if" },
+    KwElse       { .keyword = "else" },
+    KwMatch      { .keyword = "match" },
+    KwIs         { .keyword = "is" },
+    KwFor        { .keyword = "for" },
+    KwIn         { .keyword = "in" },
+    KwReturn     { .keyword = "return" },
+    KwYield      { .keyword = "yield" },
+    KwDefer      { .keyword = "defer" },
+    KwBreak      { .keyword = "break" },
+    KwContinue   { .keyword = "continue" },
+    KwImport     { .keyword = "import" },
+    KwAs         { .keyword = "as" },
+    KwExport     { .keyword = "export" },
+    KwTrue       { .keyword = "true" },
+    KwFalse      { .keyword = "false" },
+    KwNull       { .keyword = "null" },
+    KwSelf       { .keyword = "self" },
+    KwConst      { .keyword = "const" },
 
     // Operators
     Plus, Minus, Star, Slash, Percent,
@@ -72,102 +98,10 @@ export TokenKind :: enum(u8) {
 
 }
 
-/// The snake_case name of `k`, which the token dump prints and the parser names a
-/// token by when it has no text.
+/// Whether `k` is a keyword kind, one whose source text is `k.keyword`.
 ///
-/// @param k  the kind to name.
-export kind_name :: fn(k: TokenKind) -> string = match k {
-    .Ident              -> "ident"
-    .IntLit             -> "int_literal"
-    .FloatLit           -> "float_literal"
-    .CharLit            -> "char_literal"
-    .StringBegin        -> "string_begin"
-    .StringPart         -> "string_part"
-    .StringEnd          -> "string_end"
-    .InterpolationOpen  -> "interpolation_open"
-    .InterpolationClose -> "interpolation_close"
-
-    .KwFn         -> "kw_fn"
-    .KwStruct     -> "kw_struct"
-    .KwTrait      -> "kw_trait"
-    .KwImplements -> "kw_implements"
-    .KwEnum       -> "kw_enum"
-    .KwIf         -> "kw_if"
-    .KwElse       -> "kw_else"
-    .KwMatch      -> "kw_match"
-    .KwIs         -> "kw_is"
-    .KwFor        -> "kw_for"
-    .KwIn         -> "kw_in"
-    .KwReturn     -> "kw_return"
-    .KwYield      -> "kw_yield"
-    .KwDefer      -> "kw_defer"
-    .KwBreak      -> "kw_break"
-    .KwContinue   -> "kw_continue"
-    .KwImport     -> "kw_import"
-    .KwAs         -> "kw_as"
-    .KwExport     -> "kw_export"
-    .KwTrue       -> "kw_true"
-    .KwFalse      -> "kw_false"
-    .KwNull       -> "kw_null"
-    .KwSelf       -> "kw_self"
-    .KwConst      -> "kw_const"
-
-    .Plus    -> "plus"
-    .Minus   -> "minus"
-    .Star    -> "star"
-    .Slash   -> "slash"
-    .Percent -> "percent"
-    .PlusPercent  -> "plus_percent"
-    .MinusPercent -> "minus_percent"
-    .StarPercent  -> "star_percent"
-    .Amp     -> "amp"
-    .Pipe    -> "pipe"
-    .Caret   -> "caret"
-    .Tilde   -> "tilde"
-    .Shl     -> "shl"
-    .Shr     -> "shr"
-    .Eq      -> "eq"
-    .Neq     -> "neq"
-    .Same    -> "same"
-    .NotSame -> "not_same"
-    .Lt      -> "lt"
-    .Lte     -> "lte"
-    .Gt      -> "gt"
-    .Gte     -> "gte"
-    .AndAnd  -> "and_and"
-    .OrOr    -> "or_or"
-    .Bang    -> "bang"
-    .Assign        -> "assign"
-    .PlusAssign    -> "plus_assign"
-    .MinusAssign   -> "minus_assign"
-    .StarAssign    -> "star_assign"
-    .SlashAssign   -> "slash_assign"
-    .PercentAssign -> "percent_assign"
-    .PlusPercentAssign  -> "plus_percent_assign"
-    .MinusPercentAssign -> "minus_percent_assign"
-    .StarPercentAssign  -> "star_percent_assign"
-    .DeclConst     -> "decl_const"
-    .DeclVar       -> "decl_var"
-    .RangeExcl -> "range_excl"
-    .RangeIncl -> "range_incl"
-    .DotDotDot -> "dotdotdot"
-    .Arrow     -> "arrow"
-    .FatArrow  -> "fat_arrow"
-    .At        -> "at"
-
-    .LParen   -> "lparen"
-    .RParen   -> "rparen"
-    .LBracket -> "lbracket"
-    .RBracket -> "rbracket"
-    .LBrace   -> "lbrace"
-    .RBrace   -> "rbrace"
-    .Comma    -> "comma"
-    .Dot      -> "dot"
-    .Colon    -> "colon"
-
-    .Newline -> "newline"
-    .Eof     -> "eof"
-}
+/// @param k  the kind to test.
+export is_keyword :: fn(k: TokenKind) -> bool = k.keyword != ""
 
 // `value` carries the parsed payload: the integer for `IntLit`, the float for
 // `FloatLit`, the codepoint for `CharLit`, the decoded text for `StringPart`,

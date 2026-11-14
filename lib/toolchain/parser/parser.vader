@@ -371,13 +371,17 @@ span_of :: fn(p: Parser, start: Token, end: Token) -> Span {
 
 // ----------------------------------------------------------- describe_token
 
+/// How a parser message names `t`: its text, in backticks unless it is a number,
+/// or a word for a token written as nothing.
+///
+/// @param t  the token the message points at.
 export describe_token :: fn(t: Token) -> string {
     if t.kind == .Ident { return "`${t.text}`" }
     if t.kind == .IntLit || t.kind == .FloatLit { return t.text }
     if t.kind == .Newline { return "newline" }
     if t.kind == .Eof { return "end of file" }
     if !t.text.is_empty() { return "`${t.text}`" }
-    return kind_name(t.kind)
+    return "${t.kind}"
 }
 
 // ---- Program --------------------------------------------------------------

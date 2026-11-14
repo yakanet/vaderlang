@@ -1552,7 +1552,7 @@ count_newlines :: fn(l: LexedSource) -> i64 {
 token_lines :: fn(l: LexedSource) -> string {
     out: string[]: []
     for t in l.tokens {
-        out.push("${t.span.start.offset}-${t.span.end.offset} ${kind_name(t.kind)} ${t.text}")
+        out.push("${t.span.start.offset}-${t.span.end.offset} ${t.kind} ${t.text}")
     }
     return out.join("\n")
 }

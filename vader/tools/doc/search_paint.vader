@@ -191,7 +191,7 @@ token_paint :: fn(t: Lex.Token, name: string) -> Paint {
     if t.kind == .Ident {
         return word_paint(t.text, name)
     }
-    if t.text in Lex.KEYWORDS {
+    if Lex.is_keyword(t.kind) {
         return .Keyword
     }
     return .Plain

@@ -1,142 +1,142 @@
 # Tokens
-[12:1-12:7  ] ident          "module"
-[12:8-12:9  ] string_begin   "\""
-[12:9-12:16 ] string_part    "snippet" ="snippet"
-[12:16-12:17] string_end     "\""
-[13:1-13:1  ] newline        "\n"
-[14:1-14:7  ] kw_import      "import"
-[14:8-14:9  ] string_begin   "\""
-[14:9-14:20 ] string_part    "std/console" ="std/console"
-[14:20-14:21] string_end     "\""
-[15:1-15:1  ] newline        "\n"
-[16:1-16:5  ] ident          "main"
-[16:6-16:8  ] decl_const     "::"
-[16:9-16:11 ] kw_fn          "fn"
-[16:11-16:12] lparen         "("
-[16:12-16:13] rparen         ")"
-[16:14-16:16] arrow          "->"
-[16:17-16:20] ident          "i32"
-[16:21-16:22] lbrace         "{"
-[17:1-17:1  ] newline        "\n"
-[17:5-17:7  ] ident          "xs"
-[17:7-17:8  ] colon          ":"
-[17:9-17:12 ] ident          "f64"
-[17:12-17:13] lbracket       "["
-[17:13-17:14] rbracket       "]"
-[17:14-17:15] colon          ":"
-[17:16-17:17] lbracket       "["
-[18:9-18:12 ] float_literal  "0.0" =0.0
-[18:12-18:13] comma          ","
-[18:14-18:17] float_literal  "1.0" =1.0
-[18:17-18:18] comma          ","
-[18:19-18:22] float_literal  "3.0" =3.0
-[18:22-18:23] comma          ","
-[18:24-18:29] float_literal  "100.0" =100.0
-[18:29-18:30] comma          ","
-[18:31-18:40] float_literal  "1234567.0" =1234567.0
-[18:40-18:41] comma          ","
-[19:9-19:12 ] float_literal  "0.1" =0.1
-[19:12-19:13] comma          ","
-[19:14-19:17] float_literal  "0.5" =0.5
-[19:17-19:18] comma          ","
-[19:19-19:22] float_literal  "1.5" =1.5
-[19:22-19:23] comma          ","
-[19:24-19:27] float_literal  "2.5" =2.5
-[19:27-19:28] comma          ","
-[19:29-19:35] float_literal  "0.0001" =0.0001
-[19:35-19:36] comma          ","
-[20:9-20:26 ] float_literal  "3.141592653589793" =3.141592653589793
-[20:26-20:27] comma          ","
-[20:28-20:47] float_literal  "123456789.123456789" =123456789.12345679
-[20:47-20:48] comma          ","
-[20:49-20:66] float_literal  "9.999999999999999" =9.999999999999998
-[20:66-20:67] comma          ","
-[21:9-21:13 ] float_literal  "1e20" =100000000000000000000.0
-[21:13-21:14] comma          ","
-[21:15-21:19] float_literal  "1e21" =1e+21
-[21:19-21:20] comma          ","
-[21:21-21:25] float_literal  "1e-7" =1e-7
-[21:25-21:26] comma          ","
-[21:27-21:35] float_literal  "6.022e23" =6.022e+23
-[21:35-21:36] comma          ","
-[21:37-21:43] float_literal  "5e-324" =5e-324
-[21:43-21:44] comma          ","
-[21:45-21:67] float_literal  "1.7976931348623157e308" =1.7976931348623157e+308
-[21:67-21:68] comma          ","
-[22:9-22:10 ] minus          "-"
-[22:10-22:13] float_literal  "0.0" =0.0
-[22:13-22:14] comma          ","
-[22:15-22:16] minus          "-"
-[22:16-22:19] float_literal  "2.5" =2.5
-[22:19-22:20] comma          ","
-[23:5-23:6  ] rbracket       "]"
-[24:1-24:1  ] newline        "\n"
-[24:5-24:8  ] kw_for         "for"
-[24:9-24:10 ] ident          "x"
-[24:11-24:13] kw_in          "in"
-[24:14-24:16] ident          "xs"
-[24:17-24:18] lbrace         "{"
-[25:1-25:1  ] newline        "\n"
-[25:9-25:16 ] ident          "println"
-[25:16-25:17] lparen         "("
-[25:17-25:18] ident          "x"
-[25:18-25:19] dot            "."
-[25:19-25:28] ident          "to_string"
-[25:28-25:29] lparen         "("
-[25:29-25:30] rparen         ")"
-[25:30-25:31] rparen         ")"
-[26:1-26:1  ] newline        "\n"
-[26:5-26:6  ] rbrace         "}"
-[27:1-27:1  ] newline        "\n"
-[28:5-28:7  ] ident          "pi"
-[28:8-28:10 ] decl_const     "::"
-[28:11-28:28] float_literal  "3.141592653589793" =3.141592653589793
-[29:1-29:1  ] newline        "\n"
-[29:5-29:12 ] ident          "println"
-[29:12-29:13] lparen         "("
-[29:13-29:14] string_begin   "\""
-[29:14-29:19] string_part    "pi = " ="pi = "
-[29:19-29:21] interpolation_open "${"
-[29:21-29:23] ident          "pi"
-[29:23-29:24] interpolation_close "}"
-[29:24-29:32] string_part    ", sci = " =", sci = "
-[29:32-29:34] interpolation_open "${"
-[29:34-29:40] float_literal  "2.5e-8" =2.5e-8
-[29:41-29:42] star           "*"
-[29:43-29:46] float_literal  "1.0" =1.0
-[29:46-29:47] interpolation_close "}"
-[29:47-29:48] string_end     "\""
-[29:48-29:49] rparen         ")"
-[30:1-30:1  ] newline        "\n"
-[30:5-30:8  ] ident          "inf"
-[30:9-30:11 ] decl_const     "::"
-[30:12-30:15] float_literal  "1.0" =1.0
-[30:16-30:17] slash          "/"
-[30:18-30:21] float_literal  "0.0" =0.0
-[31:1-31:1  ] newline        "\n"
-[31:5-31:12 ] ident          "println"
-[31:12-31:13] lparen         "("
-[31:13-31:14] string_begin   "\""
-[31:14-31:16] interpolation_open "${"
-[31:16-31:19] ident          "inf"
-[31:19-31:20] interpolation_close "}"
-[31:20-31:21] string_part    " " =" "
-[31:21-31:23] interpolation_open "${"
-[31:23-31:24] minus          "-"
-[31:24-31:27] ident          "inf"
-[31:27-31:28] interpolation_close "}"
-[31:28-31:29] string_part    " " =" "
-[31:29-31:31] interpolation_open "${"
-[31:31-31:34] float_literal  "0.0" =0.0
-[31:35-31:36] slash          "/"
-[31:37-31:40] float_literal  "0.0" =0.0
-[31:40-31:41] interpolation_close "}"
-[31:41-31:42] string_end     "\""
-[31:42-31:43] rparen         ")"
-[32:1-32:1  ] newline        "\n"
-[32:5-32:11 ] kw_return      "return"
-[32:12-32:13] int_literal    "0" =0n
-[33:1-33:1  ] newline        "\n"
-[33:1-33:2  ] rbrace         "}"
-[34:1-34:1  ] newline        "\n"
-[34:1-34:1  ] eof            ""
+[12:1-12:7  ] Ident              "module"
+[12:8-12:9  ] StringBegin        "\""
+[12:9-12:16 ] StringPart         "snippet" ="snippet"
+[12:16-12:17] StringEnd          "\""
+[13:1-13:1  ] Newline            "\n"
+[14:1-14:7  ] KwImport           "import"
+[14:8-14:9  ] StringBegin        "\""
+[14:9-14:20 ] StringPart         "std/console" ="std/console"
+[14:20-14:21] StringEnd          "\""
+[15:1-15:1  ] Newline            "\n"
+[16:1-16:5  ] Ident              "main"
+[16:6-16:8  ] DeclConst          "::"
+[16:9-16:11 ] KwFn               "fn"
+[16:11-16:12] LParen             "("
+[16:12-16:13] RParen             ")"
+[16:14-16:16] Arrow              "->"
+[16:17-16:20] Ident              "i32"
+[16:21-16:22] LBrace             "{"
+[17:1-17:1  ] Newline            "\n"
+[17:5-17:7  ] Ident              "xs"
+[17:7-17:8  ] Colon              ":"
+[17:9-17:12 ] Ident              "f64"
+[17:12-17:13] LBracket           "["
+[17:13-17:14] RBracket           "]"
+[17:14-17:15] Colon              ":"
+[17:16-17:17] LBracket           "["
+[18:9-18:12 ] FloatLit           "0.0" =0.0
+[18:12-18:13] Comma              ","
+[18:14-18:17] FloatLit           "1.0" =1.0
+[18:17-18:18] Comma              ","
+[18:19-18:22] FloatLit           "3.0" =3.0
+[18:22-18:23] Comma              ","
+[18:24-18:29] FloatLit           "100.0" =100.0
+[18:29-18:30] Comma              ","
+[18:31-18:40] FloatLit           "1234567.0" =1234567.0
+[18:40-18:41] Comma              ","
+[19:9-19:12 ] FloatLit           "0.1" =0.1
+[19:12-19:13] Comma              ","
+[19:14-19:17] FloatLit           "0.5" =0.5
+[19:17-19:18] Comma              ","
+[19:19-19:22] FloatLit           "1.5" =1.5
+[19:22-19:23] Comma              ","
+[19:24-19:27] FloatLit           "2.5" =2.5
+[19:27-19:28] Comma              ","
+[19:29-19:35] FloatLit           "0.0001" =0.0001
+[19:35-19:36] Comma              ","
+[20:9-20:26 ] FloatLit           "3.141592653589793" =3.141592653589793
+[20:26-20:27] Comma              ","
+[20:28-20:47] FloatLit           "123456789.123456789" =123456789.12345679
+[20:47-20:48] Comma              ","
+[20:49-20:66] FloatLit           "9.999999999999999" =9.999999999999998
+[20:66-20:67] Comma              ","
+[21:9-21:13 ] FloatLit           "1e20" =100000000000000000000.0
+[21:13-21:14] Comma              ","
+[21:15-21:19] FloatLit           "1e21" =1e+21
+[21:19-21:20] Comma              ","
+[21:21-21:25] FloatLit           "1e-7" =1e-7
+[21:25-21:26] Comma              ","
+[21:27-21:35] FloatLit           "6.022e23" =6.022e+23
+[21:35-21:36] Comma              ","
+[21:37-21:43] FloatLit           "5e-324" =5e-324
+[21:43-21:44] Comma              ","
+[21:45-21:67] FloatLit           "1.7976931348623157e308" =1.7976931348623157e+308
+[21:67-21:68] Comma              ","
+[22:9-22:10 ] Minus              "-"
+[22:10-22:13] FloatLit           "0.0" =0.0
+[22:13-22:14] Comma              ","
+[22:15-22:16] Minus              "-"
+[22:16-22:19] FloatLit           "2.5" =2.5
+[22:19-22:20] Comma              ","
+[23:5-23:6  ] RBracket           "]"
+[24:1-24:1  ] Newline            "\n"
+[24:5-24:8  ] KwFor              "for"
+[24:9-24:10 ] Ident              "x"
+[24:11-24:13] KwIn               "in"
+[24:14-24:16] Ident              "xs"
+[24:17-24:18] LBrace             "{"
+[25:1-25:1  ] Newline            "\n"
+[25:9-25:16 ] Ident              "println"
+[25:16-25:17] LParen             "("
+[25:17-25:18] Ident              "x"
+[25:18-25:19] Dot                "."
+[25:19-25:28] Ident              "to_string"
+[25:28-25:29] LParen             "("
+[25:29-25:30] RParen             ")"
+[25:30-25:31] RParen             ")"
+[26:1-26:1  ] Newline            "\n"
+[26:5-26:6  ] RBrace             "}"
+[27:1-27:1  ] Newline            "\n"
+[28:5-28:7  ] Ident              "pi"
+[28:8-28:10 ] DeclConst          "::"
+[28:11-28:28] FloatLit           "3.141592653589793" =3.141592653589793
+[29:1-29:1  ] Newline            "\n"
+[29:5-29:12 ] Ident              "println"
+[29:12-29:13] LParen             "("
+[29:13-29:14] StringBegin        "\""
+[29:14-29:19] StringPart         "pi = " ="pi = "
+[29:19-29:21] InterpolationOpen  "${"
+[29:21-29:23] Ident              "pi"
+[29:23-29:24] InterpolationClose "}"
+[29:24-29:32] StringPart         ", sci = " =", sci = "
+[29:32-29:34] InterpolationOpen  "${"
+[29:34-29:40] FloatLit           "2.5e-8" =2.5e-8
+[29:41-29:42] Star               "*"
+[29:43-29:46] FloatLit           "1.0" =1.0
+[29:46-29:47] InterpolationClose "}"
+[29:47-29:48] StringEnd          "\""
+[29:48-29:49] RParen             ")"
+[30:1-30:1  ] Newline            "\n"
+[30:5-30:8  ] Ident              "inf"
+[30:9-30:11 ] DeclConst          "::"
+[30:12-30:15] FloatLit           "1.0" =1.0
+[30:16-30:17] Slash              "/"
+[30:18-30:21] FloatLit           "0.0" =0.0
+[31:1-31:1  ] Newline            "\n"
+[31:5-31:12 ] Ident              "println"
+[31:12-31:13] LParen             "("
+[31:13-31:14] StringBegin        "\""
+[31:14-31:16] InterpolationOpen  "${"
+[31:16-31:19] Ident              "inf"
+[31:19-31:20] InterpolationClose "}"
+[31:20-31:21] StringPart         " " =" "
+[31:21-31:23] InterpolationOpen  "${"
+[31:23-31:24] Minus              "-"
+[31:24-31:27] Ident              "inf"
+[31:27-31:28] InterpolationClose "}"
+[31:28-31:29] StringPart         " " =" "
+[31:29-31:31] InterpolationOpen  "${"
+[31:31-31:34] FloatLit           "0.0" =0.0
+[31:35-31:36] Slash              "/"
+[31:37-31:40] FloatLit           "0.0" =0.0
+[31:40-31:41] InterpolationClose "}"
+[31:41-31:42] StringEnd          "\""
+[31:42-31:43] RParen             ")"
+[32:1-32:1  ] Newline            "\n"
+[32:5-32:11 ] KwReturn           "return"
+[32:12-32:13] IntLit             "0" =0n
+[33:1-33:1  ] Newline            "\n"
+[33:1-33:2  ] RBrace             "}"
+[34:1-34:1  ] Newline            "\n"
+[34:1-34:1  ] Eof                ""

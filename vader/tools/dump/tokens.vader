@@ -1,8 +1,8 @@
 // vader/tools/dump/tokens: render the tokens of a lexed file as text.
 //
 // This is the sole producer of the `lexer.snapshot` fixtures ; the output
-// format is stable so the snapshot suite can diff it against them. A kind's
-// name comes from `kind_name`, next to the enum it indexes in `toolchain/lexer`.
+// format is stable so the snapshot suite can diff it against them. A kind
+// prints as its variant's name (`TokenKind` is `@displayable`).
 
 module "vader/tools/dump"
 
@@ -28,7 +28,8 @@ format_token :: fn(sb: StringBuilder, t: Token) -> void {
     sb.append_char('[')
     sb.append(span.pad_end(11, ' '))
     sb.append("] ")
-    sb.append(kind_name(t.kind).pad_end(14, ' '))
+    // 18: the longest `TokenKind` name, `InterpolationClose`.
+    sb.append("${t.kind}".pad_end(18, ' '))
     sb.append_char(' ')
     sb.append(quote_simple(t.text))
     sb.append_token_detail(t)
