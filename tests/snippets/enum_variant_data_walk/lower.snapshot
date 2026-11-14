@@ -1,0 +1,109 @@
+# Lower
+
+## snippet
+  storage
+    const HttpStatus$data: StatusInfo[]  data pool #3
+    const HttpStatus$value: u16[]  data pool #2
+    const KEYWORDS: string[]  data pool #0
+    const Word$data: WordInfo[]  data pool #1
+  snippet.StatusInfo :: struct { reason: string, retry: bool }  // snippet$StatusInfo
+  snippet.WordInfo :: struct { keyword: string }  // snippet$WordInfo
+  snippet.keywords :: fn() -> string[] {  // snippet$keywords
+      out: string[] = [] :string[]
+      {
+          __for_v_0: u8 = 0
+          for __for_v_0 <= u8(3) {
+              w: Word = __for_v_0
+              if snippet.Word$data[i64(w)].keyword != "" {
+                  @array.push_cached(out, snippet.Word$data[i64(w)].keyword)
+              }
+          } @step {
+              __for_v_0 = __for_v_0 +% u8(1)
+          }
+      }
+      return out
+  }
+  snippet.__comptime_KEYWORDS :: fn() -> string[] {  // snippet$__comptime_KEYWORDS
+      snippet.keywords()
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {
+          __for_v_5: u8 = 0
+          for __for_v_5 <= u8(2) {
+              s: HttpStatus = __for_v_5
+              std.console.println<string>({
+                  __p_0: string = snippet.HttpStatus.to_string(s)
+                  __p_1: i32 = i32(snippet.HttpStatus$value[i64(s)])
+                  __p_2: string = snippet.HttpStatus$data[i64(s)].reason
+                  __buf_3: Buffer = std.core.new_byte_buffer(i64(34) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_2)))
+                  __off_4: i64 = 0
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_0)
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+                  __off_4 = std.core.write_int(__buf_3, __off_4, __p_1)
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, " retry=")
+                  __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.HttpStatus$data[i64(s)].retry)
+                  std.core.finish_buffer(__buf_3, __off_4)
+              } :string)
+          } @step {
+              __for_v_5 = __for_v_5 +% u8(1)
+          }
+      }
+      {
+          __for_v_6: u8 = 0
+          for __for_v_6 <= u8(2) {
+              s: HttpStatus = __for_v_6
+              if snippet.HttpStatus$data[i64(s)].retry {
+                  std.console.println<string>(concat_2("first to retry: ", snippet.HttpStatus.to_string(s)))
+                  break
+              }
+          } @step {
+              __for_v_6 = __for_v_6 +% u8(1)
+          }
+      }
+      std.console.println<string>(concat_2("folded: ", std.core.string[].to_string(snippet.KEYWORDS)))
+      std.console.println<string>(concat_2("at run time: ", std.core.string[].to_string(snippet.keywords())))
+      return 0
+  }
+  snippet.HttpStatus.to_string :: fn(self: HttpStatus) -> string {  // snippet$HttpStatus$std_core$Display$to_string
+      {
+          if self == HttpStatus(0) {
+              "NotFound"
+          } else if self == HttpStatus(1) {
+              "Ok"
+          } else if self == HttpStatus(2) {
+              "Unavailable"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Display.to_string for HttpStatus  snippet.HttpStatus.to_string  // snippet$HttpStatus$std_core$Display$to_string
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.string[].to_string  // std_core$$array$Display$to_string__string
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

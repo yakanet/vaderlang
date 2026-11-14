@@ -137,8 +137,8 @@ in_for_element :: fn(
 }
 
 /// The type `for x in T` walks the values of, `T` a type : `T` itself when it is a
-/// range, an integer type within `i64`, a type parameter bounded by `Int` or an enum
-/// without variant data. The walk is noted on `iter` (`TypedProgram.walked_types`).
+/// range, an integer type within `i64`, a type parameter bounded by `Int` or an enum,
+/// variant data or not. The walk is noted on `iter` (`TypedProgram.walked_types`).
 ///
 /// @param iter  the type expression the loop walks.
 /// @error       T3088 for any other type, `u64` and `i64` included, whose values
@@ -159,9 +159,10 @@ walked_type :: fn(iter: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> T
     return TY_UNRESOLVED
 }
 
-// Whether `for x in t` walks the values of the type `t` (`walked_type`).
+// Whether `for x in t` walks the values of the type `t` (`walked_type`); an enum
+// with variant data walks its ranks.
 walks_values :: fn(t: Type, typed: TypedProgram) -> bool {
-    if is_valued_enum(t) || is_integer_param(t, typed) {
+    if t is EnumType || is_integer_param(t, typed) {
         return true
     }
     values :: integer_values(t) else return false

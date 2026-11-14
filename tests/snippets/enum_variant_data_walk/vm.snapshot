@@ -1,0 +1,9 @@
+# stdout
+NotFound 404 Not Found retry=false
+Ok 200 OK retry=false
+Unavailable 503 Service Unavailable retry=true
+first to retry: Unavailable
+folded: [if, else]
+at run time: [if, else]
+# exit
+0

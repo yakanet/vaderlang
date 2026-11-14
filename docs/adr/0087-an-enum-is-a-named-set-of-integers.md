@@ -4,7 +4,7 @@
 
 Accepted (2026-10-19). Step 7 of the type-system charter, its seventh part continued
 (D10: enums as named ranges). Builds on 0077 (`@min`, `@max`, `x in T`) and 0075
-(checked conversion).
+(checked conversion). Amended by 0146: a `for` walks an enum with variant data too.
 
 ## Context
 

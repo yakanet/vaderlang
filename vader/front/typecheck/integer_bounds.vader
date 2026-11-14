@@ -71,7 +71,8 @@ integer_bound_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: D
 }
 
 /// Whether `t` is an enum without variant data : one whose stored integer is the
-/// value of its variant, where an enum with variant data stores a rank.
+/// value of its variant, where an enum with variant data stores a rank. A `for`
+/// walks either kind (`walks_values`).
 ///
 /// @param t  any type.
 is_valued_enum :: fn(t: Type) -> bool = t is EnumType && t.data == null

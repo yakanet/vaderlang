@@ -473,8 +473,9 @@ try_lower_for_in_raw_array :: fn(
 
 // `for x in T`, `T` the type the typecheck walks the values of (`walked_types`) : a
 // counter over its values when they follow one another upward (a range, an integer
-// type, an enum declared in steps of one), else the enum's values in declaration
-// order, walked as an array of them. Null for any other iterable.
+// type, an enum declared in steps of one, the ranks of an enum with variant data),
+// else the enum's values in declaration order, walked as an array of them. Null
+// for any other iterable.
 try_lower_for_over_type :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
 ) -> LoweredStmt | null {

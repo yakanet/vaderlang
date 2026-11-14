@@ -1,0 +1,68 @@
+# Typecheck
+
+## tests/snippets/enum_variant_data_walk
+  FnDecl         __comptime_KEYWORDS  :: fn() -> string[]
+  EnumDecl       HttpStatus           :: HttpStatus
+  ConstDecl      KEYWORDS             :: string[]
+  FnDecl         keywords             :: fn() -> string[]
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     StatusInfo           :: StatusInfo
+  EnumDecl       Word                 :: Word
+  StructDecl     WordInfo             :: WordInfo
+  expr 18:29    StringLitExpr  :: string
+  expr 19:29    StringLitExpr  :: string
+  expr 20:29    StringLitExpr  :: string
+  expr 24:23    StringLitExpr  :: string
+  expr 2:39     MatchExpr      :: string
+  expr 2:45     IdentExpr      :: HttpStatus
+  expr 30:23    StringLitExpr  :: string
+  expr 31:23    StringLitExpr  :: string
+  expr 35:20    SeqLitExpr     :: string[]
+  expr 36:14    IdentExpr      :: Word
+  expr 37:12    BinaryExpr     :: bool
+  expr 37:12    FieldExpr      :: string
+  expr 37:12    IdentExpr      :: Word
+  expr 37:25    StringLitExpr  :: string
+  expr 37:9     IfExpr         :: void
+  expr 38:13    CallExpr       :: void
+  expr 38:13    FieldExpr      :: fn(string) -> void
+  expr 38:13    IdentExpr      :: string[]
+  expr 38:22    FieldExpr      :: string
+  expr 38:22    IdentExpr      :: Word
+  expr 3:22     StringLitExpr  :: string
+  expr 41:12    IdentExpr      :: string[]
+  expr 44:1     IdentExpr      :: fn() -> string[]
+  expr 44:13    CallExpr       :: string[]
+  expr 44:23    CallExpr       :: string[]
+  expr 44:23    IdentExpr      :: fn() -> string[]
+  expr 47:14    IdentExpr      :: HttpStatus
+  expr 48:17    StringLitExpr  :: string
+  expr 48:20    IdentExpr      :: HttpStatus
+  expr 48:25    CallExpr       :: i32
+  expr 48:25    IdentExpr      :: type
+  expr 48:29    IdentExpr      :: HttpStatus
+  expr 48:35    FieldExpr      :: string
+  expr 48:35    IdentExpr      :: HttpStatus
+  expr 48:53    FieldExpr      :: bool
+  expr 48:53    IdentExpr      :: HttpStatus
+  expr 48:9     CallExpr       :: void
+  expr 48:9     IdentExpr      :: fn(T) -> void
+  expr 4:16     StringLitExpr  :: string
+  expr 50:14    IdentExpr      :: HttpStatus
+  expr 51:12    FieldExpr      :: bool
+  expr 51:12    IdentExpr      :: HttpStatus
+  expr 51:9     IfExpr         :: void
+  expr 52:13    CallExpr       :: void
+  expr 52:13    IdentExpr      :: fn(T) -> void
+  expr 52:21    StringLitExpr  :: string
+  expr 52:40    IdentExpr      :: HttpStatus
+  expr 56:13    StringLitExpr  :: string
+  expr 56:24    IdentExpr      :: string[]
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    StringLitExpr  :: string
+  expr 57:29    CallExpr       :: string[]
+  expr 57:29    IdentExpr      :: fn() -> string[]
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 5:25     StringLitExpr  :: string

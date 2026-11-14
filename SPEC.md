@@ -1408,7 +1408,7 @@ An enum without variant data is a named set of integers, the values of its varia
 **Details.**
 
 - On an enum with no variant, `x in E` is `false`, `for` takes no turn, and `@min`, `@max` and `E(x)` are errors.
-- On an enum with variant data, each of these forms is an error.
+- On an enum with variant data, `@min`, `@max`, `x in E` and `E(x)` are errors; `for d in E` still walks its variants.
 - They work the same through a namespace or a renamed import.
 
 #### Representation
@@ -2786,7 +2786,7 @@ What a loop iterates over is evaluated once, before the first element. A range e
 3. A value implementing `Into<Iterator<T>>`, converted with no `.into()` written.
 4. A type:
    - a range, an integer type within `i64` or a `T: Int`: its values, the least first (`for h in Hour`; `for b in u8` runs 256 turns);
-   - an enum without variant data: its variants, in declaration order (`for d in Weekday`);
+   - an enum: its variants, in declaration order (`for d in Weekday`);
    - any other type is an error, `u64` and `char` included.
 
 ### Targeting an outer loop: `break <var>` / `continue <var>`

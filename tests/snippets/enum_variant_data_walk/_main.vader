@@ -1,0 +1,59 @@
+// Walking an enum with variant data: `for s in HttpStatus` visits the variants
+// in declaration order, whatever values they write (`i32(s)` prints them out
+// of order), since the enum stores its variant's rank; `break` leaves the walk.
+// A walk runs at compile time too: `KEYWORDS` is folded from the data of the
+// `Word` variants that carry a keyword, the others keeping the default.
+
+module "snippet"
+
+import "std/console"
+
+StatusInfo :: struct {
+    reason: string
+    retry: bool = false
+}
+
+@displayable
+HttpStatus :: enum(StatusInfo) {
+    NotFound    { .reason = "Not Found" }                          = 404,
+    Ok          { .reason = "OK" }                                 = 200,
+    Unavailable { .reason = "Service Unavailable", .retry = true } = 503,
+}
+
+WordInfo :: struct {
+    keyword: string = ""
+}
+
+Word :: enum(WordInfo) {
+    Name,
+    Number,
+    If   { .keyword = "if" },
+    Else { .keyword = "else" },
+}
+
+keywords :: fn() -> string[] {
+    out: string[]: []
+    for w in Word {
+        if w.keyword != "" {
+            out.push(w.keyword)
+        }
+    }
+    return out
+}
+
+KEYWORDS :: @comptime keywords()
+
+main :: fn() -> i32 {
+    for s in HttpStatus {
+        println("${s} ${i32(s)} ${s.reason} retry=${s.retry}")
+    }
+    for s in HttpStatus {
+        if s.retry {
+            println("first to retry: ${s}")
+            break
+        }
+    }
+    println("folded: ${KEYWORDS}")
+    println("at run time: ${keywords()}")
+    return 0
+}
