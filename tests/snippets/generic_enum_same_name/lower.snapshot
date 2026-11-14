@@ -35,18 +35,18 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(62))
           __off_6: i64 = 0
           __off_6 = std.core.write_int(__buf_5, __off_6, {
-              __coalesce_2: i64 | null = std_collections$Map$std_core$Index$at__snippet_alpha_Status__i64(by_alpha, Status(1))
-              if __coalesce_2 is null { i64(-1) } else { i64(__coalesce_2) } :i64
+              __fallback_2: i64 | null = std_collections$Map$std_core$Index$at__snippet_alpha_Status__i64(by_alpha, Status(1))
+              if __fallback_2 is null { i64(-1) } else { i64(__fallback_2) } :i64
           } :i64)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
           __off_6 = std.core.write_int(__buf_5, __off_6, {
-              __coalesce_3: i64 | null = std_collections$Map$std_core$Index$at__snippet_beta_Status__i64(by_beta, Status(1))
-              if __coalesce_3 is null { i64(-1) } else { i64(__coalesce_3) } :i64
+              __fallback_3: i64 | null = std_collections$Map$std_core$Index$at__snippet_beta_Status__i64(by_beta, Status(1))
+              if __fallback_3 is null { i64(-1) } else { i64(__fallback_3) } :i64
           } :i64)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
           __off_6 = std.core.write_int(__buf_5, __off_6, {
-              __coalesce_4: i64 | null = std_collections$Map$std_core$Index$at__snippet_beta_Status__i64(by_beta, Status(0))
-              if __coalesce_4 is null { i64(-1) } else { i64(__coalesce_4) } :i64
+              __fallback_4: i64 | null = std_collections$Map$std_core$Index$at__snippet_beta_Status__i64(by_beta, Status(0))
+              if __fallback_4 is null { i64(-1) } else { i64(__fallback_4) } :i64
           } :i64)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)

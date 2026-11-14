@@ -28,33 +28,33 @@
   }
   snippet.describe :: fn(n: i32) -> string {  // snippet$describe
       s: string = {
-          __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          s: IOError | null | string = __coalesce_0
-          if __coalesce_0 is null {
+          __fallback_0: IOError | null | string = snippet.open_thing(n)
+          s: IOError | null | string = __fallback_0
+          if __fallback_0 is null {
               {
                   return "absent"
               }
-          } else if __coalesce_0 is IOError {
+          } else if __fallback_0 is IOError {
               {
                   return concat_2("failed: ", IOError(s).msg)
               }
           } else {
-              string(__coalesce_0)
+              string(__fallback_0)
           } :string
       }
       return s
   }
   snippet.with_closure :: fn(n: i32) -> string {  // snippet$with_closure
       s: string = {
-          __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          s: IOError | null | string = __coalesce_0
-          if __coalesce_0 is IOError | null {
+          __fallback_0: IOError | null | string = snippet.open_thing(n)
+          s: IOError | null | string = __fallback_0
+          if __fallback_0 is IOError | null {
               {
                   report: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = s }
                   __lambda_snippet_0(report)
               } :string
           } else {
-              string(__coalesce_0)
+              string(__fallback_0)
           } :string
       }
       s = concat_2(s, "!")
@@ -62,18 +62,18 @@
   }
   snippet.typed :: fn(n: i32) -> string {  // snippet$typed
       s: string = {
-          __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          s: IOError | null | string = __coalesce_0
-          if __coalesce_0 is IOError {
+          __fallback_0: IOError | null | string = snippet.open_thing(n)
+          s: IOError | null | string = __fallback_0
+          if __fallback_0 is IOError {
               {
                   IOError(s).msg
               } :string
-          } else if __coalesce_0 is null {
+          } else if __fallback_0 is null {
               {
                   "nothing"
               } :string
           } else {
-              string(__coalesce_0)
+              string(__fallback_0)
           } :string
       }
       return s

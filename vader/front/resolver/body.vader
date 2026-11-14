@@ -655,7 +655,7 @@ warn_block_after_else_value :: fn(
     }
     fallback :: fallback_of_stmt(s) else return
     last :: fallback.clauses[fallback.clauses.len() - 1]
-    if fallback.coalesce || last.test != null || last.body is AST.BlockExpr {
+    if last.test != null || last.body is AST.BlockExpr {
         return
     }
     if last.body !is AST.Expr || next.span.start.line != fallback.span.end.line {

@@ -1,5 +1,5 @@
-// T3106: a `defer` body cannot `return`, with a value, bare, or through a `??`
-// fallback. It runs while its block is left, once what the block returns is
+// T3106: a `defer` body cannot `return`, with a value, bare, or through an
+// `else`. It runs while its block is left, once what the block returns is
 // decided. A lambda written in it returns from the lambda, as anywhere.
 module "snippet"
 
@@ -23,7 +23,7 @@ bare :: fn(x: i32) -> i32 {
     return x
 }
 
-through_coalesce :: fn(x: i32) -> i32 {
+through_fallback :: fn(x: i32) -> i32 {
     defer {
         y :: maybe(x) else return
         _ :: y
@@ -41,4 +41,4 @@ lambda_returns :: fn(x: i32) -> i32 {
     return x
 }
 
-main :: fn() -> i32 = with_value(1) + bare(2) + through_coalesce(3) + lambda_returns(4)
+main :: fn() -> i32 = with_value(1) + bare(2) + through_fallback(3) + lambda_returns(4)

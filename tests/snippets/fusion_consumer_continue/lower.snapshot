@@ -472,7 +472,7 @@
   snippet.maybe_even :: fn(x: i32) -> i32 | null {  // snippet$maybe_even
       if (x % 2) == 0 { x } else { null } :i32 | null
   }
-  snippet.coalesce_continue :: fn() -> void {  // snippet$coalesce_continue
+  snippet.fallback_continue :: fn() -> void {  // snippet$fallback_continue
       fused: string = ""
       {
           __fuse_arr_4: i32[] = [1, 2, 3, 4] :i32[]
@@ -486,12 +486,12 @@
               i: i64 = __gen_elem_5._1
               $resume131: {
                   v: i32 = {
-                      __coalesce_1: i32 | null = snippet.maybe_even(x)
-                      if __coalesce_1 is null {
+                      __fallback_1: i32 | null = snippet.maybe_even(x)
+                      if __fallback_1 is null {
                           break $resume131
-                          @unreachable("`??` fallback diverges")
+                          @unreachable("an `else` clause leaves")
                       } else {
-                          i32(__coalesce_1)
+                          i32(__fallback_1)
                       } :i32
                   }
                   fused = concat_2(fused, {
@@ -522,12 +522,12 @@
                   x: i32 = __for_elem_11._0
                   i: i64 = __for_elem_11._1
                   v: i32 = {
-                      __coalesce_12: i32 | null = snippet.maybe_even(x)
-                      if __coalesce_12 is null {
+                      __fallback_12: i32 | null = snippet.maybe_even(x)
+                      if __fallback_12 is null {
                           continue
-                          @unreachable("`??` fallback diverges")
+                          @unreachable("an `else` clause leaves")
                       } else {
-                          i32(__coalesce_12)
+                          i32(__fallback_12)
                       } :i32
                   }
                   lazy = concat_2(lazy, {
@@ -542,7 +542,7 @@
               }
           }
       }
-      std.console.println<string>(concat_4("indexed + ?? continue:", fused, " |", lazy))
+      std.console.println<string>(concat_4("indexed + else continue:", fused, " |", lazy))
   }
   snippet.flat_map_continue :: fn() -> void {  // snippet$flat_map_continue
       fused: i32 = 0
@@ -757,7 +757,7 @@
       snippet.take_continue_outer()
       snippet.chars_indexed_continue()
       snippet.stage_continue_over_take()
-      snippet.coalesce_continue()
+      snippet.fallback_continue()
       snippet.flat_map_continue()
       snippet.chain_continue()
       snippet.chain_continue_by_name()

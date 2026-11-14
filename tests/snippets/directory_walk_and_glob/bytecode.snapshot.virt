@@ -236,7 +236,7 @@ fn 0 snippet$main () -> i32
   local pending ref
   local $field_40 ref
   local $field_41 string
-  local __coalesce_0 any
+  local __fallback_0 any
   local entry ref
   local __p_0 i64
   local __p_2 string
@@ -333,11 +333,11 @@ fn 0 snippet$main () -> i32
     loop $L1 void
       local.get 3   ; pending
       array.remove_last
-      local.tee 6   ; __coalesce_0
+      local.tee 6   ; __fallback_0
       type_check 0   ; null
       if $L2 void
       else
-        local.get 6   ; __coalesce_0
+        local.get 6   ; __fallback_0
         ref.cast 2   ; std_fs$WalkEntry
         local.tee 4   ; $field_40
         local.set 7   ; entry
@@ -1499,15 +1499,15 @@ end
 
 fn 21 std_env$temp_dir_of (any) -> string
   local e string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 11   ; ""
     local.set 1   ; e
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 4   ; string
     local.set 1   ; e
   end $L0
@@ -1816,7 +1816,7 @@ end
 
 fn 28 std_fs$list_dir (string) -> any
   local d pointer
-  local __coalesce_0 any
+  local __fallback_0 any
   local out ref
   local p pointer
   local name string
@@ -1825,14 +1825,14 @@ fn 28 std_fs$list_dir (string) -> any
   local $struct_26 ref
   local.get 0   ; arg 0
   call.import 6   ; system_posix$sys_opendir
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 25   ; "cannot read directory"
     call 58   ; std_io$last_io_error
     return
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 36   ; pointer
   local.tee 1   ; d
   struct.new 27   ; __defer_env_std_fs_1
@@ -1843,11 +1843,11 @@ fn 28 std_fs$list_dir (string) -> any
   loop $L1 void
     local.get 1   ; d
     call.import 12   ; system_posix$sys_readdir
-    local.tee 2   ; __coalesce_0
+    local.tee 2   ; __fallback_0
     type_check 0   ; null
     if $L2 void
     else
-      local.get 2   ; __coalesce_0
+      local.get 2   ; __fallback_0
       ref.cast 36   ; pointer
       local.tee 4   ; p
       call.import 13   ; system_posix$dirent_name
@@ -3769,7 +3769,7 @@ end
 
 fn 73 std_path$prefix_length (string,u8) -> i64
   local n i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_39 i64
   local.get 1   ; arg 1
   i32.const 0
@@ -3831,13 +3831,13 @@ fn 73 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   i64.const 2
   call 76   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     local.get 2   ; n
     return
   end $L8
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 6   ; i64
   i64.const 1
   i64.checked_add
@@ -3845,13 +3845,13 @@ fn 73 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
   call 76   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
     local.get 2   ; n
     return
   end $L9
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 6   ; i64
   return
 end
@@ -5833,7 +5833,7 @@ fn 96 std_glob$admits (ref,char) -> bool
 end
 
 fn 97 std_glob$class_at (ref,i64) -> any
-  local __coalesce_0 any
+  local __fallback_0 any
   local __tup_1 ref
   local start i64
   local close i64
@@ -5843,12 +5843,12 @@ fn 97 std_glob$class_at (ref,i64) -> any
   local.get 1   ; arg 1
   char.const 58
   call 101   ; std_glob$delimited_at
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit null.const
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 69   ; __Tuple_i64_i64_f049c617
   local.set 3   ; __tup_1
   local.field 3 69 0   ; __tup_1 __Tuple_i64_i64_f049c617._0
@@ -5863,11 +5863,11 @@ fn 97 std_glob$class_at (ref,i64) -> any
   call 102   ; std_glob$chars_between
   local.tee 6   ; name
   call 103   ; std_glob$posix_class_named
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L1 void
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 9   ; u8
     local.set 7   ; $cast_23
     local.get 5   ; close
@@ -5959,7 +5959,7 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
   local $len_7 i64
   local $idx_12 char
   local __for_arr_0 ref
-  local __coalesce_3 any
+  local __fallback_3 any
   local __tup_4 ref
   local start i64
   local close i64
@@ -6027,7 +6027,7 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
       local.get 1   ; arg 1
       local.get 4   ; $idx_12
       call 101   ; std_glob$delimited_at
-      local.tee 6   ; __coalesce_3
+      local.tee 6   ; __fallback_3
       type_check 0   ; null
       if $L4 void
         local.get 3   ; $len_7
@@ -6036,7 +6036,7 @@ fn 99 std_glob$endpoint_at (ref,i64) -> any
         local.set 3   ; $len_7
         br $L2
       end $L4
-      local.get 6   ; __coalesce_3
+      local.get 6   ; __fallback_3
       ref.cast 69   ; __Tuple_i64_i64_f049c617
       local.set 7   ; __tup_4
       local.field 7 69 0   ; __tup_4 __Tuple_i64_i64_f049c617._0

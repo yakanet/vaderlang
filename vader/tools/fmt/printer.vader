@@ -62,7 +62,7 @@ export Printer :: struct {
     // the source never had.
     keep_line_breaks: bool = true
     // Width that follows on the same line once the NEXT delimited construct
-    // closes: the ` ?? return ...` after a call. That construct counts it in its
+    // closes: the ` else return ...` after a call. That construct counts it in its
     // fit test (`fits_inline`), which clears it before the construct's own
     // children are emitted.
     trailing: i64 = 0
@@ -1494,12 +1494,8 @@ emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
 }
 
 // `left else ...` : each clause after the one before, `else is T` with its
-// braces, where the source puts its line breaks ; `left ?? fallback` as written.
+// braces, where the source puts its line breaks.
 emit_fallback :: fn(self: Printer, e: p.FallbackExpr) -> void {
-    if e.coalesce {
-        self.emit_coalesce(e)
-        return
-    }
     // A left operand that closes on a delimiter decides its layout knowing the
     // ` else ...` that shares its last line, and explodes rather than run past
     // `MAX_LINE`.
@@ -1538,7 +1534,7 @@ emit_clause :: fn(self: Printer, c: p.FallbackClause) -> void {
 }
 
 clause_start :: fn(c: p.FallbackClause) -> Position {
-    test :: c.test else return fallback_start(c.body)
+    test :: c.test else return c.body.span.start
     return test.span.start
 }
 
@@ -1574,27 +1570,6 @@ else_operand_needs_parens :: fn(e: p.Expr, is_left: bool) -> bool {
     return is_left && e is p.IfExpr | p.MatchExpr | p.BlockExpr
 }
 
-// `left ?? fallback`: the fallback is a value expression or a divergent
-// statement (`return` / `break` / `continue`).
-emit_coalesce :: fn(self: Printer, e: p.FallbackExpr) -> void {
-    clause :: e.clauses[0]
-    right_start :: fallback_start(clause.body)
-    place :: self.operator_place(clause.op_span, e.left.span.end, right_start)
-    // A left operand that closes on a delimiter decides its layout knowing the
-    // ` ?? ...` that shares its last line, and explodes rather than run past
-    // `MAX_LINE`.
-    shares_line :: !self.flat && place.at == .Inline
-    if shares_line && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
-        self.trailing = coalesce_tail_width(self.source, clause.body)
-    }
-    self.emit_expr(e.left)
-    self.write_operator(place, "??", right_start)
-    self.emit_fallback_body(clause.body)
-    if place.at != .Inline {
-        self.depth -= 1
-    }
-}
-
 // The expression after a fn's `=` : on the same line, or on the next one a level
 // deeper when the source breaks the line right after the `=`.
 emit_expression_body :: fn(self: Printer, body: p.Expr | null) -> void {
@@ -1616,11 +1591,6 @@ keeps_line_breaks :: fn(self: Printer) -> bool = !self.flat && self.keep_line_br
 // Whether only blanks separate `offset` from the line break before it.
 line_breaks_before :: fn(source: string, offset: i64) -> bool =
     offset > 0 && !code_before_on_line(source, offset)
-
-fallback_start :: fn(fallback: p.FallbackBody) -> Position = match fallback {
-    is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> fallback.span.start
-    is p.Expr                                      -> fallback.span.start
-}
 
 // ---- source line breaks around an operator --------------------------------
 
@@ -1705,22 +1675,6 @@ break_line :: fn(self: Printer, before: i64, node_line: i32) -> void {
         self.newline()
     }
     self.indent()
-}
-
-emit_fallback_body :: fn(self: Printer, fallback: p.FallbackBody) -> void {
-    match fallback {
-        is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(fallback)
-        is p.Expr -> self.emit_expr(fallback)
-    }
-}
-
-// Width of ` ?? ` and the fallback's first line, laid out on its own : all of a
-// short fallback, the head of one that explodes (`return Foo {`).
-coalesce_tail_width :: fn(source: string, fallback: p.FallbackBody) -> i64 {
-    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
-    sub.write(" ?? ")
-    sub.emit_fallback_body(fallback)
-    return first_line_len(sub.finish())
 }
 
 // Whether a delimited construct stays on one line : always in `flat` mode or when
@@ -2114,7 +2068,7 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
         }
     }
     // A fallback looser than its parent keeps its parentheses : otherwise
-    // `(a ?? b) + c` re-emits as `a ?? b + c` and reparses as `a ?? (b + c)`.
+    // `(a else b) + c` re-emits as `a else b + c` and reparses as `a else (b + c)`.
     if operand is p.FallbackExpr && fallback_operand_needs_parens(operand, parent_op) {
         self.write("(")
         self.emit_expr(operand)
@@ -2143,12 +2097,10 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
     }
 }
 
-// `??` binds looser than every binary operator ; `else` binds tighter than a
-// comparison and looser than the rest. A last clause that leaves takes all that
+// `else` binds tighter than a comparison and looser than the rest. A last clause that leaves takes all that
 // follows as its value: `(x else return 1) > 0` is not `x else return (1 > 0)`.
 fallback_operand_needs_parens :: fn(operand: p.FallbackExpr, parent_op: p.BinaryOp) -> bool =
-    operand.coalesce
-        || operand.clauses[operand.clauses.len() - 1].body is p.ReturnStmt | p.BreakStmt | p.ContinueStmt
+    operand.clauses[operand.clauses.len() - 1].body is p.ReturnStmt | p.BreakStmt | p.ContinueStmt
         || binary_precedence(parent_op) > binary_precedence(.Eq)
 
 // Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
@@ -2800,7 +2752,7 @@ emit_range_operand :: fn(self: Printer, operand: p.Expr) -> void {
 range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
     if operand is p.BinaryExpr { return binary_precedence(operand.op) < 4 }
     if operand is p.RangeExpr { return true }
-    if operand is p.FallbackExpr { return true }   // `??` binds looser than `..`
+    if operand is p.FallbackExpr { return true }   // `else` binds looser than `..`
     return false
 }
 

@@ -167,7 +167,7 @@ end
 fn 5 snippet$main () -> i32
   local __buf_1 ref
   local __off_2 i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local if_res u8
   local $cast_12 u64
   local $type_check_18 bool
@@ -182,13 +182,13 @@ fn 5 snippet$main () -> i32
   local.set 1   ; __off_2
   i64.const 7
   call 0   ; snippet$parse_hour
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     i32.const 0
     local.set 3   ; if_res
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 3   ; u8
     local.set 3   ; if_res
   end $L0

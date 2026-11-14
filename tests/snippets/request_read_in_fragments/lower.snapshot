@@ -81,13 +81,13 @@
           $exit$i26: {
               for {
                   line: IOError | string = {
-                      __coalesce_0: IOError | null | string = std.io.read_line(r, max)
-                      if __coalesce_0 is null {
+                      __fallback_0: IOError | null | string = std.io.read_line(r, max)
+                      if __fallback_0 is null {
                           {
                               break
                           }
                       } else {
-                          (IOError | string)(__coalesce_0)
+                          (IOError | string)(__fallback_0)
                       } :IOError | string
                   }
                   if line is IOError {

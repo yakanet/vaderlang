@@ -67,7 +67,7 @@ The rules: §4 *Enums*.
 
 ## Unions
 
-`A | B` holds a value of either type, and a test with `is` tells which. A type that may be absent is a union with `null`, and `??` gives a value for the `null` case.
+`A | B` holds a value of either type, and a test with `is` tells which. A type that may be absent is a union with `null`, and `else` gives a value for the `null` case.
 
 ```vader
 # module "main"
@@ -82,8 +82,8 @@ find :: fn(names: string[], wanted: string) -> i32 | null {
 }
 # main :: fn() -> i32 {
 #     names :: ["ada", "grace", "barbara"]
-#     println("${find(names, "grace") ?? -1}")
-#     println("${find(names, "linus") ?? -1}")
+#     println("${find(names, "grace") else -1}")
+#     println("${find(names, "linus") else -1}")
 #     return 0
 # }
 ```

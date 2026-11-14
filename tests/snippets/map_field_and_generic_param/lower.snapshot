@@ -16,12 +16,12 @@
       }
       std.collections.Map<string, i32>.set_at(c.by_name, "x", 7)
       v: i32 = {
-          __coalesce_0: i32 | null = std.collections.Map<string, i32>.at(c.by_name, "x")
-          if __coalesce_0 is null {
+          __fallback_0: i32 | null = std.collections.Map<string, i32>.at(c.by_name, "x")
+          if __fallback_0 is null {
               return 1
-              @unreachable("`??` fallback diverges")
+              @unreachable("an `else` clause leaves")
           } else {
-              i32(__coalesce_0)
+              i32(__fallback_0)
           } :i32
       }
       std.console.println<string>({

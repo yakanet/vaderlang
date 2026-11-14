@@ -219,7 +219,7 @@ const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl[] =
     value_reads(e, typed).consts
 
 // What a value names directly, through operators, field and index reads, calls,
-// literals and `??` : the consts of this walk, and the struct literals, whose
+// literals and `else` : the consts of this walk, and the struct literals, whose
 // omitted fields take their defaults (`field_defaults.vader`). A read under any
 // other form is typed on demand instead (`settle_const_read`).
 ValueReads :: struct {

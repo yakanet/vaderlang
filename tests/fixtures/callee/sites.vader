@@ -347,4 +347,4 @@ export assigned_into :: fn(m: Meters) -> i64 {
     return x
 }
 
-export coalesced_into :: fn(found: i64 | null, m: Meters) -> i64 = found else m
+export fallback_into :: fn(found: i64 | null, m: Meters) -> i64 = found else m

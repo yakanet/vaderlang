@@ -94,63 +94,63 @@ fn 1 snippet$open_thing (i32) -> any
 end
 
 fn 2 snippet$bare (i32) -> string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 1   ; snippet$open_thing
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 13   ; union
   if $L0 void
     return.lit string.const 2   ; "fallback"
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 5   ; string
   return
 end
 
 fn 3 snippet$chained (i32) -> string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 1   ; snippet$open_thing
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit string.const 3   ; "absent"
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   type_check 4   ; std_io$IOError
   if $L1 void
     return.lit string.const 4   ; "failed"
   end $L1
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 5   ; string
   return
 end
 
 fn 4 snippet$widened (i32) -> any
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 1   ; snippet$open_thing
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 13   ; union
   if $L0 void
     return.lit null.const
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 5   ; string
   retag 5   ; string
   return
 end
 
 fn 5 snippet$leave (i32) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 0   ; snippet$lookup
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const -1
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 1   ; i32
   i32.const 1
   i32.checked_add
@@ -163,7 +163,7 @@ fn 6 snippet$loop_sum () -> i32
   local __for_len_1 i64
   local __for_i_2 i64
   local v i32
-  local __coalesce_3 any
+  local __fallback_3 any
   i32.const 0
   local.set 0   ; total
   i32.const -1
@@ -185,7 +185,7 @@ fn 6 snippet$loop_sum () -> i32
       local.get 3   ; __for_i_2
       load_slot_i32
       call 0   ; snippet$lookup
-      local.tee 5   ; __coalesce_3
+      local.tee 5   ; __fallback_3
       type_check 0   ; null
       if $L2 void
         local.get 3   ; __for_i_2
@@ -194,7 +194,7 @@ fn 6 snippet$loop_sum () -> i32
         local.set 3   ; __for_i_2
         br $L0
       end $L2
-      local.get 5   ; __coalesce_3
+      local.get 5   ; __fallback_3
       ref.cast 1   ; i32
       local.set 4   ; v
       local.get 0   ; total
@@ -213,17 +213,17 @@ fn 6 snippet$loop_sum () -> i32
 end
 
 fn 7 snippet$precedence (i32,bool) -> bool
-  local __coalesce_0 any
+  local __fallback_0 any
   local if_res i32
   local.get 0   ; arg 0
   call 0   ; snippet$lookup
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     i32.const 0
     local.set 3   ; if_res
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 1   ; i32
     local.set 3   ; if_res
   end $L0

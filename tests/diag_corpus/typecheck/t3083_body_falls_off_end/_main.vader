@@ -67,7 +67,7 @@ lambda_void :: fn() -> void {
     })
 }
 
-// The loop can be left: its `break` hides in the `??` fallback of a condition.
+// The loop can be left: its `break` hides in the `else` fallback of a condition.
 // Not called: calling it would hang, abort, or return nothing.
 @allow_unused
 left_through_condition :: fn(xs: i32[]) -> i32 {

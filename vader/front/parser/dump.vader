@@ -893,10 +893,6 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.write_expr(e.left, level + 1)
             sb.entry(false, level + 1, "clauses")
             sb.write_fallback_clauses(e.clauses, level + 1)
-            if e.coalesce {
-                sb.entry(false, level + 1, "coalesce")
-                sb.append("true")
-            }
             binding :: e.binding
             if binding != null {
                 sb.entry(false, level + 1, "binding")

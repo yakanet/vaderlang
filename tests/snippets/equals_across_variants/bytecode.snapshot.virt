@@ -134,7 +134,7 @@ fn 4 snippet$main () -> i32
   local $arr_0 ref
   local $arr_1 ref
   local $arr_2 ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local if_res string
   local if_res string
   local __off_3 i64
@@ -168,13 +168,13 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 1   ; $arr_1
   call 36   ; std_collections$Map$std_core$Index$at__Any__string
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 1   ; "absent"
     local.set 4   ; if_res
   else
-    local.get 3   ; __coalesce_0
+    local.get 3   ; __fallback_0
     ref.cast 6   ; string
     local.set 4   ; if_res
   end $L0
@@ -184,13 +184,13 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 1   ; $arr_1
   call 36   ; std_collections$Map$std_core$Index$at__Any__string
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     string.const 1   ; "absent"
     local.set 5   ; if_res
   else
-    local.get 3   ; __coalesce_0
+    local.get 3   ; __fallback_0
     ref.cast 6   ; string
     local.set 5   ; if_res
   end $L1
@@ -205,14 +205,14 @@ fn 4 snippet$main () -> i32
   local.set 0   ; $arr_0
   i32.const 1
   struct.new 4   ; snippet$Label
-  local.set 3   ; __coalesce_0
+  local.set 3   ; __fallback_0
   i64.const 5
   buffer.new
   local.set 1   ; $arr_1
   i64.const 0
   local.set 6   ; __off_3
   local.get 0   ; $arr_0
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   call 12   ; std_core$$array$Contains$contains__snippet_Label___snippet_Point
   local.set 7   ; $call_42
   local.get 1   ; $arr_1
@@ -232,14 +232,14 @@ fn 4 snippet$main () -> i32
   local.set 0   ; $arr_0
   f64.const 1.5 4609434218613702656
   retag 14   ; f64
-  local.set 3   ; __coalesce_0
+  local.set 3   ; __fallback_0
   i64.const 5
   buffer.new
   local.set 1   ; $arr_1
   i64.const 0
   local.set 6   ; __off_3
   local.get 0   ; $arr_0
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   call 13   ; std_core$$array$Contains$contains__f64___string
   local.set 7   ; $call_42
   local.get 1   ; $arr_1
@@ -253,7 +253,7 @@ fn 4 snippet$main () -> i32
   call 47   ; std_console$println__string
   i32.const 1
   struct.new 1   ; snippet$Point
-  local.set 3   ; __coalesce_0
+  local.set 3   ; __fallback_0
   i32.const 1
   struct.new 4   ; snippet$Label
   local.set 8   ; e2
@@ -263,7 +263,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 6   ; __off_3
   local.get 8   ; e2
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   virtual.call 2 std_core$Equals.equals -> bool
   local.set 7   ; $call_42
   local.get 0   ; $arr_0
@@ -277,7 +277,7 @@ fn 4 snippet$main () -> i32
   call 10   ; std_core$write_string_at
   local.set 6   ; __off_3
   local.get 8   ; e2
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   virtual.call 2 std_core$Equals.equals -> bool
   bool.not
   local.set 7   ; $call_42

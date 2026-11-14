@@ -125,17 +125,17 @@ fn 1 snippet$fill (any) -> void
 end
 
 fn 2 snippet$peek (any,string) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 1   ; arg 1
   retag 2   ; string
   local.get 0   ; arg 0
   virtual.call 2 std_core$Index.at -> any
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const -1
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 3   ; i32
   return
 end
@@ -159,7 +159,7 @@ fn 4 snippet$main () -> i32
   local __p_6 string
   local __p_7 string
   local $call_69 i64
-  local __coalesce_10 any
+  local __fallback_10 any
   local if_res i32
   array.new 10 0   ; string[]
   local.set 0   ; $arr_0
@@ -357,13 +357,13 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
   call 21   ; std_collections$Map$std_core$Index$at__i64__i32
-  local.tee 8   ; __coalesce_10
+  local.tee 8   ; __fallback_10
   type_check 0   ; null
   if $L0 void
     i32.const -1
     local.set 9   ; if_res
   else
-    local.get 8   ; __coalesce_10
+    local.get 8   ; __fallback_10
     ref.cast 3   ; i32
     local.set 9   ; if_res
   end $L0
@@ -387,13 +387,13 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
   call 21   ; std_collections$Map$std_core$Index$at__i64__i32
-  local.tee 8   ; __coalesce_10
+  local.tee 8   ; __fallback_10
   type_check 0   ; null
   if $L1 void
     i32.const -1
     local.set 9   ; if_res
   else
-    local.get 8   ; __coalesce_10
+    local.get 8   ; __fallback_10
     ref.cast 3   ; i32
     local.set 9   ; if_res
   end $L1

@@ -2545,7 +2545,7 @@
       },
       {
         "kind": "FnDecl",
-        "name": "coalesce_continue",
+        "name": "fallback_continue",
         "visibility": "private",
         "typeParams": [],
         "params": [],
@@ -2882,7 +2882,7 @@
                   "parts": [
                     {
                       "kind": "text",
-                      "value": "indexed + ?? continue:"
+                      "value": "indexed + else continue:"
                     },
                     {
                       "kind": "interp",
@@ -3993,7 +3993,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "coalesce_continue"
+                  "name": "fallback_continue"
                 },
                 "args": []
               }

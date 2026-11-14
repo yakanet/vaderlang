@@ -4,8 +4,8 @@
   FnDecl         chain_continue       :: fn() -> void
   FnDecl         chain_continue_by_name :: fn() -> void
   FnDecl         chars_indexed_continue :: fn() -> void
-  FnDecl         coalesce_continue    :: fn() -> void
   FnDecl         drop_odd             :: fn(Iterator<i32>) -> Iterator<i32>
+  FnDecl         fallback_continue    :: fn() -> void
   FnDecl         flat_map_continue    :: fn() -> void
   FnDecl         indexed_continue     :: fn() -> void
   FnDecl         loopless_generator_continue :: fn() -> void
@@ -160,10 +160,10 @@
   expr 185:32   IdentExpr      :: i32
   expr 185:9    IdentExpr      :: string
   expr 187:13   StringLitExpr  :: string
-  expr 187:38   IdentExpr      :: string
-  expr 187:48   IdentExpr      :: string
+  expr 187:40   IdentExpr      :: string
   expr 187:5    CallExpr       :: void
   expr 187:5    IdentExpr      :: fn(T) -> void
+  expr 187:50   IdentExpr      :: string
   expr 192:14   CallExpr       :: Iterator<i32>
   expr 192:14   FieldExpr      :: fn(fn(i32) -> i32[]) -> Iterator<i32>
   expr 192:14   SeqLitExpr     :: i32[]

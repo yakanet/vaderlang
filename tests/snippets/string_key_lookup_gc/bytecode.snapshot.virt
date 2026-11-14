@@ -61,7 +61,7 @@ fn 0 snippet$main () -> i32
   local __for_i_6 i64
   local w string
   local $cast_77 i32
-  local __coalesce_7 any
+  local __fallback_7 any
   local if_res i32
   local $add_checked_86 i32
   local $gt_108 bool
@@ -226,13 +226,13 @@ fn 0 snippet$main () -> i32
             local.get 1   ; $arr_1
             local.get 13   ; w
             call 8   ; std_collections$Map$std_core$Index$at__string__i32
-            local.tee 15   ; __coalesce_7
+            local.tee 15   ; __fallback_7
             type_check 0   ; null
             if $L9 void
               i32.const 0
               local.set 16   ; if_res
             else
-              local.get 15   ; __coalesce_7
+              local.get 15   ; __fallback_7
               ref.cast 1   ; i32
               local.set 16   ; if_res
             end $L9

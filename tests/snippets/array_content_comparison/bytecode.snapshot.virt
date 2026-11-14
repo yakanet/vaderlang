@@ -675,7 +675,7 @@ fn 12 std_core$is_permutation_of__i32 (ref,ref) -> bool
   local __for_arr_0 ref
   local item i32
   local i i64
-  local __coalesce_3 any
+  local __fallback_3 any
   local.get 0   ; arg 0
   array.len
   local.set 2   ; $len_2
@@ -717,12 +717,12 @@ fn 12 std_core$is_permutation_of__i32 (ref,ref) -> bool
       local.get 4   ; $arr_7
       local.get 6   ; item
       call 13   ; std_core$first_unmatched__i32
-      local.tee 8   ; __coalesce_3
+      local.tee 8   ; __fallback_3
       type_check 0   ; null
       if $L3 void
         return.lit bool.const false
       end $L3
-      local.get 8   ; __coalesce_3
+      local.get 8   ; __fallback_3
       ref.cast 7   ; i64
       local.set 7   ; i
       local.get 4   ; $arr_7

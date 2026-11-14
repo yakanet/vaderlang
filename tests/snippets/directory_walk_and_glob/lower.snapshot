@@ -19,12 +19,12 @@
               std.fs.push_entries(pending, self.listed, self.root, "", i64(1))
               for {
                   entry: WalkEntry = {
-                      __coalesce_0: null | WalkEntry = @array.remove_last(pending)
-                      if __coalesce_0 is null {
+                      __fallback_0: null | WalkEntry = @array.remove_last(pending)
+                      if __fallback_0 is null {
                           break
-                          @unreachable("`??` fallback diverges")
+                          @unreachable("an `else` clause leaves")
                       } else {
-                          WalkEntry(__coalesce_0)
+                          WalkEntry(__fallback_0)
                       } :WalkEntry
                   }
                   entry: WalkEntry = entry

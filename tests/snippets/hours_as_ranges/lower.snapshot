@@ -141,8 +141,8 @@
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "first free ")
           __off_13 = std.core.write_unsigned(__buf_12, __off_13, {
-              __coalesce_11: null | u8 = snippet.first_free(taken)
-              if __coalesce_11 is null { Hour(0) } else { Hour(__coalesce_11) } :Hour
+              __fallback_11: null | u8 = snippet.first_free(taken)
+              if __fallback_11 is null { Hour(0) } else { Hour(__fallback_11) } :Hour
           } :Hour)
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)

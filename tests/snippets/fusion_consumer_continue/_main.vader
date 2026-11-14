@@ -1,7 +1,7 @@
 // fusion_consumer_continue: a `continue` in the consumer resumes the inlined
 // generator after its `yield`: `indexed`, `take`, a generator with two
 // `yield`s per round, a generator with no loop, `continue y` from an inner loop,
-// `chars().indexed()`, a `?? continue`, a stage's own `continue` over `take`,
+// `chars().indexed()`, an `else continue`, a stage's own `continue` over `take`,
 // and `flat_map` and `chain`, where the `continue` already lands on the loop it
 // means, by name from an inner loop too.
 //
@@ -172,7 +172,7 @@ stage_continue_over_take :: fn() -> void {
 
 maybe_even :: fn(x: i32) -> i32 | null = if x % 2 == 0 { x } else { null }
 
-coalesce_continue :: fn() -> void {
+fallback_continue :: fn() -> void {
     fused := ""
     for [x, i] in [1, 2, 3, 4].indexed() {
         v :: maybe_even(x) else continue
@@ -184,7 +184,7 @@ coalesce_continue :: fn() -> void {
         v :: maybe_even(x) else continue
         lazy = lazy + " ${i}:${v}"
     }
-    println("indexed + ?? continue:${fused} |${lazy}")
+    println("indexed + else continue:${fused} |${lazy}")
 }
 
 flat_map_continue :: fn() -> void {
@@ -256,7 +256,7 @@ main :: fn() -> i32 {
     take_continue_outer()
     chars_indexed_continue()
     stage_continue_over_take()
-    coalesce_continue()
+    fallback_continue()
     flat_map_continue()
     chain_continue()
     chain_continue_by_name()

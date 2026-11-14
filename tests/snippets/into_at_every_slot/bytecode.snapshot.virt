@@ -37,7 +37,7 @@ string 9 "map ["
 string 10 "destructure ["
 string 11 "] "
 string 12 "push ["
-string 13 "coalesce ["
+string 13 "fallback ["
 string 14 "yield ["
 string 15 "namespace ["
 string 16 "explicit ["
@@ -133,9 +133,9 @@ fn 1 snippet$Celsius$std_core$Into$into$1 (ref) -> string
 end
 
 fn 2 snippet$fallback (any) -> ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     i32.const 4
@@ -143,7 +143,7 @@ fn 2 snippet$fallback (any) -> ref
     call 0   ; snippet$Celsius$std_core$Into$into
     return
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 2   ; snippet$Label
   return
 end
@@ -181,7 +181,7 @@ fn 7 snippet$main () -> i32
   local h ref
   local $call_16 ref
   local $arr_24 ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local n i32
   local $call_63 i64
   local $cast_74 i64
@@ -246,14 +246,14 @@ fn 7 snippet$main () -> i32
   local.get 2   ; h
   string.const 7   ; "k"
   call 16   ; std_collections$Map$std_core$Index$at__string__Any
-  local.tee 5   ; __coalesce_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 8   ; "absent"
     struct.new_stack 2   ; snippet$Label
     local.set 2   ; h
   else
-    local.get 5   ; __coalesce_0
+    local.get 5   ; __fallback_0
     ref.cast 2   ; snippet$Label
     local.set 2   ; h
   end $L0
@@ -337,7 +337,7 @@ fn 7 snippet$main () -> i32
   struct.get 2 0   ; snippet$Label.text
   ref.cast 3   ; string
   local.set 1   ; $field_7
-  string.const 13   ; "coalesce ["
+  string.const 13   ; "fallback ["
   local.get 1   ; $field_7
   string.const 5   ; "]"
   call 11   ; concat_3

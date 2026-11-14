@@ -1621,18 +1621,18 @@ fn 17 semver$parse_clause (string) -> any
 end
 
 fn 18 semver$prerelease_dash (string) -> any
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_12 i64
   local.get 0   ; arg 0
   char.const 46
   i64.const 0
   call 57   ; std_string$index_of
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit null.const
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
@@ -1641,12 +1641,12 @@ fn 18 semver$prerelease_dash (string) -> any
   char.const 46
   local.get 2   ; $add_checked_12
   call 57   ; std_string$index_of
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     return.lit null.const
   end $L1
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add

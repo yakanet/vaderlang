@@ -27,11 +27,11 @@
       }
       std.collections.Map<Any, string>.set_at(seen, Point { .x = 1 }, "point")
       std.console.println<string>(concat_3({
-          __coalesce_0: null | string = std.collections.Map<Any, string>.at(seen, Label { .n = 1 })
-          if __coalesce_0 is null { "absent" } else { string(__coalesce_0) } :string
+          __fallback_0: null | string = std.collections.Map<Any, string>.at(seen, Label { .n = 1 })
+          if __fallback_0 is null { "absent" } else { string(__fallback_0) } :string
       } :string, " ", {
-          __coalesce_1: null | string = std.collections.Map<Any, string>.at(seen, Point { .x = 1 })
-          if __coalesce_1 is null { "absent" } else { string(__coalesce_1) } :string
+          __fallback_1: null | string = std.collections.Map<Any, string>.at(seen, Point { .x = 1 })
+          if __fallback_1 is null { "absent" } else { string(__fallback_1) } :string
       } :string))
       shapes: (Label | Point)[] = [Point { .x = 1 }] :(Label | Point)[]
       label: Label | Point = Label { .n = 1 }

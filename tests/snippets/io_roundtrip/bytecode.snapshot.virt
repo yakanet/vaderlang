@@ -384,15 +384,15 @@ end
 
 fn 11 std_env$temp_dir_of (any) -> string
   local e string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 9   ; ""
     local.set 1   ; e
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 2   ; string
     local.set 1   ; e
   end $L0
@@ -1816,7 +1816,7 @@ end
 
 fn 46 std_path$prefix_length (string,u8) -> i64
   local n i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_39 i64
   local.get 1   ; arg 1
   i32.const 0
@@ -1878,13 +1878,13 @@ fn 46 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   i64.const 2
   call 48   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     local.get 2   ; n
     return
   end $L8
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 4   ; i64
   i64.const 1
   i64.checked_add
@@ -1892,13 +1892,13 @@ fn 46 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
   call 48   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
     local.get 2   ; n
     return
   end $L9
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 4   ; i64
   return
 end

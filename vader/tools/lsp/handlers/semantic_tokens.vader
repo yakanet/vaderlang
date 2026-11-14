@@ -107,7 +107,7 @@ classify_token :: fn(t: Token) -> TokenType | null = match t.kind {
         | .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
         | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
         | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte
-        | .AndAnd | .OrOr | .Bang | .QuestionQuestion
+        | .AndAnd | .OrOr | .Bang
         | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
         | .PlusPercentAssign | .MinusPercentAssign | .StarPercentAssign
         | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl

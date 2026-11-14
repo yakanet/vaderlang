@@ -31,8 +31,8 @@ bare_break :: fn() -> i32 {
     return n
 }
 
-// Quiet: the `break` is the `??` fallback of a bound value, not a statement.
-coalesce_break :: fn() -> i32 {
+// Quiet: the `break` is the `else` fallback of a bound value, not a statement.
+fallback_break :: fn() -> i32 {
     n := 0
     for {
         n = next_or_null(n) else break
@@ -62,8 +62,8 @@ conditional :: fn() -> i32 {
     return n
 }
 
-// Quiet: the `??` fallback sits in an operand, since a compound assignment
-// desugars to `n = n + (... ?? break)`.
+// Quiet: the `else` fallback sits in an operand, since a compound assignment
+// desugars to `n = n + (... else break)`.
 compound_break :: fn() -> i32 {
     n := 0
     for {
@@ -72,7 +72,7 @@ compound_break :: fn() -> i32 {
     return n
 }
 
-// Quiet: the `??` fallback sits in a condition.
+// Quiet: the `else` fallback sits in a condition.
 condition_break :: fn() -> i32 {
     n := 0
     for {
@@ -85,5 +85,5 @@ condition_break :: fn() -> i32 {
 }
 
 main :: fn() -> i32 =
-    bare_break() + coalesce_break() + labelled_break() + conditional() + compound_break()
+    bare_break() + fallback_break() + labelled_break() + conditional() + compound_break()
         + condition_break()

@@ -123,8 +123,8 @@
           __off_32: i64 = 0
           __off_32 = std.core.write_string_at(__buf_31, __off_32, "map:     k=")
           __off_32 = std.core.write_int(__buf_31, __off_32, {
-              __coalesce_30: i32 | null = std.collections.Map<string, i32>.at(m, "k")
-              if __coalesce_30 is null { -1 } else { i32(__coalesce_30) } :i32
+              __fallback_30: i32 | null = std.collections.Map<string, i32>.at(m, "k")
+              if __fallback_30 is null { -1 } else { i32(__fallback_30) } :i32
           } :i32)
           __off_32 = std.core.write_string_at(__buf_31, __off_32, " z=")
           __off_32 = std.core.write_int(__buf_31, __off_32, z)

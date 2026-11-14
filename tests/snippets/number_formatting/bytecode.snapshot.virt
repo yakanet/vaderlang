@@ -2755,7 +2755,7 @@ fn 37 std_numbers$format_unsigned (u64,ref) -> string
 end
 
 fn 38 std_numbers$format_1 (f64,ref) -> string
-  local __coalesce_0 any
+  local __fallback_0 any
   local if_res i64
   local d ref
   local and_res bool
@@ -2771,13 +2771,13 @@ fn 38 std_numbers$format_1 (f64,ref) -> string
     return
   end $L0
   local.field 1 16 4   ; arg 1 std_numbers$DecimalFormat.decimals
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     i64.const 0
     local.set 3   ; if_res
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 3   ; i64
     local.set 3   ; if_res
   end $L1
@@ -2938,7 +2938,7 @@ end
 fn 42 std_numbers$shortest_digits (f64) -> ref
   local text string
   local cut ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local $call_15 i64
   local.get 0   ; arg 0
   call 12   ; std_core$f64$Display$to_string
@@ -2947,7 +2947,7 @@ fn 42 std_numbers$shortest_digits (f64) -> ref
   local.tee 1   ; text
   string.const 11   ; "e"
   call 64   ; std_string$split_first
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     local.get 1   ; text
@@ -2955,7 +2955,7 @@ fn 42 std_numbers$shortest_digits (f64) -> ref
     call 50   ; std_numbers$digits_of
     return
   end $L0
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 21   ; __Tuple_string_string_66940ed4
   local.set 2   ; cut
   local.field 2 21 0   ; cut __Tuple_string_string_66940ed4._0
@@ -3386,14 +3386,14 @@ end
 
 fn 50 std_numbers$digits_of (string,i64) -> ref
   local sides ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local $field_10 string
   local $field_11 string
   local $add_checked_15 i64
   local.get 0   ; arg 0
   string.const 18   ; "."
   call 64   ; std_string$split_first
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     local.get 0   ; arg 0
@@ -3401,7 +3401,7 @@ fn 50 std_numbers$digits_of (string,i64) -> ref
     struct.new_stack 21   ; __Tuple_string_string_66940ed4
     local.set 2   ; sides
   else
-    local.get 3   ; __coalesce_0
+    local.get 3   ; __fallback_0
     ref.cast 21   ; __Tuple_string_string_66940ed4
     local.set 2   ; sides
   end $L0

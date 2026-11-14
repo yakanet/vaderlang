@@ -15,7 +15,7 @@ An array grows with `push` and shrinks with `remove_last`. `x in array` tests wh
     primes.push_all([11, 13])
     println("${primes.len()} primes, the last is ${primes[primes.len() - 1]}")
     println("${5 in primes} ${6 in primes}")
-    removed :: primes.remove_last() ?? 0
+    removed :: primes.remove_last() else 0
     println("${removed} removed, ${primes.len()} left")
 #     return 0
 # }
@@ -40,7 +40,7 @@ A binding made with `::` only fixes the name: the array it names may still chang
 # main :: fn() -> i32 {
     counts :: Map<string, i32> {}
     for word in ["to", "be", "or", "not", "to", "be"] {
-        counts[word] = (counts[word] ?? 0) + 1
+        counts[word] = (counts[word] else 0) + 1
     }
     for [word, n] in counts {
         println("${word}: ${n}")
@@ -61,7 +61,7 @@ not: 1
 1 true
 ```
 
-Reading a key that is absent gives `null`, hence the `??`. Here the map walks its entries in the order they were added; removing one can change that order. The library: [`std/collections`](/lib/std/collections/).
+Reading a key that is absent gives `null`, hence the `else`. Here the map walks its entries in the order they were added; removing one can change that order. The library: [`std/collections`](/lib/std/collections/).
 
 ## Lazy iterators
 

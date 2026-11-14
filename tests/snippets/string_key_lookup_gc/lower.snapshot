@@ -65,8 +65,8 @@
                       if std.collections.Set<string>.contains(known, w) {
                           total = total + i32(std.core.byte_at(w, i64(1)))
                           std.collections.Map<string, i32>.set_at(counts, w, ({
-                              __coalesce_7: i32 | null = std.collections.Map<string, i32>.at(counts, w)
-                              if __coalesce_7 is null { 0 } else { i32(__coalesce_7) } :i32
+                              __fallback_7: i32 | null = std.collections.Map<string, i32>.at(counts, w)
+                              if __fallback_7 is null { 0 } else { i32(__fallback_7) } :i32
                           } :i32) + 1)
                       }
                   } @step {

@@ -844,15 +844,15 @@ end
 
 fn 13 std_env$temp_dir_of (any) -> string
   local e string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 18   ; ""
     local.set 1   ; e
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 2   ; string
     local.set 1   ; e
   end $L0
@@ -1839,7 +1839,7 @@ end
 fn 47 std_fs$copy_chunks (ref,ref) -> any
   local chunk ref
   local n any
-  local __coalesce_0 any
+  local __fallback_0 any
   local $cast_16 i64
   local $slice_17 ref
   local written any
@@ -1852,11 +1852,11 @@ fn 47 std_fs$copy_chunks (ref,ref) -> any
     local.get 0   ; arg 0
     local.get 2   ; chunk
     call 58   ; std_fs$File$std_io$Reader$read
-    local.tee 4   ; __coalesce_0
+    local.tee 4   ; __fallback_0
     type_check 0   ; null
     if $L1 void
     else
-      local.get 4   ; __coalesce_0
+      local.get 4   ; __fallback_0
       local.tee 3   ; n
       type_check 12   ; std_io$IOError
       if $L2 void
@@ -2117,7 +2117,7 @@ end
 
 fn 54 std_fs$list_dir (string) -> any
   local d pointer
-  local __coalesce_0 any
+  local __fallback_0 any
   local out ref
   local p pointer
   local name string
@@ -2126,14 +2126,14 @@ fn 54 std_fs$list_dir (string) -> any
   local $struct_26 ref
   local.get 0   ; arg 0
   call.import 6   ; system_posix$sys_opendir
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 41   ; "cannot read directory"
     call 63   ; std_io$last_io_error
     return
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 22   ; pointer
   local.tee 1   ; d
   struct.new 33   ; __defer_env_std_fs_3
@@ -2144,11 +2144,11 @@ fn 54 std_fs$list_dir (string) -> any
   loop $L1 void
     local.get 1   ; d
     call.import 12   ; system_posix$sys_readdir
-    local.tee 2   ; __coalesce_0
+    local.tee 2   ; __fallback_0
     type_check 0   ; null
     if $L2 void
     else
-      local.get 2   ; __coalesce_0
+      local.get 2   ; __fallback_0
       ref.cast 22   ; pointer
       local.tee 4   ; p
       call.import 13   ; system_posix$dirent_name
@@ -3275,7 +3275,7 @@ end
 
 fn 76 std_path$prefix_length (string,u8) -> i64
   local n i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_39 i64
   local.get 1   ; arg 1
   i32.const 0
@@ -3337,13 +3337,13 @@ fn 76 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   i64.const 2
   call 78   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     local.get 2   ; n
     return
   end $L8
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 4   ; i64
   i64.const 1
   i64.checked_add
@@ -3351,13 +3351,13 @@ fn 76 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
   call 78   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
     local.get 2   ; n
     return
   end $L9
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 4   ; i64
   return
 end

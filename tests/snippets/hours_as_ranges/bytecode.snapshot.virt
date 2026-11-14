@@ -320,7 +320,7 @@ fn 9 snippet$main () -> i32
   local __p_6 string
   local __p_7 string
   local __p_8 string
-  local __coalesce_11 any
+  local __fallback_11 any
   local if_res u8
   local count i32
   i32.const 23
@@ -626,13 +626,13 @@ fn 9 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 1   ; d
   call 8   ; snippet$first_free
-  local.tee 10   ; __coalesce_11
+  local.tee 10   ; __fallback_11
   type_check 0   ; null
   if $L0 void
     i32.const 0
     local.set 11   ; if_res
   else
-    local.get 10   ; __coalesce_11
+    local.get 10   ; __fallback_11
     ref.cast 1   ; u8
     local.set 11   ; if_res
   end $L0

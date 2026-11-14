@@ -1,5 +1,5 @@
-// `break` as the fallback of a `??` outside any loop: T3015, though the jump sits
-// inside an expression.
+// `break` as the fallback of an `else` outside any loop: T3015, though the jump
+// sits inside an expression.
 module "snippet"
 
 maybe :: fn(i: i32) -> i32 | null = if i > 0 { i } else { null }

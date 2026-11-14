@@ -106,14 +106,14 @@ end
 
 fn 3 snippet$press (ref) -> string
   local handler ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local.field 0 7 1   ; arg 0 snippet$Button.on_click
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit string.const 0   ; "nothing"
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 20   ; fn
   local.set 1   ; handler
   local.field 0 7 0   ; arg 0 snippet$Button.label

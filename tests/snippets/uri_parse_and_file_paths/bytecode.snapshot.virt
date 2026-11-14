@@ -1544,7 +1544,7 @@ fn 22 std_uri$normalized (string,i64,i64,ref) -> any
   local i i64
   local b u8
   local value u8
-  local __coalesce_0 any
+  local __fallback_0 any
   array.new 7 0   ; u8[]
   local.set 4   ; out
   local.get 1   ; arg 1
@@ -1565,7 +1565,7 @@ fn 22 std_uri$normalized (string,i64,i64,ref) -> any
         local.get 5   ; i
         local.get 2   ; arg 2
         call 36   ; std_uri$escape_at
-        local.tee 8   ; __coalesce_0
+        local.tee 8   ; __fallback_0
         type_check 0   ; null
         if $L3 void
           string.const 15   ; "invalid percent escape"
@@ -1573,7 +1573,7 @@ fn 22 std_uri$normalized (string,i64,i64,ref) -> any
           struct.new 14   ; std_uri$UriError
           return
         end $L3
-        local.get 8   ; __coalesce_0
+        local.get 8   ; __fallback_0
         ref.cast 3   ; u8
         local.set 7   ; value
         local.get 4   ; out
@@ -2356,7 +2356,7 @@ end
 fn 36 std_uri$escape_at (string,i64,i64) -> any
   local high u8
   local $add_checked_9 i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local low u8
   local.get 1   ; arg 1
   i64.const 2
@@ -2374,12 +2374,12 @@ fn 36 std_uri$escape_at (string,i64,i64) -> any
   local.get 4   ; $add_checked_9
   call.import 1   ; std_core$byte_at
   call 40   ; std_uri$hex_value
-  local.tee 5   ; __coalesce_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     return.lit null.const
   end $L1
-  local.get 5   ; __coalesce_0
+  local.get 5   ; __fallback_0
   ref.cast 3   ; u8
   local.set 3   ; high
   local.get 1   ; arg 1
@@ -2390,12 +2390,12 @@ fn 36 std_uri$escape_at (string,i64,i64) -> any
   local.get 4   ; $add_checked_9
   call.import 1   ; std_core$byte_at
   call 40   ; std_uri$hex_value
-  local.tee 5   ; __coalesce_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
   if $L2 void
     return.lit null.const
   end $L2
-  local.get 5   ; __coalesce_0
+  local.get 5   ; __fallback_0
   ref.cast 3   ; u8
   local.set 6   ; low
   local.get 3   ; high

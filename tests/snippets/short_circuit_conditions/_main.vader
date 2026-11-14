@@ -4,7 +4,7 @@
 // evaluated, so the output pins both the outcome and which operands ran:
 // short-circuiting must skip the rest.
 // The last two functions take a guard whose operands share one `return`, and an
-// operand that diverges through `?? return`.
+// operand that diverges through `else return`.
 module "snippet"
 
 import "std/console"

@@ -428,15 +428,15 @@ end
 
 fn 9 std_env$temp_dir_of (any) -> string
   local e string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 11   ; ""
     local.set 1   ; e
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 2   ; string
     local.set 1   ; e
   end $L0
@@ -1136,7 +1136,7 @@ end
 
 fn 32 std_fs$list_dir (string) -> any
   local d pointer
-  local __coalesce_0 any
+  local __fallback_0 any
   local out ref
   local p pointer
   local name string
@@ -1145,14 +1145,14 @@ fn 32 std_fs$list_dir (string) -> any
   local $struct_26 ref
   local.get 0   ; arg 0
   call.import 7   ; system_posix$sys_opendir
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 25   ; "cannot read directory"
     call 38   ; std_io$last_io_error
     return
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 4   ; pointer
   local.tee 1   ; d
   struct.new 29   ; __defer_env_std_fs_1
@@ -1163,11 +1163,11 @@ fn 32 std_fs$list_dir (string) -> any
   loop $L1 void
     local.get 1   ; d
     call.import 12   ; system_posix$sys_readdir
-    local.tee 2   ; __coalesce_0
+    local.tee 2   ; __fallback_0
     type_check 0   ; null
     if $L2 void
     else
-      local.get 2   ; __coalesce_0
+      local.get 2   ; __fallback_0
       ref.cast 4   ; pointer
       local.tee 4   ; p
       call.import 13   ; system_posix$dirent_name
@@ -1936,7 +1936,7 @@ end
 
 fn 48 std_path$prefix_length (string,u8) -> i64
   local n i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_39 i64
   local.get 1   ; arg 1
   i32.const 0
@@ -1998,13 +1998,13 @@ fn 48 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   i64.const 2
   call 50   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     local.get 2   ; n
     return
   end $L8
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 8   ; i64
   i64.const 1
   i64.checked_add
@@ -2012,13 +2012,13 @@ fn 48 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
   call 50   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
     local.get 2   ; n
     return
   end $L9
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 8   ; i64
   return
 end

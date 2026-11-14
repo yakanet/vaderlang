@@ -178,7 +178,7 @@
                           __self_1.state = 2
                           continue dispatch$
                       }
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
                       i32(__self_1.s3)
                   } :i32
@@ -225,7 +225,7 @@
                           __self_3.state = 2
                           continue dispatch$
                       }
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
                       i32(__self_3.s2)
                   } :i32
@@ -268,7 +268,7 @@
                           __self_1.state = 2
                           continue dispatch$
                       }
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
                       i32(__self_1.s3)
                   } :i32
@@ -312,7 +312,7 @@
                           __self_1.state = -1
                           return Stop {}
                       }
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
                       i32(__self_1.s3)
                   } :i32

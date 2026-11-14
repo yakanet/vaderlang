@@ -1,4 +1,4 @@
-// A jump written inside an expression of a generator (the fallback of a `??`, a
+// A jump written inside an expression of a generator (the fallback of an `else`, a
 // branch of an `if` expression) does what it does in a plain fn: `continue`
 // skips the rest of the body and runs the step, `break` leaves the loop,
 // `return` ends the stream. A loop that lives inside the expression keeps its

@@ -104,9 +104,9 @@ true
 
 The rules: §10 *Explicit match*.
 
-## A value instead of `null`
+## A value instead of a failure
 
-`??` gives the value on its left unless it is `null`, and otherwise the fallback: a value, or a `return`, `break` or `continue` that leaves.
+`else` gives the value on its left unless it is `null` or an error, and otherwise the fallback: a value, or a `return`, `break` or `continue` that leaves. `else is T { ... }` handles the type `T` alone.
 
 ```vader
 # module "main"
@@ -121,11 +121,11 @@ first_long_word :: fn(words: string[]) -> string | null {
 }
 
 shout :: fn(words: string[]) -> string {
-    word :: first_long_word(words) ?? return "nothing to shout"
+    word :: first_long_word(words) else return "nothing to shout"
     return "${word}!"
 }
 # main :: fn() -> i32 {
-#     println(first_long_word(["a", "be"]) ?? "none")
+#     println(first_long_word(["a", "be"]) else "none")
 #     println(shout(["short", "brilliant"]))
 #     println(shout(["tiny"]))
 #     return 0

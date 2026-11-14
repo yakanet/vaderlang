@@ -84,7 +84,7 @@ test_fmt_keeps_the_comments_after_a_quote_in_an_interpolation :: fn() -> void {
 @test
 test_fmt_keeps_line_break_before_operator :: fn() -> void {
     fmt_keeps("s :: fn() -> i32 = 1\n    + 2", "= 1\n    + 2")
-    fmt_keeps("f :: fn(x: i32 | null) -> i32 = x\n    ?? 0", "x\n    ?? 0")
+    fmt_keeps("f :: fn(x: i32 | null) -> i32 = x\n    else 0", "x\n    else 0")
 }
 
 @test

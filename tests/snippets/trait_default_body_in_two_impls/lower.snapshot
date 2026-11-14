@@ -39,8 +39,8 @@
   }
   snippet.Square.pick :: fn(self: Square, d: i32) -> i32 {  // snippet$Square$Shape$pick
       {
-          __coalesce_0: i32 | null = snippet.positive(snippet.Square.size(self) - d)
-          if __coalesce_0 is null { d } else { i32(__coalesce_0) } :i32
+          __fallback_0: i32 | null = snippet.positive(snippet.Square.size(self) - d)
+          if __fallback_0 is null { d } else { i32(__fallback_0) } :i32
       } :i32
   }
   snippet.Square.traced :: fn(self: Square, label: string) -> i32 {  // snippet$Square$Shape$traced
@@ -95,8 +95,8 @@
   }
   snippet.Circle.pick :: fn(self: Circle, d: i32) -> i32 {  // snippet$Circle$Shape$pick
       {
-          __coalesce_0: i32 | null = snippet.positive(snippet.Circle.size(self) - d)
-          if __coalesce_0 is null { d } else { i32(__coalesce_0) } :i32
+          __fallback_0: i32 | null = snippet.positive(snippet.Circle.size(self) - d)
+          if __fallback_0 is null { d } else { i32(__fallback_0) } :i32
       } :i32
   }
   snippet.Circle.traced :: fn(self: Circle, label: string) -> i32 {  // snippet$Circle$Shape$traced

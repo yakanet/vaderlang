@@ -3251,18 +3251,18 @@ end
 
 fn 57 std_core$remove_value__i64 (ref,i64) -> bool
   local i i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_9 i64
   local $sub_checked_13 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 56   ; std_core$index_of__i64
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit bool.const false
   end $L0
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 7   ; i64
   local.tee 2   ; i
   i64.const 1
@@ -3814,10 +3814,10 @@ fn 78 std_time$millis (i64) -> i64
 end
 
 fn 79 std_runtime_scheduler$gate_or_new (any) -> ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local $arr_6 ref
   local.get 0   ; arg 0
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     array.new 23 0   ; i64[]
@@ -3828,7 +3828,7 @@ fn 79 std_runtime_scheduler$gate_or_new (any) -> ref
     struct.new 41   ; std_runtime_scheduler$InitGate
     return
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 41   ; std_runtime_scheduler$InitGate
   return
 end

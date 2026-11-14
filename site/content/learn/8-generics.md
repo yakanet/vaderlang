@@ -51,8 +51,8 @@ largest :: fn<T: Comparable>(items: T[]) -> T | null {
     return best
 }
 # main :: fn() -> i32 {
-#     println("${largest([3, 9, 4]) ?? 0}")
-#     println(largest(["pear", "apple", "plum"]) ?? "none")
+#     println("${largest([3, 9, 4]) else 0}")
+#     println(largest(["pear", "apple", "plum"]) else "none")
 #     return 0
 # }
 ```

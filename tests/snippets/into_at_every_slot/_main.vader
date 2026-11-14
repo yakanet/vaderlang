@@ -1,5 +1,5 @@
 // An implicit `into` runs at every slot that accepts one: an assigned name, field
-// and map entry, a destructured place, an element pushed, the fallback of a `??`, a
+// and map entry, a destructured place, an element pushed, the fallback of an `else`, a
 // yielded value, an argument of a namespace member, of a call with explicit type
 // arguments and of a call through a trait value or a bounded type parameter, and
 // the value an expression body or a lambda returns.
@@ -68,7 +68,7 @@ main :: fn() -> i32 {
     xs: Label[]: []
     xs.push(Celsius { .v = 14 })
     println("push [${xs[0].text}]")
-    println("coalesce [${fallback(null).text}]")
+    println("fallback [${fallback(null).text}]")
     for g in labels() {
         println("yield [${g.text}]")
     }

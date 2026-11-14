@@ -132,7 +132,7 @@ static const char vader_atom_blob[] =
     "fused" "\0"
     "chars.indexed + continue, index sum: " "\0"
     "take(3).drop_odd():" "\0"
-    "indexed + ?? continue:" "\0"
+    "indexed + else continue:" "\0"
     "flat_map + continue, sum: " "\0"
     "chain + continue, sum: " "\0"
     "chain + continue x from an inner loop, sum: " "\0"
@@ -151,11 +151,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[165] },
     { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[171] },
     { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[209] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[229] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[252] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[279] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[303] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[348] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[229] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[254] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[281] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[305] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[350] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 17u
@@ -184,7 +184,7 @@ static void* snippet$spread(int32_t l0);
 static vader_box_t snippet$drop_odd(vader_box_t l0);
 static void snippet$stage_continue_over_take(void);
 static vader_box_t snippet$maybe_even(int32_t l0);
-static void snippet$coalesce_continue(void);
+static void snippet$fallback_continue(void);
 static void snippet$flat_map_continue(void);
 static void snippet$chain_continue(void);
 static void snippet$chain_continue_by_name(void);
@@ -1024,7 +1024,7 @@ static vader_box_t snippet$maybe_even(int32_t l0) {
     return vader_box_obj(0u, NULL);
 }
 
-static void snippet$coalesce_continue(void) {
+static void snippet$fallback_continue(void) {
     vader_string_t l0 = 0;
     vader_string_t l12 = 0;
     vader_string_t l15 = 0;
@@ -1436,7 +1436,7 @@ static int32_t snippet$main(void) {
     snippet$take_continue_outer();
     snippet$chars_indexed_continue();
     snippet$stage_continue_over_take();
-    snippet$coalesce_continue();
+    snippet$fallback_continue();
     snippet$flat_map_continue();
     snippet$chain_continue();
     snippet$chain_continue_by_name();

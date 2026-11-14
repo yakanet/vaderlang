@@ -3,13 +3,13 @@
 ## tests/snippets/branch_literal_width
   FnDecl         arithmetic           :: fn(Probe | Wide) -> u64
   FnDecl         beside_optional      :: fn(bool, null | u8) -> string
-  FnDecl         coalesced            :: fn(bool, bool) -> u8
   FnDecl         main                 :: fn() -> i32
   FnDecl         nested               :: fn(null | string, bool, i32) -> u8
   FnDecl         optional             :: fn(bool, bool) -> string
   StructDecl     Probe                :: Probe
   StructDecl     Wide                 :: Wide
   FnDecl         wide_if              :: fn(bool) -> i64
+  FnDecl         with_fallback        :: fn(bool, bool) -> u8
   expr 100:13   StringLitExpr  :: string
   expr 100:32   CallExpr       :: i64
   expr 100:32   IdentExpr      :: fn(bool) -> i64
@@ -50,12 +50,12 @@
   expr 105:13   StringLitExpr  :: string
   expr 105:16   CallExpr       :: u8
   expr 105:16   IdentExpr      :: fn(bool, bool) -> u8
-  expr 105:42   CallExpr       :: u8
-  expr 105:42   IdentExpr      :: fn(bool, bool) -> u8
+  expr 105:46   CallExpr       :: u8
+  expr 105:46   IdentExpr      :: fn(bool, bool) -> u8
   expr 106:13   StringLitExpr  :: string
-  expr 106:27   IdentExpr      :: string
-  expr 106:35   CallExpr       :: u8
-  expr 106:35   IdentExpr      :: fn(bool, bool) -> u8
+  expr 106:31   IdentExpr      :: string
+  expr 106:39   CallExpr       :: u8
+  expr 106:39   IdentExpr      :: fn(bool, bool) -> u8
   expr 106:5    CallExpr       :: void
   expr 106:5    IdentExpr      :: fn(T) -> void
   expr 18:10    MatchExpr      :: u8

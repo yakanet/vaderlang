@@ -18,12 +18,12 @@
   snippet.Button :: struct { label: string, on_click: fn(string) -> string | null }  // snippet$Button
   snippet.press :: fn(b: Button) -> string {  // snippet$press
       handler: fn(string) -> string = {
-          __coalesce_0: fn(string) -> string | null = b.on_click
-          if __coalesce_0 is null {
+          __fallback_0: fn(string) -> string | null = b.on_click
+          if __fallback_0 is null {
               return "nothing"
-              @unreachable("`??` fallback diverges")
+              @unreachable("an `else` clause leaves")
           } else {
-              (fn(string) -> string)(__coalesce_0)
+              (fn(string) -> string)(__fallback_0)
           } :fn(string) -> string
       }
       return handler(b.label)

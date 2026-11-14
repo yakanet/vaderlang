@@ -286,16 +286,16 @@ fn 7 snippet$put (any) -> void
 end
 
 fn 8 snippet$Tally$std_core$Index$at (ref,string) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.field 0 13 0   ; arg 0 snippet$Tally.counts
   local.get 1   ; arg 1
   call 85   ; std_collections$Map$std_core$Index$at__string__i32
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const 0
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 6   ; i32
   return
 end

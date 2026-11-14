@@ -100,7 +100,7 @@ export main 0
 fn 0 snippet$main () -> i32
   local name string
   local value string
-  local __coalesce_0 any
+  local __fallback_0 any
   local __for_arr_1 ref
   local __for_len_2 i64
   local __for_i_3 i64
@@ -116,13 +116,13 @@ fn 0 snippet$main () -> i32
   drop
   local.get 0   ; name
   call 10   ; std_env$get_env
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 3   ; "unset"
     local.set 1   ; value
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 2   ; string
     local.set 1   ; value
   end $L0
@@ -171,13 +171,13 @@ fn 0 snippet$main () -> i32
   drop
   local.get 0   ; name
   call 10   ; std_env$get_env
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L4 void
     string.const 3   ; "unset"
     local.set 1   ; value
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 2   ; string
     local.set 1   ; value
   end $L4
@@ -191,13 +191,13 @@ fn 0 snippet$main () -> i32
   drop
   local.get 0   ; name
   call 10   ; std_env$get_env
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L5 void
     string.const 3   ; "unset"
     local.set 0   ; name
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 2   ; string
     local.set 0   ; name
   end $L5
@@ -208,10 +208,10 @@ fn 0 snippet$main () -> i32
   string.const 10   ; "A=B"
   string.const 11   ; "x"
   call 9   ; std_env$set_env
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 13   ; std_io$IOError
   if $L6 void
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 13   ; std_io$IOError
     struct.get 13 1   ; std_io$IOError.kind
     call 25   ; std_io$IOErrorKind$std_core$Display$to_string
@@ -497,9 +497,9 @@ fn 11 std_env$env_vars () -> ref
   local vars ref
   local index i64
   local entry string
-  local __coalesce_0 any
+  local __fallback_0 any
   local parts ref
-  local __coalesce_1 any
+  local __fallback_1 any
   local $field_20 string
   local $field_21 string
   local $struct_22 ref
@@ -510,11 +510,11 @@ fn 11 std_env$env_vars () -> ref
   loop $L0 void
     local.get 1   ; index
     call 16   ; std_env$system_environ_entry
-    local.tee 3   ; __coalesce_0
+    local.tee 3   ; __fallback_0
     type_check 0   ; null
     if $L1 void
     else
-      local.get 3   ; __coalesce_0
+      local.get 3   ; __fallback_0
       ref.cast 2   ; string
       local.set 2   ; entry
       local.get 1   ; index
@@ -524,12 +524,12 @@ fn 11 std_env$env_vars () -> ref
       local.get 2   ; entry
       string.const 17   ; "="
       call 29   ; std_string$split_first
-      local.tee 5   ; __coalesce_1
+      local.tee 5   ; __fallback_1
       type_check 0   ; null
       if $L2 void
         br $L0
       end $L2
-      local.get 5   ; __coalesce_1
+      local.get 5   ; __fallback_1
       ref.cast 20   ; __Tuple_string_string_66940ed4
       local.set 4   ; parts
       local.field 4 20 0   ; parts __Tuple_string_string_66940ed4._0

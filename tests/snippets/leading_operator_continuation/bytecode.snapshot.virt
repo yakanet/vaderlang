@@ -75,7 +75,7 @@ fn 0 snippet$describe (i32,bool) -> string
 end
 
 fn 1 snippet$lookup (ref,i64) -> string
-  local __coalesce_0 any
+  local __fallback_0 any
   local $len_4 i64
   local.get 0   ; arg 0
   array.len
@@ -89,17 +89,17 @@ fn 1 snippet$lookup (ref,i64) -> string
     array.get 4   ; string[]
     ref.cast 3   ; string
     retag 3   ; string
-    local.set 2   ; __coalesce_0
+    local.set 2   ; __fallback_0
   else
     null.const
-    local.set 2   ; __coalesce_0
+    local.set 2   ; __fallback_0
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     return.lit string.const 2   ; "none"
   end $L1
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 3   ; string
   return
 end

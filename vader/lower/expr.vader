@@ -708,7 +708,7 @@ try_route_through_env :: fn(
 lower_fallback :: fn(ctx: FnLowerCtx, e: FallbackExpr) -> LoweredExpr {
     result  :: ctx.types.expr_type(e)
     left_ty :: ctx.types.expr_type(e.left)
-    tmp :: fresh_synthetic_symbol(ctx, "coalesce")
+    tmp :: fresh_synthetic_symbol(ctx, "fallback")
     let_stmt :: LoweredLet {
         .span = e.span, .name = tmp.name, .symbol = tmp,
         .type = left_ty, .value = lower_expr(ctx, e.left),
@@ -773,7 +773,7 @@ fallback_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredB
         .span = s.span, .type = result, .stmts = stmts,
         .trailing = LoweredUnreachable {
             .span = s.span, .type = result,
-            .reason = "`??` fallback diverges",
+            .reason = "an `else` clause leaves",
         },
     }
 }

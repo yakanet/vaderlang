@@ -1024,18 +1024,18 @@ end
 fn 19 std_path$name (string) -> string
   local fname string
   local idx i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 18   ; std_path$filename
   local.tee 1   ; fname
   call 29   ; std_path$extension_dot
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     local.get 1   ; fname
     return
   end $L0
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 5   ; i64
   local.set 2   ; idx
   local.get 1   ; fname
@@ -1047,19 +1047,19 @@ end
 
 fn 20 std_path$extension (string) -> string
   local fname string
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_10 i64
   local $call_11 i64
   local.get 0   ; arg 0
   call 18   ; std_path$filename
   local.tee 1   ; fname
   call 29   ; std_path$extension_dot
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit string.const 14   ; ""
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
@@ -1310,7 +1310,7 @@ end
 fn 28 std_path$filename_on (string,u8) -> string
   local path string
   local root i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $call_10 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -1322,7 +1322,7 @@ fn 28 std_path$filename_on (string,u8) -> string
   local.get 2   ; path
   local.get 3   ; root
   call 34   ; std_path$last_separator
-  local.tee 4   ; __coalesce_0
+  local.tee 4   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     local.get 2   ; path
@@ -1334,7 +1334,7 @@ fn 28 std_path$filename_on (string,u8) -> string
     call.import 2   ; std_core$byte_slice
     return
   end $L0
-  local.get 4   ; __coalesce_0
+  local.get 4   ; __fallback_0
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
@@ -1360,7 +1360,7 @@ end
 fn 30 std_path$parent_on (string,u8) -> string
   local path string
   local root i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 27   ; std_path$without_trailing_separators
@@ -1371,7 +1371,7 @@ fn 30 std_path$parent_on (string,u8) -> string
   local.get 2   ; path
   local.get 3   ; root
   call 34   ; std_path$last_separator
-  local.tee 4   ; __coalesce_0
+  local.tee 4   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     local.get 2   ; path
@@ -1380,7 +1380,7 @@ fn 30 std_path$parent_on (string,u8) -> string
     call.import 2   ; std_core$byte_slice
     return
   end $L0
-  local.get 4   ; __coalesce_0
+  local.get 4   ; __fallback_0
   ref.cast 5   ; i64
   local.set 3   ; root
   local.get 2   ; path
@@ -1525,7 +1525,7 @@ fn 33 std_path$normalize_on (string,u8) -> string
   local kept ref
   local start i64
   local end i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local segment string
   local climbs bool
   local and_res bool
@@ -1561,13 +1561,13 @@ fn 33 std_path$normalize_on (string,u8) -> string
       local.get 0   ; arg 0
       local.get 6   ; start
       call 38   ; std_path$next_separator
-      local.tee 8   ; __coalesce_0
+      local.tee 8   ; __fallback_0
       type_check 0   ; null
       if $L3 void
         local.get 2   ; n
         local.set 7   ; end
       else
-        local.get 8   ; __coalesce_0
+        local.get 8   ; __fallback_0
         ref.cast 5   ; i64
         local.set 7   ; end
       end $L3
@@ -1741,7 +1741,7 @@ end
 
 fn 35 std_path$prefix_length (string,u8) -> i64
   local n i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_39 i64
   local.get 1   ; arg 1
   i32.const 0
@@ -1803,13 +1803,13 @@ fn 35 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   i64.const 2
   call 38   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     local.get 2   ; n
     return
   end $L8
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
@@ -1817,13 +1817,13 @@ fn 35 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
   call 38   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
     local.get 2   ; n
     return
   end $L9
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 5   ; i64
   return
 end

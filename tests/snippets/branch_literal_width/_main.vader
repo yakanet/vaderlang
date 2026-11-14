@@ -7,7 +7,7 @@
 // `i32` and `1 << 40` is shifted as a `u64`. A branch whose type is a union holding
 // a free literal (`{integer} | null`) settles that member at its sibling's type, so
 // the result is a `u8 | null` whose `u8` tests as one; a sibling that is a union
-// (`u8 | null`) offers its `u8`, and a `??` settles both its sides. An arm that
+// (`u8 | null`) offers its `u8`, and an `else` settles both its sides. An arm that
 // reads its narrowed scrutinee is not typed a second time.
 
 module "snippet"
@@ -71,7 +71,7 @@ beside_optional :: fn(a: bool, m: u8 | null) -> string {
     return "other"
 }
 
-coalesced :: fn(c: bool, b: bool) -> u8 {
+with_fallback :: fn(c: bool, b: bool) -> u8 {
     k :: if c { u8(1) } else { (if b { 200 } else { null }) else 5 }
     return k
 }
@@ -102,7 +102,7 @@ main :: fn() -> i32 {
     println("arithmetic: ${probes} ${arithmetic(Wide { .n = 3 })}")
     println("optional: ${optional(true, false)} ${optional(false, true)} ${optional(false, false)}")
     println("beside optional: ${beside_optional(false, null)} ${beside_optional(true, u8(7))}")
-    both :: "${coalesced(false, true)} ${coalesced(false, false)}"
-    println("coalesced: ${both} ${coalesced(true, true)}")
+    both :: "${with_fallback(false, true)} ${with_fallback(false, false)}"
+    println("with_fallback: ${both} ${with_fallback(true, true)}")
     return 0
 }

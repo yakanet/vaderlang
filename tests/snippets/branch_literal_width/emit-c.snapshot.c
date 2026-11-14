@@ -39,7 +39,7 @@ static const char vader_atom_blob[] =
     "arithmetic: " "\0"
     "optional: " "\0"
     "beside optional: " "\0"
-    "coalesced: " "\0"
+    "with_fallback: " "\0"
     "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
@@ -60,8 +60,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[195] },
     { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[208] },
     { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[219] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[237] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[249] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[237] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[253] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 19u
@@ -71,7 +71,7 @@ static int64_t snippet$wide_if(bool l0);
 static uint64_t snippet$arithmetic(vader_box_t l0);
 static vader_string_t snippet$optional(bool l0, bool l1);
 static vader_string_t snippet$beside_optional(bool l0, vader_box_t l1);
-static uint8_t snippet$coalesced(bool l0, bool l1);
+static uint8_t snippet$with_fallback(bool l0, bool l1);
 static int32_t snippet$main(void);
 static vader_string_t concat_6(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5);
 static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3);
@@ -288,7 +288,7 @@ static vader_string_t snippet$beside_optional(bool l0, vader_box_t l1) {
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static uint8_t snippet$coalesced(bool l0, bool l1) {
+static uint8_t snippet$with_fallback(bool l0, bool l1) {
     uint8_t l2;
     vader_box_t l3;
     if (l0) {
@@ -478,23 +478,23 @@ static int32_t snippet$main(void) {
     std_console$println__string(t2);
     l0 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l2 = INT64_C(0);
-    t3 = snippet$coalesced(false, true);
+    t3 = snippet$with_fallback(false, true);
     t0 = ((int64_t) (uint8_t) t3);
     l6 = (uint64_t) (int64_t) t0;
     l2 = std_core$write_unsigned(l0, l2, l6);
     l2 = std_core$write_string_at(l0, l2, 12u);
-    t3 = snippet$coalesced(false, false);
+    t3 = snippet$with_fallback(false, false);
     t0 = ((int64_t) (uint8_t) t3);
     l6 = (uint64_t) (int64_t) t0;
     l2 = std_core$write_unsigned(l0, l2, l6);
     l3 = std_core$finish_buffer(l0, l2);
     l2 = vader_host_std_core$byte_len(l3);
-    l0 = (void*) vader_buffer_new((size_t) (INT64_C(32) + l2));
+    l0 = (void*) vader_buffer_new((size_t) (INT64_C(36) + l2));
     l2 = INT64_C(0);
     l2 = std_core$write_string_at(l0, l2, 18u);
     l2 = std_core$write_string_at(l0, l2, l3);
     l2 = std_core$write_string_at(l0, l2, 12u);
-    t3 = snippet$coalesced(true, true);
+    t3 = snippet$with_fallback(true, true);
     t0 = ((int64_t) (uint8_t) t3);
     l6 = (uint64_t) (int64_t) t0;
     l2 = std_core$write_unsigned(l0, l2, l6);

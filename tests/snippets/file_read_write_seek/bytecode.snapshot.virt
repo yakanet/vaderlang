@@ -170,7 +170,7 @@ fn 0 snippet$main () -> i32
   local $cast_76 ref
   local $arr_79 ref
   local line any
-  local __coalesce_0 any
+  local __fallback_0 any
   local $cast_93 ref
   local __off_1 i64
   local $type_check_111 bool
@@ -320,11 +320,11 @@ fn 0 snippet$main () -> i32
       local.get 5   ; $arr_79
       i64.const 1048576
       call 49   ; std_io$read_line
-      local.tee 7   ; __coalesce_0
+      local.tee 7   ; __fallback_0
       type_check 0   ; null
       if $L5 void
       else
-        local.get 7   ; __coalesce_0
+        local.get 7   ; __fallback_0
         local.tee 6   ; line
         type_check 4   ; std_io$IOError
         if $L6 void
@@ -908,15 +908,15 @@ end
 
 fn 15 std_env$temp_dir_of (any) -> string
   local e string
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 24   ; ""
     local.set 1   ; e
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 5   ; string
     local.set 1   ; e
   end $L0
@@ -1694,7 +1694,7 @@ end
 
 fn 42 std_fs$list_dir (string) -> any
   local d pointer
-  local __coalesce_0 any
+  local __fallback_0 any
   local out ref
   local p pointer
   local name string
@@ -1703,14 +1703,14 @@ fn 42 std_fs$list_dir (string) -> any
   local $struct_26 ref
   local.get 0   ; arg 0
   call.import 6   ; system_posix$sys_opendir
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     string.const 40   ; "cannot read directory"
     call 52   ; std_io$last_io_error
     return
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 19   ; pointer
   local.tee 1   ; d
   struct.new 28   ; __defer_env_std_fs_1
@@ -1721,11 +1721,11 @@ fn 42 std_fs$list_dir (string) -> any
   loop $L1 void
     local.get 1   ; d
     call.import 11   ; system_posix$sys_readdir
-    local.tee 2   ; __coalesce_0
+    local.tee 2   ; __fallback_0
     type_check 0   ; null
     if $L2 void
     else
-      local.get 2   ; __coalesce_0
+      local.get 2   ; __fallback_0
       ref.cast 19   ; pointer
       local.tee 4   ; p
       call.import 12   ; system_posix$dirent_name
@@ -2053,7 +2053,7 @@ fn 50 std_io$take_through (ref,u8,i64) -> any
   local unread ref
   local at any
   local taken i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local __buf_1 ref
   local __off_2 i64
   local $field_48 i64
@@ -2116,14 +2116,14 @@ fn 50 std_io$take_through (ref,u8,i64) -> any
     local.get 1   ; arg 1
     call 9   ; std_core$index_of__u8
     local.tee 11   ; at
-    local.tee 13   ; __coalesce_0
+    local.tee 13   ; __fallback_0
     type_check 0   ; null
     if $L5 void
       local.get 10   ; unread
       array.len
       local.set 12   ; taken
     else
-      local.get 13   ; __coalesce_0
+      local.get 13   ; __fallback_0
       ref.cast 3   ; i64
       local.set 12   ; taken
     end $L5
@@ -2278,7 +2278,7 @@ end
 
 fn 53 std_io$refill (ref) -> any
   local got any
-  local __coalesce_0 any
+  local __fallback_0 any
   local $cast_12 i64
   local.get 0   ; arg 0
   call 56   ; std_io$reserve
@@ -2287,12 +2287,12 @@ fn 53 std_io$refill (ref) -> any
   local.field 0 31 3   ; arg 0 std_io$BufferedReader.buffer
   local.get 1   ; got
   virtual.call 2 std_io$Reader.read -> any
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit null.const
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   local.tee 1   ; got
   type_check 4   ; std_io$IOError
   if $L1 void
@@ -2957,7 +2957,7 @@ fn 61 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local $field_6 i64
   local $field_7 i64
   local $field_12 any
-  local __coalesce_0 any
+  local __fallback_0 any
   local $field_28 ref
   local.get 1   ; arg 1
   array.len
@@ -2997,12 +2997,12 @@ fn 61 std_io$BufferedReader$Reader$read (ref,ref) -> any
     end $L2
     local.get 0   ; arg 0
     call 53   ; std_io$refill
-    local.tee 5   ; __coalesce_0
+    local.tee 5   ; __fallback_0
     type_check 0   ; null
     if $L3 void
       return.lit null.const
     end $L3
-    local.get 5   ; __coalesce_0
+    local.get 5   ; __fallback_0
     local.tee 4   ; $field_12
     type_check 4   ; std_io$IOError
     if $L4 void
@@ -3187,7 +3187,7 @@ end
 
 fn 67 std_path$prefix_length (string,u8) -> i64
   local n i64
-  local __coalesce_0 any
+  local __fallback_0 any
   local $add_checked_39 i64
   local.get 1   ; arg 1
   i32.const 0
@@ -3249,13 +3249,13 @@ fn 67 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   i64.const 2
   call 69   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     local.get 2   ; n
     return
   end $L8
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 3   ; i64
   i64.const 1
   i64.checked_add
@@ -3263,13 +3263,13 @@ fn 67 std_path$prefix_length (string,u8) -> i64
   local.get 0   ; arg 0
   local.get 4   ; $add_checked_39
   call 69   ; std_path$next_separator
-  local.tee 3   ; __coalesce_0
+  local.tee 3   ; __fallback_0
   type_check 0   ; null
   if $L9 void
     local.get 2   ; n
     return
   end $L9
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   ref.cast 3   ; i64
   return
 end

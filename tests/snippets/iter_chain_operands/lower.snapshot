@@ -107,7 +107,7 @@
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "find = ")
           __off_12 = std.core.write_int(__buf_11, __off_12, {
-              __coalesce_8: i32 | null = {
+              __fallback_8: i32 | null = {
                   __fuse_arr_9: i32[] = snippet.source("xs", xs)
                   f: fn(i32) -> i32 = snippet.adder(1)
                   pred: fn(i32) -> bool = snippet.above(3)
@@ -131,7 +131,7 @@
                   }
                   __consumed_10
               }
-              if __coalesce_8 is null { 0 } else { i32(__coalesce_8) } :i32
+              if __fallback_8 is null { 0 } else { i32(__fallback_8) } :i32
           } :i32)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)

@@ -234,8 +234,8 @@
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "find fused: ")
           __off_11 = std.core.write_int(__buf_10, __off_11, {
-              __coalesce_9: i32 | null = found
-              if __coalesce_9 is null { -1 } else { i32(__coalesce_9) } :i32
+              __fallback_9: i32 | null = found
+              if __fallback_9 is null { -1 } else { i32(__fallback_9) } :i32
           } :i32)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)

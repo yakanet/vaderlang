@@ -331,7 +331,7 @@
       } :string)
       far: Iterator<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_1)
       near: i32 = ({
-          __coalesce_22: null | Point = {
+          __fallback_22: null | Point = {
               __fuse_arr_23: Point[] = pts
               pred: fn(Point) -> bool = __lambda_snippet_2
               pred: fn(Point) -> bool = __lambda_snippet_3
@@ -357,7 +357,7 @@
               }
               __consumed_24
           }
-          if __coalesce_22 is null { Point { .x = 0, .y = 0 } } else { Point(__coalesce_22) } :Point
+          if __fallback_22 is null { Point { .x = 0, .y = 0 } } else { Point(__fallback_22) } :Point
       } :Point).x
       std.console.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(53))
@@ -366,8 +366,8 @@
           __off_27 = std.core.write_int(__buf_26, __off_27, near)
           __off_27 = std.core.write_string_at(__buf_26, __off_27, " ")
           __off_27 = std.core.write_int(__buf_26, __off_27, ({
-              __coalesce_25: null | Point = std.iter.find<Point>(far, __lambda_snippet_4)
-              if __coalesce_25 is null { Point { .x = 0, .y = 0 } } else { Point(__coalesce_25) } :Point
+              __fallback_25: null | Point = std.iter.find<Point>(far, __lambda_snippet_4)
+              if __fallback_25 is null { Point { .x = 0, .y = 0 } } else { Point(__fallback_25) } :Point
           } :Point).x)
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
@@ -679,7 +679,7 @@
           __off_67: i64 = 0
           __off_67 = std.core.write_string_at(__buf_66, __off_67, "find_map ")
           __off_67 = std.core.write_int(__buf_66, __off_67, {
-              __coalesce_63: i32 | null = {
+              __fallback_63: i32 | null = {
                   __fuse_arr_64: i32[] = a
                   f: fn(i32) -> i32 | null = __lambda_snippet_13
                   __consumed_65: i32 | null = null
@@ -702,7 +702,7 @@
                   }
                   __consumed_65
               }
-              if __coalesce_63 is null { 0 } else { i32(__coalesce_63) } :i32
+              if __fallback_63 is null { 0 } else { i32(__fallback_63) } :i32
           } :i32)
           std.core.finish_buffer(__buf_66, __off_67)
       } :string)

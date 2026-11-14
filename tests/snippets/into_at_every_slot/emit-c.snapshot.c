@@ -67,7 +67,7 @@ static const char vader_atom_blob[] =
     "destructure [" "\0"
     "] " "\0"
     "push [" "\0"
-    "coalesce [" "\0"
+    "fallback [" "\0"
     "yield [" "\0"
     "namespace [" "\0"
     "explicit [" "\0"

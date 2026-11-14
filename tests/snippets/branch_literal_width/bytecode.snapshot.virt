@@ -31,7 +31,7 @@ string 13 "if, i64 or int: "
 string 14 "arithmetic: "
 string 15 "optional: "
 string 16 "beside optional: "
-string 17 "coalesced: "
+string 17 "with_fallback: "
 string 18 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=13 param_types=2 param_c_out= param_by_address= (string) -> ref
@@ -245,9 +245,9 @@ fn 4 snippet$beside_optional (bool,any) -> string
   return
 end
 
-fn 5 snippet$coalesced (bool,bool) -> u8
+fn 5 snippet$with_fallback (bool,bool) -> u8
   local k u8
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   if $L0 void
     i32.const 1
@@ -258,18 +258,18 @@ fn 5 snippet$coalesced (bool,bool) -> u8
   if $L1 void
     i32.const 200
     retag 5   ; u8
-    local.set 3   ; __coalesce_0
+    local.set 3   ; __fallback_0
   else
     null.const
-    local.set 3   ; __coalesce_0
+    local.set 3   ; __fallback_0
   end $L1
-  local.get 3   ; __coalesce_0
+  local.get 3   ; __fallback_0
   type_check 0   ; null
   if $L2 void
     i32.const 5
     local.set 2   ; k
   else
-    local.get 3   ; __coalesce_0
+    local.get 3   ; __fallback_0
     ref.cast 5   ; u8
     local.set 2   ; k
   end $L2
@@ -645,7 +645,7 @@ fn 6 snippet$main () -> i32
   local.set 2   ; $sub_checked_9
   bool.const false
   bool.const true
-  call 5   ; snippet$coalesced
+  call 5   ; snippet$with_fallback
   u8.to_i64
   local.set 6   ; $cast_72
   local.get 0   ; out
@@ -660,7 +660,7 @@ fn 6 snippet$main () -> i32
   local.set 2   ; $sub_checked_9
   bool.const false
   bool.const false
-  call 5   ; snippet$coalesced
+  call 5   ; snippet$with_fallback
   u8.to_i64
   local.set 6   ; $cast_72
   local.get 0   ; out
@@ -674,7 +674,7 @@ fn 6 snippet$main () -> i32
   local.tee 3   ; if_res
   call.import 0   ; std_core$byte_len
   local.set 2   ; $sub_checked_9
-  i64.const 32
+  i64.const 36
   local.get 2   ; $sub_checked_9
   i64.add
   buffer.new
@@ -683,7 +683,7 @@ fn 6 snippet$main () -> i32
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  string.const 17   ; "coalesced: "
+  string.const 17   ; "with_fallback: "
   call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
@@ -698,7 +698,7 @@ fn 6 snippet$main () -> i32
   local.set 2   ; $sub_checked_9
   bool.const true
   bool.const true
-  call 5   ; snippet$coalesced
+  call 5   ; snippet$with_fallback
   u8.to_i64
   local.set 6   ; $cast_72
   local.get 0   ; out

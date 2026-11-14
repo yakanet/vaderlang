@@ -19,12 +19,12 @@
       cur: Node | null = head
       for {
           node: Node = {
-              __coalesce_0: Node | null = cur
-              if __coalesce_0 is null {
+              __fallback_0: Node | null = cur
+              if __fallback_0 is null {
                   break
-                  @unreachable("`??` fallback diverges")
+                  @unreachable("an `else` clause leaves")
               } else {
-                  Node(__coalesce_0)
+                  Node(__fallback_0)
               } :Node
           }
           sum = sum + node.value

@@ -1190,18 +1190,15 @@ export BinaryExpr :: struct {
 /// what it handles before the next. A bare `else` handles `null` and the
 /// members known to implement `Error` ; `else is T` handles `T`. The result is
 /// `left` without what the clauses handled, or a clause's value.
-///
-/// `left ?? value` is read as one clause handling `null` alone (`coalesce`).
 export FallbackExpr :: struct {
-    span:     Span
-    id:       i64 = UNASSIGNED_NODE_ID
-    left:     Expr
-    clauses:  FallbackClause[]
-    /// Written `??`: one clause, handling `null` alone, printed back as `??`.
-    coalesce: bool = false
+    span:    Span
+    id:      i64 = UNASSIGNED_NODE_ID
+    left:    Expr
+    clauses: FallbackClause[]
     /// On a declaration, the name the clauses see `left` under, narrowed to
-    /// what each one handles: the role of `MatchExpr.binding`.
-    binding:  SimpleBinding | null = null
+    /// what each one handles: the role of `MatchExpr.binding`. Only when a
+    /// clause names it.
+    binding: SimpleBinding | null = null
 }
 
 /// One clause of a `FallbackExpr`: `else value` or `else is T { ... }`.
@@ -1209,9 +1206,9 @@ export FallbackClause :: struct {
     span:    Span
     /// Keys the type the clause tests, recorded by the typecheck.
     id:      i64 = UNASSIGNED_NODE_ID
-    /// The `else` keyword (`??` on a coalesce).
+    /// The `else` keyword.
     op_span: Span
-    /// `else is T`: the type handled ; `null` on a bare `else` or a `??`.
+    /// `else is T`: the type handled ; `null` on a bare `else`.
     test:    TypeExpr | null = null
     body:    FallbackBody
 }

@@ -47,7 +47,6 @@ export TokenKind :: enum(u8) {
     Same,          // ===
     NotSame,       // !==
     AndAnd, OrOr, Bang,
-    QuestionQuestion, // ??  (null-coalescing)
     Assign,        // =
     PlusAssign,    // +=
     MinusAssign,   // -=

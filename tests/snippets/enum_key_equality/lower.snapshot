@@ -53,18 +53,18 @@
           __buf_9: Buffer = std.core.new_byte_buffer(i64(62))
           __off_10: i64 = 0
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_6: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(0))
-              if __coalesce_6 is null { -1 } else { i32(__coalesce_6) } :i32
+              __fallback_6: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(0))
+              if __fallback_6 is null { -1 } else { i32(__fallback_6) } :i32
           } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_7: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(1))
-              if __coalesce_7 is null { -1 } else { i32(__coalesce_7) } :i32
+              __fallback_7: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(1))
+              if __fallback_7 is null { -1 } else { i32(__fallback_7) } :i32
           } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_8: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(2))
-              if __coalesce_8 is null { -1 } else { i32(__coalesce_8) } :i32
+              __fallback_8: i32 | null = std.collections.Map<Color, i32>.at(by_color, Color(2))
+              if __fallback_8 is null { -1 } else { i32(__fallback_8) } :i32
           } :i32)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
@@ -82,12 +82,12 @@
       std.collections.Map<HttpStatus, string>.set_at(by_status, HttpStatus(1), "missing")
       std.console.println<string>({
           __p_13: string = {
-              __coalesce_11: null | string = std.collections.Map<HttpStatus, string>.at(by_status, HttpStatus(1))
-              if __coalesce_11 is null { "?" } else { string(__coalesce_11) } :string
+              __fallback_11: null | string = std.collections.Map<HttpStatus, string>.at(by_status, HttpStatus(1))
+              if __fallback_11 is null { "?" } else { string(__fallback_11) } :string
           }
           __p_14: string = {
-              __coalesce_12: null | string = std.collections.Map<HttpStatus, string>.at(by_status, HttpStatus(0))
-              if __coalesce_12 is null { "?" } else { string(__coalesce_12) } :string
+              __fallback_12: null | string = std.collections.Map<HttpStatus, string>.at(by_status, HttpStatus(0))
+              if __fallback_12 is null { "?" } else { string(__fallback_12) } :string
           }
           __buf_15: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_13) +% std.core.byte_len(__p_14)))
           __off_16: i64 = 0
@@ -138,18 +138,18 @@
           __buf_24: Buffer = std.core.new_byte_buffer(i64(47))
           __off_25: i64 = 0
           __off_25 = std.core.write_int(__buf_24, __off_25, {
-              __coalesce_22: i32 | null = std.collections.Map<Color, i32>.at(walked, Color(2))
-              if __coalesce_22 is null { -1 } else { i32(__coalesce_22) } :i32
+              __fallback_22: i32 | null = std.collections.Map<Color, i32>.at(walked, Color(2))
+              if __fallback_22 is null { -1 } else { i32(__fallback_22) } :i32
           } :i32)
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
           __off_25 = std.core.write_int(__buf_24, __off_25, {
-              __coalesce_23: i32 | null = std.collections.Map<Color, i32>.at(by_color, {
+              __fallback_23: i32 | null = std.collections.Map<Color, i32>.at(by_color, {
                   if (rank < 0) || (rank > 2) {
                       @unreachable("value out of range: no value of `Color`")
                   }
                   Color(rank)
               } :Color)
-              if __coalesce_23 is null { -1 } else { i32(__coalesce_23) } :i32
+              if __fallback_23 is null { -1 } else { i32(__fallback_23) } :i32
           } :i32)
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
           __off_25 = std.core.write_bool(__buf_24, __off_25, snippet.has_blue(walked))

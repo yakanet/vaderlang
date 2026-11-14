@@ -66,7 +66,7 @@ fn 1 snippet$sum_chain (ref) -> i32
   local sum i32
   local cur any
   local node ref
-  local __coalesce_0 any
+  local __fallback_0 any
   local $field_8 i32
   i32.const 0
   local.set 1   ; sum
@@ -74,11 +74,11 @@ fn 1 snippet$sum_chain (ref) -> i32
   local.set 2   ; cur
   loop $L0 void
     local.get 2   ; cur
-    local.tee 4   ; __coalesce_0
+    local.tee 4   ; __fallback_0
     type_check 0   ; null
     if $L1 void
     else
-      local.get 4   ; __coalesce_0
+      local.get 4   ; __fallback_0
       ref.cast 2   ; snippet$Node
       local.set 3   ; node
       local.field 3 2 0   ; node snippet$Node.value

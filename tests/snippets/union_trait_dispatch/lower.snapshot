@@ -46,8 +46,8 @@
   snippet.Tally :: struct { counts: Map<string, i32> }  // snippet$Tally
   snippet.Tally.at :: fn(self: Tally, k: string) -> i32 {  // snippet$Tally$std_core$Index$at
       {
-          __coalesce_0: i32 | null = std.collections.Map<string, i32>.at(self.counts, k)
-          if __coalesce_0 is null { 0 } else { i32(__coalesce_0) } :i32
+          __fallback_0: i32 | null = std.collections.Map<string, i32>.at(self.counts, k)
+          if __fallback_0 is null { 0 } else { i32(__fallback_0) } :i32
       } :i32
   }
   snippet.Tally.set_at :: fn(self: Tally, k: string, v: i32) -> void {  // snippet$Tally$std_core$IndexSet$set_at

@@ -4,7 +4,7 @@ import "std/console"
 
 // A trait's default body inherited by two impls. Each impl compiles its own copy,
 // so every name the body binds is a local of that copy: a struct pattern's field,
-// a destructured loop variable, a name read on the left of `??`, under `defer`,
+// a destructured loop variable, a name read on the left of `else`, under `defer`,
 // or by `yield`.
 
 Square :: struct { side: i32 }

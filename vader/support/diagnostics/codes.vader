@@ -96,7 +96,6 @@ export TypecheckCode :: enum(CodeInfo) {
     BodylessFnMustBeIntrinsic       { .id = "T3062", .message = "a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol)" },
     AssignTypeMismatch              { .id = "T3063", .message = "assigned value's type is not assignable to the target's declared type" },
     LoopTargetNotLoopVariable       { .id = "T3067", .message = "`break` / `continue` target must be an enclosing loop's iteration variable or label" },
-    NullCoalesceOnNonOptional       { .id = "T3068", .message = "`??` left operand is never null, so the fallback is unreachable" },
     TypeArgumentNotInferable        { .id = "T3069", .message = "cannot infer type argument, since nothing at this call site binds the type parameter" },
     FrozenValueWritten              { .id = "T3070", .message = "a frozen value cannot be modified" },
     ViewKept                        { .id = "T3071", .message = "a view of a string's bytes cannot be kept" },

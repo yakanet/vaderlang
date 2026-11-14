@@ -88,12 +88,12 @@
                   break
               }
               total = total + snippet.id({
-                  __coalesce_0: i32 | null = snippet.maybe(i)
-                  if __coalesce_0 is null {
+                  __fallback_0: i32 | null = snippet.maybe(i)
+                  if __fallback_0 is null {
                       continue
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
-                      i32(__coalesce_0)
+                      i32(__fallback_0)
                   } :i32
               } :i32)
           } @step {

@@ -207,15 +207,15 @@ fn 6 snippet$erased_count (any) -> i64
 end
 
 fn 7 snippet$erased_last (any) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 31   ; std_iter$last__i32
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const -1
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 1   ; i32
   return
 end

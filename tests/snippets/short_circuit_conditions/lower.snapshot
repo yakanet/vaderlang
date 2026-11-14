@@ -56,12 +56,12 @@
   }
   snippet.diverge :: fn(x: i32 | null, flag: bool) -> i32 {  // snippet$diverge
       if flag || (({
-          __coalesce_0: i32 | null = x
-          if __coalesce_0 is null {
+          __fallback_0: i32 | null = x
+          if __fallback_0 is null {
               return 99
-              @unreachable("`??` fallback diverges")
+              @unreachable("an `else` clause leaves")
           } else {
-              i32(__coalesce_0)
+              i32(__fallback_0)
           } :i32
       } :i32) > 0) {
           return 1

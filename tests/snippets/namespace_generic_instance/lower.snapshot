@@ -33,13 +33,13 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(41))
           __off_5: i64 = 0
           __off_5 = std.core.write_int(__buf_4, __off_5, {
-              __coalesce_2: i32 | null = none
-              if __coalesce_2 is null { 0 } else { i32(__coalesce_2) } :i32
+              __fallback_2: i32 | null = none
+              if __fallback_2 is null { 0 } else { i32(__fallback_2) } :i32
           } :i32)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
           __off_5 = std.core.write_int(__buf_4, __off_5, {
-              __coalesce_3: i32 | null = some
-              if __coalesce_3 is null { 0 } else { i32(__coalesce_3) } :i32
+              __fallback_3: i32 | null = some
+              if __fallback_3 is null { 0 } else { i32(__fallback_3) } :i32
           } :i32)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)

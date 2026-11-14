@@ -37,7 +37,7 @@ fn 0 snippet$main () -> i32
   local $arr_1 ref
   local $arr_2 ref
   local v i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local __off_2 i64
   local $cast_28 i64
   array.new 13 0   ; string[]
@@ -63,12 +63,12 @@ fn 0 snippet$main () -> i32
   local.field 0 5 0   ; $arr_0 snippet$Counts.by_name
   string.const 0   ; "x"
   call 6   ; std_collections$Map$std_core$Index$at__string__i32
-  local.tee 4   ; __coalesce_0
+  local.tee 4   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const 1
   end $L0
-  local.get 4   ; __coalesce_0
+  local.get 4   ; __fallback_0
   ref.cast 1   ; i32
   local.set 3   ; v
   i64.const 29

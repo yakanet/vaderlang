@@ -54,15 +54,15 @@ fn 0 snippet$setting (string) -> any
 end
 
 fn 1 snippet$resolve (string) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 0   ; snippet$setting
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const 0
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 3   ; i32
   return
 end
@@ -71,7 +71,7 @@ fn 2 snippet$first_present (ref) -> i32
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
-  local __coalesce_3 any
+  local __fallback_3 any
   local.get 0   ; arg 0
   local.tee 1   ; __for_arr_0
   array.len
@@ -88,7 +88,7 @@ fn 2 snippet$first_present (ref) -> i32
       array.get 4   ; string[]
       ref.cast 1   ; string
       call 0   ; snippet$setting
-      local.tee 4   ; __coalesce_3
+      local.tee 4   ; __fallback_3
       type_check 0   ; null
       if $L2 void
         local.get 3   ; __for_i_2
@@ -97,7 +97,7 @@ fn 2 snippet$first_present (ref) -> i32
         local.set 3   ; __for_i_2
         br $L0
       end $L2
-      local.get 4   ; __coalesce_3
+      local.get 4   ; __fallback_3
       ref.cast 3   ; i32
       return
     end $L1
@@ -110,7 +110,7 @@ fn 3 snippet$sum_prefix (ref) -> i32
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
-  local __coalesce_3 any
+  local __fallback_3 any
   local if_res i32
   i32.const 0
   local.set 1   ; total
@@ -131,10 +131,10 @@ fn 3 snippet$sum_prefix (ref) -> i32
         array.get 4   ; string[]
         ref.cast 1   ; string
         call 0   ; snippet$setting
-        local.tee 5   ; __coalesce_3
+        local.tee 5   ; __fallback_3
         type_check 0   ; null
         br_if $L0
-        local.get 5   ; __coalesce_3
+        local.get 5   ; __fallback_3
         ref.cast 3   ; i32
         local.set 6   ; if_res
         local.get 1   ; total
@@ -154,15 +154,15 @@ fn 3 snippet$sum_prefix (ref) -> i32
 end
 
 fn 4 snippet$required (string) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 0   ; arg 0
   call 0   ; snippet$setting
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit i32.const -1
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 3   ; i32
   return
 end
@@ -174,7 +174,7 @@ fn 5 snippet$count_missing (ref) -> i32
   local __for_i_2 i64
   local k string
   local present i32
-  local __coalesce_3 any
+  local __fallback_3 any
   local __p_4 string
   local $call_22 i64
   local __buf_5 ref
@@ -199,7 +199,7 @@ fn 5 snippet$count_missing (ref) -> i32
       ref.cast 1   ; string
       local.tee 5   ; k
       call 0   ; snippet$setting
-      local.tee 7   ; __coalesce_3
+      local.tee 7   ; __fallback_3
       type_check 0   ; null
       if $L2 void
         local.get 1   ; missing
@@ -212,7 +212,7 @@ fn 5 snippet$count_missing (ref) -> i32
         local.set 4   ; __for_i_2
         br $L0
       end $L2
-      local.get 7   ; __coalesce_3
+      local.get 7   ; __fallback_3
       ref.cast 3   ; i32
       local.set 6   ; present
       local.get 5   ; k
@@ -268,7 +268,7 @@ fn 6 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $cast_9 i64
-  local __coalesce_10 any
+  local __fallback_10 any
   local if_res i32
   i64.const 53
   buffer.new
@@ -425,13 +425,13 @@ fn 6 snippet$main () -> i32
   call 14   ; std_console$println__string
   string.const 0   ; "width"
   call 0   ; snippet$setting
-  local.tee 3   ; __coalesce_10
+  local.tee 3   ; __fallback_10
   type_check 0   ; null
   if $L0 void
     i32.const 0
     local.set 4   ; if_res
   else
-    local.get 3   ; __coalesce_10
+    local.get 3   ; __fallback_10
     ref.cast 3   ; i32
     local.set 4   ; if_res
   end $L0

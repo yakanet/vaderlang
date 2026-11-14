@@ -6,8 +6,8 @@
       std.env.set_env(name, "first")
       std.env.set_env(name, "été")
       value: string = {
-          __coalesce_0: null | string = std.env.get_env(name)
-          if __coalesce_0 is null { "unset" } else { string(__coalesce_0) } :string
+          __fallback_0: null | string = std.env.get_env(name)
+          if __fallback_0 is null { "unset" } else { string(__fallback_0) } :string
       }
       std.console.println<string>(concat_2("get: ", value))
       {
@@ -25,14 +25,14 @@
       }
       std.env.set_env(name, "")
       empty: string = {
-          __coalesce_4: null | string = std.env.get_env(name)
-          if __coalesce_4 is null { "unset" } else { string(__coalesce_4) } :string
+          __fallback_4: null | string = std.env.get_env(name)
+          if __fallback_4 is null { "unset" } else { string(__fallback_4) } :string
       }
       std.console.println<string>(concat_3("empty: [", empty, "]"))
       std.env.unset_env(name)
       after: string = {
-          __coalesce_5: null | string = std.env.get_env(name)
-          if __coalesce_5 is null { "unset" } else { string(__coalesce_5) } :string
+          __fallback_5: null | string = std.env.get_env(name)
+          if __fallback_5 is null { "unset" } else { string(__fallback_5) } :string
       }
       std.console.println<string>(concat_2("after unset: ", after))
       refused: IOError | null = std.env.set_env("A=B", "x")

@@ -284,7 +284,7 @@ fn 10 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $cast_13 u64
-  local __coalesce_2 any
+  local __fallback_2 any
   local if_res u8
   local $type_check_53 bool
   i32.const 5
@@ -366,13 +366,13 @@ fn 10 snippet$main () -> i32
   local.set 3   ; __off_1
   i32.const 7
   call 3   ; snippet$breakfast
-  local.tee 5   ; __coalesce_2
+  local.tee 5   ; __fallback_2
   type_check 0   ; null
   if $L0 void
     i32.const 6
     local.set 6   ; if_res
   else
-    local.get 5   ; __coalesce_2
+    local.get 5   ; __fallback_2
     ref.cast 1   ; u8
     local.set 6   ; if_res
   end $L0
@@ -451,13 +451,13 @@ fn 10 snippet$main () -> i32
   local.set 3   ; __off_1
   i32.const 12
   call 4   ; snippet$daylight
-  local.tee 5   ; __coalesce_2
+  local.tee 5   ; __fallback_2
   type_check 0   ; null
   if $L1 void
     i32.const 6
     local.set 6   ; if_res
   else
-    local.get 5   ; __coalesce_2
+    local.get 5   ; __fallback_2
     ref.cast 1   ; u8
     local.set 6   ; if_res
   end $L1

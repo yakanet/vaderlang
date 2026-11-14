@@ -792,7 +792,7 @@
       },
       {
         "kind": "FnDecl",
-        "name": "coalesced",
+        "name": "with_fallback",
         "visibility": "private",
         "typeParams": [],
         "params": [
@@ -2110,7 +2110,7 @@
                       "kind": "CallExpr",
                       "callee": {
                         "kind": "IdentExpr",
-                        "name": "coalesced"
+                        "name": "with_fallback"
                       },
                       "args": [
                         {
@@ -2142,7 +2142,7 @@
                       "kind": "CallExpr",
                       "callee": {
                         "kind": "IdentExpr",
-                        "name": "coalesced"
+                        "name": "with_fallback"
                       },
                       "args": [
                         {
@@ -2183,7 +2183,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "coalesced: "
+                          "value": "with_fallback: "
                         },
                         {
                           "kind": "interp",
@@ -2202,7 +2202,7 @@
                             "kind": "CallExpr",
                             "callee": {
                               "kind": "IdentExpr",
-                              "name": "coalesced"
+                              "name": "with_fallback"
                             },
                             "args": [
                               {

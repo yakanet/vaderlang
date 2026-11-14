@@ -244,7 +244,7 @@ fn 5 snippet$continue_in_argument () -> void
   local total i32
   local rounds i32
   local i i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local $call_20 i32
   local __buf_1 ref
   local __off_2 i64
@@ -274,7 +274,7 @@ fn 5 snippet$continue_in_argument () -> void
         end $L3
         local.get 2   ; i
         call 2   ; snippet$maybe
-        local.tee 3   ; __coalesce_0
+        local.tee 3   ; __fallback_0
         type_check 0   ; null
         if $L4 void
           local.get 2   ; i
@@ -283,7 +283,7 @@ fn 5 snippet$continue_in_argument () -> void
           local.set 2   ; i
           br $L1
         end $L4
-        local.get 3   ; __coalesce_0
+        local.get 3   ; __fallback_0
         ref.cast 1   ; i32
         call 1   ; snippet$id
         local.set 4   ; $call_20

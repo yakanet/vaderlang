@@ -322,18 +322,18 @@ fn 3 snippet$guard (any,i32) -> i32
 end
 
 fn 4 snippet$diverge (any,bool) -> i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local.get 1   ; arg 1
   if $L0 void
     return.lit i32.const 1
   end $L0
   local.get 0   ; arg 0
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     return.lit i32.const 99
   end $L1
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   ref.cast 5   ; i32
   i32.const 0
   i32.gt

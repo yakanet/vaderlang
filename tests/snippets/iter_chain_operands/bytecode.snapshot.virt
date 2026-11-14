@@ -175,7 +175,7 @@ fn 5 snippet$main () -> i32
   local __consumed_1 bool
   local __fuse_len_0 i64
   local __fuse_i_1 i64
-  local __coalesce_8 any
+  local __fallback_8 any
   local x i32
   local __fuse_i_1 i64
   local __fuse_len_0 i64
@@ -344,7 +344,7 @@ fn 5 snippet$main () -> i32
   call 4   ; snippet$above
   local.set 6   ; pred
   null.const
-  local.set 10   ; __coalesce_8
+  local.set 10   ; __fallback_8
   local.get 4   ; __fuse_arr_0
   array.len
   local.set 8   ; __fuse_len_0
@@ -369,7 +369,7 @@ fn 5 snippet$main () -> i32
         if $L11 void
           local.get 11   ; x
           retag 3   ; i32
-          local.set 10   ; __coalesce_8
+          local.set 10   ; __fallback_8
           br $L8
         end $L11
         local.get 9   ; __fuse_i_1
@@ -380,15 +380,15 @@ fn 5 snippet$main () -> i32
       end $L10
     end $L9
     null.const
-    local.set 10   ; __coalesce_8
+    local.set 10   ; __fallback_8
   end $L8
-  local.get 10   ; __coalesce_8
+  local.get 10   ; __fallback_8
   type_check 0   ; null
   if $L12 void
     i32.const 0
     local.set 11   ; x
   else
-    local.get 10   ; __coalesce_8
+    local.get 10   ; __fallback_8
     ref.cast 3   ; i32
     local.set 11   ; x
   end $L12
@@ -900,11 +900,11 @@ fn 5 snippet$main () -> i32
   loop $L36 void
     local.get 0   ; xs
     call 9   ; std_core$Range$Iterator$next__i32
-    local.tee 10   ; __coalesce_8
+    local.tee 10   ; __fallback_8
     type_check 12   ; std_core$Stop
     if $L37 void
     else
-      local.get 10   ; __coalesce_8
+      local.get 10   ; __fallback_8
       ref.cast 3   ; i32
       local.set 11   ; x
       i64.const 36

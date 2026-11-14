@@ -39,7 +39,7 @@ fn 0 snippet$main () -> i32
   local $arr_15 ref
   local $arr_16 ref
   local $arr_25 ref
-  local __coalesce_2 any
+  local __fallback_2 any
   i64.const 41
   buffer.new
   local.set 0   ; __buf_0
@@ -123,13 +123,13 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   i32.const 1
   call 8   ; std_collections$Map$std_core$Index$at__snippet_alpha_Status__i64
-  local.tee 6   ; __coalesce_2
+  local.tee 6   ; __fallback_2
   type_check 0   ; null
   if $L0 void
     i64.const -1
     local.set 2   ; $call_6
   else
-    local.get 6   ; __coalesce_2
+    local.get 6   ; __fallback_2
     ref.cast 3   ; i64
     local.set 2   ; $call_6
   end $L0
@@ -146,13 +146,13 @@ fn 0 snippet$main () -> i32
   local.get 3   ; $arr_15
   i32.const 1
   call 10   ; std_collections$Map$std_core$Index$at__snippet_beta_Status__i64
-  local.tee 6   ; __coalesce_2
+  local.tee 6   ; __fallback_2
   type_check 0   ; null
   if $L1 void
     i64.const -1
     local.set 2   ; $call_6
   else
-    local.get 6   ; __coalesce_2
+    local.get 6   ; __fallback_2
     ref.cast 3   ; i64
     local.set 2   ; $call_6
   end $L1
@@ -169,13 +169,13 @@ fn 0 snippet$main () -> i32
   local.get 3   ; $arr_15
   i32.const 0
   call 10   ; std_collections$Map$std_core$Index$at__snippet_beta_Status__i64
-  local.tee 6   ; __coalesce_2
+  local.tee 6   ; __fallback_2
   type_check 0   ; null
   if $L2 void
     i64.const -1
     local.set 2   ; $call_6
   else
-    local.get 6   ; __coalesce_2
+    local.get 6   ; __fallback_2
     ref.cast 3   ; i64
     local.set 2   ; $call_6
   end $L2

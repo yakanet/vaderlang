@@ -12,8 +12,8 @@
   }
   snippet.resolve :: fn(key: string) -> i32 {  // snippet$resolve
       {
-          __coalesce_0: i32 | null = snippet.setting(key)
-          if __coalesce_0 is null { 0 } else { i32(__coalesce_0) } :i32
+          __fallback_0: i32 | null = snippet.setting(key)
+          if __fallback_0 is null { 0 } else { i32(__fallback_0) } :i32
       } :i32
   }
   snippet.first_present :: fn(keys: string[]) -> i32 {  // snippet$first_present
@@ -24,12 +24,12 @@
           for __for_i_2 < __for_len_1 {
               k: string = __for_arr_0[__for_i_2]
               value: i32 = {
-                  __coalesce_3: i32 | null = snippet.setting(k)
-                  if __coalesce_3 is null {
+                  __fallback_3: i32 | null = snippet.setting(k)
+                  if __fallback_3 is null {
                       continue
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
-                      i32(__coalesce_3)
+                      i32(__fallback_3)
                   } :i32
               }
               return value
@@ -48,12 +48,12 @@
           for __for_i_2 < __for_len_1 {
               k: string = __for_arr_0[__for_i_2]
               total = total + ({
-                  __coalesce_3: i32 | null = snippet.setting(k)
-                  if __coalesce_3 is null {
+                  __fallback_3: i32 | null = snippet.setting(k)
+                  if __fallback_3 is null {
                       break
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
-                      i32(__coalesce_3)
+                      i32(__fallback_3)
                   } :i32
               } :i32)
           } @step {
@@ -64,12 +64,12 @@
   }
   snippet.required :: fn(key: string) -> i32 {  // snippet$required
       return {
-          __coalesce_0: i32 | null = snippet.setting(key)
-          if __coalesce_0 is null {
+          __fallback_0: i32 | null = snippet.setting(key)
+          if __fallback_0 is null {
               return -1
-              @unreachable("`??` fallback diverges")
+              @unreachable("an `else` clause leaves")
           } else {
-              i32(__coalesce_0)
+              i32(__fallback_0)
           } :i32
       } :i32
   }
@@ -82,14 +82,14 @@
           for __for_i_2 < __for_len_1 {
               k: string = __for_arr_0[__for_i_2]
               present: i32 = {
-                  __coalesce_3: i32 | null = snippet.setting(k)
-                  if __coalesce_3 is null {
+                  __fallback_3: i32 | null = snippet.setting(k)
+                  if __fallback_3 is null {
                       {
                           missing = missing + 1
                           continue
                       }
                   } else {
-                      i32(__coalesce_3)
+                      i32(__fallback_3)
                   } :i32
               }
               std.console.println<string>({
@@ -149,8 +149,8 @@
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       scaled: i32 = ({
-          __coalesce_10: i32 | null = snippet.setting("width")
-          if __coalesce_10 is null { 0 } else { i32(__coalesce_10) } :i32
+          __fallback_10: i32 | null = snippet.setting("width")
+          if __fallback_10 is null { 0 } else { i32(__fallback_10) } :i32
       } :i32) + 1
       std.console.println<string>({
           __buf_11: Buffer = std.core.new_byte_buffer(i64(27))

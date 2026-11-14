@@ -9,8 +9,8 @@
   snippet.Holder :: struct { task: Task<i32>, rows: i32[][] }  // snippet$Holder
   snippet.follow :: fn(n: Node) -> Node {  // snippet$follow
       {
-          __coalesce_0: Node | null = n.next
-          if __coalesce_0 is null { n } else { Node(__coalesce_0) } :Node
+          __fallback_0: Node | null = n.next
+          if __fallback_0 is null { n } else { Node(__fallback_0) } :Node
       } :Node
   }
   snippet.main :: fn() -> i32 {  // snippet$main

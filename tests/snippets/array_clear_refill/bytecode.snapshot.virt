@@ -63,7 +63,7 @@ fn 1 snippet$main () -> i32
   local __off_1 i64
   local $len_19 i64
   local $call_36 string
-  local __coalesce_6 any
+  local __fallback_6 any
   local __buf_10 ref
   i64.const 200
   array.reserve 10   ; i32[]
@@ -194,13 +194,13 @@ fn 1 snippet$main () -> i32
   array.push 2   ; string
   call 0   ; snippet$seen
   array.remove_last
-  local.tee 6   ; __coalesce_6
+  local.tee 6   ; __fallback_6
   type_check 0   ; null
   if $L6 void
     string.const 5   ; "<null>"
     local.set 5   ; $call_36
   else
-    local.get 6   ; __coalesce_6
+    local.get 6   ; __fallback_6
     ref.cast 2   ; string
     local.set 5   ; $call_36
   end $L6

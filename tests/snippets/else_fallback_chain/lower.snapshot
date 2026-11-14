@@ -28,41 +28,41 @@
   }
   snippet.bare :: fn(n: i32) -> string {  // snippet$bare
       {
-          __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          if __coalesce_0 is IOError | null { "fallback" } else { string(__coalesce_0) } :string
+          __fallback_0: IOError | null | string = snippet.open_thing(n)
+          if __fallback_0 is IOError | null { "fallback" } else { string(__fallback_0) } :string
       } :string
   }
   snippet.chained :: fn(n: i32) -> string {  // snippet$chained
       s: string = {
-          __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          if __coalesce_0 is null {
+          __fallback_0: IOError | null | string = snippet.open_thing(n)
+          if __fallback_0 is null {
               {
                   return "absent"
               }
-          } else if __coalesce_0 is IOError {
+          } else if __fallback_0 is IOError {
               {
                   return "failed"
               }
           } else {
-              string(__coalesce_0)
+              string(__fallback_0)
           } :string
       }
       return s
   }
   snippet.widened :: fn(n: i32) -> null | string {  // snippet$widened
       {
-          __coalesce_0: IOError | null | string = snippet.open_thing(n)
-          if __coalesce_0 is IOError | null { null } else { string(__coalesce_0) } :null | string
+          __fallback_0: IOError | null | string = snippet.open_thing(n)
+          if __fallback_0 is IOError | null { null } else { string(__fallback_0) } :null | string
       } :null | string
   }
   snippet.leave :: fn(n: i32) -> i32 {  // snippet$leave
       v: i32 = {
-          __coalesce_0: i32 | null = snippet.lookup(n)
-          if __coalesce_0 is null {
+          __fallback_0: i32 | null = snippet.lookup(n)
+          if __fallback_0 is null {
               return -1
-              @unreachable("`??` fallback diverges")
+              @unreachable("an `else` clause leaves")
           } else {
-              i32(__coalesce_0)
+              i32(__fallback_0)
           } :i32
       }
       return v + 1
@@ -76,12 +76,12 @@
           for __for_i_2 < __for_len_1 {
               n: i32 = __for_arr_0[__for_i_2]
               v: i32 = {
-                  __coalesce_3: i32 | null = snippet.lookup(n)
-                  if __coalesce_3 is null {
+                  __fallback_3: i32 | null = snippet.lookup(n)
+                  if __fallback_3 is null {
                       continue
-                      @unreachable("`??` fallback diverges")
+                      @unreachable("an `else` clause leaves")
                   } else {
-                      i32(__coalesce_3)
+                      i32(__fallback_3)
                   } :i32
               }
               total = total + v
@@ -93,8 +93,8 @@
   }
   snippet.precedence :: fn(n: i32, ready: bool) -> bool {  // snippet$precedence
       (({
-          __coalesce_0: i32 | null = snippet.lookup(n)
-          if __coalesce_0 is null { 0 } else { i32(__coalesce_0) } :i32
+          __fallback_0: i32 | null = snippet.lookup(n)
+          if __fallback_0 is null { 0 } else { i32(__fallback_0) } :i32
       } :i32) == 0) && ready
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -137,13 +137,13 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
           __off_11: i64 = 0
           __off_11 = std.core.write_int(__buf_10, __off_11, {
-              __coalesce_8: i32 | null = snippet.lookup(4)
-              if __coalesce_8 is null { 7 } else { i32(__coalesce_8) } :i32
+              __fallback_8: i32 | null = snippet.lookup(4)
+              if __fallback_8 is null { 7 } else { i32(__fallback_8) } :i32
           } :i32)
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
           __off_11 = std.core.write_int(__buf_10, __off_11, {
-              __coalesce_9: i32 | null = snippet.lookup(-4)
-              if __coalesce_9 is null { 7 } else { i32(__coalesce_9) } :i32
+              __fallback_9: i32 | null = snippet.lookup(-4)
+              if __fallback_9 is null { 7 } else { i32(__fallback_9) } :i32
           } :i32)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)

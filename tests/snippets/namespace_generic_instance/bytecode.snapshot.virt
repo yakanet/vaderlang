@@ -55,7 +55,7 @@ fn 2 snippet$main () -> i32
   local $call_24 string
   local $call_26 string
   local some any
-  local __coalesce_2 any
+  local __fallback_2 any
   local if_res i32
   array.new 13 0   ; string[]
   local.set 0   ; $arr_0
@@ -110,7 +110,7 @@ fn 2 snippet$main () -> i32
   call 4   ; concat_3
   call 19   ; std_console$println__string
   null.const
-  local.set 8   ; __coalesce_2
+  local.set 8   ; __fallback_2
   i32.const 7
   retag 5   ; i32
   local.set 7   ; some
@@ -119,13 +119,13 @@ fn 2 snippet$main () -> i32
   local.set 0   ; $arr_0
   i64.const 0
   local.set 3   ; __off_1
-  local.get 8   ; __coalesce_2
+  local.get 8   ; __fallback_2
   type_check 0   ; null
   if $L0 void
     i32.const 0
     local.set 9   ; if_res
   else
-    local.get 8   ; __coalesce_2
+    local.get 8   ; __fallback_2
     ref.cast 5   ; i32
     local.set 9   ; if_res
   end $L0

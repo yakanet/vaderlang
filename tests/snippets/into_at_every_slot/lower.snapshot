@@ -27,8 +27,8 @@
   snippet.Holder :: struct { l: Label }  // snippet$Holder
   snippet.fallback :: fn(x: Label | null) -> Label {  // snippet$fallback
       {
-          __coalesce_0: Label | null = x
-          if __coalesce_0 is null { snippet$Celsius$std_core$Into$into(Celsius { .v = 4 }) } else { Label(__coalesce_0) } :Label
+          __fallback_0: Label | null = x
+          if __fallback_0 is null { snippet$Celsius$std_core$Into$into(Celsius { .v = 4 }) } else { Label(__fallback_0) } :Label
       } :Label
   }
   snippet.labels :: fn() -> Iterator<Label> {  // snippet$labels
@@ -65,8 +65,8 @@
       }
       std.collections.Map<string, Any>.set_at(m, "k", snippet$Celsius$std_core$Into$into(Celsius { .v = 8 }))
       got: Label = {
-          __coalesce_0: Label | null = std.collections.Map<string, Any>.at(m, "k")
-          if __coalesce_0 is null { Label { .text = "absent" } } else { Label(__coalesce_0) } :Label
+          __fallback_0: Label | null = std.collections.Map<string, Any>.at(m, "k")
+          if __fallback_0 is null { Label { .text = "absent" } } else { Label(__fallback_0) } :Label
       }
       std.console.println<string>(concat_3("map [", got.text, "]"))
       n: i32 = 0
@@ -91,7 +91,7 @@
       xs: Label[] = [] :Label[]
       @array.push(xs, snippet$Celsius$std_core$Into$into(Celsius { .v = 14 }))
       std.console.println<string>(concat_3("push [", xs[0].text, "]"))
-      std.console.println<string>(concat_3("coalesce [", snippet.fallback(null).text, "]"))
+      std.console.println<string>(concat_3("fallback [", snippet.fallback(null).text, "]"))
       {
           g: Label = snippet$Celsius$std_core$Into$into(Celsius { .v = 5 })
           std.console.println<string>(concat_3("yield [", g.text, "]"))

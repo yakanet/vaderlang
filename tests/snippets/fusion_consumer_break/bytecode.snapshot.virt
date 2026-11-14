@@ -112,7 +112,7 @@ end
 
 fn 3 snippet$flat_map_find () -> void
   local fused i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local __fuse_arr_1 ref
   local __fuse_len_0 i64
   local __fuse_i_1 i64
@@ -125,7 +125,7 @@ fn 3 snippet$flat_map_find () -> void
   array.new 2 2   ; i32[]
   local.set 2   ; __fuse_arr_1
   null.const
-  local.set 1   ; __coalesce_0
+  local.set 1   ; __fallback_0
   local.get 2   ; __fuse_arr_1
   array.len
   local.set 3   ; __fuse_len_0
@@ -159,7 +159,7 @@ fn 3 snippet$flat_map_find () -> void
             if $L5 void
               local.get 0   ; fused
               retag 1   ; i32
-              local.set 1   ; __coalesce_0
+              local.set 1   ; __fallback_0
               br $L0
             end $L5
             local.get 7   ; __for_i_2
@@ -177,15 +177,15 @@ fn 3 snippet$flat_map_find () -> void
       end $L2
     end $L1
     null.const
-    local.set 1   ; __coalesce_0
+    local.set 1   ; __fallback_0
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   type_check 0   ; null
   if $L6 void
     i32.const -1
     local.set 0   ; fused
   else
-    local.get 1   ; __coalesce_0
+    local.get 1   ; __fallback_0
     ref.cast 1   ; i32
     local.set 0   ; fused
   end $L6
@@ -193,10 +193,10 @@ fn 3 snippet$flat_map_find () -> void
   i32.const 2
   array.new 2 2   ; i32[]
   call 27   ; std_core$$array$Into$into__i32
-  local.set 1   ; __coalesce_0
+  local.set 1   ; __fallback_0
   fn.ref 0 20   ; snippet$spread fn
   local.set 2   ; __fuse_arr_1
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   local.get 2   ; __fuse_arr_1
   call 35   ; std_iter$flat_map__i32__i32
   local.set 2   ; __fuse_arr_1
@@ -205,13 +205,13 @@ fn 3 snippet$flat_map_find () -> void
   local.get 2   ; __fuse_arr_1
   local.get 5   ; __for_arr_0
   call 37   ; std_iter$find__i32
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L7 void
     i32.const -1
     local.set 8   ; lazy
   else
-    local.get 1   ; __coalesce_0
+    local.get 1   ; __fallback_0
     ref.cast 1   ; i32
     local.set 8   ; lazy
   end $L7
@@ -255,7 +255,7 @@ end
 
 fn 4 snippet$chain_find () -> void
   local fused i32
-  local __coalesce_0 any
+  local __fallback_0 any
   local __fuse_arr_1 ref
   local __fuse_arr_2 ref
   local __fuse_len_0 i64
@@ -271,7 +271,7 @@ fn 4 snippet$chain_find () -> void
   array.new 2 2   ; i32[]
   local.set 3   ; __fuse_arr_2
   null.const
-  local.set 1   ; __coalesce_0
+  local.set 1   ; __fallback_0
   local.get 2   ; __fuse_arr_1
   array.len
   local.set 4   ; __fuse_len_0
@@ -291,7 +291,7 @@ fn 4 snippet$chain_find () -> void
         if $L3 void
           local.get 0   ; fused
           retag 1   ; i32
-          local.set 1   ; __coalesce_0
+          local.set 1   ; __fallback_0
           br $L0
         end $L3
         local.get 5   ; __fuse_i_1
@@ -319,7 +319,7 @@ fn 4 snippet$chain_find () -> void
         if $L6 void
           local.get 6   ; x
           retag 1   ; i32
-          local.set 1   ; __coalesce_0
+          local.set 1   ; __fallback_0
           br $L0
         end $L6
         local.get 5   ; __fuse_i_1
@@ -330,15 +330,15 @@ fn 4 snippet$chain_find () -> void
       end $L5
     end $L4
     null.const
-    local.set 1   ; __coalesce_0
+    local.set 1   ; __fallback_0
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   type_check 0   ; null
   if $L7 void
     i32.const -1
     local.set 0   ; fused
   else
-    local.get 1   ; __coalesce_0
+    local.get 1   ; __fallback_0
     ref.cast 1   ; i32
     local.set 0   ; fused
   end $L7
@@ -346,13 +346,13 @@ fn 4 snippet$chain_find () -> void
   i32.const 2
   array.new 2 2   ; i32[]
   call 27   ; std_core$$array$Into$into__i32
-  local.set 1   ; __coalesce_0
+  local.set 1   ; __fallback_0
   i32.const 3
   i32.const 4
   array.new 2 2   ; i32[]
   call 27   ; std_core$$array$Into$into__i32
   local.set 7   ; $call_47
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   local.get 7   ; $call_47
   call 33   ; std_iter$chain__i32
   local.set 2   ; __fuse_arr_1
@@ -361,13 +361,13 @@ fn 4 snippet$chain_find () -> void
   local.get 2   ; __fuse_arr_1
   local.get 3   ; __fuse_arr_2
   call 37   ; std_iter$find__i32
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   type_check 0   ; null
   if $L8 void
     i32.const -1
     local.set 6   ; x
   else
-    local.get 1   ; __coalesce_0
+    local.get 1   ; __fallback_0
     ref.cast 1   ; i32
     local.set 6   ; x
   end $L8

@@ -65,8 +65,8 @@
       popped: null | string = @array.remove_last(snippet.seen())
       std.console.println<string>({
           __p_7: string = {
-              __coalesce_6: null | string = popped
-              if __coalesce_6 is null { "<null>" } else { string(__coalesce_6) } :string
+              __fallback_6: null | string = popped
+              if __fallback_6 is null { "<null>" } else { string(__fallback_6) } :string
           }
           __buf_8: Buffer = std.core.new_byte_buffer(i64(33) +% std.core.byte_len(__p_7))
           __off_9: i64 = 0

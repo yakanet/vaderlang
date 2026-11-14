@@ -1337,7 +1337,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "coalesce ["
+                          "value": "fallback ["
                         },
                         {
                           "kind": "interp",

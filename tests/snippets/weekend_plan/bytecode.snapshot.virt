@@ -239,7 +239,7 @@ fn 13 snippet$main () -> i32
   local $call_7 string
   local $call_10 string
   local __p_1 u8
-  local __coalesce_0 any
+  local __fallback_0 any
   local __p_2 bool
   local $call_32 i64
   local $call_33 i64
@@ -268,13 +268,13 @@ fn 13 snippet$main () -> i32
   call 25   ; std_console$println__string
   i32.const 6
   call 6   ; snippet$lie_in
-  local.tee 5   ; __coalesce_0
+  local.tee 5   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     i32.const 6
     local.set 4   ; __p_1
   else
-    local.get 5   ; __coalesce_0
+    local.get 5   ; __fallback_0
     ref.cast 1   ; u8
     local.set 4   ; __p_1
   end $L0

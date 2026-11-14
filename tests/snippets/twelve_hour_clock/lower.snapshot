@@ -112,8 +112,8 @@
           __buf_3: Buffer = std.core.new_byte_buffer(i64(68))
           __off_4: i64 = 0
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, {
-              __coalesce_2: null | u8 = snippet.breakfast(Hour(7))
-              if __coalesce_2 is null { u8(6) } else { u8(__coalesce_2) } :6..=9
+              __fallback_2: null | u8 = snippet.breakfast(Hour(7))
+              if __fallback_2 is null { u8(6) } else { u8(__fallback_2) } :6..=9
           } :6..=9)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
           __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.breakfast(Hour(11)) is null)
@@ -129,8 +129,8 @@
           __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.daylight(Hour(3)) is null)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, {
-              __coalesce_5: null | u8 = snippet.daylight(Hour(12))
-              if __coalesce_5 is null { u8(6) } else { u8(__coalesce_5) } :6..=20
+              __fallback_5: null | u8 = snippet.daylight(Hour(12))
+              if __fallback_5 is null { u8(6) } else { u8(__fallback_5) } :6..=20
           } :6..=20)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, snippet.after_dark(Hour(22)))

@@ -1,9 +1,9 @@
-// tests/snippets/config_defaults: null-coalescing `??` fallbacks.
+// tests/snippets/config_defaults: `else` fallbacks on a missing setting.
 //
-// Exercises every `??` fallback form on both backends : a default value, the
-// divergent `continue` / `break` / `return`, a `{ ... }` block, and `??` in
-// expression position (its low precedence forces parentheses to keep the `+`,
-// which the formatter must preserve).
+// Exercises every `else` fallback form on both backends : a default value, the
+// divergent `continue` / `break` / `return`, a `{ ... }` block, and `else` in
+// expression position (it binds looser than `+`, so parentheses keep the `+`
+// out of the fallback, which the formatter must preserve).
 
 module "snippet"
 
@@ -18,7 +18,7 @@ setting :: fn(key: string) -> i32 | null {
 // value fallback : a missing key falls back to a default.
 resolve :: fn(key: string) -> i32 = setting(key) else 0
 
-// `?? continue` : skip missing entries while scanning for the first present one.
+// `else continue` : skip missing entries while scanning for the first present one.
 first_present :: fn(keys: string[]) -> i32 {
     for k in keys {
         value :: setting(k) else continue
@@ -27,7 +27,7 @@ first_present :: fn(keys: string[]) -> i32 {
     return -1
 }
 
-// `?? break` : stop the running sum at the first missing entry.
+// `else break` : stop the running sum at the first missing entry.
 sum_prefix :: fn(keys: string[]) -> i32 {
     total: i32 = 0
     for k in keys {
@@ -36,12 +36,12 @@ sum_prefix :: fn(keys: string[]) -> i32 {
     return total
 }
 
-// `?? return` : propagate a sentinel when a required key is absent.
+// `else return` : propagate a sentinel when a required key is absent.
 required :: fn(key: string) -> i32 {
     return setting(key) else return -1
 }
 
-// `?? { block }` : run side effects, then diverge.
+// `else { block }` : run side effects, then diverge.
 count_missing :: fn(keys: string[]) -> i32 {
     missing: i32 = 0
     for k in keys {
@@ -60,7 +60,7 @@ export main :: fn() -> i32 {
     println("sum=${sum_prefix(["width", "height", "depth", "width"])}")
     println("req_width=${required("width")} req_depth=${required("depth")}")
     println("missing=${count_missing(["width", "depth", "height"])}")
-    // `??` binds looser than `+` : the parentheses must survive the formatter.
+    // `else` binds looser than `+` : the parentheses must survive the formatter.
     scaled :: (setting("width") else 0) + 1
     println("scaled=${scaled}")
     return 0

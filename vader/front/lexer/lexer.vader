@@ -102,7 +102,7 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
         | .Amp | .Pipe | .Caret
         | .Shl | .Shr | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte | .AndAnd
-        | .OrOr | .QuestionQuestion | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
+        | .OrOr | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
         | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .PlusPercentAssign
         | .MinusPercentAssign | .StarPercentAssign | .Colon
         | .Arrow | .FatArrow | .Comma | .DeclConst | .DeclVar | .KwElse -> true
@@ -113,11 +113,11 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
 // (`parse_prefix` takes `-` / `!` / `~` / `.`), so a line opening with one
 // continues the previous line, a type union or a condition as much as a sum :
 //   T ::            cond := a == 1          name :: first_name(user)
-//       | A             && b == 2               ?? "anonymous"
+//       | A             && b == 2               else "anonymous"
 // A compound assignment (`+=`) lexes as its own kind, so it is never one.
 // @partial: only the infix-only operators continue a line; every other token -> false.
 continues_previous_line :: fn(k: TokenKind) = @partial match k {
-    .Plus | .Star | .Slash | .Percent | .Caret | .QuestionQuestion | .Eq | .Neq | .Same
+    .Plus | .Star | .Slash | .Percent | .Caret | .Eq | .Neq | .Same
         | .NotSame | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe
         | .PlusPercent | .MinusPercent | .StarPercent | .KwElse -> true
     _ -> false
@@ -938,7 +938,6 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     if c == '>' && c2 == '=' { return l.emit_and_advance(.Gte, ">=") }
     if c == '&' && c2 == '&' { return l.emit_and_advance(.AndAnd, "&&") }
     if c == '|' && c2 == '|' { return l.emit_and_advance(.OrOr, "||") }
-    if c == '?' && c2 == '?' { return l.emit_and_advance(.QuestionQuestion, "??") }
     if c == '<' && c2 == '<' { return l.emit_and_advance(.Shl, "<<") }
     if c == '>' && c2 == '>' { return l.emit_and_advance(.Shr, ">>") }
     if c == '-' && c2 == '>' { return l.emit_and_advance(.Arrow, "->") }
@@ -1438,7 +1437,7 @@ count_newlines :: fn(l: LexedSource) -> i64 {
 }
 
 @test test_leading_infix_operator_continues :: fn() -> void {
-    for op in "+ * / % ^ ?? == != === !== < <= << > >= >> && || & |".split(" ") {
+    for op in "+ * / % ^ else == != === !== < <= << > >= >> && || & |".split(" ") {
         l :: tokenize("a\n    ${op} b", "test.vader")
         assert(count_newlines(l) == 0, "a line opening with `${op}` continues")
     }

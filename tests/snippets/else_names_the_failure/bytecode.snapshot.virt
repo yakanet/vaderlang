@@ -97,19 +97,19 @@ fn 0 snippet$open_thing (i32) -> any
 end
 
 fn 1 snippet$describe (i32) -> string
-  local __coalesce_0 any
+  local __fallback_0 any
   local s any
   local $field_10 string
   local.get 0   ; arg 0
   call 0   ; snippet$open_thing
-  local.tee 1   ; __coalesce_0
+  local.tee 1   ; __fallback_0
   local.set 2   ; s
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   type_check 0   ; null
   if $L0 void
     return.lit string.const 2   ; "absent"
   end $L0
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   type_check 3   ; std_io$IOError
   if $L1 void
     local.get 2   ; s
@@ -122,20 +122,20 @@ fn 1 snippet$describe (i32) -> string
     call 6   ; concat_2
     return
   end $L1
-  local.get 1   ; __coalesce_0
+  local.get 1   ; __fallback_0
   ref.cast 4   ; string
   return
 end
 
 fn 2 snippet$with_closure (i32) -> string
   local s string
-  local __coalesce_0 any
+  local __fallback_0 any
   local s any
   local.get 0   ; arg 0
   call 0   ; snippet$open_thing
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   local.set 3   ; s
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   type_check 12   ; union
   if $L0 void
     local.get 3   ; s
@@ -143,7 +143,7 @@ fn 2 snippet$with_closure (i32) -> string
     call 5   ; __lambda_snippet_0
     local.set 1   ; s
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 4   ; string
     local.set 1   ; s
   end $L0
@@ -156,13 +156,13 @@ end
 
 fn 3 snippet$typed (i32) -> string
   local s string
-  local __coalesce_0 any
+  local __fallback_0 any
   local s any
   local.get 0   ; arg 0
   call 0   ; snippet$open_thing
-  local.tee 2   ; __coalesce_0
+  local.tee 2   ; __fallback_0
   local.set 3   ; s
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   type_check 3   ; std_io$IOError
   if $L0 void
     local.get 3   ; s
@@ -172,13 +172,13 @@ fn 3 snippet$typed (i32) -> string
     local.tee 1   ; s
     return
   end $L0
-  local.get 2   ; __coalesce_0
+  local.get 2   ; __fallback_0
   type_check 0   ; null
   if $L1 void
     string.const 5   ; "nothing"
     local.set 1   ; s
   else
-    local.get 2   ; __coalesce_0
+    local.get 2   ; __fallback_0
     ref.cast 4   ; string
     local.set 1   ; s
   end $L1

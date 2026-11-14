@@ -76,13 +76,13 @@
       }
       return "other"
   }
-  snippet.coalesced :: fn(c: bool, b: bool) -> u8 {  // snippet$coalesced
+  snippet.with_fallback :: fn(c: bool, b: bool) -> u8 {  // snippet$with_fallback
       k: u8 = if c {
           u8(1)
       } else {
           {
-              __coalesce_0: null | u8 = if b { u8(200) } else { null }
-              if __coalesce_0 is null { u8(5) } else { u8(__coalesce_0) } :u8
+              __fallback_0: null | u8 = if b { u8(200) } else { null }
+              if __fallback_0 is null { u8(5) } else { u8(__fallback_0) } :u8
           } :u8
       }
       return k
@@ -160,19 +160,19 @@
       both: string = {
           __buf_13: Buffer = std.core.new_byte_buffer(i64(41))
           __off_14: i64 = 0
-          __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.coalesced(false, true))
+          __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.with_fallback(false, true))
           __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
-          __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.coalesced(false, false))
+          __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.with_fallback(false, false))
           std.core.finish_buffer(__buf_13, __off_14)
       }
       std.console.println<string>({
           __p_15: string = both
-          __buf_16: Buffer = std.core.new_byte_buffer(i64(32) +% std.core.byte_len(__p_15))
+          __buf_16: Buffer = std.core.new_byte_buffer(i64(36) +% std.core.byte_len(__p_15))
           __off_17: i64 = 0
-          __off_17 = std.core.write_string_at(__buf_16, __off_17, "coalesced: ")
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, "with_fallback: ")
           __off_17 = std.core.write_string_at(__buf_16, __off_17, __p_15)
           __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
-          __off_17 = std.core.write_unsigned(__buf_16, __off_17, snippet.coalesced(true, true))
+          __off_17 = std.core.write_unsigned(__buf_16, __off_17, snippet.with_fallback(true, true))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       return 0

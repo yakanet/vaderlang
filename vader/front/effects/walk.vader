@@ -424,7 +424,7 @@ union_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
     return slot
 }
 
-// What evaluates to one of `values`, the branches of an `if`, a `match` or a `??`.
+// What evaluates to one of `values`, the branches of an `if`, a `match` or an `else`.
 // A branch that holds nothing lent may still be shared, a lambda's parameter: a
 // join of frozen values with one gets a slot of its own, outside `pure`.
 one_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {

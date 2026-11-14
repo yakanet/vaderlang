@@ -21,12 +21,12 @@
   }
   snippet.lookup :: fn(names: string[], i: i64) -> string {  // snippet$lookup
       found: string = {
-          __coalesce_0: null | string = if i < @array.len(names) { names[i] } else { null }
-          if __coalesce_0 is null {
+          __fallback_0: null | string = if i < @array.len(names) { names[i] } else { null }
+          if __fallback_0 is null {
               return "none"
-              @unreachable("`??` fallback diverges")
+              @unreachable("an `else` clause leaves")
           } else {
-              string(__coalesce_0)
+              string(__fallback_0)
           } :string
       }
       return found
