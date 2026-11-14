@@ -16,7 +16,6 @@ import "std/abort"
 import "toolchain/diagnostics"
 import "toolchain/protocol"
 import "vader/build_server"
-import "vader/front/resolver"
 Prof :: import "vader/support/profile"
 
 // ---- driving the compilation ----------------------------------------------
@@ -145,13 +144,19 @@ relayed :: fn(
     return msg
 }
 
-message_of :: fn(event: BuildEvent) -> Message = match event {
-    is ModuleTypechecked -> TypecheckedMessage {
-        .module_name = event.module_name,
-        .declarations = concat_file_decls(event.files),
+// `event` as a driver in a process of its own reads it, once its frame crossed
+// the protocol: what does not cross yet is missing here too.
+message_of :: fn(event: BuildEvent) -> Message {
+    frame :: decode_server_frame(server_payload(frame_of(event)))
+        else panic("a frame that does not read back: ${frame.msg}")
+    return match frame {
+        is TypecheckedFrame -> TypecheckedMessage {
+            .module_name = frame.module_name,
+            .declarations = frame.declarations,
+        }
+        is PhaseFrame       -> PhaseMessage { .phase = frame.phase }
+        is CompleteFrame    -> CompleteMessage { .code = frame.code }
     }
-    is PhaseFrame        -> PhaseMessage { .phase = event.phase }
-    is CompleteFrame     -> CompleteMessage { .code = event.code }
 }
 
 // The message that ends the stream. The plugins hear the outcome, the build

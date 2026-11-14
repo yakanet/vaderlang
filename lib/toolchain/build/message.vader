@@ -20,10 +20,11 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 
 /// Top-level declarations of one module, after typecheck.
 ///
-/// The declarations are the compiler's own nodes, not copies: reading a field
-/// costs nothing, and a span taken from one anchors a diagnostic directly in the
-/// user's source. This is why a driver runs natively rather than through the
-/// comptime VM; see the plan referenced in `context.vader`.
+/// They are what crosses from `vader` to the driver (`toolchain/protocol`): the
+/// surface of each declaration, never a body. Constants, assertions,
+/// decorators, doc comments, type parameters, enum variants and the members of
+/// traits and impls do not cross yet, and the nodes hold none. A span taken from
+/// one anchors a diagnostic in the user's source.
 ///
 /// Each declaration is delivered exactly ONCE per entry. A module the
 /// driver generated into is therefore delivered a second time carrying only the

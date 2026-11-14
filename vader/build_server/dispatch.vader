@@ -117,10 +117,8 @@ export serve :: fn(peer: DriverPeer, request: DriverRequest, description_file: s
 // closed them, `NextFrame` or `StopFrame`.
 answer :: fn(peer: DriverPeer, session: BuildSession) -> NextFrame | StopFrame | ProtocolError {
     for {
-        frame :: peer.receive() else is ProtocolError {
-            return frame
-        }
-        match frame {
+        match frame :: peer.receive() {
+            is ProtocolError         -> { return frame }
             is EmitModuleFrame       -> session.queue_module(frame.name, frame.source)
             is ReportFrame           -> {
                 reported :: take_report(session, frame) else is ProtocolError {
@@ -148,10 +146,14 @@ take_report :: fn(session: BuildSession, frame: ReportFrame) -> null | ProtocolE
     return ProtocolError { .msg = "`${frame.code}` is no hook code" }
 }
 
-frame_of :: fn(event: BuildEvent) -> ServerFrame = match event {
+/// The frame that tells a driver `event`: of a module, the declarations that
+/// cross.
+///
+/// @param event  what the build produced.
+export frame_of :: fn(event: BuildEvent) -> ServerFrame = match event {
     is ModuleTypechecked -> TypecheckedFrame {
         .module_name = event.module_name,
-        .files = event.files.map((f) -> ModuleFile { .path = f.path, .text = f.content }).collect(),
+        .declarations = concat_file_decls(event.files).filter(crosses).collect(),
     }
     is PhaseFrame        -> event
     is CompleteFrame     -> event

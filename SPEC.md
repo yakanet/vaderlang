@@ -3236,6 +3236,8 @@ What the command asked reaches the driver in `args`, and the driver does not cha
 
 A driver reaches the compiler through `toolchain/build`, and names AST types through `toolchain/ast`. Draining `ctx.messages()` is the build: it yields each module's typed declarations, then the phase boundaries, and last a `CompleteMessage` whose `code` is the build's exit code. `Phase.BeforeEmit` is the last point where leaving the loop writes nothing, which is how a driver that only lints declines to build.
 
+A driver receives the surface of each declaration: its name, spans and visibility, the fields of a struct, the parameters and result of a function, and the types as written. It does not receive bodies, constants, assertions, decorators, doc comments, type parameters, enum variants, or the members of traits and impls.
+
 #### Plugins
 
 A plugin is a type that implements `BuildPlugin`. `ctx.use(p)` plugs it into the build: it hears each message of the stream, in the order the plugins were plugged, before the driver's own loop does. Its members do nothing unless it overrides them:

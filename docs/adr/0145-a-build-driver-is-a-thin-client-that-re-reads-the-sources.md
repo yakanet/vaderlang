@@ -4,8 +4,12 @@
 
 Accepted (2026-11-14). Its first steps, the parser moving to `lib/toolchain`
 and the protocol (`toolchain/protocol`), are in place; the thin driver comes
-next. What a driver is handed, the AST as written or as the front end
-elaborated it, is still open.
+next.
+
+**Superseded in part by
+[0147](0147-a-driver-is-handed-the-surface-of-the-elaborated-declarations.md) (2026-11-14)**:
+a driver is handed the surface of the elaborated declarations, serialised; it
+does not re-read the text.
 
 ## Context
 

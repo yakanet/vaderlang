@@ -7,9 +7,10 @@
 // on or a `StopFrame` ends the drain. The driver opens with a
 // `ConfigureFrame`, on its first pull.
 //
-// A frame holds strings and integers only, a `Span` included. Its payload is a
-// sequence of fields, each written as its length in bytes, a colon, then the
-// bytes; the first field names the frame:
+// A frame holds strings and integers, a `Span` included, and the declarations of
+// a module (`declarations.vader`). Its payload is a sequence of fields, each
+// written as its length in bytes, a colon, then the bytes; the first field names
+// the frame:
 //
 // ```
 // 11:emit_module3:gen6:x :: 1
@@ -28,6 +29,7 @@ module "toolchain/protocol"
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
+AST :: import "toolchain/ast"
 import "toolchain/span"
 
 // ---- frames ---------------------------------------------------------------
@@ -41,16 +43,11 @@ export DriverFrame :: ConfigureFrame | EmitModuleFrame | ReportFrame | NextFrame
 /// A module passed type checking.
 export TypecheckedFrame :: struct {
     module_name: string
-    /// The files of the module the driver has not received yet, which it
-    /// parses again: a module a round generated into comes back with the
-    /// generated file alone.
-    files: ModuleFile[]
-}
-
-/// A source file, as the loader read it.
-export ModuleFile :: struct {
-    path: string
-    text: string
+    /// The declarations of the module the driver has not received yet, as the
+    /// front end left them, those that `crosses` and only their surface
+    /// (`declarations.vader`): a module a round generated into comes back with
+    /// the generated file's alone.
+    declarations: AST.Decl[]
 }
 
 /// The pipeline reached a phase.
@@ -150,17 +147,17 @@ ProtocolError implements Error {
 
 // ---- writing --------------------------------------------------------------
 
-server_payload :: fn(frame: ServerFrame) -> string {
+/// The bytes of a frame `vader` sends, without the header that announces them,
+/// as `decode_server_frame` reads them back.
+///
+/// @param frame  the event.
+export server_payload :: fn(frame: ServerFrame) -> string {
     out :: StringBuilder {}
     match frame {
         is TypecheckedFrame -> {
             out.write_field("typechecked")
             out.write_field(frame.module_name)
-            out.write_integer(frame.files.len())
-            for f in frame.files {
-                out.write_field(f.path)
-                out.write_field(f.text)
-            }
+            out.write_declarations(frame.declarations)
         }
         is PhaseFrame       -> {
             out.write_field("phase")
@@ -230,9 +227,24 @@ write_span :: fn(out: StringBuilder, span: Span) -> void {
 
 write_position :: fn(out: StringBuilder, p: Position) -> void {
     out.write_field(p.file)
+    out.write_place(p)
+}
+
+// A position whose file is written elsewhere.
+write_place :: fn(out: StringBuilder, p: Position) -> void {
     out.write_integer(p.offset)
     out.write_integer(p.line)
     out.write_integer(p.column)
+}
+
+write_flag :: fn(out: StringBuilder, value: bool) -> void =
+    out.write_field(if value { "1" } else { "0" })
+
+write_optional_field :: fn(out: StringBuilder, text: string | null) -> void {
+    out.write_flag(text != null)
+    if text != null {
+        out.write_field(text)
+    }
 }
 
 // ---- reading --------------------------------------------------------------
@@ -283,14 +295,8 @@ read_driver_frame :: fn(r: FieldReader, kind: string) -> DriverFrame | ProtocolE
 
 read_typechecked :: fn(r: FieldReader) -> TypecheckedFrame | ProtocolError {
     module_name :: r.read_field() else return module_name
-    count :: r.read_count() else return count
-    files: ModuleFile[]: []
-    for _ in 0..<count {
-        path :: r.read_field() else return path
-        text :: r.read_field() else return text
-        files.push(ModuleFile { .path = path, .text = text })
-    }
-    return TypecheckedFrame { .module_name = module_name, .files = files }
+    declarations :: r.read_declarations() else return declarations
+    return TypecheckedFrame { .module_name = module_name, .declarations = declarations }
 }
 
 read_phase :: fn(r: FieldReader) -> PhaseFrame | ProtocolError {
@@ -421,6 +427,10 @@ read_span :: fn(r: FieldReader) -> Span | ProtocolError {
 
 read_position :: fn(r: FieldReader) -> Position | ProtocolError {
     file :: r.read_field() else return file
+    return r.read_place(file)
+}
+
+read_place :: fn(r: FieldReader, file: string) -> Position | ProtocolError {
     offset :: r.read_integer() else return offset
     line :: r.read_i32() else return line
     column :: r.read_i32() else return column
@@ -430,6 +440,23 @@ read_position :: fn(r: FieldReader) -> Position | ProtocolError {
         .line = line,
         .column = column,
     }
+}
+
+read_flag :: fn(r: FieldReader) -> bool | ProtocolError {
+    field :: r.read_field() else return field
+    return match field {
+        "1" -> true
+        "0" -> false
+        _   -> ProtocolError { .msg = "`${field}` is no flag" }
+    }
+}
+
+read_optional_field :: fn(r: FieldReader) -> string | null | ProtocolError {
+    present :: r.read_flag() else return present
+    if !present {
+        return null
+    }
+    return r.read_field()
 }
 
 past_last_field :: fn(r: FieldReader) -> ProtocolError = ProtocolError {
@@ -449,23 +476,29 @@ test_driver_payload_writes_each_field_after_its_length :: fn() -> void {
 
 @test
 test_typechecked_frame_round_trips :: fn() -> void {
-    sent :: TypecheckedFrame {
-        .module_name = "app",
-        .files = [
-            ModuleFile { .path = "src/a.vader", .text = "module \"app\"\n\nx :: \"é: 12:\"\n" },
-            ModuleFile { .path = "src/b.vader", .text = "" },
-        ],
+    alias :: AST.TypeAliasDecl {
+        .span = empty_span(),
+        .name = "Name",
+        .name_span = empty_span(),
+        .visibility = .Public,
+        .type_params = [],
+        .aliased = AST.IdentExpr { .span = empty_span(), .name = "é: 12:", .implicit_dot = false },
+        .decorators = [],
     }
+    sent :: TypecheckedFrame { .module_name = "app", .declarations = [alias] }
     received :: decode_server_frame(server_payload(sent))
     if received !is TypecheckedFrame {
         assert(false, "a typechecked frame reads back as one")
         return
     }
     assert_eq(received.module_name, "app")
-    assert_eq(received.files.len(), 2)
-    assert_eq(received.files[0].path, "src/a.vader")
-    assert_eq(received.files[0].text, sent.files[0].text)
-    assert_eq(received.files[1].text, "")
+    assert_eq(received.declarations.len(), 1)
+    back :: received.declarations[0]
+    if back !is AST.TypeAliasDecl {
+        assert(false, "the alias reads back as one")
+        return
+    }
+    assert_eq(back.name, "Name")
 }
 
 @test
