@@ -31,14 +31,19 @@ greet :: fn(request: Request, visits: AtomicInt) -> Response {
 }
 
 // Send `request` to the server at `address`, and print what it answers.
-ask :: fn(address: SocketAddress, request: string) -> void {
+send_request :: fn(address: SocketAddress, method: string, request: string) -> void {
     stream :: connect(address)
     if stream is IOError {
         eprintln("cannot connect: ${stream.msg}")
         return
     }
     defer stream.close()
-    stream.write("${request}\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+    stream.write("""
+    ${method} ${request} HTTP/1.1
+    Host: localhost
+    Connection: close
+
+    """.replace_all("\n", "\r\n"))
     reader :: BufferedReader { .source = stream }
     answer :: reader.read_to_end(4096)
     if answer is IOError {
@@ -55,19 +60,20 @@ main :: fn() -> i32 {
         eprintln("cannot listen: ${listener.msg}")
         return 1
     }
+    visits :: AtomicInt {}
+    server :: launch(
+        () -> serve(listener, fn(request: Request) -> Response = greet(request, visits)),
+    )
+
     address :: listener.local_address()
     if address is IOError {
         eprintln("no address: ${address.msg}")
         return 1
     }
-    visits :: AtomicInt {}
-    server :: launch(
-        () -> serve(listener, fn(request: Request) -> Response = greet(request, visits)),
-    )
-    ask(address, "GET /hello/vader HTTP/1.1")
-    ask(address, "GET /hello/world HTTP/1.1")
-    ask(address, "POST /hello/vader HTTP/1.1")
-    ask(address, "GET /elsewhere HTTP/1.1")
+    send_request(address, "GET", "/hello/vader")
+    send_request(address, "GET", "/hello/world")
+    send_request(address, "POST", "/hello/vader")
+    send_request(address, "GET", "/elsewhere")
     // Closing the listener ends `serve`, which the join waits for.
     listener.close()
     server.join()
