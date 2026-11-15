@@ -8,6 +8,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 
@@ -25,19 +26,17 @@ evaluate_assert_decls :: fn(
         .typed    = program.typed,
         .bindings = program.comptime_decls,
     }
-    for decl in decls {
-        if decl is AST.AssertDecl {
-            result :: evaluate_expr(decl.condition, context)
-            diag :: result.diag
-            if diag != null && diag.code.id != "C4001" {
-                diags.push(diag)
-            }
-            verdict :: assert_verdict(result.value)
-            if verdict == .Fails {
-                diags.push(comptime_error(.AssertFailed, decl.span, decl.message else ""))
-            }
-            program.asserts.push(AssertCheck { .span = decl.span, .verdict = verdict })
+    for decl in decls.filter_is<AST.AssertDecl>() {
+        result :: evaluate_expr(decl.condition, context)
+        diag :: result.diag
+        if diag != null && diag.code.id != "C4001" {
+            diags.push(diag)
         }
+        verdict :: assert_verdict(result.value)
+        if verdict == .Fails {
+            diags.push(comptime_error(.AssertFailed, decl.span, decl.message else ""))
+        }
+        program.asserts.push(AssertCheck { .span = decl.span, .verdict = verdict })
     }
 }
 

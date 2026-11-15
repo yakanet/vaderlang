@@ -24,6 +24,7 @@
 
 module "vader/lower/optimise"
 
+import "std/iter"
 import "vader/lower/ir"
 
 /// Mark every `push` whose loop can keep the array's state out of memory.
@@ -34,14 +35,12 @@ import "vader/lower/ir"
 export push_cache_tag :: fn(project: LoweredProject) -> void {
     ctx :: new_purity_ctx(project)
     for [_, m] in project.modules {
-        for d in m.decls {
-            if d is LoweredFnDecl {
-                body :: d.body
-                if body != null {
-                    // No array is live on entry : a parameter may already be
-                    // aliased by the caller, so only a local mint starts a set.
-                    pc_scan_block(ctx, body, [])
-                }
+        for d in m.decls.filter_is<LoweredFnDecl>() {
+            body :: d.body
+            if body != null {
+                // No array is live on entry : a parameter may already be
+                // aliased by the caller, so only a local mint starts a set.
+                pc_scan_block(ctx, body, [])
             }
         }
     }

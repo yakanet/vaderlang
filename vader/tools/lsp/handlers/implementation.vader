@@ -25,6 +25,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/iter"
 import "std/uri"
 import "toolchain/span"
 import "vader/tools/lsp/protocol"
@@ -54,21 +55,21 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
     out: JsonValue[]: []
     for [_, lm] in project.modules {
         for f in lm.module.files {
-            for d in f.program.decls {
-                if d is AST.FnDecl {
-                    if d.name != name {
-                        continue
-                    }
-                    // The bodies, not the declaration: jumping from a
-                    // declaration to itself is the one answer the user already
-                    // has. A `@target(.Os, ...)` is always a body (SPEC §17).
-                    sel :: d.decorators.target_selector_count()
-                    if sel == 0 {
-                        continue
-                    }
-                    out.push(location_json(d.name_span.start.file.to_uri().to_string(),
-                        d.name_span.span_to_range_json(state.line_index_for_path(d.name_span.start.file))))
+            for d in f.program.decls.filter_is<AST.FnDecl>() {
+                if d.name != name {
+                    continue
                 }
+                // The bodies, not the declaration: jumping from a
+                // declaration to itself is the one answer the user already
+                // has. A `@target(.Os, ...)` is always a body (SPEC §17).
+                sel :: d.decorators.target_selector_count()
+                if sel == 0 {
+                    continue
+                }
+                out.push(
+                    location_json(d.name_span.start.file.to_uri().to_string(),
+                    d.name_span.span_to_range_json(state.line_index_for_path(d.name_span.start.file)))
+                )
             }
         }
     }
@@ -140,14 +141,12 @@ target_group_name_at :: fn(
 ) -> string {
     for [_, lm] in project.modules {
         sf :: source_file_for_path(lm.module.files, file_path) else continue
-        for d in sf.program.decls {
-            if d is AST.FnDecl {
-                if !AST.decorators_have(d.decorators, "target") {
-                    continue
-                }
-                if span_contains(d.name_span, line, col) {
-                    return d.name
-                }
+        for d in sf.program.decls.filter_is<AST.FnDecl>() {
+            if !AST.decorators_have(d.decorators, "target") {
+                continue
+            }
+            if span_contains(d.name_span, line, col) {
+                return d.name
             }
         }
     }

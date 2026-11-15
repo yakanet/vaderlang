@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "vader/lower/ir"
 
 import "toolchain/ast"
@@ -634,10 +635,8 @@ is_null_lit :: fn(e: Expr) -> bool {
 
 is_union_with_null :: fn(type: Type) -> bool {
     if type is UnionType {
-        for v in type.variants {
-            if v is PrimitiveType {
-                if v.name == "null" { return true }
-            }
+        for v in type.variants.filter_is<PrimitiveType>() {
+            if v.name == "null" { return true }
         }
         return false
     }

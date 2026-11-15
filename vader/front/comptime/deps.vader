@@ -8,6 +8,7 @@
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/iter"
 import "std/string"
 import "toolchain/diagnostics"
 import "vader/front/resolver"
@@ -67,15 +68,13 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
         .order  = [],
         .by_symbol = Map<i32, i64> {},
     }
-    for decl in program_decls {
-        if decl is AST.ConstDecl {
-            if !AST.decorators_have(decl.decorators, "comptime") {
-                continue
-            }
-            empty_deps: i64[]: []
-            nodes.by_id[decl.id] = NodeRecord { .decl = decl, .dependency_ids = empty_deps }
-            nodes.order.push(decl.id)
+    for decl in program_decls.filter_is<AST.ConstDecl>() {
+        if !AST.decorators_have(decl.decorators, "comptime") {
+            continue
         }
+        empty_deps: i64[]: []
+        nodes.by_id[decl.id] = NodeRecord { .decl = decl, .dependency_ids = empty_deps }
+        nodes.order.push(decl.id)
     }
     return nodes
 }

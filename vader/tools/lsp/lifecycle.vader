@@ -11,6 +11,7 @@ module "vader/tools/lsp"
 import "json"
 import "std/collections"
 import "std/env"
+import "std/iter"
 import "std/uri"
 import "vader/front/resolver"
 import "vader/support/version"
@@ -127,10 +128,8 @@ position_encoding_kind :: fn(enc: PositionEncoding) -> string = match enc {
 // True when the JSON value is an array containing the string `needle`.
 json_array_has_string :: fn(v: JsonValue, needle: string) -> bool {
     if v is JsonArray {
-        for it in v.items {
-            if it is JsonString {
-                if it.value == needle { return true }
-            }
+        for it in v.items.filter_is<JsonString>() {
+            if it.value == needle { return true }
         }
     }
     return false

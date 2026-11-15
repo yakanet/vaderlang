@@ -32,8 +32,8 @@ import "vader/core/bytecode"
 export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
     used :: Map<i32, bool> {}
     for fn_ in ctx.functions {
-        for op in fn_.body {
-            if op is CallImport { used[op.index] = true }
+        for op in fn_.body.filter_is<CallImport>() {
+            used[op.index] = true
         }
     }
     if used.len() == ctx.imports.len() { return }
@@ -71,10 +71,8 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
 export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcDataEntry[] {
     used :: Set<i32> {}
     for fn_ in ctx.functions {
-        for op in fn_.body {
-            if op is DataConst {
-                used.add(op.pool_index)
-            }
+        for op in fn_.body.filter_is<DataConst>() {
+            used.add(op.pool_index)
         }
     }
     if used.len() == data_pool.len() {

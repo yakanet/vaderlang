@@ -11,6 +11,7 @@
 
 module "vader/vm"
 
+import "std/iter"
 bc :: import "vader/core/bytecode"
 
 /// Why no trampoline can call `imp`, or null when one can.
@@ -134,10 +135,8 @@ adapter_of :: fn(state: VmState, index: i32) -> i64 {
 called_imports :: fn(module: bc.BytecodeModule) -> bool[] {
     called :: module.imports.len().filled(() -> false)
     for f in module.functions {
-        for op in f.body {
-            if op is bc.CallImport {
-                called[op.index] = true
-            }
+        for op in f.body.filter_is<bc.CallImport>() {
+            called[op.index] = true
         }
     }
     return called
@@ -161,7 +160,6 @@ takes_callback :: fn(imp: bc.BcImport, types: bc.BcType[]) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/ffi"
-import "std/iter"
 import "std/string"
 import "std/testing"
 

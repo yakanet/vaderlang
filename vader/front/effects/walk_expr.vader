@@ -8,6 +8,7 @@
 module "vader/front/effects"
 
 import "std/collections"
+import "std/iter"
 import "vader/core/types"
 import "vader/front/typecheck"
 
@@ -375,17 +376,13 @@ lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> i64 | null {
 struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
     literal :: ctx.s.fresh_slot()
     named :: Set<string> {}
-    for item in e.items {
-        if item is AST.StructLitField {
-            named.add(item.name)
-            under :: ctx.index.paths.path_to(item.name)
-            ctx.hold(literal, ctx.value(item.value), ROOT, under, item.value.span)
-        }
+    for item in e.items.filter_is<AST.StructLitField>() {
+        named.add(item.name)
+        under :: ctx.index.paths.path_to(item.name)
+        ctx.hold(literal, ctx.value(item.value), ROOT, under, item.value.span)
     }
-    for item in e.items {
-        if item is AST.StructLitSpread {
-            ctx.spread(literal, item.expr, named)
-        }
+    for item in e.items.filter_is<AST.StructLitSpread>() {
+        ctx.spread(literal, item.expr, named)
     }
     return literal
 }
@@ -433,11 +430,9 @@ range_value :: fn(ctx: WalkCtx, e: AST.RangeExpr) -> i64 | null {
 
 // An interpolation renders each value it holds through its `Display`.
 string_value :: fn(ctx: WalkCtx, e: AST.StringLitExpr) -> i64 | null {
-    for part in e.parts {
-        if part is AST.StringLitInterpolation {
-            renders :: ctx.site_callee(.Display, part.expr.id)
-            ctx.call(renders, [ctx.value(part.expr)], part.span, [part.expr])
-        }
+    for part in e.parts.filter_is<AST.StringLitInterpolation>() {
+        renders :: ctx.site_callee(.Display, part.expr.id)
+        ctx.call(renders, [ctx.value(part.expr)], part.span, [part.expr])
     }
     return null
 }

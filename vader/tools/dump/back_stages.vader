@@ -9,6 +9,7 @@
 module "vader/tools/dump"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/bytecode"
@@ -183,10 +184,8 @@ imports_in_scope :: fn(
     declared :: Set<string> {}
     for [_, m] in lowered.modules {
         if module_in_scope(m.display_path, scope) {
-            for d in m.decls {
-                if d is LoweredFnDecl {
-                    declared.add(d.mangled)
-                }
+            for d in m.decls.filter_is<LoweredFnDecl>() {
+                declared.add(d.mangled)
             }
         }
     }

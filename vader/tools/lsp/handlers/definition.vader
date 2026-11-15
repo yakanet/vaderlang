@@ -18,6 +18,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/iter"
 import "std/uri"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
@@ -213,15 +214,13 @@ chosen_member :: fn(
 array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> ExternalHit | null {
     for [_, m] in cached.project.modules {
         for f in m.module.files {
-            for d in f.program.decls {
-                if d is AST.ImplDecl {
-                    if !(d.for_type is AST.ArrayTypeExpr) {
-                        continue
-                    }
-                    hit :: member_in_declaring_module(state, d.span.start.file, d.trait_name, name)
-                    if hit != null {
-                        return hit
-                    }
+            for d in f.program.decls.filter_is<AST.ImplDecl>() {
+                if !(d.for_type is AST.ArrayTypeExpr) {
+                    continue
+                }
+                hit :: member_in_declaring_module(state, d.span.start.file, d.trait_name, name)
+                if hit != null {
+                    return hit
                 }
             }
         }

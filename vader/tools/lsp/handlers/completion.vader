@@ -15,6 +15,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/iter"
 import "std/string"
 import "std/uri"
 import "vader/core/types"
@@ -607,13 +608,11 @@ as_enum_type :: fn(t: Type, typed: TypedProgram) -> EnumType | null {
 // Declared type of the parameter whose default value contains `(line, col)`.
 // Walks top-level fn decls (covers the `fn(s: Stream = .|)` site).
 param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
-    for d in decls {
-        if d is AST.FnDecl {
-            for p in d.params {
-                dv :: p.default_value else continue
-                if span_contains(dv.span, line, col) {
-                    return typed.param_types[p.span.hash()]
-                }
+    for d in decls.filter_is<AST.FnDecl>() {
+        for p in d.params {
+            dv :: p.default_value else continue
+            if span_contains(dv.span, line, col) {
+                return typed.param_types[p.span.hash()]
             }
         }
     }

@@ -20,6 +20,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/span"
 import "toolchain/diagnostics"
 import "vader/core/types"
@@ -180,13 +181,11 @@ slot_fn_type :: fn(expected: Type | null) -> FnType | null {
         return null
     }
     found: FnType | null = null
-    for v in expected.variants {
-        if v is FnType {
-            if found != null {
-                return null
-            }
-            found = v
+    for v in expected.variants.filter_is<FnType>() {
+        if found != null {
+            return null
         }
+        found = v
     }
     return found
 }

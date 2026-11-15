@@ -30,6 +30,7 @@
 module "vader/lower/optimise"
 
 import "std/collections"
+import "std/iter"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/lower/ir"
@@ -40,11 +41,9 @@ import "vader/lower/ir"
 /// @param project  the lowered project ; its bodies are rewritten in place.
 export devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
     for [_, m] in project.modules {
-        for d in m.decls {
-            if d is LoweredFnDecl {
-                body :: d.body
-                if body != null { devirt_body(body) }
-            }
+        for d in m.decls.filter_is<LoweredFnDecl>() {
+            body :: d.body
+            if body != null { devirt_body(body) }
         }
     }
 }

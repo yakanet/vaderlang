@@ -14,6 +14,7 @@
 module "toolchain/build"
 
 import "std/console"
+import "std/iter"
 import "toolchain/diagnostics"
 import "toolchain/protocol"
 
@@ -269,10 +270,8 @@ export emit_native :: fn(ctx: BuildContext) -> i32 {
     // The stream drained, every message but the last ignored: one build path,
     // the one a driver that observes sees.
     code := 1
-    for msg in ctx.messages() {
-        if msg is CompleteMessage {
-            code = msg.code
-        }
+    for msg in ctx.messages().filter_is<CompleteMessage>() {
+        code = msg.code
     }
     return code
 }
@@ -303,10 +302,8 @@ import "toolchain/span"
     events: ServerFrame[]: [PhaseFrame { .phase = .BeforeEmit }, CompleteFrame { .code = 0 }]
     link :: ScriptedLink { .events = events }
     ctx :: scripted_context(link)
-    for msg in ctx.messages() {
-        if msg is PhaseMessage {
-            ctx.emit_module("gen/x", "x :: fn() -> i32 = 1")
-        }
+    for _ in ctx.messages().filter_is<PhaseMessage>() {
+        ctx.emit_module("gen/x", "x :: fn() -> i32 = 1")
     }
     assert_eq(told(link), "configure next emit:gen/x next next")
 }

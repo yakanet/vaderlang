@@ -3,6 +3,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 AST :: import "toolchain/ast"
 import "vader/core/types"
 import "vader/front/resolver"
@@ -152,11 +153,9 @@ register_enum_types :: fn(
     for [id, typed] in per_module {
         loaded :: project.modules[id] else continue
         for file in loaded.module.files {
-            for decl in file.program.decls {
-                if decl is AST.EnumDecl {
-                    sym :: symbol_declared_at(typed.resolved, decl.name_span) else continue
-                    collected[sym.id] = build_enum_type(sym, decl, typed.resolved, diag_sink())
-                }
+            for decl in file.program.decls.filter_is<AST.EnumDecl>() {
+                sym :: symbol_declared_at(typed.resolved, decl.name_span) else continue
+                collected[sym.id] = build_enum_type(sym, decl, typed.resolved, diag_sink())
             }
         }
     }

@@ -327,10 +327,8 @@ declares_an_impl :: fn(loaded: LoadedModule) -> bool {
         return true
     }
     for file in loaded.module.files {
-        for d in file.program.decls {
-            if d is AST.ImplDecl {
-                return true
-            }
+        for _ in file.program.decls.filter_is<AST.ImplDecl>() {
+            return true
         }
     }
     return false

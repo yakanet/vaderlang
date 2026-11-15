@@ -12,6 +12,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/iter"
 import "std/uri"
 import "toolchain/ast"
 import "toolchain/span"
@@ -79,10 +80,8 @@ lenses_of :: fn(src: string) -> string[] {
         arguments: string[]: []
         values :: get_field(command, "arguments")
         if values is JsonArray {
-            for a in values.items {
-                if a is JsonString {
-                    arguments.push(a.value)
-                }
+            for a in values.items.filter_is<JsonString>() {
+                arguments.push(a.value)
             }
         }
         out.push("${line}:${get_string(command, "title")}:${arguments.join(" ")}")

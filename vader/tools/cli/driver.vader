@@ -30,6 +30,7 @@ import "std/env"
 import "std/console"
 import "std/fs"
 import "std/io"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "std/string_builder"
@@ -282,11 +283,9 @@ export validate_driver :: fn(path: string) -> Diagnostic | null {
     if parsed.errors.len() > 0 {
         return null
     }
-    for d in parsed.program.decls {
-        if d is AST.FnDecl {
-            if d.name == DRIVER_ENTRY {
-                return signature_problem(d)
-            }
+    for d in parsed.program.decls.filter_is<AST.FnDecl>() {
+        if d.name == DRIVER_ENTRY {
+            return signature_problem(d)
         }
     }
     // Anchor on the file's first character: there is no declaration to point at,

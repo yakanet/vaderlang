@@ -8,6 +8,7 @@ module "vader/tools/cli"
 
 import "std/console"
 import "std/env"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "cli"
@@ -189,17 +190,15 @@ entry_index_for_file :: fn(
 named_file_main_mangled :: fn(lowered: LoweredProject, file: Path) -> string {
     md :: lowered.modules[lowered.entry] else return ""
     named_base :: canonicalise(file).filename()
-    for d in md.decls {
-        if d is LoweredFnDecl {
-            if !d.origin.is_main {
-                continue
-            }
-            ast :: d.origin.decl
-            if ast is FnDecl {
-                decl_base :: ast.span.start.file.to_posix().to_path().filename()
-                if decl_base == named_base {
-                    return d.mangled
-                }
+    for d in md.decls.filter_is<LoweredFnDecl>() {
+        if !d.origin.is_main {
+            continue
+        }
+        ast :: d.origin.decl
+        if ast is FnDecl {
+            decl_base :: ast.span.start.file.to_posix().to_path().filename()
+            if decl_base == named_base {
+                return d.mangled
             }
         }
     }

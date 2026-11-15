@@ -5,6 +5,7 @@
 
 module "json/derive"
 
+import "std/iter"
 import "std/string_builder"
 import "toolchain/build"
 AST :: import "toolchain/ast"
@@ -29,11 +30,9 @@ JsonDerive implements BuildPlugin {
     on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
         structs: AST.StructDecl[]: []
         names: string[]: []
-        for d in msg.declarations {
-            if d is AST.StructDecl {
-                structs.push(d)
-                names.push(d.name)
-            }
+        for d in msg.declarations.filter_is<AST.StructDecl>() {
+            structs.push(d)
+            names.push(d.name)
         }
         if structs.len() == 0 {
             return

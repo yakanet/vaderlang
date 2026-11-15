@@ -8,6 +8,7 @@
 module "toolchain/build"
 
 import "std/console"
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/protocol"
 import "toolchain/span"
@@ -102,10 +103,8 @@ test_a_driver_asks_its_build_for_the_doc_of_a_declaration :: fn() -> void {
     }
     ctx :: scripted_context(link)
     asked := ""
-    for msg in ctx.messages() {
-        if msg is TypecheckedMessage {
-            asked = AST.doc_text(ctx.doc_of(msg.declarations[0]))
-        }
+    for msg in ctx.messages().filter_is<TypecheckedMessage>() {
+        asked = AST.doc_text(ctx.doc_of(msg.declarations[0]))
     }
     assert_eq(asked, "A point.")
     assert_eq(told(link), "configure next doc next next")

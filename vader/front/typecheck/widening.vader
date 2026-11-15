@@ -9,6 +9,7 @@
 
 module "vader/front/typecheck"
 
+import "std/iter"
 import "toolchain/diagnostics"
 import "toolchain/span"
 import "vader/core/types"
@@ -34,12 +35,10 @@ widening_depth :: fn(from: Type, to: Type, typed: TypedProgram) -> i32 | null {
         return array_widening_depth(from, to, typed)
     }
     variants :: union_variants(to) else return null
-    for slot in variants {
-        if slot is ArrayType {
-            depth :: array_widening_depth(from, slot, typed)
-            if depth != null {
-                return depth
-            }
+    for slot in variants.filter_is<ArrayType>() {
+        depth :: array_widening_depth(from, slot, typed)
+        if depth != null {
+            return depth
         }
     }
     return null

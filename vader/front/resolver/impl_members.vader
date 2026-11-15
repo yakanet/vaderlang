@@ -11,6 +11,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
@@ -133,14 +134,7 @@ check_short_impl_arity :: fn(
 }
 
 // True when `decls` declares at least one impl.
-has_impl_decl :: fn(decls: AST.Decl[]) -> bool {
-    for d in decls {
-        if d is AST.ImplDecl {
-            return true
-        }
-    }
-    return false
-}
+has_impl_decl :: fn(decls: AST.Decl[]) = !decls.filter_is<AST.ImplDecl>().is_empty()
 
 // The declaration of the trait an impl in `loaded` names. Runs before the
 // resolver, so it walks the scope the resolver will build : `scope`
@@ -167,11 +161,9 @@ find_impl_trait_decl :: fn(
         return TraitLookup { .trait_decl = null, .other_kind = other_kind }
     }
     owner :: project.modules[sym.module] else return unresolved
-    for decl in concat_file_decls(owner.module.files) {
-        if decl is AST.TraitDecl {
-            if decl.name == sym.name {
-                return TraitLookup { .trait_decl = decl, .other_kind = "" }
-            }
+    for decl in concat_file_decls(owner.module.files).filter_is<AST.TraitDecl>() {
+        if decl.name == sym.name {
+            return TraitLookup { .trait_decl = decl, .other_kind = "" }
         }
     }
     return unresolved

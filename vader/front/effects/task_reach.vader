@@ -168,10 +168,8 @@ reached_chain :: fn(
         return own
     }
     nodes: i32[]: []
-    for target in site.targets {
-        if target is CalleeNode {
-            nodes.push(target.node)
-        }
+    for target in site.targets.filter_is<CalleeNode>() {
+        nodes.push(target.node)
     }
     nodes.push_all(ctx.handed_fns(typed, site))
     for node in nodes {

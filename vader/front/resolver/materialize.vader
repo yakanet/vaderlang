@@ -382,10 +382,8 @@ find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
 }
 
 find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl | null {
-    for d in decls {
-        if d is AST.ImplDecl {
-            return d
-        }
+    for d in decls.filter_is<AST.ImplDecl>() {
+        return d
     }
     return null
 }

@@ -340,10 +340,8 @@ import "std/testing"
 // Pull the whole stream, and give the code of its end.
 drained :: fn(session: BuildSession) -> i32 {
     code := -1
-    for event in build_events(session) {
-        if event is CompleteFrame {
-            code = event.code
-        }
+    for event in build_events(session).filter_is<CompleteFrame>() {
+        code = event.code
     }
     return code
 }

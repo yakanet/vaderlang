@@ -1348,10 +1348,9 @@ reject_indirect_callbacks :: fn(
     // Nothing to look up unless a parameter is a fn type: this runs on every
     // call expression in the program, and almost none has one.
     has_callback := false
-    for pt in callee_ty.params {
-        if pt is FnType {
-            has_callback = true
-        }
+    for _ in callee_ty.params.filter_is<FnType>() {
+        has_callback = true
+        break
     }
     if !has_callback {
         return

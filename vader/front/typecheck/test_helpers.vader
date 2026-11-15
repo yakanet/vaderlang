@@ -2,6 +2,7 @@
 
 module "vader/front/typecheck"
 
+import "std/iter"
 import "std/string_builder"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
@@ -31,10 +32,8 @@ with_integers :: fn(src: string) -> string {
 ///
 /// @param decls  a parsed test program's declarations.
 first_fn_decl :: fn(decls: AST.Decl[]) -> AST.FnDecl | null {
-    for d in decls {
-        if d is AST.FnDecl {
-            return d
-        }
+    for d in decls.filter_is<AST.FnDecl>() {
+        return d
     }
     return null
 }

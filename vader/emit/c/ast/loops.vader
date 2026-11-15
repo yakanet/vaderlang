@@ -12,6 +12,7 @@
 module "vader/emit/c/ast"
 
 import "std/collections"
+import "std/iter"
 
 /// Rewrite the loops of a function body as C loops.
 ///
@@ -236,10 +237,8 @@ collect_goto_labels :: fn(block: CBlock, used: Set<string>) -> void {
 
 // The labels the `goto`s of a switch clause name.
 collect_clause_labels :: fn(body: CCaseStatement[], used: Set<string>) -> void {
-    for statement in body {
-        if statement is CGoto {
-            used.add(statement.label)
-        }
+    for statement in body.filter_is<CGoto>() {
+        used.add(statement.label)
     }
 }
 
@@ -345,14 +344,7 @@ used_label :: fn(label: string, used: Set<string>) -> string {
 }
 
 // Whether `block` declares a variable of its own.
-declares :: fn(block: CBlock) -> bool {
-    for statement in block.body {
-        if statement is CDeclaration {
-            return true
-        }
-    }
-    return false
-}
+declares :: fn(block: CBlock) = !block.body.filter_is<CDeclaration>().is_empty()
 
 // ---- tests ----------------------------------------------------------------
 

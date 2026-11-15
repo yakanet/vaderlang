@@ -3,6 +3,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
@@ -50,18 +51,16 @@ RecordedImpl :: struct {
 // resolve, nor one its module refuses for its shape (T3090, T3117).
 recorded_impls :: fn(decls: AST.Decl[], owner: TypedProgram) -> RecordedImpl[] {
     out: RecordedImpl[]: []
-    for decl in decls {
-        if decl is AST.ImplDecl {
-            for_ty :: type_from_expr(decl.for_type, owner.resolved, diag_sink())
-            trait_sym :: impl_trait_symbol(decl, owner.resolved) else continue
-            partly_generic :: is_refused_array_impl(for_ty)
-            if !partly_generic && unbound_impl_params(decl, for_ty, owner.resolved).is_empty() {
-                out.push(RecordedImpl {
-                    .decl = decl,
-                    .for_ty = for_ty,
-                    .trait_sym = trait_sym,
-                })
-            }
+    for decl in decls.filter_is<AST.ImplDecl>() {
+        for_ty :: type_from_expr(decl.for_type, owner.resolved, diag_sink())
+        trait_sym :: impl_trait_symbol(decl, owner.resolved) else continue
+        partly_generic :: is_refused_array_impl(for_ty)
+        if !partly_generic && unbound_impl_params(decl, for_ty, owner.resolved).is_empty() {
+            out.push(RecordedImpl {
+                .decl = decl,
+                .for_ty = for_ty,
+                .trait_sym = trait_sym,
+            })
         }
     }
     return out

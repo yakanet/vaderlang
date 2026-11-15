@@ -6,6 +6,7 @@
 
 module "vader/front/typecheck"
 
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/types"
@@ -39,16 +40,14 @@ assign_tuple :: fn(
     // shape checks are identical, only the nominal wrapper is stripped.
     tup :: tuple_backing(declared)
     if tup != null {
-        for leaf in tb.elements {
-            if leaf is AST.RestBinding {
-                diags.push(typecheck_error(
-                    .TypeMismatch, leaf.span,
-                    "a `...rest` binding collects from an array, got `${display_type(declared)}`"))
-                for each in tb.elements {
-                    assign_binding_types(each, TY_UNRESOLVED, typed, diags)
-                }
-                return
+        for leaf in tb.elements.filter_is<AST.RestBinding>() {
+            diags.push(typecheck_error(
+                .TypeMismatch, leaf.span,
+                "a `...rest` binding collects from an array, got `${display_type(declared)}`"))
+            for each in tb.elements {
+                assign_binding_types(each, TY_UNRESOLVED, typed, diags)
             }
+            return
         }
         if tup.elements.len() != tb.elements.len() {
             // Best-effort : Unresolved on each leaf, the resolver-

@@ -115,10 +115,8 @@ export collect_impls :: fn(
     resolved: ResolvedModule,
     typed: TypedProgram | null = null,
 ) -> void {
-    for d in decls {
-        if d is ImplDecl {
-            self.collect_impl(d, resolved, typed)
-        }
+    for d in decls.filter_is<ImplDecl>() {
+        self.collect_impl(d, resolved, typed)
     }
 }
 

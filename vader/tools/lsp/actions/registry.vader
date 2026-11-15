@@ -16,6 +16,7 @@
 
 module "vader/tools/lsp/actions"
 
+import "std/iter"
 import "std/string"
 import "vader/tools/fmt"
 import "vader/tools/lsp/protocol"
@@ -221,11 +222,9 @@ rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
 // tu_find_call) is this walk with a one-line predicate: only the accepted node
 // kind differs.
 t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
-    for d in decls {
-        if d is AST.FnDecl {
-            found :: AST.find_expr(d, pred) else continue
-            return found
-        }
+    for d in decls.filter_is<AST.FnDecl>() {
+        found :: AST.find_expr(d, pred) else continue
+        return found
     }
     return null
 }

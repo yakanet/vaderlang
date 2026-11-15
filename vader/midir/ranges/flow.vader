@@ -8,6 +8,7 @@
 module "vader/midir/ranges"
 
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "vader/midir"
 
@@ -173,12 +174,10 @@ constants_of :: fn(fn_: CFGFunction) -> i64[] {
     seen :: Set<i64> {}
     out: i64[]: []
     for block in fn_.blocks {
-        for ins in block.instructions {
-            if ins is InstrConst {
-                value :: ins.value
-                if value is ConstInt && seen.add(value.value) {
-                    out.push(value.value)
-                }
+        for ins in block.instructions.filter_is<InstrConst>() {
+            value :: ins.value
+            if value is ConstInt && seen.add(value.value) {
+                out.push(value.value)
             }
         }
     }

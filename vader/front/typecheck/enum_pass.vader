@@ -13,6 +13,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/diagnostics"
 import "vader/support/integer"
 import "toolchain/ast"
@@ -231,13 +232,5 @@ Overflow :: enum {
     }
 }
 
-find_enum :: fn(decls: Decl[], name: string) -> EnumDecl | null {
-    for d in decls {
-        if d is EnumDecl {
-            if d.name == name {
-                return d
-            }
-        }
-    }
-    return null
-}
+find_enum :: fn(decls: Decl[], name: string) -> EnumDecl | null =
+    decls.filter_is<EnumDecl>().find(d -> d.name == name)

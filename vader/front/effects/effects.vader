@@ -141,10 +141,8 @@ node_ctx :: fn(
 callee_nodes :: fn(s: Skeleton) -> i32[] {
     out: i32[]: []
     for site in s.sites {
-        for target in site.targets {
-            if target is CalleeNode {
-                out.push(target.node)
-            }
+        for target in site.targets.filter_is<CalleeNode>() {
+            out.push(target.node)
         }
     }
     return out

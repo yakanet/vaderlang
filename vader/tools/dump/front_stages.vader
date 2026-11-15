@@ -8,6 +8,7 @@ module "vader/tools/dump"
 
 import "std/collections"
 import "std/env"
+import "std/iter"
 import "std/path"
 import "std/sort"
 import "std/string"
@@ -181,10 +182,8 @@ targets_stage :: fn(input: DumpInput) -> StageOutput {
     baked :: project.modules[BAKED_FOLDER]
     if baked is LoadedModule {
         for f in baked.module.files {
-            for d in f.program.decls {
-                if d is ConstDecl {
-                    out.append("${d.name} = ${render_baked_value(d.value)}\n")
-                }
+            for d in f.program.decls.filter_is<ConstDecl>() {
+                out.append("${d.name} = ${render_baked_value(d.value)}\n")
             }
         }
     } else {

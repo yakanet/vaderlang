@@ -7,6 +7,7 @@
 
 module "vader/front/typecheck"
 
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/types"
@@ -32,16 +33,12 @@ check_destructuring_assign :: fn(
     // `[u, v] = [1, 2]` over two `i64` slots fails on both elements, where
     // `u = 1` passes. With a rest, the rest's own array type is that shape.
     rest_slot: Type | null = null
-    for t in s.targets {
-        if t is AST.RestTarget {
-            rest_slot = check_expr(t.place, null, typed, diags)
-        }
+    for t in s.targets.filter_is<AST.RestTarget>() {
+        rest_slot = check_expr(t.place, null, typed, diags)
     }
     if rest_slot != null {
-        for t in s.targets {
-            if t is AST.PlaceTarget {
-                place_slot(t.place, typed, diags)
-            }
+        for t in s.targets.filter_is<AST.PlaceTarget>() {
+            place_slot(t.place, typed, diags)
         }
         value_ty :: check_expr(s.value, rest_slot, typed, diags)
         arr :: array_backing(value_ty) else {

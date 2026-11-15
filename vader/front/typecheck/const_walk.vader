@@ -10,6 +10,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/span"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
@@ -23,10 +24,8 @@ import "vader/front/resolver"
 /// @param diags  the walk's diagnostics, where every const reports.
 open_const_walk :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     walk :: ConstWalk { .diags = diags }
-    for decl in decls {
-        if decl is AST.ConstDecl {
-            walk.decls[decl.span.hash()] = decl
-        }
+    for decl in decls.filter_is<AST.ConstDecl>() {
+        walk.decls[decl.span.hash()] = decl
     }
     typed.const_walk = walk
 }
@@ -269,10 +268,8 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
                 }
             }
             is AST.StringLitExpr -> {
-                for part in x.parts {
-                    if part is AST.StringLitInterpolation {
-                        work.push(part.expr)
-                    }
+                for part in x.parts.filter_is<AST.StringLitInterpolation>() {
+                    work.push(part.expr)
                 }
             }
             is AST.FallbackExpr -> {

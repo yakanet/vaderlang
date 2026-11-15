@@ -18,6 +18,7 @@ module "vader/front/resolver"
 
 import "std/abort"
 import "std/collections"
+import "std/iter"
 import "toolchain/diagnostics"
 AST :: import "toolchain/ast"
 import "toolchain/parser"
@@ -548,12 +549,10 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
 
 auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
     if !(t is AST.GenericInstExpr) { return }
-    for arg in t.type_args {
-        if arg is AST.IdentExpr {
-            if self.scope.lookup(arg.name) is null {
-                sym :: self.mint_local(.TypeParam, arg.name, arg.span)
-                self.scope.bind(arg.name, sym)
-            }
+    for arg in t.type_args.filter_is<AST.IdentExpr>() {
+        if self.scope.lookup(arg.name) is null {
+            sym :: self.mint_local(.TypeParam, arg.name, arg.span)
+            self.scope.bind(arg.name, sym)
         }
     }
 }

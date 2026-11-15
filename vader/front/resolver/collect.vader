@@ -13,6 +13,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "std/iter"
 import "std/string"
 import "toolchain/diagnostics"
 import "toolchain/ast"
@@ -120,23 +121,21 @@ export collect_module :: fn(
 check_import_form_conflict :: fn(decls: Decl[], diags: Diagnostic[]) -> void {
     wildcard_of :: Map<string, Span> {}
     modifiers_of :: Map<string, Span> {}
-    for d in decls {
-        if d is ImportDecl {
-            match d.binding {
-                is WildcardImport -> {
-                    if modifiers_of[d.path] != null {
-                        diags.push(resolver_error(.PathImportedTwice, d.span, "`${d.path}`"))
-                    }
-                    wildcard_of[d.path] = d.span
+    for d in decls.filter_is<ImportDecl>() {
+        match d.binding {
+            is WildcardImport -> {
+                if modifiers_of[d.path] != null {
+                    diags.push(resolver_error(.PathImportedTwice, d.span, "`${d.path}`"))
                 }
-                is DestructureImport -> {
-                    if wildcard_of[d.path] != null || modifiers_of[d.path] != null {
-                        diags.push(resolver_error(.PathImportedTwice, d.span, "`${d.path}`"))
-                    }
-                    modifiers_of[d.path] = d.span
-                }
-                _ -> {}
+                wildcard_of[d.path] = d.span
             }
+            is DestructureImport -> {
+                if wildcard_of[d.path] != null || modifiers_of[d.path] != null {
+                    diags.push(resolver_error(.PathImportedTwice, d.span, "`${d.path}`"))
+                }
+                modifiers_of[d.path] = d.span
+            }
+            _ -> {}
         }
     }
 }

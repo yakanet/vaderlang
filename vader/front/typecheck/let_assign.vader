@@ -8,6 +8,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/span"
@@ -367,11 +368,9 @@ first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
     f :: first_fn_decl(parsed.program.decls) else return null
     b :: f.body
     if b is AST.BlockExpr {
-        for s in b.stmts {
-            if s is AST.LetStmt {
-                if s.binding is AST.SimpleBinding {
-                    return s.binding
-                }
+        for s in b.stmts.filter_is<AST.LetStmt>() {
+            if s.binding is AST.SimpleBinding {
+                return s.binding
             }
         }
     }

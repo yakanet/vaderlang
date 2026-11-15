@@ -17,6 +17,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "std/string_builder"
 import "vader/core/types"
 import "vader/front/typecheck"
@@ -196,10 +197,8 @@ render_value_abi_report :: fn(
     structs :: index_struct_decls(project)
     sites: ValueAbiSite[]: []
     for [_, m] in project.modules {
-        for d in m.decls {
-            if d is LoweredFnDecl {
-                collect_value_abi_sites(d, structs, typed, sites)
-            }
+        for d in m.decls.filter_is<LoweredFnDecl>() {
+            collect_value_abi_sites(d, structs, typed, sites)
         }
     }
     if sites.len() == 0 {
@@ -242,10 +241,8 @@ render_value_abi_report :: fn(
 index_struct_decls :: fn(project: LoweredProject) -> Map<string, LoweredStructDecl> {
     out :: Map<string, LoweredStructDecl> {}
     for [_, m] in project.modules {
-        for d in m.decls {
-            if d is LoweredStructDecl {
-                out[d.mangled] = d
-            }
+        for d in m.decls.filter_is<LoweredStructDecl>() {
+            out[d.mangled] = d
         }
     }
     return out

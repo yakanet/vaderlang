@@ -571,12 +571,10 @@ sending_at :: fn(ctx: TaskCtx, site: Site, q: i64) -> Sending | null {
     if declared != null {
         return declared
     }
-    for target in site.targets {
-        if target is CalleeNode {
-            facts :: ctx.sending[target.node]
-            if q < facts.len() && is_door(facts[q]) {
-                return facts[q]
-            }
+    for target in site.targets.filter_is<CalleeNode>() {
+        facts :: ctx.sending[target.node]
+        if q < facts.len() && is_door(facts[q]) {
+            return facts[q]
         }
     }
     return null
@@ -613,11 +611,9 @@ note_doors :: fn(ctx: TaskCtx, body: TaskBody) -> void {
 // What the tasks the callees of `site` leave running do to the singletons.
 left_running_at :: fn(ctx: TaskCtx, site: Site) -> SingletonTouch[] {
     out: SingletonTouch[]: []
-    for target in site.targets {
-        if target is CalleeNode {
-            for t in ctx.left_running[target.node] {
-                out.include_touch(t)
-            }
+    for target in site.targets.filter_is<CalleeNode>() {
+        for t in ctx.left_running[target.node] {
+            out.include_touch(t)
         }
     }
     return out

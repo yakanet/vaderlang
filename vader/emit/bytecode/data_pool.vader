@@ -108,11 +108,9 @@ struct_symbol_id :: fn(t: Type) -> i32 {
 data_pool_type_roots :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> i32[] {
     roots: i32[]: []
     symbol_ids :: Set<i32> {}
-    for entry in data_pool {
-        if entry is BcAggregateData {
-            for v in entry.elements {
-                collect_baked_types(v, roots, symbol_ids)
-            }
+    for entry in data_pool.filter_is<BcAggregateData>() {
+        for v in entry.elements {
+            collect_baked_types(v, roots, symbol_ids)
         }
     }
     for symbol_id in symbol_ids {

@@ -167,10 +167,8 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     for value in lp.const_inline.values() {
         for_each_lowered_ref_in_expr(value, visit_fn, visit_virtual, visit_value)
     }
-    for entry in lp.data_pool {
-        if entry is AggregateDataPoolEntry {
-            for_each_lowered_ref_in_expr(entry.literal, visit_fn, visit_virtual, visit_value)
-        }
+    for entry in lp.data_pool.filter_is<AggregateDataPoolEntry>() {
+        for_each_lowered_ref_in_expr(entry.literal, visit_fn, visit_virtual, visit_value)
     }
 
     // Reachability fixpoint : drain the worklist (each decl's body adds
@@ -310,10 +308,8 @@ is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_te
 /// flagged `origin.is_main`). When false, every user decl stays a root.
 project_has_main :: fn(lp: LoweredProject) -> bool {
     for [_, m] in lp.modules {
-        for d in m.decls {
-            if d is LoweredFnDecl {
-                if d.body != null && d.origin.is_main { return true }
-            }
+        for d in m.decls.filter_is<LoweredFnDecl>() {
+            if d.body != null && d.origin.is_main { return true }
         }
     }
     return false

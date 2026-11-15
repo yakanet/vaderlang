@@ -124,10 +124,8 @@ walk_bodies :: fn(
     // module, before any fn body is walked, so a body that references an impl
     // member declared later in file order resolves. The impl tables are filled
     // before any walk (`register_project_impls`).
-    for decl in decls {
-        if decl is AST.ImplDecl {
-            declare_and_check_impl(decl, typed, diags)
-        }
+    for decl in decls.filter_is<AST.ImplDecl>() {
+        declare_and_check_impl(decl, typed, diags)
     }
     // A const is typed at its turn below, or at a read before it (`const_walk`).
     open_const_walk(decls, typed, diags)
@@ -172,10 +170,8 @@ walk_bodies :: fn(
             is AST.ImportDecl    -> {}
         }
     }
-    for decl in decls {
-        if decl is AST.StructDecl {
-            check_field_defaults(decl, typed, diags)
-        }
+    for decl in decls.filter_is<AST.StructDecl>() {
+        check_field_defaults(decl, typed, diags)
     }
     // Every default is typed first : the walk reads the type of a spread in any of them.
     fill :: DefaultFill {}
@@ -186,10 +182,8 @@ walk_bodies :: fn(
     }
     if mode == .Full {
         report_literals_past_default(typed, diags)
-        for decl in decls {
-            if decl is AST.FnDecl {
-                check_extern_library(decl, typed, diags)
-            }
+        for decl in decls.filter_is<AST.FnDecl>() {
+            check_extern_library(decl, typed, diags)
         }
     }
     settle_fn_references(typed, diags)

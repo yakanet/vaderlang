@@ -223,17 +223,13 @@ all_same_type :: fn(types: Type[]) -> bool {
 }
 
 pick_seq_variant :: fn(u: UnionType, arity: i64) -> Type | null {
-    for v in u.variants {
-        if v is TupleType {
-            if v.elements.len() == arity {
-                return v
-            }
-        }
-    }
-    for v in u.variants {
-        if v is ArrayType {
+    for v in u.variants.filter_is<TupleType>() {
+        if v.elements.len() == arity {
             return v
         }
+    }
+    for v in u.variants.filter_is<ArrayType>() {
+        return v
     }
     return null
 }

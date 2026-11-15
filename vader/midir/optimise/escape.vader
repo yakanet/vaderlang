@@ -23,6 +23,7 @@ module "vader/midir/optimise"
 
 import "std/collections"
 import "std/console"
+import "std/iter"
 import "std/string_builder"
 import "vader/midir"
 import "vader/midir/select"
@@ -69,16 +70,14 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
             for b in annotated.blocks {
-                for ins in b.instructions {
-                    if ins is InstrStructNew {
-                        total_allocs = total_allocs + 1
-                        if ins.stack {
-                            stack_promoted = stack_promoted + 1
-                        } else if want_sites {
-                            heap_sites.push(
-                                EscapeSite { .span = ins.span, .type_name = display_type(ins.type) },
-                            )
-                        }
+                for ins in b.instructions.filter_is<InstrStructNew>() {
+                    total_allocs = total_allocs + 1
+                    if ins.stack {
+                        stack_promoted = stack_promoted + 1
+                    } else if want_sites {
+                        heap_sites.push(
+                            EscapeSite { .span = ins.span, .type_name = display_type(ins.type) },
+                        )
                     }
                 }
             }
@@ -92,10 +91,8 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     struct_news: LocalId[]: []
     for b in fn_.blocks {
-        for ins in b.instructions {
-            if ins is InstrStructNew {
-                struct_news.push(ins.dst)
-            }
+        for ins in b.instructions.filter_is<InstrStructNew>() {
+            struct_news.push(ins.dst)
         }
     }
     if struct_news.len() == 0 { return fn_ }

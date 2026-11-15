@@ -21,6 +21,7 @@ module "vader/front/resolver"
 import "std/collections"
 import "std/fs"
 import "std/io"
+import "std/iter"
 import "std/path"
 import "std/sort"
 import "std/string"
@@ -237,10 +238,8 @@ export preresolve_imports :: fn(
     diags: Diagnostic[],
 ) -> void {
     for sf in sources {
-        for d in sf.program.decls {
-            if d is AST.ImportDecl {
-                resolve_lazy(d.path, paths, index, overlay, diags)
-            }
+        for d in sf.program.decls.filter_is<AST.ImportDecl>() {
+            resolve_lazy(d.path, paths, index, overlay, diags)
         }
     }
 }

@@ -37,10 +37,8 @@ compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> bool[]
 // The functions `fn_decl` calls directly (`call`), once per call.
 direct_callees :: fn(fn_decl: BcFunction) -> i32[] {
     callees: i32[]: []
-    for op in fn_decl.body {
-        if op is Bc.Call {
-            callees.push(op.function_index)
-        }
+    for op in fn_decl.body.filter_is<Bc.Call>() {
+        callees.push(op.function_index)
     }
     return callees
 }

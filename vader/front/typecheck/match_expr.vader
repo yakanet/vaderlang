@@ -11,6 +11,7 @@
 
 module "vader/front/typecheck"
 
+import "std/iter"
 import "toolchain/diagnostics"
 import "vader/support/integer"
 import "vader/core/types"
@@ -239,11 +240,9 @@ infer_match :: fn(
                 }
             }
             is AST.OrPattern          -> {
-                for sub in pattern.patterns {
-                    if sub is AST.IsPattern {
-                        tested :: pattern_type_of(sub.ty, typed, scratch_diags())
-                        check_is_test_target(tested, sub.span, typed, diags)
-                    }
+                for sub in pattern.patterns.filter_is<AST.IsPattern>() {
+                    tested :: pattern_type_of(sub.ty, typed, scratch_diags())
+                    check_is_test_target(tested, sub.span, typed, diags)
                 }
                 // Each alternative consumes its own variant: enum variants add
                 // to the covered set, `is T` alternatives subtract their type.
