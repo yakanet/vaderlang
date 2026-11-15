@@ -1,0 +1,16 @@
+// shapes: the table `main.vader` reads, built by a loop, so on the VM.
+
+module "main/shapes"
+
+import "std/collections"
+
+export Small :: struct {}
+export Wide :: struct { n: i32 }
+export Shape :: Small | Wide
+
+export TABLE: Map<string, Shape>: @comptime {
+    out :: Map<string, Shape> {}
+    out["small"] = Small {}
+    out["wide"] = Wide { .n = 3 }
+    return out
+}

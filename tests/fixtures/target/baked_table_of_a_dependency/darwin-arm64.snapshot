@@ -1,0 +1,30 @@
+# Diagnostics
+(none)
+
+# Baked
+VADER_OS = .Darwin
+VADER_ARCH = .Arm64
+
+# Selected body
+main$pad <- main.vader:19
+std_console$read_ready <- lib/std/console/console.vader:297
+std_console$system_poll_stdin <- lib/std/console/console.vader:384
+std_console$write_bytes <- lib/std/console/console.vader:47
+std_console$write_text <- lib/std/console/console.vader:81
+std_env$current_executable_location <- lib/std/env/env.vader:214
+std_env$current_working_directory <- lib/std/env/env.vader:253
+std_env$get_env <- lib/std/env/env.vader:38
+std_env$set_current_working_directory <- lib/std/env/env.vader:281
+std_env$system_environ_entry <- lib/std/env/env.vader:91
+std_env$system_set_env <- lib/std/env/env.vader:152
+std_env$system_unset_env <- lib/std/env/env.vader:166
+std_env$temp_dir <- lib/std/env/env.vader:306
+std_io$io_error_of <- lib/std/io/io.vader:137
+std_io$last_io_error <- lib/std/io/io.vader:120
+std_time$monotonic_ns <- lib/std/time/time.vader:77
+std_time$now_unix_ms <- lib/std/time/time.vader:51
+std_tty$columns <- lib/std/tty/raw.vader:156
+std_tty$probe_tty <- lib/std/tty/tty.vader:58
+std_tty$raw_mode_begin <- lib/std/tty/raw.vader:69
+std_tty$raw_mode_end <- lib/std/tty/raw.vader:93
+std_tty$renders_unicode <- lib/std/tty/tty.vader:90

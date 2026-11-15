@@ -1,0 +1,29 @@
+// A `@comptime` table of structs, declared in a module of the program and read
+// by a build for another OS.
+//
+// That build bakes its values in a second load of the sources, which keeps the
+// bodies of the machine the compiler runs on: the Windows body of `pad` reaches
+// `std/tty` only in the build's own load, so the two loads keep different
+// declarations, and their symbols take different ids. The baked table must name
+// the types of the build's load, not those of the load it was baked in.
+
+module "main"
+
+import "main/shapes"
+import "std/tty"
+
+@target(.Windows)
+pad :: fn() -> bool = is_tty(.Stdout)
+
+@target
+pad :: fn() -> bool = false
+
+main :: fn() -> i32 {
+    if pad() {
+        return 2
+    }
+    if TABLE["small"] is Small {
+        return 0
+    }
+    return 1
+}

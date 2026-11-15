@@ -1,19 +1,11 @@
-// vader/core/bytecode/intrinsic_manifest: single authority on the `@intrinsic`
-// host-mangle grammar and host-intrinsic identity.
+// vader/core/bytecode/intrinsic_manifest: the host-intrinsic identity.
 //
-// Two related jobs, both so the host-mangle grammar lives in ONE place:
-//
-//   1. Primitive-member grammar. The lowerer PRODUCES impl-member mangles
-//      (`<module>$<Type>$<Trait>$<method>`, `lower/impl_member.vader`); this is
-//      the consumer-side authority the VM re-derivations (`vm/host`, `vm/exec`)
-//      route through instead of re-encoding the `std_core$` prefix / `$`
-//      separator inline. `primitive_member_mangle` + the strip helpers, pinned
-//      to the real mangler by the colocated tests.
-//
-//   2. Host-intrinsic identity. `intrinsic_id_for` classifies a host import's
-//      mangled name into an `IntrinsicId`: THE single classification both
-//      backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch
-//      on, so the two can't drift and a new host trips T3013 at both sites.
+// `intrinsic_id_for` classifies a host import's mangled name into an
+// `IntrinsicId`: THE single classification both backends
+// (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the two
+// can't drift and a new host trips T3013 at both sites. The table it reads is
+// built at compile time from the declarations' names, through the mangler
+// (`vader/core/mangle`): no mangled name is spelled here.
 //
 // The arith / buffer bytecode-op table is the selection module's
 // (`vader/midir/select/intrinsics.vader`): which op a host lowers to is a choice of
@@ -21,72 +13,37 @@
 
 module "vader/core/bytecode"
 
+import "std/collections"
 import "std/string"
 import "vader/core/mangle"
 import "vader/core/types"
 
-// Mangled module fragment for `std/core` (`mangle_module_id("std/core")`).
-// Pinned against the real mangler by `test_core_module_matches_mangler`.
-CORE_MODULE :: "std_core"
-
-// Prefix + member suffixes as module-level literals so the hot recognisers do
-// ZERO per-call string building (only the kind slice allocates). Pinned against
-// `CORE_MODULE` + `primitive_member_mangle` by the colocated tests, so they
-// can't drift from the grammar even though they're spelled out here.
-CORE_PREFIX    :: r"std_core$"
-EQUALS_SUFFIX  :: r"$Equals$equals"
-DISPLAY_SUFFIX :: r"$Display$to_string"
-// `deep_copy` takes one host per type it copies: `std_core$deep_copy__<type>`.
-DEEP_COPY      :: r"std_core$deep_copy"
-DEEP_COPY_TYPE :: r"std_core$deep_copy__"
-
-/// The mangle of a `std/core` primitive `@intrinsic` impl member:
-/// `("i32", "Equals", "equals")` -> `"std_core$i32$Equals$equals"`. THE grammar
-/// authority for building a primitive host mangle, never inline the `$`
-/// separator or the `std_core$` prefix at a call site.
+/// The mangled name of a member of a `std/core` primitive's `@intrinsic` impl:
+/// `("i32", "Equals", "equals")` -> `"std_core$i32$Equals$equals"`.
 ///
 /// @param kind    the receiver primitive kind (`"i32"`, `"string"`, ...).
 /// @param trait_  the trait segment (`"Equals"`, `"Display"`, ...).
 /// @param method  the method segment (`"equals"`, `"to_string"`, ...).
 /// @return        the fully mangled host-import name.
 export primitive_member_mangle :: fn(kind: string, trait_: string, method: string) -> string =
-    impl_member_mangle("std/core", kind, trait_, method)
+    impl_member_mangle(CORE_MODULE, kind, trait_, method)
 
-// Whether `mangled` is an integer width's bodyless `@intrinsic Equals` member.
-is_int_equals :: fn(mangled: string) -> bool {
-    kind :: strip_core_member(mangled, EQUALS_SUFFIX)
-    return kind != null && is_int_name(kind)
-}
-
-/// True iff `mangled` is a primitive `<T>$Display$to_string` host : one of the
-/// eight integer widths, plus `f32` / `f64` / `bool` / `char` / `string`.
+/// True iff `mangled` is the `Display` host of an unsigned integer: the VM
+/// carries one in a signed value, which a `u32` or a `u64` past the signed range
+/// leaves negative, so it takes the unsigned reinterpret path.
 ///
 /// @param mangled  the host import's mangled name.
-export is_display_to_string :: fn(mangled: string) -> bool {
-    kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
-    return kind != null && is_scalar_type_name(kind) && kind != "void" && kind != "null"
-}
+export is_unsigned_display :: fn(mangled: string) -> bool = mangled in UNSIGNED_DISPLAYS
 
-/// Subset of `is_display_to_string` covering the unsigned integers : the VM
-/// carries them in a signed value, which a `u32` or a `u64` past the signed range
-/// leaves negative, so they take the unsigned reinterpret path.
-///
-/// @param mangled  the host import's mangled name.
-export is_unsigned_display :: fn(mangled: string) -> bool {
-    kind :: strip_core_member(mangled, DISPLAY_SUFFIX) else return false
-    return is_unsigned_int_name(kind)
-}
-
-/// The `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when the
-/// prefix / suffix don't match. Lengths come from the constant strings: no
-/// hand-counted byte offsets, no per-call string build (both `CORE_PREFIX` and
-/// `suffix` are module-level literals). Only the returned kind slice allocates.
-///
-/// @param mangled  the host import's mangled name.
-/// @param suffix   the `$<Trait>$<method>` tail to strip.
-export strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
-    if !mangled.starts_with(CORE_PREFIX) || !mangled.ends_with(suffix) { return null }
-    return mangled.byte_slice(CORE_PREFIX.byte_len(), mangled.byte_len() - suffix.byte_len())
+// The `Display` hosts of the unsigned integers.
+UNSIGNED_DISPLAYS: Set<string>: @comptime {
+    out :: Set<string> {}
+    for name in scalar_type_names() {
+        if is_unsigned_int_name(name) {
+            out.add(primitive_member_mangle(name, TRAIT_DISPLAY, METHOD_TO_STRING))
+        }
+    }
+    return out
 }
 
 // ---- host intrinsic identity ----------------------------------------------
@@ -127,67 +84,80 @@ export IntrinsicId :: enum(u8) {
     FfiOpen, FfiOpenPath, FfiSymbol, FfiCall, FfiCallFrame,
 }
 
-// Whether `mangled` is the host of `deep_copy` at some type, or at a type
-// parameter of an erased body.
-is_deep_copy :: fn(mangled: string) -> bool =
-    mangled == DEEP_COPY || mangled.starts_with(DEEP_COPY_TYPE)
-
 /// Classify a host import's mangled name into its `IntrinsicId`, or
 /// `NotIntrinsic` when it isn't a recognised host (e.g. an `@extern` symbol or
-/// a since-removed one). The primitive-member checks come first: the erased
-/// map-key `key.equals` path is the hot one, and each helper bails on the first
-/// `starts_with(std_core$)` for the free-function mangles below.
+/// a since-removed one).
 ///
 /// @param mangled  the import's mangled name (`BcImport.mangled_name`).
-export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
-    if is_int_equals(mangled)        { return .PrimIntEquals }
-    if is_display_to_string(mangled) { return .PrimDisplayToString }
+export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId =
+    HOSTS[mangled] else instance_host(mangled)
 
-    if mangled == r"vader_vm$ffi_open"                   { return .FfiOpen }
-    if mangled == r"vader_vm$ffi_symbol"                 { return .FfiSymbol }
-    if mangled == r"vader_vm$ffi_call"                    { return .FfiCall }
-    if mangled == r"vader_vm$ffi_open_path"              { return .FfiOpenPath }
-    if mangled == r"vader_vm$ffi_call_frame"             { return .FfiCallFrame }
+// `deep_copy` takes one host per type it copies, an instance of its own.
+instance_host :: fn(mangled: string) -> IntrinsicId =
+    if mangled.starts_with(DEEP_COPY_INSTANCES) { .DeepCopy } else { .NotIntrinsic }
 
-    if mangled == r"std_core$byte_len"                   { return .ByteLen }
-    if mangled == r"std_core$byte_at"                    { return .ByteAt }
-    if mangled == r"std_core$byte_slice"                 { return .ByteSlice }
-    if mangled == r"std_core$is_ascii"                   { return .IsAscii }
+// What the hosts of `deep_copy` at a given type start with.
+DEEP_COPY_INSTANCES :: @comptime instance_prefix(declaration_mangle(CORE_MODULE, "deep_copy"))
 
-    if mangled == r"std_core$bytes"                      { return .Bytes }
-    if mangled == r"std_core$bytes_to_string"            { return .BytesToString }
-    if mangled == primitive_member_mangle("string", "Hash", "hash") { return .StringHash }
-    if mangled == r"std_core$string$Equals$equals"       { return .StringEquals }
-    if is_deep_copy(mangled)                             { return .DeepCopy }
-
-    if mangled == r"std_runtime$collect"                 { return .RuntimeCollect }
-    if mangled == r"std_runtime$collections"             { return .RuntimeCollections }
-    if mangled == r"std_runtime$bytes_used"              { return .RuntimeBytesUsed }
-    if mangled == r"std_runtime$bytes_copied"            { return .RuntimeBytesCopied }
-    if mangled == r"std_runtime$allocated_bytes"         { return .RuntimeAllocatedBytes }
-    if mangled == r"std_runtime$allocations"             { return .RuntimeAllocations }
-    if mangled == r"std_runtime$count_allocations"       { return .RuntimeCountAllocations }
-
-    if mangled == r"std_runtime_scheduler$spawn_thread"   { return .SchedulerSpawn }
-    if mangled == r"std_runtime_scheduler$park"           { return .SchedulerPark }
-    if mangled == r"std_runtime_scheduler$wake"           { return .SchedulerWake }
-    if mangled == r"std_runtime_scheduler$sleep_for"      { return .SchedulerSleepFor }
-    if mangled == r"std_runtime_scheduler$cancel_thread"  { return .SchedulerCancel }
-    if mangled == r"std_runtime_scheduler$current_thread" { return .SchedulerCurrent }
-    if mangled == r"std_runtime_scheduler$is_cancelled"   { return .SchedulerIsCancelled }
-    if mangled == r"std_runtime_scheduler$is_leaving"     { return .SchedulerIsLeaving }
-    if mangled == r"std_runtime_scheduler$watch_readable" { return .SchedulerWatchReadable }
-    if mangled == r"std_runtime_scheduler$watch_exit"     { return .SchedulerWatchExit }
-    if mangled == r"std_runtime_wait$wait_readable"       { return .WaitReadable }
-    if mangled == r"std_runtime_wait$wait_readable_for"   { return .WaitReadableFor }
-    if mangled == r"std_runtime_wait$wait_writable"       { return .WaitWritable }
-    if mangled == r"std_runtime_wait$wait_writable_for"   { return .WaitWritableFor }
-    if mangled == r"std_runtime_wait$stop_waiting"        { return .WaitStop }
-
-    if mangled == r"std_target$current_os"               { return .TargetCurrentOs }
-    if mangled == r"std_target$current_arch"             { return .TargetCurrentArch }
-    if mangled == r"std_abort$panic"                     { return .AbortPanic }
-    return .NotIntrinsic
+// Every host but the instances of `deep_copy`, by mangled name.
+HOSTS: Map<string, IntrinsicId>: @comptime {
+    out :: Map<string, IntrinsicId> {}
+    // The primitives' members: `Equals` of an integer of any width, `Display` of
+    // every scalar a value can hold.
+    for name in scalar_type_names() {
+        if is_int_name(name) {
+            out[primitive_member_mangle(name, TRAIT_EQUALS, METHOD_EQUALS)] = .PrimIntEquals
+        }
+        if name != "void" && name != "null" {
+            display :: primitive_member_mangle(name, TRAIT_DISPLAY, METHOD_TO_STRING)
+            out[display] = .PrimDisplayToString
+        }
+    }
+    out[primitive_member_mangle("string", TRAIT_HASH, "hash")] = .StringHash
+    out[primitive_member_mangle("string", TRAIT_EQUALS, METHOD_EQUALS)] = .StringEquals
+    core :: (name: string) -> declaration_mangle(CORE_MODULE, name)
+    out[core("byte_len")] = .ByteLen
+    out[core("byte_at")] = .ByteAt
+    out[core("byte_slice")] = .ByteSlice
+    out[core("is_ascii")] = .IsAscii
+    out[core("bytes")] = .Bytes
+    out[core("bytes_to_string")] = .BytesToString
+    out[core("deep_copy")] = .DeepCopy
+    runtime :: (name: string) -> declaration_mangle("std/runtime", name)
+    out[runtime("collect")] = .RuntimeCollect
+    out[runtime("collections")] = .RuntimeCollections
+    out[runtime("bytes_used")] = .RuntimeBytesUsed
+    out[runtime("bytes_copied")] = .RuntimeBytesCopied
+    out[runtime("allocated_bytes")] = .RuntimeAllocatedBytes
+    out[runtime("allocations")] = .RuntimeAllocations
+    out[runtime("count_allocations")] = .RuntimeCountAllocations
+    scheduler :: (name: string) -> declaration_mangle("std/runtime/scheduler", name)
+    out[scheduler("spawn_thread")] = .SchedulerSpawn
+    out[scheduler("park")] = .SchedulerPark
+    out[scheduler("wake")] = .SchedulerWake
+    out[scheduler("sleep_for")] = .SchedulerSleepFor
+    out[scheduler("cancel_thread")] = .SchedulerCancel
+    out[scheduler("current_thread")] = .SchedulerCurrent
+    out[scheduler("is_cancelled")] = .SchedulerIsCancelled
+    out[scheduler("is_leaving")] = .SchedulerIsLeaving
+    out[scheduler("watch_readable")] = .SchedulerWatchReadable
+    out[scheduler("watch_exit")] = .SchedulerWatchExit
+    wait :: (name: string) -> declaration_mangle("std/runtime/wait", name)
+    out[wait("wait_readable")] = .WaitReadable
+    out[wait("wait_readable_for")] = .WaitReadableFor
+    out[wait("wait_writable")] = .WaitWritable
+    out[wait("wait_writable_for")] = .WaitWritableFor
+    out[wait("stop_waiting")] = .WaitStop
+    out[declaration_mangle("std/target", "current_os")] = .TargetCurrentOs
+    out[declaration_mangle("std/target", "current_arch")] = .TargetCurrentArch
+    out[declaration_mangle("std/abort", "panic")] = .AbortPanic
+    vm :: (name: string) -> declaration_mangle("vader/vm", name)
+    out[vm("ffi_open")] = .FfiOpen
+    out[vm("ffi_symbol")] = .FfiSymbol
+    out[vm("ffi_call")] = .FfiCall
+    out[vm("ffi_open_path")] = .FfiOpenPath
+    out[vm("ffi_call_frame")] = .FfiCallFrame
+    return out
 }
 
 /// Whether a call to host `id` can trigger a collection: the question
@@ -263,38 +233,25 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 
 import "std/testing"
 
-@test test_core_module_matches_mangler :: fn() -> void {
-    // Pins the manifest's grammar against the real producer: if the module
-    // mangling scheme changes, this test breaks instead of the backends silently.
-    assert_eq(CORE_MODULE, mangle_module_id("std/core"))
-}
-
-@test test_grammar_constants_consistent :: fn() -> void {
-    // The hoisted literals must equal what `primitive_member_mangle` builds, so
-    // the perf hoist can't drift from the grammar.
-    assert_eq(CORE_PREFIX, "${CORE_MODULE}$")
-    assert_eq("${CORE_PREFIX}i32${EQUALS_SUFFIX}", primitive_member_mangle("i32", "Equals", "equals"))
-    assert_eq("${CORE_PREFIX}u64${DISPLAY_SUFFIX}", primitive_member_mangle("u64", "Display", "to_string"))
-}
-
 @test test_primitive_member_mangle :: fn() -> void {
     assert_eq(primitive_member_mangle("i32", "Equals", "equals"), r"std_core$i32$Equals$equals")
     assert_eq(primitive_member_mangle("string", "Display", "to_string"), r"std_core$string$Display$to_string")
 }
 
-@test test_is_int_equals :: fn() -> void {
-    assert(is_int_equals(r"std_core$i32$Equals$equals"), "i32 equals")
-    assert(!is_int_equals(r"std_core$string$Equals$equals"), "string is no int width")
-    assert(!is_int_equals(r"std_console$write"), "non-core bails on prefix")
-    assert(!is_int_equals(r"user_mod$Foo$Bar$baz"), "user mangle")
+@test test_primitive_members_classify_by_width :: fn() -> void {
+    assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "i32 equals")
+    assert(intrinsic_id_for(r"std_core$u8$Equals$equals") == .PrimIntEquals, "u8 equals")
+    char_display :: intrinsic_id_for(r"std_core$char$Display$to_string")
+    assert(char_display == .PrimDisplayToString, "char display")
+    char_equals :: intrinsic_id_for(r"std_core$char$Equals$equals")
+    assert(char_equals == .NotIntrinsic, "char equals is an op")
+    assert(intrinsic_id_for(r"user_mod$Foo$Bar$baz") == .NotIntrinsic, "user mangle")
 }
 
-@test test_display_classifiers :: fn() -> void {
-    assert_eq(is_display_to_string(r"std_core$char$Display$to_string"), true)
-    assert_eq(is_display_to_string(r"std_core$char$Equals$equals"), false)
+@test test_unsigned_display :: fn() -> void {
     assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
-    assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
     assert_eq(is_unsigned_display(r"std_core$u8$Display$to_string"), true)
+    assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
 }
 
 @test test_descriptor_waits_are_intrinsics :: fn() -> void {

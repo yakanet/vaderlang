@@ -99,6 +99,19 @@ export primitive_name :: fn(t: Type | null) -> string {
     return ""
 }
 
+/// The name of every scalar type `is_scalar_type_name` answers: the primitives,
+/// then the eight machine integers.
+export scalar_type_names :: fn() -> string[] {
+    names: string[]: []
+    for m in PRIMITIVE_META {
+        names.push(m.name)
+    }
+    for m in MACHINE_INTEGERS {
+        names.push(m.name)
+    }
+    return names
+}
+
 /// Whether `name` spells a scalar type the compiler knows by name : a primitive
 /// (`bool`, `string`, `f64`, ...) or one of the eight machine integers.
 export is_scalar_type_name :: fn(name: string) -> bool =
@@ -185,10 +198,13 @@ export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
 /// @param trait_sym  the trait's declaration symbol, not an import binding.
 export trait_key_of :: fn(trait_sym: Symbol) -> string = qualified_symbol_name(trait_sym)
 
+/// The module that declares the primitives, their impls and the core traits.
+export CORE_MODULE :: "std/core"
+
 /// The `trait_key` of a `std/core` trait, from its `TRAIT_*` name.
 ///
 /// @param name  a `TRAIT_*` constant.
-export core_trait_key :: fn(name: string) -> string = declaration_mangle("std/core", name)
+export core_trait_key :: fn(name: string) -> string = declaration_mangle(CORE_MODULE, name)
 
 /// Whether `t` is the `std/core` trait `name`, told by its declaration rather
 /// than its spelling: a user trait named `Iterator` is not the core one.
@@ -204,7 +220,7 @@ export is_core_trait :: fn(t: TraitType, name: string) -> bool =
 /// @param t     a struct type.
 /// @param name  a `STRUCT_*` constant.
 export is_core_struct :: fn(t: StructType, name: string) -> bool =
-    t.symbol.module_name == "std/core" && t.symbol.name == name
+    t.symbol.module_name == CORE_MODULE && t.symbol.name == name
 
 /// Whether `t` is `std/ffi`'s `CLibrary`, the struct a binding names the C library
 /// it calls with, told by its declaration rather than its spelling.

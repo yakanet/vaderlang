@@ -18,6 +18,9 @@ BROKEN_ON_WINDOWS :: "tests/fixtures/target/discarded_body_not_typed/main.vader"
 // A program that reads `VADER_OS`, a value a file reaches with no import.
 BAKED_CONSTANT :: "tests/fixtures/target/baked_constant/main.vader"
 
+// A program reading a `@comptime` table of structs from one of its modules.
+BAKED_TABLE :: "tests/fixtures/target/baked_table_of_a_dependency/main.vader"
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -62,6 +65,13 @@ test_vader_os_is_baked_from_the_host_with_no_target_given :: fn() -> void {
     checked :: run_vader(["check", BAKED_CONSTANT]) else panic(checked.message())
     assert_eq(checked.exit, 0)
     assert_eq(checked.stderr.trim(), "")
+}
+
+@test
+test_a_table_baked_for_another_os_names_the_types_of_its_build :: fn() -> void {
+    checked :: run_vader(["check", "--target=windows-x86_64", BAKED_TABLE])
+        else panic(checked.message())
+    assert(checked.exit == 0 && checked.stderr == "", checked.stderr)
 }
 
 @test

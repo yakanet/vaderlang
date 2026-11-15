@@ -1,0 +1,103 @@
+// vader/pipeline/comptime_vm/retarget: a value baked in one load, read in another.
+//
+// A build for another OS bakes its `@comptime` values in a second front end that
+// keeps the host's `@target` bodies (`vader/pipeline/frontend.vader`), then copies
+// them into the build's own load (`copy_baked_values`). Both loads read the same
+// sources, but each mints its own symbols: a type in a baked value names a symbol
+// of the host's load, whose id designates another declaration in the build's. Each
+// type is rebound to the symbol declared at the same place in the build's load.
+
+module "vader/pipeline/comptime_vm"
+
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+Ct :: import "vader/front/comptime"
+
+// `value` with every type it carries rebound to the symbols of `into`, the typed
+// project it is read in.
+retargeted :: fn(value: Ct.ComptimeValue, into: TypedProject) -> Ct.ComptimeValue = match value {
+    is Ct.ArrayValue  -> Ct.ArrayValue {
+        .elements = value.elements.map((e) -> retargeted(e, into)).collect(),
+        .type = retargeted_type(value.type, into),
+    }
+    is Ct.StructValue -> Ct.StructValue {
+        .fields = retargeted_fields(value.fields, into),
+        .type = retargeted_type(value.type, into),
+    }
+    is Ct.TypeValue   -> Ct.TypeValue { .value = retargeted_type(value.value, into) }
+    is Ct.EnumValue   -> Ct.EnumValue {
+        ...value,
+        .enum_type = retargeted_enum(value.enum_type, into),
+    }
+    is Ct.IntValue | Ct.FloatValue | Ct.BoolValue | Ct.CharValue | Ct.StringValue
+        | Ct.NullValue | Ct.VoidValue -> value
+}
+
+retargeted_fields :: fn(
+    fields: Map<string, Ct.ComptimeValue>, into: TypedProject,
+) -> Map<string, Ct.ComptimeValue> {
+    out :: Map<string, Ct.ComptimeValue> {}
+    for [name, v] in fields {
+        out[name] = retargeted(v, into)
+    }
+    return out
+}
+
+retargeted_type :: fn(t: Type, into: TypedProject) -> Type = match t {
+    is StructType   -> retargeted_struct(t, into)
+    is EnumType     -> retargeted_enum(t, into)
+    is TraitType    -> TraitType {
+        .symbol = counterpart(t.symbol, into),
+        .args = retargeted_types(t.args, into),
+    }
+    is DistinctType -> DistinctType {
+        .symbol = counterpart(t.symbol, into),
+        .backing = retargeted_type(t.backing, into),
+    }
+    is ArrayType    -> mk_array(retargeted_type(t.element, into))
+    is TupleType    -> mk_tuple(retargeted_types(t.elements, into))
+    is UnionType    -> union_of(retargeted_types(t.variants, into))
+    is FnType       -> FnType {
+        ...t,
+        .params = retargeted_types(t.params, into),
+        .return_type = retargeted_type(t.return_type, into),
+    }
+    // A type parameter is bound once a value is baked, and is no declaration of
+    // a module: `counterpart` could not find it.
+    is TypeParamType | PrimitiveType | TypeMetaType | SelfType | UnresolvedType | FreeIntType
+        | FreeFloatType | FreeCharType | NeverType | AnyType | RangeType | InferVar -> t
+}
+
+retargeted_types :: fn(types: Type[], into: TypedProject) -> Type[] =
+    types.map((t) -> retargeted_type(t, into)).collect()
+
+retargeted_struct :: fn(t: StructType, into: TypedProject) -> StructType = StructType {
+    .symbol = counterpart(t.symbol, into),
+    .args = retargeted_types(t.args, into),
+}
+
+retargeted_enum :: fn(t: EnumType, into: TypedProject) -> EnumType {
+    data :: t.data else return EnumType { ...t, .symbol = counterpart(t.symbol, into) }
+    return EnumType {
+        ...t,
+        .symbol = counterpart(t.symbol, into),
+        .data = retargeted_struct(data, into),
+    }
+}
+
+// The symbol `into` declares where `sym` is declared. A symbol declared nowhere is
+// the compiler's own and keeps its id ; one declared in a source must be declared
+// at the same place in `into`, since both loads read the same sources: falling
+// back to `sym` would name whatever `into` gave its id to.
+counterpart :: fn(sym: Symbol, into: TypedProject) -> Symbol {
+    span :: sym.defined_at else return sym
+    program :: into.modules[sym.module]
+        else panic("retarget: module `${sym.module_name}` of `${sym.name}` not loaded")
+    return symbol_declared_at(program.resolved, span)
+        else panic("retarget: no declaration of `${sym.name}` in `${sym.module_name}`")
+}
