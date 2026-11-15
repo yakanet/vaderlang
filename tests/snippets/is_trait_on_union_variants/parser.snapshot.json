@@ -76,8 +76,10 @@
           "kind": "IdentExpr",
           "name": "Meters"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -141,8 +143,10 @@
           "kind": "IdentExpr",
           "name": "Tagged"
         },
-        "traitName": "Hash",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Hash"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -172,8 +176,10 @@
           "kind": "IdentExpr",
           "name": "Tagged"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",

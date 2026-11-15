@@ -83,7 +83,7 @@ inherit_struct_bounds :: fn(
         if head !is AST.GenericInstExpr {
             continue
         }
-        owner :: head_struct(head.callee, resolved) else continue
+        owner :: named_declaration(head.callee, resolved) else continue
         bounds :: struct_bounds[owner.id] else continue
         for bound in bounds {
             if bound.position >= head.type_args.len() {
@@ -99,19 +99,6 @@ inherit_struct_bounds :: fn(
             }
         }
     }
-}
-
-// The struct an impl head names (`Sorted<T>`, `S.Sorted<T>`), followed through its
-// import to the declaration, which keys `struct_bounds`.
-head_struct :: fn(callee: AST.Expr, resolved: ResolvedModule) -> Symbol | null {
-    if callee is AST.FieldExpr {
-        return namespace_member_declaration(callee, resolved, diag_sink())
-    }
-    if callee !is AST.IdentExpr {
-        return null
-    }
-    sym :: resolved.idents[callee.span.hash()] else return null
-    return redirect_import(sym, resolved)
 }
 
 // `own` with the struct's traits it does not already name.

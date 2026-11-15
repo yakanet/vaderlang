@@ -151,8 +151,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Floor",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Floor"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -185,8 +187,10 @@
           "kind": "IdentExpr",
           "name": "Point"
         },
-        "traitName": "Floor",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Floor"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -232,8 +236,10 @@
           "kind": "IdentExpr",
           "name": "Day"
         },
-        "traitName": "Floor",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Floor"
+        },
         "members": [
           {
             "kind": "FnDecl",

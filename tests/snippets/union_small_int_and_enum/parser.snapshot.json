@@ -564,8 +564,10 @@
           "kind": "IdentExpr",
           "name": "Plain"
         },
-        "traitName": "Shower",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shower"
+        },
         "members": [
           {
             "kind": "FnDecl",

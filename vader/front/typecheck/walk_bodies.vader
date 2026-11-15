@@ -260,9 +260,10 @@ declare_and_check_impl :: fn(
     }
     trait_sym :: impl_trait_symbol(id, typed.resolved) else return
     trait_key :: trait_key_of(trait_sym)
+    written_args :: AST.impl_trait_args(id)
     if trait_key == core_trait_key(TRAIT_INTO) {
-        if id.trait_args.len() == 1 {
-            target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+        if written_args.len() == 1 {
+            target_ty :: type_from_expr(written_args[0], typed.resolved, diags)
             if equals_type(for_ty, target_ty) {
                 diags.push(
                     typecheck_error(
@@ -277,7 +278,7 @@ declare_and_check_impl :: fn(
     }
     trait_decl :: typed.trait_decls[trait_sym.id]
     // Resolved again by `record_impl_members`, which reports what fails.
-    args :: written_type_args(id.trait_args, typed.resolved, [])
+    args :: written_type_args(written_args, typed.resolved, [])
     trait_type :: TraitType { .symbol = trait_sym, .args = args }
     for m in id.members {
         if m.inherits != null {
@@ -422,7 +423,7 @@ check_inherited_tests :: fn(impl_: AST.ImplDecl, typed: TypedProgram, diags: Dia
         AST.inspect(body, (n) -> collect_tested_type(n, tested))
         for t in tested {
             read :: substitute_map(type_from_expr(t, owner, []), bindings)
-            check_is_test_target(read, impl_.trait_name_span, typed, diags)
+            check_is_test_target(read, AST.impl_trait_name_span(impl_), typed, diags)
         }
     }
 }

@@ -51,8 +51,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Tagger",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Tagger"
+        },
         "members": [
           {
             "kind": "FnDecl",

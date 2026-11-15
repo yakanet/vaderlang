@@ -1034,15 +1034,7 @@ emit_impl_head :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.write(" implements")
     self.emit_type_params(d.type_params)
     self.write(" ")
-    self.emit_trait_ref(d)
-}
-
-// `Trait<A, B>`: the trait an impl implements, with its arguments.
-emit_trait_ref :: fn(self: Printer, d: p.ImplDecl) -> void {
-    self.write_name(d.trait_name, d.trait_name_span)
-    if d.trait_args.len() > 0 {
-        self.emit_inline_list(d.trait_args, "<", ">", false, emit_type_expr_item)
-    }
+    self.emit_type_expr(d.implemented)
 }
 
 emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {

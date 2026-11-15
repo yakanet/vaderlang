@@ -117,8 +117,10 @@
           "kind": "IdentExpr",
           "name": "A"
         },
-        "traitName": "Sized",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Sized"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -170,8 +172,10 @@
             "name": "T"
           }
         },
-        "traitName": "Sized",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Sized"
+        },
         "members": [
           {
             "kind": "FnDecl",

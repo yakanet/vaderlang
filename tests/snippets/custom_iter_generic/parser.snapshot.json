@@ -62,13 +62,19 @@
             }
           ]
         },
-        "traitName": "Iterator",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "T"
-          }
-        ],
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "T"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

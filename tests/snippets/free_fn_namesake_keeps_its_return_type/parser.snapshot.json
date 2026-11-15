@@ -69,8 +69,10 @@
           "kind": "IdentExpr",
           "name": "Sq"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",

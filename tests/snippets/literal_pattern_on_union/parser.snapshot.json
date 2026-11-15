@@ -141,8 +141,10 @@
           "kind": "IdentExpr",
           "name": "Path"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",

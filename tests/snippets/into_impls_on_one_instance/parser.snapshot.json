@@ -107,13 +107,19 @@
             }
           ]
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Label"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Label"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -195,13 +201,19 @@
             }
           ]
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Tag"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Tag"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -273,13 +285,19 @@
             "name": "Mon"
           }
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Label"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Label"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -355,13 +373,19 @@
             "name": "Mon"
           }
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Tag"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Tag"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

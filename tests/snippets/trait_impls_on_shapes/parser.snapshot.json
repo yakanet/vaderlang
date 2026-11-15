@@ -89,8 +89,10 @@
             }
           ]
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -156,8 +158,10 @@
             }
           ]
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -223,8 +227,10 @@
             }
           ]
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -290,8 +296,10 @@
             "name": "i32"
           }
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -365,8 +373,10 @@
             "name": "i32"
           }
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -444,8 +454,10 @@
             "name": "bool"
           }
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -498,8 +510,10 @@
             "name": "bool"
           }
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -557,8 +571,10 @@
             }
           ]
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -648,8 +664,10 @@
             }
           ]
         },
-        "traitName": "Shout",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shout"
+        },
         "members": [
           {
             "kind": "FnDecl",

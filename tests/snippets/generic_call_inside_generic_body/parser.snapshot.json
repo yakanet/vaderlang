@@ -123,8 +123,10 @@
             }
           ]
         },
-        "traitName": "Make",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Make"
+        },
         "members": [
           {
             "kind": "FnDecl",

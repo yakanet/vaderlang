@@ -188,8 +188,10 @@
             }
           ]
         },
-        "traitName": "Make",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Make"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -291,22 +293,28 @@
           "kind": "IdentExpr",
           "name": "i64"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Box"
-            },
-            "typeArgs": [
-              {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i64"
-              }
-            ]
-          }
-        ],
+                "name": "Box"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i64"
+                }
+              ]
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

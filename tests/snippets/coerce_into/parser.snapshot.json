@@ -39,13 +39,19 @@
           "kind": "IdentExpr",
           "name": "UserId"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -89,13 +95,19 @@
           "kind": "IdentExpr",
           "name": "UserId"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

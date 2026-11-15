@@ -445,8 +445,10 @@
           "kind": "IdentExpr",
           "name": "Tally"
         },
-        "traitName": "Adder",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Adder"
+        },
         "members": [
           {
             "kind": "FnDecl",

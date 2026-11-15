@@ -50,8 +50,10 @@
           "kind": "IdentExpr",
           "name": "Rgb"
         },
-        "traitName": "Comparable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Comparable"
+        },
         "members": [
           {
             "kind": "FnDecl",

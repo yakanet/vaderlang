@@ -300,8 +300,7 @@ walk_impl_decl :: fn(d: AST.ImplDecl, out: RawToken[]) -> void {
     walk_decorators(d.decorators, out)
     walk_type_params(d.type_params, out)
     walk_type_expr(d.for_type, out)
-    push_span(out, d.trait_name_span, .Type)
-    for ta in d.trait_args { walk_type_expr(ta, out) }
+    walk_type_expr(d.implemented, out)
     for m in d.members { walk_fn_decl(m, out) }
 }
 

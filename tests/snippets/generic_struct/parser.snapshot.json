@@ -169,13 +169,19 @@
             }
           ]
         },
-        "traitName": "Stackable",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "T"
-          }
-        ],
+            "name": "Stackable"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "T"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

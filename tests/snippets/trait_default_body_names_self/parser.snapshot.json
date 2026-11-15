@@ -427,8 +427,10 @@
           "kind": "IdentExpr",
           "name": "Pt"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -473,8 +475,10 @@
           "kind": "IdentExpr",
           "name": "Pt"
         },
-        "traitName": "Probe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Probe"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -552,8 +556,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -598,8 +604,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Probe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Probe"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -47,8 +47,10 @@
           "kind": "IdentExpr",
           "name": "Point"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -94,8 +96,10 @@
           "kind": "IdentExpr",
           "name": "Point"
         },
-        "traitName": "Hash",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Hash"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -160,8 +164,10 @@
           "kind": "IdentExpr",
           "name": "Label"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -207,8 +213,10 @@
           "kind": "IdentExpr",
           "name": "Label"
         },
-        "traitName": "Hash",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Hash"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -47,8 +47,10 @@
           "kind": "IdentExpr",
           "name": "Point"
         },
-        "traitName": "Describe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Describe"
+        },
         "members": [
           {
             "kind": "FnDecl",

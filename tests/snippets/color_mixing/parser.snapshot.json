@@ -68,17 +68,23 @@
           "kind": "IdentExpr",
           "name": "Color"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Color"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Color"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Color"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Color"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

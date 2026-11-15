@@ -708,17 +708,23 @@
           "kind": "IdentExpr",
           "name": "Gauge"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -779,17 +785,23 @@
           "kind": "IdentExpr",
           "name": "Gauge"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "f64"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "f64"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "f64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "f64"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

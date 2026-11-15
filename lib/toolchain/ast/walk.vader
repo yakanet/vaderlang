@@ -380,7 +380,7 @@ inspect_impl :: fn(i: ImplDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void
     inspect_decorators(i.decorators, visit, leave)
         || inspect_type_params(i.type_params, visit, leave)
         || inspect(i.for_type, visit, leave)
-        || inspect_exprs(i.trait_args, visit, leave)
+        || inspect(i.implemented, visit, leave)
         || inspect_fns(i.members, visit, leave)
 
 inspect_alias :: fn(a: TypeAliasDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void) -> bool =

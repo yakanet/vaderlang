@@ -47,8 +47,10 @@
           "kind": "IdentExpr",
           "name": "Foo"
         },
-        "traitName": "Scored",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Scored"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -72,7 +72,7 @@ check_module_impl_coherence :: fn(
             diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
             continue
         }
-        args :: written_type_args(decl.trait_args, tp.resolved, diag_sink())
+        args :: written_type_args(AST.impl_trait_args(decl), tp.resolved, diag_sink())
         if reject_overlapping_impl(decl, for_ty, trait_key, args, by_base, diags) {
             continue
         }
@@ -171,7 +171,7 @@ conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
         return ("`@displayable` generates the `Display` of `${display_type(for_ty)}`, "
             + "which already implements it")
     }
-    return ("`${display_type(for_ty)}` already implements `${decl.trait_name}`, and "
+    return ("`${display_type(for_ty)}` already implements `${AST.impl_trait_name(decl)}`, and "
         + "only one impl per (type, trait) is allowed")
 }
 

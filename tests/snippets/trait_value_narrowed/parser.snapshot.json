@@ -69,8 +69,10 @@
           "kind": "IdentExpr",
           "name": "Square"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -144,8 +146,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -185,8 +189,10 @@
           "kind": "IdentExpr",
           "name": "f64"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -256,8 +262,10 @@
           "kind": "IdentExpr",
           "name": "Square"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -53,8 +53,10 @@
             }
           ]
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -119,8 +121,10 @@
             }
           ]
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -194,8 +198,10 @@
           "kind": "IdentExpr",
           "name": "Label"
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -285,8 +291,10 @@
             }
           ]
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",

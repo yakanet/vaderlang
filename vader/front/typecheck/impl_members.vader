@@ -30,7 +30,7 @@ check_impl_members :: fn(
                 typecheck_error(
                     .ImplMemberNotInTrait,
                     member.name_span,
-                    "`${member.name}` is not a member of `${id.trait_name}`",
+                    "`${member.name}` is not a member of `${AST.impl_trait_name(id)}`",
                 ),
             )
         }
@@ -41,8 +41,8 @@ check_impl_members :: fn(
                 diags.push(
                     typecheck_error(
                         .ImplMissingRequiredMethod,
-                        id.trait_name_span,
-                        "`${id.trait_name}` requires method `${required.name}`"
+                        AST.impl_trait_name_span(id),
+                        "`${AST.impl_trait_name(id)}` requires method `${required.name}`"
                             + ", which this impl block does not provide",
                     ),
                 )

@@ -227,7 +227,7 @@ is_hidden_impl :: fn(ctx: FileContext, d: ImplDecl) -> bool {
 // The entry of the impl `d`, named after the type it is for and its trait.
 impl_decl :: fn(ctx: FileContext, d: ImplDecl) -> DocDecl {
     for_type :: format_type_expr(ctx.file.content, d.for_type)
-    trait_name :: format_impl_trait(ctx.file.content, d)
+    trait_name :: format_type_expr(ctx.file.content, d.implemented)
     return DocDecl {
         .name = "${for_type}: ${trait_name}",
         .kind = "impl",

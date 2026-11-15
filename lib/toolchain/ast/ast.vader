@@ -607,19 +607,70 @@ export TraitDecl :: struct {
 
 /// An `implements` block, or its one-method short form.
 ///
-/// `for_type` is the implementing type as written, `trait_name` the trait, which is
-/// a bare string rather than a node because a trait is always named, never computed.
+/// `for_type` is the implementing type as written, `implemented` the trait: a name
+/// (`Display`, `Fmt.Display`), with its type arguments when it takes some
+/// (`Into<string>`).
 export ImplDecl :: struct {
-    span:             Span
-    id:               i64 = UNASSIGNED_NODE_ID
-    type_params:      TypeParam[]
-    for_type:         TypeExpr
-    trait_name:       string
-    trait_name_span:  Span
-    trait_args:       TypeExpr[]
-    members:          FnDecl[]
-    decorators:       Decorator[]
-    doc:              DocComment | null = null
+    span:        Span
+    id:          i64 = UNASSIGNED_NODE_ID
+    type_params: TypeParam[]
+    for_type:    TypeExpr
+    implemented: TypeExpr
+    members:     FnDecl[]
+    decorators:  Decorator[]
+    doc:         DocComment | null = null
+}
+
+/// The node that names the trait of `d`: an `IdentExpr`, or a `FieldExpr` for a
+/// trait reached through a namespace alias (`Fmt.Display`).
+///
+/// @param d  the impl.
+export impl_trait_head :: fn(d: ImplDecl) -> Expr {
+    if d.implemented is GenericInstExpr {
+        return d.implemented.callee
+    }
+    return d.implemented
+}
+
+/// The type arguments written on the trait of `d`: `[string]` for `Into<string>`,
+/// none for `Display`.
+///
+/// @param d  the impl.
+export impl_trait_args :: fn(d: ImplDecl) -> TypeExpr[] {
+    if d.implemented is GenericInstExpr {
+        return d.implemented.type_args
+    }
+    return []
+}
+
+/// The trait's own name in `d`, the alias left out: `Display` for `Fmt.Display`.
+///
+/// @param d  the impl.
+export impl_trait_name :: fn(d: ImplDecl) -> string {
+    head :: impl_trait_head(d)
+    if head is FieldExpr {
+        return head.field
+    }
+    return if head is IdentExpr { head.name } else { "" }
+}
+
+/// The trait of `d` as written, its alias included: `Fmt.Display`.
+///
+/// @param d  the impl.
+export impl_trait_written_name :: fn(d: ImplDecl) -> string {
+    head :: impl_trait_head(d)
+    if head is FieldExpr && head.target is IdentExpr {
+        return "${head.target.name}.${head.field}"
+    }
+    return impl_trait_name(d)
+}
+
+/// Where the trait's own name is written in `d`: `Display` in `Fmt.Display`.
+///
+/// @param d  the impl.
+export impl_trait_name_span :: fn(d: ImplDecl) -> Span {
+    head :: impl_trait_head(d)
+    return if head is FieldExpr { head.field_span } else { head.span }
 }
 
 // ---- TypeAlias ------------------------------------------------------------

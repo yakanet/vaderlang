@@ -93,13 +93,19 @@
             }
           ]
         },
-        "traitName": "Getter",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "U"
-          }
-        ],
+            "name": "Getter"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "U"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -236,26 +242,32 @@
             }
           ]
         },
-        "traitName": "Swap",
-        "traitArgs": [
-          {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Pair"
-            },
-            "typeArgs": [
-              {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Swap"
+          },
+          "typeArgs": [
+            {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "R"
+                "name": "Pair"
               },
-              {
-                "kind": "IdentExpr",
-                "name": "L"
-              }
-            ]
-          }
-        ],
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "R"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "L"
+                }
+              ]
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -402,8 +414,10 @@
             }
           ]
         },
-        "traitName": "Labelled",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Labelled"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -483,8 +497,10 @@
             }
           ]
         },
-        "traitName": "Labelled",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Labelled"
+        },
         "members": [
           {
             "kind": "FnDecl",

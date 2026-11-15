@@ -75,8 +75,10 @@
           "kind": "IdentExpr",
           "name": "Badge"
         },
-        "traitName": "SlashTag",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "SlashTag"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -132,8 +134,10 @@
           "kind": "IdentExpr",
           "name": "Badge"
         },
-        "traitName": "UnderscoreTag",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "UnderscoreTag"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -189,8 +193,10 @@
           "kind": "IdentExpr",
           "name": "Badge"
         },
-        "traitName": "tags_Tag",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "tags_Tag"
+        },
         "members": [
           {
             "kind": "FnDecl",

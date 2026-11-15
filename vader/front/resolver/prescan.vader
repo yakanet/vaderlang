@@ -18,11 +18,11 @@ AST :: import "toolchain/ast"
 
 /// Walk every ImplDecl in `loaded.module.files` and push R2018 when
 /// neither the for-type nor the trait is owned by `module_id`.
-/// Symbols come from `collected.symbols` (for the trait name lookup:
-/// the body-walker doesn't visit `trait_name_span`) and from `idents`
-/// (for the for-type, which IS walked through `walk_expr`). Both
-/// resolve through `wire_imports`' redirect table to follow
-/// ImportBinding to the concrete owner.
+/// Symbols come from `collected.symbols` and the file's import bindings
+/// (for the trait) and from `idents` (for the for-type, which IS walked
+/// through `walk_expr`). Both resolve through `wire_imports`' redirect
+/// table to follow ImportBinding to the concrete owner, and a namespace
+/// alias to its module.
 ///
 /// Diagnostics are pushed into `diags` so the caller decides where
 /// they land (resolver-stage CLI surfaces, typecheck orchestrator
@@ -56,8 +56,7 @@ check_orphan_rule :: fn(
     idents: Map<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
-    trait_sym :: lookup_trait_sym(decl, module_symbols, bindings, wire_targets) else return
-    if trait_sym.kind != .Trait { return }
+    trait_module :: trait_owner_module(decl, module_symbols, bindings, wire_targets) else return
     for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
     for_is_primitive := false
     for_is_local := false
@@ -65,26 +64,45 @@ check_orphan_rule :: fn(
         for_is_primitive = for_sym.kind == .BuiltinType
         for_is_local = for_sym.module == module_id
     }
-    trait_is_local :: trait_sym.module == module_id
+    trait_is_local :: trait_module == module_id
     if !for_is_primitive && !for_is_local && !trait_is_local {
         diags.push(resolver_error(.OrphanImplForbidden, decl.span,
-            "${decl.trait_name} for ${for_type_display_name(decl.for_type)} (neither type nor trait is owned by this module)"))
+            "${AST.impl_trait_written_name(decl)} for ${for_type_display_name(decl.for_type)} (neither type nor trait is owned by this module)"))
     }
 }
 
-// The trait an impl names : a declaration of the module, else an import binding
-// of the impl's file.
-lookup_trait_sym :: fn(
+// The module declaring the trait an impl names: that of a trait of the module or
+// of an import binding of the impl's file, or the module a namespace alias
+// imports (`Ns.Trait`). Null when the name binds to no trait.
+trait_owner_module :: fn(
     decl: AST.ImplDecl,
     module_symbols: Map<string, Symbol>,
     bindings: Map<string, Symbol>,
     wire_targets: ImportTargetTable,
+) -> string | null {
+    head :: AST.impl_trait_head(decl)
+    if head is AST.FieldExpr && head.target is AST.IdentExpr {
+        alias :: bindings[head.target.name] else return null
+        return wire_targets.namespace_targets[alias.id]
+    }
+    trait_sym :: lookup_trait_sym(AST.impl_trait_name(decl), module_symbols, bindings, wire_targets)
+        else return null
+    return if trait_sym.kind == .Trait { trait_sym.module } else { null }
+}
+
+// The trait named `name` : a declaration of the module, else an import binding of
+// the impl's file.
+lookup_trait_sym :: fn(
+    name: string,
+    module_symbols: Map<string, Symbol>,
+    bindings: Map<string, Symbol>,
+    wire_targets: ImportTargetTable,
 ) -> Symbol | null {
-    declared :: module_symbols[decl.trait_name]
+    declared :: module_symbols[name]
     if declared is Symbol {
         return resolve_import_redirect(declared, wire_targets)
     }
-    bound :: bindings[decl.trait_name] else return null
+    bound :: bindings[name] else return null
     return resolve_import_redirect(bound, wire_targets)
 }
 

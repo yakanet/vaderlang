@@ -60,8 +60,10 @@
             }
           ]
         },
-        "traitName": "Marker",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Marker"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -167,8 +169,10 @@
           "kind": "IdentExpr",
           "name": "Word"
         },
-        "traitName": "_i32__i32_",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "_i32__i32_"
+        },
         "members": [
           {
             "kind": "FnDecl",

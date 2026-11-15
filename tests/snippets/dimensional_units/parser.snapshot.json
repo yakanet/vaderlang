@@ -32,17 +32,23 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Money"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Money"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -138,8 +144,10 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Comparable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Comparable"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -330,17 +338,23 @@
           "kind": "IdentExpr",
           "name": "Instant"
         },
-        "traitName": "Sub",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Instant"
+            "name": "Sub"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Duration"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Instant"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Duration"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -436,17 +450,23 @@
           "kind": "IdentExpr",
           "name": "Instant"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Duration"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Instant"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Duration"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Instant"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

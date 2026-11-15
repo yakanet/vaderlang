@@ -87,8 +87,10 @@
           "kind": "IdentExpr",
           "name": "Timeout"
         },
-        "traitName": "Err",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Err"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -132,8 +134,10 @@
           "kind": "IdentExpr",
           "name": "Refused"
         },
-        "traitName": "Err",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Err"
+        },
         "members": [
           {
             "kind": "FnDecl",

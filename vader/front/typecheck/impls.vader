@@ -129,7 +129,7 @@ registered_trait_args :: fn(
     resolved: ResolvedModule,
     typed: TypedProgram | null,
 ) -> Type[] {
-    written :: written_type_args(impl_.trait_args, resolved, [])
+    written :: written_type_args(impl_trait_args(impl_), resolved, [])
     if typed == null {
         return written
     }
@@ -190,8 +190,7 @@ export trait_param_bindings :: fn(
 /// @param decl      the impl.
 /// @param resolved  the module that declares `decl`.
 impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symbol | null {
-    bound :: resolved.idents[decl.trait_name_span.hash()] else return null
-    target :: redirect_import(bound, resolved)
+    target :: named_declaration(impl_trait_head(decl), resolved) else return null
     return if target.kind == .Trait { target } else { null }
 }
 

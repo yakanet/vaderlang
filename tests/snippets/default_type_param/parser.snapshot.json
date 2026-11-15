@@ -162,8 +162,10 @@
           "kind": "IdentExpr",
           "name": "N"
         },
-        "traitName": "Adder",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Adder"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -336,8 +338,10 @@
           "kind": "IdentExpr",
           "name": "Tick"
         },
-        "traitName": "Counter",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Counter"
+        },
         "members": [
           {
             "kind": "FnDecl",

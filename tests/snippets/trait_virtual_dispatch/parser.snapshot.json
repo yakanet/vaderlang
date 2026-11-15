@@ -57,8 +57,10 @@
           "kind": "IdentExpr",
           "name": "ParseErr"
         },
-        "traitName": "Error",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -104,8 +106,10 @@
           "kind": "IdentExpr",
           "name": "NetErr"
         },
-        "traitName": "Error",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        },
         "members": [
           {
             "kind": "FnDecl",

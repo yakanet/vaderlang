@@ -491,8 +491,10 @@
           "kind": "IdentExpr",
           "name": "Inner"
         },
-        "traitName": "Visit",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Visit"
+        },
         "members": [
           {
             "kind": "FnDecl",

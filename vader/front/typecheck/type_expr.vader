@@ -297,6 +297,20 @@ namespace_member_declaration :: fn(
     return members[e.field]
 }
 
+// The declaration a name written in `resolved` stands for (`Sorted`, the
+// `FieldExpr` of `S.Sorted`), followed through its import. Null when the name
+// binds to nothing.
+named_declaration :: fn(named: AST.Expr, resolved: ResolvedModule) -> Symbol | null {
+    if named is AST.FieldExpr {
+        return namespace_member_declaration(named, resolved, diag_sink())
+    }
+    if named !is AST.IdentExpr {
+        return null
+    }
+    sym :: resolved.idents[named.span.hash()] else return null
+    return redirect_import(sym, resolved)
+}
+
 /// Resolve a type-position ident to its Symbol via the resolver's span-keyed
 /// `idents` table (authoritative: `idents` covers every type-position ref, so
 /// there is no by-name / core fallback). Returns `null` when the span isn't bound.

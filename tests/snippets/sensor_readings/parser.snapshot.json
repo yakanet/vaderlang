@@ -407,17 +407,23 @@
           "kind": "IdentExpr",
           "name": "Tally"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i64"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Tally"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Tally"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

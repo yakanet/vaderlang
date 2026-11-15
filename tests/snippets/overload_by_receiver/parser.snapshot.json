@@ -29,8 +29,10 @@
           "kind": "IdentExpr",
           "name": "Boom"
         },
-        "traitName": "Error",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        },
         "members": [
           {
             "kind": "FnDecl",

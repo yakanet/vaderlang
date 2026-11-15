@@ -100,8 +100,10 @@
           "kind": "IdentExpr",
           "name": "Sq"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -228,8 +230,10 @@
           "kind": "IdentExpr",
           "name": "Rect"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -465,8 +469,10 @@
           "kind": "IdentExpr",
           "name": "P"
         },
-        "traitName": "A",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "A"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -512,8 +518,10 @@
           "kind": "IdentExpr",
           "name": "P"
         },
-        "traitName": "B",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "B"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -647,8 +655,10 @@
           "kind": "IdentExpr",
           "name": "Limbs"
         },
-        "traitName": "Zero",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Zero"
+        },
         "members": [
           {
             "kind": "FnDecl",

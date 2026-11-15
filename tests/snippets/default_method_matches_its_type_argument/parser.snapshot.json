@@ -258,13 +258,19 @@
           "kind": "IdentExpr",
           "name": "Ints"
         },
-        "traitName": "Probe",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+            "name": "Probe"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -309,13 +315,19 @@
           "kind": "IdentExpr",
           "name": "Strings"
         },
-        "traitName": "Probe",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
-          }
-        ],
+            "name": "Probe"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -1,0 +1,22 @@
+// An impl names its trait through a namespace alias (`S.Sized`), with type
+// arguments too (`S.Scaled<i32>`): the impl's members, the trait's default and
+// a bound of the trait's module all reach it.
+// Expected: prints "7 14 21 8", exits 0.
+module "snippet"
+
+import "std/console"
+S :: import "snippet/shapes"
+
+Crate :: struct { n: i32 }
+
+Crate implements S.Sized {
+    size :: fn(self) -> i32 = self.n
+}
+
+Crate implements S.Scaled<i32> -> self.n * by
+
+main :: fn() -> i32 {
+    c :: Crate { .n = 7 }
+    println("${c.size()} ${c.doubled()} ${c.scale(3)} ${S.total([c, Crate { .n = 1 }])}")
+    return 0
+}

@@ -148,8 +148,10 @@
           "kind": "IdentExpr",
           "name": "Tag"
         },
-        "traitName": "Hash",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Hash"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -206,8 +208,10 @@
           "kind": "IdentExpr",
           "name": "Tag"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -272,8 +276,10 @@
           "kind": "IdentExpr",
           "name": "Tag"
         },
-        "traitName": "Hashable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Hashable"
+        },
         "members": [
           {
             "kind": "FnDecl",

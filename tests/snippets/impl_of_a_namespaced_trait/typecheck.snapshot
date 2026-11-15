@@ -1,0 +1,45 @@
+# Typecheck
+
+## tests/snippets/impl_of_a_namespaced_trait
+  StructDecl     Crate                :: Crate
+  FnDecl         main                 :: fn() -> i32
+  expr 13:31    FieldExpr      :: i32
+  expr 13:31    IdentExpr      :: Crate
+  expr 16:35    BinaryExpr     :: i32
+  expr 16:35    FieldExpr      :: i32
+  expr 16:35    IdentExpr      :: Crate
+  expr 16:44    IdentExpr      :: i32
+  expr 19:10    StructLitExpr  :: Crate
+  expr 20:13    StringLitExpr  :: string
+  expr 20:16    CallExpr       :: i32
+  expr 20:16    FieldExpr      :: fn() -> i32
+  expr 20:16    IdentExpr      :: Crate
+  expr 20:28    CallExpr       :: i32
+  expr 20:28    FieldExpr      :: fn() -> i32
+  expr 20:28    IdentExpr      :: Crate
+  expr 20:43    CallExpr       :: i32
+  expr 20:43    FieldExpr      :: fn(i32) -> i32
+  expr 20:43    IdentExpr      :: Crate
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 20:57    CallExpr       :: i32
+  expr 20:57    FieldExpr      :: fn(T[]) -> i32
+  expr 20:65    SeqLitExpr     :: Crate[]
+  expr 20:66    IdentExpr      :: Crate
+  expr 20:69    StructLitExpr  :: Crate
+
+## tests/snippets/impl_of_a_namespaced_trait/shapes
+  TraitDecl      Scaled               :: Scaled<F>
+  TraitDecl      Sized                :: Sized
+  FnDecl         total                :: fn(T[]) -> i32
+  expr 14:14    IdentExpr      :: T[]
+  expr 15:16    CallExpr       :: i32
+  expr 15:16    FieldExpr      :: fn() -> i32
+  expr 15:16    IdentExpr      :: T
+  expr 15:9     BinaryExpr     :: i32
+  expr 15:9     IdentExpr      :: i32
+  expr 17:12    IdentExpr      :: i32
+  expr 5:34     BinaryExpr     :: i32
+  expr 5:34     CallExpr       :: i32
+  expr 5:34     FieldExpr      :: fn() -> i32
+  expr 5:34     IdentExpr      :: Self

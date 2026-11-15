@@ -143,13 +143,19 @@
             }
           ]
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Label"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Label"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -227,13 +233,19 @@
             }
           ]
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Label"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Label"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -320,22 +332,28 @@
             }
           ]
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Holder"
-            },
-            "typeArgs": [
-              {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "T"
-              }
-            ]
-          }
-        ],
+                "name": "Holder"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "T"
+                }
+              ]
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

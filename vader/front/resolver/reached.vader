@@ -134,7 +134,7 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
                 if key == null || key in reachable {
                     kept.push(d)
                 } else if d is AST.ImplDecl {
-                    left.lost_impl_traits.push(d.trait_name)
+                    left.lost_impl_traits.push(AST.impl_trait_name(d))
                 }
             }
             left.files.push(
@@ -150,7 +150,7 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
 // module: its own, the trait of an impl, the members of a trait.
 add_leading_names :: fn(d: AST.Decl, leading: Set<string>) -> void {
     if d is AST.ImplDecl {
-        leading.add(d.trait_name)
+        leading.add(AST.impl_trait_name(d))
         return
     }
     name :: declared_name(d) else return
@@ -162,14 +162,11 @@ add_leading_names :: fn(d: AST.Decl, leading: Set<string>) -> void {
     }
 }
 
-// Every name `d` writes, the ones the walk of the tree does not meet as a node
-// included: the trait of an impl, and the source name an import rebinds.
+// Every name `d` writes, the one the walk of the tree does not meet as a node
+// included: the source name an import rebinds.
 names_written_by :: fn(d: AST.Decl) -> string[] {
     refs: string[]: []
     collect_names(d, refs)
-    if d is AST.ImplDecl {
-        refs.push(d.trait_name)
-    }
     if d is AST.ImportDecl {
         binding :: d.binding
         if binding is AST.DestructureImport {
@@ -196,10 +193,8 @@ reach_key :: fn(d: AST.Decl, dependency_types: Set<string>) -> string | null {
     if owner != null && owner in dependency_types {
         return owner
     }
-    if d.trait_name == "" {
-        return null
-    }
-    return d.trait_name
+    trait_name :: AST.impl_trait_name(d)
+    return if trait_name == "" { null } else { trait_name }
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -222,7 +217,7 @@ reached_by :: fn(program: string, library: string) -> string {
     names: string[]: []
     for d in left[1].files[0].program.decls {
         if d is AST.ImplDecl {
-            names.push("${type_head_name(d.for_type) else "_"}:${d.trait_name}")
+            names.push("${type_head_name(d.for_type) else "_"}:${AST.impl_trait_name(d)}")
             continue
         }
         names.push(declared_name(d) else continue)

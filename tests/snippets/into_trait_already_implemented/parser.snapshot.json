@@ -77,8 +77,10 @@
           "kind": "IdentExpr",
           "name": "Cat"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -134,8 +136,10 @@
           "kind": "IdentExpr",
           "name": "Stray"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -180,13 +184,19 @@
           "kind": "IdentExpr",
           "name": "Cat"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Named"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Named"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

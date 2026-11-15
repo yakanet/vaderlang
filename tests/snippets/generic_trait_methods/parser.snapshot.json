@@ -111,8 +111,10 @@
           "kind": "IdentExpr",
           "name": "Box"
         },
-        "traitName": "Conv",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Conv"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -320,8 +322,10 @@
             }
           ]
         },
-        "traitName": "Conv",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Conv"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -481,8 +485,10 @@
             "name": "T"
           }
         },
-        "traitName": "Conv",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Conv"
+        },
         "members": [
           {
             "kind": "FnDecl",

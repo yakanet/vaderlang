@@ -99,7 +99,6 @@ collect_decl_refs :: fn(d: AST.Decl, seed_refs: string[]) -> NamedDeclRefs | nul
             // Impl members are dispatched (vtable / UFCS) and can't be proven dead ;
             // the block is nameless. Seed its refs as live roots.
             collect_names(d, seed_refs)
-            seed_refs.push(d.trait_name)
             null
         }
         is AST.AssertDecl    -> {

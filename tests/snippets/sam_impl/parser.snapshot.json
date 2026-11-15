@@ -81,8 +81,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Describe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Describe"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -124,8 +126,10 @@
           "kind": "IdentExpr",
           "name": "i64"
         },
-        "traitName": "Describe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Describe"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -196,8 +200,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Tag",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Tag"
+        },
         "members": [
           {
             "kind": "FnDecl",

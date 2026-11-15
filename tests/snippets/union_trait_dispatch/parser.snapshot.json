@@ -95,8 +95,10 @@
           "kind": "IdentExpr",
           "name": "Sq"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -152,8 +154,10 @@
           "kind": "IdentExpr",
           "name": "Circle"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -220,8 +224,10 @@
             "name": "f64"
           }
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -349,8 +355,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Loud",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Loud"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -402,8 +410,10 @@
           "kind": "IdentExpr",
           "name": "string"
         },
-        "traitName": "Loud",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Loud"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -523,17 +533,23 @@
           "kind": "IdentExpr",
           "name": "Log"
         },
-        "traitName": "IndexSet",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
+            "name": "IndexSet"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -770,17 +786,23 @@
           "kind": "IdentExpr",
           "name": "Tally"
         },
-        "traitName": "Index",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
+            "name": "Index"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -852,17 +874,23 @@
           "kind": "IdentExpr",
           "name": "Tally"
         },
-        "traitName": "IndexSet",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
+            "name": "IndexSet"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -968,17 +996,23 @@
           "kind": "IdentExpr",
           "name": "Cell"
         },
-        "traitName": "Index",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
+            "name": "Index"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -1038,17 +1072,23 @@
           "kind": "IdentExpr",
           "name": "Cell"
         },
-        "traitName": "IndexSet",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
+            "name": "IndexSet"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -1241,13 +1281,19 @@
           "kind": "IdentExpr",
           "name": "Odd"
         },
-        "traitName": "Contains",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i64"
-          }
-        ],
+            "name": "Contains"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -1505,13 +1551,19 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+            "name": "Add"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -1585,8 +1637,10 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",

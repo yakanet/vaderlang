@@ -392,8 +392,10 @@
           "kind": "IdentExpr",
           "name": "A"
         },
-        "traitName": "Widget",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Widget"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -437,8 +439,10 @@
           "kind": "IdentExpr",
           "name": "B"
         },
-        "traitName": "Widget",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Widget"
+        },
         "members": [
           {
             "kind": "FnDecl",

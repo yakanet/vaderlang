@@ -79,8 +79,10 @@
             }
           ]
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -133,17 +135,23 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Money"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Money"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -486,8 +486,10 @@
           "kind": "IdentExpr",
           "name": "Square"
         },
-        "traitName": "Probe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Probe"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -527,8 +529,10 @@
           "kind": "IdentExpr",
           "name": "i32"
         },
-        "traitName": "Probe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Probe"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -568,8 +572,10 @@
           "kind": "IdentExpr",
           "name": "f64"
         },
-        "traitName": "Probe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Probe"
+        },
         "members": [
           {
             "kind": "FnDecl",

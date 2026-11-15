@@ -100,8 +100,10 @@
           "kind": "IdentExpr",
           "name": "Direction"
         },
-        "traitName": "Turnable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Turnable"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -261,8 +263,10 @@
           "kind": "IdentExpr",
           "name": "Direction"
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",

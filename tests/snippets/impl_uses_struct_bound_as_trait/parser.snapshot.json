@@ -103,8 +103,10 @@
           "kind": "IdentExpr",
           "name": "Book"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -148,8 +150,10 @@
           "kind": "IdentExpr",
           "name": "Book"
         },
-        "traitName": "Display",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -283,8 +287,10 @@
             }
           ]
         },
-        "traitName": "Size",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Size"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -428,17 +434,23 @@
           "kind": "IdentExpr",
           "name": "Row"
         },
-        "traitName": "Index",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i64"
+            "name": "Index"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "i64"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -576,8 +588,10 @@
             }
           ]
         },
-        "traitName": "First",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "First"
+        },
         "members": [
           {
             "kind": "FnDecl",

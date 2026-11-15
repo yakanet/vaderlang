@@ -1,0 +1,18 @@
+module "snippet/shapes"
+
+export Sized :: trait {
+    size :: fn(self) -> i32
+    doubled :: fn(self) -> i32 = self.size() * 2
+}
+
+export Scaled :: trait<F> {
+    scale :: fn(self, by: F) -> i32
+}
+
+export total :: fn<T: Sized>(xs: T[]) -> i32 {
+    sum := 0
+    for x in xs {
+        sum += x.size()
+    }
+    return sum
+}

@@ -74,13 +74,19 @@
           "kind": "IdentExpr",
           "name": "Celsius"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Label"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Label"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -149,13 +155,19 @@
           "kind": "IdentExpr",
           "name": "Celsius"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "string"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -543,8 +555,10 @@
           "kind": "IdentExpr",
           "name": "Box"
         },
-        "traitName": "Shower",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shower"
+        },
         "members": [
           {
             "kind": "FnDecl",

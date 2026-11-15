@@ -54,8 +54,10 @@
             "name": "i32"
           }
         },
-        "traitName": "Resettable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Resettable"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -153,8 +155,10 @@
             "name": "i32"
           }
         },
-        "traitName": "Popper",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Popper"
+        },
         "members": [
           {
             "kind": "FnDecl",

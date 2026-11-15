@@ -199,13 +199,19 @@
             }
           ]
         },
-        "traitName": "Mix",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "T"
-          }
-        ],
+            "name": "Mix"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "T"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -286,8 +292,10 @@
             }
           ]
         },
-        "traitName": "Mix",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Mix"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -350,13 +358,19 @@
           "kind": "IdentExpr",
           "name": "Pair"
         },
-        "traitName": "Mix",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+            "name": "Mix"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -410,8 +424,10 @@
           "kind": "IdentExpr",
           "name": "Pair"
         },
-        "traitName": "Mix",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Mix"
+        },
         "members": [
           {
             "kind": "FnDecl",

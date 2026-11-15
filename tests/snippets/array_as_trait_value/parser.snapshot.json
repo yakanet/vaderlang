@@ -72,8 +72,10 @@
             "name": "Tile"
           }
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -141,8 +143,10 @@
             "name": "T"
           }
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -220,8 +224,10 @@
           "kind": "IdentExpr",
           "name": "Word"
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -184,8 +184,10 @@
             }
           ]
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -239,8 +241,10 @@
             }
           ]
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -309,8 +313,10 @@
             }
           ]
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -380,8 +386,10 @@
             }
           ]
         },
-        "traitName": "Tag",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Tag"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -435,8 +443,10 @@
             }
           ]
         },
-        "traitName": "Fancy",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Fancy"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -499,8 +509,10 @@
             "name": "MonType"
           }
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -568,8 +580,10 @@
             "name": "T"
           }
         },
-        "traitName": "Poke",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Poke"
+        },
         "members": [
           {
             "kind": "FnDecl",

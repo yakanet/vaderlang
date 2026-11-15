@@ -218,7 +218,7 @@ array_member :: fn(state: ServerState, cached: ProjectCache, name: string) -> Ex
                 if !(d.for_type is AST.ArrayTypeExpr) {
                     continue
                 }
-                hit :: member_in_declaring_module(state, d.span.start.file, d.trait_name, name)
+                hit :: member_in_declaring_module(state, d.span.start.file, AST.impl_trait_name(d), name)
                 if hit != null {
                     return hit
                 }

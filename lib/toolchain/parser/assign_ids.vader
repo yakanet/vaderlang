@@ -92,7 +92,7 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
             d.id = f.mint()
             for tp in d.type_params { walk_type_param(tp, f) }
             walk_expr(d.for_type, f)
-            for ta in d.trait_args { walk_expr(ta, f) }
+            walk_expr(d.implemented, f)
             for m in d.members { walk_fn_decl(m, f) }
             for dec in d.decorators { walk_decorator(dec, f) }
         }

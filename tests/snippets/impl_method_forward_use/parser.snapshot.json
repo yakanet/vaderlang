@@ -108,8 +108,10 @@
           "kind": "IdentExpr",
           "name": "Counter"
         },
-        "traitName": "Bump",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Bump"
+        },
         "members": [
           {
             "kind": "FnDecl",

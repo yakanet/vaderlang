@@ -232,8 +232,10 @@
           },
           "field": "Point"
         },
-        "traitName": "Describe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Describe"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -293,8 +295,10 @@
           },
           "field": "Point"
         },
-        "traitName": "Describe",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Describe"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -61,25 +61,18 @@ materialize_file_impl_members :: fn(
         if decl !is AST.ImplDecl {
             continue
         }
-        found :: find_impl_trait_decl(decl.trait_name, loaded, scope, name_index, project)
+        head :: AST.impl_trait_head(decl)
+        found :: find_impl_trait_decl(head, loaded, scope, name_index, project)
         if found.trait_decl is null {
-            if found.other_kind != "" {
-                project.diags.push(
-                    resolver_error(
-                        .TraitNameNotATrait,
-                        decl.trait_name_span,
-                        "`${decl.trait_name}` is ${found.other_kind}",
-                    ),
-                )
+            written :: "`${AST.impl_trait_written_name(decl)}`"
+            diag :: if found.hidden {
+                resolver_error(.SymbolNotExported, head.span, written)
+            } else if found.other_kind != "" {
+                resolver_error(.TraitNameNotATrait, head.span, "${written} is ${found.other_kind}")
             } else {
-                project.diags.push(
-                    resolver_error(
-                        .UnresolvedTypeName,
-                        decl.trait_name_span,
-                        "`${decl.trait_name}`",
-                    ),
-                )
+                resolver_error(.UnresolvedTypeName, head.span, written)
             }
+            project.diags.push(diag)
             continue
         }
         trait_decl :: found.trait_decl
@@ -121,7 +114,7 @@ check_short_impl_arity :: fn(
                 resolver_error(
                     .ShortImplFormSingleMethod,
                     m.span,
-                    "trait `${impl_.trait_name}` has ${required} required methods",
+                    "trait `${AST.impl_trait_name(impl_)}` has ${required} required methods",
                 ),
             )
             // Mark the synthetic body as already-typechecked so the
@@ -143,14 +136,17 @@ export has_impl_decl :: fn(decls: AST.Decl[]) -> bool = !decls.filter_is<AST.Imp
 // (`file_root_scope`, without builtins), the module's own names and imports, then
 // the prelude and the wildcard imports.
 find_impl_trait_decl :: fn(
-    name: string,
+    head: AST.Expr,
     loaded: LoadedModule,
     scope: Map<string, Symbol>,
     name_index: Map<string, LoadedModule>,
     project: LoadedProject,
 ) -> TraitLookup {
     unresolved :: TraitLookup { .trait_decl = null, .other_kind = "" }
-    sym :: name_in_file_scope(name, loaded, scope, name_index) else return unresolved
+    sym :: trait_in_file_scope(head, loaded, scope, name_index) else return unresolved
+    if head is AST.FieldExpr && sym.visibility == .Private {
+        return TraitLookup { .trait_decl = null, .other_kind = "", .hidden = true }
+    }
     if sym.kind != .Trait {
         // @partial: only a type declaration is reported by its kind ; any other
         // binding reads as an unresolved type name.
@@ -169,6 +165,30 @@ find_impl_trait_decl :: fn(
         }
     }
     return unresolved
+}
+
+// The symbol the trait name `head` binds to in a file's `scope`: a name of the
+// file, or a member of the module a namespace alias imports (`Ns.Trait`). Null
+// when it binds to nothing.
+trait_in_file_scope :: fn(
+    head: AST.Expr,
+    loaded: LoadedModule,
+    scope: Map<string, Symbol>,
+    name_index: Map<string, LoadedModule>,
+) -> Symbol | null {
+    if head is AST.IdentExpr {
+        return name_in_file_scope(head.name, loaded, scope, name_index)
+    }
+    if head !is AST.FieldExpr || head.target !is AST.IdentExpr {
+        return null
+    }
+    alias :: scope[head.target.name] else return null
+    info :: loaded.collected.imports[alias.id] else return null
+    if info.imported_name != null {
+        return null
+    }
+    imported :: name_index[info.path] else return null
+    return imported.collected.symbols[head.field]
 }
 
 // The symbol `name` binds to in a file's `scope` (`file_root_scope`), an import
@@ -196,4 +216,6 @@ TraitLookup :: struct {
     /// `"a struct"` / `"an enum"` / `"an alias"` when the name binds to that kind
     /// of declaration ; empty otherwise. Only meaningful when `trait_decl` is null.
     other_kind: string
+    /// The name is `Ns.Trait`, and its module does not export `Trait`.
+    hidden: bool = false
 }

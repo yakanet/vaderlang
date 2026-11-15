@@ -48,8 +48,10 @@
           "kind": "IdentExpr",
           "name": "Vec"
         },
-        "traitName": "Add",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Add"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -151,8 +153,10 @@
           "kind": "IdentExpr",
           "name": "Vec"
         },
-        "traitName": "Sub",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Sub"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -254,8 +258,10 @@
           "kind": "IdentExpr",
           "name": "Vec"
         },
-        "traitName": "Mul",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Mul"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -357,8 +363,10 @@
           "kind": "IdentExpr",
           "name": "Vec"
         },
-        "traitName": "Div",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Div"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -460,8 +468,10 @@
           "kind": "IdentExpr",
           "name": "Vec"
         },
-        "traitName": "Rem",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Rem"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -581,8 +591,10 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -628,8 +640,10 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Comparable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Comparable"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -523,16 +523,20 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     // generic for_type that look like fresh idents become TypeParams.
     self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)
-    for ta in d.trait_args { self.walk_expr(ta) }
-    // The symbol the trait name binds to (a local trait, or an import) so later
-    // passes follow the binding instead of looking the name up again. A name the
-    // scope doesn't bind stays unrecorded: R2007 / R2009 on it come from the
-    // impl-member pass that runs before this walk (`materialize_impl_members`,
-    // `impl_members.vader`).
-    trait_sym :: self.scope.lookup(d.trait_name)
-    if trait_sym != null {
-        self.idents[d.trait_name_span.hash()] = trait_sym
-        self.check_wildcard_ambiguity(d.trait_name, d.trait_name_span, trait_sym)
+    for ta in AST.impl_trait_args(d) { self.walk_expr(ta) }
+    // The symbol the trait's name binds to (a local trait, an import, or the
+    // namespace alias of `Ns.Trait`) so later passes follow the binding instead
+    // of looking the name up again. A name the scope doesn't bind stays
+    // unrecorded: R2007 / R2009 on it come from the impl-member pass that runs
+    // before this walk (`materialize_impl_members`, `impl_members.vader`).
+    head :: AST.impl_trait_head(d)
+    named :: if head is AST.FieldExpr { head.target } else { head }
+    if named is AST.IdentExpr {
+        bound :: self.scope.lookup(named.name)
+        if bound != null {
+            self.idents[named.span.hash()] = bound
+            self.check_wildcard_ambiguity(named.name, named.span, bound)
+        }
     }
     // Two members are skipped. A SAM short-impl synthetic: its body is the
     // user's expression and its params never got minted, so walking would

@@ -180,9 +180,7 @@ write_impl :: fn(w: DeclWriter, d: AST.ImplDecl) -> void {
     w.out.write_field("impl")
     w.write_span(d.span)
     w.write_type_params(d.type_params)
-    w.out.write_field(d.trait_name)
-    w.write_span(d.trait_name_span)
-    w.write_exprs(d.trait_args)
+    w.write_expr(d.implemented)
     w.write_expr(d.for_type)
     w.write_members(d.members)
 }
@@ -499,18 +497,14 @@ read_trait :: fn(d: DeclReader) -> AST.TraitDecl | ProtocolError {
 read_impl :: fn(d: DeclReader) -> AST.ImplDecl | ProtocolError {
     span :: d.read_span() else return span
     type_params :: d.read_type_params() else return type_params
-    trait_name :: d.fields.read_field() else return trait_name
-    trait_name_span :: d.read_span() else return trait_name_span
-    trait_args :: d.read_exprs() else return trait_args
+    implemented :: d.read_expr() else return implemented
     for_type :: d.read_expr() else return for_type
     members :: d.read_members() else return members
     return AST.ImplDecl {
         .span = span,
         .type_params = type_params,
         .for_type = for_type,
-        .trait_name = trait_name,
-        .trait_name_span = trait_name_span,
-        .trait_args = trait_args,
+        .implemented = implemented,
         .members = members,
         .decorators = [],
     }

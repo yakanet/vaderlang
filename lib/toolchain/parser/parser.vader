@@ -948,6 +948,12 @@ parse_lhs_generic_alias_decl :: fn(p: Parser, decorators: Decorator[], visibilit
     }
 }
 
+// The trait an impl names, missing: reported, and stood in for by the token met.
+missing_trait_name :: fn(p: Parser) -> TypeExpr {
+    t :: p.expect(.Ident, "trait name")
+    return ident_expr(t.span, t.text)
+}
+
 parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     p.reject_free_fn_decorators(decorators, "an `implements` block", "")
     start_tok :: p.peek()
@@ -961,20 +967,15 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     if p.check(.Lt) {
         type_params = p.parse_angle_type_params()
     }
-    trait_tok :: p.expect(.Ident, "trait name")
-
-    // Trait-args: `Iterator<T>`.
-    trait_args: TypeExpr[] = []
-    if p.match_kind(.Lt) != null {
-        trait_args = p.parse_type_list_until_angle()
-    }
+    // `Iterator<T>`, `Fmt.Display`.
+    implemented :: if p.check(.Ident) { p.parse_named_type() } else { p.missing_trait_name() }
 
     // `@intrinsic Type implements Trait` (no body): resolver synthesises
     // body-less members from the trait's methods.
     is_intrinsic :: decorators_have(decorators, "intrinsic")
 
     members: FnDecl[]: []
-    end_tok: Token = trait_tok
+    end_tok: Token = p.peek_at(-1)
     if p.check(.Arrow) {
         members.push(p.parse_sam_arrow_member())
         end_tok = p.peek_at(-1)
@@ -1010,9 +1011,7 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
         .span            = p.span_of(start_tok, end_tok),
         .type_params     = type_params,
         .for_type        = for_type,
-        .trait_name      = trait_tok.text,
-        .trait_name_span = trait_tok.span,
-        .trait_args      = trait_args,
+        .implemented     = implemented,
         .members         = members,
         .decorators      = decorators,
     }
@@ -1977,38 +1976,7 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         return ident_expr(t.span, "null")
     }
     if t.kind == .Ident {
-        name :: p.advance()
-        head: Expr = ident_expr(name.span, name.text)
-        // Qualified namespace : `Alias.Type`, applies when the leading
-        // ident is a namespace alias (`Alias :: import "X"`). The resolver
-        // follows the chain to the exported type in
-        // the target module. Built as a `FieldExpr` so the existing
-        // field-resolution machinery (which already handles `module.value`
-        // for call expressions) serves type-position lookups too.
-        for p.check(.Dot) {
-            p.advance()
-            field :: p.expect(.Ident, "field name after `.` in qualified type")
-            head = FieldExpr {
-                .span       = Span { .start = head.span.start, .end = field.span.end },
-                .target     = head,
-                .field      = field.text,
-                .field_span = field.span,
-                .is_numeric = false,
-            }
-        }
-        // Generic instantiation in type position : `Foo<i32>`. `Foo[]`
-        // empty brackets fall through to the outer postfix loop for
-        // `T[]` array. No `Foo<>` ambiguity in type position : `<` is
-        // never a comparison here.
-        if p.match_kind(.Lt) != null {
-            args :: p.parse_type_list_until_angle()
-            return GenericInstExpr {
-                .span      = p.span_of(name, p.peek_at(-1)),
-                .callee    = head,
-                .type_args = args,
-            }
-        }
-        return head
+        return p.parse_named_type()
     }
     // A range written where a type goes, `1..=31` : the type of the integers it holds.
     if t.kind == .IntLit || (t.kind == .Minus && p.peek_at(1).kind == .IntLit) {
@@ -2017,6 +1985,43 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     p.error(.ExpectedType, t.span, "got ${describe_token(t)}")
     p.advance()
     return ident_expr(t.span, "?")
+}
+
+// A type named by an identifier, the cursor on it: `Type`, `Alias.Type`, either
+// with type arguments (`Box<i32>`).
+parse_named_type :: fn(p: Parser) -> TypeExpr {
+    name :: p.advance()
+    head: Expr = ident_expr(name.span, name.text)
+    // Qualified namespace : `Alias.Type`, applies when the leading
+    // ident is a namespace alias (`Alias :: import "X"`). The resolver
+    // follows the chain to the exported type in
+    // the target module. Built as a `FieldExpr` so the existing
+    // field-resolution machinery (which already handles `module.value`
+    // for call expressions) serves type-position lookups too.
+    for p.check(.Dot) {
+        p.advance()
+        field :: p.expect(.Ident, "field name after `.` in qualified type")
+        head = FieldExpr {
+            .span       = Span { .start = head.span.start, .end = field.span.end },
+            .target     = head,
+            .field      = field.text,
+            .field_span = field.span,
+            .is_numeric = false,
+        }
+    }
+    // Generic instantiation in type position : `Foo<i32>`. `Foo[]`
+    // empty brackets fall through to the outer postfix loop for
+    // `T[]` array. No `Foo<>` ambiguity in type position : `<` is
+    // never a comparison here.
+    if p.match_kind(.Lt) != null {
+        args :: p.parse_type_list_until_angle()
+        return GenericInstExpr {
+            .span      = p.span_of(name, p.peek_at(-1)),
+            .callee    = head,
+            .type_args = args,
+        }
+    }
+    return head
 }
 
 // `lo..=hi` or `lo..<hi` in type position, its bounds integer literals.

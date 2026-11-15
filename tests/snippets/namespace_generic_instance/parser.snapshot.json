@@ -82,8 +82,10 @@
             }
           ]
         },
-        "traitName": "Labelled",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Labelled"
+        },
         "members": [
           {
             "kind": "FnDecl",

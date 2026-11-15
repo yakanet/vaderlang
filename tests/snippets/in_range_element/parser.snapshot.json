@@ -408,13 +408,19 @@
           "kind": "IdentExpr",
           "name": "Bag"
         },
-        "traitName": "Contains",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i64"
-          }
-        ],
+            "name": "Contains"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -493,13 +499,19 @@
           "kind": "IdentExpr",
           "name": "DigitSet"
         },
-        "traitName": "Contains",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ],
+            "name": "Contains"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

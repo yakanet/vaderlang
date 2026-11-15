@@ -210,9 +210,10 @@ export required_methods :: fn(members: AST.FnDecl[]) -> AST.FnDecl[] {
 build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
     subst :: new_subst()
     bind(subst, "Self", impl_.for_type)
-    n :: min(trait_.type_params.len(), impl_.trait_args.len())
+    args :: AST.impl_trait_args(impl_)
+    n :: min(trait_.type_params.len(), args.len())
     for i in 0..<n {
-        bind(subst, trait_.type_params[i].name, impl_.trait_args[i])
+        bind(subst, trait_.type_params[i].name, args[i])
     }
     // Fill any trailing params the impl didn't supply from their `<T = Default>`
     // defaults. `Self` (and any earlier param) is already bound, so a `Self`

@@ -39,8 +39,10 @@
           "kind": "IdentExpr",
           "name": "A"
         },
-        "traitName": "Error",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -114,8 +116,10 @@
           "kind": "IdentExpr",
           "name": "B"
         },
-        "traitName": "Error",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        },
         "members": [
           {
             "kind": "FnDecl",

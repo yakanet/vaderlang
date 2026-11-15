@@ -35,17 +35,23 @@
           "kind": "IdentExpr",
           "name": "Histogram"
         },
-        "traitName": "Mul",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "u32"
+            "name": "Mul"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Histogram"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "u32"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Histogram"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -183,26 +189,32 @@
           "kind": "IdentExpr",
           "name": "Histogram"
         },
-        "traitName": "Div",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "u32"
+            "name": "Div"
           },
-          {
-            "kind": "SeqLitExpr",
-            "elements": [
-              {
-                "kind": "IdentExpr",
-                "name": "Histogram"
-              },
-              {
-                "kind": "IdentExpr",
-                "name": "u32"
-              }
-            ]
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "u32"
+            },
+            {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Histogram"
+                },
+                {
+                  "kind": "IdentExpr",
+                  "name": "u32"
+                }
+              ]
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

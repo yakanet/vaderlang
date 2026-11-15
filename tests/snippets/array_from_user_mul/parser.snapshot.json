@@ -48,20 +48,26 @@
           "kind": "IdentExpr",
           "name": "Vec"
         },
-        "traitName": "Mul",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
+            "name": "Mul"
           },
-          {
-            "kind": "ArrayTypeExpr",
-            "element": {
+          "typeArgs": [
+            {
               "kind": "IdentExpr",
               "name": "i32"
+            },
+            {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
             }
-          }
-        ],
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

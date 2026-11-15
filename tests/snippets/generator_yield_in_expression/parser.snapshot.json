@@ -112,8 +112,10 @@
           "kind": "IdentExpr",
           "name": "Odd"
         },
-        "traitName": "Error",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Error"
+        },
         "members": [
           {
             "kind": "FnDecl",

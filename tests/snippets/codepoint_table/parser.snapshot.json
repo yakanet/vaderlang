@@ -342,13 +342,19 @@
           "kind": "IdentExpr",
           "name": "Boxed"
         },
-        "traitName": "Into",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "char"
-          }
-        ],
+            "name": "Into"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "char"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -29,8 +29,10 @@
           "kind": "IdentExpr",
           "name": "Foo"
         },
-        "traitName": "Bar",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Bar"
+        },
         "members": [
           {
             "kind": "FnDecl",

@@ -126,7 +126,8 @@ record_impl_members :: fn(
     as_struct :: impl_params_as_struct_params(for_ty, owner)
     // With the default a slot's arguments take, so the impl's instance compares
     // with the slots that ask for it (`implements_trait_instance`).
-    written :: written_type_args(decl.trait_args, owner.resolved, diags)
+    written_args :: AST.impl_trait_args(decl)
+    written :: written_type_args(written_args, owner.resolved, diags)
     trait_args :: substitute_each_map(
         implemented_trait_args(written, trait_sym, for_ty, owner),
         as_struct,
@@ -139,7 +140,7 @@ record_impl_members :: fn(
     side :: impl_side_key(for_ty)
     trait_type :: TraitType { .symbol = trait_sym, .args = written }
     if written.len() == 1 {
-        reject_iterator_of_stop(trait_type, decl.trait_args[0].span, diags)
+        reject_iterator_of_stop(trait_type, written_args[0].span, diags)
     }
     generic :: type_contains_type_param(for_ty)
     for_type :: substitute_map(for_ty, as_struct)

@@ -42,10 +42,6 @@ export without_tests :: fn(files: SourceFile[], module_name: string) -> SourceFi
         for d in f.program.decls {
             refs: string[]: []
             collect_names(d, refs)
-            // The trait of an impl is a name the walk does not meet as a node.
-            if d is AST.ImplDecl {
-                refs.push(d.trait_name)
-            }
             name :: declared_name(d)
             if name != null {
                 register_refs(refs_by_name, name, refs)
@@ -160,7 +156,7 @@ left_of :: fn(source: string) -> string {
         if d is AST.ImplDecl {
             target :: d.for_type
             if target is AST.IdentExpr {
-                names.push("${target.name}:${d.trait_name}")
+                names.push("${target.name}:${AST.impl_trait_name(d)}")
             }
             continue
         }

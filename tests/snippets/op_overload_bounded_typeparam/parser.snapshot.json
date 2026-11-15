@@ -39,8 +39,10 @@
           "kind": "IdentExpr",
           "name": "V"
         },
-        "traitName": "Add",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Add"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -99,8 +101,10 @@
           "kind": "IdentExpr",
           "name": "V"
         },
-        "traitName": "Comparable",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Comparable"
+        },
         "members": [
           {
             "kind": "FnDecl",

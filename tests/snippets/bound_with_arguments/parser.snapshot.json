@@ -39,17 +39,23 @@
           "kind": "IdentExpr",
           "name": "Money"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Money"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Money"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Money"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -145,8 +151,10 @@
           "kind": "IdentExpr",
           "name": "Points"
         },
-        "traitName": "Add",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Add"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -242,17 +250,23 @@
           "kind": "IdentExpr",
           "name": "Grams"
         },
-        "traitName": "Add",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Self"
+            "name": "Add"
           },
-          {
-            "kind": "IdentExpr",
-            "name": "Self"
-          }
-        ],
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Self"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -498,16 +512,22 @@
             "name": "Money"
           }
         },
-        "traitName": "Count",
-        "traitArgs": [
-          {
-            "kind": "ArrayTypeExpr",
-            "element": {
-              "kind": "IdentExpr",
-              "name": "Money"
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Count"
+          },
+          "typeArgs": [
+            {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "Money"
+              }
             }
-          }
-        ],
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -710,13 +730,19 @@
           "kind": "IdentExpr",
           "name": "Cfg"
         },
-        "traitName": "Sink",
-        "traitArgs": [
-          {
+        "implemented": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "Cfg"
-          }
-        ],
+            "name": "Sink"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "Cfg"
+            }
+          ]
+        },
         "members": [
           {
             "kind": "FnDecl",

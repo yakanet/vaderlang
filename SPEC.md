@@ -1908,7 +1908,7 @@ print_it :: fn<T: Display>(x: T) {
 ```
 
 - **Declaration**: `Name :: trait { ... }`.
-- **Implementation**: `T implements Trait { ... }`, in three forms (*Single-method trait sugar (SAM)*). `T` and `Trait` resolve like any other name, and the impl belongs to the declarations they name: of two modules' `Foo` types, or `Animal` traits, an impl of one says nothing of the other.
+- **Implementation**: `T implements Trait { ... }`, in three forms (*Single-method trait sugar (SAM)*). `T` and `Trait` resolve like any other name, through a namespace alias too (`Point implements Fmt.Display`), and the impl belongs to the declarations they name: of two modules' `Foo` types, or `Animal` traits, an impl of one says nothing of the other.
 - An impl defines its trait's members and nothing else, each with its trait method's parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments, their defaults filled in (*Generics*, above). Any other member or signature is an error.
 - **`self` and `Self`**: in a trait or an impl, a first parameter named `self` has the type `Self` with no annotation, and `Self` is the implementing type (`Foo` in `Foo implements Trait { ... }`, a written `-> Self` included). Elsewhere, `Self` is an error.
 

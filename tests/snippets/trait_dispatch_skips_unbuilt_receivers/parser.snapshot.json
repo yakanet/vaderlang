@@ -88,8 +88,10 @@
             }
           ]
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -147,8 +149,10 @@
           "kind": "IdentExpr",
           "name": "Square"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -222,8 +226,10 @@
           "kind": "IdentExpr",
           "name": "Circle"
         },
-        "traitName": "Shape",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Shape"
+        },
         "members": [
           {
             "kind": "FnDecl",

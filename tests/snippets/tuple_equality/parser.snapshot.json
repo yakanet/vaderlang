@@ -39,8 +39,10 @@
           "kind": "IdentExpr",
           "name": "Tagged"
         },
-        "traitName": "Equals",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Equals"
+        },
         "members": [
           {
             "kind": "FnDecl",

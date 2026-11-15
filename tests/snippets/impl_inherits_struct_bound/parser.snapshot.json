@@ -116,8 +116,10 @@
           "kind": "IdentExpr",
           "name": "Book"
         },
-        "traitName": "Named",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Named"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -170,8 +172,10 @@
             }
           ]
         },
-        "traitName": "Size",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Size"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -244,8 +248,10 @@
             }
           ]
         },
-        "traitName": "Width",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Width"
+        },
         "members": [
           {
             "kind": "FnDecl",
@@ -348,8 +354,10 @@
             }
           ]
         },
-        "traitName": "Size",
-        "traitArgs": [],
+        "implemented": {
+          "kind": "IdentExpr",
+          "name": "Size"
+        },
         "members": [
           {
             "kind": "FnDecl",

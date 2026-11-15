@@ -455,10 +455,7 @@ collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
             collect_decorators(d.decorators, out)
             collect_type_params(d.type_params, out)
             collect_type(d.for_type, out)
-            // The trait an `implements` names : the resolver records it among
-            // the idents, so the block counts as a use of the trait.
-            out.spans.push(d.trait_name_span)
-            for ta in d.trait_args { collect_type(ta, out) }
+            collect_type(d.implemented, out)
             // A member materialised from a trait default has no source of its own.
             for m in d.members {
                 if !m.materialized {

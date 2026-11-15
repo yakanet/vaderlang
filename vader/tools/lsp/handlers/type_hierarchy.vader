@@ -179,7 +179,7 @@ implemented_traits :: fn(self: TypeWalk) -> void {
         }
         for d in self.program_of(s.span.start.file).decls {
             if d is AST.ImplDecl && starts_at(head_span(d.for_type), s.span) {
-                self.add_type_at(view.index, s.span.start.file, d.trait_name_span)
+                self.add_type_at(view.index, s.span.start.file, AST.impl_trait_name_span(d))
             }
         }
     }
@@ -195,7 +195,7 @@ implementing_types :: fn(self: TypeWalk) -> void {
             continue
         }
         for d in self.program_of(s.span.start.file).decls {
-            if d is AST.ImplDecl && d.trait_name_span.start.offset == s.span.start.offset {
+            if d is AST.ImplDecl && AST.impl_trait_name_span(d).start.offset == s.span.start.offset {
                 head :: head_span(d.for_type) else continue
                 self.add_type_at(view.index, s.span.start.file, head)
             }
@@ -214,7 +214,7 @@ impls_of :: fn(self: TypeWalk) -> AST.ImplDecl[] {
             continue
         }
         for d in self.program_of(s.span.start.file).decls {
-            if d is AST.ImplDecl && d.trait_name_span.start.offset == s.span.start.offset {
+            if d is AST.ImplDecl && AST.impl_trait_name_span(d).start.offset == s.span.start.offset {
                 out.push(d)
             }
         }
