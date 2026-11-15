@@ -1,0 +1,54 @@
+# Typecheck
+
+## tests/snippets/route_decorator_computed_path
+  FnDecl         __comptime___decorator_argument__main_0 :: fn() -> string
+  FnDecl         __comptime___decorator_argument__main_1 :: fn() -> i32
+  FnDecl         __comptime___decorator_argument__main_2 :: fn() -> string
+  ConstDecl      __decorator_argument__main_0 :: string
+  ConstDecl      __decorator_argument__main_1 :: i32
+  ConstDecl      __decorator_argument__main_2 :: string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         other                :: fn() -> string
+  FnDecl         prefix               :: fn(string) -> string
+  StructDecl     Route                :: Route
+  FnDecl         show                 :: fn() -> string
+  FnDecl         squares              :: fn() -> i32
+  expr 10:20    DotVariantExpr :: DecoratorTarget
+  expr 15:37    StringLitExpr  :: string
+  expr 15:45    IdentExpr      :: string
+  expr 19:14    RangeExpr      :: Range<i32>
+  expr 20:18    BinaryExpr     :: i32
+  expr 20:18    IdentExpr      :: i32
+  expr 20:22    IdentExpr      :: i32
+  expr 20:9     BinaryExpr     :: i32
+  expr 20:9     IdentExpr      :: i32
+  expr 22:12    IdentExpr      :: i32
+  expr 25:18    CallExpr       :: string
+  expr 25:18    IdentExpr      :: fn(string) -> string
+  expr 25:25    StringLitExpr  :: string
+  expr 25:44    CallExpr       :: i32
+  expr 25:44    IdentExpr      :: i32
+  expr 25:45    IdentExpr      :: fn() -> i32
+  expr 25:54    CallExpr       :: i32
+  expr 25:54    IdentExpr      :: fn() -> i32
+  expr 25:8     CallExpr       :: string
+  expr 25:8     IdentExpr      :: string
+  expr 25:9     IdentExpr      :: fn() -> string
+  expr 26:26    StringLitExpr  :: string
+  expr 28:8     CallExpr       :: string
+  expr 28:8     IdentExpr      :: string
+  expr 28:9     IdentExpr      :: fn() -> string
+  expr 29:10    StringLitExpr  :: string
+  expr 30:12    IdentExpr      :: string
+  expr 30:5     IdentExpr      :: string
+  expr 30:9     StringLitExpr  :: string
+  expr 31:5     IdentExpr      :: string
+  expr 33:27    StringLitExpr  :: string
+  expr 36:13    CallExpr       :: string
+  expr 36:13    IdentExpr      :: fn() -> string
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    CallExpr       :: string
+  expr 37:13    IdentExpr      :: fn() -> string
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void

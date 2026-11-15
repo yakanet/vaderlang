@@ -37,8 +37,14 @@ import "vader/lower/ir"
 /// @param lp          the lowered project to prune.
 /// @param keep_tests  when true, `@test` fns count as roots (for the
 ///                    test-runner build) ; regular run / build drops them.
+/// @param roots       the declarations (node ids) of more fns to keep: what a
+///                    caller runs by itself, which no call of the program reaches.
 /// @return            a new `LoweredProject` with unreachable fns removed.
-export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> LoweredProject {
+export prune_unreachable_fns :: fn(
+    lp: LoweredProject,
+    keep_tests: bool,
+    roots: i64[] = [],
+) -> LoweredProject {
     by_sym_id :: Map<i32, LoweredDecl> {}
     by_mangle :: Map<string, LoweredDecl> {}
     reachable_sym :: Set<i32> {}
@@ -90,7 +96,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                     // mangle, so index them by mangle.
                     by_mangle[d.mangled] = d
                 }
-                if is_fn_root(d, is_entry, has_main, keep_tests) {
+                if is_fn_root(d, is_entry, has_main, keep_tests, roots) {
                     mark_reachable(d, reachable_sym, reachable_mangle)
                     worklist.push(d)
                     // A root with a body is called from outside the program,
@@ -289,12 +295,17 @@ fn_survives :: fn(
 /// project exposes no `main`): every fn of the ENTRY module. A no-main build
 /// keeps its own whole surface ; dependencies (every non-entry module) are
 /// pruned to the set reachable from the roots.
-is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_tests: bool) -> bool {
+is_fn_root :: fn(
+    fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_tests: bool, roots: i64[],
+) -> bool {
     if is_entry && !has_main { return true }
     if fn_decl.body == null { return true }
     if fn_decl.origin.is_main { return true }
     ast :: fn_decl.origin.decl
     if ast is FnDecl {
+        if ast.id in roots {
+            return true
+        }
         for dec in ast.decorators {
             if dec.name == "extern" { return true }
             if keep_tests && dec.name == "test" { return true }

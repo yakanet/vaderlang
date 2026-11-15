@@ -158,8 +158,18 @@ export bake_awaited_values :: fn(pipeline: EvaluatedPipeline, owners: string[]) 
 // run in a second front end that keeps the host's bodies and bakes the target's
 // constants (`HostBodies`), whose values are copied into this build. Its own
 // profile brackets sit beside this one's, never inside: the profiler pairs them.
-// `owners` are the modules whose values are baked, every module when null.
+// `owners` are the modules whose values are baked, every module when null. A
+// declared decorator that waits for one of them is evaluated after.
 bake_deferred_values :: fn(
+    file: Path, include_path_flags: string[], view: Selection | null,
+    loaded: LoadedProject, evaluated: EvaluatedProject, owners: string[] | null,
+    diags: Diagnostic[],
+) -> void {
+    bake_on_the_vm(file, include_path_flags, view, loaded, evaluated, owners, diags)
+    evaluate_awaiting_decorator_uses(evaluated, owners, diags)
+}
+
+bake_on_the_vm :: fn(
     file: Path, include_path_flags: string[], view: Selection | null,
     loaded: LoadedProject, evaluated: EvaluatedProject, owners: string[] | null,
     diags: Diagnostic[],

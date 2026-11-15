@@ -104,8 +104,13 @@ evaluate_layer :: fn(
     // un-baked. Diagnostics are throwaway: the real lowering reports any
     // genuine errors.
     stage_diags: Diagnostic[]: []
-    cfg :: stage_to_cfg(loaded, typed, evaluated, pending, stage_diags)
-    module :: emit_bytecode_from_cfg(cfg, "comptime", default_emit_options())
+    roots :: read_at_compile_time(pending)
+    cfg :: stage_to_cfg(loaded, typed, evaluated, pending, roots, stage_diags)
+    options :: EmitOptions {
+        ...default_emit_options(),
+        .keep_mangles = mangles_of(cfg, roots),
+    }
+    module :: emit_bytecode_from_cfg(cfg, "comptime", options)
     state :: Vm.prepare(module) else is Vm.VerifyError {
         // The staged bytecode is the compiler's own output, so this is an emitter
         // bug ; every decl waiting on it is left un-baked, and says why.
@@ -114,8 +119,8 @@ evaluate_layer :: fn(
         }
         return []
     }
-    // Not lowered => the const is unused (nothing inlined its RHS call), so its
-    // value is genuinely unneeded: skip it silently.
+    // Not lowered => the const is unused (nothing inlined its RHS call, and no
+    // decorator reads it), so its value is genuinely unneeded: skip it silently.
     lowered: Ct.VmRequiredDecl[]: []
     callees: string[]: []
     for vr in pending {
@@ -293,6 +298,7 @@ stage_to_cfg :: fn(
     typed: TypedProject,
     evaluated: Ct.EvaluatedProject,
     pending: Ct.VmRequiredDecl[],
+    roots: i64[],
     diags: Diagnostic[],
 ) -> CFGProject {
     // Stage only the modules owning pending consts (+ their harvested closure),
@@ -304,9 +310,30 @@ stage_to_cfg :: fn(
         if !(vr.module_id in eager_modules) { eager_modules.push(vr.module_id) }
     }
     lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
-    pruned :: prune_unreachable_fns(lowered, false)
+    pruned :: prune_unreachable_fns(lowered, false, roots)
     passes :: CfgPassOptions { .instrumented = false, .plain_returns = true }
     return build_optimised_cfg(pruned, passes, diags)
+}
+
+// The callees of the `pending` decls that only a decorator reads: no use site
+// inlines their call, so the staging keeps them by itself.
+read_at_compile_time :: fn(pending: Ct.VmRequiredDecl[]) -> i64[] =
+    pending.filter((v) -> v.read_at_compile_time).map((v) -> v.callee_decl_id).collect()
+
+// The mangles of the staged functions the nodes `decl_ids` declare.
+mangles_of :: fn(cfg: CFGProject, decl_ids: i64[]) -> string[] {
+    out: string[]: []
+    if decl_ids.len() == 0 {
+        return out
+    }
+    for [_, m] in cfg.modules {
+        for f in m.functions {
+            if f.origin.decl.id in decl_ids {
+                out.push(f.mangled)
+            }
+        }
+    }
+    return out
 }
 
 // The mangle of the function declared by the node `decl_id`, null when the staged

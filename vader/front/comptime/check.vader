@@ -149,6 +149,7 @@ build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram
                         .callee_decl_id = callee.decl.id,
                         .decl_type      = decl_type,
                         .span           = decl.span,
+                        .read_at_compile_time = decl.comptime_synthetic,
                     }
                 }
             }

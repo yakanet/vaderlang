@@ -1,0 +1,67 @@
+# Lower
+
+## snippet
+  storage
+    const __decorator_argument__main_0: string  inline
+    const __decorator_argument__main_1: i32  inline
+    const __decorator_argument__main_2: string  inline
+  snippet.Route :: struct { path: string, weight: i32 }  // snippet$Route
+  snippet.prefix :: fn(s: string) -> string {  // snippet$prefix
+      concat_2("/api/", s)
+  }
+  snippet.squares :: fn() -> i32 {  // snippet$squares
+      total: i32 = 0
+      {
+          i: i32 = 0
+          for i < 4 {
+              total = total + (i * i)
+          } @step {
+              i = i +% 1
+          }
+      }
+      return total
+  }
+  snippet.__comptime___decorator_argument__main_0 :: fn() -> string {  // snippet$__comptime___decorator_argument__main_0
+      snippet.prefix("users")
+  }
+  snippet.__decorator_argument__main_0: string: "/api/users"  // snippet$__decorator_argument__main_0
+  snippet.__comptime___decorator_argument__main_1 :: fn() -> i32 {  // snippet$__comptime___decorator_argument__main_1
+      snippet.squares()
+  }
+  snippet.__decorator_argument__main_1: i32: 14  // snippet$__decorator_argument__main_1
+  snippet.show :: fn() -> string {  // snippet$show
+      "show"
+  }
+  snippet.__comptime___decorator_argument__main_2 :: fn() -> string {  // snippet$__comptime___decorator_argument__main_2
+      p: string = "/a"
+      p = concat_2(p, "/b")
+      p
+  }
+  snippet.__decorator_argument__main_2: string: "/a/b"  // snippet$__decorator_argument__main_2
+  snippet.other :: fn() -> string {  // snippet$other
+      "other"
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(snippet.show())
+      std.console.println<string>(snippet.other())
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    struct std.core.Buffer  // std_core$Buffer

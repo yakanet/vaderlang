@@ -730,6 +730,10 @@ export ConstDecl :: struct {
     /// null for every other const. Holds the raw block/expression (pre-`return`-
     /// lift), so the exact source spelling round-trips.
     comptime_body: Expr | null = null
+    /// Set on the hidden constant the parser writes for a `@comptime` argument of
+    /// a decorator (`CallArg.comptime_body`): no source names it, so the tools that
+    /// show declarations skip it, as they skip the helper of a `@comptime` value.
+    comptime_synthetic: bool = false
     doc:        DocComment | null = null
 }
 
@@ -738,6 +742,14 @@ export ConstDecl :: struct {
 ///
 /// @param d  the constant.
 export written_value :: fn(d: ConstDecl) -> Expr = d.comptime_body else d.value
+
+/// Whether the parser wrote `d` for a `@comptime` rather than the source: the
+/// helper computing its value, or the hidden constant of a decorator argument.
+/// The tools that show declarations skip both.
+///
+/// @param d  a declaration of a module.
+export is_comptime_made :: fn(d: Decl) -> bool =
+    d is FnDecl && d.comptime_synthetic || d is ConstDecl && d.comptime_synthetic
 
 /// Whether `d` is written `NAME :: @comptime <expr>`: its value is computed at
 /// compile time.
@@ -1132,6 +1144,10 @@ export CallArg :: struct {
     /// `false` today. The consumers (printer / dump / ufcs) already honour it
     /// so the feature only needs `parse_call_args` to set it.
     spread: bool
+    /// The operand of a `@comptime` written as the argument of a declared
+    /// decorator, which the parser moved to a hidden constant (`comptime_synthetic`)
+    /// that `value` names: the formatter re-emits it. Null for any other argument.
+    comptime_body: Expr | null = null
 }
 
 /// A member access, `target.field`.

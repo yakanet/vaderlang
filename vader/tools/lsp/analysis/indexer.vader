@@ -650,6 +650,11 @@ collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
             )
         }
         is ConstDecl     -> {
+            // The hidden constant of a decorator's `@comptime` argument names
+            // nothing a user wrote.
+            if d.comptime_synthetic {
+                return
+            }
             entries.push(
                 top_entry(
                     d.name,

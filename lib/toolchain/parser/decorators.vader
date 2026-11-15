@@ -46,9 +46,9 @@ export DECORATORS: DecoratorSpec[]: [
     },
     DecoratorSpec {
         .name   = "comptime",
-        .usage  = "NAME :: @comptime <expr>, @comptime for x in e { ... }",
+        .usage  = "NAME :: @comptime <expr>, @Name(@comptime <expr>), @comptime for x in e { ... }",
         .places = [.Declaration],
-        .doc    = "Computes the value of a constant at compile time, or copies a `for` body once per element. Written before the value, never above the declaration. Everything it touches must be comptime-evaluable.",
+        .doc    = "Computes at compile time the value of a constant or an argument of a declared decorator, or copies a `for` body once per element. Written before the value, never above the declaration. Everything it touches must be comptime-evaluable.",
     },
     DecoratorSpec {
         .name   = "extern",

@@ -38,6 +38,10 @@ export VmRequiredDecl :: struct {
     decl_type:   Type
     /// The const decl's span, attached to any staging / evaluation diagnostic.
     span:        Span
+    /// Whether the value is read at compile time only, by a declared decorator
+    /// (`AST.ConstDecl.comptime_synthetic`): no call of the program reaches its
+    /// callee, which the staging keeps all the same.
+    read_at_compile_time: bool = false
 }
 
 /// Per-module comptime output. Project-wide tables live on `EvaluatedProject`.
@@ -57,6 +61,10 @@ export EvaluatedProgram :: struct {
 
     /// Each declared decorator written in the module, by node id, with its value.
     decorator_values: Map<i64, DecoratorValue> = Map<i64, DecoratorValue> {}
+
+    /// The declared decorators whose `@comptime` argument waits for the VM: they
+    /// are evaluated once it has run (`evaluate_awaiting_decorator_uses`).
+    awaiting_decorators: DecoratorUse[] = []
 }
 
 /// A declared decorator written, and the value of the decorator it builds.

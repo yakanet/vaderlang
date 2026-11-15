@@ -319,25 +319,16 @@ indent_width :: fn(line: string) -> i64 {
 
 // ---- Program --------------------------------------------------------------
 
-// Source-visible decls only : drops the synthetic `__comptime_NAME` helper
-// fns produced by the `@comptime` const-sugar desugar. Every other decl passes
-// through in order.
-emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
-    out: p.Decl[]: []
-    for d in decls {
-        if d is p.FnDecl {
-            if d.comptime_synthetic { continue }
-        }
-        out.push(d)
-    }
-    return out
-}
+// Source-visible decls only : drops what the parser writes for a `@comptime`
+// (`is_comptime_made`). Every other decl passes through in order.
+emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] =
+    decls.filter((d) -> !p.is_comptime_made(d)).collect()
 
 export emit_program :: fn(self: Printer, prog: p.Program) -> string {
-    // Drop the `__comptime_NAME` helper fns the parser synthesises for the
-    // `NAME :: @comptime <expr>` const sugar : they are never source-visible,
-    // and the surface sugar is re-emitted from the paired `ConstDecl`
-    // (see `emit_const_decl`). Filtering here keeps the alignment pre-pass and
+    // Drop what the parser synthesises for a `@comptime`: the `__comptime_NAME`
+    // helper fns, re-emitted from the paired `ConstDecl` (see
+    // `emit_const_decl`), and the hidden constants of decorator arguments,
+    // re-emitted from the argument (`emit_call_arg`). Filtering here keeps the alignment pre-pass and
     // the blank-line layout below indexed over the source-visible decls only.
     decls :: emittable_decls(prog.decls)
     // Group-alignment pre-pass. Resolved here once so `emit_fn_decl` /
@@ -1915,7 +1906,13 @@ emit_call_arg :: fn(self: Printer, a: p.CallArg) -> void {
             self.write(" = ")
         }
     }
-    self.emit_expr(a.value)
+    match body :: a.comptime_body {
+        is null   -> self.emit_expr(a.value)
+        is p.Expr -> {
+            self.write("@comptime ")
+            self.emit_expr(body)
+        }
+    }
 }
 
 emit_field :: fn(self: Printer, x: p.FieldExpr) -> void {

@@ -1,0 +1,39 @@
+// Arguments of a declared decorator written `@comptime`: a call the tree-walker
+// computes, a loop it leaves to the VM, and a block. Each becomes a hidden
+// constant the decorator reads; nothing of them reaches the program.
+
+module "snippet"
+
+import "std/console"
+
+/// Where a handler answers.
+Route :: decorator(.Function) {
+    path: string
+    weight: i32 = 1
+}
+
+prefix :: fn(s: string) -> string = "/api/${s}"
+
+squares :: fn() -> i32 {
+    total := 0
+    for i in 0..<4 {
+        total += i * i
+    }
+    return total
+}
+
+@Route(@comptime prefix("users"), weight = @comptime squares())
+show :: fn() -> string = "show"
+
+@Route(@comptime {
+    p := "/a"
+    p = "${p}/b"
+    p
+})
+other :: fn() -> string = "other"
+
+main :: fn() -> i32 {
+    println(show())
+    println(other())
+    return 0
+}

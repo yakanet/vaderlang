@@ -261,6 +261,25 @@ K :: @comptime {
 }
 
 @test
+test_a_computed_decorator_argument_is_not_a_symbol :: fn() -> void {
+    // The `@comptime` argument becomes a hidden constant and its helper: neither
+    // is in the outline.
+    src :: """
+Route :: decorator {
+    path: string
+}
+
+@Route(@comptime "/a")
+show :: fn() -> void {}
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    syms :: toplevel_symbols(idx)
+    assert_eq(syms.len(), 2)
+    assert_eq(sym_name_at(syms, 0), "Route")
+    assert_eq(sym_name_at(syms, 1), "show")
+}
+
+@test
 test_toplevel_symbols_excludes_params_and_locals :: fn() -> void {
     src :: """
 helper :: fn(arg: i32) -> i32 {

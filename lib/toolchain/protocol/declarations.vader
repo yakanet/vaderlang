@@ -71,10 +71,11 @@ write_optional :: fn<T>(w: DeclWriter, value: T | null, item: fn(DeclWriter, T) 
 }
 
 /// Whether `d` crosses: every declaration the source writes does, none the
-/// compiler made (`is_compiler_made`).
+/// compiler made (`is_compiler_made`, `is_comptime_made`).
 ///
 /// @param d  a declaration of a module.
-export crosses :: fn(d: AST.Decl) -> bool = d !is AST.FnDecl || !AST.is_compiler_made(d)
+export crosses :: fn(d: AST.Decl) -> bool =
+    !AST.is_comptime_made(d) && (d !is AST.FnDecl || !AST.is_compiler_made(d))
 
 write_decl :: fn(w: DeclWriter, d: AST.Decl) -> void {
     match d {
@@ -806,6 +807,20 @@ test_a_comptime_constant_crosses_with_what_it_is_written_with :: fn() -> void {
         return
     }
     assert(table.value is AST.SeqLitExpr, "`[1, 2, 3]`, not a call to the helper")
+}
+
+@test
+test_the_hidden_constant_of_a_decorator_argument_does_not_cross :: fn() -> void {
+    source :: """
+        module "app"
+
+        @Route(@comptime prefix("a"))
+        show :: fn() -> void {}
+        """
+    decls :: parse_source(source, "src/app.vader").program.decls
+    // The hidden constant and its helper, then `show`.
+    assert_eq(decls.len(), 3)
+    assert_eq(decls.filter(crosses).collect().len(), 1)
 }
 
 @test

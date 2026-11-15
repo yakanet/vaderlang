@@ -197,7 +197,13 @@ walk_decl :: fn(d: AST.Decl, out: RawToken[]) -> void {
         is AST.TraitDecl     -> { walk_trait_decl(d, out) }
         is AST.ImplDecl      -> { walk_impl_decl(d, out) }
         is AST.TypeAliasDecl -> { walk_type_alias(d, out) }
-        is AST.ConstDecl     -> { walk_const_decl(d, out) }
+        is AST.ConstDecl     -> {
+            // The hidden constant of a decorator's `@comptime` argument: its
+            // helper paints what was written.
+            if !d.comptime_synthetic {
+                walk_const_decl(d, out)
+            }
+        }
         is AST.AssertDecl    -> {
             walk_decorators(d.decorators, out)
             walk_expr(d.condition, out)
@@ -212,6 +218,11 @@ walk_decorators :: fn(ds: AST.Decorator[], out: RawToken[]) -> void {
         // Decorator token.
         push_span(out, Span { .start = deco.span.start, .end = deco.name_span.end }, .Decorator)
         for a in deco.args {
+            // A `@comptime` argument is painted by its helper, a declaration of
+            // its own.
+            if a.comptime_body != null {
+                continue
+            }
             walk_expr(a.value, out)
         }
     }

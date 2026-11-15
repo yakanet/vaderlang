@@ -8,6 +8,7 @@ module "toolchain/parser"
 import "std/string"
 import "std/char"
 import "std/iter"
+Paths :: import "std/path"
 import "std/string_builder"
 import "toolchain/lexer"
 import "toolchain/diagnostics"
@@ -145,6 +146,9 @@ Parser :: struct {
     // sugar becomes a `__comptime_NAME` fn. `parse_program` flushes these into the
     // decl list after each parsed decl.
     pending_decls: Decl[] = []
+    // The `@comptime` arguments of decorators parsed so far, which number their
+    // hidden constants (`decorator_argument_name`).
+    computed_arguments: i32 = 0
     // Current `parse_expr` recursion depth ; guards against a native stack
     // overflow on pathologically nested input. Bounded by `MAX_EXPR_DEPTH`.
     expr_depth: i32 = 0
@@ -800,7 +804,8 @@ parse_decorator :: fn(p: Parser) -> Decorator {
     }
     args: CallArg[] = []
     if p.match_kind(.LParen) != null {
-        args = p.parse_call_args().items
+        declared :: qualifier != null || decorator_spec(name_tok.text) == null
+        args = p.parse_arguments(declared).items
         p.expect(.RParen, "`)` after decorator arguments")
     }
     return Decorator {
@@ -1655,7 +1660,7 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     // marked by its `comptime_body`. Reuses the whole VM-staging -> bake path ;
     // no `ComptimeExpr` AST node (which would ripple a T3013 arm across every
     // exhaustive `match expr`).
-    if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
+    if p.at_comptime() {
         return p.desugar_comptime_const(decorators, visibility, name_tok, null)
     }
     value :: p.parse_expr(0)
@@ -1685,8 +1690,11 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     // no-op on a block and wraps a bare expr as its trailing.
     raw :: if p.check(.LBrace) { p.parse_block() } else { p.parse_expr(0) }
     marker :: p.span_of(at_tok, comptime_tok)
-    return p.through_comptime_helper(decorators, visibility, name_tok, ty, raw, marker)
+    return p.through_comptime_helper(decorators, visibility, name_tok.text, name_tok.span, ty, raw, marker)
 }
+
+// Whether `@comptime` comes next.
+at_comptime :: fn(p: Parser) = p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime"
 
 // The const `NAME` whose `@comptime` value `raw` a synthetic helper
 // `__comptime_NAME :: fn() { <raw> }` computes : the helper is queued in
@@ -1698,14 +1706,15 @@ through_comptime_helper :: fn(
     p: Parser,
     decorators: Decorator[],
     visibility: Visibility,
-    name_tok: Token,
+    name: string,
+    name_span: Span,
     ty: TypeExpr | null,
     raw: Expr,
     marker: Span,
 ) -> ConstDecl {
     body :: lift_trailing_return(wrap_as_block(raw))
     end_tok :: p.peek_at(-1)
-    synth_name :: "__comptime_${name_tok.text}"
+    synth_name :: "__comptime_${name}"
     span :: Span { .start = marker.start, .end = end_tok.span.end }
     // Expression-bodied so an absent `ty` is INFERRED from the (possibly lifted)
     // trailing expression: Vader infers a fn's return type from a block's
@@ -1732,13 +1741,13 @@ through_comptime_helper :: fn(
     p.pending_decls.push(synth_fn)
     call :: CallExpr {
         .span   = span,
-        .callee = ident_expr(name_tok.span, synth_name),
+        .callee = ident_expr(name_span, synth_name),
         .args   = [],
     }
     return ConstDecl {
-        .span                  = p.span_of(name_tok, end_tok),
-        .name                  = name_tok.text,
-        .name_span             = name_tok.span,
+        .span                  = Span { .start = name_span.start, .end = end_tok.span.end },
+        .name                  = name,
+        .name_span             = name_span,
         .visibility            = visibility,
         .ty                    = ty,
         .value                 = call,
@@ -1782,7 +1791,7 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     // `NAME: T: @comptime <expr>`: same desugar as the untyped form, but the
     // declared `T` becomes the synthetic fn's return type (so e.g.
     // `K: u32[]: @comptime { ... }` evaluates AND `.rodata`-bakes).
-    if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
+    if p.at_comptime() {
         return p.desugar_comptime_const(decorators, visibility, name_tok, ty)
     }
     value :: p.parse_expr(0)
@@ -2185,7 +2194,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.KwFor)      { return p.parse_for(null, false) }
     // `@comptime for x in <arr> { body }`: unrolled at compile time. Only
     // `@comptime` on `for` is recognised as a decorator-on-stmt here.
-    if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" && p.check_at(.KwFor, 2) {
+    if p.at_comptime() && p.check_at(.KwFor, 2) {
         p.advance()  // @
         p.advance()  // comptime
         return p.parse_for(null, true)
@@ -3369,7 +3378,11 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
     }
 }
 
-parse_call_args :: fn(p: Parser) -> CommaList<CallArg> {
+parse_call_args :: fn(p: Parser) -> CommaList<CallArg> = p.parse_arguments(false)
+
+// The arguments of a call, or of a declared decorator when `hoists` holds: there a
+// value may be written `@comptime <expr>` (`comptime_argument`).
+parse_arguments :: fn(p: Parser, hoists: bool) -> CommaList<CallArg> {
     out: CallArg[]: []
     trailing := false
     p.skip_newlines()
@@ -3380,21 +3393,18 @@ parse_call_args :: fn(p: Parser) -> CommaList<CallArg> {
         p.skip_newlines()
         if p.check(.RParen) { break }
         start :: p.peek()
+        name: string | null = null
         if p.check(.Ident) && p.check_at(.Assign, 1) {
-            name_tok :: p.advance()
+            name = p.advance().text
             p.advance()  // `=`
-            value :: p.parse_expr(0)
-            out.push(CallArg {
-                .span   = p.span_of(start, p.peek_at(-1)),
-                .name   = name_tok.text,
-                .value  = value,
-                .spread = false,
-            })
+        }
+        if hoists && p.at_comptime() {
+            out.push(p.comptime_argument(start, name))
         } else {
             value :: p.parse_expr(0)
             out.push(CallArg {
-                .span   = value.span,
-                .name   = null,
+                .span   = argument_span(p, start, name, value),
+                .name   = name,
                 .value  = value,
                 .spread = false,
             })
@@ -3405,6 +3415,48 @@ parse_call_args :: fn(p: Parser) -> CommaList<CallArg> {
         trailing = p.check(.RParen)   // comma consumed ; `)` next means trailing
     }
     return CommaList<CallArg> { .items = out, .trailing_comma = trailing }
+}
+
+// A named argument spans from its name, a positional one is its value.
+argument_span :: fn(p: Parser, start: Token, name: string | null, value: Expr) -> Span {
+    if name == null {
+        return value.span
+    }
+    return p.span_of(start, p.peek_at(-1))
+}
+
+// `@comptime <expr>` as an argument of a declared decorator. The value goes to a
+// hidden constant computed as any `@comptime` constant, the VM included, and the
+// argument names it ; `comptime_body` keeps what was written for the formatter.
+//
+// Three spans, each starting where no other key of its table does (a span
+// side-table keys on the start): the helper is declared at `@comptime`, the
+// constant at `comptime`, and the argument reads the constant from `@comptime`.
+comptime_argument :: fn(p: Parser, start: Token, name: string | null) -> CallArg {
+    at_tok :: p.advance()         // `@`
+    comptime_tok :: p.advance()   // `comptime`
+    raw :: if p.check(.LBrace) { p.parse_block() } else { p.parse_expr(0) }
+    marker :: p.span_of(at_tok, comptime_tok)
+    hidden_name :: decorator_argument_name(comptime_tok.span.start.file, p.computed_arguments)
+    p.computed_arguments += 1
+    hidden :: p.through_comptime_helper([], .Private, hidden_name, comptime_tok.span, null, raw, marker)
+    hidden.comptime_synthetic = true
+    p.pending_decls.push(hidden)
+    return CallArg {
+        .span          = p.span_of(start, p.peek_at(-1)),
+        .name          = name,
+        .value         = ident_expr(marker, hidden_name),
+        .spread        = false,
+        .comptime_body = raw,
+    }
+}
+
+// The name of the hidden constant of the `index`-th `@comptime` argument of
+// `file`: the same from one build to the next, and where the formatter moves the
+// argument, and unique in a module of several files.
+decorator_argument_name :: fn(file: string, index: i32) -> string {
+    stem :: Paths.name(Paths.to_path(file)).replace_chars_where((c) -> !c.is_alphanumeric(), "_")
+    return "__decorator_argument_${stem}_${index}"
 }
 
 parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {

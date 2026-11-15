@@ -4,12 +4,16 @@
 // to a field (`TypedProgram.decorator_uses`), and this pass evaluates them through
 // the tree-walker, then the defaults of the other fields, into one `StructValue`
 // per decorator written (`EvaluatedProgram.decorator_values`). An argument the
-// tree-walker cannot compute is an error: nothing of a decorator runs with the
-// program.
+// tree-walker cannot compute is an error, unless it is written `@comptime`: the
+// parser made it a hidden constant, which the VM computes when the tree-walker
+// cannot, and the decorator waits for it (`awaiting_decorators`). Nothing of a
+// decorator runs with the program.
 
 module "vader/front/comptime"
 
 import "std/collections"
+import "std/iter"
+AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "vader/core/types"
 import "vader/front/typecheck"
@@ -24,15 +28,53 @@ import "vader/front/typecheck"
 evaluate_decorator_uses :: fn(
     program: EvaluatedProgram, constants: ProjectConstants, diags: Diagnostic[],
 ) -> void {
-    context :: ComptimeContext {
-        .typed = program.typed,
-        .bindings = program.comptime_decls,
-        .project = constants,
+    context :: decorator_context(program, constants)
+    for [_, use] in program.typed.decorator_uses {
+        if has_uncomputed_argument(use, program) {
+            program.awaiting_decorators.push(use)
+        } else {
+            record_decorator_value(program, use, context, diags)
+        }
     }
-    for [id, use] in program.typed.decorator_uses {
-        value :: decorator_value(use, context, diags) else continue
-        program.decorator_values[id] = DecoratorValue { .use = use, .value = value }
+}
+
+/// Evaluate the declared decorators that waited for a `@comptime` argument
+/// (`awaiting_decorators`), once the VM has computed it.
+///
+/// @param evaluated  the evaluated project, its deferred constants baked.
+/// @param owners     the modules whose deferred constants were baked ; every
+///                   module when null. The others keep waiting.
+/// @param diags      where an argument or a default that fails is reported.
+export evaluate_awaiting_decorator_uses :: fn(
+    evaluated: EvaluatedProject, owners: string[] | null, diags: Diagnostic[],
+) -> void {
+    constants :: ProjectConstants { .typed = evaluated.typed }
+    for [module_id, program] in evaluated.modules {
+        if program.awaiting_decorators.len() == 0 || owners != null && module_id !in owners {
+            continue
+        }
+        context :: decorator_context(program, constants)
+        for use in program.awaiting_decorators {
+            // A constant the VM did not compute is reported already.
+            if !has_uncomputed_argument(use, program) {
+                record_decorator_value(program, use, context, diags)
+            }
+        }
+        program.awaiting_decorators = []
     }
+}
+
+decorator_context :: fn(program: EvaluatedProgram, constants: ProjectConstants) = ComptimeContext {
+    .typed = program.typed,
+    .bindings = program.comptime_decls,
+    .project = constants,
+}
+
+record_decorator_value :: fn(
+    program: EvaluatedProgram, use: DecoratorUse, context: ComptimeContext, diags: Diagnostic[],
+) -> void {
+    value :: decorator_value(use, context, diags) else return
+    program.decorator_values[use.written.id] = DecoratorValue { .use = use, .value = value }
 }
 
 // The value `use` builds ; null when an argument or a default fails, reported.
@@ -70,4 +112,16 @@ decorator_value :: fn(
 report_failure :: fn(result: EvalResult, diags: Diagnostic[]) -> void {
     diag :: result.diag else return
     diags.push(diag)
+}
+
+// Whether a `@comptime` argument of `use` names a hidden constant with no value:
+// before the VM, one the tree-walker could not compute ; after it, one the VM
+// failed on, reported there.
+has_uncomputed_argument :: fn(use: DecoratorUse, program: EvaluatedProgram) -> bool =
+    use.written.args.any_match((a) -> a.comptime_body != null && !is_computed(a.value, program))
+
+// Whether the hidden constant `reference` names has a value.
+is_computed :: fn(reference: AST.Expr, program: EvaluatedProgram) -> bool {
+    constant :: program.typed.resolved.idents[reference.span.hash()] else return true
+    return program.comptime_decls[constant.id] != null
 }

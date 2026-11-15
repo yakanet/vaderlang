@@ -1,0 +1,22 @@
+// tests/fixtures/format/decorator_computed_argument: an argument of a declared
+// decorator written `@comptime` keeps its `@comptime` and what follows it, a call
+// or a block, where the parser moved the value to a hidden constant the formatter
+// never prints.
+
+module "decorator_computed_argument"
+
+Route :: decorator(.Function) {
+    path: string
+    weight: i32 = 1
+}
+
+prefix :: fn(s: string) -> string = "/api/${s}"
+
+@Route(@comptime prefix("users"), weight = @comptime {
+    total := 0
+    for i in 0..<4 {
+        total += i
+    }
+    total
+})
+show :: fn() -> string = "show"

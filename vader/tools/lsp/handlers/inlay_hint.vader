@@ -103,7 +103,7 @@ fn_hints :: fn(d: AST.FnDecl, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
 }
 
 const_hints :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> AST.Walk {
-    if cd.ty != null {
+    if cd.ty != null || cd.comptime_synthetic {
         return .Descend
     }
     emit_const_hint(cd, ctx, out)
