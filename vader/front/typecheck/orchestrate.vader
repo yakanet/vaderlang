@@ -110,6 +110,11 @@ check_project_modules :: fn(
     for [_, typed] in per_module {
         typed.gate_runtime = gate_runtime
     }
+    // An alias naming an enum (`Form :: Kind`) needs its `EnumType`, not the
+    // struct placeholder, or it registers as a distinct over that placeholder.
+    // An enum header may name an alias in turn, hence the second registration
+    // once the aliases have settled.
+    register_enum_types(per_module, project, alias_types)
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.

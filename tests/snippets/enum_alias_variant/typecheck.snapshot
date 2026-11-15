@@ -1,0 +1,66 @@
+# Typecheck
+
+## tests/snippets/enum_alias_variant
+  EnumDecl       Local                :: Local
+  ConstDecl      LocalAlias           :: type
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name                 :: fn(Kind) -> string
+  FnDecl         rank                 :: fn(Kind) -> i32
+  expr 16:33    MatchExpr      :: string
+  expr 16:39    IdentExpr      :: Kind
+  expr 17:16    StringLitExpr  :: string
+  expr 18:16    StringLitExpr  :: string
+  expr 21:32    CallExpr       :: i32
+  expr 21:32    IdentExpr      :: type
+  expr 21:36    IdentExpr      :: Kind
+  expr 24:10    FieldExpr      :: Kind
+  expr 24:10    IdentExpr      :: Kind
+  expr 25:10    FieldExpr      :: Kind
+  expr 25:10    FieldExpr      :: Kind
+  expr 26:10    FieldExpr      :: Local
+  expr 26:10    IdentExpr      :: Local
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: string
+  expr 27:16    IdentExpr      :: fn(Kind) -> string
+  expr 27:21    IdentExpr      :: Kind
+  expr 27:27    CallExpr       :: string
+  expr 27:27    IdentExpr      :: fn(Kind) -> string
+  expr 27:32    IdentExpr      :: Kind
+  expr 27:38    CallExpr       :: i32
+  expr 27:38    IdentExpr      :: type
+  expr 27:42    IdentExpr      :: Local
+  expr 27:48    BinaryExpr     :: bool
+  expr 27:48    IdentExpr      :: Kind
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 27:53    DotVariantExpr :: Kind
+  expr 28:10    CallExpr       :: Kind
+  expr 28:10    IdentExpr      :: Kind
+  expr 29:10    CallExpr       :: Kind
+  expr 29:10    FieldExpr      :: Kind
+  expr 30:10    CallExpr       :: Local
+  expr 30:10    IdentExpr      :: Local
+  expr 31:10    CallExpr       :: Kind
+  expr 31:10    FieldExpr      :: Kind
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    CallExpr       :: string
+  expr 32:16    IdentExpr      :: fn(Kind) -> string
+  expr 32:21    IdentExpr      :: Kind
+  expr 32:27    CallExpr       :: string
+  expr 32:27    IdentExpr      :: fn(Kind) -> string
+  expr 32:32    IdentExpr      :: Kind
+  expr 32:38    CallExpr       :: i32
+  expr 32:38    IdentExpr      :: type
+  expr 32:42    IdentExpr      :: Local
+  expr 32:48    CallExpr       :: string
+  expr 32:48    IdentExpr      :: fn(Kind) -> string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 32:53    IdentExpr      :: Kind
+  expr 32:59    CallExpr       :: i32
+  expr 32:59    IdentExpr      :: fn(Kind) -> i32
+  expr 32:64    IdentExpr      :: Kind
+
+## tests/snippets/enum_alias_variant/shapes
+  ConstDecl      Form                 :: type
+  EnumDecl       Kind                 :: Kind

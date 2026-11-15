@@ -629,8 +629,6 @@ read_import_name :: fn(d: DeclReader) -> AST.ImportName | ProtocolError {
     return AST.ImportName { .name = name, .alias = alias, .span = span }
 }
 
-// A flag rather than a rank: an enum converted from its rank through a namespace
-// alias does not lower (M5007).
 read_visibility :: fn(d: DeclReader) -> AST.Visibility | ProtocolError {
     public :: d.fields.read_flag() else return public
     return if public { .Public } else { .Private }

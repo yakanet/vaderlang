@@ -148,17 +148,10 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
     callee :: call.callee
     if callee is FieldExpr {
         namespace_symbol :: as_namespace_binding(ctx, callee.target) else return null
-        // `nsM.T(x)`: the typer typed the callee as the metatype and resolved
-        // the call as a cast (infer_call -> TypeMetaType, call.vader). Lower it as
-        // a cast to the result `type` (shared with the direct-ident cast path),
-        // not a plain call to the type symbol. Casts carry exactly one arg.
-        // NB the ident path (`try_lower_cast_call`) keys on symbol-kind +
-        // `alias_types`, NOT this `TypeMetaType` signal: a cross-module distinct
-        // const ident does not surface as TypeMetaType there: don't unify them.
-        if call.args.len() == 1 {
-            if ctx.types.expr_type(callee) is TypeMetaType {
-                return emit_value_cast(ctx, call, type)
-            }
+        // `nsM.T(x)` converts: a cast to the result `type`, not a call to the type
+        // symbol. Casts carry exactly one arg.
+        if call.args.len() == 1 && converts_through_namespace(ctx, callee, namespace_symbol) {
+            return emit_value_cast(ctx, call, type)
         }
         member_symbol :: recorded_fn_symbol(ctx, call)
             else resolve_namespace_member(ctx, namespace_symbol, callee.field)
@@ -186,6 +179,16 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         return observed(ctx, call, .Call, member_call)
     }
     return null
+}
+
+// Whether the namespace member `callee` names a type, so a call to it converts
+// (`IO.IOErrorKind(rank)`) : the metatype of a type name, or a member that
+// declares a type, such as an enum, which types as itself.
+converts_through_namespace :: fn(ctx: FnLowerCtx, callee: FieldExpr, namespace_symbol: Symbol) -> bool {
+    if ctx.types.expr_type(callee) is TypeMetaType {
+        return true
+    }
+    return is_conversion_target(ctx, resolve_namespace_member(ctx, namespace_symbol, callee.field))
 }
 
 as_ident :: fn(expr: Expr) -> IdentExpr | null {

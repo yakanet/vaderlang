@@ -61,7 +61,7 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     .Enum      -> lookup_decl(sym, typed)
     .Trait     -> lookup_decl(sym, typed)
     .TypeAlias -> lookup_decl(sym, typed)
-    .Const     -> lookup_decl(sym, typed)
+    .Const     -> value_type_of_const(lookup_decl(sym, typed), sym, typed.resolved)
     .Param     -> lookup_in(sym, typed.param_types)
     .Local     -> lookup_in(sym, typed.local_types)
     .Binding   -> lookup_in(sym, typed.local_types)
@@ -75,6 +75,25 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     .BuiltinFn      -> TY_UNRESOLVED
     .Synthetic      -> TY_UNRESOLVED
     .GeneratorState -> TY_UNRESOLVED
+}
+
+/// The type the constant `sym` has in value position. A name declared as an enum
+/// (`Alias :: Weekday`) stands for the enum as the enum's own name does, so
+/// `Alias.Monday` names a variant and `Alias(n)` converts ; any other type name
+/// stays a `type`.
+///
+/// @param declared  the constant's declared type.
+/// @param sym       the constant.
+/// @param resolved  a module of the check, for the table of aliases.
+value_type_of_const :: fn(declared: Type, sym: Symbol, resolved: ResolvedModule) -> Type {
+    if declared !is TypeMetaType {
+        return declared
+    }
+    aliased :: resolved.alias_types[sym.id]
+    if aliased is EnumType {
+        return aliased
+    }
+    return declared
 }
 
 /// Look `sym`'s span up in a span-keyed table (`param_types` /

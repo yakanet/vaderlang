@@ -1,0 +1,5 @@
+module "snippet/shapes"
+
+export Kind :: enum { Round, Square }
+/// Another name for `Kind`.
+export Form :: Kind

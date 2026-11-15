@@ -25,7 +25,7 @@ build_namespace_exports :: fn(
         }
         t :: typed.decl_types[sym.id]
         if t !is null {
-            out[name] = t
+            out[name] = value_type_of_const(t, sym, typed.resolved)
             continue
         }
         aliased :: typed.resolved.alias_types[sym.id]

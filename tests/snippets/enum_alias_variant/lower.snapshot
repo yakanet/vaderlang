@@ -1,0 +1,86 @@
+# Lower
+
+## snippet
+  snippet.name :: fn(k: Kind) -> string {  // snippet$name
+      {
+          if k == Kind(0) {
+              "round"
+          } else if k == Kind(1) {
+              "square"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.rank :: fn(k: Kind) -> i32 {  // snippet$rank
+      i32(k)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      a: Kind = 1
+      b: Kind = 0
+      c: Local = 1
+      std.console.println<string>({
+          __p_0: string = snippet.name(a)
+          __p_1: string = snippet.name(b)
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(28) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i32(c))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, a == Kind(1))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      d: Kind = 1
+      e: Kind = 0
+      f: Local = 1
+      g: Kind = 1
+      std.console.println<string>({
+          __p_4: string = snippet.name(d)
+          __p_5: string = snippet.name(e)
+          __p_6: i32 = i32(f)
+          __p_7: string = snippet.name(g)
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(44) +% ((std.core.byte_len(__p_4) +% std.core.byte_len(__p_5)) +% std.core.byte_len(__p_7)))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_4)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_5)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, __p_6)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.rank(b))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## snippet/shapes
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

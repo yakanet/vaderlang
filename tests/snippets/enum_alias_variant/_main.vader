@@ -1,0 +1,34 @@
+// A name declared as an enum (`Form :: Kind`) names its variants, converts and
+// types a slot as the enum does: `Form.Square`, `Form(1)`, `k: S.Form`, through
+// a wildcard import, a namespace alias or a local alias alike. An enum reached
+// through a namespace alias converts too (`S.Kind(1)`).
+// Expected: prints "square round 1 true" then "square round 1 square 0", exits 0.
+
+module "snippet"
+
+import "snippet/shapes"
+import "std/console"
+S :: import "snippet/shapes"
+
+Local :: enum { One, Two }
+LocalAlias :: Local
+
+name :: fn(k: Kind) -> string = match k {
+    .Round  -> "round"
+    .Square -> "square"
+}
+
+rank :: fn(k: S.Form) -> i32 = i32(k)
+
+main :: fn() -> i32 {
+    a :: Form.Square
+    b :: S.Form.Round
+    c :: LocalAlias.Two
+    println("${name(a)} ${name(b)} ${i32(c)} ${a == .Square}")
+    d :: Form(1)
+    e :: S.Form(0)
+    f :: LocalAlias(1)
+    g :: S.Kind(1)
+    println("${name(d)} ${name(e)} ${i32(f)} ${name(g)} ${rank(b)}")
+    return 0
+}

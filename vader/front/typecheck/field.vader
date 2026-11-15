@@ -954,8 +954,12 @@ names_enum_type :: fn(target: AST.Expr, typed: TypedProgram) -> bool {
         return namespace_base_mod_id(target.target, typed) != null
     }
     sym :: bare_name_symbol(target, typed) else return false
-    return is_type_kind(sym.kind)
+    return is_type_kind(sym.kind) || names_an_enum(sym, typed)
 }
+
+// Whether `sym` is a constant declared as an enum (`Alias :: Weekday`).
+names_an_enum :: fn(sym: Symbol, typed: TypedProgram) -> bool =
+    typed.resolved.alias_types[sym.id] is EnumType
 
 // The declaration a bare name is bound to, followed through an import ; null
 // for any other expression.
@@ -976,7 +980,7 @@ names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgr
         return kind == .Enum && member is EnumType
     }
     sym :: bare_name_symbol(target, typed) else return false
-    return sym.kind == kind
+    return sym.kind == kind || (kind == .Enum && names_an_enum(sym, typed))
 }
 
 // True when `name` has UFCS free-fn candidates visible in `file` (declared by

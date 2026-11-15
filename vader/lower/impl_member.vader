@@ -507,22 +507,21 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     // on the DEFINING symbol, not on the binding.
     type_redir :: ctx.typed.resolved.imports_to[callee_symbol.id]
     type_sym :: if type_redir is null { callee_symbol } else { type_redir }
-    // @partial: only type-introducing symbol kinds are type-shaped callees; the rest are not.
-    is_type_shaped :: @partial match type_sym.kind {
-        .BuiltinType -> true
-        .Struct      -> true
-        .TypeAlias   -> true
-        .TypeParam   -> true
-        .Enum        -> true
-        _            -> false
-    }
-    // A non-generic type alias (`Foo :: i64`) or a distinct newtype is a
-    // ConstDecl, so its symbol kind is `.Const`, but it resolves into
-    // `alias_types`. Recognise such a type-valued const as a cast/wrap callee
-    // too (without this, `Foo(x)` / `Instant(x)` lowers to a bogus call).
-    is_type_const :: !(ctx.typed.resolved.alias_types[type_sym.id] is null)
-    if !is_type_shaped && !is_type_const { return null }
+    if !is_conversion_target(ctx, type_sym) { return null }
     return emit_value_cast(ctx, call, type)
+}
+
+/// Whether `sym` declares a type a call `T(x)` converts into, rather than a fn.
+///
+/// @param ctx  the lowering context, for the project's alias table.
+/// @param sym  the declaration the callee names, followed through its import.
+is_conversion_target :: fn(ctx: FnLowerCtx, sym: Symbol) -> bool = match sym.kind {
+    .BuiltinType | .Struct | .TypeAlias | .TypeParam | .Enum -> true
+    // A non-generic alias (`Foo :: i64`) or a distinct is a constant, which
+    // resolves into `alias_types`.
+    .Const -> ctx.typed.resolved.alias_types[sym.id] != null
+    .Fn | .Trait | .Param | .Local | .Binding | .Impl | .ImportBinding -> false
+    .BuiltinFn | .Synthetic | .GeneratorState -> false
 }
 
 // Whether `call` converts an integer into `target`, `char` : a free integer and a
