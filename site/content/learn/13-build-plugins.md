@@ -1,6 +1,6 @@
 # Build plugins
 
-A project builds from a `vader.json`, or from a `build.vader` when it wants a say in its own build. That file is a program, the build driver: `vader build` compiles it, runs it, and serves it the build it asks for. A plugin is the part of a driver worth sharing: a type that listens to the build, and that any driver plugs in. This page writes three, one that observes the build, one that enforces a rule, and one that writes code. Each example is a project of two files, `src/main.vader` and `build.vader`, shown in that order.
+A project builds from a `vader.json`, or from a `build.vader` when it wants a say in its own build: a Vader program, the build driver, that `vader build` compiles and runs. A plugin is the part of a driver worth sharing, a type that listens to the build: one observes it, one enforces a rule, one writes code. Each example is a project of two files, `src/main.vader` and `build.vader`, shown in that order; the driver keeps its `module` and its imports, which are part of what it shows.
 
 ## A build driver
 
@@ -39,7 +39,7 @@ build :: fn(args: string[]) -> i32 {
 }
 ```
 
-`ctx.add_entry` names a program to build, and `ctx.emit_native()` runs the build and returns its exit code. The driver is an ordinary program: what it prints, `vader build` prints.
+`ctx.add_entry` names a program to build, and `ctx.emit_native()` runs the build and returns its exit code. The driver is an ordinary program: what it prints, `vader build` prints. The rules: §11 *Programmable build API* and §11 *What the command decides*.
 
 ## A plugin that observes
 
@@ -87,7 +87,7 @@ build :: fn(args: string[]) -> i32 {
 census: 1 struct(s), 1 function(s)
 ```
 
-A plugin receives the declarations as nodes of `toolchain/ast`: every declaration of the module, with what it writes outside the body of a function. A function arrives with its signature, a constant with its value, a struct with its fields and their defaults; the body of a function stays behind. The vaderdoc written above a declaration is asked for: `ctx.doc_of(d)`.
+A plugin receives the declarations as nodes of `toolchain/ast`: every declaration of the module, with what it writes outside the body of a function. A function arrives with its signature, a constant with its value, a struct with its fields and their defaults; the body of a function stays behind. The vaderdoc written above a declaration is asked for: `ctx.doc_of(d)`. Only the modules of the project arrive, never those of the standard library. The rules: §11 *Plugins* and §11 *The message stream*.
 
 ## A plugin that enforces a rule
 
@@ -138,6 +138,8 @@ build :: fn(args: string[]) -> i32 {
 ```text
 [src/main.vader:3:1] error[H6004] build driver reported a problem: struct `point` should start with a capital
 ```
+
+The build stops there, as on any other error: the program is not written. The rules: §11 *Plugins*.
 
 ## A plugin that writes code
 
@@ -204,7 +206,7 @@ build :: fn(args: string[]) -> i32 {
 }
 ```
 
-The generated code is written under `build/generated/`, where it can be read. A module of its own, a name no module of the project holds, is imported like any other.
+The generated code is written under `build/generated/`, where it can be read. A module of its own, a name no module of the project holds, is imported like any other. The rules: §11 *Generating code* and §11 *Generated modules*.
 
 ## Sharing a plugin
 
@@ -242,4 +244,4 @@ build :: fn(args: string[]) -> i32 {
 }
 ```
 
-The whole contract, the messages and what each phase allows, is in the reference (§11 *Programmable build API: `build.vader`*).
+The rules: §11 *Plugins*.

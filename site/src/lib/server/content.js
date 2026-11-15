@@ -28,7 +28,7 @@ const EXAMPLES = path.join(REPO, 'examples');
 const EXAMPLE_OUTPUTS = path.join(REPO, 'tests', 'fixtures', 'examples');
 
 /** The pages written in Markdown, `start` for `start.md`, served at the root. */
-export const MARKDOWN_PAGES = ['start', 'plugins'];
+export const MARKDOWN_PAGES = ['start'];
 
 /** @param {string} href */
 function link_html_attributes(href) {
