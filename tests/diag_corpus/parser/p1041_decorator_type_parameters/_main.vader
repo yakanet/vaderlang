@@ -1,0 +1,9 @@
+// A decorator's fields hold what is written where it is used, so nothing would
+// bind a type parameter: P1041.
+module "snippet"
+
+Tagged :: decorator<T> {
+    name: string
+}
+
+main :: fn() -> i32 = 0

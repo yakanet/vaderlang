@@ -66,6 +66,10 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
                 spread.id = f.mint()
                 walk_expr(spread.base, f)
             }
+            for a in d.decorator_args else [] {
+                a.id = f.mint()
+                walk_expr(a.value, f)
+            }
             for dec in d.decorators { walk_decorator(dec, f) }
         }
         is EnumDecl -> {

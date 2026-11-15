@@ -276,7 +276,7 @@ overload_suffix :: fn(count: i64, n: i64) -> string {
 // a `type`.
 kind_of :: fn(d: Decl) -> string = match d {
     is FnDecl                             -> "fn"
-    is StructDecl                         -> "struct"
+    is StructDecl                         -> if d.is_decorator() { "decorator" } else { "struct" }
     is EnumDecl                           -> "enum"
     is TraitDecl                          -> "trait"
     is TypeAliasDecl                      -> "type"

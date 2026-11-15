@@ -47,6 +47,9 @@ export DeclKind :: enum(u8) {
     Trait,
     TypeAlias,
     Const,
+    /// A decorator declaration, `Route :: decorator { ... }`: a struct-like type a
+    /// name after `@` designates.
+    Decorator,
     /// A struct field. Indexed so `img.pixels` has something to jump to: the
     /// struct's own name was the only thing recorded, so a field access resolved
     /// to nothing at all.
@@ -585,8 +588,9 @@ collect_decl :: fn(d: Decl, source: string, entries: DeclEntry[]) -> void {
             index_fn_body(d, source, entries)
         }
         is StructDecl    -> {
+            kind :: if d.is_decorator() { DeclKind.Decorator } else { DeclKind.Struct }
             entries.push(
-                top_entry(d.name, .Struct, d.name_span, d.span, d, d.visibility == .Public, source),
+                top_entry(d.name, kind, d.name_span, d.span, d, d.visibility == .Public, source),
             )
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry

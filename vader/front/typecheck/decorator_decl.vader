@@ -1,0 +1,93 @@
+// vader/front/typecheck/decorator_decl: the checks of a decorator declaration.
+//
+// `Route :: decorator(.Function, repeatable = true) { method: Method, path: string }`
+// declares a type whose values the compiler builds where `@Route(...)` is written
+// (ADR 0152). Its fields hold what the compiler evaluates there, so each takes a
+// type a compile-time value has; its parentheses name the places it may be
+// written, as `DecoratorTarget` values, then its one option, `repeatable`.
+
+module "vader/front/typecheck"
+
+AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
+import "vader/core/types"
+import "vader/front/resolver"
+
+// The one named option a decorator declaration takes.
+REPEATABLE_OPTION :: "repeatable"
+
+/// Check what a decorator declaration writes besides an ordinary struct: the type
+/// of each field, then the places and the options in its parentheses.
+///
+/// @param decl   a struct declaration; nothing to check for a plain struct.
+/// @param typed  the module's typed program, its struct fields declared.
+/// @param diags  where T3140, T3004 and the type mismatches go.
+export check_decorator_decl :: fn(
+    decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    args :: decl.decorator_args else return
+    sym :: symbol_declared_at(typed.resolved, decl.name_span) else return
+    fields :: typed.struct_fields[sym.id] else return
+    for [name, field] in fields {
+        if is_compile_time_field_type(field.ty) {
+            continue
+        }
+        // A field a spread brings is written in its base: the declaration is what
+        // the reader of this one can change.
+        span :: if field.owner.symbol.id == sym.id { field.decl.ty.span } else { decl.name_span }
+        diags.push(typecheck_error(.DecoratorFieldNotCompileTime, span,
+            "`${name}` is ${display_type(field.ty)}"))
+    }
+    places :: decorator_target_type(typed)
+    for arg in args {
+        check_decorator_arg(arg, places, typed, diags)
+    }
+}
+
+// A positional argument names a place, a named one the option.
+check_decorator_arg :: fn(
+    arg: AST.CallArg, places: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    name :: arg.name else {
+        check_decorator_value(arg.value, places, typed, diags)
+        return
+    }
+    if name == REPEATABLE_OPTION {
+        check_decorator_value(arg.value, TY_BOOL, typed, diags)
+        return
+    }
+    check_expr(arg.value, null, typed, diags)
+    diags.push(typecheck_error(.UnknownNamedArg, arg.span,
+        "a decorator declaration takes `${REPEATABLE_OPTION}`, got `${name}`"))
+}
+
+// Type `value` against `expected`: none for a place while `std/core` declares no
+// `DecoratorTarget`.
+check_decorator_value :: fn(
+    value: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    got :: check_expr(value, expected, typed, diags)
+    if expected != null {
+        emit_mismatch_if(got, expected, value.span, value, .TypeMismatch, typed, diags)
+    }
+}
+
+// `std/core`'s `DecoratorTarget`; null while `std/core` itself is checked before
+// the enum is declared.
+decorator_target_type :: fn(typed: TypedProgram) -> Type | null {
+    sym :: typed.decorator_target_symbol else return null
+    return type_of_symbol(sym, typed)
+}
+
+// Whether a value of `t` is one the compiler can hold at compile time: a scalar, a
+// string, an enum, an array of these, or a distinct over one. An unresolved type
+// is reported already.
+is_compile_time_field_type :: fn(t: Type) -> bool = match t {
+    is PrimitiveType  -> t.name != TY_VOID.name && t.name != TY_NULL.name
+    is RangeType | EnumType | UnresolvedType -> true
+    is ArrayType      -> is_compile_time_field_type(t.element)
+    is DistinctType   -> is_compile_time_field_type(t.backing)
+    is StructType | TraitType | UnionType | FnType | TupleType | TypeParamType | TypeMetaType
+        | SelfType | FreeIntType | FreeFloatType | FreeCharType | NeverType | AnyType
+        | InferVar -> false
+}

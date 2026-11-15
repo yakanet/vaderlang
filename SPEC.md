@@ -140,7 +140,7 @@ Every exported function of the standard library has a doc block in this form.
 ### Reserved keywords
 
 ```
-fn struct trait implements enum
+fn struct trait implements enum decorator
 if else match is for in return yield defer break continue
 import as
 export
@@ -3273,7 +3273,7 @@ A driver reaches its build through `toolchain/build`, and names AST types throug
 
 Builds run one at a time: draining the `messages()` of another context ends the build a driver left before its end.
 
-A driver receives every declaration the source writes, constants and assertions included, with what it writes outside the body of a function: names, spans and visibility, type parameters, the fields of a struct with their defaults and what it spreads, the parameters of a function with their defaults and its result, the variants of an enum with their values or data, the members a trait or an impl writes, the value of a constant, and every type and expression as written. A `@comptime` constant arrives with the expression it is written with, and a call with the arguments written, in their order, without the defaults the compiler fills in. A driver does not receive the body of a function (a trait member's default included), decorators, doc comments, or a declaration the compiler makes, such as a member an impl takes from its trait.
+A driver receives every declaration the source writes, constants and assertions included, with what it writes outside the body of a function: names, spans and visibility, type parameters, the fields of a struct with their defaults and what it spreads, the places and options of a decorator declaration, the parameters of a function with their defaults and its result, the variants of an enum with their values or data, the members a trait or an impl writes, the value of a constant, and every type and expression as written. A `@comptime` constant arrives with the expression it is written with, and a call with the arguments written, in their order, without the defaults the compiler fills in. A driver does not receive the body of a function (a trait member's default included), decorators, doc comments, or a declaration the compiler makes, such as a member an impl takes from its trait.
 
 A driver asks its build for the vaderdoc of a declaration, a field or a variant it received: `ctx.doc_of(d)`, `ctx.doc_of_field(f)`, `ctx.doc_of_variant(v)`, null when the node has none. The build answers at once. Before `messages()` is pulled, no build answers, and the result is null.
 
@@ -3354,7 +3354,7 @@ main :: fn() -> i32 {
 
 ## 12. Decorators
 
-Decorators are compiler instructions prefixed with `@`. They act at compile time, never at run time. Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@main_thread`, `@displayable`, `@alias` or `@assert` where it does not apply is an error. `@comptime` is written before the value it computes (§14): above a declaration it is an error.
+Decorators are written with `@`. The compiler's own, in the table below, are instructions that act at compile time, never at run time; a program declares others (*Declaring a decorator*, below). Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@main_thread`, `@displayable`, `@alias` or `@assert` where it does not apply is an error. `@comptime` is written before the value it computes (§14): above a declaration it is an error.
 
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
@@ -3382,6 +3382,33 @@ Decorators are compiler instructions prefixed with `@`. They act at compile time
 | `@returns(cond)` | top-level fn returning `bool` | The function returns the value of `cond` (§3 *Declared guards*) |
 | `@ensures(cond)` | top-level fn | `cond` holds when the function returns (§3 *Declared postconditions*) |
 | `@allow_unused` | any top-level declaration, an import | Exempts the declaration from the dead-code warning, or the import from the unused-import warning (below) |
+
+### Declaring a decorator
+
+A decorator is declared like a struct, with `decorator` in place of `struct`:
+
+```vader
+Method :: enum { Get, Post }
+
+/// A route of the HTTP server.
+export Route :: decorator(.Function, repeatable = true) {
+    method: Method
+    path: string
+    tags: string[] = []
+}
+
+/// A mark with no data, written anywhere.
+Marker :: decorator {}
+```
+
+- The parentheses name the places the decorator may be written, as values of `DecoratorTarget` from `std/core`: `Function`, `Struct`, `Enum`, `Trait`, `Implementation`, `Constant`, `Alias`, `Import`, `Field`, `Variant`, `Parameter` and `Module`. With no place named, or no parentheses, it may be written anywhere.
+- `repeatable = true` lets the decorator be written more than once on one declaration. It is the only option.
+- Each field holds a value known at compile time: a number, a `bool`, a `char`, a `string`, an enum, an array of these, or a distinct type over one of them. Any other field type is an error.
+- A decorator takes no type parameter.
+- A decorator cannot take the name of one of the compiler's, listed above. A function or a constant still can.
+- A decorator is a type: `Route { .method = .Get, .path = "/" }` builds a value of it, as for a struct. It changes nothing in the program it decorates.
+
+Writing a declared decorator above a declaration (`@Route(.Get, "/users/{id}")`, or `@J.Route` through a namespace alias) is not supported yet.
 
 ### `@intrinsic`
 

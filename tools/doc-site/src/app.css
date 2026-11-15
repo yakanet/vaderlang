@@ -255,6 +255,7 @@ code a.ref:hover {
 	color: var(--tk-f);
 }
 .ki-struct,
+.ki-decorator,
 .ki-enum,
 .ki-trait,
 .ki-type {

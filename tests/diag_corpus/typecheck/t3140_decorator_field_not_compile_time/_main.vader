@@ -1,0 +1,9 @@
+// The compiler builds a decorator's value where it is written, so each field
+// holds a value known at compile time: a function is not one, T3140.
+module "snippet"
+
+Hook :: decorator(.Function) {
+    run: fn() -> void
+}
+
+main :: fn() -> i32 = 0

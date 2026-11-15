@@ -156,6 +156,24 @@
       "owner": ""
     },
     {
+      "id": "shapes/text/Caption",
+      "module": "shapes/text",
+      "name": "Caption",
+      "kind": "decorator",
+      "signature": "export Caption :: decorator(.Function)",
+      "summary": "A label a renderer draws next to a function's output.",
+      "owner": ""
+    },
+    {
+      "id": "shapes/text/Caption.text",
+      "module": "shapes/text",
+      "name": "text",
+      "kind": "field",
+      "signature": "text: string",
+      "summary": "The text drawn.",
+      "owner": "shapes/text/Caption"
+    },
+    {
       "id": "shapes/text/Named",
       "module": "shapes/text",
       "name": "Named",
@@ -897,6 +915,53 @@
       },
       "targets": [],
       "members": []
+    },
+    {
+      "id": "shapes/text/Caption",
+      "name": "Caption",
+      "kind": "decorator",
+      "signature": [
+        {
+          "text": "export Caption :: decorator(.Function)"
+        }
+      ],
+      "inferred_type": [],
+      "function": null,
+      "file": "shapes/text/pin.vader",
+      "line": 14,
+      "column": 8,
+      "doc": {
+        "summary": "A label a renderer draws next to a function's output.",
+        "prose": "A label a renderer draws next to a function's output.",
+        "params": [],
+        "returns": [],
+        "errors": [],
+        "example": []
+      },
+      "targets": [],
+      "members": [
+        {
+          "id": "shapes/text/Caption.text",
+          "name": "text",
+          "kind": "field",
+          "signature": [
+            {
+              "text": "text: string"
+            }
+          ],
+          "function": null,
+          "line": 16,
+          "column": 5,
+          "doc": {
+            "summary": "The text drawn.",
+            "prose": "The text drawn.",
+            "params": [],
+            "returns": [],
+            "errors": [],
+            "example": []
+          }
+        }
+      ]
     },
     {
       "id": "shapes/text/Named",

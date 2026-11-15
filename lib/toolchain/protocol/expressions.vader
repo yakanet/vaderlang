@@ -292,7 +292,7 @@ read_ident :: fn(d: DeclReader, span: Span) -> AST.IdentExpr | ProtocolError {
 read_call :: fn(d: DeclReader, span: Span) -> AST.CallExpr | ProtocolError {
     callee :: d.read_expr() else return callee
     type_args :: d.read_exprs() else return type_args
-    args :: d.read_list(read_call_arg) else return args
+    args :: d.read_call_args() else return args
     return AST.CallExpr {
         .span = span,
         .callee = callee,
@@ -300,6 +300,8 @@ read_call :: fn(d: DeclReader, span: Span) -> AST.CallExpr | ProtocolError {
         .args = args,
     }
 }
+
+read_call_args :: fn(d: DeclReader) -> AST.CallArg[] | ProtocolError = d.read_list(read_call_arg)
 
 read_call_arg :: fn(d: DeclReader) -> AST.CallArg | ProtocolError {
     span :: d.read_span() else return span

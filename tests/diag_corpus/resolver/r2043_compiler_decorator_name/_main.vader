@@ -1,0 +1,8 @@
+// A name after `@` is looked up among decorators, where the compiler's `@test`
+// would answer first: declaring a decorator `test` is R2043. A function may still
+// take the name.
+module "snippet"
+
+test :: decorator {}
+
+main :: fn() -> i32 = 0

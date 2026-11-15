@@ -110,6 +110,7 @@ write_struct :: fn(w: DeclWriter, d: AST.StructDecl) -> void {
     w.write_type_params(d.type_params)
     w.write_list(d.fields, write_struct_field)
     w.write_list(d.spreads, write_spread)
+    w.write_optional(d.decorator_args, write_call_args)
 }
 
 write_struct_field :: fn(w: DeclWriter, f: AST.StructField) -> void {
@@ -350,6 +351,9 @@ read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
     type_params :: d.read_type_params() else return type_params
     fields :: d.read_list(read_struct_field) else return fields
     spreads :: d.read_list(read_spread) else return spreads
+    decorator_args :: d.read_optional(read_call_args) else is ProtocolError {
+        return decorator_args
+    }
     return AST.StructDecl {
         .span = head.span,
         .name = head.name,
@@ -359,6 +363,7 @@ read_struct :: fn(d: DeclReader) -> AST.StructDecl | ProtocolError {
         .fields = fields,
         .spreads = spreads,
         .decorators = [],
+        .decorator_args = decorator_args,
     }
 }
 
@@ -715,6 +720,12 @@ SAMPLE :: """
     greet :: fn(name: string = "world") -> string = name
 
     TABLE :: @comptime [1, 2, 3]
+
+    Route :: decorator(.Function, repeatable = true) {
+        path: string
+    }
+
+    Marker :: decorator {}
     """
 
 sample_declarations :: fn() -> AST.Decl[] = parse_source(SAMPLE, "src/app.vader").program.decls
@@ -734,7 +745,7 @@ crossed :: fn(source: string) -> AST.Decl[] {
 @test
 test_declarations_read_back_as_written :: fn() -> void {
     decls :: crossed_sample()
-    assert_eq(decls.len(), 19)
+    assert_eq(decls.len(), 21)
     assert_eq(encode_declarations(decls), encode_declarations(crossing_sample()))
 }
 
@@ -791,7 +802,7 @@ test_a_comptime_constant_crosses_with_what_it_is_written_with :: fn() -> void {
     assert(!crosses(helpers[0]), "the helper the parser made")
     table :: crossed_sample()[18]
     if table !is AST.ConstDecl {
-        assert(false, "the last declaration is `TABLE`")
+        assert(false, "the nineteenth declaration is `TABLE`")
         return
     }
     assert(table.value is AST.SeqLitExpr, "`[1, 2, 3]`, not a call to the helper")
@@ -807,6 +818,32 @@ test_a_struct_keeps_its_defaults_and_what_it_spreads :: fn() -> void {
     assert_eq(account.spreads.len(), 1)
     assert(account.spreads[0].base is AST.IdentExpr, "`...Base`")
     assert(account.fields[0].default is AST.StringLitExpr, "`= \"anonymous\"`")
+}
+
+@test
+test_a_decorator_keeps_its_places_and_options :: fn() -> void {
+    route :: crossed_sample()[19]
+    if route !is AST.StructDecl {
+        assert(false, "the twentieth declaration is `Route`")
+        return
+    }
+    args :: route.decorator_args else panic("`Route` is a decorator")
+    assert_eq(args.len(), 2)
+    assert(args[0].value is AST.DotVariantExpr, "`.Function`")
+    assert(args[1].name == "repeatable", "`repeatable = true`")
+}
+
+@test
+test_a_decorator_written_anywhere_stays_one :: fn() -> void {
+    marker :: crossed_sample()[20]
+    if marker !is AST.StructDecl {
+        assert(false, "the last declaration is `Marker`")
+        return
+    }
+    args :: marker.decorator_args else panic("`Marker` is a decorator")
+    assert_eq(args.len(), 0)
+    point :: crossed_sample()[3]
+    assert(point is AST.StructDecl && !AST.is_decorator(point), "`Point` is a struct")
 }
 
 @test

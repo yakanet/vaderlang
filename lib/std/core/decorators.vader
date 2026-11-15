@@ -1,0 +1,43 @@
+// std/core/decorators: the places a declared decorator may be written.
+//
+// A decorator declaration names them in its parentheses
+// (`Route :: decorator(.Function) { ... }`); the compiler types those
+// arguments against `DecoratorTarget`. Same `module "std/core"` as
+// `core.vader`, so every program sees the enum without an import.
+
+module "std/core"
+
+/// A place a decorator may be written, named in the parentheses of its
+/// declaration.
+///
+/// @example
+///   Route :: decorator(.Function) {
+///       path: string
+///   }
+export DecoratorTarget :: enum {
+    /// Above a function.
+    Function
+    /// Above a struct.
+    Struct
+    /// Above an enum.
+    Enum
+    /// Above a trait.
+    Trait
+    /// Above an `implements` block.
+    Implementation
+    /// Above a module constant.
+    Constant
+    /// Above a type alias.
+    Alias
+    /// Above an import.
+    Import
+    /// Above a struct field.
+    Field
+    /// Above an enum variant.
+    Variant
+    /// Above a function parameter.
+    Parameter
+    /// Above the `module` line of a file, for its whole module: the decorators
+    /// of every file of the module add up.
+    Module
+}

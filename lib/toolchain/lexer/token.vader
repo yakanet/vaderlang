@@ -42,6 +42,7 @@ export TokenKind :: enum(TokenInfo) {
     KwTrait      { .keyword = "trait" },
     KwImplements { .keyword = "implements" },
     KwEnum       { .keyword = "enum" },
+    KwDecorator  { .keyword = "decorator" },
     KwIf         { .keyword = "if" },
     KwElse       { .keyword = "else" },
     KwMatch      { .keyword = "match" },

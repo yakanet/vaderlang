@@ -354,6 +354,11 @@ inspect_struct :: fn(s: StructDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> 
             return true
         }
     }
+    for a in s.decorator_args else [] {
+        if inspect(a.value, visit, leave) {
+            return true
+        }
+    }
     return false
 }
 

@@ -525,6 +525,10 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
 /// lines, and the parameter form, which is always inline.
 emit_decorator :: fn(self: Printer, deco: p.Decorator) -> void {
     self.write("@")
+    if deco.qualifier != "" {
+        self.write(deco.qualifier)
+        self.write(".")
+    }
     self.write(deco.name)
     if deco.args.len() > 0 {
         self.write("(")
@@ -733,11 +737,24 @@ emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
 
 // ---- Struct ----
 
+// `struct`, or `decorator` and what its parentheses write: no parentheses when they
+// name nothing, which means the same.
+emit_struct_keyword :: fn(self: Printer, d: p.StructDecl) -> void {
+    args :: d.decorator_args else {
+        self.write(" :: struct")
+        return
+    }
+    self.write(" :: decorator")
+    if args.len() > 0 {
+        self.emit_inline_list(args, "(", ")", false, emit_call_arg)
+    }
+}
+
 emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
-    self.write(" :: struct")
+    self.emit_struct_keyword(d)
     self.emit_type_params(d.type_params)
     members :: p.struct_members(d)
     if members.len() == 0 {

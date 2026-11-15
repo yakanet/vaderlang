@@ -307,6 +307,11 @@ write_struct_decl :: fn(sb: StringBuilder, d: StructDecl, level: i32) -> void {
         sb.entry(false, level + 1, "spreads")
         sb.write_struct_spreads(d.spreads, level + 1)
     }
+    args :: d.decorator_args
+    if args != null {
+        sb.entry(false, level + 1, "decoratorArgs")
+        sb.write_call_args(args, level + 1)
+    }
     sb.entry(false, level + 1, "decorators")
     sb.write_decorators(d.decorators, level + 1)
     sb.close_obj(level)
@@ -527,7 +532,11 @@ write_decorators :: fn(sb: StringBuilder, ds: Decorator[], level: i32) -> void {
         sb.append_char('\n')
         sb.indent(level + 1)
         sb.open_obj()
-        sb.entry(true, level + 2, "name")
+        if d.qualifier != "" {
+            sb.entry(true, level + 2, "qualifier")
+            sb.write_string(d.qualifier)
+        }
+        sb.entry(d.qualifier == "", level + 2, "name")
         sb.write_string(d.name)
         sb.entry(false, level + 2, "args")
         sb.write_exprs(d.args, level + 2)

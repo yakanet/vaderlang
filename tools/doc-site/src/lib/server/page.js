@@ -17,6 +17,7 @@ import { index, module_paths, source_url } from './data.js';
 // The kinds of each group, in the order the page shows them.
 const GROUPS = [
 	['Types', ['struct', 'enum', 'trait', 'type']],
+	['Decorators', ['decorator']],
 	['Functions', ['fn']],
 	['Constants', ['const']]
 ];
@@ -24,6 +25,7 @@ const GROUPS = [
 // What the members of a declaration are called on its page.
 const MEMBER_TITLES = new Map([
 	['struct', 'Fields'],
+	['decorator', 'Fields'],
 	['enum', 'Variants'],
 	['trait', 'Methods'],
 	['impl', 'Methods']

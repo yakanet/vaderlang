@@ -207,9 +207,10 @@ walk_decl :: fn(d: AST.Decl, out: RawToken[]) -> void {
 
 walk_decorators :: fn(ds: AST.Decorator[], out: RawToken[]) -> void {
     for deco in ds {
-        // `deco.span` covers `@name(args)` whole ; tag only `@name` so the
-        // argument tokens (walked below) don't sit inside a Decorator token.
-        push_name_token(out, deco.span.start, 1, deco.name, .Decorator)
+        // `deco.span` covers `@name(args)` whole ; tag only `@name` (or
+        // `@Alias.name`) so the argument tokens (walked below) don't sit inside a
+        // Decorator token.
+        push_span(out, Span { .start = deco.span.start, .end = deco.name_span.end }, .Decorator)
         for a in deco.args { walk_expr(a, out) }
     }
 }
@@ -265,6 +266,9 @@ walk_struct_decl :: fn(d: AST.StructDecl, out: RawToken[]) -> void {
     for f in d.fields { walk_struct_field(f, out) }
     for spread in d.spreads {
         walk_type_expr(spread.base, out)
+    }
+    for a in d.decorator_args else [] {
+        walk_expr(a.value, out)
     }
 }
 

@@ -165,11 +165,16 @@ export TypeParam :: struct {
     default: TypeExpr | null = null
 }
 
-/// An `@name` or `@name(args)` above a declaration.
+/// An `@name`, `@name(args)` or `@Alias.name(args)` above a declaration.
 export Decorator :: struct {
     span: Span
     id:   i64 = UNASSIGNED_NODE_ID
+    /// The namespace alias written before the name, `J` in `@J.json_name`; "" for
+    /// a bare name.
+    qualifier: string = ""
     name: string
+    /// The name alone, without the `@` or the qualifier.
+    name_span: Span
     args: Expr[]
 }
 
@@ -496,7 +501,16 @@ export StructDecl :: struct {
     spreads:       StructSpread[] = []
     decorators:    Decorator[]
     doc:           DocComment | null = null
+    /// What `Name :: decorator(...)` writes in its parentheses: the places it may
+    /// be written, then its options (`repeatable = true`). Null for a struct, which
+    /// is what tells the two apart; empty for a decorator written anywhere.
+    decorator_args: CallArg[] | null = null
 }
+
+/// Whether `d` declares a decorator rather than a struct.
+///
+/// @param d  the declaration.
+export is_decorator :: fn(d: StructDecl) -> bool = d.decorator_args != null
 
 /// A spread of another struct's fields into a struct declaration, `...Base`.
 export StructSpread :: struct {

@@ -485,6 +485,9 @@ export TypedProgram :: struct {
     /// `std/core`'s `Iterator` trait symbol: the trait a `generator`'s state
     /// struct is a value of. Populated once from core by the orchestrator.
     iterator_symbol: Symbol | null
+    /// `std/core`'s `DecoratorTarget` enum symbol: the type of the places a
+    /// decorator declaration names. Populated once from core by the orchestrator.
+    decorator_target_symbol: Symbol | null
     /// The `std/runtime/scheduler` functions the compiler calls : one record for
     /// the whole project, null when it never loads the scheduler. It then runs on
     /// one thread, and a value built on first use needs no gate.
@@ -846,6 +849,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .field_symbol    = null,
     .equals_symbol   = null,
     .iterator_symbol = null,
+    .decorator_target_symbol = null,
     .imported_fn_overloads = Map<string, Map<string, FnCandidate[]>> {},
     .ufcs_receiver_types = Map<i64, Type> {},
     .chosen_fns = Map<i64, FnCandidate> {},

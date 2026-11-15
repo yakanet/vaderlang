@@ -429,6 +429,17 @@ walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
 
 walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
+    args :: d.decorator_args
+    if args != null {
+        // A name after `@` is looked up among decorators, where the compiler's
+        // own would answer first.
+        if decorator_spec(d.name) != null {
+            self.diags.push(resolver_error(.CompilerDecoratorName, d.name_span, "`@${d.name}`"))
+        }
+        for a in args {
+            self.walk_expr(a.value)
+        }
+    }
     self.scope.push()
     for tp in d.type_params {
         self.declare_type_param(tp)
@@ -563,6 +574,11 @@ auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
 
 walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
     for d in decs {
+        // A qualified name designates a declared decorator, which no name reaches yet.
+        if d.qualifier != "" {
+            self.diags.push(resolver_error(.UnknownDecorator, d.name_span, "`@${d.qualifier}.${d.name}`"))
+            continue
+        }
         if !is_known_decorator(d.name) {
             self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))
         }

@@ -271,7 +271,14 @@ substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr 
 
 intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {
     args: AST.Expr[]: []
-    return [AST.Decorator { .span = span, .id = AST.UNASSIGNED_NODE_ID, .name = "intrinsic", .args = args }]
+    return [
+        AST.Decorator {
+            .span = span,
+            .name = "intrinsic",
+            .name_span = span,
+            .args = args,
+        },
+    ]
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -1,0 +1,13 @@
+// tests/fixtures/format/decorator_declaration: a decorator declaration keeps its
+// places and options, its fields as a struct's, and loses the parentheses that
+// name nothing: `decorator()` and `decorator` both mean "written anywhere".
+
+module "decorator_declaration"
+
+/// A route of the HTTP server.
+export Route :: decorator( .Function,repeatable = true ) {
+    path: string
+    tags: string[] = []
+}
+
+Marker :: decorator() {}

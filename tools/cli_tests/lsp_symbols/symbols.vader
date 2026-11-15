@@ -413,3 +413,22 @@ test_the_selection_grows_from_the_word_to_its_declaration :: fn() -> void {
         assert(chain[i].byte_len() > chain[i - 1].byte_len(), chain.join(" | "))
     }
 }
+
+// The outline lists a decorator declaration as the struct-like type it is, its
+// fields as children.
+@test
+test_document_symbols_list_a_decorator_with_its_fields :: fn() -> void {
+    source :: r"""
+        module "lsptest"
+
+        Route :: decorator(.Function) {
+            path: string
+        }
+
+        main :: fn() -> i32 = 0
+        """
+    results :: drive("document_symbols_decorator", source, [ask("textDocument/documentSymbol", 0, 0)])
+    symbols :: array_at(results[0], [])
+    assert_eq(symbols.map(name_and_kind).collect().join(" "), "Route:23 main:12")
+    assert_eq(names_of(array_at(symbols[0], ["children"])).join(" "), "path")
+}

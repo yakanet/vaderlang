@@ -1,0 +1,2 @@
+[5:1] warning[W0007] declaration is never used in its module: `Hook` is never used
+[6:10] error[T3140] a decorator field must hold a value known at compile time: `run` is fn() -> void

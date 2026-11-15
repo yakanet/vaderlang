@@ -9,3 +9,9 @@ export pin :: fn(tag: Tag, at: Geo.Point) -> Tag = tag
 
 /// The tags of `items`, a tag per item.
 export tags_of :: fn<T: Named>(items: T[]) -> Tag[] = []
+
+/// A label a renderer draws next to a function's output.
+export Caption :: decorator(.Function) {
+    /// The text drawn.
+    text: string
+}

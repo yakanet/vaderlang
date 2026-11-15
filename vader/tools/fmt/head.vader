@@ -59,7 +59,7 @@ export format_decl_head :: fn(source: string, d: p.Decl) -> NamedText {
         }
         is p.StructDecl -> {
             h.write(d.name)
-            h.write(" :: struct")
+            h.emit_struct_keyword(d)
             h.emit_type_params(d.type_params)
         }
         is p.EnumDecl -> {

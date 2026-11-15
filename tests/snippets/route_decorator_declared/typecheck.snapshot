@@ -1,0 +1,42 @@
+# Typecheck
+
+## tests/snippets/route_decorator_declared
+  FnDecl         describe             :: fn(Route) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Marker               :: Marker
+  EnumDecl       Method               :: Method
+  StructDecl     Route                :: Route
+  expr 13:20    DotVariantExpr :: DecoratorTarget
+  expr 16:22    SeqLitExpr     :: string[]
+  expr 23:13    IfExpr         :: string
+  expr 23:16    BinaryExpr     :: bool
+  expr 23:16    FieldExpr      :: Method
+  expr 23:16    IdentExpr      :: Route
+  expr 23:28    DotVariantExpr :: Method
+  expr 23:35    StringLitExpr  :: string
+  expr 23:50    StringLitExpr  :: string
+  expr 24:12    StringLitExpr  :: string
+  expr 24:15    IdentExpr      :: string
+  expr 24:23    FieldExpr      :: string
+  expr 24:23    IdentExpr      :: Route
+  expr 24:33    CallExpr       :: i64
+  expr 24:33    FieldExpr      :: fn() -> i64
+  expr 24:33    FieldExpr      :: string[]
+  expr 24:33    IdentExpr      :: Route
+  expr 28:13    CallExpr       :: string
+  expr 28:13    IdentExpr      :: fn(Route) -> string
+  expr 28:22    StructLitExpr  :: Route
+  expr 28:40    DotVariantExpr :: Method
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 28:54    StringLitExpr  :: string
+  expr 29:13    CallExpr       :: string
+  expr 29:13    IdentExpr      :: fn(Route) -> string
+  expr 29:22    StructLitExpr  :: Route
+  expr 29:40    DotVariantExpr :: Method
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 29:55    StringLitExpr  :: string
+  expr 29:73    SeqLitExpr     :: string[]
+  expr 29:74    StringLitExpr  :: string
+  expr 30:10    StructLitExpr  :: Marker

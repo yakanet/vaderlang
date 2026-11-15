@@ -10,6 +10,7 @@ const KIND_ICONS = {
 	fn: 'symbol-method',
 	method: 'symbol-method',
 	struct: 'symbol-structure',
+	decorator: 'mention',
 	enum: 'symbol-enum',
 	variant: 'symbol-enum-member',
 	trait: 'symbol-interface',

@@ -1,0 +1,2 @@
+[5:1] warning[W0007] declaration is never used in its module: `Tagged` is never used
+[5:20] error[P1041] a decorator takes no type parameter: `Tagged`

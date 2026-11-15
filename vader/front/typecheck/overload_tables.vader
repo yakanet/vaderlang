@@ -282,4 +282,5 @@ populate_core_symbols_into :: fn(
     typed.field_symbol = core_loaded.collected.symbols[STRUCT_FIELD]
     typed.equals_symbol = core_loaded.collected.symbols[TRAIT_EQUALS]
     typed.iterator_symbol = core_loaded.collected.symbols[TRAIT_ITERATOR]
+    typed.decorator_target_symbol = core_loaded.collected.symbols[ENUM_DECORATOR_TARGET]
 }

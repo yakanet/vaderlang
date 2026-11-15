@@ -764,7 +764,13 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
 
 parse_decorator :: fn(p: Parser) -> Decorator {
     at :: p.advance()
-    name_tok :: p.expect(.Ident, "decorator name after `@`")
+    name_tok := p.expect(.Ident, "decorator name after `@`")
+    qualifier := ""
+    if p.check(.Dot) && p.peek_at(1).kind == .Ident {
+        p.advance()
+        qualifier = name_tok.text
+        name_tok = p.advance()
+    }
     args: Expr[]: []
     if p.match_kind(.LParen) != null {
         if !p.check(.RParen) {
@@ -782,7 +788,9 @@ parse_decorator :: fn(p: Parser) -> Decorator {
     }
     return Decorator {
         .span = p.span_of(at, p.peek_at(-1)),
+        .qualifier = qualifier,
         .name = name_tok.text,
+        .name_span = name_tok.span,
         .args = args,
     }
 }
@@ -1134,6 +1142,7 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 
     if p.check(.KwFn)     { return p.parse_fn_decl(decorators, visibility, name_tok) }
     if p.check(.KwStruct) { return p.parse_struct_decl(decorators, visibility, name_tok) }
+    if p.check(.KwDecorator) { return p.parse_decorator_decl(decorators, visibility, name_tok) }
     if p.check(.KwEnum)   { return p.parse_enum_decl(decorators, visibility, name_tok) }
     if p.check(.KwTrait)  { return p.parse_trait_decl(decorators, visibility, name_tok) }
     if p.check(.KwImport) { return p.parse_named_import_decl(decorators, name_tok) }
@@ -1331,6 +1340,38 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     p.reject_free_fn_decorators(decorators, "a struct", "")
     p.advance()  // `struct`
     type_params :: p.parse_angle_type_params()
+    return p.parse_struct_body(decorators, visibility, name_tok, type_params, null)
+}
+
+// `Name :: decorator(places, options) { fields }`: a struct the compiler reads as
+// a decorator. Its fields hold the values its arguments give, so it takes no type
+// parameter.
+parse_decorator_decl :: fn(
+    p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token,
+) -> StructDecl {
+    p.reject_free_fn_decorators(decorators, "a decorator", "")
+    p.advance()  // `decorator`
+    args: CallArg[] = []
+    if p.match_kind(.LParen) != null {
+        args = p.parse_call_args().items
+        p.expect(.RParen, "`)` to close the places of a decorator")
+    }
+    if p.check(.Lt) {
+        p.error(.DecoratorTypeParameters, p.peek().span, "`${name_tok.text}`")
+        p.parse_angle_type_params()
+    }
+    return p.parse_struct_body(decorators, visibility, name_tok, [], args)
+}
+
+// The body of a struct or a decorator, from its `{`.
+parse_struct_body :: fn(
+    p: Parser,
+    decorators: Decorator[],
+    visibility: Visibility,
+    name_tok: Token,
+    type_params: TypeParam[],
+    decorator_args: CallArg[] | null,
+) -> StructDecl {
     p.expect(.LBrace, "`{` to open struct body")
     p.skip_newlines()
     fields: StructField[]: []
@@ -1376,14 +1417,15 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     }
     end_tok :: p.expect(.RBrace, "`}` to close struct body")
     return StructDecl {
-        .span          = p.span_of(name_tok, end_tok),
-        .name          = name_tok.text,
-        .name_span     = name_tok.span,
-        .visibility    = visibility,
-        .type_params   = type_params,
-        .fields        = fields,
-        .spreads       = spreads,
-        .decorators    = decorators,
+        .span           = p.span_of(name_tok, end_tok),
+        .name           = name_tok.text,
+        .name_span      = name_tok.span,
+        .visibility     = visibility,
+        .type_params    = type_params,
+        .fields         = fields,
+        .spreads        = spreads,
+        .decorators     = decorators,
+        .decorator_args = decorator_args,
     }
 }
 
@@ -2783,6 +2825,7 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwTrait            -> no_infix()
     .KwImplements       -> no_infix()
     .KwEnum             -> no_infix()
+    .KwDecorator        -> no_infix()
     .KwIf               -> no_infix()
     .KwElse             -> no_infix()
     .KwMatch            -> no_infix()
@@ -2872,6 +2915,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwTrait            -> -1
     .KwImplements       -> -1
     .KwEnum             -> -1
+    .KwDecorator        -> -1
     .KwIf               -> -1
     .KwElse             -> -1
     .KwMatch            -> -1
@@ -3494,6 +3538,7 @@ is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     if k == .KwFor || k == .KwIn { return true }
     if k == .KwReturn || k == .KwYield || k == .KwDefer || k == .KwBreak || k == .KwContinue { return true }
     if k == .KwStruct || k == .KwTrait || k == .KwImplements || k == .KwEnum { return true }
+    if k == .KwDecorator { return true }
     if k == .KwImport || k == .KwExport || k == .KwSelf { return true }
     return false
 }

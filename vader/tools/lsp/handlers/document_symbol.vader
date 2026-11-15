@@ -80,7 +80,7 @@ declares_type :: fn(idx: DocIndex, name: string) -> bool {
 
 // Whether `k` declares a type that may hold members.
 is_type_decl :: fn(k: DeclKind) -> bool =
-    k == .Struct || k == .Enum || k == .Trait || k == .TypeAlias || k == .Const
+    k == .Struct || k == .Decorator || k == .Enum || k == .Trait || k == .TypeAlias || k == .Const
 
 // Map a `DeclKind` onto its LSP `SymbolKind` wire number (LSP §3.17). Top-level
 // kinds get their natural icon ; the intra-file kinds (filtered out before
@@ -92,6 +92,7 @@ lsp_symbol_kind :: fn(k: DeclKind) -> i32 = match k {
     .Trait     -> 11   // Interface
     .TypeAlias -> 5    // Class
     .Const     -> 14   // Constant
+    .Decorator -> 23   // Struct: a decorator is a struct-like type
     .Field     -> 8    // Field
     .EnumVariant -> 22   // EnumMember
     .Param     -> 13   // Variable

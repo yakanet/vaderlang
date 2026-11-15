@@ -1,0 +1,2 @@
+[6:1] error[R2043] this name belongs to a decorator of the compiler: `@test`
+[6:1] warning[W0007] declaration is never used in its module: `test` is never used

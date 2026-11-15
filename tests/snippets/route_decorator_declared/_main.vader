@@ -1,0 +1,32 @@
+// A decorator declaration: a struct-like type named after `decorator`, its
+// parentheses naming where it may be written and whether it repeats. Nothing
+// writes `@Route` yet; the type is an ordinary one, so a value of it is built
+// and read like any struct's.
+
+module "snippet"
+
+import "std/console"
+
+Method :: enum { Get, Post }
+
+/// A route of the HTTP server.
+Route :: decorator(.Function, repeatable = true) {
+    method: Method
+    path: string
+    tags: string[] = []
+}
+
+/// A mark with no data, written anywhere.
+Marker :: decorator {}
+
+describe :: fn(r: Route) -> string {
+    verb :: if r.method == .Get { "GET" } else { "POST" }
+    return "${verb} ${r.path} ${r.tags.len()}"
+}
+
+main :: fn() -> i32 {
+    println(describe(Route { .method = .Get, .path = "/users/{id}" }))
+    println(describe(Route { .method = .Post, .path = "/users", .tags = ["admin"] }))
+    _ :: Marker {}
+    return 0
+}

@@ -162,6 +162,7 @@ export TypecheckCode :: enum(CodeInfo) {
     FallbackLeavesNothing           { .id = "T3137", .message = "every value goes to a clause that leaves, so the fallback has no value" },
     AliasOfAValue                   { .id = "T3138", .message = "`@alias` names a type, not a value" },
     TraitMemberOutOfScope           { .id = "T3139", .message = "this trait member is out of scope" },
+    DecoratorFieldNotCompileTime    { .id = "T3140", .message = "a decorator field must hold a value known at compile time" },
 }
 
 // Parser-pass codes.
@@ -192,6 +193,7 @@ export ParserCode :: enum(CodeInfo) {
     RestNotLast                { .id = "P1038", .message = "`...rest` must be the last element" },
     MisshapenMatchBinding      { .id = "P1039", .message = "a `match` header binds one constant name" },
     AssignmentAfterElse        { .id = "P1040", .message = "an assignment cannot follow the value of an `else`" },
+    DecoratorTypeParameters    { .id = "P1041", .message = "a decorator takes no type parameter" },
 }
 
 // R-codes belong to the resolver pass (name-binding).
@@ -231,6 +233,7 @@ export ResolverCode :: enum(CodeInfo) {
     TargetBodySignatureDiffers   { .id = "R2040", .message = "`@target` body does not have the declaration's signature" },
     NoTargetBodyCoversTarget     { .id = "R2041", .message = "no `@target` body covers the target being built" },
     UnionInBound                 { .id = "R2042", .message = "a bound cannot be a union" },
+    CompilerDecoratorName        { .id = "R2043", .message = "this name belongs to a decorator of the compiler" },
 }
 
 // C-codes belong to the comptime evaluator.
