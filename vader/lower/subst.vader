@@ -4,13 +4,14 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "std/string_builder"
+import "vader/core/mangle"
 
 import "toolchain/ast"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/core/types"
-import "vader/front/comptime"
 
 // A substitution of exactly `bindings`, their unions laid out (`laid_out_unions`).
 substitution_of :: fn(bindings: Map<i32, Type>) -> Substitution {
@@ -218,14 +219,7 @@ has_any_kept_arg :: fn(impls: ImplRegistry, type_args: Type[]) -> bool {
     return false
 }
 
-args_suffix :: fn(args: Type[]) -> string {
-    sb :: StringBuilder {}
-    for a in args {
-        sb.append("__")
-        sb.append(mangle_type_arg(a))
-    }
-    return sb.to_string()
-}
+args_suffix :: fn(args: Type[]) -> string = instance_suffix(args.map(mangle_type_arg).collect())
 
 /// Erasure suffix for a GENERIC impl member. KEEPS the type args
 /// `kept_argument` keeps (so a primitive-keyed instance devirtualises its trait
@@ -240,11 +234,5 @@ args_suffix :: fn(args: Type[]) -> string {
 /// @param args   the impl's concrete type arguments.
 /// @return       `"__<type>"` per arg `kept_argument` keeps, `"__Any"` per
 ///               other arg.
-mixed_any_suffix :: fn(impls: ImplRegistry, args: Type[]) -> string {
-    sb :: StringBuilder {}
-    for a in args {
-        sb.append("__")
-        sb.append(kept_suffix(impls.kept_argument(a)))
-    }
-    return sb.to_string()
-}
+mixed_any_suffix :: fn(impls: ImplRegistry, args: Type[]) -> string =
+    instance_suffix(args.map((a) -> kept_suffix(impls.kept_argument(a))).collect())

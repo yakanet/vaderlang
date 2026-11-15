@@ -11,6 +11,7 @@ module "vader/emit/c"
 
 import "std/abort"
 import "vader/core/bytecode"
+import "vader/core/mangle"
 import "vader/emit/c/ast"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `Bc.<Op>` at the match.
@@ -171,16 +172,16 @@ find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
     out: i32[]: []
     et :: types[struct_idx]
     if et is BcStruct {
-        // Anonymous tuples carry no source symbol: they group by the reserved
-        // `__Tuple` name marker ; named generics group by a shared `symbol_id`.
-        is_tuple :: "__Tuple" in et.name
+        // Anonymous tuples carry no source symbol: they group by their name
+        // (`tuple_struct_name`) ; named generics group by a shared `symbol_id`.
+        is_tuple :: is_tuple_struct_name(et.name)
         for i in 0..<types.len() {
             if i32(i) == struct_idx {
                 continue
             }
             cand :: types[i]
             if cand is BcStruct {
-                same_group :: et.symbol_id >= 0 && cand.symbol_id == et.symbol_id || is_tuple && "__Tuple" in cand.name
+                same_group :: et.symbol_id >= 0 && cand.symbol_id == et.symbol_id || is_tuple && is_tuple_struct_name(cand.name)
                 if same_group && fields_are_layout_siblings(types, et, cand) {
                     out.push(i32(i))
                 }

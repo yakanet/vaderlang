@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/lower/ir"
 
@@ -398,24 +399,15 @@ member_or_instance :: fn(
 }
 
 // The name of an impl member : the impl's module, its target segment, its trait
-// segment, the member, then what tells it from its siblings. With
-// `impl_member_segment_name`, the one place that spells the scheme, so the call
-// sites and the materialisers name each member alike.
+// segment, the member, then what tells it from its siblings, so the call sites
+// and the materialisers name each member alike.
 impl_member_name :: fn(
     impl_module: string, target: Type, trait_symbol: Symbol, member: string, suffix: string,
 ) -> string {
     segment :: impl_target_segment(impl_module, target)
     trait_segment :: impl_symbol_segment(impl_module, trait_symbol)
-    return impl_member_segment_name(impl_module, segment, trait_segment, member, suffix)
+    return impl_member_mangle(impl_module, segment, trait_segment, member, suffix)
 }
-
-// The scheme over segments already chosen. A state struct the lowering
-// synthesises lives in the module that lowers it, and its members are reached
-// through their vtable slot, never by a name rebuilt with `impl_member_name` :
-// its bare name and its trait's are its segments.
-impl_member_segment_name :: fn(
-    impl_module: string, segment: string, trait_segment: string, member: string, suffix: string,
-) -> string = "${mangle_module_id(impl_module)}$${segment}$${trait_segment}$${member}${suffix}"
 
 // The target segment of an impl member's name : its nominal target's segment,
 // so impls of one trait for `pa.Point` and `pb.Point` written in the same module
@@ -437,10 +429,10 @@ impl_target_segment :: fn(impl_module: string, target: Type) -> string {
 // name.
 // @partial: only the shapes with no surface name take a token.
 shape_segment :: fn(target: Type) -> string = @partial match target {
-    is ArrayType -> "\$array"
-    is TupleType -> "\$tuple"
-    is FnType    -> "\$fn"
-    is UnionType -> "\$union"
+    is ArrayType -> shape_segment_name(.Array)
+    is TupleType -> shape_segment_name(.Tuple)
+    is FnType    -> shape_segment_name(.Fn)
+    is UnionType -> shape_segment_name(.Union)
     _            -> type_surface_name(target)
 }
 

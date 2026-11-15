@@ -17,7 +17,7 @@ import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/lexer"
 import "toolchain/parser"
-import "vader/core/types"
+import "vader/core/mangle"
 import "vader/front/comptime"
 import "vader/front/effects"
 import "vader/front/resolver"
@@ -196,7 +196,7 @@ targets_stage :: fn(input: DumpInput) -> StageOutput {
         for f in lm.module.files {
             for d in f.program.decls {
                 if d is FnDecl && selected_by_target(d) {
-                    group :: "${mangle_module_id(lm.module.display_path)}\$${d.name}"
+                    group :: declaration_mangle(lm.module.display_path, d.name)
                     lines.push("${group} <- ${body_origin(d, cwd)}")
                 }
             }

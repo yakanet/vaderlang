@@ -13,6 +13,7 @@
 
 module "vader/emit/bytecode"
 
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/midir"
 import "std/collections"
@@ -86,8 +87,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         jump_table: i32[]: [-1] * body.len()
         no_locals: BcLocal[]: []
         fn_index :: i32(ctx.functions.len())
-        // The empty part before `wrapper` is what no declared name spells.
-        ctx.functions.push(BcFunction { .name = "${imp.mangled_name}\$\$wrapper", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
+        ctx.functions.push(BcFunction { .name = derived_mangle(imp.mangled_name, .Wrapper), .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
         ctx.function_index_by_mangle[imp.mangled_name] = fn_index
     }
 }

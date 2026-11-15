@@ -12,6 +12,7 @@ import "std/collections"
 import "std/iter"
 import "toolchain/ast"
 import "toolchain/parser"
+import "vader/core/mangle"
 import "vader/front/resolver"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -226,7 +227,7 @@ collect_impl :: fn(
         .target          = target,
         .instance        = instance,
         .trait_args      = registered_trait_args(impl_, trait_sym, for_type, resolved, typed),
-        .overload_suffix = if earlier == 0 { "" } else { "$${earlier}" },
+        .overload_suffix = impl_overload_suffix(earlier),
     }
     push_entry(self.by_target, "${target}::${trait_key}", entry)
     push_entry(self.by_base, target, entry)

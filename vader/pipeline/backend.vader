@@ -16,10 +16,10 @@ import "std/console"
 import "std/iter"
 import "std/path"
 import "toolchain/diagnostics"
+import "vader/core/mangle"
 import "vader/front/resolver"
 import "vader/support/target"
 import "vader/front/typecheck"
-import "vader/core/types"
 import "vader/lower"
 import "vader/lower/dce"
 import "vader/lower/ir"
@@ -84,7 +84,7 @@ export entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
     if "main" !in tp.resolved.fn_overloads {
         return ""
     }
-    return "${mangle_module_id(tp.resolved.display_path)}\$main"
+    return declaration_mangle(tp.resolved.display_path, "main")
 }
 
 // Module name = the entry file's basename minus the `.vader` extension.

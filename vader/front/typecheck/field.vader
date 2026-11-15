@@ -23,6 +23,7 @@ import "std/math"
 import "std/string"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
+import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
@@ -1559,7 +1560,7 @@ find_trait_id :: fn(key: string, typed: TypedProgram) -> i32 | null {
             continue
         }
         owner :: typed.trait_decl_owners[id] else typed.resolved
-        if "${mangle_module_id(owner.display_path)}\$${decl.name}" == key {
+        if declaration_mangle(owner.display_path, decl.name) == key {
             return id
         }
     }

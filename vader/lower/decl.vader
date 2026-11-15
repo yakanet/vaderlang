@@ -5,6 +5,7 @@ module "vader/lower"
 
 import "std/abort"
 import "std/collections"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/lower/ir"
 
@@ -373,7 +374,7 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
 stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     name :: decl_name(decl)
     suffix :: overload_suffix_for(decl, typed)
-    mangled :: "${mangle_module_id(typed.resolved.display_path)}$${name}${suffix}"
+    mangled :: declaration_mangle(typed.resolved.display_path, name, suffix)
     // Propagate the resolver-side `Symbol` so downstream phases (notably
     // the bytecode emit's `function_index_by_symbol_id` index) can route
     // call sites: `LoweredIdent.symbol` holds the same id, so the two

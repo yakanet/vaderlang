@@ -22,6 +22,7 @@
 module "vader/core/bytecode"
 
 import "std/string"
+import "vader/core/mangle"
 import "vader/core/types"
 
 // Mangled module fragment for `std/core` (`mangle_module_id("std/core")`).
@@ -49,7 +50,7 @@ DEEP_COPY_TYPE :: r"std_core$deep_copy__"
 /// @param method  the method segment (`"equals"`, `"to_string"`, ...).
 /// @return        the fully mangled host-import name.
 export primitive_member_mangle :: fn(kind: string, trait_: string, method: string) -> string =
-    "${CORE_MODULE}$${kind}$${trait_}$${method}"
+    impl_member_mangle("std/core", kind, trait_, method)
 
 // Whether `mangled` is an integer width's bodyless `@intrinsic Equals` member.
 is_int_equals :: fn(mangled: string) -> bool {

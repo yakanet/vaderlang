@@ -31,6 +31,7 @@ import "std/console"
 import "std/iter"
 import "std/string"
 import "std/path"
+import "vader/core/mangle"
 import "vader/tools/lsp/protocol"
 import "vader/vm"
 
@@ -437,7 +438,7 @@ stacktrace_body :: fn(view: PauseView, thread_id: i32) -> JsonValue {
         src["path"] = JsonString { .value = f.file }
         fr :: Map<string, JsonValue> {}
         fr["id"]     = JsonNumber { .value = f64(entry.id) }
-        fr["name"]   = JsonString { .value = display_fn_name(f.function_name) }
+        fr["name"]   = JsonString { .value = mangle_last_segment(f.function_name) }
         fr["line"]   = JsonNumber { .value = f64(f.line) }
         fr["column"] = JsonNumber { .value = f64(1) }
         fr["source"] = JsonObject { .entries = src }
@@ -514,14 +515,6 @@ stop_line :: fn(message: string) -> string {
         return "vader: ${message}"
     }
     return "vader: trap: ${message}"
-}
-
-// Display name for a stack frame : the tail after the last `$` of the mangled
-// name (`snippet$main` -> `main`), or the whole name when it carries no `$`.
-// Uses a char literal (not a `"$"` string: a bare `$` opens interpolation).
-display_fn_name :: fn(mangled: string) -> string {
-    idx :: mangled.last_index_of('$') else return mangled
-    return mangled.byte_slice(idx + 1, mangled.byte_len())
 }
 
 // Final path segment (`/a/b/c.vader` -> `c.vader`) for the `source.name`.

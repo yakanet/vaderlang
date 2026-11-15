@@ -24,6 +24,7 @@ module "vader/emit/c"
 import "std/collections"
 import "std/string"
 import "vader/core/bytecode"
+import "vader/core/mangle"
 import "vader/emit/c/ast"
 
 // ---- per-key dispatcher metadata ------------------------------------------
@@ -32,7 +33,7 @@ import "vader/emit/c/ast"
 /// `<trait key>$<method>$$dispatch`, the `.` becoming the `$` that separates
 /// every part of a mangled name. The empty part before `dispatch` is what no
 /// declared name spells, an identifier never being empty, as `$array` is.
-dispatcher_name :: fn(key: string) -> string = "${sanitise(key.split(".").join("\$"))}\$\$dispatch"
+dispatcher_name :: fn(key: string) -> string = sanitise(vtable_dispatcher_mangle(key))
 
 /// The vtable row whose key is `key`, or `null` when absent.
 find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {

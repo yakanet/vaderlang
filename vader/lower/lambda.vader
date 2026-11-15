@@ -22,6 +22,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/core/mangle"
 import "vader/core/mono"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
@@ -146,8 +147,7 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
 
 /// Bump and return the next synthetic Symbol id from the project's
 /// monotonically-decreasing pool. Shared with `lower_defer` so both
-/// lifts pull from a single counter (otherwise `__lambda_N` /
-/// `__defer_N` names would drift apart per fn).
+/// lifts pull from a single counter.
 next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 = next_project_synthetic_id(ctx.project)
 
 /// Bump and return the next synthetic id straight off a `LowerProjectCtx`: the
@@ -175,22 +175,15 @@ synth_env_param_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
     return fresh_synthetic_symbol(ctx, "env")
 }
 
-fresh_lifted_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
-    return fresh_lifted_symbol_with_prefix(ctx, is_env, "__lambda_", "__lambda_env_")
-}
+fresh_lifted_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol = fresh_lifted_symbol_of(ctx, is_env, .Lambda)
 
-/// Lift helper shared by the lambda and defer passes: both produce
-/// the same Symbol shape, only the `__lambda_*` vs `__defer_*` name
-/// prefixes diverge. Synthetic IDs come from `next_synthetic_id`'s
-/// shared pool so the two passes' naming counters stay consistent.
-fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_prefix: string, env_prefix: string) -> Symbol {
+/// Lift helper shared by the passes that lift a function, or its environment
+/// struct, out of a body: they differ only by `lifted`. Synthetic IDs come from
+/// `next_synthetic_id`'s shared pool so the passes' naming counters stay
+/// consistent.
+fresh_lifted_symbol_of :: fn(ctx: FnLowerCtx, is_env: bool, lifted: LiftedKind) -> Symbol {
     id :: next_synthetic_id(ctx)
-    prefix := fn_prefix
-    kind := SymbolKind.Fn
-    if is_env {
-        prefix = env_prefix
-        kind = .Struct
-    }
+    kind :: if is_env { SymbolKind.Struct } else { SymbolKind.Fn }
     // The NAME is keyed per module, the ID stays project-global: the id must be
     // unique program-wide, the name only has to be stable. `next_synthetic_id`
     // is a project-wide rank, so a function reached by one target alone
@@ -202,10 +195,11 @@ fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_prefix: 
     // The counter is keyed on the SAME sanitised string the name uses. Keyed on
     // the raw one, two modules that sanitise alike both start at 0 and mint
     // identical names.
-    key :: mangle_module_id(ctx.typed.resolved.display_path)
+    module :: ctx.typed.resolved.display_path
+    key :: mangle_module_id(module)
     seq :: ctx.project.lambda_seq[key] else 0
     ctx.project.lambda_seq[key] = seq + 1
-    return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = .Private, .defined_at = null }
+    return Symbol { .id = id, .kind = kind, .name = lifted_mangle(lifted, is_env, module, seq), .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = .Private, .defined_at = null }
 }
 
 /// Shared MonoEntry constructor for lambda + defer lifts. Each pass

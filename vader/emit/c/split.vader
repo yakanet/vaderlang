@@ -37,6 +37,7 @@ import "std/collections"
 import "std/sort"
 import "std/string"
 import "vader/core/bytecode"
+import "vader/core/mangle"
 import "vader/emit/c/ast"
 import "vader/support/text"
 
@@ -382,7 +383,9 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // to straddle a module.
     of_module :: Map<string, i32[]> {}
     for idx in sorted_fn_indices(fns) {
-        of_module.get_or_put_with(module_stem_of(fns[idx].name), () -> []).push(idx)
+        // A name with no module (a lifted `__lambda_...`) lands under `""`, one
+        // more module rather than a special case.
+        of_module.get_or_put_with(mangle_module_part(fns[idx].name), () -> []).push(idx)
     }
     buckets: i32[][]: [[]]
     for m in sorted_module_stems(of_module) {
@@ -414,7 +417,7 @@ sorted_module_stems :: fn(of_module: Map<string, i32[]>) -> string[] {
 unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     out: string[]: [GLUE_UNIT]
     for k in 1..<buckets.len() {
-        stem :: module_stem_of(fns[buckets[k][0]].name)
+        stem :: mangle_module_part(fns[buckets[k][0]].name)
         // A stem names a MODULE, so every byte of it is an identifier byte. An
         // EMPTY stem is ordinary (a bare name like `main` has no `$`) and
         // becomes `_root` below. A stem that is non-empty but not an identifier
@@ -438,14 +441,6 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
         }
     }
     return out
-}
-
-// The module part of a mangled name: everything before the first `$`. A name
-// with no `$` (a lifted `__lambda_...` or `__defer_...`) lands under `""`, which
-// is one more module rather than a special case.
-module_stem_of :: fn(name: string) -> string {
-    at :: name.index_of('$') else return ""
-    return name.byte_slice(0, at)
 }
 
 /// Fn indices sorted by mangled name: the deterministic visit order.

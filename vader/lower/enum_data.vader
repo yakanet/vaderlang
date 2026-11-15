@@ -21,6 +21,7 @@ import "std/collections"
 import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/span"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -157,11 +158,11 @@ enum_table_const :: fn(ctx: FnLowerCtx, enum_type: EnumType, kind: EnumTableKind
     if existing != null {
         return existing
     }
-    suffix :: if kind == .Data { "data" } else { "value" }
+    role :: if kind == .Data { DerivedRole.EnumData } else { DerivedRole.EnumValue }
     symbol :: Symbol {
         .id          = next_synthetic_id(ctx),
         .kind        = .Const,
-        .name        = "${owner.name}\$${suffix}",
+        .name        = derived_mangle(owner.name, role),
         .module      = owner.module,
         .module_name = owner.module_name,
         .visibility  = .Private,
@@ -249,7 +250,7 @@ lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> 
 
 table_entry :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) = MonoEntry {
     ...stub_entry(decl, typed),
-    .mangled = "${mangle_module_id(typed.resolved.display_path)}$${due.symbol.name}",
+    .mangled = declaration_mangle(typed.resolved.display_path, due.symbol.name),
     .symbol  = due.symbol,
 }
 

@@ -15,6 +15,7 @@ import "std/collections"
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/span"
+import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
@@ -60,7 +61,7 @@ export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Sp
     for i in 0..<bucket.len() {
         defined :: bucket[i].defined_at else continue
         if defined.hash() == key {
-            return if i == 0 { "" } else { "_${i}" }
+            return fn_overload_suffix(i)
         }
     }
     return ""

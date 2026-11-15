@@ -32,6 +32,7 @@
 module "vader/lower"
 
 import "toolchain/span"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -64,7 +65,7 @@ lower_singleton :: fn(
     return_type: Type,
 ) -> LoweredFnDecl {
     ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
-    init :: synthetic_symbol(next_synthetic_id(ctx), .Fn, "${entry.mangled}\$singleton")
+    init :: synthetic_symbol(next_synthetic_id(ctx), .Fn, derived_mangle(entry.mangled, .Singleton))
     init_entry :: MonoEntry {
         ...entry,
         .mangled = init.name,
@@ -119,7 +120,7 @@ lower_singleton :: fn(
 keep_fn :: fn(
     ctx: FnLowerCtx, entry: MonoEntry, state: LoweredGlobalGet, kept: LoweredStmt, span: Span,
 ) -> Symbol {
-    keep :: synthetic_symbol(next_synthetic_id(ctx), .Fn, "${entry.mangled}\$keep")
+    keep :: synthetic_symbol(next_synthetic_id(ctx), .Fn, derived_mangle(entry.mangled, .Keep))
     stmts: LoweredStmt[]: [
         when_state(state, READY, LoweredReturn { .span = span, .value = null }),
         kept,

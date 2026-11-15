@@ -13,6 +13,7 @@
 module "vader/midir/value_return"
 
 import "std/collections"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/midir"
@@ -92,13 +93,6 @@ forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
     }
 }
 
-// The mangle a scalarised copy answers to.
-//
-// It cannot collide with a real one. A mangle is `module$name` or
-// `module$Type$Trait$method`, and every segment before the last names a module,
-// a type or a trait, never a function. So `<some function's mangle>$v` is not a
-// shape the mangler can produce, whatever a source function is called.
-scalarised_copy_mangle :: fn(mangled: string) -> string = "${mangled}\$v"
 
 // Give every function reachable other than by a direct call a scalarised COPY,
 // and leave the original alone.
@@ -191,7 +185,7 @@ mark_forwarding :: fn(
     if shape.forward_to != null {
         return
     }
-    copy_mangle :: scalarised_copy_mangle(mangled)
+    copy_mangle :: derived_mangle(mangled, .ScalarisedCopy)
     chosen[mangled] = ReturnShape { ...shape, .forward_to = copy_mangle }
     // The copy answers to a name of its own: `emit/bytecode/emit` resolves a callee by
     // mangle FIRST, so the wrapper's call finds it under this key. Its shape is

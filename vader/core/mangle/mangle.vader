@@ -1,0 +1,342 @@
+// vader/core/mangle: the names the compiler gives what it emits.
+//
+// A mangled name names a declaration across the whole program: the fragment of
+// its module (`mangle_module_id`), a `$`, then its own name, with segments for
+// what tells an overload, an instance or an impl member apart, and a role for a
+// function the compiler derives from another. Every such name is built and read
+// here: no other module spells a `$` of a mangled name, so the grammar changes in
+// one place.
+//
+// The grammar works on strings: the layer of the types (`vader/core/types`)
+// names its own declarations through it, and renders a type as a segment itself
+// (`mangle_type_arg`).
+
+module "vader/core/mangle"
+
+import "std/collections"
+import "std/string"
+import "std/string_builder"
+import "vader/support/text"
+
+// ---- building ---------------------------------------------------------------
+
+/// The fragment a module contributes to the mangled names of its declarations: a
+/// `_` of the path doubles and `/` becomes `_`, so `a/b` and `a_b` mangle apart
+/// (`a_b`, `a__b`). Any other byte outside `[A-Za-z0-9]` becomes `_` too, which
+/// only a path outside the module grammar can carry.
+///
+/// @param module_id  the module display path (e.g. `"std/string_builder"`).
+/// @return           the mangled fragment (e.g. `"std_string__builder"`), an
+///                   identifier that never holds a `$`.
+export mangle_module_id :: fn(module_id: string) -> string {
+    out: u8[]: [] * module_id.byte_len()
+    for i in 0..<module_id.byte_len() {
+        b :: module_id.byte_at(i)
+        if b == '_' {
+            out.push('_')
+            out.push('_')
+        } else if is_ident_byte(b) {
+            out.push(b)
+        } else {
+            out.push('_')
+        }
+    }
+    return out.bytes_to_string()
+}
+
+/// The mangled name of the declaration `name` of the module `module_id`:
+/// `std_core$Display`, `pa$Point`. Neither half holds a `$`, so the type `C` of
+/// `a/b` (`a_b$C`) and the type `b_C` of `a` (`a$b_C`) name apart.
+///
+/// @param module_id  the declaring module's display path.
+/// @param name       the declaration's own name.
+/// @param suffix     what tells an overload or an instance apart
+///                   (`fn_overload_suffix`, `instance_suffix`), appended.
+export declaration_mangle :: fn(module_id: string, name: string, suffix: string = "") -> string =
+    "${mangle_module_id(module_id)}\$${name}${suffix}"
+
+/// The mangled name of an impl member: `std_core$string$Comparable$compare`.
+///
+/// @param module_id       the module that declares the impl.
+/// @param target_segment  the implementing type as a segment (`string`, `Point`).
+/// @param trait_segment   the trait as a segment (`Comparable`).
+/// @param member          the member's name.
+/// @param suffix          what tells an instance or a sibling impl apart
+///                        (`instance_suffix`, `impl_overload_suffix`), appended.
+export impl_member_mangle :: fn(
+    module_id: string, target_segment: string, trait_segment: string, member: string,
+    suffix: string = "",
+) -> string = "${mangle_module_id(module_id)}\$${target_segment}\$${trait_segment}\$${member}${suffix}"
+
+/// A structural type an impl targets, which has no declaration to name it.
+export ShapeSegment :: enum {
+    Array
+    Tuple
+    Fn
+    Union
+}
+
+/// The target segment of an impl on a structural type: `$array`. The leading
+/// `$` keeps it from any declared name.
+///
+/// @param shape  the kind of structural type.
+export shape_segment_name :: fn(shape: ShapeSegment) -> string = match shape {
+    .Array -> "\$array"
+    .Tuple -> "\$tuple"
+    .Fn    -> "\$fn"
+    .Union -> "\$union"
+}
+
+/// What tells the overload `index` of a function from the first of its name: none
+/// for the first, `_1`, `_2` after.
+///
+/// @param index  the overload's position among those of its name.
+export fn_overload_suffix :: fn(index: i64) -> string = if index == 0 { "" } else { "_${index}" }
+
+/// What tells an impl from the `earlier` impls of its module of the same type and
+/// trait, which name their members alike: none for the first, `$1`, `$2` after.
+/// A `$`, where a function overload takes a `_`: the members of two impls share
+/// their name, so a `_N` could meet a member actually named `x_1`.
+///
+/// @param earlier  how many such impls the module declares before this one.
+export impl_overload_suffix :: fn(earlier: i64) -> string = if earlier == 0 { "" } else { "\$${earlier}" }
+
+/// The suffix of an instance, one segment per type argument: `__i32__string`.
+///
+/// @param segments  the arguments, each already a segment (`mangle_type_arg`).
+export instance_suffix :: fn(segments: string[]) -> string {
+    sb :: StringBuilder {}
+    for segment in segments {
+        sb.append("__")
+        sb.append(segment)
+    }
+    return sb.to_string()
+}
+
+/// A function the compiler derives from another, named after it.
+export DerivedRole :: enum {
+    /// The `Equals` member that first checks the type of its `any` argument.
+    Guard
+    /// The initialiser of a `@singleton`.
+    Singleton
+    /// What keeps a `@singleton`'s value alive.
+    Keep
+    /// The copy of a function that returns a value type in scalars.
+    ScalarisedCopy
+    /// The import an `@extern` value reaches its foreign symbol through.
+    ExternImport
+    /// The data table of an enum.
+    EnumData
+    /// The value table of an enum.
+    EnumValue
+    /// The function a vtable slot reaches a host import through.
+    Wrapper
+    /// The function that dispatches a vtable key.
+    Dispatcher
+}
+
+/// The name of the function `role` derives from `base`: `Point$Equals$equals$guard`.
+/// It meets no declaration's: a mangle's segments before the last name a
+/// module, a type or a trait, never a function, so no mangle ends with a
+/// function's mangle and a role. A role after a `$$` names what no
+/// declaration spells.
+///
+/// @param base  the mangled name it derives from (an enum's own name for its
+///              tables).
+/// @param role  what the derived function does.
+export derived_mangle :: fn(base: string, role: DerivedRole) -> string = match role {
+    .Guard          -> "${base}\$guard"
+    .Singleton      -> "${base}\$singleton"
+    .Keep           -> "${base}\$keep"
+    .ScalarisedCopy -> "${base}\$v"
+    .ExternImport   -> "${base}\$extern_import"
+    .EnumData       -> "${base}\$data"
+    .EnumValue      -> "${base}\$value"
+    .Wrapper        -> "${base}\$\$wrapper"
+    .Dispatcher     -> "${base}\$\$dispatch"
+}
+
+/// The key a virtual call and the vtable rows it may land on share: the trait's
+/// `trait_key` and the method's name, `std_core$Display.to_string`.
+///
+/// @param trait_key  the trait's `trait_key`.
+/// @param method     the method's name.
+export vtable_key :: fn(trait_key: string, method: string) -> string = "${trait_key}.${method}"
+
+/// The name of the function that dispatches the vtable key `vtable_key`
+/// (`<trait key>.<method>`): `std_core$Display$to_string$$dispatch`.
+///
+/// @param vtable_key  a trait key and a method, joined by a `.`.
+export vtable_dispatcher_mangle :: fn(vtable_key: string) -> string =
+    derived_mangle(vtable_key.split(".").join("\$"), .Dispatcher)
+
+/// The name of the struct that boxes a captured local the closure writes, after
+/// the shape of its type: `$Cell_i32`.
+///
+/// @param shape  the captured type as a segment.
+export cell_struct_name :: fn(shape: string) -> string = "\$Cell_${shape}"
+
+/// The name of the struct a tuple type lowers to, after the shape of its
+/// elements: `__Tuple_i32_string`.
+///
+/// @param shape  the elements as a segment.
+export tuple_struct_name :: fn(shape: string) -> string = "${TUPLE_STRUCT}_${shape}"
+
+/// Whether `name` is that of a struct a tuple type lowers to (`tuple_struct_name`).
+///
+/// @param name  a struct's name.
+export is_tuple_struct_name :: fn(name: string) -> bool = TUPLE_STRUCT in name
+
+// What opens the name of the struct of a tuple type.
+TUPLE_STRUCT :: "__Tuple"
+
+/// The name of the function that computes the default of the field `field` of
+/// the struct instance `instance`: `pa$Box__i32$default$size`.
+///
+/// @param instance  the instance's mangled name.
+/// @param field     the field's name.
+export field_default_mangle :: fn(instance: string, field: string) -> string =
+    "${instance}\$default\$${field}"
+
+/// What the lowering lifts out of a body to the level of its module.
+export LiftedKind :: enum {
+    Lambda
+    Defer
+    Generator
+    /// The closure of a method value (`x.f` passed as a function).
+    Method
+}
+
+/// The name of the `seq`-th function of `kind` lifted in the module `module_id`,
+/// or of its environment struct when `is_env`: `__lambda_snippet_0`,
+/// `__lambda_env_snippet_0`.
+///
+/// @param kind       what was lifted.
+/// @param is_env     the environment struct rather than the function.
+/// @param module_id  the module it is lifted in.
+/// @param seq        its rank among the lifted names of that module.
+export lifted_mangle :: fn(kind: LiftedKind, is_env: bool, module_id: string, seq: i64) -> string {
+    prefix :: match kind {
+        .Lambda    -> if is_env { "__lambda_env_" } else { "__lambda_" }
+        .Defer     -> if is_env { "__defer_env_" } else { "__defer_" }
+        .Generator -> if is_env { "__gen_state_" } else { "__gen_" }
+        .Method    -> if is_env { "__method_env_" } else { "__method_" }
+    }
+    return "${prefix}${mangle_module_id(module_id)}_${seq}"
+}
+
+/// The name of the state struct of the generator function `fn_name`, its
+/// overload suffix after: `$genstate_count`. The leading `$` keeps it from any
+/// name the source declares.
+///
+/// @param fn_name  the generator function's name.
+/// @param suffix   its overload suffix (`fn_overload_suffix`).
+export generator_state_name :: fn(fn_name: string, suffix: string) -> string =
+    "\$genstate_${fn_name}${suffix}"
+
+/// `candidate`, or `candidate_1`, `candidate_2`, ... the first name `seen` does
+/// not hold yet, which it then holds.
+///
+/// @param seen       the names already taken.
+/// @param candidate  the preferred name.
+export uniq :: fn(seen: Set<string>, candidate: string) -> string {
+    if seen.add(candidate) {
+        return candidate
+    }
+    i: i64 = 1
+    for !seen.add("${candidate}_${i}") {
+        i += 1
+    }
+    return "${candidate}_${i}"
+}
+
+// ---- reading ----------------------------------------------------------------
+
+/// The module fragment of a mangled name: what comes before its first `$`. A name
+/// with none (a lifted `__lambda_...`) gives `""`.
+///
+/// @param mangled  a mangled name.
+export mangle_module_part :: fn(mangled: string) -> string {
+    at :: mangled.index_of('$') else return ""
+    return mangled.byte_slice(0, at)
+}
+
+/// The last segment of a mangled name: what comes after its last `$`, the whole
+/// name when it has none. `snippet$main` gives `main`, `std_core$Display` gives
+/// `Display`.
+///
+/// @param mangled  a mangled name.
+export mangle_last_segment :: fn(mangled: string) -> string {
+    at :: mangled.last_index_of('$') else return mangled
+    return mangled.byte_slice(at + 1, mangled.byte_len())
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_mangle_module_id_doubles_underscores :: fn() -> void {
+    assert_eq(mangle_module_id("std/core"), "std_core")
+    assert_eq(mangle_module_id("std/string_builder"), "std_string__builder")
+}
+
+@test
+test_mangle_module_id_keeps_slash_and_underscore_apart :: fn() -> void {
+    assert(mangle_module_id("a/b") != mangle_module_id("a_b"), "`a/b` and `a_b` mangle apart")
+}
+
+@test
+test_declaration_mangle_joins_module_and_name :: fn() -> void {
+    assert_eq(declaration_mangle("std/core", "Display"), r"std_core$Display")
+}
+
+@test
+test_impl_member_mangle_joins_its_four_segments :: fn() -> void {
+    assert_eq(
+        impl_member_mangle("std/core", "string", "Comparable", "compare"),
+        r"std_core$string$Comparable$compare",
+    )
+}
+
+@test
+test_overload_suffixes_leave_the_first_bare :: fn() -> void {
+    assert_eq(fn_overload_suffix(0), "")
+    assert_eq(fn_overload_suffix(2), "_2")
+    assert_eq(impl_overload_suffix(1), r"$1")
+}
+
+@test
+test_instance_suffix_prefixes_each_segment :: fn() -> void {
+    assert_eq(instance_suffix(["i32", "string"]), "__i32__string")
+    assert_eq(instance_suffix([]), "")
+}
+
+@test
+test_derived_mangle_appends_its_role :: fn() -> void {
+    assert_eq(derived_mangle(r"a$f", .Guard), r"a$f$guard")
+    assert_eq(derived_mangle(r"a$f", .Wrapper), r"a$f$$wrapper")
+}
+
+@test
+test_uniq_returns_candidate_when_free :: fn() -> void {
+    seen :: Set<string> {}
+    assert_eq(uniq(seen, "foo"), "foo")
+    assert_eq(uniq(seen, "foo"), "foo_1")
+}
+
+@test
+test_uniq_skips_already_taken_suffixes :: fn() -> void {
+    seen :: Set<string> {}
+    seen.add("foo")
+    seen.add("foo_1")
+    assert_eq(uniq(seen, "foo"), "foo_2")
+}
+
+@test
+test_mangle_readers_split_at_the_outer_dollars :: fn() -> void {
+    assert_eq(mangle_module_part(r"std_core$string$Hash$hash"), "std_core")
+    assert_eq(mangle_module_part("__lambda_1"), "")
+    assert_eq(mangle_last_segment(r"snippet$main"), "main")
+    assert_eq(mangle_last_segment("main"), "main")
+}

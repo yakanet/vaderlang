@@ -9,6 +9,7 @@ module "vader/emit/bytecode"
 import "std/abort"
 import "std/collections"
 import "vader/core/bytecode"
+import "vader/core/mangle"
 import "vader/core/types"
 import "vader/midir/select"
 
@@ -258,7 +259,7 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     // slot, which DCE remaps : a closure capturing the same T materialises
     // with the same `$Cell_<T>` name across re-emits.
     ctx.types.push(BcStruct {
-        .name      = "\$Cell_${cell_shape_name(slot_key)}",
+        .name      = cell_struct_name(cell_shape_name(slot_key)),
         .fields    = fields,
         .c_name    = "",
         .symbol_id = -1,
@@ -322,7 +323,7 @@ bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
                 })
             }
             return BcStruct {
-                .name      = "__Tuple_${tuple_shape_name(t.elements)}",
+                .name      = tuple_struct_name(tuple_shape_name(t.elements)),
                 .fields    = fields,
                 .c_name    = "",
                 .symbol_id = -1,

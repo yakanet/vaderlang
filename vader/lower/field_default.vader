@@ -19,6 +19,7 @@ module "vader/lower"
 import "std/abort"
 import "std/collections"
 import "toolchain/ast"
+import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"
@@ -90,7 +91,7 @@ DefaultThunk :: struct {
 default_thunk_name :: fn(project: LowerProjectCtx, st: StructType, field: StructField) -> string {
     args :: build_mixed_args_list(project.impls, st.args)
     instance :: mangle_struct_instance(st.symbol.module_name, st.symbol.name, args)
-    return "${instance}\$default\$${field.name}"
+    return field_default_mangle(instance, field.name)
 }
 
 // The thunk returning the default of `field` for `st`, its body lowered on first

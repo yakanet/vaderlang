@@ -9,6 +9,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/lower/ir"
 
@@ -74,7 +75,7 @@ has_type_param :: fn(t: Type) -> bool {
 /// here so the closure pass dedups field-referenced shapes against
 /// emitted decls by name.
 mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
-    "${mangle_module_id(display_path)}$${name}${args_suffix(args)}"
+    declaration_mangle(display_path, name, args_suffix(args))
 
 materialize_struct_instance :: fn(
     inst: StructType, owner_typed: TypedProgram, project_ctx: LowerProjectCtx,

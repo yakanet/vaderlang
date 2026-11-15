@@ -21,6 +21,7 @@
 module "vader/midir"
 
 import "std/collections"
+import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/support/fixpoint"
 

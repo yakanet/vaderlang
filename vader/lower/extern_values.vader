@@ -12,6 +12,7 @@ module "vader/lower"
 
 import "toolchain/ast"
 import "toolchain/span"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -63,7 +64,10 @@ lower_extern_through_values :: fn(
 ) -> LoweredFnDecl {
     ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
     span :: fn_decl.span
-    import_symbol :: synthetic_symbol(next_synthetic_id(ctx), .Fn, import_mangle(entry.mangled))
+    // The C name of the import does not keep the `$`: a function named
+    // `<name>_extern_import` in the same module would meet it there, and `cc`
+    // refuses the second definition.
+    import_symbol :: synthetic_symbol(next_synthetic_id(ctx), .Fn, derived_mangle(entry.mangled, .ExternImport))
     own_params: LoweredParam[]: []
     import_params: LoweredParam[]: []
     args: LoweredExpr[]: []
@@ -113,12 +117,6 @@ lower_extern_through_values :: fn(
         .origin = entry,
     }
 }
-
-// The mangle the import answers to. No other synthesised function takes this
-// suffix (`$v`, `$guard`), so no mangle collides. The C name does not keep the
-// `$`: a function named `<name>_extern_import` in the same module would meet
-// this one there, and `cc` refuses the second definition.
-import_mangle :: fn(mangled: string) -> string = "${mangled}\$extern_import"
 
 // The integer `e` crosses at: the width its header writes, which typecheck
 // requires (T3050), else the narrowest holding its values.

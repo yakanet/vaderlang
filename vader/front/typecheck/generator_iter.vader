@@ -15,6 +15,7 @@ module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
+import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/core/types"
 import "std/collections"
@@ -26,8 +27,7 @@ import "std/collections"
 // generator is named.
 gen_state_symbol :: fn(decl: AST.FnDecl, owner: TypedProgram, factory: SymbolFactory) -> Symbol {
     suffix :: overload_suffix(owner.resolved, decl.name, decl.name_span)
-    // No identifier holds a `$`, so no declared struct takes this name.
-    name :: "\$genstate_${decl.name}${suffix}"
+    name :: generator_state_name(decl.name, suffix)
     // `display_path` (the DECLARED name), not `path`: this feeds `module_name`,
     // which `symbol_key` folds into a type-intern key and from there into
     // emitted C names. `path` is the filesystem identity and is absolute

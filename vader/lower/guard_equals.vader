@@ -21,6 +21,7 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/span"
+import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/types"
 import "vader/lower/ir"
@@ -82,7 +83,7 @@ guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx) 
     }
     // A symbol of its own, so the DCE reaches the guard through the vtable slot only.
     id :: next_project_synthetic_id(project_ctx)
-    symbol :: synthetic_symbol(id, .Fn, "${d.mangled}\$guard")
+    symbol :: synthetic_symbol(id, .Fn, derived_mangle(d.mangled, .Guard))
     return LoweredFnDecl {
         .mangled = symbol.name,
         .params = [self_param, other_param],

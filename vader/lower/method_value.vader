@@ -84,7 +84,7 @@ try_lower_method_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: FnType) -> Low
 
 // The lifted fn of a method value, or its env.
 fresh_method_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol =
-    fresh_lifted_symbol_with_prefix(ctx, is_env, "__method_", "__method_env_")
+    fresh_lifted_symbol_of(ctx, is_env, .Method)
 
 // The call the closure of `e`, recorded as `callee`, makes on the receiver it holds,
 // `held`, with its own parameters, `args` : the one a call `e(args)` would make

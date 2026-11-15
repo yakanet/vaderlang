@@ -17,8 +17,10 @@ module "vader/core/types"
 import "std/abort"
 import "std/collections"
 import "std/string_builder"
+import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/support/integer"
+import "vader/support/text"
 
 // ---- variants -------------------------------------------------------------
 
@@ -401,13 +403,22 @@ export qualified_display_type :: fn(t: Type) -> string {
     return w.sb.to_string()
 }
 
+/// The segment the type argument `t` gives the name of an instance: its
+/// `qualified_display_type` as an identifier, a distinct as its backing, so an
+/// erased argument renders `Any`, a nested generic survives
+/// (`Box<Box<i32>>` -> `snippet_Box_snippet_Box_i32__`), and two same-named
+/// types of different modules name two instances.
+///
+/// @param t  the type argument.
+export mangle_type_arg :: fn(t: Type) -> string =
+    sanitise_ident(qualified_display_type(strip_distinct(t)))
+
 /// `sym`'s name prefixed by its declaring module, as an instance name carries it:
 /// `pa$Point`, `std_collections$Map`. Neither half holds a `$`, so the
 /// type `C` of `a/b` (`a_b$C`) and the type `b_C` of `a` (`a$b_C`) name apart.
 ///
 /// @param sym  a nominal type's declaration symbol.
-export qualified_symbol_name :: fn(sym: Symbol) -> string =
-    "${mangle_module_id(sym.module_name)}\$${sym.name}"
+export qualified_symbol_name :: fn(sym: Symbol) -> string = declaration_mangle(sym.module_name, sym.name)
 
 // `qualified` names each nominal type by its module (`qualified_display_type`).
 nominal_name :: fn(sym: Symbol, qualified: bool) -> string {
