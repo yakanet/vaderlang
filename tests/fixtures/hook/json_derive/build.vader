@@ -1,5 +1,6 @@
 // A driver whose JSON serialisers come from a plugin shipped as a library:
-// `json/derive` reads each struct of `app` and writes its `to_json` into `app`.
+// `json/derive` reads each struct of the project and writes its `to_json` into
+// the struct's module.
 
 module "build"
 
@@ -9,6 +10,6 @@ import "toolchain/build"
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     ctx.add_entry("app", "src/main.vader")
-    ctx.use(JsonDerive { .modules = ["app"] })
+    ctx.use(JsonDerive {})
     return ctx.emit_native()
 }

@@ -80,10 +80,6 @@ export ConfigureFrame :: struct {
     entries: ManifestEntry[]
     include_paths: string[]
     assets: string[]
-    /// Glob patterns over module names (`app/**`): `vader` sends a
-    /// `TypecheckedFrame` for a module one of them matches, and none when
-    /// there is no pattern.
-    modules: string[]
     target: BuildTarget
     cc: string
     ldflags: string
@@ -222,7 +218,6 @@ export driver_payload :: fn(frame: DriverFrame) -> string {
             }
             out.write_strings(frame.include_paths)
             out.write_strings(frame.assets)
-            out.write_strings(frame.modules)
             out.write_integer(i64(frame.target))
             out.write_field(frame.cc)
             out.write_field(frame.ldflags)
@@ -390,7 +385,6 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
     }
     include_paths :: r.read_strings() else return include_paths
     assets :: r.read_strings() else return assets
-    modules :: r.read_strings() else return modules
     rank :: r.read_integer() else return rank
     if rank !in BuildTarget {
         return ProtocolError { .msg = "${rank} is no build target" }
@@ -402,7 +396,6 @@ read_configure :: fn(r: FieldReader) -> ConfigureFrame | ProtocolError {
         .entries = entries,
         .include_paths = include_paths,
         .assets = assets,
-        .modules = modules,
         .target = BuildTarget(rank),
         .cc = cc,
         .ldflags = ldflags,
@@ -617,7 +610,6 @@ test_configure_frame_round_trips :: fn() -> void {
         .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
         .include_paths = [r"$VADER_HOME/third_party", "vendor"],
         .assets = [],
-        .modules = ["app/**"],
         .target = .None,
         .cc = "clang",
         .ldflags = "-lm -lpthread",
@@ -633,7 +625,6 @@ test_configure_frame_round_trips :: fn() -> void {
     assert_eq(received.entries[0].path, "src/main.vader")
     assert_eq(received.include_paths.join(","), r"$VADER_HOME/third_party,vendor")
     assert_eq(received.assets.len(), 0)
-    assert_eq(received.modules.join(","), "app/**")
     assert(received.target == .None, "the target reads back")
     assert_eq(received.cc, "clang")
     assert_eq(received.ldflags, "-lm -lpthread")

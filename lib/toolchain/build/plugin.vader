@@ -18,7 +18,8 @@ module "toolchain/build"
 /// Behaviour plugged into a build, told each message of the stream in order.
 /// Every member does nothing unless the plugin overrides it.
 export BuildPlugin :: trait {
-    /// The declarations of one module, each delivered once per entry.
+    /// The declarations of one module of the project, each delivered once per
+    /// entry.
     on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {}
     /// The pipeline crossed `phase`.
     on_phase :: fn(self, ctx: BuildContext, phase: Phase) -> void {}

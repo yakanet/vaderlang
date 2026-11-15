@@ -20,16 +20,7 @@ build :: fn(args: string[]) -> i32 {
     exit := 0
     for msg in ctx.messages() {
         if msg is TypecheckedMessage {
-            // Every typed module is yielded, stdlib included, which modules
-            // are "this project" is the driver's call.
-            //
-            // The filter is on the DECLARED module name. When `module_name`
-            // carried the loader's filesystem key instead, this matched nothing
-            // and the rule ran over the stdlib too, so the committed
-            // expectation showing no `std/...` report is what pins that fix.
-            if msg.module_name.starts_with("std/") {
-                continue
-            }
+            // Only the project's modules arrive: the rule runs over every one.
             for d in msg.declarations {
                 if d is AST.StructDecl {
                     first :: d.name[0..<1]

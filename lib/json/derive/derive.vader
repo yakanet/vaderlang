@@ -9,7 +9,7 @@ import "std/string_builder"
 import "toolchain/build"
 AST :: import "toolchain/ast"
 
-/// A build plugin giving every struct of `modules` a JSON serialiser: a
+/// A build plugin giving every struct of the project a JSON serialiser: a
 /// `to_json_value(v)` building a `JsonValue`, and a `to_json(v)` writing its text.
 ///
 /// The functions are overloads on the struct type, generated into the struct's
@@ -20,17 +20,31 @@ AST :: import "toolchain/ast"
 /// @example
 ///   # import "toolchain/build"
 ///   # ctx :: new_build_context(["driver", "."])
-///   ctx.use(JsonDerive { .modules = ["app"] })
-export JsonDerive :: struct {
-    /// The modules whose structs get a serialiser, by declared name.
-    modules: string[]
-}
+///   ctx.use(JsonDerive {})
+export JsonDerive :: struct {}
 
 JsonDerive implements BuildPlugin {
+    // The struct names are collected before any is written, so a field whose type is
+    // a sibling struct is recognised as one however the file orders them.
     on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
-        if msg.module_name in self.modules {
-            derive_module(ctx, msg)
+        structs: AST.StructDecl[]: []
+        names: string[]: []
+        for d in msg.declarations {
+            if d is AST.StructDecl {
+                structs.push(d)
+                names.push(d.name)
+            }
         }
+        if structs.len() == 0 {
+            return
+        }
+        out :: StringBuilder {}
+        out.append("import \"std/collections\"\n")
+        out.append("${JSON_ALIAS} :: import \"json\"\n")
+        for s in structs {
+            write_struct(ctx, out, s, names)
+        }
+        ctx.emit_module(msg.module_name, out.to_string())
     }
 }
 
@@ -39,29 +53,6 @@ NUMERIC_TYPES :: ["i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "f32", "
 // The alias the generated file reaches `json` through. A file's alias shares the
 // module's names, so it must be one no hand-written declaration takes.
 JSON_ALIAS :: "DerivedJson"
-
-// The struct names are collected before any is written, so a field whose type is
-// a sibling struct is recognised as one however the file orders them.
-derive_module :: fn(ctx: BuildContext, msg: TypecheckedMessage) -> void {
-    structs: AST.StructDecl[]: []
-    names: string[]: []
-    for d in msg.declarations {
-        if d is AST.StructDecl {
-            structs.push(d)
-            names.push(d.name)
-        }
-    }
-    if structs.len() == 0 {
-        return
-    }
-    out :: StringBuilder {}
-    out.append("import \"std/collections\"\n")
-    out.append("${JSON_ALIAS} :: import \"json\"\n")
-    for s in structs {
-        write_struct(ctx, out, s, names)
-    }
-    ctx.emit_module(msg.module_name, out.to_string())
-}
 
 write_struct :: fn(
     ctx: BuildContext,

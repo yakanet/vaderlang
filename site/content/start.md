@@ -59,5 +59,6 @@ The extensions for [VS Code](https://github.com/yakanet/vaderlang/tree/main/edit
 
 - [Learn](/learn/): the language one construct at a time, each with a short program.
 - [Examples](/examples/): whole programs, with what they print.
+- [Build plugins](/plugins/): a project that drives its own build, and plugins that check or write its code.
 - [The language reference](/spec/): its rules, chapter by chapter.
 - [The library reference](/lib/): every module the toolchain ships.

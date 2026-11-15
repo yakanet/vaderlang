@@ -100,16 +100,6 @@ ENTRY_ON_ITS_OWN :: r"""
     }
     """
 
-// A folder with `driver` as its `build.vader` and `entry` as its
-// `src/main.vader`, which `name` tells apart.
-driven_project :: fn(name: string, driver: string, entry: string) -> string {
-    dir :: scratch_dir(name)
-    create_dir("${dir}/src")
-    write_file("${dir}/build.vader", driver)
-    write_file("${dir}/src/main.vader", entry)
-    return dir
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

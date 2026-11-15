@@ -18,7 +18,8 @@ Protocol :: import "toolchain/protocol"
 /// One event the compiler hands a build driver.
 export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 
-/// Top-level declarations of one module, after typecheck.
+/// Top-level declarations of one module of the project, after typecheck. The
+/// modules of the toolchain's library are not the project's: none arrives.
 ///
 /// They are what crosses from `vader` to the driver (`toolchain/protocol`): every
 /// declaration the source writes, with what it writes outside the body of a
@@ -32,9 +33,8 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 /// generated declarations, never the ones already seen, so a rule applied here
 /// fires once however many generation rounds that entry takes.
 export TypecheckedMessage :: struct {
-    /// The module's declared name: `"std/io"`, `"vader/front/resolver"`. This is what a
-    /// driver filters on; the loader's own key is an absolute filesystem path,
-    /// which no rule can usefully match against.
+    /// The module's declared name, as an `import` spells it and `emit_module`
+    /// takes it: `"app"`, `"app/model"`.
     module_name:  string
     declarations: AST.Decl[]
 }

@@ -8,6 +8,14 @@
 // `@example` of a vaderdoc (`compiled_example_line`). The programs run on the
 // virtual clock, so what one prints depends on the order of its sleeps, not on
 // the load of the machine.
+//
+// A block that declares `module "build"` is a build driver. It builds the last
+// program the page shows before it, which then does not run on its own:
+// `vader build` in a project of its own, the driver as its `build.vader` and the
+// program as its `src/main.vader`. The driver's output is what the build prints,
+// then its diagnostics; the program's is what it prints once built. Neither runs
+// on the virtual clock: `vader` reads it too, and would reach at once the
+// deadline it waits on its driver with.
 
 module "tools/cli_tests/site"
 
@@ -44,6 +52,8 @@ Program :: struct {
     source: string
     /// What the page says it prints; null when it says nothing.
     output: string | null
+    /// For a build driver, the program it builds; null for any other.
+    built: Program | null = null
 }
 
 // The fenced blocks of `text`, in order; one that is never closed is none.
@@ -100,10 +110,10 @@ fence_language :: fn(line: string) -> string | null {
 // The programs of the page `page` of `CONTENT`, whose text is `text`.
 programs_of :: fn(page: string, text: string) -> Program[] {
     blocks :: blocks_of(text)
-    out: Program[]: []
+    shown: Program[]: []
     for i in 0..<blocks.len() {
         if blocks[i].language == "vader" {
-            out.push(
+            shown.push(
                 Program {
                     .place = "${page}:${blocks[i].line}",
                     .source = blocks[i].body,
@@ -112,8 +122,32 @@ programs_of :: fn(page: string, text: string) -> Program[] {
             )
         }
     }
+    return with_drivers(shown)
+}
+
+// The programs `shown`, each build driver given the program before it, which a
+// driver right after it builds instead of running it on its own.
+with_drivers :: fn(shown: Program[]) -> Program[] {
+    out: Program[]: []
+    program: Program | null = null
+    for i in 0..<shown.len() {
+        p :: shown[i]
+        if is_driver(p.source) {
+            out.push(Program { ...p, .built = program })
+        } else {
+            program = p
+            if i + 1 >= shown.len() || !is_driver(shown[i + 1].source) {
+                out.push(p)
+            }
+        }
+    }
     return out
 }
+
+// Whether `source` is a build driver: it declares `module "build"`, shown or
+// hidden.
+is_driver :: fn(source: string) -> bool =
+    compiled(source).split("\n").any_match((line) -> line.trim() == "module \"build\"")
 
 // What the block at `next` of `blocks` says the program before it prints: a
 // `text` block right after it; null for any other.
@@ -148,6 +182,9 @@ compiled :: fn(source: string) -> string =
 // What is wrong with the run of `program`, the `index`-th of the site; null
 // when nothing is.
 run_problem :: fn(program: Program, index: i64) -> string | null {
+    if is_driver(program.source) {
+        return driver_problem(program, index)
+    }
     file :: scratch_source("site_${index}", compiled(program.source))
     options :: RunOptions { .env = [["VADER_VIRTUAL_CLOCK", "1"]] }
     ran :: run_vader(["run", file], options) else panic(ran.message())
@@ -158,6 +195,42 @@ run_problem :: fn(program: Program, index: i64) -> string | null {
     printed :: ran.stdout.right_trim()
     if printed != expected {
         return "${program.place}: expected\n${expected}\ngot\n${printed}"
+    }
+    return null
+}
+
+// What is wrong with the build `driver` drives, the `index`-th program of the
+// site; null when nothing is.
+driver_problem :: fn(driver: Program, index: i64) -> string | null {
+    program :: driver.built
+        else return "${driver.place}: a build driver builds the program shown before it, and none is"
+    dir :: driven_project("site_${index}", compiled(driver.source), compiled(program.source))
+    built :: vader_in(dir, ["build"], timeout = LONG_TIMEOUT)
+    // The page writes a diagnostic's path with `/`, as it reads on every host.
+    stderr :: built.stderr.replace_all("\\", "/")
+    diagnostics :: stderr.split("\n").filter((line) -> line.starts_with("[")).collect()
+    if built.exit != 0 && diagnostics.len() == 0 {
+        return "${driver.place}: exit ${built.exit}\n${built.stderr}"
+    }
+    printed: string[]: []
+    if built.stdout.trim() != "" {
+        printed.push(built.stdout.right_trim())
+    }
+    printed.push_all(diagnostics)
+    expected :: driver.output
+    if expected != null && printed.join("\n") != expected {
+        return "${driver.place}: expected\n${expected}\ngot\n${printed.join("\n")}"
+    }
+    shows :: program.output else return null
+    if built.exit != 0 {
+        return "${program.place}: its build by ${driver.place} fails, so it prints nothing"
+    }
+    ran :: vader_in(dir, ["run", "."], timeout = LONG_TIMEOUT)
+    if ran.exit != 0 {
+        return "${program.place}: exit ${ran.exit}\n${ran.stderr}"
+    }
+    if ran.stdout.right_trim() != shows {
+        return "${program.place}: expected\n${shows}\ngot\n${ran.stdout.right_trim()}"
     }
     return null
 }
@@ -180,6 +253,16 @@ test_a_text_block_right_after_a_program_is_its_output :: fn() -> void {
 test_a_text_block_after_prose_is_no_output :: fn() -> void {
     page :: "```vader\nmain\n```\n\nSo it prints:\n\n```text\n1\n```\n"
     assert_eq(programs_of("p.md", page)[0].output else "none", "none")
+}
+
+@test
+test_a_build_driver_builds_the_program_before_it :: fn() -> void {
+    page :: "```vader\nmain\n```\n\n```vader\nmodule \"build\"\n```\n\n```vader\nother\n```\n"
+    programs :: programs_of("p.md", page)
+    assert_eq(programs.len(), 2)
+    built :: programs[0].built else panic("the driver builds `main`")
+    assert_eq(built.source, "main")
+    assert_eq(programs[1].source, "other")
 }
 
 @test

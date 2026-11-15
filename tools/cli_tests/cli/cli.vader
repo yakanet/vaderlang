@@ -223,6 +223,20 @@ export scratch_dir :: fn(name: string) -> string {
     return dir
 }
 
+/// A fresh folder for a test (`scratch_dir`) holding a driven project: `driver`
+/// as its `build.vader`, `entry` as its `src/main.vader`.
+///
+/// @param name    tells the folder apart from those of the other tests.
+/// @param driver  the source of the build driver.
+/// @param entry   the source of the program it builds.
+export driven_project :: fn(name: string, driver: string, entry: string) -> string {
+    dir :: scratch_dir(name)
+    create_dir("${dir}/src")
+    write_file("${dir}/build.vader", driver)
+    write_file("${dir}/src/main.vader", entry)
+    return dir
+}
+
 /// Copy the folder `from` to `to`, without the `build/` a command run in `from`
 /// would have left there: what runs on the copy starts from the sources alone.
 ///

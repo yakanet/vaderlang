@@ -3234,7 +3234,7 @@ What the command asked reaches the driver in `args`, and the driver does not cha
 
 #### The message stream
 
-A driver reaches its build through `toolchain/build`, and names AST types through `toolchain/ast`. Draining `ctx.messages()` is the build: it yields each module's typed declarations, then the phase boundaries, and last a `CompleteMessage` whose `code` is the build's exit code. `Phase.BeforeEmit` is the last point where leaving the loop writes nothing, which is how a driver that only lints declines to build.
+A driver reaches its build through `toolchain/build`, and names AST types through `toolchain/ast`. Draining `ctx.messages()` is the build: it yields the typed declarations of each module of the project, then the phase boundaries, and last a `CompleteMessage` whose `code` is the build's exit code. The modules of the standard library are not the project's, and none is yielded. `Phase.BeforeEmit` is the last point where leaving the loop writes nothing, which is how a driver that only lints declines to build.
 
 Builds run one at a time: draining the `messages()` of another context ends the build a driver left before its end.
 
@@ -3261,9 +3261,6 @@ StructNames :: struct {}
 
 StructNames implements BuildPlugin {
     on_module :: fn(self, ctx: BuildContext, msg: TypecheckedMessage) -> void {
-        if msg.module_name != "app" {
-            return
-        }
         for d in msg.declarations {
             if d is AST.StructDecl && d.name[0..<1].to_upper() != d.name[0..<1] {
                 ctx.report(d.name_span, "struct `${d.name}` should be PascalCase")
@@ -3281,7 +3278,7 @@ build :: fn(args: string[]) -> i32 {
 ```
 
 - A plugin reports and generates as a driver does.
-- A library can ship a plugin: `ctx.use(JsonDerive { .modules = ["app"] })`, from `json/derive`, gives each struct of `app` a `to_json`.
+- A library can ship a plugin: `ctx.use(JsonDerive {})`, from `json/derive`, gives each struct of the project a `to_json`.
 - Plugins are read when the stream starts, like the rest of the configuration.
 - In `.Describe` mode the stream builds nothing, and the plugins hear nothing.
 - Starting a build from inside a plugin is an error.

@@ -24,16 +24,14 @@ import "toolchain/protocol"
 /// Nothing compiles until the first message is pulled, so a driver configures
 /// the context first and iterates second; the configuration is read then, once.
 /// Each entry is run through the front end (`load -> resolve + typecheck ->
-/// comptime`), yielding one `TypecheckedMessage` per module, then a
-/// `PhaseMessage`, and finally one `CompleteMessage` for the whole run.
-///
-/// **Every** typed module is yielded, the stdlib included: a driver that only
-/// cares about its own code filters on `module_name`.
+/// comptime`), yielding one `TypecheckedMessage` per module of the project, then
+/// a `PhaseMessage`, and finally one `CompleteMessage` for the whole run. The
+/// modules of the toolchain's library are not the project's: none is yielded.
 ///
 /// Every declaration is delivered exactly ONCE per entry, however many
 /// generation rounds that entry takes, see `TypecheckedMessage`. A module with
 /// nothing new is not yielded at all. The "once" is per ENTRY, not per build: two
-/// entries sharing a module both report it, which is already true of the stdlib.
+/// entries sharing a module both report it.
 ///
 /// A driver that generates code makes the stream LOOP: the phases from
 /// `Typechecked` to `BeforeEmit` repeat once per generation round, and the back
@@ -97,8 +95,7 @@ plugins_told :: fn(ctx: BuildContext) -> BuildPlugin[] {
 
 // Configure a build, once the one still open is stopped: `vader` serves one at
 // a time. What the driver did so far goes with it: a module asked for before
-// the stream is read by its first round. Every module is read, as the stream
-// promises.
+// the stream is read by its first round.
 open_link :: fn(ctx: BuildContext) -> ServerLink {
     process :: driver_process()
     for open in process.contexts {
@@ -109,7 +106,6 @@ open_link :: fn(ctx: BuildContext) -> ServerLink {
         .entries = ctx.entries,
         .include_paths = ctx.include_paths,
         .assets = ctx.assets,
-        .modules = ["**"],
         .target = ctx.target,
         .cc = ctx.cc,
         .ldflags = ctx.ldflags,

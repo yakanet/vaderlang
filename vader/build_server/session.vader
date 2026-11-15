@@ -11,7 +11,6 @@ module "vader/build_server"
 
 import "std/collections"
 import "std/console"
-import "std/glob"
 import "std/iter"
 import "std/string" { join as join_strings }
 import "toolchain/diagnostics"
@@ -45,8 +44,6 @@ export BuildSession :: struct {
     target: BuildTarget
     cc: string
     ldflags: string
-    /// The modules whose declarations the driver reads (`ConfigureFrame.modules`).
-    module_filter: Glob[]
     /// Diagnostics of the build and the driver's reports, in the order they came.
     diagnostics: Diagnostic[] = []
     /// How many of `diagnostics` are printed, so none prints twice.
@@ -70,38 +67,21 @@ export BuildSession :: struct {
 /// @param request           what the command asks.
 /// @param description_file  the file describing the project, relative to it.
 /// @param configure         what the driver configured.
-/// @error                   `GlobError` when a pattern of `configure.modules`
-///                          does not parse.
 export new_session :: fn(
     request: DriverRequest,
     description_file: string,
     configure: ConfigureFrame,
-) -> BuildSession | GlobError {
-    filter: Glob[]: []
-    for pattern in configure.modules {
-        glob :: parse_glob(pattern) else return glob
-        filter.push(glob)
-    }
-    return BuildSession {
-        .project_root = request.build.project_root else "",
-        .description_file = description_file,
-        .request = request,
-        .entries = configure.entries,
-        .include_paths = configure.include_paths,
-        .assets = configure.assets,
-        .target = configure.target,
-        .cc = configure.cc,
-        .ldflags = configure.ldflags,
-        .module_filter = filter,
-    }
+) -> BuildSession = BuildSession {
+    .project_root = request.build.project_root else "",
+    .description_file = description_file,
+    .request = request,
+    .entries = configure.entries,
+    .include_paths = configure.include_paths,
+    .assets = configure.assets,
+    .target = configure.target,
+    .cc = configure.cc,
+    .ldflags = configure.ldflags,
 }
-
-/// Whether the driver reads the declarations of the module `name`.
-///
-/// @param session  the build.
-/// @param name     a module name, as an `import` spells it.
-reads_module :: fn(session: BuildSession, name: string) -> bool =
-    session.module_filter.any_match((glob) -> glob.matches(name))
 
 // ---- diagnostics ----------------------------------------------------------
 
@@ -195,7 +175,6 @@ output_request :: fn(session: BuildSession) -> BuildRequest = BuildRequest {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/abort"
 import "std/testing"
 
 // The request of a build of the project in `root`, with every default.
@@ -203,21 +182,18 @@ request_for :: fn(root: string) -> DriverRequest = DriverRequest {
     .build = BuildRequest { .project_root = root },
 }
 
-// A session for `request`, configured with `entries` and nothing else, reading
-// every module.
+// A session for `request`, configured with `entries` and nothing else.
 test_session :: fn(request: DriverRequest, entries: ManifestEntry[]) -> BuildSession {
     configure :: ConfigureFrame {
         .fingerprint = "",
         .entries = entries,
         .include_paths = [],
         .assets = [],
-        .modules = ["**"],
         .target = .Native,
         .cc = "cc",
         .ldflags = "",
     }
-    session :: new_session(request, "build.vader", configure) else panic("${session.message()}")
-    return session
+    return new_session(request, "build.vader", configure)
 }
 
 @test
@@ -225,29 +201,6 @@ test_new_session_takes_the_project_from_the_request :: fn() -> void {
     session :: test_session(request_for("/tmp/proj"), [])
     assert_eq(session.project_root, "/tmp/proj")
     assert_eq(description_span(session).start.file, "/tmp/proj/build.vader")
-}
-
-@test
-test_new_session_refuses_a_module_pattern_that_does_not_parse :: fn() -> void {
-    configure :: ConfigureFrame {
-        .fingerprint = "",
-        .entries = [],
-        .include_paths = [],
-        .assets = [],
-        .modules = ["app\\"],
-        .target = .Native,
-        .cc = "cc",
-        .ldflags = "",
-    }
-    request :: request_for("/tmp/proj")
-    assert(new_session(request, "build.vader", configure) is GlobError, "a trailing backslash")
-}
-
-@test
-test_a_double_star_reads_every_module :: fn() -> void {
-    session :: test_session(request_for("/tmp/proj"), [])
-    assert(session.reads_module("app"), "a top-level module")
-    assert(session.reads_module("std/io"), "a nested one")
 }
 
 @test

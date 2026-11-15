@@ -62,8 +62,9 @@ function for each instance (`vader/lower/inherited.vader`).
 
 A project's `build.vader` drives the same pipeline through `toolchain/build`, and
 `vader` runs it (`vader/build_server`, ADR 0145): per generation round the front end
-runs once, the driver reads each module's typed declarations and phase boundaries
-from that run, which the back end lowers. The driver is a process of its own,
+runs once, the driver reads the typed declarations of the project's modules (those
+of origin `Build`, never the library's) and the phase boundaries from that run,
+which the back end lowers. The driver is a process of its own,
 compiled from `lib/` alone: `vader` starts it (`vader/tools/cli/driver_process.vader`)
 and the two talk in the frames of `toolchain/protocol` over the driver's standard
 streams, the driver's stdout also carrying what the project prints. The

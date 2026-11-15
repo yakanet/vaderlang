@@ -50,8 +50,9 @@ export ModuleTypechecked :: struct {
 ///
 /// Nothing compiles until the first event is pulled. Each entry runs through
 /// the front end (`load -> resolve + typecheck -> comptime`), yielding one
-/// `ModuleTypechecked` per module the driver reads (`reads_module`), then the
-/// phases, and last one `CompleteFrame` for the whole build.
+/// `ModuleTypechecked` per module of the project, then the phases, and last one
+/// `CompleteFrame` for the whole build. The modules of the toolchain's library
+/// are not the project's: none is yielded.
 ///
 /// Every file is delivered ONCE per entry, however many generation rounds the
 /// entry takes: a module with nothing new is not yielded at all. The "once" is
@@ -168,14 +169,13 @@ export build_events :: fn(session: BuildSession) -> Iterator<BuildEvent> {
                 keep_docs = true,
             )
             for [_, loaded] in pipeline.loaded.modules {
-                if !session.reads_module(loaded.module.module_name) {
+                if loaded.module.origin != .Build {
                     continue
                 }
                 fresh :: undelivered_files(loaded.module.files, delivered)
                 // Nothing new in this module: say nothing about it at all,
-                // rather than yield an event the driver would have to skip. The
-                // front end may have dropped every declaration of a file (the
-                // unused ones of `lib/`), which leaves nothing new either.
+                // rather than yield an event the driver would have to skip. A
+                // file that declares nothing leaves nothing new either.
                 if !fresh.any_match((f) -> f.program.decls.len() > 0) {
                     continue
                 }

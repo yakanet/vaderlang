@@ -652,6 +652,9 @@ read_optional_span :: fn(d: DeclReader) -> Span | null | ProtocolError = d.read_
 // ---- tests ----------------------------------------------------------------
 
 import "std/abort"
+import "std/fs"
+import "std/io"
+import "std/string"
 import "std/testing"
 import "toolchain/parser"
 
@@ -741,6 +744,30 @@ test_declarations_read_back_as_written :: fn() -> void {
     decls :: crossed_sample()
     assert_eq(decls.len(), 19)
     assert_eq(encode_declarations(decls), encode_declarations(crossing_sample()))
+}
+
+// The standard library writes most of what the language can. Tests start at the
+// root of the repository.
+@test
+test_the_declarations_of_the_standard_library_read_back :: fn() -> void {
+    walker :: walk("lib/std") else panic("`lib/std` cannot be walked: ${walker.msg}")
+    unread: string[]: []
+    for entry in walker {
+        if entry.kind != .File || !entry.path.ends_with(".vader") {
+            continue
+        }
+        text :: read_file_string(entry.path) else panic("${entry.path}: ${text.msg}")
+        decls :: parse_source(text, entry.path).program.decls.filter(crosses).collect()
+        sent :: encode_declarations(decls)
+        back :: decode_declarations(sent) else {
+            unread.push("${entry.path}: ${back.msg}")
+            continue
+        }
+        if encode_declarations(back) != sent {
+            unread.push(entry.path)
+        }
+    }
+    assert_eq(unread.join(", "), "")
 }
 
 @test
