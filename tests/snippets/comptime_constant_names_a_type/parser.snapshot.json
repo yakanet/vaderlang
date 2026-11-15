@@ -1,0 +1,162 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/console",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_BYTE",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "IdentExpr",
+            "name": "u8"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "BYTE",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_BYTE"
+          },
+          "args": []
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_WORD",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "IdentExpr",
+            "name": "u16"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "WORD",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_WORD"
+          },
+          "args": []
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interpolation",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "size_of",
+                            "args": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "BYTE"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interpolation",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "size_of",
+                            "args": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "WORD"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,14 @@
+// A constant whose `@comptime` value is a type stands for that type where a type
+// is read, as an argument of `@size_of` here.
+
+module "snippet"
+
+import "std/console"
+
+BYTE :: @comptime u8
+WORD :: @comptime u16
+
+main :: fn() -> i32 {
+    println("${@size_of(BYTE)} ${@size_of(WORD)}")
+    return 0
+}
