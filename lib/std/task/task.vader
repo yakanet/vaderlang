@@ -307,7 +307,8 @@ cancel_and_wait :: fn<T>(tasks: Task<T>[]) -> void {
 /// negative `d` returns at once. A task alone waits on the system clock.
 ///
 /// Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone and
-/// jumps to the end of the nearest one.
+/// jumps to the end of the nearest one, unless a task waits on the system,
+/// which holds the clock until the system answers.
 ///
 /// @param d  how long to wait.
 /// @example

@@ -363,6 +363,31 @@ chatty_child :: fn() -> string[] = [
     "powershell", "-NoProfile", "-Command", "[Console]::Out.Write('y' * 100000)",
 ]
 
+// A timeout around a child that answers after 200 ms. Under the virtual clock,
+// the clock stands still while main waits on the child: the timeout does not
+// expire first.
+child_under_a_timeout :: fn() -> void {
+    child :: Process.spawn_interactive(slow_child()) else {
+        println("spawn: ${child.msg}")
+        return
+    }
+    defer Process.kill(child)
+    launch(() -> Process.read_output(child)).timeout(10.seconds()) else is TimeoutError {
+        println("the timeout expired first")
+        return
+    }
+    println("the child answered")
+}
+
+// A child that writes after 200 ms.
+@target
+slow_child :: fn() -> string[] = ["sh", "-c", "sleep 0.2; echo answered"]
+
+@target(.Windows)
+slow_child :: fn() -> string[] = [
+    "powershell", "-NoProfile", "-Command", "Start-Sleep -Milliseconds 200; 'answered'",
+]
+
 // A pipe `create_watched_pipe` made is watched: the park ends once a thread
 // writes. An anonymous pipe takes no overlapped read, so its watch is refused,
 // and the park ends every few milliseconds instead, without ever blocking.
@@ -615,6 +640,7 @@ main :: fn() -> i32 {
         "stdin_polls"           -> stdin_polls()
         "stdin_polls_alone"     -> stdin_polls_alone()
         "spawn_drains"          -> spawn_drains()
+        "child_under_a_timeout" -> child_under_a_timeout()
         "pipe_watches"          -> pipe_watches()
         "cancel_parked"         -> cancel_parked()
         "cancel_unstarted"      -> cancel_unstarted()

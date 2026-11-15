@@ -59,7 +59,8 @@ export wake :: fn(thread: i64) -> void
 /// end the sleep.
 ///
 /// Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with
-/// no thread ready, it jumps to the end of the nearest sleep.
+/// no thread ready, it jumps to the end of the nearest sleep, unless a thread
+/// waits on the system, which holds the clock until the system answers.
 ///
 /// @param nanos  how long to sleep.
 /// @error        as `park`.

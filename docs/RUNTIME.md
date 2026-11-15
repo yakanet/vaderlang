@@ -427,15 +427,20 @@ pipe a child writes into is a named pipe the runtime makes, watched by a read
 of no byte; the thread pool posts the end of a child; and stdin is waited on by
 a thread of its own, which reads a console ahead, since a console echoes what is
 typed only while a read is under way. A watch the system refuses, without pidfd
-or on a handle opened without overlapped I/O, ends the park after 2 ms instead.
+or on a handle opened without overlapped I/O, ends the park after 2 ms instead,
+and the thread checks again.
 While a watch is set, the scheduler asks the system without waiting once it has
 run every thread that was ready, at most every millisecond. With none ready, it waits on the system until
 the nearest sleep ends; with no sleep and no watch, every thread waits on
 another, and it stops the program on a deadlock that names them. Under
-`VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with nothing ready, the
-scheduler asks the system without waiting and, when it has nothing either, jumps
-to the end of the nearest sleep, or waits on the system when no sleep is
-pending. Of two sleeps that end together, the one that began first wakes first.
+`VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with nothing ready and
+no thread waiting on the system, the scheduler jumps to the end of the nearest
+sleep. A thread that waits on the system holds the clock: the scheduler waits on
+the system, bounded only by what bounds such waits, and the clock stands still
+meanwhile. The sleeps and those bounds are two heaps of timers: a sleep runs on
+the program's clock, a bound on the system's whatever the program's, as the
+deadline of a timed wait and the 2 ms after which a refused watch checks again
+do. Of two sleeps that end together, the one that began first wakes first.
 A read of stdin through `std/console` parks only while another thread exists,
 and so does `poll_stdin`, whose deadline is a timer armed for the park its
 watch ends. On Windows, the reader's read of a stdin pipe outlives a wait given up,

@@ -13,9 +13,7 @@
 // program the page shows before it, which then does not run on its own:
 // `vader build` in a project of its own, the driver as its `build.vader` and the
 // program as its `src/main.vader`. The driver's output is what the build prints,
-// then its diagnostics; the program's is what it prints once built. Neither runs
-// on the virtual clock: `vader` reads it too, and would reach at once the
-// deadline it waits on its driver with.
+// then its diagnostics; the program's is what it prints once built.
 
 module "tools/cli_tests/site"
 
@@ -33,6 +31,9 @@ CONTENT :: "site/content"
 
 // What opens and closes a fenced block of a page.
 FENCE :: "```"
+
+// The environment every program and build of the site runs in.
+VIRTUAL_CLOCK: [string, string | null][]: [["VADER_VIRTUAL_CLOCK", "1"]]
 
 // A fenced block of a page.
 Block :: struct {
@@ -186,7 +187,7 @@ run_problem :: fn(program: Program, index: i64) -> string | null {
         return driver_problem(program, index)
     }
     file :: scratch_source("site_${index}", compiled(program.source))
-    options :: RunOptions { .env = [["VADER_VIRTUAL_CLOCK", "1"]] }
+    options :: RunOptions { .env = VIRTUAL_CLOCK }
     ran :: run_vader(["run", file], options) else panic(ran.message())
     if ran.exit != 0 || ran.stderr != "" {
         return "${program.place}: exit ${ran.exit}\n${ran.stderr}"
@@ -205,7 +206,7 @@ driver_problem :: fn(driver: Program, index: i64) -> string | null {
     program :: driver.built
         else return "${driver.place}: a build driver builds the program shown before it, and none is"
     dir :: driven_project("site_${index}", compiled(driver.source), compiled(program.source))
-    built :: vader_in(dir, ["build"], timeout = LONG_TIMEOUT)
+    built :: vader_in(dir, ["build"], VIRTUAL_CLOCK, LONG_TIMEOUT)
     // The page writes a diagnostic's path with `/`, as it reads on every host.
     stderr :: built.stderr.replace_all("\\", "/")
     diagnostics :: stderr.split("\n").filter((line) -> line.starts_with("[")).collect()
@@ -225,7 +226,7 @@ driver_problem :: fn(driver: Program, index: i64) -> string | null {
     if built.exit != 0 {
         return "${program.place}: its build by ${driver.place} fails, so it prints nothing"
     }
-    ran :: vader_in(dir, ["run", "."], timeout = LONG_TIMEOUT)
+    ran :: vader_in(dir, ["run", "."], VIRTUAL_CLOCK, LONG_TIMEOUT)
     if ran.exit != 0 {
         return "${program.place}: exit ${ran.exit}\n${ran.stderr}"
     }

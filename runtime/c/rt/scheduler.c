@@ -21,9 +21,9 @@
  * same, which `vader_scheduler_is_cancelled` tells, and unwinds at its first
  * park.
  *
- * Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: it
- * jumps to the end of the nearest one instead of waiting for it, once the OS
- * has nothing ready. */
+ * Under `VADER_VIRTUAL_CLOCK`, the clock counts the sleeps alone: with no
+ * thread ready and none waiting on the OS, it jumps to the end of the nearest
+ * one instead of waiting for it. */
 
 #include "internal.h"
 
@@ -77,16 +77,28 @@ static size_t g_scheduler_ready_head = 0;
 static size_t g_scheduler_ready_len = 0;
 static size_t g_scheduler_ready_cap = 0;
 
-/* The sleeps, a min-heap on the deadline: of two sleeps ending together, the
- * one that began first wakes first. */
-static vader_scheduler_timer_t* g_scheduler_timers = NULL;
-static size_t g_scheduler_timer_len = 0;
-static size_t g_scheduler_timer_cap = 0;
+/* Timers, a min-heap on the deadline, on the clock `now` reads: of two ending
+ * together, the one that began first wakes first. */
+typedef struct {
+    vader_scheduler_timer_t* timers;
+    size_t len;
+    size_t cap;
+    int64_t (*now)(void);
+} vader_scheduler_heap_t;
+
+static int64_t vader_scheduler_now(void);
+
+/* The sleeps, on the program's clock. */
+static vader_scheduler_heap_t g_scheduler_sleeps = { NULL, 0, 0, vader_scheduler_now };
+/* What bounds a wait on the OS, on the OS's clock whatever the program's: the
+ * deadline of a timed wait, and the next check of a thread whose watch the OS
+ * would not take. */
+static vader_scheduler_heap_t g_scheduler_bounds = { NULL, 0, 0, vader_os_monotonic_ns };
 static uint64_t g_scheduler_sleeps_begun = 0;
 
 /* The watches, in no order, one at most for an `id` watched as a `kind`. One
  * the OS will not take, or whose `id` another thread already watches as the
- * same `kind`, is a sleep instead, of VADER_SCHEDULER_REFUSED_WATCH_NS, after
+ * same `kind`, is a bound of VADER_SCHEDULER_REFUSED_WATCH_NS instead, after
  * which the thread checks again. */
 static vader_scheduler_watch_t* g_scheduler_watches = NULL;
 static size_t g_scheduler_watch_len = 0;
@@ -186,43 +198,42 @@ static int vader_scheduler_timer_before(const vader_scheduler_timer_t* a,
     return a->began < b->began;
 }
 
-static void vader_scheduler_arm(vader_scheduler_timer_t timer) {
-    if (g_scheduler_timer_len == g_scheduler_timer_cap) {
+static void vader_scheduler_arm(vader_scheduler_heap_t* heap, vader_scheduler_timer_t timer) {
+    if (heap->len == heap->cap) {
         size_t cap = 64u;
-        if (g_scheduler_timer_cap != 0u) cap = g_scheduler_timer_cap * 2u;
+        if (heap->cap != 0u) cap = heap->cap * 2u;
         vader_scheduler_timer_t* grown = (vader_scheduler_timer_t*) realloc(
-            g_scheduler_timers, cap * sizeof(vader_scheduler_timer_t));
+            heap->timers, cap * sizeof(vader_scheduler_timer_t));
         if (grown == NULL) vader_trap("virtual threads: out of memory");
-        g_scheduler_timers = grown;
-        g_scheduler_timer_cap = cap;
+        heap->timers = grown;
+        heap->cap = cap;
     }
-    size_t i = g_scheduler_timer_len++;
+    size_t i = heap->len++;
     while (i > 0u) {
         size_t parent = (i - 1u) / 2u;
-        if (!vader_scheduler_timer_before(&timer, &g_scheduler_timers[parent])) break;
-        g_scheduler_timers[i] = g_scheduler_timers[parent];
+        if (!vader_scheduler_timer_before(&timer, &heap->timers[parent])) break;
+        heap->timers[i] = heap->timers[parent];
         i = parent;
     }
-    g_scheduler_timers[i] = timer;
+    heap->timers[i] = timer;
 }
 
-static void vader_scheduler_drop_first_timer(void) {
-    vader_scheduler_timer_t last = g_scheduler_timers[--g_scheduler_timer_len];
-    if (g_scheduler_timer_len == 0u) return;
+static void vader_scheduler_drop_first_timer(vader_scheduler_heap_t* heap) {
+    vader_scheduler_timer_t last = heap->timers[--heap->len];
+    if (heap->len == 0u) return;
     size_t i = 0;
     for (;;) {
         size_t child = 2u * i + 1u;
-        if (child >= g_scheduler_timer_len) break;
-        if (child + 1u < g_scheduler_timer_len
-            && vader_scheduler_timer_before(&g_scheduler_timers[child + 1u],
-                                            &g_scheduler_timers[child])) {
+        if (child >= heap->len) break;
+        if (child + 1u < heap->len
+            && vader_scheduler_timer_before(&heap->timers[child + 1u], &heap->timers[child])) {
             child++;
         }
-        if (!vader_scheduler_timer_before(&g_scheduler_timers[child], &last)) break;
-        g_scheduler_timers[i] = g_scheduler_timers[child];
+        if (!vader_scheduler_timer_before(&heap->timers[child], &last)) break;
+        heap->timers[i] = heap->timers[child];
         i = child;
     }
-    g_scheduler_timers[i] = last;
+    heap->timers[i] = last;
 }
 
 /* Whether `timer` still wakes its thread: the thread has not ended, nor slept
@@ -232,27 +243,27 @@ static int vader_scheduler_timer_wakes(const vader_scheduler_timer_t* timer) {
     return vader_scheduler_slot_of(timer->thread)->sleep == timer->sleep;
 }
 
-/* The deadline of the nearest sleep, into `*deadline`; 0 when no thread
- * sleeps. The timers that wake nothing go first. */
-static int vader_scheduler_next_deadline(int64_t* deadline) {
-    while (g_scheduler_timer_len > 0u && !vader_scheduler_timer_wakes(&g_scheduler_timers[0])) {
-        vader_scheduler_drop_first_timer();
+/* The nearest deadline of `heap`, into `*deadline`; 0 when it holds none. The
+ * timers that wake nothing go first. */
+static int vader_scheduler_next_deadline(vader_scheduler_heap_t* heap, int64_t* deadline) {
+    while (heap->len > 0u && !vader_scheduler_timer_wakes(&heap->timers[0])) {
+        vader_scheduler_drop_first_timer(heap);
     }
-    if (g_scheduler_timer_len == 0u) return 0;
-    *deadline = g_scheduler_timers[0].deadline;
+    if (heap->len == 0u) return 0;
+    *deadline = heap->timers[0].deadline;
     return 1;
 }
 
-/* Make ready the threads whose sleep is over. */
-static void vader_scheduler_fire_due_timers(void) {
+/* Make ready the threads whose timer of `heap` is due. */
+static void vader_scheduler_fire_due_timers(vader_scheduler_heap_t* heap) {
     int64_t deadline = 0;
-    if (!vader_scheduler_next_deadline(&deadline)) return;
-    int64_t now = vader_scheduler_now();
+    if (!vader_scheduler_next_deadline(heap, &deadline)) return;
+    int64_t now = heap->now();
     while (deadline <= now) {
-        int64_t thread = g_scheduler_timers[0].thread;
-        vader_scheduler_drop_first_timer();
+        int64_t thread = heap->timers[0].thread;
+        vader_scheduler_drop_first_timer(heap);
         vader_scheduler_enqueue(thread);
-        if (!vader_scheduler_next_deadline(&deadline)) return;
+        if (!vader_scheduler_next_deadline(heap, &deadline)) return;
     }
 }
 
@@ -272,9 +283,9 @@ static void vader_scheduler_wait_until(int64_t deadline) {
     if (nanos > 0) vader_os_sleep_ns(nanos);
 }
 
-/* The deadline `nanos` from now, INT64_MAX past the end of the clock. */
-static int64_t vader_scheduler_deadline_in(int64_t nanos) {
-    int64_t now = vader_scheduler_now();
+/* The deadline `nanos` from now on the clock of `heap`, INT64_MAX past its end. */
+static int64_t vader_scheduler_deadline_in(const vader_scheduler_heap_t* heap, int64_t nanos) {
+    int64_t now = heap->now();
     if (nanos < INT64_MAX - now) return now + nanos;
     return INT64_MAX;
 }
@@ -388,6 +399,12 @@ static int vader_scheduler_watching(void) {
     return 0;
 }
 
+/* Whether a thread waits on the OS: it watches, or its wait has a bound. */
+static int vader_scheduler_waits_on_os(void) {
+    int64_t bound = 0;
+    return vader_scheduler_watching() || vader_scheduler_next_deadline(&g_scheduler_bounds, &bound);
+}
+
 /* Ask the OS what it has, waiting at most `timeout_ns`. The threads it makes
  * ready, with those already ready, run before it is asked again. */
 static void vader_scheduler_ask_os(int64_t timeout_ns) {
@@ -407,22 +424,23 @@ static void vader_scheduler_end_turn(void) {
 }
 
 /* With no thread ready: wait for the nearest sleep to end, when `sleeping`, or
- * for what a thread watches, when `watching`, whichever comes first. */
-static void vader_scheduler_idle(int sleeping, int64_t deadline, int watching) {
-    if (!watching) {
+ * for the OS, when a thread waits on it, whichever comes first. A thread that
+ * waits on the OS holds the virtual clock. */
+static void vader_scheduler_idle(int sleeping, int64_t deadline) {
+    if (!vader_scheduler_waits_on_os()) {
         vader_scheduler_wait_until(deadline);
         return;
     }
-    if (!sleeping) {
-        vader_scheduler_ask_os(-1);
-        return;
+    int64_t timeout_ns = -1;
+    int64_t bound = 0;
+    if (vader_scheduler_next_deadline(&g_scheduler_bounds, &bound)) {
+        timeout_ns = vader_scheduler_nanos_until(bound);
     }
-    if (g_scheduler_virtual_clock) {
-        vader_scheduler_ask_os(0);
-        if (g_scheduler_ready_len == 0u) vader_scheduler_wait_until(deadline);
-        return;
+    if (sleeping && !g_scheduler_virtual_clock) {
+        int64_t nanos = vader_scheduler_nanos_until(deadline);
+        if (timeout_ns < 0 || nanos < timeout_ns) timeout_ns = nanos;
     }
-    vader_scheduler_ask_os(vader_scheduler_nanos_until(deadline));
+    vader_scheduler_ask_os(timeout_ns);
 }
 
 /* ---- reports --------------------------------------------------------------- */
@@ -508,7 +526,8 @@ static void vader_scheduler_deadlock(void) {
 
 static void vader_scheduler_loop(void) {
     for (;;) {
-        vader_scheduler_fire_due_timers();
+        vader_scheduler_fire_due_timers(&g_scheduler_sleeps);
+        vader_scheduler_fire_due_timers(&g_scheduler_bounds);
         if (g_scheduler_turn_left == 0u && g_scheduler_ready_len > 0u
             && vader_scheduler_watching()) {
             vader_scheduler_end_turn();
@@ -524,11 +543,10 @@ static void vader_scheduler_loop(void) {
             continue;
         }
         int64_t deadline = 0;
-        int sleeping = vader_scheduler_next_deadline(&deadline);
-        int watching = vader_scheduler_watching();
-        if (!sleeping && !watching) vader_scheduler_deadlock();
+        int sleeping = vader_scheduler_next_deadline(&g_scheduler_sleeps, &deadline);
+        if (!sleeping && !vader_scheduler_waits_on_os()) vader_scheduler_deadlock();
         vader_virtual_thread_give_back_cold();
-        vader_scheduler_idle(sleeping, deadline, watching);
+        vader_scheduler_idle(sleeping, deadline);
     }
 }
 
@@ -636,7 +654,7 @@ static void vader_scheduler_sleep_alone(int64_t nanos) {
         vader_os_sleep_ns(nanos);
         return;
     }
-    g_scheduler_virtual_now = vader_scheduler_deadline_in(nanos);
+    g_scheduler_virtual_now = vader_scheduler_deadline_in(&g_scheduler_sleeps, nanos);
 }
 
 void vader_scheduler_sleep_for(int64_t nanos) {
@@ -647,13 +665,14 @@ void vader_scheduler_sleep_for(int64_t nanos) {
     }
     vader_scheduler_start();
     int64_t thread = vader_virtual_thread_current();
-    int64_t deadline = vader_scheduler_deadline_in(nanos);
+    int64_t deadline = vader_scheduler_deadline_in(&g_scheduler_sleeps, nanos);
     uint64_t began = ++g_scheduler_sleeps_begun;
     /* A wake ends the park, not the sleep. */
     do {
         vader_scheduler_slot_t* s = vader_scheduler_slot_of(thread);
         s->sleep++;
-        vader_scheduler_arm((vader_scheduler_timer_t) { deadline, began, thread, s->sleep });
+        vader_scheduler_arm(&g_scheduler_sleeps,
+                            (vader_scheduler_timer_t) { deadline, began, thread, s->sleep });
         vader_scheduler_block(s);
     } while (vader_scheduler_now() < deadline);
 }
@@ -667,9 +686,10 @@ static void vader_scheduler_watch(int kind, int64_t id) {
     /* Another thread waits for the same report, which wakes one thread. */
     int taken = held != NULL && held->thread != thread && vader_scheduler_watch_wakes(held);
     if (taken || !vader_os_watch(kind, id)) {
-        int64_t deadline = vader_scheduler_deadline_in(VADER_SCHEDULER_REFUSED_WATCH_NS);
-        vader_scheduler_arm(
-            (vader_scheduler_timer_t) { deadline, ++g_scheduler_sleeps_begun, thread, sleep });
+        int64_t deadline =
+            vader_scheduler_deadline_in(&g_scheduler_bounds, VADER_SCHEDULER_REFUSED_WATCH_NS);
+        vader_scheduler_arm(&g_scheduler_bounds, (vader_scheduler_timer_t) {
+            deadline, ++g_scheduler_sleeps_begun, thread, sleep });
         return;
     }
     /* A thread watches the same `id` again at each park of a loop, woken
@@ -709,16 +729,17 @@ static bool vader_scheduler_wait_for(int kind, int64_t fd, int64_t nanos) {
     vader_scheduler_start();
     int64_t thread = vader_virtual_thread_current();
     int timed = nanos >= 0;
-    int64_t deadline = vader_scheduler_deadline_in(nanos);
+    int64_t deadline = vader_scheduler_deadline_in(&g_scheduler_bounds, nanos);
     uint64_t began = ++g_scheduler_sleeps_begun;
     vader_scheduler_slot_of(thread)->released = 0;
     while (!vader_scheduler_ready_now(kind, fd)) {
-        if (timed && vader_scheduler_now() >= deadline) return false;
+        if (timed && g_scheduler_bounds.now() >= deadline) return false;
         vader_scheduler_watch(kind, fd);
         /* The timer ends the park the watch ends, whichever comes first. */
         if (timed) {
             uint32_t sleep = vader_scheduler_slot_of(thread)->sleep + 1u;
-            vader_scheduler_arm((vader_scheduler_timer_t) { deadline, began, thread, sleep });
+            vader_scheduler_arm(&g_scheduler_bounds,
+                                (vader_scheduler_timer_t) { deadline, began, thread, sleep });
         }
         vader_scheduler_park();
         if (vader_scheduler_slot_of(thread)->released) return true;

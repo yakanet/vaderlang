@@ -29,6 +29,9 @@ Engine :: enum {
 
 ENGINES: Engine[]: [.Debug, .Release, .Vm]
 
+// The environment of a run on the virtual clock.
+VIRTUAL_CLOCK: [string, string | null][]: [["VADER_VIRTUAL_CLOCK", "1"]]
+
 // What the stress modes of the collector check, each on a run of its own. The
 // VM runs the compile before the program under the mode too, which takes minutes
 // under the first two.
@@ -267,11 +270,18 @@ test_a_thread_runs_while_another_polls_stdin :: fn() -> void {
     expect_clean("stdin_polls", printed, [], HELLO_AFTER_TWO_TICKS)
 }
 
+// What `stdin_polls_alone` is fed, and what it prints.
+POLLS_ALONE_FEED :: Feed { .cue = "a poll alone gives up\n", .line = "done\n" }
+POLLS_ALONE_PRINTED :: "a poll beside a thread gives up\na poll alone gives up\nread done\n"
+
 @test
 test_a_poll_of_stdin_given_up_beside_a_thread_leaves_the_next_one_its_deadline :: fn() -> void {
-    feed :: Feed { .cue = "a poll alone gives up\n", .line = "done\n" }
-    printed :: "a poll beside a thread gives up\na poll alone gives up\nread done\n"
-    expect_clean("stdin_polls_alone", printed, [], feed)
+    expect_clean("stdin_polls_alone", POLLS_ALONE_PRINTED, [], POLLS_ALONE_FEED)
+}
+
+@test
+test_under_the_virtual_clock_a_poll_of_stdin_ends_at_its_deadline :: fn() -> void {
+    expect_clean("stdin_polls_alone", POLLS_ALONE_PRINTED, VIRTUAL_CLOCK, POLLS_ALONE_FEED)
 }
 
 @test
@@ -294,13 +304,18 @@ test_under_the_virtual_clock_the_shortest_sleep_ends_first :: fn() -> void {
     expect_clean(
         "sleep_order",
         "slept 10 ms\nslept 20 ms\nslept 30 ms\n",
-        [["VADER_VIRTUAL_CLOCK", "1"]],
+        VIRTUAL_CLOCK,
     )
 }
 
 @test
 test_under_the_virtual_clock_sleeps_that_end_together_end_in_the_order_they_began :: fn() -> void {
-    expect_clean("sleep_ties", "a woke\nb woke\nc woke\n", [["VADER_VIRTUAL_CLOCK", "1"]])
+    expect_clean("sleep_ties", "a woke\nb woke\nc woke\n", VIRTUAL_CLOCK)
+}
+
+@test
+test_under_the_virtual_clock_a_timeout_waits_for_the_child_it_bounds :: fn() -> void {
+    expect_clean("child_under_a_timeout", "the child answered\n", VIRTUAL_CLOCK)
 }
 
 @test
