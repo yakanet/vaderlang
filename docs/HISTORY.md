@@ -1460,6 +1460,28 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 ### Priority: next up
 
+- [x] **`match` lowers to independent `if`s, never a `switch`**, **dropped 2026-11-15**: a `switch` would gain nothing at run time, `cc -O3` already turns the chain into jump tables (ADR 0014); the VM op was refused on its numbers, and the brace nesting past C11's 127 levels went with the `} else if` folding (`4455a0e6a`). What stays true for WASM is noted under 3.10. (noted 2026-08-28, user observation, confirmed on the emitted C). A six-arm `match` over an `enum(u8)` emits:
+
+  ```c
+  static vader_string_t mt_name(uint8_t l0) {
+      if (l0 == INT32_C(0)) { return 1u; }
+      if (l0 == INT32_C(1)) { return 2u; }
+      ...
+      vader_unreachable("unreachable return in mt$name");
+  }
+  ```
+
+  `docs/ARCHITECTURE.md` (*Lowered AST*: "There is no decision-tree compilation") documents this as the deliberate lowering, so it is a debt taken knowingly, not an oversight.
+
+  **The nuance that decides what to measure**: because every arm `return`s, these are semantically already an `else if` chain, control never falls through, so the *branch count* is not the cost. What is lost is the DENSITY information. `switch (l0)` over `0..5` tells the C compiler a jump table is legal; a run of comparisons leaves it to prove that, which gcc/clang often do for this exact shape but not always, and never once the values are sparse or the arms carry guards.
+
+  **So the first move is a measurement, not a rewrite.** Compile a dense enum `match` at `-O3` and look for a jump table (`jmp *%rax` / `.rodata` offsets) versus a comparison chain. If the table is already there, this is worth nothing on the C backend and stays a note for the future WASM emitter, where `br_table` has to be chosen explicitly and nothing will infer it. If it is not, the fix is narrow: emit `switch` when every arm is a literal over one integer scrutinee, keep the `if` chain for everything else (type tests, guards, string arms, or-patterns). Cross-ref the bytecode side: the VM dispatches the same shape and has no table either.
+
+  ⚠️ Not to be confused with a correctness matter: the chain is correct today, and `@partial` / T3013 exhaustiveness is unaffected either way.
+
+  **The general form of the same work** is decision-tree compilation (Maranget): sharing tests across arms instead of re-testing the scrutinee per arm. Only worth it if the measurement above shows the chain costs something.
+
+  **Where it stands (2026-11-15).** The measurement was made: a `br_table`-style op for the VM was refused on its numbers. The C half (`switch`) is undecided, and its strongest reason is gone: a long chain nested braces past the 127 levels C11 guarantees, and the `} else if` folding (`4455a0e6a`) brought the seed's deepest nesting down to 12. What is left is about 10 % of C bytes, not re-measured.
 - [x] **Cut the Windows CI job: it alone sets the run's wall clock**, **dropped 2026-11-15**: the Windows leg no longer sets the run's wall clock: on run 43668207549 `windows-x64` takes 8 m 51 s and `linux-x64` 8 m 21 s, and the TS tests it cites left with Bun. (measured 2026-09-03, run #281). `Test (Windows)` takes 750 s against 232 s for `Test (Posix)` doing the same work, and the whole run is 12 m 35 s: everything else finishes inside its shadow. The cost is not one bad step, both halves are ~3× Posix: build 210 s vs 44 s, test 493 s vs 179 s. Windows is also the STABLE job (194-223 s / 487-523 s across runs #278-#281, ±6 %) while Posix swings ~1.9× on a burstable runner, so a Posix number read on its own says nothing.
 
   **Measured 2026-09-24** (`tools/ci-probe/probe.ps1`, runs #306-#308, both runners on the SAME CPU: EPYC 7763 or 9V74, 2 cores × 2 threads). The build part is explained: **(1) MinGW's gcc resolved `-flto=auto` to `make -j1`**, so the LTRANS -O3 pass ran on one core, LTO link 117 s against 30.7 s on Linux, `-flto=1` 116 s. Fixed by passing an explicit job count (`std/process::processor_count`, `2a503bfc1`). **(2) gcc mingw 15.2 is ~1.6-1.9× slower** than Linux's gcc 13.3 per unit of work, at equal scaling across cores: the toolchain, not us. Refuted: process spawn (9.6 ms vs 8.6 ms for `gcc --version`), Defender (off on the runner), SMT or a CPU quota (1→4 concurrent compiles scale ×1.69 vs ×1.72). Open: the TEST half (493 s vs 179 s) was not probed; `vader --version` spawn is 7.4 ms vs 1.6 ms and the file-system brick 2.3 s vs 0.54 s, which the suite pays thousands of times. The fix measured at 173 s against 326-335 s for the Windows seed build (run #309). The probes are out of the tree: `git show e07589aff:tools/ci-probe/probe.ps1` brings back the build one, `git show 3044b52db:tools/ci-probe/probe.ps1` the runtime / test-timing one. **Switched to clang (2026-09-24, ADR 0021)**: the image's LLVM aimed at its MinGW sysroot (`tools/ci/mingw-clang.ps1`) built the compiler in 125 s against 214 s for gcc on the same runner, and `vader build` now reads `CC` so the tests follow. Remaining: the test half, `hook_driver.test.ts` is its critical path, `vader_vm.test.ts` (6.6×) and `parity-cemit` (3.4×) are unexplained.
