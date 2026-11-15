@@ -474,8 +474,12 @@ export target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | 
             continue
         }
         out: Os[]: []
-        for a in d.args.filter_is<AST.DotVariantExpr>() {
-            os :: parse_os(a.variant.to_lower())
+        for a in d.args {
+            selector :: a.value
+            if selector !is AST.DotVariantExpr {
+                continue
+            }
+            os :: parse_os(selector.variant.to_lower())
             if os != null {
                 out.push(os)
             }
@@ -499,13 +503,14 @@ check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                     continue
                 }
                 for a in dec.args {
-                    if a is AST.DotVariantExpr {
-                        if parse_os(a.variant.to_lower()) == null {
+                    selector :: a.value
+                    if selector is AST.DotVariantExpr {
+                        if parse_os(selector.variant.to_lower()) == null {
                             diags.push(
                                 resolver_error(
                                     .UnknownTargetSelector,
-                                    a.span,
-                                    "`.${a.variant}` names no operating system",
+                                    selector.span,
+                                    "`.${selector.variant}` names no operating system",
                                 ),
                             )
                         }
@@ -513,7 +518,7 @@ check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                         diags.push(
                             resolver_error(
                                 .UnknownTargetSelector,
-                                a.span,
+                                selector.span,
                                 "a `@target` selector must be an operating-system variant, "
                                     + "written `.Linux`, `.Darwin`, `.Windows`, `.Wasi` or `.Browser`",
                             ),

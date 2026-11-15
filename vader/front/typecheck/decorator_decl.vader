@@ -54,14 +54,15 @@ check_decorator_arg :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
+    key :: given_key(arg)
+    if key != "" && key in given {
+        diags.push(typecheck_error(.ArgumentGivenTwice, arg.span, "`${key}` is given already"))
+    }
+    given.push(key)
     name :: arg.name else {
         check_decorator_value(arg.value, places, typed, diags)
         return
     }
-    if name in given {
-        diags.push(typecheck_error(.ArgumentGivenTwice, arg.span, "`${name}` is given already"))
-    }
-    given.push(name)
     if name == REPEATABLE_OPTION {
         check_decorator_value(arg.value, TY_BOOL, typed, diags)
         return
@@ -71,8 +72,34 @@ check_decorator_arg :: fn(
         "a decorator declaration takes `${REPEATABLE_OPTION}`, got `${name}`"))
 }
 
-// Type `value` against `expected`: none for a place while `std/core` declares no
-// `DecoratorTarget`.
+// What `arg` gives, to tell it given twice: the option's name, or `.Place` for a
+// place ; "" for a place written in another form.
+given_key :: fn(arg: AST.CallArg) -> string {
+    name :: arg.name else {
+        place :: place_name(arg.value)
+        if place == "" {
+            return ""
+        }
+        return ".${place}"
+    }
+    return name
+}
+
+// The `DecoratorTarget` variant `value` names, written `.Function` or
+// `DecoratorTarget.Function` ; "" for any other form.
+place_name :: fn(value: AST.Expr) -> string {
+    if value is AST.DotVariantExpr {
+        return value.variant
+    }
+    if value is AST.FieldExpr {
+        return value.field
+    }
+    return ""
+}
+
+// Type `value` against `expected`, when there is one: none for a place while
+// `std/core` declares no `DecoratorTarget`, nor for an argument that names no field
+// (`decorator_use.vader`).
 check_decorator_value :: fn(
     value: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {

@@ -1,0 +1,39 @@
+// Declared decorators written above declarations: a bare name through a wildcard
+// import, a qualified one through a namespace alias, positional and named
+// arguments, defaults left out, one decorator repeated where it allows it, and a
+// local decorator on a struct. Nothing of them reaches the program, whose output
+// is the handlers' own.
+
+module "snippet"
+
+import "snippet/http"
+H :: import "snippet/http"
+import "std/console"
+
+/// Who owns a type.
+Owner :: decorator(.Struct) {
+    team: string
+}
+
+@Route(.Get, "/users/{id}")
+@Route(.Get, "/people/{id}", tags = ["legacy"])
+show_user :: fn(id: i32) -> string = "user ${id}"
+
+@H.Route(method = .Post, path = "/users")
+@H.Hidden
+create_user :: fn() -> string = "created"
+
+@Hidden
+VERSION :: "1.0"
+
+@Owner("accounts")
+User :: struct {
+    id: i32
+}
+
+main :: fn() -> i32 {
+    println(show_user(User { .id = 7 }.id))
+    println(create_user())
+    println(VERSION)
+    return 0
+}

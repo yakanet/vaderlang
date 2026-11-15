@@ -162,17 +162,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STRING"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STRING"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -234,17 +242,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STRING"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STRING"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -306,17 +322,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STRING"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STRING"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -378,17 +402,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STRING"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STRING"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -447,17 +479,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "mbstowcs"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "mbstowcs"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

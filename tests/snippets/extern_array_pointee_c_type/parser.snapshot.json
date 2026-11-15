@@ -137,13 +137,17 @@
                 "name": "c_type",
                 "args": [
                   {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "int"
-                      }
-                    ]
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "int"
+                        }
+                      ]
+                    },
+                    "spread": false
                   }
                 ]
               },
@@ -164,17 +168,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "MATH"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "MATH"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "frexp"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "frexp"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -202,13 +214,17 @@
                 "name": "c_type",
                 "args": [
                   {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "time_t"
-                      }
-                    ]
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "time_t"
+                        }
+                      ]
+                    },
+                    "spread": false
                   }
                 ]
               },
@@ -229,17 +245,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "CLOCK"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "CLOCK"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "time"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "time"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

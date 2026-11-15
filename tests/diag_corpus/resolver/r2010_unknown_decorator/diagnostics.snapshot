@@ -1,1 +1,1 @@
-[3:1] error[R2010] decorator unknown to the compiler: `@unknown_decorator_here`
+[3:2] error[R2010] no decorator has this name: `@unknown_decorator_here`

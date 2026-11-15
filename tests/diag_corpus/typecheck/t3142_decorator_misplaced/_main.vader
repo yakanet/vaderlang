@@ -1,0 +1,13 @@
+// `Route` is declared for functions only: written on a struct, T3142.
+module "snippet"
+
+Route :: decorator(.Function) {
+    path: string
+}
+
+@Route("/users")
+User :: struct {
+    id: i32
+}
+
+main :: fn() -> i32 = User { .id = 0 }.id

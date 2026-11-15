@@ -212,7 +212,7 @@ declared_condition :: fn(fd: AST.FnDecl, name: string) -> AST.Expr | null {
     if contract.args.len() != 1 {
         return null
     }
-    return contract.args[0]
+    return contract.args[0].value
 }
 
 /// The contract the `@returns` fn `decl` declares : read once, in the module

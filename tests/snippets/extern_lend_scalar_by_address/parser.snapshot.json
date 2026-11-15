@@ -73,13 +73,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<string.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<string.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -87,13 +91,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -158,13 +166,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<string.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<string.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -172,13 +184,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -243,13 +259,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<string.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<string.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -257,13 +277,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -328,13 +352,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<string.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<string.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -342,13 +370,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "memcpy"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "memcpy"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -373,13 +405,17 @@
                 "name": "c_type",
                 "args": [
                   {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "time_t"
-                      }
-                    ]
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "time_t"
+                        }
+                      ]
+                    },
+                    "spread": false
                   }
                 ]
               },
@@ -400,13 +436,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<time.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<time.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -414,13 +454,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "gmtime"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "gmtime"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -452,13 +496,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<time.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<time.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -466,13 +514,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "asctime"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "asctime"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

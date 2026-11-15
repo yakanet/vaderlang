@@ -75,17 +75,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "ENV"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "ENV"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "console_log"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "console_log"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

@@ -1,0 +1,13 @@
+// A decorator written twice on one declaration must be declared
+// `repeatable = true`: `Route` is not, T3143.
+module "snippet"
+
+Route :: decorator(.Function) {
+    path: string
+}
+
+@Route("/users")
+@Route("/people")
+list :: fn() -> i32 = 0
+
+main :: fn() -> i32 = list()

@@ -525,18 +525,14 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
 /// lines, and the parameter form, which is always inline.
 emit_decorator :: fn(self: Printer, deco: p.Decorator) -> void {
     self.write("@")
-    if deco.qualifier != "" {
-        self.write(deco.qualifier)
+    qualifier :: deco.qualifier
+    if qualifier != null {
+        self.write(qualifier.name)
         self.write(".")
     }
     self.write(deco.name)
     if deco.args.len() > 0 {
-        self.write("(")
-        for j in 0..<deco.args.len() {
-            if j > 0 { self.write(", ") }
-            self.emit_expr(deco.args[j])
-        }
-        self.write(")")
+        self.emit_inline_list(deco.args, "(", ")", false, emit_call_arg)
     }
 }
 

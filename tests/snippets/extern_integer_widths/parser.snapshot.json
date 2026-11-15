@@ -90,17 +90,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "llabs"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "llabs"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -132,17 +140,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "llabs"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "llabs"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -174,17 +190,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "atoi"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "atoi"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -216,17 +240,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "atoi"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "atoi"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -258,17 +290,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "atoi"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "atoi"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -300,17 +340,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "STDLIB"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "STDLIB"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "atoi"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "atoi"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

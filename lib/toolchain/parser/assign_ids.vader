@@ -160,7 +160,13 @@ walk_type_param :: fn(tp: TypeParam, f: NodeIdFactory) -> void {
 
 walk_decorator :: fn(d: Decorator, f: NodeIdFactory) -> void {
     d.id = f.mint()
-    for a in d.args { walk_expr(a, f) }
+    if d.qualifier != null {
+        walk_expr(d.qualifier, f)
+    }
+    for a in d.args {
+        a.id = f.mint()
+        walk_expr(a.value, f)
+    }
 }
 
 walk_import_binding :: fn(b: ImportBinding, f: NodeIdFactory) -> void {

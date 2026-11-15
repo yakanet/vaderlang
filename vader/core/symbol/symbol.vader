@@ -53,6 +53,9 @@ export Symbol :: struct {
     module_name: string
     visibility:  Visibility
     defined_at:  Span | null
+    /// A struct declared with `decorator`: the one kind of struct a name after `@`
+    /// designates. Everything else treats it as the struct it is.
+    is_decorator: bool = false
 }
 
 /// Whether `sym` names a module constant, whose value is frozen.

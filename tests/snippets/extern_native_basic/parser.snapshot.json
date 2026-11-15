@@ -77,13 +77,17 @@
             "name": "c_type",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "size_t"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "size_t"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -91,13 +95,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "strlen"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "strlen"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -131,13 +139,17 @@
                 "name": "c_type",
                 "args": [
                   {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "size_t"
-                      }
-                    ]
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "size_t"
+                        }
+                      ]
+                    },
+                    "spread": false
                   }
                 ]
               }
@@ -154,13 +166,17 @@
             "name": "c_type",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "size_t"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "size_t"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -168,13 +184,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "strnlen"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "strnlen"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

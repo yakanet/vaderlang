@@ -387,7 +387,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
             continue
         }
         for a in contract.args {
-            self.walk_expr(a)
+            self.walk_expr(a.value)
         }
     }
     self.walk_opt_expr(d.return_type)
@@ -574,13 +574,17 @@ auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
 
 walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
     for d in decs {
-        // A qualified name designates a declared decorator, which no name reaches yet.
-        if d.qualifier != "" {
-            self.diags.push(resolver_error(.UnknownDecorator, d.name_span, "`@${d.qualifier}.${d.name}`"))
+        // `@Alias.Name`: the alias is a name like any other ; the member, declared
+        // in another module, is found by the typecheck.
+        qualifier :: d.qualifier
+        if qualifier != null {
+            self.walk_ident(qualifier, false)
+            self.walk_decorator_args(d)
             continue
         }
         if !is_known_decorator(d.name) {
-            self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))
+            self.walk_declared_decorator(d)
+            continue
         }
         // `@target`'s arguments are TARGET SELECTORS, not expressions. They name
         // an OS from a closed set and are compared syntactically: the selection
@@ -597,7 +601,24 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
         if is_contract_decorator(d.name) {
             continue
         }
-        for a in d.args { self.walk_expr(a) }
+        self.walk_decorator_args(d)
+    }
+}
+
+// A decorator the program declares: its name is looked up as any other, and the
+// typecheck checks that it names a decorator.
+walk_declared_decorator :: fn(self: ResolveState, d: AST.Decorator) -> void {
+    sym :: self.scope.lookup(d.name) else {
+        self.diags.push(resolver_error(.UnknownDecorator, d.name_span, "`@${d.name}`"))
+        return
+    }
+    self.idents[d.name_span.hash()] = sym
+    self.walk_decorator_args(d)
+}
+
+walk_decorator_args :: fn(self: ResolveState, d: AST.Decorator) -> void {
+    for a in d.args {
+        self.walk_expr(a.value)
     }
 }
 
@@ -606,15 +627,15 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
 // an unresolved identifier three passes later.
 check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
     for a in d.args {
-        match a {
+        match selector :: a.value {
             is AST.DotVariantExpr -> {
-                if parse_os(a.variant.to_lower()) == null {
-                    self.diags.push(resolver_error(.UnknownTargetSelector, a.span,
-                        "`.${a.variant}` names no operating system"))
+                if parse_os(selector.variant.to_lower()) == null {
+                    self.diags.push(resolver_error(.UnknownTargetSelector, selector.span,
+                        "`.${selector.variant}` names no operating system"))
                 }
             }
             _ -> {
-                self.diags.push(resolver_error(.UnknownTargetSelector, a.span,
+                self.diags.push(resolver_error(.UnknownTargetSelector, selector.span,
                     "expected a target selector such as `.Windows`"))
             }
         }

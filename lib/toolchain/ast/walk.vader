@@ -445,8 +445,13 @@ inspect_decorators :: fn(
     leave: fn(Node) -> void,
 ) -> bool {
     for d in ds {
-        if inspect_exprs(d.args, visit, leave) {
+        if inspect_maybe(d.qualifier, visit, leave) {
             return true
+        }
+        for a in d.args {
+            if inspect(a.value, visit, leave) {
+                return true
+            }
         }
     }
     return false

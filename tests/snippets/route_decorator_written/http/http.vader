@@ -1,0 +1,16 @@
+// The decorators a library ships beside its runtime code: a program imports them
+// to mark its handlers.
+
+module "snippet/http"
+
+export Method :: enum { Get, Post }
+
+/// A route of the HTTP server, written once per path it answers.
+export Route :: decorator(.Function, repeatable = true) {
+    method: Method
+    path: string
+    tags: string[] = []
+}
+
+/// A handler kept out of the public listing.
+export Hidden :: decorator(.Function, .Constant) {}

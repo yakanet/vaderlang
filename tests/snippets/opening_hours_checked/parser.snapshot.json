@@ -137,16 +137,20 @@
             "name": "ensures",
             "args": [
               {
-                "kind": "BinaryExpr",
-                "op": "in",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "close"
+                "name": null,
+                "value": {
+                  "kind": "BinaryExpr",
+                  "op": "in",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "close"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "Hour"
+                  }
                 },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "Hour"
-                }
+                "spread": false
               }
             ]
           }

@@ -1,0 +1,12 @@
+// A name after `@` must name a decorator declaration: `Point` is a plain struct,
+// T3141.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+@Point(1)
+origin :: fn() -> i32 = 0
+
+main :: fn() -> i32 = origin()

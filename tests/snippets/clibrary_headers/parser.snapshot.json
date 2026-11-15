@@ -99,17 +99,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "CRT"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "CRT"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "toupper"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "toupper"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -141,17 +149,25 @@
             "name": "extern",
             "args": [
               {
-                "kind": "IdentExpr",
-                "name": "CRT"
+                "name": null,
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "CRT"
+                },
+                "spread": false
               },
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "imaxabs"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "imaxabs"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

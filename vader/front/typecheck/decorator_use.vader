@@ -1,0 +1,194 @@
+// vader/front/typecheck/decorator_use: the checks of a declared decorator where it
+// is written.
+//
+// `@Route(.Get, "/users/{id}")` above a function names a decorator declaration
+// (`decorator_decl.vader`), declared for some places, repeatable or not. Its
+// arguments are those of a call whose parameters are the fields, in order, a field
+// with a default being optional. A compiler decorator is checked by its own rules
+// (`decl.vader`), never here.
+
+module "vader/front/typecheck"
+
+import "std/iter"
+import "std/string"
+AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
+import "toolchain/parser"
+import "vader/core/symbol"
+import "vader/front/resolver"
+
+/// Check every declared decorator written on `decls` and on the members they hold.
+///
+/// @param decls  the declarations of a module.
+/// @param typed  the module's typed program, the struct tables of the project
+///               shared.
+/// @param diags  where T3141, T3142, T3143 and the argument errors go.
+export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for decl in decls {
+        check_decorators_at(AST.decl_decorators(decl), place_of(decl), typed, diags)
+        if decl is AST.TraitDecl {
+            for m in decl.members {
+                check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
+            }
+        } else if decl is AST.ImplDecl {
+            for m in decl.members {
+                check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
+            }
+        }
+    }
+}
+
+// The `DecoratorTarget` variant a function is.
+PLACE_FUNCTION :: "Function"
+
+// The `DecoratorTarget` variant `decl` is ; "" for an assertion, which carries no
+// decorator.
+place_of :: fn(decl: AST.Decl) -> string = match decl {
+    is AST.FnDecl        -> PLACE_FUNCTION
+    is AST.StructDecl    -> "Struct"
+    is AST.EnumDecl      -> "Enum"
+    is AST.TraitDecl     -> "Trait"
+    is AST.ImplDecl      -> "Implementation"
+    is AST.ConstDecl     -> "Constant"
+    is AST.TypeAliasDecl -> "Alias"
+    is AST.ImportDecl    -> "Import"
+    is AST.AssertDecl    -> ""
+}
+
+// The declared decorators of one declaration, written at `place`.
+check_decorators_at :: fn(
+    decs: AST.Decorator[], place: string, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if decs.len() == 0 {
+        return
+    }
+    written: i32[]: []
+    for d in decs {
+        if is_compiler_decorator(d) {
+            continue
+        }
+        sym :: decorator_symbol(d, typed, diags) else continue
+        declaration :: typed.struct_decls[sym.id]
+        if !sym.is_decorator || declaration == null {
+            diags.push(typecheck_error(.NotADecorator, d.name_span,
+                "`${sym.name}` is a ${sym.kind.label}"))
+            continue
+        }
+        check_place(d, declaration, place, diags)
+        if sym.id in written && !is_repeatable(declaration) {
+            diags.push(typecheck_error(.DecoratorRepeated, d.name_span,
+                "`@${d.name}` again on this declaration"))
+        }
+        written.push(sym.id)
+        check_decorator_arguments(d, sym, typed, diags)
+    }
+}
+
+// The declaration `d` names, followed through its import ; null when the name is
+// unresolved, which the resolver or the namespace lookup reports.
+decorator_symbol :: fn(d: AST.Decorator, typed: TypedProgram, diags: Diagnostic[]) -> Symbol | null {
+    qualifier :: d.qualifier
+    if qualifier != null {
+        member :: AST.FieldExpr {
+            .span = d.span,
+            .target = qualifier,
+            .field = d.name,
+            .field_span = d.name_span,
+            .is_numeric = false,
+        }
+        return namespace_member_declaration(member, typed.resolved, diags)
+    }
+    sym :: typed.resolved.idents[d.name_span.hash()] else return null
+    return declared_symbol(sym, typed)
+}
+
+// The places `declaration` names in its parentheses: `.Function`, or
+// `DecoratorTarget.Function` ; none means anywhere.
+declared_places :: fn(declaration: AST.StructDecl) -> string[] {
+    out: string[]: []
+    for a in declaration.decorator_args else [] {
+        place :: place_name(a.value)
+        if a.name == null && place != "" {
+            out.push(place)
+        }
+    }
+    return out
+}
+
+check_place :: fn(
+    d: AST.Decorator, declaration: AST.StructDecl, place: string, diags: Diagnostic[],
+) -> void {
+    places :: declared_places(declaration)
+    if places.len() == 0 || place in places {
+        return
+    }
+    listed :: places.map((p) -> "`.${p}`").collect().join(", ")
+    diags.push(typecheck_error(.DecoratorMisplaced, d.name_span,
+        "`@${d.name}` is declared for ${listed}, written on `.${place}`"))
+}
+
+// Whether `declaration` writes `repeatable = true`.
+is_repeatable :: fn(declaration: AST.StructDecl) -> bool {
+    for a in declaration.decorator_args else [] {
+        value :: a.value
+        if a.name == REPEATABLE_OPTION && value is AST.BoolLitExpr {
+            return value.value
+        }
+    }
+    return false
+}
+
+// The arguments of `d` against the fields of the decorator `sym`, as a call's
+// against its parameters: positional ones in field order, then named ones, each
+// field once, the fields without a default all given.
+check_decorator_arguments :: fn(
+    d: AST.Decorator, sym: Symbol, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    fields :: typed.struct_fields[sym.id] else return
+    order: string[]: []
+    for [name, _] in fields {
+        order.push(name)
+    }
+    given: string[]: []
+    next_position := 0
+    seen_named := false
+    for a in d.args {
+        target: string | null = null
+        name :: a.name
+        if name == null {
+            if seen_named {
+                diags.push(typecheck_error(.WrongArgCount, a.span,
+                    "positional argument after a named argument"))
+            } else if next_position >= order.len() {
+                diags.push(typecheck_error(.WrongArgCount, a.span,
+                    "`@${d.name}` has ${order.len()} fields"))
+            } else {
+                target = order[next_position]
+            }
+            next_position += 1
+        } else {
+            seen_named = true
+            if name !in fields {
+                diags.push(typecheck_error(.UnknownNamedArg, a.span,
+                    "`@${d.name}` has no field `${name}`"))
+            } else if name in given {
+                diags.push(typecheck_error(.ArgumentGivenTwice, a.span,
+                    "`${name}` is given already"))
+            } else {
+                target = name
+            }
+        }
+        field :: if target == null { null } else { fields[target] }
+        expected :: if field == null { null } else { field.ty }
+        check_decorator_value(a.value, expected, typed, diags)
+        if target != null {
+            given.push(target)
+        }
+    }
+    for [name, field] in fields {
+        if field.decl.default == null && name !in given {
+            diags.push(typecheck_error(.MissingRequiredArg, d.span,
+                "`@${d.name}` needs `${name}`"))
+        }
+    }
+}

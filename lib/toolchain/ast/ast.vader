@@ -169,13 +169,14 @@ export TypeParam :: struct {
 export Decorator :: struct {
     span: Span
     id:   i64 = UNASSIGNED_NODE_ID
-    /// The namespace alias written before the name, `J` in `@J.json_name`; "" for
+    /// The namespace alias written before the name, `J` in `@J.json_name`; null for
     /// a bare name.
-    qualifier: string = ""
+    qualifier: IdentExpr | null = null
     name: string
     /// The name alone, without the `@` or the qualifier.
     name_span: Span
-    args: Expr[]
+    /// Written as a call's: positional, then named (`@Route(.Get, path = "/")`).
+    args: CallArg[]
 }
 
 /// Whether `decs` carries the decorator called `name`.
@@ -220,7 +221,7 @@ export extern_symbol_of :: fn(decl: FnDecl) -> string {
     if d.args.len() == 0 {
         return decl.name
     }
-    return string_literal_text(d.args[d.args.len() - 1]) else decl.name
+    return string_literal_text(d.args[d.args.len() - 1].value) else decl.name
 }
 
 /// The header an `@extern` declaration's own `@c_header` names, verbatim with
@@ -291,7 +292,7 @@ sole_string_argument :: fn(d: Decorator) -> string {
     if d.args.len() != 1 {
         return ""
     }
-    return string_literal_text(d.args[0]) else ""
+    return string_literal_text(d.args[0].value) else ""
 }
 
 // ---- Declarations ---------------------------------------------------------

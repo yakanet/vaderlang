@@ -3408,7 +3408,28 @@ Marker :: decorator {}
 - A decorator cannot take the name of one of the compiler's, listed above. A function or a constant still can.
 - A decorator is a type: `Route { .method = .Get, .path = "/" }` builds a value of it, as for a struct. It changes nothing in the program it decorates.
 
-Writing a declared decorator above a declaration (`@Route(.Get, "/users/{id}")`, or `@J.Route` through a namespace alias) is not supported yet.
+### Writing a declared decorator
+
+A declared decorator is written above a declaration like the compiler's, by its name or through a namespace alias:
+
+```vader
+import "http"
+H :: import "http"
+
+@Route(.Get, "/users/{id}")
+@Route(.Get, "/people/{id}", tags = ["legacy"])
+show_user :: fn(id: i32) -> string = "user ${id}"
+
+@H.Route(method = .Post, path = "/users")
+create_user :: fn() -> string = "created"
+```
+
+- Its arguments are those of a call whose parameters are the decorator's fields, in order: positional ones first, then named ones. A field with a default may be left out; every other field is given once.
+- It is written only at a place its declaration names. A function, a trait member and an impl member are a `Function`; a struct (a decorator declaration included) a `Struct`; an enum an `Enum`; a trait a `Trait`; an `implements` block an `Implementation`; a module constant a `Constant`; a type alias an `Alias`; an import an `Import`.
+- It is written once per declaration, unless its declaration says `repeatable = true`.
+- A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators take their arguments by position only.
+
+Writing a decorator above a struct field, an enum variant, a parameter or a module is not supported yet.
 
 ### `@intrinsic`
 

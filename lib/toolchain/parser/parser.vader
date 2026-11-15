@@ -547,6 +547,7 @@ set_decl_doc :: fn(decl: Decl, doc: DocComment) -> void {
 // statement of its own, which decorates nothing.
 parse_assert_decl :: fn(p: Parser) -> AssertDecl | null {
     dec :: p.parse_decorator()
+    p.reject_named_arguments(dec)
     p.skip_newlines()
     if dec.args.len() < 1 || dec.args.len() > 2 {
         p.error(.DecoratorArgumentCount, dec.span,
@@ -556,12 +557,12 @@ parse_assert_decl :: fn(p: Parser) -> AssertDecl | null {
     message: string | null = null
     message_span: Span | null = null
     if dec.args.len() == 2 {
-        message = p.static_assert_message(dec.args[1]) else return null
+        message = p.static_assert_message(dec.args[1].value) else return null
         message_span = dec.args[1].span
     }
     return AssertDecl {
         .span         = dec.span,
-        .condition    = dec.args[0],
+        .condition    = dec.args[0].value,
         .message      = message,
         .message_span = message_span,
         .decorators   = [],
@@ -688,7 +689,7 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
             "`@c_struct` takes at most one argument : the C type, when it is not the struct's own name")
         return
     }
-    if d.args.len() == 1 && string_literal_text(d.args[0]) == null {
+    if d.args.len() == 1 && string_literal_text(d.args[0].value) == null {
         p.error(.DecoratorArgumentForm, d.args[0].span,
             "`@c_struct` names the C type with a plain string literal (no interpolation)")
     }
@@ -703,7 +704,7 @@ check_c_header_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
             "`@c_header` takes one argument : the header, as in a C `#include`")
         return
     }
-    if string_literal_text(d.args[0]) == null {
+    if string_literal_text(d.args[0].value) == null {
         p.error(.DecoratorArgumentForm, d.args[0].span,
             "`@c_header` names the header with a plain string literal (no interpolation)")
     }
@@ -756,34 +757,50 @@ alias_placement_detail :: fn(generic: bool) -> string {
 parse_decorators :: fn(p: Parser) -> Decorator[] {
     out: Decorator[]: []
     for p.check(.At) {
-        out.push(p.parse_decorator())
+        d :: p.parse_decorator()
+        p.reject_named_arguments(d)
+        out.push(d)
         p.skip_newlines()
     }
     return out
 }
 
+/// Whether `d` is one of the compiler's decorators rather than one a program
+/// declares: an unqualified name the compiler's table holds.
+///
+/// @param d  a decorator as written.
+export is_compiler_decorator :: fn(d: Decorator) -> bool =
+    d.qualifier == null && decorator_spec(d.name) != null
+
+// The compiler's decorators read their arguments by position: a named one would
+// be dropped in silence.
+reject_named_arguments :: fn(p: Parser, d: Decorator) -> void {
+    if !is_compiler_decorator(d) {
+        return
+    }
+    for a in d.args {
+        if a.name != null {
+            p.error(.DecoratorArgumentForm, a.span, "`@${d.name}` takes its arguments by position")
+        }
+    }
+}
+
 parse_decorator :: fn(p: Parser) -> Decorator {
     at :: p.advance()
     name_tok := p.expect(.Ident, "decorator name after `@`")
-    qualifier := ""
+    qualifier: IdentExpr | null = null
     if p.check(.Dot) && p.peek_at(1).kind == .Ident {
         p.advance()
-        qualifier = name_tok.text
+        qualifier = IdentExpr {
+            .span = name_tok.span,
+            .name = name_tok.text,
+            .implicit_dot = false,
+        }
         name_tok = p.advance()
     }
-    args: Expr[]: []
+    args: CallArg[] = []
     if p.match_kind(.LParen) != null {
-        if !p.check(.RParen) {
-            first := true
-            for {
-                if !first {
-                    if p.match_kind(.Comma) == null { break }
-                    if p.check(.RParen) { break }
-                }
-                first = false
-                args.push(p.parse_expr(0))
-            }
-        }
+        args = p.parse_call_args().items
         p.expect(.RParen, "`)` after decorator arguments")
     }
     return Decorator {

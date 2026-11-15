@@ -72,13 +72,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<poll.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<poll.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -86,13 +90,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "poll"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "poll"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

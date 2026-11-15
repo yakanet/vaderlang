@@ -270,7 +270,7 @@ substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr 
 }
 
 intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {
-    args: AST.Expr[]: []
+    args: AST.CallArg[]: []
     return [
         AST.Decorator {
             .span = span,

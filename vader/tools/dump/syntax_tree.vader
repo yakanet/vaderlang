@@ -532,14 +532,15 @@ write_decorators :: fn(sb: StringBuilder, ds: Decorator[], level: i32) -> void {
         sb.append_char('\n')
         sb.indent(level + 1)
         sb.open_obj()
-        if d.qualifier != "" {
+        qualifier :: d.qualifier
+        if qualifier != null {
             sb.entry(true, level + 2, "qualifier")
-            sb.write_string(d.qualifier)
+            sb.write_string(qualifier.name)
         }
-        sb.entry(d.qualifier == "", level + 2, "name")
+        sb.entry(qualifier == null, level + 2, "name")
         sb.write_string(d.name)
         sb.entry(false, level + 2, "args")
-        sb.write_exprs(d.args, level + 2)
+        sb.write_call_args(d.args, level + 2)
         sb.close_obj(level + 1)
     }
     sb.close_arr(level)

@@ -1,0 +1,415 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "snippet/http",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
+        "path": "snippet/http",
+        "binding": {
+          "kind": "named-namespace",
+          "name": "H"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
+        "path": "std/console",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Owner",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "team",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decoratorArgs": [
+          {
+            "name": null,
+            "value": {
+              "kind": "DotVariantExpr",
+              "variant": "Struct"
+            },
+            "spread": false
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "show_user",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "text",
+                "value": "user "
+              },
+              {
+                "kind": "interpolation",
+                "expr": {
+                  "kind": "IdentExpr",
+                  "name": "id"
+                }
+              }
+            ]
+          }
+        },
+        "decorators": [
+          {
+            "name": "Route",
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "DotVariantExpr",
+                  "variant": "Get"
+                },
+                "spread": false
+              },
+              {
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "/users/{id}"
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
+          },
+          {
+            "name": "Route",
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "DotVariantExpr",
+                  "variant": "Get"
+                },
+                "spread": false
+              },
+              {
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "/people/{id}"
+                    }
+                  ]
+                },
+                "spread": false
+              },
+              {
+                "name": "tags",
+                "value": {
+                  "kind": "SeqLitExpr",
+                  "elements": [
+                    {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "legacy"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
+          }
+        ],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "create_user",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "text",
+                "value": "created"
+              }
+            ]
+          }
+        },
+        "decorators": [
+          {
+            "qualifier": "H",
+            "name": "Route",
+            "args": [
+              {
+                "name": "method",
+                "value": {
+                  "kind": "DotVariantExpr",
+                  "variant": "Post"
+                },
+                "spread": false
+              },
+              {
+                "name": "path",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "/users"
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
+          },
+          {
+            "qualifier": "H",
+            "name": "Hidden",
+            "args": []
+          }
+        ],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "VERSION",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "StringLitExpr",
+          "parts": [
+            {
+              "kind": "text",
+              "value": "1.0"
+            }
+          ]
+        },
+        "decorators": [
+          {
+            "name": "Hidden",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "StructDecl",
+        "name": "User",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": [
+          {
+            "name": "Owner",
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "accounts"
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "show_user"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "StructLitExpr",
+                              "typeName": {
+                                "kind": "IdentExpr",
+                                "name": "User"
+                              },
+                              "items": [
+                                {
+                                  "kind": "field",
+                                  "name": "id",
+                                  "value": {
+                                    "kind": "IntLitExpr",
+                                    "value": "7n"
+                                  }
+                                }
+                              ]
+                            },
+                            "field": "id"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "create_user"
+                      },
+                      "args": []
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "VERSION"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

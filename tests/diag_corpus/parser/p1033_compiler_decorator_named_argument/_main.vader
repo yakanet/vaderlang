@@ -1,0 +1,8 @@
+// The compiler's decorators read their arguments by position: a named one would
+// be dropped, P1033.
+module "snippet"
+
+@deprecated(reason = "use `area`")
+surface :: fn() -> i32 = 0
+
+main :: fn() -> i32 = surface()

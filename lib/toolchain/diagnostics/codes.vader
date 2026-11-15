@@ -163,6 +163,9 @@ export TypecheckCode :: enum(CodeInfo) {
     AliasOfAValue                   { .id = "T3138", .message = "`@alias` names a type, not a value" },
     TraitMemberOutOfScope           { .id = "T3139", .message = "this trait member is out of scope" },
     DecoratorFieldNotCompileTime    { .id = "T3140", .message = "a decorator field must hold a value known at compile time" },
+    NotADecorator                   { .id = "T3141", .message = "this name is not a decorator" },
+    DecoratorMisplaced              { .id = "T3142", .message = "this decorator is not declared for this place" },
+    DecoratorRepeated               { .id = "T3143", .message = "a decorator is written twice without `repeatable`" },
 }
 
 // Parser-pass codes.
@@ -207,7 +210,7 @@ export ResolverCode :: enum(CodeInfo) {
     UnresolvedTypeName      { .id = "R2007", .message = "unresolved type name" },
     SymbolNotExported       { .id = "R2008", .message = "symbol is not exported from its module" },
     TraitNameNotATrait      { .id = "R2009", .message = "trait name does not refer to a trait" },
-    UnknownDecorator        { .id = "R2010", .message = "decorator unknown to the compiler" },
+    UnknownDecorator        { .id = "R2010", .message = "no decorator has this name" },
     DuplicateImportBinding  { .id = "R2011", .message = "duplicate import binding" },
     /// Reserved: a `vader.json` that does not parse is read as one with no include paths.
     ManifestMalformed            { .id = "R2014", .message = "vader.json malformed or unreadable" },

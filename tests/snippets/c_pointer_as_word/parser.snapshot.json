@@ -40,13 +40,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<stdlib.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<stdlib.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -54,13 +58,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "malloc"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "malloc"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }
@@ -92,13 +100,17 @@
             "name": "c_header",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "<stdlib.h>"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "<stdlib.h>"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           },
@@ -106,13 +118,17 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "free"
-                  }
-                ]
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "free"
+                    }
+                  ]
+                },
+                "spread": false
               }
             ]
           }

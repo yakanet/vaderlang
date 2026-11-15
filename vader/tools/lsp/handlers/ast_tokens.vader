@@ -211,7 +211,9 @@ walk_decorators :: fn(ds: AST.Decorator[], out: RawToken[]) -> void {
         // `@Alias.name`) so the argument tokens (walked below) don't sit inside a
         // Decorator token.
         push_span(out, Span { .start = deco.span.start, .end = deco.name_span.end }, .Decorator)
-        for a in deco.args { walk_expr(a, out) }
+        for a in deco.args {
+            walk_expr(a.value, out)
+        }
     }
 }
 

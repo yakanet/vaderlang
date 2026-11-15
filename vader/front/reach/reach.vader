@@ -17,9 +17,9 @@ AST :: import "toolchain/ast"
 
 /// Push every name `n` and the nodes under it reference.
 ///
-/// A name is an identifier, or the field of a `recv.field` access, through which
-/// UFCS reaches a fn. Type positions, decorator arguments and interpolated parts
-/// are walked too.
+/// A name is an identifier, the field of a `recv.field` access, through which
+/// UFCS reaches a fn, or the name of a decorator. Type positions, decorator
+/// arguments and interpolated parts are walked too.
 ///
 /// @param n    the node to walk.
 /// @param out  receives the names, one per reference.
@@ -27,13 +27,18 @@ export collect_names :: fn(n: AST.Node, out: string[]) -> void {
     AST.inspect(n, (m) -> referenced_name(m, out))
 }
 
-// Only an identifier and a field access carry a name of their own ; every other
-// node is walked for its children.
+// An identifier, a field access and the decorators of a declaration carry a name
+// of their own ; every other node is walked for its children. A compiler
+// decorator's name counts too, which over-approximates on the safe side.
 referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
     if n is AST.IdentExpr {
         out.push(n.name)
     } else if n is AST.FieldExpr {
         out.push(n.field)
+    } else if n is AST.Decl {
+        for d in AST.decl_decorators(n) {
+            out.push(d.name)
+        }
     }
     return .Descend
 }

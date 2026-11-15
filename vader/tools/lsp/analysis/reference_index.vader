@@ -486,7 +486,10 @@ collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
 
 collect_decorators :: fn(ds: AST.Decorator[], out: Collected) -> void {
     for deco in ds {
-        for a in deco.args { collect_expr(a, out) }
+        collect_opt_expr(deco.qualifier, out)
+        for a in deco.args {
+            collect_expr(a.value, out)
+        }
     }
 }
 
