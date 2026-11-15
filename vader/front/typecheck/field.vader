@@ -986,12 +986,15 @@ bare_name_symbol :: fn(target: AST.Expr, typed: TypedProgram) -> Symbol | null {
 }
 
 /// Whether `target` names a declaration of `kind` : a bare name bound to one,
-/// through an import (`{ Info as I }`) included, or for an enum a namespace's member
-/// (`M.Weekday`).
+/// through an import (`{ Info as I }`) included, or for an enum or a struct a
+/// namespace's member (`M.Weekday`, `M.Info`).
 names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgram) -> bool {
     if target is AST.FieldExpr {
         member :: namespace_member_type(target, typed.resolved) else return false
-        return kind == .Enum && member is EnumType
+        if kind == .Enum {
+            return member is EnumType
+        }
+        return kind == .Struct && member is StructType
     }
     sym :: bare_name_symbol(target, typed) else return false
     return sym.kind == kind || (kind == .Enum && names_an_enum(sym, typed))

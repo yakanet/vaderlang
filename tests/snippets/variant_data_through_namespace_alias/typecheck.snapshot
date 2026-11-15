@@ -1,0 +1,21 @@
+# Typecheck
+
+## tests/snippets/variant_data_through_namespace_alias
+  FnDecl         main                 :: fn() -> i32
+  expr 11:14    CallExpr       :: Shade
+  expr 11:14    FieldExpr      :: Shade
+  expr 11:22    FieldExpr      :: Color
+  expr 11:22    FieldExpr      :: Color
+  expr 12:13    StringLitExpr  :: string
+  expr 12:16    FieldExpr      :: string
+  expr 12:16    IdentExpr      :: Shade
+  expr 12:30    FieldExpr      :: i32
+  expr 12:30    IdentExpr      :: Shade
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/variant_data_through_namespace_alias/palette
+  EnumDecl       Color                :: Color
+  StructDecl     Shade                :: Shade
+  expr 11:20    StringLitExpr  :: string
+  expr 12:20    StringLitExpr  :: string

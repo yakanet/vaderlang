@@ -1,0 +1,14 @@
+// The data of a variant, read by converting it to the struct it carries, when
+// both the struct and the enum are reached through a namespace alias:
+// `P.Shade(P.Color.Blue)` is a conversion, as `Shade(Color.Blue)` is.
+
+module "snippet"
+
+import "std/console"
+P :: import "snippet/palette"
+
+main :: fn() -> i32 {
+    shade :: P.Shade(P.Color.Blue)
+    println("${shade.name} ${shade.level}")
+    return 0
+}

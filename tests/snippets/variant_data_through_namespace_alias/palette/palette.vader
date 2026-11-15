@@ -1,0 +1,13 @@
+// The enum with variant data `_main.vader` reads through a namespace alias.
+
+module "snippet/palette"
+
+export Shade :: struct {
+    name:  string
+    level: i32
+}
+
+export Color :: enum(Shade) {
+    Red  { .name = "red", .level = 3 },
+    Blue { .name = "blue", .level = 7 },
+}
