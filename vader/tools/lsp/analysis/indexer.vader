@@ -347,20 +347,21 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
     if name.byte_len() == 0 {
         return null
     }
-    declared :: binding_declared_at(idx.decls, name, offset)
+    declared :: declared_at(idx.decls, name, offset)
     if declared != null {
         return declared
     }
     return lookup_innermost(idx.decls, name, offset)
 }
 
-// The binding named `name` whose own name sits at `offset` : a parameter is
-// declared before the body its scope covers.
-binding_declared_at :: fn(decls: DeclEntry[], name: string, offset: i64) -> DeclEntry | null {
+// The binding or member named `name` whose own declaration sits at `offset` : a
+// parameter is declared before the body its scope covers, and a field or a
+// variant is reached by name through a value alone.
+declared_at :: fn(decls: DeclEntry[], name: string, offset: i64) -> DeclEntry | null {
     for d in decls {
         at :: d.name_span
         covers :: at.start.offset <= offset && offset < at.end.offset
-        if covers && d.name == name && is_binding_kind(d.kind) {
+        if covers && d.name == name && (is_binding_kind(d.kind) || is_member_kind(d.kind)) {
             return d
         }
     }
@@ -384,6 +385,59 @@ export name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
 export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
     offset :: li_offset(idx.line_index, line, character)
     return token_span_at(idx.tokens, offset)
+}
+
+/// Whether the identifier under (line, character) names an argument of a
+/// decorator: an `=` follows it, and the parenthesis around it opens after
+/// `@Name` or `@Alias.Name`. Read off the tokens alone, so a caller tests it
+/// before paying for the typed project.
+///
+/// @param idx        the document's index.
+/// @param line       0-based line.
+/// @param character  0-based character, in the negotiated encoding.
+export names_a_decorator_argument :: fn(idx: DocIndex, line: i32, character: i32) -> bool {
+    offset :: li_offset(idx.line_index, line, character)
+    tokens :: idx.tokens
+    for i in 0..<tokens.len() {
+        t :: tokens[i]
+        if t.kind == .Ident && t.span.start.offset <= offset && offset < t.span.end.offset {
+            return i + 1 < tokens.len() && tokens[i + 1].kind == .Assign
+                && opens_decorator_arguments(tokens, enclosing_open(tokens, i))
+        }
+    }
+    return false
+}
+
+// The index of the bracket left open around `tokens[at]`, -1 at the top level.
+enclosing_open :: fn(tokens: Token[], at: i64) -> i64 {
+    depth := 0
+    j := at - 1
+    for j >= 0 {
+        kind :: tokens[j].kind
+        if kind == .RParen || kind == .RBracket || kind == .RBrace {
+            depth += 1
+        } else if kind == .LParen || kind == .LBracket || kind == .LBrace {
+            if depth == 0 {
+                return j
+            }
+            depth -= 1
+        }
+        j -= 1
+    }
+    return -1
+}
+
+// Whether `tokens[open]` is the `(` of `@Name(` or `@Alias.Name(`.
+opens_decorator_arguments :: fn(tokens: Token[], open: i64) -> bool {
+    if open < 2 || tokens[open].kind != .LParen || tokens[open - 1].kind != .Ident {
+        return false
+    }
+    before :: tokens[open - 2].kind
+    if before == .At {
+        return true
+    }
+    return before == .Dot && open >= 4 && tokens[open - 3].kind == .Ident
+        && tokens[open - 4].kind == .At
 }
 
 /// The name of the decorator or intrinsic under (line, character) (the `test`
@@ -1130,4 +1184,22 @@ test_index_doc_of_an_internal_field :: fn() -> void {
         docs.push("${d.name}=${entry_doc(d)}")
     }
     assert_eq(docs.join(" "), "S= y=Hidden.")
+}
+
+@test
+test_a_decorator_argument_is_told_from_any_other_name_before_an_equal :: fn() -> void {
+    src :: """
+@Route("/a", tags = 1)
+@H.Route(tags = 2)
+show :: fn() -> void {
+    f(tags = 3)
+    tags = 4
+}
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    assert(idx.names_a_decorator_argument(0, 14), "`tags` of `@Route(`")
+    assert(idx.names_a_decorator_argument(1, 10), "`tags` of `@H.Route(`")
+    assert(!idx.names_a_decorator_argument(3, 7), "a call's named argument")
+    assert(!idx.names_a_decorator_argument(4, 5), "an assignment")
+    assert(!idx.names_a_decorator_argument(0, 2), "the decorator's name")
 }

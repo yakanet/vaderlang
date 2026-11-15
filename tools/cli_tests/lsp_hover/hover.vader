@@ -590,3 +590,74 @@ test_the_decorator_keyword_is_a_semantic_keyword :: fn() -> void {
     tokens :: decoded_tokens(results[0])
     assert(tokens.contains("3:9:9:${TOKEN_KEYWORD}"), tokens.join(" "))
 }
+
+ROUTE_USE_SOURCE :: r"""
+    module "lsptest"
+
+    /// A route of the server.
+    Route :: decorator(.Function) {
+        path: string
+        /// Where the route is listed.
+        tags: string[] = []
+    }
+
+    /// A label drawn beside a field.
+    Caption :: decorator(.Field) {
+        text: string
+    }
+
+    @Route("/a", tags = ["x"])
+    show :: fn() -> i32 = 0
+
+    Form :: struct {
+        @Caption("Name")
+        name: string
+    }
+    """
+
+// A decorator written shows its declaration.
+@test
+test_hover_on_a_decorator_written_shows_its_declaration :: fn() -> void {
+    src :: ROUTE_USE_SOURCE
+    results :: drive(
+        "hover_decorator_use",
+        src,
+        [ask_at("textDocument/hover", position_of(src, "Route(\"", 1))],
+    )
+    shown :: hover_value(results[0])
+    assert("Route :: decorator(.Function) {" in shown, shown)
+    assert("A route of the server." in shown, shown)
+}
+
+// A named argument shows the field it fills.
+@test
+test_hover_on_a_named_argument_shows_its_field :: fn() -> void {
+    src :: ROUTE_USE_SOURCE
+    results :: drive(
+        "hover_named_argument",
+        src,
+        [ask_at("textDocument/hover", position_of(src, "tags =", 1))],
+    )
+    shown :: hover_value(results[0])
+    assert("tags: string[] = []" in shown, shown)
+    assert("Where the route is listed." in shown, shown)
+}
+
+// A decorated field shows its decorators.
+@test
+test_hover_on_a_decorated_field_shows_its_decorators :: fn() -> void {
+    src :: ROUTE_USE_SOURCE
+    results :: drive(
+        "hover_decorated_field",
+        src,
+        [
+            ask_at("textDocument/hover", position_of(src, "name: string", 1)),
+            ask_at("textDocument/hover", position_of(src, "Form ::", 1)),
+        ],
+    )
+    shown :: hover_value(results[0])
+    assert("@Caption(\"Name\")\nname: string" in shown, shown)
+    // Inside its struct, each of its lines indented.
+    form :: hover_value(results[1])
+    assert("Form :: struct {\n    @Caption(\"Name\")\n    name: string\n}" in form, form)
+}

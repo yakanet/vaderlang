@@ -452,3 +452,36 @@ test_a_virt_operand_jumps_to_what_it_names :: fn() -> void {
     assert_eq(targets.join(" "), expected.join(" "))
     assert(results[jumps.len()] is JsonNull, stringify(results[jumps.len()]))
 }
+
+// ---- declared decorators ----------------------------------------------------
+
+ROUTE_SOURCE :: r"""
+    module "lsptest"
+
+    Route :: decorator(.Function) {
+        path: string
+        tags: string[] = []
+    }
+
+    @Route("/a", tags = ["x"])
+    show :: fn() -> i32 = 0
+    """
+
+// A decorator written leads to its declaration, and a named argument to the field
+// it fills.
+@test
+test_definition_reaches_a_decorator_and_the_field_of_a_named_argument :: fn() -> void {
+    src :: ROUTE_SOURCE
+    results :: drive(
+        "definition_decorator",
+        src,
+        [
+            ask_at("textDocument/definition", position_of(src, "Route(", 1)),
+            ask_at("textDocument/definition", position_of(src, "tags =", 1)),
+        ],
+    )
+    assert(results[0] is JsonObject, stringify(results[0]))
+    assert_eq(start_line(results[0]), 2)
+    assert(results[1] is JsonObject, stringify(results[1]))
+    assert_eq(start_line(results[1]), 4)
+}

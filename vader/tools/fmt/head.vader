@@ -214,7 +214,8 @@ export format_decl_display :: fn(source: string, d: p.Decl, width: i64) -> strin
                 lines.push("    // ... ${members.len() - i} more")
                 break
             }
-            lines.push("    " + members[i])
+            // A decorated field spans several lines, each indented.
+            lines.push("    " + members[i].replace_all("\n", "\n    "))
         }
         lines.push("}")
     }
@@ -222,16 +223,28 @@ export format_decl_display :: fn(source: string, d: p.Decl, width: i64) -> strin
 }
 
 /// Render a struct field as a hover shows it : `@internal` when the field is
-/// restricted to its module, then its head.
+/// restricted to its module, its declared decorators, then its head.
 ///
 /// @param source  the document the field's spans index into.
 /// @param f       the field.
 export format_field_display :: fn(source: string, f: p.StructField) -> string {
     head :: format_field_head(source, f).text
-    if f.visibility == .Private {
-        return "@internal " + head
+    if f.decorators.len() == 0 {
+        if f.visibility == .Private {
+            return "@internal " + head
+        }
+        return head
     }
-    return head
+    // Decorated: a line per decorator, `@internal` first, as `vader fmt` lays it.
+    lines: string[]: []
+    if f.visibility == .Private {
+        lines.push("@internal")
+    }
+    for deco in f.decorators {
+        lines.push(decorator_text(source, deco))
+    }
+    lines.push(head)
+    return lines.join("\n")
 }
 
 // A struct member as `format_field_display` renders a field ; a spread as `...Base`.

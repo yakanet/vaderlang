@@ -61,6 +61,17 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                 origin_m :: idx.span_at(line, character)
                 return def_response(state, origin_m, by_type.uri, by_type.target.name_span, by_type.target.full_span, idx.line_index)
             }
+            field :: decorator_field_at(state, uri, idx, line, character)
+            if field != null {
+                return def_response(
+                    state,
+                    idx.span_at(line, character),
+                    field.uri,
+                    field.target.name_span,
+                    field.target.full_span,
+                    idx.line_index,
+                )
+            }
             entry :: idx.find_at(line, character)
             match entry {
                 is DeclEntry  -> {
@@ -153,6 +164,37 @@ member_by_type :: fn(
     owner :: declaring_struct(cached.result.typed, sym, name)
     da :: owner.defined_at else return null
     return member_in_declaring_module(state, da.start.file, owner.name, name)
+}
+
+// The field a named argument of a declared decorator fills, under the cursor: the
+// `tags` of `@Route("/a", tags = ["x"])` ; null elsewhere. During an edit burst
+// the typed project is the previous text, as for `member_by_type`: no argument
+// starts where the cursor's name does, until the burst settles.
+decorator_field_at :: fn(
+    state: ServerState, uri: string, index: DocIndex, line: i32, character: i32,
+) -> ExternalHit | null {
+    // The tokens first: the typed project costs a check of it.
+    if !index.names_a_decorator_argument(line, character) {
+        return null
+    }
+    name_span :: index.span_at(line, character) else return null
+    file_path :: path_of_uri(uri) else return null
+    cached :: typed_project_for(state, file_path)
+    entry :: cached.project.modules[cached.project.entry] else return null
+    sf :: source_file_for_path(entry.module.files, file_path) else return null
+    typed :: cached.result.typed
+    for [_, use] in typed.decorator_uses {
+        for a in use.written.args {
+            name :: a.name else continue
+            at :: a.span.start
+            if at.file == sf.program.file && at.offset == name_span.start.offset {
+                owner :: declaring_struct(typed, use.symbol, name)
+                declared :: owner.defined_at else return null
+                return member_in_declaring_module(state, declared.start.file, owner.name, name)
+            }
+        }
+    }
+    return null
 }
 
 // The type that declares the member `name` of `sym` : for a field a struct receives

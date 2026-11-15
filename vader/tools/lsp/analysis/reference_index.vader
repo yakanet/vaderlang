@@ -14,6 +14,7 @@
 //   (an operator, a `for`, an index, an interpolated value, a conversion) is an
 //   implicit reference, listed by find-references, never under the cursor nor
 //   renamed ;
+// - a declared decorator written, from the typecheck's `decorator_uses` ;
 // - every other identifier span from the body walker's `idents` : uses, and the
 //   name spans of locals / for- and pattern-bindings, which `resolved.symbols`
 //   (top-level only) does not hold, so a rename rewrites a local's binding too.
@@ -163,6 +164,14 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
             add_symbol_site(index, typed, sym, canon, sym.kind != .ImportBinding)
         }
 
+        // A declared decorator written names its declaration, `@H.Route` through
+        // an alias included, as the typecheck bound it.
+        for [_, use] in typed.decorator_uses {
+            add_named(index, RefSite {
+                .span = use.written.name_span,
+                .key = target_key(typed, use.symbol),
+            })
+        }
         recorded :: recorded_fns(typed)
         for f in mod.module.files {
             found :: Collected {}
@@ -193,6 +202,10 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                     continue
                 }
                 named :: typed.resolved.idents[sp.hash()] else continue
+                // A `@comptime` argument reads its hidden constant there.
+                if is_comptime_helper(typed, named) {
+                    continue
+                }
                 sym :: typed.resolved.fallback_names[named.id] else named
                 key :: target_key(typed, resolve_import_redirect(sym, table))
                 if is_local_kind(sym.kind) {
@@ -303,14 +316,15 @@ RecordedFns :: struct {
 // The fns the typecheck recorded in `typed`, by node : one pass over the record's
 // tables rather than a lookup per role at every node. A member inherited from a
 // trait default refers to the default ; any other member materialised from its
-// trait (an intrinsic stub) has no source of its own.
+// trait (an intrinsic stub) has no source of its own, nor has the helper of a
+// `@comptime` value, called where the value is declared.
 recorded_fns :: fn(typed: TypedProgram) -> Map<i64, RecordedFns> {
     out :: Map<i64, RecordedFns> {}
     for role in all_roles() {
         for [id, callee] in sites_of(typed.call_sites, role) {
             for named in named_decls(callee) {
                 decl :: AST.body_source(named)
-                if decl.materialized {
+                if decl.materialized || decl.comptime_synthetic {
                     continue
                 }
                 at :: out.get_or_put_with(id, () -> RecordedFns {})

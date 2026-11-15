@@ -96,6 +96,10 @@ resolve_hit_at :: fn(state: ServerState, uri: string, idx: DocIndex, line: i32, 
     if by_type != null {
         return by_type
     }
+    field :: decorator_field_at(state, uri, idx, line, character)
+    if field != null {
+        return field
+    }
     found :: idx.find_at(line, character)
     if found != null {
         return ExternalHit {
