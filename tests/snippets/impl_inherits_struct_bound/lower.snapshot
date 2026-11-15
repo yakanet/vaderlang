@@ -1,0 +1,76 @@
+# Lower
+
+## snippet
+  snippet.Book :: struct { title: string }  // snippet$Book
+  snippet.Book.name :: fn(self: Book) -> string {  // snippet$Book$snippet_shelf$Named$name
+      self.title
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      s: Sorted<Book> = Sorted<Any> { .item = Book { .title = "dune" } }
+      p: Pair<Book> = Pair<Any> { .left = Book { .title = "emma" } }
+      tiny: Sorted<Book> = Sorted<Any> { .item = Book { .title = "ubu" } }
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(83))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.Sorted<Any>.size(s))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.Sorted<Any>.width(s))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.measure<Book>(tiny))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.Pair<Any>.size(p))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      return 0
+  }
+  snippet.Sorted<Any>.size :: fn(self: Sorted<Any>) -> i64 {  // snippet$snippet_shelf$Sorted$Size$size__Any
+      std.core.len(@vcall(snippet.shelf.Named.name, self.item))
+  }
+  snippet.Sorted<Any>.width :: fn(self: Sorted<Any>) -> i64 {  // snippet$snippet_shelf$Sorted$Width$width__Any
+      std.core.len(@vcall(snippet.shelf.Named.name, self.item)) * i64(2)
+  }
+  snippet.Pair<Book> :: struct { left: Any }  // snippet$Pair__snippet_Book
+  snippet.Pair<Any>.size :: fn(self: Pair<Any>) -> i64 {  // snippet$Pair$Size$size__Any
+      std.core.len(@vcall(snippet.shelf.Named.name, self.left))
+  }
+  snippet.measure<Book> :: fn(s: Sorted<Any>) -> i64 {  // snippet$measure__snippet_Book
+      snippet.Sorted<Any>.size(s)
+  }
+  snippet.Pair<Any> :: struct { left: Any }  // snippet$Pair__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Size.size for Pair<Any>  snippet.Pair<Any>.size  // snippet$Pair$Size$size__Any
+  vtable snippet.Size.size for Sorted<Any>  snippet.Sorted<Any>.size  // snippet$snippet_shelf$Sorted$Size$size__Any
+  vtable snippet.Width.width for Sorted<Any>  snippet.Sorted<Any>.width  // snippet$snippet_shelf$Sorted$Width$width__Any
+  vtable snippet.shelf.Named.name for Book  snippet.Book.name  // snippet$Book$snippet_shelf$Named$name
+
+## snippet/shelf
+  snippet.shelf.Sorted<Book> :: struct { item: Any }  // snippet_shelf$Sorted__snippet_Book
+  snippet.shelf.Sorted<Any> :: struct { item: Any }  // snippet_shelf$Sorted__Any
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.ascii_prefix  // std_core$ascii_prefix
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.len  // std_core$len
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

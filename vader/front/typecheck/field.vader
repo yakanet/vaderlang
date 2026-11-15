@@ -567,8 +567,7 @@ denoted_type :: fn(sym: Symbol, target_ty: Type, typed: TypedProgram) -> Type | 
 // its impls otherwise, or the impl it has built in.
 type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember | null {
     if owner is TypeParamType {
-        bound :: typed.resolved.type_param_bounds[owner.symbol.id] else return null
-        trait_ty :: bound_trait_declaring(bound, name, typed) else return null
+        trait_ty :: bound_declaring(owner, name, typed) else return null
         return trait_type_member(trait_ty, owner, name, typed)
     }
     candidates :: impl_candidates(typed, owner, "::${name}")
@@ -584,6 +583,20 @@ type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember 
         .trait_key = found.trait_key,
         .trait_args = found.trait_args,
     }
+}
+
+// The trait bounding `tp` that declares `name` : its own bound, or one its struct puts
+// on it when `tp` is an impl's (`Sorted<T> implements Size`, `type_param_bound_traits`).
+bound_declaring :: fn(tp: TypeParamType, name: string, typed: TypedProgram) -> TraitType | null {
+    own :: typed.resolved.type_param_bounds[tp.symbol.id]
+    if own != null {
+        found :: bound_trait_declaring(own, name, typed)
+        if found != null {
+            return found
+        }
+    }
+    shared :: typed.type_param_bound_traits[tp.symbol.id] else return null
+    return shared.traits.find((t) -> trait_member_decl(t, name, typed) != null)
 }
 
 // The member `name` of `trait_ty`, `Self` standing for `owner`.

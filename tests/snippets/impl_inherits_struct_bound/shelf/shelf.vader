@@ -1,0 +1,12 @@
+module "snippet/shelf"
+
+/// Something with a name.
+export Named :: trait {
+    /// The name.
+    name :: fn(self) -> string
+}
+
+/// One item kept sorted by its name.
+export Sorted :: struct<T: Named> {
+    item: T
+}

@@ -1,0 +1,52 @@
+// An impl over a generic struct (`Sorted<T> implements Size`) reaches the members
+// of the bound the struct puts on `T`, without restating it: the `size` of
+// `Sorted<T> implements Size` calls `self.item.name()`, `Named` being `Sorted`'s
+// bound. The struct is imported, through a
+// wildcard and a namespace alias, and a local struct does the same.
+// Expected: prints "4 8 3 4", exits 0.
+
+module "snippet"
+
+import "snippet/shelf"
+import "std/console"
+S :: import "snippet/shelf"
+
+Size :: trait {
+    size :: fn(self) -> i64
+}
+
+Width :: trait {
+    width :: fn(self) -> i64
+}
+
+Book :: struct { title: string }
+
+Book implements Named {
+    name :: fn(self) -> string = self.title
+}
+
+Sorted<T> implements Size {
+    size :: fn(self) -> i64 = self.item.name().len()
+}
+
+S.Sorted<T> implements Width {
+    width :: fn(self) -> i64 = self.item.name().len() * 2
+}
+
+Pair :: struct<T: Named> {
+    left: T
+}
+
+Pair<T> implements Size {
+    size :: fn(self) -> i64 = self.left.name().len()
+}
+
+measure :: fn<T: Named>(s: Sorted<T>) -> i64 = s.size()
+
+main :: fn() -> i32 {
+    s :: Sorted<Book> { .item = Book { .title = "dune" } }
+    p :: Pair<Book> { .left = Book { .title = "emma" } }
+    tiny :: Sorted<Book> { .item = Book { .title = "ubu" } }
+    println("${s.size()} ${s.width()} ${measure(tiny)} ${p.size()}")
+    return 0
+}

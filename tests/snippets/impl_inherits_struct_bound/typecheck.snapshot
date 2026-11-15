@@ -1,0 +1,61 @@
+# Typecheck
+
+## tests/snippets/impl_inherits_struct_bound
+  StructDecl     Book                 :: Book
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         measure              :: fn(Sorted<T>) -> i64
+  StructDecl     Pair                 :: Pair<T>
+  TraitDecl      Size                 :: Size
+  TraitDecl      Width                :: Width
+  expr 25:34    FieldExpr      :: string
+  expr 25:34    IdentExpr      :: Book
+  expr 29:31    CallExpr       :: i64
+  expr 29:31    CallExpr       :: string
+  expr 29:31    FieldExpr      :: T
+  expr 29:31    FieldExpr      :: fn() -> i64
+  expr 29:31    FieldExpr      :: fn() -> string
+  expr 29:31    IdentExpr      :: Sorted<T>
+  expr 33:32    BinaryExpr     :: i64
+  expr 33:32    CallExpr       :: i64
+  expr 33:32    CallExpr       :: string
+  expr 33:32    FieldExpr      :: T
+  expr 33:32    FieldExpr      :: fn() -> i64
+  expr 33:32    FieldExpr      :: fn() -> string
+  expr 33:32    IdentExpr      :: Sorted<T>
+  expr 41:31    CallExpr       :: i64
+  expr 41:31    CallExpr       :: string
+  expr 41:31    FieldExpr      :: T
+  expr 41:31    FieldExpr      :: fn() -> i64
+  expr 41:31    FieldExpr      :: fn() -> string
+  expr 41:31    IdentExpr      :: Pair<T>
+  expr 44:48    CallExpr       :: i64
+  expr 44:48    FieldExpr      :: fn() -> i64
+  expr 44:48    IdentExpr      :: Sorted<T>
+  expr 47:10    StructLitExpr  :: Sorted<Book>
+  expr 47:33    StructLitExpr  :: Book
+  expr 47:49    StringLitExpr  :: string
+  expr 48:10    StructLitExpr  :: Pair<Book>
+  expr 48:31    StructLitExpr  :: Book
+  expr 48:47    StringLitExpr  :: string
+  expr 49:13    StructLitExpr  :: Sorted<Book>
+  expr 49:36    StructLitExpr  :: Book
+  expr 49:52    StringLitExpr  :: string
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    CallExpr       :: i64
+  expr 50:16    FieldExpr      :: fn() -> i64
+  expr 50:16    IdentExpr      :: Sorted<Book>
+  expr 50:28    CallExpr       :: i64
+  expr 50:28    FieldExpr      :: fn() -> i64
+  expr 50:28    IdentExpr      :: Sorted<Book>
+  expr 50:41    CallExpr       :: i64
+  expr 50:41    IdentExpr      :: fn(Sorted<T>) -> i64
+  expr 50:49    IdentExpr      :: Sorted<Book>
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:58    CallExpr       :: i64
+  expr 50:58    FieldExpr      :: fn() -> i64
+  expr 50:58    IdentExpr      :: Pair<Book>
+
+## tests/snippets/impl_inherits_struct_bound/shelf
+  TraitDecl      Named                :: Named
+  StructDecl     Sorted               :: Sorted<T>
