@@ -517,9 +517,9 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             } else if slots[idx] != null {
                 diags.push(
                     typecheck_error(
-                        .NamedArgDuplicatesPositional,
+                        .ArgumentGivenTwice,
                         a.span,
-                        "argument for `${arg_name}` was already supplied",
+                        "`${arg_name}` is given already",
                     ),
                 )
                 ok = false

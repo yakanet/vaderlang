@@ -64,7 +64,7 @@ export TypecheckCode :: enum(CodeInfo) {
     /// Reserved: `Self` outside a trait or an impl still resolves as a type name.
     SelfOutsideTraitOrImpl          { .id = "T3023", .message = "use of `Self` outside a trait or impl context" },
     FnSignatureMustBeAnnotated      { .id = "T3024", .message = "function signature must be fully annotated" },
-    NamedArgDuplicatesPositional    { .id = "T3025", .message = "named argument duplicates a positional one" },
+    ArgumentGivenTwice              { .id = "T3025", .message = "an argument is given twice" },
     UnknownEnumVariant              { .id = "T3027", .message = "unknown enum variant" },
     CannotInferEnumType             { .id = "T3028", .message = "cannot infer enum type from context" },
     EnumReprMustBePrimitiveInt      { .id = "T3029", .message = "enum backing type must be a primitive integer" },

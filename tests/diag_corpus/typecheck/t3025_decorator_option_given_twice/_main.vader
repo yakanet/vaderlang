@@ -1,0 +1,9 @@
+// A decorator declaration writes its option once, as a call writes each argument
+// once: a second `repeatable` is T3025.
+module "snippet"
+
+Route :: decorator(.Function, repeatable = true, repeatable = false) {
+    path: string
+}
+
+main :: fn() -> i32 = 0
