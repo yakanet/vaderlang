@@ -14,9 +14,6 @@ import "toolchain/diagnostics"
 import "vader/core/types"
 import "vader/front/typecheck"
 
-/// The key of `deep_copy` among the intrinsics (`intrinsic_key`).
-DEEP_COPY_KEY :: "std/core.deep_copy"
-
 /// The T3135 errors of a checked project: each instance of `deep_copy` on a type
 /// that can hold a function value.
 ///

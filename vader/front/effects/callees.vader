@@ -2,9 +2,10 @@
 //
 // The typecheck records what each call settles on (`call_sites.vader`, ADR 0056).
 // A function with a body is a node of the call graph. A bodyless one does what
-// the compiler knows of it: an intrinsic by `intrinsic_effects`, an `@extern` by
-// its `@c_out` parameters. So does a primitive of `std/task` (`task_doors.vader`),
-// body or not: what it does to a task is the runtime's, not what its body shows.
+// the compiler knows of it: a host by `host_summary`, a member of an intrinsic
+// impl by `intrinsic_effects`, an `@extern` by its `@c_out` parameters. So does a
+// primitive of `std/task` (`task_doors.vader`), body or not: what it does to a
+// task is the runtime's, not what its body shows.
 // A member reached through a trait is the member of that name in every impl of the
 // trait, the whole program being compiled. A function value, or a site the record
 // could not settle, may do anything.
@@ -13,6 +14,7 @@ module "vader/front/effects"
 
 import "std/collections"
 import "std/iter"
+import "vader/core/bytecode"
 import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -36,7 +38,7 @@ export CalleeIndex :: struct {
     /// bodyless one, or a door of the task check.
     summarised: Map<i64, CallTarget> = Map<i64, CallTarget> {}
     /// The declarations of the intrinsics that hand back a frozen view
-    /// (`makes_frozen_view`).
+    /// (`HostSummary.frozen_view`).
     frozen_views: Set<i64> = Set<i64> {}
     /// The array type of a view, as such an intrinsic declares its result
     /// (`u8[]`) ; null when the project has none.
@@ -210,7 +212,9 @@ summary_target :: fn(
     // By its node id : an `@intrinsic` stub shares its parameters' spans with the
     // other impls of its trait.
     signature :: declared_fn_type(typed, decl)
-    if makes_frozen_view(key) {
+    host :: host_of(index, decl, typed)
+    known :: host_summary(host, index.paths)
+    if known.frozen_view {
         index.frozen_views.add(decl.id)
         index.view = returned_array(signature)
     }
@@ -220,12 +224,15 @@ summary_target :: fn(
         effects :: primitive_effects(index.paths, primitive, decl.params.len())
         return KnownEffects { .params = effects }
     }
-    if key == DEEP_COPY_KEY {
+    if host == .DeepCopy {
         index.deep_copy = decl.id
     }
-    known :: intrinsic_effects(index.paths, key)
-    if known != null {
-        return KnownEffects { .params = known }
+    if known.params != null {
+        return KnownEffects { .params = known.params }
+    }
+    listed :: intrinsic_effects(index.paths, key)
+    if listed != null {
+        return KnownEffects { .params = listed }
     }
     if signature is FnType && !signature.params.any_match((t: Type) -> holds_references(t)) {
         return KnownEffects { .params = decl.params.map((_) -> none()).collect() }
@@ -248,6 +255,15 @@ foreign_effects :: fn(p: AST.FnParam) -> ParamEffects {
         return effects_of(.Assigned, EVERYWHERE)
     }
     return none()
+}
+
+// The host `decl` is, by its mangled name ; `NotIntrinsic` for a member of an impl,
+// which `intrinsic_effects` lists by its trait.
+host_of :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> IntrinsicId {
+    if index.impls.member_entry(decl) != null {
+        return .NotIntrinsic
+    }
+    return intrinsic_id_for(declaration_mangle(typed.resolved.display_path, decl.name))
 }
 
 // The key of a function in `intrinsic_effects` and `task_primitive`:
@@ -349,9 +365,42 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
 
 // ---- intrinsics -----------------------------------------------------------
 
-/// What an intrinsic does with each of its parameters, by its key
-/// (`trait_key.member`, or `module.name` for a free function) ; null for one the
-/// compiler lists no effects for. A parameter the table leaves empty is only read.
+/// What a host knows beyond its signature.
+HostSummary :: struct {
+    /// What it does with each parameter ; null when it does nothing the
+    /// signature does not tell.
+    params:      ParamEffects[] | null = null
+    /// It hands back a view of a frozen value: the bytes of a string, which alias
+    /// the interned string (ADR 0053).
+    frozen_view: bool = false
+}
+
+/// What the host `id` does with its parameters. Exhaustive, so a new host is a
+/// decision here.
+///
+/// @param id     the host, as the manifest classifies it.
+/// @param paths  the summary's paths.
+host_summary :: fn(id: IntrinsicId, paths: PathTable) -> HostSummary = match id {
+    .Bytes         -> HostSummary { .frozen_view = true }
+    .BytesToString -> HostSummary { .params = [none()] }
+    .DeepCopy      -> HostSummary { .params = [none()] }
+    .FfiCall       -> HostSummary { .params = ffi_call_effects(paths.path_to(ELEMENT)) }
+    .FfiCallFrame  -> HostSummary { .params = ffi_call_frame_effects(paths.path_to(ELEMENT)) }
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .StringEquals
+        | .PrimIntEquals | .PrimDisplayToString
+        | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
+        | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
+        | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
+        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
+        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
+        | .FfiOpen | .FfiOpenPath | .FfiSymbol -> HostSummary {}
+}
+
+/// What an intrinsic member of an impl does with each of its parameters, by its
+/// key (`trait_key.member`) ; null for one the compiler lists no effects for. A
+/// parameter the table leaves empty is only read.
 ///
 /// @param paths  the summary's paths.
 /// @param key    the intrinsic's key.
@@ -371,10 +420,6 @@ intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null 
     if key == "${byte_access}.memory_copy"   { return memory_copy_effects(elements) }
     if key == "${byte_access}.intern_string" { return [none(), none()] }
     if key == "${byte_access}.write_string"  { return writes_bytes(elements) }
-    if key == "std/core.bytes_to_string"     { return [none()] }
-    if key == DEEP_COPY_KEY                  { return [none()] }
-    if key == "vader/vm.ffi_call"            { return ffi_call_effects(elements) }
-    if key == "vader/vm.ffi_call_frame"      { return ffi_call_frame_effects(elements) }
     return null
 }
 
@@ -386,12 +431,6 @@ push_effects :: fn(kept: i32) -> ParamEffects[] =
 // `store_u8` and `write_string` write bytes of `self`.
 writes_bytes :: fn(elements: i32) -> ParamEffects[] =
     [effects_of(.Assigned, elements), none(), none()]
-
-/// Whether the intrinsic of key `key` hands back a view of a frozen value: the
-/// bytes of a string, which alias the interned string (ADR 0053).
-///
-/// @param key  the intrinsic's key, as `intrinsic_effects` takes it.
-makes_frozen_view :: fn(key: string) -> bool = key == "std/core.bytes"
 
 // `self.copy_to(source_offset, destination, destination_offset, count)`: the
 // elements of `self` go into `destination`.
