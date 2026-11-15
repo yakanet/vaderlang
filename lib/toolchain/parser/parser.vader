@@ -3662,11 +3662,9 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
         t :: p.peek()
         if t.kind == .StringPart {
             p.advance()
-            text: string = t.text
-            val :: t.value
-            match val {
-                is string -> { text = val }
-                _         -> {}
+            text :: @partial match value :: t.value {
+                is string -> value
+                _ -> t.text
             }
             parts.push(StringLitText { .value = text, .span = t.span })
             continue
