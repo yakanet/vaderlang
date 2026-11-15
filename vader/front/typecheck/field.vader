@@ -137,7 +137,9 @@ try_impl_method_ufcs :: fn(
     // would. `default_if_free` is the identity on concrete types, so concrete
     // receivers are unaffected.
     key_ty :: default_if_free(target_ty)
-    candidates :: receiver_impl_members(key_ty, e.field, typed)
+    candidates :: members_in_scope(
+        receiver_impl_members(key_ty, e.field, typed), e.span.start.file, typed,
+    )
     if candidates.len() == 0 {
         return null
     }
@@ -229,6 +231,7 @@ settle_impl_member :: fn(
         return TY_UNRESOLVED
     }
     check_trait_ambiguity(e, target_ty, typed, diags)
+    note_trait_use(typed, e.span.start.file, chosen.trait_symbol)
     typed.chosen_impl_methods[e.id] = chosen
     note_callee(typed, e, member_callee(chosen.decl, target_ty))
     if !chosen.generic {
@@ -374,7 +377,7 @@ try_typeparam_bound_method :: fn(
     if target_ty !is TypeParamType {
         return null
     }
-    member :: type_member(target_ty, e.field, typed) else return null
+    member :: type_member(target_ty, e.field, e.span.start.file, typed) else return null
     ty :: settle_dispatched_member(member, e, typed, diags)
     if ty is UnresolvedType {
         return ty
@@ -420,7 +423,7 @@ dispatched_member :: fn(
 ) -> TypeMember | null =
     // @partial: only these three receivers dispatch through a trait at run time.
     @partial match recv {
-        is TypeParamType -> type_member(recv, name, typed)
+        is TypeParamType -> type_member(recv, name, span.start.file, typed)
         is TraitType     -> trait_value_member(recv, name, span, typed, diags)
         is UnionType     -> union_trait_member(recv, trait_key, name, span, typed, diags)
         _                -> null
@@ -473,7 +476,7 @@ try_static_member :: fn(
     diags: Diagnostic[],
 ) -> Type | null {
     owner :: static_owner(e.target, target_ty, typed) else return null
-    member :: type_member(owner, e.field, typed) else return null
+    member :: type_member(owner, e.field, e.span.start.file, typed) else return null
     if has_self_param(member.decl) {
         diags.push(
             typecheck_error(
@@ -502,7 +505,9 @@ try_static_member :: fn(
         note_callee(typed, e, callee)
     } else {
         check_trait_ambiguity(e, owner, typed, diags)
-        candidates :: impl_candidates(typed, owner, "::${e.field}")
+        candidates :: members_in_scope(
+            impl_candidates(typed, owner, "::${e.field}"), e.span.start.file, typed,
+        )
         if candidates.len() > 1 && of_one_trait(candidates) {
             typed.overloaded_members[e.id] = candidates
         }
@@ -565,19 +570,20 @@ denoted_type :: fn(sym: Symbol, target_ty: Type, typed: TypedProgram) -> Type | 
 }
 
 // The member `name` of `owner` : through its bound for a type parameter, through
-// its impls otherwise, or the impl it has built in.
-type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember | null {
+// the impls whose trait `file` sees otherwise, or the impl it has built in.
+type_member :: fn(owner: Type, name: string, file: string, typed: TypedProgram) -> TypeMember | null {
     if owner is TypeParamType {
         trait_ty :: bound_declaring(owner, name, typed) else return null
         return trait_type_member(trait_ty, owner, name, typed)
     }
-    candidates :: impl_candidates(typed, owner, "::${name}")
+    candidates :: members_in_scope(impl_candidates(typed, owner, "::${name}"), file, typed)
     if candidates.len() == 0 {
         return builtin_equals_member(owner, name, typed)
     }
     // Several impls of one trait : the call picks among them (`pick_member_overload`).
     found :: candidates[0]
     decl :: found.decl else return null
+    note_trait_use(typed, file, found.trait_symbol)
     return TypeMember {
         .ty = found.ty,
         .decl = decl,
@@ -820,7 +826,7 @@ try_default_trait_method_dispatch :: fn(
     if target_ty !is StructType {
         return null
     }
-    return try_default_trait_method(target_ty, e.field, typed)
+    return try_default_trait_method(target_ty, e.field, e.span.start.file, typed)
 }
 
 // `tup.0`: positional access on tuples. Out-of-range raises T3009.
@@ -1133,7 +1139,8 @@ resolve_struct_field :: fn(
     st :: struct_backing(target_ty) else {
         // Checked before the shape-based diagnostics: "the name is behind an
         // alias" explains the miss, where "non-struct type" only describes it.
-        if report_namespace_alias_method(e, target_ty, typed, diags) {
+        if report_namespace_alias_method(e, target_ty, typed, diags) ||
+            report_member_out_of_scope(e, target_ty, typed, diags) {
             return TY_UNRESOLVED
         }
         // A UFCS method by this name exists, but no overload's first param
@@ -1175,7 +1182,8 @@ resolve_struct_field :: fn(
         return TY_UNRESOLVED
     }
     found :: fields[e.field] else {
-        if report_namespace_alias_method(e, target_ty, typed, diags) {
+        if report_namespace_alias_method(e, target_ty, typed, diags) ||
+            report_member_out_of_scope(e, target_ty, typed, diags) {
             return TY_UNRESOLVED
         }
         diags.push(
@@ -1354,9 +1362,17 @@ check_trait_ambiguity :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    traits :: impl_side_list(typed, typed.impl_tables.impl_method_traits, target_ty, "::${e.field}")
+    offered :: impl_side_list(typed, typed.impl_tables.impl_method_traits, target_ty, "::${e.field}")
+    if offered.len() < 2 {
+        return
+    }
+    traits :: offered.filter((key) -> sees_trait_key(key, e.span.start.file, typed)).collect()
     if traits.len() < 2 {
         return
+    }
+    // Each import bringing one of them takes part in the call (W0006).
+    for key in traits {
+        note_trait_use(typed, e.span.start.file, trait_symbol_of_key(key, typed))
     }
     names :: trait_names_apart(traits, typed)
     diags.push(
@@ -1504,30 +1520,58 @@ layout_clash :: fn(
     return null
 }
 
-/// For a struct receiver, find a trait it implements whose method by
-/// the given name has a default (non-empty) body, and return the
+/// For a struct receiver, find a trait it implements, seen from `file`, whose
+/// method by the given name has a default (non-empty) body, and return the
 /// curried signature with `Self -> struct_ty` and the trait's type
 /// parameters -> the impl's recorded arguments.
 try_default_trait_method :: fn(
     target_ty: StructType,
     name: string,
+    file: string,
     typed: TypedProgram,
 ) -> Type | null {
     implemented :: typed.impl_tables.struct_implemented_traits
     for trait_key in impl_side_list(typed, implemented, target_ty, "") {
+        if !sees_trait_key(trait_key, file, typed) {
+            continue
+        }
         trait_id :: find_trait_id(trait_key, typed) else continue
         decl :: typed.trait_decls[trait_id] else continue
-        for m in decl.members {
-            // A default needs a body ; a static member is reached through its
-            // type, never through a value.
-            if m.name != name     { continue }
-            if m.body is null     { continue }
-            if !has_self_param(m) { continue }
-            // Substitute Self -> struct, then trait type-params ->
-            // recorded impl args, so a default naming the trait's `T`
-            // reports the impl's argument instead.
-            sub_self :: substitute_self(trait_member_type(trait_id, m, typed), target_ty)
-            return substitute_trait_typeparams(sub_self, decl, trait_key, target_ty, typed)
+        m :: default_member(decl, name) else continue
+        note_trait_use(typed, file, trait_symbol_of_key(trait_key, typed))
+        // Substitute Self -> struct, then trait type-params -> recorded impl
+        // args, so a default naming the trait's `T` reports the impl's argument
+        // instead.
+        sub_self :: substitute_self(trait_member_type(trait_id, m, typed), target_ty)
+        return substitute_trait_typeparams(sub_self, decl, trait_key, target_ty, typed)
+    }
+    return null
+}
+
+/// The declaration of the first trait `target_ty` implements whose member `name`
+/// has a default body, whatever file asks ; null when none has.
+///
+/// @param target_ty  the receiver.
+/// @param name       the member's name.
+/// @param typed      the module checking the access.
+default_member_trait :: fn(target_ty: StructType, name: string, typed: TypedProgram) -> Symbol | null {
+    implemented :: typed.impl_tables.struct_implemented_traits
+    for trait_key in impl_side_list(typed, implemented, target_ty, "") {
+        trait_id :: find_trait_id(trait_key, typed) else continue
+        decl :: typed.trait_decls[trait_id] else continue
+        if default_member(decl, name) != null {
+            return trait_symbol_of_key(trait_key, typed)
+        }
+    }
+    return null
+}
+
+// The member `name` of `decl` a value reaches by default: it has a body, and takes
+// `self` (a static member is reached through its type, never through a value).
+default_member :: fn(decl: AST.TraitDecl, name: string) -> AST.FnDecl | null {
+    for m in decl.members {
+        if m.name == name && m.body != null && has_self_param(m) {
+            return m
         }
     }
     return null

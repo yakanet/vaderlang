@@ -1,0 +1,12 @@
+// T3139: a trait member is reached only in a file that sees its trait. This file
+// imports `relay`, which imports `loud`, but not `loud` itself, so the `shout`
+// of `i32 implements Loud` is out of its scope.
+
+module "snippet"
+
+import "snippet/relay"
+
+main :: fn() -> i32 {
+    x :: seven()
+    return x.shout()
+}

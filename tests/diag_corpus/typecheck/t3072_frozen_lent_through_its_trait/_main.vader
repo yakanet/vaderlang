@@ -1,0 +1,21 @@
+// T3072: a call through a trait lends its receiver as a method call does, so a
+// module constant cannot be handed to a member that grows it.
+
+module "snippet"
+
+Grower :: trait {
+    grow :: fn(self) -> void
+}
+
+i32[] implements Grower {
+    grow :: fn(self) -> void {
+        self.push(9)
+    }
+}
+
+TABLE: i32[]: [1, 2]
+
+main :: fn() -> i32 {
+    Grower.grow(TABLE)
+    return 0
+}

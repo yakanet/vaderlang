@@ -190,6 +190,80 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "sized"
+              },
+              "type": null,
+              "value": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "S"
+                          },
+                          "field": "Sized"
+                        },
+                        "field": "size"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IdentExpr",
+                            "name": "c"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": " "
+                  },
+                  {
+                    "kind": "interpolation",
+                    "expr": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "S"
+                          },
+                          "field": "Sized"
+                        },
+                        "field": "doubled"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IdentExpr",
+                            "name": "c"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "CallExpr",
@@ -206,16 +280,8 @@
                         {
                           "kind": "interpolation",
                           "expr": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "c"
-                              },
-                              "field": "size"
-                            },
-                            "args": []
+                            "kind": "IdentExpr",
+                            "name": "sized"
                           }
                         },
                         {
@@ -229,31 +295,24 @@
                             "callee": {
                               "kind": "FieldExpr",
                               "target": {
-                                "kind": "IdentExpr",
-                                "name": "c"
-                              },
-                              "field": "doubled"
-                            },
-                            "args": []
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": " "
-                        },
-                        {
-                          "kind": "interpolation",
-                          "expr": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "FieldExpr",
-                              "target": {
-                                "kind": "IdentExpr",
-                                "name": "c"
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "S"
+                                },
+                                "field": "Scaled"
                               },
                               "field": "scale"
                             },
                             "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "c"
+                                },
+                                "spread": false
+                              },
                               {
                                 "name": null,
                                 "value": {

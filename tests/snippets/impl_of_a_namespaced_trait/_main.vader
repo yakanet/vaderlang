@@ -1,6 +1,7 @@
 // An impl names its trait through a namespace alias (`S.Sized`), with type
 // arguments too (`S.Scaled<i32>`): the impl's members, the trait's default and
-// a bound of the trait's module all reach it.
+// a bound of the trait's module all reach it. The alias puts no trait in scope
+// for a method call, so the members are called through it (`S.Sized.size(c)`).
 // Expected: prints "7 14 21 8", exits 0.
 module "snippet"
 
@@ -17,6 +18,7 @@ Crate implements S.Scaled<i32> -> self.n * by
 
 main :: fn() -> i32 {
     c :: Crate { .n = 7 }
-    println("${c.size()} ${c.doubled()} ${c.scale(3)} ${S.total([c, Crate { .n = 1 }])}")
+    sized :: "${S.Sized.size(c)} ${S.Sized.doubled(c)}"
+    println("${sized} ${S.Scaled.scale(c, 3)} ${S.total([c, Crate { .n = 1 }])}")
     return 0
 }

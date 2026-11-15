@@ -1,0 +1,11 @@
+// T3078: a namespace alias puts none of its module's traits in scope, so the
+// members of `Loud` are not methods here, as a function behind the alias is not.
+
+module "snippet"
+
+L :: import "snippet/loud"
+
+main :: fn() -> i32 {
+    x :: 7
+    return x.shout()
+}

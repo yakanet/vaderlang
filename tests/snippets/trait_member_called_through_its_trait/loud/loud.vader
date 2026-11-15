@@ -1,0 +1,11 @@
+// A trait and its impl on `i32`, reached by the main module through an alias.
+
+module "snippet/loud"
+
+export Loud :: trait {
+    shout :: fn(self) -> i32
+}
+
+i32 implements Loud {
+    shout :: fn(self) -> i32 = self * 10
+}

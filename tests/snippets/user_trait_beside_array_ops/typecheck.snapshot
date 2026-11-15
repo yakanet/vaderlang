@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/user_trait_beside_array_ops
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         measure              :: fn(T) -> i64
+  TraitDecl      Sized                :: Sized
+  expr 20:44    CallExpr       :: i64
+  expr 20:44    FieldExpr      :: fn() -> i64
+  expr 20:44    IdentExpr      :: T
+  expr 23:15    StructLitExpr  :: Map<string, i32>
+  expr 24:12    StringLitExpr  :: string
+  expr 24:5     IdentExpr      :: Map<string, i32>
+  expr 25:12    StringLitExpr  :: string
+  expr 25:5     IdentExpr      :: Map<string, i32>
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    CallExpr       :: i64
+  expr 26:16    IdentExpr      :: fn(T) -> i64
+  expr 26:24    SeqLitExpr     :: i32[]
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: i64
+  expr 27:16    FieldExpr      :: fn() -> i64
+  expr 27:16    IdentExpr      :: Map<string, i32>
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

@@ -2667,6 +2667,45 @@ broken :: fn() -> f64 = square().area()   // error: `area` is in scope only as `
 
 When two wildcard imports each offer a `foo` that fits the receiver equally well, both `x.foo()` and `foo(x)` are ambiguous.
 
+The member of an impl follows the same rule through its trait: `x.shout()` reaches the `shout` of `i32 implements Loud` only in a file that sees `Loud`. A file sees a trait its module declares, a trait of the prelude, a trait of a module it imports without an alias, unless the import drops it (`{ Loud as _ }`), and a trait it imports under another name. An impl elsewhere in the program changes nothing in a file that does not see its trait:
+
+```vader
+// file: app/main.vader
+module "app"
+
+import "app/loud"                 // declares `Loud` and `i32 implements Loud`
+
+shout_twice :: fn(n: i32) -> i32 = n.shout() * 2
+
+// file: app/report/report.vader
+module "app/report"
+
+import "app"                      // `Loud` is not lent by `app`
+
+ten :: fn() -> i32 = 1.shout()    // error: `Loud` is not in scope here
+```
+
+Two traits a file sees that both offer the member make the call ambiguous. Whether a type implements a trait, for a bound or a conversion, does not depend on what a file sees.
+
+A member is also called through its trait, the receiver passed first: `Loud.shout(1)`, or `L.Loud.shout(1)` behind a namespace alias `L`. Naming the trait puts it in scope, and only its members are considered, which settles a call two traits make ambiguous:
+
+```vader
+Sized :: trait {
+    len :: fn(self) -> i64
+}
+
+i32[] implements Sized {
+    len :: fn(self) -> i64 = 42
+}
+
+xs: i32[]: [1, 2, 3]
+xs.len()            // error: `ArrayOps` and `Sized` both offer `len`
+ArrayOps.len(xs)    // 3
+Sized.len(xs)       // 42
+```
+
+The call runs the member a method call on the receiver would run: several impls of the trait are told apart by the arguments past the receiver, and a default member is reached like any other.
+
 #### Function overloading
 
 Two free functions of one module may share a name when they differ in the type of their first parameter. A call picks one by the type of its first argument, which through UFCS is the receiver.

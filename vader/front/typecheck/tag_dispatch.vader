@@ -42,11 +42,13 @@ union_trait_member :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> TypeMember | null {
-    traits :: union_dispatch_traits(u, trait_key, method, typed)
+    offered :: union_dispatch_traits(u, trait_key, method, typed)
+    traits :: offered.filter((t) -> sees_trait(typed, span.start.file, t.symbol)).collect()
     if traits.len() == 0 {
         return null
     }
     found :: tag_member(traits[0], u, method, typed) else return null
+    note_trait_use(typed, span.start.file, traits[0].symbol)
     refusal :: union_dispatch_refusal(u, traits, found, span, typed) else return found.member
     diags.push(refusal)
     return TypeMember { ...found.member, .refused = true }

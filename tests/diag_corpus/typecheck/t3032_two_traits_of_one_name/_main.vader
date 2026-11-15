@@ -1,9 +1,11 @@
 // Two traits of one name, each implemented for `Point`: the message names
-// them by module, since their bare names would read the same.
+// them by module, since their bare names would read the same. This file sees
+// both, the second under another name; `other.vader` implements it.
 module "snippet"
 
 import "std/console"
 import "snippet/tr_a"
+import "snippet/tr_b" { Describe as DescribeB }
 
 Point :: struct { x: i32 }
 

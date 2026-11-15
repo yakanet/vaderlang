@@ -1,0 +1,48 @@
+// A trait member called through its trait, `Trait.member(receiver, ...)`: the
+// trait it names is the only one considered, so it settles a method call two
+// traits make ambiguous (`ArrayOps.len(xs)` beside `Sized.len(xs)`) ; behind a
+// namespace alias, the trait's members are reached this way. Several impls of
+// one trait are told apart by the arguments past the receiver, and a default
+// member is reached like any other.
+// Expected: prints "3 42 5", "3.0 2.0 hello vec", "70", exits 0.
+
+module "snippet"
+
+import "std/console"
+L :: import "snippet/loud"
+
+Sized :: trait {
+    len :: fn(self) -> i64
+}
+
+i32[] implements Sized {
+    len :: fn(self) -> i64 = 42
+}
+
+Vec :: struct { x: f64 }
+
+Vec implements Add<f64, Vec> {
+    add :: fn(self, other: f64) -> Vec = Vec { .x = self.x + other }
+}
+
+Vec implements Add<Vec, Vec> {
+    add :: fn(self, other: Vec) -> Vec = Vec { .x = self.x + other.x }
+}
+
+Greet :: trait {
+    name :: fn(self) -> string
+    hello :: fn(self) -> string = "hello ${self.name()}"
+}
+
+Vec implements Greet {
+    name :: fn(self) -> string = "vec"
+}
+
+main :: fn() -> i32 {
+    xs: i32[]: [1, 2, 3]
+    v :: Vec { .x = 1.0 }
+    println("${ArrayOps.len(xs)} ${Sized.len(xs)} ${Display.to_string(5)}")
+    println("${Add.add(v, 2.0).x} ${Add.add(v, v).x} ${Greet.hello(v)}")
+    println("${L.Loud.shout(7)}")
+    return 0
+}

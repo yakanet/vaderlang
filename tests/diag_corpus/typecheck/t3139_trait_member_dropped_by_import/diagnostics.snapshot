@@ -1,0 +1,1 @@
+[10:14] error[T3139] this trait member is out of scope: `shout` is a member of `Loud`, which this file's import of `snippet/loud` drops

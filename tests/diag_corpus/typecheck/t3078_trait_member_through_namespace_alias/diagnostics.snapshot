@@ -1,0 +1,1 @@
+[10:14] error[T3078] this function is only in scope through its namespace alias: write `L.Loud.shout(x)`

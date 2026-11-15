@@ -1,0 +1,11 @@
+// The impl of a trait another module declares.
+
+module "snippet/impls"
+
+import "snippet/traits"
+
+i32 implements Loud {
+    shout :: fn(self) -> i32 = self * 10
+}
+
+export seven :: fn() -> i32 = 7

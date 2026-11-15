@@ -1,0 +1,15 @@
+// W0006: an import serves its file when it puts in scope the trait of a member a
+// call reaches, though the file writes none of its names and runs none of its
+// impls: `snippet/traits` brings `Loud`, without which `x.shout()` is out of
+// scope. `std/math` serves nothing and is reported.
+
+module "snippet"
+
+import "snippet/impls"
+import "snippet/traits"
+import "std/math"
+
+main :: fn() -> i32 {
+    x :: seven()
+    return x.shout()
+}

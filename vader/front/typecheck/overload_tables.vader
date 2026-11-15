@@ -33,6 +33,7 @@ populate_imported_fn_overloads :: fn(
         // settled, and a candidate a renamed import shadowed must not come back.
         table :: file_overload_table(entry_typed, fw.file)
         table.clear()
+        entry_typed.trait_scopes[fw.file] = trait_scope_of(fw, entry_typed.resolved)
         // Dedup: a path can appear more than once in one file (re-imported in a
         // `// ---- tests ----` block), and `push_module_exported_fns` would
         // rescan it: idempotent but wasted.

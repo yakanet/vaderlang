@@ -1,0 +1,13 @@
+// T3003: a call through a trait passes the receiver as its first argument.
+
+module "snippet"
+
+Loud :: trait {
+    shout :: fn(self) -> i32
+}
+
+i32 implements Loud {
+    shout :: fn(self) -> i32 = self * 10
+}
+
+main :: fn() -> i32 = Loud.shout()

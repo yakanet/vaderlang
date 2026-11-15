@@ -125,22 +125,23 @@ static int32_t snippet$Crate$snippet_shapes$Scaled$scale(void* l0, int32_t l1) {
 static int32_t snippet$main(void) {
     void* l0 = NULL;
     void* l1 = NULL;
-    void* l4 = NULL;
+    void* l5 = NULL;
     int64_t l2, l3;
+    vader_string_t l4 = 0;
     int32_t t0;
     void* t1 = NULL;
     vader_string_t t2 = 0;
-    void** gc_raw_roots[4] = { &l0, &l1, &l4, &t1 };
-    vader_string_t* gc_atom_roots[1] = { &t2 };
+    void** gc_raw_roots[4] = { &l0, &l1, &l5, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l4, &t2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     vader_struct_snippet$Crate_t* _a0_obj = (vader_struct_snippet$Crate_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Crate_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_n = INT32_C(7);
     l0 = (void*) _a0_obj;
-    l1 = (void*) vader_buffer_new((size_t) INT64_C(83));
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l2 = INT64_C(0);
     t0 = snippet$Crate$snippet_shapes$Sized$size(l0);
     l3 = ((int64_t) (int32_t) t0);
@@ -149,6 +150,11 @@ static int32_t snippet$main(void) {
     t0 = snippet$Crate$snippet_shapes$Sized$doubled(l0);
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core$write_int(l1, l2, l3);
+    l4 = std_core$finish_buffer(l1, l2);
+    l2 = vader_host_std_core$byte_len(l4);
+    l1 = (void*) vader_buffer_new((size_t) (INT64_C(42) + l2));
+    l2 = INT64_C(0);
+    l2 = std_core$write_string_at(l1, l2, l4);
     l2 = std_core$write_string_at(l1, l2, 1u);
     t0 = snippet$Crate$snippet_shapes$Scaled$scale(l0, INT32_C(3));
     l3 = ((int64_t) (int32_t) t0);
@@ -157,9 +163,9 @@ static int32_t snippet$main(void) {
     vader_struct_snippet$Crate_t* _a1_obj = (vader_struct_snippet$Crate_t*) vader_gc_alloc(sizeof(vader_struct_snippet$Crate_t));
     vader_obj_header_init(_a1_obj, 1u);
     _a1_obj->f_n = INT32_C(1);
-    l4 = (void*) _a1_obj;
+    l5 = (void*) _a1_obj;
     vader_array_t* _a2_arr = vader_array_new(10u, 2u, 13u, 1u);
-    ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l4;
+    ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 1u] = l5;
     ((void**) _a2_arr->buf->slots)[vader_array_offset(_a2_arr) + 0u] = l0;
     t1 = (void*) _a2_arr;
     t0 = snippet_shapes$total__snippet_Crate(t1);

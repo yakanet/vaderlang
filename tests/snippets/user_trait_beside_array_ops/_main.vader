@@ -1,0 +1,29 @@
+// A program's own trait may offer `len` on `i32[]` beside `ArrayOps`: the
+// standard library, which does not see that trait, keeps calling the `len` of
+// `ArrayOps` (the map below goes through it). Reached through a bound, the
+// program's member answers.
+// Expected: prints "42" then "2", exits 0.
+
+module "snippet"
+
+import "std/collections"
+import "std/console"
+
+Sized :: trait {
+    len :: fn(self) -> i64
+}
+
+i32[] implements Sized {
+    len :: fn(self) -> i64 = 42
+}
+
+measure :: fn<T: Sized>(value: T) -> i64 = value.len()
+
+main :: fn() -> i32 {
+    counts :: Map<string, i32> {}
+    counts["a"] = 1
+    counts["b"] = 2
+    println("${measure([1, 2, 3])}")
+    println("${counts.len()}")
+    return 0
+}

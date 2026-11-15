@@ -1,0 +1,7 @@
+// The trait alone, without an impl.
+
+module "snippet/traits"
+
+export Loud :: trait {
+    shout :: fn(self) -> i32
+}

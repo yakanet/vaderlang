@@ -99,7 +99,8 @@ lower_callee :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr {
 }
 
 /// `Type.member(args)` on a static trait member (`T.zero()`, `i64.zero()`) : a
-/// direct call to the owner's impl member, with no receiver. A type-parameter
+/// direct call to the owner's impl member, with no receiver. `Trait.member(x, ...)`
+/// runs as the method call `x.member(...)`. A type-parameter
 /// owner only appears in a generic body, whose instances typecheck keeps
 /// concrete, so it is a concrete type once substituted.
 ///
@@ -114,6 +115,9 @@ try_lower_static_member_call :: fn(
 ) -> LoweredExpr | null {
     field :: as_field_expr(call.callee) else return null
     found :: ctx.typed.static_members[field.id] else return null
+    if found.receiver {
+        return try_lower_method_call(ctx, as_method_call(call, field), type)
+    }
     callee :: recorded_callee(ctx, call, .Call)
     owner :: ctx.types.apply(owner_at_call(callee, found.owner))
     member :: callee_target(ctx, callee, owner)
@@ -128,6 +132,20 @@ try_lower_static_member_call :: fn(
     }
     args :: lower_call_args(ctx, call.args, member.arg_types, 0)
     return build_member_call_or_inline(member, args, type, call.span)
+}
+
+// `Trait.member(x, rest)` as the method call `x.member(rest)` it runs: the access
+// keeps its node, whose callee the typecheck recorded.
+as_method_call :: fn(call: CallExpr, field: FieldExpr) -> CallExpr {
+    rest: CallArg[]: []
+    for i in 1..<call.args.len() {
+        rest.push(call.args[i])
+    }
+    return CallExpr {
+        ...call,
+        .callee = FieldExpr { ...field, .target = call.args[0].value },
+        .args = rest,
+    }
 }
 
 // The owner a static member call reaches : the written one, with the type parameters

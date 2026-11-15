@@ -1,0 +1,121 @@
+# Lower
+
+## snippet
+  snippet.Vec :: struct { x: f64 }  // snippet$Vec
+  snippet$Vec$std_core$Add$add :: fn(self: Vec, other: f64) -> Vec {
+      Vec { .x = self.x + other }
+  }
+  snippet$Vec$std_core$Add$add$1 :: fn(self: Vec, other: Vec) -> Vec {
+      Vec { .x = self.x + other.x }
+  }
+  snippet.Vec.name :: fn(self: Vec) -> string {  // snippet$Vec$Greet$name
+      "vec"
+  }
+  snippet.Vec.hello :: fn(self: Vec) -> string {  // snippet$Vec$Greet$hello
+      concat_2("hello ", snippet.Vec.name(self))
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      xs: i32[] = [1, 2, 3] :i32[]
+      v: Vec = Vec { .x = 1.0 }
+      std.console.println<string>({
+          __p_0: i64 = @array.len(xs)
+          __p_1: i64 = snippet.i32[].len(xs)
+          __p_2: string = std.core.i32.to_string(5)
+          __buf_3: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_2))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_int(__buf_3, __off_4, __p_0)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_int(__buf_3, __off_4, __p_1)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string)
+      std.console.println<string>(concat_5(std.core.f64.to_string(snippet$Vec$std_core$Add$add(v, 2.0).x), " ", std.core.f64.to_string(snippet$Vec$std_core$Add$add$1(v, v).x), " ", snippet.Vec.hello(v)))
+      std.console.println<string>({
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.loud.i32.shout(7))
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      return 0
+  }
+  snippet.i32[].len :: fn(self: i32[]) -> i64 {  // snippet$$array$Sized$len__i32
+      i64(42)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      c4: i64 = c3 +% std.core.byte_len(p4)
+      buf: Buffer = std.core.new_byte_buffer(c4)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.intern_string(buf, c4)
+  }
+  vtable snippet.Greet.hello for Vec  snippet.Vec.hello  // snippet$Vec$Greet$hello
+  vtable snippet.Greet.name for Vec  snippet.Vec.name  // snippet$Vec$Greet$name
+  vtable snippet.Sized.len for i32[]  snippet.i32[].len  // snippet$$array$Sized$len__i32
+  vtable std.core.Add.add for Vec  snippet$Vec$std_core$Add$add
+  vtable std.core.Add.add for Vec  snippet$Vec$std_core$Add$add$1
+
+## snippet/loud
+  snippet.loud.i32.shout :: fn(self: i32) -> i32 {  // snippet_loud$i32$Loud$shout
+      self * 10
+  }
+  vtable snippet.loud.Loud.shout for i32  snippet.loud.i32.shout  // snippet_loud$i32$Loud$shout
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64

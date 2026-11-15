@@ -1,0 +1,7 @@
+// Imports the trait's module: what a module imports is not lent to its importers.
+
+module "snippet/relay"
+
+import "snippet/loud"
+
+export seven :: fn() -> i32 = 7

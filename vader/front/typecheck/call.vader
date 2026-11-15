@@ -133,39 +133,67 @@ pick_member_overload :: fn(
         return initial
     }
     candidates :: typed.overloaded_members[field.id] else return initial
-    is_static :: typed.static_members[field.id] != null
-    receiver :: typed.expr_types[field.target.id] else TY_UNRESOLVED
+    found :: typed.static_members[field.id]
+    receiver :: member_receiver(field, found, typed)
     sigs: Type[]: []
     for m in candidates {
-        sigs.push(if is_static { m.ty } else { impl_member_type(m, receiver, typed) })
+        sigs.push(candidate_signature(m, found, receiver, typed))
     }
+    // Through the trait (`Add.add(v, 2.0)`), the first argument is the receiver.
+    skipped: i64: if found != null && found.receiver { 1 } else { 0 }
     // An ambiguity is reported : nothing more to say about this call.
-    index :: pick_member_index(c, field, sigs, expected, typed, diags) else return TY_UNRESOLVED
+    index :: pick_member_index(c, skipped, field, sigs, expected, typed, diags)
+        else return TY_UNRESOLVED
     chosen :: candidates[index]
     typed.callees[field.id] = member_callee(chosen.decl, receiver)
-    ty :: if is_static {
-        chosen.ty
-    } else {
+    ty :: if found == null {
         settle_impl_member(chosen, field, receiver, typed, diags)
+    } else if skipped == 1 {
+        with_receiver(sigs[index], receiver)
+    } else {
+        sigs[index]
     }
     typed.expr_types[field.id] = ty
     return ty
 }
 
-// The index of the member `c` picks among `sigs` (each without its receiver) ; the
-// first when none fits, so the call's own checks report the mismatch against it ;
-// null once an ambiguity is reported.
+
+// The receiver of a member call : the value a method is called on, or the first
+// argument of a call through the trait.
+member_receiver :: fn(field: AST.FieldExpr, found: StaticMember | null, typed: TypedProgram) -> Type {
+    if found != null && found.receiver {
+        return found.owner
+    }
+    return typed.expr_types[field.target.id] else TY_UNRESOLVED
+}
+
+// The signature of a member several impls offer, without its receiver: at the
+// receiver for a member that takes one, as declared for a static member.
+candidate_signature :: fn(
+    m: ImplMethod, found: StaticMember | null, receiver: Type, typed: TypedProgram,
+) -> Type {
+    if found == null || found.receiver {
+        return impl_member_type(m, receiver, typed)
+    }
+    return m.ty
+}
+
+// The index of the member `c` picks among `sigs` (each without its receiver), by its
+// first argument past the `skipped` receiver ; the first when none fits, so the
+// call's own checks report the mismatch against it ; null once an ambiguity is
+// reported.
 pick_member_index :: fn(
     c: AST.CallExpr,
+    skipped: i64,
     field: AST.FieldExpr,
     sigs: Type[],
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> i64 | null {
-    if c.args.len() > 0 {
-        arg0 :: check_expr(c.args[0].value, null, typed, [])
-        pick :: pick_by_first_arg(sigs, arg0, c.args.len(), typed)
+    if c.args.len() > skipped {
+        arg0 :: check_expr(c.args[skipped].value, null, typed, [])
+        pick :: pick_by_first_arg(sigs, arg0, c.args.len() - skipped, typed)
         if pick.rival != null {
             diags.push(member_ambiguity_error(field, sigs, "accept ${display_type(arg0)}"))
             return null
@@ -735,7 +763,8 @@ type_call :: fn(
     if c.callee is AST.FieldExpr {
         typed.callee_field_id = c.callee.id
     }
-    initial_callee_ty :: check_keeping_quantifier(c.callee, typed, diags)
+    initial_callee_ty :: trait_qualified_member(c, typed, diags)
+        else check_keeping_quantifier(c.callee, typed, diags)
     // Overload dispatch : when the callee is a bare ident whose name
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the

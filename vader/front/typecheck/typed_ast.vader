@@ -194,11 +194,13 @@ export TypeParamBound :: struct {
 }
 
 /// A static trait member reached through the type that owns it: `T.zero()`,
-/// `i64.zero()`.
+/// `i64.zero()` ; or a member called through its trait, `Loud.shout(x)`.
 export StaticMember :: struct {
     /// The type the member is called on, as written : a type parameter is
-    /// substituted per instance by the lowerer.
+    /// substituted per instance by the lowerer. Through a trait, the receiver's.
     owner: Type
+    /// The call passes the receiver as its first argument (`Loud.shout(x)`).
+    receiver: bool = false
 }
 
 /// One UFCS-dispatchable impl method: its signature, and the impl that declares it.
@@ -507,6 +509,10 @@ export TypedProgram :: struct {
     /// different modules, or the same one under different modifier lists, and
     /// neither may lend its names to the other.
     imported_fn_overloads: Map<string, Map<string, FnCandidate[]>>
+
+    /// The traits each file sees, keyed like `imported_fn_overloads`: a trait
+    /// member is a candidate only where its trait is (`trait_scope.vader`).
+    trait_scopes: Map<string, TraitScope> = Map<string, TraitScope> {}
 
     /// `FieldExpr.id -> original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got

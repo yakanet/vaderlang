@@ -12,6 +12,9 @@
 // (`CallSites`), even though any import that loads the module would do: the
 // file then says what it relies on.
 //
+// An import serves as well when it puts in scope the trait of a member a call of
+// its file reaches (`serves_a_trait`).
+//
 // Last, an import that serves its file nothing may still be the one that loads
 // a module another file relies on. It is reported only when the project keeps
 // every module without it, or when none of those it would lose declares an
@@ -70,6 +73,9 @@ export check_unused_imports :: fn(
                 // An import of a module that did not load has its own error.
                 imported :: by_name[d.path] else continue
                 if brings_a_name(d, imported, names) {
+                    continue
+                }
+                if typed != null && serves_a_trait(typed, file.program.file, d.path) {
                     continue
                 }
                 walked :: run else impls_run(file, typed, module_of_file)

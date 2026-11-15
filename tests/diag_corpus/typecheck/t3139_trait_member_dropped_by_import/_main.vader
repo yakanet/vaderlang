@@ -1,0 +1,11 @@
+// T3139: an import that drops a trait (`{ Loud as _ }`) drops its members with it,
+// as it drops a function.
+
+module "snippet"
+
+import "snippet/loud" { Loud as _ }
+
+main :: fn() -> i32 {
+    x :: 7
+    return x.shout()
+}

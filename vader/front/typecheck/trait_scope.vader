@@ -1,0 +1,324 @@
+// vader/front/typecheck/trait_scope: the traits a file sees.
+//
+// The impl tables hold the impls of the whole project, but a call reaches a
+// trait member only in a file that sees its trait: the trait is declared by the
+// file's module, by the prelude, by a module the file imports bare (less what
+// the import drops), or the file binds it under a name of its own. It is the rule
+// a free function follows (`overload_tables.vader`), so `x.f()` and `f(x)` agree.
+// What an impl satisfies (a bound, a conversion) does not depend on it.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/diagnostics"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+
+/// What one file sees of the traits its module does not declare.
+export TraitScope :: struct {
+    /// The modules the file imports bare, by declared name.
+    modules:  Set<string> = Set<string> {}
+    /// The names each of those imports drops (`{ Loud as _ }`), by module name.
+    excludes: Map<string, string[]> = Map<string, string[]> {}
+    /// The traits the file binds under a name of its own (`{ Loud as Shouty }`),
+    /// by symbol id: the rename drops the source name from the wildcard.
+    renamed:  Set<i32> = Set<i32> {}
+    /// The imports, by path, that put in scope the trait of a member a call of the
+    /// file reaches: they serve the file without it writing a name they bring.
+    used:     Set<string> = Set<string> {}
+}
+
+/// Whether the import of `path` puts in scope, in `file`, the trait of a member a
+/// call reaches.
+///
+/// @param typed  the module of the file.
+/// @param file   the file importing.
+/// @param path   the imported path.
+export serves_a_trait :: fn(typed: TypedProgram, file: string, path: string) -> bool {
+    scope :: typed.trait_scopes[file] else return false
+    return path in scope.used
+}
+
+/// The traits `imports` lets its file see, the prelude and the module's own aside.
+///
+/// @param imports   the file's imports.
+/// @param resolved  the module the file belongs to, whose bindings the renames are.
+export trait_scope_of :: fn(imports: FileImports, resolved: ResolvedModule) -> TraitScope {
+    scope :: TraitScope { .excludes = imports.excludes }
+    scope.modules.add_all(imports.paths)
+    for [_, binding] in imports.bindings {
+        target :: resolved.imports_to[binding.id] else continue
+        if target.kind == .Trait {
+            scope.renamed.add(target.id)
+        }
+    }
+    return scope
+}
+
+/// Whether `file` sees the trait `trait_sym`, so its members are candidates there.
+///
+/// @param typed      the module checking the call.
+/// @param file       the file of the call.
+/// @param trait_sym  the trait's declaration.
+export sees_trait :: fn(typed: TypedProgram, file: string, trait_sym: Symbol) -> bool {
+    if trait_sym.module == typed.resolved.path || trait_sym.module_name == CORE_MODULE {
+        return true
+    }
+    // A body checked away from its module's files (a synthesised one) keeps every
+    // trait: only a file with imports of its own narrows them.
+    scope :: typed.trait_scopes[file] else return true
+    return imports_trait(scope, trait_sym)
+}
+
+/// Note that a call of `file` reaches a member of `trait_sym`: the import that
+/// brings the trait serves the file (W0006).
+///
+/// @param typed      the module checking the call.
+/// @param file       the file of the call.
+/// @param trait_sym  the trait of the member reached ; null for a member no impl
+///                   declares.
+export note_trait_use :: fn(typed: TypedProgram, file: string, trait_sym: Symbol | null) -> void {
+    if trait_sym == null {
+        return
+    }
+    scope :: typed.trait_scopes[file] else return
+    if imports_trait(scope, trait_sym) {
+        scope.used.add(trait_sym.module_name)
+    }
+}
+
+// Whether an import of the file brings `trait_sym`, renamed or not dropped.
+imports_trait :: fn(scope: TraitScope, trait_sym: Symbol) -> bool {
+    if trait_sym.id in scope.renamed {
+        return true
+    }
+    if !(trait_sym.module_name in scope.modules) {
+        return false
+    }
+    dropped :: scope.excludes[trait_sym.module_name] else return true
+    return !(trait_sym.name in dropped)
+}
+
+/// The members of `members` whose trait `file` sees ; a member no impl declares
+/// stays. `members` itself when every one does, which is the common case.
+///
+/// @param members  the impl members a receiver offers under one name.
+/// @param file     the file of the call.
+/// @param typed    the module checking the call.
+export members_in_scope :: fn(
+    members: ImplMethod[], file: string, typed: TypedProgram,
+) -> ImplMethod[] {
+    for m in members {
+        if !member_in_scope(m, file, typed) {
+            return seen_members(members, file, typed)
+        }
+    }
+    return members
+}
+
+// The members of `members` whose trait `file` sees, in a new array.
+seen_members :: fn(members: ImplMethod[], file: string, typed: TypedProgram) -> ImplMethod[] {
+    out: ImplMethod[]: []
+    for m in members {
+        if member_in_scope(m, file, typed) {
+            out.push(m)
+        }
+    }
+    return out
+}
+
+/// Whether `file` sees the trait of the impl member `m` ; a member no impl declares
+/// is seen.
+///
+/// @param m      an impl member a receiver offers.
+/// @param file   the file of the call.
+/// @param typed  the module checking the call.
+export member_in_scope :: fn(m: ImplMethod, file: string, typed: TypedProgram) -> bool {
+    trait_sym :: m.trait_symbol else return true
+    return sees_trait(typed, file, trait_sym)
+}
+
+/// Whether `file` sees the trait whose `trait_key` is `key` ; a key no declaration
+/// answers stays seen.
+///
+/// @param key    a `trait_key`.
+/// @param file   the file of the call.
+/// @param typed  the module checking the call.
+export sees_trait_key :: fn(key: string, file: string, typed: TypedProgram) -> bool {
+    trait_sym :: trait_symbol_of_key(key, typed) else return true
+    return sees_trait(typed, file, trait_sym)
+}
+
+/// The declaration of the trait whose `trait_key` is `key` ; null when none
+/// answers.
+///
+/// @param key    a `trait_key`.
+/// @param typed  a module of the project, whose `trait_decls` cover every trait.
+export trait_symbol_of_key :: fn(key: string, typed: TypedProgram) -> Symbol | null {
+    id :: find_trait_id(key, typed) else return null
+    decl :: typed.trait_decls[id] else return null
+    owner :: typed.trait_decl_owners[id] else typed.resolved
+    return symbol_declared_at(owner, decl.name_span)
+}
+
+/// Report `e` when the receiver offers `e.field` only through traits its file
+/// does not see. T3078 when the trait's module is imported under an alias, T3139
+/// otherwise.
+///
+/// @param e          the member access.
+/// @param target_ty  the receiver's type.
+/// @param typed      the module checking the access.
+/// @return           true when it reported, so the caller skips its own diagnostic.
+export report_member_out_of_scope :: fn(
+    e: AST.FieldExpr,
+    target_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    trait_sym :: unseen_trait_offering(e.field, target_ty, typed) else return false
+    diags.push(out_of_scope_error(e, trait_sym, typed))
+    return true
+}
+
+// The trait of an impl member `name` the receiver offers, or of a default it
+// inherits, whatever file asks.
+unseen_trait_offering :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Symbol | null {
+    for m in receiver_impl_members(default_if_free(target_ty), name, typed) {
+        trait_sym :: m.trait_symbol else continue
+        return trait_sym
+    }
+    if target_ty is StructType {
+        return default_member_trait(target_ty, name, typed)
+    }
+    return null
+}
+
+out_of_scope_error :: fn(e: AST.FieldExpr, trait_sym: Symbol, typed: TypedProgram) -> Diagnostic {
+    member :: "`${e.field}` is a member of `${trait_sym.name}`"
+    alias :: namespace_alias_of(trait_sym.module, typed)
+    if alias != null {
+        call :: "${alias.name}.${trait_sym.name}.${e.field}(${path_name(e.target, "...")})"
+        return typecheck_error(.MethodOnlyBehindNamespaceAlias, e.field_span, "write `${call}`")
+    }
+    return typecheck_error(
+        .TraitMemberOutOfScope,
+        e.field_span,
+        "${member}, ${scope_repair(e, trait_sym, typed)}",
+    )
+}
+
+// How the file of `e` comes to see `trait_sym`: import its module, or stop dropping it.
+scope_repair :: fn(e: AST.FieldExpr, trait_sym: Symbol, typed: TypedProgram) -> string {
+    scope :: typed.trait_scopes[e.span.start.file] else TraitScope {}
+    if trait_sym.module_name in scope.modules {
+        return "which this file's import of `${trait_sym.module_name}` drops"
+    }
+    return "which this file does not import: add `import \"${trait_sym.module_name}\"`"
+}
+
+// The namespace alias the module whose folder is `module` is imported under ;
+// null when it is not.
+namespace_alias_of :: fn(module: string, typed: TypedProgram) -> Symbol | null {
+    targets :: typed.import_targets else return null
+    for [sym_id, target] in targets.namespace_targets {
+        if target == module {
+            return import_binding_by_id(sym_id, typed)
+        }
+    }
+    return null
+}
+
+// ---- a member called through its trait --------------------------------------
+
+/// `Trait.member(receiver, ...)`: the member of `Trait` the receiver's type
+/// implements, the receiver passed first. Naming the trait puts it in scope, and
+/// leaves out the other traits offering the member. Recorded as a static member
+/// whose owner is the receiver's type, so the lowerer calls the impl member with
+/// the arguments as written.
+///
+/// @param c      the call ; its callee is the `Trait.member` access.
+/// @return       the callee's type, receiver first ; null when the callee does not
+///               name a trait.
+/// @error        T3003 when the call passes no receiver.
+/// @error        T3009 when the receiver's type implements no such member of the trait.
+export trait_qualified_member :: fn(
+    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
+    field :: c.callee
+    if field !is AST.FieldExpr {
+        return null
+    }
+    trait_sym :: named_trait(field.target, typed) else return null
+    if c.args.len() == 0 {
+        diags.push(typecheck_error(
+            .WrongArgCount,
+            c.span,
+            "`${trait_sym.name}.${field.field}` takes its receiver as first argument",
+        ))
+        return TY_UNRESOLVED
+    }
+    receiver :: default_if_free(check_expr(c.args[0].value, null, typed, []))
+    members: ImplMethod[]: []
+    for m in receiver_impl_members(receiver, field.field, typed) {
+        if declared_for(m, trait_sym) {
+            members.push(m)
+        }
+    }
+    if members.len() == 0 {
+        diags.push(typecheck_error(
+            .MemberDoesNotExist,
+            field.field_span,
+            "`${trait_sym.name}` offers no `${field.field}` on ${display_type(receiver)}",
+        ))
+        return TY_UNRESOLVED
+    }
+    typed.static_members[field.id] = StaticMember { .owner = receiver, .receiver = true }
+    // Several impls of the trait: the call's arguments pick (`pick_member_overload`).
+    if members.len() > 1 {
+        typed.overloaded_members[field.id] = members
+    } else {
+        note_callee(typed, field, member_callee(members[0].decl, receiver))
+    }
+    ty :: with_receiver(impl_member_type(members[0], receiver, typed), receiver)
+    typed.expr_types[field.id] = ty
+    return ty
+}
+
+// Whether an impl of `trait_sym` declares `m`.
+declared_for :: fn(m: ImplMethod, trait_sym: Symbol) -> bool {
+    own :: m.trait_symbol else return false
+    return own.id == trait_sym.id
+}
+
+// The trait `target` names: a trait's name, or a trait reached through a namespace
+// alias (`S.Sized`) ; null for anything else.
+named_trait :: fn(target: AST.Expr, typed: TypedProgram) -> Symbol | null {
+    if target is AST.FieldExpr {
+        member :: namespace_member_type(target, typed.resolved) else return null
+        if member is TraitType {
+            return member.symbol
+        }
+        return null
+    }
+    sym :: bare_name_symbol(target, typed) else return null
+    if sym.kind == .Trait {
+        return sym
+    }
+    return null
+}
+
+/// `signature` with `receiver` as its first parameter: a member's type as a call
+/// through its trait sees it.
+///
+/// @param signature  the member's type without its receiver.
+/// @param receiver   the receiver's type.
+export with_receiver :: fn(signature: Type, receiver: Type) -> Type {
+    if signature !is FnType {
+        return signature
+    }
+    params: Type[]: [receiver]
+    params.push_all(signature.params)
+    return FnType { ...signature, .params = params }
+}
