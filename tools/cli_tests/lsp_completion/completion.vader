@@ -124,6 +124,33 @@ test_completion_shows_a_locals_inferred_type_as_detail :: fn() -> void {
     assert_eq(detail_of(list, "mk"), "fn() -> i32")
 }
 
+// A namespace alias is a name in scope like any other: completing the start of a
+// qualified name offers the alias itself.
+NAMESPACE_ALIAS_SOURCE :: r"""
+    module "lsp_test"
+
+    Out :: import "std/console"
+
+    main :: fn() -> i32 {
+        Out.println("a")
+        return 0
+    }
+    """
+
+@test
+test_completion_offers_a_namespace_alias :: fn() -> void {
+    // Line 5 is `    Out.println("a")`: the cursor right after `Out`.
+    results :: drive(
+        "namespace_alias",
+        NAMESPACE_ALIAS_SOURCE,
+        [complete_at(Spot { .line = 5, .character = 7 })],
+    )
+    list :: results[0]
+    assert(offers(list, "Out"), shown(list))
+    // A namespace alias is a module (CompletionItemKind.Module = 9).
+    assert_eq(int_at(item_named(list, "Out"), ["kind"]), 9)
+}
+
 MEMBER_SOURCE :: r"""
     module "lsp_test"
 
