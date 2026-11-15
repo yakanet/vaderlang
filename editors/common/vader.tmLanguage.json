@@ -142,7 +142,7 @@
       "patterns": [
         {
           "name": "storage.modifier.decorator.builtin.vader",
-          "match": "@(comptime|export|test|extern)\\b"
+          "match": "@(comptime|test|extern)\\b"
         },
         {
           "name": "storage.modifier.decorator.vader",

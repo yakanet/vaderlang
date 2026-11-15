@@ -385,8 +385,8 @@ export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
 
 /// The name of the decorator or intrinsic under (line, character) (the `test`
 /// of `@test`, the `size_of` of `@size_of(T)`), or `""` when the cursor is not
-/// on one. The cursor may sit on the `@` or on the name; the name may be a
-/// keyword (`@export`), so any token glued to an `@` counts.
+/// on one. The cursor may sit on the `@` or on the name; the name may lex as a
+/// keyword, so any token glued to an `@` counts.
 ///
 /// @param idx        the document's index.
 /// @param line       0-based line.

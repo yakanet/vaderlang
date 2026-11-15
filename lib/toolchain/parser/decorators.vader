@@ -57,12 +57,6 @@ export DECORATORS: DecoratorSpec[]: [
         .doc    = "Declares a bodyless fn supplied by user code across the FFI. `LIBRARY` names a `CLibrary` constant (`std/ffi`), whose headers, archives and platform libraries the native build adds. Pair it with `@c_header`, or a library header, so `cc` checks the call against the real prototype.",
     },
     DecoratorSpec {
-        .name   = "export",
-        .usage  = "@export, @export(\"name\")",
-        .places = [.Declaration],
-        .doc    = "Exposes the fn under an unmangled name, for a host on the JS or library side.",
-    },
-    DecoratorSpec {
         .name   = "test",
         .usage  = "@test",
         .places = [.Declaration],

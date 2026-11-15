@@ -250,7 +250,7 @@ export c_result_type :: fn(imp: BcImport) -> string | null {
     return imp.result_c_type
 }
 
-/// One symbol exposed to the host (`@export` fns). `extern_name` is
+/// One symbol exposed to the host. `extern_name` is
 /// the user-facing C name ; `fn_index` keys the parent module's
 /// `functions[]`.
 export BcExport :: struct {

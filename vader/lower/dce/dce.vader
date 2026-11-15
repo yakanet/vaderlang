@@ -1,7 +1,7 @@
 // vader/lower/dce/dce: whole-program dead-function elimination.
 //
 // `prune_unreachable_fns` walks the call graph from the program roots
-// (main, `@export` / `@extern`, optionally `@test`, plus every fn when
+// (main, `@extern`, optionally `@test`, plus every fn when
 // the project has no `main`) and drops `LoweredFnDecl`s that nothing
 // transitively references. A virtual call reaches the impl fn of a
 // receiver only when reachable code holds a value of that receiver's
@@ -285,7 +285,7 @@ fn_survives :: fn(
 }
 
 /// Root test : `main`, bodyless fns (`@extern` import shims), any
-/// `@export` / `@extern` fn, `@test` when `keep_tests`, and (when the
+/// `@extern` fn, `@test` when `keep_tests`, and (when the
 /// project exposes no `main`): every fn of the ENTRY module. A no-main build
 /// keeps its own whole surface ; dependencies (every non-entry module) are
 /// pruned to the set reachable from the roots.
@@ -296,7 +296,6 @@ is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_te
     ast :: fn_decl.origin.decl
     if ast is FnDecl {
         for dec in ast.decorators {
-            if dec.name == "export" { return true }
             if dec.name == "extern" { return true }
             if keep_tests && dec.name == "test" { return true }
         }

@@ -248,7 +248,7 @@ the lowerer's own route.
 ## Dead-code elimination
 
 DCE drops the functions unreachable from the roots, keeping structs and constants.
-The roots are `main`, every function with `@export` or `@extern` or without a body,
+The roots are `main`, every function with `@extern` or without a body,
 the `@test` functions in a test build, and every function of the entry module when
 the program has no `main`. An impl member is no root: a call through a vtable keeps
 the members that fill that slot for a struct reachable code holds a value of (one a

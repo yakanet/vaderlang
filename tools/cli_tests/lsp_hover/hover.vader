@@ -148,9 +148,9 @@ test_hover_renders_a_declaration_as_quick_documentation :: fn() -> void {
         """
     assert(params in area, area)
     // A decorator.
-    decorator :: hover_value(results[2])
-    assert(decorator.starts_with("decorator\n\n```\n@allow_unused\n```"), decorator)
-    assert("W0007" in decorator, decorator)
+    shown :: hover_value(results[2])
+    assert(shown.starts_with("decorator\n\n```\n@allow_unused\n```"), shown)
+    assert("W0007" in shown, shown)
     // An intrinsic.
     intrinsic :: hover_value(results[3])
     assert(intrinsic.starts_with("intrinsic\n\n```\n@size_of(T: type) -> i64\n```"), intrinsic)

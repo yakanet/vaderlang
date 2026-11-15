@@ -535,7 +535,7 @@ Moved out of phase 1 (was §1.10). C backend already covers native deployment.
 
 - [ ] Bytecode → WASM binary (minimal wasm encoder or vendor binaryen-js).
 - [ ] WASM GC types for structs + arrays.
-- [ ] Imports/exports via `@extern` / `@export`.
+- [ ] Imports via `@extern` ; how a function is exported to the host is to be designed.
 - [ ] DWARF emission.
 - [ ] Tests : emit + run with wasmtime `--wasm=gc` + compare stdout to VM snapshot.
 - [ ] CLI : `vader build --target=wasm` + `vader dump --stage=wasm`.

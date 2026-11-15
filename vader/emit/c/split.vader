@@ -265,7 +265,7 @@ emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter
 /// set of ways a name can be reached from outside its unit, and erring towards
 /// external is safe (it only forgoes an inline); erring the other way is a link
 /// error, so each entry is a reference site, not a heuristic:
-///   - an `@export` target: a host names it;
+///   - an entry of the export table: a host names it;
 ///   - the entry point: `emit_main` calls it from unit 0;
 ///   - a vtable target: the vtable arrays live in the globals TU;
 ///   - taken as a fn-value: `emit_fn_trampolines` wraps it from unit 0;

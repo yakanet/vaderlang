@@ -2736,10 +2736,6 @@ In a generic body, a call is resolved once, against the type parameters. A first
 
 A function of the module and an imported function of the same name overload each other, and the local one wins a tie: `"".is_empty()` reaches the `is_empty` of `std/string`, and `b.is_empty()` a local `is_empty :: fn(self: Box) -> bool`. Two functions that two wildcard imports bring overload each other too.
 
-### Visibility
-
-The `export` keyword (§11 *Visibility*) is distinct from the `@export` decorator, which exposes a function to the host (§13 *`@export`: exposing a function*); a function may have both.
-
 ---
 
 ## 7. Control Flow
@@ -3373,7 +3369,6 @@ Decorators are compiler instructions prefixed with `@`. They act at compile time
 | `@c_variadic` | parameter of an `@extern` fn | C receives the parameter through `...` (§13) |
 | `@main_thread` | `@extern` fn | The C function runs on the main thread only, out of reach of every task (§13) |
 | `@intrinsic` | fn or impl without body | The host runtime provides the body (*`@intrinsic`*, below) |
-| `@export`, `@export("name")` | fn | Exposes the function under an unmangled name (§13) |
 | `@test` | fn | Marks a test, run by `vader test` (`docs/TOOLING.md` *Tests*) |
 | `@deprecated("reason")` | any declaration | Warns at every use; the code still compiles |
 | `@assert(cond)`, `@assert(cond, "message")` | top level | Fails the build unless `cond` is true at compile time |
@@ -3809,25 +3804,7 @@ At compile time (§14), a call that needs an adapter (`docs/TOOLING.md` *`vader 
 
 ### Future WASM target
 
-A WASM target is planned (§17 *Compilation Targets*). There, `@extern` will also give a WASM import, a `(module, field)` pair whose module is `"env"` without a library: `@extern("console_log") log` becomes `(import "env" "console_log" (func ...))`. How to name another module is not designed yet.
-
-### `@export`: exposing a function
-
-`@export` is planned: it exposes a function to the host under an unmangled name, its own or the argument. Accepted today, it keeps the function in the program but does not change its name yet. On the WASM target, the host is JavaScript:
-
-```vader
-@export("addNumbers")
-add_numbers :: fn(a: i32, b: i32) -> i32 {
-    return a + b
-}
-```
-
-JS side:
-
-```javascript
-const { instance } = await WebAssembly.instantiateStreaming(fetch("app.wasm"));
-console.log(instance.exports.addNumbers(2, 3));
-```
+A WASM target is planned (§17 *Compilation Targets*). There, `@extern` will also give a WASM import, a `(module, field)` pair whose module is `"env"` without a library: `@extern("console_log") log` becomes `(import "env" "console_log" (func ...))`. How to name another module is not designed yet, nor how a function is exposed to the host.
 
 ---
 
@@ -4318,7 +4295,7 @@ A native build writes portable C, compiles it with the system C compiler (`docs/
 
 ### WebAssembly
 
-A WebAssembly backend is planned. The `wasi-wasm32` and `browser-wasm32` targets select `@target` bodies, which `vader check --target=wasi-wasm32` checks, but no build emits a module yet. A module will declare its imports and exports with `@extern` and `@export` (§13).
+A WebAssembly backend is planned. The `wasi-wasm32` and `browser-wasm32` targets select `@target` bodies, which `vader check --target=wasi-wasm32` checks, but no build emits a module yet. A module will declare its imports with `@extern` (§13); how it exports a function is not designed yet.
 
 ---
 

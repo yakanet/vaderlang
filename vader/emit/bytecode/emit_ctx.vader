@@ -18,7 +18,7 @@ import "vader/midir/select"
 export EmitOptions :: struct {
     optimize: bool
     /// Extra fn mangles to KEEP as roots through the dead-function prune (on
-    /// top of main / `@export` / vtable targets). `vader test` passes the
+    /// top of main / the export table / vtable targets). `vader test` passes the
     /// `@test` fn mangles here so they survive to the bytecode and can be run
     /// by name ; empty for normal builds.
     keep_mangles: string[]
@@ -102,7 +102,7 @@ export EmitterCtx :: struct {
     /// to a `CallImport`. Mirror of `function_index_by_mangle` for imports.
     import_index_by_mangle: Map<string, i32>
 
-    /// `@export` decls: exposed to the host linker. C-emit's `main`
+    /// The symbols exposed to the host linker. C-emit's `main`
     /// shim consults this to pick the program entry point.
     exports: BcExport[]
 

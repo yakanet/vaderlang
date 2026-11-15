@@ -39,7 +39,7 @@ lower_stage :: fn(input: DumpInput) -> StageOutput {
 }
 
 // The lowered tree after dead-function elimination, as a run or a build sees it:
-// the roots are `main`, the `@export`s and the `@extern`s, the tests left out.
+// the roots are `main` and the `@extern`s, the tests left out.
 dced_stage :: fn(input: DumpInput) -> StageOutput {
     pipeline :: input.evaluated_pipeline()
     le :: input.lowered_entry()

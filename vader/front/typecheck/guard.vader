@@ -208,11 +208,11 @@ ensured_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(
 // The condition the decorator `name` declares on `fd` ; none where it does not
 // state exactly one (P1032).
 declared_condition :: fn(fd: AST.FnDecl, name: string) -> AST.Expr | null {
-    decorator :: AST.find_decorator(fd.decorators, name) else return null
-    if decorator.args.len() != 1 {
+    contract :: AST.find_decorator(fd.decorators, name) else return null
+    if contract.args.len() != 1 {
         return null
     }
-    return decorator.args[0]
+    return contract.args[0]
 }
 
 /// The contract the `@returns` fn `decl` declares : read once, in the module

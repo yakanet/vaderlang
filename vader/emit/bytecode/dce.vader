@@ -147,7 +147,7 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
 // ---- Functions ------------------------------------------------------------
 
 /// Root-and-walk over `ctx.functions` : start from `is_main` / `is_test`
-/// fns + every `@export` entry + every vtable target, walk every
+/// fns + every export entry + every vtable target, walk every
 /// `call`/`fn.ref`/`make_closure` to extend the reachable set, then
 /// drop the fns the walk didn't visit. Surviving fns are renumbered
 /// dense from 0 ; every fn-index reference (in bodies + exports +
@@ -156,7 +156,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     n :: ctx.functions.len()
     reachable :: Map<i32, bool> {}
 
-    // Roots : main, @export entries, vtable-target fns, and any explicit
+    // Roots : main, export entries, vtable-target fns, and any explicit
     // keep-mangle (e.g. the `@test` fns under `vader test`, which nothing calls
     // but must survive to be run by name).
     for i in 0..<n {
@@ -242,7 +242,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         }
     }
 
-    // Rewrite @export entries' fn_index in place via array rebuild.
+    // Rewrite the export entries' fn_index in place via array rebuild.
     new_exports: BcExport[]: []
     for e in ctx.exports {
         new_idx :: remap[e.fn_index]

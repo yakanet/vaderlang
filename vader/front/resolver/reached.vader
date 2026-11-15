@@ -20,7 +20,6 @@
 // - a trait is reached by the name of any of its members, since `x.area()`
 //   writes `area` and never `Shape`;
 // - a name an import rebinds (`import "p" { x as y }`) is reached as written;
-// - a declaration the host calls by its name (`@export`) stays;
 // - a test goes, with what only it reaches.
 //
 // The compiler itself names declarations with no source to write them: the
@@ -74,7 +73,6 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
         }
     }
     refs_by_name :: Map<string, string[]> {}
-    root_names: string[]: []
     seeded :: Set<string> {}
     seed_refs: string[]: []
     for name in compiler_called {
@@ -110,13 +108,10 @@ only_reached :: fn(units: ReachUnit[], compiler_called: string[] = []) -> Reache
                         register_refs(refs_by_name, member.name, [d.name])
                     }
                 }
-                if AST.decorators_have(AST.decl_decorators(d), "export") {
-                    root_names.push(key)
-                }
             }
         }
     }
-    reachable :: bfs_reachable(root_names, seed_refs, refs_by_name)
+    reachable :: bfs_reachable([], seed_refs, refs_by_name)
     out: Reached[]: []
     for unit in units {
         if !unit.trimmed {
