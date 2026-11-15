@@ -501,14 +501,11 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // must LOOK IT UP; minting one now produces a slot the prune can no
         // longer see. `intern_type` enforces it rather than trusting comments.
         ctx.types_frozen = true
-        // Fail loud on an unwired host in the FINAL import table : a bodyless
-        // `@intrinsic` fn whose mangle reaches neither a dedicated op nor a
-        // recognised `IntrinsicId` would emit an unbound `call.import` and trap
-        // at runtime (the cos/tan gap). Checked here, post-DCE, so a declared-
-        // but-unused `@intrinsic` member (pruned above) never false-positives ;
-        // only hosts that actually survive into the emitted bytecode are
-        // validated. `@extern` imports are link-resolved and exempt.
-        for imp in ctx.imports { assert_host_import_wired(imp.mangled_name, imp.is_extern) }
+    }
+    // Every build mode, on the final table: an unwired host would lower to an
+    // unbound `call.import` that only traps when it runs.
+    for imp in ctx.imports {
+        assert_host_import_wired(imp.mangled_name, imp.is_extern)
     }
     return BytecodeModule {
         .name       = module_name,

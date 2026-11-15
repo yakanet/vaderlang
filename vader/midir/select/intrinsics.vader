@@ -66,15 +66,15 @@ OPS_BY_HOST: Map<string, Op>: @comptime {
 }
 
 /// Fail loud when a bodyless `@intrinsic` host import is not wired into the
-/// manifest. Called per-import at emit (`emit/bytecode/emit.vader::reserve_cfg_extern`).
+/// manifest. Called on every import of the final table, in every build mode
+/// (`emit_bytecode_from_cfg`, `emit/bytecode/emit.vader`).
 ///
-/// A non-`@extern` import whose mangle is served by NEITHER a dedicated
-/// bytecode op (`intrinsic_op_for_mangled`) NOR a recognised `IntrinsicId`
+/// A non-`@extern` import whose mangle is served by neither a dedicated
+/// bytecode op (`intrinsic_op_for_mangled`) nor a recognised `IntrinsicId`
 /// (`intrinsic_id_for`) would lower to an unbound `call.import` and trap at
-/// runtime: exactly the cos/tan gap the intrinsic audit surfaced. This closes
-/// the host-wiring chain at compile time : bodyless ⟹ `@intrinsic` (T3062) ⟹
-/// recognised here ⟹ served by the VM + c_emit dispatch (T3013 on both matchs).
-/// `@extern` imports resolve at link time and are exempt.
+/// runtime. The chain is: bodyless requires `@intrinsic` (T3062), recognised
+/// here, served by the VM and C host dispatch (both exhaustive over
+/// `IntrinsicId`). `@extern` imports resolve at link time and are exempt.
 ///
 /// @param mangled    the import's mangled host name.
 /// @param is_extern  true for `@extern` foreign symbols (exempt) ; false for
