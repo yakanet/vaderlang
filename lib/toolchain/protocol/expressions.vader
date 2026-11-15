@@ -123,7 +123,7 @@ write_expr :: fn(w: DeclWriter, e: AST.Expr) -> void {
         }
         is AST.IntrinsicCallExpr -> {
             w.write_form("intrinsic", e.span)
-            w.out.write_field(e.name)
+            w.out.write_field(AST.intrinsic_name(e.intrinsic))
             w.write_span(e.name_span)
             w.write_exprs(e.args)
         }
@@ -461,11 +461,13 @@ read_generic :: fn(d: DeclReader, span: Span) -> AST.GenericInstExpr | ProtocolE
 
 read_intrinsic :: fn(d: DeclReader, span: Span) -> AST.IntrinsicCallExpr | ProtocolError {
     name :: d.fields.read_field() else return name
+    intrinsic :: AST.intrinsic_named(name)
+        else return ProtocolError { .msg = "`@${name}` is no intrinsic" }
     name_span :: d.read_span() else return name_span
     args :: d.read_exprs() else return args
     return AST.IntrinsicCallExpr {
         .span = span,
-        .name = name,
+        .intrinsic = intrinsic,
         .name_span = name_span,
         .args = args,
     }

@@ -733,8 +733,9 @@ builtin_items :: fn() -> JsonValue[] {
     for d in Parser.DECORATORS {
         out.push(documented_item(d.name, .Keyword, d.usage, d.doc))
     }
-    for s in Parser.INTRINSICS {
-        out.push(documented_item(s.name, .Function, s.signature, s.doc))
+    for intrinsic in AST.Intrinsic {
+        info :: AST.intrinsic_info(intrinsic)
+        out.push(documented_item(info.name, .Function, info.signature, info.doc))
     }
     return out
 }

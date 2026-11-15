@@ -1,8 +1,8 @@
 // vader/front/typecheck/expr_intrinsic: `@size_of(T)` / `@type_name(T)` /
 // etc. typing.
 //
-// Each intrinsic's static return type comes from
-// `toolchain/parser/intrinsics::intrinsic_spec(name).result`. The result
+// Each intrinsic's static return type comes from its `IntrinsicInfo.result`
+// (`toolchain/ast/intrinsic.vader`). The result
 // string is one of "i64", "bool", "string", "type", "field_array",
 // "type_array" (`type_for_result`) : a primitive, `type`, `type[]`, or
 // `std/core`'s `Field[]`. `@field` and `@min` / `@max` take theirs from their
@@ -11,7 +11,6 @@
 module "vader/front/typecheck"
 
 import "toolchain/diagnostics"
-import "toolchain/parser"
 import "vader/core/symbol"
 import "vader/core/types"
 AST :: import "toolchain/ast"
@@ -20,13 +19,9 @@ AST :: import "toolchain/ast"
 /// says. A `.Type` argument bypasses `check_expr`: no `expr_types` entry is made
 /// for its inner ident.
 infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
-    spec :: intrinsic_spec(e.name) else {
-        // Parser already rejects unknown @name ; defensive only.
-        for a in e.args { check_expr(a, null, typed, diags) }
-        return TY_UNRESOLVED
-    }
+    info :: AST.intrinsic_info(e.intrinsic)
     for i in 0..<e.args.len() {
-        match kind :: spec.arg_kind(i) {
+        match kind :: AST.arg_kind(e.intrinsic, i) {
             .Value | .TypeValue | .Unevaluated -> {
                 check_intrinsic_value(e.args[i], kind, typed, diags)
             }
@@ -41,33 +36,36 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
             }
         }
     }
-    // Every intrinsic takes as many arguments as its spec lists: past here, each
+    // Every intrinsic takes as many arguments as `intrinsic_args` lists: past here, each
     // one sits where its kind says.
-    if e.args.len() != spec.args.len() {
+    expected :: AST.intrinsic_args(e.intrinsic).len()
+    if e.args.len() != expected {
         diags.push(typecheck_error(.WrongArgCount, e.span,
-            "`@${e.name}` expected ${spec.args.len()}, got ${e.args.len()}"))
-        return type_for_result(spec.result, typed)
+            "`@${info.name}` expected ${expected}, got ${e.args.len()}"))
+        return type_for_result(info.result, typed)
     }
-    if e.name == "fields" || e.name == "field_index" {
-        check_struct_argument(e, typed, diags)
+    return match e.intrinsic {
+        .Fields     -> {
+            check_struct_argument(e, typed, diags)
+            type_for_result(info.result, typed)
+        }
+        .FieldIndex -> {
+            check_struct_argument(e, typed, diags)
+            check_field_index(e, typed, diags)
+            type_for_result(info.result, typed)
+        }
+        .Field       -> infer_field_intrinsic(e, typed, diags)
+        .Min | .Max  -> integer_bound_type(e, typed, diags)
+        .SizeOf | .AlignOf | .TypeName | .TypeKind | .FieldCount | .VariantCount
+            | .Satisfies | .TypeOf | .TypeArgs -> type_for_result(info.result, typed)
     }
-    if e.name == "field_index" {
-        check_field_index(e, typed, diags)
-    }
-    if e.name == "field" {
-        return infer_field_intrinsic(e, typed, diags)
-    }
-    if e.name == "min" || e.name == "max" {
-        return integer_bound_type(e, typed, diags)
-    }
-    return type_for_result(spec.result, typed)
 }
 
 // Type-check a value argument. One that names a type (`@size_of(i32)`,
 // `@size_of(null)`) is recorded as a `.Type` argument is, so the lowerer folds it
 // statically; any other must be a `type` when `kind` is `.TypeValue`.
 check_intrinsic_value :: fn(
-    arg: AST.Expr, kind: IntrinsicArgKind, typed: TypedProgram, diags: Diagnostic[],
+    arg: AST.Expr, kind: AST.IntrinsicArgKind, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     got :: check_expr(arg, null, typed, diags)
     if is_type_operand(arg, typed.resolved) {
@@ -118,7 +116,8 @@ check_struct_argument :: fn(
     owner :: typed.type_expr_types[e.args[0].span.hash()] else return
     if is_known_non_struct(owner) {
         diags.push(typecheck_error(.TypeMismatch, e.args[0].span,
-            "`@${e.name}` reads the fields of a struct, got `${display_type(owner)}`"))
+            "`@${AST.intrinsic_name(e.intrinsic)}` reads the fields of a struct, "
+                + "got `${display_type(owner)}`"))
     }
 }
 

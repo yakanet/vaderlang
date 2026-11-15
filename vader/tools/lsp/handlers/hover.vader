@@ -4,17 +4,17 @@
 // (both 0-based). A hover on a declaration reads like an IDE's quick
 // documentation :
 //
-//     toolchain/parser › IntrinsicSpec      the module, and the owning type
+//     toolchain/ast › Intrinsic             the module, and the owning type
 //     ```
 //     @intrinsic                            decorators, `export`, the head :
 //     export arg_kind :: fn(                a long parameter list one per line,
-//         spec: IntrinsicSpec,              a struct's fields, an enum's variants
+//         intrinsic: Intrinsic,             a struct's fields, an enum's variants
 //         i: i64,
 //     ) -> IntrinsicArgKind
 //     ```
 //     ---
 //     The vaderdoc, its tags as sections.
-//     *intrinsics.vader*                    the declaring file
+//     *intrinsic.vader*                     the declaring file
 //
 // A value without a declaration of its own (a local, a sub-expression) shows its
 // inferred type, and `@name` the decorator's or the intrinsic's documentation.
@@ -213,8 +213,9 @@ builtin_hover :: fn(name: string) -> JsonValue | null {
     if deco != null {
         return markdown_hover(["decorator", code_fence(deco.usage), "---", deco.doc].join("\n\n"))
     }
-    intrinsic :: Parser.intrinsic_spec(name) else return null
-    return markdown_hover(["intrinsic", code_fence(intrinsic.signature), "---", intrinsic.doc].join("\n\n"))
+    intrinsic :: AST.intrinsic_named(name) else return null
+    info :: AST.intrinsic_info(intrinsic)
+    return markdown_hover(["intrinsic", code_fence(info.signature), "---", info.doc].join("\n\n"))
 }
 
 // ---- vaderdoc ------------------------------------------------------------

@@ -2747,7 +2747,7 @@ emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {
     holds :: self.holds_own_comment(bounds, x.args, (e) -> e.span)
     inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma, holds)
     self.write("@")
-    self.write(x.name)
+    self.write(p.intrinsic_name(x.intrinsic))
     self.emit_comma_list(x.args, "(", ")", false, inline, emit_expr_item, (e) -> e.span, bounds)
 }
 

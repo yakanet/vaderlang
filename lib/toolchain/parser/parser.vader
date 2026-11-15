@@ -3158,8 +3158,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
             partial :: name_tok.text == "partial"
             return p.parse_match_expr(partial, !partial, at_tok.span)
         }
-        spec :: intrinsic_spec(name_tok.text)
-        match spec {
+        match intrinsic :: intrinsic_named(name_tok.text) {
             is null -> {
                 p.error(.UnknownDecoratorPlacement,
                     p.span_of(at_tok, name_tok),
@@ -3176,8 +3175,8 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 // which would cascade an R2006 the user can't act on.
                 return NullLitExpr { .span = p.span_of(at_tok, name_tok) }
             }
-            is IntrinsicSpec -> {
-                p.expect(.LParen, "`(` after `@${spec.name}`")
+            is Intrinsic -> {
+                p.expect(.LParen, "`(` after `@${name_tok.text}`")
                 args: Expr[]: []
                 p.skip_newlines()
                 intr_trailing := false
@@ -3190,7 +3189,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                         // `[]`, `|` etc. parse with type semantics ;
                         // value-shape args go through the regular expr
                         // parser.
-                        if spec.arg_kind(idx) == .Type {
+                        if arg_kind(intrinsic, idx) == .Type {
                             args.push(p.parse_type())
                         } else {
                             args.push(p.parse_expr(0))
@@ -3201,10 +3200,10 @@ parse_prefix :: fn(p: Parser) -> Expr {
                         intr_trailing = p.check(.RParen)
                     }
                 }
-                end :: p.expect(.RParen, "`)` to close `@${spec.name}(...)`")
+                end :: p.expect(.RParen, "`)` to close `@${name_tok.text}(...)`")
                 return IntrinsicCallExpr {
                     .span      = p.span_of(at_tok, end),
-                    .name      = spec.name,
+                    .intrinsic = intrinsic,
                     .name_span = name_tok.span,
                     .args      = args,
                     .trailing_comma = intr_trailing,

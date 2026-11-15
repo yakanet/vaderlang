@@ -1492,13 +1492,12 @@ export GenericInstExpr :: struct {
 
 /// A call to a compiler intrinsic: `@size_of(T)`, `@type_name(T)`.
 ///
-/// `name` is the intrinsic ident WITHOUT the leading `@`. The recognised set lives
-/// in `toolchain/parser/intrinsics.vader`, and the parser mints this node only for a
-/// known name: an unknown `@name(...)` in expression position raises P1014.
+/// The parser mints this node only for a known `Intrinsic`: an unknown
+/// `@name(...)` in expression position raises P1014.
 export IntrinsicCallExpr :: struct {
     span:      Span
     id:        i64 = UNASSIGNED_NODE_ID
-    name:      string
+    intrinsic: Intrinsic
     name_span: Span
     args:      Expr[]
     trailing_comma: bool = false

@@ -454,7 +454,7 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
         is AST.IntrinsicCallExpr -> {
             // Tag `@name` as Decorator so intrinsics colour like decorators
             // (`@test`, `@extern`) rather than falling through uncoloured.
-            push_name_token(out, e.span.start, 1, e.name, .Decorator)
+            push_name_token(out, e.span.start, 1, AST.intrinsic_name(e.intrinsic), .Decorator)
             for a in e.args { walk_expr(a, out) }
         }
         is AST.DotVariantExpr -> { push_span(out, e.span, .EnumMember) }

@@ -1002,7 +1002,7 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.open_obj()
             sb.kind_entry(level + 1, "IntrinsicCallExpr")
             sb.entry(false, level + 1, "name")
-            sb.write_string(e.name)
+            sb.write_string(intrinsic_name(e.intrinsic))
             sb.entry(false, level + 1, "args")
             sb.write_exprs(e.args, level + 1)
             sb.close_obj(level)

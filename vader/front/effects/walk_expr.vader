@@ -13,7 +13,6 @@ import "vader/core/types"
 import "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
-Parse :: import "toolchain/parser"
 
 /// The slot of `e`'s value, `e` walked ; null when it holds nothing lent. An
 /// implicit `into` at `e` hands on what the conversion returns of it.
@@ -80,7 +79,7 @@ nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
 // when a `@comptime for` only names it once unrolled. Any other intrinsic returns a
 // value that holds nothing lent.
 intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
-    if e.name != "field" || e.args.len() != 2 {
+    if e.intrinsic != .Field || e.args.len() != 2 {
         return ctx.evaluated_arguments_walked(e)
     }
     target :: ctx.value(e.args[0])
@@ -102,21 +101,12 @@ any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: i64 | null) -> i64 | nul
     return ctx.union_of(held)
 }
 
-// Walk the arguments `e` runs (`Parse.is_evaluated`).
+// Walk the arguments `e` runs (`AST.is_evaluated`).
 evaluated_arguments_walked :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
-    spec :: Parse.intrinsic_spec(e.name) else return ctx.sequence_walked(e.args)
     for i in 0..<e.args.len() {
-        if Parse.is_evaluated(Parse.arg_kind(spec, i)) {
+        if AST.is_evaluated(AST.arg_kind(e.intrinsic, i)) {
             ctx.discard(e.args[i])
         }
-    }
-    return null
-}
-
-// Walk each of `exprs`, whose values hold nothing lent.
-sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> i64 | null {
-    for e in exprs {
-        ctx.discard(e)
     }
     return null
 }
