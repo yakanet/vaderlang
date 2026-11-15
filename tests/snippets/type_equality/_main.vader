@@ -1,0 +1,21 @@
+// Two types compare by what they name, on both backends: each `type.const`
+// builds its own value, so identity would answer `false` to `u64 == u64`.
+// A constant whose `@comptime` value is a type reads as that type.
+
+module "snippet"
+
+import "std/console"
+
+@alias Word :: u64
+
+WIDE :: @comptime u64
+
+same :: fn(a: type, b: type) -> bool = a == b
+
+main :: fn() -> i32 {
+    x: u64: 3
+    println("${u64 == u64} ${u64 == i64} ${u32 == i32} ${string == string}")
+    println("${Word == u64} ${@type_of(x) == u64} ${same(u64, u64)} ${same(u64, i64)}")
+    println("${WIDE == u64} ${WIDE == i64} ${@size_of(WIDE)}")
+    return 0
+}

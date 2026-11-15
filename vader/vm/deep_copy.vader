@@ -158,7 +158,7 @@ restore :: fn(walk: CopyWalk) -> void {
             is ObjVal          -> {
                 source.type_id = kept
             }
-            is FnVal | TypeVal -> {}
+            is FnVal           -> {}
         }
     }
 }

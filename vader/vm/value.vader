@@ -319,7 +319,9 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 
 /// `ref.eq` / `ref.ne`: value equality for null and the scalars the VM boxes,
 /// identity for a heap value: what a pointer compare answers natively, and what
-/// `===` asks. A baked const is one shared object on both backends.
+/// `===` asks. A baked const is one shared object on both backends. A type
+/// compares its index in the type table, which the native payload holds in
+/// place of a pointer: each `type.const` boxes a new `TypeVal`.
 export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     is NullVal   -> b is NullVal
     is I32Val    -> b is I32Val && a == b
@@ -330,10 +332,11 @@ export value_ref_eq :: fn(a: Value, b: Value) -> bool = match a {
     // A boxed float compares its bits, as the native payload compare does.
     is F64Val    -> b is F64Val && f64(a).to_bits() == f64(b).to_bits()
     is HeapVal   -> b is HeapVal && a === b
+    is TypeVal   -> b is TypeVal && a.type_id == b.type_id
 }
 
 // The values the VM allocates, each an object with an identity.
-HeapVal :: StructVal | ArrayVal | FnVal | TypeVal | ObjVal
+HeapVal :: StructVal | ArrayVal | FnVal | ObjVal
 
 /// Type-check : does `v`'s runtime tag match `state.bc.types[type_id]` ?
 /// Returns `false` for `BcFn` (placeholder until ref/trait dispatch lands).

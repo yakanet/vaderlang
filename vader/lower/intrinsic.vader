@@ -379,23 +379,11 @@ arg_ty_or_unresolved :: fn(t: Type | null) -> Type {
 resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     raw :: ctx.types.type_expr_type(arg)
     if !(raw is UnresolvedType) { return raw }
-    // A name the type of the argument does not resolve:
-    //   - an in-fn alias, `t :: i32` inside a fn body, whose type the typer
-    //     stashed in `let_type_aliases`, keyed by the local's symbol;
-    //   - a constant whose `@comptime` value is a type (`T :: @comptime u8`),
-    //     read from its baked `TypeValue`.
     if arg is IdentExpr {
-        // The resolver's own symbol, not an instance's clone: the tables below are
-        // keyed by its id.
+        // The resolver's own symbol, not an instance's clone: the tables are keyed
+        // by its id.
         sym :: ctx.typed.resolved.idents[arg.span.hash()] else return raw
-        aliased :: ctx.typed.let_type_aliases[sym.id]
-        if aliased != null {
-            return aliased
-        }
-        baked :: ctx.project.comptime_value_by_symbol_id[sym.id]
-        if baked is TypeValue {
-            return baked.value
-        }
+        return resolve_type_meta_symbol(ctx, sym) else raw
     }
     return raw
 }

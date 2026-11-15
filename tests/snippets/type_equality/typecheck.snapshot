@@ -1,0 +1,58 @@
+# Typecheck
+
+## tests/snippets/type_equality
+  FnDecl         __comptime_WIDE      :: fn() -> type
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         same                 :: fn(type, type) -> bool
+  ConstDecl      WIDE                 :: type
+  ConstDecl      Word                 :: type
+  expr 11:1     IdentExpr      :: fn() -> type
+  expr 11:19    IdentExpr      :: type
+  expr 11:9     CallExpr       :: type
+  expr 13:40    BinaryExpr     :: bool
+  expr 13:40    IdentExpr      :: type
+  expr 13:45    IdentExpr      :: type
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    BinaryExpr     :: bool
+  expr 17:16    IdentExpr      :: type
+  expr 17:23    IdentExpr      :: type
+  expr 17:30    BinaryExpr     :: bool
+  expr 17:30    IdentExpr      :: type
+  expr 17:37    IdentExpr      :: type
+  expr 17:44    BinaryExpr     :: bool
+  expr 17:44    IdentExpr      :: type
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 17:51    IdentExpr      :: type
+  expr 17:58    BinaryExpr     :: bool
+  expr 17:58    IdentExpr      :: type
+  expr 17:68    IdentExpr      :: type
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    BinaryExpr     :: bool
+  expr 18:16    IdentExpr      :: type
+  expr 18:24    IdentExpr      :: type
+  expr 18:31    BinaryExpr     :: bool
+  expr 18:31    IntrinsicCallExpr :: type
+  expr 18:40    IdentExpr      :: u64
+  expr 18:46    IdentExpr      :: type
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 18:53    CallExpr       :: bool
+  expr 18:53    IdentExpr      :: fn(type, type) -> bool
+  expr 18:58    IdentExpr      :: type
+  expr 18:63    IdentExpr      :: type
+  expr 18:71    CallExpr       :: bool
+  expr 18:71    IdentExpr      :: fn(type, type) -> bool
+  expr 18:76    IdentExpr      :: type
+  expr 18:81    IdentExpr      :: type
+  expr 19:13    StringLitExpr  :: string
+  expr 19:16    BinaryExpr     :: bool
+  expr 19:16    IdentExpr      :: type
+  expr 19:24    IdentExpr      :: type
+  expr 19:31    BinaryExpr     :: bool
+  expr 19:31    IdentExpr      :: type
+  expr 19:39    IdentExpr      :: type
+  expr 19:46    IntrinsicCallExpr :: i64
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 19:55    IdentExpr      :: type

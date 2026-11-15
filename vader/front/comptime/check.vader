@@ -10,6 +10,7 @@ import "std/collections"
 import "std/iter"
 import "toolchain/diagnostics"
 import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 AST :: import "toolchain/ast"
@@ -77,6 +78,15 @@ evaluate_module_decls :: fn(
         if result.vm_required {
             symbol :: symbol_declared_at(typed.resolved, decl.name_span)
             if symbol != null {
+                // The VM holds a type as an index into the bytecode's type
+                // table, where an enum shares its integer's slot and a distinct
+                // its backing's: what it computes cannot come back as a source
+                // type.
+                if typed.decl_types[symbol.id] is TypeMetaType {
+                    diags.push(comptime_error(.CannotEvaluate, decl.span,
+                        "a type computed by running code (a branch, a loop) cannot be baked yet"))
+                    continue
+                }
                 record :: build_vm_required(decl, symbol, typed, module_id)
                 if record is VmRequiredDecl {
                     project.vm_required.push(record)

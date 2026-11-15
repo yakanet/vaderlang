@@ -1,0 +1,10 @@
+// C4001: a type the compiler gets only by running code (here a branch) cannot
+// be baked into a constant yet; a type named directly can.
+
+module "snippet"
+
+WIDE :: true
+
+PICKED :: @comptime if WIDE { u64 } else { u16 }
+
+main :: fn() -> i32 = i32(@size_of(PICKED))

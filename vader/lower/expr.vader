@@ -512,15 +512,25 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
     }
 }
 
-/// Reify a TypeMeta-typed symbol's underlying Type.
-/// Sources: `@comptime const X :: Type` aliases land in
-/// `resolved.alias_types`; primitive builtins reconstruct from their
-/// name. Returns null for shapes we can't reify yet (e.g. type-params).
+/// Reify a TypeMeta-typed symbol's underlying Type: a type alias
+/// (`resolved.alias_types`), a primitive builtin, an in-fn alias, or a constant
+/// whose `@comptime` value is a type. Returns null for shapes we can't reify yet
+/// (e.g. type-params).
 resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     aliased :: ctx.typed.resolved.alias_types[symbol.id]
-    if !(aliased is null) { return aliased }
+    if aliased != null {
+        return aliased
+    }
     if symbol.kind == .BuiltinType {
         return primitive_from_name(symbol.name)
+    }
+    local :: ctx.typed.let_type_aliases[symbol.id]
+    if local != null {
+        return local
+    }
+    baked :: lookup_const_baked_value(ctx, symbol)
+    if baked is TypeValue {
+        return baked.value
     }
     return null
 }
