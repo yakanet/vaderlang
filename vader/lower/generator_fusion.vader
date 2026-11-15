@@ -126,12 +126,21 @@ declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | 
 }
 
 // The binding of each of `type_params`, listed as they are, once each pattern is
-// unified with its actual in order: the first binding of a parameter wins ;
-// null when one stays unbound.
-unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_params: Symbol[]) -> Type[] | null {
+// unified with its actual in order: the first binding of a parameter wins, and
+// `fallback` binds what no pattern reached ; null when one stays unbound.
+unify_type_args :: fn(
+    ctx: FnLowerCtx,
+    patterns: Type[],
+    actuals: Type[],
+    type_params: Symbol[],
+    fallback: Map<i32, Type>,
+) -> Type[] | null {
     bindings :: Map<i32, Type> {}
     for k in 0..<patterns.len() {
         unify_params(patterns[k], actuals[k], bindings, ctx)
+    }
+    for [id, bound] in fallback {
+        bindings.get_or_put(id, bound)
     }
     out: Type[]: []
     for tp in type_params {
@@ -349,8 +358,16 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     // instance subst (map/filter's transform carries the element concretely) and is
     // bound once ahead of the loops.
     data_arg :: if arg_is_data { fluent.fn_arg } else { null }
-    subst_opt :: gen_combo_subst(ctx, decl, owner, callee_sym, fluent.receiver, data_arg, chain_element_type(source))
-        else return null
+    subst_opt :: gen_combo_subst(
+        ctx,
+        call,
+        decl,
+        owner,
+        callee_sym,
+        fluent.receiver,
+        data_arg,
+        chain_element_type(source),
+    ) else return null
     arg_sym :: if arg_is_data { combinator_arg_sym(ctx, decl, owner) } else { null }
     if arg_is_data && arg_sym is null { return null }
     arg_slot :: if arg_is_data { combinator_arg_slot(owner, callee_sym, subst_opt) } else { null }
@@ -473,10 +490,12 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
 // The instance substitution for a generator combinator: empty when non-generic,
 // else inferred by unifying `self`'s element pattern with the fused source's
 // element, then the data param with `fn_arg`'s type: from the normalised
-// `(receiver, fn_arg)`, so UFCS and direct calls alike. Null when a type param
-// stays unbound (bail to the struct/boxed path).
+// `(receiver, fn_arg)`, so UFCS and direct calls alike. A param no operand carries
+// (one only the call writes, the `U` of `it.f<U>()`) takes what the typecheck
+// recorded at `call`. Null when a type param stays unbound (bail to the struct/boxed
+// path).
 gen_combo_subst :: fn(
-    ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, callee_sym: Symbol,
+    ctx: FnLowerCtx, call: AST.CallExpr, decl: AST.FnDecl, owner: TypedProgram, callee_sym: Symbol,
     receiver: AST.Expr, fn_arg: AST.Expr | null, source_elem: Type,
 ) -> Substitution | null {
     if decl.type_params.len() == 0 { return new_substitution() }
@@ -503,7 +522,8 @@ gen_combo_subst :: fn(
         actuals.push(default_if_free(ctx.types.expr_type(fn_arg)))
     }
     type_params :: declared_type_params(decl, owner) else return null
-    concrete :: unify_type_args(ctx, patterns, actuals, type_params) else return null
+    recorded :: recorded_bindings(ctx, call, .Call)
+    concrete :: unify_type_args(ctx, patterns, actuals, type_params, recorded) else return null
     return subst_from_concrete(decl, owner, concrete)
 }
 

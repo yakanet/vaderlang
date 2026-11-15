@@ -1,0 +1,134 @@
+# Lower
+
+## snippet
+  snippet.Cat :: struct { name: string }  // snippet$Cat
+  snippet.Dog :: struct { tricks: i32 }  // snippet$Dog
+  snippet.total_tricks :: fn(pets: (Cat | Dog)[]) -> i32 {  // snippet$total_tricks
+      n: i32 = 0
+      {
+          __fuse_arr_0: (Cat | Dog)[] = pets
+          __fuse_len_1: i64 = @array.len(__fuse_arr_0)
+          __fuse_i_2: i64 = 0
+          for __fuse_i_2 < __fuse_len_1 {
+              x: Cat | Dog = __fuse_arr_0[__fuse_i_2]
+              if x is Dog {
+                  d: Dog = Dog(x)
+                  n = n + d.tricks
+              }
+          } @step {
+              __fuse_i_2 = __fuse_i_2 +% i64(1)
+          }
+      }
+      return n
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      pets: (Cat | Dog)[] = [Cat { .name = "tom" }, Dog { .tricks = 3 }, Dog { .tricks = 4 }] :(Cat | Dog)[]
+      names: string[] = {
+          __fuse_arr_0: (Cat | Dog)[] = pets
+          f: fn(Cat) -> string = __lambda_snippet_0
+          out: string[] = [] :string[]
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_0)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: Cat | Dog = __fuse_arr_0[__fuse_i_1]
+                  if x is Cat {
+                      x: Cat = Cat(x)
+                      x: string = __lambda_snippet_0(x)
+                      @array.push_cached(out, x)
+                  }
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          out
+      }
+      mixed: (f64 | i32 | string)[] = [1, "a", 2.5, 3] :(f64 | i32 | string)[]
+      std.console.println<string>({
+          __p_2: i32 = snippet.total_tricks(pets)
+          __p_3: i64 = @array.len(names)
+          __p_4: string = names[0]
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(60) +% std.core.byte_len(__p_4))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "tricks=")
+          __off_6 = std.core.write_int(__buf_5, __off_6, __p_2)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " cats=")
+          __off_6 = std.core.write_int(__buf_5, __off_6, __p_3)
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " first=")
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      direct: i64 = {
+          __fuse_arr_7: (Cat | Dog)[] = pets
+          total: i64 = 0
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_7)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: Cat | Dog = __fuse_arr_7[__fuse_i_1]
+                  if x is Dog {
+                      _: Dog = Dog(x)
+                      total = total + i64(1)
+                  }
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          total
+      }
+      std.console.println<string>({
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(56))
+          __off_12: i64 = 0
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "numbers=")
+          __off_12 = std.core.write_int(__buf_11, __off_12, {
+              __fuse_arr_9: (f64 | i32 | string)[] = mixed
+              total: i64 = 0
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_9)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: f64 | i32 | string = __fuse_arr_9[__fuse_i_1]
+                      if x is f64 | i32 {
+                          _: f64 | i32 = (f64 | i32)(x)
+                          total = total + i64(1)
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              total
+          } :i64)
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " direct=")
+          __off_12 = std.core.write_int(__buf_11, __off_12, direct)
+          std.core.finish_buffer(__buf_11, __off_12)
+      } :string)
+      return 0
+  }
+  __lambda_snippet_0 :: fn(c: Cat) -> string {
+      c.name
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

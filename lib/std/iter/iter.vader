@@ -2,8 +2,8 @@
 //
 //   - **Combinators** `map` / `filter` / `take` / `skip` / `take_while` /
 //     `skip_while` / `step_by` / `scan` / `indexed` / `flat_map` / `chain` /
-//     `zip` / `window` / `chunked` / `distinct` / `filter_not_null` are
-//     `generator`s. `arr.map(f)` / `it.indexed()` read like
+//     `zip` / `window` / `chunked` / `distinct` / `filter_not_null` /
+//     `filter_is` are `generator`s. `arr.map(f)` / `it.indexed()` read like
 //     a pipeline and dispatch via UFCS ; consumed by a `for` loop or a terminal
 //     (`collect` / `count` / `any_match` / ...), the chain fuses to a single flat
 //     loop: no intermediate arrays, no iterator struct, no `next()` dispatch
@@ -251,6 +251,25 @@ export distinct :: fn<T: Hash & Equals>(self: Iterator<T>) -> Iterator<T> {
 export filter_not_null :: fn<T>(self: Iterator<T | null>) -> Iterator<T> {
     for x in self {
         if x != null {
+            yield x
+        }
+    }
+}
+
+/// Lazily yield the elements of `self` that are a `U`, typed as `U`.
+///
+/// `U` comes first so that a call writes it alone and the element type is inferred:
+/// `pets.filter_is<Dog>()`. `U` may be a union (`filter_is<i32 | f64>()`); a `U` no
+/// element can be yields nothing.
+///
+/// @param self  source iterator, usually over a union.
+/// @return      a lazy `Iterator<U>`: the elements of `self` that pass `is U`.
+/// @example
+///   mixed: (i32 | string)[]: [1, "a", 2]
+///   for n in mixed.filter_is<i32>() { println("${n + 1}") }   // 2 3
+export filter_is :: fn<U, T>(self: Iterator<T>) -> Iterator<U> {
+    for x in self {
+        if x is U {
             yield x
         }
     }
@@ -686,6 +705,22 @@ import "std/testing"
 @test test_filter_not_null :: fn() -> void {
     maybe: (i32 | null)[]: [1, null, 3, null]
     assert_eq(maybe.filter_not_null().sum(), 4)
+}
+
+@test test_filter_is_keeps_one_variant :: fn() -> void {
+    mixed: (i32 | string)[]: [1, "a", 2, "b", 3]
+    assert_eq(mixed.filter_is<i32>().sum(), 6)
+    assert_eq(mixed.filter_is<string>().fold("", (acc: string, s: string) -> acc + s), "ab")
+}
+
+@test test_filter_is_keeps_a_union :: fn() -> void {
+    mixed: (i32 | string | f64)[]: [1, "a", 2.5, 3]
+    assert_eq(mixed.filter_is<i32 | f64>().count(), 3)
+}
+
+@test test_filter_is_on_an_absent_type_yields_nothing :: fn() -> void {
+    words: (string | bool)[]: ["a", true]
+    assert_eq(words.filter_is<i32>().count(), 0)
 }
 
 @test test_any_match :: fn() -> void {

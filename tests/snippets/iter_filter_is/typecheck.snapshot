@@ -1,0 +1,57 @@
+# Typecheck
+
+## tests/snippets/iter_filter_is
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         total_tricks         :: fn((Cat | Dog)[]) -> i32
+  expr 16:14    CallExpr       :: Iterator<Dog>
+  expr 16:14    FieldExpr      :: fn() -> Iterator<Dog>
+  expr 16:14    IdentExpr      :: (Cat | Dog)[]
+  expr 17:14    FieldExpr      :: i32
+  expr 17:14    IdentExpr      :: Dog
+  expr 17:9     BinaryExpr     :: i32
+  expr 17:9     IdentExpr      :: i32
+  expr 19:12    IdentExpr      :: i32
+  expr 23:26    SeqLitExpr     :: (Cat | Dog)[]
+  expr 23:27    StructLitExpr  :: Cat
+  expr 23:41    StringLitExpr  :: string
+  expr 23:50    StructLitExpr  :: Dog
+  expr 23:71    StructLitExpr  :: Dog
+  expr 24:14    CallExpr       :: Iterator<Cat>
+  expr 24:14    CallExpr       :: Iterator<string>
+  expr 24:14    CallExpr       :: string[]
+  expr 24:14    FieldExpr      :: fn() -> Iterator<Cat>
+  expr 24:14    FieldExpr      :: fn() -> string[]
+  expr 24:14    FieldExpr      :: fn(fn(Cat) -> string) -> Iterator<string>
+  expr 24:14    IdentExpr      :: (Cat | Dog)[]
+  expr 24:40    LambdaExpr     :: fn(Cat) -> string
+  expr 24:52    FieldExpr      :: string
+  expr 24:52    IdentExpr      :: Cat
+  expr 25:36    SeqLitExpr     :: (f64 | i32 | string)[]
+  expr 25:40    StringLitExpr  :: string
+  expr 26:13    StringLitExpr  :: string
+  expr 26:23    CallExpr       :: i32
+  expr 26:23    IdentExpr      :: fn((Cat | Dog)[]) -> i32
+  expr 26:36    IdentExpr      :: (Cat | Dog)[]
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 26:50    CallExpr       :: i64
+  expr 26:50    FieldExpr      :: fn() -> i64
+  expr 26:50    IdentExpr      :: string[]
+  expr 26:71    IdentExpr      :: string[]
+  expr 26:71    IndexExpr      :: string
+  expr 27:15    CallExpr       :: Iterator<Dog>
+  expr 27:15    CallExpr       :: i64
+  expr 27:15    FieldExpr      :: fn() -> i64
+  expr 27:15    IdentExpr      :: fn(Iterator<T>) -> Iterator<U>
+  expr 27:30    IdentExpr      :: (Cat | Dog)[]
+  expr 28:13    StringLitExpr  :: string
+  expr 28:24    CallExpr       :: Iterator<f64 | i32>
+  expr 28:24    CallExpr       :: i64
+  expr 28:24    FieldExpr      :: fn() -> Iterator<f64 | i32>
+  expr 28:24    FieldExpr      :: fn() -> i64
+  expr 28:24    IdentExpr      :: (f64 | i32 | string)[]
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 28:71    IdentExpr      :: i64

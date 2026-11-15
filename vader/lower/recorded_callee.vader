@@ -258,6 +258,24 @@ runs_builtin_equals :: fn(callee: Callee | null) -> bool {
     return callee is BoundMember && callee.trait_key == core_trait_key(TRAIT_EQUALS)
 }
 
+/// The type arguments the typecheck recorded for the site `role` plays at `node`, at
+/// this instance ; empty when the site is no recorded direct call.
+///
+/// @param node  the call, or the name of a fn used as a value.
+/// @param role  `.Call` or `.Reference`.
+recorded_bindings :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole) -> Map<i32, Type> {
+    bindings :: Map<i32, Type> {}
+    callee :: recorded_callee(ctx, node, role)
+    if callee !is DirectFn {
+        return bindings
+    }
+    recorded :: callee.bindings else return bindings
+    for [id, bound] in recorded {
+        bindings[id] = ctx.types.apply(bound)
+    }
+    return bindings
+}
+
 /// The type arguments the site `role` plays at `node` gives the generic fn `fn_sym`,
 /// in its declaration's order, at this instance : those the typecheck recorded,
 /// and, for one a call left to the instance (`count(it)` with `it: I` and
@@ -277,11 +295,7 @@ recorded_type_args :: fn(
     }
     owner :: resolve_owner_typed(ctx, fn_sym.module) else return null
     declared :: declared_type_params(callee.decl, owner) else return null
-    recorded :: callee.bindings else Map<i32, Type> {}
-    bindings :: Map<i32, Type> {}
-    for [id, bound] in recorded {
-        bindings[id] = ctx.types.apply(bound)
-    }
+    bindings :: recorded_bindings(ctx, node, role)
     if node is CallExpr && leaves_unbound(declared, bindings) {
         bind_at_instance(ctx, node, fn_signature(owner, fn_sym), bindings)
     }

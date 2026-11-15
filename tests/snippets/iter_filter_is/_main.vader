@@ -1,0 +1,30 @@
+// `filter_is<U>()` keeps the elements that are a `U`, typed as `U`. Its `U` is
+// written at the call and carried by no operand, so the fusion takes it from the
+// call's recorded type arguments: over an array, `lower.snapshot` must show one
+// indexed loop with the `is` test inside, no `Iterator.next` call.
+
+module "snippet"
+
+import "std/console"
+import "std/iter"
+
+Cat :: struct { name: string }
+Dog :: struct { tricks: i32 }
+
+total_tricks :: fn(pets: (Cat | Dog)[]) -> i32 {
+    n: i32 = 0
+    for d in pets.filter_is<Dog>() {
+        n += d.tricks
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    pets: (Cat | Dog)[]: [Cat { .name = "tom" }, Dog { .tricks = 3 }, Dog { .tricks = 4 }]
+    names :: pets.filter_is<Cat>().map((c: Cat) -> c.name).collect()
+    mixed: (i32 | string | f64)[]: [1, "a", 2.5, 3]
+    println("tricks=${total_tricks(pets)} cats=${names.len()} first=${names[0]}")
+    direct :: filter_is<Dog>(pets).count()
+    println("numbers=${mixed.filter_is<i32 | f64>().count()} direct=${direct}")
+    return 0
+}
