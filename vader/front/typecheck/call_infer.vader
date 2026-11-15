@@ -390,7 +390,7 @@ report_unsolved :: fn(
     if unsolved.len() == 0 || arg_types.len() != callee_ty.params.len() {
         return
     }
-    if arg_types.any_match((t) -> type_contains_unresolved(t)) {
+    if arg_types.any_match(type_contains_unresolved) {
         return
     }
     for sym in unsolved {

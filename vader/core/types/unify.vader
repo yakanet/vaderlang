@@ -322,36 +322,7 @@ export mentions_infer_var :: fn(t: Type, id: i32) -> bool = holds_infer_var(t, i
 /// parameter at `?`.
 ///
 /// @param t  the type to scan.
-export type_contains_unresolved :: fn(t: Type) -> bool {
-    // @partial: only these variants have inner types to walk ; every scalar /
-    // primitive variant carries nothing unresolved.
-    @partial match t {
-        is UnresolvedType -> { return true }
-        is ArrayType -> { return type_contains_unresolved(t.element) }
-        is TupleType -> {
-            for el in t.elements { if type_contains_unresolved(el) { return true } }
-            return false
-        }
-        is StructType -> {
-            for a in t.args { if type_contains_unresolved(a) { return true } }
-            return false
-        }
-        is TraitType -> {
-            for a in t.args { if type_contains_unresolved(a) { return true } }
-            return false
-        }
-        is FnType -> {
-            for p in t.params { if type_contains_unresolved(p) { return true } }
-            return type_contains_unresolved(t.return_type)
-        }
-        is UnionType -> {
-            for v in t.variants { if type_contains_unresolved(v) { return true } }
-            return false
-        }
-        is DistinctType -> { return type_contains_unresolved(t.backing) }
-        _ -> { return false }
-    }
-}
+export type_contains_unresolved :: fn(t: Type) -> bool = any_type(t, (x) -> x is UnresolvedType)
 
 /// Whether `t` mentions any inference variable.
 ///

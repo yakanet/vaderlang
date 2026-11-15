@@ -10,6 +10,7 @@
 module "vader/core/types"
 
 import "std/collections"
+import "std/iter"
 
 // ---- by a substitution ----------------------------------------------------
 
@@ -210,20 +211,16 @@ erase_params_in :: fn(t: Type) -> Type = @partial match t {
     is TypeParamType -> TY_UNRESOLVED
     is InferVar      -> TY_UNRESOLVED
     is ArrayType     -> mk_array(erase_params_in(t.element))
-    is TupleType     -> mk_tuple(erase_each(t.elements))
-    is StructType    -> mk_struct(t.symbol, erase_each(t.args))
-    is TraitType     -> TraitType { ...t, .args = erase_each(t.args) }
-    is FnType        -> mk_fn(erase_each(t.params), erase_params_in(t.return_type))
-    is UnionType     -> mk_union(erase_each(t.variants))
+    is TupleType     -> mk_tuple(t.elements.map(erase_params_in).collect())
+    is StructType    -> mk_struct(t.symbol, t.args.map(erase_params_in).collect())
+    is TraitType     -> TraitType { ...t, .args = t.args.map(erase_params_in).collect() }
+    is FnType        -> mk_fn(
+        t.params.map(erase_params_in).collect(),
+        erase_params_in(t.return_type),
+    )
+    is UnionType     -> mk_union(t.variants.map(erase_params_in).collect())
+    is DistinctType  -> DistinctType { ...t, .backing = erase_params_in(t.backing) }
     _                -> t
-}
-
-erase_each :: fn(types: Type[]) -> Type[] {
-    out: Type[]: []
-    for t in types {
-        out.push(erase_params_in(t))
-    }
-    return out
 }
 
 // ---- what a type still waits on -------------------------------------------
@@ -236,23 +233,21 @@ erase_each :: fn(types: Type[]) -> Type[] {
 /// @param t  the type to scan.
 export type_contains_type_param :: fn(t: Type) -> bool = @partial match t {
     is TypeParamType | InferVar -> true
-    is ArrayType  -> type_contains_type_param(t.element)
-    is TupleType  -> any_contains_type_param(t.elements)
-    is StructType -> any_contains_type_param(t.args)
-    is TraitType  -> any_contains_type_param(t.args)
-    is FnType     -> any_contains_type_param(t.params) || type_contains_type_param(t.return_type)
-    is UnionType  -> any_contains_type_param(t.variants)
-    _             -> false
+    is ArrayType    -> type_contains_type_param(t.element)
+    is TupleType    -> any_contains_type_param(t.elements)
+    is StructType   -> any_contains_type_param(t.args)
+    is TraitType    -> any_contains_type_param(t.args)
+    is FnType       -> any_contains_type_param(t.params) || type_contains_type_param(t.return_type)
+    is UnionType    -> any_contains_type_param(t.variants)
+    is DistinctType -> type_contains_type_param(t.backing)
+    _               -> false
 }
 
 /// Whether any of `ts` contains a type parameter or an inference variable
 /// (`type_contains_type_param`).
 ///
 /// @param ts  the types to scan.
-export any_contains_type_param :: fn(ts: Type[]) -> bool {
-    for t in ts { if type_contains_type_param(t) { return true } }
-    return false
-}
+export any_contains_type_param :: fn(ts: Type[]) -> bool = ts.any_match(type_contains_type_param)
 
 // ---- tests ----------------------------------------------------------------
 
