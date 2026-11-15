@@ -1,0 +1,73 @@
+// vader/front/comptime/decorators: the value of each declared decorator written.
+//
+// `@Route(.Get, "/users/{id}")` builds a `Route`: the typecheck bound each argument
+// to a field (`TypedProgram.decorator_uses`), and this pass evaluates them through
+// the tree-walker, then the defaults of the other fields, into one `StructValue`
+// per decorator written (`EvaluatedProgram.decorator_values`). An argument the
+// tree-walker cannot compute is an error: nothing of a decorator runs with the
+// program.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "toolchain/diagnostics"
+import "vader/core/types"
+import "vader/front/typecheck"
+
+/// Evaluate every declared decorator written in the module of `program`.
+///
+/// @param program    the module's evaluated program, its constants baked ; the
+///                   values go to its `decorator_values`.
+/// @param constants  the constants of the project, for an argument or a default
+///                   that reads one of another module, an enum variant or a struct.
+/// @param diags      where an argument that cannot be evaluated is reported.
+evaluate_decorator_uses :: fn(
+    program: EvaluatedProgram, constants: ProjectConstants, diags: Diagnostic[],
+) -> void {
+    context :: ComptimeContext {
+        .typed = program.typed,
+        .bindings = program.comptime_decls,
+        .project = constants,
+    }
+    for [id, use] in program.typed.decorator_uses {
+        value :: decorator_value(use, context, diags) else continue
+        program.decorator_values[id] = DecoratorValue { .use = use, .value = value }
+    }
+}
+
+// The value `use` builds ; null when an argument or a default fails, reported.
+decorator_value :: fn(
+    use: DecoratorUse, context: ComptimeContext, diags: Diagnostic[],
+) -> StructValue | null {
+    fields :: Map<string, ComptimeValue> {}
+    failed := false
+    for [name, argument] in use.arguments {
+        result :: evaluate_expr(argument, context)
+        value :: result.value else {
+            report_failure(result, diags)
+            failed = true
+            continue
+        }
+        fields[name] = value
+    }
+    if failed {
+        return null
+    }
+    t :: StructType { .symbol = use.symbol, .args = [] }
+    result :: complete_struct(t, fields, use.written.span, context)
+    value :: result.value else {
+        report_failure(result, diags)
+        return null
+    }
+    if value !is StructValue {
+        return null
+    }
+    return value
+}
+
+// A failed evaluation reports its diagnostic ; one with none was reported where it
+// failed.
+report_failure :: fn(result: EvalResult, diags: Diagnostic[]) -> void {
+    diag :: result.diag else return
+    diags.push(diag)
+}

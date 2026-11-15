@@ -55,15 +55,27 @@ evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> 
     if t !is StructType {
         return vm_required(expr.span, "struct literal of a type that is not a struct")
     }
+    return complete_struct(t, fields, expr.span, context)
+}
+
+// A `StructValue` of `t` from the `fields` given (completed in place), the others
+// taking their defaults, each evaluated in the module of the struct that writes
+// its field. `span` is where the value is written, for a failure.
+complete_struct :: fn(
+    t: StructType,
+    fields: Map<string, ComptimeValue>,
+    span: Span,
+    context: ComptimeContext,
+) -> EvalResult {
     declared :: context.typed.struct_fields[t.symbol.id]
-        else return vm_required(expr.span, "struct of no known declaration")
+        else return vm_required(span, "struct of no known declaration")
     for [name, field] in declared {
         default :: field.decl.default
         if name in fields || default == null {
             continue
         }
         owner_context :: declaring_context(field.owner.symbol.module, context)
-            else return vm_required(expr.span, "struct of no known module")
+            else return vm_required(span, "struct of no known module")
         result :: evaluate_expr(default, owner_context)
         value :: result.value else return result
         fields[name] = value

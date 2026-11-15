@@ -1,0 +1,11 @@
+// The places and the option of a decorator declaration are read before any value
+// is computed, so each is a literal: a computed `repeatable` is T3144.
+module "snippet"
+
+ALLOWED :: true
+
+Route :: decorator(.Function, repeatable = ALLOWED) {
+    path: string
+}
+
+main :: fn() -> i32 = 0

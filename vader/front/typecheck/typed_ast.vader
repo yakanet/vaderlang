@@ -328,6 +328,17 @@ export ImplTables :: struct {
     default_returns: Map<i64, Type> = Map<i64, Type> {}
 }
 
+/// A declared decorator written in the module: what the comptime pass evaluates.
+export DecoratorUse :: struct {
+    /// The decorator as written: its span and name, for what the pass reports.
+    written: AST.Decorator
+    /// The decorator's declaration.
+    symbol: Symbol
+    /// The arguments the use gives, by the field each is bound to ; a field left
+    /// out takes its default.
+    arguments: Map<string, AST.Expr>
+}
+
 /// Per-module typechecker output. Every span-keyed side-table uses the
 /// `i64` key produced by `scope.node.span.hash()`: packed
 /// `(line << 32) | column`. Consumers walk the resolved AST and look
@@ -660,6 +671,11 @@ export TypedProgram :: struct {
     /// `@extern` node id -> the `CLibrary` constant it names, as the typecheck
     /// accepted it (`check_extern_library`) ; the comptime pass evaluates each.
     extern_libraries: Map<i64, Symbol> = Map<i64, Symbol> {}
+
+    /// Declared decorator node id -> the decorator it names and its arguments
+    /// bound to the fields, as the typecheck accepted them (`decorator_use.vader`) ;
+    /// the comptime pass evaluates each into a value of the decorator.
+    decorator_uses: Map<i64, DecoratorUse> = Map<i64, DecoratorUse> {}
 
     /// Enum Symbol.id -> its declaration, from which the lowerer builds the enum's
     /// variant data and value tables.

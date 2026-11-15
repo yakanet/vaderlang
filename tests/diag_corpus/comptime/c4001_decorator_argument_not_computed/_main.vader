@@ -1,0 +1,20 @@
+// A decorator's arguments are computed where it is written, by the evaluator that
+// folds constants: `prefix()` runs a loop, which it cannot run, C4001.
+module "snippet"
+
+prefix :: fn() -> string {
+    out := ""
+    for part in ["api", "v1"] {
+        out = "${out}/${part}"
+    }
+    return out
+}
+
+Route :: decorator(.Function) {
+    path: string
+}
+
+@Route(prefix())
+users :: fn() -> i32 = 0
+
+main :: fn() -> i32 = users()

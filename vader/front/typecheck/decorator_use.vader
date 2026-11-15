@@ -9,6 +9,7 @@
 
 module "vader/front/typecheck"
 
+import "std/collections"
 import "std/iter"
 import "std/string"
 AST :: import "toolchain/ast"
@@ -150,7 +151,8 @@ is_repeatable :: fn(declaration: AST.StructDecl) -> bool {
 
 // The arguments of `d` against the fields of the decorator `sym`, as a call's
 // against its parameters: positional ones in field order, then named ones, each
-// field once, the fields without a default all given.
+// field once, the fields without a default all given. The arguments bound to a
+// field are recorded for the comptime pass (`decorator_uses`).
 check_decorator_arguments :: fn(
     d: AST.Decorator, sym: Symbol, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
@@ -159,7 +161,7 @@ check_decorator_arguments :: fn(
     for [name, _] in fields {
         order.push(name)
     }
-    given: string[]: []
+    bound :: Map<string, AST.Expr> {}
     next_position := 0
     seen_named := false
     for a in d.args {
@@ -181,7 +183,7 @@ check_decorator_arguments :: fn(
             if name !in fields {
                 diags.push(typecheck_error(.UnknownNamedArg, a.span,
                     "`@${d.name}` has no field `${name}`"))
-            } else if name in given {
+            } else if name in bound {
                 diags.push(typecheck_error(.ArgumentGivenTwice, a.span,
                     "`${name}` is given already"))
             } else {
@@ -192,13 +194,18 @@ check_decorator_arguments :: fn(
         expected :: if field == null { null } else { field.ty }
         check_decorator_value(a.value, expected, typed, diags)
         if target != null {
-            given.push(target)
+            bound[target] = a.value
         }
     }
     for [name, field] in fields {
-        if field.decl.default == null && name !in given {
+        if field.decl.default == null && name !in bound {
             diags.push(typecheck_error(.MissingRequiredArg, d.span,
                 "`@${d.name}` needs `${name}`"))
         }
+    }
+    typed.decorator_uses[d.id] = DecoratorUse {
+        .written = d,
+        .symbol = sym,
+        .arguments = bound,
     }
 }

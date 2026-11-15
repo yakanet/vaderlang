@@ -54,6 +54,17 @@ export EvaluatedProgram :: struct {
 
     /// Each top-level `@assert` of the module and what its evaluation gave.
     asserts: AssertCheck[] = []
+
+    /// Each declared decorator written in the module, by node id, with its value.
+    decorator_values: Map<i64, DecoratorValue> = Map<i64, DecoratorValue> {}
+}
+
+/// A declared decorator written, and the value of the decorator it builds.
+export DecoratorValue :: struct {
+    /// The decorator as written, its declaration and its arguments.
+    use: DecoratorUse
+    /// Every field filled: the arguments, then the defaults of the others.
+    value: StructValue
 }
 
 /// How the comptime pass produced a const's value.

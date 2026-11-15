@@ -61,7 +61,32 @@ module_items :: fn(module_program: EvaluatedProgram) -> string[] {
         assert_code :: code_span("@assert ${position_of(check.span)}")
         out.push("${assert_code}, ${verdict_word(check.verdict)}")
     }
+    out.push_all(decorator_items(module_program))
     return out
+}
+
+// The module's declared decorators and their values, in source order.
+decorator_items :: fn(module_program: EvaluatedProgram) -> string[] {
+    written: DecoratorValue[]: []
+    for [_, entry] in module_program.decorator_values {
+        written.push(entry)
+    }
+    in_order :: sort(written, (a: DecoratorValue, b: DecoratorValue) -> written_before(a.use.written.span, b.use.written.span))
+    out: string[]: []
+    for entry in in_order {
+        value :: one_line(display_value(entry.value))
+        written_at :: entry.use.written
+        out.push("${code_span("@${written_at.name} = ${value}")}, ${position_of(written_at.span)}")
+    }
+    return out
+}
+
+// Whether `a` comes before `b` in the source: by file, then by offset.
+written_before :: fn(a: Span, b: Span) -> bool {
+    if a.start.file != b.start.file {
+        return compare_ascending(a.start.file, b.start.file)
+    }
+    return a.start.offset < b.start.offset
 }
 
 const_items :: fn(module_program: EvaluatedProgram) -> string[] {

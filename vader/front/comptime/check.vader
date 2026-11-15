@@ -30,6 +30,7 @@ export evaluate_project :: fn(
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> EvaluatedProject {
     project :: new_evaluated_project(typed)
+    constants :: ProjectConstants { .typed = typed }
     for [module_id, module_typed] in typed.modules {
         program :: new_evaluated_program(module_typed)
         decls :: lookup_module_decls(loaded, module_id)
@@ -39,9 +40,10 @@ export evaluate_project :: fn(
             // unresolved ident would leave it unevaluated.
             evaluate_assert_decls(decls, program, diags)
         }
+        evaluate_decorator_uses(program, constants, diags)
         project.modules[module_id] = program
     }
-    evaluate_extern_libraries(typed, project, diags)
+    evaluate_extern_libraries(constants, project, diags)
     check_extern_symbols(loaded, project.libraries, diags)
     return project
 }

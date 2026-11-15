@@ -21,7 +21,7 @@ REPEATABLE_OPTION :: "repeatable"
 ///
 /// @param decl   a struct declaration; nothing to check for a plain struct.
 /// @param typed  the module's typed program, its struct fields declared.
-/// @param diags  where T3140, T3004, T3025 and the type mismatches go.
+/// @param diags  where T3140, T3144, T3004, T3025 and the type mismatches go.
 export check_decorator_decl :: fn(
     decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
@@ -59,12 +59,22 @@ check_decorator_arg :: fn(
         diags.push(typecheck_error(.ArgumentGivenTwice, arg.span, "`${key}` is given already"))
     }
     given.push(key)
+    // The typecheck reads them where a decorator is written, before any value is
+    // computed: each is a literal.
     name :: arg.name else {
         check_decorator_value(arg.value, places, typed, diags)
+        if place_name(arg.value) == "" {
+            diags.push(typecheck_error(.DecoratorDeclarationNotLiteral, arg.value.span,
+                "a place is written `.Function`"))
+        }
         return
     }
     if name == REPEATABLE_OPTION {
         check_decorator_value(arg.value, TY_BOOL, typed, diags)
+        if arg.value !is AST.BoolLitExpr {
+            diags.push(typecheck_error(.DecoratorDeclarationNotLiteral, arg.value.span,
+                "`${REPEATABLE_OPTION}` is written `true` or `false`"))
+        }
         return
     }
     check_expr(arg.value, null, typed, diags)

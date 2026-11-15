@@ -3403,6 +3403,7 @@ Marker :: decorator {}
 
 - The parentheses name the places the decorator may be written, as values of `DecoratorTarget` from `std/core`: `Function`, `Struct`, `Enum`, `Trait`, `Implementation`, `Constant`, `Alias`, `Import`, `Field`, `Variant`, `Parameter` and `Module`. With no place named, or no parentheses, it may be written anywhere.
 - `repeatable = true` lets the decorator be written more than once on one declaration. It is the only option.
+- The places and the option are written as literals (`.Function` or `DecoratorTarget.Function`, `true` or `false`): they are read before any value is computed.
 - Each field holds a value known at compile time: a number, a `bool`, a `char`, a `string`, an enum, an array of these, or a distinct type over one of them. Any other field type is an error.
 - A decorator takes no type parameter.
 - A decorator cannot take the name of one of the compiler's, listed above. A function or a constant still can.
@@ -3427,6 +3428,7 @@ create_user :: fn() -> string = "created"
 - Its arguments are those of a call whose parameters are the decorator's fields, in order: positional ones first, then named ones. A field with a default may be left out; every other field is given once.
 - It is written only at a place its declaration names. A function, a trait member and an impl member are a `Function`; a struct (a decorator declaration included) a `Struct`; a struct field a `Field`; an enum an `Enum`; a trait a `Trait`; an `implements` block an `Implementation`; a module constant a `Constant`; a type alias an `Alias`; an import an `Import`.
 - It is written once per declaration, unless its declaration says `repeatable = true`.
+- Each one builds a value of the decorator, every field filled: its arguments are computed where it is written, the way a constant is folded, and the fields it leaves out take their defaults. An argument the compiler cannot compute that way, such as a call to a function that runs a loop, is an error.
 - A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators take their arguments by position only.
 
 A decorator is written above a struct field as above a declaration, beside `@internal`. Writing one above an enum variant, a parameter or a module is not supported yet.
