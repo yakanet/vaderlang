@@ -4,6 +4,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/diagnostics"
 import "vader/core/types"
 AST :: import "toolchain/ast"
@@ -146,8 +147,7 @@ dispatched_trait_args :: fn(
 // The `<key, value>` arguments of `trait_key` when `target` dispatches through it.
 trait_dispatch_args :: fn(target: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
     if target is TypeParamType {
-        bound :: typed.resolved.type_param_bounds[target.symbol.id] else return null
-        args :: bounded_trait_args(bound, trait_key, typed) else return null
+        args :: param_trait_args(target, trait_key, typed) else return null
         return if args.len() < 2 { null } else { args }
     }
     if target is TraitType && trait_key_of(target.symbol) == trait_key && target.args.len() >= 2 {
@@ -189,6 +189,28 @@ export index_route :: fn(target: Type, trait_key: string, typed: TypedProgram) -
         return .Impl
     }
     return if array_backing(target) != null { .Array } else { .None }
+}
+
+/// The type args of the trait `trait_key` among the bounds of `tp` : its own bound,
+/// or one its struct puts on it when `tp` is an impl's (`Shelf<T> implements Size`,
+/// `type_param_bound_traits`).
+///
+/// @param tp         the type parameter.
+/// @param trait_key  the trait looked for.
+/// @param typed      the module checking `tp`.
+/// @return           the trait's arguments, empty for a trait without any ; null when
+///                   no bound names the trait.
+param_trait_args :: fn(tp: TypeParamType, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    own :: typed.resolved.type_param_bounds[tp.symbol.id]
+    if own != null {
+        args :: bounded_trait_args(own, trait_key, typed)
+        if args != null {
+            return args
+        }
+    }
+    shared :: typed.type_param_bound_traits[tp.symbol.id] else return null
+    found :: shared.traits.find((t) -> trait_key_of(t.symbol) == trait_key) else return null
+    return found.args
 }
 
 /// The type args of a named trait carried by a TypeParam's bound (e.g.

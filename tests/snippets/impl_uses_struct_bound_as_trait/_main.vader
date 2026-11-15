@@ -1,0 +1,67 @@
+// An impl over a generic struct holds `T` to the bound the struct puts on it, for
+// every use of the trait and not only a member call: `Shelf<T> implements Size`
+// interpolates `self.item` (`Display`), widens it into a `Named` slot and passes it
+// to a `Named` parameter, and `Grid<C> implements First` indexes `self.row`
+// (`Index`).
+// Expected: prints "book dune dune dune" then "7", exits 0.
+
+module "snippet"
+
+import "std/console"
+
+Named :: trait {
+    name :: fn(self) -> string
+}
+
+Shelf :: struct<T: Named & Display> {
+    item: T
+}
+
+Book :: struct { title: string }
+
+Book implements Named {
+    name :: fn(self) -> string = self.title
+}
+
+Book implements Display {
+    to_string :: fn(self) -> string = "book ${self.title}"
+}
+
+Size :: trait {
+    show :: fn(self) -> string
+}
+
+label :: fn(n: Named) -> string = n.name()
+
+Shelf<T> implements Size {
+    show :: fn(self) -> string {
+        widened: Named: self.item
+        return "${self.item} ${label(self.item)} ${widened.name()}"
+    }
+}
+
+Row :: struct { cells: i64[] }
+
+Row implements Index<i64, i64> {
+    at :: fn(self, i: i64) -> i64 = self.cells[i]
+}
+
+Grid :: struct<C: Index<i64, i64>> {
+    row: C
+}
+
+First :: trait {
+    first :: fn(self) -> i64
+}
+
+Grid<C> implements First {
+    first :: fn(self) -> i64 = self.row[0]
+}
+
+main :: fn() -> i32 {
+    s :: Shelf<Book> { .item = Book { .title = "dune" } }
+    println(s.show())
+    g :: Grid<Row> { .row = Row { .cells = [7, 8] } }
+    println("${g.first()}")
+    return 0
+}

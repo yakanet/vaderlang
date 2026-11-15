@@ -1,0 +1,56 @@
+# Typecheck
+
+## tests/snippets/impl_uses_struct_bound_as_trait
+  StructDecl     Book                 :: Book
+  TraitDecl      First                :: First
+  StructDecl     Grid                 :: Grid<C>
+  FnDecl         label                :: fn(Named) -> string
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Named                :: Named
+  StructDecl     Row                  :: Row
+  StructDecl     Shelf                :: Shelf<T>
+  TraitDecl      Size                 :: Size
+  expr 23:34    FieldExpr      :: string
+  expr 23:34    IdentExpr      :: Book
+  expr 27:39    StringLitExpr  :: string
+  expr 27:47    FieldExpr      :: string
+  expr 27:47    IdentExpr      :: Book
+  expr 34:35    CallExpr       :: string
+  expr 34:35    FieldExpr      :: fn() -> string
+  expr 34:35    IdentExpr      :: Named
+  expr 38:25    FieldExpr      :: T
+  expr 38:25    IdentExpr      :: Shelf<T>
+  expr 39:16    StringLitExpr  :: string
+  expr 39:19    FieldExpr      :: T
+  expr 39:19    IdentExpr      :: Shelf<T>
+  expr 39:32    CallExpr       :: string
+  expr 39:32    IdentExpr      :: fn(Named) -> string
+  expr 39:38    FieldExpr      :: T
+  expr 39:38    IdentExpr      :: Shelf<T>
+  expr 39:52    CallExpr       :: string
+  expr 39:52    FieldExpr      :: fn() -> string
+  expr 39:52    IdentExpr      :: Named
+  expr 46:37    FieldExpr      :: i64[]
+  expr 46:37    IdentExpr      :: Row
+  expr 46:37    IndexExpr      :: i64
+  expr 46:48    IdentExpr      :: i64
+  expr 58:32    FieldExpr      :: C
+  expr 58:32    IdentExpr      :: Grid<C>
+  expr 58:32    IndexExpr      :: i64
+  expr 62:10    StructLitExpr  :: Shelf<Book>
+  expr 62:32    StructLitExpr  :: Book
+  expr 62:48    StringLitExpr  :: string
+  expr 63:13    CallExpr       :: string
+  expr 63:13    FieldExpr      :: fn() -> string
+  expr 63:13    IdentExpr      :: Shelf<Book>
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 64:10    StructLitExpr  :: Grid<Row>
+  expr 64:29    StructLitExpr  :: Row
+  expr 64:44    SeqLitExpr     :: i64[]
+  expr 65:13    StringLitExpr  :: string
+  expr 65:16    CallExpr       :: i64
+  expr 65:16    FieldExpr      :: fn() -> i64
+  expr 65:16    IdentExpr      :: Grid<Row>
+  expr 65:5     CallExpr       :: void
+  expr 65:5     IdentExpr      :: fn(T) -> void

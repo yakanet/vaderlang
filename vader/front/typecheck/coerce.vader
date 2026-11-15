@@ -154,8 +154,7 @@ fits_or_implements :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool
 // `Display` slot, `T: Iterator<i32>` an `Iterator<i32>` one, as an impl's
 // (`implements_trait_instance`).
 bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedProgram) -> bool {
-    bound :: typed.resolved.type_param_bounds[param.symbol.id] else return false
-    bound_args :: bounded_trait_args(bound, trait_key_of(wanted.symbol), typed) else return false
+    bound_args :: param_trait_args(param, trait_key_of(wanted.symbol), typed) else return false
     if wanted.args.len() == 0 || bound_args.len() == 0 {
         return true
     }

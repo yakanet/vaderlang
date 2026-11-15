@@ -1,0 +1,146 @@
+# Lower
+
+## snippet
+  snippet.Book :: struct { title: string }  // snippet$Book
+  snippet.Book.name :: fn(self: Book) -> string {  // snippet$Book$Named$name
+      self.title
+  }
+  snippet.Book.to_string :: fn(self: Book) -> string {  // snippet$Book$std_core$Display$to_string
+      concat_2("book ", self.title)
+  }
+  snippet.label :: fn(n: Named) -> string {  // snippet$label
+      @vcall(snippet.Named.name, n)
+  }
+  snippet.Row :: struct { cells: i64[] }  // snippet$Row
+  snippet.Row.at :: fn(self: Row, i: i64) -> i64 {  // snippet$Row$std_core$Index$at
+      self.cells[i]
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      s: Shelf<Book> = Shelf<Any> { .item = Book { .title = "dune" } }
+      std.console.println<string>(snippet.Shelf<Any>.show(s))
+      g: Grid<Row> = Grid<Any> { .row = Row { .cells = [i64(7), i64(8)] :i64[] } }
+      std.console.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.Grid<Any>.first(g))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      return 0
+  }
+  snippet.Shelf<Book> :: struct { item: Any }  // snippet$Shelf__snippet_Book
+  snippet.Shelf<Any>.show :: fn(self: Shelf<Any>) -> string {  // snippet$Shelf$Size$show__Any
+      widened: Named = self.item
+      return concat_5(@vcall(std.core.Display.to_string, self.item), " ", snippet.label(self.item), " ", @vcall(snippet.Named.name, widened))
+  }
+  snippet.Grid<Row> :: struct { row: Any }  // snippet$Grid__snippet_Row
+  snippet.Grid<Any>.first :: fn(self: Grid<Any>) -> i64 {  // snippet$Grid$First$first__Any
+      @vcall(std.core.Index.at, self.row, i64(0))
+  }
+  snippet.Shelf<Any> :: struct { item: Any }  // snippet$Shelf__Any
+  snippet.Grid<Any> :: struct { row: Any }  // snippet$Grid__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      c4: i64 = c3 +% std.core.byte_len(p4)
+      buf: Buffer = std.core.new_byte_buffer(c4)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.intern_string(buf, c4)
+  }
+  vtable snippet.First.first for Grid<Any>  snippet.Grid<Any>.first  // snippet$Grid$First$first__Any
+  vtable snippet.Named.name for Book  snippet.Book.name  // snippet$Book$Named$name
+  vtable snippet.Size.show for Shelf<Any>  snippet.Shelf<Any>.show  // snippet$Shelf$Size$show__Any
+  vtable std.core.Display.to_string for Book  snippet.Book.to_string  // snippet$Book$std_core$Display$to_string
+  vtable std.core.Index.at for Row  snippet.Row.at  // snippet$Row$std_core$Index$at
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
+    fn std.core.codepoint_count  // std_core$codepoint_count
+    fn std.core.codepoint_offset  // std_core$codepoint_offset
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    fn std_core$string$Index$at
+    fn std_core$string$Index$at$1
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Range<i64>  // std_core$Range__i64

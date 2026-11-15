@@ -391,7 +391,7 @@ has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
     is UnionType     -> all_display(t.variants, typed)
     // A range renders as its integer.
     is RangeType     -> true
-    is TypeParamType -> bound_names_display(typed.resolved.type_param_bounds[t.symbol.id], typed)
+    is TypeParamType -> param_trait_args(t, core_trait_key(TRAIT_DISPLAY), typed) != null
     is TraitType     -> is_core_trait(t, TRAIT_DISPLAY)
     is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true
     // A trait's own body is checked once per implementor, with `Self` resolved.
@@ -408,13 +408,6 @@ all_display :: fn(types: Type[], typed: TypedProgram) -> bool {
         }
     }
     return true
-}
-
-bound_names_display :: fn(bound: AST.Expr | null, typed: TypedProgram) -> bool {
-    if bound == null {
-        return false
-    }
-    return bounded_trait_args(bound, core_trait_key(TRAIT_DISPLAY), typed) != null
 }
 
 // The first enum or distinct `t` holds as a union variant, looking through array
