@@ -18,6 +18,7 @@ import "std/collections"
 import "std/iter"
 import "std/string"
 import "std/uri"
+import "vader/core/symbol"
 import "vader/core/types"
 import "vader/support/text"
 import "vader/front/typecheck"
@@ -45,8 +46,14 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             char0 :: position_character(params)
 
             li :: idx.line_index
-            if follows_at_sign(li.source, li_offset(li, line0, char0)) {
-                return completion_list(builtin_items())
+            offset :: li_offset(li, line0, char0)
+            if follows_at_sign(li.source, offset) {
+                declared :: declared_decorator_items(state, uri, idx, offset, null)
+                return completion_list(builtin_items() + declared)
+            }
+            qualifier :: decorator_alias_before(li.source, offset)
+            if qualifier != null {
+                return completion_list(declared_decorator_items(state, uri, idx, offset, qualifier))
             }
 
             // Member access (`receiver.<cursor>`) -> Tier 2 : the receiver's
@@ -168,21 +175,30 @@ append_wildcard_completions :: fn(
     seen: Map<string, bool>, items: JsonValue[],
 ) -> void {
     if fp == null || idx.wildcards.paths.len() == 0 { return }
-    cached :: typed_project_for(state, fp)
-    // The import-name -> module map is memoized on the project cache; each
-    // wildcard path names a module whose public, wildcard-exposable exports
-    // (fn / struct / enum / trait / alias / const) enter scope unqualified:
-    // the same predicate the resolver's scope seeding uses.
+    for [path, sym] in wildcard_symbols(typed_project_for(state, fp), idx) {
+        if seen[sym.name] != null { continue }
+        seen[sym.name] = true
+        items.push(completion_item(sym.name, import_ci_kind(sym.name), "import \"${path}\""))
+    }
+}
+
+// What the wildcard imports of `idx` bring into scope unqualified, each with the
+// path that brings it. The import-name -> module map is memoized on the project
+// cache ; each wildcard path names a module whose public, wildcard-exposable
+// exports (fn / struct / enum / trait / alias / const) enter scope: the same
+// predicate the resolver's scope seeding uses.
+wildcard_symbols :: fn(cached: ProjectCache, idx: DocIndex) -> [string, Symbol][] {
+    out: [string, Symbol][]: []
     for path in idx.wildcards.paths {
         target :: cached.module_name_index[path] else continue
         dropped :: idx.wildcards.excludes[path]
         for [_, sym] in target.collected.symbols {
-            if !Rs.wildcard_exposes(sym, dropped) { continue }
-            if seen[sym.name] != null { continue }
-            seen[sym.name] = true
-            items.push(completion_item(sym.name, import_ci_kind(sym.name), "import \"${path}\""))
+            if Rs.wildcard_exposes(sym, dropped) {
+                out.push([path, sym])
+            }
         }
     }
+    return out
 }
 
 // Everything in a decl-head signature after the binding operator: the type

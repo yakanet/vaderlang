@@ -539,3 +539,90 @@ test_member_completion_on_an_impls_parameter_lists_the_structs_bound :: fn() -> 
     list :: results[0]
     assert(offers(list, "name"), shown(list))
 }
+
+// ---- declared decorators ----------------------------------------------------
+
+DECORATED_SOURCE :: r"""
+    module "demo"
+
+    import "demo/web"
+    W :: import "demo/web"
+
+    /// Where a handler answers.
+    Route :: decorator(.Function) {
+        path: string
+        weight: i32 = 1
+    }
+
+    /// A label drawn beside a field.
+    Caption :: decorator(.Field) {
+        text: string
+    }
+
+    @Route("/a")
+    @Ro
+    show :: fn() -> i32 = 0
+
+    @W.
+    other :: fn() -> i32 = 0
+    """
+
+WEB :: r"""
+    module "demo/web"
+
+    /// Hidden from the listing.
+    export Hidden :: decorator {}
+
+    /// Kept private.
+    Internal :: decorator {}
+    """
+
+// After `@` above a function: the declared decorators that may go there, the
+// imported ones too, and not again one written already that is not repeatable.
+// Inserting one fills its fields without a default.
+@test
+test_completion_after_an_at_sign_offers_the_declared_decorators_that_fit :: fn() -> void {
+    files: [string, string][]: [["web/web.vader", WEB]]
+    src :: DECORATED_SOURCE
+    results :: drive(
+        "declared_decorators",
+        src,
+        [
+            complete_at(position_of(src, "@Ro\n", 3)),
+            complete_at(position_of(src, "@W.", 3)),
+        ],
+        Project { .files = files },
+    )
+    list :: results[0]
+    assert(offers(list, "Hidden"), shown(list))
+    assert(offers(list, "test"), shown(list))
+    // `Caption` goes on a field, `Route` is written once above `show` already.
+    assert(!offers(list, "Caption"), shown(list))
+    assert(!offers(list, "Route"), shown(list))
+    hidden :: item_named(list, "Hidden")
+    assert_eq(string_at(hidden, ["documentation", "value"]) else "", "Hidden from the listing.")
+    // Through the alias: the module's public decorators alone.
+    qualified :: results[1]
+    assert_eq(shown(qualified), "Hidden")
+}
+
+ROUTE_SNIPPET_SOURCE :: r"""
+    module "demo"
+
+    Route :: decorator(.Function) {
+        path: string
+        method: string
+        weight: i32 = 1
+    }
+
+    @Ro
+    show :: fn() -> i32 = 0
+    """
+
+@test
+test_a_declared_decorator_inserts_its_required_fields :: fn() -> void {
+    src :: ROUTE_SNIPPET_SOURCE
+    results :: drive("decorator_snippet", src, [complete_at(position_of(src, "@Ro", 3))])
+    route :: item_named(results[0], "Route")
+    assert_eq(string_member(route, "insertText") else "", "Route(\${1:path}, \${2:method})")
+}

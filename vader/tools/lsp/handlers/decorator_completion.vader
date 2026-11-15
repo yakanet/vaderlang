@@ -1,0 +1,269 @@
+// vader/tools/lsp/handlers/decorator_completion: the declared decorators a `@`
+// may name.
+//
+// After `@`, completion offers the compiler's decorators and intrinsics
+// (`builtin_items`, `completion.vader`) and the declared decorators in scope: those
+// of the module and of its wildcard imports, or those of the module an alias names
+// after `@Alias.`. A declared decorator is offered where it may be written: the
+// declaration below the cursor is the document index's entry on that line, whose
+// place the typecheck's `place_of` gives, and its place must be one the decorator
+// declares. One written above that declaration already is not offered again,
+// unless it is repeatable. Inserting one writes its fields without a default as
+// snippet placeholders. Like the completion of names, it reads the typed project,
+// for the decorators of the imported modules.
+
+module "vader/tools/lsp/handlers"
+
+import "json"
+import "std/abort"
+import "std/collections"
+import "std/iter"
+import "std/string"
+import "std/uri"
+AST :: import "toolchain/ast"
+import "toolchain/lexer"
+import "vader/core/symbol"
+import "vader/front/typecheck"
+import "vader/tools/lsp/analysis"
+
+/// The declared decorators to offer at the `@` the cursor at `offset` follows.
+///
+/// @param state   the server state, for the typed project.
+/// @param uri     the document.
+/// @param idx     the document's index, its tokens and entries as typed.
+/// @param offset  the byte offset of the cursor.
+/// @param alias   the namespace alias written between `@` and the cursor
+///                (`@H.`), whose module's decorators are offered ; null for
+///                those in scope.
+/// @return        one completion item per decorator.
+declared_decorator_items :: fn(
+    state: ServerState, uri: string, idx: DocIndex, offset: i64, alias: string | null,
+) -> JsonValue[] {
+    file_path :: path_of_uri(uri) else return []
+    cached :: typed_project_for(state, file_path)
+    candidates :: decorators_in_scope(cached, idx, alias)
+    if candidates.len() == 0 {
+        return []
+    }
+    slot :: decorator_slot(idx, offset)
+    indices :: Map<string, DocIndex> {}
+    out: JsonValue[]: []
+    for sym in candidates {
+        item :: decorator_item(cached.result.typed, sym, slot) else continue
+        item.entries["documentation"] = markup_json(declared_doc(state, indices, sym))
+        out.push(item)
+    }
+    return out
+}
+
+// The decorators `@` may name: through `alias`, the public ones of its module ;
+// otherwise the module's own and those its wildcard imports expose.
+decorators_in_scope :: fn(cached: ProjectCache, idx: DocIndex, alias: string | null) -> Symbol[] {
+    if alias != null {
+        path :: idx.namespace_aliases[alias] else return []
+        target :: cached.module_name_index[path] else return []
+        exported :: target.collected.symbols.values()
+        return exported.filter((sym: Symbol) -> sym.is_decorator && sym.visibility == .Public).collect()
+    }
+    out: Symbol[]: []
+    for [_, sym] in cached.result.typed.resolved.declarations {
+        if sym.is_decorator {
+            out.push(sym)
+        }
+    }
+    for [_, sym] in wildcard_symbols(cached, idx) {
+        if sym.is_decorator {
+            out.push(sym)
+        }
+    }
+    return out
+}
+
+// The vaderdoc of `sym`, read in the index of the file declaring it (`indices`
+// holds one per file for the request): the typed project keeps the docs of no
+// imported module.
+declared_doc :: fn(state: ServerState, indices: Map<string, DocIndex>, sym: Symbol) -> string {
+    at :: sym.defined_at else return ""
+    index :: doc_index_for(state, indices, at.start.file)
+    entry :: index.entry_at_offset(at.start.offset) else return ""
+    return entry_doc(entry)
+}
+
+// The item of the decorator `sym`, or null when it may not be written in `slot`.
+decorator_item :: fn(typed: TypedProgram, sym: Symbol, slot: DecoratorSlot) -> JsonObject | null {
+    declaration :: typed.struct_decls[sym.id] else return null
+    if !fits(declared_places(declaration), slot.place) {
+        return null
+    }
+    if sym.name in slot.written && !is_repeatable(declaration) {
+        return null
+    }
+    item :: completion_item(sym.name, .Struct, "decorator")
+    required :: declaration.fields.filter((f) -> f.default == null).collect()
+    if required.len() > 0 {
+        placeholders :: (0..<required.len()).map((i) -> "\${${i + 1}:${required[i].name}}").collect()
+        item.entries["insertText"] = JsonString { .value = "${sym.name}(${placeholders.join(", ")})" }
+        item.entries["insertTextFormat"] = JsonNumber { .value = 2.0 }
+    }
+    return item
+}
+
+// Whether a decorator declared for `places` may be written at `place`: no place
+// declared means anywhere, and an unknown `place` ("") anything.
+fits :: fn(places: string[], place: string) -> bool =
+    places.len() == 0 || place == "" || place in places
+
+// ---- the declaration below the cursor -------------------------------------
+
+// What surrounds a `@` being written.
+DecoratorSlot :: struct {
+    /// The place of the declaration below, a `DecoratorTarget` variant ; "" when
+    /// the index does not say.
+    place: string = ""
+    /// The decorators written above that declaration already, the one being
+    /// written left out.
+    written: string[] = []
+}
+
+// The slot of the `@` the cursor at `offset` follows: the decorators on its line
+// and on the lines of decorators around it, then the first line that is none,
+// which holds the declaration.
+decorator_slot :: fn(idx: DocIndex, offset: i64) -> DecoratorSlot {
+    by_line :: Map<i32, Token[]> {}
+    typed_at: Token | null = null
+    for t in idx.tokens {
+        if t.kind == .Newline {
+            continue
+        }
+        by_line.get_or_put_with(t.span.start.line, () -> []).push(t)
+        if t.kind == .At && t.span.start.offset < offset {
+            typed_at = t
+        }
+    }
+    at :: typed_at else return DecoratorSlot {}
+    line :: at.span.start.line
+    written :: decorator_names(by_line[line] else [], at)
+    walk_decorator_lines(by_line, line - 1, -1, written)
+    below :: walk_decorator_lines(by_line, line + 1, 1, written)
+    return DecoratorSlot {
+        .place = place_on_line(idx, by_line[below] else [], below),
+        .written = written,
+    }
+}
+
+// From `line`, by `step`, push the names of each line of decorators onto `names`;
+// the first line that is none is returned.
+walk_decorator_lines :: fn(by_line: Map<i32, Token[]>, line: i32, step: i32, names: string[]) -> i32 {
+    at := line
+    for {
+        tokens :: by_line[at] else []
+        if tokens.len() == 0 || tokens[0].kind != .At {
+            return at
+        }
+        names.push_all(decorator_names(tokens, null))
+        at += step
+    }
+}
+
+// The names `@Name` and `@Alias.Name` write on one line, the one at `skipped`
+// left out.
+decorator_names :: fn(line: Token[], skipped: Token | null) -> string[] {
+    out: string[]: []
+    for i in 0..<line.len() {
+        t :: line[i]
+        if t.kind != .At || i + 1 >= line.len() || line[i + 1].kind != .Ident {
+            continue
+        }
+        if skipped != null && t.span.start.offset == skipped.span.start.offset {
+            continue
+        }
+        qualified :: i + 3 < line.len() && line[i + 2].kind == .Dot && line[i + 3].kind == .Ident
+        name_at :: if qualified { i + 3 } else { i + 1 }
+        out.push(line[name_at].text)
+    }
+    return out
+}
+
+// The place of the declaration on `line`, whose tokens are `tokens`: the index's
+// entry there, a field or a declaration, else an import or an `implements` block,
+// which have no entry ; "" when none says.
+place_on_line :: fn(idx: DocIndex, tokens: Token[], line: i32) -> string {
+    for entry in idx.decls {
+        sp :: entry.name_span
+        if sp.start.line <= line && line <= sp.end.line {
+            node :: entry.node
+            if node is AST.StructField {
+                return "Field"
+            }
+            if node is AST.Decl {
+                return place_of(node)
+            }
+        }
+    }
+    if tokens.any_match((t) -> t.kind == .KwImport) {
+        return "Import"
+    }
+    if tokens.any_match((t) -> t.kind == .KwImplements) {
+        return "Implementation"
+    }
+    return ""
+}
+
+// The alias of `@Alias.` the identifier the cursor at byte `offset` ends follows,
+// or null when it follows none. The `@` opens its line or follows a blank: an
+// address in a comment (`me@host.`) is none.
+decorator_alias_before :: fn(source: string, offset: i64) -> string | null {
+    name :: ident_start(source, offset)
+    if name < 1 || source.byte_at(name - 1) != '.' {
+        return null
+    }
+    alias :: ident_start(source, name - 1)
+    if alias < 1 || alias == name - 1 || source.byte_at(alias - 1) != '@' {
+        return null
+    }
+    if alias >= 2 && !is_blank_byte(source.byte_at(alias - 2)) {
+        return null
+    }
+    return source.byte_slice(alias, name - 1)
+}
+
+// A space, a tab or a line break.
+is_blank_byte :: fn(b: u8) -> bool = b == ' ' || b == '\t' || b == '\n' || b == '\r'
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The slot of the `@` at the end of `marker` in `src`.
+slot_after :: fn(src: string, marker: string) -> DecoratorSlot {
+    idx :: build_index("t.vader", src, .Utf16)
+    parts :: src.split_first(marker) else panic("no `${marker}` in the source")
+    return decorator_slot(idx, parts.0.byte_len() + marker.byte_len())
+}
+
+@test
+test_a_decorator_slot_reads_the_declaration_below :: fn() -> void {
+    src :: """
+@Route("/a")
+@Pa
+show :: fn() -> void {}
+
+Form :: struct {
+    @Ca
+    name: string
+}
+"""
+    function :: slot_after(src, "@Pa")
+    assert_eq(function.place, "Function")
+    assert_eq(function.written.join(" "), "Route")
+    field :: slot_after(src, "@Ca")
+    assert_eq(field.place, "Field")
+}
+
+@test
+test_the_alias_of_a_qualified_decorator_is_read_before_the_cursor :: fn() -> void {
+    assert_eq(decorator_alias_before("@H.Ro", 5) else "", "H")
+    assert(decorator_alias_before("x.Ro", 4) == null, "a member access")
+    assert(decorator_alias_before("@Ro", 3) == null, "no alias")
+    assert(decorator_alias_before("// me@host.Ro", 13) == null, "an address")
+}

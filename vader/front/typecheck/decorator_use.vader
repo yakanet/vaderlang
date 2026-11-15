@@ -52,9 +52,12 @@ export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags:
 // The `DecoratorTarget` variant a function is.
 PLACE_FUNCTION :: "Function"
 
-// The `DecoratorTarget` variant `decl` is ; "" for an assertion, which carries no
-// decorator.
-place_of :: fn(decl: AST.Decl) -> string = match decl {
+/// The `DecoratorTarget` variant `decl` is, where a decorator above it is written.
+///
+/// @param decl  a top-level declaration, or the member of a trait or an impl.
+/// @return      `"Function"`, `"Struct"`... ; `""` for an assertion, which carries
+///              no decorator.
+export place_of :: fn(decl: AST.Decl) -> string = match decl {
     is AST.FnDecl        -> PLACE_FUNCTION
     is AST.StructDecl    -> "Struct"
     is AST.EnumDecl      -> "Enum"
@@ -113,9 +116,12 @@ decorator_symbol :: fn(d: AST.Decorator, typed: TypedProgram, diags: Diagnostic[
     return declared_symbol(sym, typed)
 }
 
-// The places `declaration` names in its parentheses: `.Function`, or
-// `DecoratorTarget.Function` ; none means anywhere.
-declared_places :: fn(declaration: AST.StructDecl) -> string[] {
+/// The places `declaration` names in its parentheses, as `DecoratorTarget`
+/// variants: `.Function` and `DecoratorTarget.Function` alike.
+///
+/// @param declaration  a decorator declaration.
+/// @return             the variant names ; none means anywhere.
+export declared_places :: fn(declaration: AST.StructDecl) -> string[] {
     out: string[]: []
     for a in declaration.decorator_args else [] {
         place :: place_name(a.value)
@@ -138,8 +144,11 @@ check_place :: fn(
         "`@${d.name}` is declared for ${listed}, written on `.${place}`"))
 }
 
-// Whether `declaration` writes `repeatable = true`.
-is_repeatable :: fn(declaration: AST.StructDecl) -> bool {
+/// Whether `declaration` writes `repeatable = true`: the decorator may be written
+/// more than once above one declaration.
+///
+/// @param declaration  a decorator declaration.
+export is_repeatable :: fn(declaration: AST.StructDecl) -> bool {
     for a in declaration.decorator_args else [] {
         value :: a.value
         if a.name == REPEATABLE_OPTION && value is AST.BoolLitExpr {
