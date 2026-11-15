@@ -275,6 +275,7 @@ walk_struct_decl :: fn(d: AST.StructDecl, out: RawToken[]) -> void {
 }
 
 walk_struct_field :: fn(f: AST.StructField, out: RawToken[]) -> void {
+    walk_decorators(f.decorators, out)
     // `f.span` runs through the type annotation (`x: i32`) ; tag only the
     // field name so the type token below doesn't overlap it.
     push_name_token(out, f.span.start, 0, f.name, .Property)

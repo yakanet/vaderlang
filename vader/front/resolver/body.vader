@@ -445,6 +445,7 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
         self.declare_type_param(tp)
     }
     for f in d.fields {
+        self.walk_decorators(f.decorators)
         self.walk_expr(f.ty)
         self.walk_opt_expr(f.default)
     }

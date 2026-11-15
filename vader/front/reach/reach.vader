@@ -39,6 +39,13 @@ referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
         for d in AST.decl_decorators(n) {
             out.push(d.name)
         }
+        if n is AST.StructDecl {
+            for f in n.fields {
+                for d in f.decorators {
+                    out.push(d.name)
+                }
+            }
+        }
     }
     return .Descend
 }

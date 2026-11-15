@@ -1,0 +1,16 @@
+// tests/fixtures/format/decorator_on_field: a decorated field takes a line per
+// decorator, `@internal` first, so a struct written on one line opens.
+
+module "decorator_on_field"
+
+Key :: decorator(.Field) {
+    name: string
+}
+
+Point :: struct { @Key("x") x: i32, y: i32 }
+
+User :: struct {
+    @Key("user_id")
+    @internal
+    id: i32
+}

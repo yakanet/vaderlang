@@ -17,7 +17,8 @@ import "toolchain/parser"
 import "vader/core/symbol"
 import "vader/front/resolver"
 
-/// Check every declared decorator written on `decls` and on the members they hold.
+/// Check every declared decorator written on `decls`, on their struct fields and
+/// on the members of their traits and impls.
 ///
 /// @param decls  the declarations of a module.
 /// @param typed  the module's typed program, the struct tables of the project
@@ -26,14 +27,23 @@ import "vader/front/resolver"
 export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     for decl in decls {
         check_decorators_at(AST.decl_decorators(decl), place_of(decl), typed, diags)
-        if decl is AST.TraitDecl {
-            for m in decl.members {
-                check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
+        match decl {
+            is AST.StructDecl -> {
+                for f in decl.fields {
+                    check_decorators_at(f.decorators, "Field", typed, diags)
+                }
             }
-        } else if decl is AST.ImplDecl {
-            for m in decl.members {
-                check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
+            is AST.TraitDecl -> {
+                for m in decl.members {
+                    check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
+                }
             }
+            is AST.ImplDecl -> {
+                for m in decl.members {
+                    check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
+                }
+            }
+            _ -> {}
         }
     }
 }

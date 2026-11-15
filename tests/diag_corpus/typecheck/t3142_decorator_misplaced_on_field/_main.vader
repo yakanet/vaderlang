@@ -1,0 +1,21 @@
+// `JsonName` is declared for fields: written on a function, and `Route` written on
+// a field, both are T3142.
+module "snippet"
+
+JsonName :: decorator(.Field) {
+    name: string
+}
+
+Route :: decorator(.Function) {
+    path: string
+}
+
+User :: struct {
+    @Route("/users")
+    id: i32
+}
+
+@JsonName("id")
+user_id :: fn(u: User) -> i32 = u.id
+
+main :: fn() -> i32 = user_id(User { .id = 0 })

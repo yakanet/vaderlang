@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/json_name_field_decorator
+  StructDecl     JsonName             :: JsonName
+  StructDecl     JsonSkip             :: JsonSkip
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     User                 :: User
+  expr 10:23    DotVariantExpr :: DecoratorTarget
+  expr 15:23    DotVariantExpr :: DecoratorTarget
+  expr 18:15    StringLitExpr  :: string
+  expr 23:24    StringLitExpr  :: string
+  expr 27:10    StructLitExpr  :: User
+  expr 27:34    StringLitExpr  :: string
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    FieldExpr      :: i32
+  expr 28:16    IdentExpr      :: User
+  expr 28:24    FieldExpr      :: string
+  expr 28:24    IdentExpr      :: User
+  expr 28:34    CallExpr       :: i64
+  expr 28:34    FieldExpr      :: fn() -> i64
+  expr 28:34    FieldExpr      :: string
+  expr 28:34    IdentExpr      :: User
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

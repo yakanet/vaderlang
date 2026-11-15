@@ -1,0 +1,2 @@
+[14:6] error[T3142] this decorator is not declared for this place: `@Route` is declared for `.Function`, written on `.Field`
+[18:2] error[T3142] this decorator is not declared for this place: `@JsonName` is declared for `.Field`, written on `.Function`

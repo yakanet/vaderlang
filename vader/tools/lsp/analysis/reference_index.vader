@@ -424,6 +424,7 @@ collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
             collect_decorators(d.decorators, out)
             collect_type_params(d.type_params, out)
             for fld in d.fields {
+                collect_decorators(fld.decorators, out)
                 collect_type(fld.ty, out)
                 collect_opt_expr(fld.default, out)
             }

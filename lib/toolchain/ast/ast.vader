@@ -557,6 +557,9 @@ export StructField :: struct {
     // Optional default value used when a struct literal omits this field.
     default:    Expr | null
     doc:        DocComment | null = null
+    /// The declared decorators written above the field ; `@internal` is its
+    /// `visibility`.
+    decorators: Decorator[] = []
 }
 
 // ---- Enum -----------------------------------------------------------------

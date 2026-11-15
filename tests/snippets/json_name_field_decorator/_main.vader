@@ -1,0 +1,30 @@
+// Declared decorators above struct fields: one per field, a qualified one, beside
+// `@internal`. They change nothing in the struct, whose values are built and read
+// as if the fields carried none.
+
+module "snippet"
+
+import "std/console"
+
+/// The key a field takes in JSON.
+JsonName :: decorator(.Field) {
+    name: string
+}
+
+/// A field left out of JSON.
+JsonSkip :: decorator(.Field) {}
+
+User :: struct {
+    @JsonName("user_id")
+    id: i32
+    name: string
+    @internal
+    @JsonSkip
+    password: string = ""
+}
+
+main :: fn() -> i32 {
+    u :: User { .id = 7, .name = "ada" }
+    println("${u.id} ${u.name} ${u.password.byte_len()}")
+    return 0
+}

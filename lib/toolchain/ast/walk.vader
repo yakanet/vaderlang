@@ -344,7 +344,8 @@ inspect_struct :: fn(s: StructDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> 
         return true
     }
     for field in s.fields {
-        if inspect(field.ty, visit, leave)
+        if inspect_decorators(field.decorators, visit, leave)
+            || inspect(field.ty, visit, leave)
             || inspect_maybe(field.default, visit, leave) {
             return true
         }

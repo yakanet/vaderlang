@@ -3425,11 +3425,11 @@ create_user :: fn() -> string = "created"
 ```
 
 - Its arguments are those of a call whose parameters are the decorator's fields, in order: positional ones first, then named ones. A field with a default may be left out; every other field is given once.
-- It is written only at a place its declaration names. A function, a trait member and an impl member are a `Function`; a struct (a decorator declaration included) a `Struct`; an enum an `Enum`; a trait a `Trait`; an `implements` block an `Implementation`; a module constant a `Constant`; a type alias an `Alias`; an import an `Import`.
+- It is written only at a place its declaration names. A function, a trait member and an impl member are a `Function`; a struct (a decorator declaration included) a `Struct`; a struct field a `Field`; an enum an `Enum`; a trait a `Trait`; an `implements` block an `Implementation`; a module constant a `Constant`; a type alias an `Alias`; an import an `Import`.
 - It is written once per declaration, unless its declaration says `repeatable = true`.
 - A name after `@` that names no decorator, or names a declaration that is not one, is an error. The compiler's decorators take their arguments by position only.
 
-Writing a decorator above a struct field, an enum variant, a parameter or a module is not supported yet.
+A decorator is written above a struct field as above a declaration, beside `@internal`. Writing one above an enum variant, a parameter or a module is not supported yet.
 
 ### `@intrinsic`
 

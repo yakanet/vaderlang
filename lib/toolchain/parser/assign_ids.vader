@@ -57,6 +57,9 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
             for tp in d.type_params { walk_type_param(tp, f) }
             for fld in d.fields {
                 fld.id = f.mint()
+                for dec in fld.decorators {
+                    walk_decorator(dec, f)
+                }
                 walk_expr(fld.ty, f)
                 if fld.default !is null {
                     walk_expr(fld.default, f)
