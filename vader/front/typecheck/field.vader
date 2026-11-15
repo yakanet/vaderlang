@@ -1860,13 +1860,24 @@ type_param_member_detail :: fn(tp: TypeParamType, field: string, typed: TypedPro
 }
 
 /// Method names declared by a type parameter's bound trait(s): a single trait
-/// or an `A & B` chain. For LSP completion on a `t.<member>` receiver typed as
-/// that param (`t: T` where `T: Display` -> `to_string`). Empty when the param is
-/// unbound or its bound doesn't resolve to a trait.
+/// or an `A & B` chain, and the traits its struct puts on it when the parameter
+/// is an impl's (`Shelf<T> implements Size`). For LSP completion on a
+/// `t.<member>` receiver typed as that param (`t: T` where `T: Display` ->
+/// `to_string`). Empty when the param is unbound or its bound doesn't resolve to
+/// a trait ; a name two bounds declare comes twice.
+///
+/// @param tp     the type parameter the receiver is typed as.
+/// @param typed  the module the receiver is written in.
 export typeparam_bound_method_names :: fn(tp: TypeParamType, typed: TypedProgram) -> string[] {
-    bound :: typed.resolved.type_param_bounds[tp.symbol.id] else return []
     out: string[]: []
-    collect_bound_method_names(bound, typed, out)
+    own :: typed.resolved.type_param_bounds[tp.symbol.id]
+    if own != null {
+        collect_bound_method_names(own, typed, out)
+    }
+    shared :: typed.type_param_bound_traits[tp.symbol.id] else return out
+    for t in shared.traits {
+        push_trait_member_names(t, typed, out)
+    }
     return out
 }
 
@@ -1882,10 +1893,15 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
     }
     bound_ty :: type_from_expr(bound, typed.resolved, [])
     if bound_ty is TraitType {
-        decl :: typed.trait_decls[bound_ty.symbol.id] else return
-        for m in decl.members {
-            out.push(m.name)
-        }
+        push_trait_member_names(bound_ty, typed, out)
+    }
+}
+
+// Append the name of every member `t` declares into `out`.
+push_trait_member_names :: fn(t: TraitType, typed: TypedProgram, out: string[]) -> void {
+    decl :: typed.trait_decls[t.symbol.id] else return
+    for m in decl.members {
+        out.push(m.name)
     }
 }
 

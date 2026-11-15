@@ -500,3 +500,42 @@ test_member_completion_on_a_trait_bounded_generic_lists_the_bounds_methods :: fn
     assert(offers(list, "to_string"), shown(list))
     assert(!offers(list, "bytes_to_string"), shown(list))
 }
+
+// The receiver is typed as an impl's type parameter: completion offers what the
+// struct's bound on it declares, which the impl does not restate.
+STRUCT_BOUND_SOURCE :: r"""
+    module "lsp_test"
+
+    Named :: trait {
+        name :: fn(self) -> string
+    }
+
+    Shelf :: struct<T: Named> {
+        item: T
+    }
+
+    Size :: trait {
+        size :: fn(self) -> i64
+    }
+
+    Shelf<T> implements Size {
+        size :: fn(self) -> i64 {
+            self.item.
+            return 0
+        }
+    }
+
+    main :: fn() -> i32 { return 0 }
+    """
+
+@test
+test_member_completion_on_an_impls_parameter_lists_the_structs_bound :: fn() -> void {
+    // Line 16 is `        self.item.`: character 18 is just past the dot.
+    results :: drive(
+        "struct_bound",
+        STRUCT_BOUND_SOURCE,
+        [complete_at(Spot { .line = 16, .character = 18 })],
+    )
+    list :: results[0]
+    assert(offers(list, "name"), shown(list))
+}
