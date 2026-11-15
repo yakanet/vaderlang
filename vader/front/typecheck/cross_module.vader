@@ -127,48 +127,15 @@ pull_field_external_types :: fn(
 /// the owning module's `decl_types` into `entry.external_types`. The
 /// `external_types[id]` presence check inside `register_external`
 /// both memoizes and breaks Struct <-> Struct cycles.
-///
-/// Spells out the variant arms instead of routing through
-/// `for_each_type` so the recursion stays a plain call graph: a
-/// closure capturing the two-field context tripped the self-host
-/// codegen at the time of writing.
 pull_referenced_external_types :: fn(
     t: Type,
     entry: TypedProgram,
     per_module: Map<string, TypedProgram>,
-) -> void {
-    match t {
-        is StructType -> {
-            register_external(t.symbol, entry, per_module)
-            for a in t.args {
-                pull_referenced_external_types(a, entry, per_module)
-            }
-        }
-        is TraitType  -> {
-            register_external(t.symbol, entry, per_module)
-            for a in t.args {
-                pull_referenced_external_types(a, entry, per_module)
-            }
-        }
-        is EnumType  -> { register_external(t.symbol, entry, per_module) }
-        is ArrayType -> { pull_referenced_external_types(t.element, entry, per_module) }
-        is TupleType -> {
-            for el in t.elements {
-                pull_referenced_external_types(el, entry, per_module)
-            }
-        }
-        is UnionType   -> {
-            for v in t.variants {
-                pull_referenced_external_types(v, entry, per_module)
-            }
-        }
-        is FnType      -> {
-            for p in t.params {
-                pull_referenced_external_types(p, entry, per_module)
-            }
-            pull_referenced_external_types(t.return_type, entry, per_module)
-        }
-        _                   -> {}
+) = for_each_type(t, (nested) -> register_named(nested, entry, per_module))
+
+register_named :: fn(t: Type, entry: TypedProgram, per_module: Map<string, TypedProgram>) -> void {
+    if t is StructType | TraitType | EnumType {
+        register_external(t.symbol, entry, per_module)
     }
 }
 

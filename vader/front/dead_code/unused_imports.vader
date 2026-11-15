@@ -322,14 +322,5 @@ walk_imports :: fn(
     }
 }
 
-declares_an_impl :: fn(loaded: LoadedModule) -> bool {
-    if loaded.lost_impl_traits.len() > 0 {
-        return true
-    }
-    for file in loaded.module.files {
-        for _ in file.program.decls.filter_is<AST.ImplDecl>() {
-            return true
-        }
-    }
-    return false
-}
+declares_an_impl :: fn(loaded: LoadedModule) = loaded.lost_impl_traits.len() > 0
+    || loaded.module.files.any_match((f) -> !f.program.decls.filter_is<AST.ImplDecl>().is_empty())
