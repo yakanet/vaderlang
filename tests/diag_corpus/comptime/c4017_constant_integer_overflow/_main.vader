@@ -4,8 +4,7 @@ module "snippet"
 
 WRAPPED: u8: 250 +% 10
 
-@comptime
-TOO_MUCH: u8: 250 + 10
+TOO_MUCH: u8: @comptime 250 + 10
 
 main :: fn() -> i32 {
     return i32(TOO_MUCH) + i32(WRAPPED)

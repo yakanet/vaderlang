@@ -37,12 +37,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",
@@ -83,12 +78,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",
@@ -129,12 +119,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",

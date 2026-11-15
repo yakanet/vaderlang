@@ -1,0 +1,14 @@
+// `@alias` declares a transparent alias of a type: on a constant whose value is
+// not a type, written alone or with a type annotation, it is refused.
+
+module "main"
+
+LIMIT :: 10
+
+@alias
+ALSO_LIMIT :: LIMIT
+
+@alias
+TYPED: i32: 3
+
+main :: fn() -> i32 = ALSO_LIMIT + TYPED - 13

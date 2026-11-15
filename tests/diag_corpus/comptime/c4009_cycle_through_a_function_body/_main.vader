@@ -2,7 +2,6 @@
 // constant depends on itself, though its own value never names it.
 module "snippet"
 
-@comptime
-export A: i32: next()
+export A: i32: @comptime next()
 
 next :: fn() -> i32 = A + 1

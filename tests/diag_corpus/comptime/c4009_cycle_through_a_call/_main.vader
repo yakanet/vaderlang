@@ -5,8 +5,6 @@ module "snippet"
 
 twice :: fn(n: i32) -> i32 = n * 2
 
-@comptime
-export A: i32: twice(B)
+export A: i32: @comptime twice(B)
 
-@comptime
-export B: i32: twice(A)
+export B: i32: @comptime twice(A)

@@ -1,0 +1,21 @@
+// `@alias` makes a constant naming a type a transparent alias of it: on a
+// function, a struct or a trait member there is no type to alias, and a generic
+// alias is transparent without it.
+
+module "main"
+
+@alias
+Point :: struct { x: i32 }
+
+@alias
+origin :: fn() -> Point = Point { .x = 0 }
+
+@alias
+Maybe<T> :: T | null
+
+Named :: trait {
+    @alias
+    name :: fn(self) -> string
+}
+
+main :: fn() -> i32 = origin().x

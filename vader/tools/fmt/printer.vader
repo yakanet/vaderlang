@@ -1119,7 +1119,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // plus this const rewritten to call it. Re-emit the surface sugar from the
     // preserved operand instead of the desugared `__comptime_NAME()` call.
     cb :: d.comptime_body
-    if cb != null && is_inline_comptime(d) {
+    if cb != null {
         self.emit_comptime_const(d, cb)
         return
     }
@@ -1172,23 +1172,11 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     self.emit_expr(value)
 }
 
-// Whether `d` was written `NAME :: @comptime <expr>`, its `@comptime` after `::`.
-is_inline_comptime :: fn(d: p.ConstDecl) -> bool =
-    d.comptime_body != null && !d.comptime_as_decorator
-
 // Re-emit the `NAME :: @comptime <expr>` (untyped) or `NAME: T: @comptime
 // <expr>` (typed) const sugar from a desugared `ConstDecl`. `body` is the raw
-// operand the parser kept in `comptime_body`. The desugar appended a synthetic
-// `@comptime` decorator to `d.decorators` for the compile path: strip that
-// trailing entry, since the inline `@comptime` keyword below carries it.
+// operand the parser kept in `comptime_body`.
 emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
-    n :: d.decorators.len()
-    leading :: if n > 0 && d.decorators[n - 1].name == "comptime" {
-        d.decorators[0..<(n - 1)]
-    } else {
-        d.decorators
-    }
-    self.emit_decorators(leading, d.name_span.start.line)
+    self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
     if d.ty == null {

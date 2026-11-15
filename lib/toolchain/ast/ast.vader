@@ -712,9 +712,6 @@ export ConstDecl :: struct {
     /// null for every other const. Holds the raw block/expression (pre-`return`-
     /// lift), so the exact source spelling round-trips.
     comptime_body: Expr | null = null
-    /// True when `@comptime` decorated the const (`@comptime` above `NAME :: v`)
-    /// rather than following `::` ; read with `comptime_body`.
-    comptime_as_decorator: bool = false
     doc:        DocComment | null = null
 }
 
@@ -723,6 +720,12 @@ export ConstDecl :: struct {
 ///
 /// @param d  the constant.
 export written_value :: fn(d: ConstDecl) -> Expr = d.comptime_body else d.value
+
+/// Whether `d` is written `NAME :: @comptime <expr>`: its value is computed at
+/// compile time.
+///
+/// @param d  the constant.
+export is_comptime_const :: fn(d: ConstDecl) -> bool = d.comptime_body != null
 
 /// An `@assert` at the top level: a build-time invariant.
 ///

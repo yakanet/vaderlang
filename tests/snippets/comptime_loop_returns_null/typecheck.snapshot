@@ -1,6 +1,7 @@
 # Typecheck
 
 ## tests/snippets/comptime_loop_returns_null
+  FnDecl         __comptime_BEYOND    :: fn() -> null | Point
   ConstDecl      BEYOND               :: null | Point
   FnDecl         first_beyond_ten     :: fn() -> null | Point
   FnDecl         main                 :: fn() -> i32
@@ -16,10 +17,12 @@
   expr 18:41    IdentExpr      :: i32
   expr 20:9     BinaryExpr     :: i32
   expr 20:9     IdentExpr      :: i32
-  expr 26:11    CallExpr       :: null | Point
-  expr 26:11    IdentExpr      :: fn() -> null | Point
-  expr 29:13    StringLitExpr  :: string
-  expr 29:36    BinaryExpr     :: bool
-  expr 29:36    IdentExpr      :: null | Point
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 25:1     IdentExpr      :: fn() -> null | Point
+  expr 25:11    CallExpr       :: null | Point
+  expr 25:21    CallExpr       :: null | Point
+  expr 25:21    IdentExpr      :: fn() -> null | Point
+  expr 28:13    StringLitExpr  :: string
+  expr 28:36    BinaryExpr     :: bool
+  expr 28:36    IdentExpr      :: null | Point
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

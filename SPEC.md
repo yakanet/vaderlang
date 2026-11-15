@@ -577,7 +577,7 @@ A distinct type is held exactly as its backing type at run time.
 - Arithmetic uses the distinct's own impl first, then its backing's: `Instant implements Add<Duration>` drives `i + d`, while `+`, `-`, `*`, `/` and `%` on a `Meters :: i64` with no impl of its own are those of `i64`. A literal beside it is then a value of the backing: `m + -1` is an `i64` sum, and `c + -1` with `Code :: u32` is an error, as on a `u32`.
 - A distinct that defines the operator for another right operand does not fall back to its backing: `instant + 5` is an error.
 - A distinct combines only with itself and its backing. Any operator, `==` included, between two distinct types that are not one another's backing is an error: `Meters + Seconds`, although both are `i64`. A `Km :: Meters` combines with `Meters`. Against its backing, a distinct compares and computes as that backing (`path == ""`, `d < i64(3)`), or through its own impl (`Equals`, `Comparable`, operators) when it defines one.
-- `@comptime Name :: <type>` is the exception: it declares a transparent alias, usable at compile time (`@size_of(Name)`), never a newtype.
+- `@alias Name :: <type>` is the exception: it declares a transparent alias of any type, `Name` and `<type>` being one type, never a newtype. On a constant whose value is not a type, `@alias` is an error.
 - Reflection follows the backing: `@size_of`, `@align_of` and `@type_kind` of a distinct give those of its backing.
 
 ### Default integer
@@ -731,7 +731,7 @@ b +% 10                          // 4 in every mode
 0 -% b                           // 6: -b, wrapped
 
 LIMIT: u8: 250
-@comptime NEXT :: LIMIT + 10     // error: overflow while folding a constant
+NEXT :: @comptime LIMIT + 10     // error: overflow while folding a constant
 LATER :: LIMIT + 10              // computed at run time: stops the program, or 4 in a release build
 ```
 
@@ -3319,11 +3319,12 @@ main :: fn() -> i32 {
 
 ## 12. Decorators
 
-Decorators are compiler instructions prefixed with `@`. They act at compile time, never at run time. Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@main_thread`, `@displayable` or `@assert` where it does not apply is an error.
+Decorators are compiler instructions prefixed with `@`. They act at compile time, never at run time. Placing `@target`, `@singleton`, `@returns`, `@ensures`, a `@c_*` decorator, `@main_thread`, `@displayable`, `@alias` or `@assert` where it does not apply is an error. `@comptime` is written before the value it computes (§14): above a declaration it is an error.
 
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
-| `@comptime` | fn / value | Evaluates at compile time (§14) |
+| `@alias` | constant naming a type | Declares a transparent alias of it (§4 *Distinct types*) |
+| `@comptime` | before the value of a constant, a `for` | Evaluates at compile time (§14) |
 | `@extern`, `@extern("symbol")`, `@extern(LIBRARY, "symbol")` | fn without body | Declares a foreign function (§13) |
 | `@c_address` | parameter of an `@extern` fn | Lends the parameter by address, for C to read (§13) |
 | `@c_out` | parameter of an `@extern` fn | Lends the parameter by address, for C to write (§13) |
@@ -3806,13 +3807,12 @@ build_lookup_table :: fn() -> u32[] {
     return result
 }
 
-@comptime
-TABLE :: build_lookup_table()
+TABLE :: @comptime build_lookup_table()
 ```
 
-The call runs during compilation, and `TABLE` is a constant computed once. The value is a scalar, a string, an array, a struct or a tuple, nested at will; a function value, a map, a set, or a value depending on itself (directly or through other constants) is an error.
+The call runs during compilation, and `TABLE` is a constant computed once. The value is a scalar, a string, an array, a struct, a tuple, a map or a set, nested at will; a function value, or a value depending on itself (directly or through other constants), is an error.
 
-In its inline form, `@comptime` prefixes the right-hand side of a constant:
+`@comptime` is written before the value it computes, which may be a block:
 
 ```vader
 TABLE :: @comptime {
@@ -3829,10 +3829,9 @@ SQUARES: u32[]: @comptime { ... }
 
 A block runs as a function body, where `return` or a trailing expression gives the value. The typed form `NAME: T: @comptime <expr>` gives the value the type `T`.
 
-In its decorator form, `@comptime` above `NAME :: <expr>` computes what `NAME :: @comptime <expr>` does, unless `<expr>` has the shape of a type (a name, `Mod.T`, `Box<T>`, `T[]`, `A | B`, `[A, B]`, a function type, `Int in 0..=23`). Such an `<expr>` runs no function body:
+Without `@comptime`, a constant the compiler can fold, such as one over literals and other constants, is computed during the build too; any other is computed at run time, the first time it is read. `@comptime` guarantees that the build computes the value, loops and statements included: an error while computing it, an overflow included, stops the build rather than the program.
 
-- naming a type, the declaration is a type alias (§4 *Distinct types*);
-- naming a value, such as a constant, it is folded and cannot read a constant computed by running code (a loop, a statement body), which the inline form can.
+`@comptime` above a declaration is an error.
 
 ### Sandbox
 

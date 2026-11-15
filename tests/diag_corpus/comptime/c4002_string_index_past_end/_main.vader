@@ -6,5 +6,4 @@ module "snippet"
 
 oob :: fn() -> char = "abc"[10]
 
-@comptime
-export BAD :: oob()
+export BAD :: @comptime oob()

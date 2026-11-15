@@ -372,12 +372,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "ConstDecl",

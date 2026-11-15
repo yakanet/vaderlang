@@ -3,11 +3,9 @@
 // (T3034).
 module "snippet"
 
-@comptime
-export A :: B + 1
+export A :: @comptime B + 1
 
-@comptime
-export B :: A + 1
+export B :: @comptime A + 1
 
 main :: fn() -> i32 {
     return A

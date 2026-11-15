@@ -39,10 +39,16 @@ export DecoratorSpec :: struct {
 /// the use site, plus the code that enforces it; the SPEC holds the full rules.
 export DECORATORS: DecoratorSpec[]: [
     DecoratorSpec {
-        .name   = "comptime",
-        .usage  = "@comptime",
+        .name   = "alias",
+        .usage  = "@alias",
         .places = [.Declaration],
-        .doc    = "Forces compile-time evaluation of a value or a fn. Everything it touches must be comptime-evaluable.",
+        .doc    = "Declares a transparent alias of the type on the right: `@alias Real :: f64` names `f64` itself, where `Real :: f64` declares a distinct type.",
+    },
+    DecoratorSpec {
+        .name   = "comptime",
+        .usage  = "NAME :: @comptime <expr>, @comptime for x in e { ... }",
+        .places = [.Declaration],
+        .doc    = "Computes the value of a constant at compile time, or copies a `for` body once per element. Written before the value, never above the declaration. Everything it touches must be comptime-evaluable.",
     },
     DecoratorSpec {
         .name   = "extern",

@@ -1,6 +1,6 @@
-// `@comptime name :: <type>` binds a transparent type alias at compile time
-// (without `@comptime`, a primitive on the right makes a distinct type), and
-// `@size_of` on the alias reads the aliased type.
+// `@alias name :: <type>` declares a transparent type alias (without `@alias`, a
+// primitive on the right makes a distinct type), and `@size_of` on the alias
+// reads the aliased type.
 //
 // SPEC gives `@size_of(string)` as 4, the width of an interned atom id, and the
 // comptime fold answers 4.
@@ -9,9 +9,9 @@ module "snippet"
 
 import "std/console"
 
-@comptime byte_int   :: i32
-@comptime byte_long  :: i64
-@comptime byte_string :: string
+@alias byte_int    :: i32
+@alias byte_long   :: i64
+@alias byte_string :: string
 
 main :: fn() -> i32 {
     println("size i32     = ${@size_of(byte_int)}")

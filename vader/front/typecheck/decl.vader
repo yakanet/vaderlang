@@ -1316,21 +1316,28 @@ declare_const :: fn(
         alias_ty :: type_from_expr(decl.value, resolved, diags)
         resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl)
         typed.decl_types[sym.id] = TY_TYPE
+        return
     }
+    alias :: AST.find_decorator(decl.decorators, "alias") else return
+    diags.push(typecheck_error(.AliasOfAValue, alias.span, "`${decl.name}` is a constant"))
 }
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
 /// array, struct or tuple RHS (`Name :: f64`, `BigInt :: u32[]`) becomes a
 /// `DistinctType` (nominal newtype, `distinct_backing`), and so does an integer
 /// type named alone (`Name :: i64`, `named_range`) ; a union or fn RHS stays a
-/// transparent alias, and so does a range written out (`Int in 0..=23`).
+/// transparent alias, and so does a range written out (`Int in 0..=23`) and any
+/// type under `@alias`.
 ///
 /// @param sym       the declared name's symbol.
 /// @param alias_ty  the RHS, resolved.
 /// @param decl      the declaration: its RHS as written, and its decorators.
 /// @return          the distinct type, or `alias_ty` itself for a transparent alias.
 alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
-    if distinct_backing(alias_ty, decl.decorators) {
+    if AST.decorators_have(decl.decorators, "alias") {
+        return alias_ty
+    }
+    if distinct_backing(alias_ty) {
         return mk_distinct(sym, alias_ty)
     }
     if alias_ty is RangeType {
@@ -1342,28 +1349,18 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
 // The range `Name :: <rhs>` declares : `Int in 0..=23` a transparent refinement
 // of the integer, shown under its name ; an integer type written alone
 // (`Meters :: i64`, `Heure :: Hour`) a type of its own, as any other type named
-// alone, but under `@comptime`, which declares a transparent alias of it.
+// alone.
 named_range :: fn(sym: Symbol, range: RangeType, decl: AST.ConstDecl) -> Type {
     if decl.value !is AST.IdentExpr | AST.FieldExpr {
         return RangeType { ...range, .name = sym.name }
     }
-    if AST.decorators_have(decl.decorators, "comptime") {
-        return range
-    }
     return mk_distinct(sym, range)
 }
 
-/// True when a `Name :: <type>` const should become a `DistinctType` rather
-/// than a transparent alias : iff the RHS is a real primitive (not void/null)
-/// AND the decl is not `@comptime`. `@comptime Name :: <type>` is the existing
-/// compile-time TYPE ALIAS (resolves through `constTypeAliases`, e.g. used by
-/// `@size_of`): it stays transparent, never a newtype. Shared by the three
-/// `alias_types` writers: `declare_const` (here), `register_alias_const`
-/// (aliases.vader) and `check_const_value` (const_walk.vader).
-distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
-    if AST.decorators_have(decorators, "comptime") {
-        return false
-    }
+/// True when a `Name :: <type>` const not under `@alias` declares a
+/// `DistinctType` rather than a transparent alias : a real primitive (not
+/// void/null), an array, a struct or a tuple on the right.
+distinct_backing :: fn(alias_ty: Type) -> bool {
     if alias_ty is PrimitiveType {
         return alias_ty.name != "void" && alias_ty.name != "null"
     }

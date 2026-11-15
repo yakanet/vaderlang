@@ -2,11 +2,9 @@
 // other constant form a cycle, reported once with its path.
 module "snippet"
 
-@comptime
-export A: i32: first()
+export A: i32: @comptime first()
 
-@comptime
-export B: i32: second()
+export B: i32: @comptime second()
 
 first :: fn() -> i32 = B + 1
 

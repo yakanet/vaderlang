@@ -1,0 +1,22 @@
+// `@comptime` is written before the value it computes, `NAME :: @comptime <expr>`:
+// above a declaration, on its own line or on the declaration's, a trait member
+// included, it is refused.
+
+module "main"
+
+twice :: fn(n: i32) -> i32 = n * 2
+
+@comptime
+ABOVE :: twice(21)
+
+@comptime SAME_LINE :: twice(4)
+
+@comptime
+helper :: fn() -> i32 = 3
+
+Sized :: trait {
+    @comptime
+    size :: fn(self) -> i32
+}
+
+main :: fn() -> i32 = ABOVE + SAME_LINE + helper() - 53

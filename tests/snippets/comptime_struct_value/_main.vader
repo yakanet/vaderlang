@@ -91,23 +91,17 @@ build_pair :: fn() -> [i32, string] {
     return [sum, "six"]
 }
 
-@comptime
-CARD :: build_card()
+CARD :: @comptime build_card()
 
-@comptime
-SQUARE :: first_wide_square()
+SQUARE :: @comptime first_wide_square()
 
-@comptime
-LABELS :: build_labels()
+LABELS :: @comptime build_labels()
 
-@comptime
-WORD_BOX :: build_word_box()
+WORD_BOX :: @comptime build_word_box()
 
-@comptime
-SLOT :: build_slot()
+SLOT :: @comptime build_slot()
 
-@comptime
-PAIR :: build_pair()
+PAIR :: @comptime build_pair()
 
 show :: fn(d: Display) -> string = d.to_string()
 

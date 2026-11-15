@@ -1,0 +1,2 @@
+[11:1] error[T3138] `@alias` names a type, not a value: `TYPED` is a constant
+[8:1] error[T3138] `@alias` names a type, not a value: `ALSO_LIMIT` is a constant

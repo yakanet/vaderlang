@@ -69,7 +69,7 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
         .by_symbol = Map<i32, i64> {},
     }
     for decl in program_decls.filter_is<AST.ConstDecl>() {
-        if !AST.decorators_have(decl.decorators, "comptime") {
+        if !AST.is_comptime_const(decl) {
             continue
         }
         empty_deps: i64[]: []
@@ -81,7 +81,7 @@ collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
 
 // Second pass : fill `by_symbol` once every node is registered, then walk
 // each decl's RHS and record dependencies on other registered decls.
-// Done after collection so forward refs (`@comptime A :: B` where B is
+// Done after collection so forward refs (`A :: @comptime B` where B is
 // later in source order) still wire correctly.
 populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
@@ -231,9 +231,9 @@ build_order :: fn(src: string) -> ComptimeOrder {
 
 @test test_sort_chain_evaluates_deps_first :: fn() -> void {
     src :: """
-@comptime A :: B + 1
-@comptime B :: C + 1
-@comptime C :: 1
+A :: @comptime B + 1
+B :: @comptime C + 1
+C :: @comptime 1
 """
     out :: build_order(src)
     assert_eq(out.cycle_diags.len(), 0)
@@ -245,8 +245,8 @@ build_order :: fn(src: string) -> ComptimeOrder {
 
 @test test_sort_detects_cycle :: fn() -> void {
     src :: """
-@comptime A :: B
-@comptime B :: A
+A :: @comptime B
+B :: @comptime A
 """
     out :: build_order(src)
     assert(out.cycle_diags.len() > 0, "cycle should surface as a diagnostic")

@@ -107,8 +107,26 @@
       }
       return [sum, "six"] :[i32, string]
   }
+  snippet.__comptime_CARD :: fn() -> Card {  // snippet$__comptime_CARD
+      snippet.build_card()
+  }
+  snippet.__comptime_SQUARE :: fn() -> Box<i64> | null {  // snippet$__comptime_SQUARE
+      snippet.first_wide_square()
+  }
   snippet.SQUARE: Box<i64> | null: Box<i64> { .item = i64(5000000000) }  // snippet$SQUARE
+  snippet.__comptime_LABELS :: fn() -> Label[] {  // snippet$__comptime_LABELS
+      snippet.build_labels()
+  }
+  snippet.__comptime_WORD_BOX :: fn() -> Box<string> {  // snippet$__comptime_WORD_BOX
+      snippet.build_word_box()
+  }
   snippet.WORD_BOX: Box<string>: Box<string> { .item = "012" }  // snippet$WORD_BOX
+  snippet.__comptime_SLOT :: fn() -> Slot {  // snippet$__comptime_SLOT
+      snippet.build_slot()
+  }
+  snippet.__comptime_PAIR :: fn() -> [i32, string] {  // snippet$__comptime_PAIR
+      snippet.build_pair()
+  }
   snippet.PAIR: [i32, string]: [6, "six"] :[i32, string]  // snippet$PAIR
   snippet.show :: fn(d: Display) -> string {  // snippet$show
       @vcall(std.core.Display.to_string, d)

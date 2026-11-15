@@ -42,6 +42,9 @@
       8 * 2
   }
   snippet.TWICE: i32: 16  // snippet$TWICE
+  snippet.__comptime_ROOT :: fn() -> i32 {  // snippet$__comptime_ROOT
+      snippet.root_of_fifty()
+  }
   snippet.ROOT: i32: 7  // snippet$ROOT
   snippet.__comptime_SUM :: fn() -> i32 {  // snippet$__comptime_SUM
       7 + 1
@@ -55,13 +58,19 @@
       snippet.root_of_fifty() * 10
   }
   snippet.LIMIT: i32: 70  // snippet$LIMIT
+  snippet.__comptime_TALLY :: fn() -> i32 {  // snippet$__comptime_TALLY
+      snippet.lib.cube_total()
+  }
   snippet.TALLY: i32: 5  // snippet$TALLY
+  snippet.__comptime_SPARE_ROOT :: fn() -> i32 {  // snippet$__comptime_SPARE_ROOT
+      snippet.count_to_ten()
+  }
   __const_snippet$SPARE_ROOT :: fn() -> i32 {
       if @global(0) == 1 {
           @unreachable("constant `SPARE_ROOT` read while its value is computed")
       }
       @global(0) = 1
-      value: i32 = snippet.count_to_ten()
+      value: i32 = snippet.__comptime_SPARE_ROOT()
       @global(0) = 0
       value
   }
@@ -112,8 +121,25 @@
   }
 
 ## snippet/lib
+  snippet.lib.cube_total :: fn() -> i32 {  // snippet_lib$cube_total
+      snippet.lib.cubes_below_hundred()
+  }
   snippet.lib.lib_limit :: fn() -> i32 {  // snippet_lib$lib_limit
       10
+  }
+  snippet.lib.cubes_below_hundred :: fn() -> i32 {  // snippet_lib$cubes_below_hundred
+      count: i32 = 0
+      {
+          i: i32 = 0
+          for i < 100 {
+              if ((i * i) * i) < 100 {
+                  count = count + 1
+              }
+          } @step {
+              i = i +% 1
+          }
+      }
+      return count
   }
 
 ## lowered in dependencies

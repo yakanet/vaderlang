@@ -25,7 +25,7 @@
         },
         "decorators": [
           {
-            "name": "comptime",
+            "name": "alias",
             "args": []
           }
         ]
@@ -41,7 +41,7 @@
         },
         "decorators": [
           {
-            "name": "comptime",
+            "name": "alias",
             "args": []
           }
         ]
@@ -57,7 +57,7 @@
         },
         "decorators": [
           {
-            "name": "comptime",
+            "name": "alias",
             "args": []
           }
         ]

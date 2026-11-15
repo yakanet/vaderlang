@@ -162,12 +162,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",

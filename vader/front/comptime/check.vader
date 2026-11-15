@@ -98,12 +98,12 @@ evaluate_module_decls :: fn(
             diags.push(result.diag)
         }
     }
-    // Second pass : best-effort fold of plain consts (no `@comptime`
-    // decorator). Successful folds populate `comptime_decls` so the
-    // lowerer can inline scalar use sites. Failures are silently
-    // swallowed: these decls don't promise comptime evaluability.
+    // Second pass : best-effort fold of plain consts (no `@comptime`).
+    // Successful folds populate `comptime_decls` so the lowerer can inline
+    // scalar use sites. Failures are silently swallowed: these decls don't
+    // promise comptime evaluability.
     for decl in decls.filter_is<AST.ConstDecl>() {
-        if AST.decorators_have(decl.decorators, "comptime") {
+        if AST.is_comptime_const(decl) {
             continue
         }
         symbol :: symbol_declared_at(typed.resolved, decl.name_span) else continue

@@ -331,7 +331,7 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> NamedText {
         h.emit_type_expr(d.ty)
         h.write(": ")
     }
-    if is_inline_comptime(d) {
+    if d.comptime_body != null {
         h.write("@comptime ")
     }
     value :: p.written_value(d)

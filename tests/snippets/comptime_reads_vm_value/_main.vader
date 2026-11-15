@@ -28,32 +28,24 @@ count_to_ten :: fn() -> i32 {
     return n
 }
 
-@comptime
-TWICE :: SUM * 2
+TWICE :: @comptime SUM * 2
 
-@comptime
-ROOT :: root_of_fifty()
+ROOT :: @comptime root_of_fifty()
 
-@comptime
-SUM :: ROOT + 1
+SUM :: @comptime ROOT + 1
 
-@comptime
-FROM_LIB :: CUBES + BASE
+FROM_LIB :: @comptime CUBES + BASE
 
-@comptime
-LIMIT :: root_of_fifty() * 10
+LIMIT :: @comptime root_of_fifty() * 10
 
-@comptime
-TALLY :: tally()
+TALLY :: @comptime tally()
 
 // Kept unused on purpose: neither value is needed.
 @allow_unused
-@comptime
-SPARE_ROOT :: count_to_ten()
+SPARE_ROOT :: @comptime count_to_ten()
 
 @allow_unused
-@comptime
-SPARE :: SPARE_ROOT + 1
+SPARE :: @comptime SPARE_ROOT + 1
 
 main :: fn() -> i32 {
     println("${ROOT} ${SUM} ${TWICE} ${FROM_LIB}")

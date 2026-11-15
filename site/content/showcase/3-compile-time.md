@@ -16,7 +16,7 @@ squares :: fn(n: i32) -> i32[] {
 }
 
 // Computed by the compiler: the program holds the table, not the loop.
-@comptime SQUARES :: squares(8)
+SQUARES :: @comptime squares(8)
 
 main :: fn() -> i32 {
     println("${SQUARES}")

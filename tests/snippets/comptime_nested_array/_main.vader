@@ -43,14 +43,11 @@ build_mixed :: fn() -> (i32[] | string)[] {
     return out
 }
 
-@comptime
-CARD :: build_card()
+CARD :: @comptime build_card()
 
-@comptime
-GRID :: build_grid()
+GRID :: @comptime build_grid()
 
-@comptime
-MIXED :: build_mixed()
+MIXED :: @comptime build_mixed()
 
 show :: fn(d: Display) -> string = d.to_string()
 

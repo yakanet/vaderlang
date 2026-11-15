@@ -160,6 +160,7 @@ export TypecheckCode :: enum(CodeInfo) {
     FunctionValueDeepCopied         { .id = "T3135", .message = "a function value cannot be deep-copied" },
     ClauseHandlesNothing            { .id = "T3136", .message = "this `else` has nothing left to handle" },
     FallbackLeavesNothing           { .id = "T3137", .message = "every value goes to a clause that leaves, so the fallback has no value" },
+    AliasOfAValue                   { .id = "T3138", .message = "`@alias` names a type, not a value" },
 }
 
 // Parser-pass codes.

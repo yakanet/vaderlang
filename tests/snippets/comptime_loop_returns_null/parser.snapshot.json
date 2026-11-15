@@ -193,6 +193,28 @@
         "decorators": []
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_BEYOND",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "first_beyond_ten"
+            },
+            "args": []
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "BEYOND",
         "visibility": "private",
@@ -201,16 +223,11 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "first_beyond_ten"
+            "name": "__comptime_BEYOND"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",

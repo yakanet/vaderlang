@@ -1,0 +1,6 @@
+[10:1] error[P1014] unknown decorator placement: `@alias` applies to a constant naming a type
+[13:1] error[P1014] unknown decorator placement: a generic alias is transparent already: `@alias` is not needed
+[14:1] warning[W0007] declaration is never used in its module: `Maybe` is never used
+[16:1] warning[W0007] declaration is never used in its module: `Named` is never used
+[17:5] error[P1014] unknown decorator placement: `@alias` applies to a constant naming a type
+[7:1] error[P1014] unknown decorator placement: `@alias` applies to a constant naming a type

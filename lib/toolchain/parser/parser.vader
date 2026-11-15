@@ -487,6 +487,7 @@ parse_decl :: fn(p: Parser) -> Decl | null {
         return p.parse_assert_decl()
     }
     decorators :: p.parse_decorators()
+    p.reject_comptime_decorator(decorators)
     p.reject_assert_decorator(decorators)
     p.check_guard_arity(decorators)
     p.check_c_struct_arguments(decorators)
@@ -498,6 +499,9 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     decl :: p.parse_decorated_decl(decorators, visibility)
     if decl != null && decl !is EnumDecl {
         p.reject_displayable_decorator(decorators)
+    }
+    if decl != null && decl !is ConstDecl {
+        p.reject_alias_decorator(decorators, decl is TypeAliasDecl)
     }
     if decl != null && doc != null {
         set_decl_doc(decl, doc)
@@ -582,6 +586,17 @@ reject_assert_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
         if d.name == "assert" {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@assert` stands on its own line, before any decorator")
+        }
+    }
+}
+
+// `@comptime` is written before the value it computes, never above a
+// declaration.
+reject_comptime_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
+    for d in decorators {
+        if d.name == "comptime" {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@comptime` is written before the value it computes: `NAME :: @comptime <expr>`")
         }
     }
 }
@@ -719,6 +734,23 @@ reject_displayable_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
             p.error(.UnknownDecoratorPlacement, d.span, "`@displayable` applies to an enum only")
         }
     }
+}
+
+// `@alias` off a constant naming a type ; `generic` says the declaration is a
+// generic alias, transparent without it.
+reject_alias_decorator :: fn(p: Parser, decorators: Decorator[], generic: bool) -> void {
+    for d in decorators {
+        if d.name == "alias" {
+            p.error(.UnknownDecoratorPlacement, d.span, alias_placement_detail(generic))
+        }
+    }
+}
+
+alias_placement_detail :: fn(generic: bool) -> string {
+    if generic {
+        return "a generic alias is transparent already: `@alias` is not needed"
+    }
+    return "`@alias` applies to a constant naming a type"
 }
 
 parse_decorators :: fn(p: Parser) -> Decorator[] {
@@ -1160,6 +1192,8 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     doc :: p.take_doc()
     decorators :: p.parse_decorators()
     p.reject_displayable_decorator(decorators)
+    p.reject_comptime_decorator(decorators)
+    p.reject_alias_decorator(decorators, false)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null { visibility = .Public }
     // Unified syntax: `name :: fn(...)`, same shape as top-level fns.
@@ -1554,20 +1588,14 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     // the rest as a left-associative `bitor` chain.
     p.match_kind(.Pipe)
     // `NAME :: @comptime <expr>` sugar : desugar to a synthetic nullary fn
-    // `__comptime_NAME` carrying the inner block/expr + a `@comptime`-decorated
-    // const that calls it. Reuses the whole decorator -> VM-staging -> bake path
-    // ; no `ComptimeExpr` AST node (which would ripple a T3013 arm across every
+    // `__comptime_NAME` carrying the inner block/expr + a const that calls it,
+    // marked by its `comptime_body`. Reuses the whole VM-staging -> bake path ;
+    // no `ComptimeExpr` AST node (which would ripple a T3013 arm across every
     // exhaustive `match expr`).
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
         return p.desugar_comptime_const(decorators, visibility, name_tok, null)
     }
     value :: p.parse_expr(0)
-    marker :: comptime_helper_marker(decorators, value)
-    if marker != null {
-        return p.through_comptime_helper(
-            decorators, visibility, name_tok, null, value, marker, true,
-        )
-    }
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .name       = name_tok.text,
@@ -1582,9 +1610,10 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 // Desugar `NAME :: @comptime <expr>` (the `@comptime` already lookahead-confirmed,
 // not yet consumed). Emits a synthetic `__comptime_NAME :: fn() { <block> }`
 // (queued in `pending_decls`, flushed by `parse_program`) and returns the const
-// rewritten to `@comptime NAME :: __comptime_NAME()`. A block inner is used
-// verbatim as the fn body (so a `return` inside it works) ; any other expression
-// is wrapped as the block's trailing expression.
+// rewritten to `NAME :: __comptime_NAME()`, its `comptime_body` holding what
+// was written. A block inner is used verbatim as the fn body (so a `return`
+// inside it works) ; any other expression is wrapped as the block's trailing
+// expression.
 desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
     at_tok :: p.advance()         // `@`
     comptime_tok :: p.advance()   // `comptime`
@@ -1593,16 +1622,15 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     // no-op on a block and wraps a bare expr as its trailing.
     raw :: if p.check(.LBrace) { p.parse_block() } else { p.parse_expr(0) }
     marker :: p.span_of(at_tok, comptime_tok)
-    return p.through_comptime_helper(decorators, visibility, name_tok, ty, raw, marker, false)
+    return p.through_comptime_helper(decorators, visibility, name_tok, ty, raw, marker)
 }
 
 // The const `NAME` whose `@comptime` value `raw` a synthetic helper
 // `__comptime_NAME :: fn() { <raw> }` computes : the helper is queued in
 // `pending_decls` and the const calls it, so the comptime VM, which runs a
 // function without arguments, can evaluate any value. `marker` is the span of the
-// `@comptime` that asked for it ; `as_decorator` says whether it decorated the
-// const (`ConstDecl.comptime_as_decorator`), else the const takes a `@comptime`
-// decorator here.
+// `@comptime` that asked for it ; the const keeps `raw` in `comptime_body`,
+// which marks it for the later passes (`is_comptime_const`).
 through_comptime_helper :: fn(
     p: Parser,
     decorators: Decorator[],
@@ -1611,7 +1639,6 @@ through_comptime_helper :: fn(
     ty: TypeExpr | null,
     raw: Expr,
     marker: Span,
-    as_decorator: bool,
 ) -> ConstDecl {
     body :: lift_trailing_return(wrap_as_block(raw))
     end_tok :: p.peek_at(-1)
@@ -1645,11 +1672,6 @@ through_comptime_helper :: fn(
         .callee = ident_expr(name_tok.span, synth_name),
         .args   = [],
     }
-    decos: Decorator[]: []
-    decos.push_all(decorators)
-    if !as_decorator {
-        decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
-    }
     return ConstDecl {
         .span                  = p.span_of(name_tok, end_tok),
         .name                  = name_tok.text,
@@ -1657,71 +1679,12 @@ through_comptime_helper :: fn(
         .visibility            = visibility,
         .ty                    = ty,
         .value                 = call,
-        .decorators            = decos,
+        .decorators            = decorators,
         // Keep the raw `@comptime` operand (block/expr, pre-`return`-lift) so
         // the formatter re-emits the source spelling instead of the desugared
         // `__comptime_NAME()` call.
         .comptime_body         = raw,
-        .comptime_as_decorator = as_decorator,
     }
-}
-
-// The span of the `@comptime` decorating a const whose `value` needs a helper
-// (`through_comptime_helper`), so that the comptime VM can run it when the
-// evaluator cannot fold it. Null for any other const ; a call without arguments
-// is run as it stands, and a value shaped like a type stays as written : under
-// `@comptime` it may declare a type alias, which only the resolver tells apart
-// from a constant.
-comptime_helper_marker :: fn(decorators: Decorator[], value: Expr) -> Span | null {
-    if is_bare_nullary_call(value) {
-        return null
-    }
-    comptime :: find_decorator(decorators, "comptime") else return null
-    if has_type_shape(value) {
-        return null
-    }
-    return comptime.span
-}
-
-// `f()`, the call the comptime VM runs as it stands (`build_vm_required` in
-// `vader/front/comptime/check.vader`).
-is_bare_nullary_call :: fn(e: Expr) -> bool =
-    e is CallExpr && e.args.len() == 0 && e.callee is IdentExpr
-
-// Whether `e` may be a type expression : the shapes of `is_type_expr`
-// (`vader/front/typecheck/type_expr.vader`), any name or `Ns.member` counted, as
-// the parser cannot tell a type from a constant.
-// @partial: every other expression computes a value.
-has_type_shape :: fn(e: Expr) -> bool = @partial match e {
-    is IdentExpr | FnTypeExpr | ArrayTypeExpr -> true
-    is FieldExpr -> e.target is IdentExpr
-    is GenericInstExpr -> has_type_shape(e.callee)
-    is BinaryExpr -> is_type_operator(e)
-    is SeqLitExpr -> is_tuple_type(e.elements)
-    _ -> false
-}
-
-// A range type `Int in 0..=23`, or a union `A | B`, `null` among its operands.
-is_type_operator :: fn(e: BinaryExpr) -> bool {
-    if e.op == .In {
-        return has_type_shape(e.left)
-    }
-    return e.op == .BitOr && is_type_union_operand(e.left) && is_type_union_operand(e.right)
-}
-
-is_type_union_operand :: fn(e: Expr) -> bool = e is NullLitExpr || has_type_shape(e)
-
-// A tuple type `[A, B]` : two elements or more, each a type.
-is_tuple_type :: fn(elements: Expr[]) -> bool {
-    if elements.len() < 2 {
-        return false
-    }
-    for element in elements {
-        if !has_type_shape(element) {
-            return false
-        }
-    }
-    return true
 }
 
 // When a `@comptime { ... }` block ends in `return <e>` and has no trailing
@@ -1760,10 +1723,6 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
         return p.desugar_comptime_const(decorators, visibility, name_tok, ty)
     }
     value :: p.parse_expr(0)
-    marker :: comptime_helper_marker(decorators, value)
-    if marker != null {
-        return p.through_comptime_helper(decorators, visibility, name_tok, ty, value, marker, true)
-    }
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
         .name       = name_tok.text,

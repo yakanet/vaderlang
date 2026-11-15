@@ -7,7 +7,7 @@ module "snippet"
 
 import "std/console"
 
-@comptime alias_int :: i32
+@alias alias_int :: i32
 
 main :: fn() -> i32 {
     accept_type(alias_int)

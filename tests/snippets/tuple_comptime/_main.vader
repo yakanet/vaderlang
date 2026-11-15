@@ -11,11 +11,9 @@ import "std/console"
 // element takes the type of its position: `SPAN.0` keeps the bits an `i32`
 // would lose, and so does `REACH.0`, a tuple named as a type of its own.
 
-@comptime
-DIM : [i32, i32] : [10, 20]
+DIM : [i32, i32] : @comptime [10, 20]
 
-@comptime
-ORIGIN : [f64, f64, string] : [0.0, 0.0, "origin"]
+ORIGIN : [f64, f64, string] : @comptime [0.0, 0.0, "origin"]
 
 FAR: i64: 5_000_000_000
 

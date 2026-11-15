@@ -25,7 +25,7 @@
         },
         "decorators": [
           {
-            "name": "comptime",
+            "name": "alias",
             "args": []
           }
         ]

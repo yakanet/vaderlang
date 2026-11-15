@@ -4,10 +4,8 @@ module "snippet"
 
 Point :: struct { x: i32 }
 
-@comptime
-NAME :: "x"
+NAME :: @comptime "x"
 
-@comptime
-export INDEX :: @field_index(Point, NAME)
+export INDEX :: @comptime @field_index(Point, NAME)
 
 main :: fn() -> i32 = 0

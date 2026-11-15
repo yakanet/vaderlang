@@ -3,7 +3,7 @@
 // Tagged union holding everything the
 // comptime evaluator can produce : primitive ints / floats / bools /
 // chars / strings, the sentinel `Null` + `Void`, composite arrays and
-// structs, plus type-valued slots (`@comptime t :: i32`). `display_value`
+// structs, plus type-valued slots (a name that denotes a type). `display_value`
 // renders each variant in the form the snapshot harness expects.
 
 module "vader/front/comptime"
@@ -76,8 +76,8 @@ export StructValue :: struct {
     fields: Map<string, ComptimeValue>
 }
 
-/// `@comptime t :: i32`: the value of `t` is the Type IR itself. The
-/// dump uses `display_type` so the rendering matches every other
+/// A name that denotes a type, read as a value: its value is the Type IR
+/// itself. The dump uses `display_type` so the rendering matches every other
 /// type-position dump in the project.
 export TypeValue :: struct { value: Type }
 

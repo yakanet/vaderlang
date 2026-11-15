@@ -353,7 +353,7 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
     const_decl :: owner_typed.const_decls[resolved.id] else return null
     // Only fold a LITERAL-RHS const. A computed RHS (`B + 1`) may depend on
     // other unbaked consts, so folding it here would (a) bypass comptime
-    // cycle detection: a `@comptime A :: B + 1 ; B :: A + 1` must still
+    // cycle detection: a `A :: @comptime B + 1 ; B :: A + 1` must still
     // surface C4009, and (b) risk recursion through this same path. Those
     // consts keep their existing route ; the comptime evaluator owns their
     // value and diagnostics. A literal RHS has neither hazard and matches the

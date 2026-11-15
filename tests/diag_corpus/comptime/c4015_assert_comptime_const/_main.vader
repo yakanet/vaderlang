@@ -5,7 +5,7 @@
 // result wasn't a Bool, and C4015 was silently skipped.
 module "snippet"
 
-@comptime LIMIT :: 10
+LIMIT :: @comptime 10
 
 @assert(LIMIT == 999)
 

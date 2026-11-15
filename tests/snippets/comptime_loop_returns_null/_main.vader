@@ -22,8 +22,7 @@ first_beyond_ten :: fn() -> Point | null {
     return null
 }
 
-@comptime
-BEYOND :: first_beyond_ten()
+BEYOND :: @comptime first_beyond_ten()
 
 main :: fn() -> i32 {
     println("nothing beyond ten: ${BEYOND == null}")

@@ -167,7 +167,7 @@ closes_reported_cycle :: fn(key: u64, cd: AST.ConstDecl, walk: ConstWalk) -> boo
         } else if in_cycle {
             through_body = through_body || frame.deferred
         }
-        if in_cycle && AST.decorators_have(frame.decl.decorators, "comptime") {
+        if in_cycle && AST.is_comptime_const(frame.decl) {
             return false
         }
     }

@@ -1,7 +1,7 @@
 // vader/front/comptime/eval_call: tree-walk interpreter for `simple_fn(args)`
 // calls at comptime.
 //
-// Covers `@comptime X :: simple_fn(...)` patterns. A call runs the function the
+// Covers `X :: @comptime simple_fn(...)` patterns. A call runs the function the
 // typecheck recorded at it (`call_sites`), as the run time does. Each argument is
 // evaluated in the caller's context and bound to the callee's parameter symbol
 // (made addressable by `vader/front/resolver/body.vader::walk_fn_decl`'s

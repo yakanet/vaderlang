@@ -4,7 +4,7 @@
 
 ## Values computed by the compiler
 
-`@comptime` above a constant runs its right-hand side during the build: the program starts with the value already there.
+`@comptime` before the value of a constant runs it during the build: the program starts with the value already there.
 
 ```vader
 # module "main"
@@ -17,8 +17,7 @@ squares :: fn(n: i32) -> i32[] {
     return out
 }
 
-@comptime
-SQUARES :: squares(10)
+SQUARES :: @comptime squares(10)
 
 FIZZ :: @comptime {
     words: string[]: []

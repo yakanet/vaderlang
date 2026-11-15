@@ -14,6 +14,9 @@
       }
       return null
   }
+  snippet.__comptime_BEYOND :: fn() -> null | Point {  // snippet$__comptime_BEYOND
+      snippet.first_beyond_ten()
+  }
   snippet.BEYOND: null | Point: null  // snippet$BEYOND
   snippet.main :: fn() -> i32 {  // snippet$main
       std.console.println<string>({

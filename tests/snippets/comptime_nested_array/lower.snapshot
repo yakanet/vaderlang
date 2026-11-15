@@ -67,6 +67,15 @@
       }
       return out
   }
+  snippet.__comptime_CARD :: fn() -> Card {  // snippet$__comptime_CARD
+      snippet.build_card()
+  }
+  snippet.__comptime_GRID :: fn() -> string[][] {  // snippet$__comptime_GRID
+      snippet.build_grid()
+  }
+  snippet.__comptime_MIXED :: fn() -> (i32[] | string)[] {  // snippet$__comptime_MIXED
+      snippet.build_mixed()
+  }
   snippet.show :: fn(d: Display) -> string {  // snippet$show
       @vcall(std.core.Display.to_string, d)
   }

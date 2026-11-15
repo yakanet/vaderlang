@@ -584,6 +584,28 @@
         "decorators": []
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_CARD",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_card"
+            },
+            "args": []
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "CARD",
         "visibility": "private",
@@ -592,16 +614,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_card"
+            "name": "__comptime_CARD"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_GRID",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_grid"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -612,16 +651,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_grid"
+            "name": "__comptime_GRID"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_MIXED",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_mixed"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -632,16 +688,11 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_mixed"
+            "name": "__comptime_MIXED"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",

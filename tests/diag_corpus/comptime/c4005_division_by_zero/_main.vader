@@ -2,8 +2,7 @@
 // it would stop the run.
 module "snippet"
 
-@comptime
-export BOOM :: 10 / 0
+export BOOM :: @comptime 10 / 0
 
 main :: fn() -> i32 {
     return BOOM

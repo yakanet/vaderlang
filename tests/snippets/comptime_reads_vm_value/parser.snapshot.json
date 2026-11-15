@@ -255,12 +255,29 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_ROOT",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "root_of_fifty"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -271,16 +288,11 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "root_of_fifty"
+            "name": "__comptime_ROOT"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",
@@ -321,12 +333,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",
@@ -367,12 +374,7 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",
@@ -417,12 +419,29 @@
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_TALLY",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "tally"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -433,16 +452,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "tally"
+            "name": "__comptime_TALLY"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_SPARE_ROOT",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "count_to_ten"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -453,17 +489,13 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "count_to_ten"
+            "name": "__comptime_SPARE_ROOT"
           },
           "args": []
         },
         "decorators": [
           {
             "name": "allow_unused",
-            "args": []
-          },
-          {
-            "name": "comptime",
             "args": []
           }
         ]
@@ -510,10 +542,6 @@
         "decorators": [
           {
             "name": "allow_unused",
-            "args": []
-          },
-          {
-            "name": "comptime",
             "args": []
           }
         ]

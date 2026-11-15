@@ -1094,6 +1094,28 @@
         "decorators": []
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_CARD",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_card"
+            },
+            "args": []
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
         "kind": "ConstDecl",
         "name": "CARD",
         "visibility": "private",
@@ -1102,16 +1124,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_card"
+            "name": "__comptime_CARD"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_SQUARE",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "first_wide_square"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -1122,16 +1161,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "first_wide_square"
+            "name": "__comptime_SQUARE"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_LABELS",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_labels"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -1142,16 +1198,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_labels"
+            "name": "__comptime_LABELS"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_WORD_BOX",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_word_box"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -1162,16 +1235,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_word_box"
+            "name": "__comptime_WORD_BOX"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_SLOT",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_slot"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -1182,16 +1272,33 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_slot"
+            "name": "__comptime_SLOT"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_PAIR",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "build_pair"
+            },
             "args": []
           }
-        ]
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "ConstDecl",
@@ -1202,16 +1309,11 @@
           "kind": "CallExpr",
           "callee": {
             "kind": "IdentExpr",
-            "name": "build_pair"
+            "name": "__comptime_PAIR"
           },
           "args": []
         },
-        "decorators": [
-          {
-            "name": "comptime",
-            "args": []
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "FnDecl",

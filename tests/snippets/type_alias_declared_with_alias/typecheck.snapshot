@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/comptime_type_alias
+## tests/snippets/type_alias_declared_with_alias
   ConstDecl      byte_int             :: type
   ConstDecl      byte_long            :: type
   ConstDecl      byte_string          :: type
