@@ -6,7 +6,7 @@
 // of the module and of its wildcard imports, or those of the module an alias names
 // after `@Alias.`. A declared decorator is offered where it may be written: the
 // declaration below the cursor is the document index's entry on that line, whose
-// place the typecheck's `place_of` gives, and its place must be one the decorator
+// place `AST.place_of` gives, and its place must be one the decorator
 // declares. One written above that declaration already is not offered again,
 // unless it is repeatable. Inserting one writes its fields without a default as
 // snippet placeholders. Like the completion of names, it reads the typed project,
@@ -321,7 +321,7 @@ place_on_line :: fn(idx: DocIndex, tokens: Token[], line: i32) -> string {
                 return "Variant"
             }
             if node is AST.Decl {
-                return place_of(node)
+                return AST.place_of(node)
             }
         }
     }

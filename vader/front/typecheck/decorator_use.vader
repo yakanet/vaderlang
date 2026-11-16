@@ -18,8 +18,8 @@ import "toolchain/parser"
 import "vader/core/symbol"
 import "vader/front/resolver"
 
-/// Check every declared decorator written on `decls`, on their struct fields and
-/// enum variants, and on the members of their traits and impls.
+/// Check every declared decorator written on `decls`, at each of their places
+/// (`AST.decorator_sites`) and on the members of their traits and impls.
 ///
 /// @param decls  the declarations of a module.
 /// @param typed  the module's typed program, the struct tables of the project
@@ -27,51 +27,17 @@ import "vader/front/resolver"
 /// @param diags  where T3141, T3142, T3143 and the argument errors go.
 export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     for decl in decls {
-        check_decorators_at(AST.decl_decorators(decl), place_of(decl), typed, diags)
-        match decl {
-            is AST.StructDecl -> {
-                for f in decl.fields {
-                    check_decorators_at(f.decorators, "Field", typed, diags)
-                }
-            }
-            is AST.EnumDecl   -> {
-                for v in decl.variants {
-                    check_decorators_at(v.decorators, "Variant", typed, diags)
-                }
-            }
-            is AST.TraitDecl -> {
-                for m in decl.members {
-                    check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
-                }
-            }
-            is AST.ImplDecl -> {
-                for m in decl.members {
-                    check_decorators_at(m.decorators, PLACE_FUNCTION, typed, diags)
-                }
-            }
-            _ -> {}
+        check_sites(decl, typed, diags)
+        for m in AST.members_of(decl) {
+            check_sites(m, typed, diags)
         }
     }
 }
 
-// The `DecoratorTarget` variant a function is.
-PLACE_FUNCTION :: "Function"
-
-/// The `DecoratorTarget` variant `decl` is, where a decorator above it is written.
-///
-/// @param decl  a top-level declaration, or the member of a trait or an impl.
-/// @return      `"Function"`, `"Struct"`... ; `""` for an assertion, which carries
-///              no decorator.
-export place_of :: fn(decl: AST.Decl) -> string = match decl {
-    is AST.FnDecl        -> PLACE_FUNCTION
-    is AST.StructDecl    -> "Struct"
-    is AST.EnumDecl      -> "Enum"
-    is AST.TraitDecl     -> "Trait"
-    is AST.ImplDecl      -> "Implementation"
-    is AST.ConstDecl     -> "Constant"
-    is AST.TypeAliasDecl -> "Alias"
-    is AST.ImportDecl    -> "Import"
-    is AST.AssertDecl    -> ""
+check_sites :: fn(decl: AST.Decl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for site in AST.decorator_sites(decl) {
+        check_decorators_at(site.decorators, site.place, typed, diags)
+    }
 }
 
 // The declared decorators of one declaration, written at `place`.

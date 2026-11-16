@@ -36,20 +36,9 @@ referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
     } else if n is AST.FieldExpr {
         out.push(n.field)
     } else if n is AST.Decl {
-        for d in AST.decl_decorators(n) {
-            out.push(d.name)
-        }
-        if n is AST.StructDecl {
-            for f in n.fields {
-                for d in f.decorators {
-                    out.push(d.name)
-                }
-            }
-        } else if n is AST.EnumDecl {
-            for v in n.variants {
-                for d in v.decorators {
-                    out.push(d.name)
-                }
+        for site in AST.decorator_sites(n) {
+            for d in site.decorators {
+                out.push(d.name)
             }
         }
     }

@@ -358,6 +358,68 @@ export decl_decorators :: fn(decl: Decl) -> Decorator[] = match decl {
     is AssertDecl    -> decl.decorators
 }
 
+/// The decorators written at one place of a declaration, with the place.
+export DecoratorSite :: struct {
+    /// The `DecoratorTarget` variant the place is: `"Function"`, `"Field"`...
+    place:      string
+    decorators: Decorator[]
+}
+
+/// The `DecoratorTarget` variant `decl` is, where a decorator above it is written.
+///
+/// @param decl  a top-level declaration, or the member of a trait or an impl.
+/// @return      `"Function"`, `"Struct"`... ; `""` for an assertion, which carries
+///              no decorator.
+export place_of :: fn(decl: Decl) -> string = match decl {
+    is FnDecl        -> "Function"
+    is StructDecl    -> "Struct"
+    is EnumDecl      -> "Enum"
+    is TraitDecl     -> "Trait"
+    is ImplDecl      -> "Implementation"
+    is ConstDecl     -> "Constant"
+    is TypeAliasDecl -> "Alias"
+    is ImportDecl    -> "Import"
+    is AssertDecl    -> ""
+}
+
+/// Each place of `decl` a decorator may be written at: above it, and above each
+/// of its fields, variants and parameters. The members of a trait or an impl are
+/// declarations of their own, with sites of their own (`members_of`).
+///
+/// @param decl  a top-level declaration, or the member of a trait or an impl.
+export decorator_sites :: fn(decl: Decl) -> DecoratorSite[] {
+    out: DecoratorSite[]: [DecoratorSite { .place = place_of(decl), .decorators = decl_decorators(decl) }]
+    match decl {
+        is StructDecl -> {
+            for f in decl.fields {
+                out.push(DecoratorSite { .place = "Field", .decorators = f.decorators })
+            }
+        }
+        is EnumDecl   -> {
+            for v in decl.variants {
+                out.push(DecoratorSite { .place = "Variant", .decorators = v.decorators })
+            }
+        }
+        is FnDecl     -> {
+            for p in decl.params {
+                out.push(DecoratorSite { .place = "Parameter", .decorators = p.decorators })
+            }
+        }
+        _ -> {}
+    }
+    return out
+}
+
+/// The members of a trait or an impl, as it writes them ; none for any other
+/// declaration.
+///
+/// @param decl  a declaration.
+export members_of :: fn(decl: Decl) -> FnDecl[] = match decl {
+    is TraitDecl -> decl.members
+    is ImplDecl  -> decl.members
+    is ImportDecl | FnDecl | StructDecl | EnumDecl | TypeAliasDecl | ConstDecl | AssertDecl -> []
+}
+
 /// Whether `decl` carries `export`.
 ///
 /// @param decl  a declaration.
