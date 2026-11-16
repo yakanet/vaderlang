@@ -14,8 +14,8 @@ vader_box_t toolchain_project$asset_problem(vader_string_t l0) {
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    t1 = concat_3(1819u, l0, 1343u);
-    { vader_box_t __vret = vader_box_string(507u, t1); vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = concat_3(1826u, l0, 1344u);
+    { vader_box_t __vret = vader_box_string(508u, t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_box_t toolchain_project$entry_name_problem(vader_string_t l0) {
@@ -25,13 +25,13 @@ vader_box_t toolchain_project$entry_name_problem(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     t0 = toolchain_project$is_portable_name(l0);
     if (!(t0)) {
-        { vader_box_t __vret = vader_box_string(507u, 1950u); vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_string(508u, 1961u); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = toolchain_project$is_windows_device_name(l0);
     if (!(t0)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    { vader_box_t __vret = vader_box_string(507u, 1949u); vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_string(508u, 1960u); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 vader_box_t toolchain_project$entry_named(void* l0, vader_string_t l1) {
@@ -87,7 +87,7 @@ static bool toolchain_project$is_portable_name(vader_string_t l0) {
     l1 = std_string$chars(l0);
     for (;;) {
         l2 = std_string$StringChars$std_core$Iterator$next(l1);
-        if (!(l2.tag == 901u)) {
+        if (!(l2.tag == 903u)) {
             t1 = ((uint32_t) l2.payload.i);
             t0 = __lambda_toolchain_project_0(t1);
             if (t0) {
@@ -114,29 +114,29 @@ static bool toolchain_project$is_windows_device_name(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = std_string$to_lower(l0);
-    vader_array_t* _a0_arr = vader_array_new(26u, 4u, 0u, 507u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(507u, 2648u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(507u, 1827u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(507u, 2710u);
-    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(507u, 2010u);
+    vader_array_t* _a0_arr = vader_array_new(26u, 4u, 0u, 508u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 3u] = vader_box_string(508u, 2659u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 2u] = vader_box_string(508u, 1834u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 1u] = vader_box_string(508u, 2721u);
+    vader_array_box_slots(_a0_arr->buf)[vader_array_offset(_a0_arr) + 0u] = vader_box_string(508u, 2021u);
     t0 = (void*) _a0_arr;
     t1 = std_core$$array$Contains$contains__string(t0, l1);
     if (t1) {
         { vader_gc_top = gc_frame.prev; return true; }
     }
-    t2 = vader_host_std_core$byte_len(l1);
+    t2 = vader_host_std_core$Intrinsic$byte_len(l1);
     if (t2 == INT64_C(4)) {
-        t1 = std_string$starts_with(l1, 1992u);
+        t1 = std_string$starts_with(l1, 2003u);
         if (t1) {
             l2 = true;
         } else {
-            l2 = std_string$starts_with(l1, 2529u);
+            l2 = std_string$starts_with(l1, 2540u);
         }
     } else {
         l2 = false;
     }
     if (l2) {
-        l3 = vader_host_std_core$byte_at(l1, INT64_C(3));
+        l3 = vader_host_std_core$Intrinsic$byte_at(l1, INT64_C(3));
         if ((INT32_C(48) <= l3)) {
             l2 = (l3 <= INT32_C(57));
         } else {
