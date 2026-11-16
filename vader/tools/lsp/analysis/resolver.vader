@@ -253,7 +253,6 @@ export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | nu
 /// @param paths  the roots, from `document_roots`.
 export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]) -> DiscoveredModule | null {
     index :: Map<string, DiscoveredModule> {}
-    discard: Diagnostic[]: []
-    return resolve_lazy(name, paths, index, doc_overlay(state), discard)
+    return resolve_lazy(name, paths, index, doc_overlay(state), [])
 }
 
