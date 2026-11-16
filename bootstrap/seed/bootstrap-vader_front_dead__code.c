@@ -90,7 +90,7 @@ static bool vader_front_dead__code$brings_a_name(void* l0, void* l1, void* l2) {
                 continue;
             }
             l11 = l5.payload.s;
-            if (l11 != 1123u) {
+            if (l11 != 1110u) {
                 t1 = std_collections$Set$std_core$Contains$contains__string(l2, l11);
                 if (t1) {
                     { vader_gc_top = gc_frame.prev; return true; }
@@ -244,7 +244,7 @@ void vader_front_dead__code$check_dead_code(void* l0, vader_string_t l1, void* l
         if (!(t0)) {
             l8 = ((vader_struct_vader_front_dead__code$DeadDecl_t*) l7)->f_name_span;
             l19 = ((vader_struct_vader_front_dead__code$DeadDecl_t*) l7)->f_name;
-            l20 = concat_3(1181u, l19, 1327u);
+            l20 = concat_3(1168u, l19, 1314u);
             l9 = toolchain_diagnostics$warning((uint8_t) 4, l8, l20);
             vader_array_push_ref((vader_array_t*) l2, l9);
         }
@@ -464,7 +464,7 @@ void vader_front_dead__code$check_unused_imports(void* l0, void* l1, void* l2) {
                                     l40 = ((vader_struct_toolchain_ast$ImportDecl_t*) t2)->f_span;
                                     t2 = l29.payload.obj;
                                     l41 = ((vader_struct_toolchain_ast$ImportDecl_t*) t2)->f_path;
-                                    l42 = concat_3(1181u, l41, 1181u);
+                                    l42 = concat_3(1168u, l41, 1168u);
                                     l43 = toolchain_diagnostics$warning((uint8_t) 3, l40, l42);
                                     vader_array_push_ref((vader_array_t*) l2, l43);
                                     l28 = (l28 + INT64_C(1));
@@ -733,8 +733,8 @@ static bool vader_front_dead__code$is_root_decl(uint8_t l0, void* l1, vader_stri
     if (l4) {
         return true;
     }
-    if (l3 == 1887u) {
-        l4 = l2 == 1887u;
+    if (l3 == 1874u) {
+        l4 = l2 == 1874u;
     } else {
         l4 = false;
     }
@@ -1105,7 +1105,7 @@ static void vader_front_dead__code$note_callee_run(vader_box_t l0, void* l1, voi
         t0 = l0.payload.obj;
         l3 = ((vader_struct_vader_front_typecheck$BoundMember_t*) t0)->f_trait_key;
         vader_array_push_scalar((vader_array_t*) l5, vader_box_string(508u, l3));
-    } else if (l0.tag == 1508u) {
+    } else if (l0.tag == 1509u) {
         l5 = ((vader_struct_vader_front_dead__code$ImplsRun_t*) l2)->f_trait_keys;
         t0 = l0.payload.obj;
         l3 = ((vader_struct_vader_front_typecheck$TraitMember_t*) t0)->f_trait_key;
@@ -1122,7 +1122,7 @@ static void vader_front_dead__code$note_callee_run(vader_box_t l0, void* l1, voi
             vader_front_dead__code$note_callee_run(t2, l1, l2);
             l7 = (l7 + INT64_C(1));
         }
-    } else if (!((l0.tag == 1454u || l0.tag == 1470u || l0.tag == 1475u || l0.tag == 1516u))) {
+    } else if (!((l0.tag == 1454u || l0.tag == 1470u || l0.tag == 1475u || l0.tag == 1517u))) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
     { vader_gc_top = gc_frame.prev; return; }

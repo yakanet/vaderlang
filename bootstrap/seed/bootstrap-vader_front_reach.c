@@ -177,7 +177,7 @@ bool vader_front_reach$is_wired_root(void* l0, vader_string_t l1) {
     int64_t l3, l4;
     void* t0;
     bool t1;
-    if (l1 == 2544u) {
+    if (l1 == 2529u) {
         return true;
     }
     l2 = l0;
