@@ -50,7 +50,7 @@ export materialize_intrinsic_members :: fn(
     trait_decl: AST.TraitDecl,
     factory: NodeIdFactory,
 ) -> void {
-    if !AST.decorators_have(impl_decl.decorators, "intrinsic") { return }
+    if !AST.has_compiler_decorator(impl_decl.decorators, .Intrinsic) { return }
     if impl_decl.members.len() > 0 { return }
     subst :: build_subst(impl_decl, trait_decl)
     for method in trait_decl.members {
@@ -274,7 +274,7 @@ intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {
     return [
         AST.Decorator {
             .span = span,
-            .name = "intrinsic",
+            .name = AST.DecoratorName(AST.CompilerDecorator.Intrinsic).text,
             .name_span = span,
             .args = args,
         },

@@ -26,7 +26,7 @@ DISPLAYABLE_FILE_PREFIX :: "<displayable>:"
 export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
     generated: AST.Decl[]: []
     for d in program.decls.filter_is<AST.EnumDecl>() {
-        marker :: AST.find_decorator(d.decorators, "displayable") else continue
+        marker :: AST.find_compiler_decorator(d.decorators, .Displayable) else continue
         generated.push(displayable_impl(d, marker, program.file))
     }
     if generated.is_empty() {

@@ -165,7 +165,7 @@ door_nodes :: fn(ctx: TaskCtx) -> i32[] {
 // Note the `@singleton` nodes.
 note_singletons :: fn(ctx: TaskCtx) -> void {
     for node in 0..<ctx.index.functions.len() {
-        if AST.decorators_have(ctx.index.functions[node].decl.decorators, "singleton") {
+        if AST.has_compiler_decorator(ctx.index.functions[node].decl.decorators, .Singleton) {
             ctx.singleton_nodes.push(i32(node))
         }
     }

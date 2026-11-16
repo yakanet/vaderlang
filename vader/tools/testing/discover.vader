@@ -271,7 +271,7 @@ find_tests :: fn(lp: LoweredProject, module: string) -> DiscoveredTest[] {
         }
         ast :: d.origin.decl
         if ast is FnDecl {
-            if decorators_have(ast.decorators, "test") {
+            if has_compiler_decorator(ast.decorators, .Test) {
                 out.push(DiscoveredTest {
                     .mangled = d.mangled,
                     .display = ast.name,

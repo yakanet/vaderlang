@@ -307,8 +307,8 @@ is_fn_root :: fn(
             return true
         }
         for dec in ast.decorators {
-            if dec.name == "extern" { return true }
-            if keep_tests && dec.name == "test" { return true }
+            if dec.is_compiler(.Extern) { return true }
+            if keep_tests && dec.is_compiler(.Test) { return true }
         }
     }
     return false

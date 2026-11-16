@@ -206,7 +206,7 @@ summary_target :: fn(
     key: string,
     typed: TypedProgram,
 ) -> CallTarget {
-    if AST.decorators_have(decl.decorators, "extern") {
+    if AST.has_compiler_decorator(decl.decorators, .Extern) {
         return KnownEffects { .params = decl.params.map(foreign_effects).collect() }
     }
     // By its node id : an `@intrinsic` stub shares its parameters' spans with the
@@ -251,7 +251,7 @@ returned_array :: fn(declared: Type | null) -> ArrayType | null {
 
 // C reads a parameter of an `@extern`, and writes one marked `@c_out`.
 foreign_effects :: fn(p: AST.FnParam) -> ParamEffects {
-    if AST.decorators_have(p.decorators, "c_out") {
+    if AST.has_compiler_decorator(p.decorators, .COut) {
         return effects_of(.Assigned, EVERYWHERE)
     }
     return none()

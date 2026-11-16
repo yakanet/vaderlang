@@ -186,23 +186,6 @@ export Decorator :: struct {
     module_name: string = ""
 }
 
-/// Whether `decs` carries the decorator called `name`.
-///
-/// Here rather than in each pass: six modules open-coded this loop, and a
-/// decorator's presence is a question about the AST, which is what this module
-/// owns.
-///
-/// @param decs  the declaration's decorators.
-/// @param name  the decorator name, without the `@`.
-export decorators_have :: fn(decs: Decorator[], name: string) -> bool = find_decorator(decs, name) != null
-
-/// The decorator called `name` among `decs`, the first when several are.
-///
-/// @param decs  the declaration's decorators.
-/// @param name  the decorator name, without the `@`.
-export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null =
-    decs.find((d) -> d.name == name)
-
 /// The decorator called `name` that `module_name` declares, among `decs`: what a
 /// build driver looks for, since a name alone may be another module's.
 ///
@@ -219,7 +202,7 @@ export find_declared_decorator :: fn(
 ///
 /// @param decs  the decorators of an `@extern` declaration or of one parameter.
 export c_type_of :: fn(decs: Decorator[]) -> string {
-    d :: find_decorator(decs, "c_type") else return ""
+    d :: find_compiler_decorator(decs, .CType) else return ""
     return sole_string_argument(d)
 }
 
@@ -251,7 +234,7 @@ export extern_arguments :: fn(d: Decorator) -> ExternArguments {
 ///
 /// @param decl  the bodyless function declaration.
 export extern_symbol_of :: fn(decl: FnDecl) -> string {
-    d :: find_decorator(decl.decorators, "extern") else return decl.name
+    d :: find_compiler_decorator(decl.decorators, .Extern) else return decl.name
     symbol :: extern_arguments(d).symbol else return decl.name
     return string_literal_text(symbol) else decl.name
 }
@@ -261,7 +244,7 @@ export extern_symbol_of :: fn(decl: FnDecl) -> string {
 ///
 /// @param decl  the bodyless function declaration.
 export c_header_of :: fn(decl: FnDecl) -> string {
-    d :: find_decorator(decl.decorators, "c_header") else return ""
+    d :: find_compiler_decorator(decl.decorators, .CHeader) else return ""
     return sole_string_argument(d)
 }
 
@@ -293,7 +276,7 @@ export extern_headers :: fn(decl: FnDecl, library: CLibrary | null) -> string[] 
 /// @param decl  the bodyless function declaration.
 export c_variadic_start :: fn(decl: FnDecl) -> i64 {
     for i in 0..<decl.params.len() {
-        if decorators_have(decl.params[i].decorators, "c_variadic") {
+        if has_compiler_decorator(decl.params[i].decorators, .CVariadic) {
             return i
         }
     }
@@ -311,7 +294,7 @@ export c_variadic_start :: fn(decl: FnDecl) -> i64 {
 /// @param decs         the struct's decorators.
 /// @param struct_name  the name the struct declares, never its mangled form.
 export c_struct_spelling :: fn(decs: Decorator[], struct_name: string) -> string {
-    d :: find_decorator(decs, "c_struct") else return ""
+    d :: find_compiler_decorator(decs, .CStruct) else return ""
     if d.args.len() == 0 {
         return struct_name
     }

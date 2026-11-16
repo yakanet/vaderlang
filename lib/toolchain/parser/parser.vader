@@ -551,7 +551,7 @@ is_module_segment_continue :: fn(c: char) = c in 'a'..='z' || c.is_digit() || c 
 
 parse_decl :: fn(p: Parser) -> Decl | null {
     doc :: p.take_doc()
-    if p.check(.At) && p.check_at(.Ident, 1) && p.peek_at(1).text == "assert" {
+    if p.at_compiler_decorator(.Assert) {
         return p.parse_assert_decl()
     }
     decorators :: p.parse_decorators()
@@ -652,7 +652,7 @@ static_assert_message :: fn(p: Parser, arg: Expr) -> string | null {
 // which nothing checks.
 reject_assert_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
     for d in decorators {
-        if d.name == "assert" {
+        if d.is_compiler(.Assert) {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@assert` stands on its own line, before any decorator")
         }
@@ -663,7 +663,7 @@ reject_assert_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
 // declaration.
 reject_comptime_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
     for d in decorators {
-        if d.name == "comptime" {
+        if d.is_compiler(.Comptime) {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@comptime` is written before the value it computes: `NAME :: @comptime <expr>`")
         }
@@ -713,27 +713,32 @@ reject_free_fn_decorators :: fn(
     p: Parser, decorators: Decorator[], what: string, target_hint: string,
 ) -> void {
     for d in decorators {
-        if d.name == "target" {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@target` selects a function body ; it does not apply to ${what}${target_hint}")
-        }
-        if d.name == "singleton" {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@singleton` applies to a free function ; it does not apply to ${what}")
-        }
-        if d.name == "returns" {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@returns` states what a free function returns ; it does not apply to ${what}")
-        }
-        if d.name == "ensures" {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@ensures` states what holds once a free function returns ; "
-                    + "it does not apply to ${what}")
-        }
-        if d.name == "c_type" {
-            p.error(.UnknownDecoratorPlacement, d.span,
-                "`@c_type` names the C type of an `@extern` result or parameter ; "
-                    + "it does not apply to ${what}")
+        which :: compiler_decorator_of(d) else continue
+        match which {
+            .Target -> {
+                p.error(.UnknownDecoratorPlacement, d.span,
+                    "`@target` selects a function body ; "
+                        + "it does not apply to ${what}${target_hint}")
+            }
+            .Singleton -> {
+                p.error(.UnknownDecoratorPlacement, d.span,
+                    "`@singleton` applies to a free function ; it does not apply to ${what}")
+            }
+            .Returns -> {
+                p.error(.UnknownDecoratorPlacement, d.span,
+                    "`@returns` states what a free function returns ; it does not apply to ${what}")
+            }
+            .Ensures -> {
+                p.error(.UnknownDecoratorPlacement, d.span,
+                    "`@ensures` states what holds once a free function returns ; "
+                        + "it does not apply to ${what}")
+            }
+            .CType -> {
+                p.error(.UnknownDecoratorPlacement, d.span,
+                    "`@c_type` names the C type of an `@extern` result or parameter ; "
+                        + "it does not apply to ${what}")
+            }
+            _ -> {}
         }
     }
 }
@@ -741,7 +746,7 @@ reject_free_fn_decorators :: fn(
 // `@returns(cond)` and `@ensures(cond)` state one condition.
 check_guard_arity :: fn(p: Parser, decorators: Decorator[]) -> void {
     for d in decorators {
-        if (d.name == "returns" || d.name == "ensures") && d.args.len() != 1 {
+        if (d.is_compiler(.Returns) || d.is_compiler(.Ensures)) && d.args.len() != 1 {
             p.error(.DecoratorArgumentCount, d.span,
                 "`@${d.name}` expects one condition over the parameters : `@${d.name}(h in Hour)`")
         }
@@ -751,7 +756,7 @@ check_guard_arity :: fn(p: Parser, decorators: Decorator[]) -> void {
 // `@c_struct` names the C type at most once, as a plain string: a reader that
 // met anything else would take the struct for an ordinary one, in silence.
 check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
-    d :: find_decorator(decorators, "c_struct") else return
+    d :: find_compiler_decorator(decorators, .CStruct) else return
     if d.args.len() > 1 {
         p.error(.DecoratorArgumentCount, d.span,
             "`@c_struct` takes at most one argument : the C type, when it is not the struct's own name")
@@ -766,7 +771,7 @@ check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
 // `@c_header` names one header, as a plain string: a reader that met anything
 // else would find no header and synthesise the prototype, in silence.
 check_c_header_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
-    d :: find_decorator(decorators, "c_header") else return
+    d :: find_compiler_decorator(decorators, .CHeader) else return
     if d.args.len() != 1 {
         p.error(.DecoratorArgumentCount, d.span,
             "`@c_header` takes one argument : the header, as in a C `#include`")
@@ -788,7 +793,7 @@ reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> v
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@${d.name}` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
         }
-        if d.name == "c_struct" {
+        if d.is_compiler(.CStruct) {
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@c_struct` names the C type a STRUCT mirrors ; it does not apply to ${what}")
         }
@@ -799,7 +804,7 @@ reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> v
 // is no variant name to render, and nothing downstream would read it.
 reject_displayable_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
     for d in decorators {
-        if d.name == "displayable" {
+        if d.is_compiler(.Displayable) {
             p.error(.UnknownDecoratorPlacement, d.span, "`@displayable` applies to an enum only")
         }
     }
@@ -809,7 +814,7 @@ reject_displayable_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
 // generic alias, transparent without it.
 reject_alias_decorator :: fn(p: Parser, decorators: Decorator[], generic: bool) -> void {
     for d in decorators {
-        if d.name == "alias" {
+        if d.is_compiler(.Alias) {
             p.error(.UnknownDecoratorPlacement, d.span, alias_placement_detail(generic))
         }
     }
@@ -851,8 +856,7 @@ declared_only :: fn(p: Parser, decorators: Decorator[], place: string) -> Decora
 /// declares: an unqualified name the compiler's table holds.
 ///
 /// @param d  a decorator as written.
-export is_compiler_decorator :: fn(d: Decorator) -> bool =
-    d.qualifier == null && decorator_spec(d.name) != null
+export is_compiler_decorator :: fn(d: Decorator) -> bool = compiler_decorator_of(d) != null
 
 // The compiler's decorators read their arguments by position: a named one would
 // be dropped in silence. `@extern(symbol = "sym")` is the one exception.
@@ -870,7 +874,7 @@ reject_named_arguments :: fn(p: Parser, d: Decorator) -> void {
 
 // Whether argument `i` of `d` is the `symbol = "..."` of an `@extern`, its last.
 names_the_extern_symbol :: fn(d: Decorator, i: i64) -> bool =
-    d.name == "extern" && d.args[i].name == "symbol" && i == d.args.len() - 1
+    d.is_compiler(.Extern) && d.args[i].name == "symbol" && i == d.args.len() - 1
 
 parse_decorator :: fn(p: Parser) -> Decorator {
     at :: p.advance()
@@ -1117,7 +1121,7 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
 
     // `@intrinsic Type implements Trait` (no body): resolver synthesises
     // body-less members from the trait's methods.
-    is_intrinsic :: decorators_have(decorators, "intrinsic")
+    is_intrinsic :: has_compiler_decorator(decorators, .Intrinsic)
 
     members: FnDecl[]: []
     end_tok: Token = p.peek_at(-1)
@@ -1807,7 +1811,11 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
 }
 
 // Whether `@comptime` comes next.
-at_comptime :: fn(p: Parser) = p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime"
+at_comptime :: fn(p: Parser) = p.at_compiler_decorator(.Comptime)
+
+// Whether the parser stands on `@` and the name of the compiler's decorator `which`.
+at_compiler_decorator :: fn(p: Parser, which: CompilerDecorator) -> bool =
+    p.check(.At) && p.check_at(.Ident, 1) && compiler_decorator_named(p.peek_at(1).text) == which
 
 // The const `NAME` whose `@comptime` value `raw` a synthetic helper
 // `__comptime_NAME :: fn() { <raw> }` computes : the helper is queued in
@@ -3342,7 +3350,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 p.error(.UnknownDecoratorPlacement, name_tok.span,
                     "`@${name_tok.text}` must precede a `match` expression")
             }
-            partial :: name_tok.text == "partial"
+            partial :: compiler_decorator_named(name_tok.text) == CompilerDecorator.Partial
             return p.parse_match_expr(partial, !partial, at_tok.span)
         }
         match intrinsic :: intrinsic_named(name_tok.text) {

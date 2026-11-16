@@ -400,7 +400,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         self.bind_param(p)
     }
     for contract in d.decorators {
-        if !is_contract_decorator(contract.name) {
+        if !is_contract_decorator(contract) {
             continue
         }
         for a in contract.args {
@@ -610,13 +610,13 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
         // `.Windows` could be looked up, and walking it as an expression would
         // report "cannot infer enum type from context" for a construct that is
         // not an enum literal at all.
-        if d.name == "target" {
+        if AST.is_compiler(d, .Target) {
             self.check_target_selectors(d)
             continue
         }
         // The condition of `@returns` and `@ensures` reads the parameters :
         // `walk_fn_decl` walks it once they are bound.
-        if is_contract_decorator(d.name) {
+        if is_contract_decorator(d) {
             continue
         }
         self.walk_decorator_args(d)
@@ -660,8 +660,9 @@ check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
     }
 }
 
-// Whether `name` is a decorator stating a contract over a fn's parameters.
-is_contract_decorator :: fn(name: string) -> bool = name == "returns" || name == "ensures"
+// Whether `d` states a contract over a fn's parameters.
+is_contract_decorator :: fn(d: AST.Decorator) -> bool =
+    AST.is_compiler(d, .Returns) || AST.is_compiler(d, .Ensures)
 
 // Whether `name` is a decorator this walk may meet : one a declaration or a
 // parameter carries (`toolchain/parser/decorators.vader`).

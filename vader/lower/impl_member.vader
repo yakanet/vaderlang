@@ -115,7 +115,7 @@ resolve_impl_member :: fn(
     for entry in covering_first(candidates, target_type) {
         decl :: entry.decl
         m :: select_member(entry, name) else continue
-        if !decorators_have(decl.decorators, "intrinsic") {
+        if !has_compiler_decorator(decl.decorators, .Intrinsic) {
             return member_or_instance(ctx, target_type, m, entry, own_args)
         }
         // An `@intrinsic` fallback is bodyless -> never an inlineable identity.

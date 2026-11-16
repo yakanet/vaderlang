@@ -56,7 +56,7 @@ evaluate_call_expr :: fn(
     call_context :: context_declaring(fn_decl, context)
         else return vm_required(expr.span, "CallExpr (callee of another module)")
     // Its instance is built by the program's run, which has not started.
-    if AST.decorators_have(fn_decl.decorators, "singleton") {
+    if AST.has_compiler_decorator(fn_decl.decorators, .Singleton) {
         return fail(comptime_error(.SingletonAtComptime, expr.span, "`${callee.name}`"))
     }
     if fn_decl.params.len() != expr.args.len() {

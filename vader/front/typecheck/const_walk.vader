@@ -327,7 +327,7 @@ check_no_singleton_call :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Dia
         }
         if n is AST.CallExpr {
             decl :: recorded_decl(typed, n)
-            if decl != null && AST.decorators_have(decl.decorators, "singleton") {
+            if decl != null && AST.has_compiler_decorator(decl.decorators, .Singleton) {
                 detail :: "`${cd.name}` calls `${decl.name}`"
                 diags.push(typecheck_error(.ConstantCallsSingleton, n.span, detail))
             }

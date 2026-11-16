@@ -42,7 +42,7 @@ export handle_code_lens :: fn(state: ServerState, params: JsonValue) -> JsonValu
 test_lenses :: fn(program: Program, uri: string, folder: string, li: LineIndex) -> JsonValue[] {
     lenses: JsonValue[]: []
     for d in program.decls {
-        if d is FnDecl && decorators_have(d.decorators, "test") {
+        if d is FnDecl && has_compiler_decorator(d.decorators, .Test) {
             lenses.push(run_lens(d.name_span, "Run test", [uri, folder, d.name], li))
         }
     }

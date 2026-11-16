@@ -255,7 +255,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
             // `graft_body` takes every other decorator from the declaration, so
             // one written on a body would be dropped without a word.
             for dec in d.decorators {
-                if dec.name != "target" && !provides_body(dec.name) {
+                if !AST.is_compiler(dec, .Target) && !provides_body(dec) {
                     diags.push(
                         resolver_error(
                             .TargetBodyCarriesEnvelope,
@@ -380,8 +380,7 @@ report_uncovered :: fn(
     }
 }
 
-is_host_bound :: fn(fd: AST.FnDecl) =
-    AST.decorators_have(fd.decorators, "intrinsic") || AST.decorators_have(fd.decorators, "extern")
+is_host_bound :: fn(fd: AST.FnDecl) = fd.decorators.any_match(provides_body)
 
 // `file:line` of a span, for a diagnostic that points at a SECOND location. The
 // diagnostic's own span names the offending declaration; this names the one it
@@ -416,11 +415,12 @@ resolve_decl :: fn(
     return d
 }
 
-/// Whether the decorator `name` says who provides a body, which a body carries
+/// Whether the decorator `d` says who provides a body, which a body carries
 /// rather than its declaration: a body the host gives, written with none.
 ///
-/// @param name  a decorator's name, without its `@`.
-export provides_body :: fn(name: string) -> bool = name == "extern" || name == "intrinsic"
+/// @param d  a decorator as written.
+export provides_body :: fn(d: AST.Decorator) -> bool =
+    AST.is_compiler(d, .Extern) || AST.is_compiler(d, .Intrinsic)
 
 // Build the merged node: the declaration's envelope, the winner's body.
 //
@@ -439,7 +439,7 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
         decorators.push(dec)
     }
     for dec in body.decorators {
-        if provides_body(dec.name) {
+        if provides_body(dec) {
             decorators.push(dec)
         }
     }
@@ -470,7 +470,7 @@ export TargetSelectors :: struct {
 /// @param decorators  the declaration's decorators.
 export target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
     for d in decorators {
-        if d.name != "target" {
+        if !AST.is_compiler(d, .Target) {
             continue
         }
         out: Os[]: []
@@ -499,7 +499,7 @@ check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
     for f in files {
         for d in f.program.decls.filter_is<AST.FnDecl>() {
             for dec in d.decorators {
-                if dec.name != "target" {
+                if !AST.is_compiler(dec, .Target) {
                     continue
                 }
                 for a in dec.args {

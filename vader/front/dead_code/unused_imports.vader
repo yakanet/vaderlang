@@ -67,7 +67,7 @@ export check_unused_imports :: fn(
                 }
             }
             for d in file.program.decls {
-                if d !is AST.ImportDecl || AST.decorators_have(d.decorators, "allow_unused") {
+                if d !is AST.ImportDecl || AST.has_compiler_decorator(d.decorators, .AllowUnused) {
                     continue
                 }
                 // An import of a module that did not load has its own error.

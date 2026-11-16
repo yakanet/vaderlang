@@ -146,7 +146,7 @@ yielded :: fn(ctx: WalkCtx, value: i64 | null, at: Span) -> void {
 
 // A `@singleton` keeps what its body builds for the whole run: kept, not returned.
 result_effect_of :: fn(decl: AST.FnDecl) -> Effect {
-    if AST.decorators_have(decl.decorators, "singleton") {
+    if AST.has_compiler_decorator(decl.decorators, .Singleton) {
         return .Stored
     }
     return .Returned

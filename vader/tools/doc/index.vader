@@ -322,7 +322,7 @@ has_body :: fn(fd: FnDecl) -> bool {
         return true
     }
     for dec in fd.decorators {
-        if provides_body(dec.name) {
+        if provides_body(dec) {
             return true
         }
     }

@@ -58,7 +58,7 @@ register_deprecated :: fn(decl: AST.Decl, resolved: ResolvedModule) -> void {
 
 deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
     for d in decs {
-        if d.name != "deprecated" {
+        if !AST.is_compiler(d, .Deprecated) {
             continue
         }
         if d.args.len() == 0 {
@@ -234,7 +234,7 @@ declare_fn :: fn(
     if decl.name == "main" {
         check_main_signature(decl, params, return_type, diags)
     }
-    if AST.decorators_have(decl.decorators, "extern") {
+    if AST.has_compiler_decorator(decl.decorators, .Extern) {
         validate_extern(decl, return_type, diags)
     } else {
         // `validate_extern` checks them for an `@extern`; every other fn has to
@@ -256,9 +256,9 @@ declare_fn :: fn(
     // R2041: naming the target and what the group DOES cover. Emitting this too
     // would answer the same question a second time with the opposite advice
     // ("make it `@intrinsic`"), which is the wrong fix for a coverage hole.
-    if decl.body == null && !AST.decorators_have(decl.decorators, "intrinsic")
-        && !AST.decorators_have(decl.decorators, "extern")
-        && !AST.decorators_have(decl.decorators, "target") {
+    if decl.body == null && !AST.has_compiler_decorator(decl.decorators, .Intrinsic)
+        && !AST.has_compiler_decorator(decl.decorators, .Extern)
+        && !AST.has_compiler_decorator(decl.decorators, .Target) {
         diags.push(
             typecheck_error(
                 .BodylessFnMustBeIntrinsic,
@@ -267,7 +267,7 @@ declare_fn :: fn(
             ),
         )
     }
-    if AST.decorators_have(decl.decorators, "singleton") {
+    if AST.has_compiler_decorator(decl.decorators, .Singleton) {
         check_singleton_shape(decl, typed, diags)
     }
     check_public_fn_visibility(decl, params, return_type, diags)
@@ -520,7 +520,7 @@ is_parameter_decorator :: fn(name: string) -> bool = decorator_on(name, .Paramet
 // What is wrong with the arguments of the C decorator `d`, or null : `@c_type`
 // takes one plain string, the others none.
 decorator_argument_fault :: fn(d: AST.Decorator) -> string | null {
-    if d.name == "c_type" {
+    if AST.is_compiler(d, .CType) {
         if AST.c_type_of([d]) == "" {
             return "`@c_type` takes one plain string, the C type : `@c_type(\"size_t\")`"
         }
@@ -535,7 +535,7 @@ decorator_argument_fault :: fn(d: AST.Decorator) -> string | null {
 // `@main_thread` binds a C function to the main thread: the compiler sees what a
 // Vader body calls, so the decorator means something on an `@extern` only.
 validate_main_thread :: fn(decl: AST.FnDecl, diags: Diagnostic[]) -> void {
-    d :: AST.find_decorator(decl.decorators, "main_thread") else return
+    d :: AST.find_compiler_decorator(decl.decorators, .MainThread) else return
     diags.push(typecheck_error(
         .InvalidExternDecl, d.span,
         "`@main_thread` binds a C function to the main thread ; `${decl.name}` has no "
@@ -555,7 +555,7 @@ validate_result_c_type :: fn(
     is_extern: bool,
     diags: Diagnostic[],
 ) -> void {
-    d :: AST.find_decorator(decl.decorators, "c_type") else return
+    d :: AST.find_compiler_decorator(decl.decorators, .CType) else return
     fault :: result_c_type_fault(decl, d, return_type, is_extern) else return
     diags.push(typecheck_error(.InvalidExternDecl, d.span, fault))
 }
@@ -729,7 +729,7 @@ validate_extern :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) 
     }
     validate_param_decorators(decl, true, diags)
     validate_result_c_type(decl, return_type, true, diags)
-    written :: AST.find_decorator(decl.decorators, "extern") else return
+    written :: AST.find_compiler_decorator(decl.decorators, .Extern) else return
     if written.args.len() > 2 {
         diags.push(
             typecheck_error(
@@ -759,7 +759,7 @@ validate_extern :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) 
 /// @param diags  accumulator for T3050 and T3079.
 export validate_extern_types :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
     for [id, decl] in typed.fn_decls {
-        if AST.decorators_have(decl.decorators, "extern") {
+        if AST.has_compiler_decorator(decl.decorators, .Extern) {
             signature :: typed.decl_types[id]
             if signature is FnType {
                 validate_extern_signature(decl, signature, typed, diags)
@@ -779,8 +779,8 @@ validate_extern_signature :: fn(
     return_type :: signature.return_type
     for i in 0..<decl.params.len() {
         pt :: params[i]
-        lent :: AST.decorators_have(decl.params[i].decorators, "c_address")
-        if lent && AST.decorators_have(decl.params[i].decorators, "c_out") {
+        lent :: AST.has_compiler_decorator(decl.params[i].decorators, .CAddress)
+        if lent && AST.has_compiler_decorator(decl.params[i].decorators, .COut) {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
@@ -790,7 +790,7 @@ validate_extern_signature :: fn(
             )
             continue
         }
-        if AST.decorators_have(decl.params[i].decorators, "c_type") {
+        if AST.has_compiler_decorator(decl.params[i].decorators, .CType) {
             fault :: param_c_type_fault(pt, typed)
             if fault != null {
                 diags.push(typecheck_error(.InvalidParameterDecorator, decl.params[i].span, fault))
@@ -810,7 +810,7 @@ validate_extern_signature :: fn(
         // C writes back through an array's buffer (a mirror is copied back, above) ;
         // into a scalar's temporary it writes for nothing, the temporary dying at
         // the return.
-        if AST.decorators_have(decl.params[i].decorators, "c_out") && array_backing(pt) == null {
+        if AST.has_compiler_decorator(decl.params[i].decorators, .COut) && array_backing(pt) == null {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
@@ -902,7 +902,7 @@ validate_variadic_parameters :: fn(
     }
     for j in start..<decl.params.len() {
         pm :: decl.params[j]
-        if !AST.decorators_have(pm.decorators, "c_variadic") {
+        if !AST.has_compiler_decorator(pm.decorators, .CVariadic) {
             diags.push(
                 typecheck_error(
                     .InvalidParameterDecorator,
@@ -921,8 +921,8 @@ validate_variadic_parameters :: fn(
 // mirror must cross by address, and a value C's default promotions would widen
 // is declared at the width the callee reads.
 variadic_parameter_fault :: fn(t: Type, pm: AST.FnParam, typed: TypedProgram) -> string | null {
-    by_address :: AST.decorators_have(pm.decorators, "c_address")
-        || AST.decorators_have(pm.decorators, "c_out")
+    by_address :: AST.has_compiler_decorator(pm.decorators, .CAddress)
+        || AST.has_compiler_decorator(pm.decorators, .COut)
     if by_address {
         return null
     }
@@ -983,7 +983,7 @@ export check_extern_library :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    written :: AST.find_decorator(decl.decorators, "extern") else return
+    written :: AST.find_compiler_decorator(decl.decorators, .Extern) else return
     argument :: AST.extern_arguments(written).library else return
     if argument !is AST.IdentExpr {
         detail :: "the library is a `CLibrary` constant, as in `@extern(RAYLIB, \"InitWindow\")`"
@@ -1312,7 +1312,7 @@ declare_const :: fn(
         typed.decl_types[sym.id] = TY_TYPE
         return
     }
-    alias :: AST.find_decorator(decl.decorators, "alias") else return
+    alias :: AST.find_compiler_decorator(decl.decorators, .Alias) else return
     diags.push(typecheck_error(.AliasOfAValue, alias.span, "`${decl.name}` is a constant"))
 }
 
@@ -1328,7 +1328,7 @@ declare_const :: fn(
 /// @param decl      the declaration: its RHS as written, and its decorators.
 /// @return          the distinct type, or `alias_ty` itself for a transparent alias.
 alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
-    if AST.decorators_have(decl.decorators, "alias") {
+    if AST.has_compiler_decorator(decl.decorators, .Alias) {
         return alias_ty
     }
     if distinct_backing(alias_ty) {

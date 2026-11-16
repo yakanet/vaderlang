@@ -28,7 +28,7 @@ import "vader/support/integer"
 /// @param params   its parameters, typed.
 /// @param typed    the declaring module, to read an enum behind its symbol.
 takes_enum_values :: fn(fn_decl: FnDecl, params: LoweredParam[], typed: TypedProgram) -> bool {
-    if fn_decl.body != null || !decorators_have(fn_decl.decorators, "extern") {
+    if fn_decl.body != null || !has_compiler_decorator(fn_decl.decorators, .Extern) {
         return false
     }
     for p in params {

@@ -239,4 +239,4 @@ render_baked_value :: fn(e: Expr) -> string {
 // declaration as belonging to a group is that it once carried `@target`, which
 // after merging is only visible on the ones that did NOT merge. So report on the
 // declarations the selection produced, not on the decorator.
-selected_by_target :: fn(fd: FnDecl) = decorators_have(fd.decorators, "target")
+selected_by_target :: fn(fd: FnDecl) = has_compiler_decorator(fd.decorators, .Target)

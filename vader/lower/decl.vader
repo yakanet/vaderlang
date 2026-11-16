@@ -179,7 +179,7 @@ lower_fn_decl :: fn(
             return_type,
         )
     }
-    if decorators_have(fn_decl.decorators, "singleton") {
+    if has_compiler_decorator(fn_decl.decorators, .Singleton) {
         return lower_singleton(project_ctx, entry, typed, subst, fn_decl, return_type)
     }
     return lowered_fn_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)

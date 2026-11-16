@@ -198,17 +198,17 @@ guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
 /// The condition `@returns(cond)` declares on `fd`, if it carries one.
 ///
 /// @param fd  a function declaration.
-guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, "returns")
+guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, .Returns)
 
 /// The condition `@ensures(cond)` declares on `fd`, if it carries one.
 ///
 /// @param fd  a function declaration.
-ensured_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, "ensures")
+ensured_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, .Ensures)
 
-// The condition the decorator `name` declares on `fd` ; none where it does not
+// The condition the decorator `which` declares on `fd` ; none where it does not
 // state exactly one (P1032).
-declared_condition :: fn(fd: AST.FnDecl, name: string) -> AST.Expr | null {
-    contract :: AST.find_decorator(fd.decorators, name) else return null
+declared_condition :: fn(fd: AST.FnDecl, which: AST.CompilerDecorator) -> AST.Expr | null {
+    contract :: AST.find_compiler_decorator(fd.decorators, which) else return null
     if contract.args.len() != 1 {
         return null
     }

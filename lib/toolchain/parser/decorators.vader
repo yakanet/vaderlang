@@ -9,6 +9,7 @@
 module "toolchain/parser"
 
 import "std/collections"
+import "toolchain/ast"
 
 /// Where a decorator is written.
 export DecoratorPlace :: enum {
@@ -224,6 +225,13 @@ test_decorator_on_its_places :: fn() -> void {
     assert(!decorator_on("c_address", .Declaration), "c_address sits on a parameter only")
     assert(decorator_on("internal", .Field), "internal sits on a field")
     assert(!decorator_on("nope", .Declaration), "an unknown name sits nowhere")
+}
+
+@test
+test_every_decorator_spec_names_a_compiler_decorator :: fn() -> void {
+    for spec in DECORATORS {
+        assert(compiler_decorator_named(spec.name) != null, "`@${spec.name}` is the compiler's")
+    }
 }
 
 @test

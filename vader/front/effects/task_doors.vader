@@ -128,7 +128,7 @@ summarised_reach :: fn(index: CalleeIndex, callee: Callee) -> Reach {
     if callee !is DirectFn || callee.decl.id !in index.summarised {
         return out
     }
-    if AST.decorators_have(callee.decl.decorators, "main_thread") {
+    if AST.has_compiler_decorator(callee.decl.decorators, .MainThread) {
         out.main_thread = [callee.decl.name]
     }
     door :: index.doors[callee.decl.id]

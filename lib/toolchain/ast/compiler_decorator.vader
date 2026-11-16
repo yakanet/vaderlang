@@ -1,0 +1,142 @@
+// toolchain/ast/compiler_decorator: the decorators of the compiler, by name.
+//
+// `std/core` declares them (`lib/std/core/compiler_decorators.vader`), but a pass
+// that runs before resolution, the parser included, recognises one by the name
+// written after `@`: their names are reserved to them, so the name is enough.
+
+module "toolchain/ast"
+
+import "std/iter"
+import "toolchain/span"
+
+/// How a decorator of the compiler is written after `@`.
+export DecoratorName :: struct {
+    text: string
+}
+
+/// A decorator of the compiler.
+export CompilerDecorator :: enum(DecoratorName) {
+    Alias       { .text = "alias" },
+    AllowUnused { .text = "allow_unused" },
+    Assert      { .text = "assert" },
+    CAddress    { .text = "c_address" },
+    CHeader     { .text = "c_header" },
+    COut        { .text = "c_out" },
+    CStruct     { .text = "c_struct" },
+    CType       { .text = "c_type" },
+    CVariadic   { .text = "c_variadic" },
+    Comptime    { .text = "comptime" },
+    Deprecated  { .text = "deprecated" },
+    Displayable { .text = "displayable" },
+    Ensures     { .text = "ensures" },
+    Extern      { .text = "extern" },
+    Internal    { .text = "internal" },
+    Intrinsic   { .text = "intrinsic" },
+    MainThread  { .text = "main_thread" },
+    NoReturn    { .text = "no_return" },
+    Partial     { .text = "partial" },
+    Returns     { .text = "returns" },
+    Singleton   { .text = "singleton" },
+    Target      { .text = "target" },
+    Test        { .text = "test" },
+    Unreachable { .text = "unreachable" },
+}
+
+/// The decorator of the compiler written `@name`, null for any other name.
+///
+/// @param name  what follows `@`, without a qualifier.
+export compiler_decorator_named :: fn(name: string) -> CompilerDecorator | null = match name {
+    "alias"        -> .Alias
+    "allow_unused" -> .AllowUnused
+    "assert"       -> .Assert
+    "c_address"    -> .CAddress
+    "c_header"     -> .CHeader
+    "c_out"        -> .COut
+    "c_struct"     -> .CStruct
+    "c_type"       -> .CType
+    "c_variadic"   -> .CVariadic
+    "comptime"     -> .Comptime
+    "deprecated"   -> .Deprecated
+    "displayable"  -> .Displayable
+    "ensures"      -> .Ensures
+    "extern"       -> .Extern
+    "internal"     -> .Internal
+    "intrinsic"    -> .Intrinsic
+    "main_thread"  -> .MainThread
+    "no_return"    -> .NoReturn
+    "partial"      -> .Partial
+    "returns"      -> .Returns
+    "singleton"    -> .Singleton
+    "target"       -> .Target
+    "test"         -> .Test
+    "unreachable"  -> .Unreachable
+    _              -> null
+}
+
+/// The decorator of the compiler `d` is, null for one a program declares.
+///
+/// @param d  a decorator as written.
+export compiler_decorator_of :: fn(d: Decorator) -> CompilerDecorator | null {
+    if d.qualifier != null {
+        return null
+    }
+    return compiler_decorator_named(d.name)
+}
+
+/// Whether `d` is the decorator `which` of the compiler.
+///
+/// @param d      a decorator as written.
+/// @param which  a decorator of the compiler.
+export is_compiler :: fn(d: Decorator, which: CompilerDecorator) -> bool =
+    compiler_decorator_of(d) == which
+
+/// The first of `decorators` that is the decorator `which` of the compiler.
+///
+/// @param decorators  the decorators of one place.
+/// @param which       a decorator of the compiler.
+export find_compiler_decorator :: fn(
+    decorators: Decorator[], which: CompilerDecorator,
+) -> Decorator | null = decorators.find((d) -> d.is_compiler(which))
+
+/// Whether `decorators` hold the decorator `which` of the compiler.
+///
+/// @param decorators  the decorators of one place.
+/// @param which       a decorator of the compiler.
+export has_compiler_decorator :: fn(decorators: Decorator[], which: CompilerDecorator) -> bool =
+    find_compiler_decorator(decorators, which) != null
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_a_compiler_decorator_reads_back_from_its_name :: fn() -> void {
+    every: CompilerDecorator[]: [
+        .Alias, .AllowUnused, .Assert, .CAddress, .CHeader, .COut, .CStruct, .CType,
+        .CVariadic, .Comptime, .Deprecated, .Displayable, .Ensures, .Extern, .Internal,
+        .Intrinsic, .MainThread, .NoReturn, .Partial, .Returns, .Singleton, .Target,
+        .Test, .Unreachable,
+    ]
+    for which in every {
+        text :: DecoratorName(which).text
+        assert(compiler_decorator_named(text) == which, "`@${text}` reads back")
+    }
+}
+
+@test
+test_a_qualified_decorator_is_never_the_compiler_s :: fn() -> void {
+    at :: Position { .file = "t.vader", .offset = 0, .line = 1, .column = 1 }
+    span :: Span { .start = at, .end = at }
+    written :: Decorator {
+        .span = span,
+        .name = "test",
+        .name_span = span,
+        .args = [],
+        .qualifier = IdentExpr {
+            .span = span,
+            .name = "H",
+            .implicit_dot = false,
+        },
+    }
+    assert(compiler_decorator_of(written) == null, "`@H.test` is declared")
+}

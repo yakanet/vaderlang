@@ -214,8 +214,8 @@ with_param_decorators :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature 
     by_address: bool[]: []
     c_out: bool[]: []
     for p in d.params {
-        by_address.push(decorators_have(p.decorators, "c_address"))
-        c_out.push(decorators_have(p.decorators, "c_out"))
+        by_address.push(has_compiler_decorator(p.decorators, .CAddress))
+        c_out.push(has_compiler_decorator(p.decorators, .COut))
     }
     out :: BcSignature { ...sig }
     if true in by_address {

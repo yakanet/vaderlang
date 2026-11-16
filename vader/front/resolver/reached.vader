@@ -182,7 +182,7 @@ names_written_by :: fn(d: AST.Decl) -> string[] {
 
 // Whether `d` is a test: the tests of a trimmed module are not the program's,
 // whatever writes their name.
-is_test :: fn(d: AST.Decl) -> bool = AST.decorators_have(AST.decl_decorators(d), "test")
+is_test :: fn(d: AST.Decl) -> bool = AST.has_compiler_decorator(AST.decl_decorators(d), .Test)
 
 // The name that reaches `d` in a trimmed module, null for a declaration that
 // always stays: an import, an assert, an impl with neither a type of a

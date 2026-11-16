@@ -426,7 +426,7 @@ direct_agrees :: fn(recorded: DirectFn, observed: ObservedCallee) -> bool {
         return decl.id == recorded.decl.id
     }
     if observed is ObservedNoCall {
-        return decorators_have(recorded.decl.decorators, "intrinsic")
+        return has_compiler_decorator(recorded.decl.decorators, .Intrinsic)
     }
     return false
 }

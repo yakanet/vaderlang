@@ -92,7 +92,7 @@ declares_type :: fn(d: AST.Decl) -> bool =
 // an entry point, or wired to the host. A test is not.
 is_surface :: fn(d: AST.Decl, name: string, module_name: string) -> bool {
     decorators :: AST.decl_decorators(d)
-    if AST.decorators_have(decorators, "test") {
+    if AST.has_compiler_decorator(decorators, .Test) {
         return false
     }
     return AST.decl_is_public(d) || is_wired_root(decorators, name)
