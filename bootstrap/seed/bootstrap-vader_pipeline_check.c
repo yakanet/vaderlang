@@ -90,7 +90,7 @@ void* vader_pipeline_check$check_project(void* l0, void* l1, bool l2) {
     l5 = vader_front_effects$deep_copy_diagnostics(l4, l3);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check$CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check$CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check$CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1731u);
+    vader_obj_header_init(_a0_obj, 1736u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
@@ -168,16 +168,18 @@ static void vader_pipeline_check$lint_dead_code(void* l0, void* l1) {
 static void vader_pipeline_check$lint_module(void* l0, void* l1) {
     void* l2 = NULL;
     void* l4 = NULL;
+    void* l5 = NULL;
     vader_string_t l3 = 0;
-    void** gc_raw_roots[4] = { &l0, &l1, &l2, &l4 };
+    void** gc_raw_roots[5] = { &l0, &l1, &l2, &l4, &l5 };
     vader_string_t* gc_atom_roots[1] = { &l3 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l2 = vader_front_resolver$concat_file_decls(((vader_struct_vader_front_resolver$Module_t*) ((vader_struct_vader_front_resolver$LoadedModule_t*) l0)->f_module)->f_files);
     l3 = ((vader_struct_vader_front_resolver$Module_t*) ((vader_struct_vader_front_resolver$LoadedModule_t*) l0)->f_module)->f_module_name;
     l4 = ((vader_struct_vader_front_resolver$LoadedModule_t*) l0)->f_discarded_bodies;
-    vader_front_dead__code$check_dead_code(l2, l3, l1, l4);
+    l5 = vader_front_resolver$decorators_above_module(((vader_struct_vader_front_resolver$Module_t*) ((vader_struct_vader_front_resolver$LoadedModule_t*) l0)->f_module)->f_files);
+    vader_front_dead__code$check_dead_code(l2, l3, l1, l4, l5);
     { vader_gc_top = gc_frame.prev; return; }
 }
