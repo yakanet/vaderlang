@@ -16,6 +16,7 @@ module "vader/core/bytecode"
 import "std/collections"
 import "std/string"
 import "vader/core/mangle"
+import "vader/core/symbol"
 import "vader/core/types"
 
 /// The mangled name of a member of a `std/core` primitive's `@intrinsic` impl:

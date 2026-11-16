@@ -177,8 +177,8 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
         .id = 0,
         .kind = .Trait,
         .name = "Iterator",
-        .module = "std/core",
-        .module_name = "std/core",
+        .module = CORE_MODULE,
+        .module_name = CORE_MODULE,
         .visibility = .Public,
         .defined_at = null,
     }

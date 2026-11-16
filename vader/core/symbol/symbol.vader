@@ -58,6 +58,10 @@ export Symbol :: struct {
     is_decorator: bool = false
 }
 
+/// The module that declares the prelude: the primitives, their impls, the core
+/// traits and the compiler's decorators.
+export CORE_MODULE :: "std/core"
+
 /// Whether `sym` names a module constant, whose value is frozen.
 ///
 /// @param sym  the symbol a name resolves to.

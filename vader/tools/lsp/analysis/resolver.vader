@@ -64,9 +64,10 @@ export resolve :: fn(
         original :: imp.imported_name else return null
         return find_in_module(state, roots.paths, imp.path, original, false)
     }
-    // The prelude answers where nothing of the file does, ahead of any wildcard.
+    // The prelude answers where nothing of the file does, ahead of any wildcard,
+    // but for its decorators: the compiler's, never a value (`build_core_seed`).
     prelude :: find_in_module(state, roots.paths, PRELUDE_MODULE, name, true)
-    if prelude != null { return prelude }
+    if prelude != null && prelude.target.kind != .Decorator { return prelude }
     // A wildcard import binds no `ImportEntry`: search each wildcard-imported
     // module for an export of this name. First hit wins : a type or a constant
     // two of them export is an R2031 compile error anyway, and an overloaded

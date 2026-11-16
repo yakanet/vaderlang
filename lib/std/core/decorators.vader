@@ -40,4 +40,10 @@ export DecoratorTarget :: enum {
     /// Above the `module` line of a file, for its whole module: the decorators
     /// of every file of the module add up.
     Module
+    /// Before a `match`: the compiler's `@partial` and `@unreachable`.
+    Match
+    /// Before a value computed at compile time: the compiler's `@comptime`.
+    Expression
+    /// Standing alone among the declarations: the compiler's `@assert`.
+    Assertion
 }

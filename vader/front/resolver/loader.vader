@@ -228,7 +228,7 @@ export load_project_with_overlay :: fn(
             // matches by construction.
             entry_resolved :: resolve_in(ctx, entry_module.name) else entry_module
             queue: DiscoveredModule[]: [entry_resolved]
-            core :: resolve_in(ctx, "std/core")
+            core :: resolve_in(ctx, CORE_MODULE)
             if core is DiscoveredModule {
                 ctx.prelude = core.folder
                 if core.folder != entry_module.folder {

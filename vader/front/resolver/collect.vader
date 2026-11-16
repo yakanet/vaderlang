@@ -365,7 +365,7 @@ diagnose_import_path :: fn(
         diags.push(resolver_error(.SelfImport, span, "`${raw_path}`"))
         return null
     }
-    if raw_path == "std/core" && from_module_name != "std/core" {
+    if raw_path == CORE_MODULE && from_module_name != CORE_MODULE {
         diags.push(resolver_error(.ExplicitCorePreludeImport, span, ""))
         return null
     }

@@ -323,8 +323,8 @@ is_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram) -> bo
 is_import_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram) -> bool =
     best.symbol.module != other.symbol.module
         && best.symbol.module != typed.resolved.path
-        && best.symbol.module_name != "std/core"
-        && other.symbol.module_name != "std/core"
+        && best.symbol.module_name != CORE_MODULE
+        && other.symbol.module_name != CORE_MODULE
 
 // T3032 for two overloads ranked level : two of one module differ by type, two of
 // imported modules name both modules and the ways to pick one.

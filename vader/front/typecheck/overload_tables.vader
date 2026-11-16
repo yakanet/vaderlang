@@ -27,7 +27,7 @@ populate_imported_fn_overloads :: fn(
     typed_by_name: Map<string, TypedProgram>,
 ) -> void {
     // Loop-invariant : the prelude is the same module for every file.
-    core :: typed_by_name["std/core"]
+    core :: typed_by_name[CORE_MODULE]
     for fw in wildcards {
         // Filled afresh at each call : the populate runs again once more types are
         // settled, and a candidate a renamed import shadowed must not come back.
@@ -175,7 +175,7 @@ push_module_exported_fns :: fn(
 // wildcards. One of another module stays beside it, so a call both answer is
 // ambiguous (T3032).
 push_overload :: fn(table: Map<string, FnCandidate[]>, name: string, ft: FnCandidate) -> void {
-    shadows :: ft.symbol.module_name == "std/core" || ft.symbol.name != name
+    shadows :: ft.symbol.module_name == CORE_MODULE || ft.symbol.name != name
     bucket :: table.get_or_put_with(name, () -> [])
     for i in 0..<bucket.len() {
         same_owner :: shadows || bucket[i].symbol.module == ft.symbol.module

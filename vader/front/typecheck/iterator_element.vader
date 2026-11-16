@@ -60,7 +60,7 @@ import "vader/core/symbol"
 
 stop_for_test :: fn() -> Type =
     mk_struct(
-        SymbolFactory {}.make(.Struct, STRUCT_STOP, "std/core", "std/core", .Public, null),
+        SymbolFactory {}.make(.Struct, STRUCT_STOP, CORE_MODULE, CORE_MODULE, .Public, null),
         [],
     )
 

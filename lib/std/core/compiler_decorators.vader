@@ -1,0 +1,10 @@
+// std/core/compiler_decorators: what the decorators of the compiler take.
+//
+// The compiler reads what its decorators are written with and evaluates none of
+// it: a `Condition` holds an expression typed where it stands.
+
+module "std/core"
+
+/// An expression a compiler decorator reads as written, typed `bool` where it
+/// stands and never evaluated as the decorator's value.
+export Condition :: struct {}

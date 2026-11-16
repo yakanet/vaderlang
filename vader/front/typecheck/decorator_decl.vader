@@ -10,6 +10,7 @@ module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
+import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/resolver"
 
@@ -28,8 +29,9 @@ export check_decorator_decl :: fn(
     args :: decl.decorator_args else return
     sym :: symbol_declared_at(typed.resolved, decl.name_span) else return
     fields :: typed.struct_fields[sym.id] else return
+    in_core :: sym.module_name == CORE_MODULE
     for [name, field] in fields {
-        if is_compile_time_field_type(field.ty) {
+        if is_compile_time_field_type(field.ty) || (in_core && is_compiler_field_type(field.ty)) {
             continue
         }
         // A field a spread brings is written in its base: the declaration is what
@@ -130,9 +132,15 @@ export decorator_target_type :: fn(typed: TypedProgram) -> Type | null {
     return type_of_symbol(sym, typed)
 }
 
+// Whether `t` is a field type only the compiler's decorators take, each read as
+// written: a `Condition`, and the `CLibrary` of `@extern`.
+is_compiler_field_type :: fn(t: Type) -> bool =
+    is_c_library(t) || (t is StructType && is_core_struct(t, STRUCT_CONDITION))
+
 // Whether a value of `t` is one the compiler can hold at compile time: a scalar, a
 // string, an enum, an array of these, or a distinct over one. An unresolved type
 // is reported already.
+
 is_compile_time_field_type :: fn(t: Type) -> bool = match t {
     is PrimitiveType  -> t.name != TY_VOID.name && t.name != TY_NULL.name
     is RangeType | EnumType | UnresolvedType -> true

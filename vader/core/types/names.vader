@@ -198,9 +198,6 @@ export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
 /// @param trait_sym  the trait's declaration symbol, not an import binding.
 export trait_key_of :: fn(trait_sym: Symbol) -> string = qualified_symbol_name(trait_sym)
 
-/// The module that declares the primitives, their impls and the core traits.
-export CORE_MODULE :: "std/core"
-
 /// The `trait_key` of a `std/core` trait, from its `TRAIT_*` name.
 ///
 /// @param name  a `TRAIT_*` constant.
@@ -269,6 +266,9 @@ export STRUCT_STOP :: @type_name(Stop)
 
 /// `std/core::CLibrary`, the library an `@extern` names.
 export STRUCT_C_LIBRARY :: @type_name(CLibrary)
+
+/// `std/core::Condition`, an expression a compiler decorator reads as written.
+export STRUCT_CONDITION :: @type_name(Condition)
 
 /// `std/core::DecoratorTarget`, what the parentheses of a decorator declaration name.
 export ENUM_DECORATOR_TARGET :: @type_name(DecoratorTarget)

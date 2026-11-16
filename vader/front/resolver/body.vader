@@ -434,13 +434,21 @@ walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
     self.enter_file(outer)
 }
 
+// Whether the declaration `name` of the module being walked belongs to `std/core`.
+// At the top level, a name finds the module's own declaration before any import
+// or the prelude (`file_root_scope`).
+declares_in_core :: fn(self: ResolveState, name: string) -> bool {
+    sym :: self.scope.lookup(name) else return false
+    return sym.module_name == CORE_MODULE
+}
+
 walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
     args :: d.decorator_args
     if args != null {
         // A name after `@` is looked up among decorators, where the compiler's
-        // own would answer first.
-        if decorator_spec(d.name) != null {
+        // own would answer first: `std/core` alone declares them.
+        if decorator_spec(d.name) != null && !self.declares_in_core(d.name) {
             self.diags.push(resolver_error(.CompilerDecoratorName, d.name_span, "`@${d.name}`"))
         }
         for a in args {
