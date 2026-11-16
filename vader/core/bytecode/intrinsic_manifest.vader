@@ -49,40 +49,74 @@ UNSIGNED_DISPLAYS: Set<string>: @comptime {
 
 // ---- host intrinsic identity ----------------------------------------------
 
-/// Identity of a recognised host `@intrinsic` import, keyed on the mangled name
-/// by `intrinsic_id_for`. THE single classification the two backends
-/// (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the
-/// host-mangle grammar lives in one place and the two can't drift. The union of
-/// what either backend serves: a backend that doesn't serve a variant handles
-/// it in a grouped fallthrough arm, but the exhaustive `match` forces that to be
-/// a conscious decision (a new variant here trips T3013 at both sites).
-export IntrinsicId :: enum(u8) {
-    NotIntrinsic,
+/// The member of `std/core`'s `Intrinsic` a host is called through ; `""` for a
+/// host still declared by a bodyless `@intrinsic` function.
+export HostMember :: struct {
+    member: string
+}
+
+/// Identity of a host: named by its member of `std/core`'s `Intrinsic`
+/// (`host_for`), or for a host still declared by a bodyless `@intrinsic`
+/// function, by its mangled name (`intrinsic_id_for`). THE single classification
+/// the two backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`)
+/// dispatch on, so the two can't drift. The union of what either backend serves:
+/// a backend that doesn't serve a variant handles it in a grouped fallthrough
+/// arm, but the exhaustive `match` forces that to be a conscious decision (a new
+/// variant here trips T3013 at both sites).
+export IntrinsicId :: enum(HostMember) {
+    NotIntrinsic            { .member = "" },
     // std/core string + bytes
-    ByteLen, ByteAt, ByteSlice, IsAscii,
-    Bytes, BytesToString, StringHash,
-    StringEquals,
+    ByteLen                 { .member = "byte_len" },
+    ByteAt                  { .member = "byte_at" },
+    ByteSlice               { .member = "byte_slice" },
+    IsAscii                 { .member = "is_ascii" },
+    Bytes                   { .member = "bytes" },
+    BytesToString           { .member = "bytes_to_string" },
+    StringHash              { .member = "" },
+    StringEquals            { .member = "" },
     // std/core values
-    DeepCopy,
+    DeepCopy                { .member = "" },
     // primitive members (recognised via the grammar helpers, any width)
-    PrimIntEquals, PrimDisplayToString,
+    PrimIntEquals           { .member = "" },
+    PrimDisplayToString     { .member = "" },
     // std/runtime
-    RuntimeCollect, RuntimeCollections, RuntimeBytesUsed, RuntimeBytesCopied,
-    RuntimeAllocatedBytes, RuntimeAllocations, RuntimeCountAllocations,
+    RuntimeCollect          { .member = "collect" },
+    RuntimeCollections      { .member = "collections" },
+    RuntimeBytesUsed        { .member = "bytes_used" },
+    RuntimeBytesCopied      { .member = "bytes_copied" },
+    RuntimeAllocatedBytes   { .member = "allocated_bytes" },
+    RuntimeAllocations      { .member = "allocations" },
+    RuntimeCountAllocations { .member = "count_allocations" },
     // std/runtime/scheduler
-    SchedulerSpawn, SchedulerPark, SchedulerWake, SchedulerSleepFor, SchedulerCancel,
-    SchedulerCurrent, SchedulerIsCancelled, SchedulerIsLeaving, SchedulerWatchReadable,
-    SchedulerWatchExit,
+    SchedulerSpawn          { .member = "spawn_thread" },
+    SchedulerPark           { .member = "park" },
+    SchedulerWake           { .member = "wake" },
+    SchedulerSleepFor       { .member = "sleep_for" },
+    SchedulerCancel         { .member = "cancel_thread" },
+    SchedulerCurrent        { .member = "current_thread" },
+    SchedulerIsCancelled    { .member = "is_cancelled" },
+    SchedulerIsLeaving      { .member = "is_leaving" },
+    SchedulerWatchReadable  { .member = "watch_readable" },
+    SchedulerWatchExit      { .member = "watch_exit" },
     // std/runtime/wait: a read or a write that parks while another thread runs
-    WaitReadable, WaitReadableFor, WaitWritable, WaitWritableFor, WaitStop,
+    WaitReadable            { .member = "wait_readable" },
+    WaitReadableFor         { .member = "wait_readable_for" },
+    WaitWritable            { .member = "wait_writable" },
+    WaitWritableFor         { .member = "wait_writable_for" },
+    WaitStop                { .member = "stop_waiting" },
     // std/abort
-    AbortPanic,
+    AbortPanic              { .member = "panic" },
     // std/target: the OS the process is RUNNING on, not the one it was built
     // for. `VADER_OS` answers the latter and is a baked constant, not a host.
-    TargetCurrentOs, TargetCurrentArch,
+    TargetCurrentOs         { .member = "current_os" },
+    TargetCurrentArch       { .member = "current_arch" },
     // vader/vm: dynamic foreign calls, the VM's answer to `@extern`. NOT in
     // `std/`: they amount to running arbitrary native code.
-    FfiOpen, FfiOpenPath, FfiSymbol, FfiCall, FfiCallFrame,
+    FfiOpen                 { .member = "ffi_open" },
+    FfiOpenPath             { .member = "ffi_open_path" },
+    FfiSymbol               { .member = "ffi_symbol" },
+    FfiCall                 { .member = "ffi_call" },
+    FfiCallFrame            { .member = "ffi_call_frame" },
 }
 
 /// Classify a host import's mangled name into its `IntrinsicId`, or
@@ -92,6 +126,46 @@ export IntrinsicId :: enum(u8) {
 /// @param mangled  the import's mangled name (`BcImport.mangled_name`).
 export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId =
     HOSTS[mangled] else instance_host(mangled)
+
+/// The host a bodyless declaration calls: the one its member of `std/core`'s
+/// `Intrinsic` names, else for a host still declared by a bodyless `@intrinsic`
+/// function, the one its mangled name classifies (`intrinsic_id_for`).
+///
+/// @param member   the member of `Intrinsic` it names (`LoweredFnDecl.intrinsic`),
+///                 `""` for none.
+/// @param mangled  its mangled name.
+export host_for :: fn(member: string, mangled: string) -> IntrinsicId =
+    HOSTS_BY_MEMBER[member] else intrinsic_id_for(mangled)
+
+/// The host an import calls: none for an `@extern`, else `host_for`. What the
+/// emitter sets and what a `.virt` re-read restores.
+///
+/// @param is_extern  whether the import is an `@extern`.
+/// @param member     the member of `Intrinsic` it names, `""` for none.
+/// @param mangled    its mangled name.
+export import_host :: fn(is_extern: bool, member: string, mangled: string) -> IntrinsicId {
+    if is_extern {
+        return .NotIntrinsic
+    }
+    return host_for(member, mangled)
+}
+
+/// The member of `Intrinsic` that names the host `id` ; `""` for none.
+///
+/// @param id  a host.
+export host_member :: fn(id: IntrinsicId) -> string = HostMember(id).member
+
+// Every host a member of `Intrinsic` names, by the member's name.
+HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
+    out :: Map<string, IntrinsicId> {}
+    for id in IntrinsicId {
+        member :: HostMember(id).member
+        if member != "" {
+            out[member] = id
+        }
+    }
+    return out
+}
 
 // `deep_copy` takes one host per type it copies, an instance of its own.
 instance_host :: fn(mangled: string) -> IntrinsicId =

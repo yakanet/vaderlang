@@ -754,6 +754,16 @@ infer_call :: fn(
     return ty
 }
 
+// The callee a trait names: a member of `Intrinsic`, or `Trait.member(receiver,
+// ...)` ; null for any other callee.
+named_through_trait :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
+    intrinsic :: intrinsic_member_call(c, typed, diags)
+    if intrinsic != null {
+        return intrinsic
+    }
+    return trait_qualified_member(c, typed, diags)
+}
+
 type_call :: fn(
     c: AST.CallExpr,
     expected: Type | null,
@@ -763,7 +773,7 @@ type_call :: fn(
     if c.callee is AST.FieldExpr {
         typed.callee_field_id = c.callee.id
     }
-    initial_callee_ty :: trait_qualified_member(c, typed, diags)
+    initial_callee_ty :: named_through_trait(c, typed, diags)
         else check_keeping_quantifier(c.callee, typed, diags)
     // Overload dispatch : when the callee is a bare ident whose name
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;

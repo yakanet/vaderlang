@@ -30,12 +30,12 @@ string 8 "\n"
 global 0 6 joiner.state
 global 1 1 joiner.instance
 global 2 15 joiner.gate
-import 0 byte_len std_core$byte_len result_type=5 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=14 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 spawn_thread std_runtime_scheduler$spawn_thread result_type=5 param_types=2 param_c_out= param_by_address= (ref) -> i64
-import 3 park std_runtime_scheduler$park result_type=3 () -> void
-import 4 wake std_runtime_scheduler$wake result_type=3 param_types=5 param_c_out= param_by_address= (i64) -> void
-import 5 current_thread std_runtime_scheduler$current_thread result_type=5 () -> i64
+import 0 byte_len std_core$byte_len host=byte_len result_type=5 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes host=bytes result_type=14 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 spawn_thread std_runtime_scheduler$spawn_thread host=spawn_thread result_type=5 param_types=2 param_c_out= param_by_address= (ref) -> i64
+import 3 park std_runtime_scheduler$park host=park result_type=3 () -> void
+import 4 wake std_runtime_scheduler$wake host=wake result_type=3 param_types=5 param_c_out= param_by_address= (i64) -> void
+import 5 current_thread std_runtime_scheduler$current_thread host=current_thread result_type=5 () -> i64
 import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=6,14,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=6 () -> i32
 import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=3 () -> void

@@ -1657,10 +1657,14 @@ try_trait_method :: fn(
     return substitute_self(bound, self_ty)
 }
 
-// The type of `m`, a member of the trait `trait_id`, with its receiver dropped.
-// Its signature is read in the trait's own module : std/core's `Iterator<T>.next`
-// names a `T` minted there, which the entry's idents would leave unresolved.
-trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> FnType {
+/// The type of `m`, a member of the trait `trait_id`, with its receiver dropped.
+/// Its signature is read in the trait's own module : std/core's `Iterator<T>.next`
+/// names a `T` minted there, which the entry's idents would leave unresolved.
+///
+/// @param trait_id  the trait's symbol id.
+/// @param m         one of its members.
+/// @param typed     any module of the project: the traits are shared.
+export trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> FnType {
     owner_resolved :: typed.trait_decl_owners[trait_id] else typed.resolved
     params: Type[]: []
     for i in receiver_count(m)..<m.params.len() {

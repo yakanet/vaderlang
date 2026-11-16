@@ -105,6 +105,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .mangled_name = ext.mangled,
         .signature = signature,
         .is_extern = ext.is_extern,
+        .host = import_host(ext.is_extern, ext.intrinsic, ext.mangled),
         .c_headers = ext.c_headers,
         .library = ext.library,
         .c_variadic_fixed = ext.c_variadic_fixed,
@@ -505,7 +506,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // Every build mode, on the final table: an unwired host would lower to an
     // unbound `call.import` that only traps when it runs.
     for imp in ctx.imports {
-        assert_host_import_wired(imp.mangled_name, imp.is_extern)
+        assert_host_import_wired(imp)
     }
     return BytecodeModule {
         .name       = module_name,

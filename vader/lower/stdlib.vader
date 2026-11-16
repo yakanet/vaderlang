@@ -37,6 +37,11 @@ surface_referenced_intrinsic_externs :: fn(
         // sites. Drained into this module after the batch merge.
         synth_start :: project_ctx.synth_decls.len()
         extra: LoweredDecl[]: []
+        if !project_ctx.referenced_intrinsics.is_empty() {
+            for d in decls_list.filter_is<TraitDecl>() {
+                extra.push_all(surface_intrinsic_members(d, module_typed, project_ctx))
+            }
+        }
         for d in decls_list.filter_is<ImplDecl>() {
             if !is_entry {
                 externs :: surface_stdlib_impl_externs(d, module_typed, project_ctx)

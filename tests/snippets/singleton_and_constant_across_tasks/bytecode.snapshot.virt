@@ -92,20 +92,20 @@ global 12 3 ANSWER.value
 global 13 43 ANSWER.gate
 global 14 3 LOOP.value
 global 15 43 LOOP.gate
-import 0 byte_len std_core$byte_len result_type=7 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=19 param_c_out= param_by_address= (ref) -> string
-import 2 bytes std_core$bytes result_type=19 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 3 panic std_abort$panic result_type=2 param_types=1 param_c_out= param_by_address= (string) -> void
+import 0 byte_len std_core$byte_len host=byte_len result_type=7 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 1 bytes_to_string std_core$bytes_to_string host=bytes_to_string result_type=1 param_types=19 param_c_out= param_by_address= (ref) -> string
+import 2 bytes std_core$bytes host=bytes result_type=19 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 3 panic std_abort$panic host=panic result_type=2 param_types=1 param_c_out= param_by_address= (string) -> void
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,19,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
-import 7 spawn_thread std_runtime_scheduler$spawn_thread result_type=7 param_types=27 param_c_out= param_by_address= (ref) -> i64
-import 8 park std_runtime_scheduler$park result_type=2 () -> void
-import 9 wake std_runtime_scheduler$wake result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
-import 10 sleep_for std_runtime_scheduler$sleep_for result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
-import 11 cancel_thread std_runtime_scheduler$cancel_thread result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
-import 12 current_thread std_runtime_scheduler$current_thread result_type=7 () -> i64
-import 13 is_cancelled std_runtime_scheduler$is_cancelled result_type=15 () -> bool
+import 7 spawn_thread std_runtime_scheduler$spawn_thread host=spawn_thread result_type=7 param_types=27 param_c_out= param_by_address= (ref) -> i64
+import 8 park std_runtime_scheduler$park host=park result_type=2 () -> void
+import 9 wake std_runtime_scheduler$wake host=wake result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
+import 10 sleep_for std_runtime_scheduler$sleep_for host=sleep_for result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
+import 11 cancel_thread std_runtime_scheduler$cancel_thread host=cancel_thread result_type=2 param_types=7 param_c_out= param_by_address= (i64) -> void
+import 12 current_thread std_runtime_scheduler$current_thread host=current_thread result_type=7 () -> i64
+import 13 is_cancelled std_runtime_scheduler$is_cancelled host=is_cancelled result_type=15 () -> bool
 impl 6 std_core$ByteAccess
 impl 9 std_core$Display
 impl 4 std_core$Display

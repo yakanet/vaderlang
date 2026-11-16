@@ -89,6 +89,8 @@ export CFGExternDecl :: struct {
     c_variadic_fixed: i32 = -1
     /// The `CLibrary` the declaration names, as evaluated ; null for none.
     library: CLibrary | null = null
+    /// See `LoweredFnDecl.intrinsic`.
+    intrinsic: string = ""
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs

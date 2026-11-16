@@ -1,0 +1,109 @@
+// vader/lower/intrinsic_member: a call to a member of `std/core`'s `Intrinsic`.
+//
+// The toolchain implements `Intrinsic` (`lib/std/core/intrinsics.vader`): a
+// member has no body, and `Intrinsic.byte_len(s)` calls the member itself. Each
+// member a call reaches is surfaced as a bodyless declaration carrying its name,
+// which the bytecode emitter reserves as the import of that host.
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/ast"
+import "vader/core/mangle"
+import "vader/core/mono"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+import "vader/lower/ir"
+
+/// `Intrinsic.member(args)` : a call to the member, by `intrinsic_member_name`.
+///
+/// @param call  the call.
+/// @param type  its result type.
+/// @return      the lowered call ; null when the callee is no member of
+///              `Intrinsic`.
+try_lower_intrinsic_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    field :: as_field_expr(call.callee) else return null
+    if !names_intrinsic(ctx, field.target) {
+        return null
+    }
+    member :: recorded_decl(ctx.typed, call) else return null
+    callee_type :: ctx.types.expr_type(call.callee)
+    if callee_type is FnType {
+        ctx.project.referenced_intrinsics[member.name] = callee_type
+    }
+    callee :: LoweredIdent {
+        .span = field.span,
+        .type = callee_type,
+        .symbol = named_fn_symbol(ctx, intrinsic_member_name(member.name)),
+    }
+    return LoweredCall {
+        .span = call.span,
+        .type = type,
+        .callee = callee,
+        .args = lower_call_args(ctx, call.args, param_types_of(callee_type), 0),
+    }
+}
+
+// Whether `target` names `std/core`'s `Intrinsic`: its name first, which spares
+// the lookup on every other method call.
+names_intrinsic :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
+    ident :: as_ident(target) else return false
+    if ident.name != TRAIT_INTRINSIC {
+        return false
+    }
+    sym :: resolve_ident(ctx, ident.span) else return false
+    return is_intrinsic_trait(sym, ctx.typed)
+}
+
+// The name of the member `member` of `Intrinsic`, apart from any declaration.
+intrinsic_member_name :: fn(member: string) -> string =
+    trait_member_mangle(CORE_MODULE, TRAIT_INTRINSIC, member)
+
+/// The members of `trait_decl` a call reached, when it is `Intrinsic`, each a
+/// bodyless declaration that names its member.
+///
+/// @param trait_decl   a trait of the module `typed`.
+/// @param typed        the module declaring it.
+/// @param project_ctx  holds `referenced_intrinsics`, and the dedupe set.
+/// @return             one declaration per member reached and not surfaced yet.
+surface_intrinsic_members :: fn(
+    trait_decl: TraitDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+) -> LoweredDecl[] {
+    out: LoweredDecl[]: []
+    if intrinsic_trait_of(trait_decl, typed) == null {
+        return out
+    }
+    for member in trait_decl.members {
+        reached :: project_ctx.referenced_intrinsics[member.name] else continue
+        if !claim_impl_member(project_ctx, intrinsic_member_name(member.name)) {
+            continue
+        }
+        out.push(intrinsic_member_decl(member, reached, typed))
+    }
+    return out
+}
+
+// The member `member` of `Intrinsic`, typed `reached` where a call reached it,
+// as the bodyless declaration of its host.
+intrinsic_member_decl :: fn(member: FnDecl, reached: FnType, typed: TypedProgram) -> LoweredFnDecl {
+    params: LoweredParam[]: []
+    for i in 0..<member.params.len() {
+        name :: member.params[i].name
+        params.push(LoweredParam {
+            .name = name,
+            .symbol = synth_param_or(null, name, typed),
+            .type = reached.params[i],
+        })
+    }
+    mangled :: intrinsic_member_name(member.name)
+    return LoweredFnDecl {
+        .mangled     = mangled,
+        .params      = params,
+        .return_type = reached.return_type,
+        .body        = null,
+        .origin      = MonoEntry { ...stub_entry(member, typed), .mangled = mangled },
+        .intrinsic   = member.name,
+    }
+}

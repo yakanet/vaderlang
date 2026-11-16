@@ -245,17 +245,21 @@ build_ufcs_member :: fn(
 ufcs_member_named :: fn(
     ctx: FnLowerCtx, mangled: string, is_identity: bool, arg_types: Type[],
 ) -> UfcsMember = UfcsMember {
-    .symbol = Symbol {
-        .id         = 0,
-        .kind       = .Fn,
-        .name       = mangled,
-        .module     = ctx.typed.resolved.path,
-        .module_name = ctx.typed.resolved.path,
-        .visibility = .Private,
-        .defined_at = null,
-    },
+    .symbol = named_fn_symbol(ctx, mangled),
     .is_identity = is_identity,
     .arg_types = arg_types,
+}
+
+// A fn symbol known by its name alone, whose `id = 0` placeholder the call emit
+// never reads : it resolves the callee by that name first.
+named_fn_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol = Symbol {
+    .id          = 0,
+    .kind        = .Fn,
+    .name        = name,
+    .module      = ctx.typed.resolved.path,
+    .module_name = ctx.typed.resolved.path,
+    .visibility  = .Private,
+    .defined_at  = null,
 }
 
 // Declared types of the member's arguments, receiver EXCLUDED.

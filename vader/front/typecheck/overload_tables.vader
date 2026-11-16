@@ -268,6 +268,7 @@ populate_core_symbols_into :: fn(
             typed.compiler_decorator_symbols[name] = sym
         }
     }
+    typed.intrinsic_symbol = core_loaded.collected.symbols[TRAIT_INTRINSIC]
     // Surface each core symbol's declared type into `external_types` so a
     // reference to a core symbol (e.g. via `mk_struct(Range, ...)`) returns the
     // concrete declared type.

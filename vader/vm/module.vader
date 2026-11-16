@@ -109,11 +109,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     }
     import_ids: bc.IntrinsicId[]: [] * bc_mod.imports.len()
     for imp in bc_mod.imports {
-        if imp.is_extern {
-            import_ids.push(.NotIntrinsic)
-        } else {
-            import_ids.push(bc.intrinsic_id_for(imp.mangled_name))
-        }
+        import_ids.push(imp.host)
     }
     reg :: translate_module(bc_mod, import_ids, facts, debug) else is VerifyError { return reg }
     by_name :: Map<string, i32> {}

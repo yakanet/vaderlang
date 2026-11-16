@@ -71,6 +71,9 @@ export CalleeIndex :: struct {
     /// Bodyless functions the compiler knows nothing of while they are lent a value
     /// that holds references: each is assumed to do anything with it.
     unknown: string[] = []
+    /// The members of `std/core`'s `Intrinsic`, by declaration id, each with its
+    /// signature : a member of a trait has no symbol to hold one.
+    intrinsics: Map<i64, FnType> = Map<i64, FnType> {}
 }
 
 /// A function with a body.
@@ -118,7 +121,8 @@ index_functions :: fn(
                         data :: declared_enum_data(d, typed) else continue
                         index.variant_data.add(data.symbol.id)
                     }
-                    is AST.AssertDecl | AST.ImportDecl | AST.TraitDecl | AST.TypeAliasDecl -> {}
+                    is AST.TraitDecl  -> { index.register_intrinsics(d, typed) }
+                    is AST.AssertDecl | AST.ImportDecl | AST.TypeAliasDecl -> {}
                 }
             }
         }
@@ -133,6 +137,16 @@ constant_initialiser :: fn(decl: AST.ConstDecl, sym: Symbol, typed: TypedProgram
         .typed = typed,
         .initialises = sym.id,
     }
+
+// Note what each member of `decl` does when it is `Intrinsic`: the toolchain
+// implements it, so a member is summarised by its host, never a node.
+register_intrinsics :: fn(index: CalleeIndex, decl: AST.TraitDecl, typed: TypedProgram) -> void {
+    intrinsic :: intrinsic_trait_of(decl, typed) else return
+    for member in decl.members {
+        index.intrinsics[member.id] = trait_member_type(intrinsic.id, member, typed)
+        index.register(member, typed)
+    }
+}
 
 // Note each default of `decl`'s fields.
 register_defaults :: fn(index: CalleeIndex, decl: AST.StructDecl, typed: TypedProgram) -> void {
@@ -211,7 +225,7 @@ summary_target :: fn(
     }
     // By its node id : an `@intrinsic` stub shares its parameters' spans with the
     // other impls of its trait.
-    signature :: declared_fn_type(typed, decl)
+    signature :: index.signature_of(decl, typed)
     host :: host_of(index, decl, typed)
     known :: host_summary(host, index.paths)
     if known.frozen_view {
@@ -241,6 +255,16 @@ summary_target :: fn(
     return AnyCallee {}
 }
 
+// The type declared for `decl`: its own, or for a member of `Intrinsic`, which
+// has no symbol to hold one, its member's.
+signature_of :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> Type | null {
+    declared :: declared_fn_type(typed, decl)
+    if declared != null {
+        return declared
+    }
+    return index.intrinsics[decl.id]
+}
+
 // The array a function of type `declared` returns ; null for any other result.
 returned_array :: fn(declared: Type | null) -> ArrayType | null {
     if declared is FnType {
@@ -257,13 +281,14 @@ foreign_effects :: fn(p: AST.FnParam) -> ParamEffects {
     return none()
 }
 
-// The host `decl` is, by its mangled name ; `NotIntrinsic` for a member of an impl,
-// which `intrinsic_effects` lists by its trait.
+// The host `decl` is (`host_for`) ; `NotIntrinsic` for a member of an impl, which
+// `intrinsic_effects` lists by its trait.
 host_of :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> IntrinsicId {
     if index.impls.member_entry(decl) != null {
         return .NotIntrinsic
     }
-    return intrinsic_id_for(declaration_mangle(typed.resolved.display_path, decl.name))
+    member :: if decl.id in index.intrinsics { decl.name } else { "" }
+    return host_for(member, declaration_mangle(typed.resolved.display_path, decl.name))
 }
 
 // The key of a function in `intrinsic_effects` and `task_primitive`:

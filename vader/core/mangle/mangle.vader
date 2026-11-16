@@ -68,6 +68,17 @@ export impl_member_mangle :: fn(
     suffix: string = "",
 ) -> string = "${mangle_module_id(module_id)}\$${target_segment}\$${trait_segment}\$${member}${suffix}"
 
+/// The mangled name of a member of a trait no type implements in Vader, which the
+/// toolchain provides: `std_core$Intrinsic$byte_len`. Three segments, where an impl
+/// member's take four and a declaration's two.
+///
+/// @param module_id      the module that declares the trait.
+/// @param trait_segment  the trait as a segment (`Intrinsic`).
+/// @param member         the member's name.
+export trait_member_mangle :: fn(
+    module_id: string, trait_segment: string, member: string,
+) -> string = "${mangle_module_id(module_id)}\$${trait_segment}\$${member}"
+
 /// A structural type an impl targets, which has no declaration to name it.
 export ShapeSegment :: enum {
     Array
@@ -284,10 +295,11 @@ export mangle_last_segment :: fn(mangled: string) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/symbol"
 
 @test
 test_mangle_module_id_doubles_underscores :: fn() -> void {
-    assert_eq(mangle_module_id("std/core"), "std_core")
+    assert_eq(mangle_module_id(CORE_MODULE), "std_core")
     assert_eq(mangle_module_id("std/string_builder"), "std_string__builder")
 }
 
@@ -298,15 +310,20 @@ test_mangle_module_id_keeps_slash_and_underscore_apart :: fn() -> void {
 
 @test
 test_declaration_mangle_joins_module_and_name :: fn() -> void {
-    assert_eq(declaration_mangle("std/core", "Display"), r"std_core$Display")
+    assert_eq(declaration_mangle(CORE_MODULE, "Display"), r"std_core$Display")
 }
 
 @test
 test_impl_member_mangle_joins_its_four_segments :: fn() -> void {
     assert_eq(
-        impl_member_mangle("std/core", "string", "Comparable", "compare"),
+        impl_member_mangle(CORE_MODULE, "string", "Comparable", "compare"),
         r"std_core$string$Comparable$compare",
     )
+}
+
+@test
+test_trait_member_mangle_joins_its_three_segments :: fn() -> void {
+    assert_eq(trait_member_mangle(CORE_MODULE, "Intrinsic", "byte_len"), r"std_core$Intrinsic$byte_len")
 }
 
 @test

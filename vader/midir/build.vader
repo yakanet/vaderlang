@@ -290,6 +290,7 @@ make_extern_decl :: fn(
         .c_headers   = headers_of(d, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
         .library     = library,
+        .intrinsic   = d.intrinsic,
     }
 }
 

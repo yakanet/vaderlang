@@ -930,7 +930,7 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
 shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     a0 :: argument(0)
     a1 :: argument(1)
-    match intrinsic_id_for(imp.mangled_name) {
+    match imp.host {
     // std/abort: implemented by the runtime.
     .AbortPanic -> { return [perform("vader_panic", [a0])] }
 

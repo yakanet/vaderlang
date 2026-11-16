@@ -50,6 +50,8 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     // lowered there would stay behind.
     consumer_form :: try_inline_consumer(ctx, call, type)
     if consumer_form != null { return consumer_form }
+    intrinsic_form :: try_lower_intrinsic_call(ctx, call, type)
+    if intrinsic_form != null { return observed(ctx, call, .Call, intrinsic_form) }
     static_form :: try_lower_static_member_call(ctx, call, type)
     if static_form != null { return observed(ctx, call, .Call, static_form) }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
@@ -233,15 +235,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
             }
         }
     }
-    return Symbol {
-        .id         = 0,
-        .kind       = .Fn,
-        .name       = name,
-        .module     = ctx.typed.resolved.path,
-        .module_name = ctx.typed.resolved.path,
-        .visibility = .Private,
-        .defined_at = null,
-    }
+    return named_fn_symbol(ctx, name)
 }
 
 // Fold a const symbol to its lowered value : a comptime-baked scalar inlines

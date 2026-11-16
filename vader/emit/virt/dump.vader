@@ -363,7 +363,11 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // What a native build adds for the library (`native_flags`): a `.virt`
         // rebuilt into a binary links what the source build would have.
         li :: library_attributes(imp.library)
-        attributes :: "${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${li}"
+        // The host, by its member of `Intrinsic`: a `.virt` re-read has no other
+        // way to tell which host an import calls.
+        member :: host_member(imp.host)
+        ho :: if member == "" { "" } else { "host=${member} " }
+        attributes :: "${ho}${va}${headers}${rt}${pt}${pm}${pa}${ct}${rc}${li}"
         sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")

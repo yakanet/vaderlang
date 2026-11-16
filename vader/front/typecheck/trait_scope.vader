@@ -286,6 +286,60 @@ export trait_qualified_member :: fn(
     return ty
 }
 
+/// Whether `trait_sym` is `std/core`'s `Intrinsic`.
+///
+/// @param trait_sym  a trait.
+/// @param typed      any module of the project.
+export is_intrinsic_trait :: fn(trait_sym: Symbol, typed: TypedProgram) -> bool {
+    intrinsic :: typed.intrinsic_symbol else return false
+    return intrinsic.id == trait_sym.id
+}
+
+/// The symbol of `decl` when it is `std/core`'s `Intrinsic` ; null for any other
+/// trait.
+///
+/// @param decl   a trait of the module `typed`.
+/// @param typed  the module declaring it.
+export intrinsic_trait_of :: fn(decl: AST.TraitDecl, typed: TypedProgram) -> Symbol | null {
+    sym :: decl_symbol(typed.resolved, decl) else return null
+    if !is_intrinsic_trait(sym, typed) {
+        return null
+    }
+    return sym
+}
+
+/// `Intrinsic.member(args)`: the member itself, its arguments as written. The
+/// toolchain implements the trait, so no impl stands between the call and it.
+///
+/// @param c  the call.
+/// @return   the member's type ; null when the callee is no member of `Intrinsic`.
+/// @error    T3009 when `Intrinsic` has no member by that name.
+export intrinsic_member_call :: fn(
+    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
+    field :: c.callee
+    if field !is AST.FieldExpr {
+        return null
+    }
+    trait_sym :: named_trait(field.target, typed) else return null
+    if !is_intrinsic_trait(trait_sym, typed) {
+        return null
+    }
+    decl :: typed.trait_decls[trait_sym.id] else return TY_UNRESOLVED
+    member :: lookup_trait_method(decl, field.field) else {
+        diags.push(typecheck_error(
+            .MemberDoesNotExist,
+            field.field_span,
+            "`${trait_sym.name}` has no member `${field.field}`",
+        ))
+        return TY_UNRESOLVED
+    }
+    note_callee(typed, field, DirectFn { .decl = member })
+    ty :: trait_member_type(trait_sym.id, member, typed)
+    typed.expr_types[field.id] = ty
+    return ty
+}
+
 // Whether an impl of `trait_sym` declares `m`.
 declared_for :: fn(m: ImplMethod, trait_sym: Symbol) -> bool {
     own :: m.trait_symbol else return false

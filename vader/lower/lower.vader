@@ -238,7 +238,8 @@ drain_lowering_queues :: fn(
         round_gates_len :: project_ctx.referenced_impl_mangles.len() +
             project_ctx.virtually_dispatched_traits.len() +
             project_ctx.constructed_struct_symbols.len() +
-            project_ctx.array_member_uses.len()
+            project_ctx.array_member_uses.len() +
+            project_ctx.referenced_intrinsics.len()
         if round_gates_len == gates_len && !pending_work(project_ctx) {
             break
         }

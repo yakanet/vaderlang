@@ -1946,7 +1946,7 @@ sum :: fn<T: Add & Zero>(xs: T[]) -> T {
 
 A value of the trait reaches only its instance members, even in a trait that also has static ones. These are errors:
 
-- a static member called on a value, or on the trait itself (`Zero.zero()`);
+- a static member called on a value, or on the trait itself (`Zero.zero()`), except a member of `Intrinsic` (§12 *`@intrinsic`*);
 - an instance member called on a type;
 - a static member named without being called (`f :: i64.zero`).
 
@@ -3454,6 +3454,14 @@ export collect :: fn() -> void
 @intrinsic
 string implements Hash
 ```
+
+`std/core` also declares the trait `Intrinsic`, whose members are operations the toolchain performs (`byte_len`, `park`, `current_os`). The toolchain that runs the program implements it, the interpreter or the native runtime, so a program does not: `X implements Intrinsic` is an error. Its members are static and are called on the trait itself, the only trait whose members are:
+
+```vader
+export byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)
+```
+
+They are unstable: a program calls the standard library functions that wrap them.
 
 ### `@assert`
 

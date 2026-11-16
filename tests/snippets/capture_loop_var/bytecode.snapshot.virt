@@ -26,8 +26,8 @@ string 6 "mapped "
 string 7 "filtered defer z="
 string 8 "nested n="
 string 9 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=10 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=13 param_types=10 param_c_out= param_by_address= (string) -> ref
+import 0 byte_len std_core$byte_len host=byte_len result_type=9 param_types=10 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes host=bytes result_type=13 param_types=10 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=1,13,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void

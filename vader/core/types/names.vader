@@ -273,6 +273,9 @@ export STRUCT_CONDITION :: @type_name(Condition)
 /// `std/core::DecoratorTarget`, what the parentheses of a decorator declaration name.
 export ENUM_DECORATOR_TARGET :: @type_name(DecoratorTarget)
 
+/// `std/core::Intrinsic`, the operations the toolchain implements.
+export TRAIT_INTRINSIC :: @type_name(Intrinsic)
+
 /// Method names the compiler dispatches by, paired with the `TRAIT_*` above
 /// (`Add::add`, `Comparable::compare`, `Iterator::next`, ...). Same rationale as
 /// the trait names: one source so a rename touches one line.

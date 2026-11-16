@@ -64,6 +64,14 @@ check_module_impl_coherence :: fn(
         // A trait is told apart by its declaration, not by the name an
         // import gave it ; one that does not resolve is reported elsewhere.
         trait_sym :: impl_trait_symbol(decl, tp.resolved) else continue
+        if is_intrinsic_trait(trait_sym, tp) {
+            diags.push(typecheck_error(
+                .IntrinsicImplemented,
+                AST.impl_trait_head(decl).span,
+                "its members are called on the trait, `Intrinsic.byte_len(s)`",
+            ))
+            continue
+        }
         trait_key :: trait_key_of(trait_sym)
         for_ty :: type_from_expr(decl.for_type, tp.resolved, diag_sink())
         if has_builtin_impl(for_ty, trait_key) {

@@ -12,7 +12,8 @@ import "vader/front/resolver"
 // T3036 : report every trait member the impl doesn't provide, unless the trait
 // declares a default body for it. T3094 : report every impl member the trait does
 // not declare: an impl block adds no method of its own to the type. The SAM short
-// form names none of its own ; R2016 reports a trait it cannot fill.
+// form names none of its own ; R2016 reports a trait it cannot fill. An impl of
+// `Intrinsic` is T3146 alone (`coherence.vader`): its members say nothing more.
 check_impl_members :: fn(
     id: AST.ImplDecl,
     trait_type: TraitType,
@@ -20,6 +21,9 @@ check_impl_members :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
+    if is_intrinsic_trait(trait_type.symbol, typed) {
+        return
+    }
     trait_decl :: typed.trait_decls[trait_type.symbol.id] else return
     for member in id.members {
         trait_method :: lookup_trait_method(trait_decl, member.name)

@@ -511,6 +511,10 @@ export TypedProgram :: struct {
     /// `std/core`'s `DecoratorTarget` enum symbol: the type of the places a
     /// decorator declaration names. Populated once from core by the orchestrator.
     decorator_target_symbol: Symbol | null
+    /// `std/core`'s `Intrinsic` trait symbol: the operations the toolchain
+    /// implements, whose members are called on the trait. Populated once from core
+    /// by the orchestrator.
+    intrinsic_symbol: Symbol | null = null
     /// The decorators of the compiler `std/core` declares, keyed by name: where a
     /// compiler decorator is written, its declaration says the places it takes.
     /// Populated once from core by the orchestrator.

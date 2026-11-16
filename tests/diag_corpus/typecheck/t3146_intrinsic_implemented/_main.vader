@@ -1,0 +1,11 @@
+// A program implementing `Intrinsic`. The toolchain that runs the program
+// implements it, and a program calls its members on the trait.
+module "snippet"
+
+Fake :: struct {}
+
+Fake implements Intrinsic {
+    byte_len :: fn(s: string) -> i64 = 0
+}
+
+main :: fn() -> i32 { return 0 }
