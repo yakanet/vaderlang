@@ -549,6 +549,40 @@ tokens_before :: fn(tokens: Token[], offset: i64) -> i64 {
     return low
 }
 
+/// Whether the cursor at byte `offset` is in the parameter list of a function,
+/// `fn(@|`, `fn<T>(x: T, @|`, read off the tokens: the text being typed need not
+/// parse.
+///
+/// @param idx     the document's index.
+/// @param offset  the byte offset of the cursor.
+export in_parameter_list :: fn(idx: DocIndex, offset: i64) -> bool {
+    tokens :: idx.tokens
+    open :: enclosing_open(tokens, tokens_before(tokens, offset))
+    if open < 1 || tokens[open].kind != .LParen {
+        return false
+    }
+    before := open - 1
+    // Past the type parameters, `<T, U>`, to the `fn` they follow ; `>>` closes
+    // two.
+    depth := 0
+    for before >= 0 {
+        match tokens[before].kind {
+            .Gt  -> { depth += 1 }
+            .Shr -> { depth += 2 }
+            .Lt  -> { depth -= 1 }
+            _    -> {}
+        }
+        if depth <= 0 {
+            break
+        }
+        before -= 1
+    }
+    if depth == 0 && tokens[before].kind == .Lt {
+        before -= 1
+    }
+    return before >= 0 && tokens[before].kind == .KwFn
+}
+
 // Whether `tokens[open]` is the `(` of `@Name(` or `@Alias.Name(`.
 opens_decorator_arguments :: fn(tokens: Token[], open: i64) -> bool {
     if open < 2 || tokens[open].kind != .LParen || tokens[open - 1].kind != .Ident {
@@ -1370,4 +1404,24 @@ Route :: decorator(.Function, .Struct, rep) {
     assert_eq(args.position, 2)
     assert_eq(args.variants.join(" "), "Function Struct")
     assert(idx.decorator_arguments_at(src.byte_len() - 4) == null, "in the body")
+}
+
+@test
+test_a_parameter_list_is_read_off_the_tokens :: fn() -> void {
+    src :: """
+show :: fn(@Doc name: string) -> void {
+    f(@x)
+}
+pair :: fn<T>(a: T, @Doc b: T) -> void {}
+boxed :: fn<T: Box<U>>(@Doc c: T) -> void {}
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    first :: src.split_first("@Doc name") else panic("no first `@Doc`")
+    assert(idx.in_parameter_list(first.0.byte_len() + 1), "in `fn(`")
+    generic :: src.split_first("@Doc b") else panic("no second `@Doc`")
+    assert(idx.in_parameter_list(generic.0.byte_len() + 1), "in `fn<T>(`")
+    nested :: src.split_first("@Doc c") else panic("no third `@Doc`")
+    assert(idx.in_parameter_list(nested.0.byte_len() + 1), "in `fn<T: Box<U>>(`")
+    call :: src.split_first("@x") else panic("no `@x`")
+    assert(!idx.in_parameter_list(call.0.byte_len() + 1), "a call is no parameter list")
 }

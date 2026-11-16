@@ -153,6 +153,9 @@ walk_fn_param :: fn(p: FnParam, f: NodeIdFactory) -> void {
     if p.default_value !is null {
         walk_expr(p.default_value, f)
     }
+    for dec in p.decorators {
+        walk_decorator(dec, f)
+    }
 }
 
 walk_type_param :: fn(tp: TypeParam, f: NodeIdFactory) -> void {

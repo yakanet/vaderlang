@@ -1,0 +1,280 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/console",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Help",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "text",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decoratorArgs": [
+          {
+            "name": null,
+            "value": {
+              "kind": "DotVariantExpr",
+              "variant": "Parameter"
+            },
+            "spread": false
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Secret",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [],
+        "decoratorArgs": [
+          {
+            "name": null,
+            "value": {
+              "kind": "DotVariantExpr",
+              "variant": "Parameter"
+            },
+            "spread": false
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "connect",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "host",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "defaultValue": null,
+            "variadic": false,
+            "decorators": [
+              {
+                "name": "Help",
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "the host to reach"
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "token",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "defaultValue": null,
+            "variadic": false,
+            "decorators": [
+              {
+                "name": "Help",
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "the access token"
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              },
+              {
+                "name": "Secret",
+                "args": []
+              }
+            ]
+          },
+          {
+            "name": "timeout",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "defaultValue": {
+              "kind": "IntLitExpr",
+              "value": "30n"
+            },
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "interpolation",
+                "expr": {
+                  "kind": "IdentExpr",
+                  "name": "host"
+                }
+              },
+              {
+                "kind": "text",
+                "value": ":"
+              },
+              {
+                "kind": "interpolation",
+                "expr": {
+                  "kind": "IdentExpr",
+                  "name": "timeout"
+                }
+              },
+              {
+                "kind": "text",
+                "value": " ("
+              },
+              {
+                "kind": "interpolation",
+                "expr": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "token"
+                    },
+                    "field": "byte_len"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "kind": "text",
+                "value": ")"
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "connect"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "example.org"
+                              }
+                            ]
+                          },
+                          "spread": false
+                        },
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "abc"
+                              }
+                            ]
+                          },
+                          "spread": false
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

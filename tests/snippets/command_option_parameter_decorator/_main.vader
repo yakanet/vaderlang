@@ -1,0 +1,26 @@
+// Declared decorators on function parameters: one with an argument, two on one
+// parameter. They change nothing in the function, which is called and runs as if
+// its parameters carried none.
+
+module "snippet"
+
+import "std/console"
+
+/// The help a command-line option shows.
+Help :: decorator(.Parameter) {
+    text: string
+}
+
+/// An option whose value is never echoed.
+Secret :: decorator(.Parameter) {}
+
+connect :: fn(
+    @Help("the host to reach") host: string,
+    @Help("the access token") @Secret token: string,
+    timeout: i32 = 30,
+) -> string = "${host}:${timeout} (${token.byte_len()})"
+
+main :: fn() -> i32 {
+    println(connect("example.org", "abc"))
+    return 0
+}

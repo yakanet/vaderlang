@@ -263,6 +263,9 @@ decorator_slot :: fn(idx: DocIndex, offset: i64) -> DecoratorSlot {
         }
     }
     at :: typed_at else return DecoratorSlot {}
+    if idx.in_parameter_list(at.span.start.offset) {
+        return DecoratorSlot { .place = "Parameter" }
+    }
     line :: at.span.start.line
     written :: decorator_names(by_line[line] else [], at)
     walk_decorator_lines(by_line, line - 1, -1, written)

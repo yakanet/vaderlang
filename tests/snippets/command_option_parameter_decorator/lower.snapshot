@@ -1,0 +1,48 @@
+# Lower
+
+## snippet
+  snippet.Help :: struct { text: string }  // snippet$Help
+  snippet.Secret :: struct {}  // snippet$Secret
+  snippet.connect :: fn(host: string, token: string, timeout: i32) -> string {  // snippet$connect
+      {
+          __p_0: string = host
+          __buf_1: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_0))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, ":")
+          __off_2 = std.core.write_int(__buf_1, __off_2, timeout)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " (")
+          __off_2 = std.core.write_int(__buf_1, __off_2, std.core.byte_len(token))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, ")")
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.console.println<string>(snippet.connect("example.org", "abc", 30))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/console
+    fn std.console.println<string>  // std_console$println__string
+    fn std.console.write  // std_console$write
+    fn std.console.write_bytes  // std_console$write_bytes
+    fn std.console.write_text  // std_console$write_text
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer

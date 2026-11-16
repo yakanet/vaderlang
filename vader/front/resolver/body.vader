@@ -373,6 +373,11 @@ union_in_bound :: fn(bound: AST.Expr | null) -> AST.BinaryExpr | null {
 
 walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     self.walk_decorators(d.decorators)
+    // A parameter's decorators name declarations of the module, as the function's
+    // do: they are looked up before its type parameters and parameters are bound.
+    for p in d.params {
+        self.walk_decorators(p.decorators)
+    }
     self.scope.push()
     // Type-params first so the rest of the signature + body sees them.
     for tp in d.type_params {

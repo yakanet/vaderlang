@@ -526,6 +526,7 @@ collect_fn :: fn(d: AST.FnDecl, out: Collected) -> void {
     collect_type_params(d.type_params, out)
     for p in d.params {
         out.params.push(p)
+        collect_decorators(p.decorators, out)
         collect_opt_type(p.ty, out)
         collect_opt_expr(p.default_value, out)
     }

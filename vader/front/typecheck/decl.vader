@@ -490,6 +490,11 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
 validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]) -> void {
     for pm in decl.params {
         for d in pm.decorators {
+            // A declared decorator is checked at the place `Parameter`, with the
+            // others (`check_decorator_uses`).
+            if !is_compiler_decorator(d) {
+                continue
+            }
             if !is_parameter_decorator(d.name) {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,

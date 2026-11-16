@@ -267,6 +267,7 @@ walk_opt_block :: fn(b: AST.BlockExpr | null, out: RawToken[]) -> void {
 }
 
 walk_fn_param :: fn(p: AST.FnParam, out: RawToken[]) -> void {
+    walk_decorators(p.decorators, out)
     push_span(out, p.name_span, .Parameter)
     walk_opt_type(p.ty, out)
     walk_opt_expr(p.default_value, out)

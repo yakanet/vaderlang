@@ -633,6 +633,29 @@ test_completion_above_a_variant_offers_the_decorators_of_a_variant :: fn() -> vo
     assert(!offers(list, "Route"), shown(list))
 }
 
+PARAMETER_DECORATED_SOURCE :: r"""
+    module "demo"
+
+    /// What a parameter means.
+    Doc :: decorator(.Parameter) {
+        text: string
+    }
+
+    Route :: decorator(.Function) {}
+
+    greet :: fn(@Do name: string) -> void {}
+    """
+
+// After `@` in a parameter list: the decorators declared for `.Parameter`.
+@test
+test_completion_in_a_parameter_list_offers_the_decorators_of_a_parameter :: fn() -> void {
+    src :: PARAMETER_DECORATED_SOURCE
+    results :: drive("parameter_decorators", src, [complete_at(position_of(src, "@Do", 3))])
+    list :: results[0]
+    assert(offers(list, "Doc"), shown(list))
+    assert(!offers(list, "Route"), shown(list))
+}
+
 ROUTE_SNIPPET_SOURCE :: r"""
     module "demo"
 

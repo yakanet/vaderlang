@@ -3715,6 +3715,7 @@ peek_lambda_without_fn :: fn(p: Parser) -> bool {
 parse_lambda_without_fn :: fn(p: Parser) -> LambdaExpr {
     start :: p.peek()
     sig :: p.parse_fn_signature_params()
+    p.reject_lambda_parameter_decorators(sig.params)
     p.expect(.Arrow, "`->` between lambda params and body")
     body_expr :: p.parse_expr(0)
     body :: wrap_as_block(body_expr)
@@ -3750,6 +3751,17 @@ parse_single_param_lambda_tail :: fn(p: Parser, param_ident: IdentExpr) -> Lambd
         .params_span = param_ident.span,
         .return_type = null,
         .body        = body,
+    }
+}
+
+// A lambda declares nothing a decorator could describe, and no pass reads one on
+// its parameters: written there, it would be dropped in silence.
+reject_lambda_parameter_decorators :: fn(p: Parser, params: FnParam[]) -> void {
+    for param in params {
+        for d in param.decorators {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@${d.name}` does not apply to the parameter of a lambda")
+        }
     }
 }
 
@@ -3978,6 +3990,7 @@ parse_match_arm :: fn(p: Parser) -> MatchArm {
 parse_lambda :: fn(p: Parser) -> LambdaExpr {
     start :: p.advance()  // `fn`
     sig :: p.parse_fn_signature_params()
+    p.reject_lambda_parameter_decorators(sig.params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     // A missing body is reported by `parse_block`.
@@ -4531,4 +4544,13 @@ compound_operator_text :: fn(statement: string) -> string {
 @test
 test_compound_assignment_op_span_covers_the_operator :: fn() -> void {
     assert_eq(compound_operator_text("x -= 1"), "-=")
+}
+
+@test
+test_a_decorator_on_the_parameter_of_a_lambda_is_rejected :: fn() -> void {
+    for lambda in ["fn(@Doc x: i32) -> i32 = x", "(@Doc y: i32) -> y"] {
+        src :: "main :: fn() -> void {\n    f :: ${lambda}\n}\n"
+        errors :: parse_source(src, "test.vader").errors
+        assert(errors.len() == 1 && errors[0].code.id == "P1014", "one P1014 for `${lambda}`")
+    }
 }

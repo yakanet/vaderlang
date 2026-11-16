@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/command_option_parameter_decorator
+  FnDecl         connect              :: fn(string, string, i32) -> string
+  StructDecl     Help                 :: Help
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Secret               :: Secret
+  expr 10:19    DotVariantExpr :: DecoratorTarget
+  expr 15:21    DotVariantExpr :: DecoratorTarget
+  expr 18:11    StringLitExpr  :: string
+  expr 19:11    StringLitExpr  :: string
+  expr 21:15    StringLitExpr  :: string
+  expr 21:18    IdentExpr      :: string
+  expr 21:26    IdentExpr      :: i32
+  expr 21:38    CallExpr       :: i64
+  expr 21:38    FieldExpr      :: fn() -> i64
+  expr 21:38    IdentExpr      :: string
+  expr 24:13    CallExpr       :: string
+  expr 24:13    IdentExpr      :: fn(string, string, i32) -> string
+  expr 24:21    StringLitExpr  :: string
+  expr 24:36    StringLitExpr  :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
