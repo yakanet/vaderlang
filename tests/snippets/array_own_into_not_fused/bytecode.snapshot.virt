@@ -33,8 +33,8 @@ string 2 "L"
 string 3 "\n"
 data 0 structs 2 1 2 i32 04000000 i32 05000000
 data 1 structs 12 0 1
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=18 param_types=9 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=20 param_types=9 param_c_out= param_by_address= (string) -> ref
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=18 param_types=9 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=20 param_types=9 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=18 param_types=8,20,18 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=8 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=22 () -> void

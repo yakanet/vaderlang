@@ -15,9 +15,9 @@ string 1 "argument in a slot, GC inside: "
 string 2 "\n"
 import 0 extern call_twice snippet$call_twice result_type=1 param_types=3 param_c_out= param_by_address= (ref) -> i32
 import 1 extern apply_twice snippet$apply_twice result_type=1 param_types=1,3,1 param_c_out= param_by_address= (i32,ref,i32) -> i32
-import 2 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 collect std_core$Intrinsic$collect host=collect result_type=8 () -> void
+import 2 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 3 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 collect std_core$Intrinsic$collect intrinsic=collect result_type=8 () -> void
 import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,6,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void

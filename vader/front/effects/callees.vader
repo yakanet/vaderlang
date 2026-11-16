@@ -2,18 +2,18 @@
 //
 // The typecheck records what each call settles on (`call_sites.vader`, ADR 0056).
 // A function with a body is a node of the call graph. A bodyless one does what
-// the compiler knows of it: a host by `host_summary`, a member of `Intrinsic`
-// served by an operation by `intrinsic_effects`, an `@extern` by its `@c_out`
-// parameters. So does a primitive of `std/task` (`task_doors.vader`), body or
-// not: what it does to a task is the runtime's, not what its body shows ; and a
-// function that only forwards to a member of `Intrinsic`, which does what the
-// member does (`forwarded_effects`).
+// the compiler knows of it: a member of `Intrinsic` by `member_summary`, an
+// `@extern` by its `@c_out` parameters. So does a primitive of `std/task`
+// (`task_doors.vader`), body or not: what it does to a task is the runtime's, not
+// what its body shows ; and a function that only forwards to a member of
+// `Intrinsic`, which does what the member does (`forwarded_effects`).
 // A member reached through a trait is the member of that name in every impl of the
 // trait, the whole program being compiled. A function value, or a site the record
 // could not settle, may do anything.
 
 module "vader/front/effects"
 
+import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/string"
@@ -148,6 +148,11 @@ constant_initialiser :: fn(decl: AST.ConstDecl, sym: Symbol, typed: TypedProgram
 register_intrinsics :: fn(index: CalleeIndex, decl: AST.TraitDecl, typed: TypedProgram) -> void {
     intrinsic :: intrinsic_trait_of(decl, typed) else return
     for member in decl.members {
+        // Every reader of a member decides for it by its `IntrinsicId` ; one the
+        // enum lacks would be served by nothing.
+        if intrinsic_id(member.name) == .NotIntrinsic {
+            panic("effects: `Intrinsic.${member.name}` has no `IntrinsicId` (vader/core/bytecode/intrinsic_manifest.vader)")
+        }
         index.intrinsics[member.id] = trait_member_type(intrinsic.id, member, typed)
         index.register(member, typed)
     }
@@ -212,7 +217,7 @@ register :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> voi
         index.summarised[decl.id] = KnownEffects { .params = forwarded }
         return
     }
-    key :: index.intrinsic_key(decl, typed)
+    key :: index.function_key(decl, typed)
     if decl.body != null && task_primitive(key) == null {
         index.nodes[decl.id] = index.add_node(Function { .decl = decl, .typed = typed })
         return
@@ -233,16 +238,17 @@ forwarded_effects :: fn(
     if member is ForwardedOperator {
         return null
     }
-    if host_for(member.name) == .DeepCopy {
+    id :: intrinsic_id(member.name)
+    if id == .DeepCopy {
         index.deep_copies.add(decl.id)
     }
-    return intrinsic_member_effects(member.name, index.paths.path_to(ELEMENT))
+    return member_summary(id, index.paths).params
 }
 
 // What `decl` of key `key`, summarised without its body, does: an `@extern` writes
-// what `@c_out` marks, a primitive of `std/task` what its row says, an intrinsic
-// what the table says ; one the table omits does nothing to a parameter that holds
-// no references, and anything to one that does.
+// what `@c_out` marks, a primitive of `std/task` what its row says, a member of
+// `Intrinsic` what `member_summary` says ; one none of them describes does nothing
+// to a parameter that holds no references, and anything to one that does.
 summary_target :: fn(
     index: CalleeIndex,
     decl: AST.FnDecl,
@@ -255,8 +261,8 @@ summary_target :: fn(
     // By its node id : an inherited member shares its parameters' spans with the
     // other impls of its trait.
     signature :: index.signature_of(decl, typed)
-    host :: host_of(index, decl)
-    known :: host_summary(host, index.paths)
+    member :: member_of(index, decl)
+    known :: member_summary(member, index.paths)
     if known.frozen_view {
         index.frozen_views.add(decl.id)
         index.view = returned_array(signature)
@@ -267,15 +273,11 @@ summary_target :: fn(
         effects :: primitive_effects(index.paths, primitive, decl.params.len())
         return KnownEffects { .params = effects }
     }
-    if host == .DeepCopy {
+    if member == .DeepCopy {
         index.deep_copies.add(decl.id)
     }
     if known.params != null {
         return KnownEffects { .params = known.params }
-    }
-    listed :: intrinsic_effects(index.paths, key)
-    if listed != null {
-        return KnownEffects { .params = listed }
     }
     if signature is FnType && !signature.params.any_match((t: Type) -> holds_references(t)) {
         return KnownEffects { .params = decl.params.map((_) -> none()).collect() }
@@ -310,21 +312,21 @@ foreign_effects :: fn(p: AST.FnParam) -> ParamEffects {
     return none()
 }
 
-// The host `decl` is when it is a member of `Intrinsic` (`host_for`) ;
-// `NotIntrinsic` for any other function.
-host_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> IntrinsicId {
+// The member of `Intrinsic` `decl` is (`intrinsic_id`) ; `NotIntrinsic` for any
+// other function.
+member_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> IntrinsicId {
     if decl.id !in index.intrinsics {
         return .NotIntrinsic
     }
-    return host_for(decl.name)
+    return intrinsic_id(decl.name)
 }
 
-// The key of a function in `intrinsic_effects` and `task_primitive`:
+// The key of a function in `task_primitive` and in the dump of the unknown ones:
 // `trait_key.member` for a member of an impl or of `Intrinsic`, `module.name` for a
 // free function.
-intrinsic_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> string {
+function_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> string {
     if decl.id in index.intrinsics {
-        return "${INTRINSIC_KEY_PREFIX}${decl.name}"
+        return vtable_key(INTRINSIC_TRAIT_KEY, decl.name)
     }
     entry :: index.impls.member_entry(decl)
     if entry != null {
@@ -332,6 +334,9 @@ intrinsic_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -
     }
     return "${typed.resolved.display_path}.${decl.name}"
 }
+
+// The `trait_key` of `std/core`'s `Intrinsic`.
+INTRINSIC_TRAIT_KEY :: @comptime core_trait_key(TRAIT_INTRINSIC)
 
 // Whether a value of type `t` may reach something a function could change
 // (`is_value_only_type`) ; true when the type is not known.
@@ -422,8 +427,8 @@ member_targets :: fn(index: CalleeIndex, trait_key: string, member: string) -> C
 
 // ---- intrinsics -----------------------------------------------------------
 
-/// What a host knows beyond its signature.
-HostSummary :: struct {
+/// What a member of `Intrinsic` does beyond what its signature says.
+MemberSummary :: struct {
     /// What it does with each parameter ; null when it does nothing the
     /// signature does not tell.
     params:      ParamEffects[] | null = null
@@ -432,18 +437,32 @@ HostSummary :: struct {
     frozen_view: bool = false
 }
 
-/// What the host `id` does with its parameters. Exhaustive, so a new host is a
-/// decision here.
+/// What the member `id` of `Intrinsic` does with its parameters. Exhaustive, so a
+/// new member is a decision here.
 ///
-/// @param id     the host, as the manifest classifies it.
+/// @param id     the member.
 /// @param paths  the summary's paths.
-host_summary :: fn(id: IntrinsicId, paths: PathTable) -> HostSummary = match id {
-    .Bytes         -> HostSummary { .frozen_view = true }
-    .BytesToString -> HostSummary { .params = [none()] }
-    .DeepCopy      -> HostSummary { .params = [none()] }
-    .FfiCall       -> HostSummary { .params = ffi_call_effects(paths.path_to(ELEMENT)) }
-    .FfiCallFrame  -> HostSummary { .params = ffi_call_frame_effects(paths.path_to(ELEMENT)) }
+member_summary :: fn(id: IntrinsicId, paths: PathTable) -> MemberSummary = match id {
+    .Bytes              -> MemberSummary { .frozen_view = true }
+    .BytesToString      -> MemberSummary { .params = [none()] }
+    .DeepCopy           -> MemberSummary { .params = [none()] }
+    .FfiCall            -> MemberSummary { .params = ffi_call_effects(elements_of(paths)) }
+    .FfiCallFrame       -> MemberSummary { .params = ffi_call_frame_effects(elements_of(paths)) }
+    .ArrayLen           -> MemberSummary { .params = [none()] }
+    .ArrayPush          -> MemberSummary { .params = push_effects(ROOT) }
+    .ArrayPushAll       -> MemberSummary { .params = push_effects(elements_of(paths)) }
+    .ArrayCopyTo        -> MemberSummary { .params = copy_to_effects(elements_of(paths)) }
+    .ArrayRemoveLast    -> MemberSummary { .params = [remove_last_effects(elements_of(paths))] }
+    .ArrayClear         -> MemberSummary { .params = [effects_of(.Shrunk, ROOT)] }
+    .NewByteBuffer      -> MemberSummary { .params = [none()] }
+    .BufferLoadU8       -> MemberSummary { .params = [none(), none()] }
+    .BufferStoreU8      -> MemberSummary { .params = writes_bytes(elements_of(paths)) }
+    .BufferMemoryCopy   -> MemberSummary { .params = memory_copy_effects(elements_of(paths)) }
+    .BufferInternString -> MemberSummary { .params = [none(), none()] }
+    .BufferWriteString  -> MemberSummary { .params = writes_bytes(elements_of(paths)) }
+    // Their signature says it all: scalars and strings, which nothing writes.
     .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
+        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
         | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
@@ -451,44 +470,8 @@ host_summary :: fn(id: IntrinsicId, paths: PathTable) -> HostSummary = match id 
         | .SchedulerWatchReadable | .SchedulerWatchExit
         | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
         | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
-        | .FfiOpen | .FfiOpenPath | .FfiSymbol -> HostSummary {}
+        | .FfiOpen | .FfiOpenPath | .FfiSymbol -> MemberSummary {}
 }
-
-/// What a member of `Intrinsic` does with each of its parameters, by its key
-/// (`Intrinsic.member`) ; null for any other key, and for a member the compiler
-/// lists no effects for. A parameter the table leaves empty is only read.
-///
-/// @param paths  the summary's paths.
-/// @param key    the function's key (`intrinsic_key`).
-intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null {
-    if !key.starts_with(INTRINSIC_KEY_PREFIX) {
-        return null
-    }
-    return intrinsic_member_effects(key.trim_prefix(INTRINSIC_KEY_PREFIX), paths.path_to(ELEMENT))
-}
-
-// What the key of a member of `Intrinsic` starts with.
-INTRINSIC_KEY_PREFIX :: @comptime vtable_key(core_trait_key(TRAIT_INTRINSIC), "")
-
-// What the member `member` of `Intrinsic` does with each of its parameters ; null
-// for one the compiler lists no effects for.
-intrinsic_member_effects :: fn(member: string, elements: i32) -> ParamEffects[] | null =
-    match member {
-        "array_len"            -> [none()]
-        "array_push"           -> push_effects(ROOT)
-        "array_push_all"       -> push_effects(elements)
-        "array_copy_to"        -> copy_to_effects(elements)
-        "array_remove_last"    -> [remove_last_effects(elements)]
-        "array_clear"          -> [effects_of(.Shrunk, ROOT)]
-        "new_byte_buffer"      -> [none()]
-        "buffer_load_u8"       -> [none(), none()]
-        "buffer_store_u8"      -> writes_bytes(elements)
-        "buffer_memory_copy"   -> memory_copy_effects(elements)
-        "buffer_intern_string" -> [none(), none()]
-        "buffer_write_string"  -> writes_bytes(elements)
-        "deep_copy"            -> [none()]
-        _                      -> null
-    }
 
 // `self.push(value)` and `self.push_all(other)`: `self` grows, and keeps the value
 // at `kept` below the argument (the value itself, or the elements of `other`).
@@ -534,21 +517,24 @@ effects_of :: fn(effect: Effect, path: i32) -> ParamEffects {
     return effects
 }
 
+// The path to the elements of a parameter.
+elements_of :: fn(paths: PathTable) -> i32 = paths.path_to(ELEMENT)
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
 @test
-test_intrinsic_effects_push_resizes_and_stores :: fn() -> void {
-    effects :: intrinsic_effects(PathTable {}, "${INTRINSIC_KEY_PREFIX}array_push") else []
+test_member_summary_push_resizes_and_stores :: fn() -> void {
+    effects :: member_summary(.ArrayPush, PathTable {}).params else []
     assert_eq(effects.len(), 2)
     assert(effects[0].accesses[0].effect == .Resized, "push resizes its receiver")
     assert(effects[1].accesses[0].effect == .Stored, "push keeps its value")
 }
 
 @test
-test_intrinsic_effects_unknown_key :: fn() -> void {
-    assert(intrinsic_effects(PathTable {}, r"std_core$Nothing.here") == null, "an unlisted key")
+test_member_summary_of_no_member :: fn() -> void {
+    assert(member_summary(.NotIntrinsic, PathTable {}).params == null, "no member")
 }
 
 @test

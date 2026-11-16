@@ -1,65 +1,65 @@
-// vader/midir/select/intrinsics: mangled name -> dedicated bytecode op.
+// vader/midir/select/intrinsics: the dedicated bytecode op of a member of
+// `Intrinsic`.
 //
 // The members of `Intrinsic` that an op serves map to it rather than to a
 // host-provided import: `Intrinsic.buffer_load_u8` and its siblings to the
-// Target-ABI memory opcodes, `Intrinsic.f64_to_bits` to its reinterpret. The
-// table is built at compile time from the members' names, through the mangler
-// (`vader/core/mangle`): no mangled name is spelled here.
+// Target-ABI memory opcodes, `Intrinsic.f64_to_bits` to its reinterpret.
 
 module "vader/midir/select"
 
 import "std/abort"
-import "std/collections"
 import "vader/core/bytecode"
-import "vader/core/mangle"
-import "vader/core/symbol"
-import "vader/core/types"
 
-/// True when the call's mangled name resolves to a dedicated
-/// bytecode op (e.g. `std_core$Intrinsic$f64_to_bits` -> `f64.to_bits`).
-/// Returns the pre-built op to push, or `null` for non-intrinsic calls.
+/// The dedicated op of the member `id` of `Intrinsic`, pre-built to push ; null
+/// for a member a host serves, or one the lowering turns into an array node.
+/// Exhaustive, so a new member is a decision here.
 ///
-/// @param mangled  the fn's mangled name (from `MonoEntry.mangled`).
-/// @return         the matching bytecode op, or `null` when no
-///                 intrinsic applies: caller emits a regular `Call`.
-export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null = OPS_BY_HOST[mangled]
-
-// The op of each member of `Intrinsic` an op serves, by mangled name.
-OPS_BY_HOST: Map<string, Op>: @comptime {
-    out :: Map<string, Op> {}
+/// @param id  the member, from the import's `intrinsic`.
+export member_op :: fn(id: IntrinsicId) -> Op | null = match id {
     // The Target ABI memory opcodes: the members of `Intrinsic` behind the
     // abstract `Buffer`'s methods (`lib/std/core/buffer.vader`), and its
     // allocation, which takes no operand: the object is always a `Buffer`.
-    intrinsic :: (member: string) -> trait_member_mangle(CORE_MODULE, TRAIT_INTRINSIC, member)
-    out[intrinsic("new_byte_buffer")] = BufferNew {}
-    out[intrinsic("buffer_load_u8")] = LoadU8 {}
-    out[intrinsic("buffer_store_u8")] = StoreU8 {}
-    out[intrinsic("buffer_memory_copy")] = MemoryCopy {}
-    out[intrinsic("buffer_intern_string")] = BufferToString {}
-    out[intrinsic("buffer_write_string")] = BufferWriteString {}
-    out[intrinsic("string_compare")] = StringCompare {}
-    out[intrinsic("f64_to_bits")] = F64ToBits {}
-    out[intrinsic("bits_to_f64")] = BitsToF64 {}
-    out[intrinsic("f32_to_bits")] = F32ToBits {}
-    out[intrinsic("bits_to_f32")] = BitsToF32 {}
-    return out
+    .NewByteBuffer      -> BufferNew {}
+    .BufferLoadU8       -> LoadU8 {}
+    .BufferStoreU8      -> StoreU8 {}
+    .BufferMemoryCopy   -> MemoryCopy {}
+    .BufferInternString -> BufferToString {}
+    .BufferWriteString  -> BufferWriteString {}
+    .StringCompare      -> StringCompare {}
+    .F64ToBits          -> F64ToBits {}
+    .BitsToF64          -> BitsToF64 {}
+    .F32ToBits          -> F32ToBits {}
+    .BitsToF32          -> BitsToF32 {}
+    // Lowered as array nodes, never reaching a call.
+    .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
+        | .ArrayClear -> null
+    // Served by a host.
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
+        | .StringHash | .DeepCopy
+        | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
+        | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
+        | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
+        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
+        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
+        | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null
 }
 
-/// Fail loud when a host import is wired to nothing. Called on every import of
+/// Fail loud when an import is wired to nothing. Called on every import of
 /// the final table, in every build mode (`emit_bytecode_from_cfg`,
 /// `emit/bytecode/emit.vader`).
 ///
-/// A non-`@extern` import served by neither a dedicated bytecode op
-/// (`intrinsic_op_for_mangled`) nor a known host (`BcImport.host`) would lower to an
-/// unbound `call.import` and trap at runtime. `@extern` imports resolve at link
-/// time and are exempt.
+/// A non-`@extern` import that names no member of `Intrinsic` (`BcImport.intrinsic`)
+/// would lower to an unbound `call.import` and trap at runtime. `@extern` imports
+/// resolve at link time and are exempt.
 ///
 /// @param imp  an import of the final table.
-export assert_host_import_wired :: fn(imp: BcImport) -> void {
-    if imp.is_extern { return }
-    if intrinsic_op_for_mangled(imp.mangled_name) != null { return }
-    if imp.host != .NotIntrinsic { return }
-    panic("bytecode emit: host import `${imp.mangled_name}` is wired to nothing. Name it by a member of `Intrinsic` that `IntrinsicId` lists (+ its `vm/host.vader::dispatch_import` and `emit/c/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
+export assert_import_wired :: fn(imp: BcImport) -> void {
+    if imp.is_extern || imp.intrinsic != .NotIntrinsic {
+        return
+    }
+    panic("bytecode emit: import `${imp.mangled_name}` is wired to nothing: it names no member of `Intrinsic` that `IntrinsicId` lists")
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op, or null when
@@ -87,32 +87,16 @@ export intrinsic_op_for_name :: fn(name: string) -> Op | null {
 import "std/testing"
 
 @test test_intrinsic_members_have_their_op :: fn() -> void {
-    load :: intrinsic_op_for_mangled(r"std_core$Intrinsic$buffer_load_u8")
-    assert(load is LoadU8, "load_u8")
-    compare :: intrinsic_op_for_mangled(r"std_core$Intrinsic$string_compare")
-    assert(compare is StringCompare, "string_compare")
-    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$f64_to_bits") is F64ToBits, "f64_to_bits")
-    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$bits_to_f64") is BitsToF64, "bits_to_f64")
-    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$f32_to_bits") is F32ToBits, "f32_to_bits")
-    assert(intrinsic_op_for_mangled(r"std_core$Intrinsic$bits_to_f32") is BitsToF32, "bits_to_f32")
+    assert(member_op(.BufferLoadU8) is LoadU8, "buffer_load_u8")
+    assert(member_op(.StringCompare) is StringCompare, "string_compare")
+    assert(member_op(.F64ToBits) is F64ToBits, "f64_to_bits")
+    assert(member_op(.BitsToF64) is BitsToF64, "bits_to_f64")
+    assert(member_op(.F32ToBits) is F32ToBits, "f32_to_bits")
+    assert(member_op(.BitsToF32) is BitsToF32, "bits_to_f32")
+    assert(member_op(.NewByteBuffer) is BufferNew, "new_byte_buffer")
 }
 
-@test test_the_impls_of_the_primitives_map_to_no_op :: fn() -> void {
-    assert_eq(intrinsic_op_for_mangled(r"std_core$i32$Add$add") is null, true)
-    assert_eq(intrinsic_op_for_mangled(r"std_core$f64$FloatBits$to_bits") is null, true)
-}
-
-@test test_buffer_allocation_maps_to_buffer_new :: fn() -> void {
-    allocation :: intrinsic_op_for_mangled(r"std_core$Intrinsic$new_byte_buffer")
-    assert(allocation is BufferNew, "new_byte_buffer")
-}
-
-@test test_intrinsic_op_for_mangled_unknown_returns_null :: fn() -> void {
-    op :: intrinsic_op_for_mangled(r"std_core$Foo$Bar$baz")
-    assert_eq(op is null, true)
-}
-
-@test test_intrinsic_op_for_mangled_regular_fn_returns_null :: fn() -> void {
-    op :: intrinsic_op_for_mangled(r"user_module$main")
-    assert_eq(op is null, true)
+@test test_a_member_a_host_serves_has_no_op :: fn() -> void {
+    assert(member_op(.ByteLen) == null, "byte_len")
+    assert(member_op(.NotIntrinsic) == null, "no member")
 }

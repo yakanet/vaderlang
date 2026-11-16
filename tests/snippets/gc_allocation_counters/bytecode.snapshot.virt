@@ -14,11 +14,11 @@ string 2 "length: "
 string 3 "true"
 string 4 "false"
 string 5 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 allocated_bytes std_core$Intrinsic$allocated_bytes host=allocated_bytes result_type=4 () -> i64
-import 3 allocations std_core$Intrinsic$allocations host=allocations result_type=4 () -> i64
-import 4 count_allocations std_core$Intrinsic$count_allocations host=count_allocations result_type=8 () -> void
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 allocated_bytes std_core$Intrinsic$allocated_bytes intrinsic=allocated_bytes result_type=4 () -> i64
+import 3 allocations std_core$Intrinsic$allocations intrinsic=allocations result_type=4 () -> i64
+import 4 count_allocations std_core$Intrinsic$count_allocations intrinsic=count_allocations result_type=8 () -> void
 import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void

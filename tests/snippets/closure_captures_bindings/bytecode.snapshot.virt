@@ -51,8 +51,8 @@ string 10 "combinator "
 string 11 "="
 string 12 "\n"
 data 0 structs 22 0 1
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=17 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=25 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=17 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=25 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=17 param_types=2,25,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=27 () -> void

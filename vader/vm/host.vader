@@ -144,7 +144,7 @@ export dispatch_import :: fn(
     if is_comptime {
         reason :: comptime_refusal(id)
         if reason != null {
-            return comptime_refusal_trap(bc.display_host(id), reason)
+            return comptime_refusal_trap(bc.display_intrinsic(id), reason)
         }
     }
     match id {
@@ -251,9 +251,14 @@ export dispatch_import :: fn(
         if message is Trap { return message }
         return Trap { .message = "panic: ${string(message)}" }
     }
-    // Non-intrinsics. Kept as an arm rather than a wildcard so a new
-    // `IntrinsicId` variant still trips T3013 here.
-    .NotIntrinsic -> {}
+    // Non-intrinsics, and the members an op serves, which no call reaches as an
+    // import. Kept as an arm rather than a wildcard so a new `IntrinsicId` variant
+    // still trips T3013 here.
+    .NotIntrinsic
+        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> {}
     }
     return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
@@ -1171,5 +1176,10 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .SchedulerWatchReadable | .SchedulerWatchExit -> null
     .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop -> null
     .AbortPanic -> null
-    .NotIntrinsic -> null
+    // Served by an op, never called as an import.
+    .NotIntrinsic
+        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> null
 }

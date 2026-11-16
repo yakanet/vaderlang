@@ -1,35 +1,32 @@
-// vader/core/bytecode/intrinsic_manifest: the host-intrinsic identity.
+// vader/core/bytecode/intrinsic_manifest: the identity of each member of `Intrinsic`.
 //
-// `IntrinsicId` names every host: THE single classification both backends
-// (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the two
-// can't drift and a new host trips T3013 at both sites. Every host is a member of
-// `std/core`'s `Intrinsic`, found by the member's name (`host_for`).
+// `IntrinsicId` names every member of `std/core`'s `Intrinsic`, found by the
+// member's name (`intrinsic_id`). Every reader that must know a member decides
+// for each by an exhaustive `match`, so a new member trips T3013 at each: the two
+// backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`), the op
+// selection (`vader/midir/select/intrinsics.vader`), the lowering of the array
+// members, the effect summary, and the questions below.
 //
-// The arith / buffer bytecode-op table is the selection module's
-// (`vader/midir/select/intrinsics.vader`): which op a host lowers to is a choice of
-// the emitter, not part of the format.
+// Which op a member lowers to is the selection module's choice, not part of the
+// format.
 
 module "vader/core/bytecode"
 
 import "std/collections"
 import "vader/core/types"
 
-// ---- host intrinsic identity ----------------------------------------------
+// ---- member identity -------------------------------------------------------
 
-/// The member of `std/core`'s `Intrinsic` a host is called through ; `""` for
-/// none (`NotIntrinsic`).
-export HostMember :: struct {
+/// The member of `std/core`'s `Intrinsic` a variant names ; `""` for none
+/// (`NotIntrinsic`).
+export MemberName :: struct {
     member: string
 }
 
-/// Identity of a host: named by its member of `std/core`'s `Intrinsic`
-/// (`host_for`). THE single classification
-/// the two backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`)
-/// dispatch on, so the two can't drift. The union of what either backend serves:
-/// a backend that doesn't serve a variant handles it in a grouped fallthrough
-/// arm, but the exhaustive `match` forces that to be a conscious decision (a new
-/// variant here trips T3013 at both sites).
-export IntrinsicId :: enum(HostMember) {
+/// Identity of a member of `std/core`'s `Intrinsic` (`intrinsic_id`). A member a
+/// host serves reaches the backends as an import ; one an op serves never does,
+/// and the backends' `match` groups those in one arm.
+export IntrinsicId :: enum(MemberName) {
     NotIntrinsic            { .member = "" },
     // std/core string + bytes
     ByteLen                 { .member = "byte_len" },
@@ -39,8 +36,28 @@ export IntrinsicId :: enum(HostMember) {
     Bytes                   { .member = "bytes" },
     BytesToString           { .member = "bytes_to_string" },
     StringHash              { .member = "string_hash" },
+    // std/core: served by an op of their own
+    StringCompare           { .member = "string_compare" },
+    F64ToBits               { .member = "f64_to_bits" },
+    BitsToF64               { .member = "bits_to_f64" },
+    F32ToBits               { .member = "f32_to_bits" },
+    BitsToF32               { .member = "bits_to_f32" },
     // std/core values
     DeepCopy                { .member = "deep_copy" },
+    // std/core arrays: lowered as typed nodes, never a call
+    ArrayLen                { .member = "array_len" },
+    ArrayPush               { .member = "array_push" },
+    ArrayPushAll            { .member = "array_push_all" },
+    ArrayCopyTo             { .member = "array_copy_to" },
+    ArrayRemoveLast         { .member = "array_remove_last" },
+    ArrayClear              { .member = "array_clear" },
+    // std/core buffer: the Target ABI memory opcodes
+    NewByteBuffer           { .member = "new_byte_buffer" },
+    BufferLoadU8            { .member = "buffer_load_u8" },
+    BufferStoreU8           { .member = "buffer_store_u8" },
+    BufferMemoryCopy        { .member = "buffer_memory_copy" },
+    BufferInternString      { .member = "buffer_intern_string" },
+    BufferWriteString       { .member = "buffer_write_string" },
     // std/runtime
     RuntimeCollect          { .member = "collect" },
     RuntimeCollections      { .member = "collections" },
@@ -81,40 +98,39 @@ export IntrinsicId :: enum(HostMember) {
     FfiCallFrame            { .member = "ffi_call_frame" },
 }
 
-/// The host the member `member` of `std/core`'s `Intrinsic` names ;
-/// `NotIntrinsic` for none.
+/// The member `member` of `std/core`'s `Intrinsic` ; `NotIntrinsic` for none.
 ///
 /// @param member  the member's name (`LoweredFnDecl.intrinsic`), `""` for none.
-export host_for :: fn(member: string) -> IntrinsicId = HOSTS_BY_MEMBER[member] else .NotIntrinsic
+export intrinsic_id :: fn(member: string) -> IntrinsicId = IDS_BY_MEMBER[member] else .NotIntrinsic
 
-/// The host an import calls: none for an `@extern`, else `host_for`. What the
-/// emitter sets and what a `.virt` re-read restores.
+/// The member of `Intrinsic` an import calls: none for an `@extern`, else
+/// `intrinsic_id`. What the emitter sets and what a `.virt` re-read restores.
 ///
 /// @param is_extern  whether the import is an `@extern`.
 /// @param member     the member of `Intrinsic` it names, `""` for none.
-export import_host :: fn(is_extern: bool, member: string) -> IntrinsicId {
+export import_intrinsic :: fn(is_extern: bool, member: string) -> IntrinsicId {
     if is_extern {
         return .NotIntrinsic
     }
-    return host_for(member)
+    return intrinsic_id(member)
 }
 
-/// The member of `Intrinsic` that names the host `id` ; `""` for none.
+/// The name of the member `id` ; `""` for none.
 ///
-/// @param id  a host.
-export host_member :: fn(id: IntrinsicId) -> string = HostMember(id).member
+/// @param id  a member of `Intrinsic`.
+export member_name :: fn(id: IntrinsicId) -> string = MemberName(id).member
 
-/// How a message names the host `id`: as the member of `Intrinsic` a program
-/// wrote, `Intrinsic.current_os`.
+/// How a message names the member `id`, as a program writes it:
+/// `Intrinsic.current_os`.
 ///
-/// @param id  a host other than `NotIntrinsic`.
-export display_host :: fn(id: IntrinsicId) -> string = "${TRAIT_INTRINSIC}.${host_member(id)}"
+/// @param id  a member other than `NotIntrinsic`.
+export display_intrinsic :: fn(id: IntrinsicId) -> string = "${TRAIT_INTRINSIC}.${member_name(id)}"
 
-// Every host a member of `Intrinsic` names, by the member's name.
-HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
+// Every member of `Intrinsic`, by its name.
+IDS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
     out :: Map<string, IntrinsicId> {}
     for id in IntrinsicId {
-        member :: host_member(id)
+        member :: member_name(id)
         if member != "" {
             out[member] = id
         }
@@ -122,7 +138,7 @@ HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
     return out
 }
 
-/// Whether a call to host `id` can trigger a collection: the question
+/// Whether a call to the member `id` can trigger a collection: the question
 /// `c_emit`'s `compute_may_alloc` asks of every op to decide which fns need a
 /// GC frame. `false` is a promise that the native implementation never reaches
 /// `vader_gc_alloc`: a fn whose only safepoint would be this call skips its
@@ -133,7 +149,7 @@ HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
 /// comptime evaluation may call the host: `current_os` depends on the machine
 /// and never collects, `bytes` depends on nothing and allocates.
 ///
-/// @param id  the host, from `host_for`.
+/// @param id  the member, from `intrinsic_id`.
 export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // Reads of the atom (`vader.h`, `runtime/c/rt/atoms.c`): its length, one byte,
     // the hash and the ASCII flag set at intern.
@@ -156,15 +172,20 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> true
     .AbortPanic -> true
     .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame | .NotIntrinsic -> true
+    // Served by an op, which answers for itself: never called through an import.
+    .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> true
 }
 
-/// Whether a call to host `id` can shorten an array of the program: the question
+/// Whether a call to the member `id` can shorten an array of the program: the question
 /// midir's call summaries ask of a host function no op serves
 /// (`vader/midir/array_shrink.vader`). `false` lets the range analysis keep the
 /// lengths it knows across the call, so a wrong `false` lets an index go
 /// unchecked against an array that got shorter.
 ///
-/// @param id  the host, from `host_for`.
+/// @param id  the member, from `intrinsic_id`.
 export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Read a string or a primitive, or build a fresh value from one.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> false
@@ -187,27 +208,33 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> false
     // Unrecognised: conservatively may.
     .NotIntrinsic -> true
+    // Served by an op, which answers for itself (`op_shortens_array`): never
+    // called through an import.
+    .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> true
 }
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
 
-@test test_hosts_and_members_name_each_other :: fn() -> void {
+@test test_ids_and_members_name_each_other :: fn() -> void {
     for id in IntrinsicId {
-        member :: host_member(id)
+        member :: member_name(id)
         if member != "" {
-            assert(host_for(member) == id, member)
+            assert(intrinsic_id(member) == id, member)
         }
     }
-    assert(host_for("no_such_member") == .NotIntrinsic, "an unknown member")
-    assert(host_for("") == .NotIntrinsic, "no member")
+    assert(intrinsic_id("no_such_member") == .NotIntrinsic, "an unknown member")
+    assert(intrinsic_id("") == .NotIntrinsic, "no member")
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {
-    member_collects :: (member: string) -> intrinsic_may_collect(host_for(member))
+    member_collects :: (member: string) -> intrinsic_may_collect(intrinsic_id(member))
     assert(!member_collects("byte_at"), "a byte read never collects")
     assert(!member_collects("string_hash"), "the hash is cached on the atom")
     assert(member_collects("bytes"), "a view allocates its header")
-    assert(intrinsic_may_collect(.NotIntrinsic), "an unknown host stays a safepoint")
+    assert(intrinsic_may_collect(.NotIntrinsic), "no member stays a safepoint")
 }

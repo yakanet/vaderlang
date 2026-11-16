@@ -185,9 +185,9 @@ export BcImport :: struct {
     mangled_name: string
     signature: BcSignature
     is_extern: bool
-    /// The host this import calls (`host_for`) ; `NotIntrinsic` for an
-    /// `@extern`.
-    host: IntrinsicId = .NotIntrinsic
+    /// The member of `Intrinsic` this import calls (`intrinsic_id`) ;
+    /// `NotIntrinsic` for an `@extern`.
+    intrinsic: IntrinsicId = .NotIntrinsic
     /// Headers to `#include` instead of synthesising a prototype, empty for
     /// none. See `extern_headers` (`toolchain/ast`).
     c_headers: string[] = []

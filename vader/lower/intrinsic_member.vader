@@ -13,6 +13,7 @@ import "std/collections"
 import "std/iter"
 import "toolchain/ast"
 import "toolchain/span"
+Bc :: import "vader/core/bytecode"
 import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/symbol"
@@ -118,7 +119,7 @@ lower_intrinsic_member :: fn(
     span: Span,
     callee_span: Span,
 ) -> LoweredExpr {
-    op :: array_member_op(member.name)
+    op :: array_member_op(Bc.intrinsic_id(member.name))
     if op != null {
         return array_op(op, operands, type, span, copied_operand_types(op, signature))
     }
@@ -148,18 +149,29 @@ copied_operand_types :: fn(op: ArrayOp, signature: FnType) -> Type[] {
     return signature.params
 }
 
-/// The operation the member `member` of `Intrinsic` names, on an array ; null for
-/// a member of another kind.
+/// The operation the member `id` of `Intrinsic` names, on an array ; null for a
+/// member a call reaches.
 ///
-/// @param member  the member's name.
-array_member_op :: fn(member: string) -> ArrayOp | null = match member {
-    "array_len"         -> .Len
-    "array_push"        -> .Push
-    "array_push_all"    -> .PushAll
-    "array_copy_to"     -> .CopyTo
-    "array_remove_last" -> .RemoveLast
-    "array_clear"       -> .Clear
-    _                   -> null
+/// @param id  the member.
+array_member_op :: fn(id: Bc.IntrinsicId) -> ArrayOp | null = match id {
+    .ArrayLen        -> .Len
+    .ArrayPush       -> .Push
+    .ArrayPushAll    -> .PushAll
+    .ArrayCopyTo     -> .CopyTo
+    .ArrayRemoveLast -> .RemoveLast
+    .ArrayClear      -> .Clear
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .Bytes | .BytesToString
+        | .StringHash | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .DeepCopy | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString
+        | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
+        | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
+        | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
+        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
+        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
+        | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> null
 }
 
 // Whether `target` names `std/core`'s `Intrinsic`: its name first, which spares

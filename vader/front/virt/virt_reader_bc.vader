@@ -615,8 +615,8 @@ parse_import_decl_bc :: fn(
         if library != null {
             read_library_attribute(library, attr)
         }
-        if attr.starts_with("host=") {
-            member = attr.trim_prefix("host=")
+        if attr.starts_with("intrinsic=") {
+            member = attr.trim_prefix("intrinsic=")
         }
         if attr.starts_with("headers=") {
             c_headers = paths_from_tokens(attr.trim_prefix("headers="))
@@ -697,7 +697,7 @@ parse_import_decl_bc :: fn(
         .mangled_name = mangled,
         .signature    = final_sig,
         .is_extern    = is_extern,
-        .host         = import_host(is_extern, member),
+        .intrinsic    = import_intrinsic(is_extern, member),
         .c_headers    = c_headers,
         .c_variadic_fixed = c_variadic_fixed,
         // Positional like the flags : a list that does not cover every
@@ -1331,13 +1331,13 @@ test_parse_virt_bc_reads_the_host_of_an_import :: fn() -> void {
         type 0 scalar i32
         type 1 scalar i64
         type 2 scalar string
-        import 0 byte_len std_core\$Intrinsic\$byte_len host=byte_len result_type=1 (string) -> i64
+        import 0 byte_len std_core\$Intrinsic\$byte_len intrinsic=byte_len result_type=1 (string) -> i64
         import 1 extern write posix\$write (i32) -> i64
         """
     m :: parse_virt_bc(src) else is VirtParseError {
         assert(false, "line ${m.line_number}: ${m.reason}")
         return
     }
-    assert(m.imports[0].host == .ByteLen, "a host read back by its member")
-    assert(m.imports[1].host == .NotIntrinsic, "an `@extern` calls no host")
+    assert(m.imports[0].intrinsic == .ByteLen, "a member read back by its name")
+    assert(m.imports[1].intrinsic == .NotIntrinsic, "an `@extern` calls no member")
 }

@@ -55,8 +55,8 @@ import 4 extern box2_grow snippet$box2_grow headers=helper.h result_type=7 param
 import 5 extern box2_area snippet$box2_area headers=helper.h result_type=6 param_types=7 param_c_out= param_by_address= (ref) -> f32
 import 6 extern texture_load snippet$texture_load headers=helper.h result_type=9 param_types=8 param_c_out= param_by_address= (u32) -> ref
 import 7 extern texture_checksum snippet$texture_checksum headers=helper.h result_type=1 param_types=9 param_c_out= param_by_address= (ref) -> i32
-import 8 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 9 bytes std_core$Intrinsic$bytes host=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 8 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 9 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 10 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=1,19,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 11 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 12 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=20 () -> void

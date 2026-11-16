@@ -108,7 +108,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     }
     import_ids: bc.IntrinsicId[]: [] * bc_mod.imports.len()
     for imp in bc_mod.imports {
-        import_ids.push(imp.host)
+        import_ids.push(imp.intrinsic)
     }
     reg :: translate_module(bc_mod, import_ids, facts, debug) else is VerifyError { return reg }
     by_name :: Map<string, i32> {}
@@ -183,7 +183,7 @@ test_virt_roundtrip :: fn() -> void {
 current_os_module :: fn() -> bc.BytecodeModule | null = parse_test_module("""
     module demo
     type 0 scalar i32
-    import 0 current_os std_core\$Intrinsic\$current_os host=current_os () -> i32
+    import 0 current_os std_core\$Intrinsic\$current_os intrinsic=current_os () -> i32
 
     fn 0 os () -> i32
       call.import 0

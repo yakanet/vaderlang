@@ -71,7 +71,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .mangled_name = ext.mangled,
         .signature = signature,
         .is_extern = ext.is_extern,
-        .host = import_host(ext.is_extern, ext.intrinsic),
+        .intrinsic = import_intrinsic(ext.is_extern, ext.intrinsic),
         .c_headers = ext.c_headers,
         .library = ext.library,
         .c_variadic_fixed = ext.c_variadic_fixed,
@@ -464,7 +464,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // Every build mode, on the final table: an unwired host would lower to an
     // unbound `call.import` that only traps when it runs.
     for imp in ctx.imports {
-        assert_host_import_wired(imp)
+        assert_import_wired(imp)
     }
     return BytecodeModule {
         .name       = module_name,
@@ -1513,9 +1513,8 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
 // `Intrinsic` that has one, which the native build binds no host for.
 import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
     imp :: p.imports[index]
-    intrinsic :: if imp.is_extern { null } else { intrinsic_op_for_mangled(imp.mangled_name) }
     return DirectCallTarget {
-        .op = intrinsic else CallImport { .index = index },
+        .op = member_op(imp.intrinsic) else CallImport { .index = index },
         .signature = imp.signature,
     }
 }

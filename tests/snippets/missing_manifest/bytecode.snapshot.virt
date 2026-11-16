@@ -61,9 +61,9 @@ string 34 "timed out"
 string 35 "too many open files"
 string 36 "path contains a NUL byte"
 data 0 structs 11 3 1 strref 36 u8 0a i32 00000000
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=6 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=3 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=3 param_c_out= param_by_address= (ref) -> string
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=6 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=3 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 2 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=1 param_types=3 param_c_out= param_by_address= (ref) -> string
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=6 param_types=2,3,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void

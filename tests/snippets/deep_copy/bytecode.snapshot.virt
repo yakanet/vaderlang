@@ -85,20 +85,20 @@ data 5 structs 16 0 1
 global 0 2 started.state
 global 1 34 started.instance
 global 2 44 started.gate
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=13 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=25 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 deep_copy std_core$Intrinsic$deep_copy__snippet_Shape host=deep_copy result_type=5 param_types=5 param_c_out= param_by_address= (ref) -> ref
-import 3 deep_copy std_core$Intrinsic$deep_copy__snippet_Node host=deep_copy result_type=1 param_types=1 param_c_out= param_by_address= (ref) -> ref
-import 4 deep_copy std_core$Intrinsic$deep_copy__i32__ host=deep_copy result_type=11 param_types=11 param_c_out= param_by_address= (ref) -> ref
-import 5 deep_copy std_core$Intrinsic$deep_copy__u8__ host=deep_copy result_type=25 param_types=25 param_c_out= param_by_address= (ref) -> ref
-import 6 deep_copy std_core$Intrinsic$deep_copy__snippet_Point___string host=deep_copy result_type=31 param_types=31 param_c_out= param_by_address= (any) -> any
-import 7 deep_copy std_core$Intrinsic$deep_copy__snippet_Holder host=deep_copy result_type=8 param_types=8 param_c_out= param_by_address= (ref) -> ref
-import 8 spawn_thread std_core$Intrinsic$spawn_thread host=spawn_thread result_type=13 param_types=33 param_c_out= param_by_address= (ref) -> i64
-import 9 park std_core$Intrinsic$park host=park result_type=32 () -> void
-import 10 wake std_core$Intrinsic$wake host=wake result_type=32 param_types=13 param_c_out= param_by_address= (i64) -> void
-import 11 current_thread std_core$Intrinsic$current_thread host=current_thread result_type=13 () -> i64
-import 12 is_cancelled std_core$Intrinsic$is_cancelled host=is_cancelled result_type=15 () -> bool
-import 13 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=3 param_types=25 param_c_out= param_by_address= (ref) -> string
+import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=13 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes intrinsic=bytes result_type=25 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 deep_copy std_core$Intrinsic$deep_copy__snippet_Shape intrinsic=deep_copy result_type=5 param_types=5 param_c_out= param_by_address= (ref) -> ref
+import 3 deep_copy std_core$Intrinsic$deep_copy__snippet_Node intrinsic=deep_copy result_type=1 param_types=1 param_c_out= param_by_address= (ref) -> ref
+import 4 deep_copy std_core$Intrinsic$deep_copy__i32__ intrinsic=deep_copy result_type=11 param_types=11 param_c_out= param_by_address= (ref) -> ref
+import 5 deep_copy std_core$Intrinsic$deep_copy__u8__ intrinsic=deep_copy result_type=25 param_types=25 param_c_out= param_by_address= (ref) -> ref
+import 6 deep_copy std_core$Intrinsic$deep_copy__snippet_Point___string intrinsic=deep_copy result_type=31 param_types=31 param_c_out= param_by_address= (any) -> any
+import 7 deep_copy std_core$Intrinsic$deep_copy__snippet_Holder intrinsic=deep_copy result_type=8 param_types=8 param_c_out= param_by_address= (ref) -> ref
+import 8 spawn_thread std_core$Intrinsic$spawn_thread intrinsic=spawn_thread result_type=13 param_types=33 param_c_out= param_by_address= (ref) -> i64
+import 9 park std_core$Intrinsic$park intrinsic=park result_type=32 () -> void
+import 10 wake std_core$Intrinsic$wake intrinsic=wake result_type=32 param_types=13 param_c_out= param_by_address= (i64) -> void
+import 11 current_thread std_core$Intrinsic$current_thread intrinsic=current_thread result_type=13 () -> i64
+import 12 is_cancelled std_core$Intrinsic$is_cancelled intrinsic=is_cancelled result_type=15 () -> bool
+import 13 bytes_to_string std_core$Intrinsic$bytes_to_string intrinsic=bytes_to_string result_type=3 param_types=25 param_c_out= param_by_address= (ref) -> string
 import 14 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=2,25,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 15 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 16 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=32 () -> void

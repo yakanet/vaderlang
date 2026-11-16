@@ -61,7 +61,7 @@ fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bo
 ///
 /// @param imports  the module's imports, in `call.import` index order.
 imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
-    imports.map((imp) -> intrinsic_may_collect(imp.host)).collect()
+    imports.map((imp) -> intrinsic_may_collect(imp.intrinsic)).collect()
 
 // Whether an op can trigger a collection. Drives `may_alloc` -> whether the fn
 // gets a shadow-stack frame and its ref params / locals are rooted. A missing

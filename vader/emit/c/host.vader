@@ -920,7 +920,7 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
 ]
 
 // The body of the `vader_host_*` shim for `imp`. A host routes to its `vader_*`
-// runtime helper by its IntrinsicId (`imp.host`, shared with the VM's
+// runtime helper by its IntrinsicId (`imp.intrinsic`, shared with the VM's
 // `dispatch_import`). The hosts only the VM serves (string equality and the
 // primitive Equals/Display, which a native build reaches without a host call)
 // and non-intrinsics fall through to the @extern forwarder or to a loud trap
@@ -929,7 +929,7 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
 shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     a0 :: argument(0)
     a1 :: argument(1)
-    match imp.host {
+    match imp.intrinsic {
     // std/abort: implemented by the runtime.
     .AbortPanic -> { return [perform("vader_panic", [a0])] }
 
@@ -1016,7 +1016,13 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .TargetCurrentOs -> { return [returning("vader_current_os", [])] }
     .TargetCurrentArch -> { return [returning("vader_current_arch", [])] }
 
-    .NotIntrinsic -> {}
+    // Non-intrinsics, and the members an op serves, which no call reaches as an
+    // import.
+    .NotIntrinsic
+        | .StringCompare | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast | .ArrayClear
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString -> {}
     }
     // User `@extern`: forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) -> trap loudly.
