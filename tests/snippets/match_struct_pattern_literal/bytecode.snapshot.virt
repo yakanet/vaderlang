@@ -199,7 +199,7 @@ fn 0 snippet$describe (any) -> string
           type_check 3   ; snippet$Square
           if $L10 void
           else
-            unreachable
+            unreachable "non-exhaustive match (T3013 should have caught this)"
           end $L10
           string.const 6   ; "square"
           local.set 2   ; if_res

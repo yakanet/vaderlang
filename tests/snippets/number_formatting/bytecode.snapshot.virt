@@ -2800,7 +2800,7 @@ fn 38 std_numbers$format_1 (f64,ref) -> string
     local.set 6   ; $field_19
     data.const 2 25   ; pool[2] std_numbers$DecimalDigits[]
     i64.const 0
-    array.get 25   ; std_numbers$DecimalDigits[]
+    array.get 25 safe   ; std_numbers$DecimalDigits[]
     struct.get 17 0   ; std_numbers$DecimalDigits.digits
     ref.cast 2   ; string
     local.set 7   ; $field_23
@@ -3380,7 +3380,7 @@ fn 49 std_numbers$round_at (ref,i64) -> ref
   end $L1
   data.const 2 25   ; pool[2] std_numbers$DecimalDigits[]
   i64.const 0
-  array.get 25   ; std_numbers$DecimalDigits[]
+  array.get 25 safe   ; std_numbers$DecimalDigits[]
   return
 end
 
@@ -3726,7 +3726,7 @@ fn 56 std_numbers$digit_char (u64,bool) -> char
         end $L3
         local.get 3   ; or_res
         if $L4 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         else
           local.get 2   ; $cast_5
           u32.to_char
@@ -3839,7 +3839,7 @@ fn 57 std_numbers$trimmed (string,i64) -> ref
   end $L8
   data.const 2 25   ; pool[2] std_numbers$DecimalDigits[]
   i64.const 0
-  array.get 25   ; std_numbers$DecimalDigits[]
+  array.get 25 safe   ; std_numbers$DecimalDigits[]
   return
 end
 
@@ -3874,7 +3874,7 @@ fn 58 std_numbers$hex_digit (u64) -> char
       end $L2
       local.get 2   ; or_res
       if $L3 void
-        unreachable
+        unreachable "value out of range: no Unicode scalar value"
       else
         local.get 1   ; $cast_4
         u32.to_char
@@ -3912,7 +3912,7 @@ fn 58 std_numbers$hex_digit (u64) -> char
       end $L5
       local.get 2   ; or_res
       if $L6 void
-        unreachable
+        unreachable "value out of range: no Unicode scalar value"
       else
         local.get 1   ; $cast_4
         u32.to_char

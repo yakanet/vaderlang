@@ -49,7 +49,7 @@ fn 0 snippet$Countdown$std_core$Iterator$next (ref) -> any
   end $L0
   data.const 0 12   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 12   ; std_core$Stop[]
+  array.get 12 safe   ; std_core$Stop[]
   return
 end
 

@@ -121,7 +121,7 @@ fn 0 snippet$selfish () -> i32
   call 79   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `selfish` called while it initialises"
   end $L1
   global.get 1   ; selfish.instance
   return
@@ -3417,7 +3417,7 @@ fn 64 std_task$started () -> ref
   call 79   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `started` called while it initialises"
   end $L1
   global.get 4   ; started.instance
   return
@@ -3666,7 +3666,7 @@ fn 75 std_task$outcome__i32 (ref) -> any
   end $L0
   data.const 4 41   ; pool[4] std_core$Cancelled[]
   i64.const 0
-  array.get 41   ; std_core$Cancelled[]
+  array.get 41 safe   ; std_core$Cancelled[]
   return
 end
 

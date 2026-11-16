@@ -60,7 +60,7 @@ fn 0 snippet$nested (any,bool,i32) -> u8
   type_check 0   ; null
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 1   ; arg 1
   if $L2 void
@@ -132,7 +132,7 @@ fn 2 snippet$arithmetic (any) -> u64
   type_check 9   ; snippet$Wide
   if $L2 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L2
   local.get 0   ; arg 0
   ref.cast 9   ; snippet$Wide

@@ -3468,7 +3468,7 @@ fn 64 std_task$started () -> ref
   call 80   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `started` called while it initialises"
   end $L1
   global.get 1   ; started.instance
   return
@@ -3717,7 +3717,7 @@ fn 75 std_task$outcome__i64 (ref) -> any
   end $L0
   data.const 4 42   ; pool[4] std_core$Cancelled[]
   i64.const 0
-  array.get 42   ; std_core$Cancelled[]
+  array.get 42 safe   ; std_core$Cancelled[]
   return
 end
 

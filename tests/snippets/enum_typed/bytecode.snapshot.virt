@@ -66,7 +66,7 @@ fn 0 snippet$describe (u8) -> string
       i32.eq
       if $L3 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L3
       string.const 3   ; "W"
       local.set 1   ; if_res
@@ -105,7 +105,7 @@ fn 1 snippet$name (i8) -> string
       i32.eq
       if $L3 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L3
       string.const 7   ; "top"
       local.set 1   ; if_res
@@ -220,7 +220,7 @@ fn 2 snippet$main () -> i32
         i32.eq
         if $L3 void
         else
-          unreachable
+          unreachable "non-exhaustive match (T3013 should have caught this)"
         end $L3
         string.const 13   ; "implicit u16: add"
         call 11   ; std_console$println__string

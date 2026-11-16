@@ -101,7 +101,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; x
   data.const 0 11   ; pool[0] snippet$Cfg[]
   i64.const 0
-  array.get 11   ; snippet$Cfg[]
+  array.get 11 safe   ; snippet$Cfg[]
   local.set 5   ; $idx_36
   local.get 1   ; __buf_0
   local.get 5   ; $idx_36
@@ -122,7 +122,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; x
   data.const 0 11   ; pool[0] snippet$Cfg[]
   i64.const 0
-  array.get 11   ; snippet$Cfg[]
+  array.get 11 safe   ; snippet$Cfg[]
   local.get 1   ; __buf_0
   call 2   ; snippet$pick__snippet_Cfg
   struct.get 5 0   ; snippet$Cfg.n
@@ -141,7 +141,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; x
   data.const 0 11   ; pool[0] snippet$Cfg[]
   i64.const 0
-  array.get 11   ; snippet$Cfg[]
+  array.get 11 safe   ; snippet$Cfg[]
   local.set 5   ; $idx_36
   local.get 1   ; __buf_0
   local.get 5   ; $idx_36

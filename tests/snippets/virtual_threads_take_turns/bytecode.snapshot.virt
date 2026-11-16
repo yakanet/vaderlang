@@ -63,7 +63,7 @@ fn 0 snippet$joiner () -> ref
   call 23   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `joiner` called while it initialises"
   end $L1
   global.get 1   ; joiner.instance
   return

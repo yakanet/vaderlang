@@ -34,7 +34,7 @@ fn 0 snippet$run_mode (string) -> void
     string.const 2   ; " mode dispatch"
     call 2   ; concat_2
     call 7   ; std_abort$todo
-    unreachable
+    unreachable "a no-return call returned"
   end $L0
   string.const 1   ; "listing entries"
   call 6   ; std_console$println__string
@@ -200,5 +200,5 @@ fn 7 std_abort$todo (string) -> void
   local.get 0   ; arg 0
   call 2   ; concat_2
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end

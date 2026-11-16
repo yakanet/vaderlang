@@ -805,8 +805,14 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         } else {
             printed(out, refs, "array.push", [refer(.Type, op.type_id)])
         }
-        is ArrayGet                 -> printed(out, refs, "array.get", [refer(.Type, op.type_id)])
-        is ArraySet                 -> printed(out, refs, "array.set", [refer(.Type, op.type_id)])
+        is ArrayGet                 -> {
+            printed(out, refs, "array.get", [refer(.Type, op.type_id)])
+            out.append(bounds_safe_word(op.bounds_safe))
+        }
+        is ArraySet                 -> {
+            printed(out, refs, "array.set", [refer(.Type, op.type_id)])
+            out.append(bounds_safe_word(op.bounds_safe))
+        }
         is ArraySlice               -> printed(out, refs, "array.slice", [refer(.Type, op.type_id)])
         is ArrayReserve             -> printed(out, refs, "array.reserve", [refer(.Type, op.type_id)])
         is ArrayRepeat              -> out.append("array.repeat")
@@ -821,7 +827,7 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is TypeCheck                -> printed(out, refs, "type_check", [refer(.Type, op.type_id)])
         is RefCast                  -> printed(out, refs, "ref.cast", [refer(.Type, op.type_id)])
         is Retag                    -> printed(out, refs, "retag", [refer(.Type, op.type_id)])
-        is Unreachable              -> out.append("unreachable")
+        is Unreachable              -> out.append("unreachable${reason_word(op.reason)}")
         is Convert                  -> out.append("${op.from_name}.to_${convert_target_name(op.target)}")
         is SizeOfType               -> out.append("intrinsic size_of.type")
         is I32Add                   -> out.append("i32.add")
@@ -905,12 +911,12 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is StoreI32                 -> out.append("store_i32")
         is StoreI64                 -> out.append("store_i64")
         is StoreF64                 -> out.append("store_f64")
-        is LoadSlotI32              -> out.append("load_slot_i32")
-        is LoadSlotI64              -> out.append("load_slot_i64")
-        is LoadSlotF64              -> out.append("load_slot_f64")
-        is StoreSlotI32             -> out.append("store_slot_i32")
-        is StoreSlotI64             -> out.append("store_slot_i64")
-        is StoreSlotF64             -> out.append("store_slot_f64")
+        is LoadSlotI32              -> out.append("load_slot_i32${bounds_safe_word(op.bounds_safe)}")
+        is LoadSlotI64              -> out.append("load_slot_i64${bounds_safe_word(op.bounds_safe)}")
+        is LoadSlotF64              -> out.append("load_slot_f64${bounds_safe_word(op.bounds_safe)}")
+        is StoreSlotI32             -> out.append("store_slot_i32${bounds_safe_word(op.bounds_safe)}")
+        is StoreSlotI64             -> out.append("store_slot_i64${bounds_safe_word(op.bounds_safe)}")
+        is StoreSlotF64             -> out.append("store_slot_f64${bounds_safe_word(op.bounds_safe)}")
         is MemoryCopy               -> out.append("memory_copy")
         is BufferToString           -> out.append("buffer_to_string")
         is BufferWriteString        -> out.append("buffer_write_string")
@@ -1054,6 +1060,13 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
 /// @param module  the bytecode module to serialise.
 /// @return        the `.virt` text dump (canonical form, trailing newline).
 export write_virt :: fn(module: BytecodeModule) -> string = dump_bytecode(module, main_function_name(module))
+
+// ` safe` after an array access the producer proved in bounds: the native
+// backend then skips the check.
+bounds_safe_word :: fn(bounds_safe: bool) -> string = if bounds_safe { " safe" } else { "" }
+
+// The reason an `unreachable` traps with, quoted after a space, or nothing.
+reason_word :: fn(reason: string) -> string = if reason == "" { "" } else { " ${quote_string(reason)}" }
 
 /// JSON-style quoting: wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
 /// `\t` and NUL (`\0`). Every other byte (including multi-byte UTF-8) is

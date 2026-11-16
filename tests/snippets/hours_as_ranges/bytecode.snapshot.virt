@@ -151,7 +151,7 @@ fn 4 snippet$parse_hour (i32) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Hour` (0..=23)"
 end
 
 fn 5 snippet$part_of_day (u8) -> string
@@ -303,7 +303,7 @@ fn 8 snippet$first_free (ref) -> any
         retag 1   ; u8
         return
       end $L8
-      unreachable
+      unreachable "value out of range: not in `Hour` (0..=23)"
     end $L1
   end $L0
   return.lit null.const

@@ -108,7 +108,7 @@ fn 0 snippet$counts () -> ref
     global.get 1   ; counts.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `counts` called while it initialises"
 end
 
 fn 1 snippet$slots () -> ref
@@ -133,7 +133,7 @@ fn 1 snippet$slots () -> ref
     global.get 3   ; slots.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `slots` called while it initialises"
 end
 
 fn 2 snippet$flags () -> ref
@@ -158,7 +158,7 @@ fn 2 snippet$flags () -> ref
     global.get 5   ; flags.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `flags` called while it initialises"
 end
 
 fn 3 snippet$queue () -> ref
@@ -183,7 +183,7 @@ fn 3 snippet$queue () -> ref
     global.get 7   ; queue.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `queue` called while it initialises"
 end
 
 fn 4 snippet$bump (i64) -> void
@@ -281,7 +281,7 @@ fn 5 snippet$main () -> i32
   local.set 5   ; __p_5
   data.const 6 7   ; pool[6] snippet$Spec[]
   i64.const 0
-  array.get 7   ; snippet$Spec[]
+  array.get 7 safe   ; snippet$Spec[]
   struct.get 8 0   ; snippet$Spec.name
   ref.cast 4   ; string
   local.set 6   ; __p_6

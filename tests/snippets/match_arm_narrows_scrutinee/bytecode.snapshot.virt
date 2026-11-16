@@ -70,7 +70,7 @@ fn 0 snippet$show (any) -> string
     type_check 3   ; snippet$Q
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     local.get 0   ; arg 0
     ref.cast 3   ; snippet$Q

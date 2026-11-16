@@ -76,7 +76,7 @@ fn 0 snippet$main () -> i32
   type_check 3   ; snippet$Node__i32
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   string.const 2   ; "got value"
   call 8   ; std_console$println__string

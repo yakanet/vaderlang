@@ -999,7 +999,7 @@ fn 15 snippet$$genstate_evens$Iterator$next (ref) -> any
                 else
                   data.const 0 18   ; pool[0] std_core$Stop[]
                   i64.const 0
-                  array.get 18   ; std_core$Stop[]
+                  array.get 18 safe   ; std_core$Stop[]
                   return
                 end $L11
                 local.get 0   ; arg 0

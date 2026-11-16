@@ -68,7 +68,7 @@ fn 1 snippet$counter () -> ref
     global.get 1   ; counter.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `counter` called while it initialises"
 end
 
 fn 2 snippet$log () -> ref
@@ -93,7 +93,7 @@ fn 2 snippet$log () -> ref
     global.get 3   ; log.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `log` called while it initialises"
 end
 
 fn 3 snippet$start () -> ref
@@ -118,7 +118,7 @@ fn 3 snippet$start () -> ref
     global.get 5   ; start.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `start` called while it initialises"
 end
 
 fn 4 snippet$greeting () -> string
@@ -143,7 +143,7 @@ fn 4 snippet$greeting () -> string
     global.get 7   ; greeting.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `greeting` called while it initialises"
 end
 
 fn 5 snippet$probed () -> bool
@@ -168,7 +168,7 @@ fn 5 snippet$probed () -> bool
     global.get 9   ; probed.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `probed` called while it initialises"
 end
 
 fn 6 snippet$announce () -> void
@@ -190,7 +190,7 @@ fn 6 snippet$announce () -> void
     global.set 10   ; announce.state
     return
   end $L1
-  unreachable
+  unreachable "singleton `announce` called while it initialises"
 end
 
 fn 7 snippet$bump () -> void
@@ -367,7 +367,7 @@ fn 8 snippet$main () -> i32
   local.set 1   ; __off_1
   data.const 0 11   ; pool[0] snippet$Counter[]
   i64.const 0
-  array.get 11   ; snippet$Counter[]
+  array.get 11 safe   ; snippet$Counter[]
   struct.get 1 0   ; snippet$Counter.n
   ref.cast 6   ; i32
   i32.to_i64

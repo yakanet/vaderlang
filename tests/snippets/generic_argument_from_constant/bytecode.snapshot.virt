@@ -61,7 +61,7 @@ fn 2 snippet$main () -> i32
   local x i32
   data.const 0 13   ; pool[0] snippet$Point[]
   i64.const 0
-  array.get 13   ; snippet$Point[]
+  array.get 13 safe   ; snippet$Point[]
   local.set 0   ; $idx_2
   i32.const 4
   struct.new 1   ; snippet$Point
@@ -122,7 +122,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __fuse_len_0
   data.const 0 13   ; pool[0] snippet$Point[]
   i64.const 0
-  array.get 13   ; snippet$Point[]
+  array.get 13 safe   ; snippet$Point[]
   call 0   ; snippet$through_param
   i32.to_i64
   local.set 5   ; __fuse_i_1

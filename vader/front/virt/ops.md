@@ -30,7 +30,8 @@ Declares entry `<index>` of the string table, read by `string.const`.
 ### `data <index> <kind> …`
 Declares entry `<index>` of the data pool, read by `data.const`: a pre-built read-only
 array. `<kind> hex"…"` holds scalar elements as little-endian bytes, `str "a" "b" …`
-strings, `structs` and `agg` structured elements.
+strings, `structs` and `agg` structured elements. A scalar inside a structured element
+is `<kind> <hex>` at the kind's own width; a signed one reads back sign-extended.
 
 ### `global <index> <type> <name>`
 Declares global slot `<index>`, read by `global.get` and written by `global.set`: storage
@@ -145,8 +146,9 @@ Return from the function, with the top of the stack as its result when it has on
 ### `return.lit <constant op>`
 Push a constant and return it: a fused `<type>.const …` + `return`.
 
-### `unreachable`
-Trap. The compiler emits it where it proved control cannot arrive.
+### `unreachable` `unreachable "<reason>"`
+Trap. The compiler emits it where it proved control cannot arrive. The quoted reason,
+when there is one, is what the trap reports.
 
 ## Calls
 
@@ -210,12 +212,13 @@ type `<type>`; with a length of 0, push an empty array.
 ### `array.len`
 Pop an array, push its length.
 
-### `array.get <type>`
+### `array.get <type>` `array.get <type> safe`
 Pop an index, then an array; push the element. Traps when the index is out of bounds.
+`safe` marks an index the compiler proved in bounds: the native backend checks nothing.
 
-### `array.set <type>`
+### `array.set <type>` `array.set <type> safe`
 Pop a value, an index and an array; store the value at the index. Traps when the index
-is out of bounds.
+is out of bounds. `safe` as for `array.get`.
 
 ### `array.push <type>` `array.push <type> <slot>`
 Pop a value, then an array; append the value. The optional `<slot>` is the local holding
@@ -246,11 +249,11 @@ Pop an array and set its length to 0, keeping its capacity.
 
 ### `load_slot_i32` `load_slot_i64` `load_slot_f64`
 Pop an index, then an array of 4-byte integers, 8-byte integers or `f64`; push the
-element. Bounds-checked, like `array.get`.
+element. Bounds-checked, like `array.get`, and takes `safe` as it does.
 
 ### `store_slot_i32` `store_slot_i64` `store_slot_f64`
 Pop a value, an index and an array of the matching element width; store the value.
-Bounds-checked, like `array.set`.
+Bounds-checked, like `array.set`, and takes `safe` as it does.
 
 ## Types and tags
 

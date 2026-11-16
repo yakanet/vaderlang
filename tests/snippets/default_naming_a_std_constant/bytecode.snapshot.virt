@@ -1112,7 +1112,7 @@ fn 20 std_fs$remove (string,ref) -> any
   if $L0 void
     data.const 0 37   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 37   ; std_io$IOError[]
+    array.get 37 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1699,7 +1699,7 @@ fn 37 std_fs$refusal_of (string,ref) -> any
   if $L0 void
     data.const 0 37   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 37   ; std_io$IOError[]
+    array.get 37 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 1 22 1   ; arg 1 std_fs$OpenOptions.write
@@ -1819,7 +1819,7 @@ fn 39 std_fs$fd_of (any) -> i32
   type_check 1   ; i32
   if $L0 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
   ref.cast 1   ; i32
@@ -1848,7 +1848,7 @@ fn 41 std_fs$read_dir (string) -> any
   if $L0 void
     data.const 0 37   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 37   ; std_io$IOError[]
+    array.get 37 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -2193,7 +2193,7 @@ fn 50 std_fs$File$std_io$Writer$write (ref,any) -> any
   if $L0 void
     data.const 1 37   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 37   ; std_io$IOError[]
+    array.get 37 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -2706,7 +2706,7 @@ fn 57 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res

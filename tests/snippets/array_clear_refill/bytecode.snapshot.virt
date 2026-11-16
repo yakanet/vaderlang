@@ -53,7 +53,7 @@ fn 0 snippet$seen () -> ref
     global.get 1   ; seen.instance
     return
   end $L1
-  unreachable
+  unreachable "singleton `seen` called while it initialises"
 end
 
 fn 1 snippet$main () -> i32

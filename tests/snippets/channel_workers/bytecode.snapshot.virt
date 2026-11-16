@@ -3773,7 +3773,7 @@ fn 65 std_task$Channel$std_core$Iterator$next__i64 (ref) -> any
   end $L0
   data.const 4 60   ; pool[4] std_core$Stop[]
   i64.const 0
-  array.get 60   ; std_core$Stop[]
+  array.get 60 safe   ; std_core$Stop[]
   return
 end
 
@@ -3865,7 +3865,7 @@ fn 70 std_task$started () -> ref
   call 106   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `started` called while it initialises"
   end $L1
   global.get 1   ; started.instance
   return
@@ -3945,7 +3945,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
     local.get 3   ; __off_1
     call 8   ; std_core$finish_buffer
     call.import 7   ; std_core$Intrinsic$panic
-    unreachable
+    unreachable "a no-return call returned"
   else
     local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
     call 100   ; std_collections$len__i64
@@ -3970,7 +3970,7 @@ fn 75 std_task$send__i64 (ref,i64) -> void
     if $L3 void
       string.const 23   ; "send: the channel is closed"
       call.import 7   ; std_core$Intrinsic$panic
-      unreachable
+      unreachable "a no-return call returned"
     else
       local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
       local.get 1   ; arg 1
@@ -4014,7 +4014,7 @@ fn 76 std_task$receive__i64 (ref) -> any
   if $L2 void
     data.const 5 61   ; pool[5] std_task$Closed[]
     i64.const 0
-    array.get 61   ; std_task$Closed[]
+    array.get 61 safe   ; std_task$Closed[]
     return
   end $L2
   local.field 0 13 1   ; arg 0 std_task$Channel__i64.messages
@@ -4460,7 +4460,7 @@ fn 94 std_task$outcome__i64 (ref) -> any
   end $L0
   data.const 6 62   ; pool[6] std_core$Cancelled[]
   i64.const 0
-  array.get 62   ; std_core$Cancelled[]
+  array.get 62 safe   ; std_core$Cancelled[]
   return
 end
 
@@ -4693,7 +4693,7 @@ fn 99 std_collections$remove_first__i64 (ref) -> i64
   if $L0 void
     string.const 24   ; "remove_first: the queue is empty"
     call.import 7   ; std_core$Intrinsic$panic
-    unreachable
+    unreachable "a no-return call returned"
   else
     local.field 0 49 0   ; arg 0 std_collections$Queue__i64.items
     local.set 1   ; $field_5

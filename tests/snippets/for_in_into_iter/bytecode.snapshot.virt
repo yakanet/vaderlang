@@ -330,7 +330,7 @@ fn 0 snippet$main () -> i32
         end $L10
         local.get 11   ; or_res
         if $L11 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L11
       end $L9
       local.get 0   ; arr_total

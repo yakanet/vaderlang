@@ -1540,7 +1540,7 @@ fn 23 std_fs$remove (string,ref) -> any
   if $L0 void
     data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1716,7 +1716,7 @@ fn 26 std_fs$walk (string,ref) -> any
   if $L0 void
     data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -2412,7 +2412,7 @@ fn 46 std_fs$read_dir (string) -> any
   if $L0 void
     data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -2479,7 +2479,7 @@ fn 48 std_fs$refusal_of (string,ref) -> any
   if $L0 void
     data.const 0 40   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 40   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 1 34 1   ; arg 1 std_fs$OpenOptions.write
@@ -2599,7 +2599,7 @@ fn 50 std_fs$fd_of (any) -> i32
   type_check 1   ; i32
   if $L0 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
   ref.cast 1   ; i32
@@ -2793,7 +2793,7 @@ fn 55 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
       i32.eq
       if $L3 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L3
       string.const 43   ; "Other"
       local.set 1   ; if_res
@@ -2818,7 +2818,7 @@ fn 56 std_fs$File$std_io$Writer$write (ref,any) -> any
   if $L0 void
     data.const 1 40   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 40   ; std_io$IOError[]
+    array.get 40 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -3331,7 +3331,7 @@ fn 63 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res
@@ -3506,7 +3506,7 @@ fn 64 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         string.const 84   ; "NoDescriptor"
                                         local.set 1   ; if_res
@@ -4723,7 +4723,7 @@ fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
   if $L0 void
     data.const 2 76   ; pool[2] std_core$Stop[]
     i64.const 0
-    array.get 76   ; std_core$Stop[]
+    array.get 76 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 48 0   ; arg 0 std_string$StringChars.s
@@ -4780,7 +4780,7 @@ fn 89 std_string$StringChars$std_core$Iterator$next (ref) -> any
     end $L3
     local.get 5   ; or_res
     if $L4 void
-      unreachable
+      unreachable "value out of range: no Unicode scalar value"
     else
       local.get 4   ; code
       u32.to_char
@@ -5038,7 +5038,7 @@ fn 92 std_glob$token_at (ref,i64,ref) -> any
   if $L3 void
     data.const 3 77   ; pool[3] std_glob$GlobAnyChar[]
     i64.const 0
-    array.get 77   ; std_glob$GlobAnyChar[]
+    array.get 77 safe   ; std_glob$GlobAnyChar[]
     local.set 7   ; $struct_19
     local.get 1   ; arg 1
     i64.const 1
@@ -5430,7 +5430,7 @@ fn 93 std_glob$fill_row (any,ref,ref,ref,ref) -> void
                 type_check 60   ; std_glob$GlobDirectories
                 if $L27 void
                 else
-                  unreachable
+                  unreachable "non-exhaustive match (T3013 should have caught this)"
                 end $L27
                 local.get 2   ; arg 2
                 local.get 7   ; c
@@ -5813,7 +5813,7 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   if $L7 void
     data.const 4 78   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 78   ; std_glob$GlobStar[]
+    array.get 78 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
     struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
     return
@@ -5827,7 +5827,7 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   if $L8 void
     data.const 5 79   ; pool[5] std_glob$GlobDeepStar[]
     i64.const 0
-    array.get 79   ; std_glob$GlobDeepStar[]
+    array.get 79 safe   ; std_glob$GlobDeepStar[]
     local.get 3   ; end
     struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
     return
@@ -5841,14 +5841,14 @@ fn 95 std_glob$star_token (ref,i64,bool) -> ref
   else
     data.const 4 78   ; pool[4] std_glob$GlobStar[]
     i64.const 0
-    array.get 78   ; std_glob$GlobStar[]
+    array.get 78 safe   ; std_glob$GlobStar[]
     local.get 3   ; end
     struct.new 55   ; __Tuple_2_ca1b4b98917b36a8
     return
   end $L9
   data.const 6 80   ; pool[6] std_glob$GlobDirectories[]
   i64.const 0
-  array.get 80   ; std_glob$GlobDirectories[]
+  array.get 80 safe   ; std_glob$GlobDirectories[]
   local.set 7   ; $idx_43
   local.get 3   ; end
   i64.const 1
@@ -6654,7 +6654,7 @@ fn 104 std_glob$holds (u8,char) -> bool
                       i32.eq
                       if $L21 void
                       else
-                        unreachable
+                        unreachable "non-exhaustive match (T3013 should have caught this)"
                       end $L21
                       local.get 1   ; arg 1
                       call 108   ; std_char$is_digit

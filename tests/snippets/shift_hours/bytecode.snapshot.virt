@@ -104,7 +104,7 @@ fn 0 snippet$main () -> i32
   i32.const 23
   u32.gt
   if $L0 void
-    unreachable
+    unreachable "value out of range: not in `Hour` (0..=23)"
   else
     local.get 1   ; __buf_0
     array.len
@@ -132,7 +132,7 @@ fn 0 snippet$main () -> i32
           i32.const 23
           u32.gt
           if $L4 void
-            unreachable
+            unreachable "value out of range: not in `Hour` (0..=23)"
           else
             local.get 10   ; __in_range_1
             local.set 5   ; s
@@ -258,7 +258,7 @@ fn 2 snippet$later__Int_in_0___23 (u8,u8) -> u8
     local.get 2   ; __in_range_0
     return
   end $L0
-  unreachable
+  unreachable "value out of range: not in `Hour` (0..=23)"
 end
 
 fn 3 snippet$later__u8 (u8,u8) -> u8
@@ -280,7 +280,7 @@ fn 4 snippet$total__Int_in_0___23 (ref) -> u8
   i32.const 23
   u32.gt
   if $L0 void
-    unreachable
+    unreachable "value out of range: not in `Hour` (0..=23)"
   else
     local.get 0   ; arg 0
     local.tee 2   ; __for_arr_1
@@ -305,7 +305,7 @@ fn 4 snippet$total__Int_in_0___23 (ref) -> u8
         i32.const 23
         u32.gt
         if $L3 void
-          unreachable
+          unreachable "value out of range: not in `Hour` (0..=23)"
         else
           local.get 6   ; __in_range_4
           local.set 1   ; sum
@@ -344,7 +344,7 @@ fn 5 snippet$first_month__Int_in_1___12 (u8) -> u8
     local.get 1   ; __in_range_0
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Month` (1..=12)"
 end
 
 fn 6 concat_2 (string,string) -> string

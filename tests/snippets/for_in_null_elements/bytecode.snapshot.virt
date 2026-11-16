@@ -321,7 +321,7 @@ fn 2 snippet$$genstate_maybe$Iterator$next (ref) -> any
   else
     data.const 0 16   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 16   ; std_core$Stop[]
+    array.get 16 safe   ; std_core$Stop[]
     return
   end $L6
   local.get 0   ; arg 0

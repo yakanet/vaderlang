@@ -411,7 +411,7 @@ fn 7 std_core$Range$Iterator$next__u8 (ref) -> any
   if $L0 void
     data.const 0 21   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 21   ; std_core$Stop[]
+    array.get 21 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 1 4   ; arg 0 std_core$Range__u8.cursor
@@ -462,7 +462,7 @@ fn 7 std_core$Range$Iterator$next__u8 (ref) -> any
   end $L3
   data.const 0 21   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 21   ; std_core$Stop[]
+  array.get 21 safe   ; std_core$Stop[]
   return
 end
 
@@ -476,7 +476,7 @@ fn 8 std_core$Range$Iterator$next__i8 (ref) -> any
   if $L0 void
     data.const 0 21   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 21   ; std_core$Stop[]
+    array.get 21 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 3 4   ; arg 0 std_core$Range__i8.cursor
@@ -527,7 +527,7 @@ fn 8 std_core$Range$Iterator$next__i8 (ref) -> any
   end $L3
   data.const 0 21   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 21   ; std_core$Stop[]
+  array.get 21 safe   ; std_core$Stop[]
   return
 end
 
@@ -541,7 +541,7 @@ fn 9 std_core$Range$Iterator$next__u64 (ref) -> any
   if $L0 void
     data.const 0 21   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 21   ; std_core$Stop[]
+    array.get 21 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 4 4   ; arg 0 std_core$Range__u64.cursor
@@ -592,7 +592,7 @@ fn 9 std_core$Range$Iterator$next__u64 (ref) -> any
   end $L3
   data.const 0 21   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 21   ; std_core$Stop[]
+  array.get 21 safe   ; std_core$Stop[]
   return
 end
 
@@ -606,7 +606,7 @@ fn 10 std_core$Range$Iterator$next__char (ref) -> any
   if $L0 void
     data.const 0 21   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 21   ; std_core$Stop[]
+    array.get 21 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 5 4   ; arg 0 std_core$Range__char.cursor
@@ -657,7 +657,7 @@ fn 10 std_core$Range$Iterator$next__char (ref) -> any
   end $L3
   data.const 0 21   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 21   ; std_core$Stop[]
+  array.get 21 safe   ; std_core$Stop[]
   return
 end
 
@@ -1048,7 +1048,7 @@ fn 21 std_core$next_scalar (char) -> char
     end $L2
     local.get 2   ; or_res
     if $L3 void
-      unreachable
+      unreachable "value out of range: no Unicode scalar value"
     else
       local.get 1   ; __in_range_0
       u32.to_char

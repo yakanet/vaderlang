@@ -153,7 +153,7 @@ fn 0 snippet$config () -> string
   call 110   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `config` called while it initialises"
   end $L1
   global.get 1   ; config.instance
   return
@@ -180,7 +180,7 @@ fn 1 snippet$pool () -> string
   call 110   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `pool` called while it initialises"
   end $L1
   global.get 4   ; pool.instance
   return
@@ -206,7 +206,7 @@ fn 3 __const_snippet$ANSWER () -> i32
   call 110   ; std_runtime_scheduler$run_gated
   if $L0 void
   else
-    unreachable
+    unreachable "constant `ANSWER` read while its value is computed"
   end $L0
   global.get 12   ; ANSWER.value
   return
@@ -247,7 +247,7 @@ fn 6 snippet$warmup () -> ref
   call 110   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `warmup` called while it initialises"
   end $L1
   global.get 7   ; warmup.instance
   return
@@ -279,7 +279,7 @@ fn 9 __const_snippet$LOOP () -> i32
   call 110   ; std_runtime_scheduler$run_gated
   if $L0 void
   else
-    unreachable
+    unreachable "constant `LOOP` read while its value is computed"
   end $L0
   global.get 14   ; LOOP.value
   return
@@ -518,7 +518,7 @@ fn 22 __lambda_snippet_4 () -> i32
   if $L0 void
     string.const 10   ; "the task was cancelled"
     call.import 9   ; std_core$Intrinsic$panic
-    unreachable
+    unreachable "a no-return call returned"
   else
     local.get 0   ; __fallback_0
     ref.cast 3   ; i32
@@ -3909,7 +3909,7 @@ fn 85 std_task$started () -> ref
   call 110   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `started` called while it initialises"
   end $L1
   global.get 10   ; started.instance
   return
@@ -4347,7 +4347,7 @@ fn 103 std_task$outcome__i32 (ref) -> any
   end $L0
   data.const 4 48   ; pool[4] std_core$Cancelled[]
   i64.const 0
-  array.get 48   ; std_core$Cancelled[]
+  array.get 48 safe   ; std_core$Cancelled[]
   return
 end
 
@@ -4367,7 +4367,7 @@ fn 104 std_task$outcome__string (ref) -> any
   end $L0
   data.const 4 48   ; pool[4] std_core$Cancelled[]
   i64.const 0
-  array.get 48   ; std_core$Cancelled[]
+  array.get 48 safe   ; std_core$Cancelled[]
   return
 end
 

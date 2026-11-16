@@ -62,7 +62,7 @@ fn 0 snippet$main () -> i32
     type_check 19   ; std_string$ParseError
     if $L1 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L1
     string.const 2   ; "int err"
     call 26   ; std_console$println__string
@@ -79,7 +79,7 @@ fn 0 snippet$main () -> i32
     type_check 19   ; std_string$ParseError
     if $L3 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L3
     string.const 2   ; "int err"
     call 26   ; std_console$println__string
@@ -96,7 +96,7 @@ fn 0 snippet$main () -> i32
     type_check 19   ; std_string$ParseError
     if $L5 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L5
     string.const 6   ; "float err"
     call 26   ; std_console$println__string
@@ -114,7 +114,7 @@ fn 0 snippet$main () -> i32
   type_check 19   ; std_string$ParseError
   if $L7 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L7
   string.const 6   ; "float err"
   call 26   ; std_console$println__string

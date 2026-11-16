@@ -659,7 +659,7 @@ fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> any
   if $L0 void
     data.const 0 14   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 14   ; std_core$Stop[]
+    array.get 14 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 11 0   ; arg 0 std_string$StringChars.s
@@ -716,7 +716,7 @@ fn 11 std_string$StringChars$std_core$Iterator$next (ref) -> any
     end $L3
     local.get 5   ; or_res
     if $L4 void
-      unreachable
+      unreachable "value out of range: no Unicode scalar value"
     else
       local.get 4   ; code
       u32.to_char

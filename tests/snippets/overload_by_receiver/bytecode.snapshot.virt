@@ -40,7 +40,7 @@ fn 1 snippet$risky (bool) -> any
   else
     data.const 0 12   ; pool[0] snippet$Boom[]
     i64.const 0
-    array.get 12   ; snippet$Boom[]
+    array.get 12 safe   ; snippet$Boom[]
     return
   end $L0
   i32.const 42

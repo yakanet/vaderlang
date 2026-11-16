@@ -38,7 +38,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   data.const 0 3   ; pool[0] snippet$Inner[]
   i64.const 0
-  array.get 3   ; snippet$Inner[]
+  array.get 3 safe   ; snippet$Inner[]
   array.new 3 1   ; snippet$Inner[]
   i32.const 0
   array.get 3   ; snippet$Inner[]
@@ -58,7 +58,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   data.const 0 3   ; pool[0] snippet$Inner[]
   i64.const 0
-  array.get 3   ; snippet$Inner[]
+  array.get 3 safe   ; snippet$Inner[]
   struct.get 2 0   ; snippet$Inner.n
   ref.cast 1   ; i32
   i32.const 1
@@ -126,7 +126,7 @@ fn 0 snippet$main () -> i32
   call 14   ; std_console$println__string
   data.const 0 3   ; pool[0] snippet$Inner[]
   i64.const 0
-  array.get 3   ; snippet$Inner[]
+  array.get 3 safe   ; snippet$Inner[]
   local.set 0   ; __buf_0
   fn.ref 6 4   ; __lambda_snippet_0 fn
   local.set 3   ; $fn_ref_51
@@ -153,7 +153,7 @@ fn 1 __const_snippet$MADE () -> ref
     local.get 0   ; value
     return
   end $L0
-  unreachable
+  unreachable "constant `MADE` read while its value is computed"
 end
 
 fn 2 snippet$make (i32) -> ref
@@ -178,7 +178,7 @@ fn 3 __const_snippet$BUILT () -> ref
     local.get 0   ; value
     return
   end $L0
-  unreachable
+  unreachable "constant `BUILT` read while its value is computed"
 end
 
 fn 4 snippet$build () -> ref

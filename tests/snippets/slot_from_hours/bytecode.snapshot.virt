@@ -40,7 +40,7 @@ fn 0 snippet$slot_of (i32) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Hour` (0..=23)"
 end
 
 fn 1 snippet$main () -> i32

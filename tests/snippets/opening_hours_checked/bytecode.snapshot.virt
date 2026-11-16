@@ -91,7 +91,7 @@ fn 0 snippet$span_until (u8,i64) -> i64
   local.get 4   ; __off_1
   call 5   ; std_core$finish_buffer
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end
 
 fn 1 snippet$label (u8) -> string
@@ -598,7 +598,7 @@ fn 9 snippet_clock$require_hour (i64) -> void
   local.get 3   ; __off_1
   call 5   ; std_core$finish_buffer
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end
 
 fn 10 std_console$write (u8,string) -> void

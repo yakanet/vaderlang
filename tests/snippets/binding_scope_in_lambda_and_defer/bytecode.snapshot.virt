@@ -233,7 +233,7 @@ fn 7 __lambda_snippet_1 (any) -> void
   type_check 3   ; snippet$Pair
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   i64.const 22
   buffer.new

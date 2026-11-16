@@ -1,6 +1,6 @@
 # stdout
 7
 # stderr
-vader: trap: reached unreachable: 
+vader: trap: reached unreachable: value out of range: not in `Hour` (0..=23)
 # exit
 134

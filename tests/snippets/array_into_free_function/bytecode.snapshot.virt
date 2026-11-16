@@ -80,7 +80,7 @@ fn 0 snippet$Reversed$std_core$Iterator$next (ref) -> any
   end $L0
   data.const 0 14   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 14   ; std_core$Stop[]
+  array.get 14 safe   ; std_core$Stop[]
   return
 end
 

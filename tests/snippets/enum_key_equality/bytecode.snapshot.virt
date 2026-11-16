@@ -570,7 +570,7 @@ fn 2 snippet$main () -> i32
   end $L9
   local.get 3   ; $eq_8
   if $L10 void
-    unreachable
+    unreachable "value out of range: no value of `Color`"
   else
     local.get 7   ; if_res
     i32.to_i32

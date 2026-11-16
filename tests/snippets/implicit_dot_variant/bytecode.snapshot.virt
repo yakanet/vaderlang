@@ -48,7 +48,7 @@ fn 0 snippet$show_day (u8) -> string
     i32.eq
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     string.const 2   ; "Wed"
     local.set 1   ; if_res
@@ -125,14 +125,14 @@ fn 1 snippet$main () -> i32
     type_check 5   ; snippet$None
     if $L3 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L3
     string.const 4   ; "nothing"
     call 9   ; std_console$println__string
   end $L2
   data.const 0 11   ; pool[0] snippet$None[]
   i64.const 0
-  array.get 11   ; snippet$None[]
+  array.get 11 safe   ; snippet$None[]
   local.tee 3   ; m
   type_check 4   ; snippet$Some
   if $L4 void
@@ -167,7 +167,7 @@ fn 1 snippet$main () -> i32
   type_check 5   ; snippet$None
   if $L5 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L5
   string.const 4   ; "nothing"
   call 9   ; std_console$println__string

@@ -47,7 +47,7 @@ fn 0 snippet$day_kind (u8) -> string
     i32.eq
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     string.const 1   ; "weekday"
     local.set 1   ; if_res
@@ -89,7 +89,7 @@ fn 2 snippet$label (u8) -> string
   i32.eq
   if $L1 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L1
   return.lit string.const 3   ; "green"
 end

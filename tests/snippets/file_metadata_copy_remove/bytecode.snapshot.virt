@@ -1028,7 +1028,7 @@ fn 17 std_fs$metadata (string,ref) -> any
   end $L0
   data.const 0 38   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 38   ; std_io$IOError[]
+  array.get 38 safe   ; std_io$IOError[]
   return
 end
 
@@ -1060,7 +1060,7 @@ fn 18 std_fs$copy (string,string) -> any
   end $L0
   data.const 0 38   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 38   ; std_io$IOError[]
+  array.get 38 safe   ; std_io$IOError[]
   return
 end
 
@@ -1081,7 +1081,7 @@ fn 19 std_fs$rename (string,string) -> any
   end $L0
   data.const 0 38   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 38   ; std_io$IOError[]
+  array.get 38 safe   ; std_io$IOError[]
   return
 end
 
@@ -1097,7 +1097,7 @@ fn 20 std_fs$set_read_only (string,bool) -> any
   end $L0
   data.const 0 38   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 38   ; std_io$IOError[]
+  array.get 38 safe   ; std_io$IOError[]
   return
 end
 
@@ -1108,7 +1108,7 @@ fn 21 std_fs$remove (string,ref) -> any
   if $L0 void
     data.const 0 38   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 38   ; std_io$IOError[]
+    array.get 38 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1724,7 +1724,7 @@ fn 43 std_fs$refusal_of (string,ref) -> any
   if $L0 void
     data.const 0 38   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 38   ; std_io$IOError[]
+    array.get 38 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 1 20 1   ; arg 1 std_fs$OpenOptions.write
@@ -1844,7 +1844,7 @@ fn 45 std_fs$fd_of (any) -> i32
   type_check 1   ; i32
   if $L0 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
   ref.cast 1   ; i32
@@ -1929,7 +1929,7 @@ fn 48 std_fs$read_dir (string) -> any
   if $L0 void
     data.const 0 38   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 38   ; std_io$IOError[]
+    array.get 38 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -2288,7 +2288,7 @@ fn 57 std_fs$EntryKind$std_core$Display$to_string (u8) -> string
       i32.eq
       if $L3 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L3
       string.const 47   ; "Other"
       local.set 1   ; if_res
@@ -2307,7 +2307,7 @@ fn 58 std_fs$File$std_io$Reader$read (ref,ref) -> any
   if $L0 void
     data.const 1 38   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 38   ; std_io$IOError[]
+    array.get 38 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -2366,7 +2366,7 @@ fn 59 std_fs$File$std_io$Writer$write (ref,any) -> any
   if $L0 void
     data.const 1 38   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 38   ; std_io$IOError[]
+    array.get 38 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -2909,7 +2909,7 @@ fn 67 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res
@@ -3084,7 +3084,7 @@ fn 68 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         string.const 89   ; "NoDescriptor"
                                         local.set 1   ; if_res

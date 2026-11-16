@@ -1230,7 +1230,7 @@ fn 21 std_numbers$digit_char (u64,bool) -> char
         end $L3
         local.get 3   ; or_res
         if $L4 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         else
           local.get 2   ; $cast_5
           u32.to_char
@@ -1284,7 +1284,7 @@ fn 22 std_numbers$hex_digit (u64) -> char
       end $L2
       local.get 2   ; or_res
       if $L3 void
-        unreachable
+        unreachable "value out of range: no Unicode scalar value"
       else
         local.get 1   ; $cast_4
         u32.to_char
@@ -1322,7 +1322,7 @@ fn 22 std_numbers$hex_digit (u64) -> char
       end $L5
       local.get 2   ; or_res
       if $L6 void
-        unreachable
+        unreachable "value out of range: no Unicode scalar value"
       else
         local.get 1   ; $cast_4
         u32.to_char

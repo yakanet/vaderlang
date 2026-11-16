@@ -245,7 +245,7 @@ fn 3 snippet$$genstate_count_up$Iterator$next (ref) -> any
           else
             data.const 0 17   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 17   ; std_core$Stop[]
+            array.get 17 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -484,7 +484,7 @@ fn 4 snippet$$genstate_pairs$Iterator$next (ref) -> any
                       else
                         data.const 0 17   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 17   ; std_core$Stop[]
+                        array.get 17 safe   ; std_core$Stop[]
                         return
                       end $L14
                       local.field 0 7 0   ; arg 0 snippet$$genstate_pairs.s0

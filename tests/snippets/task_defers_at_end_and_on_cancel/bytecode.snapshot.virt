@@ -136,7 +136,7 @@ end
 fn 1 snippet$inner () -> i32
   data.const 4 44   ; pool[4] __defer_env_snippet_5[]
   i64.const 0
-  array.get 44   ; __defer_env_snippet_5[]
+  array.get 44 safe   ; __defer_env_snippet_5[]
   make_closure 6 27   ; __defer_snippet_4 fn
   defer.push
   i64.const 1000
@@ -152,7 +152,7 @@ fn 2 snippet$outer () -> i32
   local x i32
   data.const 5 45   ; pool[5] __defer_env_snippet_7[]
   i64.const 0
-  array.get 45   ; __defer_env_snippet_7[]
+  array.get 45 safe   ; __defer_env_snippet_7[]
   make_closure 7 27   ; __defer_snippet_6 fn
   defer.push
   call 1   ; snippet$inner
@@ -3477,7 +3477,7 @@ fn 68 std_task$started () -> ref
   call 84   ; std_runtime_scheduler$run_gated
   if $L1 void
   else
-    unreachable
+    unreachable "singleton `started` called while it initialises"
   end $L1
   global.get 1   ; started.instance
   return
@@ -3726,7 +3726,7 @@ fn 79 std_task$outcome__i32 (ref) -> any
   end $L0
   data.const 6 47   ; pool[6] std_core$Cancelled[]
   i64.const 0
-  array.get 47   ; std_core$Cancelled[]
+  array.get 47 safe   ; std_core$Cancelled[]
   return
 end
 

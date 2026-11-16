@@ -752,7 +752,7 @@ fn 19 std_fs$refusal_of (string,ref) -> any
   if $L0 void
     data.const 0 23   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 23   ; std_io$IOError[]
+    array.get 23 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 1 14 1   ; arg 1 std_fs$OpenOptions.write
@@ -887,7 +887,7 @@ fn 22 std_fs$fd_of (any) -> i32
   type_check 2   ; i32
   if $L0 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
   ref.cast 2   ; i32
@@ -1467,7 +1467,7 @@ fn 32 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res

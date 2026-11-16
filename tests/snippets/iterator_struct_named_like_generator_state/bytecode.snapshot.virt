@@ -61,7 +61,7 @@ fn 0 snippet$__genstate_count$std_core$Iterator$next (ref) -> any
   end $L0
   data.const 0 15   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 15   ; std_core$Stop[]
+  array.get 15 safe   ; std_core$Stop[]
   return
 end
 
@@ -219,7 +219,7 @@ fn 3 snippet$$genstate_count$Iterator$next (ref) -> any
   else
     data.const 0 15   ; pool[0] std_core$Stop[]
     i64.const 0
-    array.get 15   ; std_core$Stop[]
+    array.get 15 safe   ; std_core$Stop[]
     return
   end $L3
   local.get 0   ; arg 0

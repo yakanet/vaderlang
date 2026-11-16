@@ -60,13 +60,13 @@ fn 0 snippet$charge (i32) -> void
   call 12   ; std_console$println__string
   string.const 1   ; "card declined"
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end
 
 fn 1 snippet$reserve () -> void
   data.const 0 12   ; pool[0] __defer_env_snippet_3[]
   i64.const 0
-  array.get 12   ; __defer_env_snippet_3[]
+  array.get 12 safe   ; __defer_env_snippet_3[]
   make_closure 4 11   ; __defer_snippet_2 fn
   defer.push
   string.const 2   ; "reserve inventory"

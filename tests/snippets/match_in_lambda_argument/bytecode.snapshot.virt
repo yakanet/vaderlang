@@ -124,7 +124,7 @@ fn 2 __lambda_snippet_0 (any) -> i32
     type_check 3   ; snippet$Square
     if $L1 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L1
     string.const 2   ; "square"
     local.set 1   ; name

@@ -84,7 +84,7 @@ fn 2 __const_snippet$ROOM () -> ref
     local.get 0   ; value
     return
   end $L0
-  unreachable
+  unreachable "constant `ROOM` read while its value is computed"
 end
 
 fn 3 __const_snippet$NOTE () -> ref
@@ -104,7 +104,7 @@ fn 3 __const_snippet$NOTE () -> ref
     local.get 0   ; value
     return
   end $L0
-  unreachable
+  unreachable "constant `NOTE` read while its value is computed"
 end
 
 fn 4 snippet$main () -> i32

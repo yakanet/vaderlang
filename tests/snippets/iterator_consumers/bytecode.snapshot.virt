@@ -2305,7 +2305,7 @@ fn 38 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
           else
             data.const 0 57   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 57   ; std_core$Stop[]
+            array.get 57 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -2421,7 +2421,7 @@ fn 39 std_core$__gen_state_std_core_1$Iterator$next (ref) -> any
           else
             data.const 0 57   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 57   ; std_core$Stop[]
+            array.get 57 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -2539,7 +2539,7 @@ fn 40 std_core$__gen_state_std_core_2$Iterator$next (ref) -> any
           else
             data.const 0 57   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 57   ; std_core$Stop[]
+            array.get 57 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -2993,7 +2993,7 @@ fn 51 std_iter$$genstate_filter$Iterator$next (ref) -> any
                           else
                             data.const 0 57   ; pool[0] std_core$Stop[]
                             i64.const 0
-                            array.get 57   ; std_core$Stop[]
+                            array.get 57 safe   ; std_core$Stop[]
                             return
                           end $L16
                           local.field 0 32 0   ; arg 0 std_iter$$genstate_filter.s0
@@ -3205,7 +3205,7 @@ fn 53 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> any
                           else
                             data.const 0 57   ; pool[0] std_core$Stop[]
                             i64.const 0
-                            array.get 57   ; std_core$Stop[]
+                            array.get 57 safe   ; std_core$Stop[]
                             return
                           end $L16
                           local.field 0 35 0   ; arg 0 std_iter$__gen_state_std_iter_1.s0
@@ -3390,7 +3390,7 @@ fn 55 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> any
                       else
                         data.const 0 57   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 57   ; std_core$Stop[]
+                        array.get 57 safe   ; std_core$Stop[]
                         return
                       end $L13
                       local.field 0 37 0   ; arg 0 std_iter$__gen_state_std_iter_3.s0
@@ -3574,7 +3574,7 @@ fn 57 std_iter$__gen_state_std_iter_4$Iterator$next (ref) -> any
                       else
                         data.const 0 57   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 57   ; std_core$Stop[]
+                        array.get 57 safe   ; std_core$Stop[]
                         return
                       end $L13
                       local.field 0 39 0   ; arg 0 std_iter$__gen_state_std_iter_4.s0
@@ -3758,7 +3758,7 @@ fn 59 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
                       else
                         data.const 0 57   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 57   ; std_core$Stop[]
+                        array.get 57 safe   ; std_core$Stop[]
                         return
                       end $L13
                       local.field 0 41 0   ; arg 0 std_iter$__gen_state_std_iter_0.s0
@@ -3942,7 +3942,7 @@ fn 61 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> any
                       else
                         data.const 0 57   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 57   ; std_core$Stop[]
+                        array.get 57 safe   ; std_core$Stop[]
                         return
                       end $L13
                       local.field 0 44 0   ; arg 0 std_iter$__gen_state_std_iter_2.s0

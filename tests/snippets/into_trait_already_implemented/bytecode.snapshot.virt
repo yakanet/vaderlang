@@ -48,7 +48,7 @@ end
 fn 2 snippet$Cat$std_core$Into$into (ref) -> any
   data.const 0 12   ; pool[0] snippet$Stray[]
   i64.const 0
-  array.get 12   ; snippet$Stray[]
+  array.get 12 safe   ; snippet$Stray[]
   return
 end
 

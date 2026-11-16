@@ -48,7 +48,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   data.const 0 10   ; pool[0] snippet$Box[]
   i64.const 0
-  array.get 10   ; snippet$Box[]
+  array.get 10 safe   ; snippet$Box[]
   struct.get 3 0   ; snippet$Box.n
   ref.cast 1   ; i32
   i32.to_i64

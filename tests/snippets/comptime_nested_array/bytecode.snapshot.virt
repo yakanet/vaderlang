@@ -144,25 +144,25 @@ fn 2 snippet$main () -> i32
   local m any
   data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 26   ; snippet$Card[]
+  array.get 26 safe   ; snippet$Card[]
   struct.get 7 0   ; snippet$Card.weights
   call 0   ; snippet$show
   call 59   ; std_console$println__string
   data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 26   ; snippet$Card[]
+  array.get 26 safe   ; snippet$Card[]
   struct.get 7 0   ; snippet$Card.weights
   call 1   ; snippet$kind
   call 59   ; std_console$println__string
   data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 26   ; snippet$Card[]
+  array.get 26 safe   ; snippet$Card[]
   struct.get 7 1   ; snippet$Card.rows
   array.len
   local.set 0   ; __p_0
   data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 26   ; snippet$Card[]
+  array.get 26 safe   ; snippet$Card[]
   struct.get 7 1   ; snippet$Card.rows
   i32.const 2
   array.get 8   ; i32[][]
@@ -203,13 +203,13 @@ fn 2 snippet$main () -> i32
   call 59   ; std_console$println__string
   data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 26   ; snippet$Card[]
+  array.get 26 safe   ; snippet$Card[]
   struct.get 7 2   ; snippet$Card.either
   call 1   ; snippet$kind
   call 59   ; std_console$println__string
   data.const 0 26   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 26   ; snippet$Card[]
+  array.get 26 safe   ; snippet$Card[]
   struct.get 7 2   ; snippet$Card.either
   call 0   ; snippet$show
   call 59   ; std_console$println__string

@@ -63,7 +63,7 @@ fn 0 snippet$classify (any) -> string
       type_check 0   ; null
       if $L4 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L4
       string.const 2   ; "nothing"
       local.set 2   ; if_res

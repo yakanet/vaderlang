@@ -487,7 +487,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> any
   if $L0 void
     data.const 4 29   ; pool[4] std_core$Stop[]
     i64.const 0
-    array.get 29   ; std_core$Stop[]
+    array.get 29 safe   ; std_core$Stop[]
     return
   end $L0
   local.field 0 7 4   ; arg 0 std_core$Range__i32.cursor
@@ -538,7 +538,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> any
   end $L3
   data.const 4 29   ; pool[4] std_core$Stop[]
   i64.const 0
-  array.get 29   ; std_core$Stop[]
+  array.get 29 safe   ; std_core$Stop[]
   return
 end
 

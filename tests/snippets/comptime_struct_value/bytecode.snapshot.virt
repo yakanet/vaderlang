@@ -107,7 +107,7 @@ fn 1 snippet$main () -> i32
   local __p_9 u8
   data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 28   ; snippet$Card[]
+  array.get 28 safe   ; snippet$Card[]
   struct.get 8 0   ; snippet$Card.label
   struct.get 6 0   ; snippet$Label.text
   ref.cast 2   ; string
@@ -138,7 +138,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_7
   data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 28   ; snippet$Card[]
+  array.get 28 safe   ; snippet$Card[]
   struct.get 8 0   ; snippet$Card.label
   struct.get 6 1   ; snippet$Label.hue
   i32.const 2
@@ -156,7 +156,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_7
   data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 28   ; snippet$Card[]
+  array.get 28 safe   ; snippet$Card[]
   struct.get 8 1   ; snippet$Card.weights
   i32.const 2
   array.get 9   ; u8[]
@@ -175,7 +175,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_7
   data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 28   ; snippet$Card[]
+  array.get 28 safe   ; snippet$Card[]
   struct.get 8 3   ; snippet$Card.big
   ref.cast 11   ; u64
   local.set 4   ; $cast_34
@@ -190,13 +190,13 @@ fn 1 snippet$main () -> i32
   call 59   ; std_console$println__string
   data.const 0 28   ; pool[0] snippet$Card[]
   i64.const 0
-  array.get 28   ; snippet$Card[]
+  array.get 28 safe   ; snippet$Card[]
   struct.get 8 2   ; snippet$Card.either
   type_check 2   ; string
   if $L0 void
     data.const 0 28   ; pool[0] snippet$Card[]
     i64.const 0
-    array.get 28   ; snippet$Card[]
+    array.get 28 safe   ; snippet$Card[]
     struct.get 8 2   ; snippet$Card.either
     ref.cast 2   ; string
     local.set 0   ; __p_0
@@ -300,20 +300,20 @@ fn 1 snippet$main () -> i32
   call 59   ; std_console$println__string
   data.const 2 30   ; pool[2] snippet$Slot[]
   i64.const 0
-  array.get 30   ; snippet$Slot[]
+  array.get 30 safe   ; snippet$Slot[]
   struct.get 12 0   ; snippet$Slot.hour
   type_check 0   ; null
   if $L2 void
   else
     data.const 2 30   ; pool[2] snippet$Slot[]
     i64.const 0
-    array.get 30   ; snippet$Slot[]
+    array.get 30 safe   ; snippet$Slot[]
     struct.get 12 0   ; snippet$Slot.hour
     ref.cast 7   ; u8
     local.set 6   ; __p_9
     data.const 2 30   ; pool[2] snippet$Slot[]
     i64.const 0
-    array.get 30   ; snippet$Slot[]
+    array.get 30 safe   ; snippet$Slot[]
     struct.get 12 1   ; snippet$Slot.note
     ref.cast 2   ; string
     local.tee 0   ; __p_0

@@ -160,7 +160,7 @@ fn 0 snippet$main () -> i32
     type_check 13   ; std_string$ParseError
     if $L4 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L4
     local.get 4   ; rg
     ref.cast 13   ; std_string$ParseError
@@ -176,7 +176,7 @@ fn 0 snippet$main () -> i32
   type_check 13   ; std_string$ParseError
   if $L5 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L5
   local.get 1   ; ver
   ref.cast 13   ; std_string$ParseError
@@ -207,7 +207,7 @@ fn 1 snippet$parse_one (string) -> ref
   type_check 13   ; std_string$ParseError
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   i32.const 0
   i32.const 0
@@ -296,7 +296,7 @@ fn 4 std_core$codepoint_at_byte (string,i64) -> (char,i64)
     end $L2
     local.get 5   ; or_res
     if $L3 void
-      unreachable
+      unreachable "value out of range: no Unicode scalar value"
     else
       local.get 3   ; code
       u32.to_char
@@ -1056,7 +1056,7 @@ fn 12 semver$parse_range (string) -> any
       type_check 13   ; std_string$ParseError
       if $L4 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L4
       local.get 6   ; cl
       ref.cast 13   ; std_string$ParseError
@@ -1802,7 +1802,7 @@ fn 23 semver$is_bare_operator (string) -> bool
         end $L6
         local.get 9   ; or_res
         if $L7 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L7
       end $L5
       local.get 6   ; code
@@ -2425,7 +2425,7 @@ fn 27 semver$is_all_digits (string) -> bool
         end $L6
         local.get 7   ; or_res
         if $L7 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L7
       end $L5
       local.get 5   ; code
@@ -2520,7 +2520,7 @@ fn 28 semver$is_identifier_text (string) -> bool
         end $L6
         local.get 9   ; or_res
         if $L7 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L7
       end $L5
       local.get 6   ; code
@@ -3435,7 +3435,7 @@ fn 47 semver$term_satisfies (ref,ref) -> bool
   i32.eq
   if $L4 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L4
   local.get 3   ; cmp
   i32.const 0
@@ -3525,14 +3525,14 @@ fn 48 semver$compare_id (string,string) -> i32
         type_check 13   ; std_string$ParseError
         if $L10 void
         else
-          unreachable
+          unreachable "non-exhaustive match (T3013 should have caught this)"
         end $L10
       else
         local.get 4   ; __scrut_0
         type_check 13   ; std_string$ParseError
         if $L11 void
         else
-          unreachable
+          unreachable "non-exhaustive match (T3013 should have caught this)"
         end $L11
       end $L6
       local.get 0   ; arg 0
@@ -3984,7 +3984,7 @@ fn 54 std_string$split_where (string,ref) -> ref
         end $L6
         local.get 14   ; or_res
         if $L7 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L7
       end $L5
       local.get 11   ; code

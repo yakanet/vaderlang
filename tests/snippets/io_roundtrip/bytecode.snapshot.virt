@@ -149,7 +149,7 @@ fn 0 snippet$main () -> i32
   type_check 24   ; ref std_core$Error
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   string.const 4   ; "read failed"
   call 9   ; std_console$println__string
@@ -849,7 +849,7 @@ fn 26 std_fs$refusal_of (string,ref) -> any
   if $L0 void
     data.const 0 26   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 26   ; std_io$IOError[]
+    array.get 26 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 1 19 1   ; arg 1 std_fs$OpenOptions.write
@@ -969,7 +969,7 @@ fn 28 std_fs$fd_of (any) -> i32
   type_check 1   ; i32
   if $L0 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
   ref.cast 1   ; i32
@@ -1159,7 +1159,7 @@ fn 34 std_fs$File$std_io$Writer$write (ref,any) -> any
   if $L0 void
     data.const 1 26   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 26   ; std_io$IOError[]
+    array.get 26 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -1661,7 +1661,7 @@ fn 40 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res

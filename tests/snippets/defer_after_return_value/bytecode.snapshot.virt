@@ -62,7 +62,7 @@ fn 2 snippet$returns_a_call () -> i32
   local __result_1 i32
   data.const 0 15   ; pool[0] __defer_env_snippet_1[]
   i64.const 0
-  array.get 15   ; __defer_env_snippet_1[]
+  array.get 15 safe   ; __defer_env_snippet_1[]
   make_closure 7 16   ; __defer_snippet_0 fn
   defer.push
   string.const 2   ; "call"
@@ -92,7 +92,7 @@ end
 fn 4 snippet$returns_a_void_call () -> void
   data.const 1 18   ; pool[1] __defer_env_snippet_5[]
   i64.const 0
-  array.get 18   ; __defer_env_snippet_5[]
+  array.get 18 safe   ; __defer_env_snippet_5[]
   make_closure 9 16   ; __defer_snippet_4 fn
   defer.push
   string.const 3   ; "void"
@@ -105,7 +105,7 @@ fn 5 snippet$returns_from_a_nested_block (bool) -> i32
   local __result_2 i32
   data.const 2 19   ; pool[2] __defer_env_snippet_7[]
   i64.const 0
-  array.get 19   ; __defer_env_snippet_7[]
+  array.get 19 safe   ; __defer_env_snippet_7[]
   make_closure 10 16   ; __defer_snippet_6 fn
   defer.push
   local.get 0   ; arg 0
@@ -116,7 +116,7 @@ fn 5 snippet$returns_from_a_nested_block (bool) -> i32
   end $L0
   data.const 3 20   ; pool[3] __defer_env_snippet_9[]
   i64.const 0
-  array.get 20   ; __defer_env_snippet_9[]
+  array.get 20 safe   ; __defer_env_snippet_9[]
   make_closure 11 16   ; __defer_snippet_8 fn
   defer.push
   string.const 4   ; "nested"

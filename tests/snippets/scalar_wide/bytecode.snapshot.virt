@@ -70,7 +70,7 @@ fn 5 snippet$to_chr (i32) -> char
   i32.const 0
   i32.lt
   if $L0 void
-    unreachable
+    unreachable "value out of range: no Unicode scalar value"
   else
     local.get 0   ; arg 0
     i32.const 55295
@@ -90,7 +90,7 @@ fn 5 snippet$to_chr (i32) -> char
       end $L2
       local.get 1   ; or_res
       if $L3 void
-        unreachable
+        unreachable "value out of range: no Unicode scalar value"
       else
         local.get 0   ; arg 0
         i32.to_char

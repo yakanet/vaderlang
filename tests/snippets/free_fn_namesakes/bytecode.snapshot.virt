@@ -113,7 +113,7 @@ fn 1 snippet$main () -> i32
         end $L4
         local.get 7   ; or_res
         if $L5 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L5
       end $L3
       local.get 5   ; code

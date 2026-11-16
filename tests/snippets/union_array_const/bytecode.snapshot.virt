@@ -173,7 +173,7 @@ fn 1 snippet$mixed (any) -> string
       type_check 3   ; string
       if $L3 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L3
       local.get 0   ; arg 0
       ref.cast 3   ; string

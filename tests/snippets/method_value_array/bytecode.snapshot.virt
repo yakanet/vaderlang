@@ -65,7 +65,7 @@ fn 0 snippet$Countdown$std_core$Iterator$next (ref) -> any
   end $L0
   data.const 0 19   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 19   ; std_core$Stop[]
+  array.get 19 safe   ; std_core$Stop[]
   return
 end
 
@@ -477,7 +477,7 @@ fn 12 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
           else
             data.const 0 19   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 19   ; std_core$Stop[]
+            array.get 19 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0

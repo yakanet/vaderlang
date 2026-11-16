@@ -555,7 +555,7 @@ fn 13 snippet$$genstate_evens_marked$Iterator$next (ref) -> any
                       else
                         data.const 0 34   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 34   ; std_core$Stop[]
+                        array.get 34 safe   ; std_core$Stop[]
                         return
                       end $L15
                       local.get 0   ; arg 0
@@ -755,7 +755,7 @@ fn 14 snippet$$genstate_evens_filled$Iterator$next (ref) -> any
                     else
                       data.const 0 34   ; pool[0] std_core$Stop[]
                       i64.const 0
-                      array.get 34   ; std_core$Stop[]
+                      array.get 34 safe   ; std_core$Stop[]
                       return
                     end $L14
                     local.get 0   ; arg 0
@@ -1011,7 +1011,7 @@ fn 15 snippet$$genstate_classified$Iterator$next (ref) -> any
                           else
                             data.const 0 34   ; pool[0] std_core$Stop[]
                             i64.const 0
-                            array.get 34   ; std_core$Stop[]
+                            array.get 34 safe   ; std_core$Stop[]
                             return
                           end $L19
                           local.get 0   ; arg 0
@@ -1257,7 +1257,7 @@ fn 16 snippet$$genstate_by_match$Iterator$next (ref) -> any
                           else
                             data.const 0 34   ; pool[0] std_core$Stop[]
                             i64.const 0
-                            array.get 34   ; std_core$Stop[]
+                            array.get 34 safe   ; std_core$Stop[]
                             return
                           end $L18
                           local.get 0   ; arg 0
@@ -1352,7 +1352,7 @@ fn 17 snippet$$genstate_operand_order$Iterator$next (ref) -> any
       else
         data.const 0 34   ; pool[0] std_core$Stop[]
         i64.const 0
-        array.get 34   ; std_core$Stop[]
+        array.get 34 safe   ; std_core$Stop[]
         return
       end $L5
       local.get 0   ; arg 0
@@ -1640,7 +1640,7 @@ fn 18 snippet$$genstate_short_circuit$Iterator$next (ref) -> any
                           else
                             data.const 0 34   ; pool[0] std_core$Stop[]
                             i64.const 0
-                            array.get 34   ; std_core$Stop[]
+                            array.get 34 safe   ; std_core$Stop[]
                             return
                           end $L21
                           local.get 0   ; arg 0
@@ -1829,7 +1829,7 @@ fn 19 snippet$$genstate_counted_down$Iterator$next (ref) -> any
                       else
                         data.const 0 34   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 34   ; std_core$Stop[]
+                        array.get 34 safe   ; std_core$Stop[]
                         return
                       end $L15
                       local.get 0   ; arg 0
@@ -1932,7 +1932,7 @@ fn 20 snippet$$genstate_written$Iterator$next (ref) -> any
       else
         data.const 0 34   ; pool[0] std_core$Stop[]
         i64.const 0
-        array.get 34   ; std_core$Stop[]
+        array.get 34 safe   ; std_core$Stop[]
         return
       end $L5
       i32.const 0

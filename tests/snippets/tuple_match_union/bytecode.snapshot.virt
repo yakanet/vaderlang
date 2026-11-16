@@ -58,7 +58,7 @@ fn 1 snippet$main () -> i32
     type_check 3   ; __Tuple_i32_string_d0b3dcb6
     if $L1 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L1
     local.get 0   ; a
     ref.cast 3   ; __Tuple_i32_string_d0b3dcb6
@@ -119,7 +119,7 @@ fn 1 snippet$main () -> i32
   type_check 3   ; __Tuple_i32_string_d0b3dcb6
   if $L3 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L3
   local.get 0   ; a
   ref.cast 3   ; __Tuple_i32_string_d0b3dcb6

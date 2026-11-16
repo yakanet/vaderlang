@@ -460,7 +460,7 @@ fn 2 snippet$$genstate_countdown$Iterator$next (ref) -> any
                                     else
                                       data.const 0 14   ; pool[0] std_core$Stop[]
                                       i64.const 0
-                                      array.get 14   ; std_core$Stop[]
+                                      array.get 14 safe   ; std_core$Stop[]
                                       return
                                     end $L23
                                     local.field 0 3 0   ; arg 0 snippet$$genstate_countdown.s0

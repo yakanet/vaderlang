@@ -134,7 +134,7 @@ fn 0 snippet$main () -> i32
         end $L6
         local.get 8   ; or_res
         if $L7 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L7
       end $L5
       local.get 1   ; i
@@ -1000,7 +1000,7 @@ fn 12 std_core$codepoint_at_byte (string,i64) -> (char,i64)
     end $L2
     local.get 5   ; or_res
     if $L3 void
-      unreachable
+      unreachable "value out of range: no Unicode scalar value"
     else
       local.get 3   ; code
       u32.to_char

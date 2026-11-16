@@ -52,7 +52,7 @@ fn 0 snippet$Countdown$std_core$Iterator$next (ref) -> any
   end $L0
   data.const 0 12   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 12   ; std_core$Stop[]
+  array.get 12 safe   ; std_core$Stop[]
   return
 end
 
@@ -117,7 +117,7 @@ fn 1 snippet$main () -> i32
     type_check 0   ; null
     if $L5 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L5
     string.const 0   ; "none"
     call 13   ; std_console$println__string

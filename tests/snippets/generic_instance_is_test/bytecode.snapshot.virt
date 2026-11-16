@@ -82,7 +82,7 @@ fn 0 snippet$describe (any) -> string
   type_check 3   ; snippet$Spec__string
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 0   ; arg 0
   ref.cast 3   ; snippet$Spec__string

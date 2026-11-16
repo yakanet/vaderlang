@@ -42,7 +42,7 @@ fn 1 snippet$find (any,i32) -> any
   type_check 3   ; snippet$Node
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 0   ; arg 0
   ref.cast 3   ; snippet$Node
@@ -77,7 +77,7 @@ fn 2 snippet$length (any) -> i32
   type_check 3   ; snippet$Node
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 0   ; arg 0
   ref.cast 3   ; snippet$Node
@@ -147,7 +147,7 @@ fn 3 snippet$main () -> i32
     type_check 3   ; snippet$Node
     if $L1 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L1
     i64.const 26
     buffer.new
@@ -191,7 +191,7 @@ fn 3 snippet$main () -> i32
   type_check 3   ; snippet$Node
   if $L3 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L3
   i64.const 26
   buffer.new

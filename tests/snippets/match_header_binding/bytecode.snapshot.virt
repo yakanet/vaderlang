@@ -86,7 +86,7 @@ fn 1 snippet$size (any) -> i32
     type_check 3   ; snippet$Pair
     if $L3 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L3
     local.get 2   ; s
     ref.cast 3   ; snippet$Pair
@@ -124,7 +124,7 @@ fn 2 snippet$unwrap (ref) -> i32
   type_check 3   ; snippet$Pair
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 3   ; inner
   ref.cast 3   ; snippet$Pair

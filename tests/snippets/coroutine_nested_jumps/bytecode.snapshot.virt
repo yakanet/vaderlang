@@ -464,7 +464,7 @@ fn 8 snippet$$genstate_evens$Iterator$next (ref) -> any
             else
               data.const 0 23   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 23   ; std_core$Stop[]
+              array.get 23 safe   ; std_core$Stop[]
               return
             end $L9
             local.get 0   ; arg 0
@@ -618,7 +618,7 @@ fn 9 snippet$$genstate_evens_with_tail$Iterator$next (ref) -> any
           else
             data.const 0 23   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 23   ; std_core$Stop[]
+            array.get 23 safe   ; std_core$Stop[]
             return
           end $L8
           local.get 0   ; arg 0
@@ -765,7 +765,7 @@ fn 10 snippet$$genstate_until_three$Iterator$next (ref) -> any
             else
               data.const 0 23   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 23   ; std_core$Stop[]
+              array.get 23 safe   ; std_core$Stop[]
               return
             end $L10
             local.get 0   ; arg 0
@@ -895,7 +895,7 @@ fn 11 snippet$$genstate_stop_at_three$Iterator$next (ref) -> any
               struct.set 9 4   ; snippet$$genstate_stop_at_three.state
               data.const 0 23   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 23   ; std_core$Stop[]
+              array.get 23 safe   ; std_core$Stop[]
               return
             end $L9
             local.field 0 9 3   ; arg 0 snippet$$genstate_stop_at_three.s3
@@ -916,7 +916,7 @@ fn 11 snippet$$genstate_stop_at_three$Iterator$next (ref) -> any
             else
               data.const 0 23   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 23   ; std_core$Stop[]
+              array.get 23 safe   ; std_core$Stop[]
               return
             end $L10
             local.get 0   ; arg 0
@@ -1125,7 +1125,7 @@ fn 12 snippet$$genstate_first_odd_above$Iterator$next (ref) -> any
             else
               data.const 0 23   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 23   ; std_core$Stop[]
+              array.get 23 safe   ; std_core$Stop[]
               return
             end $L15
             local.get 0   ; arg 0

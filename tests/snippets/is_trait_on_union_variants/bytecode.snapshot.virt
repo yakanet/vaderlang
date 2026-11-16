@@ -109,7 +109,7 @@ fn 0 snippet$kind (any) -> string
   type_check 6   ; snippet$Point
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   return.lit string.const 1   ; "point"
 end
@@ -201,7 +201,7 @@ fn 3 snippet$hashable (any) -> string
   type_check 6   ; snippet$Point
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   i64.const 26
   buffer.new

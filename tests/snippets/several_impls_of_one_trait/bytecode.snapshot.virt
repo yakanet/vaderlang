@@ -328,7 +328,7 @@ fn 19 snippet$Counter$std_core$Iterator$next (ref) -> any
   end $L0
   data.const 2 28   ; pool[2] std_core$Stop[]
   i64.const 0
-  array.get 28   ; std_core$Stop[]
+  array.get 28 safe   ; std_core$Stop[]
   return
 end
 

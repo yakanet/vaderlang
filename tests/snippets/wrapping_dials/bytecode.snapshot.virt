@@ -374,7 +374,7 @@ fn 4 snippet$wrap_next__Int_in_0___23 (u8) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Hour` (0..=23)"
 end
 
 fn 5 snippet$wrap_next__Int_in_1___12 (u8) -> u8
@@ -418,7 +418,7 @@ fn 5 snippet$wrap_next__Int_in_1___12 (u8) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Month` (1..=12)"
 end
 
 fn 6 snippet$wrap_next__u8 (u8) -> u8
@@ -462,7 +462,7 @@ fn 6 snippet$wrap_next__u8 (u8) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `u8`"
 end
 
 fn 7 snippet$span_of__Int_in_0___23 (u8,u8) -> i64
@@ -587,7 +587,7 @@ fn 10 snippet$exactly__Int_in_1___12 (i64) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Month` (1..=12)"
 end
 
 fn 11 concat_2 (string,string) -> string

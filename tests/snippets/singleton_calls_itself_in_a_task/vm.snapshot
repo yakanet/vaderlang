@@ -1,6 +1,6 @@
 # stdout
 selfish starts
 # stderr
-vader: panic: a guest thread trapped: reached unreachable: 
+vader: panic: a guest thread trapped: reached unreachable: singleton `selfish` called while it initialises
 # exit
 134

@@ -1009,7 +1009,7 @@ fn 20 std_fs$seek (ref,i64,u8) -> any
   end $L0
   data.const 0 36   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 36   ; std_io$IOError[]
+  array.get 36 safe   ; std_io$IOError[]
   return
 end
 
@@ -1020,7 +1020,7 @@ fn 21 std_fs$size (ref) -> any
   if $L0 void
     data.const 0 36   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 36   ; std_io$IOError[]
+    array.get 36 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 0 15 0   ; arg 0 std_fs$File.handle
@@ -1048,7 +1048,7 @@ fn 22 std_fs$remove (string,ref) -> any
   if $L0 void
     data.const 1 36   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 36   ; std_io$IOError[]
+    array.get 36 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1100,7 +1100,7 @@ fn 24 std_fs$refusal_of (string,ref) -> any
   if $L0 void
     data.const 1 36   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 36   ; std_io$IOError[]
+    array.get 36 safe   ; std_io$IOError[]
     return
   end $L0
   local.field 1 16 1   ; arg 1 std_fs$OpenOptions.write
@@ -1303,7 +1303,7 @@ fn 30 std_fs$fd_of (any) -> i32
   type_check 1   ; i32
   if $L0 void
   else
-    unreachable
+    unreachable "@unreachable match: a variant the arms assert cannot occur was reached"
   end $L0
   local.get 0   ; arg 0
   ref.cast 1   ; i32
@@ -1490,7 +1490,7 @@ fn 35 std_fs$whence_of (u8) -> i32
     i32.eq
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     i32.const 2
     local.set 1   ; if_res
@@ -1641,7 +1641,7 @@ fn 40 std_fs$read_dir (string) -> any
   if $L0 void
     data.const 1 36   ; pool[1] std_io$IOError[]
     i64.const 0
-    array.get 36   ; std_io$IOError[]
+    array.get 36 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -1822,7 +1822,7 @@ fn 45 std_fs$File$std_io$Reader$read (ref,ref) -> any
   if $L0 void
     data.const 0 36   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 36   ; std_io$IOError[]
+    array.get 36 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -1881,7 +1881,7 @@ fn 46 std_fs$File$std_io$Writer$write (ref,any) -> any
   if $L0 void
     data.const 0 36   ; pool[0] std_io$IOError[]
     i64.const 0
-    array.get 36   ; std_io$IOError[]
+    array.get 36 safe   ; std_io$IOError[]
     return
   end $L0
   local.get 1   ; arg 1
@@ -2766,7 +2766,7 @@ fn 59 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res
@@ -2941,7 +2941,7 @@ fn 60 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         string.const 87   ; "NoDescriptor"
                                         local.set 1   ; if_res

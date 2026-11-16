@@ -62,7 +62,7 @@ fn 1 snippet$show (u64) -> i32
   type_check 3   ; snippet$Err
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   return.lit i32.const -1
 end

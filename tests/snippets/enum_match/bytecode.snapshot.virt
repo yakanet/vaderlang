@@ -64,7 +64,7 @@ fn 1 snippet$label (u8) -> string
     i32.eq
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     string.const 2   ; "blue"
     local.set 1   ; if_res
@@ -188,7 +188,7 @@ fn 3 snippet$main () -> i32
       i32.eq
       if $L2 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L2
       string.const 5   ; "error"
       call 11   ; std_console$println__string
@@ -215,7 +215,7 @@ fn 3 snippet$main () -> i32
       i32.eq
       if $L5 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L5
       string.const 5   ; "error"
       call 11   ; std_console$println__string
@@ -243,7 +243,7 @@ fn 3 snippet$main () -> i32
     i32.eq
     if $L8 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L8
     string.const 5   ; "error"
     call 11   ; std_console$println__string

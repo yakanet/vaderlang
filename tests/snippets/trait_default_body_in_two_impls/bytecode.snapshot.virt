@@ -96,7 +96,7 @@ fn 1 snippet$Square$Shape$side_of (ref,any) -> i32
     type_check 2   ; i32
     if $L3 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L3
     local.get 1   ; arg 1
     ref.cast 2   ; i32
@@ -259,7 +259,7 @@ fn 7 snippet$Circle$Shape$side_of (ref,any) -> i32
     type_check 2   ; i32
     if $L3 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L3
     local.get 1   ; arg 1
     ref.cast 2   ; i32
@@ -890,7 +890,7 @@ fn 15 snippet$__gen_state_snippet_2$Iterator$next (ref) -> any
           else
             data.const 0 23   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 23   ; std_core$Stop[]
+            array.get 23 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -1049,7 +1049,7 @@ fn 17 snippet$__gen_state_snippet_5$Iterator$next (ref) -> any
           else
             data.const 0 23   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 23   ; std_core$Stop[]
+            array.get 23 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0

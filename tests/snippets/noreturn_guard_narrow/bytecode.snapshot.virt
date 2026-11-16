@@ -36,7 +36,7 @@ fn 0 snippet$unwrap (any) -> i32
   end $L0
   string.const 0   ; "nil box"
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end
 
 fn 1 snippet$unwrap_logged (any) -> i32
@@ -54,7 +54,7 @@ fn 1 snippet$unwrap_logged (any) -> i32
   call 10   ; std_console$println__string
   string.const 0   ; "nil box"
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end
 
 fn 2 snippet$main () -> i32

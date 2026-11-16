@@ -90,7 +90,7 @@ fn 1 snippet$describe (string) -> string
   type_check 3   ; snippet$Spec
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 0   ; arg 0
   local.tee 3   ; __p_1
@@ -144,7 +144,7 @@ fn 2 snippet$main () -> i32
   call 10   ; std_console$println__string
   data.const 1 11   ; pool[1] snippet$Spec[]
   i64.const 0
-  array.get 11   ; snippet$Spec[]
+  array.get 11 safe   ; snippet$Spec[]
   local.tee 0   ; lone
   type_check 3   ; snippet$Spec
   if $L0 void

@@ -34,7 +34,7 @@ fn 0 snippet$name (u8) -> string
   i32.eq
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   return.lit string.const 1   ; "square"
 end

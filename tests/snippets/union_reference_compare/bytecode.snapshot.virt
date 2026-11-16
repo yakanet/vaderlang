@@ -35,7 +35,7 @@ fn 0 snippet$pick (i32) -> any
   if $L0 void
     data.const 0 12   ; pool[0] snippet$Circle[]
     i64.const 0
-    array.get 12   ; snippet$Circle[]
+    array.get 12 safe   ; snippet$Circle[]
     return
   end $L0
   local.get 0   ; arg 0
@@ -67,7 +67,7 @@ fn 1 snippet$main () -> i32
   local $call_38 any
   data.const 0 12   ; pool[0] snippet$Circle[]
   i64.const 0
-  array.get 12   ; snippet$Circle[]
+  array.get 12 safe   ; snippet$Circle[]
   local.set 0   ; shared
   i64.const 22
   buffer.new

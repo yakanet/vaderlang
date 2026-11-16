@@ -42,7 +42,7 @@ fn 0 snippet$can_go (u8) -> bool
   local.get 1   ; or_res
   if $L3 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L3
   return.lit bool.const false
 end
@@ -112,7 +112,7 @@ fn 2 snippet$kind (any) -> i32
   type_check 5   ; string
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   return.lit i32.const 2
 end

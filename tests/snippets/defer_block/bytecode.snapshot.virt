@@ -48,7 +48,7 @@ end
 fn 1 snippet$void_trailing () -> void
   data.const 0 13   ; pool[0] __defer_env_snippet_1[]
   i64.const 0
-  array.get 13   ; __defer_env_snippet_1[]
+  array.get 13 safe   ; __defer_env_snippet_1[]
   make_closure 4 14   ; __defer_snippet_0 fn
   defer.push
   string.const 1   ; "void trailing: body"
@@ -61,7 +61,7 @@ fn 2 snippet$value_trailing () -> i32
   local __block_1 i32
   data.const 1 15   ; pool[1] __defer_env_snippet_3[]
   i64.const 0
-  array.get 15   ; __defer_env_snippet_3[]
+  array.get 15 safe   ; __defer_env_snippet_3[]
   make_closure 5 14   ; __defer_snippet_2 fn
   defer.push
   call 0   ; snippet$compute
@@ -77,14 +77,14 @@ fn 3 snippet$main () -> i32
   local $cast_18 i64
   data.const 2 16   ; pool[2] __defer_env_snippet_5[]
   i64.const 0
-  array.get 16   ; __defer_env_snippet_5[]
+  array.get 16 safe   ; __defer_env_snippet_5[]
   make_closure 6 14   ; __defer_snippet_4 fn
   defer.push
   string.const 2   ; "hi"
   call 15   ; std_console$println__string
   data.const 3 17   ; pool[3] __defer_env_snippet_7[]
   i64.const 0
-  array.get 17   ; __defer_env_snippet_7[]
+  array.get 17 safe   ; __defer_env_snippet_7[]
   make_closure 7 14   ; __defer_snippet_6 fn
   defer.push
   string.const 3   ; "nested"

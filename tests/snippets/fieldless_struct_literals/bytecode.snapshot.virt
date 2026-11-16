@@ -44,7 +44,7 @@ fn 0 snippet$next_even (i32) -> any
   end $L0
   data.const 0 14   ; pool[0] snippet$Exhausted[]
   i64.const 0
-  array.get 14   ; snippet$Exhausted[]
+  array.get 14 safe   ; snippet$Exhausted[]
   return
 end
 

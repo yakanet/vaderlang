@@ -419,7 +419,7 @@ fn 11 snippet_util$describe (ref) -> string
       i32.eq
       if $L2 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L2
       string.const 5   ; "high"
       local.set 1   ; name

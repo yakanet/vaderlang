@@ -127,12 +127,18 @@ parse_int_list :: fn(csv: string) -> i32[] {
 /// @return         `null` when a string was appended, else why it could not be.
 parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("string ")
-    first_quote :: after.index_of('"') else {
+    text :: quoted_text(after) else {
         return DirectiveError { .reason = "expected `string <index> \"...\"`, got no quoted text" }
     }
-    body :: after.byte_slice(first_quote + 1, after.byte_len() - 1)
-    strings.push(decode_escapes(body))
+    strings.push(text)
     return null
+}
+
+// The text `line` quotes from its first `"` to its end, escapes decoded ; null when
+// it quotes nothing.
+quoted_text :: fn(line: string) -> string | null {
+    first_quote :: line.index_of('"') else return null
+    return decode_escapes(line.byte_slice(first_quote + 1, line.byte_len() - 1))
 }
 /// Decode a hex string (lowercase or uppercase digits) into a byte array.
 /// Odd-length input is rounded down (the bytecode writer always emits
@@ -356,9 +362,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "br_if"          { return BranchIf {} }
     if head == "br"             { return Branch {} }
     if head == "return"         { return Return {} }
-    // `reason` is not serialised to `.virt`: the round-trip VM traps with a
-    // generic message ; the in-memory run and the native build keep the reason.
-    if head == "unreachable"    { return Unreachable { .reason = "" } }
+    if head == "unreachable"    { return Unreachable { .reason = quoted_reason(cleaned) } }
     // Memory opcodes (Target ABI). `buffer.new` carries no operand ; the
     // rest are all-stack, no operands. Landed alongside
     // write_op's arms so a known op never silently drops here (which would
@@ -372,12 +376,12 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "store_i32"      { return StoreI32 {} }
     if head == "store_i64"      { return StoreI64 {} }
     if head == "store_f64"      { return StoreF64 {} }
-    if head == "load_slot_i32"  { return LoadSlotI32 {} }
-    if head == "load_slot_i64"  { return LoadSlotI64 {} }
-    if head == "load_slot_f64"  { return LoadSlotF64 {} }
-    if head == "store_slot_i32" { return StoreSlotI32 {} }
-    if head == "store_slot_i64" { return StoreSlotI64 {} }
-    if head == "store_slot_f64" { return StoreSlotF64 {} }
+    if head == "load_slot_i32"  { return LoadSlotI32 { .bounds_safe = is_bounds_safe(cleaned) } }
+    if head == "load_slot_i64"  { return LoadSlotI64 { .bounds_safe = is_bounds_safe(cleaned) } }
+    if head == "load_slot_f64"  { return LoadSlotF64 { .bounds_safe = is_bounds_safe(cleaned) } }
+    if head == "store_slot_i32" { return StoreSlotI32 { .bounds_safe = is_bounds_safe(cleaned) } }
+    if head == "store_slot_i64" { return StoreSlotI64 { .bounds_safe = is_bounds_safe(cleaned) } }
+    if head == "store_slot_f64" { return StoreSlotF64 { .bounds_safe = is_bounds_safe(cleaned) } }
     if head == "memory_copy"    { return MemoryCopy {} }
     if head == "buffer_to_string" { return BufferToString {} }
     if head == "buffer_write_string" { return BufferWriteString {} }
@@ -842,14 +846,20 @@ parse_array_push :: fn(line: string) -> Op | null {
 }
 
 parse_array_get :: fn(line: string) -> Op | null {
-    parsed :: parse_int_after_prefix(line, "array.get ") else return null
-    return ArrayGet { .type_id = parsed }
+    parsed :: parse_int_in_base(first_token_after(line, "array.get "), 10) else return null
+    return ArrayGet { .type_id = i32(parsed), .bounds_safe = is_bounds_safe(line) }
 }
 
 parse_array_set :: fn(line: string) -> Op | null {
-    parsed :: parse_int_after_prefix(line, "array.set ") else return null
-    return ArraySet { .type_id = parsed }
+    parsed :: parse_int_in_base(first_token_after(line, "array.set "), 10) else return null
+    return ArraySet { .type_id = i32(parsed), .bounds_safe = is_bounds_safe(line) }
 }
+
+// Whether the access `line` writes is marked proven in bounds (` safe`).
+is_bounds_safe :: fn(line: string) -> bool = line.ends_with(" safe")
+
+// The reason `unreachable "..."` quotes, "" when the line gives none.
+quoted_reason :: fn(line: string) -> string = quoted_text(line) else ""
 
 parse_array_slice :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "array.slice ") else return null
@@ -1088,6 +1098,16 @@ one_of_each_op :: fn() -> Op[] = [
         assert(op_doc(head) != null, "`${head}` has an entry in ops.md")
         assert(heads.add(head), "`${head}` is written by one sample only")
     }
+}
+
+@test
+test_a_proven_access_and_a_trap_reason_round_trip :: fn() -> void {
+    assert_eq(roundtrip_op_text(ArrayGet { .type_id = 3, .bounds_safe = true }), "array.get 3 safe")
+    assert_eq(roundtrip_op_text(StoreSlotF64 { .bounds_safe = true }), "store_slot_f64 safe")
+    assert_eq(
+        roundtrip_op_text(Unreachable { .reason = "no \"match\"; here" }),
+        "unreachable \"no \\\"match\\\"; here\"",
+    )
 }
 
 @test test_f64_const_non_finite_roundtrip :: fn() -> void {

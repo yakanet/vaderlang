@@ -39,7 +39,7 @@ fn 0 __const_snippet$CACHED () -> i32
     local.get 0   ; value
     return
   end $L0
-  unreachable
+  unreachable "constant `CACHED` read while its value is computed"
 end
 
 fn 1 snippet$build (bool) -> i32
@@ -68,7 +68,7 @@ fn 2 __const_snippet$LOOP () -> i32
     local.get 0   ; value
     return
   end $L0
-  unreachable
+  unreachable "constant `LOOP` read while its value is computed"
 end
 
 fn 3 snippet$next () -> i32

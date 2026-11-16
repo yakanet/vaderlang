@@ -210,7 +210,7 @@ fn 4 snippet$__gen_state_snippet_0$Iterator$next (ref) -> any
           else
             data.const 0 21   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 21   ; std_core$Stop[]
+            array.get 21 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -1069,7 +1069,7 @@ fn 17 std_string$__gen_state_std_string_0$Iterator$next (ref) -> any
                   end $L11
                   local.get 4   ; or_res
                   if $L12 void
-                    unreachable
+                    unreachable "value out of range: no Unicode scalar value"
                   else
                     local.field 0 17 4   ; arg 0 std_string$__gen_state_std_string_0.s4
                     ref.cast 5   ; u32
@@ -1190,7 +1190,7 @@ fn 17 std_string$__gen_state_std_string_0$Iterator$next (ref) -> any
                       else
                         data.const 0 21   ; pool[0] std_core$Stop[]
                         i64.const 0
-                        array.get 21   ; std_core$Stop[]
+                        array.get 21 safe   ; std_core$Stop[]
                         return
                       end $L17
                       local.get 0   ; arg 0

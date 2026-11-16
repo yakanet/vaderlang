@@ -634,7 +634,7 @@ fn 7 snippet$main () -> i32
   call 18   ; std_console$println__string
   data.const 0 22   ; pool[0] snippet$Two[]
   i64.const 0
-  array.get 22   ; snippet$Two[]
+  array.get 22 safe   ; snippet$Two[]
   local.get 0   ; a
   call 6   ; snippet$Two$Stepper$advance
   i64.const 37

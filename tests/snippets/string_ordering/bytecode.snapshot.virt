@@ -1007,5 +1007,5 @@ fn 24 std_testing$assert_lt__string (string,string) -> void
   local.get 1   ; arg 1
   call 4   ; concat_4
   call.import 2   ; std_core$Intrinsic$panic
-  unreachable
+  unreachable "a no-return call returned"
 end

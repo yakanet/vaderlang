@@ -419,7 +419,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; $struct_5
   data.const 0 26   ; pool[0] std_io$IOError[]
   i64.const 0
-  array.get 26   ; std_io$IOError[]
+  array.get 26 safe   ; std_io$IOError[]
   local.set 1   ; $arr_8
   local.get 0   ; $struct_5
   i64.const 1
@@ -1925,7 +1925,7 @@ fn 26 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         string.const 59   ; "NoDescriptor"
                                         local.set 1   ; if_res

@@ -44,7 +44,7 @@ fn 0 snippet$shape_at (i32) -> any
   else
     data.const 0 13   ; pool[0] snippet$Point[]
     i64.const 0
-    array.get 13   ; snippet$Point[]
+    array.get 13 safe   ; snippet$Point[]
     return
   end $L1
   i32.const 4
@@ -105,7 +105,7 @@ fn 1 snippet$area (i32) -> i32
     type_check 4   ; snippet$Point
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     i32.const 0
     local.set 3   ; if_res
@@ -159,7 +159,7 @@ fn 2 snippet$describe (i32) -> string
       type_check 4   ; snippet$Point
       if $L4 void
       else
-        unreachable
+        unreachable "non-exhaustive match (T3013 should have caught this)"
       end $L4
       string.const 3   ; "point"
       local.set 3   ; if_res

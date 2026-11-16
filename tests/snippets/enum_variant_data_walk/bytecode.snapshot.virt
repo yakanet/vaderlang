@@ -319,7 +319,7 @@ fn 2 snippet$HttpStatus$std_core$Display$to_string (u8) -> string
     i32.eq
     if $L2 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L2
     string.const 8   ; "Unavailable"
     local.set 1   ; if_res

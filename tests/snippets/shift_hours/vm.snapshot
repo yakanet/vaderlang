@@ -5,6 +5,6 @@ long shifts 7
 first month 1
 bytes 230
 # stderr
-vader: trap: reached unreachable: 
+vader: trap: reached unreachable: value out of range: not in `Hour` (0..=23)
 # exit
 134

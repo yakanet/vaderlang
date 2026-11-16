@@ -70,7 +70,7 @@ fn 2 snippet$in_arm (any) -> i32
   type_check 2   ; i32
   if $L1 void
   else
-    unreachable
+    unreachable "non-exhaustive match (T3013 should have caught this)"
   end $L1
   local.get 0   ; arg 0
   struct.new 7   ; __lambda_env_snippet_7

@@ -1250,7 +1250,7 @@ fn 34 std_core$codepoint_at_byte (string,i64) -> (char,i64)
     end $L2
     local.get 5   ; or_res
     if $L3 void
-      unreachable
+      unreachable "value out of range: no Unicode scalar value"
     else
       local.get 3   ; code
       u32.to_char

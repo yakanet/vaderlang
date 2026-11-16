@@ -56,7 +56,7 @@ fn 2 snippet$main () -> i32
   local.set 0   ; local
   data.const 0 13   ; pool[0] snippet$Cfg[]
   i64.const 0
-  array.get 13   ; snippet$Cfg[]
+  array.get 13 safe   ; snippet$Cfg[]
   local.set 1   ; $idx_5
   local.get 0   ; local
   local.get 1   ; $idx_5

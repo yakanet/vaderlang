@@ -77,7 +77,7 @@ fn 3 snippet$main () -> i32
     type_check 3   ; string
     if $L1 void
     else
-      unreachable
+      unreachable "non-exhaustive match (T3013 should have caught this)"
     end $L1
     local.get 1   ; e
     ref.cast 3   ; string

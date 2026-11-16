@@ -945,7 +945,20 @@ parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> BcDat
     esz :: i64(array_kind_element_size(kind))
     bytes_arr :: hex_to_bytes(take_token(tokens, pos))
     bits :: if esz > 0 { read_le(bytes_arr, 0, esz) } else { u64(0) }
-    return BcValPrim { .kind = kind, .bits = bits }
+    return BcValPrim { .kind = kind, .bits = widened_bits(kind, bits, esz) }
+}
+
+// `bits`, read on `esz` bytes, as the emit holds a value of `kind`: a signed integer
+// sign-extended to 64 bits, any other kind as read.
+widened_bits :: fn(kind: ArrayKind, bits: u64, esz: i64) -> u64 {
+    if kind != .I8 && kind != .I16 && kind != .I32 {
+        return bits
+    }
+    sign: u64: 1 << u64(8 * esz - 1)
+    if (bits & sign) == 0 {
+        return bits
+    }
+    return bits | ~(sign + sign - 1)
 }
 
 // Read the token at the cursor and advance it ; "" past the end.
@@ -1340,4 +1353,12 @@ test_parse_virt_bc_reads_the_host_of_an_import :: fn() -> void {
     }
     assert(m.imports[0].intrinsic == .ByteLen, "a member read back by its name")
     assert(m.imports[1].intrinsic == .NotIntrinsic, "an `@extern` calls no member")
+}
+
+@test
+test_a_signed_data_leaf_reads_sign_extended :: fn() -> void {
+    all_ones: u64: 0xFFFF_FFFF_FFFF_FFFF
+    assert_eq(widened_bits(.I32, 0xFFFF_FFFF, 4), all_ones)
+    assert_eq(widened_bits(.I8, 0x7F, 1), 0x7F)
+    assert_eq(widened_bits(.U32, 0xFFFF_FFFF, 4), 0xFFFF_FFFF)
 }

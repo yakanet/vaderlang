@@ -1080,7 +1080,7 @@ fn 24 std_io$describe_io_error_kind (u8,string) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         local.get 1   ; arg 1
                                         local.set 2   ; if_res
@@ -1255,7 +1255,7 @@ fn 25 std_io$IOErrorKind$std_core$Display$to_string (u8) -> string
                                         i32.eq
                                         if $L20 void
                                         else
-                                          unreachable
+                                          unreachable "non-exhaustive match (T3013 should have caught this)"
                                         end $L20
                                         string.const 61   ; "NoDescriptor"
                                         local.set 1   ; if_res

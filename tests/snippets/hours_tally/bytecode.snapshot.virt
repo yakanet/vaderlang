@@ -137,7 +137,7 @@ fn 1 snippet$hour_of (i64) -> u8
     i32.bitand
     return
   end $L1
-  unreachable
+  unreachable "value out of range: not in `Hour` (0..=23)"
 end
 
 fn 2 snippet$below_limit (i64) -> bool

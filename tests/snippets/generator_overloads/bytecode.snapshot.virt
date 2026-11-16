@@ -548,7 +548,7 @@ fn 3 snippet$$genstate_upto$Iterator$next (ref) -> any
           else
             data.const 2 27   ; pool[2] std_core$Stop[]
             i64.const 0
-            array.get 27   ; std_core$Stop[]
+            array.get 27 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -723,7 +723,7 @@ fn 4 snippet$$genstate_upto_1$Iterator$next (ref) -> any
           else
             data.const 2 27   ; pool[2] std_core$Stop[]
             i64.const 0
-            array.get 27   ; std_core$Stop[]
+            array.get 27 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
@@ -2612,7 +2612,7 @@ fn 33 snippet_halves$$genstate_upto$Iterator$next (ref) -> any
         else
           data.const 2 27   ; pool[2] std_core$Stop[]
           i64.const 0
-          array.get 27   ; std_core$Stop[]
+          array.get 27 safe   ; std_core$Stop[]
           return
         end $L6
         local.get 0   ; arg 0

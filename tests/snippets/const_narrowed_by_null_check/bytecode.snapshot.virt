@@ -63,7 +63,7 @@ fn 1 __const_snippet$FOUND () -> any
   i32.const 1
   i32.eq
   if $L0 void
-    unreachable
+    unreachable "constant `FOUND` read while its value is computed"
   else
     i32.const 1
     global.set 0   ; FOUND.state

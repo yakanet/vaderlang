@@ -201,7 +201,7 @@ fn 3 snippet$$genstate_gen$Iterator$next (ref) -> any
             else
               data.const 0 16   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 16   ; std_core$Stop[]
+              array.get 16 safe   ; std_core$Stop[]
               return
             end $L8
             local.field 0 4 0   ; arg 0 snippet$$genstate_gen.s0

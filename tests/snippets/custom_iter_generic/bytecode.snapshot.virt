@@ -99,7 +99,7 @@ fn 1 snippet$Repeat$std_core$Iterator$next__i32 (ref) -> any
   end $L0
   data.const 0 12   ; pool[0] std_core$Stop[]
   i64.const 0
-  array.get 12   ; std_core$Stop[]
+  array.get 12 safe   ; std_core$Stop[]
   return
 end
 

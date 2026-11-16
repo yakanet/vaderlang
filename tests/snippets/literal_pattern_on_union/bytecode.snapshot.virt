@@ -1326,7 +1326,7 @@ fn 23 std_string$to_lower (string) -> string
           end $L4
           local.get 7   ; or_res
           if $L5 void
-            unreachable
+            unreachable "value out of range: no Unicode scalar value"
           end $L5
         end $L3
         local.get 6   ; __in_range_0
@@ -1367,7 +1367,7 @@ fn 23 std_string$to_lower (string) -> string
         end $L7
         local.get 11   ; or_res
         if $L8 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L8
       end $L6
       local.get 9   ; code
@@ -1392,7 +1392,7 @@ fn 23 std_string$to_lower (string) -> string
         end $L10
         local.get 13   ; or_res
         if $L11 void
-          unreachable
+          unreachable "value out of range: no Unicode scalar value"
         end $L11
       end $L9
       local.get 12   ; __in_range_0

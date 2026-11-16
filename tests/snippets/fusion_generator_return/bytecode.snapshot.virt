@@ -1337,7 +1337,7 @@ fn 15 snippet$$genstate_upto_stop$Iterator$next (ref) -> any
               struct.set 4 2   ; snippet$$genstate_upto_stop.state
               data.const 0 27   ; pool[0] std_core$Stop[]
               i64.const 0
-              array.get 27   ; std_core$Stop[]
+              array.get 27 safe   ; std_core$Stop[]
               return
             end $L8
             local.field 0 4 2   ; arg 0 snippet$$genstate_upto_stop.state
@@ -1372,7 +1372,7 @@ fn 15 snippet$$genstate_upto_stop$Iterator$next (ref) -> any
               else
                 data.const 0 27   ; pool[0] std_core$Stop[]
                 i64.const 0
-                array.get 27   ; std_core$Stop[]
+                array.get 27 safe   ; std_core$Stop[]
                 return
               end $L11
               local.get 0   ; arg 0
@@ -1491,7 +1491,7 @@ fn 16 snippet$$genstate_until_negative$Iterator$next (ref) -> any
                     struct.set 7 4   ; snippet$$genstate_until_negative.state
                     data.const 0 27   ; pool[0] std_core$Stop[]
                     i64.const 0
-                    array.get 27   ; std_core$Stop[]
+                    array.get 27 safe   ; std_core$Stop[]
                     return
                   end $L10
                   local.field 0 7 4   ; arg 0 snippet$$genstate_until_negative.state
@@ -1568,7 +1568,7 @@ fn 16 snippet$$genstate_until_negative$Iterator$next (ref) -> any
                           else
                             data.const 0 27   ; pool[0] std_core$Stop[]
                             i64.const 0
-                            array.get 27   ; std_core$Stop[]
+                            array.get 27 safe   ; std_core$Stop[]
                             return
                           end $L17
                           local.field 0 7 0   ; arg 0 snippet$$genstate_until_negative.s0
@@ -1765,7 +1765,7 @@ fn 17 snippet$$genstate_grid_until$Iterator$next (ref) -> any
                     struct.set 8 4   ; snippet$$genstate_grid_until.state
                     data.const 0 27   ; pool[0] std_core$Stop[]
                     i64.const 0
-                    array.get 27   ; std_core$Stop[]
+                    array.get 27 safe   ; std_core$Stop[]
                     return
                   end $L14
                   local.field 0 8 4   ; arg 0 snippet$$genstate_grid_until.state
@@ -1836,7 +1836,7 @@ fn 17 snippet$$genstate_grid_until$Iterator$next (ref) -> any
                         else
                           data.const 0 27   ; pool[0] std_core$Stop[]
                           i64.const 0
-                          array.get 27   ; std_core$Stop[]
+                          array.get 27 safe   ; std_core$Stop[]
                           return
                         end $L19
                         local.get 0   ; arg 0
@@ -2042,7 +2042,7 @@ fn 18 snippet$$genstate_relay$Iterator$next (ref) -> any
                         else
                           data.const 0 27   ; pool[0] std_core$Stop[]
                           i64.const 0
-                          array.get 27   ; std_core$Stop[]
+                          array.get 27 safe   ; std_core$Stop[]
                           return
                         end $L16
                         local.get 0   ; arg 0
@@ -2194,7 +2194,7 @@ fn 19 snippet$$genstate_counter$Iterator$next (ref) -> any
                   struct.set 10 3   ; snippet$$genstate_counter.state
                   data.const 0 27   ; pool[0] std_core$Stop[]
                   i64.const 0
-                  array.get 27   ; std_core$Stop[]
+                  array.get 27 safe   ; std_core$Stop[]
                   return
                 end $L11
                 local.field 0 10 3   ; arg 0 snippet$$genstate_counter.state
@@ -2229,7 +2229,7 @@ fn 19 snippet$$genstate_counter$Iterator$next (ref) -> any
                   else
                     data.const 0 27   ; pool[0] std_core$Stop[]
                     i64.const 0
-                    array.get 27   ; std_core$Stop[]
+                    array.get 27 safe   ; std_core$Stop[]
                     return
                   end $L14
                   local.get 0   ; arg 0
@@ -2369,7 +2369,7 @@ fn 20 snippet$$genstate_labelled_exit$Iterator$next (ref) -> any
                   struct.set 11 1   ; snippet$$genstate_labelled_exit.state
                   data.const 0 27   ; pool[0] std_core$Stop[]
                   i64.const 0
-                  array.get 27   ; std_core$Stop[]
+                  array.get 27 safe   ; std_core$Stop[]
                   return
                 end $L11
                 local.field 0 11 1   ; arg 0 snippet$$genstate_labelled_exit.state
@@ -2399,7 +2399,7 @@ fn 20 snippet$$genstate_labelled_exit$Iterator$next (ref) -> any
                   else
                     data.const 0 27   ; pool[0] std_core$Stop[]
                     i64.const 0
-                    array.get 27   ; std_core$Stop[]
+                    array.get 27 safe   ; std_core$Stop[]
                     return
                   end $L14
                   local.get 0   ; arg 0
@@ -2741,7 +2741,7 @@ fn 27 std_core$__gen_state_std_core_0$Iterator$next (ref) -> any
           else
             data.const 0 27   ; pool[0] std_core$Stop[]
             i64.const 0
-            array.get 27   ; std_core$Stop[]
+            array.get 27 safe   ; std_core$Stop[]
             return
           end $L7
           local.get 0   ; arg 0
