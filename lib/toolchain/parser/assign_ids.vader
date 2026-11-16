@@ -83,6 +83,7 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
                 if v.data !is null {
                     walk_struct_lit_items(v.data, f)
                 }
+                for dec in v.decorators { walk_decorator(dec, f) }
             }
             for dec in d.decorators { walk_decorator(dec, f) }
         }

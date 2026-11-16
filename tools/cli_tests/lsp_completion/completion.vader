@@ -607,6 +607,32 @@ test_completion_after_an_at_sign_offers_the_declared_decorators_that_fit :: fn()
     assert_eq(shown(qualified), "Hidden")
 }
 
+VARIANT_DECORATED_SOURCE :: r"""
+    module "demo"
+
+    /// The reason phrase a status gives.
+    Reason :: decorator(.Variant) {
+        text: string
+    }
+
+    Route :: decorator(.Function) {}
+
+    Status :: enum {
+        @Re
+        Ok
+    }
+    """
+
+// After `@` above an enum variant: the decorators declared for `.Variant`.
+@test
+test_completion_above_a_variant_offers_the_decorators_of_a_variant :: fn() -> void {
+    src :: VARIANT_DECORATED_SOURCE
+    results :: drive("variant_decorators", src, [complete_at(position_of(src, "@Re", 3))])
+    list :: results[0]
+    assert(offers(list, "Reason"), shown(list))
+    assert(!offers(list, "Route"), shown(list))
+}
+
 ROUTE_SNIPPET_SOURCE :: r"""
     module "demo"
 

@@ -299,6 +299,7 @@ walk_enum_decl :: fn(d: AST.EnumDecl, out: RawToken[]) -> void {
     push_span(out, d.name_span, .Type)
     for h in d.header { walk_type_expr(h, out) }
     for v in d.variants {
+        walk_decorators(v.decorators, out)
         push_span(out, v.span, .EnumMember)
         if v.data !is null {
             walk_struct_lit_items(v.data, out)

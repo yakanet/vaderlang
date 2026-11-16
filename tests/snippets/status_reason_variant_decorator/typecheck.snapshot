@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/status_reason_variant_decorator
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Reason               :: Reason
+  StructDecl     Retryable            :: Retryable
+  EnumDecl       Status               :: Status
+  expr 10:21    DotVariantExpr :: DecoratorTarget
+  expr 15:24    DotVariantExpr :: DecoratorTarget
+  expr 18:13    StringLitExpr  :: string
+  expr 20:13    StringLitExpr  :: string
+  expr 23:13    StringLitExpr  :: string
+  expr 28:10    FieldExpr      :: Status
+  expr 28:10    IdentExpr      :: Status
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: i32
+  expr 29:16    IdentExpr      :: type
+  expr 29:20    IdentExpr      :: Status
+  expr 29:26    BinaryExpr     :: bool
+  expr 29:26    IdentExpr      :: Status
+  expr 29:31    DotVariantExpr :: Status
+  expr 29:44    CallExpr       :: i32
+  expr 29:44    IdentExpr      :: type
+  expr 29:48    FieldExpr      :: Status
+  expr 29:48    IdentExpr      :: Status
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void

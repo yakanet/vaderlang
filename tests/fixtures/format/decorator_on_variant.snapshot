@@ -1,0 +1,21 @@
+// tests/fixtures/format/decorator_on_variant: a decorated variant takes a line per
+// decorator above it, so an enum written on one line opens.
+
+module "decorator_on_variant"
+
+Label :: decorator(.Variant) {
+    text: string
+}
+
+Colour :: enum {
+    @Label("red")
+    Red,
+    Green,
+}
+
+Status :: enum(u16) {
+    // The one success.
+    @Label("ok")
+    Ok       = 200,
+    NotFound = 404,
+}

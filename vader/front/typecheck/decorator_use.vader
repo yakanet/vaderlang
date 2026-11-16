@@ -19,7 +19,7 @@ import "vader/core/symbol"
 import "vader/front/resolver"
 
 /// Check every declared decorator written on `decls`, on their struct fields and
-/// on the members of their traits and impls.
+/// enum variants, and on the members of their traits and impls.
 ///
 /// @param decls  the declarations of a module.
 /// @param typed  the module's typed program, the struct tables of the project
@@ -32,6 +32,11 @@ export check_decorator_uses :: fn(decls: AST.Decl[], typed: TypedProgram, diags:
             is AST.StructDecl -> {
                 for f in decl.fields {
                     check_decorators_at(f.decorators, "Field", typed, diags)
+                }
+            }
+            is AST.EnumDecl   -> {
+                for v in decl.variants {
+                    check_decorators_at(v.decorators, "Variant", typed, diags)
                 }
             }
             is AST.TraitDecl -> {

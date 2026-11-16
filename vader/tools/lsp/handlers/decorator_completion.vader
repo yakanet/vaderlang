@@ -317,6 +317,9 @@ place_on_line :: fn(idx: DocIndex, tokens: Token[], line: i32) -> string {
             if node is AST.StructField {
                 return "Field"
             }
+            if node is AST.EnumVariant {
+                return "Variant"
+            }
             if node is AST.Decl {
                 return place_of(node)
             }

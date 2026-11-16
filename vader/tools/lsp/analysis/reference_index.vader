@@ -458,6 +458,7 @@ collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
             collect_decorators(d.decorators, out)
             for h in d.header { collect_type(h, out) }
             for v in d.variants {
+                collect_decorators(v.decorators, out)
                 if v.data !is null {
                     collect_struct_lit_items(v.data, out)
                 }

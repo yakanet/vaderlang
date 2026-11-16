@@ -612,6 +612,8 @@ export EnumVariant :: struct {
     /// type ; null when the variant has none.
     data:        StructLitItem[] | null = null
     doc:         DocComment | null = null
+    /// The declared decorators written above the variant.
+    decorators:  Decorator[] = []
 }
 
 // ---- Trait ----------------------------------------------------------------

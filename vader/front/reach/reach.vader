@@ -45,6 +45,12 @@ referenced_name :: fn(n: AST.Node, out: string[]) -> AST.Walk {
                     out.push(d.name)
                 }
             }
+        } else if n is AST.EnumDecl {
+            for v in n.variants {
+                for d in v.decorators {
+                    out.push(d.name)
+                }
+            }
         }
     }
     return .Descend

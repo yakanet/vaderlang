@@ -6,9 +6,9 @@
 // value, a field and a parameter with their default, a variant with its value or
 // its data, a struct with what it spreads. A function crosses with its
 // signature, a trait or an impl with the members its source writes. A
-// declaration, a field and a parameter cross with their decorators as written,
-// each naming the module that declares it (`Decorator.module_name`): the value a
-// decorator holds stays in the compiler.
+// declaration, a field, a variant and a parameter cross with their decorators as
+// written, each naming the module that declares it (`Decorator.module_name`): the
+// value a decorator holds stays in the compiler.
 //
 // What does not cross: a declaration the compiler made (the helper computing a
 // `@comptime` constant or a decorator argument, a member an impl takes from its
@@ -196,6 +196,7 @@ write_variant :: fn(w: DeclWriter, v: AST.EnumVariant) -> void {
     w.out.write_optional_integer(v.value)
     w.write_optional_span(v.value_span)
     w.write_optional(v.data, write_struct_items)
+    w.write_decorators(v.decorators)
 }
 
 write_trait :: fn(w: DeclWriter, d: AST.TraitDecl) -> void {
@@ -535,12 +536,14 @@ read_variant :: fn(d: DeclReader) -> AST.EnumVariant | ProtocolError {
     data :: d.read_optional(read_struct_items) else is ProtocolError {
         return data
     }
+    decorators :: d.read_decorators() else return decorators
     return AST.EnumVariant {
         .span = span,
         .name = name,
         .value = value,
         .value_span = value_span,
         .data = data,
+        .decorators = decorators,
     }
 }
 
@@ -939,7 +942,10 @@ test_the_decorators_of_every_kind_of_declaration_cross :: fn() -> void {
         }
 
         @Mark
-        Colour :: enum { Red }
+        Colour :: enum {
+            @Mark
+            Red
+        }
 
         @Mark
         Shape :: trait {
@@ -968,6 +974,12 @@ test_the_decorators_of_every_kind_of_declaration_cross :: fn() -> void {
     for d in back {
         assert_eq(AST.decl_decorators(d).len(), 1)
     }
+    colour :: back[2]
+    if colour !is AST.EnumDecl {
+        assert(false, "the third declaration is `Colour`")
+        return
+    }
+    assert_eq(colour.variants[0].decorators.len(), 1)
 }
 
 @test

@@ -1,0 +1,31 @@
+// Declared decorators above enum variants: one with an argument, two stacked.
+// They change nothing in the enum, whose values compare and convert as if the
+// variants carried none.
+
+module "snippet"
+
+import "std/console"
+
+/// The reason phrase a status gives.
+Reason :: decorator(.Variant) {
+    text: string
+}
+
+/// A status a client may retry.
+Retryable :: decorator(.Variant) {}
+
+Status :: enum(u16) {
+    @Reason("OK")
+    Ok          = 200,
+    @Reason("Not Found")
+    NotFound    = 404,
+    @Retryable
+    @Reason("Service Unavailable")
+    Unavailable = 503,
+}
+
+main :: fn() -> i32 {
+    s :: Status.NotFound
+    println("${i32(s)} ${s == .NotFound} ${i32(Status.Unavailable)}")
+    return 0
+}

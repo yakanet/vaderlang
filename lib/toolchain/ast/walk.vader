@@ -368,6 +368,9 @@ inspect_enum :: fn(e: EnumDecl, visit: fn(Node) -> Walk, leave: fn(Node) -> void
         return true
     }
     for v in e.variants {
+        if inspect_decorators(v.decorators, visit, leave) {
+            return true
+        }
         data :: v.data else continue
         if inspect_items(data, visit, leave) {
             return true

@@ -769,6 +769,20 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
     return out
 }
 
+// The declared decorators among `decorators`, written above `place` (`an enum
+// variant`): no decorator of the compiler applies there.
+declared_only :: fn(p: Parser, decorators: Decorator[], place: string) -> Decorator[] {
+    declared: Decorator[]: []
+    for d in decorators {
+        if is_compiler_decorator(d) {
+            p.error(.UnknownDecoratorPlacement, d.span, "`@${d.name}` does not apply to ${place}")
+        } else {
+            declared.push(d)
+        }
+    }
+    return declared
+}
+
 /// Whether `d` is one of the compiler's decorators rather than one a program
 /// declares: an unqualified name the compiler's table holds.
 ///
@@ -1588,6 +1602,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
     for !p.check(.RBrace) && !p.check(.Eof) {
         errors_before :: p.errors.len()
         doc :: p.take_doc()
+        variant_decorators :: p.declared_only(p.parse_decorators(), "an enum variant")
         v_tok :: p.expect(.Ident, "variant name")
         variant_data: StructLitItem[] | null = null
         if p.match_kind(.LBrace) != null {
@@ -1618,6 +1633,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             .value_span = value_span,
             .data       = variant_data,
             .doc        = doc,
+            .decorators = variant_decorators,
         })
         // `expect` reports without consuming : resynchronise on the next
         // separator, or the rejected token is re-read by every iteration.

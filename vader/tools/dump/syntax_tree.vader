@@ -404,6 +404,10 @@ write_enum_decl :: fn(sb: StringBuilder, d: EnumDecl, level: i32) -> void {
             } else {
                 sb.write_struct_lit_items(v.data, level + 3)
             }
+            if v.decorators.len() > 0 {
+                sb.entry(false, level + 3, "decorators")
+                sb.write_decorators(v.decorators, level + 3)
+            }
             sb.close_obj(level + 2)
         }
         sb.close_arr(level + 1)
