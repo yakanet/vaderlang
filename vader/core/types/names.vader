@@ -99,19 +99,6 @@ export primitive_name :: fn(t: Type | null) -> string {
     return ""
 }
 
-/// The name of every scalar type `is_scalar_type_name` answers: the primitives,
-/// then the eight machine integers.
-export scalar_type_names :: fn() -> string[] {
-    names: string[]: []
-    for m in PRIMITIVE_META {
-        names.push(m.name)
-    }
-    for m in MACHINE_INTEGERS {
-        names.push(m.name)
-    }
-    return names
-}
-
 /// Whether `name` spells a scalar type the compiler knows by name : a primitive
 /// (`bool`, `string`, `f64`, ...) or one of the eight machine integers.
 export is_scalar_type_name :: fn(name: string) -> bool =

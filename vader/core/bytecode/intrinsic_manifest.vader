@@ -5,8 +5,8 @@
 // can't drift and a new host trips T3013 at both sites. A host called through
 // `std/core`'s `Intrinsic` is found by its member's name (`host_for`), one still
 // declared by a bodyless `@intrinsic` function by its mangled name
-// (`intrinsic_id_for`), from a table built at compile time through the mangler
-// (`vader/core/mangle`): no mangled name is spelled here.
+// (`intrinsic_id_for`), computed through the mangler (`vader/core/mangle`): no
+// mangled name is spelled here.
 //
 // The arith / buffer bytecode-op table is the selection module's
 // (`vader/midir/select/intrinsics.vader`): which op a host lowers to is a choice of
@@ -19,34 +19,6 @@ import "std/string"
 import "vader/core/mangle"
 import "vader/core/symbol"
 import "vader/core/types"
-
-/// The mangled name of a member of a `std/core` primitive's `@intrinsic` impl:
-/// `("i32", "Equals", "equals")` -> `"std_core$i32$Equals$equals"`.
-///
-/// @param kind    the receiver primitive kind (`"i32"`, `"string"`, ...).
-/// @param trait_  the trait segment (`"Equals"`, `"Display"`, ...).
-/// @param method  the method segment (`"equals"`, `"to_string"`, ...).
-/// @return        the fully mangled host-import name.
-export primitive_member_mangle :: fn(kind: string, trait_: string, method: string) -> string =
-    impl_member_mangle(CORE_MODULE, kind, trait_, method)
-
-/// True iff `mangled` is the `Display` host of an unsigned integer: the VM
-/// carries one in a signed value, which a `u32` or a `u64` past the signed range
-/// leaves negative, so it takes the unsigned reinterpret path.
-///
-/// @param mangled  the host import's mangled name.
-export is_unsigned_display :: fn(mangled: string) -> bool = mangled in UNSIGNED_DISPLAYS
-
-// The `Display` hosts of the unsigned integers.
-UNSIGNED_DISPLAYS: Set<string>: @comptime {
-    out :: Set<string> {}
-    for name in scalar_type_names() {
-        if is_unsigned_int_name(name) {
-            out.add(primitive_member_mangle(name, TRAIT_DISPLAY, METHOD_TO_STRING))
-        }
-    }
-    return out
-}
 
 // ---- host intrinsic identity ----------------------------------------------
 
@@ -74,12 +46,8 @@ export IntrinsicId :: enum(HostMember) {
     Bytes                   { .member = "bytes" },
     BytesToString           { .member = "bytes_to_string" },
     StringHash              { .member = "string_hash" },
-    StringEquals            { .member = "" },
     // std/core values
     DeepCopy                { .member = "" },
-    // primitive members (recognised via the grammar helpers, any width)
-    PrimIntEquals           { .member = "" },
-    PrimDisplayToString     { .member = "" },
     // std/runtime
     RuntimeCollect          { .member = "collect" },
     RuntimeCollections      { .member = "collections" },
@@ -121,13 +89,13 @@ export IntrinsicId :: enum(HostMember) {
 }
 
 /// Classify the mangled name of a host still declared by a bodyless `@intrinsic`
-/// function (a primitive's member, an instance of `deep_copy`) into its
-/// `IntrinsicId`, or `NotIntrinsic` when it isn't one (e.g. an `@extern` symbol,
-/// or a host called through `Intrinsic`, which `host_for` finds by its member).
+/// function (`deep_copy` and its instances) into its `IntrinsicId`, or
+/// `NotIntrinsic` when it isn't one (e.g. an `@extern` symbol, or a host called
+/// through `Intrinsic`, which `host_for` finds by its member).
 ///
 /// @param mangled  the import's mangled name (`BcImport.mangled_name`).
 export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId =
-    HOSTS[mangled] else instance_host(mangled)
+    if copies_deep(mangled) { .DeepCopy } else { .NotIntrinsic }
 
 /// The host a bodyless declaration calls: the one its member of `std/core`'s
 /// `Intrinsic` names, else for a host still declared by a bodyless `@intrinsic`
@@ -182,33 +150,13 @@ HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
     return out
 }
 
-// `deep_copy` takes one host per type it copies, an instance of its own.
-instance_host :: fn(mangled: string) -> IntrinsicId =
-    if mangled.starts_with(DEEP_COPY_INSTANCES) { .DeepCopy } else { .NotIntrinsic }
+// Whether `mangled` names `deep_copy`, or one of its instances: it takes one
+// host per type it copies.
+copies_deep :: fn(mangled: string) = mangled == DEEP_COPY || mangled.starts_with(DEEP_COPY_INSTANCES)
 
-// What the hosts of `deep_copy` at a given type start with.
-DEEP_COPY_INSTANCES :: @comptime instance_prefix(declaration_mangle(CORE_MODULE, "deep_copy"))
-
-// Every host still declared by a bodyless `@intrinsic` function but the
-// instances of `deep_copy`, by mangled name.
-HOSTS: Map<string, IntrinsicId>: @comptime {
-    out :: Map<string, IntrinsicId> {}
-    // The primitives' members: `Equals` of an integer of any width, `Display` of
-    // every scalar a value can hold.
-    for name in scalar_type_names() {
-        if is_int_name(name) {
-            out[primitive_member_mangle(name, TRAIT_EQUALS, METHOD_EQUALS)] = .PrimIntEquals
-        }
-        if name != "void" && name != "null" {
-            display :: primitive_member_mangle(name, TRAIT_DISPLAY, METHOD_TO_STRING)
-            out[display] = .PrimDisplayToString
-        }
-    }
-    out[primitive_member_mangle("string", TRAIT_HASH, "hash")] = .StringHash
-    out[primitive_member_mangle("string", TRAIT_EQUALS, METHOD_EQUALS)] = .StringEquals
-    out[declaration_mangle(CORE_MODULE, "deep_copy")] = .DeepCopy
-    return out
-}
+// The host of `deep_copy`, and what its instances at a given type start with.
+DEEP_COPY :: @comptime declaration_mangle(CORE_MODULE, "deep_copy")
+DEEP_COPY_INSTANCES :: @comptime instance_prefix(DEEP_COPY)
 
 /// Whether a call to host `id` can trigger a collection: the question
 /// `c_emit`'s `compute_may_alloc` asks of every op to decide which fns need a
@@ -238,9 +186,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text, a copy.
-    .Bytes | .BytesToString | .PrimDisplayToString | .DeepCopy -> true
-    // Served by the VM only; natively these are Vader, never a host call.
-    .StringEquals | .PrimIntEquals -> true
+    .Bytes | .BytesToString | .DeepCopy -> true
     // Unclassified: conservatively a safepoint.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> true
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> true
@@ -257,8 +203,8 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
 /// @param id  the host, from `host_for`.
 export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Read a string or a primitive, or build a fresh value from one.
-    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .StringEquals -> false
-    .Bytes | .BytesToString | .PrimDisplayToString | .PrimIntEquals -> false
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> false
+    .Bytes | .BytesToString -> false
     // A copy is a fresh value: the copied one is only read.
     .DeepCopy -> false
     // The collector moves objects and never changes a length; the rest only read.
@@ -283,25 +229,10 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 
 import "std/testing"
 
-@test test_primitive_member_mangle :: fn() -> void {
-    assert_eq(primitive_member_mangle("i32", "Equals", "equals"), r"std_core$i32$Equals$equals")
-    assert_eq(primitive_member_mangle("string", "Display", "to_string"), r"std_core$string$Display$to_string")
-}
-
-@test test_primitive_members_classify_by_width :: fn() -> void {
-    assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "i32 equals")
-    assert(intrinsic_id_for(r"std_core$u8$Equals$equals") == .PrimIntEquals, "u8 equals")
-    char_display :: intrinsic_id_for(r"std_core$char$Display$to_string")
-    assert(char_display == .PrimDisplayToString, "char display")
-    char_equals :: intrinsic_id_for(r"std_core$char$Equals$equals")
-    assert(char_equals == .NotIntrinsic, "char equals is an op")
-    assert(intrinsic_id_for(r"user_mod$Foo$Bar$baz") == .NotIntrinsic, "user mangle")
-}
-
-@test test_unsigned_display :: fn() -> void {
-    assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
-    assert_eq(is_unsigned_display(r"std_core$u8$Display$to_string"), true)
-    assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
+@test test_the_impls_of_the_primitives_are_no_hosts :: fn() -> void {
+    assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .NotIntrinsic, "i32 equals")
+    assert(intrinsic_id_for(r"std_core$string$Hash$hash") == .NotIntrinsic, "string hash")
+    assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .NotIntrinsic, "u8 display")
 }
 
 @test test_hosts_and_members_name_each_other :: fn() -> void {
@@ -311,17 +242,15 @@ import "std/testing"
             assert(host_for(member, "") == id, member)
         }
     }
-    assert(host_for("", r"std_core$string$Hash$hash") == .StringHash, "by mangle without a member")
     assert(host_for("no_such_member", "") == .NotIntrinsic, "an unknown member")
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {
     member_collects :: (member: string) -> intrinsic_may_collect(host_for(member, ""))
-    mangle_collects :: (mangled: string) -> intrinsic_may_collect(intrinsic_id_for(mangled))
     assert(!member_collects("byte_at"), "a byte read never collects")
-    assert(!mangle_collects(r"std_core$string$Hash$hash"), "the hash is cached on the atom")
+    assert(!member_collects("string_hash"), "the hash is cached on the atom")
     assert(member_collects("bytes"), "a view allocates its header")
-    assert(mangle_collects(r"user_mod$foo"), "an unknown host stays a safepoint")
+    assert(intrinsic_may_collect(intrinsic_id_for(r"user_mod$foo")), "an unknown host stays a safepoint")
 }
 
 @test test_intrinsic_id_for :: fn() -> void {
@@ -332,9 +261,6 @@ import "std/testing"
     // silently route it back through `dispatch_import` while the declaration says
     // otherwise: an import neither backend serves.
     assert(intrinsic_id_for(r"std_math$sqrt") == .NotIntrinsic, "math sqrt is no longer a host")
-    assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .PrimIntEquals, "int equals")
-    assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .PrimDisplayToString, "display")
-    assert(intrinsic_id_for(r"std_core$string$Equals$equals") == .StringEquals, "string equals not int")
     assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown -> NotIntrinsic")
     assert(intrinsic_id_for(r"std_core$deep_copy__snippet_Shape") == .DeepCopy, "deep copy instance")
     assert(intrinsic_id_for(r"std_core$deep_copy_tree") == .NotIntrinsic, "a longer name is another fn")

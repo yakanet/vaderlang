@@ -1016,10 +1016,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .TargetCurrentOs -> { return [returning("vader_current_os", [])] }
     .TargetCurrentArch -> { return [returning("vader_current_arch", [])] }
 
-    // Served by the VM only (string equality and the primitive Equals/Display; a
-    // native build reaches them without a host call) plus non-intrinsics.
-    // Grouped so a new IntrinsicId variant trips T3013.
-    .StringEquals | .PrimIntEquals | .PrimDisplayToString | .NotIntrinsic -> {}
+    .NotIntrinsic -> {}
     }
     // User `@extern`: forward to the real C symbol ; everything else is a
     // host fn the c-emit doesn't recognise (version skew) -> trap loudly.

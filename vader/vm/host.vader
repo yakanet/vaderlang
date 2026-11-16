@@ -108,9 +108,8 @@ hosted_frame_call :: fn(
 /// @param is_comptime  true when this dispatch runs inside a `@comptime`
 ///                  evaluation (`exec_comptime_value` path). Gates the hosts such an
 ///                  evaluation may not call (`comptime_refusal`).
-/// @param id        `intrinsic_id_for(info.mangled_name)`, classified by the
-///                  caller: `prepare` does it once per import (`VmState.import_ids`),
-///                  since the classification rebuilds and interns mangled names.
+/// @param id        the host the import calls (`BcImport.host`), which `prepare`
+///                  reads once per import (`VmState.import_ids`).
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, host-level failure, or a host reached
 ///                  at comptime that `comptime_refusal` refuses.
@@ -185,56 +184,6 @@ export dispatch_import :: fn(
     // `StringBuilder implements Display` is pure Vader ; the resolver
     // materialises its body (a `Buffer` filled by `write_string`, then interned),
     // so the VM runs a real fn: there is no host shim to dispatch here.
-    // ---- std/core Display + Equals intrinsics ----------------------------
-    // `@intrinsic string implements Equals`: structural string compare.
-    // Reached when map key lookups dispatch `key.equals(other)` virtually
-    // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
-    .StringEquals -> {
-        a :: read_string(stack[arg_base], at_pc, "equals receiver")
-        if a is Trap { return a }
-        b :: read_string(stack[arg_base + 1], at_pc, "equals arg")
-        if b is Trap { return b }
-        return HostOk { .value = BoolVal(string(a) == string(b)) }
-    }
-    // `@intrinsic <intwidth> implements Equals`: bodyless for every integer
-    // width, so an erased map-key lookup (`Map<Any, K>` with integer K)
-    // dispatches `key.equals(other)` virtually and surfaces it as a host import
-    // (mirror of the string arm above). Reached e.g. by `Set<i32>`.
-    // `read_i64` widens an `I32Val`, so every width compares on its i64 bits:
-    // right for signed and unsigned alike.
-    .PrimIntEquals -> {
-        a :: read_i64(stack[arg_base], at_pc, "equals receiver")
-        if a is Trap { return a }
-        b :: read_i64(stack[arg_base + 1], at_pc, "equals arg")
-        if b is Trap { return b }
-        return HostOk { .value = BoolVal(i64(a) == i64(b)) }
-    }
-    // `<width> implements Display.to_string` for every primitive: the
-    // VM emits the SPEC §9 canonical form via `display_value`. Width
-    // doesn't matter at runtime (every integer collapses to `I32Val`),
-    // so a single arm covers all the per-width manglings.
-    .PrimDisplayToString -> {
-        // An unsigned integer rides a signed carrier : a `u32` past
-        // `i32.MAX` in an `I32Val`, a `u64` past `i64.MAX` in an `I64Val`.
-        // Default `display_value` renders that bit pattern as signed (e.g.
-        // `-9551616` instead of `18446744073700000000`). The lower pass routes
-        // unsigned interpolations through this dispatch, which recovers the
-        // unsigned form by reinterpreting the bit pattern.
-        if bc.is_unsigned_display(info.mangled_name) {
-            v :: stack[arg_base]
-            // @partial: integer carriers reinterpret as unsigned; other tags trap.
-            return @partial match v {
-                is I64Val -> HostOk { .value = StringVal(u64(v).to_string()) }
-                is I32Val -> HostOk { .value = StringVal(u64(u32(v)).to_string()) }
-                // Any other Value tag means the lowerer routed a non-
-                // integer through `<u_width>$Display$to_string`. Trap
-                // loudly so the regression surfaces here instead of as a
-                // mysteriously wrong rendering.
-                _ -> Trap { .message = "${info.mangled_name} at pc=${at_pc}: expected integer Value, got ${describe_value_tag(v)}" }
-            }
-        }
-        return HostOk { .value = StringVal(display_value(stack[arg_base])) }
-    }
     // ---- std/runtime collection counters ---------------------------------
     // The Vader VM has no GC arena ; the snippet tests just need the
     // counter to be present + monotonic. `collect` bumps it, `collections`
@@ -1213,8 +1162,7 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     .TargetCurrentOs | .TargetCurrentArch -> BUILD_MACHINE_REASON
     // Pure : the baked value depends only on the args, never external state.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> null
-    .Bytes | .BytesToString | .StringHash | .StringEquals | .DeepCopy -> null
-    .PrimIntEquals | .PrimDisplayToString -> null
+    .Bytes | .BytesToString | .StringHash | .DeepCopy -> null
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
     // A comptime evaluation treats threads as `vader run` does.

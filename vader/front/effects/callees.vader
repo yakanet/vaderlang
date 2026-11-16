@@ -439,8 +439,7 @@ host_summary :: fn(id: IntrinsicId, paths: PathTable) -> HostSummary = match id 
     .DeepCopy      -> HostSummary { .params = [none()] }
     .FfiCall       -> HostSummary { .params = ffi_call_effects(paths.path_to(ELEMENT)) }
     .FfiCallFrame  -> HostSummary { .params = ffi_call_frame_effects(paths.path_to(ELEMENT)) }
-    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .StringEquals
-        | .PrimIntEquals | .PrimDisplayToString
+    .NotIntrinsic | .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash
         | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
         | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
         | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor

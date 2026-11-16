@@ -150,8 +150,8 @@ method_target :: fn(
     if trait_key != null {
         return VirtualTarget { .trait_key = trait_key, .params = member_params(ctx, field) }
     }
-    // `equals` on a primitive (`@intrinsic`) or an enum (built in) is the comparison
-    // itself : the native build has no host binding for an integer `equals`.
+    // `equals` on an enum is built in, and through a bound on a primitive or an
+    // enum it is the comparison itself.
     if arity > 0 && kept_type_argument(receiver_type) != null && runs_builtin_equals(callee) {
         return EQUALS_TARGET
     }

@@ -22,7 +22,6 @@ bc :: import "vader/core/bytecode"
 
 import "std/math"
 import "std/string"
-import "vader/core/types"
 
 // Maximum frame depth: guards against runaway recursion (the
 // callee-frame allocation could otherwise grow unbounded). Picked
@@ -385,32 +384,6 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
-}
-
-/// Primitive kind ("string" / "char" / "i32" / ...) of `types[type_id]`,
-/// or "" when the entry isn't a `BcScalar`. Used by the virtual.call intrinsic
-/// fallback to rebuild a host mangle.
-primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
-    if type_id < 0 || i64(type_id) >= types.len() { return "" }
-    t :: types[type_id]
-    if t is bc.BcScalar { return bc.val_type_name(t.val) }
-    return ""
-}
-
-/// Build the host import mangle for an `@intrinsic` primitive impl member from
-/// the receiver kind + a `"<trait_key>.method"` vtable key, e.g.
-/// `("string", "std/core.Hash.hash")` -> `"std_core$string$Hash$hash"`. The mangle
-/// grammar itself lives in `core/bytecode/intrinsic_manifest::primitive_member_mangle` ;
-/// this only splits the vtable key. Returns "" when the kind is empty or the
-/// key has no `.`.
-intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
-    if kind == "" { return "" }
-    // `std/core.Display.to_string` : the method follows the LAST dot, a trait
-    // key carries its own.
-    dot :: vtable_key.last_index_of('.') else return ""
-    trait_key :: vtable_key.byte_slice(0, dot)
-    method :: vtable_key.byte_slice(dot + 1, vtable_key.byte_len())
-    return bc.primitive_member_mangle(kind, trait_key_name(trait_key), method)
 }
 
 /// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
@@ -912,22 +885,6 @@ OVERFLOW_MARKER :: "call stack overflow"
 
 // Whether `message` is the one of `overflow_trap`.
 is_overflow_trap_message :: fn(message: string) -> bool = message.starts_with(OVERFLOW_MARKER)
-
-// The import `dispatch_import` serves a host-provided impl on a primitive through
-// (`string implements Hash`): it has no vtable row. Only the name, the arity and
-// a non-void result are read.
-primitive_impl_import :: fn(mangle: string, arity: i64) = bc.BcImport {
-    .extern_name  = "",
-    .mangled_name = mangle,
-    .signature    = bc.BcSignature {
-        .params       = [.Any] * arity,
-        .results      = [.Any],
-        .param_types  = [],
-        .result_types = [0],
-        .param_names  = [],
-    },
-    .is_extern    = false,
-}
 
 // Stable marker in the trap of a global slot reached at comptime, which
 // `pipeline/comptime_vm/resolve.vader` routes to C4018 (`is_singleton_comptime_trap_message`).

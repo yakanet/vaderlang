@@ -103,12 +103,11 @@ arith_op :: fn(lhs: ValType, op: string) -> Op {
 }
 
 /// The op of `+`, `-` or `*` over operands of class `lhs`: a `CheckedArith` on
-/// integers, the float op otherwise. A method call (`a.add(b)`) takes it too
-/// (`intrinsics.vader`), so it stops where the operator does.
+/// integers, the float op otherwise.
 ///
 /// @param lhs  the operand stack class.
 /// @param op   the operation.
-export checked_arith_op :: fn(lhs: ValType, op: CheckedOp) -> Op {
+checked_arith_op :: fn(lhs: ValType, op: CheckedOp) -> Op {
     if is_integer_val(lhs) {
         return CheckedArith { .kind = lhs, .op = op }
     }

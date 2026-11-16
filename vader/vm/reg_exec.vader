@@ -713,48 +713,45 @@ reg_call :: fn(
                         }
                         index = target
                     } else {
-                        resolved :: resolve_virtual(state, m, f, pc, at, is_comptime)
+                        resolved :: resolve_virtual(state, m, f, pc, at)
                         if resolved is Trap {
                             return resolved
                         }
                         index = resolved
                     }
                 }
-                // A negative index: a host primitive impl served the call.
-                if index >= 0 {
-                    callee :: code.functions[index]
-                    steps += 1
-                    if depth >= i64(MAX_FRAME_DEPTH) {
-                        return overflow_trap(callee.name)
-                    }
-                    // `enter_frame` spelled out: a call grows nothing once the run
-                    // is warm, and the helpers (which may) do not inline.
-                    if bits.len() < at + callee.registers {
-                        reserve_registers(m, at + callee.registers)
-                    }
-                    for r in at + callee.params..<at + callee.slots {
-                        tags[r] = .Null
-                    }
-                    constants :: at + callee.slots
-                    for k in 0..<callee.consts.len() {
-                        bits[constants + k] = callee.consts[k]
-                        tags[constants + k] = callee.const_tags[k]
-                    }
-                    if depth < m.frame_code.len() {
-                        m.frame_code[depth] = callee
-                        m.frame_base[depth] = at
-                        m.frame_return[depth] = pc + 1
-                    } else {
-                        grow_frame_records(m, callee, at, pc + 1)
-                    }
-                    depth += 1
-                    base = at
-                    f = callee
-                    ops = f.ops
-                    words = f.words
-                    pc = 0
-                    continue
+                callee :: code.functions[index]
+                steps += 1
+                if depth >= i64(MAX_FRAME_DEPTH) {
+                    return overflow_trap(callee.name)
                 }
+                // `enter_frame` spelled out: a call grows nothing once the run
+                // is warm, and the helpers (which may) do not inline.
+                if bits.len() < at + callee.registers {
+                    reserve_registers(m, at + callee.registers)
+                }
+                for r in at + callee.params..<at + callee.slots {
+                    tags[r] = .Null
+                }
+                constants :: at + callee.slots
+                for k in 0..<callee.consts.len() {
+                    bits[constants + k] = callee.consts[k]
+                    tags[constants + k] = callee.const_tags[k]
+                }
+                if depth < m.frame_code.len() {
+                    m.frame_code[depth] = callee
+                    m.frame_base[depth] = at
+                    m.frame_return[depth] = pc + 1
+                } else {
+                    grow_frame_records(m, callee, at, pc + 1)
+                }
+                depth += 1
+                base = at
+                f = callee
+                ops = f.ops
+                words = f.words
+                pc = 0
+                continue
             }
             .Return | .ReturnMany -> {
                 many :: op == .ReturnMany
@@ -963,15 +960,13 @@ indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: i64, arity: i64, or
 }
 
 // The impl behind the `virtual.call` at `pc` for the receiver on top of its
-// arguments, moved to `at` ahead of them ; `-1` when a host primitive impl served
-// it.
+// arguments, moved to `at` ahead of them.
 resolve_virtual :: fn(
     state: VmState,
     m: RegMachine,
     f: RegFunction,
     pc: i64,
     at: i64,
-    is_comptime: bool,
 ) -> i32 | Trap {
     w :: f.words[pc]
     site :: i64(operand_a(w))
@@ -1004,34 +999,7 @@ resolve_virtual :: fn(
         }
         return target
     }
-    // A host-provided impl on a primitive has no vtable row: rebuild its host
-    // mangle and dispatch it as an import.
-    kind :: primitive_kind_at(state.bc.types, type_id)
-    mangle :: intrinsic_host_mangle(kind, call.vtable_key)
-    if kind == "" || mangle == "" {
-        return Trap { .message = "virtual.call '${call.vtable_key}' : no impl for type ${type_id} at pc=${origin}" }
-    }
-    info :: primitive_impl_import(mangle, count)
-    args: Value[]: []
-    for k in 0..<count {
-        args.push(register_value(m, at + k))
-    }
-    outcome :: dispatch_import(
-        info,
-        args,
-        0,
-        m.run.gc_state,
-        origin,
-        state.string_array_type_id,
-        state.u8_array_type_id,
-        is_comptime,
-        bc.intrinsic_id_for(mangle),
-    )
-    if outcome is Trap {
-        return outcome
-    }
-    set_register(m, at, outcome.value)
-    return -1
+    return Trap { .message = "virtual.call '${call.vtable_key}' : no impl for type ${type_id} at pc=${origin}" }
 }
 
 // A frame with room for the operands and results of any boxed op.

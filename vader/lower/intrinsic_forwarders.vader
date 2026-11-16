@@ -58,15 +58,26 @@ lower_forwarding :: fn(
     callee_span: Span,
 ) -> LoweredExpr {
     if forwarding is ForwardedOperator {
-        return LoweredBinary {
-            .span = span,
-            .type = type,
-            .op = lower_binary_op(forwarding.op),
-            .left = operands[0],
-            .right = operands[1],
-        }
+        return forwarded_binary(forwarding, operands, type, span)
     }
     return lower_intrinsic_member(ctx, forwarding, signature, operands, type, span, callee_span)
+}
+
+/// The native operator `forwarding` applies, on its two `operands`.
+///
+/// @param operands  the left operand, then the right one.
+/// @param type      the operation's result type.
+forwarded_binary :: fn(
+    forwarding: ForwardedOperator,
+    operands: LoweredExpr[],
+    type: Type,
+    span: Span,
+) -> LoweredExpr = LoweredBinary {
+    .span = span,
+    .type = type,
+    .op = lower_binary_op(forwarding.op),
+    .left = operands[0],
+    .right = operands[1],
 }
 
 /// The operation `forwarding` on `operands`, already lowered, at a call the
