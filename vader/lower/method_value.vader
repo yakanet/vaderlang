@@ -47,8 +47,7 @@ try_lower_method_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: FnType) -> Low
         .target = LoweredIdent { .span = e.span, .type = env_type, .symbol = env_param },
         .field = RECEIVER_FIELD,
     }
-    made :: method_call(ctx, e, callee, held, args, type.return_type)
-    call :: observed(ctx, e, .MethodValue, made)
+    call :: method_call(ctx, e, callee, held, args, type.return_type)
     ctx.project.synth_decls.push(
         LoweredStructDecl {
             .mangled = env.name,
@@ -112,5 +111,6 @@ method_call :: fn(
     } else if target is IntrinsicTarget && target.signature.params.len() > 0 {
         operands[0] = prepare_into(ctx, e.target, held, target.signature.params[0], e.span)
     }
-    return build_method_call(ctx, e, .MethodValue, target, e, operands, ret)
+    made :: build_method_call(ctx, e, .MethodValue, target, e, operands, ret)
+    return observed_method(ctx, e, .MethodValue, target, made)
 }

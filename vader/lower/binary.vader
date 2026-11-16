@@ -465,11 +465,11 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         // `0` as right (compare returns i32).
         if info.shape == .DirectCall {
             // Arithmetic + Equals : returns the binary's static type.
-            return mk_lowered_call(target.symbol, call_args, type, binary.span)
+            return member_call(ctx, target, call_args, type, binary.span)
         }
         if info.shape == .NotCall {
             // `a != b` -> `not(equals(a, b))`.
-            equals_call :: mk_lowered_call(target.symbol, call_args, TY_BOOL, binary.span)
+            equals_call :: member_call(ctx, target, call_args, TY_BOOL, binary.span)
             return LoweredUnary {
                 .span = binary.span, .type = TY_BOOL,
                 .op = .Not, .operand = equals_call,
@@ -477,7 +477,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         }
         // OpShape.CompareCmp : `a < b` -> `(compare(a, b)) < 0`, same
         // for <= / > / >=. The outer BinaryOp matches `binary.op`.
-        compare_call :: mk_lowered_call(target.symbol, call_args, TY_I32, binary.span)
+        compare_call :: member_call(ctx, target, call_args, TY_I32, binary.span)
         return LoweredBinary {
             .span = binary.span, .type = TY_BOOL,
             .op    = lower_binary_op(binary.op),
@@ -523,7 +523,7 @@ contains_call :: fn(
     if target is RecordedVirtual {
         return virtual_call(ctx, target.trait_key, METHOD_CONTAINS, coll, [element], TY_BOOL, span)
     }
-    return mk_lowered_call(target.symbol, [coll, element], TY_BOOL, span)
+    return member_call(ctx, target, [coll, element], TY_BOOL, span)
 }
 
 // Emit `a op b` as a virtual call (the receiver is TypeParam-bound, erased to Any,

@@ -133,7 +133,6 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
 
     iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
     step_call :: build_step_call(ctx, in_form.iter, iter_ref, iter_type, step_type, span)
-    observe_lowered(ctx, in_form.iter, .IterNext, step_call)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
         .type = step_type, .value = step_call,
@@ -299,14 +298,32 @@ build_step_call :: fn(
 ) -> LoweredExpr {
     if iter_type is TraitType && is_core_trait(iter_type, TRAIT_ITERATOR) {
         trait_key :: core_trait_key(TRAIT_ITERATOR)
-        return virtual_call(ctx, trait_key, METHOD_NEXT, iter_ref, [], step_union, span)
+        dispatched :: virtual_call(ctx, trait_key, METHOD_NEXT, iter_ref, [], step_union, span)
+        return observed_step(ctx, node, dispatched)
     }
-    next :: step_member(ctx, node, iter_type) else return LoweredUnreachable {
-        .span = span,
-        .type = step_union,
-        .reason = "no Iterator impl on ${display_type(iter_type)}",
+    next :: step_member(ctx, node, iter_type) else {
+        trap :: LoweredUnreachable {
+            .span = span,
+            .type = step_union,
+            .reason = "no Iterator impl on ${display_type(iter_type)}",
+        }
+        return observed_step(ctx, node, trap)
     }
-    return mk_lowered_call(next.symbol, [iter_ref], step_union, span)
+    // The member by name: a `next` that forwards to a primitive operation lowers
+    // as the operation.
+    if node != null {
+        observe_symbol(ctx, node, .IterNext, next.symbol)
+    }
+    return member_call(ctx, next, [iter_ref], step_union, span)
+}
+
+// `made`, reported as what stepping the loop's iterable `node` runs ; nothing to
+// report for an iterator a fused chain steps on its own account (`node` null).
+observed_step :: fn(ctx: FnLowerCtx, node: AST.Expr | null, made: LoweredExpr) -> LoweredExpr {
+    if node != null {
+        observe_lowered(ctx, node, .IterNext, made)
+    }
+    return made
 }
 
 // The `next` a `for` over `iter_type` steps : the member the typecheck recorded at

@@ -191,9 +191,16 @@ observe_virtual :: fn(
 /// @param node  the call's node.
 /// @param decl  the inlined function.
 /// @param name  what the report calls it.
-observe_inlined :: fn(ctx: FnLowerCtx, node: Expr, decl: FnDecl, name: string) -> void {
+/// @param role  the part the site plays at `node`.
+observe_inlined :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    decl: FnDecl,
+    name: string,
+    role: CallRole = .Call,
+) -> void {
     verifier :: ctx.project.callee_verifier else return
-    compare(ctx, verifier, node, .Call, ObservedFn { .decl = decl, .name = name })
+    compare(ctx, verifier, node, role, ObservedFn { .decl = decl, .name = name })
 }
 
 /// Report what an `in` runs: the trait's `contains` through the vtable, or the impl

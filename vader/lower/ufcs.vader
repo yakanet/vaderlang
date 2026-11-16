@@ -44,11 +44,31 @@ try_lower_method_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowe
     }
     operands :: call_operands(ctx, call, field, receiver, target)
     made :: build_method_call(ctx, call, .Call, target, field, operands, type)
+    return observed_method(ctx, call, .Call, target, made)
+}
+
+/// Report what the site `role` plays at `node` runs through `target`, `made`
+/// being its lowering, and hand `made` back. A function that forwards to a
+/// primitive operation, free or a member, is reported by name: `made` is the
+/// operation.
+///
+/// @param target  what the site runs (`method_target`).
+/// @param made    the lowered call.
+observed_method :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    target: MethodTarget,
+    made: LoweredExpr,
+) -> LoweredExpr {
     if target is IntrinsicTarget {
-        observe_inlined(ctx, call, target.forwarder, target.forwarder.name)
-        return made
+        observe_inlined(ctx, node, target.forwarder, target.forwarder.name, role)
+    } else if target is UfcsMember && target.forwarding != null {
+        observe_symbol(ctx, node, role, target.symbol)
+    } else {
+        observe_lowered(ctx, node, role, made)
     }
-    return observed(ctx, call, .Call, made)
+    return made
 }
 
 /// A free fn called by UFCS.

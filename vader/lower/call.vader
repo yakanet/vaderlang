@@ -193,13 +193,13 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         }
         member_callee :: fn_reference(ctx, member_symbol, callee.span, ctx.types.expr_type(callee))
         args :: lower_call_args(ctx, call.args, param_types_of(member_ty), 0)
-        member_call :: LoweredCall {
+        made :: LoweredCall {
             .span = call.span,
             .type = type,
             .callee = member_callee,
             .args = args,
         }
-        return observed(ctx, call, .Call, member_call)
+        return observed(ctx, call, .Call, made)
     }
     return null
 }

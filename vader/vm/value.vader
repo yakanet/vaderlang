@@ -13,7 +13,6 @@
 
 module "vader/vm"
 
-import "std/string"
 import "std/string_builder"
 import "vader/core/bytecode"
 bc :: import "vader/core/bytecode"

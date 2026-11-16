@@ -233,6 +233,7 @@ build_ufcs_member :: fn(
     suffix :: "${receiver_suffix(ctx, entry, target_type)}${entry.overload_suffix}"
     mangled :: impl_member_name(entry.module, target_type, entry.trait_symbol, member.name, suffix)
     arg_types :: impl_member_arg_types(ctx, target_type, member, entry)
+    note_member_origin(ctx, mangled, member, entry.trait_key)
     // A forwarder is never called : nothing to surface or materialise.
     forwarding :: forwarding_of(ctx.project, member)
     if forwarding != null {
@@ -243,7 +244,6 @@ build_ufcs_member :: fn(
     // members : bodyless (`@intrinsic`) -> import ; with-body (e.g. `i32
     // implements Hash -> u64(self)`) -> materialised real fn.
     ctx.project.referenced_impl_mangles.add(mangled)
-    note_member_origin(ctx, mangled, member, entry.trait_key)
     // Array impl (`T[] implements Contains` / `Into`, `MonType[] implements ...`) :
     // the generic-impl materialiser is struct-instance-driven and never reaches an
     // array receiver, so record the element type and the member keyed by this

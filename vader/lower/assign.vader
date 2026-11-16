@@ -276,8 +276,8 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
         return observed(ctx, expr, .IndexRead, read)
     }
     if callee is UfcsMember {
-        at :: mk_lowered_call(callee.symbol, [target, index], type, expr.span)
-        return observed(ctx, expr, .IndexRead, at)
+        observe_symbol(ctx, expr, .IndexRead, callee.symbol)
+        return member_call(ctx, callee, [target, index], type, expr.span)
     }
     element :: LoweredIndex {
         .span = expr.span,
@@ -403,13 +403,9 @@ try_lower_index_set_assign :: fn(
             // Build `set_at(target, index, value)` direct call.
             receiver :: lower_expr(ctx, target.target)
             index :: lower_expr(ctx, target.index)
-            args: LoweredExpr[]: []
-            args.push(receiver)
-            args.push(index)
-            args.push(value)
             return LoweredExprStmt {
                 .span = span,
-                .expr = mk_lowered_call(callee.symbol, args, TY_VOID, span),
+                .expr = member_call(ctx, callee, [receiver, index, value], TY_VOID, span),
             }
         }
         _ -> { return null }
