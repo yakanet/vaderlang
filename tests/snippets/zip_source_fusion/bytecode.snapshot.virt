@@ -6,13 +6,13 @@ type 3 scalar bool
 type 4 scalar string
 type 5 array 2
 type 6 scalar void
-type 7 scalar i64
-type 8 struct std_core$Buffer {  }
+type 7 struct std_core$Buffer {  }
+type 8 scalar i64
 type 9 array 10
 type 10 scalar u8
 type 11 struct std_core$Stop {  }
 type 12 ref std_core$Iterator
-type 13 struct std_iter$__gen_state_std_iter_0 { s0:5,s1:5,s2:7,s3:7,state:2 }
+type 13 struct std_iter$__gen_state_std_iter_0 { s0:5,s1:5,s2:8,s3:8,state:2 }
 type 14 union 1,11
 type 15 ref $genstate_zip
 type 16 array 11
@@ -32,12 +32,12 @@ string 12 "true"
 string 13 "false"
 string 14 "\n"
 data 0 structs 11 0 1
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=8 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=8 param_types=2,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=6 () -> void
-impl 8 std_core$ByteAccess
+impl 7 std_core$ByteAccess
 impl 13 std_core$Iterator
 vtable std_core$Iterator.next 13 14
 export main 3
@@ -1248,10 +1248,10 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
       i32.eq
       if $L3 void
         local.field 0 13 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
-        ref.cast 7   ; i64
+        ref.cast 8   ; i64
         local.set 1   ; $field_12
         local.field 0 13 2   ; arg 0 std_iter$__gen_state_std_iter_0.s2
-        ref.cast 7   ; i64
+        ref.cast 8   ; i64
         local.set 2   ; $field_13
         local.get 1   ; $field_12
         local.get 2   ; $field_13
@@ -1272,7 +1272,7 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
         i32.eq
         if $L5 void
           local.field 0 13 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
-          ref.cast 7   ; i64
+          ref.cast 8   ; i64
           i64.const 1
           i64.add
           local.set 3   ; $add_22
@@ -1294,7 +1294,7 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
             local.field 0 13 0   ; arg 0 std_iter$__gen_state_std_iter_0.s0
             local.set 4   ; $field_28
             local.field 0 13 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
-            ref.cast 7   ; i64
+            ref.cast 8   ; i64
             local.set 5   ; $field_29
             local.get 4   ; $field_28
             local.get 5   ; $field_29
@@ -1303,7 +1303,7 @@ fn 14 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> any
             local.field 0 13 1   ; arg 0 std_iter$__gen_state_std_iter_0.s1
             local.set 7   ; $field_31
             local.field 0 13 3   ; arg 0 std_iter$__gen_state_std_iter_0.s3
-            ref.cast 7   ; i64
+            ref.cast 8   ; i64
             local.set 8   ; $field_32
             local.get 7   ; $field_31
             local.get 8   ; $field_32

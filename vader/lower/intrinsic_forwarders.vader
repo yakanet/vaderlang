@@ -1,0 +1,155 @@
+// vader/lower/intrinsic_forwarders: the functions that only forward their
+// parameters to a member of `std/core`'s `Intrinsic`.
+//
+// The standard library wraps the members of `Intrinsic` in functions of its own
+// (`byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)`), free functions
+// and impl members alike. A call to such a function is lowered as a call to the
+// member: no frame for the wrapper, and an array member stays the node the
+// lowering's own passes read (`LoweredArrayPush`). The rule reads the shape
+// alone, never a name of the library.
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
+import "vader/front/typecheck"
+import "vader/lower/ir"
+
+/// The member of `Intrinsic` `decl` calls when its body is that call alone, on its
+/// parameters in order ; null for any other body.
+///
+/// @param project  holds the table (`find_forwarders`).
+/// @param decl     a function, free or an impl member.
+forwarded_member :: fn(project: LowerProjectCtx, decl: FnDecl) -> FnDecl | null =
+    project.intrinsic_forwarders[decl.id]
+
+/// A call the lowering makes itself to the library's function `sym` : a call to the
+/// member of `Intrinsic` it forwards to, else to `sym`, harvested for
+/// materialisation (a call to a function nothing harvested names no callee).
+///
+/// @param sym       a non-generic function of the library.
+/// @param operands  its arguments, each of its parameter's type.
+/// @param type      its result type.
+library_call :: fn(
+    ctx: FnLowerCtx,
+    sym: Symbol,
+    operands: LoweredExpr[],
+    type: Type,
+    span: Span,
+) -> LoweredExpr {
+    decl :: ctx.typed.fn_decls[sym.id]
+    if decl != null {
+        member :: forwarded_member(ctx.project, decl)
+        if member != null {
+            signature :: intrinsic_signature(ctx, member, first_operand_type(operands))
+            return lower_intrinsic_member(ctx, member, signature, operands, type, span, span)
+        }
+    }
+    register_nongeneric_imported_fn(ctx, sym)
+    return mk_lowered_call(sym, operands, type, span)
+}
+
+// The type of the first of `operands` ; null when there is none.
+first_operand_type :: fn(operands: LoweredExpr[]) -> Type | null {
+    if operands.is_empty() {
+        return null
+    }
+    return operands[0].type
+}
+
+/// Note every function of the project that forwards to a member of `Intrinsic`,
+/// before anything is lowered.
+///
+/// @param project  the project's context, whose table it fills.
+find_forwarders :: fn(project: LowerProjectCtx) -> void {
+    for [module_id, typed] in project.typed.modules {
+        intrinsic :: typed.intrinsic_symbol else continue
+        trait_decl :: typed.trait_decls[intrinsic.id] else continue
+        loaded :: project.loaded.modules[module_id] else continue
+        for d in module_decls(loaded) {
+            if d is FnDecl {
+                note_forwarder(project, d, trait_decl, typed)
+            } else if d is ImplDecl {
+                for member in d.members {
+                    note_forwarder(project, member, trait_decl, typed)
+                }
+            }
+        }
+    }
+}
+
+// Note `decl` when it forwards to a member of `trait_decl`, the `Intrinsic` of
+// the module `typed` checked `decl` in.
+note_forwarder :: fn(
+    project: LowerProjectCtx,
+    decl: FnDecl,
+    trait_decl: TraitDecl,
+    typed: TypedProgram,
+) -> void {
+    call :: single_call(decl) else return
+    member :: recorded_decl(typed, call) else return
+    if !declares(trait_decl, member) {
+        return
+    }
+    if !passes_parameters(call, decl) || !same_signature(decl, member, typed) {
+        return
+    }
+    project.intrinsic_forwarders[decl.id] = member
+}
+
+// Whether `member` is one of the members of `trait_decl`.
+declares :: fn(trait_decl: TraitDecl, member: FnDecl) -> bool {
+    for m in trait_decl.members {
+        if m.id == member.id {
+            return true
+        }
+    }
+    return false
+}
+
+// The call that is the whole body of `decl` ; null for any other body.
+single_call :: fn(decl: FnDecl) -> CallExpr | null {
+    body :: decl.body else return null
+    if !body.stmts.is_empty() {
+        return null
+    }
+    trailing :: body.trailing else return null
+    if trailing is CallExpr {
+        return trailing
+    }
+    return null
+}
+
+// Whether `call` passes the parameters of `decl`, in order, and nothing else.
+passes_parameters :: fn(call: CallExpr, decl: FnDecl) -> bool {
+    if call.args.len() != decl.params.len() {
+        return false
+    }
+    for i in 0..<decl.params.len() {
+        value :: call.args[i].value
+        if value !is IdentExpr || value.name != decl.params[i].name {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `decl` takes the parameters `member` does and returns what it returns,
+// so a call lowered against the member's signature is the call to `decl`. A
+// generic member is bound at each call (`intrinsic_signature`), against types its
+// declaration cannot spell.
+same_signature :: fn(decl: FnDecl, member: FnDecl, typed: TypedProgram) -> bool {
+    if !member.type_params.is_empty() {
+        return true
+    }
+    own :: declared_fn_type(typed, decl)
+    if own !is FnType {
+        return false
+    }
+    intrinsic :: typed.intrinsic_symbol else return false
+    declared :: trait_member_type(intrinsic.id, member, typed)
+    return equals_type(own, declared)
+}

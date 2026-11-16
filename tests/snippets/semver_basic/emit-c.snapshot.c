@@ -277,7 +277,7 @@ static vader_fn_t vader_fn_static_semver$validate_build_id = {
 
 static vader_box_t vader_fn_tramp_std_char$is_white_char(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_bool(5u, std_char$is_white_char(((uint32_t) a0.payload.i)));
+    return vader_box_bool(4u, std_char$is_white_char(((uint32_t) a0.payload.i)));
 }
 
 static vader_fn_t vader_fn_static_std_char$is_white_char = {
@@ -296,15 +296,15 @@ const vader_type_info_t vader_type_info_table[37] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_semver$Version_t, f_prerelease), offsetof(vader_struct_semver$Version_t, f_build) },
         .string_count = 2,
     },
-    [4] = { .slot_size = 8 },
-    [5] = { .slot_size = 1 },
-    [6] = {
+    [4] = { .slot_size = 1 },
+    [5] = { .slot_size = 8 },
+    [6] = { .slot_size = 4 },
+    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 4 },
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
     },
-    [7] = { .slot_size = 1 },
-    [8] = { .slot_size = 4 },
-    [9] = { .slot_size = 4 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
@@ -414,7 +414,7 @@ static vader_string_t vader_host_std_core$Intrinsic$byte_slice(vader_string_t a0
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 6u, 7u);
+    return (void*) vader_string_bytes_view(a0, 9u, 7u);
 }
 
 static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -721,12 +721,12 @@ static void* std_core$utf8_encode(uint32_t l0) {
     t0 = ((int32_t) (uint32_t) l0);
     l1 = (uint32_t) (int32_t) t0;
     if ((l1 < INT32_C(128))) {
-        vader_array_t* _a0_arr = vader_array_new(6u, 1u, 1u, 7u);
+        vader_array_t* _a0_arr = vader_array_new(9u, 1u, 1u, 7u);
         ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) (((int32_t) (uint32_t) l1) & INT32_C(255));
         t1 = (void*) _a0_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a1_arr = vader_array_new(6u, 0u, 1u, 7u);
+    vader_array_t* _a1_arr = vader_array_new(9u, 0u, 1u, 7u);
     l2 = (void*) _a1_arr;
     if ((l1 < INT32_C(2048))) {
         l3 = (l1 >> INT32_C(6));
@@ -2955,7 +2955,7 @@ static void* std_string$split_where(vader_string_t l0, void* l1) {
                 l6 = vader_chk_add(i64, l6, INT64_C(1));
                 l9 = ((uint32_t) (uint8_t) l8);
                 vader_fn_t* _a3_fnobj = (vader_fn_t*) l1;
-                t1 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(8u, (int32_t) l9));
+                t1 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(6u, (int32_t) l9));
                 t2 = t1.payload.b;
                 if (t2) {
                     if (l4) {
@@ -2992,7 +2992,7 @@ static void* std_string$split_where(vader_string_t l0, void* l1) {
             }
             l13 = ((uint32_t) (uint32_t) l11);
             vader_fn_t* _a6_fnobj = (vader_fn_t*) l1;
-            t1 = ((vader_fn_erased_sig_1_t) _a6_fnobj->code)(_a6_fnobj->env, vader_box_i32(8u, (int32_t) l13));
+            t1 = ((vader_fn_erased_sig_1_t) _a6_fnobj->code)(_a6_fnobj->env, vader_box_i32(6u, (int32_t) l13));
             t2 = t1.payload.b;
             if (t2) {
                 if (l4) {
@@ -3030,7 +3030,7 @@ static vader_box_t std_string$last_byte_offset(vader_string_t l0, vader_string_t
     l2 = vader_host_std_core$Intrinsic$byte_len(l0);
     l3 = vader_host_std_core$Intrinsic$byte_len(l1);
     if (l3 == INT64_C(0)) {
-        return vader_box_i64(4u, l2);
+        return vader_box_i64(5u, l2);
     }
     if ((l3 > l2)) {
         return vader_box_obj(0u, NULL);
@@ -3042,7 +3042,7 @@ static vader_box_t std_string$last_byte_offset(vader_string_t l0, vader_string_t
         if (t0 == l4) {
             t1 = std_string$matches_at(l0, l2, l1);
             if (t1) {
-                return vader_box_i64(4u, l2);
+                return vader_box_i64(5u, l2);
             }
         }
         l2 = vader_chk_sub(i64, l2, INT64_C(1));
@@ -3093,7 +3093,7 @@ static vader_box_t std_string$index_of(vader_string_t l0, uint32_t l1, int64_t l
         l5 = t0;
         l6 = l7;
         if (l5 == l1) {
-            return vader_box_i64(4u, l4);
+            return vader_box_i64(5u, l4);
         }
         l4 = vader_chk_add(i64, l4, l6);
     }

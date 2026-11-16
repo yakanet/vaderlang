@@ -15,7 +15,7 @@
       return nodes
   }
   snippet.collect_and_churn :: fn() -> void {  // snippet$collect_and_churn
-      std.runtime.collect()
+      std_core$Intrinsic$collect()
       junk: Node[] = @array.reserve(i64(100000))
       {
           _: i32 = 0
@@ -25,7 +25,7 @@
               _ = _ +% 1
           }
       }
-      std.runtime.collect()
+      std_core$Intrinsic$collect()
   }
   snippet.print_nodes :: fn(label: string, nodes: Node[]) -> void {  // snippet$print_nodes
       std.console.print<string>(label)
@@ -76,10 +76,10 @@
       return 0
   }
   concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
-      c2: i64 = c1 +% std.core.byte_len(p2)
-      c3: i64 = c2 +% std.core.byte_len(p3)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
       buf: Buffer = std.core.new_byte_buffer(c3)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -88,8 +88,8 @@
       std.core.Buffer.intern_string(buf, c3)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -107,8 +107,6 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_signed  // std_core$format_signed
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
@@ -119,5 +117,3 @@
     fn std.core.write_string_at  // std_core$write_string_at
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
-  std/runtime
-    fn std.runtime.collect  // std_runtime$collect

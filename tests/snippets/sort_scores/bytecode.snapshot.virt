@@ -5,15 +5,15 @@ type 2 scalar bool
 type 3 scalar string
 type 4 struct std_core$Buffer {  }
 type 5 scalar i64
-type 6 array 7
-type 7 scalar u8
-type 8 array 1
+type 6 array 1
+type 7 array 8
+type 8 scalar u8
 type 9 scalar void
 type 10 fn (1,1) -> 2
 string 0 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,6,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
 impl 4 std_core$ByteAccess
@@ -54,7 +54,7 @@ fn 1 snippet$main () -> i32
   i32.const 69
   i32.const 14
   i32.const 90
-  array.new 8 20   ; i32[]
+  array.new 6 20   ; i32[]
   local.set 0   ; $arr_20
   fn.ref 0 10   ; snippet$ascending fn
   local.set 1   ; $fn_ref_21
@@ -256,7 +256,7 @@ fn 5 std_core$clone__i32 (ref) -> ref
   local out ref
   local.get 0   ; arg 0
   array.len
-  array.reserve 8   ; i32[]
+  array.reserve 6   ; i32[]
   local.tee 1   ; out
   local.get 0   ; arg 0
   array.push_all
@@ -299,7 +299,7 @@ fn 6 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 6   ; u8[]
+      array.slice 7   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

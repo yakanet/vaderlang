@@ -41,8 +41,8 @@ const vader_type_info_t vader_type_info_table[11] = {
     [2] = { .slot_size = 1 },
     [3] = { .slot_size = 4 },
     [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 8 },
-    [6] = { .slot_size = 1 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 8 },
     [7] = { .slot_size = 4 },
     [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
@@ -50,7 +50,7 @@ const vader_type_info_t vader_type_info_table[11] = {
     },
     [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
 };
 const size_t vader_type_info_count = 11;
@@ -68,7 +68,7 @@ static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t 
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 9u, 6u);
+    return (void*) vader_string_bytes_view(a0, 9u, 5u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {

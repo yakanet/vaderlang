@@ -6,43 +6,43 @@ type 3 struct std_core$Buffer {  }
 type 4 scalar i64
 type 5 scalar u64
 type 6 scalar bool
-type 7 array 8
-type 8 scalar u8
-type 9 scalar i8
-type 10 scalar i16
-type 11 scalar u16
-type 12 scalar u32
-type 13 scalar char
-type 14 scalar f32
-type 15 scalar f64
-type 16 struct std_core$FloatDec32 { mantissa:12,exp:1 }
+type 7 scalar i8
+type 8 scalar i16
+type 9 scalar u8
+type 10 scalar u16
+type 11 scalar u32
+type 12 scalar char
+type 13 scalar f32
+type 14 scalar f64
+type 15 array 9
+type 16 struct std_core$FloatDec32 { mantissa:11,exp:1 }
 type 17 struct std_core$Dec64 { mantissa:5,exp:1 }
 type 18 struct __Tuple_u64_u64_u64_2d035edd { _0:5,_1:5,_2:5 }
 type 19 scalar void
-type 20 struct std_collections$Map__string__u8 { ekeys:36,evals:7,index:37,mask:4,grow_at:4,size:4,tombs:4 }
-type 21 union 0,8
+type 20 struct std_collections$Map__string__u8 { ekeys:36,evals:15,index:37,mask:4,grow_at:4,size:4,tombs:4 }
+type 21 union 0,9
 type 22 struct std_collections$Map__string__bool { ekeys:36,evals:38,index:37,mask:4,grow_at:4,size:4,tombs:4 }
 type 23 union 6,0
 type 24 struct std_collections$Map__string__char { ekeys:36,evals:39,index:37,mask:4,grow_at:4,size:4,tombs:4 }
-type 25 union 13,0
+type 25 union 12,0
 type 26 struct std_collections$Map__string__f32 { ekeys:36,evals:40,index:37,mask:4,grow_at:4,size:4,tombs:4 }
-type 27 union 14,0
+type 27 union 13,0
 type 28 struct std_collections$Map__string__f64 { ekeys:36,evals:41,index:37,mask:4,grow_at:4,size:4,tombs:4 }
-type 29 union 15,0
+type 29 union 14,0
 type 30 struct std_collections$Map__string__i16 { ekeys:36,evals:42,index:37,mask:4,grow_at:4,size:4,tombs:4 }
-type 31 union 10,0
+type 31 union 8,0
 type 32 struct std_collections$Map__string__u16 { ekeys:36,evals:43,index:37,mask:4,grow_at:4,size:4,tombs:4 }
-type 33 union 0,11
+type 33 union 0,10
 type 34 struct std_collections$Map__string__i64 { ekeys:36,evals:44,index:37,mask:4,grow_at:4,size:4,tombs:4 }
 type 35 union 4,0
 type 36 array 2
 type 37 array 1
 type 38 array 6
-type 39 array 13
-type 40 array 14
-type 41 array 15
-type 42 array 10
-type 43 array 11
+type 39 array 12
+type 40 array 13
+type 41 array 14
+type 42 array 8
+type 43 array 10
 type 44 array 4
 type 45 array 5
 string 0 "x"
@@ -93,10 +93,10 @@ data 1 u64 hex"00000000000000000000000000000010000000000000000000000000000000140
 data 2 u64 hex"01000000000000086766666666666606b91e85eb51b81e05fa7e6abc749318042acb10c7bab88d06223cda38622d3e054e637b2de8bd310416d22bafa6fcb506780e238cb8635e052da5b509fa824b04ae6eef75f637df065825595ef85f7f0547847a4b60e6650471a05d129a700907c1e64aa8e126a1056785d5b9e7eb80040b6f22f6a5ac3407a325b59151bdc305e9ea907474979c040eabb4ed53f26007d88890244328e705e0d3a68302edb80466b9d70504488e075294ac04d06c0b06dba9236aa6f0d5042b769f763db4bc07efc4b22b31903006f3038fbc8da6f30451061894af3dec07dad1aca9bf975606e2a7f0baff121205e81f5a6299750e04a6cc296af5887d06ecd687ee5d3a31055612d3bee4612704bd831efe6d69a506979c4bcb24215105ace3a2a250e7400413399e6ae73ece06dc604b55eccb710517e7d5dd89095b04be7189fc420ff806318e07ca683f930528d8d2d453cc7504d959512186e0220747aeda4d6b80b5053958150b893391048ef3ee44dbb84e070bf68b9de293d805d6c43cb11b43ad04bc072eb5929e7b07fdd224c4db7efc05fedb833616ffc9042f936c8a2398a907f3a823d582462106"
 data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f00000000000088130000000000006a18000000000080841e0000000000d01213000000000084d717000000000065cd1d00000000205fa01200000000e876481700000000a2941a1d00000040e59c3012000000901ec4bc160000003426f56b1c000080e03779c3110000a0d8855734160000c84e676dc11b00003d9160e4581100408cb5781daf150050efe2d6e41a1b0092d54d06cff01080f64ae1c7022d1520b49dd97943781a949002282c2a8b10b9340332b7f4ad14e70184fee471d9193081121f2fe727107c21d7e6fae03114dbe98ca039593e195224b00888ef8d1fb3166e05b5b5b813609cc94622e3a61878037cd8ea9bd01e2b824dc772614213b6e22079cff91218641b695743b8171e1eb1a1162ad3ce12661d4a9cf4878217bfa45cc3f129631df7e6191a37fa5d12b560a0e0c478f516e378c818f6d6b21c8d4b7dcf59c6ef11719e5c43f0b76b160dc63354eca5061c"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=15 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 hash std_core$string$Hash$hash result_type=5 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 3 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=7 param_c_out= param_by_address= (ref) -> string
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=15 param_c_out= param_by_address= (ref) -> string
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,15,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=19 () -> void
 impl 3 std_core$ByteAccess
@@ -132,20 +132,20 @@ impl 32 std_core$Contains
 impl 32 std_core$Into
 impl 34 std_core$Contains
 impl 34 std_core$Into
-vtable std_core$Display.to_string 9 8
-vtable std_core$Display.to_string 10 9
+vtable std_core$Display.to_string 7 8
+vtable std_core$Display.to_string 8 9
 vtable std_core$Display.to_string 1 10
 vtable std_core$Display.to_string 4 11
-vtable std_core$Display.to_string 8 12
-vtable std_core$Display.to_string 11 13
-vtable std_core$Display.to_string 12 14
+vtable std_core$Display.to_string 9 12
+vtable std_core$Display.to_string 10 13
+vtable std_core$Display.to_string 11 14
 vtable std_core$Display.to_string 5 15
 vtable std_core$Display.to_string 6 16
-vtable std_core$Display.to_string 13 17
+vtable std_core$Display.to_string 12 17
 vtable std_core$Display.to_string 2 18
 vtable std_core$Display.to_string 0 19
-vtable std_core$Display.to_string 14 20
-vtable std_core$Display.to_string 15 21
+vtable std_core$Display.to_string 13 20
+vtable std_core$Display.to_string 14 21
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -165,7 +165,7 @@ fn 0 snippet$main () -> i32
   local $cast_167 i64
   array.new 36 0   ; string[]
   local.set 0   ; $arr_0
-  array.new 7 0   ; u8[]
+  array.new 15 0   ; u8[]
   local.set 1   ; $arr_1
   array.new 37 0   ; i32[]
   local.set 2   ; $arr_2
@@ -195,7 +195,7 @@ fn 0 snippet$main () -> i32
     call 56   ; std_console$println__string
   else
     local.get 3   ; vx
-    ref.cast 8   ; u8
+    ref.cast 9   ; u8
     local.set 4   ; __p_0
     local.get 0   ; $arr_0
     string.const 1   ; "y"
@@ -352,7 +352,7 @@ fn 0 snippet$main () -> i32
     call 56   ; std_console$println__string
   else
     local.get 3   ; vx
-    ref.cast 13   ; char
+    ref.cast 12   ; char
     call 17   ; std_core$char$Display$to_string
     local.set 5   ; __p_1
     local.get 1   ; $arr_1
@@ -398,7 +398,7 @@ fn 0 snippet$main () -> i32
     call 56   ; std_console$println__string
   else
     local.get 3   ; vx
-    ref.cast 14   ; f32
+    ref.cast 13   ; f32
     call 20   ; std_core$f32$Display$to_string
     local.set 5   ; __p_1
     string.const 17   ; "f32 pi="
@@ -434,7 +434,7 @@ fn 0 snippet$main () -> i32
     call 56   ; std_console$println__string
   else
     local.get 3   ; vx
-    ref.cast 15   ; f64
+    ref.cast 14   ; f64
     call 21   ; std_core$f64$Display$to_string
     local.set 5   ; __p_1
     string.const 20   ; "f64 e="
@@ -480,7 +480,7 @@ fn 0 snippet$main () -> i32
     call 4   ; std_core$write_string_at
     local.set 6   ; $call_25
     local.get 3   ; vx
-    ref.cast 10   ; i16
+    ref.cast 8   ; i16
     i16.to_i64
     local.set 13   ; $cast_167
     local.get 1   ; $arr_1
@@ -531,7 +531,7 @@ fn 0 snippet$main () -> i32
     call 4   ; std_core$write_string_at
     local.set 6   ; $call_25
     local.get 3   ; vx
-    ref.cast 11   ; u16
+    ref.cast 10   ; u16
     u16.to_i64
     local.set 7   ; $cast_33
     local.get 1   ; $arr_1
@@ -615,7 +615,7 @@ fn 0 snippet$main () -> i32
   call 4   ; std_core$write_string_at
   local.set 6   ; $call_25
   local.get 3   ; vx
-  ref.cast 8   ; u8
+  ref.cast 9   ; u8
   u8.to_i64
   local.set 7   ; $cast_33
   local.get 0   ; $arr_0
@@ -1234,10 +1234,10 @@ fn 24 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 7 1   ; u8[]
+    array.new 15 1   ; u8[]
     return
   end $L0
-  array.new 7 0   ; u8[]
+  array.new 15 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -1256,7 +1256,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1270,7 +1270,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 2   ; out
     return
   end $L1
@@ -1291,7 +1291,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -1307,7 +1307,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1321,7 +1321,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
   else
     local.get 1   ; cp
     i32.const 18
@@ -1336,7 +1336,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 1   ; cp
     i32.const 12
     u32.shr
@@ -1352,7 +1352,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -1368,7 +1368,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1382,7 +1382,7 @@ fn 24 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 9   ; u8
   end $L2
   local.get 2   ; out
   return
@@ -1448,7 +1448,7 @@ fn 25 std_core$format_f32 (f32) -> string
   call 27   ; std_core$f2d
   local.set 4   ; d
   local.field 4 16 0   ; d std_core$FloatDec32.mantissa
-  ref.cast 12   ; u32
+  ref.cast 11   ; u32
   u32.to_i64
   local.set 5   ; $cast_34
   local.field 4 16 1   ; d std_core$FloatDec32.exp
@@ -3737,7 +3737,7 @@ fn 53 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 7   ; u8[]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -5461,7 +5461,7 @@ fn 92 std_collections$put__string__char (ref,string,char) -> bool
     array.push 2   ; string
     local.field 0 24 1   ; arg 0 std_collections$Map__string__char.evals
     local.get 2   ; arg 2
-    array.push 13   ; char
+    array.push 12   ; char
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -5637,7 +5637,7 @@ fn 93 std_collections$put__string__f32 (ref,string,f32) -> bool
     array.push 2   ; string
     local.field 0 26 1   ; arg 0 std_collections$Map__string__f32.evals
     local.get 2   ; arg 2
-    array.push 14   ; f32
+    array.push 13   ; f32
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -5813,7 +5813,7 @@ fn 94 std_collections$put__string__f64 (ref,string,f64) -> bool
     array.push 2   ; string
     local.field 0 28 1   ; arg 0 std_collections$Map__string__f64.evals
     local.get 2   ; arg 2
-    array.push 15   ; f64
+    array.push 14   ; f64
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -5989,7 +5989,7 @@ fn 95 std_collections$put__string__i16 (ref,string,i16) -> bool
     array.push 2   ; string
     local.field 0 30 1   ; arg 0 std_collections$Map__string__i16.evals
     local.get 2   ; arg 2
-    array.push 10   ; i16
+    array.push 8   ; i16
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -6341,7 +6341,7 @@ fn 97 std_collections$put__string__u16 (ref,string,u16) -> bool
     array.push 2   ; string
     local.field 0 32 1   ; arg 0 std_collections$Map__string__u16.evals
     local.get 2   ; arg 2
-    array.push 11   ; u16
+    array.push 10   ; u16
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -6471,7 +6471,7 @@ fn 98 std_collections$put__string__u8 (ref,string,u8) -> bool
             local.field 0 20 1   ; arg 0 std_collections$Map__string__u8.evals
             local.get 8   ; ei
             local.get 2   ; arg 2
-            array.set 7   ; u8[]
+            array.set 15   ; u8[]
             return.lit bool.const false
           end $L5
         end $L3
@@ -6510,14 +6510,14 @@ fn 98 std_collections$put__string__u8 (ref,string,u8) -> bool
     local.field 0 20 1   ; arg 0 std_collections$Map__string__u8.evals
     local.get 6   ; $field_13
     local.get 2   ; arg 2
-    array.set 7   ; u8[]
+    array.set 15   ; u8[]
   else
     local.field 0 20 0   ; arg 0 std_collections$Map__string__u8.ekeys
     local.get 1   ; arg 1
     array.push 2   ; string
     local.field 0 20 1   ; arg 0 std_collections$Map__string__u8.evals
     local.get 2   ; arg 2
-    array.push 8   ; u8
+    array.push 9   ; u8
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -6708,7 +6708,7 @@ fn 100 std_collections$get__string__char (ref,string) -> any
           local.field 0 24 1   ; arg 0 std_collections$Map__string__char.evals
           local.get 5   ; ei
           load_slot_i32
-          retag 13   ; char
+          retag 12   ; char
           return
         end $L4
       end $L3
@@ -6781,8 +6781,8 @@ fn 101 std_collections$get__string__f32 (ref,string) -> any
           local.field 0 26 1   ; arg 0 std_collections$Map__string__f32.evals
           local.get 5   ; ei
           array.get 40   ; f32[]
-          ref.cast 14   ; f32
-          retag 14   ; f32
+          ref.cast 13   ; f32
+          retag 13   ; f32
           return
         end $L4
       end $L3
@@ -6855,7 +6855,7 @@ fn 102 std_collections$get__string__f64 (ref,string) -> any
           local.field 0 28 1   ; arg 0 std_collections$Map__string__f64.evals
           local.get 5   ; ei
           load_slot_f64
-          retag 15   ; f64
+          retag 14   ; f64
           return
         end $L4
       end $L3
@@ -6928,8 +6928,8 @@ fn 103 std_collections$get__string__i16 (ref,string) -> any
           local.field 0 30 1   ; arg 0 std_collections$Map__string__i16.evals
           local.get 5   ; ei
           array.get 42   ; i16[]
-          ref.cast 10   ; i16
-          retag 10   ; i16
+          ref.cast 8   ; i16
+          retag 8   ; i16
           return
         end $L4
       end $L3
@@ -7075,8 +7075,8 @@ fn 105 std_collections$get__string__u16 (ref,string) -> any
           local.field 0 32 1   ; arg 0 std_collections$Map__string__u16.evals
           local.get 5   ; ei
           array.get 43   ; u16[]
-          ref.cast 11   ; u16
-          retag 11   ; u16
+          ref.cast 10   ; u16
+          retag 10   ; u16
           return
         end $L4
       end $L3
@@ -7148,9 +7148,9 @@ fn 106 std_collections$get__string__u8 (ref,string) -> any
         if $L4 void
           local.field 0 20 1   ; arg 0 std_collections$Map__string__u8.evals
           local.get 5   ; ei
-          array.get 7   ; u8[]
-          ref.cast 8   ; u8
-          retag 8   ; u8
+          array.get 15   ; u8[]
+          ref.cast 9   ; u8
+          retag 9   ; u8
           return
         end $L4
       end $L3

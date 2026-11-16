@@ -63,6 +63,13 @@ OPS_BY_HOST: Map<string, Op>: @comptime {
     out[buffer("memory_copy")] = MemoryCopy {}
     out[buffer("intern_string")] = BufferToString {}
     out[buffer("write_string")] = BufferWriteString {}
+    intrinsic :: (member: string) -> trait_member_mangle(CORE_MODULE, TRAIT_INTRINSIC, member)
+    out[intrinsic("new_byte_buffer")] = BufferNew {}
+    out[intrinsic("buffer_load_u8")] = LoadU8 {}
+    out[intrinsic("buffer_store_u8")] = StoreU8 {}
+    out[intrinsic("buffer_memory_copy")] = MemoryCopy {}
+    out[intrinsic("buffer_intern_string")] = BufferToString {}
+    out[intrinsic("buffer_write_string")] = BufferWriteString {}
     return out
 }
 

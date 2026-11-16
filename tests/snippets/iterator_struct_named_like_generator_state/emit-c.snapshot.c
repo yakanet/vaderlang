@@ -97,13 +97,13 @@ const vader_type_info_t vader_type_info_table[18] = {
     [9] = { .slot_size = 8 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 11u,
-    },
-    [11] = { .slot_size = 1 },
-    [12] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
     },
+    [11] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 12u,
+    },
+    [12] = { .slot_size = 1 },
     [14] = { .slot_size = 1 },
     [15] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -126,7 +126,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 10u, 11u);
+    return (void*) vader_string_bytes_view(a0, 11u, 12u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -224,7 +224,7 @@ static int32_t snippet$main(void) {
     vader_obj_header_init(_a1_obj, 1u);
     _a1_obj->f_i = INT32_C(0);
     l0 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(12u, 0u, 7u, 3u);
+    vader_array_t* _a2_arr = vader_array_new(10u, 0u, 7u, 3u);
     l3 = (void*) _a2_arr;
     for (;;) {
         l1 = snippet$__genstate_count$std_core$Iterator$next(l0);

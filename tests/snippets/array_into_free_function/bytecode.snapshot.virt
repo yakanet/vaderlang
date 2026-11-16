@@ -6,11 +6,11 @@ type 3 scalar i32
 type 4 struct std_core$Stop {  }
 type 5 array 3
 type 6 scalar string
-type 7 scalar i64
-type 8 array 9
-type 9 scalar u8
-type 10 array 6
-type 11 struct std_core$Buffer {  }
+type 7 array 6
+type 8 struct std_core$Buffer {  }
+type 9 scalar i64
+type 10 array 11
+type 11 scalar u8
 type 12 scalar void
 type 13 scalar bool
 type 14 array 4
@@ -23,15 +23,15 @@ string 5 "]"
 string 6 "0"
 string 7 "\n"
 data 0 structs 4 0 1
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=7 param_types=6 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=8 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=9 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=10 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=3,10,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=12 () -> void
 impl 1 std_core$Iterator
-impl 11 std_core$ByteAccess
+impl 8 std_core$ByteAccess
 impl 5 std_core$Display
-impl 10 std_core$Display
+impl 7 std_core$Display
 export main 2
 
 fn 0 snippet$Reversed$std_core$Iterator$next (ref) -> any
@@ -156,10 +156,10 @@ fn 2 snippet$main () -> i32
   call 16   ; std_console$println__string
   string.const 0   ; "a"
   string.const 1   ; "b"
-  array.new 10 2   ; string[]
+  array.new 7 2   ; string[]
   local.tee 0   ; xs
   array.len
-  array.reserve 10   ; string[]
+  array.reserve 7   ; string[]
   local.set 1   ; walked
   local.get 0   ; xs
   array.len
@@ -173,7 +173,7 @@ fn 2 snippet$main () -> i32
     if $L5 void
       local.get 0   ; xs
       local.get 6   ; __fuse_i_1
-      array.get 10   ; string[]
+      array.get 7   ; string[]
       ref.cast 6   ; string
       call 4   ; __lambda_snippet_1
       local.set 7   ; x
@@ -246,7 +246,7 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
   local $call_16 i64
   local.get 0   ; arg 0
   array.len
-  array.reserve 10   ; string[]
+  array.reserve 7   ; string[]
   local.set 1   ; parts
   i64.const 2
   local.set 2   ; size
@@ -330,7 +330,7 @@ fn 6 std_core$$array$Display$to_string__i32 (ref) -> string
       end $L5
       local.get 1   ; parts
       local.get 4   ; __for_len_1
-      array.get 10   ; string[]
+      array.get 7   ; string[]
       ref.cast 6   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
@@ -366,7 +366,7 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
   local $call_16 i64
   local.get 0   ; arg 0
   array.len
-  array.reserve 10   ; string[]
+  array.reserve 7   ; string[]
   local.set 1   ; parts
   i64.const 2
   local.set 2   ; size
@@ -383,7 +383,7 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
     if $L1 void
       local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
-      array.get 10   ; string[]
+      array.get 7   ; string[]
       ref.cast 6   ; string
       call 9   ; std_core$string$Display$to_string
       local.tee 6   ; part
@@ -451,7 +451,7 @@ fn 7 std_core$$array$Display$to_string__string (ref) -> string
       end $L5
       local.get 1   ; parts
       local.get 4   ; __for_len_1
-      array.get 10   ; string[]
+      array.get 7   ; string[]
       ref.cast 6   ; string
       local.set 6   ; part
       local.get 3   ; __for_arr_0
@@ -655,7 +655,7 @@ fn 13 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 8   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

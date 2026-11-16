@@ -842,21 +842,21 @@ const vader_type_info_t vader_type_info_table[22] = {
     },
     [10] = { .slot_size = 8 },
     [11] = { .slot_size = 8 },
-    [12] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 13u,
-    },
-    [13] = { .slot_size = 1 },
-    [14] = { .slot_size = 8 },
-    [15] = {
+    [12] = { .slot_size = 8 },
+    [13] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Dec64_t),
         .slot_size = 8,
     },
-    [16] = { .slot_size = 1 },
-    [17] = {
+    [14] = { .slot_size = 1 },
+    [15] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_u64_u64_u64_2d035edd_t),
         .slot_size = 8,
     },
+    [16] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 17u,
+    },
+    [17] = { .slot_size = 1 },
     [19] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 3u,
@@ -878,7 +878,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 12u, 13u);
+    return (void*) vader_string_bytes_view(a0, 16u, 17u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -936,7 +936,7 @@ static vader_string_t snippet$describe(vader_box_t l0) {
         t2 = std_core$finish_buffer(l1, l2);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if ((l0.tag == 14u)) {
+    if ((l0.tag == 12u)) {
         t3 = ((double) l0.payload.f);
         l4 = std_core$f64$Display$to_string((t3 * 2.0));
         t2 = concat_2(3u, l4);
@@ -1031,7 +1031,7 @@ static int32_t snippet$main(void) {
     _a1_obj->f_side = INT32_C(1);
     l1 = (void*) _a1_obj;
     vader_array_t* _a2_arr = vader_array_new(19u, 4u, 0u, 3u);
-    vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 3u] = vader_box_f64(14u, 1.5);
+    vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 3u] = vader_box_f64(12u, 1.5);
     vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 2u] = vader_box_i32(4u, INT32_C(41));
     vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 1u] = vader_ref_box(l1);
     vader_array_box_slots(_a2_arr->buf)[vader_array_offset(_a2_arr) + 0u] = vader_ref_box(l0);
@@ -1517,7 +1517,7 @@ static void* std_core$d2d(uint64_t l0, uint64_t l1) {
         l5 = (uint64_t) (int64_t) t2;
         l13 = vader_chk_add(i32, l11, l2);
         vader_struct_std_core$Dec64_t* _a4_obj = (vader_struct_std_core$Dec64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Dec64_t));
-        vader_obj_header_init(_a4_obj, 15u);
+        vader_obj_header_init(_a4_obj, 13u);
         _a4_obj->f_mantissa = l5;
         _a4_obj->f_exp = l13;
         t3 = (void*) _a4_obj;
@@ -1564,7 +1564,7 @@ static void* std_core$d2d(uint64_t l0, uint64_t l1) {
     l5 = (uint64_t) (int64_t) t2;
     l13 = vader_chk_add(i32, l11, l2);
     vader_struct_std_core$Dec64_t* _a5_obj = (vader_struct_std_core$Dec64_t*) vader_gc_alloc(sizeof(vader_struct_std_core$Dec64_t));
-    vader_obj_header_init(_a5_obj, 15u);
+    vader_obj_header_init(_a5_obj, 13u);
     _a5_obj->f_mantissa = l5;
     _a5_obj->f_exp = l13;
     t3 = (void*) _a5_obj;
@@ -1724,7 +1724,7 @@ static void* std_core$mul_shift_all_64(uint64_t l0, uint64_t l1, uint64_t l2, in
     l7 = (uint64_t) (int64_t) t0;
     t1 = std_core$shiftright128(l8, l5, l7);
     vader_struct___Tuple_u64_u64_u64_2d035edd_t* _a0_obj = (vader_struct___Tuple_u64_u64_u64_2d035edd_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_u64_u64_u64_2d035edd_t));
-    vader_obj_header_init(_a0_obj, 17u);
+    vader_obj_header_init(_a0_obj, 15u);
     _a0_obj->f__0 = t1;
     _a0_obj->f__1 = l6;
     _a0_obj->f__2 = l9;

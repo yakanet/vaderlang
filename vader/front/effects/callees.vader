@@ -14,6 +14,7 @@ module "vader/front/effects"
 
 import "std/collections"
 import "std/iter"
+import "std/string"
 import "vader/core/bytecode"
 import "vader/core/mangle"
 import "vader/core/symbol"
@@ -292,8 +293,12 @@ host_of :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> Intr
 }
 
 // The key of a function in `intrinsic_effects` and `task_primitive`:
-// `trait_key.member` for a member of an impl, `module.name` for a free function.
+// `trait_key.member` for a member of an impl or of `Intrinsic`, `module.name` for a
+// free function.
 intrinsic_key :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> string {
+    if decl.id in index.intrinsics {
+        return "${INTRINSIC_KEY_PREFIX}${decl.name}"
+    }
     entry :: index.impls.member_entry(decl)
     if entry != null {
         return vtable_key(entry.trait_key, decl.name)
@@ -431,6 +436,9 @@ host_summary :: fn(id: IntrinsicId, paths: PathTable) -> HostSummary = match id 
 /// @param key    the intrinsic's key.
 intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null {
     elements :: paths.path_to(ELEMENT)
+    if key.starts_with(INTRINSIC_KEY_PREFIX) {
+        return intrinsic_member_effects(key.trim_prefix(INTRINSIC_KEY_PREFIX), elements)
+    }
     array_ops :: core_trait_key(@type_name(ArrayOps))
     // `ByteAccess` is private to `std/core`: no name to take its key from.
     byte_access :: core_trait_key("ByteAccess")
@@ -446,6 +454,27 @@ intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null 
     if key == "${byte_access}.intern_string" { return [none(), none()] }
     if key == "${byte_access}.write_string"  { return writes_bytes(elements) }
     return null
+}
+
+// What the key of a member of `Intrinsic` starts with.
+INTRINSIC_KEY_PREFIX :: @comptime vtable_key(core_trait_key(TRAIT_INTRINSIC), "")
+
+// What the member `member` of `Intrinsic` does with each of its parameters ; null
+// for one the compiler lists no effects for.
+intrinsic_member_effects :: fn(member: string, elements: i32) -> ParamEffects[] | null = match member {
+    "array_len"            -> [none()]
+    "array_push"           -> push_effects(ROOT)
+    "array_push_all"       -> push_effects(elements)
+    "array_copy_to"        -> copy_to_effects(elements)
+    "array_remove_last"    -> [remove_last_effects(elements)]
+    "array_clear"          -> [effects_of(.Shrunk, ROOT)]
+    "new_byte_buffer"      -> [none()]
+    "buffer_load_u8"       -> [none(), none()]
+    "buffer_store_u8"      -> writes_bytes(elements)
+    "buffer_memory_copy"   -> memory_copy_effects(elements)
+    "buffer_intern_string" -> [none(), none()]
+    "buffer_write_string"  -> writes_bytes(elements)
+    _                      -> null
 }
 
 // `self.push(value)` and `self.push_all(other)`: `self` grows, and keeps the value

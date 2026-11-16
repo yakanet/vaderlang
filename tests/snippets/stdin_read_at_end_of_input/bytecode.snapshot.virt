@@ -2,8 +2,8 @@ module _main
 type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
-type 3 scalar i64
-type 4 struct std_core$Buffer {  }
+type 3 struct std_core$Buffer {  }
+type 4 scalar i64
 type 5 scalar bool
 type 6 array 7
 type 7 scalar u8
@@ -43,15 +43,15 @@ string 24 "not connected"
 string 25 "timed out"
 string 26 "too many open files"
 data 0 structs 10 3 1 strref 19 u8 0d i32 00000000
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=3 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=6 param_c_out= param_by_address= (ref) -> string
-import 3 wait_readable std_core$Intrinsic$wait_readable host=wait_readable result_type=8 param_types=3 param_c_out= param_by_address= (i64) -> void
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,6,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 wait_readable std_core$Intrinsic$wait_readable host=wait_readable result_type=8 param_types=4 param_c_out= param_by_address= (i64) -> void
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
-import 7 extern :read system_posix$sys_read headers=<unistd.h> result_type=3 param_types=1,6,3 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
-impl 4 std_core$ByteAccess
+import 7 extern :read system_posix$sys_read headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
+impl 3 std_core$ByteAccess
 impl 10 std_core$Error
 export main 0
 
@@ -696,7 +696,7 @@ fn 17 std_io$descriptor_word (any) -> i64
   if $L1 void
     local.get 0   ; arg 0
     ref.cast 13   ; pointer
-    ref.cast 3   ; i64
+    ref.cast 4   ; i64
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0

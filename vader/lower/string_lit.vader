@@ -258,9 +258,7 @@ lower_interpolation_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> Lowere
     wbool_sym :: resolve_writer_fn(ctx, "write_bool") else return unreachable_buffer("write_bool")
     // Buffer type from `write_string_at`'s self param.
     buffer_type :: writer_buffer(ctx, wstr_sym) else return unreachable_buffer("Buffer")
-    register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, finish_sym)
-    register_nongeneric_imported_fn(ctx, blen_sym)
     register_nongeneric_imported_fn(ctx, wstr_sym)
     register_nongeneric_imported_fn(ctx, wint_sym)
     register_nongeneric_imported_fn(ctx, wuint_sym)
@@ -295,7 +293,7 @@ lower_interpolation_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> Lowere
         } else {
             // A string: bind to a tmp, add a runtime `byte_len` size term.
             tmp_ref :: bind_to_local(ctx, v, string_type, "p", span, stmts)
-            blen_call :: mk_lowered_call(blen_sym, [tmp_ref], TY_I64, span)
+            blen_call :: library_call(ctx, blen_sym, [tmp_ref], TY_I64, span)
             if runtime_size == null { runtime_size = blen_call } else {
                 runtime_size = LoweredBinary { .span = span, .type = TY_I64, .op = .Add, .left = runtime_size, .right = blen_call }
             }
@@ -312,7 +310,7 @@ lower_interpolation_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> Lowere
     buf_sym :: fresh_synthetic_symbol(ctx, "buf")
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
-        .value = mk_lowered_call(nbb_sym, [size], buffer_type, span),
+        .value = library_call(ctx, nbb_sym, [size], buffer_type, span),
     })
     off_sym :: fresh_synthetic_symbol(ctx, "off")
     stmts.push(LoweredLet {

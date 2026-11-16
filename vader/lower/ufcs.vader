@@ -44,6 +44,10 @@ try_lower_method_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowe
     }
     operands :: call_operands(ctx, call, field, receiver, target)
     made :: build_method_call(ctx, call, .Call, target, field, operands, type)
+    if target is IntrinsicTarget {
+        observe_inlined(ctx, call, target.forwarder, target.forwarder.name)
+        return made
+    }
     return observed(ctx, call, .Call, made)
 }
 
@@ -53,6 +57,17 @@ FreeFnTarget :: struct {
     symbol: Symbol
     /// Its declared parameters, the receiver's first.
     params: Type[]
+}
+
+/// A function that only forwards to a member of `Intrinsic` (`forwarded_member`):
+/// the member, called on the receiver and the arguments.
+IntrinsicTarget :: struct {
+    /// The function the site recorded.
+    forwarder: FnDecl
+    /// The member of `Intrinsic` it forwards to.
+    member: FnDecl
+    /// The member's signature at the site, the receiver's parameter first.
+    signature: FnType
 }
 
 /// An array member an operation serves.
@@ -73,9 +88,16 @@ EqualsTarget :: struct {}
 
 EQUALS_TARGET :: EqualsTarget {}
 
-/// What a method-form site calls : a free fn by UFCS, an array's operation, a member
-/// through its trait's vtable, a built-in `equals`, or an impl member.
-MethodTarget :: FreeFnTarget | ArrayOpTarget | VirtualTarget | EqualsTarget | UfcsMember
+/// What a method-form site calls : a member of `Intrinsic` a function forwards to, a
+/// free fn by UFCS, an array's operation, a member through its trait's vtable, a
+/// built-in `equals`, or an impl member.
+MethodTarget ::
+    | IntrinsicTarget
+    | FreeFnTarget
+    | ArrayOpTarget
+    | VirtualTarget
+    | EqualsTarget
+    | UfcsMember
 
 /// What a method-form site recorded as `callee` calls on `receiver`, the lowered
 /// target of `field` ; null for a site no form covers. A call and a method value
@@ -96,6 +118,14 @@ method_target :: fn(
     // file can see. In a generic body it chose against the type parameters, and
     // every instance holds to that choice.
     if callee is DirectFn {
+        member :: forwarded_member(ctx.project, callee.decl)
+        if member != null {
+            return IntrinsicTarget {
+                .forwarder = callee.decl,
+                .member = member,
+                .signature = intrinsic_signature(ctx, member, receiver.type),
+            }
+        }
         free :: ctx.project.fn_symbols[callee.decl.id]
         if free != null {
             return FreeFnTarget { .symbol = free, .params = ufcs_param_types(ctx, free) }
@@ -179,6 +209,9 @@ call_operands :: fn(
     receiver: LoweredExpr,
     target: MethodTarget,
 ) -> LoweredExpr[] = match target {
+    is IntrinsicTarget -> {
+        build_ufcs_args(ctx, field.target, receiver, call, target.signature.params, 1)
+    }
     is FreeFnTarget  -> build_ufcs_args(ctx, field.target, receiver, call, target.params, 1)
     is UfcsMember    -> build_ufcs_args(ctx, field.target, receiver, call, target.arg_types, 0)
     is VirtualTarget -> build_ufcs_args(ctx, field.target, receiver, call, target.params, 0)
@@ -213,6 +246,15 @@ build_method_call :: fn(
 ) -> LoweredExpr {
     span :: node.span
     return match target {
+        is IntrinsicTarget -> lower_intrinsic_member(
+            ctx,
+            target.member,
+            target.signature,
+            operands,
+            ret,
+            span,
+            field.span,
+        )
         is FreeFnTarget  -> mk_lowered_call(
             ufcs_callee_symbol(ctx, node, role, target.symbol),
             operands,

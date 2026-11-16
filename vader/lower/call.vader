@@ -44,16 +44,19 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     mark_produced_structs(type, ctx)
     // A call to a fn iterating its `Iterator` parameter once, handed a fusible
     // chain, becomes the chain's loop before the call itself is formed.
-    // The consumer, the namespace, the cast and the method forms observe their own
-    // choice for the callee verifier (`verify_callees.vader`) ; the others are read
-    // off the call they produce. A form that declines has lowered nothing : a lambda
-    // lowered there would stay behind.
+    // The consumer, the intrinsic, the forwarded, the namespace, the cast and the
+    // method forms observe their own choice for the callee verifier
+    // (`verify_callees.vader`) ; the others are read off the call they produce. A
+    // form that declines has lowered nothing : a lambda lowered there would stay
+    // behind.
     consumer_form :: try_inline_consumer(ctx, call, type)
     if consumer_form != null { return consumer_form }
     intrinsic_form :: try_lower_intrinsic_call(ctx, call, type)
-    if intrinsic_form != null { return observed(ctx, call, .Call, intrinsic_form) }
+    if intrinsic_form != null { return intrinsic_form }
     static_form :: try_lower_static_member_call(ctx, call, type)
     if static_form != null { return observed(ctx, call, .Call, static_form) }
+    forwarded_form :: try_lower_forwarded_call(ctx, call, type)
+    if forwarded_form != null { return forwarded_form }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
     if namespace_form != null { return namespace_form }
     cast_form :: try_lower_cast_call(ctx, call, type)

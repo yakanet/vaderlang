@@ -93,7 +93,7 @@
           } :char)
           __p_7: string = std.core.char.to_string(char(glyph))
           __p_8: string = std.core.char.to_string(char(snippet.Boxed.into(boxed)))
-          __buf_9: Buffer = std.core.new_byte_buffer(i64(27) +% ((std.core.byte_len(__p_6) +% std.core.byte_len(__p_7)) +% std.core.byte_len(__p_8)))
+          __buf_9: Buffer = std.core.new_byte_buffer(i64(27) +% ((std_core$Intrinsic$byte_len(__p_6) +% std_core$Intrinsic$byte_len(__p_7)) +% std_core$Intrinsic$byte_len(__p_8)))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_6)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
@@ -208,9 +208,9 @@
       u32(c)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
-      c2: i64 = c1 +% std.core.byte_len(p2)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
       buf: Buffer = std.core.new_byte_buffer(c2)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -218,8 +218,8 @@
       std.core.Buffer.intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -239,9 +239,6 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
     fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
-    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.char.step  // std_core$char$Step$step
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer

@@ -367,13 +367,13 @@ const vader_type_info_t vader_type_info_table[38] = {
     [5] = { .slot_size = 4 },
     [6] = { .slot_size = 16 },
     [7] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
+        .slot_size = 8,
     },
     [8] = { .slot_size = 1 },
     [9] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
-        .slot_size = 8,
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 10u,
     },
     [10] = { .slot_size = 1 },
     [11] = { .slot_size = 16 },
@@ -467,7 +467,7 @@ static vader_string_t vader_host_std_core$Intrinsic$byte_slice(vader_string_t a0
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 8u);
+    return (void*) vader_string_bytes_view(a0, 9u, 10u);
 }
 
 static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
@@ -678,7 +678,7 @@ static int32_t snippet$main(void) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
     l1 = l2.payload.obj;
-    vader_array_t* _a1_arr = vader_array_new(7u, 1u, 1u, 8u);
+    vader_array_t* _a1_arr = vader_array_new(9u, 1u, 1u, 10u);
     ((uint8_t*) _a1_arr->buf->slots)[vader_array_offset(_a1_arr) + 0u] = (uint8_t) INT32_C(0);
     t1 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_repeat((vader_array_t*) t1, (int64_t) INT64_C(2));
@@ -707,7 +707,7 @@ static int32_t snippet$main(void) {
     t0 = concat_2(10u, l4);
     std_console$println__string(t0);
     std_fs$seek(l1, INT64_C(0), (uint8_t) 0);
-    vader_array_t* _a3_arr = vader_array_new(7u, 0u, 1u, 8u);
+    vader_array_t* _a3_arr = vader_array_new(9u, 0u, 1u, 10u);
     l6 = (void*) _a3_arr;
     vader_struct_std_io$BufferedReader_t* _a4_obj = (vader_struct_std_io$BufferedReader_t*) vader_gc_alloc(sizeof(vader_struct_std_io$BufferedReader_t));
     vader_obj_header_init(_a4_obj, 31u);
@@ -973,7 +973,7 @@ static vader_box_t std_core$index_of__u8(void* l0, uint8_t l1) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 8u);
+        t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 10u);
         t1 = ((uint8_t) t0.payload.i);
         if (t1 == l1) {
             return vader_box_i64(3u, l2);
@@ -2027,7 +2027,7 @@ static vader_box_t std_io$take_through(void* l0, uint8_t l1, int64_t l2) {
         vader_gc_top, 4u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(7u, 0u, 1u, 8u);
+    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 1u, 10u);
     l3 = (void*) _a0_arr;
     for (;;) {
         l4 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_next;
@@ -2114,7 +2114,7 @@ static int64_t std_io$line_break_of(void* l0) {
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
-    t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 8u);
+    t0 = vader_array_read_u8(_a0_slotarr, vader_array_offset(_a0_slotarr) + (size_t) l2, 10u);
     t1 = ((uint8_t) t0.payload.i);
     if (t1 != INT32_C(10)) {
         return INT64_C(0);
@@ -2124,7 +2124,7 @@ static int64_t std_io$line_break_of(void* l0) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l1)
-        t0 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) l1, 8u);
+        t0 = vader_array_read_u8(_a1_slotarr, vader_array_offset(_a1_slotarr) + (size_t) l1, 10u);
         t1 = ((uint8_t) t0.payload.i);
         if (t1 == INT32_C(13)) {
             return INT64_C(2);
@@ -2213,7 +2213,7 @@ static void std_io$reserve(void* l0) {
     vader_gc_top = &gc_frame;
     t0 = vader_array_length(((vader_array_t*) ((vader_struct_std_io$BufferedReader_t*) l0)->f_buffer));
     if (t0 == INT64_C(0)) {
-        vader_array_t* _a0_arr = vader_array_new(7u, 1u, 1u, 8u);
+        vader_array_t* _a0_arr = vader_array_new(9u, 1u, 1u, 10u);
         ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) INT32_C(0);
         l1 = (void*) _a0_arr;
         l2 = ((vader_struct_std_io$BufferedReader_t*) l0)->f_capacity;

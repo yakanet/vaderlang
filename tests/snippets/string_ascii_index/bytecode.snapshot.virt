@@ -3,14 +3,14 @@ type 0 scalar null
 type 1 scalar string
 type 2 scalar void
 type 3 scalar i32
-type 4 scalar bool
-type 5 scalar i64
-type 6 struct std_core$Buffer {  }
-type 7 array 8
-type 8 scalar u8
-type 9 scalar u32
-type 10 scalar char
-type 11 struct std_core$Range__i64 { start:5,end:5,inclusive:4,done:4,cursor:5 }
+type 4 scalar i64
+type 5 struct std_core$Buffer {  }
+type 6 scalar bool
+type 7 scalar u8
+type 8 scalar u32
+type 9 scalar char
+type 10 struct std_core$Range__i64 { start:4,end:4,inclusive:6,done:6,cursor:4 }
+type 11 array 7
 type 12 array 1
 type 13 struct std_string__builder$StringBuilder { parts:12 }
 string 0 ": ascii "
@@ -43,20 +43,20 @@ string 26 "true"
 string 27 "false"
 string 28 "\n"
 string 29 ""
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=5 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=8 param_types=1,5 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=1 param_types=1,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 is_ascii std_core$Intrinsic$is_ascii host=is_ascii result_type=4 param_types=1 param_c_out= param_by_address= (string) -> bool
-import 4 bytes std_core$Intrinsic$bytes host=bytes result_type=7 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 5 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=7 param_c_out= param_by_address= (ref) -> string
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=7 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=1 param_types=1,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 is_ascii std_core$Intrinsic$is_ascii host=is_ascii result_type=6 param_types=1 param_c_out= param_by_address= (string) -> bool
+import 4 bytes std_core$Intrinsic$bytes host=bytes result_type=11 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 5 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=11 param_c_out= param_by_address= (ref) -> string
 import 6 collect std_core$Intrinsic$collect host=collect result_type=2 () -> void
-import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=3,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 7 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=3,11,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 8 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 9 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=2 () -> void
-impl 6 std_core$ByteAccess
+impl 5 std_core$ByteAccess
 impl 13 std_core$Display
-impl 11 std_core$Contains
-impl 11 std_core$Iterator
+impl 10 std_core$Contains
+impl 10 std_core$Iterator
 export main 1
 
 fn 0 snippet$show (string,string) -> void
@@ -190,7 +190,7 @@ fn 1 snippet$main () -> i32
   i32.const 97
   i32.const 98
   i32.const 99
-  array.new 7 3   ; u8[]
+  array.new 11 3   ; u8[]
   call.import 5   ; std_core$Intrinsic$bytes_to_string
   local.set 0   ; $call_9
   string.const 14   ; "bytes"
@@ -198,7 +198,7 @@ fn 1 snippet$main () -> i32
   call 0   ; snippet$show
   i32.const 97
   i32.const 255
-  array.new 7 2   ; u8[]
+  array.new 11 2   ; u8[]
   call.import 5   ; std_core$Intrinsic$bytes_to_string
   local.set 0   ; $call_9
   string.const 15   ; "malformed bytes"
@@ -417,7 +417,7 @@ fn 1 snippet$main () -> i32
   bool.const false
   bool.const false
   i64.const 4
-  struct.new 11   ; std_core$Range__i64
+  struct.new 10   ; std_core$Range__i64
   local.set 3   ; garbage
   local.get 0   ; $call_9
   local.get 3   ; garbage
@@ -428,7 +428,7 @@ fn 1 snippet$main () -> i32
   bool.const false
   bool.const false
   i64.const 16
-  struct.new 11   ; std_core$Range__i64
+  struct.new 10   ; std_core$Range__i64
   local.set 3   ; garbage
   local.get 0   ; $call_9
   local.get 3   ; garbage
@@ -439,7 +439,7 @@ fn 1 snippet$main () -> i32
   bool.const true
   bool.const false
   i64.const 10
-  struct.new 11   ; std_core$Range__i64
+  struct.new 10   ; std_core$Range__i64
   local.set 3   ; garbage
   local.get 0   ; $call_9
   local.get 3   ; garbage
@@ -450,7 +450,7 @@ fn 1 snippet$main () -> i32
   bool.const false
   bool.const false
   i64.const 9
-  struct.new 11   ; std_core$Range__i64
+  struct.new 10   ; std_core$Range__i64
   local.set 3   ; garbage
   local.get 0   ; $call_9
   local.get 3   ; garbage
@@ -479,7 +479,7 @@ fn 1 snippet$main () -> i32
   bool.const false
   bool.const false
   i64.const 4
-  struct.new 11   ; std_core$Range__i64
+  struct.new 10   ; std_core$Range__i64
   local.set 3   ; garbage
   local.get 0   ; $call_9
   local.get 3   ; garbage
@@ -490,7 +490,7 @@ fn 1 snippet$main () -> i32
   bool.const false
   bool.const false
   i64.const 7
-  struct.new 11   ; std_core$Range__i64
+  struct.new 10   ; std_core$Range__i64
   local.set 3   ; garbage
   local.get 0   ; $call_9
   local.get 3   ; garbage
@@ -1337,8 +1337,8 @@ fn 15 std_core$string$Index$at$1 (string,ref) -> string
   call.import 3   ; std_core$Intrinsic$is_ascii
   if $L0 void
   else
-    local.field 1 11 0   ; arg 1 std_core$Range__i64.start
-    ref.cast 5   ; i64
+    local.field 1 10 0   ; arg 1 std_core$Range__i64.start
+    ref.cast 4   ; i64
     local.set 2   ; $field_3
     local.get 0   ; arg 0
     i64.const 0
@@ -1359,11 +1359,11 @@ fn 15 std_core$string$Index$at$1 (string,ref) -> string
     call.import 2   ; std_core$Intrinsic$byte_slice
     return
   end $L0
-  local.field 1 11 0   ; arg 1 std_core$Range__i64.start
-  ref.cast 5   ; i64
+  local.field 1 10 0   ; arg 1 std_core$Range__i64.start
+  ref.cast 4   ; i64
   local.set 2   ; $field_3
-  local.field 1 11 0   ; arg 1 std_core$Range__i64.start
-  ref.cast 5   ; i64
+  local.field 1 10 0   ; arg 1 std_core$Range__i64.start
+  ref.cast 4   ; i64
   local.set 3   ; $field_4
   local.get 1   ; arg 1
   call 19   ; std_core$codepoint_count
@@ -1394,10 +1394,10 @@ fn 16 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 7 1   ; u8[]
+    array.new 11 1   ; u8[]
     return
   end $L0
-  array.new 7 0   ; u8[]
+  array.new 11 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -1416,7 +1416,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1430,7 +1430,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 2   ; out
     return
   end $L1
@@ -1451,7 +1451,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -1467,7 +1467,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1481,7 +1481,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
   else
     local.get 1   ; cp
     i32.const 18
@@ -1496,7 +1496,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 1   ; cp
     i32.const 12
     u32.shr
@@ -1512,7 +1512,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -1528,7 +1528,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1542,7 +1542,7 @@ fn 16 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 8   ; u8
+    array.push 7   ; u8
   end $L2
   local.get 2   ; out
   return
@@ -1671,27 +1671,27 @@ end
 fn 19 std_core$codepoint_count (ref) -> i64
   local end i64
   local $field_6 i64
-  local.field 0 11 1   ; arg 0 std_core$Range__i64.end
-  ref.cast 5   ; i64
+  local.field 0 10 1   ; arg 0 std_core$Range__i64.end
+  ref.cast 4   ; i64
   local.set 1   ; end
-  local.field 0 11 2   ; arg 0 std_core$Range__i64.inclusive
-  ref.cast 4   ; bool
+  local.field 0 10 2   ; arg 0 std_core$Range__i64.inclusive
+  ref.cast 6   ; bool
   if $L0 void
     local.get 1   ; end
     i64.const 1
     i64.checked_add
     local.set 1   ; end
   end $L0
-  local.field 0 11 0   ; arg 0 std_core$Range__i64.start
-  ref.cast 5   ; i64
+  local.field 0 10 0   ; arg 0 std_core$Range__i64.start
+  ref.cast 4   ; i64
   local.set 2   ; $field_6
   local.get 1   ; end
   local.get 2   ; $field_6
   i64.lt
   if $L1 void
   else
-    local.field 0 11 0   ; arg 0 std_core$Range__i64.start
-    ref.cast 5   ; i64
+    local.field 0 10 0   ; arg 0 std_core$Range__i64.start
+    ref.cast 4   ; i64
     local.set 2   ; $field_6
     local.get 1   ; end
     local.get 2   ; $field_6
@@ -1736,7 +1736,7 @@ fn 20 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 7   ; u8[]
+      array.slice 11   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

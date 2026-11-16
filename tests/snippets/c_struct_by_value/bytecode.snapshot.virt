@@ -13,12 +13,12 @@ type 10 scalar u8
 type 11 struct std_core$Buffer {  }
 type 12 scalar i64
 type 13 scalar u64
-type 14 array 10
-type 15 scalar f64
-type 16 struct std_core$FloatDec32 { mantissa:8,exp:1 }
-type 17 scalar bool
-type 18 struct std_core$Dec64 { mantissa:13,exp:1 }
-type 19 struct __Tuple_u64_u64_u64_2d035edd { _0:13,_1:13,_2:13 }
+type 14 scalar f64
+type 15 struct std_core$FloatDec32 { mantissa:8,exp:1 }
+type 16 scalar bool
+type 17 struct std_core$Dec64 { mantissa:13,exp:1 }
+type 18 struct __Tuple_u64_u64_u64_2d035edd { _0:13,_1:13,_2:13 }
+type 19 array 10
 type 20 scalar void
 type 21 array 7
 type 22 array 13
@@ -56,8 +56,8 @@ import 5 extern box2_area snippet$box2_area headers=helper.h result_type=6 param
 import 6 extern texture_load snippet$texture_load headers=helper.h result_type=9 param_types=8 param_c_out= param_by_address= (u32) -> ref
 import 7 extern texture_checksum snippet$texture_checksum headers=helper.h result_type=1 param_types=9 param_c_out= param_by_address= (ref) -> i32
 import 8 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 9 bytes std_core$Intrinsic$bytes host=bytes result_type=14 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 10 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=1,14,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 9 bytes std_core$Intrinsic$bytes host=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 10 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=1,19,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 11 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 12 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=20 () -> void
 impl 11 std_core$ByteAccess
@@ -974,11 +974,11 @@ fn 10 std_core$format_f32 (f32) -> string
   local.get 1   ; bits
   call 12   ; std_core$f2d
   local.set 4   ; d
-  local.field 4 16 0   ; d std_core$FloatDec32.mantissa
+  local.field 4 15 0   ; d std_core$FloatDec32.mantissa
   ref.cast 8   ; u32
   u32.to_i64
   local.set 5   ; $cast_34
-  local.field 4 16 1   ; d std_core$FloatDec32.exp
+  local.field 4 15 1   ; d std_core$FloatDec32.exp
   ref.cast 1   ; i32
   local.set 6   ; $field_35
   local.get 5   ; $cast_34
@@ -1046,10 +1046,10 @@ fn 11 std_core$format_f64 (f64) -> string
   local.get 1   ; bits
   call 14   ; std_core$d2d
   local.set 4   ; d
-  local.field 4 18 0   ; d std_core$Dec64.mantissa
+  local.field 4 17 0   ; d std_core$Dec64.mantissa
   ref.cast 13   ; u64
   local.set 1   ; bits
-  local.field 4 18 1   ; d std_core$Dec64.exp
+  local.field 4 17 1   ; d std_core$Dec64.exp
   ref.cast 1   ; i32
   local.set 5   ; $field_34
   local.get 1   ; bits
@@ -1588,7 +1588,7 @@ fn 12 std_core$f2d (u32,u32) -> ref
     local.set 15   ; q
     local.get 3   ; m2
     local.get 15   ; q
-    struct.new 16   ; std_core$FloatDec32
+    struct.new 15   ; std_core$FloatDec32
     return
   end $L14
   loop $L29 void
@@ -1652,7 +1652,7 @@ fn 12 std_core$f2d (u32,u32) -> ref
   local.set 15   ; q
   local.get 3   ; m2
   local.get 15   ; q
-  struct.new 16   ; std_core$FloatDec32
+  struct.new 15   ; std_core$FloatDec32
   return
 end
 
@@ -1875,13 +1875,13 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 26   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 19 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    local.field 17 18 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
     ref.cast 13   ; u64
     local.set 8   ; vr
-    local.field 17 19 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    local.field 17 18 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
     ref.cast 13   ; u64
     local.set 9   ; vp
-    local.field 17 19 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    local.field 17 18 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
     ref.cast 13   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
@@ -1989,13 +1989,13 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.get 7   ; mm_shift
     call 26   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
-    local.field 17 19 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
+    local.field 17 18 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
     ref.cast 13   ; u64
     local.set 8   ; vr
-    local.field 17 19 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
+    local.field 17 18 1   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._1
     ref.cast 13   ; u64
     local.set 9   ; vp
-    local.field 17 19 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
+    local.field 17 18 2   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._2
     ref.cast 13   ; u64
     local.set 10   ; vm
     local.get 13   ; $call_57
@@ -2236,7 +2236,7 @@ fn 14 std_core$d2d (u64,u64) -> ref
     local.set 13   ; $call_57
     local.get 5   ; mv
     local.get 13   ; $call_57
-    struct.new 18   ; std_core$Dec64
+    struct.new 17   ; std_core$Dec64
     return
   end $L10
   bool.const false
@@ -2340,7 +2340,7 @@ fn 14 std_core$d2d (u64,u64) -> ref
   local.set 13   ; $call_57
   local.get 5   ; mv
   local.get 13   ; $call_57
-  struct.new 18   ; std_core$Dec64
+  struct.new 17   ; std_core$Dec64
   return
 end
 
@@ -2832,7 +2832,7 @@ fn 26 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   call 36   ; std_core$shiftright128
   local.get 6   ; tmp
   local.get 9   ; $add_28
-  struct.new 19   ; __Tuple_u64_u64_u64_2d035edd
+  struct.new 18   ; __Tuple_u64_u64_u64_2d035edd
   return
 end
 
@@ -3264,7 +3264,7 @@ fn 38 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 14   ; u8[]
+      array.slice 19   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

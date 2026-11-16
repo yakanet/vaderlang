@@ -20,15 +20,15 @@ type 17 ref std_core$Display
 type 18 struct std_core$Buffer {  }
 type 19 scalar i64
 type 20 scalar u64
-type 21 array 3
-type 22 scalar i8
-type 23 scalar i16
-type 24 scalar u16
-type 25 scalar u32
-type 26 scalar char
-type 27 scalar f32
-type 28 scalar f64
-type 29 struct std_core$FloatDec32 { mantissa:25,exp:4 }
+type 21 scalar i8
+type 22 scalar i16
+type 23 scalar u16
+type 24 scalar u32
+type 25 scalar char
+type 26 scalar f32
+type 27 scalar f64
+type 28 array 3
+type 29 struct std_core$FloatDec32 { mantissa:24,exp:4 }
 type 30 struct std_core$Dec64 { mantissa:20,exp:4 }
 type 31 struct __Tuple_u64_u64_u64_2d035edd { _0:20,_1:20,_2:20 }
 type 32 scalar void
@@ -39,8 +39,8 @@ type 36 union 3,34
 type 37 union 38,7
 type 38 ref std_core$Hash
 type 39 union 17,13
-type 40 union 2,26,34,27,28,23,4,19,22,7,24,25,20,3
-type 41 union 2,26,17,27,28,23,4,19,22,7,24,25,20,3
+type 40 union 2,25,34,26,27,22,4,19,21,7,23,24,20,3
+type 41 union 2,25,17,26,27,22,4,19,21,7,23,24,20,3
 type 42 array 7
 type 43 array 20
 string 0 "equals"
@@ -72,9 +72,9 @@ data 1 u64 hex"00000000000000000000000000000010000000000000000000000000000000140
 data 2 u64 hex"01000000000000086766666666666606b91e85eb51b81e05fa7e6abc749318042acb10c7bab88d06223cda38622d3e054e637b2de8bd310416d22bafa6fcb506780e238cb8635e052da5b509fa824b04ae6eef75f637df065825595ef85f7f0547847a4b60e6650471a05d129a700907c1e64aa8e126a1056785d5b9e7eb80040b6f22f6a5ac3407a325b59151bdc305e9ea907474979c040eabb4ed53f26007d88890244328e705e0d3a68302edb80466b9d70504488e075294ac04d06c0b06dba9236aa6f0d5042b769f763db4bc07efc4b22b31903006f3038fbc8da6f30451061894af3dec07dad1aca9bf975606e2a7f0baff121205e81f5a6299750e04a6cc296af5887d06ecd687ee5d3a31055612d3bee4612704bd831efe6d69a506979c4bcb24215105ace3a2a250e7400413399e6ae73ece06dc604b55eccb710517e7d5dd89095b04be7189fc420ff806318e07ca683f930528d8d2d453cc7504d959512186e0220747aeda4d6b80b5053958150b893391048ef3ee44dbb84e070bf68b9de293d805d6c43cb11b43ad04bc072eb5929e7b07fdd224c4db7efc05fedb833616ffc9042f936c8a2398a907f3a823d582462106"
 data 3 u64 hex"000000000000001000000000000000140000000000000019000000000000401f00000000000088130000000000006a18000000000080841e0000000000d01213000000000084d717000000000065cd1d00000000205fa01200000000e876481700000000a2941a1d00000040e59c3012000000901ec4bc160000003426f56b1c000080e03779c3110000a0d8855734160000c84e676dc11b00003d9160e4581100408cb5781daf150050efe2d6e41a1b0092d54d06cff01080f64ae1c7022d1520b49dd97943781a949002282c2a8b10b9340332b7f4ad14e70184fee471d9193081121f2fe727107c21d7e6fae03114dbe98ca039593e195224b00888ef8d1fb3166e05b5b5b813609cc94622e3a61878037cd8ea9bd01e2b824dc772614213b6e22079cff91218641b695743b8171e1eb1a1162ad3ce12661d4a9cf4878217bfa45cc3f129631df7e6191a37fa5d12b560a0e0c478f516e378c818f6d6b21c8d4b7dcf59c6ef11719e5c43f0b76b160dc63354eca5061c"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=19 param_types=7 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=21 param_types=7 param_c_out= param_by_address= (string) -> ref
-import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=7 param_types=21 param_c_out= param_by_address= (ref) -> string
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=19 param_types=4,21,19 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=28 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=7 param_types=28 param_c_out= param_by_address= (ref) -> string
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=19 param_types=4,28,19 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=4 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=32 () -> void
 impl 18 std_core$ByteAccess
@@ -83,20 +83,20 @@ impl 5 std_core$Equals
 impl 11 std_core$Hash
 impl 11 std_core$Equals
 vtable std_core$Display.to_string 13 18
-vtable std_core$Display.to_string 22 19
-vtable std_core$Display.to_string 23 20
+vtable std_core$Display.to_string 21 19
+vtable std_core$Display.to_string 22 20
 vtable std_core$Display.to_string 4 21
 vtable std_core$Display.to_string 19 22
 vtable std_core$Display.to_string 3 23
-vtable std_core$Display.to_string 24 24
-vtable std_core$Display.to_string 25 25
+vtable std_core$Display.to_string 23 24
+vtable std_core$Display.to_string 24 25
 vtable std_core$Display.to_string 20 26
 vtable std_core$Display.to_string 2 27
-vtable std_core$Display.to_string 26 28
+vtable std_core$Display.to_string 25 28
 vtable std_core$Display.to_string 7 29
 vtable std_core$Display.to_string 0 30
-vtable std_core$Display.to_string 27 31
-vtable std_core$Display.to_string 28 32
+vtable std_core$Display.to_string 26 31
+vtable std_core$Display.to_string 27 32
 export main 10
 
 fn 0 snippet$kind (any) -> string
@@ -1213,10 +1213,10 @@ fn 35 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 21 1   ; u8[]
+    array.new 28 1   ; u8[]
     return
   end $L0
-  array.new 21 0   ; u8[]
+  array.new 28 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -1427,7 +1427,7 @@ fn 36 std_core$format_f32 (f32) -> string
   call 38   ; std_core$f2d
   local.set 4   ; d
   local.field 4 29 0   ; d std_core$FloatDec32.mantissa
-  ref.cast 25   ; u32
+  ref.cast 24   ; u32
   u32.to_i64
   local.set 5   ; $cast_34
   local.field 4 29 1   ; d std_core$FloatDec32.exp
@@ -3716,7 +3716,7 @@ fn 64 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 21   ; u8[]
+      array.slice 28   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

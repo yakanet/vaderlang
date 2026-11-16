@@ -109,6 +109,8 @@ method_call :: fn(
     operands.push_all(args)
     if target is FreeFnTarget && target.params.len() > 0 {
         operands[0] = prepare_into(ctx, e.target, held, target.params[0], e.span)
+    } else if target is IntrinsicTarget && target.signature.params.len() > 0 {
+        operands[0] = prepare_into(ctx, e.target, held, target.signature.params[0], e.span)
     }
     return build_method_call(ctx, e, .MethodValue, target, e, operands, ret)
 }

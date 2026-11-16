@@ -15,8 +15,8 @@ type 12 scalar i32
 type 13 struct std_core$Buffer {  }
 type 14 scalar u8
 type 15 scalar u32
-type 16 array 14
-type 17 scalar char
+type 16 scalar char
+type 17 array 14
 type 18 scalar void
 type 19 struct std_string__builder$StringBuilder { parts:20 }
 type 20 array 1
@@ -47,9 +47,9 @@ string 23 "\n"
 string 24 ""
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=14 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 bytes std_core$Intrinsic$bytes host=bytes result_type=16 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 3 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=16 param_c_out= param_by_address= (ref) -> string
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=12,16,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 2 bytes std_core$Intrinsic$bytes host=bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 3 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> string
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=12,17,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=12 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=18 () -> void
 impl 13 std_core$ByteAccess
@@ -982,10 +982,10 @@ fn 17 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 16 1   ; u8[]
+    array.new 17 1   ; u8[]
     return
   end $L0
-  array.new 16 0   ; u8[]
+  array.new 17 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -1180,7 +1180,7 @@ fn 19 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 16   ; u8[]
+      array.slice 17   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

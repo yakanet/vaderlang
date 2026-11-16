@@ -972,22 +972,22 @@ const vader_type_info_t vader_type_info_table[31] = {
         .slot_size = 8,
     },
     [14] = { .slot_size = 8 },
-    [15] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 16u,
-    },
-    [16] = { .slot_size = 1 },
+    [15] = { .slot_size = 1 },
+    [16] = { .slot_size = 2 },
     [17] = { .slot_size = 1 },
     [18] = { .slot_size = 2 },
-    [19] = { .slot_size = 2 },
-    [20] = { .slot_size = 4 },
-    [21] = { .slot_size = 1 },
+    [19] = { .slot_size = 4 },
+    [20] = { .slot_size = 1 },
+    [21] = { .slot_size = 4 },
     [22] = { .slot_size = 4 },
-    [23] = { .slot_size = 4 },
-    [24] = { .slot_size = 8 },
-    [25] = {
+    [23] = { .slot_size = 8 },
+    [24] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i64_t),
         .slot_size = 8,
+    },
+    [25] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 17u,
     },
     [26] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$FloatDec32_t),
@@ -1017,7 +1017,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 15u, 16u);
+    return (void*) vader_string_bytes_view(a0, 25u, 17u);
 }
 
 static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
@@ -1570,12 +1570,12 @@ static void* std_core$utf8_encode(uint32_t l0) {
     t0 = ((int32_t) (uint32_t) l0);
     l1 = (uint32_t) (int32_t) t0;
     if ((l1 < INT32_C(128))) {
-        vader_array_t* _a0_arr = vader_array_new(15u, 1u, 1u, 16u);
+        vader_array_t* _a0_arr = vader_array_new(25u, 1u, 1u, 17u);
         ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) (((int32_t) (uint32_t) l1) & INT32_C(255));
         t1 = (void*) _a0_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a1_arr = vader_array_new(15u, 0u, 1u, 16u);
+    vader_array_t* _a1_arr = vader_array_new(25u, 0u, 1u, 17u);
     l2 = (void*) _a1_arr;
     if ((l1 < INT32_C(2048))) {
         l3 = (l1 >> INT32_C(6));
@@ -3021,20 +3021,20 @@ static vader_string_t snippet$Named$name$$dispatch(vader_box_t recv) {
 static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
         case 1u: return snippet$Book$std_core$Display$to_string(recv.payload.obj);
-        case 17u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
-        case 18u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
+        case 15u: return std_core$i8$Display$to_string(((int8_t) recv.payload.i));
+        case 16u: return std_core$i16$Display$to_string(((int16_t) recv.payload.i));
         case 6u: return std_core$i32$Display$to_string(((int32_t) recv.payload.i));
         case 5u: return std_core$i64$Display$to_string(((int64_t) recv.payload.i));
-        case 16u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
-        case 19u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
-        case 20u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));
+        case 17u: return std_core$u8$Display$to_string(((uint8_t) recv.payload.i));
+        case 18u: return std_core$u16$Display$to_string(((uint16_t) recv.payload.i));
+        case 19u: return std_core$u32$Display$to_string(((uint32_t) recv.payload.i));
         case 14u: return std_core$u64$Display$to_string(((uint64_t) recv.payload.i));
-        case 21u: return std_core$bool$Display$to_string(recv.payload.b);
-        case 22u: return std_core$char$Display$to_string(((uint32_t) recv.payload.i));
+        case 20u: return std_core$bool$Display$to_string(recv.payload.b);
+        case 21u: return std_core$char$Display$to_string(((uint32_t) recv.payload.i));
         case 2u: return std_core$string$Display$to_string(recv.payload.s);
         case 0u: return std_core$null$Display$to_string(recv);
-        case 23u: return std_core$f32$Display$to_string(((float) recv.payload.f));
-        case 24u: return std_core$f64$Display$to_string(((double) recv.payload.f));
+        case 22u: return std_core$f32$Display$to_string(((float) recv.payload.f));
+        case 23u: return std_core$f64$Display$to_string(((double) recv.payload.f));
         default: vader_unreachable("vtable miss in std_core$Display.to_string");
     }
     vader_unreachable("vtable miss in std_core$Display.to_string");
@@ -3043,7 +3043,7 @@ static vader_string_t std_core$Display$to_string$$dispatch(vader_box_t recv) {
 static vader_box_t std_core$Index$at$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 4u: return vader_box_i64(5u, snippet$Row$std_core$Index$at(recv.payload.obj, ((int64_t) a0.payload.i)));
-        case 2u: return vader_box_i32(22u, (int32_t) std_core$string$Index$at(recv.payload.s, ((int64_t) a0.payload.i)));
+        case 2u: return vader_box_i32(21u, (int32_t) std_core$string$Index$at(recv.payload.s, ((int64_t) a0.payload.i)));
         default: vader_unreachable("vtable miss in std_core$Index.at");
     }
     vader_unreachable("vtable miss in std_core$Index.at");

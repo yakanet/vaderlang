@@ -8,21 +8,21 @@ type 5 union 3,0,6
 type 6 array 7
 type 7 scalar u8
 type 8 union 3,0
-type 9 scalar i64
-type 10 struct std_core$Buffer {  }
-type 11 union 9,0
+type 9 struct std_core$Buffer {  }
+type 10 scalar i64
+type 11 union 10,0
 type 12 scalar void
 type 13 scalar bool
-type 14 struct std_io$BufferedReader { source:24,capacity:9,error:8,buffer:6,next:9,filled:9 }
+type 14 struct std_io$BufferedReader { source:24,capacity:10,error:8,buffer:6,next:10,filled:10 }
 type 15 union 3,6
-type 16 struct std_io$BufferedWriter { sink:25,capacity:9,buffer:6 }
-type 17 union 9,3,0
-type 18 struct std_io$BytesReader { content:20,position:9 }
+type 16 struct std_io$BufferedWriter { sink:25,capacity:10,buffer:6 }
+type 17 union 10,3,0
+type 18 struct std_io$BytesReader { content:20,position:10 }
 type 19 struct std_io$BytesWriter { written:6 }
 type 20 union 4,6
-type 21 struct std_io$FragmentedReader { source:24,size:9 }
-type 22 struct std_io$FailingReader { source:24,calls:9,failure:3,seen:9 }
-type 23 struct std_io$FailingWriter { sink:25,calls:9,failure:3,seen:9 }
+type 21 struct std_io$FragmentedReader { source:24,size:10 }
+type 22 struct std_io$FailingReader { source:24,calls:10,failure:3,seen:10 }
+type 23 struct std_io$FailingWriter { sink:25,calls:10,failure:3,seen:10 }
 type 24 ref std_io$Reader
 type 25 ref std_io$Writer
 type 26 array 3
@@ -88,13 +88,13 @@ string 58 "TimedOut"
 string 59 "NoDescriptor"
 string 60 "the stream failed"
 data 0 structs 3 3 1 strref 60 u8 00 i32 00000000
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=9 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=10 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=4 param_types=6 param_c_out= param_by_address= (ref) -> string
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=1,6,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=1,6,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=12 () -> void
-impl 10 std_core$ByteAccess
+impl 9 std_core$ByteAccess
 impl 18 std_io$Reader
 impl 19 std_io$Writer
 impl 21 std_io$Reader
@@ -777,7 +777,7 @@ fn 9 std_core$index_of__u8 (ref,u8) -> any
       i32.eq
       if $L2 void
         local.get 2   ; i
-        retag 9   ; i64
+        retag 10   ; i64
         return
       end $L2
       local.get 2   ; i
@@ -1042,7 +1042,7 @@ fn 17 std_io$peek (ref,i64) -> any
     local.set 2   ; or_res
   else
     local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 3   ; $field_6
     local.get 1   ; arg 1
     local.get 3   ; $field_6
@@ -1072,7 +1072,7 @@ fn 17 std_io$peek (ref,i64) -> any
     call 7   ; std_core$write_string_at
     local.set 3   ; $field_6
     local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 5   ; $field_18
     local.get 4   ; __buf_0
     local.get 3   ; $field_6
@@ -1088,10 +1088,10 @@ fn 17 std_io$peek (ref,i64) -> any
     return
   end $L1
   local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_6
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 5   ; $field_18
   local.get 3   ; $field_6
   local.get 5   ; $field_18
@@ -1105,10 +1105,10 @@ fn 17 std_io$peek (ref,i64) -> any
   block $L3 void
     loop $L4 void
       local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-      ref.cast 9   ; i64
+      ref.cast 10   ; i64
       local.set 3   ; $field_6
       local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-      ref.cast 9   ; i64
+      ref.cast 10   ; i64
       local.set 5   ; $field_18
       local.get 3   ; $field_6
       local.get 5   ; $field_18
@@ -1121,10 +1121,10 @@ fn 17 std_io$peek (ref,i64) -> any
         local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
         local.set 4   ; __buf_0
         local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-        ref.cast 9   ; i64
+        ref.cast 10   ; i64
         local.set 8   ; $field_35
         local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
-        ref.cast 9   ; i64
+        ref.cast 10   ; i64
         local.set 9   ; $field_36
         local.get 4   ; __buf_0
         local.get 8   ; $field_35
@@ -1144,10 +1144,10 @@ fn 17 std_io$peek (ref,i64) -> any
           return
         end $L6
         local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-        ref.cast 9   ; i64
+        ref.cast 10   ; i64
         local.set 11   ; $field_44
         local.get 6   ; got
-        ref.cast 9   ; i64
+        ref.cast 10   ; i64
         local.set 12   ; $cast_45
         local.get 11   ; $field_44
         local.get 12   ; $cast_45
@@ -1161,10 +1161,10 @@ fn 17 std_io$peek (ref,i64) -> any
     end $L4
   end $L3
   local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_6
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 5   ; $field_18
   local.get 3   ; $field_6
   local.get 5   ; $field_18
@@ -1183,10 +1183,10 @@ fn 17 std_io$peek (ref,i64) -> any
   local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
   local.set 4   ; __buf_0
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 5   ; $field_18
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 8   ; $field_35
   local.get 3   ; $field_6
   local.get 1   ; arg 1
@@ -1296,7 +1296,7 @@ fn 18 std_io$read_exact (ref,i64) -> any
         return
       end $L4
       local.get 4   ; got
-      ref.cast 9   ; i64
+      ref.cast 10   ; i64
       local.set 10   ; $cast_41
       local.get 3   ; done
       local.get 10   ; $cast_41
@@ -1328,10 +1328,10 @@ fn 19 std_io$read_to_end (ref,i64) -> any
   local.set 2   ; out
   loop $L0 void
     local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 3   ; $field_4
     local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 4   ; $field_5
     local.get 3   ; $field_4
     local.get 4   ; $field_5
@@ -1357,10 +1357,10 @@ fn 19 std_io$read_to_end (ref,i64) -> any
     local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
     local.set 7   ; $field_14
     local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 8   ; $field_15
     local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 9   ; $field_16
     local.get 7   ; $field_14
     local.get 8   ; $field_15
@@ -1411,7 +1411,7 @@ fn 19 std_io$read_to_end (ref,i64) -> any
     local.get 10   ; unread
     array.push_all
     local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 15   ; $field_37
     local.get 0   ; arg 0
     local.get 15   ; $field_37
@@ -1468,10 +1468,10 @@ fn 21 std_io$take_through (ref,u8,i64) -> any
   local.set 3   ; run
   loop $L0 void
     local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 4   ; $field_5
     local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 5   ; $field_6
     local.get 4   ; $field_5
     local.get 5   ; $field_6
@@ -1506,10 +1506,10 @@ fn 21 std_io$take_through (ref,u8,i64) -> any
     local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
     local.set 8   ; $field_20
     local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 9   ; $field_21
     local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 10   ; $field_22
     local.get 8   ; $field_20
     local.get 9   ; $field_21
@@ -1527,7 +1527,7 @@ fn 21 std_io$take_through (ref,u8,i64) -> any
       local.set 13   ; taken
     else
       local.get 14   ; __fallback_1
-      ref.cast 9   ; i64
+      ref.cast 10   ; i64
       local.set 13   ; taken
     end $L5
     local.get 3   ; run
@@ -1572,7 +1572,7 @@ fn 21 std_io$take_through (ref,u8,i64) -> any
       local.get 11   ; unread
       array.push_all
       local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-      ref.cast 9   ; i64
+      ref.cast 10   ; i64
       local.set 23   ; $field_65
       local.get 0   ; arg 0
       local.get 23   ; $field_65
@@ -1580,7 +1580,7 @@ fn 21 std_io$take_through (ref,u8,i64) -> any
       br $L0
     end $L7
     local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 17   ; $field_50
     local.get 13   ; taken
     i64.const 1
@@ -1680,10 +1680,10 @@ fn 23 std_io$compact (ref) -> void
   local.get 0   ; arg 0
   call 25   ; std_io$reserve
   local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 1   ; $field_1
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
@@ -1692,7 +1692,7 @@ fn 23 std_io$compact (ref) -> void
   local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
   local.set 3   ; $field_5
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 2   ; $field_2
   local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
   local.set 4   ; $field_7
@@ -1736,14 +1736,14 @@ fn 24 std_io$refill (ref) -> any
     i64.const 0
     struct.set 14 4   ; std_io$BufferedReader.next
     local.get 1   ; got
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 3   ; $cast_12
     local.get 0   ; arg 0
     local.get 3   ; $cast_12
     struct.set 14 5   ; std_io$BufferedReader.filled
     local.get 1   ; got
-    ref.cast 9   ; i64
-    retag 9   ; i64
+    ref.cast 10   ; i64
+    retag 10   ; i64
     return
   end $L1
   local.get 1   ; got
@@ -1763,7 +1763,7 @@ fn 25 std_io$reserve (ref) -> void
     array.new 6 1   ; u8[]
     local.set 1   ; $arr_6
     local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 2   ; $field_7
     local.get 1   ; $arr_6
     local.get 2   ; $field_7
@@ -1962,7 +1962,7 @@ fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
   i64.eq
   if $L0 void
     i64.const 0
-    retag 9   ; i64
+    retag 10   ; i64
     return
   end $L0
   local.field 0 18 0   ; arg 0 std_io$BytesReader.content
@@ -1971,7 +1971,7 @@ fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
   array.len
   local.set 3   ; $len_9
   local.field 0 18 1   ; arg 0 std_io$BytesReader.position
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 4   ; $field_10
   local.get 3   ; $len_9
   local.get 4   ; $field_10
@@ -1989,7 +1989,7 @@ fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
     call 35   ; std_math$min__i64
     local.set 3   ; $len_9
     local.field 0 18 1   ; arg 0 std_io$BytesReader.position
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 4   ; $field_10
     local.get 2   ; bytes
     local.get 4   ; $field_10
@@ -1998,7 +1998,7 @@ fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
     local.get 3   ; $len_9
     array.copy
     local.field 0 18 1   ; arg 0 std_io$BytesReader.position
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.get 3   ; $len_9
     i64.checked_add
     local.set 4   ; $field_10
@@ -2006,7 +2006,7 @@ fn 27 std_io$BytesReader$Reader$read (ref,ref) -> any
     local.get 4   ; $field_10
     struct.set 18 1   ; std_io$BytesReader.position
     local.get 3   ; $len_9
-    retag 9   ; i64
+    retag 10   ; i64
     return
   end $L1
   return.lit null.const
@@ -2036,7 +2036,7 @@ fn 29 std_io$FragmentedReader$Reader$read (ref,ref) -> any
   array.len
   local.set 3   ; $len_4
   local.field 0 21 1   ; arg 0 std_io$FragmentedReader.size
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 4   ; $field_5
   local.get 3   ; $len_4
   local.get 4   ; $field_5
@@ -2060,10 +2060,10 @@ fn 30 std_io$FailingReader$Reader$read (ref,ref) -> any
   local $field_9 i32
   local $field_14 any
   local.field 0 22 3   ; arg 0 std_io$FailingReader.seen
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 2   ; $field_2
   local.field 0 22 1   ; arg 0 std_io$FailingReader.calls
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -2071,7 +2071,7 @@ fn 30 std_io$FailingReader$Reader$read (ref,ref) -> any
   if $L0 void
   else
     local.field 0 22 3   ; arg 0 std_io$FailingReader.seen
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     i64.const 1
     i64.checked_add
     local.set 2   ; $field_2
@@ -2111,10 +2111,10 @@ fn 31 std_io$FailingWriter$Writer$write (ref,any) -> any
   local $field_9 i32
   local $field_14 any
   local.field 0 23 3   ; arg 0 std_io$FailingWriter.seen
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 2   ; $field_2
   local.field 0 23 1   ; arg 0 std_io$FailingWriter.calls
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_3
   local.get 2   ; $field_2
   local.get 3   ; $field_3
@@ -2122,7 +2122,7 @@ fn 31 std_io$FailingWriter$Writer$write (ref,any) -> any
   if $L0 void
   else
     local.field 0 23 3   ; arg 0 std_io$FailingWriter.seen
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     i64.const 1
     i64.checked_add
     local.set 2   ; $field_2
@@ -2165,14 +2165,14 @@ fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
   i64.eq
   if $L0 void
     i64.const 0
-    retag 9   ; i64
+    retag 10   ; i64
     return
   end $L0
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 2   ; $field_6
   local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_7
   local.get 2   ; $field_6
   local.get 3   ; $field_7
@@ -2182,7 +2182,7 @@ fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
     array.len
     local.set 2   ; $field_6
     local.field 0 14 1   ; arg 0 std_io$BufferedReader.capacity
-    ref.cast 9   ; i64
+    ref.cast 10   ; i64
     local.set 3   ; $field_7
     local.get 2   ; $field_6
     local.get 3   ; $field_7
@@ -2212,10 +2212,10 @@ fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
     end $L4
   end $L1
   local.field 0 14 5   ; arg 0 std_io$BufferedReader.filled
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 2   ; $field_6
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_7
   local.get 2   ; $field_6
   local.get 3   ; $field_7
@@ -2231,7 +2231,7 @@ fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local.field 0 14 3   ; arg 0 std_io$BufferedReader.buffer
   local.set 6   ; $field_28
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 3   ; $field_7
   local.get 6   ; $field_28
   local.get 3   ; $field_7
@@ -2240,7 +2240,7 @@ fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local.get 2   ; $field_6
   array.copy
   local.field 0 14 4   ; arg 0 std_io$BufferedReader.next
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.get 2   ; $field_6
   i64.checked_add
   local.set 3   ; $field_7
@@ -2248,7 +2248,7 @@ fn 32 std_io$BufferedReader$Reader$read (ref,ref) -> any
   local.get 3   ; $field_7
   struct.set 14 4   ; std_io$BufferedReader.next
   local.get 2   ; $field_6
-  retag 9   ; i64
+  retag 10   ; i64
   return
 end
 
@@ -2272,7 +2272,7 @@ fn 33 std_io$BufferedWriter$Writer$write (ref,any) -> any
   i64.checked_add
   local.set 3   ; $len_5
   local.field 0 16 1   ; arg 0 std_io$BufferedWriter.capacity
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 4   ; $len_6
   local.get 3   ; $len_5
   local.get 4   ; $len_6
@@ -2294,7 +2294,7 @@ fn 33 std_io$BufferedWriter$Writer$write (ref,any) -> any
   array.len
   local.set 3   ; $len_5
   local.field 0 16 1   ; arg 0 std_io$BufferedWriter.capacity
-  ref.cast 9   ; i64
+  ref.cast 10   ; i64
   local.set 4   ; $len_6
   local.get 3   ; $len_5
   local.get 4   ; $len_6

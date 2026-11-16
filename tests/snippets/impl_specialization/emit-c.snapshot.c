@@ -174,11 +174,11 @@ const vader_type_info_t vader_type_info_table[22] = {
         .string_count = 1,
     },
     [14] = { .slot_size = 16 },
-    [15] = { .slot_size = 8 },
-    [16] = {
+    [15] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Buffer_t),
         .slot_size = 8,
     },
+    [16] = { .slot_size = 8 },
     [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 18u,

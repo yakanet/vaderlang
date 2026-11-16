@@ -150,19 +150,19 @@ const vader_type_info_t vader_type_info_table[23] = {
         .slot_size = 8,
     },
     [12] = { .slot_size = 8 },
-    [13] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 14u,
-    },
-    [14] = { .slot_size = 1 },
-    [15] = { .slot_size = 8 },
-    [16] = { .slot_size = 4 },
-    [17] = {
+    [13] = { .slot_size = 8 },
+    [14] = { .slot_size = 4 },
+    [15] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core$Range__i64_t),
         .slot_size = 8,
     },
+    [16] = { .slot_size = 1 },
+    [17] = { .slot_size = 4 },
     [18] = { .slot_size = 1 },
-    [19] = { .slot_size = 4 },
+    [19] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 16u,
+    },
     [20] = { .slot_size = 16 },
     [21] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -184,7 +184,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 13u, 14u);
+    return (void*) vader_string_bytes_view(a0, 19u, 16u);
 }
 
 static uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
@@ -1410,7 +1410,7 @@ static void std_core$IndexSet$set_at$$dispatch(vader_box_t recv, vader_box_t a0,
 
 static vader_box_t std_core$Index$at$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 2u: return vader_box_i32(16u, (int32_t) std_core$string$Index$at(recv.payload.s, ((int64_t) a0.payload.i)));
+        case 2u: return vader_box_i32(14u, (int32_t) std_core$string$Index$at(recv.payload.s, ((int64_t) a0.payload.i)));
         case 8u: return std_collections$Map$std_core$Index$at__string__i32(recv.payload.obj, a0.payload.s);
         case 9u: return std_collections$Map$std_core$Index$at__i64__i32(recv.payload.obj, ((int64_t) a0.payload.i));
         default: vader_unreachable("vtable miss in std_core$Index.at");

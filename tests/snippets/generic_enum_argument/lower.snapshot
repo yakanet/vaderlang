@@ -45,7 +45,7 @@
               __fallback_5: null | string = std.collections.Map<HttpStatus, string>.at(reasons, HttpStatus(0))
               if __fallback_5 is null { "?" } else { string(__fallback_5) } :string
           }
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_6) +% std.core.byte_len(__p_7)))
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(22) +% (std_core$Intrinsic$byte_len(__p_6) +% std_core$Intrinsic$byte_len(__p_7)))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_6)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
@@ -59,7 +59,7 @@
       std.console.println<string>({
           __p_10: bool = std.core.content_equals<Color>(shades, [Color(7), Color(9)] :Color[])
           __p_11: string = snippet.Box<Direction>.to_string(boxed)
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(6) +% std.core.byte_len(__p_11))
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(6) +% std_core$Intrinsic$byte_len(__p_11))
           __off_13: i64 = 0
           __off_13 = std.core.write_bool(__buf_12, __off_13, __p_10)
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
@@ -71,7 +71,7 @@
       held: Box<Color> | Box<Direction> = boxed
       std.console.println<string>({
           __p_14: string = @vcall(std.core.Display.to_string, shown[1])
-          __buf_15: Buffer = std.core.new_byte_buffer(i64(6) +% std.core.byte_len(__p_14))
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(6) +% std_core$Intrinsic$byte_len(__p_14))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, __p_14)
           __off_16 = std.core.write_string_at(__buf_15, __off_16, " ")
@@ -130,8 +130,8 @@
       } :string
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -177,9 +177,6 @@
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
-    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.content_equals<Color>  // std_core$content_equals__snippet_Color
     fn std.core.d2d  // std_core$d2d

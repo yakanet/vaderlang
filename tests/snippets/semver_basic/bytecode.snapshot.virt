@@ -3,12 +3,12 @@ type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
 type 3 struct semver$Version { major:1,minor:1,patch:1,prerelease:2,build:2 }
-type 4 scalar i64
-type 5 scalar bool
-type 6 array 7
+type 4 scalar bool
+type 5 scalar i64
+type 6 scalar char
 type 7 scalar u8
-type 8 scalar char
-type 9 scalar u32
+type 8 scalar u32
+type 9 array 7
 type 10 struct std_core$Buffer {  }
 type 11 scalar void
 type 12 union 13,3
@@ -19,7 +19,7 @@ type 16 struct semver$VersionSections { core:2,prerelease:30,build:30 }
 type 17 union 0,13
 type 18 union 13,19
 type 19 struct semver$RangeClause { terms:24 }
-type 20 union 4,0
+type 20 union 5,0
 type 21 union 1,13
 type 22 fn (2) -> 17
 type 23 union 13,24
@@ -33,7 +33,7 @@ type 30 union 0,2
 type 31 array 2
 type 32 union 33,0
 type 33 struct __Tuple_string_string_66940ed4 { _0:2,_1:2 }
-type 34 fn (8) -> 5
+type 34 fn (6) -> 4
 type 35 struct std_string__builder$StringBuilder { parts:31 }
 type 36 array 1
 string 0 "1.2.3-rc.1"
@@ -88,12 +88,12 @@ string 48 "parse_int: no digits"
 string 49 "parse_int: invalid digit"
 string 50 "parse_int: overflow"
 string 51 "\n"
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=7 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=6 param_c_out= param_by_address= (ref) -> string
-import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=7 param_types=2,5 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=9 param_c_out= param_by_address= (ref) -> string
+import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
 impl 10 std_core$ByteAccess
@@ -619,10 +619,10 @@ fn 7 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 6 1   ; u8[]
+    array.new 9 1   ; u8[]
     return
   end $L0
-  array.new 6 0   ; u8[]
+  array.new 9 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -1115,7 +1115,7 @@ fn 13 semver$sections_of (string) -> ref
     return
   end $L2
   local.get 1   ; halves
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   local.set 4   ; dash
   local.get 2   ; head
   i64.const 0
@@ -1545,7 +1545,7 @@ fn 18 semver$prerelease_dash (string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; __fallback_0
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; $add_checked_12
@@ -1559,7 +1559,7 @@ fn 18 semver$prerelease_dash (string) -> any
     return.lit null.const
   end $L1
   local.get 1   ; __fallback_0
-  ref.cast 4   ; i64
+  ref.cast 5   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; $add_checked_12
@@ -3927,7 +3927,7 @@ fn 54 std_string$split_where (string,ref) -> ref
         local.get 8   ; b
         u8.to_char
         local.tee 9   ; c
-        retag 8   ; char
+        retag 6   ; char
         local.get 1   ; arg 1
         call.indirect 34   ; fn
         if $L3 void
@@ -3990,7 +3990,7 @@ fn 54 std_string$split_where (string,ref) -> ref
       local.get 11   ; code
       u32.to_char
       local.tee 13   ; c
-      retag 8   ; char
+      retag 6   ; char
       local.get 1   ; arg 1
       call.indirect 34   ; fn
       if $L8 void
@@ -4047,7 +4047,7 @@ fn 55 std_string$last_byte_offset (string,string) -> any
   i64.eq
   if $L0 void
     local.get 2   ; n
-    retag 4   ; i64
+    retag 5   ; i64
     return
   end $L0
   local.get 3   ; m
@@ -4081,7 +4081,7 @@ fn 55 std_string$last_byte_offset (string,string) -> any
         call 53   ; std_string$matches_at
         if $L5 void
           local.get 2   ; n
-          retag 4   ; i64
+          retag 5   ; i64
           return
         end $L5
       end $L4
@@ -4105,7 +4105,7 @@ fn 56 std_string$cut_at (string,any,string) -> any
   if $L0 void
   else
     local.get 1   ; arg 1
-    ref.cast 4   ; i64
+    ref.cast 5   ; i64
     local.set 3   ; $cast_6
     local.get 0   ; arg 0
     i64.const 0
@@ -4113,7 +4113,7 @@ fn 56 std_string$cut_at (string,any,string) -> any
     call.import 2   ; std_core$Intrinsic$byte_slice
     local.set 4   ; $call_7
     local.get 1   ; arg 1
-    ref.cast 4   ; i64
+    ref.cast 5   ; i64
     local.set 3   ; $cast_6
     local.get 2   ; arg 2
     call.import 0   ; std_core$Intrinsic$byte_len
@@ -4166,7 +4166,7 @@ fn 57 std_string$index_of (string,char,i64) -> any
       i32.eq
       if $L2 void
         local.get 4   ; i
-        retag 4   ; i64
+        retag 5   ; i64
         return
       end $L2
       local.get 4   ; i
@@ -4390,7 +4390,7 @@ fn 63 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 6   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

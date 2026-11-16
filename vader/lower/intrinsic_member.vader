@@ -1,14 +1,17 @@
 // vader/lower/intrinsic_member: a call to a member of `std/core`'s `Intrinsic`.
 //
 // The toolchain implements `Intrinsic` (`lib/std/core/intrinsics.vader`): a
-// member has no body, and `Intrinsic.byte_len(s)` calls the member itself. Each
-// member a call reaches is surfaced as a bodyless declaration carrying its name,
-// which the bytecode emitter reserves as the import of that host.
+// member has no body, and `Intrinsic.byte_len(s)` calls the member itself. A
+// member of the arrays is the operation the lowering has a node for
+// (`array_member_op`). Any other member a call reaches is surfaced as a bodyless
+// declaration carrying its name, which the bytecode emitter reserves as the
+// import of that host, or replaces by the op that serves it.
 
 module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/core/mangle"
 import "vader/core/mono"
 import "vader/core/symbol"
@@ -17,7 +20,7 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/lower/ir"
 
-/// `Intrinsic.member(args)` : a call to the member, by `intrinsic_member_name`.
+/// `Intrinsic.member(args)` : the member called on its arguments.
 ///
 /// @param call  the call.
 /// @param type  its result type.
@@ -29,23 +32,135 @@ try_lower_intrinsic_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         return null
     }
     member :: recorded_decl(ctx.typed, call) else return null
-    callee_type :: ctx.types.expr_type(call.callee)
-    if callee_type is FnType {
-        ctx.project.referenced_intrinsics[member.name] = callee_type
+    observe_inlined(ctx, call, member, member.name)
+    return lower_member_on_arguments(ctx, member, call, type)
+}
+
+/// A call to a function that only forwards its parameters to a member of
+/// `Intrinsic` (`forwarded_member`), but a method-form one, which
+/// `method_target` decides : the member called on the call's arguments.
+///
+/// @param call  the call.
+/// @param type  its result type.
+/// @return      the lowered call ; null when the callee forwards nothing.
+try_lower_forwarded_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    callee :: call.callee
+    if callee is FieldExpr && as_namespace_binding(ctx, callee.target) == null {
+        return null
+    }
+    decl :: recorded_decl(ctx.typed, call) else return null
+    member :: forwarded_member(ctx.project, decl) else return null
+    observe_inlined(ctx, call, decl, decl.name)
+    return lower_member_on_arguments(ctx, member, call, type)
+}
+
+// `member` called on the arguments of `call`, each lowered for its parameter.
+lower_member_on_arguments :: fn(
+    ctx: FnLowerCtx,
+    member: FnDecl,
+    call: CallExpr,
+    type: Type,
+) -> LoweredExpr {
+    signature :: intrinsic_signature(ctx, member, first_argument_type(ctx, call))
+    operands :: lower_call_args(ctx, call.args, signature.params, 0)
+    return lower_intrinsic_member(ctx, member, signature, operands, type, call.span, call.callee.span)
+}
+
+// The type of the first argument of `call` ; null when it has none.
+first_argument_type :: fn(ctx: FnLowerCtx, call: CallExpr) -> Type | null {
+    if call.args.is_empty() {
+        return null
+    }
+    return ctx.types.expr_type(call.args[0].value)
+}
+
+/// The signature of `member` of `Intrinsic` at a call whose first argument has the
+/// type `first` : a generic member's parameters bound by that argument, as every
+/// generic member of the trait takes what it is generic over first (a `T`, or a
+/// `T[]`).
+///
+/// @param member  a member of `Intrinsic`.
+/// @param first   the type of the call's first argument ; null when it has none.
+intrinsic_signature :: fn(ctx: FnLowerCtx, member: FnDecl, first: Type | null) -> FnType {
+    intrinsic :: ctx.typed.intrinsic_symbol else return mk_fn([], TY_UNRESOLVED, [])
+    declared :: trait_member_type(intrinsic.id, member, ctx.typed)
+    known :: first else return declared
+    if declared.type_params.is_empty() || declared.params.is_empty() {
+        return declared
+    }
+    bindings :: Map<i32, Type> {}
+    unify_type_param(declared.params[0], backing_array_or(known), bindings)
+    return FnType {
+        .params = substitute_each_map(declared.params, bindings),
+        .return_type = substitute_map(declared.return_type, bindings),
+    }
+}
+
+// The array `t` holds, a distinct one's included ; `t` itself when it holds none.
+backing_array_or :: fn(t: Type) -> Type {
+    array :: array_backing(t) else return t
+    return array
+}
+
+/// `member` of `Intrinsic` called on `operands` : the node of an array member, the
+/// call of the member's declaration otherwise.
+///
+/// @param member       a member of `Intrinsic`.
+/// @param signature    its signature at the call (`intrinsic_signature`).
+/// @param operands     its arguments, each lowered for its parameter.
+/// @param type         the call's result type.
+/// @param span         the call.
+/// @param callee_span  what names the callee.
+lower_intrinsic_member :: fn(
+    ctx: FnLowerCtx,
+    member: FnDecl,
+    signature: FnType,
+    operands: LoweredExpr[],
+    type: Type,
+    span: Span,
+    callee_span: Span,
+) -> LoweredExpr {
+    op :: array_member_op(member.name)
+    if op != null {
+        return array_op(op, operands, type, span, copied_operand_types(op, signature))
     }
     mangled :: intrinsic_member_name(member.name)
     note_member_origin(ctx, mangled, member, TRAIT_INTRINSIC)
+    ctx.project.referenced_intrinsics[member.name] = signature
     callee :: LoweredIdent {
-        .span = field.span,
-        .type = callee_type,
+        .span = callee_span,
+        .type = signature,
         .symbol = named_fn_symbol(ctx, mangled),
     }
     return LoweredCall {
-        .span = call.span,
+        .span = span,
         .type = type,
         .callee = callee,
-        .args = lower_call_args(ctx, call.args, param_types_of(callee_type), 0),
+        .args = operands,
     }
+}
+
+// The types the operation `op` reads its operands at : the copying operations'
+// only (`array_op`).
+copied_operand_types :: fn(op: ArrayOp, signature: FnType) -> Type[] {
+    if op != .PushAll && op != .CopyTo {
+        return []
+    }
+    return signature.params
+}
+
+/// The operation the member `member` of `Intrinsic` names, on an array ; null for
+/// a member of another kind.
+///
+/// @param member  the member's name.
+array_member_op :: fn(member: string) -> ArrayOp | null = match member {
+    "array_len"         -> .Len
+    "array_push"        -> .Push
+    "array_push_all"    -> .PushAll
+    "array_copy_to"     -> .CopyTo
+    "array_remove_last" -> .RemoveLast
+    "array_clear"       -> .Clear
+    _                   -> null
 }
 
 // Whether `target` names `std/core`'s `Intrinsic`: its name first, which spares

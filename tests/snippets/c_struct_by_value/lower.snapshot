@@ -102,7 +102,7 @@
       std.console.println<string>({
           __p_11: i64 = @array.len(kept)
           __p_12: string = std.core.f64.to_string(total)
-          __buf_13: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_12))
+          __buf_13: Buffer = std.core.new_byte_buffer(i64(44) +% std_core$Intrinsic$byte_len(__p_12))
           __off_14: i64 = 0
           __off_14 = std.core.write_string_at(__buf_13, __off_14, "kept ")
           __off_14 = std.core.write_int(__buf_13, __off_14, __p_11)
@@ -113,10 +113,10 @@
       return 0
   }
   concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
-      c2: i64 = c1 +% std.core.byte_len(p2)
-      c3: i64 = c2 +% std.core.byte_len(p3)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
       buf: Buffer = std.core.new_byte_buffer(c3)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -125,14 +125,14 @@
       std.core.Buffer.intern_string(buf, c3)
   }
   concat_8 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string, p7: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
-      c2: i64 = c1 +% std.core.byte_len(p2)
-      c3: i64 = c2 +% std.core.byte_len(p3)
-      c4: i64 = c3 +% std.core.byte_len(p4)
-      c5: i64 = c4 +% std.core.byte_len(p5)
-      c6: i64 = c5 +% std.core.byte_len(p6)
-      c7: i64 = c6 +% std.core.byte_len(p7)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
+      c2: i64 = c1 +% std_core$Intrinsic$byte_len(p2)
+      c3: i64 = c2 +% std_core$Intrinsic$byte_len(p3)
+      c4: i64 = c3 +% std_core$Intrinsic$byte_len(p4)
+      c5: i64 = c4 +% std_core$Intrinsic$byte_len(p5)
+      c6: i64 = c5 +% std_core$Intrinsic$byte_len(p6)
+      c7: i64 = c6 +% std_core$Intrinsic$byte_len(p7)
       buf: Buffer = std.core.new_byte_buffer(c7)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -145,8 +145,8 @@
       std.core.Buffer.intern_string(buf, c7)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -171,8 +171,6 @@
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
     fn std.core.f2d  // std_core$f2d

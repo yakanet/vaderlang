@@ -9,8 +9,8 @@
       {
           self: string = "héllo, vader"
           i: i64 = 0
-          for i < std.core.byte_len(self) {
-              b: u8 = std.core.byte_at(self, i)
+          for i < std_core$Intrinsic$byte_len(self) {
+              b: u8 = std_core$Intrinsic$byte_at(self, i)
               if b < u8(128) {
                   i = i + i64(1)
                   c: char = char(b)
@@ -50,9 +50,6 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.byte_at  // std_core$byte_at
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation

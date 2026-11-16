@@ -87,11 +87,6 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // 13-byte concat used to push four nested frames to do one buffer's work.
     intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") else return null
     wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") else return null
-    // Harvest the free fns for materialisation: else the synthesised call has an
-    // unresolved (non-materialised) callee. The impl members are surfaced by
-    // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).
-    register_nongeneric_imported_fn(ctx, blen_sym)
-    register_nongeneric_imported_fn(ctx, alloc_sym)
 
     fn_symbol :: synth_entry_symbol(ctx, .Fn, "concat_${n}")
 
@@ -112,7 +107,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     stmts: LoweredStmt[]: []
     cum_syms: Symbol[]: []
     for i in 0..<n {
-        bl :: mk_lowered_call(blen_sym, [param_refs[i]], TY_I64, span)
+        bl :: library_call(ctx, blen_sym, [param_refs[i]], TY_I64, span)
         value :: if i == 0 { bl } else {
             LoweredBinary {
                 .span = span, .type = TY_I64, .op = .Add,
@@ -131,7 +126,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     total :: synth_ident(total_sym, TY_I64, span)
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
-        .value = mk_lowered_call(alloc_sym, [total], buffer_type, span),
+        .value = library_call(ctx, alloc_sym, [total], buffer_type, span),
     })
     // `buf.write_string(offset_i, p_i)`: direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {

@@ -269,16 +269,16 @@ const vader_type_info_t vader_type_info_table[34] = {
         .slot_size = 8,
     },
     [16] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 17u,
-    },
-    [17] = { .slot_size = 1 },
-    [18] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_core$__gen_state_std_core_0_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core$__gen_state_std_core_0_t, f_s0) },
         .ref_count = 1,
     },
+    [17] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 18u,
+    },
+    [18] = { .slot_size = 1 },
     [19] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_iter$__gen_state_std_iter_1_t), .slot_size = 8,
@@ -335,7 +335,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 16u, 17u);
+    return (void*) vader_string_bytes_view(a0, 17u, 18u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -1796,7 +1796,7 @@ static vader_box_t std_core$$array$Into$into__i32(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct_std_core$__gen_state_std_core_0_t* _a0_obj = (vader_struct_std_core$__gen_state_std_core_0_t*) vader_gc_alloc(sizeof(vader_struct_std_core$__gen_state_std_core_0_t));
-    vader_obj_header_init(_a0_obj, 18u);
+    vader_obj_header_init(_a0_obj, 16u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = INT64_C(0);
     _a0_obj->f_s2 = INT64_C(0);
@@ -2514,7 +2514,7 @@ static vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
         case 7u: return snippet$$genstate_pairs$Iterator$next(recv.payload.obj);
         case 10u: return snippet$$genstate_loop_then_tail$Iterator$next(recv.payload.obj);
         case 11u: return snippet$$genstate_outer_counts$Iterator$next(recv.payload.obj);
-        case 18u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
+        case 16u: return std_core$__gen_state_std_core_0$Iterator$next(recv.payload.obj);
         case 19u: return std_iter$__gen_state_std_iter_1$Iterator$next(recv.payload.obj);
         case 21u: return std_iter$__gen_state_std_iter_0$Iterator$next(recv.payload.obj);
         case 24u: return std_iter$__gen_state_std_iter_2$Iterator$next(recv.payload.obj);

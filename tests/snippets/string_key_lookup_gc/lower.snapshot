@@ -55,7 +55,7 @@
                       i = i +% 1
                   }
               }
-              std.runtime.collect()
+              std_core$Intrinsic$collect()
               {
                   __for_arr_4: string[] = words
                   __for_len_5: i64 = @array.len(__for_arr_4)
@@ -63,7 +63,7 @@
                   for __for_i_6 < __for_len_5 {
                       w: string = __for_arr_4[__for_i_6]
                       if std.collections.Set<string>.contains(known, w) {
-                          total = total + i32(std.core.byte_at(w, i64(1)))
+                          total = total + i32(std_core$Intrinsic$byte_at(w, i64(1)))
                           std.collections.Map<string, i32>.set_at(counts, w, ({
                               __fallback_7: i32 | null = std.collections.Map<string, i32>.at(counts, w)
                               if __fallback_7 is null { 0 } else { i32(__fallback_7) } :i32
@@ -85,14 +85,14 @@
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " distinct ")
           __off_9 = std.core.write_int(__buf_8, __off_9, std.collections.len<string, i32>(counts))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " collections>0 ")
-          __off_9 = std.core.write_bool(__buf_8, __off_9, std.runtime.collections() > i64(0))
+          __off_9 = std.core.write_bool(__buf_8, __off_9, std_core$Intrinsic$collections() > i64(0))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -143,9 +143,6 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.byte_at  // std_core$byte_at
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.write_bool  // std_core$write_bool
@@ -154,6 +151,3 @@
     fn std.core.write_unsigned  // std_core$write_unsigned
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Stop  // std_core$Stop
-  std/runtime
-    fn std.runtime.collect  // std_runtime$collect
-    fn std.runtime.collections  // std_runtime$collections

@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      s: string = std.core.bytes_to_string([u8(97), u8(169), u8(98), u8(99), u8(100), u8(226), u8(130)] :u8[])
+      s: string = std_core$Intrinsic$bytes_to_string([u8(97), u8(169), u8(98), u8(99), u8(100), u8(226), u8(130)] :u8[])
       std.console.println<i64>(std.core.len(s))
       {
           i: i64 = 0
@@ -17,8 +17,8 @@
       {
           self: string = s
           i: i64 = 0
-          for i < std.core.byte_len(self) {
-              b: u8 = std.core.byte_at(self, i)
+          for i < std_core$Intrinsic$byte_len(self) {
+              b: u8 = std_core$Intrinsic$byte_at(self, i)
               if b < u8(128) {
                   i = i + i64(1)
                   _: char = char(b)
@@ -41,21 +41,21 @@
           }
       }
       std.console.println<i64>(walked)
-      std.console.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
+      std.console.println<i64>(std_core$Intrinsic$byte_len(std_core$string$Index$at$1(s, Range<i64> {
           .start = i64(1),
           .end = i64(3),
           .inclusive = false,
           .done = false,
           .cursor = i64(1),
       })))
-      std.console.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
+      std.console.println<i64>(std_core$Intrinsic$byte_len(std_core$string$Index$at$1(s, Range<i64> {
           .start = i64(2),
           .end = i64(10),
           .inclusive = false,
           .done = false,
           .cursor = i64(2),
       })))
-      std.console.println<i64>(std.core.byte_len(std_core$string$Index$at$1(s, Range<i64> {
+      std.console.println<i64>(std_core$Intrinsic$byte_len(std_core$string$Index$at$1(s, Range<i64> {
           .start = i64(4),
           .end = i64(2),
           .inclusive = false,
@@ -79,18 +79,12 @@
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.ascii_prefix  // std_core$ascii_prefix
-    fn std.core.byte_at  // std_core$byte_at
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.byte_slice  // std_core$byte_slice
-    fn std.core.bytes  // std_core$bytes
-    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.codepoint_count  // std_core$codepoint_count
     fn std.core.codepoint_offset  // std_core$codepoint_offset
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i64.step  // std_core$i64$Step$step
-    fn std.core.is_ascii  // std_core$is_ascii
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.len  // std_core$len
     fn std.core.write_bool  // std_core$write_bool

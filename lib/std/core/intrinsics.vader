@@ -30,6 +30,50 @@ export Intrinsic :: trait {
     /// The string that holds the bytes `bs`.
     bytes_to_string :: fn(bs: u8[]) -> string
 
+    // ---- arrays ---------------------------------------------------------
+
+    /// Number of live elements of `xs`.
+    array_len :: fn<T>(xs: T[]) -> i64
+    /// Append `value` to `xs`, growing its storage as needed.
+    array_push :: fn<T>(xs: T[], value: T) -> void
+    /// Append every element of `other` to `xs`.
+    array_push_all :: fn<T>(xs: T[], other: T[]) -> void
+    /// Copy `count` elements of `xs` from `source_offset` into `destination` from
+    /// `destination_offset`.
+    array_copy_to :: fn<T>(
+        xs: T[],
+        source_offset: i64,
+        destination: T[],
+        destination_offset: i64,
+        count: i64,
+    ) -> void
+    /// Remove and return the last element of `xs` ; null when it is empty.
+    array_remove_last :: fn<T>(xs: T[]) -> T | null
+    /// Drop every element of `xs`, keeping its capacity.
+    array_clear :: fn<T>(xs: T[]) -> void
+
+    // ---- byte buffers ---------------------------------------------------
+
+    /// A `Buffer` of `cap` zeroed bytes.
+    new_byte_buffer :: fn(cap: i64) -> Buffer
+    /// The byte of `buffer` at `offset`.
+    buffer_load_u8 :: fn(buffer: Buffer, offset: i64) -> u8
+    /// Write `value` at `offset` of `buffer`.
+    buffer_store_u8 :: fn(buffer: Buffer, offset: i64, value: u8) -> void
+    /// Copy `count` bytes of `source` from `source_offset` into `buffer` from
+    /// `offset`, the two ranges free to overlap.
+    buffer_memory_copy :: fn(
+        buffer: Buffer,
+        offset: i64,
+        source: Buffer,
+        source_offset: i64,
+        count: i64,
+    ) -> void
+    /// The string that holds the first `len` bytes of `buffer`.
+    buffer_intern_string :: fn(buffer: Buffer, len: i64) -> string
+    /// Copy the bytes of `s` into `buffer` from `offset`.
+    buffer_write_string :: fn(buffer: Buffer, offset: i64, s: string) -> void
+
     // ---- the collector --------------------------------------------------
 
     /// Run a full collection.

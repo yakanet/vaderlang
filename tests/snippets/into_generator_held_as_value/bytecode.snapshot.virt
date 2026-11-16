@@ -12,11 +12,11 @@ type 9 struct std_core$Buffer {  }
 type 10 scalar i64
 type 11 scalar string
 type 12 scalar u64
-type 13 array 14
-type 14 scalar u8
-type 15 scalar bool
+type 13 scalar u8
+type 14 scalar bool
+type 15 array 13
 type 16 scalar void
-type 17 struct std_string$__gen_state_std_string_0 { s0:11,s1:10,s2:14,s3:20,s4:5,s5:10,state:3 }
+type 17 struct std_string$__gen_state_std_string_0 { s0:11,s1:10,s2:13,s3:20,s4:5,s5:10,state:3 }
 type 18 union 19,8
 type 19 scalar char
 type 20 struct __Tuple_u32_i64_8946832a { _0:5,_1:10 }
@@ -25,9 +25,9 @@ string 0 "héllo"
 string 1 "\n"
 data 0 structs 8 0 1
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=10 param_types=11 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=13 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 2 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=14 param_types=11,10 param_c_out= param_by_address= (string,i64) -> u8
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,13,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=15 param_types=11 param_c_out= param_by_address= (string) -> ref
+import 2 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=13 param_types=11,10 param_c_out= param_by_address= (string,i64) -> u8
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,15,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=16 () -> void
 impl 1 std_core$Into
@@ -777,7 +777,7 @@ fn 11 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 15   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -1009,7 +1009,7 @@ fn 17 std_string$__gen_state_std_string_0$Iterator$next (ref) -> any
             i32.const 3
             struct.set 17 6   ; std_string$__gen_state_std_string_0.state
             local.field 0 17 2   ; arg 0 std_string$__gen_state_std_string_0.s2
-            ref.cast 14   ; u8
+            ref.cast 13   ; u8
             u8.to_char
             retag 19   ; char
             return
@@ -1094,7 +1094,7 @@ fn 17 std_string$__gen_state_std_string_0$Iterator$next (ref) -> any
                   ref.cast 11   ; string
                   local.set 5   ; $field_59
                   local.field 0 17 2   ; arg 0 std_string$__gen_state_std_string_0.s2
-                  ref.cast 14   ; u8
+                  ref.cast 13   ; u8
                   local.set 6   ; $field_60
                   local.field 0 17 1   ; arg 0 std_string$__gen_state_std_string_0.s1
                   ref.cast 10   ; i64
@@ -1147,7 +1147,7 @@ fn 17 std_string$__gen_state_std_string_0$Iterator$next (ref) -> any
                   i32.eq
                   if $L14 void
                     local.field 0 17 2   ; arg 0 std_string$__gen_state_std_string_0.s2
-                    ref.cast 14   ; u8
+                    ref.cast 13   ; u8
                     i32.const 128
                     u32.lt
                     if $L15 void

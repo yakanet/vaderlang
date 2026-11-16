@@ -3,7 +3,7 @@
 ## snippet
   snippet.byte_count :: fn(x: string | u8[]) -> i64 {  // snippet$byte_count
       if x is string {
-          return @array.len(std.core.bytes(string(x)))
+          return @array.len(std_core$Intrinsic$bytes(string(x)))
       }
       return @array.len(u8[](x))
   }
@@ -14,7 +14,7 @@
           __off_1: i64 = 0
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count("hi"))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count(std.core.bytes("hi")))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count(std_core$Intrinsic$bytes("hi")))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_int(__buf_0, __off_1, snippet.byte_count(a))
           std.core.finish_buffer(__buf_0, __off_1)
@@ -22,8 +22,8 @@
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -40,8 +40,6 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int

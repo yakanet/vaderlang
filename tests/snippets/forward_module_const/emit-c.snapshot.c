@@ -49,12 +49,12 @@ static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_0_buf = {
     VADER_STATIC_BUF_HEADER(1u, 0u, 2u),
     .slots = { { 1u, 0u, { .s = 5u } }, { 1u, 0u, { .s = 11u } } },
 };
-static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(7u, 2u, &vader_data_0_buf);
+static const vader_array_t vader_data_0 = VADER_STATIC_ARRAY(5u, 2u, &vader_data_0_buf);
 static const VADER_ARRAY_STATIC_BUF(vader_box_t, 2) vader_data_1_buf = {
     VADER_STATIC_BUF_HEADER(1u, 0u, 2u),
     .slots = { { 1u, 0u, { .s = 7u } }, { 1u, 0u, { .s = 12u } } },
 };
-static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(7u, 2u, &vader_data_1_buf);
+static const vader_array_t vader_data_1 = VADER_STATIC_ARRAY(5u, 2u, &vader_data_1_buf);
 
 static vader_string_t snippet$kind(vader_string_t l0);
 static int64_t snippet$count_numeric(void);
@@ -90,12 +90,12 @@ const vader_type_info_t vader_type_info_table[10] = {
     },
     [5] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 6u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
     },
     [6] = { .slot_size = 1 },
     [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
     [8] = { .slot_size = 1 },
 };
@@ -110,7 +110,7 @@ static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 5u, 6u);
+    return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {

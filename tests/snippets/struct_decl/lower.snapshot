@@ -8,7 +8,7 @@
       std.console.println<string>({
           __p_0: string = std.core.f64.to_string(p.x)
           __p_1: string = std.core.f64.to_string(p.y)
-          __buf_2: Buffer = std.core.new_byte_buffer(i64(43) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(43) +% (std_core$Intrinsic$byte_len(__p_0) +% std_core$Intrinsic$byte_len(__p_1)))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
@@ -23,8 +23,8 @@
   }
   snippet.List<i32> :: struct { items: i32[], len: u32 }  // snippet$List__i32
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -46,8 +46,6 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
     fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits

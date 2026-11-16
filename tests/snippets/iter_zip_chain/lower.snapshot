@@ -32,7 +32,7 @@
                   v: i32 = __gen_elem_8._1
                   std.console.println<string>({
                       __p_5: string = k
-                      __buf_6: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_5))
+                      __buf_6: Buffer = std.core.new_byte_buffer(i64(21) +% std_core$Intrinsic$byte_len(__p_5))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "=")
@@ -93,7 +93,7 @@
               i: i64 = __gen_elem_22._1
               std.console.println<string>({
                   __p_18: string = f
-                  __buf_19: Buffer = std.core.new_byte_buffer(i64(22) +% std.core.byte_len(__p_18))
+                  __buf_19: Buffer = std.core.new_byte_buffer(i64(22) +% std_core$Intrinsic$byte_len(__p_18))
                   __off_20: i64 = 0
                   __off_20 = std.core.write_int(__buf_19, __off_20, i)
                   __off_20 = std.core.write_string_at(__buf_19, __off_20, ": ")
@@ -130,8 +130,8 @@
       [x, x * 10] :i32[]
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: i64 = std.core.byte_len(p0)
-      c1: i64 = c0 +% std.core.byte_len(p1)
+      c0: i64 = std_core$Intrinsic$byte_len(p0)
+      c1: i64 = c0 +% std_core$Intrinsic$byte_len(p1)
       buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
@@ -148,8 +148,6 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.byte_len  // std_core$byte_len
-    fn std.core.bytes  // std_core$bytes
     fn std.core.clone<i32>  // std_core$clone__i32
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32[].into  // std_core$$array$Into$into__i32

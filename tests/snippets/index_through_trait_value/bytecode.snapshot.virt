@@ -12,13 +12,13 @@ type 9 struct std_collections$Map__i64__i32 { ekeys:22,evals:21,index:21,mask:12
 type 10 array 2
 type 11 struct std_core$Buffer {  }
 type 12 scalar i64
-type 13 array 14
-type 14 scalar u8
-type 15 scalar u64
-type 16 scalar char
-type 17 struct std_core$Range__i64 { start:12,end:12,inclusive:18,done:18,cursor:12 }
+type 13 scalar u64
+type 14 scalar char
+type 15 struct std_core$Range__i64 { start:12,end:12,inclusive:18,done:18,cursor:12 }
+type 16 scalar u8
+type 17 scalar u32
 type 18 scalar bool
-type 19 scalar u32
+type 19 array 16
 type 20 union 3,0
 type 21 array 3
 type 22 array 12
@@ -33,12 +33,12 @@ string 7 "p"
 string 8 "q"
 string 9 "\n"
 import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=13 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=15 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 3 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=14 param_types=2,12 param_c_out= param_by_address= (string,i64) -> u8
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 3 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=16 param_types=2,12 param_c_out= param_by_address= (string,i64) -> u8
 import 4 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,12,12 param_c_out= param_by_address= (string,i64,i64) -> string
 import 5 is_ascii std_core$Intrinsic$is_ascii host=is_ascii result_type=18 param_types=2 param_c_out= param_by_address= (string) -> bool
-import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,13,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,19,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
 impl 1 std_core$IndexSet
@@ -51,8 +51,8 @@ impl 8 std_core$Contains
 impl 8 std_core$Into
 impl 9 std_core$Contains
 impl 9 std_core$Into
-impl 17 std_core$Contains
-impl 17 std_core$Iterator
+impl 15 std_core$Contains
+impl 15 std_core$Iterator
 vtable std_core$IndexSet.set_at 1 0
 vtable std_core$IndexSet.set_at 8 20
 vtable std_core$IndexSet.set_at 9 22
@@ -649,7 +649,7 @@ fn 13 std_core$string$Index$at$1 (string,ref) -> string
   call.import 5   ; std_core$Intrinsic$is_ascii
   if $L0 void
   else
-    local.field 1 17 0   ; arg 1 std_core$Range__i64.start
+    local.field 1 15 0   ; arg 1 std_core$Range__i64.start
     ref.cast 12   ; i64
     local.set 2   ; $field_3
     local.get 0   ; arg 0
@@ -671,10 +671,10 @@ fn 13 std_core$string$Index$at$1 (string,ref) -> string
     call.import 4   ; std_core$Intrinsic$byte_slice
     return
   end $L0
-  local.field 1 17 0   ; arg 1 std_core$Range__i64.start
+  local.field 1 15 0   ; arg 1 std_core$Range__i64.start
   ref.cast 12   ; i64
   local.set 2   ; $field_3
-  local.field 1 17 0   ; arg 1 std_core$Range__i64.start
+  local.field 1 15 0   ; arg 1 std_core$Range__i64.start
   ref.cast 12   ; i64
   local.set 3   ; $field_4
   local.get 1   ; arg 1
@@ -814,10 +814,10 @@ end
 fn 16 std_core$codepoint_count (ref) -> i64
   local end i64
   local $field_6 i64
-  local.field 0 17 1   ; arg 0 std_core$Range__i64.end
+  local.field 0 15 1   ; arg 0 std_core$Range__i64.end
   ref.cast 12   ; i64
   local.set 1   ; end
-  local.field 0 17 2   ; arg 0 std_core$Range__i64.inclusive
+  local.field 0 15 2   ; arg 0 std_core$Range__i64.inclusive
   ref.cast 18   ; bool
   if $L0 void
     local.get 1   ; end
@@ -825,7 +825,7 @@ fn 16 std_core$codepoint_count (ref) -> i64
     i64.checked_add
     local.set 1   ; end
   end $L0
-  local.field 0 17 0   ; arg 0 std_core$Range__i64.start
+  local.field 0 15 0   ; arg 0 std_core$Range__i64.start
   ref.cast 12   ; i64
   local.set 2   ; $field_6
   local.get 1   ; end
@@ -833,7 +833,7 @@ fn 16 std_core$codepoint_count (ref) -> i64
   i64.lt
   if $L1 void
   else
-    local.field 0 17 0   ; arg 0 std_core$Range__i64.start
+    local.field 0 15 0   ; arg 0 std_core$Range__i64.start
     ref.cast 12   ; i64
     local.set 2   ; $field_6
     local.get 1   ; end
@@ -2033,7 +2033,7 @@ fn 34 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 13   ; u8[]
+      array.slice 19   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12

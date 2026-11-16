@@ -16,8 +16,8 @@ type 13 union 10,14
 type 14 scalar u64
 type 15 union 16,10
 type 16 scalar char
-type 17 scalar i64
-type 18 struct std_core$Buffer {  }
+type 17 struct std_core$Buffer {  }
+type 18 scalar i64
 type 19 array 7
 type 20 scalar void
 type 21 array 10
@@ -27,10 +27,10 @@ string 2 "true"
 string 3 "false"
 string 4 "\n"
 data 0 structs 10 0 1
-import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=17 param_types=6 param_c_out= param_by_address= (string) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=18 param_types=6 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=19 param_types=6 param_c_out= param_by_address= (string) -> ref
 import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=6 param_types=19 param_c_out= param_by_address= (ref) -> string
-import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=17 param_types=2,19,17 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=18 param_types=2,19,18 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=20 () -> void
 impl 1 std_core$Contains
@@ -38,7 +38,7 @@ impl 1 std_core$Iterator
 impl 3 std_core$Iterator
 impl 4 std_core$Iterator
 impl 5 std_core$Iterator
-impl 18 std_core$ByteAccess
+impl 17 std_core$ByteAccess
 impl 3 std_core$Contains
 impl 4 std_core$Contains
 impl 5 std_core$Contains
