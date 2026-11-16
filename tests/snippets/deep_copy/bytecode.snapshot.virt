@@ -94,7 +94,7 @@ import 4 wake std_core$Intrinsic$wake host=wake result_type=31 param_types=13 pa
 import 5 current_thread std_core$Intrinsic$current_thread host=current_thread result_type=13 () -> i64
 import 6 is_cancelled std_core$Intrinsic$is_cancelled host=is_cancelled result_type=15 () -> bool
 import 7 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=3 param_types=25 param_c_out= param_by_address= (ref) -> string
-import 8 deep_copy std_core$deep_copy__i32__ result_type=33 param_types=33 param_c_out= param_by_address= (any) -> any
+import 8 deep_copy std_core$deep_copy__i32__ host=deep_copy result_type=33 param_types=33 param_c_out= param_by_address= (any) -> any
 import 9 extern :write system_posix$sys_write headers=<unistd.h> result_type=13 param_types=2,25,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 10 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 11 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=31 () -> void

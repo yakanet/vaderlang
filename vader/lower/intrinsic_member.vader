@@ -10,6 +10,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/mangle"
@@ -121,9 +122,10 @@ lower_intrinsic_member :: fn(
     if op != null {
         return array_op(op, operands, type, span, copied_operand_types(op, signature))
     }
-    mangled :: intrinsic_member_name(member.name)
+    mangled :: intrinsic_instance_name(ctx, member, signature)
     note_member_origin(ctx, mangled, member, TRAIT_INTRINSIC)
-    ctx.project.referenced_intrinsics[member.name] = signature
+    reached :: ReachedIntrinsic { .member = member.name, .signature = signature }
+    ctx.project.referenced_intrinsics[mangled] = reached
     callee :: LoweredIdent {
         .span = callee_span,
         .type = signature,
@@ -175,6 +177,32 @@ names_intrinsic :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
 intrinsic_member_name :: fn(member: string) -> string =
     trait_member_mangle(CORE_MODULE, TRAIT_INTRINSIC, member)
 
+/// A member of `Intrinsic` a call reached, at the instance its mangled name names.
+ReachedIntrinsic :: struct {
+    /// The member's name.
+    member: string
+    /// Its signature at that instance.
+    signature: FnType
+}
+
+// The name of `member` of `Intrinsic` at the call whose signature is `signature`:
+// a generic member takes one host per instance (`deep_copy` copies by the layout
+// of the type it is handed), named after the types bound to its parameters.
+intrinsic_instance_name :: fn(ctx: FnLowerCtx, member: FnDecl, signature: FnType) -> string {
+    base :: intrinsic_member_name(member.name)
+    intrinsic :: ctx.typed.intrinsic_symbol else return base
+    declared :: trait_member_type(intrinsic.id, member, ctx.typed)
+    if declared.type_params.is_empty() {
+        return base
+    }
+    bindings :: Map<i32, Type> {}
+    for i in 0..<declared.params.len() {
+        unify_type_param(declared.params[i], signature.params[i], bindings)
+    }
+    bound :: declared.type_params.map((p) -> bindings[p.symbol.id] else TY_UNRESOLVED).collect()
+    return "${base}${mono_suffix(bound)}"
+}
+
 /// The members of `trait_decl` a call reached, when it is `Intrinsic`, each a
 /// bodyless declaration that names its member.
 ///
@@ -190,18 +218,24 @@ surface_intrinsic_members :: fn(
         return out
     }
     for member in trait_decl.members {
-        reached :: project_ctx.referenced_intrinsics[member.name] else continue
-        if !claim_impl_member(project_ctx, intrinsic_member_name(member.name)) {
-            continue
+        for [mangled, reached] in project_ctx.referenced_intrinsics {
+            if reached.member != member.name || !claim_impl_member(project_ctx, mangled) {
+                continue
+            }
+            out.push(intrinsic_member_decl(member, reached.signature, mangled, typed))
         }
-        out.push(intrinsic_member_decl(member, reached, typed))
     }
     return out
 }
 
 // The member `member` of `Intrinsic`, typed `reached` where a call reached it,
-// as the bodyless declaration of its host.
-intrinsic_member_decl :: fn(member: FnDecl, reached: FnType, typed: TypedProgram) -> LoweredFnDecl {
+// as the bodyless declaration of its host named `mangled`.
+intrinsic_member_decl :: fn(
+    member: FnDecl,
+    reached: FnType,
+    mangled: string,
+    typed: TypedProgram,
+) -> LoweredFnDecl {
     params: LoweredParam[]: []
     for i in 0..<member.params.len() {
         name :: member.params[i].name
@@ -211,7 +245,6 @@ intrinsic_member_decl :: fn(member: FnDecl, reached: FnType, typed: TypedProgram
             .type = reached.params[i],
         })
     }
-    mangled :: intrinsic_member_name(member.name)
     return LoweredFnDecl {
         .mangled     = mangled,
         .params      = params,

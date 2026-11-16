@@ -53,8 +53,10 @@ export CalleeIndex :: struct {
     variant_data: Set<i32> = Set<i32> {}
     /// Per declaration id, what a primitive is to a task (`task_doors.vader`).
     doors: Map<i64, TaskPrimitive> = Map<i64, TaskPrimitive> {}
-    /// The declaration id of `deep_copy`, when the project has it (`deep_copy_check.vader`).
-    deep_copy: i64 | null = null
+    /// The declaration ids of the functions the host of `deep_copy` serves: one
+    /// that forwards to `Intrinsic.deep_copy`, or a bodyless one it names
+    /// (`deep_copy_check.vader`).
+    deep_copies: Set<i64> = Set<i64> {}
     /// Every module constant's initialiser, which may hand a frozen value on.
     constants: Initialiser[] = []
     /// Every struct field default, which every struct built without the field keeps.
@@ -231,6 +233,9 @@ forwarded_effects :: fn(
     if member is ForwardedOperator {
         return null
     }
+    if host_for(member.name, "") == .DeepCopy {
+        index.deep_copies.add(decl.id)
+    }
     return intrinsic_member_effects(member.name, index.paths.path_to(ELEMENT))
 }
 
@@ -263,7 +268,7 @@ summary_target :: fn(
         return KnownEffects { .params = effects }
     }
     if host == .DeepCopy {
-        index.deep_copy = decl.id
+        index.deep_copies.add(decl.id)
     }
     if known.params != null {
         return KnownEffects { .params = known.params }
@@ -482,6 +487,7 @@ intrinsic_member_effects :: fn(member: string, elements: i32) -> ParamEffects[] 
         "buffer_memory_copy"   -> memory_copy_effects(elements)
         "buffer_intern_string" -> [none(), none()]
         "buffer_write_string"  -> writes_bytes(elements)
+        "deep_copy"            -> [none()]
         _                      -> null
     }
 

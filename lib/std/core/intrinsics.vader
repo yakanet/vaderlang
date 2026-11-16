@@ -46,6 +46,12 @@ export Intrinsic :: trait {
     /// The `f32` whose IEEE 754 bit pattern is `bits`.
     bits_to_f32 :: fn(bits: u32) -> f32
 
+    // ---- values ---------------------------------------------------------
+
+    /// A copy of `value` that shares nothing it can write, walked by the layout
+    /// of each type it reaches: one host per type copied.
+    deep_copy :: fn<T>(value: T) -> T
+
     // ---- arrays ---------------------------------------------------------
 
     /// Number of live elements of `xs`.

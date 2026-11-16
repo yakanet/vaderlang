@@ -303,7 +303,7 @@ LowerProjectCtx :: struct {
     /// Members of `std/core`'s `Intrinsic` a call reached, by name, each with the
     /// type the call gave it : the surfacing pass lowers these, and only these,
     /// to bodyless declarations (`surface_intrinsic_members`).
-    referenced_intrinsics: Map<string, FnType> = Map<string, FnType> {}
+    referenced_intrinsics: Map<string, ReachedIntrinsic> = Map<string, ReachedIntrinsic> {}
 
     /// What each function that only forwards its parameters to a primitive
     /// operation runs, by the function's node id (`find_forwarders`).

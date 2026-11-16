@@ -17,14 +17,18 @@ import "vader/front/typecheck"
 /// The T3135 errors of a checked project: each instance of `deep_copy` on a type
 /// that can hold a function value.
 ///
-/// @param summary  the effect summary, whose index knows `deep_copy`.
+/// @param summary  the effect summary, whose index knows the functions that copy
+///                 deeply.
 /// @param checked  its typecheck, which recorded the calls.
 export deep_copy_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) -> Diagnostic[] {
     out: Diagnostic[]: []
-    copy :: summary.index.deep_copy else return out
+    copies :: summary.index.deep_copies
+    if copies.is_empty() {
+        return out
+    }
     for typed in checked.all_modules.values() {
         for [id, callee] in typed.call_sites.calls {
-            if callee is DirectFn && callee.decl.id == copy {
+            if callee is DirectFn && callee.decl.id in copies {
                 bindings :: callee.bindings else continue
                 span :: typed.call_sites.instantiation_spans[id] else continue
                 for [_, copied] in bindings {

@@ -47,7 +47,7 @@ export IntrinsicId :: enum(HostMember) {
     BytesToString           { .member = "bytes_to_string" },
     StringHash              { .member = "string_hash" },
     // std/core values
-    DeepCopy                { .member = "" },
+    DeepCopy                { .member = "deep_copy" },
     // std/runtime
     RuntimeCollect          { .member = "collect" },
     RuntimeCollections      { .member = "collections" },
