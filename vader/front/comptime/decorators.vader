@@ -84,13 +84,23 @@ decorator_value :: fn(
     fields :: Map<string, ComptimeValue> {}
     failed := false
     for [name, argument] in use.arguments {
-        result :: evaluate_expr(argument, context)
-        value :: result.value else {
-            report_failure(result, diags)
+        value :: argument_value(argument, context, diags) else {
             failed = true
             continue
         }
         fields[name] = value
+    }
+    variadic :: use.variadic
+    if variadic != null {
+        elements: ComptimeValue[]: []
+        for element in variadic.elements {
+            value :: argument_value(element, context, diags) else {
+                failed = true
+                continue
+            }
+            elements.push(value)
+        }
+        fields[variadic.field] = ArrayValue { .elements = elements, .type = variadic.type }
     }
     if failed {
         return null
@@ -102,6 +112,18 @@ decorator_value :: fn(
         return null
     }
     if value !is StructValue {
+        return null
+    }
+    return value
+}
+
+// The value of `argument`, null when its evaluation fails, which is reported.
+argument_value :: fn(
+    argument: AST.Expr, context: ComptimeContext, diags: Diagnostic[],
+) -> ComptimeValue | null {
+    result :: evaluate_expr(argument, context)
+    value :: result.value else {
+        report_failure(result, diags)
         return null
     }
     return value

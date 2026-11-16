@@ -1,0 +1,2 @@
+[5:1] warning[W0007] declaration is never used in its module: `Route` is never used
+[6:5] error[P1042] a variadic field is the last field of a decorator, an array without a default: `...methods` comes after the other fields

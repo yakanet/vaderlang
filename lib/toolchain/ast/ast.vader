@@ -669,6 +669,9 @@ export StructField :: struct {
     /// The declared decorators written above the field ; `@internal` is its
     /// `visibility`.
     decorators: Decorator[] = []
+    /// Written `...name: T[]`, the last field of a decorator: it holds the
+    /// positional arguments left after the other fields.
+    variadic:   bool = false
 }
 
 // ---- Enum -----------------------------------------------------------------

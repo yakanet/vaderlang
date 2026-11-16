@@ -16,6 +16,7 @@ AST :: import "toolchain/ast"
 import "toolchain/diagnostics"
 import "toolchain/parser"
 import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/resolver"
 
 /// Check every declared decorator written on `decls`, at each of their places
@@ -132,20 +133,34 @@ export is_repeatable :: fn(declaration: AST.StructDecl) -> bool {
 
 // The arguments of `d` against the fields of the decorator `sym`, as a call's
 // against its parameters: positional ones in field order, then named ones, each
-// field once, the fields without a default all given. The arguments bound to a
+// field once, the fields without a default all given. A variadic field takes the
+// positional arguments left, each typed as an element. The arguments bound to a
 // field are recorded for the comptime pass (`decorator_uses`).
 check_decorator_arguments :: fn(
     d: AST.Decorator, sym: Symbol, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     fields :: typed.struct_fields[sym.id] else return
     order: string[]: []
-    for [name, _] in fields {
-        order.push(name)
+    variadic: VariadicArguments | null = null
+    element: Type | null = null
+    for [name, field] in fields {
+        if field.decl.variadic {
+            variadic = VariadicArguments { .field = name, .type = field.ty, .elements = [] }
+            element = argument_type(field)
+        } else {
+            order.push(name)
+        }
     }
     bound :: Map<string, AST.Expr> {}
     next_position := 0
     seen_named := false
     for a in d.args {
+        left_over :: a.name == null && !seen_named && next_position >= order.len()
+        if left_over && variadic != null {
+            check_decorator_value(a.value, element, typed, diags)
+            variadic.elements.push(a.value)
+            continue
+        }
         target: string | null = null
         name :: a.name
         if name == null {
@@ -179,14 +194,35 @@ check_decorator_arguments :: fn(
         }
     }
     for [name, field] in fields {
-        if field.decl.default == null && name !in bound {
+        if field.decl.default == null && !field.decl.variadic && name !in bound {
             diags.push(typecheck_error(.MissingRequiredArg, d.span,
                 "`@${d.name}` needs `${name}`"))
         }
+    }
+    // Given whole by name, the variadic field takes no positional argument.
+    if variadic != null && variadic.field in bound {
+        if variadic.elements.len() > 0 {
+            diags.push(typecheck_error(.ArgumentGivenTwice, variadic.elements[0].span,
+                "`${variadic.field}` is given already"))
+        }
+        variadic = null
     }
     typed.decorator_uses[d.id] = DecoratorUse {
         .written = d,
         .symbol = sym,
         .arguments = bound,
+        .variadic = variadic,
     }
+}
+
+/// The type an argument bound to `field` takes: an element of its array for a
+/// variadic field, else the field's own type.
+///
+/// @param field  a field of a decorator.
+export argument_type :: fn(field: StructFieldInfo) -> Type {
+    if !field.decl.variadic {
+        return field.ty
+    }
+    backing :: array_backing(field.ty) else return field.ty
+    return backing.element
 }

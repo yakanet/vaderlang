@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/route_methods_variadic
+  FnDecl         list_users           :: fn() -> string
+  FnDecl         main                 :: fn() -> i32
+  EnumDecl       Method               :: Method
+  FnDecl         ping                 :: fn() -> string
+  FnDecl         put_item             :: fn() -> string
+  StructDecl     Route                :: Route
+  expr 17:20    DotVariantExpr :: DecoratorTarget
+  expr 22:18    DotVariantExpr :: Method
+  expr 22:24    DotVariantExpr :: Method
+  expr 22:8     StringLitExpr  :: string
+  expr 23:32    StringLitExpr  :: string
+  expr 25:8     StringLitExpr  :: string
+  expr 26:26    StringLitExpr  :: string
+  expr 28:28    SeqLitExpr     :: Method[]
+  expr 28:29    DotVariantExpr :: Method
+  expr 28:8     StringLitExpr  :: string
+  expr 29:30    StringLitExpr  :: string
+  expr 32:13    CallExpr       :: string
+  expr 32:13    IdentExpr      :: fn() -> string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    CallExpr       :: string
+  expr 33:13    IdentExpr      :: fn() -> string
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 34:13    CallExpr       :: string
+  expr 34:13    IdentExpr      :: fn() -> string
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void

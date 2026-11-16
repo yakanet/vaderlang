@@ -157,6 +157,7 @@ write_struct_field :: fn(w: DeclWriter, f: AST.StructField) -> void {
     w.write_expr(f.ty)
     w.write_optional_expr(f.default)
     w.write_decorators(f.decorators)
+    w.out.write_flag(f.variadic)
 }
 
 write_spread :: fn(w: DeclWriter, spread: AST.StructSpread) -> void {
@@ -462,6 +463,7 @@ read_struct_field :: fn(d: DeclReader) -> AST.StructField | ProtocolError {
         return default_value
     }
     decorators :: d.read_decorators() else return decorators
+    variadic :: d.fields.read_flag() else return variadic
     return AST.StructField {
         .span = span,
         .name = name,
@@ -469,6 +471,7 @@ read_struct_field :: fn(d: DeclReader) -> AST.StructField | ProtocolError {
         .visibility = visibility,
         .default = default_value,
         .decorators = decorators,
+        .variadic = variadic,
     }
 }
 
@@ -817,6 +820,7 @@ SAMPLE :: """
 
     Route :: decorator(.Function, repeatable = true) {
         path: string
+        ...tags: string[]
     }
 
     Marker :: decorator {}
@@ -1029,6 +1033,16 @@ test_a_decorator_keeps_its_places_and_options :: fn() -> void {
     assert_eq(args.len(), 2)
     assert(args[0].value is AST.DotVariantExpr, "`.Function`")
     assert(args[1].name == "repeatable", "`repeatable = true`")
+}
+
+@test
+test_a_variadic_field_stays_one :: fn() -> void {
+    route :: crossed_sample()[19]
+    if route !is AST.StructDecl {
+        assert(false, "the twentieth declaration is `Route`")
+        return
+    }
+    assert(!route.fields[0].variadic && route.fields[1].variadic, "`...tags` alone")
 }
 
 @test

@@ -820,6 +820,9 @@ emit_struct_field :: fn(self: Printer, f: p.StructField) -> void {
         self.emit_decorator(d)
         self.nl_indent()
     }
+    if f.variadic {
+        self.write("...")
+    }
     self.write(f.name)
     self.write(": ")
     self.emit_type_expr(f.ty)

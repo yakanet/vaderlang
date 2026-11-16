@@ -1484,7 +1484,8 @@ parse_struct_body :: fn(
     for !p.check(.RBrace) && !p.check(.Eof) {
         doc :: p.take_doc()
         field_decos :: p.parse_decorators()
-        if p.check(.DotDotDot) {
+        variadic :: opens_variadic_field(p)
+        if p.check(.DotDotDot) && !variadic {
             spreads.push(p.parse_struct_spread(field_decos, fields.len()))
             p.skip_member_separator()
             continue
@@ -1505,6 +1506,9 @@ parse_struct_body :: fn(
             }
         }
         start :: p.peek()
+        if variadic {
+            p.advance()  // `...`
+        }
         fname :: p.expect(.Ident, "field name")
         p.expect(.Colon, "`:` after field name")
         ftype :: p.parse_type()
@@ -1513,7 +1517,7 @@ parse_struct_body :: fn(
             p.skip_newlines()
             fdefault = p.parse_expr(0)
         }
-        fields.push(StructField {
+        field :: StructField {
             .span       = p.span_of(start, p.peek_at(-1)),
             .name       = fname.text,
             .ty         = ftype,
@@ -1521,8 +1525,13 @@ parse_struct_body :: fn(
             .default    = fdefault,
             .doc        = doc,
             .decorators = declared,
-        })
+            .variadic   = variadic,
+        }
+        fields.push(field)
         p.skip_member_separator()
+        if variadic {
+            p.check_variadic_field(field, decorator_args != null)
+        }
     }
     end_tok :: p.expect(.RBrace, "`}` to close struct body")
     return StructDecl {
@@ -1535,6 +1544,25 @@ parse_struct_body :: fn(
         .spreads        = spreads,
         .decorators     = decorators,
         .decorator_args = decorator_args,
+    }
+}
+
+// Whether the struct body continues with `...name:`, a variadic field, rather
+// than `...Base`, a spread.
+opens_variadic_field :: fn(p: Parser) -> bool =
+    p.check(.DotDotDot) && p.peek_at(1).kind == .Ident && p.peek_at(2).kind == .Colon
+
+// A variadic field ends the fields of a decorator, takes an array type and no
+// default: it holds what is left of the positional arguments, `[]` when nothing.
+check_variadic_field :: fn(p: Parser, field: StructField, in_decorator: bool) -> void {
+    if !in_decorator {
+        p.error(.VariadicFieldMisplaced, field.span, "only a decorator declares a variadic field")
+    } else if field.ty !is ArrayTypeExpr {
+        p.error(.VariadicFieldMisplaced, field.ty.span, "`...${field.name}` holds an array, as in `...oses: Os[]`")
+    } else if field.default != null {
+        p.error(.VariadicFieldMisplaced, field.default.span, "`...${field.name}` holds `[]` when no argument is left")
+    } else if !p.check(.RBrace) {
+        p.error(.VariadicFieldMisplaced, field.span, "`...${field.name}` comes after the other fields")
     }
 }
 
@@ -4674,4 +4702,39 @@ test_extern_takes_its_symbol_by_name :: fn() -> void {
 test_extern_takes_no_other_argument_by_name :: fn() -> void {
     assert_eq(extern_argument_errors("name = \"puts\"").join(", "), "P1033")
     assert_eq(extern_argument_errors("symbol = \"puts\", LIBC").join(", "), "P1033")
+}
+
+// The P1042 details of parsing `body` as the fields of `Name :: <head> { body }`.
+variadic_field_errors :: fn(head: string, body: string) -> string[] {
+    src :: "Name :: ${head} {\n${body}\n}\n"
+    errors :: parse_source(src, "test.vader").errors
+    return errors.filter((e) -> e.code.id == "P1042").map((e) -> e.detail).collect()
+}
+
+@test
+test_a_variadic_field_ends_a_decorator :: fn() -> void {
+    assert_eq(variadic_field_errors("decorator", "path: string\n...tags: string[]").len(), 0)
+}
+
+@test
+test_a_variadic_field_is_misplaced :: fn() -> void {
+    assert_eq(variadic_field_errors("struct", "...tags: string[]").join(" | "),
+        "only a decorator declares a variadic field")
+    assert_eq(variadic_field_errors("decorator", "...tag: string").join(" | "),
+        "`...tag` holds an array, as in `...oses: Os[]`")
+    assert_eq(variadic_field_errors("decorator", "...tags: string[] = []").join(" | "),
+        "`...tags` holds `[]` when no argument is left")
+    assert_eq(variadic_field_errors("decorator", "...tags: string[]\npath: string").join(" | "),
+        "`...tags` comes after the other fields")
+}
+
+@test
+test_a_spread_is_not_a_variadic_field :: fn() -> void {
+    decl :: parse_source("Account :: struct {\n    ...Base\n}\n", "test.vader").program.decls[0]
+    if decl !is StructDecl {
+        assert(false, "`Account` is a struct")
+        return
+    }
+    assert_eq(decl.spreads.len(), 1)
+    assert_eq(decl.fields.len(), 0)
 }

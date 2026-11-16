@@ -1,0 +1,10 @@
+// A variadic field takes the positional arguments left after the others, so it
+// comes last: P1042.
+module "snippet"
+
+Route :: decorator(.Function) {
+    ...methods: string[]
+    path: string
+}
+
+main :: fn() -> i32 = 0

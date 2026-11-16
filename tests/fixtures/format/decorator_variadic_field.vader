@@ -1,0 +1,10 @@
+// tests/fixtures/format/decorator_variadic_field: a variadic field keeps its `...`.
+
+module "decorator_variadic_field"
+
+Route :: decorator(.Function) { path: string, ...methods: string[] }
+
+Tagged :: decorator {
+    name: string
+    ...tags: string[]
+}

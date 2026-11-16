@@ -152,10 +152,17 @@ active_field :: fn(fields: [string, StructFieldInfo][], args: DecoratorArguments
             return i
         }
     }
-    if args.named != "" || args.position >= fields.len() {
+    if args.named != "" || fields.len() == 0 {
         return -1
     }
-    return args.position
+    if args.position < fields.len() {
+        return args.position
+    }
+    // A variadic field, the last, takes every positional argument left.
+    if fields[fields.len() - 1].1.decl.variadic {
+        return fields.len() - 1
+    }
+    return -1
 }
 
 /// The names the argument at the cursor at `offset` may still give, written
@@ -231,9 +238,10 @@ decorator_variant_items :: fn(
     if active < 0 {
         return null
     }
-    enum_type :: as_enum_type(fields[active].1.ty, typed) else return null
+    enum_type :: as_enum_type(argument_type(fields[active].1), typed) else return null
     return enum_variant_items(enum_type)
 }
+
 
 // ---- the declaration below the cursor -------------------------------------
 

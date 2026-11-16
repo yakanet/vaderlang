@@ -96,6 +96,9 @@ export format_decl_head :: fn(source: string, d: p.Decl) -> NamedText {
 /// @return        the head, cut past `HEAD_VALUE_MAX` bytes.
 export format_field_head :: fn(source: string, f: p.StructField) -> NamedText {
     h :: head_printer(source)
+    if f.variadic {
+        h.write("...")
+    }
     h.write(f.name)
     h.write(": ")
     h.emit_type_expr(f.ty)

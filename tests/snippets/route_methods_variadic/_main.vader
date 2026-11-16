@@ -1,0 +1,36 @@
+// A declared decorator whose last field is variadic: the positional arguments
+// left after `path` fill `methods`, none leaves it `[]`, and a named argument
+// gives it whole.
+
+module "snippet"
+
+import "std/console"
+
+/// A request method.
+Method :: enum {
+    Get,
+    Post,
+    Put,
+}
+
+/// Where a handler answers, and to which methods.
+Route :: decorator(.Function) {
+    path: string
+    ...methods: Method[]
+}
+
+@Route("/users", .Get, .Post)
+list_users :: fn() -> string = "users"
+
+@Route("/ping")
+ping :: fn() -> string = "pong"
+
+@Route("/items", methods = [.Put])
+put_item :: fn() -> string = "item"
+
+main :: fn() -> i32 {
+    println(list_users())
+    println(ping())
+    println(put_item())
+    return 0
+}

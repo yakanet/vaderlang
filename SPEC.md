@@ -3405,6 +3405,7 @@ Marker :: decorator {}
 - `repeatable = true` lets the decorator be written more than once on one declaration. It is the only option.
 - The places and the option are written as literals (`.Function` or `DecoratorTarget.Function`, `true` or `false`): they are read before any value is computed.
 - Each field holds a value known at compile time: a number, a `bool`, a `char`, a `string`, an enum, an array of these, or a distinct type over one of them. Any other field type is an error.
+- Its last field may be written `...name: T[]`, a variadic field: it receives the positional arguments left after the other fields, `[]` when none is. It takes an array type and no default, and only a decorator declares one.
 - A decorator takes no type parameter.
 - A decorator cannot take the name of one of the compiler's, listed above. A function or a constant still can.
 - A decorator is a type: `Route { .method = .Get, .path = "/" }` builds a value of it, as for a struct. It changes nothing in the program it decorates.
@@ -3428,7 +3429,7 @@ create_user :: fn() -> string = "created"
 list_users :: fn() -> string = "users"
 ```
 
-- Its arguments are those of a call whose parameters are the decorator's fields, in order: positional ones first, then named ones. A field with a default may be left out; every other field is given once.
+- Its arguments are those of a call whose parameters are the decorator's fields, in order: positional ones first, then named ones. A field with a default may be left out; every other field is given once. A variadic field is given its positional arguments one by one (`@Route(.Get, .Post)`), or whole by name (`methods = [.Get, .Post]`).
 - It is written only at a place its declaration names. A function, a trait member and an impl member are a `Function`; a struct (a decorator declaration included) a `Struct`; a struct field a `Field`; an enum an `Enum`; an enum variant a `Variant`; a function parameter a `Parameter`; a trait a `Trait`; an `implements` block an `Implementation`; a module constant a `Constant`; a type alias an `Alias`; an import an `Import`; a module a `Module`.
 - It is written once per declaration, unless its declaration says `repeatable = true`.
 - Each one builds a value of the decorator, every field filled: its arguments are computed where it is written, the way a constant is folded, and the fields it leaves out take their defaults. An argument the compiler cannot compute that way, such as a call to a function that runs a loop, is an error, unless it is written `@comptime`: it is then computed as the value of a `@comptime` constant, which runs any code, and a block is written there as after a constant's `@comptime`.

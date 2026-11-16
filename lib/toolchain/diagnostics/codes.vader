@@ -198,6 +198,7 @@ export ParserCode :: enum(CodeInfo) {
     MisshapenMatchBinding      { .id = "P1039", .message = "a `match` header binds one constant name" },
     AssignmentAfterElse        { .id = "P1040", .message = "an assignment cannot follow the value of an `else`" },
     DecoratorTypeParameters    { .id = "P1041", .message = "a decorator takes no type parameter" },
+    VariadicFieldMisplaced     { .id = "P1042", .message = "a variadic field is the last field of a decorator, an array without a default" },
 }
 
 // R-codes belong to the resolver pass (name-binding).

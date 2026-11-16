@@ -337,6 +337,18 @@ export DecoratorUse :: struct {
     /// The arguments the use gives, by the field each is bound to ; a field left
     /// out takes its default.
     arguments: Map<string, AST.Expr>
+    /// What the variadic field of the decorator receives, when it has one that no
+    /// named argument gives.
+    variadic: VariadicArguments | null = null
+}
+
+/// The positional arguments a variadic decorator field receives, `[]` when none
+/// is left after the other fields.
+export VariadicArguments :: struct {
+    field: string
+    /// The field's type, an array.
+    type: Type
+    elements: AST.Expr[]
 }
 
 /// Per-module typechecker output. Every span-keyed side-table uses the
