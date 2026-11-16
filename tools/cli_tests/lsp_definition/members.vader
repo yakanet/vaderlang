@@ -408,10 +408,10 @@ test_a_virt_operand_jumps_to_what_it_names :: fn() -> void {
     dump :: bytecode_dump("tests/snippets/json_basics/_main.vader")
     lines :: dump.split("\n")
     jumps: Jump[]: [
-        indexed(lines, "call", "fn"),
-        indexed(lines, "string.const", "string"),
-        indexed(lines, "ref.cast", "type"),
-        indexed(lines, "call.import", "import"),
+        lines.indexed("call", "fn"),
+        lines.indexed("string.const", "string"),
+        lines.indexed("ref.cast", "type"),
+        lines.indexed("call.import", "import"),
     ]
     // `fn 0 ...`: slot 1 is a parameter, slot 2 its first local.
     show :: first_line(lines, 0, (l) -> l.starts_with("fn 0 "))
