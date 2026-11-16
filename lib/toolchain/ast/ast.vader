@@ -387,27 +387,28 @@ export place_of :: fn(decl: Decl) -> string = match decl {
 /// declarations of their own, with sites of their own (`members_of`).
 ///
 /// @param decl  a top-level declaration, or the member of a trait or an impl.
-export decorator_sites :: fn(decl: Decl) -> DecoratorSite[] {
-    out: DecoratorSite[]: [DecoratorSite { .place = place_of(decl), .decorators = decl_decorators(decl) }]
+export decorator_sites :: fn(decl: Decl) -> Iterator<DecoratorSite> {
+    yield DecoratorSite {
+        .place = place_of(decl), .decorators = decl_decorators(decl)
+    }
     match decl {
         is StructDecl -> {
             for f in decl.fields {
-                out.push(DecoratorSite { .place = "Field", .decorators = f.decorators })
+                yield DecoratorSite { .place = "Field", .decorators = f.decorators }
             }
         }
         is EnumDecl   -> {
             for v in decl.variants {
-                out.push(DecoratorSite { .place = "Variant", .decorators = v.decorators })
+                yield DecoratorSite { .place = "Variant", .decorators = v.decorators }
             }
         }
         is FnDecl     -> {
             for p in decl.params {
-                out.push(DecoratorSite { .place = "Parameter", .decorators = p.decorators })
+                yield DecoratorSite { .place = "Parameter", .decorators = p.decorators }
             }
         }
         _ -> {}
     }
-    return out
 }
 
 /// The members of a trait or an impl, as it writes them ; none for any other
