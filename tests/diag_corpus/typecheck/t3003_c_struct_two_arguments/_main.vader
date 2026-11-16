@@ -1,0 +1,10 @@
+// `@c_struct` with two arguments: it declares one field, the C type.
+module "snippet"
+
+@c_struct("div_t", "ldiv_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+main :: fn() -> i32 { return 0 }

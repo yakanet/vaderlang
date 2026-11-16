@@ -13,6 +13,12 @@
   expr 10:30    StringLitExpr  :: string
   expr 10:45    SeqLitExpr     :: string[]
   expr 10:46    StringLitExpr  :: string
+  expr 12:17    StringLitExpr  :: string
+  expr 15:17    StringLitExpr  :: string
+  expr 18:17    StringLitExpr  :: string
+  expr 21:17    StringLitExpr  :: string
+  expr 24:17    StringLitExpr  :: string
+  expr 27:17    StringLitExpr  :: string
   expr 33:13    StringLitExpr  :: string
   expr 33:16    CallExpr       :: i64
   expr 33:16    IdentExpr      :: fn(u32) -> i64

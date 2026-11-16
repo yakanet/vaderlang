@@ -197,36 +197,63 @@ export find_declared_decorator :: fn(
     decs: Decorator[], module_name: string, name: string,
 ) -> Decorator | null = decs.find((d) -> d.module_name == module_name && d.name == name)
 
+/// The argument written for the field `name` of `d`: by name, or as the
+/// positional argument at `position`, the field's rank in its declaration.
+///
+/// @param d         a decorator as written.
+/// @param name      the field.
+/// @param position  its rank among the fields, the variadic one aside.
+/// @return          null when `d` gives the field nothing.
+export argument_named :: fn(d: Decorator, name: string, position: i64) -> Expr | null {
+    at: i64 = 0
+    for a in d.args {
+        if a.name == name {
+            return a.value
+        }
+        if a.name == null {
+            if at == position {
+                return a.value
+            }
+            at += 1
+        }
+    }
+    return null
+}
+
+/// The text of the string written for the field `name` of `d` (`argument_named`).
+///
+/// @param d         a decorator as written.
+/// @param name      the field.
+/// @param position  its rank among the fields.
+/// @return          `""` when `d` gives the field nothing, or not a plain string.
+export string_field :: fn(d: Decorator, name: string, position: i64) -> string {
+    value :: argument_named(d, name, position) else return ""
+    return string_literal_text(value) else ""
+}
+
 /// The C type a `@c_type("...")` among `decs` names, or `""` when none does or its
 /// argument is not one plain string.
 ///
 /// @param decs  the decorators of an `@extern` declaration or of one parameter.
 export c_type_of :: fn(decs: Decorator[]) -> string {
     d :: find_compiler_decorator(decs, .CType) else return ""
-    return sole_string_argument(d)
+    return string_field(d, "name", 0)
 }
 
 /// What an `@extern` writes, each part null when it is absent.
 export ExternArguments :: struct {
-    /// The `CLibrary` constant the symbol comes from: the first of two arguments.
+    /// The `CLibrary` constant the symbol comes from.
     library: Expr | null = null
-    /// The C symbol: the last argument, `symbol = "..."` when it stands alone.
+    /// The C symbol.
     symbol:  Expr | null = null
 }
 
 /// The library and the symbol `d`, an `@extern`, writes.
 ///
 /// @param d  an `@extern` as written.
-export extern_arguments :: fn(d: Decorator) -> ExternArguments {
-    count :: d.args.len()
-    if count == 0 {
-        return ExternArguments {}
-    }
-    symbol :: d.args[count - 1].value
-    if count == 2 {
-        return ExternArguments { .library = d.args[0].value, .symbol = symbol }
-    }
-    return ExternArguments { .symbol = symbol }
+export extern_arguments :: fn(d: Decorator) -> ExternArguments = ExternArguments {
+    .library = argument_named(d, "library", 0),
+    .symbol = argument_named(d, "symbol", 1),
 }
 
 /// The C symbol an `@extern` declaration binds: the symbol its `@extern` writes
@@ -245,7 +272,7 @@ export extern_symbol_of :: fn(decl: FnDecl) -> string {
 /// @param decl  the bodyless function declaration.
 export c_header_of :: fn(decl: FnDecl) -> string {
     d :: find_compiler_decorator(decl.decorators, .CHeader) else return ""
-    return sole_string_argument(d)
+    return string_field(d, "header", 0)
 }
 
 /// The headers that own the prototype of an `@extern` declaration: its own
@@ -289,21 +316,15 @@ export c_variadic_start :: fn(decl: FnDecl) -> i64 {
 /// A bare `@c_struct` names the C type after the struct, read as a `typedef`
 /// name: `Color` mirrors `Color`. The argument spells a C type whose name differs
 /// (`@c_struct("struct pollfd")`). An argument that is not one plain string reads
-/// as `""`; the parser reports it (`P1032`, `P1033`).
+/// as `""`; the typecheck reports it.
 ///
 /// @param decs         the struct's decorators.
 /// @param struct_name  the name the struct declares, never its mangled form.
 export c_struct_spelling :: fn(decs: Decorator[], struct_name: string) -> string {
     d :: find_compiler_decorator(decs, .CStruct) else return ""
-    if d.args.len() == 0 {
-        return struct_name
-    }
-    return sole_string_argument(d)
+    value :: argument_named(d, "name", 0) else return struct_name
+    return string_literal_text(value) else ""
 }
-
-// The text of `d`'s argument when it has exactly one, a plain string; `""`
-// otherwise.
-sole_string_argument :: fn(d: Decorator) -> string = string_argument(d) else ""
 
 /// The text of the one argument `d` takes, when it is a plain string literal:
 /// what a build driver reads of `@json_name("user_id")`.

@@ -167,6 +167,7 @@ export TypecheckCode :: enum(CodeInfo) {
     DecoratorMisplaced              { .id = "T3142", .message = "this decorator is not declared for this place" },
     DecoratorRepeated               { .id = "T3143", .message = "a decorator is written twice without `repeatable`" },
     DecoratorDeclarationNotLiteral  { .id = "T3144", .message = "a decorator declaration writes its places and options as literals" },
+    CompilerDecoratorNotLiteral     { .id = "T3145", .message = "a decorator of the compiler takes its arguments as literals" },
 }
 
 // Parser-pass codes.

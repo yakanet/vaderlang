@@ -1,0 +1,11 @@
+// A decorator of the compiler takes its arguments by the names of its declared
+// fields, as any other: `@deprecated` has `reason`, and no `message`.
+module "snippet"
+
+@deprecated(message = "use `area`")
+surface :: fn() -> i32 = 0
+
+@deprecated(reason = "use `area`")
+extent :: fn() -> i32 = 0
+
+main :: fn() -> i32 = surface() + extent()

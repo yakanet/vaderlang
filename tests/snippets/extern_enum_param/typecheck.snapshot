@@ -6,6 +6,10 @@
   FnDecl         main                 :: fn() -> i32
   EnumDecl       Sign                 :: Sign
   EnumDecl       Wide                 :: Wide
+  expr 20:11    StringLitExpr  :: string
+  expr 21:18    StringLitExpr  :: string
+  expr 24:11    StringLitExpr  :: string
+  expr 25:18    StringLitExpr  :: string
   expr 29:13    StringLitExpr  :: string
   expr 29:16    CallExpr       :: i32
   expr 29:16    IdentExpr      :: fn(Sign) -> i32

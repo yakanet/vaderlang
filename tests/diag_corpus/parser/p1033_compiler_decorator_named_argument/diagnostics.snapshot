@@ -1,2 +1,0 @@
-[5:13] error[P1033] decorator argument has the wrong form: `@deprecated` takes its arguments by position
-[8:23] warning[W0001] use of deprecated declaration: `surface`: use `area`

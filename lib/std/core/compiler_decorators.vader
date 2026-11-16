@@ -4,6 +4,10 @@
 // what it takes. The compiler reads what they are written with and evaluates
 // none of it. Their names are the compiler's: no other decorator may take one,
 // and none of them is a value.
+//
+// The compiler reads a field by its name or by its rank among the fields
+// (`toolchain/ast`'s `argument_named`): reordering the fields of one moves what
+// its readers take.
 
 module "std/core"
 

@@ -4,6 +4,9 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair
   FnDecl         zero_pair            :: fn(Pair, i32, i64) -> CPointer
+  expr 18:11    StringLitExpr  :: string
+  expr 24:11    StringLitExpr  :: string
+  expr 25:18    StringLitExpr  :: string
   expr 29:10    StructLitExpr  :: Pair
   expr 30:13    StringLitExpr  :: string
   expr 30:28    FieldExpr      :: char

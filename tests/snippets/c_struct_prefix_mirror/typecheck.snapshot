@@ -4,6 +4,9 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         sys_gettimeofday     :: fn(TimeVal, CPointer | null) -> i32
   StructDecl     TimeVal              :: TimeVal
+  expr 20:11    StringLitExpr  :: string
+  expr 25:11    StringLitExpr  :: string
+  expr 26:18    StringLitExpr  :: string
   expr 30:11    StructLitExpr  :: TimeVal
   expr 31:11    CallExpr       :: i32
   expr 31:11    IdentExpr      :: fn(TimeVal, CPointer | null) -> i32

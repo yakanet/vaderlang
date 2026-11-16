@@ -1,0 +1,14 @@
+// `@c_struct` naming its C type with an interpolated string. A decorator of the
+// compiler reads its arguments as written, so the C type is a plain string
+// literal.
+module "snippet"
+
+SUFFIX :: "_t"
+
+@c_struct("div${SUFFIX}")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+main :: fn() -> i32 { return 0 }

@@ -8,8 +8,11 @@
   FnDecl         lend_fill_div        :: fn(Div) -> void
   FnDecl         lend_set_cb          :: fn(fn(i32) -> void) -> void
   FnDecl         main                 :: fn() -> i32
+  expr 18:11    StringLitExpr  :: string
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn() -> void
+  expr 29:11    StringLitExpr  :: string
+  expr 30:18    StringLitExpr  :: string
   expr 33:17    IdentExpr      :: fn(i32) -> void
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(fn(i32) -> void) -> void

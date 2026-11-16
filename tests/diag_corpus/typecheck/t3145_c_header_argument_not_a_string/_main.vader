@@ -1,0 +1,11 @@
+// `@c_header` naming its header through a constant. A decorator of the compiler
+// reads its arguments as written, so the header is a plain string literal.
+module "snippet"
+
+HEADER :: "<stdlib.h>"
+
+@c_header(HEADER)
+@extern(symbol = "abs")
+c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return c_abs(-1) }

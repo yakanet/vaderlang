@@ -555,9 +555,6 @@ parse_decl :: fn(p: Parser) -> Decl | null {
         return p.parse_assert_decl()
     }
     decorators :: p.parse_decorators()
-    p.check_guard_arity(decorators)
-    p.check_c_struct_arguments(decorators)
-    p.check_c_header_arguments(decorators)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null {
         visibility = .Public
@@ -604,10 +601,16 @@ set_decl_doc :: fn(decl: Decl, doc: DocComment) -> void {
 }
 
 // `@assert(condition)` or `@assert(condition, "message")` : a top-level
-// statement of its own, which decorates nothing.
+// statement of its own, which decorates nothing. Its arguments become the
+// `AssertDecl` here, so they are checked here, by position, rather than against
+// the fields of its declaration.
 parse_assert_decl :: fn(p: Parser) -> AssertDecl | null {
     dec :: p.parse_decorator()
-    p.reject_named_arguments(dec)
+    for a in dec.args {
+        if a.name != null {
+            p.error(.DecoratorArgumentForm, a.span, "`@assert` takes its arguments by position")
+        }
+    }
     p.skip_newlines()
     if dec.args.len() < 1 || dec.args.len() > 2 {
         p.error(.DecoratorArgumentCount, dec.span,
@@ -668,52 +671,10 @@ parse_decorated_decl :: fn(
     return null
 }
 
-// `@returns(cond)` and `@ensures(cond)` state one condition.
-check_guard_arity :: fn(p: Parser, decorators: Decorator[]) -> void {
-    for d in decorators {
-        if (d.is_compiler(.Returns) || d.is_compiler(.Ensures)) && d.args.len() != 1 {
-            p.error(.DecoratorArgumentCount, d.span,
-                "`@${d.name}` expects one condition over the parameters : `@${d.name}(h in Hour)`")
-        }
-    }
-}
-
-// `@c_struct` names the C type at most once, as a plain string: a reader that
-// met anything else would take the struct for an ordinary one, in silence.
-check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
-    d :: find_compiler_decorator(decorators, .CStruct) else return
-    if d.args.len() > 1 {
-        p.error(.DecoratorArgumentCount, d.span,
-            "`@c_struct` takes at most one argument : the C type, when it is not the struct's own name")
-        return
-    }
-    if d.args.len() == 1 && string_literal_text(d.args[0].value) == null {
-        p.error(.DecoratorArgumentForm, d.args[0].span,
-            "`@c_struct` names the C type with a plain string literal (no interpolation)")
-    }
-}
-
-// `@c_header` names one header, as a plain string: a reader that met anything
-// else would find no header and synthesise the prototype, in silence.
-check_c_header_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
-    d :: find_compiler_decorator(decorators, .CHeader) else return
-    if d.args.len() != 1 {
-        p.error(.DecoratorArgumentCount, d.span,
-            "`@c_header` takes one argument : the header, as in a C `#include`")
-        return
-    }
-    if string_literal_text(d.args[0].value) == null {
-        p.error(.DecoratorArgumentForm, d.args[0].span,
-            "`@c_header` names the header with a plain string literal (no interpolation)")
-    }
-}
-
 parse_decorators :: fn(p: Parser) -> Decorator[] {
     out: Decorator[]: []
     for p.check(.At) {
-        d :: p.parse_decorator()
-        p.reject_named_arguments(d)
-        out.push(d)
+        out.push(p.parse_decorator())
         p.skip_newlines()
     }
     return out
@@ -725,23 +686,6 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
 /// @param d  a decorator as written.
 export is_compiler_decorator :: fn(d: Decorator) -> bool = compiler_decorator_of(d) != null
 
-// The compiler's decorators read their arguments by position: a named one would
-// be dropped in silence. `@extern(symbol = "sym")` is the one exception.
-reject_named_arguments :: fn(p: Parser, d: Decorator) -> void {
-    if !is_compiler_decorator(d) {
-        return
-    }
-    for i in 0..<d.args.len() {
-        a :: d.args[i]
-        if a.name != null && !names_the_extern_symbol(d, i) {
-            p.error(.DecoratorArgumentForm, a.span, "`@${d.name}` takes its arguments by position")
-        }
-    }
-}
-
-// Whether argument `i` of `d` is the `symbol = "..."` of an `@extern`, its last.
-names_the_extern_symbol :: fn(d: Decorator, i: i64) -> bool =
-    d.is_compiler(.Extern) && d.args[i].name == "symbol" && i == d.args.len() - 1
 
 parse_decorator :: fn(p: Parser) -> Decorator {
     at :: p.advance()
@@ -4537,24 +4481,6 @@ test_a_decorator_on_the_parameter_of_a_lambda_is_rejected :: fn() -> void {
         errors :: parse_source(src, "test.vader").errors
         assert(errors.len() == 1 && errors[0].code.id == "P1014", "one P1014 for `${lambda}`")
     }
-}
-
-// The P1033 codes of parsing `@extern(<arguments>)` above a bodyless function.
-extern_argument_errors :: fn(arguments: string) -> string[] {
-    src :: "@extern(${arguments})\nf :: fn() -> i32\n"
-    return parse_source(src, "test.vader").errors.map((e) -> e.code.id).collect()
-}
-
-@test
-test_extern_takes_its_symbol_by_name :: fn() -> void {
-    assert_eq(extern_argument_errors("symbol = \"puts\"").len(), 0)
-    assert_eq(extern_argument_errors("LIBC, symbol = \"puts\"").len(), 0)
-}
-
-@test
-test_extern_takes_no_other_argument_by_name :: fn() -> void {
-    assert_eq(extern_argument_errors("name = \"puts\"").join(", "), "P1033")
-    assert_eq(extern_argument_errors("symbol = \"puts\", LIBC").join(", "), "P1033")
 }
 
 // The P1042 details of parsing `body` as the fields of `Name :: <head> { body }`.

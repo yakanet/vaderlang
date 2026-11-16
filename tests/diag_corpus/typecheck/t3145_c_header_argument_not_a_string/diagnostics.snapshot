@@ -1,0 +1,1 @@
+[7:11] error[T3145] a decorator of the compiler takes its arguments as literals: write a string without interpolation, `.Variant`, a number or a boolean

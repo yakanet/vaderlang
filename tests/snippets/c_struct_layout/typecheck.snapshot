@@ -5,6 +5,9 @@
   StructDecl     Div                  :: Div
   FnDecl         fill_div             :: fn(Div, i32, i32) -> void
   FnDecl         main                 :: fn() -> i32
+  expr 14:11    StringLitExpr  :: string
+  expr 20:11    StringLitExpr  :: string
+  expr 21:18    StringLitExpr  :: string
   expr 26:10    StructLitExpr  :: Div
   expr 27:14    IdentExpr      :: Div
   expr 27:5     CallExpr       :: void

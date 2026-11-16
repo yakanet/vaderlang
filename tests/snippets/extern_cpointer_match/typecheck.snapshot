@@ -4,6 +4,10 @@
   FnDecl         c_fclose             :: fn(CPointer) -> i32
   FnDecl         c_fopen              :: fn(string, string) -> CPointer | null
   FnDecl         main                 :: fn() -> i32
+  expr 28:11    StringLitExpr  :: string
+  expr 29:18    StringLitExpr  :: string
+  expr 32:11    StringLitExpr  :: string
+  expr 33:18    StringLitExpr  :: string
   expr 374:60   StructLitExpr  :: RemoveOptions
   expr 37:13    StringLitExpr  :: string
   expr 37:16    CallExpr       :: string

@@ -4,6 +4,10 @@
   FnDecl         c_free               :: fn(CPointer) -> void
   FnDecl         c_malloc             :: fn(u64) -> CPointer
   FnDecl         main                 :: fn() -> i32
+  expr 12:11    StringLitExpr  :: string
+  expr 13:18    StringLitExpr  :: string
+  expr 16:11    StringLitExpr  :: string
+  expr 17:18    StringLitExpr  :: string
   expr 21:10    CallExpr       :: CPointer
   expr 21:10    IdentExpr      :: fn(u64) -> CPointer
   expr 24:13    StringLitExpr  :: string

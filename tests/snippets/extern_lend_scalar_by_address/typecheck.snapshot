@@ -8,6 +8,19 @@
   FnDecl         format_time          :: fn(CPointer) -> string
   FnDecl         main                 :: fn() -> i32
   FnDecl         utc_time             :: fn(i64) -> CPointer
+  expr 10:11    StringLitExpr  :: string
+  expr 11:18    StringLitExpr  :: string
+  expr 14:11    StringLitExpr  :: string
+  expr 15:18    StringLitExpr  :: string
+  expr 18:11    StringLitExpr  :: string
+  expr 19:18    StringLitExpr  :: string
+  expr 22:11    StringLitExpr  :: string
+  expr 23:18    StringLitExpr  :: string
+  expr 26:11    StringLitExpr  :: string
+  expr 27:18    StringLitExpr  :: string
+  expr 28:24    StringLitExpr  :: string
+  expr 30:11    StringLitExpr  :: string
+  expr 31:18    StringLitExpr  :: string
   expr 35:17    SeqLitExpr     :: u8[]
   expr 36:14    IdentExpr      :: u8[]
   expr 36:5     CallExpr       :: void

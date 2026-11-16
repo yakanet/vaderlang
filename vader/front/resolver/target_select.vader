@@ -465,6 +465,23 @@ export TargetSelectors :: struct {
     is_bare: bool
 }
 
+/// The selectors `d`, a `@target`, writes: its arguments, or the elements of the
+/// array it names `oses`.
+///
+/// @param d  a `@target` as written.
+export selector_exprs :: fn(d: AST.Decorator) -> AST.Expr[] {
+    out: AST.Expr[]: []
+    for a in d.args {
+        value :: a.value
+        if a.name != null && value is AST.SeqLitExpr {
+            out.push_all(value.elements)
+        } else {
+            out.push(value)
+        }
+    }
+    return out
+}
+
 /// The `@target` a declaration carries, or null when it has none.
 ///
 /// @param decorators  the declaration's decorators.
@@ -474,8 +491,7 @@ export target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | 
             continue
         }
         out: Os[]: []
-        for a in d.args {
-            selector :: a.value
+        for selector in selector_exprs(d) {
             if selector !is AST.DotVariantExpr {
                 continue
             }
@@ -502,8 +518,7 @@ check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                 if !AST.is_compiler(dec, .Target) {
                     continue
                 }
-                for a in dec.args {
-                    selector :: a.value
+                for selector in selector_exprs(dec) {
                     if selector is AST.DotVariantExpr {
                         if parse_os(selector.variant.to_lower()) == null {
                             diags.push(

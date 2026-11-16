@@ -1,0 +1,4 @@
+[11:23] warning[W0001] use of deprecated declaration: `surface`
+[11:35] warning[W0001] use of deprecated declaration: `extent`: use `area`
+[5:13] error[T3004] unknown named argument: `@deprecated` has no field `message`
+[5:1] error[T3005] missing required argument: `@deprecated` needs `reason`

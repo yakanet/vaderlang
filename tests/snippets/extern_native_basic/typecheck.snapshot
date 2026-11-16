@@ -5,6 +5,11 @@
   FnDecl         c_strlen             :: fn(string) -> u64
   FnDecl         c_strnlen            :: fn(string, u64) -> u64
   FnDecl         main                 :: fn() -> i32
+  expr 14:9     StringLitExpr  :: string
+  expr 15:18    StringLitExpr  :: string
+  expr 18:9     StringLitExpr  :: string
+  expr 19:18    StringLitExpr  :: string
+  expr 20:36    StringLitExpr  :: string
   expr 23:12    CallExpr       :: i32
   expr 23:12    IdentExpr      :: fn(i32, i32) -> i32
   expr 24:10    CallExpr       :: u64

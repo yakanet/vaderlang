@@ -9,6 +9,8 @@
   expr 15:23    StringLitExpr  :: string
   expr 16:23    StringLitExpr  :: string
   expr 17:23    StringLitExpr  :: string
+  expr 20:11    StringLitExpr  :: string
+  expr 21:18    StringLitExpr  :: string
   expr 24:68    CallExpr       :: i32
   expr 24:68    IdentExpr      :: fn(HttpStatus) -> i32
   expr 24:70    IdentExpr      :: HttpStatus
@@ -58,3 +60,7 @@
   expr 10:26    StringLitExpr  :: string
   expr 11:26    StringLitExpr  :: string
   expr 12:26    StringLitExpr  :: string
+  expr 18:11    StringLitExpr  :: string
+  expr 19:18    StringLitExpr  :: string
+  expr 25:11    StringLitExpr  :: string
+  expr 26:18    StringLitExpr  :: string

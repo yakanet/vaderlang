@@ -112,6 +112,16 @@
   expr 128:5    CallExpr       :: void
   expr 128:5    IdentExpr      :: fn(T) -> void
   expr 128:53   IdentExpr      :: f64
+  expr 22:11    StringLitExpr  :: string
+  expr 57:11    StringLitExpr  :: string
+  expr 58:18    StringLitExpr  :: string
+  expr 61:11    StringLitExpr  :: string
+  expr 65:11    StringLitExpr  :: string
+  expr 69:11    StringLitExpr  :: string
+  expr 73:11    StringLitExpr  :: string
+  expr 77:11    StringLitExpr  :: string
+  expr 81:11    StringLitExpr  :: string
+  expr 85:11    StringLitExpr  :: string
   expr 90:10    CallExpr       :: Div
   expr 90:10    IdentExpr      :: fn(i32, i32) -> Div
   expr 91:13    StringLitExpr  :: string

@@ -644,8 +644,8 @@ walk_decorator_args :: fn(self: ResolveState, d: AST.Decorator) -> void {
 // expression, a bare identifier) is R2035, named rather than left to surface as
 // an unresolved identifier three passes later.
 check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
-    for a in d.args {
-        match selector :: a.value {
+    for selector in selector_exprs(d) {
+        match selector {
             is AST.DotVariantExpr -> {
                 if parse_os(selector.variant.to_lower()) == null {
                     self.diags.push(resolver_error(.UnknownTargetSelector, selector.span,

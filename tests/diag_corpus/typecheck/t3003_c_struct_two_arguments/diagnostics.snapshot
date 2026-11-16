@@ -1,0 +1,2 @@
+[4:20] error[T3003] wrong number of arguments: `@c_struct` has one field
+[5:1] warning[W0007] declaration is never used in its module: `Div` is never used

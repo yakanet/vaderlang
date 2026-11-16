@@ -205,14 +205,10 @@ guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd
 /// @param fd  a function declaration.
 ensured_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, .Ensures)
 
-// The condition the decorator `which` declares on `fd` ; none where it does not
-// state exactly one (P1032).
+// The condition the decorator `which` declares on `fd`, null where it gives none.
 declared_condition :: fn(fd: AST.FnDecl, which: AST.CompilerDecorator) -> AST.Expr | null {
     contract :: AST.find_compiler_decorator(fd.decorators, which) else return null
-    if contract.args.len() != 1 {
-        return null
-    }
-    return contract.args[0].value
+    return AST.argument_named(contract, "condition", 0)
 }
 
 /// The contract the `@returns` fn `decl` declares : read once, in the module

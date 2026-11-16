@@ -13,6 +13,11 @@
   expr 11:30    StringLitExpr  :: string
   expr 11:45    SeqLitExpr     :: string[]
   expr 11:46    StringLitExpr  :: string
+  expr 13:17    StringLitExpr  :: string
+  expr 16:17    StringLitExpr  :: string
+  expr 19:17    StringLitExpr  :: string
+  expr 22:17    StringLitExpr  :: string
+  expr 25:17    StringLitExpr  :: string
   expr 29:14    SeqLitExpr     :: bool[]
   expr 30:16    IdentExpr      :: bool[]
   expr 30:23    SeqLitExpr     :: bool[]

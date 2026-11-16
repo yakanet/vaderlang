@@ -10,6 +10,8 @@
   expr 12:16    SeqLitExpr     :: string[]
   expr 12:17    StringLitExpr  :: string
   expr 12:30    StringLitExpr  :: string
+  expr 15:14    StringLitExpr  :: string
+  expr 18:14    StringLitExpr  :: string
   expr 22:13    StringLitExpr  :: string
   expr 22:16    CallExpr       :: i32
   expr 22:16    IdentExpr      :: fn(i32) -> i32

@@ -3,6 +3,8 @@
 ## tests/snippets/c_struct_mirror_imported
   FnDecl         lend_pollfd          :: fn(Pollfd, u64, i32) -> i32
   FnDecl         main                 :: fn() -> i32
+  expr 10:11    StringLitExpr  :: string
+  expr 11:18    StringLitExpr  :: string
   expr 15:12    StructLitExpr  :: Pollfd
   expr 16:13    StringLitExpr  :: string
   expr 16:21    CallExpr       :: i32

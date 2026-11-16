@@ -5,8 +5,9 @@
 // (`decorator_decl.vader`), declared for some places, repeatable or not. Its
 // arguments are those of a call whose parameters are the fields, in order, a field
 // with a default being optional. A decorator of the compiler is declared by
-// `std/core` and checked here for its place and its repetition ; its arguments
-// are read by its own rules (`decl.vader`).
+// `std/core` and checked here the same way, but read as written and never
+// evaluated: each argument is a literal, and a field only it takes (a
+// `Condition`, a `CLibrary`) is left to the pass that reads it.
 
 module "vader/front/typecheck"
 
@@ -69,9 +70,7 @@ check_decorators_at :: fn(
                 "`@${d.name}` again on this declaration"))
         }
         written.push(sym.id)
-        if !is_compiler_decorator(d) {
-            check_decorator_arguments(d, sym, typed, diags)
-        }
+        check_decorator_arguments(d, sym, typed, diags)
     }
 }
 
@@ -176,11 +175,19 @@ export is_repeatable :: fn(declaration: AST.StructDecl) -> bool {
 // against its parameters: positional ones in field order, then named ones, each
 // field once, the fields without a default all given. A variadic field takes the
 // positional arguments left, each typed as an element. The arguments bound to a
-// field are recorded for the comptime pass (`decorator_uses`).
+// field are recorded for the comptime pass (`decorator_uses`), except those of a
+// decorator of the compiler, which nothing evaluates.
 check_decorator_arguments :: fn(
     d: AST.Decorator, sym: Symbol, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     fields :: typed.struct_fields[sym.id] else return
+    compiler :: is_compiler_decorator(d)
+    // Most compiler decorators are written bare: only a field it needs to be
+    // given is left to report.
+    if compiler && d.args.is_empty() {
+        report_missing_fields(d, fields, Map<string, AST.Expr> {}, diags)
+        return
+    }
     order: string[]: []
     variadic: VariadicArguments | null = null
     element: Type | null = null
@@ -198,7 +205,7 @@ check_decorator_arguments :: fn(
     for a in d.args {
         left_over :: a.name == null && !seen_named && next_position >= order.len()
         if left_over && variadic != null {
-            check_decorator_value(a.value, element, typed, diags)
+            check_argument(d, compiler, a.value, element, typed, diags)
             variadic.elements.push(a.value)
             continue
         }
@@ -210,7 +217,7 @@ check_decorator_arguments :: fn(
                     "positional argument after a named argument"))
             } else if next_position >= order.len() {
                 diags.push(typecheck_error(.WrongArgCount, a.span,
-                    "`@${d.name}` has ${order.len()} fields"))
+                    "`@${d.name}` has ${count_of_fields(order.len())}"))
             } else {
                 target = order[next_position]
             }
@@ -229,17 +236,12 @@ check_decorator_arguments :: fn(
         }
         field :: if target == null { null } else { fields[target] }
         expected :: if field == null { null } else { field.ty }
-        check_decorator_value(a.value, expected, typed, diags)
+        check_argument(d, compiler, a.value, expected, typed, diags)
         if target != null {
             bound[target] = a.value
         }
     }
-    for [name, field] in fields {
-        if field.decl.default == null && !field.decl.variadic && name !in bound {
-            diags.push(typecheck_error(.MissingRequiredArg, d.span,
-                "`@${d.name}` needs `${name}`"))
-        }
-    }
+    report_missing_fields(d, fields, bound, diags)
     // Given whole by name, the variadic field takes no positional argument.
     if variadic != null && variadic.field in bound {
         if variadic.elements.len() > 0 {
@@ -248,12 +250,74 @@ check_decorator_arguments :: fn(
         }
         variadic = null
     }
+    if compiler {
+        return
+    }
     typed.decorator_uses[d.id] = DecoratorUse {
         .written = d,
         .symbol = sym,
         .arguments = bound,
         .variadic = variadic,
     }
+}
+
+// Each field of the decorator `d` with no default, not variadic, that `bound`
+// gives nothing.
+report_missing_fields :: fn(
+    d: AST.Decorator,
+    fields: Map<string, StructFieldInfo>,
+    bound: Map<string, AST.Expr>,
+    diags: Diagnostic[],
+) -> void {
+    for [name, field] in fields {
+        if field.decl.default == null && !field.decl.variadic && name !in bound {
+            diags.push(typecheck_error(.MissingRequiredArg, d.span,
+                "`@${d.name}` needs `${name}`"))
+        }
+    }
+}
+
+// Type the argument `value` of `d` against `expected`, the type of the field it
+// is bound to, null when it is bound to none. A field only the compiler's
+// decorators take is read where it means something (`guard.vader`,
+// `check_extern_library`) ; any other argument of one (`compiler`) is a literal.
+check_argument :: fn(
+    d: AST.Decorator,
+    compiler: bool,
+    value: AST.Expr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if expected != null && is_compiler_field_type(expected) {
+        return
+    }
+    check_decorator_value(value, expected, typed, diags)
+    if expected != null && compiler && !is_literal_argument(value) {
+        diags.push(typecheck_error(.CompilerDecoratorNotLiteral, value.span,
+            "write a string without interpolation, `.Variant`, a number or a boolean"))
+    }
+}
+
+// Whether `value` is written as a literal: a string without interpolation, a
+// number, a boolean, a character, or an enum variant (`.Linux`, `Os.Linux`): a
+// field of a plain name, which the typing has checked names a variant.
+is_literal_argument :: fn(value: AST.Expr) -> bool {
+    if AST.string_literal_text(value) != null {
+        return true
+    }
+    if value is AST.FieldExpr {
+        return value.target is AST.IdentExpr
+    }
+    return value is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.CharLitExpr
+        | AST.DotVariantExpr
+}
+
+// `count` fields, in words: `no field`, `one field`, `3 fields`.
+count_of_fields :: fn(count: i64) -> string = match count {
+    0 -> "no field"
+    1 -> "one field"
+    _ -> "${count} fields"
 }
 
 /// The type an argument bound to `field` takes: an element of its array for a
