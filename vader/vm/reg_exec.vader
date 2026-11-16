@@ -548,6 +548,13 @@ reg_call :: fn(
                 s :: string_at(m, at) else return receiver_trap(m, at, f, pc, "is_ascii", "string")
                 set_bool(bits, tags, base, operand_a(w), s.is_ascii())
             }
+            .StringHash -> {
+                // In the VM's own build `hash` is the runtime's `vader_string_hash`:
+                // a program hashes a string alike under the VM and natively.
+                at :: base + i64(operand_b(w))
+                s :: string_at(m, at) else return receiver_trap(m, at, f, pc, "hash", "string")
+                set_i64(bits, tags, base, operand_a(w), i64(s.hash()))
+            }
             .StringByteSlice -> {
                 at :: base + i64(operand_a(w))
                 s :: string_at(m, at)
@@ -1439,7 +1446,8 @@ test_array_element_write_out_of_bounds_traps :: fn() -> void {
 }
 
 // A module whose `main` runs `body` with the string constant 0, "héllo" (68 C3 A9 6C
-// 6C 6F), and the imports `byte_len` 0, `byte_at` 1, `byte_slice` 2 and `is_ascii` 3.
+// 6C 6F), and the imports `byte_len` 0, `byte_at` 1, `byte_slice` 2, `is_ascii` 3 and
+// `string_hash` 4.
 string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
     header :: [
         "module demo",
@@ -1448,6 +1456,7 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
         "type 2 scalar i64",
         "type 3 scalar string",
         "type 4 scalar bool",
+        "type 5 scalar u64",
         "string 0 \"héllo\"",
         r"import 0 byte_len std_core$Intrinsic$byte_len intrinsic=byte_len result_type=2"
             + " param_types=3 param_c_out=0 param_by_address= (string) -> i64",
@@ -1457,6 +1466,8 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
             + " param_types=3,2,2 param_c_out=0,0,0 param_by_address= (string,i64,i64) -> string",
         r"import 3 is_ascii std_core$Intrinsic$is_ascii intrinsic=is_ascii result_type=4"
             + " param_types=3 param_c_out=0 param_by_address= (string) -> bool",
+        r"import 4 string_hash std_core$Intrinsic$string_hash intrinsic=string_hash result_type=5"
+            + " param_types=3 param_c_out=0 param_by_address= (string) -> u64",
         "fn 0 main () -> i32",
     ]
     return main_module(header, body)
@@ -1639,4 +1650,19 @@ test_string_is_ascii_runs_in_registers :: fn() -> void {
     ]) else return
     assert_eq(exec_value(module), 1)
     assert(main_runs(module, .StringIsAscii), "`is_ascii` runs as `StringIsAscii`")
+}
+
+@test
+test_string_hash_runs_in_place :: fn() -> void {
+    // The low bits of the hash, as the native `hash` computes them.
+    module :: string_module([
+        "string.const 0",
+        "call.import 4",
+        "i64.const 65535",
+        "i64.bitand",
+        "i64.to_i32",
+        "return",
+    ]) else return
+    assert_eq(exec_value(module), i32(i64("héllo".hash()) & 65535))
+    assert(main_runs(module, .StringHash), "`string_hash` runs as `StringHash`")
 }

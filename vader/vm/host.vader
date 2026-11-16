@@ -149,8 +149,8 @@ export dispatch_import :: fn(
     }
     match id {
     // ---- std/string family ----------------------------------------------
-    .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> {
-        // Run as register ops of their own (`string_byte_op`): translation leaves
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> {
+        // Run as register ops of their own (`string_import_op`): translation leaves
         // them no `call.import`, so one reaching here is unbound.
     }
     // Served by `serve_import` (`reg_exec.vader`), which holds the type table.
@@ -171,15 +171,6 @@ export dispatch_import :: fn(
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }
         return HostOk { .value = bytes_to_value(string(s), u8_array_type_id) }
-    }
-    .StringHash -> {
-        // String `Hash` reads the hash cached on the interned atom. Calling
-        // `.hash()` on the Vader string here lowers to the native
-        // `vader_string_hash` intrinsic in the VM's own build, so the VM and
-        // native produce identical hashes for the same atom. u64 rides in I64Val.
-        s :: read_string(stack[arg_base], at_pc, "hash receiver")
-        if s is Trap { return s }
-        return HostOk { .value = I64Val(i64(string(s).hash())) }
     }
     // `StringBuilder implements Display` is pure Vader ; the resolver
     // materialises its body (a `Buffer` filled by `write_string`, then interned),
@@ -1166,8 +1157,8 @@ comptime_refusal :: fn(id: bc.IntrinsicId) -> string | null = match id {
     // seed unreproducible across platforms.
     .TargetCurrentOs | .TargetCurrentArch -> BUILD_MACHINE_REASON
     // Pure : the baked value depends only on the args, never external state.
-    .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> null
-    .Bytes | .BytesToString | .StringHash | .DeepCopy -> null
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash -> null
+    .Bytes | .BytesToString | .DeepCopy -> null
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> null
     .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations -> null
     // A comptime evaluation treats threads as `vader run` does.

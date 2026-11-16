@@ -303,7 +303,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             emit(t, pc, .Return, operand(t, 1), 0, 0)
         }
         is bc.CallImport -> {
-            if string_byte_op(t, pc, t.import_ids[op.index]) {
+            if string_import_op(t, pc, t.import_ids[op.index]) {
                 return true
             }
             signature :: module.imports[op.index].signature
@@ -401,37 +401,54 @@ boxed :: fn(t: Translation, pc: i64, op: bc.Op, pops: i64, pushes: i64) -> void 
     }
 }
 
-// `byte_len`, `byte_at`, `byte_slice` and `is_ascii` read a string in place: an op
-// of their own spares them the generic import call. Answers whether the import
-// `id` was one of them.
-string_byte_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool {
-    if id == .ByteLen {
-        return one_argument_string_op(t, pc, .StringByteLen)
-    }
-    if id == .IsAscii {
-        return one_argument_string_op(t, pc, .StringIsAscii)
-    }
-    if id == .ByteAt {
-        index :: operand(t, 1)
-        s :: operand(t, 2)
-        dst :: pop_to(t, 2)
-        emit(t, pc, .StringByteAt, dst, s, index)
-        push_register(t, dst)
-        t.retarget = t.code.ops.len() - 1
-        return true
-    }
-    if id == .ByteSlice {
-        // Three arguments, one more than an op's operands hold: the string goes to
-        // the register its result lands in, the bounds are read where they are.
-        materialise(t, pc, t.stack.len() - 3)
-        end :: operand(t, 1)
-        start :: operand(t, 2)
-        dst :: pop_to(t, 3)
-        emit(t, pc, .StringByteSlice, dst, start, end)
-        push_register(t, dst)
-        return true
-    }
-    return false
+// `byte_len`, `byte_at`, `byte_slice`, `is_ascii` and `string_hash` read a string
+// in place: an op of their own spares them the generic import call. Answers
+// whether the import `id` was one of them.
+string_import_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool = match id {
+    .ByteLen    -> one_argument_string_op(t, pc, .StringByteLen)
+    .IsAscii    -> one_argument_string_op(t, pc, .StringIsAscii)
+    .StringHash -> one_argument_string_op(t, pc, .StringHash)
+    .ByteAt     -> string_byte_at(t, pc)
+    .ByteSlice  -> string_byte_slice(t, pc)
+    // Through the generic import call.
+    .NotIntrinsic | .Bytes | .BytesToString | .DeepCopy | .StringCompare
+        | .F64ToBits | .BitsToF64 | .F32ToBits | .BitsToF32
+        | .NewByteBuffer | .BufferLoadU8 | .BufferStoreU8 | .BufferMemoryCopy
+        | .BufferInternString | .BufferWriteString
+        | .ArrayLen | .ArrayPush | .ArrayPushAll | .ArrayCopyTo | .ArrayRemoveLast
+        | .ArrayClear
+        | .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied
+        | .RuntimeAllocatedBytes | .RuntimeAllocations | .RuntimeCountAllocations
+        | .SchedulerSpawn | .SchedulerPark | .SchedulerWake | .SchedulerSleepFor
+        | .SchedulerCancel | .SchedulerCurrent | .SchedulerIsCancelled | .SchedulerIsLeaving
+        | .SchedulerWatchReadable | .SchedulerWatchExit
+        | .WaitReadable | .WaitReadableFor | .WaitWritable | .WaitWritableFor | .WaitStop
+        | .AbortPanic | .TargetCurrentOs | .TargetCurrentArch
+        | .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> false
+}
+
+// Translate `byte_at`: the index on top of the stack, the string under it.
+string_byte_at :: fn(t: Translation, pc: i64) -> bool {
+    index :: operand(t, 1)
+    s :: operand(t, 2)
+    dst :: pop_to(t, 2)
+    emit(t, pc, .StringByteAt, dst, s, index)
+    push_register(t, dst)
+    t.retarget = t.code.ops.len() - 1
+    return true
+}
+
+// Translate `byte_slice`. Three arguments, one more than an op's operands hold:
+// the string goes to the register its result lands in, the bounds are read where
+// they are.
+string_byte_slice :: fn(t: Translation, pc: i64) -> bool {
+    materialise(t, pc, t.stack.len() - 3)
+    end :: operand(t, 1)
+    start :: operand(t, 2)
+    dst :: pop_to(t, 3)
+    emit(t, pc, .StringByteSlice, dst, start, end)
+    push_register(t, dst)
+    return true
 }
 
 // Translate an import that reads the string on top of the stack into `op`, its
