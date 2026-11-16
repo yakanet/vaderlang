@@ -2,11 +2,8 @@
 //
 // `IntrinsicId` names every host: THE single classification both backends
 // (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the two
-// can't drift and a new host trips T3013 at both sites. A host called through
-// `std/core`'s `Intrinsic` is found by its member's name (`host_for`), one still
-// declared by a bodyless `@intrinsic` function by its mangled name
-// (`intrinsic_id_for`), computed through the mangler (`vader/core/mangle`): no
-// mangled name is spelled here.
+// can't drift and a new host trips T3013 at both sites. Every host is a member of
+// `std/core`'s `Intrinsic`, found by the member's name (`host_for`).
 //
 // The arith / buffer bytecode-op table is the selection module's
 // (`vader/midir/select/intrinsics.vader`): which op a host lowers to is a choice of
@@ -15,22 +12,18 @@
 module "vader/core/bytecode"
 
 import "std/collections"
-import "std/string"
-import "vader/core/mangle"
-import "vader/core/symbol"
 import "vader/core/types"
 
 // ---- host intrinsic identity ----------------------------------------------
 
-/// The member of `std/core`'s `Intrinsic` a host is called through ; `""` for a
-/// host still declared by a bodyless `@intrinsic` function.
+/// The member of `std/core`'s `Intrinsic` a host is called through ; `""` for
+/// none (`NotIntrinsic`).
 export HostMember :: struct {
     member: string
 }
 
 /// Identity of a host: named by its member of `std/core`'s `Intrinsic`
-/// (`host_for`), or for a host still declared by a bodyless `@intrinsic`
-/// function, by its mangled name (`intrinsic_id_for`). THE single classification
+/// (`host_for`). THE single classification
 /// the two backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`)
 /// dispatch on, so the two can't drift. The union of what either backend serves:
 /// a backend that doesn't serve a variant handles it in a grouped fallthrough
@@ -88,36 +81,22 @@ export IntrinsicId :: enum(HostMember) {
     FfiCallFrame            { .member = "ffi_call_frame" },
 }
 
-/// Classify the mangled name of a host still declared by a bodyless `@intrinsic`
-/// function (`deep_copy` and its instances) into its `IntrinsicId`, or
-/// `NotIntrinsic` when it isn't one (e.g. an `@extern` symbol, or a host called
-/// through `Intrinsic`, which `host_for` finds by its member).
+/// The host the member `member` of `std/core`'s `Intrinsic` names ;
+/// `NotIntrinsic` for none.
 ///
-/// @param mangled  the import's mangled name (`BcImport.mangled_name`).
-export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId =
-    if copies_deep(mangled) { .DeepCopy } else { .NotIntrinsic }
-
-/// The host a bodyless declaration calls: the one its member of `std/core`'s
-/// `Intrinsic` names, else for a host still declared by a bodyless `@intrinsic`
-/// function, the one its mangled name classifies (`intrinsic_id_for`).
-///
-/// @param member   the member of `Intrinsic` it names (`LoweredFnDecl.intrinsic`),
-///                 `""` for none.
-/// @param mangled  its mangled name.
-export host_for :: fn(member: string, mangled: string) -> IntrinsicId =
-    HOSTS_BY_MEMBER[member] else intrinsic_id_for(mangled)
+/// @param member  the member's name (`LoweredFnDecl.intrinsic`), `""` for none.
+export host_for :: fn(member: string) -> IntrinsicId = HOSTS_BY_MEMBER[member] else .NotIntrinsic
 
 /// The host an import calls: none for an `@extern`, else `host_for`. What the
 /// emitter sets and what a `.virt` re-read restores.
 ///
 /// @param is_extern  whether the import is an `@extern`.
 /// @param member     the member of `Intrinsic` it names, `""` for none.
-/// @param mangled    its mangled name.
-export import_host :: fn(is_extern: bool, member: string, mangled: string) -> IntrinsicId {
+export import_host :: fn(is_extern: bool, member: string) -> IntrinsicId {
     if is_extern {
         return .NotIntrinsic
     }
-    return host_for(member, mangled)
+    return host_for(member)
 }
 
 /// The member of `Intrinsic` that names the host `id` ; `""` for none.
@@ -125,18 +104,11 @@ export import_host :: fn(is_extern: bool, member: string, mangled: string) -> In
 /// @param id  a host.
 export host_member :: fn(id: IntrinsicId) -> string = HostMember(id).member
 
-/// How a message names the host `id` an import of `mangled` calls: as the member
-/// of `Intrinsic` a program wrote, `Intrinsic.current_os`, else by `mangled`.
+/// How a message names the host `id`: as the member of `Intrinsic` a program
+/// wrote, `Intrinsic.current_os`.
 ///
-/// @param id       the host.
-/// @param mangled  the import's mangled name.
-export display_host :: fn(id: IntrinsicId, mangled: string) -> string {
-    member :: host_member(id)
-    if member == "" {
-        return mangled
-    }
-    return "${TRAIT_INTRINSIC}.${member}"
-}
+/// @param id  a host other than `NotIntrinsic`.
+export display_host :: fn(id: IntrinsicId) -> string = "${TRAIT_INTRINSIC}.${host_member(id)}"
 
 // Every host a member of `Intrinsic` names, by the member's name.
 HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
@@ -149,14 +121,6 @@ HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
     }
     return out
 }
-
-// Whether `mangled` names `deep_copy`, or one of its instances: it takes one
-// host per type it copies.
-copies_deep :: fn(mangled: string) = mangled == DEEP_COPY || mangled.starts_with(DEEP_COPY_INSTANCES)
-
-// The host of `deep_copy`, and what its instances at a given type start with.
-DEEP_COPY :: @comptime declaration_mangle(CORE_MODULE, "deep_copy")
-DEEP_COPY_INSTANCES :: @comptime instance_prefix(DEEP_COPY)
 
 /// Whether a call to host `id` can trigger a collection: the question
 /// `c_emit`'s `compute_may_alloc` asks of every op to decide which fns need a
@@ -229,39 +193,21 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
 
 import "std/testing"
 
-@test test_the_impls_of_the_primitives_are_no_hosts :: fn() -> void {
-    assert(intrinsic_id_for(r"std_core$i32$Equals$equals") == .NotIntrinsic, "i32 equals")
-    assert(intrinsic_id_for(r"std_core$string$Hash$hash") == .NotIntrinsic, "string hash")
-    assert(intrinsic_id_for(r"std_core$u8$Display$to_string") == .NotIntrinsic, "u8 display")
-}
-
 @test test_hosts_and_members_name_each_other :: fn() -> void {
     for id in IntrinsicId {
         member :: host_member(id)
         if member != "" {
-            assert(host_for(member, "") == id, member)
+            assert(host_for(member) == id, member)
         }
     }
-    assert(host_for("no_such_member", "") == .NotIntrinsic, "an unknown member")
+    assert(host_for("no_such_member") == .NotIntrinsic, "an unknown member")
+    assert(host_for("") == .NotIntrinsic, "no member")
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {
-    member_collects :: (member: string) -> intrinsic_may_collect(host_for(member, ""))
+    member_collects :: (member: string) -> intrinsic_may_collect(host_for(member))
     assert(!member_collects("byte_at"), "a byte read never collects")
     assert(!member_collects("string_hash"), "the hash is cached on the atom")
     assert(member_collects("bytes"), "a view allocates its header")
-    assert(intrinsic_may_collect(intrinsic_id_for(r"user_mod$foo")), "an unknown host stays a safepoint")
-}
-
-@test test_intrinsic_id_for :: fn() -> void {
-    // `std_console$write` is deliberately absent: it is ordinary Vader now, written
-    // over `sys/io::sys_write`.
-    assert(intrinsic_id_for(r"std_console$write") == .NotIntrinsic, "console write is no longer a host")
-    // Same shape: `std/math` became `@extern`, so re-adding a Math variant would
-    // silently route it back through `dispatch_import` while the declaration says
-    // otherwise: an import neither backend serves.
-    assert(intrinsic_id_for(r"std_math$sqrt") == .NotIntrinsic, "math sqrt is no longer a host")
-    assert(intrinsic_id_for(r"user_mod$foo") == .NotIntrinsic, "unknown -> NotIntrinsic")
-    assert(intrinsic_id_for(r"std_core$deep_copy__snippet_Shape") == .DeepCopy, "deep copy instance")
-    assert(intrinsic_id_for(r"std_core$deep_copy_tree") == .NotIntrinsic, "a longer name is another fn")
+    assert(intrinsic_may_collect(.NotIntrinsic), "an unknown host stays a safepoint")
 }

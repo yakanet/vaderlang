@@ -39,10 +39,9 @@ export VmState :: struct {
     /// one lookup instead of a linear string-compare scan. The comptime pass
     /// resolves one entry per staged decl, which made that scan O(decls x fns).
     fn_index_by_name: Map<string, i32>
-    /// Manifest classification of each import, index-aligned with `bc.imports`,
-    /// so `call.import` never re-runs `intrinsic_id_for` (which rebuilds and
-    /// interns mangled names). A user `@extern` names a linker symbol, never a
-    /// manifest entry, so it is recorded `NotIntrinsic` without classifying.
+    /// The host of each import (`BcImport.host`), index-aligned with
+    /// `bc.imports`. A user `@extern` names a linker symbol, never a host, so it
+    /// is recorded `NotIntrinsic`.
     import_ids: bc.IntrinsicId[]
     /// The adapter of each import, index-aligned with `bc.imports`, `0` for one
     /// called without (`attach_adapters`). Empty until adapters are attached.

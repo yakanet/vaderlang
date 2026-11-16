@@ -2,8 +2,8 @@
 //
 // Every `call.import N` op resolves to a `vader_host_<mangled>(...)` C function
 // generated here. Two flavours, switched on `BcImport.is_extern` :
-//   - `@intrinsic` stdlib ops (`is_extern = false`): routed to the
-//     runtime's `vader_*` helpers by mangled name (`import_shim`).
+//   - members of `std/core`'s `Intrinsic` (`is_extern = false`): routed to
+//     the runtime's `vader_*` helpers by their host (`import_shim`).
 //   - `@extern` user FFI (`is_extern = true`): a forwarding shim that
 //     marshals `vader_string_t` args to `const char*` and calls the real
 //     foreign symbol (`user_extern_shim`), declared once via an `extern`.
@@ -871,7 +871,7 @@ is_abi_array :: fn(types: BcType[], type_index: i32) -> bool {
 /// rewrote unrelated lines in every snapshot.
 ///
 /// `host` rather than `import` or `intrinsic`: these shims serve BOTH the
-/// stdlib's `@intrinsic` hosts and a user's `@extern` symbols, so neither of the
+/// members of `Intrinsic` and a user's `@extern` symbols, so neither of the
 /// narrower words covers them, and `import` already means a module import in
 /// Vader source. It is the word the SPEC, the VM and the diagnostics use.
 ///

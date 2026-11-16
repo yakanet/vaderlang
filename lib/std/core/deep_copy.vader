@@ -28,4 +28,4 @@ module "std/core"
 ///   copy :: rows.deep_copy()
 ///   copy[0].push(9)
 ///   rows[0]   // [1, 2]
-@intrinsic export deep_copy :: fn<T>(value: T) -> T
+export deep_copy :: fn<T>(value: T) -> T = Intrinsic.deep_copy(value)

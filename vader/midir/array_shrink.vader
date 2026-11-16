@@ -115,5 +115,5 @@ extern_shrinks_by_itself :: fn(e: CFGExternDecl) -> bool {
     if op != null {
         return Bc.op_shortens_array(op)
     }
-    return Bc.intrinsic_may_shorten_array(Bc.host_for(e.intrinsic, e.mangled))
+    return Bc.intrinsic_may_shorten_array(Bc.host_for(e.intrinsic))
 }

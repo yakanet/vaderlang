@@ -144,7 +144,7 @@ export dispatch_import :: fn(
     if is_comptime {
         reason :: comptime_refusal(id)
         if reason != null {
-            return comptime_refusal_trap(bc.display_host(id, info.mangled_name), reason)
+            return comptime_refusal_trap(bc.display_host(id), reason)
         }
     }
     match id {

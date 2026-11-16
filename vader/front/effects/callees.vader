@@ -53,8 +53,8 @@ export CalleeIndex :: struct {
     variant_data: Set<i32> = Set<i32> {}
     /// Per declaration id, what a primitive is to a task (`task_doors.vader`).
     doors: Map<i64, TaskPrimitive> = Map<i64, TaskPrimitive> {}
-    /// The declaration ids of the functions the host of `deep_copy` serves: one
-    /// that forwards to `Intrinsic.deep_copy`, or a bodyless one it names
+    /// The declaration ids of the functions the host of `deep_copy` serves: the
+    /// member `Intrinsic.deep_copy`, and every function that forwards to it
     /// (`deep_copy_check.vader`).
     deep_copies: Set<i64> = Set<i64> {}
     /// Every module constant's initialiser, which may hand a frozen value on.
@@ -233,7 +233,7 @@ forwarded_effects :: fn(
     if member is ForwardedOperator {
         return null
     }
-    if host_for(member.name, "") == .DeepCopy {
+    if host_for(member.name) == .DeepCopy {
         index.deep_copies.add(decl.id)
     }
     return intrinsic_member_effects(member.name, index.paths.path_to(ELEMENT))
@@ -255,7 +255,7 @@ summary_target :: fn(
     // By its node id : an `@intrinsic` stub shares its parameters' spans with the
     // other impls of its trait.
     signature :: index.signature_of(decl, typed)
-    host :: host_of(index, decl, typed)
+    host :: host_of(index, decl)
     known :: host_summary(host, index.paths)
     if known.frozen_view {
         index.frozen_views.add(decl.id)
@@ -310,14 +310,13 @@ foreign_effects :: fn(p: AST.FnParam) -> ParamEffects {
     return none()
 }
 
-// The host `decl` is (`host_for`) ; `NotIntrinsic` for a member of an impl, which
-// `intrinsic_effects` lists by its trait.
-host_of :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram) -> IntrinsicId {
-    if index.impls.member_entry(decl) != null {
+// The host `decl` is when it is a member of `Intrinsic` (`host_for`) ;
+// `NotIntrinsic` for any other function.
+host_of :: fn(index: CalleeIndex, decl: AST.FnDecl) -> IntrinsicId {
+    if decl.id !in index.intrinsics {
         return .NotIntrinsic
     }
-    member :: if decl.id in index.intrinsics { decl.name } else { "" }
-    return host_for(member, declaration_mangle(typed.resolved.display_path, decl.name))
+    return host_for(decl.name)
 }
 
 // The key of a function in `intrinsic_effects` and `task_primitive`:

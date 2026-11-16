@@ -105,7 +105,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .mangled_name = ext.mangled,
         .signature = signature,
         .is_extern = ext.is_extern,
-        .host = import_host(ext.is_extern, ext.intrinsic, ext.mangled),
+        .host = import_host(ext.is_extern, ext.intrinsic),
         .c_headers = ext.c_headers,
         .library = ext.library,
         .c_variadic_fixed = ext.c_variadic_fixed,

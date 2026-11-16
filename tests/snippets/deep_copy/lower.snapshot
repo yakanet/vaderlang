@@ -21,7 +21,7 @@
           .origin = p,
           .alias = p,
       }
-      c: Shape = std.core.deep_copy<i32[]>(s)
+      c: Shape = std_core$Intrinsic$deep_copy__snippet_Shape(s)
       c.corners[0].x = 9
       c.origin.y = 8
       std.console.println<string>({
@@ -66,7 +66,7 @@
       a: Node = Node { .label = "a", .next = null }
       b: Node = Node { .label = "b", .next = a }
       a.next = b
-      ca: Node = std.core.deep_copy<i32[]>(a)
+      ca: Node = std_core$Intrinsic$deep_copy__snippet_Node(a)
       cb: Node = snippet.follow(ca)
       std.console.println<string>({
           __p_10: string = cb.label
@@ -84,7 +84,7 @@
       } :string)
       xs: i32[] = [10, 20, 30, 40] :i32[]
       part: i32[] = xs[1..<3]
-      pc: i32[] = std.core.deep_copy<i32[]>(part)
+      pc: i32[] = std_core$Intrinsic$deep_copy__i32__(part)
       pc[0] = 99
       std.console.println<string>({
           __buf_13: Buffer = std_core$Intrinsic$new_byte_buffer(i64(88))
@@ -99,7 +99,7 @@
           __off_14 = std.core.write_int(__buf_13, __off_14, pc[1])
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
-      limits: i32[] = std.core.deep_copy<i32[]>(snippet.LIMITS)
+      limits: i32[] = std_core$Intrinsic$deep_copy__i32__(snippet.LIMITS)
       @array.push(limits, 40)
       limits[0] = 1
       std.console.println<string>({
@@ -115,7 +115,7 @@
           __off_16 = std.core.write_int(__buf_15, __off_16, limits[0])
           std.core.finish_buffer(__buf_15, __off_16)
       } :string)
-      bytes: u8[] = std.core.deep_copy<i32[]>(std_core$Intrinsic$bytes("hey"))
+      bytes: u8[] = std_core$Intrinsic$deep_copy__u8__(std_core$Intrinsic$bytes("hey"))
       @array.push(bytes, u8(33))
       std.console.println<string>({
           __buf_17: Buffer = std_core$Intrinsic$new_byte_buffer(i64(47))
@@ -127,7 +127,7 @@
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
       v: Point | string = Point { .x = 5, .y = 6 }
-      cv: Point | string = std.core.deep_copy<Point | string>(v)
+      cv: Point | string = std_core$Intrinsic$deep_copy__snippet_Point___string(v)
       if cv is Point {
           Point(cv).x = 50
       }
@@ -141,7 +141,7 @@
           } :string)
       }
       h: Holder = Holder { .task = std.task.launch<i32>(__lambda_snippet_0), .rows = [[1, 2] :i32[], [3] :i32[]] :i32[][] }
-      ch: Holder = std.core.deep_copy<i32[]>(h)
+      ch: Holder = std_core$Intrinsic$deep_copy__snippet_Holder(h)
       @array.push(ch.rows[0], 9)
       std.console.println<string>({
           __buf_21: Buffer = std_core$Intrinsic$new_byte_buffer(i64(46))

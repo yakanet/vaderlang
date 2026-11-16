@@ -177,9 +177,9 @@ export DebugPos :: struct {
 /// on `is_extern` :
 ///   - `@extern` decls (`is_extern = true`): foreign symbol resolved
 ///     by the host linker (libc, user-supplied .o).
-///   - `@intrinsic` stdlib ops (`is_extern = false`): c-emit's shim
-///     switch routes these to runtime helpers (`vader_*`) rather than
-///     emitting an extern declaration.
+///   - members of `std/core`'s `Intrinsic` (`is_extern = false`): c-emit's
+///     shim switch routes these by their host to runtime helpers
+///     (`vader_*`) rather than emitting an extern declaration.
 export BcImport :: struct {
     extern_name: string              // user-facing name in source
     mangled_name: string

@@ -275,13 +275,6 @@ export mangle_module_part :: fn(mangled: string) -> string {
     return mangled.byte_slice(0, at)
 }
 
-/// What every instance of `base` starts with, `base` and the opening of its
-/// `instance_suffix`: `std_core$deep_copy__i32` starts with the prefix of
-/// `std_core$deep_copy`, the declaration itself does not.
-///
-/// @param base  the mangled name of the generic declaration.
-export instance_prefix :: fn(base: string) -> string = "${base}${INSTANCE_SEPARATOR}"
-
 /// The last segment of a mangled name: what comes after its last `$`, the whole
 /// name when it has none. `snippet$main` gives `main`, `std_core$Display` gives
 /// `Display`.
@@ -358,14 +351,6 @@ test_uniq_skips_already_taken_suffixes :: fn() -> void {
     seen.add("foo")
     seen.add("foo_1")
     assert_eq(uniq(seen, "foo"), "foo_2")
-}
-
-@test
-test_instance_prefix_needs_an_instance_suffix :: fn() -> void {
-    prefix :: instance_prefix(r"std_core$deep_copy")
-    assert(r"std_core$deep_copy__i32".starts_with(prefix), "an instance")
-    assert(!r"std_core$deep_copy".starts_with(prefix), "the declaration itself")
-    assert(!r"std_core$deep_copy_tree".starts_with(prefix), "another name")
 }
 
 @test
