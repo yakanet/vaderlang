@@ -1,0 +1,152 @@
+// vader/midir/optimise/host_forwarders: a call to a function that only forwards
+// its parameters to a host calls the host.
+//
+// The standard library wraps the members of `std/core`'s `Intrinsic` in
+// functions of its own (`byte_len :: fn(s: string) -> i64 =
+// Intrinsic.byte_len(s)`). Such a function is one block, one call to the host
+// with its parameters in order, and the return of what the call hands back. A
+// call to it pays a frame for nothing on the VM, so every call to it calls the
+// host instead. The rule reads the shape alone, never a name of the library.
+//
+// It runs on the CFG rather than when the calls are lowered: the lowering makes
+// calls of its own (`concat_N` calls `byte_len`), and here every form of call is
+// the same `call`, its arguments already converted.
+
+module "vader/midir/optimise"
+
+import "std/collections"
+import "vader/core/symbol"
+import "vader/midir"
+
+/// `p` with every call to a host forwarder calling its host.
+///
+/// @param p  the project ; left as it is, the result shares what is unchanged.
+/// @return   the project with the calls redirected.
+export expand_host_forwarders :: fn(p: CFGProject) -> CFGProject {
+    forwarders :: find_forwarders(p)
+    if forwarders.hosts.is_empty() {
+        return p
+    }
+    new_modules :: Map<string, CFGModule> {}
+    for [module_id, m] in p.modules {
+        new_fns: CFGFunction[]: []
+        for f in m.functions {
+            new_fns.push(redirect_calls(f, forwarders))
+        }
+        new_modules[module_id] = CFGModule { ...m, .functions = new_fns }
+    }
+    return CFGProject { ...p, .modules = new_modules }
+}
+
+// The forwarders of a project, found as any call finds its callee
+// (`vader/midir/callee_lookup`), each at the position of the host it calls.
+Forwarders :: struct {
+    lookup: CalleeLookup = CalleeLookup {}
+    hosts: Symbol[] = []
+}
+
+find_forwarders :: fn(p: CFGProject) -> Forwarders {
+    hosts :: Set<string> {}
+    for [_, m] in p.modules {
+        for e in m.externs {
+            if e.intrinsic != "" {
+                hosts.add(e.mangled)
+            }
+        }
+    }
+    out :: Forwarders {}
+    for [_, m] in p.modules {
+        for f in m.functions {
+            host :: forwarded_host(f, hosts) else continue
+            index_function(out.lookup, f.mangled, shared_symbol(f), i32(out.hosts.len()))
+            out.hosts.push(host)
+        }
+    }
+    return out
+}
+
+// The symbol a call may name `f` by besides its mangle: none for an instance of a
+// generic function, whose symbol its other instances share and need not forward,
+// nor for a symbol of id 0, which every unnumbered symbol shares.
+shared_symbol :: fn(f: CFGFunction) -> Symbol | null {
+    sym :: f.origin.symbol else return null
+    if sym.id == 0 || !f.origin.type_arguments.is_empty() {
+        return null
+    }
+    return sym
+}
+
+// The host `f` forwards to: one block holding one call to a host, its parameters
+// in order, and the return of what the call hands back ; null for any other body.
+forwarded_host :: fn(f: CFGFunction, hosts: Set<string>) -> Symbol | null {
+    if f.blocks.len() != 1 || f.blocks[0].instructions.len() != 1 {
+        return null
+    }
+    block :: f.blocks[0]
+    call :: block.instructions[0]
+    if call !is InstrCall || call.callee.name !in hosts || !forwards_params(call, f) {
+        return null
+    }
+    ret :: block.terminator
+    if ret !is TermReturn || !ret.values.content_equals(call.dsts) {
+        return null
+    }
+    return call.callee
+}
+
+// Whether `call` passes the parameters of `f`, in order, and nothing else.
+forwards_params :: fn(call: InstrCall, f: CFGFunction) -> bool {
+    if call.args.len() != f.params.len() {
+        return false
+    }
+    for i in 0..<f.params.len() {
+        if call.args[i] != f.params[i].local {
+            return false
+        }
+    }
+    return true
+}
+
+// `f` with each call to a forwarder calling its host ; `f` itself when it calls
+// none.
+redirect_calls :: fn(f: CFGFunction, forwarders: Forwarders) -> CFGFunction {
+    if !calls_a_forwarder(f, forwarders) {
+        return f
+    }
+    blocks: BasicBlock[]: []
+    for b in f.blocks {
+        instructions: Instruction[]: []
+        for ins in b.instructions {
+            instructions.push(redirected(ins, forwarders))
+        }
+        blocks.push(BasicBlock { ...b, .instructions = instructions })
+    }
+    return CFGFunction { ...f, .blocks = blocks }
+}
+
+// Whether a call of `f` reaches a forwarder.
+calls_a_forwarder :: fn(f: CFGFunction, forwarders: Forwarders) -> bool {
+    for b in f.blocks {
+        for ins in b.instructions {
+            if ins is InstrCall && forwarders.host_of(ins.callee) != null {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// `ins` calling the host when it calls a forwarder, else `ins` itself.
+redirected :: fn(ins: Instruction, forwarders: Forwarders) -> Instruction {
+    if ins !is InstrCall {
+        return ins
+    }
+    host :: forwarders.host_of(ins.callee) else return ins
+    return InstrCall { ...ins, .callee = host }
+}
+
+// The host a call to `callee` reaches when `callee` is a forwarder ; null otherwise.
+host_of :: fn(forwarders: Forwarders, callee: Symbol) -> Symbol | null {
+    at :: function_called(forwarders.lookup, callee) else return null
+    return forwarders.hosts[at]
+}

@@ -33,10 +33,12 @@ try_lower_intrinsic_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
     if callee_type is FnType {
         ctx.project.referenced_intrinsics[member.name] = callee_type
     }
+    mangled :: intrinsic_member_name(member.name)
+    note_member_origin(ctx, mangled, member, TRAIT_INTRINSIC)
     callee :: LoweredIdent {
         .span = field.span,
         .type = callee_type,
-        .symbol = named_fn_symbol(ctx, intrinsic_member_name(member.name)),
+        .symbol = named_fn_symbol(ctx, mangled),
     }
     return LoweredCall {
         .span = call.span,

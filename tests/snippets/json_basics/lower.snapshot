@@ -123,6 +123,11 @@
     fn std.core.b2u  // std_core$b2u
     fn std.core.bit_len  // std_core$bit_len
     fn std.core.bits64  // std_core$bits64
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.byte_slice  // std_core$byte_slice
+    fn std.core.bytes  // std_core$bytes
+    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.clz32  // std_core$clz32
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width
@@ -133,6 +138,7 @@
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.insert_point  // std_core$insert_point
+    fn std.core.is_ascii  // std_core$is_ascii
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.is_zero  // std_core$is_zero
     fn std.core.len  // std_core$len

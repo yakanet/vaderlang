@@ -76,10 +76,10 @@ global 4 2 flags.state
 global 5 5 flags.instance
 global 6 2 queue.state
 global 7 7 queue.instance
-import 0 byte_len std_core$byte_len host=byte_len result_type=9 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes host=bytes result_type=12 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 collect std_runtime$collect host=collect result_type=10 () -> void
-import 3 collections std_runtime$collections host=collections result_type=9 () -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=9 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=12 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 collect std_core$Intrinsic$collect host=collect result_type=10 () -> void
+import 3 collections std_core$Intrinsic$collections host=collections result_type=9 () -> i64
 import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=9 param_types=2,12,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=2 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
@@ -222,7 +222,7 @@ fn 5 snippet$main () -> i32
   local $struct_383 ref
   string.const 0   ; "hello"
   local.tee 0   ; __p_0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; $call_3
   i64.const 27
   local.get 1   ; $call_3
@@ -286,17 +286,17 @@ fn 5 snippet$main () -> i32
   ref.cast 4   ; string
   local.set 6   ; __p_6
   local.get 0   ; __p_0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; $call_3
   local.get 5   ; __p_5
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_41
   local.get 1   ; $call_3
   local.get 7   ; $call_41
   i64.add
   local.set 1   ; $call_3
   local.get 6   ; __p_6
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_41
   local.get 1   ; $call_3
   local.get 7   ; $call_41
@@ -357,7 +357,7 @@ fn 5 snippet$main () -> i32
   drop
   string.const 2   ; "seven"
   local.tee 0   ; __p_0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; $call_3
   i64.const 20
   local.get 1   ; $call_3
@@ -512,7 +512,7 @@ fn 5 snippet$main () -> i32
   struct.get 11 2   ; snippet$Rule.result
   ref.cast 4   ; string
   local.tee 0   ; __p_0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_41
   i64.const 50
   local.get 7   ; $call_41
@@ -660,7 +660,7 @@ fn 5 snippet$main () -> i32
       br $L0
     end $L1
   end $L0
-  call.import 2   ; std_runtime$collect
+  call.import 2   ; std_core$Intrinsic$collect
   i32.const 0
   local.set 4   ; __p_4
   i32.const 0
@@ -724,10 +724,10 @@ fn 5 snippet$main () -> i32
   ref.cast 4   ; string
   local.set 5   ; __p_5
   local.get 0   ; __p_0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; $call_3
   local.get 5   ; __p_5
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_41
   local.get 1   ; $call_3
   local.get 7   ; $call_41
@@ -778,7 +778,7 @@ fn 5 snippet$main () -> i32
   string.const 13   ; "/24 collected="
   call 12   ; std_core$write_string_at
   local.set 1   ; $call_3
-  call.import 3   ; std_runtime$collections
+  call.import 3   ; std_core$Intrinsic$collections
   i64.const 0
   i64.gt
   local.set 3   ; $eq_18
@@ -868,7 +868,7 @@ fn 5 snippet$main () -> i32
       br $L5
     end $L6
   end $L5
-  call.import 2   ; std_runtime$collect
+  call.import 2   ; std_core$Intrinsic$collect
   i32.const 0
   local.set 4   ; __p_4
   i32.const 0
@@ -1028,7 +1028,7 @@ fn 5 snippet$main () -> i32
       br $L10
     end $L11
   end $L10
-  call.import 2   ; std_runtime$collect
+  call.import 2   ; std_core$Intrinsic$collect
   i32.const 0
   local.set 4   ; __p_4
   call 3   ; snippet$queue
@@ -1240,10 +1240,10 @@ fn 10 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -1278,7 +1278,7 @@ fn 12 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -1433,7 +1433,7 @@ fn 15 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$bytes
+  call.import 1   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

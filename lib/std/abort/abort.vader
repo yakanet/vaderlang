@@ -1,11 +1,10 @@
 // std/abort: divergence primitives (panic, todo, unreachable).
 //
-// Not part of the auto-imported prelude (std/core) on purpose : a free-fn
-// `@intrinsic` in the prelude perturbs every program's type / string interning
-// order (`panic`'s `string -> void` interns `void` earlier), which bloats
-// no-main fixtures with the synthesised `$$wrapper` thunk. Living in its own
-// module means only the callers that actually `import "std/abort"` pay that
-// cost.
+// Not part of the auto-imported prelude (std/core) on purpose : a host function
+// in the prelude perturbs every program's type / string interning order
+// (`panic`'s `string -> void` interns `void` earlier), which bloats no-main
+// fixtures with the synthesised `$$wrapper` thunk. Living in its own module
+// means only the callers that actually `import "std/abort"` pay that cost.
 //
 // `std/testing` builds its `assert` / `fail` helpers on `panic` from here.
 
@@ -17,7 +16,8 @@ module "std/abort"
 /// return obligation.
 ///
 /// @param msg  the failure message surfaced to the host.
-@no_return @intrinsic export panic :: fn(msg: string) -> void
+@no_return
+export panic :: fn(msg: string) -> void = Intrinsic.panic(msg)
 
 /// Placeholder for a code path that isn't implemented yet. Panics with
 /// `not yet implemented: ${msg}`. Use in place of a silent degraded default

@@ -143,19 +143,19 @@ const vader_type_info_t vader_type_info_table[29] = {
         .slot_size = 8,
     },
     [10] = { .slot_size = 8 },
-    [11] = { .slot_size = 8 },
-    [12] = { .slot_size = 1 },
-    [13] = { .slot_size = 16 },
-    [14] = { .slot_size = 2 },
-    [15] = { .slot_size = 2 },
-    [16] = { .slot_size = 4 },
-    [17] = { .slot_size = 4 },
-    [18] = { .slot_size = 8 },
-    [19] = { .slot_size = 4 },
-    [20] = {
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 5u,
     },
+    [12] = { .slot_size = 8 },
+    [13] = { .slot_size = 1 },
+    [14] = { .slot_size = 16 },
+    [15] = { .slot_size = 2 },
+    [16] = { .slot_size = 2 },
+    [17] = { .slot_size = 4 },
+    [18] = { .slot_size = 4 },
+    [19] = { .slot_size = 8 },
+    [20] = { .slot_size = 4 },
     [22] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections$Map__snippet_Color__i32_t), .slot_size = 8,
@@ -187,16 +187,16 @@ const size_t vader_type_info_count = 29;
 #include <unistd.h>
 #include "vader.h"
 
-static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static uint8_t vader_host_std_core$byte_at(vader_string_t a0, int64_t a1) {
-    return vader_string_byte_at(a0, a1);
+static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+    return (void*) vader_string_bytes_view(a0, 11u, 5u);
 }
 
-static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 20u, 5u);
+static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
+    return vader_string_byte_at(a0, a1);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -297,7 +297,7 @@ static int32_t snippet$main(void) {
     l2 = std_core$write_bool(l1, l2, true);
     t0 = std_core$finish_buffer(l1, l2);
     std_console$println__string(t0);
-    vader_array_t* _a0_arr = vader_array_new(20u, 0u, 1u, 5u);
+    vader_array_t* _a0_arr = vader_array_new(11u, 0u, 1u, 5u);
     l1 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(26u, 0u, 7u, 4u);
     l4 = (void*) _a1_arr;
@@ -345,7 +345,7 @@ static int32_t snippet$main(void) {
     l2 = std_core$write_int(l4, l2, l8);
     t0 = std_core$finish_buffer(l4, l2);
     std_console$println__string(t0);
-    vader_array_t* _a4_arr = vader_array_new(20u, 0u, 1u, 5u);
+    vader_array_t* _a4_arr = vader_array_new(11u, 0u, 1u, 5u);
     l4 = (void*) _a4_arr;
     vader_array_t* _a5_arr = vader_array_new(27u, 0u, 0u, 8u);
     l5 = (void*) _a5_arr;
@@ -376,8 +376,8 @@ static int32_t snippet$main(void) {
     } else {
         l11 = l6.payload.s;
     }
-    l2 = vader_host_std_core$byte_len(l10);
-    l8 = vader_host_std_core$byte_len(l11);
+    l2 = vader_host_std_core$Intrinsic$byte_len(l10);
+    l8 = vader_host_std_core$Intrinsic$byte_len(l11);
     l2 = (l2 + l8);
     l5 = (void*) vader_buffer_new((size_t) (INT64_C(22) + l2));
     l2 = INT64_C(0);
@@ -398,7 +398,7 @@ static int32_t snippet$main(void) {
     l2 = std_core$write_bool(l4, l2, l3);
     t0 = std_core$finish_buffer(l4, l2);
     std_console$println__string(t0);
-    vader_array_t* _a8_arr = vader_array_new(20u, 0u, 1u, 5u);
+    vader_array_t* _a8_arr = vader_array_new(11u, 0u, 1u, 5u);
     l4 = (void*) _a8_arr;
     vader_array_t* _a9_arr = vader_array_new(26u, 0u, 7u, 4u);
     l5 = (void*) _a9_arr;
@@ -505,8 +505,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core$byte_len(l0);
-    l3 = vader_host_std_core$byte_len(l1);
+    l2 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l1);
     l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -531,7 +531,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
     int64_t l3;
     int64_t t0;
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core$byte_len(l2);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
@@ -599,7 +599,7 @@ static uint64_t std_core$u8$Hash$hash(uint8_t l0) {
 
 static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
     int8_t l2;
-    if (l1.tag == 12u) {
+    if (l1.tag == 13u) {
         l2 = ((int8_t) l1.payload.i);
         return l0 == l2;
     }
@@ -608,7 +608,7 @@ static bool std_core$i8$Equals$equals$guard(int8_t l0, vader_box_t l1) {
 
 static bool std_core$i16$Equals$equals$guard(int16_t l0, vader_box_t l1) {
     int16_t l2;
-    if (l1.tag == 14u) {
+    if (l1.tag == 15u) {
         l2 = ((int16_t) l1.payload.i);
         return l0 == l2;
     }
@@ -644,7 +644,7 @@ static bool std_core$u8$Equals$equals$guard(uint8_t l0, vader_box_t l1) {
 
 static bool std_core$u16$Equals$equals$guard(uint16_t l0, vader_box_t l1) {
     uint16_t l2;
-    if (l1.tag == 15u) {
+    if (l1.tag == 16u) {
         l2 = ((uint16_t) l1.payload.i);
         return l0 == l2;
     }
@@ -653,7 +653,7 @@ static bool std_core$u16$Equals$equals$guard(uint16_t l0, vader_box_t l1) {
 
 static bool std_core$u32$Equals$equals$guard(uint32_t l0, vader_box_t l1) {
     uint32_t l2;
-    if (l1.tag == 16u) {
+    if (l1.tag == 17u) {
         l2 = ((uint32_t) l1.payload.i);
         return l0 == l2;
     }
@@ -662,7 +662,7 @@ static bool std_core$u32$Equals$equals$guard(uint32_t l0, vader_box_t l1) {
 
 static bool std_core$u64$Equals$equals$guard(uint64_t l0, vader_box_t l1) {
     uint64_t l2;
-    if (l1.tag == 11u) {
+    if (l1.tag == 12u) {
         l2 = ((uint64_t) l1.payload.i);
         return l0 == l2;
     }
@@ -671,7 +671,7 @@ static bool std_core$u64$Equals$equals$guard(uint64_t l0, vader_box_t l1) {
 
 static bool std_core$f32$Equals$equals$guard(float l0, vader_box_t l1) {
     float l2;
-    if ((l1.tag == 17u || l1.tag == 18u)) {
+    if ((l1.tag == 18u || l1.tag == 19u)) {
         l2 = ((float) l1.payload.f);
         return l0 == l2;
     }
@@ -680,7 +680,7 @@ static bool std_core$f32$Equals$equals$guard(float l0, vader_box_t l1) {
 
 static bool std_core$f64$Equals$equals$guard(double l0, vader_box_t l1) {
     double l2;
-    if ((l1.tag == 17u || l1.tag == 18u)) {
+    if ((l1.tag == 18u || l1.tag == 19u)) {
         l2 = ((double) l1.payload.f);
         return l0 == l2;
     }
@@ -698,7 +698,7 @@ static bool std_core$bool$Equals$equals$guard(bool l0, vader_box_t l1) {
 
 static bool std_core$char$Equals$equals$guard(uint32_t l0, vader_box_t l1) {
     uint32_t l2;
-    if (l1.tag == 19u) {
+    if (l1.tag == 20u) {
         l2 = ((uint32_t) l1.payload.i);
         return l0 == l2;
     }
@@ -1367,7 +1367,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
-    l2 = vader_host_std_core$bytes(l1);
+    l2 = vader_host_std_core$Intrinsic$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
         l4 = vader_array_length(((vader_array_t*) l2));
@@ -1445,20 +1445,20 @@ static vader_box_t std_string$first_byte_offset(vader_string_t l0, vader_string_
     int64_t t0;
     uint8_t t1;
     bool t2;
-    l2 = vader_host_std_core$byte_len(l0);
-    l3 = vader_host_std_core$byte_len(l1);
+    l2 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l1);
     if (l3 == INT64_C(0)) {
         return vader_box_i64(10u, INT64_C(0));
     }
     if ((l3 > l2)) {
         return vader_box_obj(0u, NULL);
     }
-    l4 = vader_host_std_core$byte_at(l1, INT64_C(0));
+    l4 = vader_host_std_core$Intrinsic$byte_at(l1, INT64_C(0));
     l5 = INT64_C(0);
     t0 = vader_chk_sub(i64, l2, l3);
     l2 = vader_chk_add(i64, t0, INT64_C(1));
     while ((l5 < l2)) {
-        t1 = vader_host_std_core$byte_at(l0, l5);
+        t1 = vader_host_std_core$Intrinsic$byte_at(l0, l5);
         if (t1 == l4) {
             t2 = std_string$matches_at(l0, l5, l1);
             if (t2) {
@@ -1474,12 +1474,12 @@ static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t 
     int64_t l3, l4, l5;
     uint8_t l6, l7;
     int64_t t0;
-    l3 = vader_host_std_core$byte_len(l2);
-    l4 = vader_host_std_core$byte_len(l0);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l2);
+    l4 = vader_host_std_core$Intrinsic$byte_len(l0);
     if ((l1 > l4)) {
         return false;
     }
-    t0 = vader_host_std_core$byte_len(l0);
+    t0 = vader_host_std_core$Intrinsic$byte_len(l0);
     l4 = vader_chk_sub(i64, t0, l1);
     if ((l3 > l4)) {
         return false;
@@ -1487,8 +1487,8 @@ static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t 
     l4 = INT64_C(0);
     while ((l4 < l3)) {
         l5 = vader_chk_add(i64, l1, l4);
-        l6 = vader_host_std_core$byte_at(l0, l5);
-        l7 = vader_host_std_core$byte_at(l2, l4);
+        l6 = vader_host_std_core$Intrinsic$byte_at(l0, l5);
+        l7 = vader_host_std_core$Intrinsic$byte_at(l2, l4);
         if (l6 != l7) {
             return false;
         }
@@ -1500,18 +1500,18 @@ static bool std_string$matches_at(vader_string_t l0, int64_t l1, vader_string_t 
 /* vtable dispatchers */
 static bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 12u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
-        case 14u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
+        case 13u: return std_core$i8$Equals$equals$guard(((int8_t) recv.payload.i), a0);
+        case 15u: return std_core$i16$Equals$equals$guard(((int16_t) recv.payload.i), a0);
         case 4u: return std_core$i32$Equals$equals$guard(((int32_t) recv.payload.i), a0);
         case 10u: return std_core$i64$Equals$equals$guard(((int64_t) recv.payload.i), a0);
         case 5u: return std_core$u8$Equals$equals$guard(((uint8_t) recv.payload.i), a0);
-        case 15u: return std_core$u16$Equals$equals$guard(((uint16_t) recv.payload.i), a0);
-        case 16u: return std_core$u32$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
-        case 11u: return std_core$u64$Equals$equals$guard(((uint64_t) recv.payload.i), a0);
-        case 17u: return std_core$f32$Equals$equals$guard(((float) recv.payload.f), a0);
-        case 18u: return std_core$f64$Equals$equals$guard(((double) recv.payload.f), a0);
+        case 16u: return std_core$u16$Equals$equals$guard(((uint16_t) recv.payload.i), a0);
+        case 17u: return std_core$u32$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
+        case 12u: return std_core$u64$Equals$equals$guard(((uint64_t) recv.payload.i), a0);
+        case 18u: return std_core$f32$Equals$equals$guard(((float) recv.payload.f), a0);
+        case 19u: return std_core$f64$Equals$equals$guard(((double) recv.payload.f), a0);
         case 2u: return std_core$bool$Equals$equals$guard(recv.payload.b, a0);
-        case 19u: return std_core$char$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
+        case 20u: return std_core$char$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
         case 8u: return std_core$string$Equals$equals$guard(recv.payload.s, a0);
         default: vader_unreachable("vtable miss in std_core$Equals.equals");
     }

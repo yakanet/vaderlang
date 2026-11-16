@@ -71,6 +71,10 @@
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.byte_slice  // std_core$byte_slice
+    fn std.core.bytes  // std_core$bytes
     fn std.core.clone<EnvVar>  // std_core$clone__std_env_EnvVar
     fn std.core.index_of<u8>  // std_core$index_of__u8
     fn std.core.string.compare  // std_core$string$Comparable$compare

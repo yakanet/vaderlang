@@ -74,11 +74,11 @@ const vader_type_info_t vader_type_info_table[11] = {
         .slot_size = 8,
     },
     [6] = { .slot_size = 8 },
-    [7] = { .slot_size = 1 },
-    [8] = {
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 7u,
+        .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 8u,
     },
+    [8] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
@@ -90,12 +90,12 @@ const size_t vader_type_info_count = 11;
 #include <unistd.h>
 #include "vader.h"
 
-static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 7u);
+static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+    return (void*) vader_string_bytes_view(a0, 7u, 8u);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -203,7 +203,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l6)
         l4 = vader_array_ref_load_obj(_a8_slotarr->buf, vader_array_offset(_a8_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l4)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l7 = (void*) vader_buffer_new((size_t) (INT64_C(21) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l7, l10, l8);
@@ -239,7 +239,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l6)
         l4 = vader_array_ref_load_obj(_a11_slotarr->buf, vader_array_offset(_a11_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l4)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l7 = (void*) vader_buffer_new((size_t) (INT64_C(24) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l7, l10, 6u);
@@ -277,7 +277,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a14_slotarr, l6)
         l3 = vader_array_ref_load_obj(_a14_slotarr->buf, vader_array_offset(_a14_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l3)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l4 = (void*) vader_buffer_new((size_t) (INT64_C(26) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l4, l10, 7u);
@@ -300,7 +300,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a15_slotarr, l6)
         l4 = vader_array_ref_load_obj(_a15_slotarr->buf, vader_array_offset(_a15_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l4)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l7 = (void*) vader_buffer_new((size_t) (INT64_C(28) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l7, l10, 8u);
@@ -321,7 +321,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a16_slotarr, l6)
         l2 = vader_array_ref_load_obj(_a16_slotarr->buf, vader_array_offset(_a16_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l2)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l4 = (void*) vader_buffer_new((size_t) (INT64_C(28) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l4, l10, 8u);
@@ -342,7 +342,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a17_slotarr, l6)
         l2 = vader_array_ref_load_obj(_a17_slotarr->buf, vader_array_offset(_a17_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l2)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l3 = (void*) vader_buffer_new((size_t) (INT64_C(30) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l3, l10, 9u);
@@ -363,7 +363,7 @@ static int32_t snippet$main(void) {
         VADER_ARRAY_CHECK_INDEX(_a18_slotarr, l6)
         l0 = vader_array_ref_load_obj(_a18_slotarr->buf, vader_array_offset(_a18_slotarr) + (size_t) l6);
         l8 = ((vader_struct_snippet$Rec_t*) l0)->f_name;
-        l9 = vader_host_std_core$byte_len(l8);
+        l9 = vader_host_std_core$Intrinsic$byte_len(l8);
         l2 = (void*) vader_buffer_new((size_t) (INT64_C(30) + l9));
         l10 = INT64_C(0);
         l10 = std_core$write_string_at(l2, l10, 9u);
@@ -417,8 +417,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core$byte_len(l0);
-    l3 = vader_host_std_core$byte_len(l1);
+    l2 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l1);
     l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -443,7 +443,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
     int64_t l3;
     int64_t t0;
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core$byte_len(l2);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
@@ -511,7 +511,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
-    l2 = vader_host_std_core$bytes(l1);
+    l2 = vader_host_std_core$Intrinsic$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
         l4 = vader_array_length(((vader_array_t*) l2));

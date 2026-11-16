@@ -186,6 +186,11 @@
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.ascii_prefix  // std_core$ascii_prefix
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.byte_slice  // std_core$byte_slice
+    fn std.core.bytes  // std_core$bytes
+    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.codepoint_count  // std_core$codepoint_count
@@ -193,6 +198,7 @@
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.is_ascii  // std_core$is_ascii
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.len  // std_core$len
     fn std.core.utf8_encode  // std_core$utf8_encode
@@ -205,6 +211,8 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Stop  // std_core$Stop
+  std/runtime
+    fn std.runtime.collect  // std_runtime$collect
   std/string
     fn std.string.join  // std_string$join
   std/string_builder

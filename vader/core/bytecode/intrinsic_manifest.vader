@@ -1,10 +1,11 @@
 // vader/core/bytecode/intrinsic_manifest: the host-intrinsic identity.
 //
-// `intrinsic_id_for` classifies a host import's mangled name into an
-// `IntrinsicId`: THE single classification both backends
+// `IntrinsicId` names every host: THE single classification both backends
 // (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the two
-// can't drift and a new host trips T3013 at both sites. The table it reads is
-// built at compile time from the declarations' names, through the mangler
+// can't drift and a new host trips T3013 at both sites. A host called through
+// `std/core`'s `Intrinsic` is found by its member's name (`host_for`), one still
+// declared by a bodyless `@intrinsic` function by its mangled name
+// (`intrinsic_id_for`), from a table built at compile time through the mangler
 // (`vader/core/mangle`): no mangled name is spelled here.
 //
 // The arith / buffer bytecode-op table is the selection module's
@@ -119,9 +120,10 @@ export IntrinsicId :: enum(HostMember) {
     FfiCallFrame            { .member = "ffi_call_frame" },
 }
 
-/// Classify a host import's mangled name into its `IntrinsicId`, or
-/// `NotIntrinsic` when it isn't a recognised host (e.g. an `@extern` symbol or
-/// a since-removed one).
+/// Classify the mangled name of a host still declared by a bodyless `@intrinsic`
+/// function (a primitive's member, an instance of `deep_copy`) into its
+/// `IntrinsicId`, or `NotIntrinsic` when it isn't one (e.g. an `@extern` symbol,
+/// or a host called through `Intrinsic`, which `host_for` finds by its member).
 ///
 /// @param mangled  the import's mangled name (`BcImport.mangled_name`).
 export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId =
@@ -155,11 +157,24 @@ export import_host :: fn(is_extern: bool, member: string, mangled: string) -> In
 /// @param id  a host.
 export host_member :: fn(id: IntrinsicId) -> string = HostMember(id).member
 
+/// How a message names the host `id` an import of `mangled` calls: as the member
+/// of `Intrinsic` a program wrote, `Intrinsic.current_os`, else by `mangled`.
+///
+/// @param id       the host.
+/// @param mangled  the import's mangled name.
+export display_host :: fn(id: IntrinsicId, mangled: string) -> string {
+    member :: host_member(id)
+    if member == "" {
+        return mangled
+    }
+    return "${TRAIT_INTRINSIC}.${member}"
+}
+
 // Every host a member of `Intrinsic` names, by the member's name.
 HOSTS_BY_MEMBER: Map<string, IntrinsicId>: @comptime {
     out :: Map<string, IntrinsicId> {}
     for id in IntrinsicId {
-        member :: HostMember(id).member
+        member :: host_member(id)
         if member != "" {
             out[member] = id
         }
@@ -174,7 +189,8 @@ instance_host :: fn(mangled: string) -> IntrinsicId =
 // What the hosts of `deep_copy` at a given type start with.
 DEEP_COPY_INSTANCES :: @comptime instance_prefix(declaration_mangle(CORE_MODULE, "deep_copy"))
 
-// Every host but the instances of `deep_copy`, by mangled name.
+// Every host still declared by a bodyless `@intrinsic` function but the
+// instances of `deep_copy`, by mangled name.
 HOSTS: Map<string, IntrinsicId>: @comptime {
     out :: Map<string, IntrinsicId> {}
     // The primitives' members: `Equals` of an integer of any width, `Display` of
@@ -190,48 +206,7 @@ HOSTS: Map<string, IntrinsicId>: @comptime {
     }
     out[primitive_member_mangle("string", TRAIT_HASH, "hash")] = .StringHash
     out[primitive_member_mangle("string", TRAIT_EQUALS, METHOD_EQUALS)] = .StringEquals
-    core :: (name: string) -> declaration_mangle(CORE_MODULE, name)
-    out[core("byte_len")] = .ByteLen
-    out[core("byte_at")] = .ByteAt
-    out[core("byte_slice")] = .ByteSlice
-    out[core("is_ascii")] = .IsAscii
-    out[core("bytes")] = .Bytes
-    out[core("bytes_to_string")] = .BytesToString
-    out[core("deep_copy")] = .DeepCopy
-    runtime :: (name: string) -> declaration_mangle("std/runtime", name)
-    out[runtime("collect")] = .RuntimeCollect
-    out[runtime("collections")] = .RuntimeCollections
-    out[runtime("bytes_used")] = .RuntimeBytesUsed
-    out[runtime("bytes_copied")] = .RuntimeBytesCopied
-    out[runtime("allocated_bytes")] = .RuntimeAllocatedBytes
-    out[runtime("allocations")] = .RuntimeAllocations
-    out[runtime("count_allocations")] = .RuntimeCountAllocations
-    scheduler :: (name: string) -> declaration_mangle("std/runtime/scheduler", name)
-    out[scheduler("spawn_thread")] = .SchedulerSpawn
-    out[scheduler("park")] = .SchedulerPark
-    out[scheduler("wake")] = .SchedulerWake
-    out[scheduler("sleep_for")] = .SchedulerSleepFor
-    out[scheduler("cancel_thread")] = .SchedulerCancel
-    out[scheduler("current_thread")] = .SchedulerCurrent
-    out[scheduler("is_cancelled")] = .SchedulerIsCancelled
-    out[scheduler("is_leaving")] = .SchedulerIsLeaving
-    out[scheduler("watch_readable")] = .SchedulerWatchReadable
-    out[scheduler("watch_exit")] = .SchedulerWatchExit
-    wait :: (name: string) -> declaration_mangle("std/runtime/wait", name)
-    out[wait("wait_readable")] = .WaitReadable
-    out[wait("wait_readable_for")] = .WaitReadableFor
-    out[wait("wait_writable")] = .WaitWritable
-    out[wait("wait_writable_for")] = .WaitWritableFor
-    out[wait("stop_waiting")] = .WaitStop
-    out[declaration_mangle("std/target", "current_os")] = .TargetCurrentOs
-    out[declaration_mangle("std/target", "current_arch")] = .TargetCurrentArch
-    out[declaration_mangle("std/abort", "panic")] = .AbortPanic
-    vm :: (name: string) -> declaration_mangle("vader/vm", name)
-    out[vm("ffi_open")] = .FfiOpen
-    out[vm("ffi_symbol")] = .FfiSymbol
-    out[vm("ffi_call")] = .FfiCall
-    out[vm("ffi_open_path")] = .FfiOpenPath
-    out[vm("ffi_call_frame")] = .FfiCallFrame
+    out[declaration_mangle(CORE_MODULE, "deep_copy")] = .DeepCopy
     return out
 }
 
@@ -246,7 +221,7 @@ HOSTS: Map<string, IntrinsicId>: @comptime {
 /// comptime evaluation may call the host: `current_os` depends on the machine
 /// and never collects, `bytes` depends on nothing and allocates.
 ///
-/// @param id  the host's classification, from `intrinsic_id_for`.
+/// @param id  the host, from `host_for`.
 export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // Reads of the atom (`vader.h`, `runtime/c/rt/atoms.c`): its length, one byte,
     // the hash and the ASCII flag set at intern.
@@ -279,7 +254,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
 /// lengths it knows across the call, so a wrong `false` lets an index go
 /// unchecked against an array that got shorter.
 ///
-/// @param id  the host's classification, from `intrinsic_id_for`.
+/// @param id  the host, from `host_for`.
 export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Read a string or a primitive, or build a fresh value from one.
     .ByteLen | .ByteAt | .ByteSlice | .IsAscii | .StringHash | .StringEquals -> false
@@ -329,26 +304,24 @@ import "std/testing"
     assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
 }
 
-@test test_descriptor_waits_are_intrinsics :: fn() -> void {
-    assert(intrinsic_id_for(r"std_runtime_wait$wait_readable") == .WaitReadable, "wait_readable")
-    assert(
-        intrinsic_id_for(r"std_runtime_wait$wait_readable_for") == .WaitReadableFor,
-        "wait_readable_for",
-    )
-    assert(intrinsic_id_for(r"std_runtime_wait$wait_writable") == .WaitWritable, "wait_writable")
-    assert(
-        intrinsic_id_for(r"std_runtime_wait$wait_writable_for") == .WaitWritableFor,
-        "wait_writable_for",
-    )
-    assert(intrinsic_id_for(r"std_runtime_wait$stop_waiting") == .WaitStop, "stop_waiting")
+@test test_hosts_and_members_name_each_other :: fn() -> void {
+    for id in IntrinsicId {
+        member :: host_member(id)
+        if member != "" {
+            assert(host_for(member, "") == id, member)
+        }
+    }
+    assert(host_for("", r"std_core$string$Hash$hash") == .StringHash, "by mangle without a member")
+    assert(host_for("no_such_member", "") == .NotIntrinsic, "an unknown member")
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {
-    collects :: (mangled: string) -> intrinsic_may_collect(intrinsic_id_for(mangled))
-    assert(!collects(r"std_core$byte_at"), "a byte read never collects")
-    assert(!collects(r"std_core$string$Hash$hash"), "the hash is cached on the atom")
-    assert(collects(r"std_core$bytes"), "a view allocates its header")
-    assert(collects(r"user_mod$foo"), "an unknown host stays a safepoint")
+    member_collects :: (member: string) -> intrinsic_may_collect(host_for(member, ""))
+    mangle_collects :: (mangled: string) -> intrinsic_may_collect(intrinsic_id_for(mangled))
+    assert(!member_collects("byte_at"), "a byte read never collects")
+    assert(!mangle_collects(r"std_core$string$Hash$hash"), "the hash is cached on the atom")
+    assert(member_collects("bytes"), "a view allocates its header")
+    assert(mangle_collects(r"user_mod$foo"), "an unknown host stays a safepoint")
 }
 
 @test test_intrinsic_id_for :: fn() -> void {

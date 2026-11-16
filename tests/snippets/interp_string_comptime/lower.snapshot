@@ -28,4 +28,5 @@
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.byte_len  // std_core$byte_len
     struct std.core.Buffer  // std_core$Buffer

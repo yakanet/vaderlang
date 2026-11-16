@@ -184,7 +184,7 @@ test_virt_roundtrip :: fn() -> void {
 current_os_module :: fn() -> bc.BytecodeModule | null = parse_test_module("""
     module demo
     type 0 scalar i32
-    import 0 current_os std_target\$current_os () -> i32
+    import 0 current_os std_core\$Intrinsic\$current_os host=current_os () -> i32
 
     fn 0 os () -> i32
       call.import 0

@@ -43,6 +43,9 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
+    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
@@ -59,6 +62,8 @@
     fn std.io.last_io_error  // std_io$last_io_error
     fn std.io.wait_readable  // std_io$wait_readable
     struct std.io.IOError  // std_io$IOError
+  std/runtime/wait
+    fn std.runtime.wait.wait_readable  // std_runtime_wait$wait_readable
   system/posix
     const EADDRINUSE: i32  inline
     const EADDRNOTAVAIL: i32  inline

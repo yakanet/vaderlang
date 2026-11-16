@@ -99,6 +99,10 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.byte_slice  // std_core$byte_slice
+    fn std.core.bytes  // std_core$bytes
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
@@ -146,3 +150,5 @@
     fn std.string_builder.append  // std_string__builder$append
     fn std.string_builder.byte_len  // std_string__builder$byte_len
     struct std.string_builder.StringBuilder  // std_string__builder$StringBuilder
+  std/target
+    fn std.target.current_os  // std_target$current_os

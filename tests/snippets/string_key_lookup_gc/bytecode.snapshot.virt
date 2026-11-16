@@ -23,12 +23,12 @@ string 3 " collections>0 "
 string 4 "true"
 string 5 "false"
 string 6 "\n"
-import 0 byte_len std_core$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at host=byte_at result_type=6 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 bytes std_core$bytes host=bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 3 hash std_core$string$Hash$hash result_type=9 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 4 collect std_runtime$collect host=collect result_type=8 () -> void
-import 5 collections std_runtime$collections host=collections result_type=4 () -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=6 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
+import 2 bytes std_core$Intrinsic$bytes host=bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 3 collect std_core$Intrinsic$collect host=collect result_type=8 () -> void
+import 4 collections std_core$Intrinsic$collections host=collections result_type=4 () -> i64
+import 5 hash std_core$string$Hash$hash result_type=9 param_types=2 param_c_out= param_by_address= (string) -> u64
 import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=8 () -> void
@@ -193,7 +193,7 @@ fn 0 snippet$main () -> i32
           br $L4
         end $L5
       end $L4
-      call.import 4   ; std_runtime$collect
+      call.import 3   ; std_core$Intrinsic$collect
       local.get 2   ; $arr_2
       local.tee 10   ; __for_arr_4
       array.len
@@ -216,7 +216,7 @@ fn 0 snippet$main () -> i32
           if $L8 void
             local.get 13   ; w
             i64.const 1
-            call.import 1   ; std_core$byte_at
+            call.import 1   ; std_core$Intrinsic$byte_at
             u8.to_i32
             local.set 14   ; $cast_77
             local.get 3   ; i
@@ -295,7 +295,7 @@ fn 0 snippet$main () -> i32
   string.const 3   ; " collections>0 "
   call 3   ; std_core$write_string_at
   local.set 4   ; __off_1
-  call.import 5   ; std_runtime$collections
+  call.import 4   ; std_core$Intrinsic$collections
   i64.const 0
   i64.gt
   local.set 18   ; $gt_108
@@ -316,10 +316,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -354,7 +354,7 @@ fn 3 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -1375,7 +1375,7 @@ fn 22 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$bytes
+  call.import 2   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1478,6 +1478,6 @@ end
 
 fn 26 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
-  call.import 3   ; std_core$string$Hash$hash
+  call.import 5   ; std_core$string$Hash$hash
   return
 end

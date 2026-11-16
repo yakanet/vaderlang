@@ -15,9 +15,9 @@ type 12 scalar bool
 type 13 array 1
 string 0 " "
 string 1 "\n"
-import 0 byte_len std_core$byte_len host=byte_len result_type=10 param_types=7 param_c_out= param_by_address= (string) -> i64
-import 1 bytes_to_string std_core$bytes_to_string host=bytes_to_string result_type=7 param_types=1 param_c_out= param_by_address= (ref) -> string
-import 2 bytes std_core$bytes host=bytes result_type=1 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=10 param_types=7 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=1 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 2 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=7 param_types=1 param_c_out= param_by_address= (ref) -> string
 import 3 extern :write system_posix$sys_write headers=<unistd.h> result_type=10 param_types=3,1,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 5 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
@@ -116,7 +116,7 @@ fn 2 snippet$main () -> i32
       local.get 0   ; words
       local.get 4   ; __for_i_2
       array.get 13   ; u8[][]
-      call.import 1   ; std_core$bytes_to_string
+      call.import 2   ; std_core$Intrinsic$bytes_to_string
       call 12   ; std_console$println__string
       local.get 4   ; __for_i_2
       i64.const 1
@@ -130,7 +130,7 @@ fn 2 snippet$main () -> i32
   i32.const 12
   call 0   ; snippet$append_word
   local.get 0   ; words
-  call.import 1   ; std_core$bytes_to_string
+  call.import 2   ; std_core$Intrinsic$bytes_to_string
   call 12   ; std_console$println__string
   array.new 5 0   ; u16[]
   local.tee 0   ; words
@@ -277,10 +277,10 @@ fn 4 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -315,7 +315,7 @@ fn 6 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -533,7 +533,7 @@ fn 9 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 2   ; std_core$bytes
+  call.import 1   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

@@ -12,13 +12,13 @@ type 9 struct std_collections$Map__i64__i32 { ekeys:22,evals:21,index:21,mask:12
 type 10 array 2
 type 11 struct std_core$Buffer {  }
 type 12 scalar i64
-type 13 scalar u64
-type 14 scalar char
-type 15 struct std_core$Range__i64 { start:12,end:12,inclusive:18,done:18,cursor:12 }
-type 16 scalar u8
-type 17 scalar u32
+type 13 array 14
+type 14 scalar u8
+type 15 scalar u64
+type 16 scalar char
+type 17 struct std_core$Range__i64 { start:12,end:12,inclusive:18,done:18,cursor:12 }
 type 18 scalar bool
-type 19 array 16
+type 19 scalar u32
 type 20 union 3,0
 type 21 array 3
 type 22 array 12
@@ -32,13 +32,13 @@ string 6 "z"
 string 7 "p"
 string 8 "q"
 string 9 "\n"
-import 0 byte_len std_core$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at host=byte_at result_type=16 param_types=2,12 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$byte_slice host=byte_slice result_type=2 param_types=2,12,12 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 is_ascii std_core$is_ascii host=is_ascii result_type=18 param_types=2 param_c_out= param_by_address= (string) -> bool
-import 4 bytes std_core$bytes host=bytes result_type=19 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 5 hash std_core$string$Hash$hash result_type=13 param_types=2 param_c_out= param_by_address= (string) -> u64
-import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,19,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=12 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=13 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=15 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 3 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=14 param_types=2,12 param_c_out= param_by_address= (string,i64) -> u8
+import 4 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,12,12 param_c_out= param_by_address= (string,i64,i64) -> string
+import 5 is_ascii std_core$Intrinsic$is_ascii host=is_ascii result_type=18 param_types=2 param_c_out= param_by_address= (string) -> bool
+import 6 extern :write system_posix$sys_write headers=<unistd.h> result_type=12 param_types=3,13,12 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 7 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 8 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=4 () -> void
 impl 1 std_core$IndexSet
@@ -51,8 +51,8 @@ impl 8 std_core$Contains
 impl 8 std_core$Into
 impl 9 std_core$Contains
 impl 9 std_core$Into
-impl 15 std_core$Contains
-impl 15 std_core$Iterator
+impl 17 std_core$Contains
+impl 17 std_core$Iterator
 vtable std_core$IndexSet.set_at 1 0
 vtable std_core$IndexSet.set_at 8 20
 vtable std_core$IndexSet.set_at 9 22
@@ -71,7 +71,7 @@ fn 0 snippet$Log$std_core$IndexSet$set_at (ref,string,i32) -> void
   local.set 3   ; $field_3
   local.get 1   ; arg 1
   local.tee 4   ; __p_0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 5   ; $call_6
   i64.const 21
   local.get 5   ; $call_6
@@ -284,10 +284,10 @@ fn 4 snippet$main () -> i32
   ref.cast 2   ; string
   local.set 6   ; __p_7
   local.get 5   ; __p_6
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; $cast_16
   local.get 6   ; __p_7
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_69
   local.get 4   ; $cast_16
   local.get 7   ; $call_69
@@ -450,10 +450,10 @@ fn 7 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -488,7 +488,7 @@ fn 9 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -619,7 +619,7 @@ end
 fn 12 std_core$string$Index$at (string,i64) -> char
   local $call_6 i64
   local.get 0   ; arg 0
-  call.import 3   ; std_core$is_ascii
+  call.import 5   ; std_core$Intrinsic$is_ascii
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -635,7 +635,7 @@ fn 12 std_core$string$Index$at (string,i64) -> char
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$byte_at
+  call.import 3   ; std_core$Intrinsic$byte_at
   u8.to_char
   return
 end
@@ -646,10 +646,10 @@ fn 13 std_core$string$Index$at$1 (string,ref) -> string
   local $call_5 i64
   local $call_13 i64
   local.get 0   ; arg 0
-  call.import 3   ; std_core$is_ascii
+  call.import 5   ; std_core$Intrinsic$is_ascii
   if $L0 void
   else
-    local.field 1 15 0   ; arg 1 std_core$Range__i64.start
+    local.field 1 17 0   ; arg 1 std_core$Range__i64.start
     ref.cast 12   ; i64
     local.set 2   ; $field_3
     local.get 0   ; arg 0
@@ -668,13 +668,13 @@ fn 13 std_core$string$Index$at$1 (string,ref) -> string
     local.get 0   ; arg 0
     local.get 3   ; $field_4
     local.get 5   ; $call_13
-    call.import 2   ; std_core$byte_slice
+    call.import 4   ; std_core$Intrinsic$byte_slice
     return
   end $L0
-  local.field 1 15 0   ; arg 1 std_core$Range__i64.start
+  local.field 1 17 0   ; arg 1 std_core$Range__i64.start
   ref.cast 12   ; i64
   local.set 2   ; $field_3
-  local.field 1 15 0   ; arg 1 std_core$Range__i64.start
+  local.field 1 17 0   ; arg 1 std_core$Range__i64.start
   ref.cast 12   ; i64
   local.set 3   ; $field_4
   local.get 1   ; arg 1
@@ -687,7 +687,7 @@ fn 13 std_core$string$Index$at$1 (string,ref) -> string
   local.get 0   ; arg 0
   local.get 2   ; $field_3
   local.get 3   ; $field_4
-  call.import 2   ; std_core$byte_slice
+  call.import 4   ; std_core$Intrinsic$byte_slice
   return
 end
 
@@ -699,7 +699,7 @@ fn 14 std_core$codepoint_offset (string,i64,i64) -> i64
   local $field_17 i64
   local $call_elem_22 i64
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; n
   local.get 1   ; arg 1
   local.set 4   ; i
@@ -720,7 +720,7 @@ fn 14 std_core$codepoint_offset (string,i64,i64) -> i64
         end $L3
         local.get 0   ; arg 0
         local.get 4   ; i
-        call.import 1   ; std_core$byte_at
+        call.import 3   ; std_core$Intrinsic$byte_at
         local.tee 6   ; b
         i32.const 128
         u32.lt
@@ -762,7 +762,7 @@ fn 15 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$byte_at
+  call.import 3   ; std_core$Intrinsic$byte_at
   local.tee 2   ; b
   i32.const 128
   u32.lt
@@ -814,10 +814,10 @@ end
 fn 16 std_core$codepoint_count (ref) -> i64
   local end i64
   local $field_6 i64
-  local.field 0 15 1   ; arg 0 std_core$Range__i64.end
+  local.field 0 17 1   ; arg 0 std_core$Range__i64.end
   ref.cast 12   ; i64
   local.set 1   ; end
-  local.field 0 15 2   ; arg 0 std_core$Range__i64.inclusive
+  local.field 0 17 2   ; arg 0 std_core$Range__i64.inclusive
   ref.cast 18   ; bool
   if $L0 void
     local.get 1   ; end
@@ -825,7 +825,7 @@ fn 16 std_core$codepoint_count (ref) -> i64
     i64.checked_add
     local.set 1   ; end
   end $L0
-  local.field 0 15 0   ; arg 0 std_core$Range__i64.start
+  local.field 0 17 0   ; arg 0 std_core$Range__i64.start
   ref.cast 12   ; i64
   local.set 2   ; $field_6
   local.get 1   ; end
@@ -833,7 +833,7 @@ fn 16 std_core$codepoint_count (ref) -> i64
   i64.lt
   if $L1 void
   else
-    local.field 0 15 0   ; arg 0 std_core$Range__i64.start
+    local.field 0 17 0   ; arg 0 std_core$Range__i64.start
     ref.cast 12   ; i64
     local.set 2   ; $field_6
     local.get 1   ; end
@@ -873,7 +873,7 @@ fn 17 std_core$decode_tail (string,u8,i64) -> (u32,i64)
     return
   end $L1
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; n
   local.get 2   ; arg 2
   i64.const 1
@@ -891,7 +891,7 @@ fn 17 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
-  call.import 1   ; std_core$byte_at
+  call.import 3   ; std_core$Intrinsic$byte_at
   local.tee 6   ; b1
   call 18   ; std_core$is_utf8_continuation
   if $L3 void
@@ -1020,7 +1020,7 @@ fn 17 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
-  call.import 1   ; std_core$byte_at
+  call.import 3   ; std_core$Intrinsic$byte_at
   local.tee 10   ; b2
   call 18   ; std_core$is_utf8_continuation
   if $L15 void
@@ -1078,7 +1078,7 @@ fn 17 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 4   ; n
   local.get 0   ; arg 0
   local.get 4   ; n
-  call.import 1   ; std_core$byte_at
+  call.import 3   ; std_core$Intrinsic$byte_at
   local.tee 11   ; b3
   call 18   ; std_core$is_utf8_continuation
   if $L18 void
@@ -2014,7 +2014,7 @@ fn 34 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 4   ; std_core$bytes
+  call.import 1   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -2033,7 +2033,7 @@ fn 34 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 19   ; u8[]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -2117,6 +2117,6 @@ end
 
 fn 38 std_core$string$Hash$hash$$wrapper (string) -> u64
   local.get 0   ; arg 0
-  call.import 5   ; std_core$string$Hash$hash
+  call.import 2   ; std_core$string$Hash$hash
   return
 end

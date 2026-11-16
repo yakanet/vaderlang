@@ -15,7 +15,7 @@ import "vader/core/symbol"
 
 /// The four indexes a direct call resolves through : positions in the caller's own
 /// lists of functions and of imports.
-CalleeLookup :: struct {
+export CalleeLookup :: struct {
     fn_by_mangle:     Map<string, i32> = Map<string, i32> {}
     fn_by_symbol:     Map<i32, i32> = Map<i32, i32> {}
     import_by_mangle: Map<string, i32> = Map<string, i32> {}
@@ -26,7 +26,7 @@ CalleeLookup :: struct {
 ///
 /// @param mangled  the function's mangled name.
 /// @param symbol   its origin's symbol ; null for a synthetic function.
-index_function :: fn(
+export index_function :: fn(
     lookup: CalleeLookup,
     mangled: string,
     symbol: Symbol | null,
@@ -62,7 +62,7 @@ index_by_name :: fn(
 /// of : by mangle, then by symbol id.
 ///
 /// @param callee  the symbol the instruction names.
-function_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
+export function_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
     found :: lookup.fn_by_mangle[callee.name] else return lookup.fn_by_symbol[callee.id]
     return found
 }

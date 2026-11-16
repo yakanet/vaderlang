@@ -97,34 +97,35 @@ format_unsigned :: fn(n: u64) -> string {
 /// Intern the buffer's leading `len` bytes as a `string` (one atom-table copy).
 export finish_buffer :: fn(self: Buffer, len: i64) -> string = self.intern_string(len)
 
-/// Byte length of `s` (its UTF-8 byte count), an `@intrinsic` read straight off
-/// the interned atom. String-only: a `u8[]` uses `.len()` directly.
-@intrinsic export byte_len :: fn(s: string) -> i64
+/// Byte length of `s` (its UTF-8 byte count), read straight off the interned
+/// atom. String-only: a `u8[]` uses `.len()` directly.
+export byte_len :: fn(s: string) -> i64 = Intrinsic.byte_len(s)
 
-/// The byte at index `i` of `s`: an `@intrinsic` header-free read straight off
-/// the interned atom, no read-only `u8[]` view materialised: how code reads a
+/// The byte at index `i` of `s`: a header-free read straight off the interned
+/// atom, no read-only `u8[]` view materialised: how code reads a
 /// string's bytes, the peer of `byte_len` for the `[i]` case.
 ///
 /// @param i  a byte offset, not a codepoint index.
 /// @error    traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
-@intrinsic export byte_at :: fn(s: string, i: i64) -> u8
+export byte_at :: fn(s: string, i: i64) -> u8 = Intrinsic.byte_at(s, i)
 
-/// The bytes of `s` from offset `start` up to `end`, excluded, as a string: an
-/// `@intrinsic` slice of the interned atom, nothing copied. Offsets count bytes,
+/// The bytes of `s` from offset `start` up to `end`, excluded, as a string: a
+/// slice of the interned atom, nothing copied. Offsets count bytes,
 /// where `s[i]` counts codepoints. Like any slice, offsets past the end clamp to
 /// it, and an `end` before `start` gives the empty string.
 ///
 /// @param s      source string.
 /// @param start  first byte offset, included.
 /// @param end    byte offset where the slice stops, excluded.
-@intrinsic export byte_slice :: fn(s: string, start: i64, end: i64) -> string
+export byte_slice :: fn(s: string, start: i64, end: i64) -> string =
+    Intrinsic.byte_slice(s, start, end)
 
 /// Whether every byte of `s` is ASCII (below 0x80): each byte is then one codepoint,
 /// and a byte offset is a codepoint index. The runtime records it when the string is
 /// made, so the answer reads no byte.
 ///
 /// @param s  the string to test.
-@intrinsic export is_ascii :: fn(s: string) -> bool
+export is_ascii :: fn(s: string) -> bool = Intrinsic.is_ascii(s)
 
 /// Write `s`'s bytes at `off` ; return `off + s.byte_len()`.
 export write_string_at :: fn(self: Buffer, off: i64, s: string) -> i64 {
@@ -185,22 +186,22 @@ export write_bool :: fn(self: Buffer, off: i64, b: bool) -> i64 {
 }
 
 /// Materialise a `string` from verbatim UTF-8 bytes: the canonical bytes->string
-/// primitive (inverse of `bytes`). Host intrinsic backed by `vader_string_as_string`
+/// primitive (inverse of `bytes`). The runtime backs it with `vader_string_as_string`
 /// (the runtime symbol kept its name) ; O(1) on a borrowed `bytes()` slice, O(n) on
 /// a packed array, no UTF-8 validation.
 /// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
 /// @return    the string those bytes encode.
-@intrinsic export bytes_to_string :: fn(bs: u8[]) -> string
+export bytes_to_string :: fn(bs: u8[]) -> string = Intrinsic.bytes_to_string(bs)
 
 /// Borrow the UTF-8 bytes of a string as a read-only `u8[]` view: the canonical
-/// string->bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
-/// by `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
+/// string->bytes primitive, inverse of `bytes_to_string`. The runtime backs it
+/// with `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
 /// view of the interned bytes on native, read in place on the VM until a write
 /// copies it. To read a string's bytes, `byte_len`, `byte_at` and `byte_slice` take
 /// the string itself.
 /// @param s  source string.
 /// @return   a read-only `u8[]` over the UTF-8 bytes of `s`.
-@intrinsic export bytes :: fn(s: string) -> u8[]
+export bytes :: fn(s: string) -> u8[] = Intrinsic.bytes(s)
 
 i8     implements Display -> format_signed(i64(self))
 i16    implements Display -> format_signed(i64(self))

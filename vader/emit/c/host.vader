@@ -919,10 +919,9 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
     CReturn { .value = address_as_integer(verbatim("r")) },
 ]
 
-// The body of the `vader_host_*` shim for `imp`. A host `@intrinsic` routes to
-// its `vader_*` runtime helper by its IntrinsicId (classified from the mangled
-// name by `core/bytecode/intrinsic_manifest::intrinsic_id_for`, shared with the
-// VM's `dispatch_import`). The hosts only the VM serves (string equality and the
+// The body of the `vader_host_*` shim for `imp`. A host routes to its `vader_*`
+// runtime helper by its IntrinsicId (`imp.host`, shared with the VM's
+// `dispatch_import`). The hosts only the VM serves (string equality and the
 // primitive Equals/Display, which a native build reaches without a host call)
 // and non-intrinsics fall through to the @extern forwarder or to a loud trap
 // (compiler/runtime version skew). Exhaustive, so a new IntrinsicId

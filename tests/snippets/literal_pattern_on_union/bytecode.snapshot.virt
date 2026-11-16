@@ -15,8 +15,8 @@ type 12 scalar i32
 type 13 struct std_core$Buffer {  }
 type 14 scalar u8
 type 15 scalar u32
-type 16 scalar char
-type 17 array 14
+type 16 array 14
+type 17 scalar char
 type 18 scalar void
 type 19 struct std_string__builder$StringBuilder { parts:20 }
 type 20 array 1
@@ -45,11 +45,11 @@ string 21 "true"
 string 22 "false"
 string 23 "\n"
 string 24 ""
-import 0 byte_len std_core$byte_len host=byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at host=byte_at result_type=14 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 bytes_to_string std_core$bytes_to_string host=bytes_to_string result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> string
-import 3 bytes std_core$bytes host=bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=12,17,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=14 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
+import 2 bytes std_core$Intrinsic$bytes host=bytes result_type=16 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 3 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=1 param_types=16 param_c_out= param_by_address= (ref) -> string
+import 4 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=12,16,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 5 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=12 () -> i32
 import 6 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=18 () -> void
 impl 13 std_core$ByteAccess
@@ -428,31 +428,31 @@ fn 9 concat_5 (string,string,string,string,string) -> string
   local $call_16 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 5   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_7
   local.get 5   ; c0
   local.get 6   ; $call_7
   i64.add
   local.set 6   ; $call_7
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_10
   local.get 6   ; $call_7
   local.get 7   ; $call_10
   i64.add
   local.set 7   ; $call_10
   local.get 3   ; arg 3
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 8   ; $call_13
   local.get 7   ; $call_10
   local.get 8   ; $call_13
   i64.add
   local.set 8   ; $call_13
   local.get 4   ; arg 4
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 9   ; $call_16
   local.get 8   ; $call_13
   local.get 9   ; $call_16
@@ -491,17 +491,17 @@ fn 10 concat_3 (string,string,string) -> string
   local $call_8 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; $call_5
   local.get 3   ; c0
   local.get 4   ; $call_5
   i64.add
   local.set 4   ; $call_5
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 5   ; $call_8
   local.get 4   ; $call_5
   local.get 5   ; $call_8
@@ -536,45 +536,45 @@ fn 11 concat_7 (string,string,string,string,string,string,string) -> string
   local $call_24 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 8   ; $call_9
   local.get 7   ; c0
   local.get 8   ; $call_9
   i64.add
   local.set 8   ; $call_9
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 9   ; $call_12
   local.get 8   ; $call_9
   local.get 9   ; $call_12
   i64.add
   local.set 9   ; $call_12
   local.get 3   ; arg 3
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 10   ; $call_15
   local.get 9   ; $call_12
   local.get 10   ; $call_15
   i64.add
   local.set 10   ; $call_15
   local.get 4   ; arg 4
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 11   ; $call_18
   local.get 10   ; $call_15
   local.get 11   ; $call_18
   i64.add
   local.set 11   ; $call_18
   local.get 5   ; arg 5
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 12   ; $call_21
   local.get 11   ; $call_18
   local.get 12   ; $call_21
   i64.add
   local.set 12   ; $call_21
   local.get 6   ; arg 6
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 13   ; $call_24
   local.get 12   ; $call_21
   local.get 13   ; $call_24
@@ -620,10 +620,10 @@ fn 12 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -658,7 +658,7 @@ fn 14 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -712,7 +712,7 @@ fn 16 std_core$decode_tail (string,u8,i64) -> (u32,i64)
     return
   end $L1
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; n
   local.get 2   ; arg 2
   i64.const 1
@@ -730,7 +730,7 @@ fn 16 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 6   ; b1
   call 18   ; std_core$is_utf8_continuation
   if $L3 void
@@ -859,7 +859,7 @@ fn 16 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 10   ; b2
   call 18   ; std_core$is_utf8_continuation
   if $L15 void
@@ -917,7 +917,7 @@ fn 16 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 4   ; n
   local.get 0   ; arg 0
   local.get 4   ; n
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 11   ; b3
   call 18   ; std_core$is_utf8_continuation
   if $L18 void
@@ -982,10 +982,10 @@ fn 17 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 17 1   ; u8[]
+    array.new 16 1   ; u8[]
     return
   end $L0
-  array.new 17 0   ; u8[]
+  array.new 16 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -1161,7 +1161,7 @@ fn 19 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$bytes
+  call.import 2   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1180,7 +1180,7 @@ fn 19 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 17   ; u8[]
+      array.slice 16   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -1287,7 +1287,7 @@ fn 23 std_string$to_lower (string) -> string
   local.set 3   ; i
   loop $L0 void
     local.get 2   ; self
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 4   ; $call_7
     local.get 3   ; i
     local.get 4   ; $call_7
@@ -1295,7 +1295,7 @@ fn 23 std_string$to_lower (string) -> string
     if $L1 void
       local.get 2   ; self
       local.get 3   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 5   ; b
       i32.const 128
       u32.lt
@@ -1505,7 +1505,7 @@ fn 25 std_string__builder$append_char (ref,char) -> void
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 17   ; std_core$utf8_encode
-  call.import 2   ; std_core$bytes_to_string
+  call.import 3   ; std_core$Intrinsic$bytes_to_string
   local.set 3   ; $call_4
   local.get 2   ; $field_2
   local.get 3   ; $call_4
@@ -1568,7 +1568,7 @@ fn 26 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
       local.get 7   ; p
       buffer_write_string
       local.get 7   ; p
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 8   ; $call_27
       local.get 3   ; off
       local.get 8   ; $call_27
@@ -1610,7 +1610,7 @@ fn 27 std_string__builder$byte_len (ref) -> i64
       local.get 4   ; __for_i_2
       array.get 20   ; string[]
       ref.cast 1   ; string
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 5   ; $call_12
       local.get 1   ; total
       local.get 5   ; $call_12

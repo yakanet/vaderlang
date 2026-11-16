@@ -3,12 +3,12 @@ type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
 type 3 struct semver$Version { major:1,minor:1,patch:1,prerelease:2,build:2 }
-type 4 scalar bool
-type 5 scalar i64
-type 6 scalar char
+type 4 scalar i64
+type 5 scalar bool
+type 6 array 7
 type 7 scalar u8
-type 8 scalar u32
-type 9 array 7
+type 8 scalar char
+type 9 scalar u32
 type 10 struct std_core$Buffer {  }
 type 11 scalar void
 type 12 union 13,3
@@ -19,7 +19,7 @@ type 16 struct semver$VersionSections { core:2,prerelease:30,build:30 }
 type 17 union 0,13
 type 18 union 13,19
 type 19 struct semver$RangeClause { terms:24 }
-type 20 union 5,0
+type 20 union 4,0
 type 21 union 1,13
 type 22 fn (2) -> 17
 type 23 union 13,24
@@ -33,7 +33,7 @@ type 30 union 0,2
 type 31 array 2
 type 32 union 33,0
 type 33 struct __Tuple_string_string_66940ed4 { _0:2,_1:2 }
-type 34 fn (6) -> 4
+type 34 fn (8) -> 5
 type 35 struct std_string__builder$StringBuilder { parts:31 }
 type 36 array 1
 string 0 "1.2.3-rc.1"
@@ -88,12 +88,12 @@ string 48 "parse_int: no digits"
 string 49 "parse_int: invalid digit"
 string 50 "parse_int: overflow"
 string 51 "\n"
-import 0 byte_len std_core$byte_len host=byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at host=byte_at result_type=7 param_types=2,5 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$byte_slice host=byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 bytes_to_string std_core$bytes_to_string host=bytes_to_string result_type=2 param_types=9 param_c_out= param_by_address= (ref) -> string
-import 4 bytes std_core$bytes host=bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=5 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=7 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 bytes_to_string std_core$Intrinsic$bytes_to_string host=bytes_to_string result_type=2 param_types=6 param_c_out= param_by_address= (ref) -> string
+import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
 import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=11 () -> void
 impl 10 std_core$ByteAccess
@@ -223,10 +223,10 @@ fn 2 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -249,7 +249,7 @@ end
 
 fn 3 std_core$is_empty_1 (string) -> bool
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   i64.const 0
   i64.eq
   return
@@ -262,7 +262,7 @@ fn 4 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 2   ; b
   i32.const 128
   u32.lt
@@ -340,7 +340,7 @@ fn 5 std_core$decode_tail (string,u8,i64) -> (u32,i64)
     return
   end $L1
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; n
   local.get 2   ; arg 2
   i64.const 1
@@ -358,7 +358,7 @@ fn 5 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 6   ; b1
   call 6   ; std_core$is_utf8_continuation
   if $L3 void
@@ -487,7 +487,7 @@ fn 5 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 10   ; b2
   call 6   ; std_core$is_utf8_continuation
   if $L15 void
@@ -545,7 +545,7 @@ fn 5 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.set 4   ; n
   local.get 0   ; arg 0
   local.get 4   ; n
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.tee 11   ; b3
   call 6   ; std_core$is_utf8_continuation
   if $L18 void
@@ -619,10 +619,10 @@ fn 7 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    array.new 9 1   ; u8[]
+    array.new 6 1   ; u8[]
     return
   end $L0
-  array.new 9 0   ; u8[]
+  array.new 6 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
@@ -787,7 +787,7 @@ fn 9 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -1115,24 +1115,24 @@ fn 13 semver$sections_of (string) -> ref
     return
   end $L2
   local.get 1   ; halves
-  ref.cast 5   ; i64
+  ref.cast 4   ; i64
   local.set 4   ; dash
   local.get 2   ; head
   i64.const 0
   local.get 4   ; dash
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   local.set 5   ; $call_21
   local.get 4   ; dash
   i64.const 1
   i64.checked_add
   local.set 4   ; dash
   local.get 2   ; head
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_24
   local.get 2   ; head
   local.get 4   ; dash
   local.get 6   ; $call_24
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   local.set 2   ; head
   local.get 5   ; $call_21
   local.get 2   ; head
@@ -1545,7 +1545,7 @@ fn 18 semver$prerelease_dash (string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; __fallback_0
-  ref.cast 5   ; i64
+  ref.cast 4   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; $add_checked_12
@@ -1559,7 +1559,7 @@ fn 18 semver$prerelease_dash (string) -> any
     return.lit null.const
   end $L1
   local.get 1   ; __fallback_0
-  ref.cast 5   ; i64
+  ref.cast 4   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; $add_checked_12
@@ -1588,13 +1588,13 @@ fn 19 semver$parse_numeric_id (string) -> any
     return
   end $L1
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   i64.const 1
   i64.gt
   if $L2 void
     local.get 0   ; arg 0
     i64.const 0
-    call.import 1   ; std_core$byte_at
+    call.import 1   ; std_core$Intrinsic$byte_at
     i32.const 48
     i32.eq
     if $L3 void
@@ -1678,13 +1678,13 @@ fn 21 semver$validate_prerelease_id (string) -> any
     return
   end $L1
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   i64.const 1
   i64.gt
   if $L2 void
     local.get 0   ; arg 0
     i64.const 0
-    call.import 1   ; std_core$byte_at
+    call.import 1   ; std_core$Intrinsic$byte_at
     i32.const 48
     i32.eq
     if $L3 void
@@ -1743,7 +1743,7 @@ fn 23 semver$is_bare_operator (string) -> bool
   local.set 2   ; i
   loop $L1 void
     local.get 1   ; self
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 3   ; $call_6
     local.get 2   ; i
     local.get 3   ; $call_6
@@ -1751,7 +1751,7 @@ fn 23 semver$is_bare_operator (string) -> bool
     if $L2 void
       local.get 1   ; self
       local.get 2   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 4   ; b
       i32.const 128
       u32.lt
@@ -1880,15 +1880,15 @@ fn 24 semver$parse_token (string) -> any
   end $L3
   local.get 0   ; arg 0
   i64.const 0
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.set 2   ; b0
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_28
   local.get 0   ; arg 0
   i64.const 1
   local.get 3   ; $call_28
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   local.set 1   ; $call_16
   local.get 2   ; b0
   i32.const 62
@@ -2369,7 +2369,7 @@ fn 27 semver$is_all_digits (string) -> bool
   local.set 2   ; i
   loop $L1 void
     local.get 1   ; self
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 3   ; $call_6
     local.get 2   ; i
     local.get 3   ; $call_6
@@ -2377,7 +2377,7 @@ fn 27 semver$is_all_digits (string) -> bool
     if $L2 void
       local.get 1   ; self
       local.get 2   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 4   ; b
       i32.const 128
       u32.lt
@@ -2458,7 +2458,7 @@ fn 28 semver$is_identifier_text (string) -> bool
   local.set 2   ; i
   loop $L0 void
     local.get 1   ; self
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 3   ; $call_4
     local.get 2   ; i
     local.get 3   ; $call_4
@@ -2466,7 +2466,7 @@ fn 28 semver$is_identifier_text (string) -> bool
     if $L1 void
       local.get 1   ; self
       local.get 2   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 4   ; b
       i32.const 128
       u32.lt
@@ -3536,10 +3536,10 @@ fn 48 semver$compare_id (string,string) -> i32
         end $L11
       end $L6
       local.get 0   ; arg 0
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 10   ; na
       local.get 1   ; arg 1
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 11   ; nb
       local.get 10   ; na
       local.get 11   ; nb
@@ -3575,7 +3575,7 @@ fn 49 std_string$trim (string) -> string
   local lo i64
   local $sub_checked_13 i64
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; n
   i64.const 0
   local.set 2   ; lo
@@ -3587,7 +3587,7 @@ fn 49 std_string$trim (string) -> string
       if $L2 void
         local.get 0   ; arg 0
         local.get 2   ; lo
-        call.import 1   ; std_core$byte_at
+        call.import 1   ; std_core$Intrinsic$byte_at
         call 52   ; std_string$is_white_byte
         if $L3 void
         else
@@ -3613,7 +3613,7 @@ fn 49 std_string$trim (string) -> string
         local.set 3   ; $sub_checked_13
         local.get 0   ; arg 0
         local.get 3   ; $sub_checked_13
-        call.import 1   ; std_core$byte_at
+        call.import 1   ; std_core$Intrinsic$byte_at
         call 52   ; std_string$is_white_byte
         if $L7 void
         else
@@ -3630,7 +3630,7 @@ fn 49 std_string$trim (string) -> string
   local.get 0   ; arg 0
   local.get 2   ; lo
   local.get 1   ; n
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   return
 end
 
@@ -3649,10 +3649,10 @@ fn 50 std_string$split (string,string) -> ref
   array.new 31 0   ; string[]
   local.set 2   ; out
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; n
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.tee 4   ; m
   i64.const 0
   i64.eq
@@ -3678,7 +3678,7 @@ fn 50 std_string$split (string,string) -> ref
         local.get 0   ; arg 0
         local.get 5   ; at
         local.get 7   ; next
-        call.import 2   ; std_core$byte_slice
+        call.import 2   ; std_core$Intrinsic$byte_slice
         local.set 8   ; $call_17
         local.get 2   ; out
         local.get 8   ; $call_17
@@ -3693,7 +3693,7 @@ fn 50 std_string$split (string,string) -> ref
   end $L0
   local.get 1   ; arg 1
   i64.const 0
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.set 9   ; first
   i64.const 0
   local.set 5   ; at
@@ -3708,7 +3708,7 @@ fn 50 std_string$split (string,string) -> ref
     if $L4 void
       local.get 0   ; arg 0
       local.get 6   ; $field_14
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.get 9   ; first
       i32.eq
       if $L5 void
@@ -3736,7 +3736,7 @@ fn 50 std_string$split (string,string) -> ref
         local.get 0   ; arg 0
         local.get 5   ; at
         local.get 6   ; $field_14
-        call.import 2   ; std_core$byte_slice
+        call.import 2   ; std_core$Intrinsic$byte_slice
         local.set 8   ; $call_17
         local.get 2   ; out
         local.get 8   ; $call_17
@@ -3758,7 +3758,7 @@ fn 50 std_string$split (string,string) -> ref
   local.get 0   ; arg 0
   local.get 5   ; at
   local.get 3   ; n
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   local.set 8   ; $call_17
   local.get 2   ; out
   local.get 8   ; $call_17
@@ -3821,10 +3821,10 @@ fn 53 std_string$matches_at (string,i64,string) -> bool
   local $call_15 u8
   local $call_16 u8
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; m
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; $call_5
   local.get 1   ; arg 1
   local.get 4   ; $call_5
@@ -3833,7 +3833,7 @@ fn 53 std_string$matches_at (string,i64,string) -> bool
     return.lit bool.const false
   end $L0
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.get 1   ; arg 1
   i64.checked_sub
   local.set 4   ; $call_5
@@ -3856,11 +3856,11 @@ fn 53 std_string$matches_at (string,i64,string) -> bool
       local.set 5   ; $add_checked_14
       local.get 0   ; arg 0
       local.get 5   ; $add_checked_14
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.set 6   ; $call_15
       local.get 2   ; arg 2
       local.get 4   ; $call_5
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.set 7   ; $call_16
       local.get 6   ; $call_15
       local.get 7   ; $call_16
@@ -3907,7 +3907,7 @@ fn 54 std_string$split_where (string,ref) -> ref
   local.set 6   ; i
   loop $L0 void
     local.get 5   ; self
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 7   ; $call_12
     local.get 6   ; i
     local.get 7   ; $call_12
@@ -3915,7 +3915,7 @@ fn 54 std_string$split_where (string,ref) -> ref
     if $L1 void
       local.get 5   ; self
       local.get 6   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 8   ; b
       i32.const 128
       u32.lt
@@ -3927,7 +3927,7 @@ fn 54 std_string$split_where (string,ref) -> ref
         local.get 8   ; b
         u8.to_char
         local.tee 9   ; c
-        retag 6   ; char
+        retag 8   ; char
         local.get 1   ; arg 1
         call.indirect 34   ; fn
         if $L3 void
@@ -3990,7 +3990,7 @@ fn 54 std_string$split_where (string,ref) -> ref
       local.get 11   ; code
       u32.to_char
       local.tee 13   ; c
-      retag 6   ; char
+      retag 8   ; char
       local.get 1   ; arg 1
       call.indirect 34   ; fn
       if $L8 void
@@ -4038,16 +4038,16 @@ fn 55 std_string$last_byte_offset (string,string) -> any
   local m i64
   local first u8
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; n
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.tee 3   ; m
   i64.const 0
   i64.eq
   if $L0 void
     local.get 2   ; n
-    retag 5   ; i64
+    retag 4   ; i64
     return
   end $L0
   local.get 3   ; m
@@ -4058,7 +4058,7 @@ fn 55 std_string$last_byte_offset (string,string) -> any
   end $L1
   local.get 1   ; arg 1
   i64.const 0
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   local.set 4   ; first
   local.get 2   ; n
   local.get 3   ; m
@@ -4071,7 +4071,7 @@ fn 55 std_string$last_byte_offset (string,string) -> any
     if $L3 void
       local.get 0   ; arg 0
       local.get 2   ; n
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.get 4   ; first
       i32.eq
       if $L4 void
@@ -4081,7 +4081,7 @@ fn 55 std_string$last_byte_offset (string,string) -> any
         call 53   ; std_string$matches_at
         if $L5 void
           local.get 2   ; n
-          retag 5   ; i64
+          retag 4   ; i64
           return
         end $L5
       end $L4
@@ -4105,30 +4105,30 @@ fn 56 std_string$cut_at (string,any,string) -> any
   if $L0 void
   else
     local.get 1   ; arg 1
-    ref.cast 5   ; i64
+    ref.cast 4   ; i64
     local.set 3   ; $cast_6
     local.get 0   ; arg 0
     i64.const 0
     local.get 3   ; $cast_6
-    call.import 2   ; std_core$byte_slice
+    call.import 2   ; std_core$Intrinsic$byte_slice
     local.set 4   ; $call_7
     local.get 1   ; arg 1
-    ref.cast 5   ; i64
+    ref.cast 4   ; i64
     local.set 3   ; $cast_6
     local.get 2   ; arg 2
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 5   ; $call_9
     local.get 3   ; $cast_6
     local.get 5   ; $call_9
     i64.checked_add
     local.set 3   ; $cast_6
     local.get 0   ; arg 0
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 5   ; $call_9
     local.get 0   ; arg 0
     local.get 3   ; $cast_6
     local.get 5   ; $call_9
-    call.import 2   ; std_core$byte_slice
+    call.import 2   ; std_core$Intrinsic$byte_slice
     local.set 6   ; $call_12
     local.get 4   ; $call_7
     local.get 6   ; $call_12
@@ -4145,7 +4145,7 @@ fn 57 std_string$index_of (string,char,i64) -> any
   local width i64
   local $call_elem_17 i64
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; n
   local.get 2   ; arg 2
   local.set 4   ; i
@@ -4166,7 +4166,7 @@ fn 57 std_string$index_of (string,char,i64) -> any
       i32.eq
       if $L2 void
         local.get 4   ; i
-        retag 5   ; i64
+        retag 4   ; i64
         return
       end $L2
       local.get 4   ; i
@@ -4190,7 +4190,7 @@ fn 58 std_string$parse_int (string) -> any
   local $cast_37 i64
   local $add_checked_41 i64
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.tee 1   ; n
   i64.const 0
   i64.eq
@@ -4205,7 +4205,7 @@ fn 58 std_string$parse_int (string) -> any
   local.set 3   ; neg
   local.get 0   ; arg 0
   i64.const 0
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   i32.const 45
   i32.eq
   if $L1 void
@@ -4231,7 +4231,7 @@ fn 58 std_string$parse_int (string) -> any
     if $L4 void
       local.get 0   ; arg 0
       local.get 2   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.tee 5   ; b
       i32.const 48
       u32.lt
@@ -4337,15 +4337,15 @@ fn 61 std_string$trim_prefix (string,string) -> string
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; $call_3
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 0   ; arg 0
   local.get 2   ; $call_3
   local.get 3   ; $call_4
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   return
 end
 
@@ -4371,7 +4371,7 @@ fn 63 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 4   ; std_core$bytes
+  call.import 3   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -4390,7 +4390,7 @@ fn 63 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 9   ; u8[]
+      array.slice 6   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -4583,7 +4583,7 @@ fn 72 std_string__builder$append_char (ref,char) -> void
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 7   ; std_core$utf8_encode
-  call.import 3   ; std_core$bytes_to_string
+  call.import 4   ; std_core$Intrinsic$bytes_to_string
   local.set 3   ; $call_4
   local.get 2   ; $field_2
   local.get 3   ; $call_4
@@ -4646,7 +4646,7 @@ fn 73 std_string__builder$StringBuilder$std_core$Display$to_string (ref) -> stri
       local.get 7   ; p
       buffer_write_string
       local.get 7   ; p
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 8   ; $call_27
       local.get 3   ; off
       local.get 8   ; $call_27
@@ -4695,7 +4695,7 @@ fn 75 std_string__builder$byte_len (ref) -> i64
       local.get 4   ; __for_i_2
       array.get 31   ; string[]
       ref.cast 2   ; string
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 5   ; $call_12
       local.get 1   ; total
       local.get 5   ; $call_12

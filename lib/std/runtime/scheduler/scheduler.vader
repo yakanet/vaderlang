@@ -31,8 +31,7 @@ module "std/runtime/scheduler"
 ///
 /// @param entry  what the thread runs.
 /// @return       the thread's handle.
-@intrinsic
-export spawn_thread :: fn(entry: fn() -> void) -> i64
+export spawn_thread :: fn(entry: fn() -> void) -> i64 = Intrinsic.spawn_thread(entry)
 
 /// Park the running thread until a `wake` names it.
 ///
@@ -43,16 +42,14 @@ export spawn_thread :: fn(entry: fn() -> void) -> i64
 ///         would ever wake one. Also when C is running under the park: a
 ///         callback that C called cannot park, since another thread would run
 ///         over the C frames.
-@intrinsic
-export park :: fn() -> void
+export park :: fn() -> void = Intrinsic.park()
 
 /// Make `thread` ready, unless it has ended: a parked thread runs again in its
 /// turn. A thread that wakes itself and then parks lets the ready threads run
 /// first.
 ///
 /// @param thread  the handle of the thread to wake.
-@intrinsic
-export wake :: fn(thread: i64) -> void
+export wake :: fn(thread: i64) -> void = Intrinsic.wake(thread)
 
 /// Park the running thread for at least `nanos` nanoseconds, while the other
 /// threads run. A zero or negative `nanos` returns at once; a `wake` does not
@@ -64,8 +61,7 @@ export wake :: fn(thread: i64) -> void
 ///
 /// @param nanos  how long to sleep.
 /// @error        as `park`.
-@intrinsic
-export sleep_for :: fn(nanos: i64) -> void
+export sleep_for :: fn(nanos: i64) -> void = Intrinsic.sleep_for(nanos)
 
 /// Cancel `thread`: at its next run, it cancels the threads it launched that
 /// have not ended and waits for their ends, then runs its pending defers and
@@ -77,25 +73,21 @@ export sleep_for :: fn(nanos: i64) -> void
 /// @param thread  the handle of the thread to cancel.
 /// @error         stops the program on the main thread, which cannot be
 ///                cancelled.
-@intrinsic
-export cancel_thread :: fn(thread: i64) -> void
+export cancel_thread :: fn(thread: i64) -> void = Intrinsic.cancel_thread(thread)
 
 /// The handle of the running thread. The main thread has one from the start.
-@intrinsic
-export current_thread :: fn() -> i64
+export current_thread :: fn() -> i64 = Intrinsic.current_thread()
 
 /// Whether the running thread was cancelled: it is unwinding, or it was
 /// cancelled before it started and runs its entry.
-@intrinsic
-export is_cancelled :: fn() -> bool
+export is_cancelled :: fn() -> bool = Intrinsic.is_cancelled()
 
 /// Whether `thread` is on its way out, so that `main` returning waits for it
 /// without naming it: it was cancelled, or the thread that launched it is
 /// leaving and a defer of that thread's cancellation did not launch it.
 ///
 /// @param thread  the handle of a thread; one that has ended is not leaving.
-@intrinsic
-export is_leaving :: fn(thread: i64) -> bool
+export is_leaving :: fn(thread: i64) -> bool = Intrinsic.is_leaving(thread)
 
 /// Make the running thread's next park end once descriptor `fd` has input to
 /// read, or has reached its end. The watch lasts that one park, which a `wake`
@@ -105,16 +97,14 @@ export is_leaving :: fn(thread: i64) -> bool
 /// @param fd  a descriptor of the process: a pipe, a terminal, a socket. On
 ///            Windows, 0 for stdin, else the read end of a pipe
 ///            `create_watched_pipe` made, as its handle.
-@intrinsic
-export watch_readable :: fn(fd: i64) -> void
+export watch_readable :: fn(fd: i64) -> void = Intrinsic.watch_readable(fd)
 
 /// Make the running thread's next park end once the child process `child` has
 /// ended, as `watch_readable` does for a descriptor.
 ///
 /// @param child  the pid of a child of this process; on Windows, its process
 ///               handle.
-@intrinsic
-export watch_exit :: fn(child: i64) -> void
+export watch_exit :: fn(child: i64) -> void = Intrinsic.watch_exit(child)
 
 // ---- gates ----------------------------------------------------------------
 

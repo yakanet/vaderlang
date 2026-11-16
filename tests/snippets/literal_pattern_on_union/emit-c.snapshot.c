@@ -161,11 +161,11 @@ const vader_type_info_t vader_type_info_table[21] = {
     },
     [14] = { .slot_size = 1 },
     [15] = { .slot_size = 4 },
-    [16] = { .slot_size = 4 },
-    [17] = {
+    [16] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 14u,
     },
+    [17] = { .slot_size = 4 },
     [19] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_string__builder$StringBuilder_t), .slot_size = 8,
@@ -183,20 +183,20 @@ const size_t vader_type_info_count = 21;
 #include <unistd.h>
 #include "vader.h"
 
-static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static uint8_t vader_host_std_core$byte_at(vader_string_t a0, int64_t a1) {
+static uint8_t vader_host_std_core$Intrinsic$byte_at(vader_string_t a0, int64_t a1) {
     return vader_string_byte_at(a0, a1);
 }
 
-static vader_string_t vader_host_std_core$bytes_to_string(void* a0) {
-    return vader_string_as_string((vader_array_t*) a0);
+static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+    return (void*) vader_string_bytes_view(a0, 16u, 14u);
 }
 
-static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 17u, 14u);
+static vader_string_t vader_host_std_core$Intrinsic$bytes_to_string(void* a0) {
+    return vader_string_as_string((vader_array_t*) a0);
 }
 
 static int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -447,14 +447,14 @@ static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_strin
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l5 = vader_host_std_core$byte_len(l0);
-    l6 = vader_host_std_core$byte_len(l1);
+    l5 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l6 = vader_host_std_core$Intrinsic$byte_len(l1);
     l6 = (l5 + l6);
-    l7 = vader_host_std_core$byte_len(l2);
+    l7 = vader_host_std_core$Intrinsic$byte_len(l2);
     l7 = (l6 + l7);
-    l8 = vader_host_std_core$byte_len(l3);
+    l8 = vader_host_std_core$Intrinsic$byte_len(l3);
     l8 = (l7 + l8);
-    l9 = vader_host_std_core$byte_len(l4);
+    l9 = vader_host_std_core$Intrinsic$byte_len(l4);
     l9 = (l8 + l9);
     l10 = (void*) vader_buffer_new((size_t) l9);
     vader_buffer_write_string((vader_buffer_t*) l10, (size_t) INT64_C(0), l0);
@@ -476,10 +476,10 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = vader_host_std_core$byte_len(l0);
-    l4 = vader_host_std_core$byte_len(l1);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l4 = vader_host_std_core$Intrinsic$byte_len(l1);
     l4 = (l3 + l4);
-    l5 = vader_host_std_core$byte_len(l2);
+    l5 = vader_host_std_core$Intrinsic$byte_len(l2);
     l5 = (l4 + l5);
     l6 = (void*) vader_buffer_new((size_t) l5);
     vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
@@ -499,18 +499,18 @@ static vader_string_t concat_7(vader_string_t l0, vader_string_t l1, vader_strin
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 8u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l7 = vader_host_std_core$byte_len(l0);
-    l8 = vader_host_std_core$byte_len(l1);
+    l7 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l8 = vader_host_std_core$Intrinsic$byte_len(l1);
     l8 = (l7 + l8);
-    l9 = vader_host_std_core$byte_len(l2);
+    l9 = vader_host_std_core$Intrinsic$byte_len(l2);
     l9 = (l8 + l9);
-    l10 = vader_host_std_core$byte_len(l3);
+    l10 = vader_host_std_core$Intrinsic$byte_len(l3);
     l10 = (l9 + l10);
-    l11 = vader_host_std_core$byte_len(l4);
+    l11 = vader_host_std_core$Intrinsic$byte_len(l4);
     l11 = (l10 + l11);
-    l12 = vader_host_std_core$byte_len(l5);
+    l12 = vader_host_std_core$Intrinsic$byte_len(l5);
     l12 = (l11 + l12);
-    l13 = vader_host_std_core$byte_len(l6);
+    l13 = vader_host_std_core$Intrinsic$byte_len(l6);
     l13 = (l12 + l13);
     l14 = (void*) vader_buffer_new((size_t) l13);
     vader_buffer_write_string((vader_buffer_t*) l14, (size_t) INT64_C(0), l0);
@@ -534,8 +534,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core$byte_len(l0);
-    l3 = vader_host_std_core$byte_len(l1);
+    l2 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l1);
     l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -560,7 +560,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
     int64_t l3;
     int64_t t0;
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core$byte_len(l2);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
@@ -591,13 +591,13 @@ static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     if (l3) {
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
     }
-    l4 = vader_host_std_core$byte_len(l0);
+    l4 = vader_host_std_core$Intrinsic$byte_len(l0);
     t0 = vader_chk_add(i64, l2, INT64_C(1));
     if ((t0 >= l4)) {
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
     }
     l5 = vader_chk_add(i64, l2, INT64_C(1));
-    l6 = vader_host_std_core$byte_at(l0, l5);
+    l6 = vader_host_std_core$Intrinsic$byte_at(l0, l5);
     t1 = std_core$is_utf8_continuation(l6);
     if (!(t1)) {
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
@@ -653,7 +653,7 @@ static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
     }
     l5 = vader_chk_add(i64, l2, INT64_C(2));
-    l10 = vader_host_std_core$byte_at(l0, l5);
+    l10 = vader_host_std_core$Intrinsic$byte_at(l0, l5);
     t1 = std_core$is_utf8_continuation(l10);
     if (!(t1)) {
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
@@ -674,7 +674,7 @@ static void std_core$decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
     }
     l4 = vader_chk_add(i64, l2, INT64_C(3));
-    l11 = vader_host_std_core$byte_at(l0, l4);
+    l11 = vader_host_std_core$Intrinsic$byte_at(l0, l4);
     t1 = std_core$is_utf8_continuation(l11);
     if (!(t1)) {
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
@@ -706,12 +706,12 @@ static void* std_core$utf8_encode(uint32_t l0) {
     t0 = ((int32_t) (uint32_t) l0);
     l1 = (uint32_t) (int32_t) t0;
     if ((l1 < INT32_C(128))) {
-        vader_array_t* _a0_arr = vader_array_new(17u, 1u, 1u, 14u);
+        vader_array_t* _a0_arr = vader_array_new(16u, 1u, 1u, 14u);
         ((uint8_t*) _a0_arr->buf->slots)[vader_array_offset(_a0_arr) + 0u] = (uint8_t) (((int32_t) (uint32_t) l1) & INT32_C(255));
         t1 = (void*) _a0_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a1_arr = vader_array_new(17u, 0u, 1u, 14u);
+    vader_array_t* _a1_arr = vader_array_new(16u, 0u, 1u, 14u);
     l2 = (void*) _a1_arr;
     if ((l1 < INT32_C(2048))) {
         l3 = (l1 >> INT32_C(6));
@@ -784,7 +784,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
-    l2 = vader_host_std_core$bytes(l1);
+    l2 = vader_host_std_core$Intrinsic$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
         l4 = vader_array_length(((vader_array_t*) l2));
@@ -871,9 +871,9 @@ static vader_string_t std_string$to_lower(vader_string_t l0) {
     l2 = l0;
     l3 = INT64_C(0);
     for (;;) {
-        l4 = vader_host_std_core$byte_len(l2);
+        l4 = vader_host_std_core$Intrinsic$byte_len(l2);
         if ((l3 < l4)) {
-            l5 = vader_host_std_core$byte_at(l2, l3);
+            l5 = vader_host_std_core$Intrinsic$byte_at(l2, l3);
             if ((l5 < INT32_C(128))) {
                 l3 = vader_chk_add(i64, l3, INT64_C(1));
                 l6 = std_string$to_lower_cp((uint32_t) (int32_t) ((int32_t) (uint32_t) ((uint32_t) (uint8_t) l5)));
@@ -982,7 +982,7 @@ static void std_string__builder$append_char(void* l0, uint32_t l1) {
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_std_string__builder$StringBuilder_t*) l0)->f_parts;
     t0 = std_core$utf8_encode(l1);
-    l3 = vader_host_std_core$bytes_to_string(t0);
+    l3 = vader_host_std_core$Intrinsic$bytes_to_string(t0);
     vader_array_push_scalar((vader_array_t*) l2, vader_box_string(1u, l3));
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -1026,7 +1026,7 @@ static vader_string_t std_string__builder$StringBuilder$std_core$Display$to_stri
         t0 = vader_array_box_slots(_a1_slotarr->buf)[vader_array_offset(_a1_slotarr) + (size_t) l6];
         l7 = t0.payload.s;
         vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
-        l8 = vader_host_std_core$byte_len(l7);
+        l8 = vader_host_std_core$Intrinsic$byte_len(l7);
         l3 = vader_chk_add(i64, l3, l8);
         l6 = (l6 + INT64_C(1));
     }
@@ -1049,7 +1049,7 @@ static int64_t std_string__builder$byte_len(void* l0) {
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = vader_array_box_slots(_a0_slotarr->buf)[vader_array_offset(_a0_slotarr) + (size_t) l4];
         t1 = t0.payload.s;
-        l5 = vader_host_std_core$byte_len(t1);
+        l5 = vader_host_std_core$Intrinsic$byte_len(t1);
         l1 = vader_chk_add(i64, l1, l5);
         l4 = (l4 + INT64_C(1));
     }

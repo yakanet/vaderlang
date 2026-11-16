@@ -22,21 +22,21 @@ module "vader/vm"
 ///
 /// @param name  the library's bare name, or `""` for the current process.
 /// @return      an opaque handle, or `0` when the library is not found.
-@intrinsic export ffi_open :: fn(name: string) -> i64
+export ffi_open :: fn(name: string) -> i64 = Intrinsic.ffi_open(name)
 
 /// Open a shared library by its PATH, as the platform's loader takes it: the
 /// adapters `vader run` builds for the `@extern`s no trampoline covers.
 ///
 /// @param path  the library file.
 /// @return      an opaque handle, or `0` when it cannot be opened.
-@intrinsic export ffi_open_path :: fn(path: string) -> i64
+export ffi_open_path :: fn(path: string) -> i64 = Intrinsic.ffi_open_path(path)
 
 /// Resolve `symbol` in `lib`.
 ///
 /// @param lib     a handle from `ffi_open`.
 /// @param symbol  the exact linker name.
 /// @return        the function's address, or `0` when absent.
-@intrinsic export ffi_symbol :: fn(lib: i64, symbol: string) -> i64
+export ffi_symbol :: fn(lib: i64, symbol: string) -> i64 = Intrinsic.ffi_symbol(lib, symbol)
 
 /// One foreign call, described by DATA rather than by its shape.
 ///
@@ -60,7 +60,8 @@ module "vader/vm"
 ///                string otherwise: an atom id cannot travel through the frame,
 ///                since nothing on the Vader side can turn one back into a
 ///                `string`.
-@intrinsic export ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string
+export ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string =
+    Intrinsic.ffi_call(fn_ptr, desc, frame, nfixed)
 
 /// One call to a generated ADAPTER, a C function of the frame alone that reads
 /// each argument from its slot and writes the result back
@@ -74,7 +75,8 @@ module "vader/vm"
 /// @param frame   the slots plus their data; receives the result.
 /// @return        the interned string for a `string` result, the empty string
 ///                otherwise.
-@intrinsic export ffi_call_frame :: fn(fn_ptr: i64, desc: u8[], frame: u8[]) -> string
+export ffi_call_frame :: fn(fn_ptr: i64, desc: u8[], frame: u8[]) -> string =
+    Intrinsic.ffi_call_frame(fn_ptr, desc, frame)
 
 // ---- tests ----------------------------------------------------------------
 

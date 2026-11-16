@@ -146,7 +146,7 @@ export dispatch_import :: fn(
     if is_comptime {
         reason :: comptime_refusal(id)
         if reason != null {
-            return comptime_refusal_trap(info.mangled_name, reason)
+            return comptime_refusal_trap(bc.display_host(id, info.mangled_name), reason)
         }
     }
     match id {
@@ -1165,10 +1165,10 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
 // drift.
 COMPTIME_REFUSAL_MARKER :: "is refused at comptime"
 
-// The Trap for a host reached during `@comptime` evaluation that
-// `comptime_refusal` refuses, for `reason`.
-comptime_refusal_trap :: fn(mangled: string, reason: string) -> HostCallResult =
-    Trap { .message = "host `${mangled}` ${COMPTIME_REFUSAL_MARKER}, since ${reason}" }
+// The Trap for the host `host`, reached during `@comptime` evaluation, that
+// `comptime_refusal` refuses for `reason`.
+comptime_refusal_trap :: fn(host: string, reason: string) -> HostCallResult =
+    Trap { .message = "host `${host}` ${COMPTIME_REFUSAL_MARKER}, since ${reason}" }
 
 /// Report whether a Trap message came from the comptime host gate.
 /// Used by `pipeline/comptime_vm/resolve.vader` to pick C4016 over C4002.

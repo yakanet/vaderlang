@@ -80,6 +80,8 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.write_bool  // std_core$write_bool

@@ -42,7 +42,10 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.ascii_prefix  // std_core$ascii_prefix
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
     fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.is_ascii  // std_core$is_ascii
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.len  // std_core$len
     struct std.core.Buffer  // std_core$Buffer

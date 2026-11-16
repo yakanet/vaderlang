@@ -2,14 +2,14 @@ module _main
 type 0 scalar null
 type 1 scalar i32
 type 2 scalar string
-type 3 struct std_core$Buffer {  }
-type 4 scalar i64
+type 3 scalar i64
+type 4 struct std_core$Buffer {  }
 type 5 scalar u64
 type 6 array 7
 type 7 scalar u8
-type 8 union 4,0
-type 9 scalar bool
-type 10 scalar void
+type 8 union 3,0
+type 9 scalar void
+type 10 scalar bool
 type 11 union 0,2
 type 12 union 2,6
 type 13 union 14,0
@@ -17,20 +17,20 @@ type 14 struct std_io$IOError { msg:2,kind:7,code:1 }
 type 15 union 14,6
 type 16 struct __defer_env_std_fs_1 { cap_0:18 }
 type 17 union 18,14
-type 18 struct std_fs$File { handle:20,closed:9 }
-type 19 struct std_fs$OpenOptions { read:9,write:9,append:9,create:9,truncate:9,create_new:9 }
+type 18 struct std_fs$File { handle:20,closed:10 }
+type 19 struct std_fs$OpenOptions { read:10,write:10,append:10,create:10,truncate:10,create_new:10 }
 type 20 union 1,21
 type 21 scalar pointer
-type 22 union 4,14
+type 22 union 3,14
 type 23 union 1,21,14
 type 24 struct images_ppm$Ppm { width:28,height:28,maxval:28,pixels:6 }
 type 25 union 26,6
 type 26 struct images_ppm$PpmError { msg:2 }
 type 27 union 24,26
 type 28 scalar u32
-type 29 struct images_ppm$ScanInt { value:28,pos:4,found:9 }
+type 29 struct images_ppm$ScanInt { value:28,pos:3,found:10 }
 type 30 ref std_core$Error
-type 31 fn () -> 10
+type 31 fn () -> 9
 type 32 array 14
 string 0 "/vader_ppm_roundtrip.ppm"
 string 1 "encode failed"
@@ -100,21 +100,21 @@ string 64 "path contains a NUL byte"
 string 65 "file is closed"
 data 0 structs 14 3 1 strref 64 u8 0a i32 00000000
 data 1 structs 14 3 1 strref 65 u8 0c i32 00000000
-import 0 byte_len std_core$byte_len host=byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at host=byte_at result_type=7 param_types=2,4 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$byte_slice host=byte_slice result_type=2 param_types=2,4,4 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 bytes std_core$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 current_os std_target$current_os host=current_os result_type=7 () -> u8
-import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=3 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=7 param_types=2,3 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=2 param_types=2,3,3 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 current_os std_core$Intrinsic$current_os host=current_os result_type=7 () -> u8
+import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=3 param_types=1,6,3 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=1 () -> i32
-import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=10 () -> void
-import 8 extern :read system_posix$sys_read headers=<unistd.h> result_type=4 param_types=1,6,4 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
+import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
+import 8 extern :read system_posix$sys_read headers=<unistd.h> result_type=3 param_types=1,6,3 param_c_out=0,1,0 param_by_address= (i32,ref,i64) -> i64
 import 9 extern :close system_posix$sys_close headers=<unistd.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
 import 10 extern :open system_posix$sys_open variadic=2 headers=<dirent.h>,<fcntl.h>,<stdlib.h>,<sys/stat.h> result_type=1 param_types=2,1,1 param_c_out= param_by_address= (string,i32,i32) -> i32
 import 11 extern :vader_fd_kind system_posix$sys_fd_kind headers=vader.h result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
-import 12 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=4 param_types=1 param_c_out= param_by_address= (i32) -> i64
+import 12 extern :vader_fd_size system_posix$sys_fd_size headers=vader.h result_type=3 param_types=1 param_c_out= param_by_address= (i32) -> i64
 import 13 extern :getenv system_libc$sys_getenv headers=<stdio.h>,<stdlib.h> result_type=11 param_types=2 param_c_out= param_by_address= (string) -> any
-impl 3 std_core$ByteAccess
+impl 4 std_core$ByteAccess
 impl 18 std_io$Writer
 impl 26 std_core$Error
 impl 24 std_core$Display
@@ -311,10 +311,10 @@ fn 1 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -343,31 +343,31 @@ fn 2 concat_5 (string,string,string,string,string) -> string
   local $call_16 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 5   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_7
   local.get 5   ; c0
   local.get 6   ; $call_7
   i64.add
   local.set 6   ; $call_7
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_10
   local.get 6   ; $call_7
   local.get 7   ; $call_10
   i64.add
   local.set 7   ; $call_10
   local.get 3   ; arg 3
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 8   ; $call_13
   local.get 7   ; $call_10
   local.get 8   ; $call_13
   i64.add
   local.set 8   ; $call_13
   local.get 4   ; arg 4
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 9   ; $call_16
   local.get 8   ; $call_13
   local.get 9   ; $call_16
@@ -414,7 +414,7 @@ fn 4 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -637,7 +637,7 @@ fn 7 std_core$index_of__u8 (ref,u8) -> any
       i32.eq
       if $L2 void
         local.get 2   ; i
-        retag 4   ; i64
+        retag 3   ; i64
         return
       end $L2
       local.get 2   ; i
@@ -666,7 +666,7 @@ fn 8 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$bytes
+  call.import 3   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -914,7 +914,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
       return
     end $L2
     local.get 3   ; __fallback_0
-    ref.cast 4   ; i64
+    ref.cast 3   ; i64
     local.tee 8   ; $add_checked_27
     local.get 6   ; length
     i64.le
@@ -960,7 +960,7 @@ fn 16 std_fs$read_file_bytes (string,i64) -> any
         return
       end $L6
       local.get 3   ; __fallback_0
-      ref.cast 4   ; i64
+      ref.cast 3   ; i64
       local.tee 6   ; length
       i64.const 0
       i64.eq
@@ -1015,7 +1015,7 @@ end
 
 fn 19 std_fs$close (ref) -> any
   local.field 0 18 1   ; arg 0 std_fs$File.closed
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -1137,13 +1137,13 @@ fn 23 std_fs$read_into (any,ref) -> any
         return
       end $L2
       local.get 8   ; __fallback_0
-      ref.cast 4   ; i64
+      ref.cast 3   ; i64
       local.tee 4   ; n
       i64.const 0
       i64.eq
       if $L3 void
         local.get 2   ; got
-        retag 4   ; i64
+        retag 3   ; i64
         return
       end $L3
       local.get 2   ; got
@@ -1154,7 +1154,7 @@ fn 23 std_fs$read_into (any,ref) -> any
     end $L1
   end $L0
   local.get 2   ; got
-  retag 4   ; i64
+  retag 3   ; i64
   return
 end
 
@@ -1184,7 +1184,7 @@ fn 24 std_fs$system_read (any,ref,i64) -> any
     end $L1
   end $L0
   local.get 3   ; n
-  retag 4   ; i64
+  retag 3   ; i64
   return
 end
 
@@ -1214,17 +1214,17 @@ fn 26 std_fs$refusal_of (string,ref) -> any
     return
   end $L0
   local.field 1 19 1   ; arg 1 std_fs$OpenOptions.write
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L1 void
     bool.const true
     local.set 2   ; writes
   else
     local.field 1 19 2   ; arg 1 std_fs$OpenOptions.append
-    ref.cast 9   ; bool
+    ref.cast 10   ; bool
     local.set 2   ; writes
   end $L1
   local.field 1 19 0   ; arg 1 std_fs$OpenOptions.read
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L2 void
   else
     local.get 2   ; writes
@@ -1237,11 +1237,11 @@ fn 26 std_fs$refusal_of (string,ref) -> any
   end $L2
   block $L4 void
     local.field 1 19 3   ; arg 1 std_fs$OpenOptions.create
-    ref.cast 9   ; bool
+    ref.cast 10   ; bool
     if $L5 void
     else
       local.field 1 19 5   ; arg 1 std_fs$OpenOptions.create_new
-      ref.cast 9   ; bool
+      ref.cast 10   ; bool
       if $L6 void
       else
         br $L4
@@ -1256,10 +1256,10 @@ fn 26 std_fs$refusal_of (string,ref) -> any
     end $L7
   end $L4
   local.field 1 19 4   ; arg 1 std_fs$OpenOptions.truncate
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L8 void
     local.field 1 19 1   ; arg 1 std_fs$OpenOptions.write
-    ref.cast 9   ; bool
+    ref.cast 10   ; bool
     if $L9 void
     else
       string.const 18   ; "truncate without write"
@@ -1268,10 +1268,10 @@ fn 26 std_fs$refusal_of (string,ref) -> any
     end $L9
   end $L8
   local.field 1 19 4   ; arg 1 std_fs$OpenOptions.truncate
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L10 void
     local.field 1 19 2   ; arg 1 std_fs$OpenOptions.append
-    ref.cast 9   ; bool
+    ref.cast 10   ; bool
     if $L11 void
       string.const 19   ; "truncate with append"
       call 30   ; std_fs$invalid_options
@@ -1339,7 +1339,7 @@ end
 
 fn 29 std_fs$has_nul (string) -> bool
   local.get 0   ; arg 0
-  call.import 3   ; std_core$bytes
+  call.import 3   ; std_core$Intrinsic$bytes
   i32.const 0
   call 7   ; std_core$index_of__u8
   type_check 0   ; null
@@ -1379,7 +1379,7 @@ fn 31 std_fs$open_flags (ref) -> i32
   i32.bitor
   local.set 1   ; if_res
   local.field 0 19 2   ; arg 0 std_fs$OpenOptions.append
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L1 void
     i32.const 1
     i32.const 2
@@ -1397,7 +1397,7 @@ fn 31 std_fs$open_flags (ref) -> i32
     local.set 1   ; if_res
   end $L1
   local.field 0 19 3   ; arg 0 std_fs$OpenOptions.create
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L3 void
     i32.const 1
     i32.const 2
@@ -1415,7 +1415,7 @@ fn 31 std_fs$open_flags (ref) -> i32
     local.set 1   ; if_res
   end $L3
   local.field 0 19 4   ; arg 0 std_fs$OpenOptions.truncate
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L5 void
     i32.const 1
     i32.const 2
@@ -1433,7 +1433,7 @@ fn 31 std_fs$open_flags (ref) -> i32
     local.set 1   ; if_res
   end $L5
   local.field 0 19 5   ; arg 0 std_fs$OpenOptions.create_new
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L7 void
     i32.const 1
     i32.const 2
@@ -1472,17 +1472,17 @@ end
 fn 32 std_fs$access_mode (ref) -> i32
   local writes bool
   local.field 0 19 1   ; arg 0 std_fs$OpenOptions.write
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L0 void
     bool.const true
     local.set 1   ; writes
   else
     local.field 0 19 2   ; arg 0 std_fs$OpenOptions.append
-    ref.cast 9   ; bool
+    ref.cast 10   ; bool
     local.set 1   ; writes
   end $L0
   local.field 0 19 0   ; arg 0 std_fs$OpenOptions.read
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L1 void
     local.get 1   ; writes
     if $L2 void
@@ -1516,7 +1516,7 @@ fn 34 std_fs$File$std_io$Writer$write (ref,any) -> any
   local __fallback_0 any
   local n any
   local.field 0 18 1   ; arg 0 std_fs$File.closed
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L0 void
     data.const 1 32   ; pool[1] std_io$IOError[]
     i64.const 0
@@ -1559,7 +1559,7 @@ fn 34 std_fs$File$std_io$Writer$write (ref,any) -> any
         return
       end $L3
       local.get 9   ; __fallback_0
-      ref.cast 4   ; i64
+      ref.cast 3   ; i64
       local.tee 5   ; n
       i64.const 0
       i64.eq
@@ -1613,7 +1613,7 @@ fn 35 std_fs$system_write (any,ref) -> any
     end $L1
   end $L0
   local.get 4   ; n
-  retag 4   ; i64
+  retag 3   ; i64
   return
 end
 
@@ -1752,7 +1752,7 @@ fn 36 images_ppm$encode (ref) -> any
     local.get 9   ; __off_5
     call 3   ; std_core$finish_buffer
     local.tee 7   ; header
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 9   ; __off_5
     local.field 0 24 3   ; arg 0 images_ppm$Ppm.pixels
     array.len
@@ -1763,7 +1763,7 @@ fn 36 images_ppm$encode (ref) -> any
     array.reserve 6   ; u8[]
     local.set 8   ; __buf_4
     local.get 7   ; header
-    call.import 3   ; std_core$bytes
+    call.import 3   ; std_core$Intrinsic$bytes
     local.set 11   ; $call_82
     local.get 8   ; __buf_4
     local.get 11   ; $call_82
@@ -1870,7 +1870,7 @@ fn 37 images_ppm$decode (ref) -> any
   call 40   ; images_ppm$scan_uint
   local.set 3   ; w
   local.field 3 29 2   ; w images_ppm$ScanInt.found
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L3 void
   else
     string.const 31   ; "ppm: missing or invalid width"
@@ -1878,7 +1878,7 @@ fn 37 images_ppm$decode (ref) -> any
     return
   end $L3
   local.field 3 29 1   ; w images_ppm$ScanInt.pos
-  ref.cast 4   ; i64
+  ref.cast 3   ; i64
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
@@ -1889,7 +1889,7 @@ fn 37 images_ppm$decode (ref) -> any
   call 40   ; images_ppm$scan_uint
   local.set 4   ; h
   local.field 4 29 2   ; h images_ppm$ScanInt.found
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L4 void
   else
     string.const 32   ; "ppm: missing or invalid height"
@@ -1897,7 +1897,7 @@ fn 37 images_ppm$decode (ref) -> any
     return
   end $L4
   local.field 4 29 1   ; h images_ppm$ScanInt.pos
-  ref.cast 4   ; i64
+  ref.cast 3   ; i64
   local.set 2   ; p0
   local.get 0   ; arg 0
   local.get 2   ; p0
@@ -1908,7 +1908,7 @@ fn 37 images_ppm$decode (ref) -> any
   call 40   ; images_ppm$scan_uint
   local.set 5   ; mv
   local.field 5 29 2   ; mv images_ppm$ScanInt.found
-  ref.cast 9   ; bool
+  ref.cast 10   ; bool
   if $L5 void
   else
     string.const 33   ; "ppm: missing or invalid maxval"
@@ -1957,7 +1957,7 @@ fn 37 images_ppm$decode (ref) -> any
     return
   end $L7
   local.field 5 29 1   ; mv images_ppm$ScanInt.pos
-  ref.cast 4   ; i64
+  ref.cast 3   ; i64
   local.set 2   ; p0
   local.get 0   ; arg 0
   array.len
@@ -1970,7 +1970,7 @@ fn 37 images_ppm$decode (ref) -> any
     local.set 1   ; or_res
   else
     local.field 5 29 1   ; mv images_ppm$ScanInt.pos
-    ref.cast 4   ; i64
+    ref.cast 3   ; i64
     local.set 2   ; p0
     local.get 0   ; arg 0
     local.get 2   ; p0
@@ -1987,7 +1987,7 @@ fn 37 images_ppm$decode (ref) -> any
     return
   end $L9
   local.field 5 29 1   ; mv images_ppm$ScanInt.pos
-  ref.cast 4   ; i64
+  ref.cast 3   ; i64
   i64.const 1
   i64.checked_add
   local.set 2   ; p0
@@ -2343,7 +2343,7 @@ fn 44 images_ppm$Ppm$std_core$Display$to_string (ref) -> string
   array.len
   local.set 5   ; __p_3
   local.get 1   ; depth
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 6   ; $call_19
   i64.const 104
   local.get 6   ; $call_19
@@ -2866,7 +2866,7 @@ fn 51 std_io$bytes_of (any) -> ref
   if $L0 void
     local.get 0   ; arg 0
     ref.cast 2   ; string
-    call.import 3   ; std_core$bytes
+    call.import 3   ; std_core$Intrinsic$bytes
     return
   end $L0
   local.get 0   ; arg 0
@@ -2884,7 +2884,7 @@ fn 52 std_path$to_path (string) -> string
     local.get 0   ; arg 0
     return
   end $L0
-  call.import 4   ; std_target$current_os
+  call.import 4   ; std_core$Intrinsic$current_os
   local.set 1   ; $call_4
   local.get 0   ; arg 0
   local.get 1   ; $call_4
@@ -2902,7 +2902,7 @@ fn 54 std_path$without_trailing_separators (string,u8) -> string
   local $sub_checked_7 i64
   local $sub_checked_16 i64
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.tee 2   ; n
   i64.const 0
   i64.eq
@@ -2916,7 +2916,7 @@ fn 54 std_path$without_trailing_separators (string,u8) -> string
   local.set 3   ; $sub_checked_7
   local.get 0   ; arg 0
   local.get 3   ; $sub_checked_7
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   i32.const 47
   i32.ne
   if $L1 void
@@ -2939,7 +2939,7 @@ fn 54 std_path$without_trailing_separators (string,u8) -> string
         local.set 4   ; $sub_checked_16
         local.get 0   ; arg 0
         local.get 4   ; $sub_checked_16
-        call.import 1   ; std_core$byte_at
+        call.import 1   ; std_core$Intrinsic$byte_at
         i32.const 47
         i32.eq
         if $L5 void
@@ -2957,7 +2957,7 @@ fn 54 std_path$without_trailing_separators (string,u8) -> string
   local.get 0   ; arg 0
   i64.const 0
   local.get 2   ; n
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   return
 end
 
@@ -2969,7 +2969,7 @@ fn 55 std_path$root_length (string,u8) -> i64
   call 56   ; std_path$prefix_length
   local.set 2   ; prefix
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; prefix
   local.get 3   ; $call_4
@@ -2977,7 +2977,7 @@ fn 55 std_path$root_length (string,u8) -> i64
   if $L0 void
     local.get 0   ; arg 0
     local.get 2   ; prefix
-    call.import 1   ; std_core$byte_at
+    call.import 1   ; std_core$Intrinsic$byte_at
     i32.const 47
     i32.eq
     if $L1 void
@@ -3004,19 +3004,19 @@ fn 56 std_path$prefix_length (string,u8) -> i64
     return.lit i64.const 0
   end $L0
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.tee 2   ; n
   i64.const 2
   i64.ge
   if $L1 void
     local.get 0   ; arg 0
     i64.const 0
-    call.import 1   ; std_core$byte_at
+    call.import 1   ; std_core$Intrinsic$byte_at
     call 57   ; std_path$is_ascii_letter
     if $L2 void
       local.get 0   ; arg 0
       i64.const 1
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       i32.const 58
       i32.eq
       if $L3 void
@@ -3032,7 +3032,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
   end $L4
   local.get 0   ; arg 0
   i64.const 0
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   i32.const 47
   i32.ne
   if $L5 void
@@ -3040,7 +3040,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
   end $L5
   local.get 0   ; arg 0
   i64.const 1
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   i32.const 47
   i32.ne
   if $L6 void
@@ -3048,7 +3048,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
   end $L6
   local.get 0   ; arg 0
   i64.const 2
-  call.import 1   ; std_core$byte_at
+  call.import 1   ; std_core$Intrinsic$byte_at
   i32.const 47
   i32.eq
   if $L7 void
@@ -3064,7 +3064,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
     return
   end $L8
   local.get 3   ; __fallback_0
-  ref.cast 4   ; i64
+  ref.cast 3   ; i64
   i64.const 1
   i64.checked_add
   local.set 4   ; $add_checked_39
@@ -3078,7 +3078,7 @@ fn 56 std_path$prefix_length (string,u8) -> i64
     return
   end $L9
   local.get 3   ; __fallback_0
-  ref.cast 4   ; i64
+  ref.cast 3   ; i64
   return
 end
 
@@ -3122,7 +3122,7 @@ fn 58 std_path$next_separator (string,i64) -> any
   local.get 1   ; arg 1
   local.set 2   ; i
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; __for_hi_0
   loop $L0 void
     local.get 2   ; i
@@ -3131,12 +3131,12 @@ fn 58 std_path$next_separator (string,i64) -> any
     if $L1 void
       local.get 0   ; arg 0
       local.get 2   ; i
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       i32.const 47
       i32.eq
       if $L2 void
         local.get 2   ; i
-        retag 4   ; i64
+        retag 3   ; i64
         return
       end $L2
       local.get 2   ; i
@@ -3153,10 +3153,10 @@ fn 59 std_string$ends_with (string,string) -> bool
   local $call_2 i64
   local $call_3 i64
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; $call_2
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 2   ; $call_2
   local.get 3   ; $call_3
@@ -3164,10 +3164,10 @@ fn 59 std_string$ends_with (string,string) -> bool
   if $L0 void
   else
     local.get 0   ; arg 0
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 2   ; $call_2
     local.get 1   ; arg 1
-    call.import 0   ; std_core$byte_len
+    call.import 0   ; std_core$Intrinsic$byte_len
     local.set 3   ; $call_3
     local.get 2   ; $call_2
     local.get 3   ; $call_3
@@ -3189,10 +3189,10 @@ fn 60 std_string$matches_at (string,i64,string) -> bool
   local $call_15 u8
   local $call_16 u8
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; m
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; $call_5
   local.get 1   ; arg 1
   local.get 4   ; $call_5
@@ -3201,7 +3201,7 @@ fn 60 std_string$matches_at (string,i64,string) -> bool
     return.lit bool.const false
   end $L0
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.get 1   ; arg 1
   i64.checked_sub
   local.set 4   ; $call_5
@@ -3224,11 +3224,11 @@ fn 60 std_string$matches_at (string,i64,string) -> bool
       local.set 5   ; $add_checked_14
       local.get 0   ; arg 0
       local.get 5   ; $add_checked_14
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.set 6   ; $call_15
       local.get 2   ; arg 2
       local.get 4   ; $call_5
-      call.import 1   ; std_core$byte_at
+      call.import 1   ; std_core$Intrinsic$byte_at
       local.set 7   ; $call_16
       local.get 6   ; $call_15
       local.get 7   ; $call_16

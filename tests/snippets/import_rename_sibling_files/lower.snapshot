@@ -38,6 +38,10 @@
   std/core
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.byte_slice  // std_core$byte_slice
+    fn std.core.bytes  // std_core$bytes
     struct std.core.Buffer  // std_core$Buffer
   std/string
     fn std.string.is_white_byte  // std_string$is_white_byte

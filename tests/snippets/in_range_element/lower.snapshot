@@ -223,6 +223,9 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32[].contains  // std_core$$array$Contains$contains__i32
     fn std.core.i64.step  // std_core$i64$Step$step

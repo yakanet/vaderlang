@@ -12,16 +12,16 @@ type 9 struct snippet$Holder { l:2 }
 type 10 struct std_core$Buffer {  }
 type 11 scalar i64
 type 12 scalar u8
-type 13 scalar bool
-type 14 array 12
-type 15 scalar void
-type 16 scalar u64
-type 17 struct std_collections$Map__string__Any { ekeys:21,evals:22,index:23,mask:11,grow_at:11,size:11,tombs:11 }
-type 18 union 19,0
-type 19 ref _
+type 13 array 12
+type 14 scalar void
+type 15 scalar u64
+type 16 struct std_collections$Map__string__Any { ekeys:21,evals:22,index:23,mask:11,grow_at:11,size:11,tombs:11 }
+type 17 union 18,0
+type 18 ref _
+type 19 scalar bool
 type 20 struct std_collections$Map__string__snippet_Label { ekeys:21,evals:22,index:23,mask:11,grow_at:11,size:11,tombs:11 }
 type 21 array 3
-type 22 array 19
+type 22 array 18
 type 23 array 8
 type 24 array 2
 string 0 "C"
@@ -46,21 +46,21 @@ string 18 "bound ["
 string 19 "return ["
 string 20 "lambda ["
 string 21 "\n"
-import 0 byte_len std_core$byte_len host=byte_len result_type=11 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at host=byte_at result_type=12 param_types=3,11 param_c_out= param_by_address= (string,i64) -> u8
-import 2 byte_slice std_core$byte_slice host=byte_slice result_type=3 param_types=3,11,11 param_c_out= param_by_address= (string,i64,i64) -> string
-import 3 bytes std_core$bytes host=bytes result_type=14 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 4 hash std_core$string$Hash$hash result_type=16 param_types=3 param_c_out= param_by_address= (string) -> u64
-import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=8,14,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=11 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$Intrinsic$byte_at host=byte_at result_type=12 param_types=3,11 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$Intrinsic$byte_slice host=byte_slice result_type=3 param_types=3,11,11 param_c_out= param_by_address= (string,i64,i64) -> string
+import 3 bytes std_core$Intrinsic$bytes host=bytes result_type=13 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 4 hash std_core$string$Hash$hash result_type=15 param_types=3 param_c_out= param_by_address= (string) -> u64
+import 5 extern :write system_posix$sys_write headers=<unistd.h> result_type=11 param_types=8,13,11 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 6 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=8 () -> i32
-import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=15 () -> void
+import 7 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=14 () -> void
 impl 1 std_core$Into
 impl 6 snippet$Shower
 impl 10 std_core$ByteAccess
-impl 17 std_core$Index
-impl 17 std_core$IndexSet
-impl 17 std_core$Contains
-impl 17 std_core$Into
+impl 16 std_core$Index
+impl 16 std_core$IndexSet
+impl 16 std_core$Contains
+impl 16 std_core$Into
 impl 20 std_core$Index
 impl 20 std_core$IndexSet
 impl 20 std_core$Contains
@@ -233,7 +233,7 @@ fn 7 snippet$main () -> i32
   i64.const 0
   i64.const 0
   i64.const 0
-  struct.new 17   ; std_collections$Map__string__Any
+  struct.new 16   ; std_collections$Map__string__Any
   local.set 2   ; h
   i32.const 8
   struct.new 1   ; snippet$Celsius
@@ -276,7 +276,7 @@ fn 7 snippet$main () -> i32
   local.field 0 2 0   ; l snippet$Label.text
   ref.cast 3   ; string
   local.tee 1   ; $field_7
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 7   ; $call_63
   i64.const 35
   local.get 7   ; $call_63
@@ -466,17 +466,17 @@ fn 11 concat_3 (string,string,string) -> string
   local $call_8 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 4   ; $call_5
   local.get 3   ; c0
   local.get 4   ; $call_5
   i64.add
   local.set 4   ; $call_5
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 5   ; $call_8
   local.get 4   ; $call_5
   local.get 5   ; $call_8
@@ -506,10 +506,10 @@ fn 12 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -544,7 +544,7 @@ fn 14 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -754,7 +754,7 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
   local.set 2   ; if_res
   i64.const 0
   local.set 4   ; e
-  local.field 0 17 5   ; arg 0 std_collections$Map__string__Any.size
+  local.field 0 16 5   ; arg 0 std_collections$Map__string__Any.size
   ref.cast 11   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
@@ -762,7 +762,7 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
     local.get 5   ; __for_hi_1
     i64.lt
     if $L4 void
-      local.field 0 17 0   ; arg 0 std_collections$Map__string__Any.ekeys
+      local.field 0 16 0   ; arg 0 std_collections$Map__string__Any.ekeys
       local.get 4   ; e
       array.get 21   ; string[]
       ref.cast 3   ; string
@@ -808,10 +808,10 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
   end $L3
   local.get 0   ; arg 0
   local.get 3   ; fresh
-  struct.set 17 2   ; std_collections$Map__string__Any.index
+  struct.set 16 2   ; std_collections$Map__string__Any.index
   local.get 0   ; arg 0
   local.get 2   ; if_res
-  struct.set 17 3   ; std_collections$Map__string__Any.mask
+  struct.set 16 3   ; std_collections$Map__string__Any.mask
   local.get 1   ; arg 1
   i64.const 4
   i64.div
@@ -820,10 +820,10 @@ fn 20 std_collections$rehash__string__Any (ref,i64) -> void
   local.set 2   ; if_res
   local.get 0   ; arg 0
   local.get 2   ; if_res
-  struct.set 17 4   ; std_collections$Map__string__Any.grow_at
+  struct.set 16 4   ; std_collections$Map__string__Any.grow_at
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 17 6   ; std_collections$Map__string__Any.tombs
+  struct.set 16 6   ; std_collections$Map__string__Any.tombs
   return
 end
 
@@ -834,7 +834,7 @@ fn 21 std_collections$grow_index__string__Any (ref) -> void
   i64.const 16
   local.set 1   ; new_count
   loop $L0 void
-    local.field 0 17 5   ; arg 0 std_collections$Map__string__Any.size
+    local.field 0 16 5   ; arg 0 std_collections$Map__string__Any.size
     ref.cast 11   ; i64
     i64.const 4
     i64.checked_mul
@@ -873,7 +873,7 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
   local.set 3   ; first_tomb
   i64.const -1
   local.set 4   ; empty
-  local.field 0 17 2   ; arg 0 std_collections$Map__string__Any.index
+  local.field 0 16 2   ; arg 0 std_collections$Map__string__Any.index
   array.len
   i64.const 0
   i64.gt
@@ -881,7 +881,7 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
     local.get 1   ; arg 1
     call 30   ; std_core$string$Hash$hash$$wrapper
     local.set 5   ; perturb
-    local.field 0 17 3   ; arg 0 std_collections$Map__string__Any.mask
+    local.field 0 16 3   ; arg 0 std_collections$Map__string__Any.mask
     ref.cast 11   ; i64
     local.set 6   ; $field_13
     local.get 5   ; perturb
@@ -889,7 +889,7 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
     call 18   ; std_collections$first_slot
     local.set 6   ; $field_13
     loop $L1 void
-      local.field 0 17 2   ; arg 0 std_collections$Map__string__Any.index
+      local.field 0 16 2   ; arg 0 std_collections$Map__string__Any.index
       local.get 6   ; $field_13
       load_slot_i32
       local.tee 7   ; slot
@@ -914,14 +914,14 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
           i64.const 1
           i64.checked_sub
           local.set 8   ; ei
-          local.field 0 17 0   ; arg 0 std_collections$Map__string__Any.ekeys
+          local.field 0 16 0   ; arg 0 std_collections$Map__string__Any.ekeys
           local.get 8   ; ei
           array.get 21   ; string[]
           ref.cast 3   ; string
           local.get 1   ; arg 1
           string.eq
           if $L5 void
-            local.field 0 17 1   ; arg 0 std_collections$Map__string__Any.evals
+            local.field 0 16 1   ; arg 0 std_collections$Map__string__Any.evals
             local.get 8   ; ei
             local.get 2   ; arg 2
             array.set 22   ; ref[]
@@ -932,7 +932,7 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
         i64.const 5
         u64.shr
         local.set 5   ; perturb
-        local.field 0 17 3   ; arg 0 std_collections$Map__string__Any.mask
+        local.field 0 16 3   ; arg 0 std_collections$Map__string__Any.mask
         ref.cast 11   ; i64
         local.set 9   ; $field_36
         local.get 6   ; $field_13
@@ -946,31 +946,31 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
     local.get 6   ; $field_13
     local.set 4   ; empty
   end $L0
-  local.field 0 17 5   ; arg 0 std_collections$Map__string__Any.size
+  local.field 0 16 5   ; arg 0 std_collections$Map__string__Any.size
   ref.cast 11   ; i64
   local.set 6   ; $field_13
-  local.field 0 17 0   ; arg 0 std_collections$Map__string__Any.ekeys
+  local.field 0 16 0   ; arg 0 std_collections$Map__string__Any.ekeys
   array.len
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.lt
   if $L6 void
-    local.field 0 17 0   ; arg 0 std_collections$Map__string__Any.ekeys
+    local.field 0 16 0   ; arg 0 std_collections$Map__string__Any.ekeys
     local.get 6   ; $field_13
     local.get 1   ; arg 1
     array.set 21   ; string[]
-    local.field 0 17 1   ; arg 0 std_collections$Map__string__Any.evals
+    local.field 0 16 1   ; arg 0 std_collections$Map__string__Any.evals
     local.get 6   ; $field_13
     local.get 2   ; arg 2
     array.set 22   ; ref[]
   else
-    local.field 0 17 0   ; arg 0 std_collections$Map__string__Any.ekeys
+    local.field 0 16 0   ; arg 0 std_collections$Map__string__Any.ekeys
     local.get 1   ; arg 1
     array.push 3   ; string
-    local.field 0 17 1   ; arg 0 std_collections$Map__string__Any.evals
+    local.field 0 16 1   ; arg 0 std_collections$Map__string__Any.evals
     local.get 2   ; arg 2
-    array.push 19   ; ref
+    array.push 18   ; ref
   end $L6
   local.get 6   ; $field_13
   i64.const 1
@@ -978,15 +978,15 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
   local.set 8   ; ei
   local.get 0   ; arg 0
   local.get 8   ; ei
-  struct.set 17 5   ; std_collections$Map__string__Any.size
-  local.field 0 17 6   ; arg 0 std_collections$Map__string__Any.tombs
+  struct.set 16 5   ; std_collections$Map__string__Any.size
+  local.field 0 16 6   ; arg 0 std_collections$Map__string__Any.tombs
   ref.cast 11   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
   local.set 8   ; ei
-  local.field 0 17 4   ; arg 0 std_collections$Map__string__Any.grow_at
+  local.field 0 16 4   ; arg 0 std_collections$Map__string__Any.grow_at
   ref.cast 11   ; i64
   local.set 9   ; $field_36
   local.get 8   ; ei
@@ -1001,15 +1001,15 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
   i64.const 0
   i64.ge
   if $L8 void
-    local.field 0 17 6   ; arg 0 std_collections$Map__string__Any.tombs
+    local.field 0 16 6   ; arg 0 std_collections$Map__string__Any.tombs
     ref.cast 11   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
     local.get 0   ; arg 0
     local.get 8   ; ei
-    struct.set 17 6   ; std_collections$Map__string__Any.tombs
-    local.field 0 17 2   ; arg 0 std_collections$Map__string__Any.index
+    struct.set 16 6   ; std_collections$Map__string__Any.tombs
+    local.field 0 16 2   ; arg 0 std_collections$Map__string__Any.index
     local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
@@ -1021,7 +1021,7 @@ fn 22 std_collections$put__string__Any (ref,string,any) -> bool
     local.get 7   ; slot
     store_slot_i32
   else
-    local.field 0 17 2   ; arg 0 std_collections$Map__string__Any.index
+    local.field 0 16 2   ; arg 0 std_collections$Map__string__Any.index
     local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
@@ -1042,7 +1042,7 @@ fn 23 std_collections$get__string__Any (ref,string) -> any
   local slot i32
   local ei i64
   local $field_31 i64
-  local.field 0 17 2   ; arg 0 std_collections$Map__string__Any.index
+  local.field 0 16 2   ; arg 0 std_collections$Map__string__Any.index
   array.len
   i64.const 0
   i64.eq
@@ -1052,7 +1052,7 @@ fn 23 std_collections$get__string__Any (ref,string) -> any
   local.get 1   ; arg 1
   call 30   ; std_core$string$Hash$hash$$wrapper
   local.set 2   ; perturb
-  local.field 0 17 3   ; arg 0 std_collections$Map__string__Any.mask
+  local.field 0 16 3   ; arg 0 std_collections$Map__string__Any.mask
   ref.cast 11   ; i64
   local.set 3   ; $field_9
   local.get 2   ; perturb
@@ -1060,7 +1060,7 @@ fn 23 std_collections$get__string__Any (ref,string) -> any
   call 18   ; std_collections$first_slot
   local.set 3   ; $field_9
   loop $L1 void
-    local.field 0 17 2   ; arg 0 std_collections$Map__string__Any.index
+    local.field 0 16 2   ; arg 0 std_collections$Map__string__Any.index
     local.get 3   ; $field_9
     load_slot_i32
     local.tee 4   ; slot
@@ -1077,14 +1077,14 @@ fn 23 std_collections$get__string__Any (ref,string) -> any
         i64.const 1
         i64.checked_sub
         local.set 5   ; ei
-        local.field 0 17 0   ; arg 0 std_collections$Map__string__Any.ekeys
+        local.field 0 16 0   ; arg 0 std_collections$Map__string__Any.ekeys
         local.get 5   ; ei
         array.get 21   ; string[]
         ref.cast 3   ; string
         local.get 1   ; arg 1
         string.eq
         if $L4 void
-          local.field 0 17 1   ; arg 0 std_collections$Map__string__Any.evals
+          local.field 0 16 1   ; arg 0 std_collections$Map__string__Any.evals
           local.get 5   ; ei
           array.get 22   ; ref[]
           return
@@ -1094,7 +1094,7 @@ fn 23 std_collections$get__string__Any (ref,string) -> any
       i64.const 5
       u64.shr
       local.set 2   ; perturb
-      local.field 0 17 3   ; arg 0 std_collections$Map__string__Any.mask
+      local.field 0 16 3   ; arg 0 std_collections$Map__string__Any.mask
       ref.cast 11   ; i64
       local.set 6   ; $field_31
       local.get 3   ; $field_9
@@ -1124,7 +1124,7 @@ fn 24 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 3   ; std_core$bytes
+  call.import 3   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -1143,7 +1143,7 @@ fn 24 std_console$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_9
-      array.slice 14   ; u8[]
+      array.slice 13   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_12
@@ -1230,7 +1230,7 @@ fn 28 std_string$trim (string) -> string
   local lo i64
   local $sub_checked_13 i64
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 1   ; n
   i64.const 0
   local.set 2   ; lo
@@ -1242,7 +1242,7 @@ fn 28 std_string$trim (string) -> string
       if $L2 void
         local.get 0   ; arg 0
         local.get 2   ; lo
-        call.import 1   ; std_core$byte_at
+        call.import 1   ; std_core$Intrinsic$byte_at
         call 29   ; std_string$is_white_byte
         if $L3 void
         else
@@ -1268,7 +1268,7 @@ fn 28 std_string$trim (string) -> string
         local.set 3   ; $sub_checked_13
         local.get 0   ; arg 0
         local.get 3   ; $sub_checked_13
-        call.import 1   ; std_core$byte_at
+        call.import 1   ; std_core$Intrinsic$byte_at
         call 29   ; std_string$is_white_byte
         if $L7 void
         else
@@ -1285,7 +1285,7 @@ fn 28 std_string$trim (string) -> string
   local.get 0   ; arg 0
   local.get 2   ; lo
   local.get 1   ; n
-  call.import 2   ; std_core$byte_slice
+  call.import 2   ; std_core$Intrinsic$byte_slice
   return
 end
 

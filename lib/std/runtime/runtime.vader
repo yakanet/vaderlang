@@ -19,48 +19,41 @@ import "system/posix"
 
 /// Force a full collection now: a minor, then a major over the old
 /// generation. Returns once it completes.
-@intrinsic
-export collect :: fn() -> void
+export collect :: fn() -> void = Intrinsic.collect()
 
 /// Total number of GC cycles run since process start. Monotonically
 /// increasing ; useful for asserting in stress tests that a forced
 /// `collect()` actually ran.
 /// @return  total cycle count since process start.
-@intrinsic
-export collections :: fn() -> i64
+export collections :: fn() -> i64 = Intrinsic.collections()
 
 /// Old-generation live bytes plus the young generation's allocation. Right
 /// after `collect()` this is the live-object footprint ; mid-mutation it also
 /// counts uncollected garbage.
 /// @return  the bytes in use, old and young.
-@intrinsic
-export bytes_used :: fn() -> i64
+export bytes_used :: fn() -> i64 = Intrinsic.bytes_used()
 
 /// Cumulative bytes copied across all collections. A coarse measure of
 /// total GC work: divide by `collections()` for the average per-cycle
 /// payload.
 /// @return  total bytes copied since process start.
-@intrinsic
-export bytes_copied :: fn() -> i64
+export bytes_copied :: fn() -> i64 = Intrinsic.bytes_copied()
 
 /// Cumulative bytes requested from the collector since process start. Counts
 /// every allocation only once `count_allocations()` has run, and a part of them
 /// before. 0 under the VM, which has no collector.
 /// @return  the bytes allocated, as requested.
-@intrinsic
-export allocated_bytes :: fn() -> i64
+export allocated_bytes :: fn() -> i64 = Intrinsic.allocated_bytes()
 
 /// Number of allocations made through the collector since process start,
 /// counted as `allocated_bytes()` counts their bytes.
 /// @return  the allocation count.
-@intrinsic
-export allocations :: fn() -> i64
+export allocations :: fn() -> i64 = Intrinsic.allocations()
 
 /// Count every allocation from now on, so that `allocated_bytes()` and
 /// `allocations()` miss none. Each allocation then leaves the inline path,
 /// which slows it down. Counting stays on for the rest of the run.
-@intrinsic
-export count_allocations :: fn() -> void
+export count_allocations :: fn() -> void = Intrinsic.count_allocations()
 
 // ---- memory footprint -----------------------------------------------------
 

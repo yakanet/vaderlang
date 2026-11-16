@@ -173,6 +173,9 @@
     fn std.core.Range<u64>.next  // std_core$Range$Iterator$next__u64
     fn std.core.Range<u8>.contains  // std_core$Range$Contains$contains__u8
     fn std.core.Range<u8>.next  // std_core$Range$Iterator$next__u8
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
+    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.char.step  // std_core$char$Step$step
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.finish_buffer  // std_core$finish_buffer

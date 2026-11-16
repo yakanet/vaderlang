@@ -58,9 +58,12 @@ export build_optimised_cfg :: fn(
     diags: Diagnostic[],
 ) -> CFGProject {
     measure_begin(opts, .CfgBuild)
-    cfg :: build_cfg_project(pruned, diags)
+    built :: build_cfg_project(pruned, diags)
     measure_end(opts, .CfgBuild)
-    verify_after(opts, cfg, "build_cfg_project", diags)
+    verify_after(opts, built, "build_cfg_project", diags)
+    // First: a forwarder skipped here is one frame per call on the VM.
+    cfg :: expand_host_forwarders(built)
+    verify_after(opts, cfg, "expand_host_forwarders", diags)
     // BEFORE DCE: the `struct.new` that built a returned tuple becomes unread once
     // the terminator names its fields, and DCE is what removes it: running after
     // would leave the allocation and the passes would buy nothing.

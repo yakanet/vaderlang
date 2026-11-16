@@ -41,8 +41,8 @@ data 0 structs 4 3 3 i32 c8000000 strref 19 bool 00 i32 94010000 strref 20 bool 
 data 1 u16 hex"c8009401f701"
 data 2 structs 4 3 3 i32 00000000 strref 19 bool 00 i32 00000000 strref 20 bool 00 i32 00000000 strref 21 bool 00
 data 3 structs 4 3 3 i32 00000000 strref 22 bool 00 i32 00000000 strref 23 bool 00 i32 00000000 strref 24 bool 00
-import 0 byte_len std_core$byte_len host=byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes host=bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 0 byte_len std_core$Intrinsic$byte_len host=byte_len result_type=7 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$Intrinsic$bytes host=bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 extern :write system_posix$sys_write headers=<unistd.h> result_type=7 param_types=3,8,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 extern :vader_last_errno system_posix$sys_last_errno headers=vader.h result_type=3 () -> i32
 import 4 extern :vader_end_on_broken_pipe system_posix$sys_end_on_broken_pipe headers=vader.h result_type=9 () -> void
@@ -110,7 +110,7 @@ fn 1 snippet$describe_reply (u8) -> string
   struct.get 4 1   ; snippet$StatusInfo.reason
   ref.cast 2   ; string
   local.tee 4   ; __p_1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; $cast_2
   i64.const 33
   local.get 2   ; $cast_2
@@ -238,17 +238,17 @@ fn 2 snippet$main () -> i32
       call 0   ; snippet$describe
       local.set 12   ; __p_6
       local.get 8   ; __p_4
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 13   ; $call_28
       local.get 11   ; __p_5
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 14   ; $call_29
       local.get 13   ; $call_28
       local.get 14   ; $call_29
       i64.add
       local.set 15   ; $add_30
       local.get 12   ; __p_6
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 16   ; $call_31
       local.get 15   ; $add_30
       local.get 16   ; $call_31
@@ -371,7 +371,7 @@ fn 2 snippet$main () -> i32
       struct.get 4 1   ; snippet$StatusInfo.reason
       ref.cast 2   ; string
       local.tee 8   ; __p_4
-      call.import 0   ; std_core$byte_len
+      call.import 0   ; std_core$Intrinsic$byte_len
       local.set 10   ; $cast_21
       i64.const 34
       local.get 10   ; $cast_21
@@ -516,10 +516,10 @@ fn 2 snippet$main () -> i32
   ref.cast 2   ; string
   local.set 11   ; __p_5
   local.get 8   ; __p_4
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; __for_len_1
   local.get 11   ; __p_5
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; __for_i_2
   local.get 2   ; __for_len_1
   local.get 3   ; __for_i_2
@@ -638,10 +638,10 @@ fn 4 concat_2 (string,string) -> string
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -676,7 +676,7 @@ fn 6 std_core$write_string_at (ref,i64,string) -> i64
   local.get 2   ; arg 2
   buffer_write_string
   local.get 2   ; arg 2
-  call.import 0   ; std_core$byte_len
+  call.import 0   ; std_core$Intrinsic$byte_len
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
@@ -831,7 +831,7 @@ fn 9 std_console$write (u8,string) -> void
     return
   end $L0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$bytes
+  call.import 1   ; std_core$Intrinsic$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent

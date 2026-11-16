@@ -182,6 +182,9 @@
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
     fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
+    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.char.to_string  // std_core$char$Display$to_string
     fn std.core.d2d  // std_core$d2d
     fn std.core.decimal_width  // std_core$decimal_width

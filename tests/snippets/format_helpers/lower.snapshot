@@ -66,8 +66,13 @@
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.ascii_prefix  // std_core$ascii_prefix
+    fn std.core.byte_at  // std_core$byte_at
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
+    fn std.core.bytes_to_string  // std_core$bytes_to_string
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.is_ascii  // std_core$is_ascii
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.len  // std_core$len
     fn std.core.utf8_encode  // std_core$utf8_encode

@@ -61,11 +61,11 @@ const vader_type_info_t vader_type_info_table[11] = {
         .slot_size = 8,
     },
     [6] = { .slot_size = 8 },
-    [7] = { .slot_size = 1 },
-    [8] = {
+    [7] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 1u,
     },
+    [9] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ref_offsets = vader_array_ref_offsets, .ref_count = 1, .element_tag = 2u,
@@ -77,15 +77,15 @@ const size_t vader_type_info_count = 11;
 #include <unistd.h>
 #include "vader.h"
 
-static int64_t vader_host_std_core$byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core$Intrinsic$byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static void* vader_host_std_core$bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 8u, 1u);
+static void* vader_host_std_core$Intrinsic$bytes(vader_string_t a0) {
+    return (void*) vader_string_bytes_view(a0, 7u, 1u);
 }
 
-static void vader_host_std_abort$panic(vader_string_t a0) {
+static void vader_host_std_core$Intrinsic$panic(vader_string_t a0) {
     vader_panic(a0);
 }
 
@@ -142,7 +142,7 @@ static int64_t snippet$span_until(uint8_t l0, int64_t l1) {
     l4 = std_core$write_string_at(l3, l4, 1u);
     l4 = std_core$write_int(l3, l4, l1);
     t1 = std_core$finish_buffer(l3, l4);
-    vader_host_std_abort$panic(t1);
+    vader_host_std_core$Intrinsic$panic(t1);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }
@@ -235,18 +235,18 @@ static vader_string_t concat_7(vader_string_t l0, vader_string_t l1, vader_strin
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 8u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l7 = vader_host_std_core$byte_len(l0);
-    l8 = vader_host_std_core$byte_len(l1);
+    l7 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l8 = vader_host_std_core$Intrinsic$byte_len(l1);
     l8 = (l7 + l8);
-    l9 = vader_host_std_core$byte_len(l2);
+    l9 = vader_host_std_core$Intrinsic$byte_len(l2);
     l9 = (l8 + l9);
-    l10 = vader_host_std_core$byte_len(l3);
+    l10 = vader_host_std_core$Intrinsic$byte_len(l3);
     l10 = (l9 + l10);
-    l11 = vader_host_std_core$byte_len(l4);
+    l11 = vader_host_std_core$Intrinsic$byte_len(l4);
     l11 = (l10 + l11);
-    l12 = vader_host_std_core$byte_len(l5);
+    l12 = vader_host_std_core$Intrinsic$byte_len(l5);
     l12 = (l11 + l12);
-    l13 = vader_host_std_core$byte_len(l6);
+    l13 = vader_host_std_core$Intrinsic$byte_len(l6);
     l13 = (l12 + l13);
     l14 = (void*) vader_buffer_new((size_t) l13);
     vader_buffer_write_string((vader_buffer_t*) l14, (size_t) INT64_C(0), l0);
@@ -270,8 +270,8 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l2 = vader_host_std_core$byte_len(l0);
-    l3 = vader_host_std_core$byte_len(l1);
+    l2 = vader_host_std_core$Intrinsic$byte_len(l0);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l1);
     l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
@@ -296,7 +296,7 @@ static int64_t std_core$write_string_at(void* l0, int64_t l1, vader_string_t l2)
     int64_t l3;
     int64_t t0;
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-    l3 = vader_host_std_core$byte_len(l2);
+    l3 = vader_host_std_core$Intrinsic$byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
@@ -405,7 +405,7 @@ static void snippet_clock$require_hour(int64_t l0) {
     l3 = std_core$write_string_at(l2, l3, 1u);
     l3 = std_core$write_int(l2, l3, l0);
     t0 = std_core$finish_buffer(l2, l3);
-    vader_host_std_abort$panic(t0);
+    vader_host_std_core$Intrinsic$panic(t0);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }
@@ -426,7 +426,7 @@ static void std_console$write(uint8_t l0, vader_string_t l1) {
     if (t0) {
         { vader_gc_top = gc_frame.prev; return; }
     }
-    l2 = vader_host_std_core$bytes(l1);
+    l2 = vader_host_std_core$Intrinsic$bytes(l1);
     l3 = INT64_C(0);
     for (;;) {
         l4 = vader_array_length(((vader_array_t*) l2));

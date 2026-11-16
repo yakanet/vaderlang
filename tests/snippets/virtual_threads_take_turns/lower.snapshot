@@ -117,6 +117,8 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.byte_len  // std_core$byte_len
+    fn std.core.bytes  // std_core$bytes
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.index_of<i64>  // std_core$index_of__i64
     fn std.core.remove_value<i64>  // std_core$remove_value__i64
@@ -129,9 +131,13 @@
     fn __defer_std_runtime_scheduler_0
     fn __defer_std_runtime_scheduler_2
     fn std.runtime.scheduler.await_gate  // std_runtime_scheduler$await_gate
+    fn std.runtime.scheduler.current_thread  // std_runtime_scheduler$current_thread
     fn std.runtime.scheduler.gate_or_new  // std_runtime_scheduler$gate_or_new
     fn std.runtime.scheduler.let_go  // std_runtime_scheduler$let_go
+    fn std.runtime.scheduler.park  // std_runtime_scheduler$park
     fn std.runtime.scheduler.run_gated  // std_runtime_scheduler$run_gated
+    fn std.runtime.scheduler.spawn_thread  // std_runtime_scheduler$spawn_thread
+    fn std.runtime.scheduler.wake  // std_runtime_scheduler$wake
     struct __defer_env_std_runtime_scheduler_1
     struct __defer_env_std_runtime_scheduler_3
     struct std.runtime.scheduler.InitGate  // std_runtime_scheduler$InitGate
