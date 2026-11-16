@@ -57,13 +57,12 @@ export span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
 export span_encloses :: fn(outer: Span, inner: Span) -> bool =
     inner.start.offset >= outer.start.offset && inner.end.offset <= outer.end.offset
 
-/// Coarse character extent of a span: `(lines << 16) | columns`. Used as a
-/// tie-breaker so the *smallest* node containing the cursor wins.
-export span_size :: fn(s: Span) -> u64 {
-    line_extent :: u64(s.end.line - s.start.line)
-    col_extent  :: u64(s.end.column - s.start.column)
-    return (line_extent << 16) + col_extent
-}
+/// Byte extent of a span. Used as a tie-breaker so the *smallest* node
+/// containing the cursor wins: a node nested in another never measures more.
+///
+/// A span over several lines may end at a column left of its start, so the
+/// columns alone can't measure it.
+export span_size :: fn(s: Span) -> u64 = u64(s.end.offset - s.start.offset)
 
 /// Byte offset of the first character on the source line containing `pos`.
 /// Used to absorb `export` / visibility prefixes that the parser doesn't
@@ -225,6 +224,21 @@ test_span_to_range_utf16_astral :: fn() -> void {
         .end   = Position { .file = "t", .offset = 6, .line = 1, .column = 4 },
     }
     assert_eq(span_to_range_json(sp, li).start_character, 3)
+}
+
+@test
+test_span_size_of_a_span_ending_left_of_its_start_column :: fn() -> void {
+    // "f(\n  x)" : the call ends on line 2 at column 4, left of its start at 6.
+    call :: Span {
+        .start = Position { .file = "t", .offset = 5, .line = 1, .column = 6 },
+        .end   = Position { .file = "t", .offset = 12, .line = 2, .column = 4 },
+    }
+    argument :: Span {
+        .start = Position { .file = "t", .offset = 10, .line = 2, .column = 2 },
+        .end   = Position { .file = "t", .offset = 11, .line = 2, .column = 3 },
+    }
+    assert_eq(span_size(call), 7)
+    assert(span_size(argument) < span_size(call), "the argument is smaller than the call")
 }
 
 @test
