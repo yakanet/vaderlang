@@ -221,22 +221,31 @@ vader_fn_t vader_fn_static_vader_front_typecheck$check_arith = {
     VADER_STATIC_HEADER(481u), (void*) &vader_fn_tramp_vader_front_typecheck$check_arith, NULL,
 };
 
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_77(void* env, vader_box_t a0) {
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_76(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_bool(505u, __lambda_vader_front_typecheck_77(a0));
+    return vader_box_bool(505u, __lambda_vader_front_typecheck_76(a0));
 }
 
-vader_fn_t vader_fn_static___lambda_vader_front_typecheck_77 = {
-    VADER_STATIC_HEADER(499u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_77, NULL,
+vader_fn_t vader_fn_static___lambda_vader_front_typecheck_76 = {
+    VADER_STATIC_HEADER(499u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_76, NULL,
 };
 
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_79(void* env, vader_box_t a0) {
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_78(void* env, vader_box_t a0) {
     (void) env;
-    return vader_box_bool(505u, __lambda_vader_front_typecheck_79(a0));
+    return vader_box_bool(505u, __lambda_vader_front_typecheck_78(a0));
+}
+
+vader_fn_t vader_fn_static___lambda_vader_front_typecheck_78 = {
+    VADER_STATIC_HEADER(499u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_78, NULL,
+};
+
+vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_79(void* env) {
+    (void) env;
+    return vader_ref_box(__lambda_vader_front_typecheck_79());
 }
 
 vader_fn_t vader_fn_static___lambda_vader_front_typecheck_79 = {
-    VADER_STATIC_HEADER(499u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_79, NULL,
+    VADER_STATIC_HEADER(429u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_79, NULL,
 };
 
 vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_80(void* env) {
@@ -246,15 +255,6 @@ vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_80(void* env) {
 
 vader_fn_t vader_fn_static___lambda_vader_front_typecheck_80 = {
     VADER_STATIC_HEADER(429u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_80, NULL,
-};
-
-vader_box_t vader_fn_tramp___lambda_vader_front_typecheck_81(void* env) {
-    (void) env;
-    return vader_ref_box(__lambda_vader_front_typecheck_81());
-}
-
-vader_fn_t vader_fn_static___lambda_vader_front_typecheck_81 = {
-    VADER_STATIC_HEADER(429u), (void*) &vader_fn_tramp___lambda_vader_front_typecheck_81, NULL,
 };
 
 vader_box_t vader_fn_tramp___lambda_vader_lower_2(void* env) {
@@ -592,16 +592,6 @@ vader_box_t vader_fn_tramp_toolchain_ast$ignore_node(void* env, vader_box_t a0) 
 
 vader_fn_t vader_fn_static_toolchain_ast$ignore_node = {
     VADER_STATIC_HEADER(494u), (void*) &vader_fn_tramp_toolchain_ast$ignore_node, NULL,
-};
-
-vader_box_t vader_fn_tramp_toolchain_parser$specs_by_name$keep(void* env) {
-    (void) env;
-    toolchain_parser$specs_by_name$keep();
-    return vader_box_null();
-}
-
-vader_fn_t vader_fn_static_toolchain_parser$specs_by_name$keep = {
-    VADER_STATIC_HEADER(447u), (void*) &vader_fn_tramp_toolchain_parser$specs_by_name$keep, NULL,
 };
 
 vader_box_t vader_fn_tramp___lambda_toolchain_parser_4(void* env, vader_box_t a0) {
@@ -1020,30 +1010,30 @@ vader_box_t vader_fn_lift___lambda_vader_front_typecheck_35(void* env) {
     return __lambda_vader_front_typecheck_35(env);
 }
 
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_39(void* env, vader_box_t a0) {
-    return vader_box_i32(512u, (int32_t)(uint32_t) __lambda_vader_front_typecheck_39(env, a0));
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_38(void* env, vader_box_t a0) {
+    return vader_box_i32(512u, (int32_t)(uint32_t) __lambda_vader_front_typecheck_38(env, a0));
 }
 
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_41(void* env, vader_box_t a0) {
-    return vader_box_i32(512u, (int32_t)(uint32_t) __lambda_vader_front_typecheck_41(env, a0));
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_40(void* env, vader_box_t a0) {
+    return vader_box_i32(512u, (int32_t)(uint32_t) __lambda_vader_front_typecheck_40(env, a0));
 }
 
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_43(void* env, vader_box_t a0) {
-    return vader_box_bool(505u, __lambda_vader_front_typecheck_43(env, a0));
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_42(void* env, vader_box_t a0) {
+    return vader_box_bool(505u, __lambda_vader_front_typecheck_42(env, a0));
 }
 
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_52(void* env, vader_box_t a0) {
-    __lambda_vader_front_typecheck_52(env, a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_51(void* env, vader_box_t a0) {
+    __lambda_vader_front_typecheck_51(env, a0);
     return vader_box_null();
 }
 
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_54(void* env, vader_box_t a0) {
-    __lambda_vader_front_typecheck_54(env, a0);
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_53(void* env, vader_box_t a0) {
+    __lambda_vader_front_typecheck_53(env, a0);
     return vader_box_null();
 }
 
-vader_box_t vader_fn_lift___lambda_vader_front_typecheck_68(void* env, vader_box_t a0) {
-    return vader_box_bool(505u, __lambda_vader_front_typecheck_68(env, a0));
+vader_box_t vader_fn_lift___lambda_vader_front_typecheck_67(void* env, vader_box_t a0) {
+    return vader_box_bool(505u, __lambda_vader_front_typecheck_67(env, a0));
 }
 
 vader_box_t vader_fn_lift___lambda_vader_lower_0(void* env, vader_box_t a0) {
@@ -1317,8 +1307,8 @@ uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv) {
         case 514u: return std_core$u32$Hash$hash(((uint32_t) recv.payload.i));
         case 515u: return std_core$u64$Hash$hash(((uint64_t) recv.payload.i));
         case 506u: return std_core$char$Hash$hash(((uint32_t) recv.payload.i));
-        case 1780u: return vader_vm$Scalar$std_core$Hash$hash(recv.payload.obj);
-        case 1033u: return toolchain_span$Span$std_core$Hash$hash(recv.payload.obj);
+        case 1781u: return vader_vm$Scalar$std_core$Hash$hash(recv.payload.obj);
+        case 1034u: return toolchain_span$Span$std_core$Hash$hash(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Hash.hash");
     }
     vader_unreachable("vtable miss in std_core$Hash.hash");
@@ -1326,9 +1316,9 @@ uint64_t std_core$Hash$hash$$dispatch(vader_box_t recv) {
 
 vader_box_t std_core$Iterator$next$$dispatch(vader_box_t recv) {
     switch (recv.tag) {
-        case 898u: return std_core$Range$Iterator$next__i64(recv.payload.obj);
-        case 907u: return std_string$StringChars$std_core$Iterator$next(recv.payload.obj);
-        case 909u: return toolchain_ast$$genstate_decorator_sites$Iterator$next(recv.payload.obj);
+        case 899u: return std_core$Range$Iterator$next__i64(recv.payload.obj);
+        case 908u: return std_string$StringChars$std_core$Iterator$next(recv.payload.obj);
+        case 910u: return toolchain_ast$$genstate_decorator_sites$Iterator$next(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
     vader_unreachable("vtable miss in std_core$Iterator.next");
@@ -1349,9 +1339,9 @@ bool std_core$Equals$equals$$dispatch(vader_box_t recv, vader_box_t a0) {
         case 505u: return std_core$bool$Equals$equals$guard(recv.payload.b, a0);
         case 506u: return std_core$char$Equals$equals$guard(((uint32_t) recv.payload.i), a0);
         case 507u: return std_core$string$Equals$equals$guard(recv.payload.s, a0);
-        case 1750u: return vader_support_target$Target$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 1780u: return vader_vm$Scalar$std_core$Equals$equals$guard(recv.payload.obj, a0);
-        case 1033u: return toolchain_span$Span$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1751u: return vader_support_target$Target$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1781u: return vader_vm$Scalar$std_core$Equals$equals$guard(recv.payload.obj, a0);
+        case 1034u: return toolchain_span$Span$std_core$Equals$equals$guard(recv.payload.obj, a0);
         default: vader_unreachable("vtable miss in std_core$Equals.equals");
     }
     vader_unreachable("vtable miss in std_core$Equals.equals");

@@ -42,6 +42,14 @@ static inline uint64_t vader_host_std_core$string$Hash$hash(vader_string_t a0) {
     return vader_string_hash(a0);
 }
 
+static inline uint8_t vader_host_std_target$current_os(void) {
+    return vader_current_os();
+}
+
+static inline uint8_t vader_host_std_target$current_arch(void) {
+    return vader_current_arch();
+}
+
 static inline int64_t vader_host_system_posix$sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     vader_foreign_depth += 1;
@@ -216,14 +224,6 @@ static inline int32_t vader_host_system_posix$sys_getrusage(int32_t a0, void* a1
     int32_t r = getrusage(a0, (void*) s1.ptr);
     vader_foreign_depth -= 1;
     return r;
-}
-
-static inline uint8_t vader_host_std_target$current_os(void) {
-    return vader_current_os();
-}
-
-static inline uint8_t vader_host_std_target$current_arch(void) {
-    return vader_current_arch();
 }
 
 static inline int64_t vader_host_vader_vm$ffi_open(vader_string_t a0) {

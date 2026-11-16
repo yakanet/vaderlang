@@ -88,7 +88,7 @@ static void* vader_support_fixpoint$components_bottom_up(void* l0) {
     vader_array_t* _a8_arr = vader_array_new(28u, 0u, 8u, 511u);
     l7 = (void*) _a8_arr;
     vader_struct_vader_support_fixpoint$TarjanWalk_t* _a9_obj = (vader_struct_vader_support_fixpoint$TarjanWalk_t*) vader_gc_alloc(sizeof(vader_struct_vader_support_fixpoint$TarjanWalk_t));
-    vader_obj_header_init(_a9_obj, 1742u);
+    vader_obj_header_init(_a9_obj, 1743u);
     _a9_obj->f_order = l2;
     _a9_obj->f_low = l3;
     _a9_obj->f_on_stack = l4;
@@ -298,7 +298,7 @@ static void* vader_support_fixpoint$pop_component(void* l0, int32_t l1) {
         }
         break;
     }
-    vader_host_std_abort$panic(3071u);
+    vader_host_std_abort$panic(3037u);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }

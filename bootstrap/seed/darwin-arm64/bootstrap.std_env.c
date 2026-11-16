@@ -26,7 +26,7 @@ vader_string_t std_env$current_executable_location(void) {
     l1 = (void*) _a2_arr;
     t1 = vader_host_system_darwin$ns_get_executable_path(l0, l1);
     if (t1 != INT32_C(0)) {
-        { vader_gc_top = gc_frame.prev; return 434u; }
+        { vader_gc_top = gc_frame.prev; return 433u; }
     }
     vader_array_t* _a3_arr = vader_array_new(29u, 1u, 1u, 512u);
     ((uint8_t*) _a3_arr->buf->slots)[vader_array_offset(_a3_arr) + 0u] = (uint8_t) INT32_C(0);
@@ -39,7 +39,7 @@ vader_string_t std_env$current_executable_location(void) {
         t2 = system_posix$up_to_nul(l1);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return 434u; }
+    { vader_gc_top = gc_frame.prev; return 433u; }
 }
 
 vader_string_t std_env$current_working_directory(void) {
@@ -66,7 +66,7 @@ vader_string_t std_env$current_working_directory(void) {
         t2 = system_posix$up_to_nul(l0);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    { vader_gc_top = gc_frame.prev; return 434u; }
+    { vader_gc_top = gc_frame.prev; return 433u; }
 }
 
 vader_box_t std_env$get_env(vader_string_t l0) {
@@ -122,6 +122,6 @@ vader_box_t std_env$set_current_working_directory(vader_string_t l0) {
     if (!(t0 != INT32_C(0))) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    t1 = std_io$last_io_error(1994u);
+    t1 = std_io$last_io_error(1943u);
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
